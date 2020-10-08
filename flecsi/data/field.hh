@@ -163,6 +163,8 @@ struct field : data::detail::field_base<T, L> {
       return {*this, t};
     }
   };
+
+  field() = delete;
 };
 
 namespace data {
