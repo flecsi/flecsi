@@ -28,7 +28,7 @@
 namespace flecsi {
 namespace topo {
 
-struct canonical_base {
+struct canonical_base : with_meta<canonical_base> {
 
   struct coloring {
     std::size_t colors;
@@ -40,11 +40,10 @@ struct canonical_base {
     util::id column_size, column_offset;
   };
 
-protected:
-  using meta_topo = meta<canonical_base>;
+  using with_meta::with_meta;
 
-public:
-  static inline const field<Meta, data::single>::definition<meta_topo>
+  static inline const field<Meta,
+    data::single>::definition<topo::meta<canonical_base>>
     meta_field;
 
   static std::size_t
