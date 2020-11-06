@@ -51,6 +51,7 @@ private:
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
+  // The const prevents being a better match than more specialized overloads.
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::convert_tag, A>> visit(P &,
     const A &) {
