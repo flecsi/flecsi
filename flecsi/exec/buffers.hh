@@ -23,21 +23,16 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
+#include "flecsi/data/reference.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/demangle.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
-#include <legion.h>
 
 namespace flecsi {
 
 inline log::devel_tag unbind_accessors_tag("unbind_accessors");
 
-namespace exec::leg {
+namespace exec {
 
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
@@ -96,5 +91,5 @@ private:
   std::tuple<buffer_t<TT>...> buf;
 };
 
-} // namespace exec::leg
+} // namespace exec
 } // namespace flecsi

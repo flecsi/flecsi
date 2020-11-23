@@ -18,6 +18,7 @@
 
 set(exec_HEADERS
   backend.hh
+  buffers.hh
   fold.hh
   kernel_interface.hh
   launch.hh
@@ -31,7 +32,6 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     ${exec_HEADERS}
     leg/bind_accessors.hh
     leg/task_wrapper.hh
-    leg/unbind_accessors.hh
     leg/policy.hh
     leg/future.hh
     leg/task_prologue.hh
