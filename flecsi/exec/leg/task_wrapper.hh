@@ -268,7 +268,7 @@ struct task_wrapper {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    unbind_accessors ub(task_args);
+    param_buffers ub(task_args);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_accessors(runtime, context, regions, task->futures)(task_args);
 
@@ -312,7 +312,7 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    unbind_accessors ub(*p);
+    param_buffers ub(*p);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_accessors(runtime, context, regions, task->futures)(*p);
 

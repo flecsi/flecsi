@@ -30,13 +30,14 @@
 
 namespace flecsi {
 
-inline log::devel_tag unbind_accessors_tag("unbind_accessors");
+inline log::devel_tag param_buffers_tag("param_buffers");
 
 namespace exec {
 
+namespace detail {
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
-struct unbind_base {
+struct param_buffers {
   template<data::layout L, typename DATA_TYPE, size_t PRIVILEGES>
   void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
 
@@ -57,18 +58,19 @@ struct unbind_base {
     typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
     visit(DATA_TYPE &) {
     {
-      log::devel_guard guard(unbind_accessors_tag);
+      log::devel_guard guard(param_buffers_tag);
       flog_devel(info) << "No cleanup for parameter of type "
                        << util::type<DATA_TYPE>() << std::endl;
     }
   } // visit
 };
+} // namespace detail
 
 template<class... TT>
-struct unbind_accessors : unbind_base {
+struct param_buffers : private detail::param_buffers {
   using Tuple = std::tuple<TT...>;
 
-  unbind_accessors(Tuple & t) : acc(t) {
+  param_buffers(Tuple & t) : acc(t) {
     buffer(std::index_sequence_for<TT...>());
   }
 
