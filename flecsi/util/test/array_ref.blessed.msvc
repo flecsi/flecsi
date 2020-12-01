@@ -4,8 +4,6 @@ double const * __ptr64
 double
 double
 double const * __ptr64
-double const * __ptr64
-class std::reverse_iterator<double const * __ptr64>
 class std::reverse_iterator<double const * __ptr64>
 unsigned __int64
 __int64
