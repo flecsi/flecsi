@@ -37,11 +37,11 @@ set(topo_HEADERS
   structured/interface.hh
   structured/simple_box_colorer.hh
   structured/types.hh
+  unstructured/closure_utils.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
   unstructured/interface.hh
   unstructured/types.hh
-  unstructured/closure_utils.hh
   utility_types.hh
 )
 
@@ -139,11 +139,15 @@ add_unit(unstructured
   THREADS 2
 )
 
+if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+
 add_unit(fixed
   SOURCES
     unstructured/test/fixed.cc
   THREADS 4
 )
+
+endif()
 
 # ntree -----------------------------------------------------------------------#
 

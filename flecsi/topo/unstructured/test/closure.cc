@@ -28,6 +28,7 @@ using namespace flecsi;
 struct closure_policy {
 
   using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
+  // using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 2>;
 
   using auxiliary =
     std::tuple<topo::unstructured_impl::auxiliary_independent<1, 0, 2>>;
@@ -36,18 +37,29 @@ struct closure_policy {
     std::tuple_size<auxiliary>::value;
 }; // coloring_policy
 
+#if 0
+struct staging_area {
+  std::vector<std::size_t> raw;
+  std::map<std::size_t, std::vector<std::size_t>> primaries;
+}; // struct staging_area
+
+staging_area staging;
+#endif
+
 int
 compute_closure() {
   UNIT {
 #if 1
     const std::size_t colors{4};
     topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
+    // const std::size_t colors{6};
+    // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 #else
     const std::size_t colors{6};
     topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
 
-    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);
 
 #if 0
@@ -63,7 +75,9 @@ compute_closure() {
       } // for
       flog(error) << ss.str() << std::endl;
     } // scope
+#endif
 
+#if 0
     {
       std::stringstream ss;
       ss << "raw:" << std::endl;
@@ -71,7 +85,7 @@ compute_closure() {
         ss << r << " ";
       }
       ss << std::endl;
-      flog_devel(warn) << ss.str();
+      flog(warn) << ss.str();
     } // scope
 #endif
 
@@ -97,10 +111,10 @@ compute_closure() {
     }
 #endif
 
-    auto [primaries, l2m] =
+    auto [primaries, p2m, m2p] =
       topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
-#if 1
+#if 0
     flog(info) << "PRIMARIES" << std::endl;
     for(auto co : primaries) {
       std::stringstream ss;
@@ -109,20 +123,6 @@ compute_closure() {
         ss << c << " ";
       } // for
       flog(warn) << ss.str() << std::endl;
-
-#if 0
-      flog(info) << "Color: " << co.first << std::endl;
-      std::size_t cid{0};
-      for(auto c : co.second) {
-        std::stringstream ss;
-        ss << "cell " << l2m[co.first][cid++] << ": ";
-
-        for(auto v : c) {
-          ss << v << " ";
-        } // for
-        flog(warn) << ss.str() << std::endl;
-      } // for
-#endif
     } // for
 
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
@@ -149,7 +149,7 @@ compute_closure() {
     std::size_t lid{0};
     for(auto const & c : c2v) {
       std::stringstream ss;
-      ss << "cell " << l2m[lid++] << ": ";
+      ss << "cell " << p2m[lid++] << ": ";
       for(auto const & v : c) {
         ss << v << " ";
       } // for
@@ -157,9 +157,43 @@ compute_closure() {
     } // for
 #endif
 
-    for(auto p : primaries) {
-      topo::unstructured_impl::closure<closure_policy>(p.second);
+#if 1
+    auto colorings = topo::unstructured_impl::closure<closure_policy>(
+      sd, colors, raw, primaries, c2v, v2c, c2c, m2p, p2m);
+#endif
+
+#if 0
+    flog(info) << "V2C CONNECTIVITIES" << std::endl;
+    for(auto const & v : v2c) {
+      std::stringstream ss;
+      ss << "vertex " << v.first << ": ";
+      for(auto const & c : v.second) {
+        ss << c << " ";
+      } // for
+      flog(warn) << ss.str() << std::endl;
     } // for
+
+    flog(info) << "C2C CONNECTIVITIES" << std::endl;
+    for(auto const & c : c2c) {
+      std::stringstream ss;
+      ss << "cell " << c.first << ": ";
+      for(auto const & cc : c.second) {
+        ss << cc << " ";
+      } // for
+      flog(warn) << ss.str() << std::endl;
+    } // for
+
+    flog(info) << "CELL DEFINITIONS" << std::endl;
+    std::size_t lid{0};
+    for(auto const & c : c2v) {
+      std::stringstream ss;
+      ss << "cell " << p2m[lid++] << ": ";
+      for(auto const & v : c) {
+        ss << v << " ";
+      } // for
+      flog(warn) << ss.str() << std::endl;
+    } // for
+#endif
   };
 }
 
