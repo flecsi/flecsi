@@ -88,7 +88,7 @@ struct points {
   // Derives points from the field values (which should be of type Value)
   // in each row of the argument partition, which must outlive this value.
   points(const region_base &,
-    const partition &,
+    const intervals &,
     field_id_t,
     completeness = incomplete);
 };

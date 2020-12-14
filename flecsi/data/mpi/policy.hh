@@ -82,7 +82,7 @@ struct points {
   }
 
   points(const region_base &,
-    const partition &,
+    const intervals &,
     field_id_t,
     completeness = incomplete) {}
 };
