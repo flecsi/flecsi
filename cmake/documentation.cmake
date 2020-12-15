@@ -13,6 +13,7 @@
 #------------------------------------------------------------------------------#
 
 include(CMakeDependentOption)
+include(colors)
 
 option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
 mark_as_advanced(ENABLE_DOCUMENTATION)
@@ -86,12 +87,20 @@ if(ENABLE_DOCUMENTATION)
         echo "Updating gh-pages" &&
           ([ -e gh-pages ] ||
             ${GIT_EXECUTABLE} clone --branch gh-pages
-              git@gitlab.lanl.gov:laristra/flecsi.git gh-pages) &&
+              git@gitlab.lanl.gov:flecsi/flecsi-pages.git gh-pages &&
+            cd gh-pages &&
+            ${GIT_EXECUTABLE} remote rm origin &&
+            ${GIT_EXECUTABLE} remote add origin
+              git@github.com:flecsi/flecsi.git &&
+              ${GIT_EXECUTABLE} fetch) &&
         echo "Updating Sphinx pages" &&
           cp -rT doc/sphinx gh-pages &&
         echo "Updating Doxygen pages" &&
           cp -rT doc/doxygen/html gh-pages/doxygen &&
-        echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages"
+        echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages" &&
+        echo "${FLECSI_Red}!!!WARNING WARNING WARNING!!!" &&
+        echo "The gh-pages repository points to an EXTERNAL remote on github.com." &&
+        echo "!!!MAKE SURE THAT YOU UNDERSTAND WHAT YOU ARE DOING BEFORE YOU PUSH!!!${FLECSI_ColorReset}"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   endif()
