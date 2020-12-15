@@ -44,6 +44,46 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   using ent_t = flecsi::topo::sort_entity<dimension, double, key_t>;
   using node_t = flecsi::topo::node<dimension, double, key_t>;
 
+  using point_t = util::point<double, dimension>;
+
+  static inline const field<point_t>::definition<sph_ntree_t,
+    sph_ntree_t::base::entities>
+    e_coordinates;
+  static inline const field<double>::definition<sph_ntree_t,
+    sph_ntree_t::base::entities>
+    e_radius, e_masses;
+
+  static inline const field<double>::definition<sph_ntree_t,
+    sph_ntree_t::base::entities>
+    n_radius, n_masses, n_lap;
+  static inline const field<point_t>::definition<sph_ntree_t,
+    sph_ntree_t::base::entities>
+    n_coordinates, n_bmin, n_bmax;
+
+  static void init_fields(sph_ntree_t::accessor<wo> t,
+    field<point_t>::accessor<wo> coordinates,
+    field<double>::accessor<wo> radius,
+    field<double>::accessor<wo> masses,
+    const std::vector<sph_ntree_t::ent_t> & ents) {
+    for(size_t i = 0; i < ents.size(); ++i) {
+      coordinates(i) = ents[i].coordinates();
+      radius(i) = ents[i].radius();
+      t.e_keys(i) = ents[i].key();
+      masses(i) = 1;
+    }
+    t.exchange_boundaries();
+  } // init_task
+
+  static void initialize(data::topology_slot<sph_ntree_t> & ts,
+    coloring,
+    std::vector<ent_t> & ents) {
+
+    flecsi::execute<init_fields, flecsi::mpi>(
+      ts, e_coordinates(ts), e_radius(ts), e_masses(ts), ents);
+
+    ts->make_tree(ts);
+  }
+
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
     int size, rank;
@@ -66,8 +106,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
       oss << "Ents Offset: ";
 
     for(int i = 0; i < size; ++i) {
-      c.entities_offset_[i] =
-        c.entities_distribution_[i]; // hd.offset(i).second;
+      c.entities_offset_[i] = c.entities_distribution_[i];
       if(rank == 0)
         oss << c.entities_offset_[i] << " ; ";
     }
@@ -75,9 +114,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     if(rank == 0)
       flog(info) << oss.str() << std::endl;
 
-    // Nodes, hmap and tdata information
-    // \TODO move these inside the topology ntree
-    // The user should not have control on their allocation
     c.local_nodes_ = c.local_entities_;
     c.global_nodes_ = c.global_entities_;
     c.nodes_offset_ = c.entities_offset_;
@@ -91,58 +127,83 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     return c;
   } // color
 
-  static void initialize(data::topology_slot<sph_ntree_t> &, coloring const &) {
-  }
-};
+  static void compute_centroid(const std::size_t & cur_node_idx,
+    const std::vector<std::size_t> & ent_idx,
+    const std::vector<std::size_t> & node_idx,
+    field<point_t>::accessor<ro> e_c,
+    field<double>::accessor<ro> e_r,
+    field<double>::accessor<ro> e_m,
+    field<point_t>::accessor<rw> n_c,
+    field<double>::accessor<rw> n_r,
+    field<double>::accessor<rw> n_m,
+    field<point_t>::accessor<rw> n_bi,
+    field<point_t>::accessor<rw> n_ba,
+    field<double>::accessor<rw> n_l) {
+    point_t coordinates = point_t{};
+    double radius = 0; // bmax
+    double mass = 0;
+    point_t bmin, bmax;
+    double lap = 0;
+    for(std::size_t i = 0; i < dimension; ++i) {
+      bmax[i] = -DBL_MAX;
+      bmin[i] = DBL_MAX;
+    }
+    // Compute the center of mass and mass
+    for(auto idx : ent_idx) {
+      coordinates += e_m[idx] * e_c[idx];
+      mass += e_m[idx];
+      for(std::size_t d = 0; d < dimension; ++d) {
+        bmin[d] = std::min(bmin[d], e_c[idx][d] - e_r[idx] / 2.);
+        bmax[d] = std::max(bmax[d], e_c[idx][d] + e_r[idx] / 2.);
+      } // for
+    }
+    for(auto idx : node_idx) {
+      coordinates += n_m[idx] * n_c[idx];
+      mass += n_m[idx];
+      for(std::size_t d = 0; d < dimension; ++d) {
+        bmin[d] = std::min(bmin[d], n_bi[idx][d]);
+        bmax[d] = std::max(bmax[d], n_ba[idx][d]);
+      } // for
+    } // for
+    assert(mass != 0.);
+    // Compute the radius
+    coordinates /= mass;
+    for(auto idx : ent_idx) {
+      double dist = distance(coordinates, e_c[idx]);
+      radius = std::max(radius, dist);
+      lap = std::max(lap, dist + e_r[idx]);
+    }
+    for(auto idx : node_idx) {
+      double dist = distance(coordinates, n_c[idx]);
+      radius = std::max(radius, dist + n_r[idx]);
+      lap = std::max(lap, dist + n_r[idx] + n_l[idx]);
+    } // for
+    n_c[cur_node_idx] = coordinates;
+    n_r[cur_node_idx] = radius;
+    n_m[cur_node_idx] = mass;
+    n_bi[cur_node_idx] = bmin;
+    n_ba[cur_node_idx] = bmax;
+    n_l[cur_node_idx] = lap;
+  } // compute_centroid
 
-using point_t = typename topo::ntree<sph_ntree_t>::point_t;
+}; // sph_ntree_t
+
+using ntree_t = topo::ntree<sph_ntree_t>;
 
 sph_ntree_t::slot sph_ntree;
 sph_ntree_t::cslot coloring;
 
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
-  entity_field;
-
-int
-init_task(sph_ntree_t::accessor<wo> t,
-  const std::vector<sph_ntree_t::ent_t> & ents) {
-  UNIT {
-    for(size_t i = 0; i < ents.size(); ++i) {
-      t.e_coordinates(i) = ents[i].coordinates();
-      t.e_radius(i) = ents[i].radius();
-      t.e_keys(i) = ents[i].key();
-    }
-    t.exchange_boundaries();
-  };
-} // init_task
-
-int
-make_tree(sph_ntree_t::accessor<rw> t) {
-  UNIT {
-    t.make_tree();
-    t.graphviz_draw(0);
-  };
-} // make_tree
-
-// The initialization part of the execution model
-// Create the coloring
-// Create the ntree memory space
-// Feed the basic fields of the ntree
-// Create the ntree structure
-int
-init() {
-  std::vector<sph_ntree_t::ent_t> ents;
-  coloring.allocate("coordinates.blessed", ents);
-  sph_ntree.allocate(coloring.get());
-  flecsi::execute<init_task, flecsi::mpi>(sph_ntree, ents);
-  sph_ntree.get().exch();
-  flecsi::execute<make_tree>(sph_ntree);
-  return 0;
-} // init
-flecsi::unit::initialization<init> initialization;
+  density;
+const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
+  pressure;
 
 int
 ntree_driver() {
+
+  std::vector<sph_ntree_t::ent_t> ents;
+  coloring.allocate("coordinates.blessed", ents);
+  sph_ntree.allocate(coloring.get(), ents);
 
   return 0;
 } // ntree_driver

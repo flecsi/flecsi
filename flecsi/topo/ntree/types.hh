@@ -95,6 +95,8 @@ class hcell_base_t
 {
 
   const static size_t dimension = DIM;
+  static constexpr int nchildren_ = 1 << dimension;
+
   using type_t = T;
   using key_t = KEY;
 
@@ -131,15 +133,20 @@ public:
     assert(is_node_);
     return idx_;
   }
+
+  size_t idx() const {
+    return idx_;
+  }
+
   void set_key(const key_t & key) {
     key_ = key;
   }
-  void set_ent_idx(const int & idx) {
+  void set_ent_idx(const std::size_t & idx) {
     is_ent_ = true;
     is_node_ = false;
     idx_ = idx;
   }
-  void set_node_idx(const int & idx) {
+  void set_node_idx(const std::size_t & idx) {
     is_ent_ = false;
     is_node_ = true;
     idx_ = idx;
@@ -154,6 +161,7 @@ public:
     is_node_ = false;
     idx_ = 0;
   }
+
   void add_child(const int & c) {
     type_ |= (1 << c);
   }
@@ -172,8 +180,44 @@ public:
     return type_;
   }
 
-  bool has_child(const std::size_t & c) const {
+  bool has_child(std::size_t c) const {
     return type_ & (1 << c);
+  }
+
+  bool is_nonlocal() const {
+    return ((type_ & LOCALITY_MASK) >> LOCALITY_DISPL) == NONLOCAL;
+  }
+
+  void set_type(unsigned int type) {
+    type_ = type;
+  }
+
+  void set_nonlocal() {
+    type_ &= ~LOCALITY_MASK;
+    type_ |= NONLOCAL << LOCALITY_DISPL;
+  }
+
+  void set_requested() {
+    type_ &= ~REQUESTED_MASK;
+    type_ |= REQUESTED_MASK;
+  }
+
+  void unset_requested() {
+    type_ &= ~REQUESTED_MASK;
+  }
+
+  std::size_t color() const {
+    return color_;
+  }
+  void set_color(std::size_t color) {
+    color_ = color;
+  }
+
+  std::size_t nchildren() const {
+    std::size_t nchild = 0;
+    for(std::size_t i = 0; i < nchildren_; ++i)
+      nchild += has_child(i);
+    return nchild;
   }
 
   template<size_t DD, typename TT, class KK>
@@ -182,16 +226,17 @@ public:
 
 private:
   key_t key_;
-  size_t idx_ = 0;
+  std::size_t idx_ = 0;
   bool is_ent_ = false;
   bool is_node_ = false;
   unsigned int type_ = 0;
+  std::size_t color_;
 };
 
 template<size_t D, typename T, class K>
 std::ostream &
 operator<<(std::ostream & os, const hcell_base_t<D, T, K> & hb) {
-  hb.is_node() ? os << "hb: node " : os << "hb: ent ";
+  hb.is_node() ? os << "hc node " : os << "hc ent ";
   os << hb.key_ << "-" << hb.idx_;
   return os;
 }
