@@ -104,10 +104,16 @@ private:
   T t;
 };
 
-template<class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
-  return (launch_combine(nullptr) | ... |
+  return (launch_combine([] {
+    // An MPI task has a known launch domain:
+    if constexpr(M)
+      return run::context::instance().processes();
+    else
+      return nullptr;
+  }()) | ... |
           launch_combine(launch<std::decay_t<PP>, AA>::get(aa)))
     .get();
 }
@@ -135,10 +141,12 @@ replace_argument(T && t) {
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.
-template<class P, class... AA>
+template<std::size_t A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size(static_cast<P *>(nullptr), aa...);
+  return detail::launch_size<mask_to_processor_type(A) ==
+                             task_processor_type_t::mpi>(
+    static_cast<P *>(nullptr), aa...);
 }
 
 enum class launch_type_t : size_t { single, index };
