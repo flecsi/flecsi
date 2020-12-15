@@ -235,7 +235,7 @@ struct ntree : ntree_base {
       part.template get<entities>(), make_partial<allocate>(ents_sizes));
     resize_repartitioned(
       part.template get<nodes>(), make_partial<allocate>(nodes_sizes));
-#endif 
+#endif
 
     // Retrieve the information needed by the specialization
     // cp_top_tree_entities->issue_copy(e_keys.fid);
