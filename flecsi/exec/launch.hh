@@ -37,6 +37,7 @@ namespace detail {
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
 // no replacement defined for an argument.
+// XREF: more specializations in accessor.hh
 template<class = void>
 struct task_param {};
 template<class P, class A, class = void> // A is a reference type

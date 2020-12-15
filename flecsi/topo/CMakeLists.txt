@@ -72,15 +72,11 @@ set(topo_SOURCES
 
 # index -----------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(index
   SOURCES
     test/index.cc
   THREADS 2
   )
-
-endif()
 
 # canonical -------------------------------------------------------------------#
 
@@ -138,8 +134,6 @@ add_unit(closure
 #    unstructured/test/test_definition.hh
 #)
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
@@ -155,8 +149,6 @@ add_unit(fixed
   THREADS 4
 )
 
-endif()
-
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
@@ -168,7 +160,6 @@ add_unit(ntree_policy
 )
 
 endif()
-
 
 add_unit(ntree_geometry
   SOURCES ntree/test/geometry.cc
