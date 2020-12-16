@@ -40,7 +40,7 @@ struct repartition : with_size, data::partition {
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
   template<class F = decltype(zero::partial)>
-  repartition(const data::region & r, F f = zero::partial)
+  repartition(data::region & r, F f = zero::partial)
     : with_size(r.size().first), partition(r, sz, [&] {
         const auto r = sizes();
         execute<fill<F>>(r, f);

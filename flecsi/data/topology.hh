@@ -50,11 +50,11 @@ struct partition {
   using row = decltype(make_row(0, 0));
   static std::size_t row_size(const row &);
 
-  explicit partition(const region_base &); // divides into rows
+  explicit partition(region_base &); // divides into rows
   // Derives row lengths from the field values (which should be of type row
   // and be equal in number to the rows).  The argument partition must survive
   // until this partition is updated or destroyed.
-  partition(const region_base &,
+  partition(region_base &,
     const partition &,
     field_id_t,
     completeness = incomplete);
@@ -95,7 +95,7 @@ struct points {
 
 // Copy field data within a region, using the points::Value field srcs to
 // select a (possibly non-unique) src value to assign to each dest element.
-void launch_copy(const region &,
+void launch_copy(region &,
   const points & src,
   const intervals & dest,
   const field_id_t & data,
@@ -188,7 +188,7 @@ struct partitioned : region, P {
   template<class... TT>
   partitioned(region && r, TT &&... tt)
     : region(std::move(r)),
-      P(static_cast<const region &>(*this), std::forward<TT>(tt)...) {}
+      P(static_cast<region &>(*this), std::forward<TT>(tt)...) {}
 };
 
 } // namespace flecsi::data

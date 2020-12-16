@@ -42,8 +42,8 @@ struct partition {
     return r;
   }
 
-  explicit partition(const region &) {}
-  partition(const region &,
+  explicit partition(region &) {}
+  partition(region &,
     const partition &,
     field_id_t,
     completeness = incomplete) {}
@@ -88,7 +88,7 @@ struct points {
 };
 
 inline void
-launch_copy(const mpi::region &,
+launch_copy(mpi::region &,
   const points &,
   const intervals &,
   const field_id_t &,
