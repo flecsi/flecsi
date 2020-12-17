@@ -207,7 +207,7 @@ reduce_internal(Args &&... args) {
       flog_devel(info) << "executing reduction logic for "
                        << util::type<Reduction>() << std::endl;
 
-      const auto ret = future<return_t, launch_type_t::single>{
+      auto ret = future<return_t, launch_type_t::single>{
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::id)};
       if(mpi_task)
@@ -215,7 +215,7 @@ reduce_internal(Args &&... args) {
       return ret;
     }
     else {
-      const auto ret = future<return_t, launch_type_t::index>{
+      auto ret = future<return_t, launch_type_t::index>{
         legion_runtime->execute_index_space(legion_context, launcher)};
       if(mpi_task)
         ret.wait();

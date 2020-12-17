@@ -211,17 +211,17 @@ struct future;
 template<typename Return>
 struct future<Return> {
   /// Wait on the task to finish.
-  void wait() const;
+  void wait();
   /// Get the task's result.
-  Return get(bool silence_warnings = false) const;
+  Return get(bool silence_warnings = false);
 };
 
 template<typename Return>
 struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
-  void wait(bool silence_warnings = false) const;
+  void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
-  Return get(std::size_t index = 0, bool silence_warnings = false) const;
+  Return get(std::size_t index = 0, bool silence_warnings = false);
   /// Get the number of tasks.
   std::size_t size() const;
 };
