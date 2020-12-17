@@ -93,7 +93,7 @@ protected:
     else
       region_reqs_.emplace_back(
         t.template get_partition<Space>(f).logical_partition,
-        0,
+        data::leg::def_proj,
         m,
         EXCLUSIVE,
         lr);
