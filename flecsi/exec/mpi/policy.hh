@@ -104,10 +104,11 @@ reduce_internal(Args &&... args) {
   const auto ds =
     launch_size<Attributes, decltype(params)>(std::forward<Args>(args)...);
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
+    const bool root = !flecsi::run::context::instance().process();
     // single launch, only invoke the user task on the Root.
     if constexpr(std::is_void_v<R>) {
       // void return type, just invoke, no return value to broadcast
-      if(flecsi::run::context::instance().process() == 0) {
+      if(root) {
         std::apply(F, std::move(params));
       }
       return future<void>{};
@@ -118,7 +119,7 @@ reduce_internal(Args &&... args) {
       // TODO: wrap this in std::async and use std::future for async execution
       //  and communication.
       R ret{};
-      if(flecsi::run::context::instance().process() == 0) {
+      if(root) {
         ret = std::apply(F, std::move(params));
       }
 
