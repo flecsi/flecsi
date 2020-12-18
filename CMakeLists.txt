@@ -432,11 +432,7 @@ if(NOT FORMAT_ONLY)
   # Link necessary libraries.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_LIBRARIES OR COLORING_LIBRARIES)
-    add_target_link_libraries(
-      FleCSI ${FLECSI_RUNTIME_LIBRARIES} ${COLORING_LIBRARIES}
-    )
-  endif()
+  target_link_libraries( FleCSI PUBLIC ${FLECSI_LIBRARY_DEPENDENCIES})
 
   if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 

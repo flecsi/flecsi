@@ -23,7 +23,6 @@ mark_as_advanced(ENABLE_EXPENSIVE_TESTS)
 
 if(ENABLE_UNIT_TESTS)
   enable_testing()
-  add_library(unit-main OBJECT ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
 endif()
 
 function(add_unit name)
@@ -157,7 +156,7 @@ function(add_unit name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    $<TARGET_OBJECTS:unit-main>
+    ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc
   )
   
   set_target_properties(${name}
@@ -217,15 +216,15 @@ function(add_unit name)
   #----------------------------------------------------------------------------#
 
   if(unit_LIBRARIES)
-    target_link_libraries(${name} ${unit_LIBRARIES})
+    target_link_libraries(${name} PRIVATE ${unit_LIBRARIES})
   endif()
 
-  target_link_libraries(${name} FleCSI)
-  target_link_libraries(${name} ${FLECSI_LIBRARY_DEPENDENCIES}
+  target_link_libraries(${name} PRIVATE FleCSI)
+  target_link_libraries(${name} PRIVATE ${FLECSI_LIBRARY_DEPENDENCIES}
     ${CMAKE_THREAD_LIBS_INIT})
 
   if(unit_policy_libraries)
-    target_link_libraries(${name} ${unit_policy_libraries})
+    target_link_libraries(${name} PRIVATE ${unit_policy_libraries})
   endif()
 
   if(unit_policy_includes)
@@ -262,6 +261,12 @@ function(add_unit name)
   endif()
 
   list(LENGTH unit_THREADS thread_instances)
+
+  #FIXME
+  #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
+  if(ENABLE_CUDA AND ENABLE_LEGION)
+   list(APPEND  UNIT_FLAGS --backend-args="-ll:gpu 1") 
+  endif()
 
   if(${thread_instances} GREATER 1)
     foreach(instance ${unit_THREADS})
