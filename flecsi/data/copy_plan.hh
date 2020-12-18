@@ -100,7 +100,7 @@ struct copy_plan {
   }
 
 private:
-  const region * reg;
+  region * reg;
   detail::intervals::core dest_ptrs_;
   intervals dest_;
   field_id_t ptr_fid;

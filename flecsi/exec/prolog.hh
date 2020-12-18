@@ -14,6 +14,8 @@ inline log::devel_tag task_prologue_tag("task_prologue");
 // task_prologue is implemented per backend:
 #if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
 #include "flecsi/exec/leg/task_prologue.hh"
+#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#include "flecsi/exec/mpi/task_prologue.hh"
 #endif
 
 namespace flecsi::exec {

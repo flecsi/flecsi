@@ -21,9 +21,9 @@
 #error Do not include this file directly!
 #endif
 
+#include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/leg/bind_accessors.hh"
 #include "flecsi/exec/leg/future.hh"
-#include "flecsi/exec/leg/unbind_accessors.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
@@ -268,23 +268,11 @@ struct task_wrapper {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    unbind_accessors ub(task_args);
-    (ann::rguard<ann::execute_task_bind>(tname)),
-      bind_accessors(runtime, context, regions, task->futures)(task_args);
-
-    if constexpr(std::is_same_v<RETURN, void>) {
-      (ann::rguard<ann::execute_task_user>(tname)),
-        apply(F, std::forward<param_tuple>(task_args));
-      ann::rguard<ann::execute_task_unbind> ann_guard(tname);
-      ub();
-    }
-    else {
-      RETURN result = (ann::rguard<ann::execute_task_user>(tname),
-        apply(F, std::forward<param_tuple>(task_args)));
-      ann::rguard<ann::execute_task_unbind> ann_guard(tname);
-      ub();
-      return result;
-    } // if
+    const param_buffers buf(task_args, tname);
+    (ann::rguard<ann::execute_task_bind>(tname),
+      bind_accessors(runtime, context, regions, task->futures)(task_args));
+    return ann::rguard<ann::execute_task_user>(tname),
+           apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
 
 }; // struct task_wrapper
@@ -312,7 +300,7 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    unbind_accessors ub(*p);
+    const param_buffers buf(*p, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_accessors(runtime, context, regions, task->futures)(*p);
 
@@ -320,15 +308,11 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
     if constexpr(std::is_void_v<RETURN>) {
       (ann::rguard<ann::execute_task_user>(tname)),
         c.mpi_call([&] { apply(F, std::move(*p)); });
-      ann::rguard<ann::execute_task_unbind> ann_guard(tname);
-      ub();
     }
     else {
       std::optional<RETURN> result;
       (ann::rguard<ann::execute_task_user>(tname)),
         c.mpi_call([&] { result.emplace(std::apply(F, std::move(*p))); });
-      ann::rguard<ann::execute_task_unbind> ann_guard(tname);
-      ub();
       return std::move(*result);
     }
 

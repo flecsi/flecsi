@@ -16,6 +16,7 @@
 #endif
 
 #include "flecsi/run/mpi/context.hh"
+#include "flecsi/data.hh"
 
 using namespace boost::program_options;
 
@@ -83,7 +84,7 @@ context_t::start(const std::function<int()> & action) {
     largv.push_back(opt->data());
   } // for
 
-  return action();
+  return detail::data_guard(), action(); // guard destroyed after action call
 }
 
 } // namespace flecsi::run

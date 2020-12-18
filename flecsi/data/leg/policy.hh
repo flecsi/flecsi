@@ -192,7 +192,7 @@ private:
 template<bool R = true>
 struct partition : partition_base {
   using partition_base::partition_base;
-  partition(const region & reg,
+  partition(region & reg,
     const partition<> & src,
     field_id_t fid,
     disjointness dis = def_dis,
@@ -262,7 +262,7 @@ struct partition : leg::partition<> {
   }
 
   using leg::partition<>::partition;
-  explicit partition(const region_base & r) : leg::partition<>(r) {}
+  explicit partition(region_base & r) : leg::partition<>(r) {}
 
   using leg::partition<>::update;
 
@@ -300,7 +300,7 @@ struct points : leg::partition<false> {
 };
 
 inline void
-launch_copy(const region_base & reg,
+launch_copy(region_base & reg,
   const points & src_partition,
   const intervals & dest_partition,
   const field_id_t & data_fid,
