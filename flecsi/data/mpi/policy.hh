@@ -171,12 +171,11 @@ struct points {
     completeness = incomplete) {}
 };
 
-inline void
-launch_copy(mpi::region &,
-  const points &,
-  const intervals &,
-  const field_id_t &,
-  const field_id_t &) {}
+struct copy_engine {
+  copy_engine(const points &, const intervals &, field_id_t) {}
+
+  void operator()(field_id_t) const {}
+};
 
 } // namespace data
 } // namespace flecsi

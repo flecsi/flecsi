@@ -87,19 +87,20 @@ struct points {
 
   // Derives points from the field values (which should be of type Value)
   // in each row of the argument partition, which must outlive this value.
+  // The points need not be unique.
   points(const region_base &,
     const intervals &,
     field_id_t,
     completeness = incomplete);
 };
 
-// Copy field data within a region, using the points::Value field srcs to
-// select a (possibly non-unique) src value to assign to each dest element.
-void launch_copy(region &,
-  const points & src,
-  const intervals & dest,
-  const field_id_t & data,
-  const field_id_t & srcs);
+struct copy_engine {
+  // The field ID is the same as that to create src.  src and dest must
+  // outlive this value; the field values must not be mutated while using it.
+  copy_engine(const points & src, const intervals & dest, field_id_t);
+
+  void operator()(field_id_t) const;
+};
 #endif
 
 struct region : region_base {
