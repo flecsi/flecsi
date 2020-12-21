@@ -80,7 +80,7 @@ add_unit(index
 
 # canonical -------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+#if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
 add_unit(canonical
   SOURCES
@@ -88,7 +88,7 @@ add_unit(canonical
   THREADS 2
   )
 
-endif()
+#endif()
 
 # structured ------------------------------------------------------------------#
 
@@ -151,7 +151,7 @@ add_unit(fixed
 
 # ntree -----------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+#if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
 add_unit(ntree_policy
   SOURCES ntree/test/ntree.cc
@@ -159,7 +159,7 @@ add_unit(ntree_policy
   THREADS 4
 )
 
-endif()
+#endif()
 
 add_unit(ntree_geometry
   SOURCES ntree/test/geometry.cc

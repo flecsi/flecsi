@@ -147,15 +147,50 @@ using region_base = mpi::region;
 using mpi::partition;
 
 struct intervals {
-  using Value = subrow;
+  using Value = subrow; // [begin, end)
   static Value make(subrow r, std::size_t = 0) {
     return r;
   }
 
   intervals(const region_base &,
     const partition &,
-    field_id_t,
-    completeness = incomplete) {}
+    field_id_t /* fid */,
+    completeness = incomplete) {
+    // Called by upper layer. Created from a partition. Tells me which cells
+    // are ghost (destination) on which rank.
+    // Use the partition.get_storage() to get the storage, not the
+    // region.get_storage(). The same thing as one partition store the..
+    //
+    // The element type stored in partition.get_storage() is Value defined
+    // above. This works in a similar way as partition.update(), see the
+    // comment over there. Note: we need to copy the Value from the
+    // storage and save locally. User code might change it after this
+    // constructor returns.
+    //
+    // auto storage = parition.get_storage<Value>(fid); // gets the meta-data.
+    // for (auto x : xs)
+    //  saved.push_back(storage[i]);
+    // private:
+    //  std::vector<Value> saved;
+    //  region *r;
+    //  \strikeout{partition * p;}
+    // public:
+    //
+    //  template <typename T>
+    //  auto get_storage() { return r->get_storage<T>(fid); } // get the read
+    //  data
+    //
+    //  \strikeout{region& get_region() { return *r; }}
+    //  \strikeout{partition& get_partition(fid) { return *p;}}
+    // TODO: add information I need to do ghost copy. It is totally up to
+    //  me on what needs to be stored.
+  }
+
+  // TODO:
+  //  private:
+  //   reference to region and/or partition if needed.
+  //   std::vector<subrow aka Value>
+  //   aka std::vector<std::pair<std::size_t,std::size_t>>
 };
 
 struct points {
@@ -167,15 +202,44 @@ struct points {
   // FIXME: Just to silence the compiler, I have no idea what I am doing.
   points(const region_base &,
     const intervals &,
-    field_id_t,
-    completeness = incomplete) {}
+    field_id_t /* fid */,
+    completeness = incomplete) {
+    // Called by upper layer. Create from an intervals. Tells me which cells
+    // are shared (source) on which rank.
+
+    // Use the private std::vector<Value> saved in intervals. We also need
+    // use intervals::get_region()::get_storage() or better
+    // intervals::get_storage(), to get the Value (as typedef above),
+    // Value = size_t, size_t, i.e. rank and local index on the rank.
+
+    // for (auto &[b, e] : intervals.saved)
+    //   for (auto i=b; i<e; ++i)
+    //     \strikeout{use(ivals.get_partition().get_storage<Value>(fid)[i]);}
+    //     use(ivals.get_storage<points::Value>(fid)[i]);
+
+    // TODO: add information I need to do ghost copy. It is totally up to
+    //  me on what needs to be stored.
+
+    // TODO:
+    //  private:
+    //   store information about memory locations on the peer so I can do things
+    //   like one sided MPI communication (e.g. MPI_Datatype, MPI_Window etc.).
+  }
 };
 
 struct copy_engine {
+  // Upper layer supplies point which has information about shared cells
+  // (individual indices), interval which have information about ghost cells
+  // (index_begin, index_end), the real data is stored in mpi::region r
+  // with data_fid. I need to push the bits over the wire.
+  // Question: How can I find T here? It is NOT available anywhere (except
+  // implicitly in private region::fs which has sizeof(t)). Davis suggested
+  // going back to std::byte land, blah, blah.
+  // auto storage = r.get_storage<T>();
+  // (MPI_Send/Receive r.storage()[]).
   copy_engine(const points &, const intervals &, field_id_t) {}
 
   void operator()(field_id_t) const {}
 };
-
 } // namespace data
 } // namespace flecsi
