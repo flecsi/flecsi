@@ -44,6 +44,12 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
     MPI_Finalize();
   } // if
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+  if(dependent) {
+     Kokkos::initialize(argc, argv);
+  }
+#endif
+
   return status;
 } // initialize
 
@@ -60,6 +66,12 @@ context_t::finalize() {
   if(context::initialize_dependent_) {
     MPI_Finalize();
   } // if
+#endif
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+  if(context::initialize_dependent_) {
+    Kokkos::finalize();
+  }
 #endif
 } // finalize
 
