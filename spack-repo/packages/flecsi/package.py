@@ -41,6 +41,9 @@ class Flecsi(CMakePackage):
     variant('kokkos', default=False,
              description='Enable Kokkos Support')
 
+    variant('cuda', default=False,
+             description='Enable CUDA Support')
+
     variant('openmp', default=False,
              description='Enable OpenMP Support')
 
@@ -88,8 +91,11 @@ class Flecsi(CMakePackage):
     depends_on('metis@5.1.0:')
     depends_on('parmetis@4.0.3:')
     depends_on('graphviz', when='+graphviz')
-    depends_on('kokkos@3.2.00:', when='+kokkos')
+    depends_on('kokkos', when='+kokkos')
     depends_on('hdf5+mpi', when='+hdf5')
+    depends_on('kokkos +cuda +cuda_lambda +pic std=14', when='+kokkos+cuda')
+    depends_on('legion@ctrl-rep-8:ctrl-rep-99 +kokkos+cuda+hdf5', when='backend=legion+kokkos+cuda+hdf5')
+
 
     def cmake_args(self):
         spec = self.spec
@@ -132,5 +138,10 @@ class Flecsi(CMakePackage):
             options.append('-DENABLE_HDF5=ON')
         else:
             options.append('-DENABLE_HDF5=OFF')
+
+        if '+kokkos' in spec:
+            options.append('-DENABLE_KOKKOS=ON')
+        else:
+            options.append('-DENABLE_KOKKOS=OFF')
 
         return options
