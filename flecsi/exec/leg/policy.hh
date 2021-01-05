@@ -85,13 +85,6 @@ auto
 make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
-
-#ifdef FLECSI_ENABLE_FLOG
-inline auto
-log_size() {
-  return log::state::instance().packets().size();
-}
-#endif
 } // namespace detail
 
 template<auto & F, class Reduction, size_t Attributes, typename... Args>
