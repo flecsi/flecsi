@@ -549,7 +549,7 @@ currently only for unstructured mesh topologies.
   }
 
   /*--------------------------------------------------------------------------*
-    Task Launch iterface.
+    Task Launch interface.
    *--------------------------------------------------------------------------*/
 
   /*!

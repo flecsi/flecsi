@@ -44,6 +44,8 @@ static_assert(static_cast<Legion::coord_t>(logical_size) == logical_size,
   "logical_size too large for Legion");
 
 namespace leg {
+constexpr inline Legion::ProjectionID def_proj = 0;
+
 inline auto &
 run() {
   return *Legion::Runtime::get_runtime();
@@ -192,7 +194,7 @@ private:
 template<bool R = true>
 struct partition : partition_base {
   using partition_base::partition_base;
-  partition(const region & reg,
+  partition(region & reg,
     const partition<> & src,
     field_id_t fid,
     disjointness dis = def_dis,
@@ -262,7 +264,7 @@ struct partition : leg::partition<> {
   }
 
   using leg::partition<>::partition;
-  explicit partition(const region_base & r) : leg::partition<>(r) {}
+  explicit partition(region_base & r) : leg::partition<>(r) {}
 
   using leg::partition<>::update;
 
@@ -299,33 +301,44 @@ struct points : leg::partition<false> {
   using partition::partition;
 };
 
-inline void
-launch_copy(const region_base & reg,
-  const points & src_partition,
-  const intervals & dest_partition,
-  const field_id_t & data_fid,
-  const field_id_t & ptr_fid) {
+struct copy_engine {
+  copy_engine(const points & src, const intervals & dest, field_id_t f)
+    : copy_engine(src, dest.logical_partition, f) {}
 
-  Legion::IndexCopyLauncher cl_(src_partition.get_color_space());
-  Legion::LogicalRegion lreg = reg.logical_region;
-  Legion::LogicalPartition lp_source = src_partition.logical_partition;
-  Legion::LogicalPartition lp_dest = dest_partition.logical_partition;
-  Legion::RegionRequirement rr_source(
-    lp_source, 0 /*projection ID*/, READ_ONLY, EXCLUSIVE, lreg);
-  Legion::RegionRequirement rr_dest(
-    lp_dest, 0 /*projection ID*/, WRITE_ONLY, EXCLUSIVE, lreg);
-  Legion::RegionRequirement rr_pos(
-    lp_dest, 0 /*projection ID*/, READ_ONLY, EXCLUSIVE, lreg);
+private:
+  copy_engine(const points & src, Legion::LogicalPartition dest, field_id_t f)
+    : copy_engine(src, leg::run().get_parent_logical_region(dest), dest, f) {}
+  copy_engine(const points & src,
+    Legion::LogicalRegion lreg,
+    Legion::LogicalPartition dest,
+    field_id_t ptr_fid)
+    : cl_(src.get_color_space()),
+      src(src.logical_partition, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg),
+      dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
+    Legion::RegionRequirement rr_pos(
+      dest, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg);
 
-  rr_source.add_field(data_fid);
-  rr_dest.add_field(data_fid);
-  rr_pos.add_field(ptr_fid);
+    rr_pos.add_field(ptr_fid);
 
-  cl_.add_copy_requirements(rr_source, rr_dest);
-  cl_.add_src_indirect_field(ptr_fid, rr_pos);
-  assert(!cl_.src_indirect_is_range[0]);
-  leg::run().issue_copy_operation(leg::ctx(), cl_);
-}
+    cl_.add_src_indirect_field(ptr_fid, rr_pos);
+    assert(!cl_.src_indirect_is_range[0]);
+  }
+
+  Legion::IndexCopyLauncher cl_;
+  Legion::RegionRequirement src, dest;
+
+  void go(field_id_t f) && {
+    src.add_field(f);
+    dest.add_field(f);
+    cl_.add_copy_requirements(src, dest);
+    leg::run().issue_copy_operation(leg::ctx(), cl_);
+  }
+
+public:
+  void operator()(field_id_t f) const {
+    copy_engine(*this).go(f);
+  }
+};
 
 } // namespace data
 } // namespace flecsi

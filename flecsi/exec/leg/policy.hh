@@ -86,13 +86,6 @@ make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
 
-template<class, class>
-struct tuple_prepend;
-template<class T, class... TT>
-struct tuple_prepend<T, std::tuple<TT...>> {
-  using type = std::tuple<T, TT...>;
-};
-
 #ifdef FLECSI_ENABLE_FLOG
 inline auto
 log_size() {
@@ -123,18 +116,8 @@ reduce_internal(Args &&... args) {
   auto legion_context = Legion::Runtime::get_context();
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
-  const auto domain_size = [&args..., &flecsi_context] {
-    if constexpr(mpi_task) {
-      // The status of being an MPI task contributes a launch domain:
-      return launch_size<
-        typename detail::tuple_prepend<launch_domain, param_tuple>::type>(
-        launch_domain{flecsi_context.processes()}, args...);
-    }
-    else {
-      (void)flecsi_context;
-      return launch_size<param_tuple>(args...);
-    }
-  }();
+  const auto domain_size =
+    launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
 
   auto params =
     detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
@@ -224,7 +207,7 @@ reduce_internal(Args &&... args) {
       flog_devel(info) << "executing reduction logic for "
                        << util::type<Reduction>() << std::endl;
 
-      const auto ret = future<return_t, launch_type_t::single>{
+      auto ret = future<return_t, launch_type_t::single>{
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::id)};
       if(mpi_task)
@@ -232,7 +215,7 @@ reduce_internal(Args &&... args) {
       return ret;
     }
     else {
-      const auto ret = future<return_t, launch_type_t::index>{
+      auto ret = future<return_t, launch_type_t::index>{
         legion_runtime->execute_index_space(legion_context, launcher)};
       if(mpi_task)
         ret.wait();

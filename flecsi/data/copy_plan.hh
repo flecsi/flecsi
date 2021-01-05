@@ -81,30 +81,29 @@ struct copy_plan {
     D && dests,
     F && src,
     util::constant<S> = {})
-    : reg(&t.template get_region<S>()), dest_ptrs_(ndests),
+    : dest_ptrs_(ndests),
       // In this first case we use a subtopology to create the
       // destination partition which supposed to be contiguous
-      dest_(*reg,
+      dest_(t.template get_region<S>(),
         dest_ptrs_,
         (std::forward<D>(dests)(detail::intervals::field(dest_ptrs_)),
           detail::intervals::field.fid)),
-      ptr_fid(pointers<P, S>.fid),
       // From the pointers we feed in the destination partition
       // we create the source partition
-      src_partition_(*reg,
+      src_partition_(t.template get_region<S>(),
         dest_,
-        (std::forward<F>(src)(pointers<P, S>(t)), ptr_fid)) {}
+        (std::forward<F>(src)(pointers<P, S>(t)), pointers<P, S>.fid)),
+      engine(src_partition_, dest_, pointers<P, S>.fid) {}
 
   void issue_copy(const field_id_t & data_fid) const {
-    launch_copy(*reg, src_partition_, dest_, data_fid, ptr_fid);
+    engine(data_fid);
   }
 
 private:
-  const region * reg;
   detail::intervals::core dest_ptrs_;
   intervals dest_;
-  field_id_t ptr_fid;
   points src_partition_;
+  copy_engine engine;
 
   template<class T, typename T::index_space S>
   static inline const field<points::Value>::definition<T, S> pointers;
