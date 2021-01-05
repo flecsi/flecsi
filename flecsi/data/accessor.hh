@@ -233,7 +233,7 @@ struct ragged_accessor
       // We rely on the fact that field_reference uses only the field ID.
       return field_reference<T,
         raw,
-        topo::ragged_topology<typename R::Topology>,
+        topo::ragged<typename R::Topology>,
         R::space>({i, 0}, t);
     });
     f(get_offsets(), [](const auto & r) {

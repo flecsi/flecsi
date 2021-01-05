@@ -35,7 +35,7 @@ struct Noisy {
 
 using double1 = field<double, single>;
 const double1::definition<topo::index> pressure_field;
-using intN = field<int, ragged>;
+using intN = field<int, data::ragged>;
 const intN::definition<topo::index> verts_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;

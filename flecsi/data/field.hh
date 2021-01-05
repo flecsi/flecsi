@@ -24,7 +24,7 @@
 namespace flecsi {
 namespace topo {
 template<class>
-struct ragged_topology; // defined in terms of field
+struct ragged; // defined in terms of field
 }
 
 namespace data {
@@ -195,8 +195,7 @@ struct field_register : field<T, L>::base_type::template Register<Topo, Space> {
 };
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, ragged, Topo, Space>
-  : field<T, ragged>::base_type::template Register<topo::ragged_topology<Topo>,
-      Space> {
+  : field<T, ragged>::base_type::template Register<topo::ragged<Topo>, Space> {
   using Offsets = typename field<T, ragged>::Offsets;
   // We use the same field ID for the offsets:
   typename Offsets::template Register<Topo, Space> off{field_register::fid};
