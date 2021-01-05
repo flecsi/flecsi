@@ -13,6 +13,10 @@
                                                                               */
 #pragma once
 
+#if !defined(__FLECSI_PRIVATE__)
+#error Do not include this file directly!
+#endif
+
 /*! @file */
 
 #include <cstddef>
@@ -20,6 +24,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <flecsi/util/target.hh>
 
 namespace flecsi {
 namespace util {
@@ -452,10 +458,12 @@ struct transform_view {
       return !(*this < i);
     }
 
+    FLECSI_INLINE_TARGET
     constexpr reference operator*() const {
       return (*f)(*p);
     }
     // operator-> makes sense only for a true 'reference'
+    FLECSI_INLINE_TARGET
     constexpr reference operator[](difference_type n) const {
       return *(*this + n);
     }
@@ -478,30 +486,40 @@ struct transform_view {
   constexpr transform_view(C && c, F f = {})
     : transform_view(std::begin(c), std::end(c), std::move(f)) {}
 
+  FLECSI_INLINE_TARGET
   constexpr iterator begin() const noexcept {
     return {b, &f};
   }
+  FLECSI_INLINE_TARGET
   constexpr iterator end() const noexcept {
     return {e, &f};
   }
 
+  FLECSI_INLINE_TARGET
   constexpr bool empty() const {
     return b == e;
   }
+  FLECSI_INLINE_TARGET
   constexpr explicit operator bool() const {
     return !empty();
   }
 
+  FLECSI_INLINE_TARGET
   constexpr auto size() const {
     return std::distance(b, e);
   }
 
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) front() const {
     return *begin();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) back() const {
     return *--end();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](
     typename std::iterator_traits<I>::difference_type i) const {
     return begin()[i];

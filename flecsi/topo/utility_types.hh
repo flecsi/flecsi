@@ -133,11 +133,15 @@ struct id {
   using difference_type = std::make_signed_t<T>;
 
   id() = default; // allow trivial default initialization
+  FLECSI_INLINE_TARGET
   explicit id(T t) : t(t) {}
 
+  FLECSI_INLINE_TARGET
   T operator+() const {
     return t;
   }
+
+  FLECSI_INLINE_TARGET
   operator T() const {
     return t;
   }
@@ -145,43 +149,53 @@ struct id {
   // Prevent assigning to transform_view results:
   id & operator=(const id &) & = default;
 
+  FLECSI_INLINE_TARGET
   id & operator++() & {
     ++t;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator++(int) & {
     id ret = *this;
     ++*this;
     return ret;
   }
+  FLECSI_INLINE_TARGET
   id & operator--() & {
     --t;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator--(int) & {
     id ret = *this;
     --*this;
     return ret;
   }
-
+  
+  FLECSI_INLINE_TARGET
   id & operator+=(difference_type d) & {
     t += d;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator+(difference_type d) const {
     return d + *this;
   }
+  FLECSI_INLINE_TARGET
   void operator+(id) const = delete;
   friend id operator+(difference_type d, id i) {
     return i += d;
   }
+  FLECSI_INLINE_TARGET
   id & operator-=(difference_type d) & {
     t -= d;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator-(difference_type d) const {
     return d - *this;
   }
+  FLECSI_INLINE_TARGET
   difference_type operator-(id i) const { // also avoids ambiguity
     return difference_type(t) - difference_type(i.t);
   }
@@ -191,6 +205,7 @@ private:
 };
 
 template<auto S, class C>
+FLECSI_INLINE_TARGET
 auto make_ids(C && c) { // NB: return value may be lifetime-bound to c
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });

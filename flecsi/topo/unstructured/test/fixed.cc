@@ -18,6 +18,7 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/unit.hh"
+#include <flecsi/exec/kernel_interface.hh>
 
 using namespace flecsi;
 
@@ -189,6 +190,20 @@ init_ids(unstructured::accessor<ro> m,
   }
 }
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+void
+parallel_init_ids(unstructured::accessor<ro> m,
+  field<std::size_t>::accessor<wo> cids,
+  field<std::size_t>::accessor<wo> vids) {
+  forall(c, m.cells(), "init_ids_c") {
+    cids[c] += 0;
+  };
+  forall(v, m.vertices(), "init_ids_v") {
+    vids[v] += 0;
+  };
+}
+#endif
+
 void
 print(unstructured::accessor<ro> m,
   field<std::size_t>::accessor<ro> cids,
@@ -218,6 +233,9 @@ fixed_driver() {
     coloring.allocate();
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
+#if defined(FLECSI_ENABLE_KOKKOS)
+    execute<parallel_init_ids, toc>(mesh, cids(mesh), vids(mesh));
+#endif
     execute<print>(mesh, cids(mesh), vids(mesh));
   };
 } // unstructured_driver

@@ -108,6 +108,7 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
 
   explicit accessor(std::size_t f) : reference_base(f) {}
 
+  FLECSI_INLINE_TARGET
   auto span() const {
     return s;
   }
@@ -133,12 +134,14 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 
     @param index The index of the logical array to access.
    */
+  FLECSI_INLINE_TARGET
   typename accessor::element_type & operator()(std::size_t index) const {
     const auto s = this->span();
     flog_assert(index < s.size(), "index out of range");
     return s[index];
   } // operator()
 
+  FLECSI_INLINE_TARGET
   typename accessor::element_type & operator[](std::size_t index) const {
     return this->span()[index];
   }
