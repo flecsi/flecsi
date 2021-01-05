@@ -64,46 +64,10 @@ inline void recover_without_attach_task(const Legion::Task * task,
   HDF5 descriptor of one logical region, not called by users.
  *----------------------------------------------------------------------------*/
 struct legion_hdf5_region_t {
-  legion_hdf5_region_t(Legion::LogicalRegion lr,
-    Legion::LogicalPartition lp,
-    const std::string & lr_name,
-    std::map<Legion::FieldID, std::string> & field_string_map)
-    : logical_region(lr), logical_partition(lp), logical_region_name(lr_name),
-      field_string_map(field_string_map) {
-    Legion::Runtime * runtime = Legion::Runtime::get_runtime();
-    Legion::Context ctx = Legion::Runtime::get_context();
-    if(lr.get_dim() == 1) {
-      Legion::Domain domain =
-        runtime->get_index_space_domain(ctx, lr.get_index_space());
-      dim_size[0] = domain.get_volume();
-      {
-        log::devel_guard guard(io_tag);
-        flog_devel(info) << "ID logical region size " << dim_size[0]
-                         << std::endl;
-      }
-    }
-    else {
-      Legion::Domain domain =
-        runtime->get_index_space_domain(ctx, lr.get_index_space());
-      dim_size[0] = domain.get_volume();
-      {
-        log::devel_guard guard(io_tag);
-        flog_devel(info) << "ID logical region size " << dim_size[0]
-                         << std::endl;
-      }
-    }
-  }
-
-  legion_hdf5_region_t(Legion::LogicalRegion lr,
-    Legion::LogicalPartition lp,
-    const std::string & lr_name)
-    : logical_region(lr), logical_partition(lp), logical_region_name(lr_name) {}
-
   Legion::LogicalRegion logical_region;
   Legion::LogicalPartition logical_partition;
   std::string logical_region_name;
   std::map<Legion::FieldID, std::string> field_string_map;
-  size_t dim_size[3];
 };
 
 /*----------------------------------------------------------------------------*
@@ -458,9 +422,10 @@ struct io_interface_t {
     }
 
     const auto & file = file_map[&index_runtime_data];
-    legion_hdf5_region_t checkpoint_region(index_runtime_data.logical_region,
+    legion_hdf5_region_t checkpoint_region{index_runtime_data.logical_region,
       file.logical_partition,
-      "process_topology");
+      "process_topology",
+      {}};
     for(const auto p : fid_vector) {
       checkpoint_region.field_string_map[p->fid] = std::to_string(p->fid);
     }
@@ -483,9 +448,10 @@ struct io_interface_t {
     }
 
     const auto & file = file_map[&index_runtime_data];
-    legion_hdf5_region_t recover_region(index_runtime_data.logical_region,
+    legion_hdf5_region_t recover_region{index_runtime_data.logical_region,
       file.logical_partition,
-      "process_topology");
+      "process_topology",
+      {}};
     for(const auto p : fid_vector) {
       recover_region.field_string_map[p->fid] = std::to_string(p->fid);
     }
