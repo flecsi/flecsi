@@ -50,9 +50,8 @@ init(field<double>::accessor<wo> c) {
   };
 } // init
 
-int
+void
 local_kokkos(field<double>::accessor<rw> c) {
-  UNIT {
     // Parallel for
     flecsi::exec::parallel_for(
       c.span(),
@@ -73,7 +72,6 @@ local_kokkos(field<double>::accessor<rw> c) {
       up += cv;
     };
     assert(pvalue * c.span().size() == res);
-  };
 }
 
 int
@@ -87,9 +85,9 @@ kokkos_driver() {
     coloring.allocate(filename);
     canonical.allocate(coloring.get());
     const auto pressure = cell_field(canonical);
-    flecsi::execute<init>(pressure);
+    flecsi::execute<init, toc>(pressure);
 
-    flecsi::execute<local_kokkos>(pressure);
+    flecsi::execute<local_kokkos, toc>(pressure);
   };
 } // driver
 
