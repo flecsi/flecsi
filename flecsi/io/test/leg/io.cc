@@ -13,10 +13,9 @@
                                                                               */
 
 #define __FLECSI_PRIVATE__
+#include "flecsi/execution.hh"
+#include "flecsi/io/test/leg/test_policy.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/data.hh>
-#include <flecsi/execution.hh>
-#include <flecsi/io.hh>
 
 #include <legion.h>
 #include <mpi.h>

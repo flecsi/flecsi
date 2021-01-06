@@ -21,7 +21,8 @@
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
 
-#include <flecsi/data/field.hh>
+#include "flecsi/data.hh"
+#include "flecsi/topo/index.hh"
 
 #include <hdf5.h>
 #include <legion.h>
@@ -31,6 +32,8 @@ namespace flecsi {
 inline log::devel_tag io_tag("io");
 
 namespace io {
+
+using field_reference_t = data::field_reference_t<topo::index>;
 
 inline void checkpoint_with_attach_task(const Legion::Task * task,
   const std::vector<Legion::PhysicalRegion> & regions,
@@ -321,14 +324,24 @@ struct legion_hdf5_t {
     for(legion_hdf5_region_t & lr_it : hdf5_region_vector) {
 
       hid_t dataspace_id = -1;
-      Legion::LogicalRegion sub_lr = runtime->get_logical_subregion_by_color(
-        ctx, lr_it.logical_partition, file_idx);
-      Legion::Domain domain =
-        runtime->get_index_space_domain(ctx, sub_lr.get_index_space());
-      hsize_t dims[2];
-      dims[0] = domain.get_volume();
-      dims[1] = 1;
-      dataspace_id = H5Screate_simple(2, dims, NULL);
+      if(lr_it.logical_region.get_index_space().get_dim() == 1) {
+        Legion::LogicalRegion sub_lr = runtime->get_logical_subregion_by_color(
+          ctx, lr_it.logical_partition, file_idx);
+        Legion::Domain domain =
+          runtime->get_index_space_domain(ctx, sub_lr.get_index_space());
+        hsize_t dims[1];
+        dims[0] = domain.get_volume();
+        dataspace_id = H5Screate_simple(1, dims, NULL);
+      }
+      else {
+        Legion::LogicalRegion sub_lr = runtime->get_logical_subregion_by_color(
+          ctx, lr_it.logical_partition, file_idx);
+        Legion::Domain domain =
+          runtime->get_index_space_domain(ctx, sub_lr.get_index_space());
+        hsize_t dims[1];
+        dims[0] = domain.get_volume();
+        dataspace_id = H5Screate_simple(1, dims, NULL);
+      }
       if(dataspace_id < 0) {
         flog(error) << "H5Screate_simple failed: " << dataspace_id << std::endl;
         H5Fclose(hdf5_file_id);
@@ -815,11 +828,11 @@ checkpoint_without_attach_task(const Legion::Task * task,
       if(map_it != field_string_map_vector[rid].end()) {
         const Legion::FieldAccessor<READ_ONLY,
           double,
-          2,
+          1,
           Legion::coord_t,
-          Realm::AffineAccessor<double, 2, Legion::coord_t>>
+          Realm::AffineAccessor<double, 1, Legion::coord_t>>
           acc_fid(regions[rid], it);
-        Legion::Rect<2> rect = runtime->get_index_space_domain(
+        Legion::Rect<1> rect = runtime->get_index_space_domain(
           ctx, task->regions[rid].region.get_index_space());
         const double * dset_data = acc_fid.ptr(rect.lo);
         hid_t dataset_id =
@@ -961,11 +974,11 @@ recover_without_attach_task(const Legion::Task * task,
       if(map_it != field_string_map_vector[rid].end()) {
         const Legion::FieldAccessor<WRITE_DISCARD,
           double,
-          2,
+          1,
           Legion::coord_t,
-          Realm::AffineAccessor<double, 2, Legion::coord_t>>
+          Realm::AffineAccessor<double, 1, Legion::coord_t>>
           acc_fid(regions[rid], it);
-        Legion::Rect<2> rect = runtime->get_index_space_domain(
+        Legion::Rect<1> rect = runtime->get_index_space_domain(
           ctx, task->regions[rid].region.get_index_space());
         double * dset_data = acc_fid.ptr(rect.lo);
         hid_t dataset_id =

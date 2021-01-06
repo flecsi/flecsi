@@ -28,10 +28,6 @@ using namespace flecsi::data;
 using double1 = field<double, single>;
 const double1::definition<topo::index> test_value_1, test_value_2, test_value_3;
 
-const auto fh1 = test_value_1(process_topology);
-const auto fh2 = test_value_2(process_topology);
-const auto fh3 = test_value_3(process_topology);
-
 void
 assign(double1::accessor<rw> ia) {
   ia = color();
@@ -51,8 +47,11 @@ int
 index_driver() {
   UNIT {
     char file_name[256];
-    strcpy(file_name, "checkpoint.dat");
+    strcpy(file_name, "io_index.dat");
 
+    const auto fh1 = test_value_1(process_topology);
+    const auto fh2 = test_value_2(process_topology);
+    const auto fh3 = test_value_3(process_topology);
     execute<assign>(fh1);
     execute<assign>(fh2);
     execute<assign>(fh3);
@@ -116,9 +115,10 @@ index_driver() {
     }
 #endif
 
-    cp_io.recover_process_topology(checkpoint_file);
-    // cp_io.recover_process_topology_field(checkpoint_file, fh1);
-    // cp_io.recover_process_topology_field(checkpoint_file, fh2);
+    // cp_io.recover_process_topology(checkpoint_file);
+    cp_io.recover_index_topology_field(checkpoint_file, fh1);
+    cp_io.recover_index_topology_field(checkpoint_file, fh2);
+    cp_io.recover_index_topology_field(checkpoint_file, fh3);
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);
