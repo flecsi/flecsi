@@ -57,14 +57,17 @@ struct unstructured : unstructured_base,
     : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
       part_(make_partitions(c,
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())) {
+        std::make_index_sequence<index_spaces::size>())),
+      special_(c.colors) {
     init_ragged(index_spaces());
     allocate_connectivities(c, connect_);
   }
 
   static inline const connect_t<Policy> connect_;
-  static inline const lists_t<Policy> special_;
+  static inline const field<util::id>::definition<array<Policy>> special_field;
+
   util::key_array<repartitioned, index_spaces> part_;
+  lists<Policy> special_;
 
   std::size_t colors() const {
     return part_.front().colors();
@@ -127,7 +130,8 @@ private:
   using accessor = data::accessor_member<Field, Privileges>;
   util::key_array<resize::accessor<ro>, index_spaces> size_;
   connect_access<Policy, Privileges> connect_;
-  list_access<Policy, Privileges> special_{unstructured::special_};
+
+  lists_t<accessor<special_field>, Policy> special_;
 
   template<index_space From, index_space To>
   auto & connectivity() {
@@ -169,7 +173,7 @@ public:
 
   template<index_space I, entity_list L>
   auto special_entities() const {
-    return make_ids<I>(special_.template get<I>().template get<L>()[0]);
+    return make_ids<I>(special_.template get<I>().template get<L>().span());
   }
 
   template<class F>
@@ -178,7 +182,7 @@ public:
     for(auto & a : size_)
       f(a, [&i](typename Policy::slot & u) { return u->part_[i++].sizes(); });
     connect_send(f, connect_, unstructured::connect_);
-    connect_send(f, special_, unstructured::special_, &unstructured::meta);
+    lists_send(f, special_, special_field, &unstructured::special_);
   }
 }; // struct unstructured<Policy>::access
 

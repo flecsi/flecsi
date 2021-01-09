@@ -198,6 +198,29 @@ struct with_meta { // for interface consistency
   typename meta_topology<P>::core meta;
 };
 
+struct array_base {
+  using coloring = std::vector<std::size_t>;
+
+protected:
+  static std::size_t index(const coloring & c, std::size_t i) {
+    return c[i];
+  }
+};
+template<class P>
+struct array_category : array_base, repartitioned {
+  explicit array_category(const coloring & c)
+    : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {
+    resize();
+  }
+};
+template<>
+struct detail::base<array_category> {
+  using type = array_base;
+};
+
+template<class P>
+struct array : topo::specialization<array_category, array<P>> {};
+
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
