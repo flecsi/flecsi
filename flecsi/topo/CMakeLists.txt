@@ -24,6 +24,9 @@ set(topo_HEADERS
   global.hh
   index.hh
   size.hh
+  narray/coloring_utils.hh
+  narray/interface.hh
+  narray/types.hh
   ntree/coloring.hh
   ntree/geometry.hh
   ntree/interface.hh
@@ -148,6 +151,15 @@ add_unit(fixed
 )
 
 endif()
+
+# narray ----------------------------------------------------------------------#
+
+add_unit(narray
+  SOURCES
+    narray/test/narray.cc
+    narray/test/narray.hh
+  THREADS 4
+)
 
 # ntree -----------------------------------------------------------------------#
 
