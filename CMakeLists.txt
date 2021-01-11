@@ -486,7 +486,7 @@ if(NOT FORMAT_ONLY)
   summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
   string(APPEND _summary "\n")
   summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}
-    " (${FLECSI_NODE_PLATFORM} platform)")
+    " (${Kokkos_DEVICES})")
   if(ENABLE_DOCUMENTATION)
     summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
     summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
