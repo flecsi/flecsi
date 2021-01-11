@@ -18,7 +18,6 @@
 #if !defined(__FLECSI_PRIVATE__)
 #error Do not include this file directly!
 #endif
-#include "flecsi/data/reference.hh"
 #include "flecsi/topo/core.hh" // base
 #include "flecsi/topo/set/types.hh"
 
@@ -34,7 +33,7 @@ namespace topo {
  */
 
 template<typename Policy>
-struct set : set_base, data::reference_base {};
+struct set : set_base {};
 
 template<>
 struct detail::base<set> {
