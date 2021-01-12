@@ -20,8 +20,6 @@
 #include <cmath>
 #include <ostream>
 
-#include "flecsi/util/common.hh"
-
 namespace flecsi {
 namespace util {
 

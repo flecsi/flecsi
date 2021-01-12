@@ -20,6 +20,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <type_traits>
 #include <vector>
 
 namespace flecsi {

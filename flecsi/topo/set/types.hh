@@ -18,7 +18,6 @@
 #if !defined(__FLECSI_PRIVATE__)
 #error Do not include this file directly!
 #endif
-//#include "flecsi/data/reference.hh"
 
 namespace flecsi {
 namespace topo {

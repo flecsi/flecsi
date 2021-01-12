@@ -18,7 +18,6 @@
 #define __FLECSI_PRIVATE__
 #endif
 
-#include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/run/leg/context.hh"
 #include "flecsi/run/leg/mapper.hh"

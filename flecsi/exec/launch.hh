@@ -20,7 +20,8 @@
 #endif
 
 #include "flecsi/data/field.hh"
-#include "flecsi/topo/core.hh"
+#include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/type_traits.hh"
 
 #include <cstddef>
 #include <optional>

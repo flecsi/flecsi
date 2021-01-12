@@ -22,10 +22,7 @@
 #endif
 
 #include "flecsi/run/context.hh"
-//#include "flecsi/exec/launch.hh"
-//#include "flecsi/exec/processor.hh"
 #include "flecsi/run/types.hh"
-#include "flecsi/util/common.hh"
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!

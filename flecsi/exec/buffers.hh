@@ -24,6 +24,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/reference.hh"
+#include "flecsi/data/topology_accessor.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
