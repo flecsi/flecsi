@@ -21,6 +21,7 @@
 
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/demangle.hh"
 #include <flecsi/flog.hh>
 
@@ -110,7 +111,8 @@ private:
 } // namespace detail
 
 namespace fold {
-inline Legion::ReductionOpID reduction_id;
+inline util::counter<Legion::ReductionOpID(MAX_APPLICATION_REDUCTION_ID)>
+  reduction_counter(0);
 
 // Adapts our interface to Legion's.
 template<class R, class T, class = void>
@@ -152,7 +154,7 @@ private:
 public:
   // NB: 0 is reserved by Legion.
   static inline const Legion::ReductionOpID id =
-    (run::context::instance().register_init(init), ++reduction_id);
+    (run::context::instance().register_init(init), reduction_counter());
 };
 
 template<class>
