@@ -129,9 +129,11 @@ struct util::serial<future<T>> : util::serial_value<future<T>> {};
 
 namespace exec::leg {
 using run::leg::task;
+using task_id_t = Legion::TaskID;
 
 namespace detail {
-inline task_id_t last_task; // 0 is the top-level task
+inline util::counter<task_id_t(LEGION_MAX_APPLICATION_TASK_ID)> task_counter(
+  run::FLECSI_TOP_LEVEL_TASK_ID);
 /*!
   Register a task with Legion.
 
@@ -182,7 +184,7 @@ extern const task_id_t
                typename util::function_traits<decltype(F)>::return_type,
                F,
                A>),
-    ++detail::last_task);
+    detail::task_counter());
 
 template<typename RETURN, task<RETURN> * TASK, std::size_t A>
 void
