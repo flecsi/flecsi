@@ -20,8 +20,6 @@
 #include <functional>
 #include <limits>
 #include <map>
-#include <sstream>
-#include <typeinfo>
 #include <vector>
 
 namespace flecsi {
@@ -109,17 +107,6 @@ private:
 
   COUNTER_TYPE id_;
 }; // unique_id
-
-//! Create a unique name from the type, address, and unique id
-template<typename T>
-std::string
-unique_name(const T * const t) {
-  const void * const address = static_cast<const void *>(t);
-  const std::size_t id = unique_id<T>::instance().next();
-  std::stringstream ss;
-  ss << typeid(T).name() << "-" << address << "-" << id;
-  return ss.str();
-} // unique_name
 
 template<typename T>
 void

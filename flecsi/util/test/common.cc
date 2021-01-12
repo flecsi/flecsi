@@ -226,15 +226,6 @@ common() {
     UNIT_CAPTURE() << a.next() << std::endl;
     UNIT_CAPTURE() << std::endl;
 
-    // unique_name
-    // Just exercise; return value generally changes between runs
-    const int i = 2;
-    const float f = float(3.14);
-    EXPECT_NE(flecsi::util::unique_name(&i), "");
-    EXPECT_NE(flecsi::util::unique_name(&i), "");
-    EXPECT_NE(flecsi::util::unique_name(&f), "");
-    EXPECT_NE(flecsi::util::unique_name(&f), "");
-
     {
       constexpr util::key_array<int, c31> m{};
       static_assert(&m.get<3>() == &m[0]);
