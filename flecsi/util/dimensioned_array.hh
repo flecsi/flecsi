@@ -16,6 +16,7 @@
 /*! @file */
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <ostream>
 

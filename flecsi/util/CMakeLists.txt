@@ -37,7 +37,6 @@ set(util_HEADERS
   graphviz.hh
   hashtable.hh
   mpi.hh
-  offset.hh
   reorder.hh
   serialize.hh
   set_intersection.hh

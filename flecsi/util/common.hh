@@ -15,8 +15,7 @@
 
 /*! @file */
 
-#include "flecsi/util/offset.hh"
-
+#include <cassert>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -27,8 +26,6 @@
 
 namespace flecsi {
 namespace util {
-
-using offset_t = offset<16>;
 
 //----------------------------------------------------------------------------//
 // Entity id type. This type should be used for id types for entities
