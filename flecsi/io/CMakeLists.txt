@@ -71,6 +71,8 @@ set(io_SOURCES
 # Unit tests.
 #------------------------------------------------------------------------------#
 
+if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+
 add_unit(io_index
   SOURCES
     test/io_index.cc
@@ -82,5 +84,6 @@ add_unit(io_metadata
     test/io_metadata.cc
   THREADS 2
 )
+endif()
                 
 endif()
