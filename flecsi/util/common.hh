@@ -75,39 +75,21 @@ square(const T & a) {
 #define FLECSI_GENERATED_ID_MAX 1044480
 #endif
 
-/*!
-  The unique_id type provides a utility to generate a series of unique ids.
+/// A counter with a maximum.
+template<auto M>
+struct counter {
+  using type = decltype(M);
 
-  @tparam UNIQUENESS_TYPE A dummy type to differentiate instances.
-  @tparam COUNTER_TYPE    The underlying counter type.
-  @tparam MAXIMUM         The maximum legal id.
- */
+  constexpr explicit counter(type l) : last(l) {}
 
-template<typename UNIQUENESS_TYPE,
-  typename COUNTER_TYPE = size_t,
-  COUNTER_TYPE MAXIMUM = (std::numeric_limits<COUNTER_TYPE>::max)()>
-struct unique_id {
-
-  static_assert(std::is_integral<COUNTER_TYPE>::value,
-    "COUNTER_TYPE must be an integral type");
-
-  static unique_id & instance() {
-    static unique_id u;
-    return u;
-  } // instance
-
-  auto next() {
-    assert(id_ + 1 <= MAXIMUM && "id exceeds maximum value");
-    return ++id_;
-  } // next
+  const type & operator()() {
+    assert(last < M && "counter overflow");
+    return ++last;
+  }
 
 private:
-  unique_id() : id_(0) {}
-  unique_id(const unique_id &) {}
-  ~unique_id() {}
-
-  COUNTER_TYPE id_;
-}; // unique_id
+  type last;
+};
 
 template<typename T>
 void

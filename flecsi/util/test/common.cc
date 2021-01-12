@@ -200,31 +200,11 @@ common() {
     UNIT_CAPTURE() << flecsi::util::square(20.0) << std::endl;
     UNIT_CAPTURE() << std::endl;
 
-    // ------------------------
-    // Unique ID constructs
-    // ------------------------
-
-    // FLECSI_GENERATED_ID_MAX
-    // We won't test the particular value, as it looks like the sort
-    // of thing that might change over time
-    EXPECT_TRUE(FLECSI_GENERATED_ID_MAX > 0);
-
-    // unique_id_t
-    struct unique_type_t {};
-    auto & a = flecsi::util::unique_id<unique_type_t, int, 10>::instance();
-    auto & b = flecsi::util::unique_id<unique_type_t, int, 10>::instance();
-    EXPECT_EQ(&a, &b); // because type is a singleton
-
-    auto & c = flecsi::util::unique_id<unique_type_t, int>::instance();
-    auto & d = flecsi::util::unique_id<unique_type_t, int>::instance();
-    EXPECT_EQ(&c, &d); // singleton again
-    EXPECT_NE(
-      (void *)&c, (void *)&a); // != (different template specializations)
-
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << std::endl;
+    {
+      util::counter<FLECSI_GENERATED_ID_MAX> a(0);
+      EXPECT_EQ(a(), 1);
+      EXPECT_EQ(a(), 2);
+    }
 
     {
       constexpr util::key_array<int, c31> m{};

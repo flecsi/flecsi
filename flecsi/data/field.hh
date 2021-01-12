@@ -53,7 +53,7 @@ struct field_register<T, raw, Topo, Space> : field_info_t {
   explicit field_register(field_id_t i) : field_info_t{i, sizeof(T)} {
     run::context::instance().add_field_info<Topo, Space>(this);
   }
-  field_register() : field_register(unique_fid_t::instance().next()) {}
+  field_register() : field_register(fid_counter()) {}
   // Copying/moving is inadvisable because the context knows the address.
   field_register(const field_register &) = delete;
   field_register & operator=(const field_register &) = delete;

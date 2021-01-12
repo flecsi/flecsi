@@ -4,10 +4,6 @@ int
 100
 400
 
-1
-2
-3
-
 int
 std::tuple<float, double, __float128>
 

@@ -79,9 +79,6 @@ namespace flecsi {
 /*!
   Unique counter for field ids.
  */
-
-struct fid_counter_t {};
-using unique_fid_t =
-  util::unique_id<fid_counter_t, field_id_t, FLECSI_GENERATED_ID_MAX>;
+inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 
 } // namespace flecsi
