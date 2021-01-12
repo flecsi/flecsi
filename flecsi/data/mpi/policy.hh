@@ -164,19 +164,19 @@ struct intervals {
     // Called by upper layer, supplied with a region and a partition. There are
     // two regions involved. The region `r` has the storage for real field data
     // (e.g. density, pressure etc.) as the destination of the ghost copy. It
-    // also contains the pairs of (rank, index) of shared entities.
-    // The region and associated storage in the partition `p` contains metadata
-    // on which entities are local ghosts (destination of copy) on the current
-    // rank. The metadata is in the form of [beginning index, ending index),
-    // type aliased as Value, into the index space of the entity (e.g. vertex,
-    // edge, cell). We thus need to use the p.get_storage() to get the metadata,
-    // not the region.get_storage() which gives the real data. This works the
-    // same way as how one partition stores the number of elements in a
-    // particular 'shard' on a rank for another partition. In addition, we also
-    // need to copy Values from the partition and save them locally. User code
-    // might change it after this constructor returns. We can not use a copy
-    // assignment here since metadata is an util::span while ghost_ranges is a
-    // std::vector<>.
+    // also contains the pairs of (rank, index) of shared entities on remote
+    // peers. The region and associated storage in the partition `p` contains
+    // metadata on which entities are local ghosts (destination of copy) on the
+    // current rank. The metadata is in the form of [beginning index, ending
+    // index), type aliased as Value, into the index space of the entity (e.g.
+    // vertex, edge, cell). We thus need to use the p.get_storage() to get the
+    // metadata, not the region.get_storage() which gives the real data. This
+    // works the same way as how one partition stores the number of elements in
+    // a particular 'shard' on a rank for another partition. In addition, we
+    // also need to copy Values from the partition and save them locally. User
+    // code might change it after this constructor returns. We can not use a
+    // copy assignment here since metadata is an util::span while ghost_ranges
+    // is a std::vector<>.
     auto metadata = p.get_storage<Value>(fid);
     std::copy(
       metadata.begin(), metadata.end(), std::back_inserter(ghost_ranges));
@@ -191,28 +191,20 @@ struct intervals {
 
 private:
   // This member function is only called by either points or copy_engine.
-  // FIXME: do we then need the function at all?
   friend struct points;
   friend struct copy_engine;
+
   template<typename T>
   auto get_storage(field_id_t fid) {
-    // FIXME: who actually populates the storage?
-    // The region r contains the real data of the fields on a particular index
-    // space. The supplied field id selects the the field to be copied.
-    // FIXME: it might also contains information about shared eneities as well
-    //  but that could be just a coincidence cause by that the same region_base
-    //  is passed to both interval and points constructors.
     return r.get_storage<T>(fid, max_end);
   }
 
-  // FIXME: this description is not consistence with how points uses get_storage
-  // Information needed to do ghost copy. This include a reference to the region
-  // containing real field data and metadata about ghost indices.
-  // We use a reference instead of pointer since it is not nullable nor needs to
-  // be redirected after initialization.
+  // FIXME: who actually populates the storage?
+  // We use a reference to region instead of pointer since it is not nullable
+  // nor needs to be redirected after initialization.
   region_base & r;
 
-  // Locally cached metadata on ghost indices.
+  // Locally cached metadata on ranges of ghost index.
   // TODO: who need to have access to ghost_ranges?
   std::vector<Value> ghost_ranges;
   std::size_t max_end;
@@ -224,19 +216,18 @@ struct points {
     return {r, i};
   }
 
-  // FIXME: Just to silence the compiler, I have no idea what I am doing.
   // FIXHIM: what Davis wrote in topology.hh regarding points might not be
   // correct.
-  points(const region_base & r, // FIXME: which region is this?
+  points(const region_base & r,
     intervals & intervals,
-    field_id_t fid, // FIXME: which fid is this?
+    field_id_t fid,
     completeness = incomplete)
     : source(r) {
-    // Called by upper layer. Create from an intervals. The region `r` contains
-    // field data of local remote_shared entities on this rank as source to be
-    // copied to remote peers. The region and field in the intervals contains
-    // metadata on which entities are remote_shared (source of copy) from which
-    // remote ranks.
+    // Called by upper layer. Created from an intervals. The region `r` contains
+    // field data of shared entities on this rank as source to be copied to
+    // remote peers. The region and the field selected by `fid` in the
+    // `intervals` contains metadata of index of shared entities on remote
+    // peers and their ranks, as source to be copy from remote peers.
     const auto & remote_shared = intervals.get_storage<Value>(fid);
     for(auto & [begin, end] : intervals.ghost_ranges) {
       std::cout << "my rank: " << flecsi::run::context::instance().process()
@@ -252,34 +243,17 @@ struct points {
 
     // TODO: there is no information about the indices of local shared entities
     //  and ranks of the destination of copy (local source index, {remote
-    //  destination ranks}). I need to do a shuffle operation to reconstruct this
-    //  info from (local ghost index, remote source rank, remote source index).
-
-    // Use the private std::vector<Value> ghost_ranges in intervals. We also
-    // need use intervals::get_region()::get_storage() or better
-    // intervals::get_storage(), to get the Value (as typedef above),
-    // Value = size_t, size_t, i.e. rank and local index on the rank.
-
-    // for (auto &[b, e] : intervals.ghost_ranges)
-    //   for (auto i=b; i<e; ++i)
-    //     \strikeout{use(ivals.get_partition().get_storage<Value>(fid)[i]);}
-    //     use(ivals.get_storage<points::Value>(fid)[i]);
-
-    // TODO: add information I need to do ghost copy. It is totally up to
-    //  me on what needs to be stored.
-
-    // TODO:
-    //  private:
-    //   store information about memory locations on the peer so I can do things
-    //   like one sided MPI communication (e.g. MPI_Datatype, MPI_Window etc.).
+    //  destination ranks}). I need to do a shuffle operation to reconstruct
+    //  this info from (local ghost index, remote source rank, remote source
+    //  index).
   }
 
   const region_base & source;
 };
 
 struct copy_engine {
-  // Upper layer supplies point which has information about shared cells
-  // (individual indices), interval which have information about ghost cells
+  // Upper layer supplies point which has information about shared entities
+  // (individual indices), intervals which have information about ghost entities
   // (index_begin, index_end), the real data is stored in mpi::region r
   // with data_fid. I need to push the bits over the wire.
   // Question: How can I find T here? It is NOT available anywhere (except
