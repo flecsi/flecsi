@@ -17,7 +17,6 @@
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/run/types.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 

@@ -22,7 +22,6 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/types.hh"
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>

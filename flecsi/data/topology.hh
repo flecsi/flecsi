@@ -22,7 +22,6 @@
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/run/types.hh"
 
 #include <map>
 #include <set>

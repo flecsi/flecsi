@@ -21,7 +21,6 @@
 #include "flecsi/exec/leg/task_wrapper.hh"
 #include "flecsi/run/leg/context.hh"
 #include "flecsi/run/leg/mapper.hh"
-#include "flecsi/run/types.hh"
 #include <flecsi/data.hh>
 
 namespace flecsi::run {

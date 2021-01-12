@@ -201,7 +201,7 @@ common() {
     UNIT_CAPTURE() << std::endl;
 
     {
-      util::counter<FLECSI_GENERATED_ID_MAX> a(0);
+      util::counter<2> a(0);
       EXPECT_EQ(a(), 1);
       EXPECT_EQ(a(), 2);
     }
