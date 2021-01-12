@@ -32,12 +32,13 @@ struct region {
   // MPI may assume "number of rows" == number of ranks. The number of columns
   // is a placeholder for the number of data points to be stored in a
   // particular row (aka rank), it could be exact or in the case when we don't
-  // know the exact number yet, a large number is used.
+  // know the exact number yet, a large number (flecsi::data::logical_size) is
+  // used.
   //
   // Generic frontend code supplies `s` and `fs` (for information about fields),
   // requesting memory to be (notionally) reserved from backend. Here we only
   // create the underlying std::vector<> without actually allocating any memory.
-  // The client code (mostly mpi::task_prologue) will call .get_storage() with
+  // The client code (mostly exec::task_prologue) will call .get_storage() with
   // a field id and the number of elements on this rank, as determined by
   // partitioning of the field. We will then call .resize() on the
   // std::vector<>.
@@ -69,10 +70,12 @@ struct region {
   }
 
 protected:
-  void vacuous(field_id_t) {}
+  void vacuous(field_id_t) {
+    /* Nothing to do for  MPI backend */
+  }
 
 private:
-  size2 s;
+  size2 s; // (nranks, nelems)
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
@@ -89,10 +92,10 @@ struct partition {
   }
 
   explicit partition(region & r) : r(&r) {
-    // This constructor is usually (almost always) called when r.s.second != 4G
-    // meaning it has the actual value. In this case, r.s.second is the number
-    // of elements in the partition on this rank (the same value on all ranks
-    // though).
+    // This constructor is usually (almost always) called when r.s.second != a
+    // large number, meaning it has the actual value. In this case, r.s.second
+    // is the number of elements in the partition on this rank (the same value
+    // on all ranks though).
     nelems = r.size().second;
   }
 
@@ -102,7 +105,8 @@ struct partition {
     completeness = incomplete)
     : r(&r) {
     // Constructor for the case when how the data is partitioned is stored
-    // as a field in another region. Delegate to update()
+    // as a field in another region referenced by the "other' partition.
+    // Delegate to update().
     update(other, fid);
   }
 
@@ -118,8 +122,8 @@ struct partition {
 
   void
   update(const partition & other, field_id_t fid, completeness = incomplete) {
-    // The number of elements for each ranks is stored as a field of the `row`
-    // data type on the `other` partition.
+    // The number of elements for each ranks is stored as a field of the
+    // partition::row data type on the `other` partition.
     const auto s = other.get_storage<row>(fid); // non-owning span
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
@@ -152,67 +156,111 @@ struct intervals {
     return r;
   }
 
-  intervals(const region_base &,
-    const partition &,
-    field_id_t /* fid */,
-    completeness = incomplete) {
-    // Called by upper layer. Created from a partition. Tells me which cells
-    // are ghost (destination) on which rank.
-    // Use the partition.get_storage() to get the storage, not the
-    // region.get_storage(). The same thing as one partition store the..
-    //
-    // The element type stored in partition.get_storage() is Value defined
-    // above. This works in a similar way as partition.update(), see the
-    // comment over there. Note: we need to copy the Value from the
-    // storage and save locally. User code might change it after this
-    // constructor returns.
-    //
-    // auto storage = parition.get_storage<Value>(fid); // gets the meta-data.
-    // for (auto x : xs)
-    //  saved.push_back(storage[i]);
-    // private:
-    //  std::vector<Value> saved;
-    //  region *r;
-    //  \strikeout{partition * p;}
-    // public:
-    //
-    //  template <typename T>
-    //  auto get_storage() { return r->get_storage<T>(fid); } // get the read
-    //  data
-    //
-    //  \strikeout{region& get_region() { return *r; }}
-    //  \strikeout{partition& get_partition(fid) { return *p;}}
-    // TODO: add information I need to do ghost copy. It is totally up to
-    //  me on what needs to be stored.
+  intervals(region_base & r,
+    const partition & p,
+    field_id_t fid, // The field id for the metadata in the region in p.
+    completeness = incomplete)
+    : r(r) {
+    // Called by upper layer, supplied with a region and a partition. There are
+    // two regions involved. The region `r` has the storage for real field data
+    // (e.g. density, pressure etc.) as the destination of the ghost copy. It
+    // also contains the pairs of (rank, index) of shared entities.
+    // The region and associated storage in the partition `p` contains metadata
+    // on which entities are local ghosts (destination of copy) on the current
+    // rank. The metadata is in the form of [beginning index, ending index),
+    // type aliased as Value, into the index space of the entity (e.g. vertex,
+    // edge, cell). We thus need to use the p.get_storage() to get the metadata,
+    // not the region.get_storage() which gives the real data. This works the
+    // same way as how one partition stores the number of elements in a
+    // particular 'shard' on a rank for another partition. In addition, we also
+    // need to copy Values from the partition and save them locally. User code
+    // might change it after this constructor returns. We can not use a copy
+    // assignment here since metadata is an util::span while ghost_ranges is a
+    // std::vector<>.
+    auto metadata = p.get_storage<Value>(fid);
+    std::copy(
+      metadata.begin(), metadata.end(), std::back_inserter(ghost_ranges));
+    // Get The largest value of `end index` in ghost_ranges (i.e. the upper
+    // bound). This tells how much memory needs to be allocated for ghost
+    // entities.
+    max_end = std::max_element(
+      ghost_ranges.begin(), ghost_ranges.end(), [](Value x, Value y) {
+        return x.second < y.second;
+      })->second;
   }
 
-  // TODO:
-  //  private:
-  //   reference to region and/or partition if needed.
-  //   std::vector<subrow aka Value>
-  //   aka std::vector<std::pair<std::size_t,std::size_t>>
+private:
+  // This member function is only called by either points or copy_engine.
+  // FIXME: do we then need the function at all?
+  friend struct points;
+  friend struct copy_engine;
+  template<typename T>
+  auto get_storage(field_id_t fid) {
+    // FIXME: who actually populates the storage?
+    // The region r contains the real data of the fields on a particular index
+    // space. The supplied field id selects the the field to be copied.
+    // FIXME: it might also contains information about shared eneities as well
+    //  but that could be just a coincidence cause by that the same region_base
+    //  is passed to both interval and points constructors.
+    return r.get_storage<T>(fid, max_end);
+  }
+
+  // FIXME: this description is not consistence with how points uses get_storage
+  // Information needed to do ghost copy. This include a reference to the region
+  // containing real field data and metadata about ghost indices.
+  // We use a reference instead of pointer since it is not nullable nor needs to
+  // be redirected after initialization.
+  region_base & r;
+
+  // Locally cached metadata on ghost indices.
+  // TODO: who need to have access to ghost_ranges?
+  std::vector<Value> ghost_ranges;
+  std::size_t max_end;
 };
 
 struct points {
-  using Value = std::pair<std::size_t, std::size_t>;
+  using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
   static Value make(std::size_t r, std::size_t i) {
     return {r, i};
   }
 
   // FIXME: Just to silence the compiler, I have no idea what I am doing.
-  points(const region_base &,
-    const intervals &,
-    field_id_t /* fid */,
-    completeness = incomplete) {
-    // Called by upper layer. Create from an intervals. Tells me which cells
-    // are shared (source) on which rank.
+  // FIXHIM: what Davis wrote in topology.hh regarding points might not be
+  // correct.
+  points(const region_base & r, // FIXME: which region is this?
+    intervals & intervals,
+    field_id_t fid, // FIXME: which fid is this?
+    completeness = incomplete)
+    : source(r) {
+    // Called by upper layer. Create from an intervals. The region `r` contains
+    // field data of local remote_shared entities on this rank as source to be
+    // copied to remote peers. The region and field in the intervals contains
+    // metadata on which entities are remote_shared (source of copy) from which
+    // remote ranks.
+    const auto & remote_shared = intervals.get_storage<Value>(fid);
+    for(auto & [begin, end] : intervals.ghost_ranges) {
+      std::cout << "my rank: " << flecsi::run::context::instance().process()
+                << std::endl;
 
-    // Use the private std::vector<Value> saved in intervals. We also need
-    // use intervals::get_region()::get_storage() or better
+      for(auto ghost = begin; ghost < end; ++ghost) {
+        std::cout << ", ghost index: " << ghost
+                  << ", source rank: " << remote_shared[ghost].first
+                  << ", source index: " << remote_shared[ghost].second;
+        std::cout << std::endl;
+      }
+    }
+
+    // TODO: there is no information about the indices of local shared entities
+    //  and ranks of the destination of copy (local source index, {remote
+    //  destination ranks}). I need to do a shuffle operation to reconstruct this
+    //  info from (local ghost index, remote source rank, remote source index).
+
+    // Use the private std::vector<Value> ghost_ranges in intervals. We also
+    // need use intervals::get_region()::get_storage() or better
     // intervals::get_storage(), to get the Value (as typedef above),
     // Value = size_t, size_t, i.e. rank and local index on the rank.
 
-    // for (auto &[b, e] : intervals.saved)
+    // for (auto &[b, e] : intervals.ghost_ranges)
     //   for (auto i=b; i<e; ++i)
     //     \strikeout{use(ivals.get_partition().get_storage<Value>(fid)[i]);}
     //     use(ivals.get_storage<points::Value>(fid)[i]);
@@ -225,6 +273,8 @@ struct points {
     //   store information about memory locations on the peer so I can do things
     //   like one sided MPI communication (e.g. MPI_Datatype, MPI_Window etc.).
   }
+
+  const region_base & source;
 };
 
 struct copy_engine {
@@ -237,9 +287,38 @@ struct copy_engine {
   // going back to std::byte land, blah, blah.
   // auto storage = r.get_storage<T>();
   // (MPI_Send/Receive r.storage()[]).
-  copy_engine(const points &, const intervals &, field_id_t) {}
 
-  void operator()(field_id_t) const {}
+  // FIXME: where should I store "states" like MPI_Window, MPI_Comm etc.? How
+  //  should I clean up those resources? If we manage resource here, should
+  //  copy_engine copyable or move only (or share_ptr<> to resources)?
+  // ANS: it will be the states of copy_engine.
+  // One copy engine for each entity type, vertex, cell, edge, each supplied
+  // with the same field_id_t.
+  copy_engine(const points & shared,
+    const intervals & ghosts,
+    field_id_t /* metadata field of WHAT? */)
+    : shared(shared), ghosts(ghosts) {}
+
+  // called with each field (and field_id_t) on the entity, for example, one
+  // for pressure, temperature, density etc.
+  void operator()(field_id_t /* data field to be copied */) const {
+    // To be defined....
+    //    const auto & shared = intervals.get_storage<Value>(fid);
+    //    for(auto & [begin, end] : intervals.ghost_ranges) {
+    //      std::cout << "my rank: " <<
+    //      flecsi::run::context::instance().process();
+    //
+    //      for(auto ghost = begin; ghost < end; ++ghost) {
+    //        std::cout << ", ghost index: " << ghost
+    //                  << ", peer rank: " << shared[ghost].first
+    //                  << ", shared index: " << shared[ghost].second;
+    //        std::cout << std::endl;
+    //      }
+  }
+
+private:
+  const points & shared;
+  const intervals & ghosts;
 };
 } // namespace data
 } // namespace flecsi
