@@ -258,7 +258,6 @@ struct copy_engine {
     intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
     : source(points), destination(intervals), meta_fid(meta_fid) {
-    auto [rank, nranks] = util::mpi::info(MPI_COMM_WORLD);
     // There is no information about the indices of local shared entities
     // and ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remove dest index)}). We need to do a shuffle
