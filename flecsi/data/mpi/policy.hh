@@ -225,7 +225,7 @@ struct points {
   // FIXHIM: what Davis wrote in topology.hh regarding points might not be
   // correct.
   points(region_base & r,
-    const intervals & intervals,
+    const intervals &,
     field_id_t,
     completeness = incomplete)
     : r(r) {}
