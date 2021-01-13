@@ -26,7 +26,7 @@ namespace flecsi {
 namespace data {
 
 namespace mpi {
-struct region {
+struct region_impl {
   // The constructor is collectively called on all ranks with the same s,
   // and fs. s.first is number of rows while s.second is number of columns.
   // MPI may assume "number of rows" == number of ranks. The number of columns
@@ -41,7 +41,7 @@ struct region {
   // a field id and the number of elements on this rank, as determined by
   // partitioning of the field. We will then call .resize() on the
   // std::vector<>.
-  region(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
+  region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(auto f : fs) {
       storages.emplace(f->fid, 0);
     }
@@ -68,15 +68,30 @@ struct region {
     return {reinterpret_cast<T *>(v.data()), nelems};
   }
 
-protected:
-  void vacuous(field_id_t) {}
-
 private:
   size2 s;
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
   std::unordered_map<field_id_t, std::vector<std::byte>> storages;
+};
+
+struct region {
+  region(size2 s, const fields & fs) : p(new region_impl(s, fs)) {}
+
+  size2 size() const {
+    return p->size();
+  }
+
+  region_impl & operator*() const {
+    return *p;
+  }
+
+protected:
+  void vacuous(field_id_t) {}
+
+private:
+  std::unique_ptr<region_impl> p; // to preserve an address on move
 };
 
 struct partition {
@@ -88,7 +103,7 @@ struct partition {
     return r;
   }
 
-  explicit partition(region & r) : r(&r) {
+  explicit partition(region & r) : r(&*r) {
     // This constructor is usually (almost always) called when r.s.second != 4G
     // meaning it has the actual value. In this case, r.s.second is the number
     // of elements in the partition on this rank (the same value on all ranks
@@ -100,7 +115,7 @@ struct partition {
     const partition & other,
     field_id_t fid,
     completeness = incomplete)
-    : r(&r) {
+    : r(&*r) {
     // Constructor for the case when how the data is partitioned is stored
     // as a field in another region. Delegate to update()
     update(other, fid);
@@ -136,7 +151,7 @@ struct partition {
   }
 
 private:
-  region * r;
+  region_impl * r;
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
