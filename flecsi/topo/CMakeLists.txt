@@ -80,15 +80,11 @@ add_unit(index
 
 # canonical -------------------------------------------------------------------#
 
-#if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(canonical
   SOURCES
     canonical/test/canonical.cc
   THREADS 2
   )
-
-#endif()
 
 # structured ------------------------------------------------------------------#
 
@@ -151,15 +147,11 @@ add_unit(fixed
 
 # ntree -----------------------------------------------------------------------#
 
-#if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed
   THREADS 4
 )
-
-#endif()
 
 add_unit(ntree_geometry
   SOURCES ntree/test/geometry.cc

@@ -19,6 +19,7 @@
 #include "flecsi/util/mpi.hh"
 
 #include <cstddef>
+#include <numeric>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -231,7 +232,7 @@ struct points {
     : r(r), maybe_nelems(intervals.max_end) {}
 
 private:
-  // This member function is only called by opy_engine.
+  // This member function is only called by copy_engine.
   friend struct copy_engine;
 
   template<typename T>
@@ -261,6 +262,7 @@ struct copy_engine {
     const auto & remote_sources = intervals.get_storage<Value>(meta_fid);
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
+    std::map<std::size_t, std::vector<std::size_t>> grouped_shared_entities;
     for(auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         auto & shared = remote_sources[ghost_idx];
@@ -274,17 +276,37 @@ struct copy_engine {
     // a vector of *local* source indices. This information is later used by
     // MPI_Send().
     remote_ghost_entities = shuffle(grouped_shared_entities);
+
+    // We need to reserve enough memory for requests used in operator(). This
+    // only need to be calculated once.
+    auto nrecvs = std::transform_reduce(destination.ghost_ranges.begin(),
+      destination.ghost_ranges.end(),
+      0,
+      std::plus<std::size_t>(),
+      [](auto p) { return p.second - p.first; });
+    auto nsends = std::transform_reduce(remote_ghost_entities.begin(),
+      remote_ghost_entities.end(),
+      0,
+      std::plus<std::size_t>(),
+      [](auto p) { return p.second.size(); });
+
+    nreqs = nrecvs + nsends;
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
-  void operator()(field_id_t fid /* data field to be copied */) const {
-    auto source_storage = source.get_storage<std::byte>(fid);
-    auto destination_storage = destination.get_storage<std::byte>(fid);
+  void operator()(field_id_t data_fid) const {
+    auto source_storage = source.get_storage<std::byte>(data_fid);
+    auto destination_storage = destination.get_storage<std::byte>(data_fid);
 
-    auto type_size = source.r.get_field_info(fid)->type_size;
+    // FIXME: should we assert(source_type_size == dest_type_size)?
+    auto type_size = source.r.get_field_info(data_fid)->type_size;
+
     std::vector<MPI_Request> requests;
-    using Pairs = std::pair<std::size_t, std::size_t>;
+    requests.reserve(nreqs);
+
+    using Pairs =
+      std::pair<std::size_t, std::size_t>;
     const auto & remote_sources = destination.get_storage<Pairs>(meta_fid);
 
     for(auto & [begin, end] : destination.ghost_ranges) {
@@ -293,7 +315,7 @@ struct copy_engine {
         requests.resize(requests.size() + 1);
         MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
           type_size,
-          util::mpi::type<std::byte>(),
+          MPI_BYTE,
           source_rank,
           0,
           MPI_COMM_WORLD,
@@ -306,7 +328,7 @@ struct copy_engine {
         requests.resize(requests.size() + 1);
         MPI_Isend(source_storage.data() + shared_idx * type_size,
           type_size,
-          util::mpi::type<std::byte>(),
+          MPI_BYTE,
           dest_rank,
           0,
           MPI_COMM_WORLD,
@@ -318,6 +340,7 @@ struct copy_engine {
     MPI_Waitall(requests.size(), requests.data(), status.data());
   }
 
+private:
   static std::map<std::size_t, std::vector<std::size_t>> shuffle(
     std::map<std::size_t, std::vector<std::size_t>> & shared_entities) {
     auto [rank, nranks] = util::mpi::info(MPI_COMM_WORLD);
@@ -338,6 +361,11 @@ struct copy_engine {
       MPI_COMM_WORLD);
 
     std::vector<MPI_Request> requests;
+    // We need to reserve enough memory for request, otherwise, .resize()
+    // will invalidate &requests.back(). Since we send and receive at most
+    // one message to each peer, the total number of requests is upper bounded
+    // by 2 * nranks.
+    requests.reserve(2 * nranks);
     std::map<std::size_t, std::vector<std::size_t>> results;
     for(int i{0}; i < nranks; ++i) {
       if(recv_counts[i] > 0) {
@@ -371,12 +399,11 @@ struct copy_engine {
     return results;
   }
 
-private:
   points & source;
   intervals & destination;
   field_id_t meta_fid;
-  std::map<std::size_t, std::vector<std::size_t>> grouped_shared_entities;
   std::map<std::size_t, std::vector<std::size_t>> remote_ghost_entities;
+  std::size_t nreqs = 0;
 };
 } // namespace data
 } // namespace flecsi
