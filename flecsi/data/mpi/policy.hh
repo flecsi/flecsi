@@ -71,7 +71,7 @@ struct region {
   }
 
   auto get_field_info(field_id_t fid) const {
-    for(auto i = 0; i < fs.size(); ++i) {
+    for(size_t i = 0; i < fs.size(); ++i) {
       if(fs[i]->fid == fid)
         return fs[i];
     }
@@ -229,25 +229,13 @@ struct points {
   // correct.
   points(region_base & r,
     const intervals & intervals,
-    field_id_t fid,
+    field_id_t,
     completeness = incomplete)
     : r(r), maybe_nelems(intervals.max_end) {
     // The region `r` contains field data of shared entities on this rank as
     // source to be copied to remote peers. The region and the field selected by
     // `fid` in the `intervals` contains metadata of shared entities on remote
     // peers.
-#if 0
-    for(auto & [begin, end] : intervals.ghost_ranges) {
-
-      for(auto local_ghost = begin; local_ghost < end; ++local_ghost) {
-        std::cout << "my rank: " << rank;
-        std::cout << ", local_ghost index: " << local_ghost
-                  << ", remote source rank: " << remote_sources[local_ghost].first
-                  << ", remote source index: " << remote_sources[local_ghost].second;
-        std::cout << std::endl;
-      }
-    }
-#endif
   }
 
 private:
@@ -265,29 +253,19 @@ private:
 };
 
 struct copy_engine {
-  // Upper layer supplies point which has information about shared entities
-  // (individual indices), intervals which have information about ghost entities
-  // (index_begin, index_end), the real data is stored in mpi::region r
-  // with data_fid. I need to push the bits over the wire.
-
-  // FIXME: where should I store "states" like MPI_Window, MPI_Comm etc.? How
-  //  should I clean up those resources? If we manage resource here, should
-  //  copy_engine copyable or move only (or share_ptr<> to resources)?
-  // ANS: it will be the states of copy_engine.
-  // One copy engine for each entity type, vertex, cell, edge, each supplied
-  // with the same field_id_t.
+  // One copy engine for each entity type i.e. vertex, cell, edge.
   copy_engine(points & points,
     intervals & intervals,
-    field_id_t fid /* metadata field of WHAT? */)
-    : source(points), destination(intervals), meta_fid(fid) {
+    field_id_t meta_fid /* for remote shared entities */)
+    : source(points), destination(intervals), meta_fid(meta_fid) {
     auto [rank, nranks] = util::mpi::info(MPI_COMM_WORLD);
     // There is no information about the indices of local shared entities
     // and ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remove dest index)}). We need to do a shuffle
     // operation to reconstruct this info from (local ghost index, remote
     // source rank, remote source index).
-    using Value = std::pair<std::size_t, std::size_t>;
-    const auto & remote_sources = intervals.get_storage<Value>(fid);
+    using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
+    const auto & remote_sources = intervals.get_storage<Value>(meta_fid);
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices
     for(auto & [begin, end] : intervals.ghost_ranges) {
@@ -297,31 +275,10 @@ struct copy_engine {
       }
     }
 
-#if 1
-    for(auto shared : grouped_shared_entities) {
-      std::cout << "my rank: " << rank
-                << ", remote source rank: " << shared.first
-                << ", remote source indices: ";
-      for(auto index : shared.second)
-        std::cout << index << " ";
-    }
-    std::cout << std::endl;
-#endif
-
     // Do a limited, ragged Alltoall communication to create the inverse mapping
     // group_shared_entities. This creates a map from remote destination rank
     // to a vector of *local* source indices. This is used by MPI_Send().
     ghost_entities = shuffle(grouped_shared_entities);
-
-#if 1
-    for(auto ghost : ghost_entities) {
-      std::cout << "my rank: " << rank << ", remote dest rank: " << ghost.first
-                << ", local source indices: ";
-      for(auto index : ghost.second)
-        std::cout << index << " ";
-    }
-    std::cout << std::endl;
-#endif
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
@@ -339,7 +296,6 @@ struct copy_engine {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         auto source_rank = remote_sources[ghost_idx].first;
         requests.resize(requests.size() + 1);
-        std::cout << "source rank: " << source_rank << ", ghost_idx: " << ghost_idx << std::endl;
         MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
           type_size,
           util::mpi::type<std::byte>(),
@@ -373,14 +329,9 @@ struct copy_engine {
 
     std::vector<std::size_t> send_counts;
     send_counts.reserve(nranks);
-    for(std::size_t r{0}; r < nranks; ++r) {
+    for(int r{0}; r < nranks; ++r) {
       send_counts.push_back(shared_entities[r].size());
     }
-    //    std::cout << "send_counts: ";
-    //    for(auto count : send_counts) {
-    //      std::cout << count << " ";
-    //    }
-    //    std::cout << std::endl;
 
     std::vector<std::size_t> recv_counts(nranks);
     MPI_Alltoall(send_counts.data(),
@@ -390,15 +341,10 @@ struct copy_engine {
       1,
       util::mpi::type<std::size_t>(),
       MPI_COMM_WORLD);
-    //    std::cout << "recv_counts: ";
-    //    for(auto count : recv_counts) {
-    //      std::cout << count << " ";
-    //    }
-    //    std::cout << std::endl;
 
     std::vector<MPI_Request> requests;
     std::map<std::size_t, std::vector<std::size_t>> results;
-    for(std::size_t i{0}; i < nranks; ++i) {
+    for(int i{0}; i < nranks; ++i) {
       if(recv_counts[i] > 0) {
         results.emplace(i, recv_counts[i]);
         requests.resize(requests.size() + 1);
@@ -412,7 +358,7 @@ struct copy_engine {
       }
     }
 
-    for(std::size_t i{0}; i < nranks; ++i) {
+    for(int i{0}; i < nranks; ++i) {
       if(send_counts[i] > 0) {
         requests.resize(requests.size() + 1);
         MPI_Isend(shared_entities[i].data(),
