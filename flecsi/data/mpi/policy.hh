@@ -198,8 +198,7 @@ struct intervals {
   }
 
 private:
-  // This member function is only called by either points or copy_engine.
-  friend struct points;
+  // This member function is only called by copy_engine.
   friend struct copy_engine;
 
   template<typename T>
@@ -229,22 +228,15 @@ struct points {
     const intervals & intervals,
     field_id_t,
     completeness = incomplete)
-    : r(r), maybe_nelems(intervals.max_end) {}
+    : r(r) {}
 
 private:
-  // This member function is only called by copy_engine.
+  // The region `r` contains field data of shared entities on this rank as
+  // source to be copied to remote peers. We make copy_engine a friend to allow
+  // direct access to the region.
   friend struct copy_engine;
 
-  template<typename T>
-  auto get_storage(field_id_t fid) const {
-    // FIXME: what is the right number of elements?
-    return r.get_storage<T>(fid, maybe_nelems);
-  }
-
-  // The region `r` contains field data of shared entities on this rank as
-  // source to be copied to remote peers.
   region_base & r;
-  size_t maybe_nelems;
 };
 
 struct copy_engine {
@@ -255,7 +247,7 @@ struct copy_engine {
     : source(points), destination(intervals), meta_fid(meta_fid) {
     // There is no information about the indices of local shared entities,
     // ranks and indices of the destination of copy i.e. (local source
-    // index, {(remote dest rank, remove dest index)}). We need to do a shuffle
+    // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
     using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
@@ -277,6 +269,13 @@ struct copy_engine {
     // MPI_Send().
     remote_ghost_entities = shuffle(grouped_shared_entities);
 
+    // We need to figure out the max local source index in order to call
+    // get_storage() correctly.
+    for(const auto & [rank, indices] : remote_ghost_entities) {
+      max_local_source_idx = std::max(max_local_source_idx,
+        *std::max_element(indices.begin(), indices.end()));
+    }
+
     // We need to reserve enough memory for requests used in operator(). This
     // only need to be calculated once.
     auto nrecvs = std::transform_reduce(destination.ghost_ranges.begin(),
@@ -296,7 +295,8 @@ struct copy_engine {
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) const {
-    auto source_storage = source.get_storage<std::byte>(data_fid);
+    auto source_storage =
+      source.r.get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
 
     // FIXME: should we assert(source_type_size == dest_type_size)?
@@ -305,8 +305,7 @@ struct copy_engine {
     std::vector<MPI_Request> requests;
     requests.reserve(nreqs);
 
-    using Pairs =
-      std::pair<std::size_t, std::size_t>;
+    using Pairs = std::pair<std::size_t, std::size_t>;
     const auto & remote_sources = destination.get_storage<Pairs>(meta_fid);
 
     for(auto & [begin, end] : destination.ghost_ranges) {
@@ -403,6 +402,7 @@ private:
   intervals & destination;
   field_id_t meta_fid;
   std::map<std::size_t, std::vector<std::size_t>> remote_ghost_entities;
+  std::size_t max_local_source_idx = 0;
   std::size_t nreqs = 0;
 };
 } // namespace data
