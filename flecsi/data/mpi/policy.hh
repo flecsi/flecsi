@@ -75,7 +75,7 @@ struct region {
       if(fs[i]->fid == fid)
         return fs[i];
     }
-    throw std::runtime_error("can not find filed");
+    throw std::runtime_error("can not find field");
   }
 
 protected:
@@ -212,7 +212,6 @@ private:
   region_base & r;
 
   // Locally cached metadata on ranges of ghost index.
-  // TODO: who need to have access to ghost_ranges?
   std::vector<Value> ghost_ranges;
   std::size_t max_end;
 };
@@ -229,12 +228,7 @@ struct points {
     const intervals & intervals,
     field_id_t,
     completeness = incomplete)
-    : r(r), maybe_nelems(intervals.max_end) {
-    // The region `r` contains field data of shared entities on this rank as
-    // source to be copied to remote peers. The region and the field selected by
-    // `fid` in the `intervals` contains metadata of shared entities on remote
-    // peers.
-  }
+    : r(r), maybe_nelems(intervals.max_end) {}
 
 private:
   // This member function is only called by opy_engine.
@@ -246,6 +240,8 @@ private:
     return r.get_storage<T>(fid, maybe_nelems);
   }
 
+  // The region `r` contains field data of shared entities on this rank as
+  // source to be copied to remote peers.
   region_base & r;
   size_t maybe_nelems;
 };
@@ -256,15 +252,15 @@ struct copy_engine {
     intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
     : source(points), destination(intervals), meta_fid(meta_fid) {
-    // There is no information about the indices of local shared entities
-    // and ranks and indices of the destination of copy i.e. (local source
+    // There is no information about the indices of local shared entities,
+    // ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remove dest index)}). We need to do a shuffle
-    // operation to reconstruct this info from (local ghost index, remote
-    // source rank, remote source index).
+    // operation to reconstruct this info from {(local ghost index, remote
+    // source rank, remote source index)}.
     using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
     const auto & remote_sources = intervals.get_storage<Value>(meta_fid);
     // Essentially a GroupByKey of remote_sources, keys are the remote source
-    // ranks and values are vectors of remote source indices
+    // ranks and values are vectors of remote source indices.
     for(auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         auto & shared = remote_sources[ghost_idx];
@@ -272,10 +268,12 @@ struct copy_engine {
       }
     }
 
-    // Do a limited, ragged Alltoall communication to create the inverse mapping
-    // of group_shared_entities. This creates a map from remote destination rank
-    // to a vector of *local* source indices. This is used by MPI_Send().
-    ghost_entities = shuffle(grouped_shared_entities);
+    // Do a limited, ragged Alltoall communication (like util::mpi::alltoallv
+    // but without the serialization overhead) to create the inverse mapping of
+    // group_shared_entities. This creates a map from remote destination rank to
+    // a vector of *local* source indices. This information is later used by
+    // MPI_Send().
+    remote_ghost_entities = shuffle(grouped_shared_entities);
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
@@ -303,13 +301,13 @@ struct copy_engine {
       }
     }
 
-    for(auto & [rank, indices] : ghost_entities) {
-      for(auto index : indices) {
+    for(auto & [dest_rank, local_indices] : remote_ghost_entities) {
+      for(auto shared_idx : local_indices) {
         requests.resize(requests.size() + 1);
-        MPI_Isend(source_storage.data() + index * type_size,
+        MPI_Isend(source_storage.data() + shared_idx * type_size,
           type_size,
           util::mpi::type<std::byte>(),
-          rank,
+          dest_rank,
           0,
           MPI_COMM_WORLD,
           &requests.back());
@@ -378,7 +376,7 @@ private:
   intervals & destination;
   field_id_t meta_fid;
   std::map<std::size_t, std::vector<std::size_t>> grouped_shared_entities;
-  std::map<std::size_t, std::vector<std::size_t>> ghost_entities;
+  std::map<std::size_t, std::vector<std::size_t>> remote_ghost_entities;
 };
 } // namespace data
 } // namespace flecsi
