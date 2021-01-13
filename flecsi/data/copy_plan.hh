@@ -203,7 +203,7 @@ protected:
     const Points & v) {
     auto & v1 = v[run::context::instance().color()];
     const auto n = v1.size();
-    // Our ghost_ranges are always a suffix:
+    // Our ghosts are always a suffix:
     assert(n <= a.span().size());
     std::copy(v1.begin(), v1.end(), a.span().end() - n);
   }

@@ -184,11 +184,9 @@ struct intervals {
     // a particular 'shard' on a rank for another partition. In addition, we
     // also need to copy Values from the partition and save them locally. User
     // code might change it after this constructor returns. We can not use a
-    // copy assignment here since metadata is an util::span while ghost_ranges
-    // is a std::vector<>.
-    auto metadata = p.get_storage<Value>(fid);
-    std::copy(
-      metadata.begin(), metadata.end(), std::back_inserter(ghost_ranges));
+    // copy assignment directly here since metadata is an util::span while
+    // ghost_ranges is a std::vector<>.
+    ghost_ranges = to_vector(p.get_storage<Value>(fid));
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
     // entities.
@@ -275,7 +273,7 @@ struct copy_engine {
     }
 
     // Do a limited, ragged Alltoall communication to create the inverse mapping
-    // group_shared_entities. This creates a map from remote destination rank
+    // of group_shared_entities. This creates a map from remote destination rank
     // to a vector of *local* source indices. This is used by MPI_Send().
     ghost_entities = shuffle(grouped_shared_entities);
   }
