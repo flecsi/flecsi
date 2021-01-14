@@ -140,7 +140,7 @@ reduce_internal(Args &&... args) {
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
-    (Attributes & ~mpi) | 1 << static_cast<std::size_t>(wrap::LegionProcessor)>;
+    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
     {
