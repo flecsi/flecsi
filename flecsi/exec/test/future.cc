@@ -13,8 +13,8 @@
                                                                               */
 
 #include "flecsi/data.hh"
+#include "flecsi/execution.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/execution.hh>
 
 using namespace flecsi;
 

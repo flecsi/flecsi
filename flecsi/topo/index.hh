@@ -40,7 +40,7 @@ struct repartition : with_size, data::partition {
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
   template<class F = decltype(zero::partial)>
-  repartition(const data::region & r, F f = zero::partial)
+  repartition(data::region & r, F f = zero::partial)
     : with_size(r.size().first), partition(r, sz, [&] {
         const auto r = sizes();
         execute<fill<F>>(r, f);
@@ -120,6 +120,10 @@ struct ragged_category : ragged_base {
   repartition & get_partition(field_id_t i) {
     return get_partition<P::default_space()>(i);
   }
+
+  // Ragged ghost copies must be handled at the level of the host topology.
+  template<class R>
+  void ghost_copy(const R &) {}
 
 private:
   template<auto... VV>

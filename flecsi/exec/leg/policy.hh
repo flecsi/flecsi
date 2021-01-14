@@ -86,13 +86,6 @@ make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
 
-template<class, class>
-struct tuple_prepend;
-template<class T, class... TT>
-struct tuple_prepend<T, std::tuple<TT...>> {
-  using type = std::tuple<T, TT...>;
-};
-
 #ifdef FLECSI_ENABLE_FLOG
 inline auto
 log_size() {
@@ -123,18 +116,11 @@ reduce_internal(Args &&... args) {
   auto legion_context = Legion::Runtime::get_context();
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
-  const auto domain_size = [&args..., &flecsi_context] {
-    if constexpr(mpi_task) {
-      // The status of being an MPI task contributes a launch domain:
-      return launch_size<
-        typename detail::tuple_prepend<launch_domain, param_tuple>::type>(
-        launch_domain{flecsi_context.processes()}, args...);
-    }
-    else {
-      (void)flecsi_context;
-      return launch_size<param_tuple>(args...);
-    }
-  }();
+  static_assert(processor_type == task_processor_type_t::toc ||
+                  processor_type == task_processor_type_t::loc || mpi_task,
+    "Unknown launch type");
+  const auto domain_size =
+    launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
 
   auto params =
     detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
@@ -151,14 +137,10 @@ reduce_internal(Args &&... args) {
     buf = util::serial_put(params);
   }
 
-  //------------------------------------------------------------------------//
-  // Single launch
-  //------------------------------------------------------------------------//
-
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
-    (Attributes & ~mpi) | 1 << static_cast<std::size_t>(wrap::LegionProcessor)>;
+    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
     {
@@ -179,27 +161,14 @@ reduce_internal(Args &&... args) {
     // adding futures to the launcher
     launcher.futures = std::move(pro).futures();
 
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc,
-      "Unknown launch type");
     return future<return_t>{
       legion_runtime->execute_task(legion_context, launcher)};
   }
-
-  //------------------------------------------------------------------------//
-  // Index launch
-  //------------------------------------------------------------------------//
-
   else {
-
     {
       log::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing index task" << std::endl;
     }
-
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc || mpi_task,
-      "Unknown launch type");
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),
@@ -230,7 +199,7 @@ reduce_internal(Args &&... args) {
       flog_devel(info) << "executing reduction logic for "
                        << util::type<Reduction>() << std::endl;
 
-      const auto ret = future<return_t, launch_type_t::single>{
+      auto ret = future<return_t, launch_type_t::single>{
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::id)};
       if(mpi_task)
@@ -238,7 +207,7 @@ reduce_internal(Args &&... args) {
       return ret;
     }
     else {
-      const auto ret = future<return_t, launch_type_t::index>{
+      auto ret = future<return_t, launch_type_t::index>{
         legion_runtime->execute_index_space(legion_context, launcher)};
       if(mpi_task)
         ret.wait();

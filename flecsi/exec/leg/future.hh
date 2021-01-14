@@ -37,14 +37,14 @@ struct future<Return> {
   /*!
     Wait on a task result.
    */
-  void wait() const {
+  void wait() {
     legion_future_.wait();
   } // wait
 
   /*!
     Get a task result.
    */
-  Return get(bool silence_warnings = false) const {
+  Return get(bool silence_warnings = false) {
     if constexpr(std::is_same_v<Return, void>)
       return legion_future_.get_void_result(silence_warnings);
     else
@@ -59,7 +59,7 @@ struct future<Return, exec::launch_type_t::index> {
   /*!
     Wait on a task result.
   */
-  void wait(bool silence_warnings = false) const {
+  void wait(bool silence_warnings = false) {
     legion_future_.wait_all_results(silence_warnings);
   } // wait
 
@@ -67,7 +67,7 @@ struct future<Return, exec::launch_type_t::index> {
     Get a task result.
    */
 
-  Return get(std::size_t index = 0, bool silence_warnings = false) const {
+  Return get(std::size_t index = 0, bool silence_warnings = false) {
     if constexpr(std::is_same_v<Return, void>)
       return legion_future_.get_void_result(index, silence_warnings);
     else

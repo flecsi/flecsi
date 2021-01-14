@@ -142,13 +142,11 @@ add_unit(unit
     1 2 4
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-  add_unit(unit_task
-    SOURCES
-      test/unit_task.cc
-    THREADS 2
+add_unit(unit_task
+  SOURCES
+    test/unit_task.cc
+  THREADS 2
   )
-endif()
 
 #------------------------------------------------------------------------------#
 # serialize

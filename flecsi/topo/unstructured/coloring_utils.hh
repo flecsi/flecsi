@@ -196,7 +196,7 @@ make_dcrs(Definition const & md,
   return std::make_tuple(dcrs, c2v, v2c, c2c);
 } // make_dcrs
 
-std::vector<std::vector<std::size_t>>
+inline std::vector<std::vector<std::size_t>>
 distribute(util::dcrs const & naive,
   size_t colors,
   std::vector<std::size_t> const & index_colors,

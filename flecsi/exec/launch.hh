@@ -37,6 +37,7 @@ namespace detail {
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
 // no replacement defined for an argument.
+// XREF: more specializations in accessor.hh
 template<class = void>
 struct task_param {};
 template<class P, class A, class = void> // A is a reference type
@@ -104,10 +105,16 @@ private:
   T t;
 };
 
-template<class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
-  return (launch_combine(nullptr) | ... |
+  return (launch_combine([] {
+    // An MPI task has a known launch domain:
+    if constexpr(M)
+      return run::context::instance().processes();
+    else
+      return nullptr;
+  }()) | ... |
           launch_combine(launch<std::decay_t<PP>, AA>::get(aa)))
     .get();
 }
@@ -135,10 +142,12 @@ replace_argument(T && t) {
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.
-template<class P, class... AA>
+template<std::size_t A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size(static_cast<P *>(nullptr), aa...);
+  return detail::launch_size<mask_to_processor_type(A) ==
+                             task_processor_type_t::mpi>(
+    static_cast<P *>(nullptr), aa...);
 }
 
 enum class launch_type_t : size_t { single, index };
@@ -204,17 +213,17 @@ struct future;
 template<typename Return>
 struct future<Return> {
   /// Wait on the task to finish.
-  void wait() const;
+  void wait();
   /// Get the task's result.
-  Return get(bool silence_warnings = false) const;
+  Return get(bool silence_warnings = false);
 };
 
 template<typename Return>
 struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
-  void wait(bool silence_warnings = false) const;
+  void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
-  Return get(std::size_t index = 0, bool silence_warnings = false) const;
+  Return get(std::size_t index = 0, bool silence_warnings = false);
   /// Get the number of tasks.
   std::size_t size() const;
 };
