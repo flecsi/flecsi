@@ -378,7 +378,7 @@ private:
       }
     }
 
-    for(auto [rank, indices] : shared_entities) {
+    for(const auto & [rank, indices] : shared_entities) {
       requests.resize(requests.size() + 1);
       MPI_Isend(indices.data(),
         indices.size(),
