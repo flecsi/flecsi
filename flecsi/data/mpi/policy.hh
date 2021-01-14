@@ -344,15 +344,14 @@ private:
   static SendPoints shuffle(const SendPoints & shared_entities) {
     auto [not_used, nranks] = util::mpi::info(MPI_COMM_WORLD);
 
-    std::vector<std::size_t> send_counts(nranks);
+    std::vector<std::size_t> recv_counts(nranks);
     for(const auto & [rank, indices] : shared_entities) {
-      send_counts[rank] = indices.size();
+      recv_counts[rank] = indices.size();
     }
 
-    std::vector<std::size_t> recv_counts(nranks);
-    MPI_Alltoall(send_counts.data(),
-      1,
-      util::mpi::type<std::size_t>(),
+    MPI_Alltoall(MPI_IN_PLACE,
+      1, // ignored
+      util::mpi::type<std::size_t>(), // ignored
       recv_counts.data(),
       1,
       util::mpi::type<std::size_t>(),
@@ -379,17 +378,15 @@ private:
       }
     }
 
-    for(int i{0}; i < nranks; ++i) {
-      if(send_counts[i] > 0) {
-        requests.resize(requests.size() + 1);
-        MPI_Isend(shared_entities.at(i).data(),
-          send_counts[i],
-          util::mpi::type<std::size_t>(),
-          i,
-          0,
-          MPI_COMM_WORLD,
-          &requests.back());
-      }
+    for(auto [rank, indices] : shared_entities) {
+      requests.resize(requests.size() + 1);
+      MPI_Isend(indices.data(),
+        indices.size(),
+        util::mpi::type<std::size_t>(),
+        int(rank),
+        0,
+        MPI_COMM_WORLD,
+        &requests.back());
     }
 
     std::vector<MPI_Status> status(requests.size());
