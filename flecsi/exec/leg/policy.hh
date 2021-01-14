@@ -116,6 +116,9 @@ reduce_internal(Args &&... args) {
   auto legion_context = Legion::Runtime::get_context();
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
+  static_assert(processor_type == task_processor_type_t::toc ||
+                  processor_type == task_processor_type_t::loc || mpi_task,
+    "Unknown launch type");
   const auto domain_size =
     launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
 
@@ -134,14 +137,10 @@ reduce_internal(Args &&... args) {
     buf = util::serial_put(params);
   }
 
-  //------------------------------------------------------------------------//
-  // Single launch
-  //------------------------------------------------------------------------//
-
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
-    (Attributes & ~mpi) | 1 << static_cast<std::size_t>(wrap::LegionProcessor)>;
+    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
     {
@@ -159,27 +158,14 @@ reduce_internal(Args &&... args) {
     // adding futures to the launcher
     launcher.futures = std::move(pro).futures();
 
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc,
-      "Unknown launch type");
     return future<return_t>{
       legion_runtime->execute_task(legion_context, launcher)};
   }
-
-  //------------------------------------------------------------------------//
-  // Index launch
-  //------------------------------------------------------------------------//
-
   else {
-
     {
       log::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing index task" << std::endl;
     }
-
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc || mpi_task,
-      "Unknown launch type");
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),
