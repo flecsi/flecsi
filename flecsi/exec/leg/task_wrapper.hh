@@ -221,7 +221,7 @@ detail::register_task() {
     Legion::Runtime::preregister_task_variant<RETURN, TASK>(
       registrar, name.c_str());
   } // if
-} // registration_callback
+}
 
 // A trivial wrapper for nullary functions.
 template<auto & F>
