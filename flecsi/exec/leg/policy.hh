@@ -134,10 +134,6 @@ reduce_internal(Args &&... args) {
     buf = util::serial_put(params);
   }
 
-  //------------------------------------------------------------------------//
-  // Single launch
-  //------------------------------------------------------------------------//
-
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
@@ -165,13 +161,7 @@ reduce_internal(Args &&... args) {
     return future<return_t>{
       legion_runtime->execute_task(legion_context, launcher)};
   }
-
-  //------------------------------------------------------------------------//
-  // Index launch
-  //------------------------------------------------------------------------//
-
   else {
-
     {
       log::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing index task" << std::endl;
