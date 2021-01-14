@@ -116,6 +116,9 @@ reduce_internal(Args &&... args) {
   auto legion_context = Legion::Runtime::get_context();
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
+  static_assert(processor_type == task_processor_type_t::toc ||
+                  processor_type == task_processor_type_t::loc || mpi_task,
+    "Unknown launch type");
   const auto domain_size =
     launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
 
@@ -155,9 +158,6 @@ reduce_internal(Args &&... args) {
     // adding futures to the launcher
     launcher.futures = std::move(pro).futures();
 
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc,
-      "Unknown launch type");
     return future<return_t>{
       legion_runtime->execute_task(legion_context, launcher)};
   }
@@ -166,10 +166,6 @@ reduce_internal(Args &&... args) {
       log::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing index task" << std::endl;
     }
-
-    static_assert(processor_type == task_processor_type_t::toc ||
-                    processor_type == task_processor_type_t::loc || mpi_task,
-      "Unknown launch type");
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),
