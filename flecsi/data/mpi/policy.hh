@@ -72,9 +72,9 @@ struct region {
   }
 
   auto get_field_info(field_id_t fid) const {
-    for(size_t i = 0; i < fs.size(); ++i) {
-      if(fs[i]->fid == fid)
-        return fs[i];
+    for(auto f : fs) {
+      if(f->fid == fid)
+        return f;
     }
     throw std::runtime_error("can not find field");
   }
@@ -280,12 +280,12 @@ struct copy_engine {
       destination.ghost_ranges.end(),
       0,
       std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto& p) { return p.second - p.first; });
+      [](const auto & p) { return p.second - p.first; });
     auto nsends = std::transform_reduce(remote_ghost_entities.begin(),
       remote_ghost_entities.end(),
       0,
       std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto& p) { return p.second.size(); });
+      [](const auto & p) { return p.second.size(); });
 
     nreqs = nrecvs + nsends;
   }
@@ -341,7 +341,7 @@ private:
   // (rank, { indices })
   using SendPoints = std::map<std::size_t, std::vector<std::size_t>>;
 
-  static SendPoints shuffle(SendPoints & shared_entities) {
+  static SendPoints shuffle(const SendPoints & shared_entities) {
     auto [not_used, nranks] = util::mpi::info(MPI_COMM_WORLD);
 
     std::vector<std::size_t> send_counts(nranks);
@@ -382,7 +382,7 @@ private:
     for(int i{0}; i < nranks; ++i) {
       if(send_counts[i] > 0) {
         requests.resize(requests.size() + 1);
-        MPI_Isend(shared_entities[i].data(),
+        MPI_Isend(shared_entities.at(i).data(),
           send_counts[i],
           util::mpi::type<std::size_t>(),
           i,
