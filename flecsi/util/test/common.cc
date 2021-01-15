@@ -15,7 +15,6 @@
 #define __FLECSI_PRIVATE__
 #include "flecsi/util/common.hh"
 #include "flecsi/util/constant.hh"
-#include "flecsi/util/debruijn.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/static_verify.hh"
@@ -176,17 +175,6 @@ static_assert(util::is_tuple<std::tuple<int>>::value);
 static_assert(util::is_tuple<std::tuple<int, char>>::value);
 
 // ---------------
-constexpr bool
-debruijn(std::uint32_t x) {
-  for(std::uint32_t i = 0; i < 32; ++i)
-    if(util::debruijn32_t::index(x << i) != i)
-      return false;
-  return true;
-}
-
-static_assert(util::debruijn32_t::index(0) == 0);
-static_assert(debruijn(1));
-
 int
 common() {
   UNIT {
@@ -218,13 +206,6 @@ common() {
         p{1, nullptr};
       static_assert(p.get<2>() == 1);
       static_assert(p.get<8>() == nullptr);
-    }
-
-    {
-      std::mt19937 random;
-      random.seed(12345);
-      for(int n = 10000; n--;)
-        EXPECT_TRUE(debruijn(random() | 1));
     }
 
     {
