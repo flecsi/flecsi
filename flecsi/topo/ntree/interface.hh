@@ -210,8 +210,7 @@ struct ntree<Policy>::access {
 
     // Add the root
     hmap.insert(key_t::root(), key_t::root());
-    auto root_ = hmap.find(key_t::root());
-    assert(root_ != hmap.end());
+    assert(hmap.find(key_t::root()) != hmap.end());
 
     size_t current_depth = key_t::max_depth();
     // Entity keys, last and current
