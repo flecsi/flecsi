@@ -16,6 +16,7 @@
 /*! @file */
 
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
@@ -144,30 +145,65 @@ to_vector(span<T> s) {
 template<class T, unsigned short D>
 struct mdspan {
   static_assert(D > 0);
-  using Sizes = std::array<std::size_t, D - 1>;
+  using index_type = std::size_t;
+  using Strides = std::array<std::size_t, D - 1>;
+  using Sizes = std::array<std::size_t, D>;
 
-  constexpr mdspan(T * p, const Sizes & sz) noexcept : p(p), strides(sz) {
-    for(int d = D - 2; d-- > 0;) // premultiply to convert to strides
-      strides[d] *= strides[d + 1];
+  constexpr mdspan(T * p, const Sizes & sz) noexcept
+    : p(p), strides(head(sz, std::make_index_sequence<D - 1>())), sizes(sz) {
+    for(int d = 1; d < D - 1; ++d)
+      strides[d] *= strides[d - 1];
   }
 
-  constexpr decltype(auto) operator[](std::ptrdiff_t i) const noexcept {
+  constexpr std::size_t extent(unsigned short i) const noexcept {
+    assert(i < D);
+    return sizes[i];
+  }
+
+  template<class... I>
+  constexpr decltype(auto) operator()(I... inds) const noexcept {
+    static_assert(sizeof...(inds) == D);
+    return p[index(index_type(inds)...)];
+  }
+
+  constexpr decltype(auto) operator[](index_type i) const noexcept {
+    assert(i < sizes[D - 1]);
     if constexpr(D > 1)
       return mdspan<T, D - 1>(
-        p + i * strides[0], tail(std::make_index_sequence<D - 2>()));
+        p + i * strides[D - 2], head(sizes, std::make_index_sequence<D - 1>()));
     else
       return p[i];
   }
 
 private:
   template<std::size_t... II>
-  constexpr std::array<std::size_t, sizeof...(II)> tail(
-    std::index_sequence<II...>) const noexcept {
-    return {strides[1 + II]...};
+  static constexpr std::array<std::size_t, sizeof...(II)> head(
+    const std::array<std::size_t, sizeof...(II) + 1> & arr,
+    std::index_sequence<II...>) noexcept {
+    return {arr[II]...};
+  }
+
+  template<class... I>
+  constexpr void check_bounds(I... inds) const noexcept {
+    std::size_t i = 0;
+    (assert(inds < sizes[i++]), ...);
+  }
+
+  template<class I0, class... I>
+  constexpr index_type index(I0 i0, I... inds) const noexcept {
+    static_assert(sizeof...(inds) == D - 1);
+#if !defined(NDEBUG)
+    check_bounds(i0, inds...);
+#endif
+    std::size_t i = 0;
+    std::size_t ret = i0;
+    ((ret += inds * strides[i++]), ...);
+    return ret;
   }
 
   T * p;
-  Sizes strides;
+  Strides strides;
+  Sizes sizes;
 };
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
