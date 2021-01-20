@@ -42,10 +42,10 @@ struct connect<P, util::types<VT...>> {
 
 template<class, class>
 struct lists;
-template<class P, class... VT>
-struct lists<P, util::types<VT...>> {
-  using type = util::key_tuple<util::key_type<VT::value,
-    util::key_array<connect_field::definition<P>, typename VT::type>>...>;
+template<class T, class... VT>
+struct lists<T, util::types<VT...>> {
+  using type = util::key_tuple<
+    util::key_type<VT::value, util::key_array<T, typename VT::type>>...>;
 };
 
 template<class, std::size_t>
@@ -100,14 +100,37 @@ struct identity {
 template<class P, std::size_t Priv>
 using connect_access = detail::connect_access<connect_t<P>, Priv>;
 
-// Fields for the distinguished entities requested by a topology.
+template<class T, class P>
+using lists_t = typename detail::lists<T, typename P::entity_lists>::type;
+
+// Subtopologies for the distinguished entities requested by a topology.
 template<class P>
-using lists_t =
-  typename detail::lists<meta_topology<P>, typename P::entity_lists>::type;
+struct lists : lists_t<typename array<P>::core, P> {
+  using Base = typename lists::key_tuple;
+
+  // Initializes each subtopology to zero size on every color.
+  explicit lists(std::size_t nc)
+    : Base(make_base(nc, typename P::entity_lists())) {}
+
+  // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
+  // coloring-based allocation?
+
+private:
+  template<class... VT>
+  Base make_base(std::size_t nc, util::types<VT...> /* to decue a pack */) {
+    return {make_base1(nc, typename VT::type())...};
+  }
+  template<auto... VV>
+  util::key_array<typename array<P>::core, util::constants<VV...>>
+  make_base1(std::size_t nc, util::constants<VV...> /* to deduce a pack */) {
+    return {{(
+      (void)VV, typename array<P>::core(typename array<P>::coloring(nc)))...}};
+  }
+};
 
 // Accessors for the distinguished entities requested by a topology.
 template<class P, std::size_t Priv>
-using list_access = detail::connect_access<lists_t<P>, Priv>;
+using list_access = detail::connect_access<lists<P>, Priv>;
 
 template<class F, class... VT, class C, class S = detail::identity>
 void connect_send(F && f,
@@ -121,6 +144,25 @@ void connect_send(F && f,
         f(a, [&](auto & t) {
           return cf.template get<VT::value>()[i++](std::invoke(s, t.get()));
         });
+    }(),
+    ...);
+}
+
+template<class F, class... VT, class L, class S>
+void
+lists_send(F && f,
+  util::key_tuple<VT...> & la,
+  L & lf,
+  S && s) // s: topology -> lists
+{
+  (
+    [&] {
+      std::size_t i = 0;
+      for(auto & a : la.template get<VT::value>()) {
+        f(a, [&](auto & t) {
+          return lf(std::invoke(s, t.get()).template get<VT::value>()[i++]);
+        });
+      }
     }(),
     ...);
 }
