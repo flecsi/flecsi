@@ -248,8 +248,7 @@ private:
   // direct access to the region.
   friend struct copy_engine;
 
-//  region_base & r;
-    mpi::region_impl * r;
+  mpi::region_impl * r;
 };
 
 struct copy_engine {
