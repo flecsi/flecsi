@@ -67,6 +67,16 @@ enum class task_processor_type_t : size_t {
 constexpr size_t task_attributes_bits = 8;
 constexpr size_t task_type_bits = 3;
 
+constexpr auto
+as_mask(task_type_t t) {
+  return static_cast<task_attributes_mask_t>(1 << static_cast<std::size_t>(t));
+}
+constexpr auto
+as_mask(task_processor_type_t t) {
+  return static_cast<task_attributes_mask_t>(
+    1 << task_type_bits + static_cast<std::size_t>(t));
+}
+
 using task_attributes_bitset_t = std::bitset<task_attributes_bits>;
 
 inline task_type_t

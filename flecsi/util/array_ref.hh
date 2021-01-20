@@ -15,6 +15,7 @@
 
 /*! @file */
 
+#include <array>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
@@ -137,6 +138,37 @@ to_vector(span<T> s) {
   // Work around GCC<8 having no deduction guide for vector:
   return std::vector<typename span<T>::value_type>(s.begin(), s.end());
 }
+
+/// A small, approximate subset of mdspan as proposed for C++23.
+/// \tparam D dimension
+template<class T, unsigned short D>
+struct mdspan {
+  static_assert(D > 0);
+  using Sizes = std::array<std::size_t, D - 1>;
+
+  constexpr mdspan(T * p, const Sizes & sz) noexcept : p(p), strides(sz) {
+    for(int d = D - 2; d-- > 0;) // premultiply to convert to strides
+      strides[d] *= strides[d + 1];
+  }
+
+  constexpr decltype(auto) operator[](std::ptrdiff_t i) const noexcept {
+    if constexpr(D > 1)
+      return mdspan<T, D - 1>(
+        p + i * strides[0], tail(std::make_index_sequence<D - 2>()));
+    else
+      return p[i];
+  }
+
+private:
+  template<std::size_t... II>
+  constexpr std::array<std::size_t, sizeof...(II)> tail(
+    std::index_sequence<II...>) const noexcept {
+    return {strides[1 + II]...};
+  }
+
+  T * p;
+  Sizes strides;
+};
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
 template<class I>

@@ -28,7 +28,7 @@ namespace flecsi {
 namespace data {
 
 namespace mpi {
-struct region {
+struct region_impl {
   // The constructor is collectively called on all ranks with the same s,
   // and fs. s.first is number of rows while s.second is number of columns.
   // MPI may assume "number of rows" == number of ranks. The number of columns
@@ -44,7 +44,7 @@ struct region {
   // a field id and the number of elements on this rank, as determined by
   // partitioning of the field. We will then call .resize() on the
   // std::vector<>.
-  region(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
+  region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(auto f : fs) {
       storages.emplace(f->fid, 0);
     }
@@ -79,17 +79,32 @@ struct region {
     throw std::runtime_error("can not find field");
   }
 
-protected:
-  void vacuous(field_id_t) {
-    /* Nothing to do for  MPI backend */
-  }
-
 private:
   size2 s; // (nranks, nelems)
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
   std::unordered_map<field_id_t, std::vector<std::byte>> storages;
+};
+
+struct region {
+  region(size2 s, const fields & fs) : p(new region_impl(s, fs)) {}
+
+  size2 size() const {
+    return p->size();
+  }
+
+  region_impl & operator*() const {
+    return *p;
+  }
+
+protected:
+  void vacuous(field_id_t) {
+    /* Nothing to do for  MPI backend */
+  }
+
+private:
+  std::unique_ptr<region_impl> p; // to preserve an address on move
 };
 
 struct partition {
@@ -101,7 +116,7 @@ struct partition {
     return r;
   }
 
-  explicit partition(region & r) : r(&r) {
+  explicit partition(region & r) : r(&*r) {
     // This constructor is usually (almost always) called when r.s.second != a
     // large number, meaning it has the actual value. In this case, r.s.second
     // is the number of elements in the partition on this rank (the same value
@@ -113,7 +128,7 @@ struct partition {
     const partition & other,
     field_id_t fid,
     completeness = incomplete)
-    : r(&r) {
+    : r(&*r) {
     // Constructor for the case when how the data is partitioned is stored
     // as a field in another region referenced by the "other' partition.
     // Delegate to update().
@@ -150,7 +165,7 @@ struct partition {
   }
 
 private:
-  region * r;
+  region_impl * r;
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
@@ -170,7 +185,7 @@ struct intervals {
     const partition & p,
     field_id_t fid, // The field id for the metadata in the region in p.
     completeness = incomplete)
-    : r(r) {
+    : r(&*r) {
     // Called by upper layer, supplied with a region and a partition. There are
     // two regions involved. The region `r` has the storage for real field data
     // (e.g. density, pressure etc.) as the destination of the ghost copy. It
@@ -203,12 +218,12 @@ private:
 
   template<typename T>
   auto get_storage(field_id_t fid) const {
-    return r.get_storage<T>(fid, max_end);
+    return r->get_storage<T>(fid, max_end);
   }
 
   // We use a reference to region instead of pointer since it is not nullable
   // nor needs to be redirected after initialization.
-  region_base & r;
+  mpi::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
@@ -225,7 +240,7 @@ struct points {
     const intervals &,
     field_id_t,
     completeness = incomplete)
-    : r(r) {}
+    : r(&*r) {}
 
 private:
   // The region `r` contains field data of shared entities on this rank as
@@ -233,7 +248,8 @@ private:
   // direct access to the region.
   friend struct copy_engine;
 
-  region_base & r;
+//  region_base & r;
+    mpi::region_impl * r;
 };
 
 struct copy_engine {
@@ -294,11 +310,11 @@ struct copy_engine {
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) const {
     auto source_storage =
-      source.r.get_storage<std::byte>(data_fid, max_local_source_idx);
+      source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
 
     // FIXME: should we assert(source_type_size == dest_type_size)?
-    auto type_size = source.r.get_field_info(data_fid)->type_size;
+    auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
     requests.reserve(nreqs);
