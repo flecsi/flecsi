@@ -491,9 +491,9 @@ public:
     std::vector<LogicalRegion> regions(1, req.region);
     Mapping::PhysicalInstance result;
     bool created;
-    bool ok = runtime->find_or_create_physical_instance(
-      ctx, m, constraints, regions, result, created);
-    assert(ok);
+    if(!runtime->find_or_create_physical_instance(
+         ctx, m, constraints, regions, result, created))
+      assert(!"find_or_create_physical_instance");
     return result;
   }
 

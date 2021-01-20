@@ -28,10 +28,6 @@ using namespace flecsi::data;
 using double1 = field<double, single>;
 const double1::definition<topo::index> test_value_1, test_value_2, test_value_3;
 
-const auto fh1 = test_value_1(process_topology);
-const auto fh2 = test_value_2(process_topology);
-const auto fh3 = test_value_3(process_topology);
-
 void
 assign(double1::accessor<rw> ia) {
   ia = color();
@@ -50,9 +46,9 @@ check(double1::accessor<ro> ia) {
 int
 index_driver() {
   UNIT {
-    char file_name[256];
-    strcpy(file_name, "checkpoint.dat");
-
+    const auto fh1 = test_value_1(process_topology);
+    const auto fh2 = test_value_2(process_topology);
+    const auto fh3 = test_value_3(process_topology);
     execute<assign>(fh1);
     execute<assign>(fh2);
     execute<assign>(fh3);
@@ -61,7 +57,7 @@ index_driver() {
     int my_rank = flecsi_context.process();
     int num_files = 4;
     io::io_interface_t cp_io;
-    io::hdf5_t checkpoint_file = io::init_hdf5_file(file_name, num_files);
+    io::hdf5_t checkpoint_file = io::init_hdf5_file("io_index.dat", num_files);
 
     cp_io.add_process_topology(checkpoint_file);
 #if 1
@@ -116,9 +112,10 @@ index_driver() {
     }
 #endif
 
-    cp_io.recover_process_topology(checkpoint_file);
-    // cp_io.recover_process_topology_field(checkpoint_file, fh1);
-    // cp_io.recover_process_topology_field(checkpoint_file, fh2);
+    // cp_io.recover_process_topology(checkpoint_file);
+    cp_io.recover_index_topology_field(checkpoint_file, fh1);
+    cp_io.recover_index_topology_field(checkpoint_file, fh2);
+    cp_io.recover_index_topology_field(checkpoint_file, fh3);
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);

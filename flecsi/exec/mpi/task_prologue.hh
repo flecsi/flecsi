@@ -65,7 +65,7 @@ protected:
 
     const auto storage = [&]() -> auto & {
       if constexpr(glob)
-        return t;
+        return *t;
       else
         // The partition controls how much memory is allocated.
         return t.template get_partition<Space>(f);
