@@ -100,9 +100,11 @@ struct ntree : ntree_base {
 
   struct ntree_data {
     key_t hibound, lobound;
-    size_t max_depth = 0;
-    size_t nents = 0;
-    size_t nnodes = 0;
+    std::size_t max_depth = 0;
+    std::size_t nents = 0;
+    std::size_t nents_ghosts = 0; 
+    std::size_t nnodes = 0;
+    std::size_t nnodes_ghosts = 0; 
   };
 
   template<std::size_t>
@@ -155,14 +157,14 @@ struct ntree : ntree_base {
   // This is decomposed in two steps since
   // we need to share information using a
   // future_map to continue the construction
-  static serdez_vector<hcell_t> make_tree_s1(
+  static serdez_vector<hcell_t> make_local_tree(
     typename Policy::template accessor<rw> t) {
     t.make_tree();
     t.graphviz_draw(0);
-    return t.boundaries_size();
+    return t.top_tree_boundaries();
   } // make_tree
 
-  static std::pair<std::size_t, std::size_t> make_tree_s2(
+  static std::pair<std::size_t, std::size_t> make_distributed_tree(
     typename Policy::template accessor<rw> t,
     const std::vector<hcell_t> & v) {
     std::pair<std::size_t, std::size_t> sizes = t.get_sizes();
@@ -171,9 +173,16 @@ struct ntree : ntree_base {
     return sizes;
   }
 
-  static void display_keys(typename Policy::template accessor<rw> t) {
-    std::cout << color() << ": ";
+  static void display_keys(typename Policy::template accessor<ro> t) {
+    std::cout << color() << ": E: ";
     for(auto a : t.e_keys.span()) {
+      auto b = a;
+      b.truncate(5);
+      std::cout << b << " - ";
+    }
+    std::cout << std::endl;
+    std::cout << color() << ": N: ";
+    for(auto a : t.n_keys.span()) {
       auto b = a;
       b.truncate(5);
       std::cout << b << " - ";
@@ -181,11 +190,40 @@ struct ntree : ntree_base {
     std::cout << std::endl;
   }
 
+#if 0
+  static void
+  xfer_start(typename field<key_t>::template accessor<ro> a, 
+  data::buffers::Start mv) { 
+    auto w1 = mv[0].write(); 
+    w1(a(0)); 
+    auto w2 = mv[1].write(); 
+    w2(a(0));
+    auto w3 = mv[2].write(); 
+    w3(a(0)); 
+  }
+
+  static int
+  xfer(typename field<key_t>::template accessor<rw> a, 
+    data::buffers::Transfer mv) {
+    auto r1 = mv[3].read(); 
+    a(1) = r1(); 
+    auto r2 = mv[4].read(); 
+    a(2) = r2();
+    auto r3 = mv[5].read(); 
+    a(3) = r3(); 
+    return 0; 
+  }
+#endif 
+
   template<class T>
   void make_tree(T && ts) {
     cp_data_tree.issue_copy(data_field.fid);
 
-    auto fm_top_tree = flecsi::execute<make_tree_s1>(ts);
+    // Create the local tree
+    // Return the list of nodes to share (top of the tree)
+    auto fm_top_tree = flecsi::execute<make_local_tree>(ts);
+
+    // Merge all the hcells informations 
     std::vector<hcell_t> top_tree;
     std::vector<std::size_t> top_tree_nnodes(colors(), 0);
     std::vector<std::size_t> top_tree_nents(colors(), 0);
@@ -207,11 +245,13 @@ struct ntree : ntree_base {
       }
     }
 
-    auto fm_sizes = flecsi::execute<make_tree_s2>(ts, top_tree);
+    // Add the new hcells to the local tree 
+    auto fm_sizes = flecsi::execute<make_distributed_tree>(ts, top_tree);
 
-#if 0 
     std::vector<std::size_t> ents_sizes(colors());
     std::vector<std::size_t> nodes_sizes(colors());
+    std::vector<std::size_t> ents_sizes_rz(colors());
+    std::vector<std::size_t> nodes_sizes_rz(colors());
 
     for(std::size_t i = 0; i < fm_sizes.size(); ++i) {
       auto f = fm_sizes.get(i);
@@ -221,34 +261,166 @@ struct ntree : ntree_base {
 
     flecsi::execute<display_keys>(ts);
 
+    // Add the total to rebuild the partitions
+    for(std::size_t i = 0; i < colors(); ++i) {
+      ents_sizes_rz[i] = ents_sizes[i] + top_tree_nents[i];
+      nodes_sizes_rz[i] = nodes_sizes[i] + top_tree_nnodes[i];
+    }
+
+    resize_repartitioned(
+      part.template get<entities>(), make_partial<allocate>(ents_sizes_rz));
+    resize_repartitioned(
+      part.template get<nodes>(), make_partial<allocate>(nodes_sizes_rz));
+
     // Create this new copy plan
     top_tree_cp(
       top_tree, top_tree_nents, top_tree_nnodes, ents_sizes, nodes_sizes);
 
-    // Add the total to rebuild the partitions
-    for(std::size_t i = 0; i < colors(); ++i) {
-      ents_sizes[i] += top_tree_nents[i];
-      nodes_sizes[i] += top_tree_nnodes[i];
+    // Retrieve the information needed by the specialization
+    cp_top_tree_entities->issue_copy(e_keys.fid);
+    cp_top_tree_nodes->issue_copy(n_keys.fid);
+
+    flecsi::execute<display_keys>(ts);
+
+    // Several rounds of communications to find all the neighbors 
+    share_ghosts();
+
+#if 0 
+    // Share the keys 
+    data::buffers::core buf([] {
+      const auto p = processes();
+      data::buffers::coloring ret(p);
+      for(std::size_t i_r = 0 ; i_r < ret.size(); ++i_r){
+        for(std::size_t i = 0 ; i < processes(); ++i){
+          if(i!=i_r){
+            ret[i_r].push_back(i); 
+          }
+        }
+      }
+      return ret;
+    }());
+
+    flecsi::execute<display_keys>(ts);
+
+    execute<xfer_start>(e_keys(*this), *buf);
+    while(reduce<xfer, exec::fold::max>(e_keys(*this), *buf).get());
+
+    flecsi::execute<display_keys>(ts);
+#endif 
+
+  }
+
+  static void set_top_tree_entities_dests(
+     field<data::intervals::Value>::accessor<wo> a, 
+    const std::vector<std::size_t>& nents_base, 
+    const std::vector<std::size_t>& nents_tt){
+      auto i = process(); 
+      a(0) = data::intervals::make({nents_base[i], nents_base[i] + nents_tt[i]},i);
+    } 
+
+  static void set_top_tree_entities_ptrs(
+    field<data::points::Value>::accessor<wo> a,
+    const std::vector<std::size_t>& nents_base, 
+    const std::vector<hcell_t>& hcells){
+      auto i = process();
+      std::size_t idx = nents_base[i]; 
+      for(std::size_t j = 0; j < hcells.size(); ++j) {
+        if(hcells[j].is_ent() && hcells[j].color() != i) {
+          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
+        }
+      }
     }
 
-    resize_repartitioned(
-      part.template get<entities>(), make_partial<allocate>(ents_sizes));
-    resize_repartitioned(
-      part.template get<nodes>(), make_partial<allocate>(nodes_sizes));
-#endif
+  static void set_top_tree_nodes_dests(
+     field<data::intervals::Value>::accessor<wo> a, 
+    const std::vector<std::size_t>& nnodes_base, 
+    const std::vector<std::size_t>& nnodes_tt){
+      auto i = process(); 
+      a(0) = data::intervals::make({nnodes_base[i], nnodes_base[i] + nnodes_tt[i]},i);
+    }
 
-    // Retrieve the information needed by the specialization
-    // cp_top_tree_entities->issue_copy(e_keys.fid);
-    // cp_top_tree_nodes->issue_copy(n_keys.fid);
+  static void set_top_tree_nodes_ptrs(
+    field<data::points::Value>::accessor<wo> a,
+    const std::vector<std::size_t>& nnodes_base, 
+    const std::vector<hcell_t>& hcells){
+      auto i = process(); 
+      std::size_t idx = nnodes_base[i]; 
+      for(std::size_t j = 0; j < hcells.size(); ++j) {
+        if(hcells[j].is_node() && hcells[j].color() != i) {
+          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
+        }
+      }
+    }
+ 
+  void top_tree_cp(const std::vector<hcell_t> & hcells,
+    const std::vector<std::size_t> & nents_tt,
+    const std::vector<std::size_t> & nnodes_tt,
+    const std::vector<std::size_t> & nents_base,
+    const std::vector<std::size_t> & nnodes_base) {
+    // create the vectors of: destination size (based on total + current
+    // position)
+    auto entities_dests_task = [&nents_base, &nents_tt](auto f) {
+      execute<set_top_tree_entities_dests>(f, nents_base, nents_tt);
+    };
+    auto entities_ptrs_task = [&nents_base, &hcells](auto f){
+      execute<set_top_tree_entities_ptrs>(f, nents_base, hcells); 
+    };
 
-    // This task should trigger a copy
-    flecsi::execute<display_keys>(ts);
+    auto nodes_dests_task = [&nnodes_base, &nnodes_tt](auto f) {
+      execute<set_top_tree_nodes_dests>(f, nnodes_base, nnodes_tt);
+    };
+    auto nodes_ptrs_task = [&nnodes_base, &hcells](auto f){
+      execute<set_top_tree_nodes_ptrs>(f, nnodes_base, hcells); 
+    };
+
+    cp_top_tree_entities = data::copy_plan(
+      *this,
+      data::copy_plan::Sizes(processes(), 1), 
+      entities_dests_task, 
+      entities_ptrs_task,  
+      util::constant<entities>()
+    ); 
+
+    cp_top_tree_nodes = data::copy_plan(
+      *this,
+      data::copy_plan::Sizes(processes(), 1), 
+      nodes_dests_task, 
+      nodes_ptrs_task, 
+      util::constant<nodes>()); 
+  }
+
+  // Search neighbors and complete the hmap, create copy plans (or buffer)
+  void share_ghosts(){
+    bool done = false; 
+
+    // Create buffer communicator
+    // For now, complete all to all   
+
+    //do{
+
+      // 1. Send all 
+    //  execute<xfer_start>(e_keys(*this), *buf);
+    //  while(reduce<xfer, exec::fold::max>(e_keys(*this), *buf).get());
+
+
+    //  execute<xfer_start>(e_keys(*this), *buf);
+    //  while(reduce<xfer, exec::fold::max>(e_keys(*this), *buf).get());
+    
+    //}while(!done); 
   }
 
   //---------------------------------------------------------------------------
 
-  void ghost_copy() {
-    std::cout << "Ghost copy" << std::endl;
+  template<typename Type,
+    data::layout Layout,
+    typename Topo,
+    typename Topo::index_space Space>
+  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+    if constexpr (Space == entities){
+      cp_top_tree_entities->issue_copy(f.fid());
+    } else if constexpr(Space == nodes){
+      cp_top_tree_nodes->issue_copy(f.fid());
+    } 
   }
 
   std::size_t colors() const {
@@ -285,6 +457,24 @@ struct ntree<Policy>::access {
     n_keys.topology_send(f);
     data_field.topology_send(f);
     hcells.topology_send(f);
+  }
+
+  // Accessors for exclusive and ghost entities 
+  //template<index_space IndexSpace>
+  template<ptype_t PT = ptype_t::exclusive>
+  auto entities() {
+    if constexpr (PT == ptype_t::exclusive){
+      return make_ids<index_space::entities>(util::iota_view<util::id>(
+       0, data_field(0).nents));
+    } else if constexpr (PT == ptype_t::ghost){
+      // Ghosts starts from local to end 
+      return make_ids<index_space::entities>(util::iota_view<util::id>(
+       data_field(0).nents, e_keys.span().size())); 
+    }else{
+      // Iterate on all 
+      return make_ids<index_space::entities>(util::iota_view<util::id>(
+       0, e_keys.span().size()));
+    }
   }
 
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
@@ -436,10 +626,36 @@ struct ntree<Policy>::access {
         std::max(data_field(0).max_depth, current_depth);
 
     } // for
-  }
+    // Add the newly created nodes keys
+    // Local traversal to discover all nodes generated 
+    std::vector<hcell_t *> queue;
+    std::vector<hcell_t *> nqueue;
+    queue.push_back(&hmap.find(key_t::root())->second);
+    while(!queue.empty()) {
+      for(hcell_t * cur : queue) {
+        key_t nkey = cur->key();
+        if(cur->is_unset() || cur->is_node()) {
+          if(cur->is_unset()){ 
+            std::size_t cnode = data_field(0).nnodes++;
+            n_keys(cnode) = cur->key();
+          }
+          for(std::size_t j = 0; j < nchildren_; ++j) {
+            if(cur->has_child(j)) {
+              key_t ckey = nkey;
+              ckey.push(j);
+              auto it = hmap.find(ckey);
+              nqueue.push_back(&it->second);
+            } // if
+          } // for
+        } // if 
+      } // for
+      queue = std::move(nqueue);
+      nqueue.clear();
+    } // while  
+  } // make_tree
 
   // Count number of entities to send to each other color
-  serdez_vector<hcell_t> boundaries_size() {
+  serdez_vector<hcell_t> top_tree_boundaries() {
     serdez_vector<hcell_t> sdata;
     hmap_t hmap(hcells.span());
 
@@ -492,8 +708,8 @@ struct ntree<Policy>::access {
       if(cur->is_node()) {
         output << std::oct << cur->key() << std::dec << " [label=<" << std::oct
                << cur->key() << std::dec << "<br/><FONT POINT-SIZE=\"10\"> c("
-               << cur->color() << ")</FONT>>,xlabel=<" << cur->nchildren()
-               << ">]\n";
+               << cur->color() << ")</FONT>>,xlabel=\"" << cur->nchildren()
+               << "\"]\n";
         if(cur->is_nonlocal()) {
           output << std::oct << cur->key() << std::dec
                  << " [shape=doublecircle,color=grey]" << std::endl;
@@ -528,10 +744,10 @@ struct ntree<Policy>::access {
         }
       }
       else if(cur->is_unset()) {
-        output << std::oct << cur->key() << std::dec << " [label=" << std::oct
+        output << std::oct << cur->key() << std::dec << " [label=<" << std::oct
                << cur->key() << std::dec << "<br/><FONT POINT-SIZE=\"10\"> c("
-               << cur->color() << ")</FONT>>,xlabel=<" << cur->nchildren()
-               << ">]\n";
+               << cur->color() << ")</FONT>>,xlabel=\"" << cur->nchildren()
+               << "\"]\n";
         if(cur->is_nonlocal()) {
           output << std::oct << cur->key() << std::dec
                  << " [shape=rect,color=black]" << std::endl;
@@ -564,6 +780,7 @@ private:
     if(n->is_ent())
       return;
     std::size_t cnode = data_field(0).nnodes++;
+    n_keys(cnode) = key; 
     n->set_node_idx(cnode);
     std::vector<std::size_t> entities_ids;
     std::vector<std::size_t> nodes_ids;
@@ -582,8 +799,6 @@ private:
         }
       } // if
     } // for
-    // Policy::compute_centroid(
-    //  n->node_idx(), entities_ids, nodes_ids, std::forward<Ts>(args)...);
   }
 
   void load_shared_entity(hcell_t & c, hmap_t & hmap) {

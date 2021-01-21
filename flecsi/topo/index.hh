@@ -66,6 +66,14 @@ make_repartitioned(std::size_t r, F f) {
   return {data::make_region<T, S>({r, data::logical_size}), std::move(f)};
 }
 
+template<class F>
+void
+resize_repartitioned(repartitioned & rep, F f) {
+  const auto r = rep.sizes();
+  flecsi::execute<repartition::fill<F>>(r, f);
+  rep.resize();
+}
+
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partitioned : data::region {
   ragged_partitioned(std::size_t r, const data::fields & fs)

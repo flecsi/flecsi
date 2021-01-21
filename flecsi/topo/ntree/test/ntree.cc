@@ -198,12 +198,47 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   pressure;
 
+void init_density(sph_ntree_t::accessor<ro> t, field<double>::accessor<wo, na> p){
+  std::cout<<color()<<" Init density ("<<p.span().size()<<")"<<std::endl;
+  double v = static_cast<double>(color());
+  double tmp = 0; 
+  for(auto a: t.entities()){
+    p[a] = v*5+tmp++; 
+  }
+}
+
+void update_density(sph_ntree_t::accessor<ro> t, field<double>::accessor<rw, ro> p){
+  std::cout<<color()<<" Update density ("<<p.span().size()<<")"<<std::endl;
+  for(auto a: t.entities()){
+    p[a] = p[a]*10; 
+  }
+}
+
+void print_density(sph_ntree_t::accessor<ro> t, field<double>::accessor<ro, ro> p){
+  std::cout<<color()<<" Print density exclusive: ";
+  for(auto a: t.entities()){
+    std::cout<<p[a]<<" - "; 
+  }
+  std::cout<<std::endl;
+  std::cout<<color()<<" Print density ghosts: ";
+  for(auto a: t.entities<sph_ntree_t::base::ptype_t::ghost>()){
+    std::cout<<p[a]<<" - "; 
+  }
+  std::cout<<std::endl;
+}
+
+
 int
 ntree_driver() {
 
   std::vector<sph_ntree_t::ent_t> ents;
   coloring.allocate("coordinates.blessed", ents);
   sph_ntree.allocate(coloring.get(), ents);
+
+  auto d = density(sph_ntree); 
+  flecsi::execute<init_density>(sph_ntree,d);
+  flecsi::execute<update_density>(sph_ntree,d); 
+  flecsi::execute<print_density>(sph_ntree,d);  
 
   return 0;
 } // ntree_driver

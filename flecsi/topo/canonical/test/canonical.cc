@@ -170,8 +170,7 @@ canonical_driver() {
       return ret;
     }());
     execute<ragged_start>(cf(canonical), *buf);
-    while(reduce<ragged_xfer, exec::fold::max>(cf(canonical), *buf).get())
-      ;
+    while(reduce<ragged_xfer, exec::fold::max>(cf(canonical), *buf).get());
 
     EXPECT_EQ(test<check>(canonical, pc), 0);
 
