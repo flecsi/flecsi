@@ -25,7 +25,7 @@
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
 #endif
 
-#include "../context.hh"
+#include "flecsi/run/context.hh"
 
 #include <boost/program_options.hpp>
 #include <mpi.h>

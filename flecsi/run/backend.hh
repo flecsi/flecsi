@@ -30,7 +30,7 @@
 
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
 
-#include "mpi/context.hh"
+#include "flecsi/run/mpi/context.hh"
 
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
 

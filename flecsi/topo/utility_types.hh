@@ -20,6 +20,7 @@
 #endif
 
 #include "flecsi/data/field.hh"
+#include "flecsi/flog.hh"
 #include "flecsi/topo/index.hh" // meta_topo
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
@@ -211,7 +212,7 @@ struct id {
     return *this;
   }
   id operator+(difference_type d) const {
-    return d + *this;
+    return id(d + *this);
   }
   void operator+(id) const = delete;
   friend id operator+(difference_type d, id i) {
@@ -222,7 +223,7 @@ struct id {
     return *this;
   }
   id operator-(difference_type d) const {
-    return d - *this;
+    return id(difference_type(*this) - d);
   }
   difference_type operator-(id i) const { // also avoids ambiguity
     return difference_type(t) - difference_type(i.t);
