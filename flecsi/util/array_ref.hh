@@ -183,11 +183,13 @@ private:
     return {arr[II]...};
   }
 
+#if !defined(NDEBUG)
   template<class... I>
   constexpr void check_bounds(I... inds) const noexcept {
     std::size_t i = 0;
     (assert(inds < sizes[i++]), ...);
   }
+#endif
 
   template<class I0, class... I>
   constexpr index_type index(I0 i0, I... inds) const noexcept {
