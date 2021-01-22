@@ -67,7 +67,6 @@ struct canonical : canonical_base, with_ragged<Policy> {
   util::key_array<repartitioned, index_spaces> part_;
   meta_topo::core meta_;
 
-  // These functions are part of the standard topology interface.
   std::size_t colors() const {
     return part_.front().colors();
   }
