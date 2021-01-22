@@ -13,14 +13,17 @@
                                                                               */
 
 #define __FLECSI_PRIVATE__
+
+#include <cassert>
+#include <string>
+
+#include "flecsi/data.hh"
+#include "flecsi/execution.hh"
+#include "flecsi/io.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/data.hh>
-#include <flecsi/execution.hh>
-#include <flecsi/io.hh>
 
-#include <assert.h>
-#include <mpi.h>
+#include "mpi.h"
 
 using namespace flecsi;
 using namespace flecsi::data;
@@ -55,73 +58,41 @@ index_driver() {
     execute<assign>(fh3);
 
     auto & flecsi_context = run::context::instance();
-    int my_rank = flecsi_context.process();
-    int num_files = 4;
+    // TODO:  support N-to-M
+    int num_files = flecsi_context.processes();
     io::io_interface_t cp_io;
-    io::hdf5_t checkpoint_file = io::init_hdf5_file("io_index.dat", num_files);
+    std::string outfile{"io_index.dat"};
 
-    cp_io.add_process_topology(checkpoint_file);
-#if 1
-    if(my_rank == 0) {
-      io::generate_hdf5_files(checkpoint_file);
-    }
-#else
-    int num_ranks = flecsi_context.processes();
-    assert(num_ranks % num_files == 0);
-    int num_ranks_per_file = num_ranks / num_files;
-    if(my_rank % num_ranks_per_file == 0) {
-      io::create_hdf5_file(checkpoint_file, my_rank / num_ranks_per_file);
-      io::create_datasets_for_regions(
-        checkpoint_file, my_rank / num_ranks_per_file);
-      io::close_hdf5_file(checkpoint_file);
-    }
-#endif
-    MPI_Barrier(MPI_COMM_WORLD);
-
-#if 1
-    // cp_io.checkpoint_process_topology(checkpoint_file);
-    cp_io.checkpoint_index_topology_field(checkpoint_file, fh1);
-    cp_io.checkpoint_index_topology_field(checkpoint_file, fh2);
-    cp_io.checkpoint_index_topology_field(checkpoint_file, fh3);
+    cp_io.add_process_topology(num_files);
+    cp_io.checkpoint_process_topology(outfile);
 
     execute<reset_zero>(fh1);
     execute<reset_zero>(fh2);
     execute<reset_zero>(fh3);
 
-    // EXPECT_EQ(test<check>(fh1),0);
-    // EXPECT_EQ(test<check>(fh2),0);
-
-#if 1
     int num_ranks = flecsi_context.processes();
+    int my_rank = flecsi_context.process();
     assert(num_ranks % num_files == 0);
     int num_ranks_per_file = num_ranks / num_files;
     if(my_rank % num_ranks_per_file == 0) {
-      io::open_hdf5_file(checkpoint_file, my_rank / num_ranks_per_file);
+      std::string file_name =
+        outfile + std::to_string(my_rank / num_ranks_per_file);
+      io::hdf5_t checkpoint_file = io::hdf5_t::open(file_name);
+
       std::string str2("test string 2");
-      io::write_string_to_hdf5_file(checkpoint_file,
-        my_rank / num_ranks_per_file,
-        "control",
-        "ds2",
-        str2,
-        str2.size());
+      checkpoint_file.write_string("control", "ds2", str2);
 
       std::string str3;
-      io::read_string_from_hdf5_file(
-        checkpoint_file, my_rank / num_ranks_per_file, "control", "ds2", str3);
+      checkpoint_file.read_string("control", "ds2", str3);
       // printf("str 3 %s\n", str3.c_str());
-      io::close_hdf5_file(checkpoint_file);
+      checkpoint_file.close();
     }
-#endif
 
-    // cp_io.recover_process_topology(checkpoint_file);
-    cp_io.recover_index_topology_field(checkpoint_file, fh1);
-    cp_io.recover_index_topology_field(checkpoint_file, fh2);
-    cp_io.recover_index_topology_field(checkpoint_file, fh3);
+    cp_io.recover_process_topology(outfile);
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);
     EXPECT_EQ(test<check>(fh3), 0);
-#endif
   };
 } // index_driver
 
