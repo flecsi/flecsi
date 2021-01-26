@@ -183,9 +183,9 @@ struct detail::base<ragged_category> {
 
 // The user-facing variant of the color category supports ragged fields.
 template<class P>
-struct index_category : color_category<P>, with_ragged<P> {
+struct index_category : color<P>, with_ragged<P> {
   index_category(const index_base::coloring & c)
-    : color_category<P>(c), with_ragged<P>(c.size()) {
+    : color<P>(c), with_ragged<P>(c.size()) {
     this->template extend_offsets<elements>();
   }
 };

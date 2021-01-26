@@ -385,7 +385,7 @@ struct unstructured_base {
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = data::partition::make_row(color(), size);
+    a = data::partition::make_row(flecsi::color(), size);
   }
 
 }; // struct unstructured_base

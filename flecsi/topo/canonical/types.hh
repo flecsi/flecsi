@@ -52,7 +52,7 @@ struct canonical_base : with_meta<canonical_base> {
   }
 
   static void cn_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = data::partition::make_row(color(), size);
+    a = data::partition::make_row(flecsi::color(), size);
   }
 }; // struct canonical_base
 
