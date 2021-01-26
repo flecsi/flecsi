@@ -206,10 +206,12 @@ struct intervals {
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
     // entities.
-    max_end = std::max_element(
-      ghost_ranges.begin(), ghost_ranges.end(), [](Value x, Value y) {
-        return x.second < y.second;
-      })->second;
+    if(auto iter = std::max_element(ghost_ranges.begin(),
+         ghost_ranges.end(),
+         [](Value x, Value y) { return x.second < y.second; });
+       iter != ghost_ranges.end()) {
+      max_end = iter->second;
+    }
   }
 
 private:
@@ -227,7 +229,7 @@ private:
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
-  std::size_t max_end;
+  std::size_t max_end = 0;
 };
 
 struct points {
