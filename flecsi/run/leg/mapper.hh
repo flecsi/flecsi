@@ -399,17 +399,17 @@ public:
     regions.push_back(task.regions[indx].region);
 
     size_t instance_size = 0;
-    flog_assert(runtime->find_or_create_physical_instance(ctx,
-                  target_mem,
-                  layout_constraints,
-                  regions,
-                  result,
-                  created,
-                  true /*acquire*/,
-                  GC_NEVER_PRIORITY,
-                  true,
-                  &instance_size),
-      "FLeCSI mapper failed to allocate instance");
+    bool res = runtime->find_or_create_physical_instance(ctx,
+      target_mem,
+      layout_constraints,
+      regions,
+      result,
+      created,
+      true /*acquire*/,
+      GC_NEVER_PRIORITY,
+      true,
+      &instance_size);
+    flog_assert(res, "FLeCSI mapper failed to allocate instance");
 
     flog_devel(info) << "task " << task.get_task_name()
                      << " allocates physical instance with size "
