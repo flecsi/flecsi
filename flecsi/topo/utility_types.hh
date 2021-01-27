@@ -21,7 +21,6 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/topo/index.hh" // meta_topo
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
 

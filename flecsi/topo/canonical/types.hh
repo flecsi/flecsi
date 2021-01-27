@@ -41,7 +41,7 @@ struct canonical_base {
   };
 
 protected:
-  using meta_topo = meta_topology<canonical_base>;
+  using meta_topo = meta<canonical_base>;
 
 public:
   static inline const field<Meta, data::single>::definition<meta_topo>

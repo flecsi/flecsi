@@ -196,12 +196,12 @@ struct detail::base<index_category> {
 
 // A subtopology for holding topology-specific metadata per color.
 template<class P>
-struct meta_topology : specialization<index_category, meta_topology<P>> {};
+struct meta : specialization<index_category, meta<P>> {};
 
 template<class P>
 struct with_meta { // for interface consistency
   with_meta(std::size_t n) : meta(n) {}
-  typename meta_topology<P>::core meta;
+  typename topo::meta<P>::core meta;
 };
 
 struct array_base {
