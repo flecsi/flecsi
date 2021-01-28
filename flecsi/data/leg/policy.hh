@@ -164,8 +164,10 @@ struct region {
         const auto c = ctx();
         unique_field_space ret = r.create_field_space(c);
         Legion::FieldAllocator allocator = r.create_field_allocator(c, ret);
-        for(auto const & fi : fs)
+        for(auto const & fi : fs) {
           allocator.allocate_field(fi->type_size, fi->fid);
+          r.attach_name(ret, fi->fid, fi->name.c_str());
+        }
         return ret;
       }()),
       logical_region(

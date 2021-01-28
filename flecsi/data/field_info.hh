@@ -22,6 +22,7 @@
 #include "flecsi/util/common.hh"
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 #if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
@@ -53,6 +54,7 @@ namespace data {
 struct field_info_t {
   field_id_t fid;
   std::size_t type_size;
+  std::string name;
 }; // struct field_info_t
 
 using fields = std::vector<const field_info_t *>;
