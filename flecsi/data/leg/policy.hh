@@ -82,6 +82,9 @@ struct unique_handle {
   unique_handle() = default;
   unique_handle(T t) : h(t) {}
   unique_handle(unique_handle && u) noexcept : h(std::exchange(u.h, {})) {}
+  // Prevent erroneous conversion through T constructor:
+  template<class U>
+  unique_handle(unique_handle<U> &&) = delete;
   ~unique_handle() {
     if(*this) // empty LogicalRegions, at least, cannot be deleted
       destroy(h);
