@@ -22,6 +22,8 @@
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
+#include "flecsi/util/constant.hh"
+#include "flecsi/util/demangle.hh"
 
 #include <map>
 #include <set>
@@ -112,6 +114,12 @@ struct copy_engine {
 
 struct region : region_base {
   using region_base::region_base;
+  // key_type is a bit odd here, but we lack a generic single-type wrapper.
+  template<class Topo, typename Topo::index_space S>
+  region(size2 s, util::key_type<S, Topo>)
+    : region_base(s,
+        run::context::instance().get_field_info_store<Topo, S>(),
+        (util::type<Topo>() + '[' + std::to_string(S) + ']').c_str()) {}
 
   template<class D>
   void cleanup(field_id_t f, D d, bool hard = true) {
@@ -188,7 +196,7 @@ private:
 template<class Topo, typename Topo::index_space Index = Topo::default_space()>
 region
 make_region(size2 s) {
-  return {s, run::context::instance().get_field_info_store<Topo, Index>()};
+  return {s, util::key_type<Index, Topo>()};
 }
 
 template<class P>

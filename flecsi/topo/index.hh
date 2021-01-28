@@ -68,9 +68,11 @@ make_repartitioned(std::size_t r, F f) {
 
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partitioned : data::region {
-  ragged_partitioned(std::size_t r, const data::fields & fs)
-    : region({r, data::logical_size}, fs) {
-    for(const auto & fi : fs)
+  template<class Topo, typename Topo::index_space S>
+  ragged_partitioned(std::size_t r, util::key_type<S, Topo> kt)
+    : region({r, data::logical_size}, kt) {
+    for(const auto & fi :
+      run::context::instance().get_field_info_store<Topo, S>())
       part.try_emplace(fi->fid, *this);
   }
   repartition & operator[](field_id_t i) {
@@ -131,8 +133,7 @@ private:
   make_partitions(std::size_t n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
   ) {
-    return {{ragged_partitioned(
-      n, run::context::instance().get_field_info_store<P, VV>())...}};
+    return {{ragged_partitioned(n, util::key_type<VV, P>())...}};
   }
   util::key_array<ragged_partitioned, index_spaces> part;
 };
