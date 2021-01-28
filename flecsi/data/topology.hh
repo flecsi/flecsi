@@ -35,7 +35,7 @@ struct field_reference;
 
 // A rectangular abstract array.
 struct region_base {
-  region(size2, const fields &);
+  region(size2, const fields &, const char * = nullptr);
 
   size2 size() const;
 
