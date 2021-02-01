@@ -34,33 +34,10 @@ All rights reserved.
 // indirect (point), indirect => mesh
 
 namespace flecsi {
-namespace data::detail {
-struct intervals_base {
-  using coloring = std::vector<std::size_t>;
-
-protected:
-  static std::size_t index(const coloring & c, std::size_t i) {
-    return c[i];
-  }
-};
-template<class P>
-struct intervals_category : intervals_base, topo::repartitioned {
-  explicit intervals_category(const coloring & c)
-    : partitioned(
-        topo::make_repartitioned<P>(c.size(), make_partial<index>(c))) {
-    resize();
-  }
-};
-} // namespace data::detail
-// Needed before defining a specialization:
-template<>
-struct topo::detail::base<data::detail::intervals_category> {
-  using type = data::detail::intervals_base;
-};
 
 namespace data {
 namespace detail {
-struct intervals : topo::specialization<intervals_category, intervals> {
+struct intervals : topo::specialization<topo::array_category, intervals> {
   static const field<data::intervals::Value>::definition<intervals> field;
 };
 // Now that intervals is complete:
@@ -209,8 +186,8 @@ protected:
   }
 };
 template<class P>
-struct buffers_category : buffers_base, intervals_category<P> {
-  using buffers_base::coloring; // to override that from intervals_category
+struct buffers_category : buffers_base, topo::array_category<P> {
+  using buffers_base::coloring; // to override that from array_category
 
   explicit buffers_category(const coloring & c)
     : buffers_category(c, [&c] {
@@ -238,8 +215,8 @@ struct buffers_category : buffers_base, intervals_category<P> {
 
 private:
   buffers_category(const coloring & c, const Points & recv)
-    : intervals_category<P>([&] {
-        intervals_base::coloring ret;
+    : topo::array_category<P>([&] {
+        topo::array_base::coloring ret;
         ret.reserve(c.size());
         auto * p = recv.data();
         for(auto & s : c)
