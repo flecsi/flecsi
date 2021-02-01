@@ -53,19 +53,21 @@ serial_put(P & p, const T & t) {
   serial<std::remove_const_t<T>>::put(p, t);
 }
 template<class T>
-std::size_t serial_size(
-  const T & t) { // wrapper to provide an initial size of 0
+std::size_t
+serial_size(const T & t) { // wrapper to provide an initial size of 0
   std::size_t ret = 0;
   serial_put(ret, t);
   return ret;
 }
 template<class T>
-T serial_get(const std::byte *& p) { // reconstruct and advance past an object
+T
+serial_get(const std::byte *& p) { // reconstruct and advance past an object
   return serial<std::remove_const_t<T>>::get(p);
 }
 
 template<class T>
-auto serial_put(const T & t) { // for a single object
+auto
+serial_put(const T & t) { // for a single object
   std::vector<std::byte> ret(serial_size(t));
   auto *const p0 = ret.data(), *p = p0;
   serial_put(p, t);
@@ -73,7 +75,8 @@ auto serial_put(const T & t) { // for a single object
   return ret;
 }
 template<class T>
-T serial_get1(const std::byte * p) { // for a single object
+T
+serial_get1(const std::byte * p) { // for a single object
   return serial_get<T>(p);
 }
 

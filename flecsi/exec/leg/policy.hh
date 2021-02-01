@@ -155,8 +155,8 @@ reduce_internal(Args &&... args) {
       launcher.add_region_requirement(req);
     } // for
 
-   if (processor_type == task_processor_type_t::toc)
-     launcher.tag=run::mapper::prefer_gpu;
+    if(processor_type == task_processor_type_t::toc)
+      launcher.tag = run::mapper::prefer_gpu;
 
     // adding futures to the launcher
     launcher.futures = std::move(pro).futures();
@@ -184,8 +184,8 @@ reduce_internal(Args &&... args) {
       launcher.add_region_requirement(req);
     } // for
 
-   if (processor_type == task_processor_type_t::toc)
-     launcher.tag=run::mapper::prefer_gpu;
+    if(processor_type == task_processor_type_t::toc)
+      launcher.tag = run::mapper::prefer_gpu;
 
     // adding futures to the launcher
     launcher.futures = std::move(pro).futures();

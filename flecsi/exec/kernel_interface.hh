@@ -122,11 +122,11 @@ public:
 
 template<typename ITERATOR, typename LAMBDA>
 void
-parallel_for(ITERATOR&& iterator, LAMBDA&& lambda, std::string name = "") {
+parallel_for(ITERATOR && iterator, LAMBDA && lambda, std::string name = "") {
 
   struct functor {
 
-    functor(ITERATOR& iterator, LAMBDA& lambda)
+    functor(ITERATOR & iterator, LAMBDA & lambda)
       : iterator_(iterator), lambda_(lambda) {}
 
     KOKKOS_INLINE_FUNCTION void operator()(int i) const {
@@ -134,8 +134,8 @@ parallel_for(ITERATOR&& iterator, LAMBDA&& lambda, std::string name = "") {
     } // operator()
 
   private:
-    ITERATOR  iterator_;
-    LAMBDA  lambda_;
+    ITERATOR iterator_;
+    LAMBDA lambda_;
 
   }; // struct functor
 
@@ -215,7 +215,7 @@ private:
  */
 template<class R, class T, typename ITERATOR, typename LAMBDA>
 T
-parallel_reduce(ITERATOR&& iterator, LAMBDA&& lambda, std::string name = "") {
+parallel_reduce(ITERATOR && iterator, LAMBDA && lambda, std::string name = "") {
 
   using value_type = T;
 

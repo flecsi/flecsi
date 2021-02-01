@@ -79,7 +79,7 @@ struct packet_t {
       usec_bytes);
 
     std::ostringstream oss;
-    if (msg)
+    if(msg)
       oss << msg;
 
     strcpy(bytes_.data() + sec_bytes + usec_bytes, oss.str().c_str());

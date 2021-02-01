@@ -46,31 +46,32 @@ int
 init(field<int>::accessor<wo> c) {
   UNIT {
     flecsi::exec::parallel_for(
-      c.span(), KOKKOS_LAMBDA(auto & cv) {cv = pvalue;}, std::string("test"));
+      c.span(), KOKKOS_LAMBDA(auto & cv) { cv = pvalue; }, std::string("test"));
   };
 } // init
 
 void
 local_kokkos(field<int>::accessor<rw> c) {
-    // Parallel for
-    flecsi::exec::parallel_for(
-      c.span(),
-      KOKKOS_LAMBDA(auto cv) { assert(cv == pvalue); }, std::string("pfor1"));
-   
-    forall(cv, c.span(), "pfor2") {
-      assert(cv == pvalue);
-    }; // forall
-    // Reduction
-    std::size_t res = exec::parallel_reduce<exec::fold::sum, std::size_t>(
-      c.span(),
-      KOKKOS_LAMBDA(auto cv, std::size_t & up) { up += cv; },
-      std::string("pred1"));
-    assert(pvalue * c.span().size() == res);
+  // Parallel for
+  flecsi::exec::parallel_for(
+    c.span(),
+    KOKKOS_LAMBDA(auto cv) { assert(cv == pvalue); },
+    std::string("pfor1"));
 
-    res = reduceall(cv, up, c.span(), exec::fold::sum, std::size_t, "pred2") {
-      up += cv;
-    };
-    assert(pvalue * c.span().size() == res);
+  forall(cv, c.span(), "pfor2") {
+    assert(cv == pvalue);
+  }; // forall
+  // Reduction
+  std::size_t res = exec::parallel_reduce<exec::fold::sum, std::size_t>(
+    c.span(),
+    KOKKOS_LAMBDA(auto cv, std::size_t & up) { up += cv; },
+    std::string("pred1"));
+  assert(pvalue * c.span().size() == res);
+
+  res = reduceall(cv, up, c.span(), exec::fold::sum, std::size_t, "pred2") {
+    up += cv;
+  };
+  assert(pvalue * c.span().size() == res);
 }
 
 int

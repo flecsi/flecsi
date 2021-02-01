@@ -47,7 +47,7 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
 
 #if defined(FLECSI_ENABLE_KOKKOS)
   if(dependent) {
-     Kokkos::initialize(argc, argv);
+    Kokkos::initialize(argc, argv);
   }
 #endif
 

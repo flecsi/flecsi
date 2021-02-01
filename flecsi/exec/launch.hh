@@ -174,8 +174,10 @@ struct partial : std::tuple<AA...> {
   template<class... TT>
   constexpr decltype(auto) operator()(TT &&... tt) const & {
     return std::apply(F,
-     //we have to call static_cast over *this due to the bug in cuda10+gcc9.0 configuration
-      std::tuple_cat(std::tuple<const AA &...>(static_cast<const Base&>(*this)),
+      // we have to call static_cast over *this due to the bug in cuda10+gcc9.0
+      // configuration
+      std::tuple_cat(
+        std::tuple<const AA &...>(static_cast<const Base &>(*this)),
         std::forward_as_tuple(std::forward<TT>(tt)...)));
   }
   template<class... TT>

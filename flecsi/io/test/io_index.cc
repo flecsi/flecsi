@@ -26,7 +26,8 @@ using namespace flecsi;
 using namespace flecsi::data;
 
 typedef field<double, single> double_field_t;
-const double_field_t::definition<topo::index> test_value_1, test_value_2, test_value_3;
+const double_field_t::definition<topo::index> test_value_1, test_value_2,
+  test_value_3;
 
 void
 assign(double_field_t::accessor<rw> ia) {

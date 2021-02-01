@@ -132,9 +132,9 @@ private:
 };
 
 template<class C>
-span(C &)->span<typename C::value_type>;
+span(C &) -> span<typename C::value_type>;
 template<class C>
-span(const C &)->span<const typename C::value_type>;
+span(const C &) -> span<const typename C::value_type>;
 
 /// Copy a span into a std::vector.
 template<class T>
@@ -283,7 +283,7 @@ public:
   decltype(auto) operator*() const {
     return (*this)[0];
   }
-  auto operator-> () const {
+  auto operator->() const {
     return &**this;
   }
 
@@ -532,9 +532,9 @@ private:
 
 template<class C, class F>
 transform_view(C &&, F)
-  ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
+  -> transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
-transform_view(const C &, F)->transform_view<typename C::const_iterator, F>;
+transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 
 } // namespace util
 } // namespace flecsi
