@@ -79,6 +79,8 @@ public:
         local_cpus.push_back(p);
       else if(p.kind() == legion_proc::TOC_PROC)
         local_gpus.push_back(p);
+      else if(p.kind() == legion_proc::OMP_PROC)
+        local_omps.push_back(p);
       else
         continue;
 
@@ -399,7 +401,7 @@ public:
     regions.push_back(task.regions[indx].region);
 
     size_t instance_size = 0;
-    flog_assert(runtime->find_or_create_physical_instance(ctx,
+    bool rez =runtime->find_or_create_physical_instance(ctx,
                   target_mem,
                   layout_constraints,
                   regions,
@@ -408,8 +410,8 @@ public:
                   true /*acquire*/,
                   GC_NEVER_PRIORITY,
                   true,
-                  &instance_size),
-      "FLeCSI mapper failed to allocate instance");
+                  &instance_size);
+    flog_assert (rez, "FLeCSI mapper failed to allocate instance");
 
     flog_devel(info) << "task " << task.get_task_name()
                      << " allocates physical instance with size "
