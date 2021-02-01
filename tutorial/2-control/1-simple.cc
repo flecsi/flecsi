@@ -76,26 +76,16 @@ int
 main(int argc, char ** argv) {
   auto status = flecsi::initialize(argc, argv);
 
-  if(status != flecsi::run::status::success) {
-    return status == flecsi::run::status::help ? 0 : status;
-  }
-
   /*
     The check_options() method checks to see if any control-model options were
     specified on the command line, and handles them appropriately.
    */
 
-  status = control::check_options();
-
-  /*
-    Check the return after control-model checks. Because this is after
-    initialization, we need to call finalize if the program is exiting.
-   */
+  status = control::check_status(status);
 
   if(status != flecsi::run::status::success) {
-    flecsi::finalize();
-    return status == flecsi::run::status::option ? 0 : status;
-  } // if
+    return status < flecsi::run::status::clean ? 0 : status;
+  }
 
   flecsi::log::add_output_stream("clog", std::clog, true);
 

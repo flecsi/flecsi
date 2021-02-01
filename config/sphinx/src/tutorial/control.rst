@@ -342,7 +342,7 @@ otherwise:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 83-98
+   :lines: 79-88
 
 The last part of the main function is not really different from previous
 examples, we just have a better understanding of it now.
@@ -352,7 +352,7 @@ of the cycles, and actions registered on the control model:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 102-108
+   :lines: 92-98
 
 Now that we have defined the control model, and added it to our runtime
 setup, the only thing that remains is to add some actions under the

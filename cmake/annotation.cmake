@@ -12,17 +12,19 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-set(FLECSI_CALIPER_DETAILS none low medium high)
-if(NOT FLECSI_CALIPER_DETAIL)
-  list(GET FLECSI_CALIPER_DETAILS 0 FLECSI_CALIPER_DETAIL)
+set(CALIPER_DETAILS none low medium high)
+
+if(NOT CALIPER_DETAIL)
+  list(GET CALIPER_DETAILS 0 CALIPER_DETAIL)
 endif()
-set(FLECSI_CALIPER_DETAIL "${FLECSI_CALIPER_DETAIL}" CACHE STRING
+
+set(CALIPER_DETAIL "${CALIPER_DETAIL}" CACHE STRING
   "Select the Caliper annotation detail (none,low,medium,high)")
-set_property(CACHE FLECSI_CALIPER_DETAIL
-  PROPERTY STRINGS ${FLECSI_CALIPER_DETAILS})
 
+set_property(CACHE CALIPER_DETAIL
+  PROPERTY STRINGS ${CALIPER_DETAILS})
 
-if (NOT FLECSI_CALIPER_DETAIL STREQUAL "none")
+if (NOT CALIPER_DETAIL STREQUAL "none")
   find_package(caliper REQUIRED)
 
   message(STATUS "Found Caliper")
