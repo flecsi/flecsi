@@ -11,8 +11,7 @@ namespace standalone {
 
 enum class cp { initialize, advance, analyze, finalize };
 
-inline const char *
-operator*(cp control_point) {
+inline const char * operator*(cp control_point) {
   switch(control_point) {
     case cp::initialize:
       return "initialize";

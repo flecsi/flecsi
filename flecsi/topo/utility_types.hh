@@ -133,8 +133,7 @@ template<class P, std::size_t Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
 template<class F, class... VT, class C, class S = detail::identity>
-void
-connect_send(F && f,
+void connect_send(F && f,
   util::key_tuple<VT...> & ca,
   C & cf,
   S && s = {}) { // s: topology -> subtopology
@@ -248,8 +247,8 @@ private:
 };
 
 template<auto S, class C>
-FLECSI_INLINE_TARGET auto
-make_ids(C && c) { // NB: return value may be lifetime-bound to c
+FLECSI_INLINE_TARGET auto make_ids(
+  C && c) { // NB: return value may be lifetime-bound to c
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
