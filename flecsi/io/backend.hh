@@ -18,6 +18,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
+#include "flecsi/io/hdf5.hh"
 #include "flecsi/topo/index.hh"
 
 namespace flecsi::io {
