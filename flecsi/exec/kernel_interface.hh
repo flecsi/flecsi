@@ -142,63 +142,19 @@ parallel_for(Iterator && iterator,
 
 template<typename Iterator>
 struct forall_t {
-
-  /*!
-    Construct a forall_t instance.
-
-    @param iterator A valid C++ RandomAccess iterator.
-    @param name     An optional name that can be used for debugging.
-   */
-
-  forall_t(Iterator iterator, std::string name = "")
-    : iterator_(iterator), name_(name) {}
-
-  /*!
-    The functor type wraps FleCSI iterators that have indirection.
-
-    @tparam Lambda The user-defined lambda function.
-   */
-
-  template<typename Lambda>
-  struct functor {
-
-    functor(Iterator iterator, Lambda lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i) const {
-      lambda_(iterator_[i]);
-    } // operator()
-
-  private:
-    Iterator iterator_;
-    Lambda lambda_;
-
-  }; // struct functor
-
-  template<typename Lambda>
-  void operator+(Lambda lambda) && {
-    parallel_for(std::move(iterator_), std::move(lambda), "  ");
-  } // operator+
-
-  /*!
-    This overload of the insertion operator allows pretty syntax when invoking
-    forall_t.
-
-    Attribution: Nick Moss
-   */
   template<typename Callable>
-  void operator<<(Callable l) && {
+  void operator->*(Callable l) && {
     parallel_for(std::move(iterator_), std::move(l), name_);
-  } // operator<<
+  }
 
-private:
   Iterator iterator_;
   std::string name_;
-
 }; // struct forall_t
+template<class I>
+forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
 #define forall(it, iterator, name)                                             \
-  flecsi::exec::forall_t{iterator, name} + KOKKOS_LAMBDA(auto it)
+  ::flecsi::exec::forall_t{iterator, name}->*KOKKOS_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
@@ -230,23 +186,15 @@ parallel_reduce(Iterator && iterator,
  */
 template<class Iterator, class R, class T>
 struct reduceall_t {
-
-  reduceall_t(Iterator iterator, std::string name = "")
-    : iterator_(iterator), name_(name) {}
-
-  using value_type = T;
-
   template<typename Lambda>
   T operator->*(Lambda lambda) && {
     return parallel_reduce<R, T>(
       std::move(iterator_), std::move(lambda), name_);
-  } // operator+
+  }
 
-private:
   Iterator iterator_;
   std::string name_;
-
-}; // forall_t
+};
 
 template<class R, class T, class I>
 reduceall_t<I, R, T>
@@ -256,7 +204,7 @@ make_reduce(I i, std::string n) {
 
 #define reduceall(it, tmp, iterator, R, T, name)                               \
   ::flecsi::exec::make_reduce<R, T>(iterator, name)                            \
-      ->*KOKKOS_LAMBDA(auto it, T & tmp)
+      ->*KOKKOS_LAMBDA(auto && it, T & tmp)
 
 //----------------------------------------------------------------------------//
 //! Abstraction function for fine-grained, data-parallel interface.
