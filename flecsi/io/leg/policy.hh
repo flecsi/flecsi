@@ -34,8 +34,8 @@
 
 #include <flecsi/data/field.hh>
 
-#include "hdf5.h"
-#include "legion.h"
+#include <hdf5.h>
+#include <legion.h>
 
 namespace flecsi {
 
@@ -110,21 +110,9 @@ struct legion_hdf5_region_t {
 };
 
 /*----------------------------------------------------------------------------*
-  HDF5 file, not called by users.
+  HDF5 file interface.
  *----------------------------------------------------------------------------*/
 struct legion_hdf5_t {
-
-  //----------------------------------------------------------------------------//
-  // Implementation of legion_hdf5_t::legion_hdf5_t.
-  //----------------------------------------------------------------------------//
-  legion_hdf5_t(const std::string & file_name)
-    : hdf5_file_id(-1), file_name(file_name) {
-    hdf5_group_map.clear();
-    {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << "Init HDF5 file " << file_name << std::endl;
-    }
-  }
 
   //----------------------------------------------------------------------------//
   // Implementation of legion_hdf5_t::create.
@@ -173,7 +161,12 @@ struct legion_hdf5_t {
   bool close() {
     assert(hdf5_file_id >= 0);
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
-    H5Fclose(hdf5_file_id);
+    herr_t rc = H5Fclose(hdf5_file_id);
+    if(rc < 0) {
+      flog(error) << "H5Fclose failed: " << rc << std::endl;
+      assert(0);
+      return false;
+    }
     {
       log::devel_guard guard(io_tag);
       flog_devel(info) << "Close HDF5 file_id " << hdf5_file_id << std::endl;
@@ -197,9 +190,8 @@ struct legion_hdf5_t {
     // status = H5Gget_objinfo (hdf5_file_id, group_name, 0, NULL);
 
     hid_t group_id;
-    std::map<std::string, hid_t>::iterator it;
-    it = hdf5_group_map.find(group_name);
-    if(it != hdf5_group_map.end()) {
+    auto it = hdf5_groups.find(group_name);
+    if(it != hdf5_groups.end()) {
       group_id = H5Gopen2(hdf5_file_id, group_name.c_str(), H5P_DEFAULT);
     }
     else {
@@ -208,10 +200,13 @@ struct legion_hdf5_t {
         H5P_DEFAULT,
         H5P_DEFAULT,
         H5P_DEFAULT);
-      hdf5_group_map[group_name] = group_id;
+      hdf5_groups.emplace(group_name);
     }
     if(group_id < 0) {
-      flog(error) << "H5Gcreate2 failed: " << group_id << std::endl;
+      if(it != hdf5_groups.end())
+        flog(error) << "H5Gopen2 failed: " << group_id << std::endl;
+      else
+        flog(error) << "H5Gcreate2 failed: " << group_id << std::endl;
       H5Fclose(hdf5_file_id);
       return false;
     }
@@ -221,8 +216,7 @@ struct legion_hdf5_t {
     hid_t memtype = H5Tcopy(H5T_C_S1);
     status = H5Tset_size(memtype, H5T_VARIABLE);
 
-    hsize_t dims[1];
-    dims[0] = 1;
+    hsize_t dims[1] = {1};
     hid_t dataspace_id = H5Screate_simple(1, dims, NULL);
 
     const char * data[1];
@@ -295,13 +289,10 @@ struct legion_hdf5_t {
   bool create_dataset(const std::string & field_name, hsize_t size) {
     assert(hdf5_file_id >= 0);
 
-    hsize_t nsize = std::ceil(((double)size) / sizeof(double));
+    const hsize_t nsize = (size + (sizeof(double) - 1)) / sizeof(double);
 
-    hid_t dataspace_id = -1;
-    hsize_t dims[2];
-    dims[0] = nsize;
-    dims[1] = 1;
-    dataspace_id = H5Screate_simple(2, dims, NULL);
+    const hsize_t dims[2] = {nsize, 1};
+    const hid_t dataspace_id = H5Screate_simple(2, dims, NULL);
     if(dataspace_id < 0) {
       flog(error) << "H5Screate_simple failed: " << dataspace_id << std::endl;
       H5Fclose(hdf5_file_id);
@@ -337,9 +328,24 @@ struct legion_hdf5_t {
     return true;
   }
 
+private:
+  //----------------------------------------------------------------------------//
+  // Implementation of legion_hdf5_t::legion_hdf5_t.
+  // Private; should only be called from create or open methods.
+  //----------------------------------------------------------------------------//
+  legion_hdf5_t(const std::string & file_name)
+    : hdf5_file_id(-1), file_name(file_name) {
+    hdf5_groups.clear();
+    {
+      log::devel_guard guard(io_tag);
+      flog_devel(info) << "Init HDF5 file " << file_name << std::endl;
+    }
+  }
+
+public:
   hid_t hdf5_file_id;
   std::string file_name;
-  std::map<std::string, hid_t> hdf5_group_map;
+  std::set<std::string> hdf5_groups;
 };
 
 /*----------------------------------------------------------------------------*
@@ -583,11 +589,9 @@ checkpoint_with_attach_task(const Legion::Task * task,
       ctx, task->regions[rid].region.get_index_space());
     size_t domain_size = rect.volume();
 
-    std::set<Legion::FieldID> field_set = task->regions[rid].privilege_fields;
-    for(Legion::FieldID fid : field_set) {
-      std::string field_name = std::to_string(fid);
-      hsize_t data_size = domain_size * sizeof(double);
-      checkpoint_file.create_dataset(field_name, data_size);
+    for(Legion::FieldID fid : task->regions[rid].privilege_fields) {
+      checkpoint_file.create_dataset(
+        std::to_string(fid), domain_size * sizeof(double));
     }
   }
 
@@ -679,9 +683,8 @@ checkpoint_without_attach_task(const Legion::Task * task,
     for(Legion::FieldID it : field_set) {
       auto map_it = field_string_map_vector[rid].find(it);
       if(map_it != field_string_map_vector[rid].end()) {
-        const std::string & field_name = map_it->second;
-        hsize_t data_size = domain_size * sizeof(double);
-        checkpoint_file.create_dataset(field_name, data_size);
+        checkpoint_file.create_dataset(
+          map_it->second, domain_size * sizeof(double));
 
         const Legion::FieldAccessor<READ_ONLY,
           double,

@@ -23,7 +23,7 @@
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
 
-#include "mpi.h"
+#include <mpi.h>
 
 using namespace flecsi;
 using namespace flecsi::data;
@@ -61,7 +61,7 @@ index_driver() {
     // TODO:  support N-to-M
     int num_files = flecsi_context.processes();
     io::io_interface_t cp_io;
-    std::string outfile{"io_index.dat"};
+    const std::string outfile{"io_index.dat"};
 
     cp_io.add_process_topology(num_files);
     cp_io.checkpoint_process_topology(outfile);
@@ -75,12 +75,10 @@ index_driver() {
     assert(num_ranks % num_files == 0);
     int num_ranks_per_file = num_ranks / num_files;
     if(my_rank % num_ranks_per_file == 0) {
-      std::string file_name =
-        outfile + std::to_string(my_rank / num_ranks_per_file);
-      io::hdf5_t checkpoint_file = io::hdf5_t::open(file_name);
+      io::hdf5_t checkpoint_file = io::hdf5_t::open(
+        outfile + std::to_string(my_rank / num_ranks_per_file));
 
-      std::string str2("test string 2");
-      checkpoint_file.write_string("control", "ds2", str2);
+      checkpoint_file.write_string("control", "ds2", "test string 2");
 
       std::string str3;
       checkpoint_file.read_string("control", "ds2", str3);

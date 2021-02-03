@@ -30,20 +30,14 @@ int
 index_topology() {
   UNIT {
     int my_rank = process();
-    std::string file_name{"io_metadata.dat"};
-    file_name = file_name + std::to_string(my_rank);
+    const std::string file_name{"io_metadata.dat" + std::to_string(my_rank)};
 
     // create hdf5 file and checkpoint
     io::hdf5_t checkpoint_file = io::hdf5_t::create(file_name);
 
-    std::string str1("control_ds1");
-    checkpoint_file.write_string("control", "ds1", str1);
-
-    std::string str2("control_ds2");
-    checkpoint_file.write_string("control", "ds2", str2);
-
-    std::string str3("topology_ds1");
-    checkpoint_file.write_string("topology", "ds1", str3);
+    checkpoint_file.write_string("control", "ds1", "control_ds1");
+    checkpoint_file.write_string("control", "ds2", "control_ds2");
+    checkpoint_file.write_string("topology", "ds1", "topology_ds1");
 
     checkpoint_file.close();
 
