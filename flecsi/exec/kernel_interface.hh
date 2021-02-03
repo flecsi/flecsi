@@ -125,9 +125,9 @@ void
 parallel_for(Iterator && iterator,
   Lambda && lambda,
   const std::string & name = "") {
-
+  const auto n = iterator.size(); // before moving
   Kokkos::parallel_for(name,
-    iterator.size(),
+    n,
     [it = std::forward<Iterator>(iterator),
       f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i) {
       return f(it[i]);
@@ -212,10 +212,10 @@ parallel_reduce(Iterator && iterator,
 
   using value_type = T;
   kok::wrap<R, T> result;
-
+  const auto n = iterator.size(); // before moving
   Kokkos::parallel_reduce(
     name,
-    iterator.size(),
+    n,
     [it = std::forward<Iterator>(iterator),
       f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i,
       value_type & tmp) { return f(it[i], tmp); },
