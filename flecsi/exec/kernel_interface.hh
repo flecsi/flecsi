@@ -122,24 +122,14 @@ public:
 
 template<typename Iterator, typename Lambda>
 void
-parallel_for(Iterator && iterator, Lambda && lambda, std::string name = "") {
+parallel_for(Iterator && iterator,
+  Lambda && lambda,
+  const std::string & name = "") {
 
-  struct functor {
-
-    functor(Iterator & iterator, Lambda & lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i) const {
-      lambda_(iterator_[i]);
-    } // operator()
-
-  private:
-    Iterator iterator_;
-    Lambda lambda_;
-
-  }; // struct functor
-
-  Kokkos::parallel_for(name, iterator.size(), functor{iterator, lambda});
+  Kokkos::parallel_for(name,
+    iterator.size(),
+    [it = std::move(iterator), f = std::move(lambda)] KOKKOS_FUNCTION(
+      int i) { return f(it[i]); });
 
 } // parallel_for
 
@@ -215,28 +205,19 @@ private:
  */
 template<class R, class T, typename Iterator, typename Lambda>
 T
-parallel_reduce(Iterator && iterator, Lambda && lambda, std::string name = "") {
+parallel_reduce(Iterator && iterator,
+  Lambda && lambda,
+  const std::string & name = "") {
 
   using value_type = T;
-
-  struct functor {
-
-    functor(Iterator & iterator, Lambda & lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i, value_type & tmp) const {
-      lambda_(iterator_[i], tmp);
-    } // operator()
-
-  private:
-    Iterator iterator_;
-    Lambda lambda_;
-
-  }; // struct functor
-
   kok::wrap<R, T> result;
+
   Kokkos::parallel_reduce(
-    name, iterator.size(), functor{iterator, lambda}, result.kokkos());
+    name,
+    iterator.size(),
+    [it = std::move(iterator), f = std::move(lambda)] KOKKOS_FUNCTION(
+      int i, value_type & tmp) { return f(it[i], tmp); },
+    result.kokkos());
   return result.reference();
 
 } // parallel_reduce
