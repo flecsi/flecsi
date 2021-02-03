@@ -27,7 +27,7 @@
 #include <utility>
 #include <vector>
 
-#include <flecsi/util/target.hh>
+#include "flecsi/util/target.hh"
 
 namespace flecsi {
 namespace util {

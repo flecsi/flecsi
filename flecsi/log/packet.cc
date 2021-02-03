@@ -26,7 +26,6 @@ namespace log {
 #if defined(FLOG_ENABLE_MPI)
 void
 flush_packets() {
-#ifndef FLECSI_ENABLE_KOKKOS
   while(state::instance().run_flusher()) {
     usleep(FLOG_PACKET_FLUSH_INTERVAL);
     std::lock_guard<std::mutex> guard(state::instance().packets_mutex());
@@ -44,7 +43,6 @@ flush_packets() {
       } // if
     } // if
   } // while
-#endif
 } // flush_packets
 #endif // FLOG_ENABLE_MPI
 

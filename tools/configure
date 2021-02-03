@@ -31,9 +31,9 @@ SCRIPT_C_FLAGS=$SCRIPT_CXX_FLAGS
 SCRIPT_ENABLE_FLOG="ON"
 SCRIPT_FLOG_ENABLE_DEVELOPER_MODE="ON"
 SCRIPT_ENABLE_UNIT_TESTS="ON"
-SCRIPT_ENABLE_GRAPHVIZ="OFF"
-SCRIPT_ENABLE_DOCUMENTATION="OFF"
-SCRIPT_ENABLE_KOKKOS="ON"
+SCRIPT_ENABLE_GRAPHVIZ="ON"
+SCRIPT_ENABLE_DOCUMENTATION="ON"
+SCRIPT_ENABLE_KOKKOS="OFF"
 
 while [[ $# -gt 0 ]]
 do
@@ -54,8 +54,8 @@ do
 			echo "(default runtime is mpi)."
 			echo ""
 			echo "User mode: release, disable tests"
-      echo ""
-      echo "kokkos"
+			echo ""
+			echo "kokkos"
 			exit
 		;;
 		--ccmake|-c)

@@ -183,7 +183,7 @@ struct partial : std::tuple<AA...> {
   template<class... TT>
   constexpr decltype(auto) operator()(TT &&... tt) && {
     return std::apply(F,
-      std::tuple_cat(std::tuple<AA &&...>(std::move(*this)),
+      std::tuple_cat(std::tuple<AA &&...>(static_cast<Base &&>(*this)),
         std::forward_as_tuple(std::forward<TT>(tt)...)));
   }
 

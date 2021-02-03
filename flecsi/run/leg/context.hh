@@ -32,8 +32,6 @@
 #endif
 
 #include <legion.h>
-#include <legion_defines.h>
-#include <realm_defines.h>
 
 #if !defined(FLECSI_ENABLE_MPI)
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!

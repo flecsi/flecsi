@@ -93,7 +93,7 @@ class Flecsi(CMakePackage):
     depends_on('graphviz', when='+graphviz')
     depends_on('kokkos', when='+kokkos')
     depends_on('hdf5+mpi', when='+hdf5')
-    depends_on('kokkos +cuda +cuda_lambda +pic std=14', when='+kokkos+cuda')
+    depends_on('kokkos +cuda +cuda_lambda +pic std=17', when='+kokkos+cuda')
     depends_on('legion@ctrl-rep-8:ctrl-rep-99 +kokkos+cuda+hdf5', when='backend=legion+kokkos+cuda+hdf5')
 
 

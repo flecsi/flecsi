@@ -179,6 +179,7 @@ public:
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
+    // what happen here?
     for(auto & a : size_)
       f(a, [&i](typename Policy::slot & u) { return u->part_[i++].sizes(); });
     connect_send(f, connect_, unstructured::connect_);

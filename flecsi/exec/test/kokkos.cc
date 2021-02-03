@@ -85,13 +85,15 @@ kokkos_driver() {
     coloring.allocate(filename);
     canonical.allocate(coloring.get());
     const auto pressure = cell_field(canonical);
+    constexpr auto processor =
 #if defined(__NVCC__) || defined(__CUDACC__)
-    flecsi::execute<init, toc>(pressure);
-    flecsi::execute<local_kokkos, toc>(pressure);
+      toc
 #else
-    flecsi::execute<init>(pressure);
-    flecsi::execute<local_kokkos>(pressure);
+      loc
 #endif
+      ;
+    flecsi::execute<init, processor>(pressure);
+    flecsi::execute<local_kokkos, processor>(pressure);
   };
 } // driver
 
