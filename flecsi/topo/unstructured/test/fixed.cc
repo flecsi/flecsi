@@ -233,14 +233,8 @@ fixed_driver() {
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
 #if defined(FLECSI_ENABLE_KOKKOS)
-    constexpr auto processor =
-#if defined(__NVCC__) || defined(__CUDACC__)
-      toc
-#else
-      loc
-#endif
-      ;
-    execute<parallel_init_ids, processor>(mesh, cids(mesh), vids(mesh));
+    execute<parallel_init_ids, default_accelerator>(
+      mesh, cids(mesh), vids(mesh));
 #endif
     execute<print>(mesh, cids(mesh), vids(mesh));
   };
