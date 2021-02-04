@@ -41,10 +41,10 @@ constexpr inline std::size_t logical_size = 1ul << 32;
 
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
 
-#include <flecsi/data/mpi/policy.hh>
+#include "flecsi/data/mpi/policy.hh"
 
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
 
-#include <flecsi/data/hpx/policy.hh>
+#include "flecsi/data/hpx/policy.hh"
 
 #endif // FLECSI_RUNTIME_MODEL

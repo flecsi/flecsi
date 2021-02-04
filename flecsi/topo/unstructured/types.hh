@@ -19,46 +19,80 @@
 #error Do not include this file directly!
 #endif
 
+#include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/util/color_map.hh"
+#include "flecsi/util/common.hh"
+#include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 
+#include <algorithm>
 #include <cstddef>
+#include <map>
 #include <set>
+#include <vector>
 
 namespace flecsi {
 namespace topo {
-
 namespace unstructured_impl {
 
 struct shared_entity {
   std::size_t id;
   std::vector<std::size_t> dependents;
+
+  bool operator<(shared_entity const & s) {
+    return id < s.id;
+  }
+
+  bool operator==(shared_entity const & s) {
+    return id == s.id &&
+           std::equal(
+             dependents.begin(), dependents.end(), s.dependents.begin());
+  }
 };
+
+inline std::ostream &
+operator<<(std::ostream & stream, shared_entity const & s) {
+  stream << "<" << s.id << ": ";
+  for(auto d : s.dependents) {
+    stream << d;
+    if(d != s.dependents.back())
+      stream << ", ";
+  } // for
+  stream << ">";
+  return stream;
+}
 
 struct ghost_entity {
   std::size_t id;
   std::size_t color;
+
+  bool operator<(ghost_entity const & g) {
+    return id < g.id;
+  }
+
+  bool operator==(ghost_entity const & g) {
+    return id == g.id && color == g.color;
+  }
 };
+
+inline std::ostream &
+operator<<(std::ostream & stream, ghost_entity const & g) {
+  stream << "<" << g.id << ":" << g.color << ">";
+  return stream;
+}
 
 struct index_coloring {
+  std::vector<std::size_t> owned;
   std::vector<std::size_t> exclusive;
   std::vector<shared_entity> shared;
-  std::vector<ghost_entity> ghost;
+  std::vector<ghost_entity> ghosts;
 };
 
-// FIXME: may not need this
 struct crs {
   std::vector<std::size_t> offsets;
   std::vector<std::size_t> indices;
-};
-
-struct coloring {
-  std::size_t colors;
-  std::vector<std::size_t> idx_allocs;
-  std::vector<index_coloring> idx_colorings; // not sure about this
-  std::vector<std::vector<std::size_t>> cnx_allocs;
-  std::vector<std::vector<crs>> cnx_colorings; // not sure about this
 };
 
 /*
@@ -83,28 +117,271 @@ struct auxiliary_independent {
   static constexpr size_t primary_dimension = PrimaryDimension;
 }; // struct auxiliary_independent
 
+inline void
+transpose(field<util::id, data::ragged>::accessor<ro, na> input,
+  field<util::id, data::ragged>::mutator<rw, na> output) {
+  for(std::size_t e{0}; e < input.size(); ++e) {
+    for(std::size_t v{0}; v < input[e].size(); ++v) {
+      output[input[e][v]].push_back(e);
+    }
+  }
+}
+
 } // namespace unstructured_impl
 
 struct unstructured_base {
 
   using index_coloring = unstructured_impl::index_coloring;
-  using shared_entity = unstructured_impl::shared_entity;
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
   struct coloring {
+
+    /*
+      The number of colors in this coloring
+     */
+
     std::size_t colors;
-    std::vector<std::size_t> idx_allocs;
+
+    /*
+      The global number of entities in each index space
+     */
+
+    std::vector<std::size_t> idx_entities;
+
+    /*
+      The local coloring information for each index space.
+
+      The coloring information is expressed in the mesh index space,
+      i.e., the ids are global.
+     */
+
     std::vector<index_coloring> idx_colorings;
+
+    /* The local allocation size for each connectivity */
+
     std::vector<std::vector<std::size_t>> cnx_allocs;
+
+    /*
+      The local graph for each connectivity.
+
+      The graph information is expressed in the mesh index space,
+      i.e., the ids are global.
+     */
+
     std::vector<std::vector<crs>> cnx_colorings;
   };
 
-  static std::size_t idx_size(
-    unstructured_impl::index_coloring const & index_coloring,
-    std::size_t) {
-    return index_coloring.exclusive.size() + index_coloring.shared.size() +
-           index_coloring.ghost.size();
+  static std::size_t idx_size(index_coloring const & ic, std::size_t) {
+    return ic.owned.size() + ic.ghosts.size();
+  }
+
+  /*
+    Using the Mesh Index Space (MIS) ordering, compute intervals,
+    and the number of intervals for each color. Also compute the
+    point offsets. The references num_intervals, intervals,
+    and points, respectively, are filled with this information.
+   */
+
+  static void idx_itvls(index_coloring const & ic,
+    std::vector<std::size_t> & num_intervals,
+    std::vector<std::pair<std::size_t, std::size_t>> & intervals,
+    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
+      src_points) {
+    std::vector<std::size_t> entities;
+
+    /*
+      Define the entity ordering from coloring. This version uses the
+      mesh ordering, i.e., the entities are sorted by ascending mesh id.
+     */
+
+    for(auto e : ic.owned) {
+      entities.push_back(e);
+    } // for
+
+    auto [rank, size] = util::mpi::info();
+
+    std::vector<std::vector<std::size_t>> requests(size);
+    for(auto e : ic.ghosts) {
+      entities.push_back(e.id);
+      requests[e.color].emplace_back(e.id);
+    } // for
+
+    /*
+      This call is what actually establishes the entity ordering by
+      sorting the mesh entity ids.
+     */
+
+    util::force_unique(entities);
+
+    /*
+      After the entity order has been established, we need to create
+      a lookup table for local ghost offsets.
+     */
+
+    std::map<std::size_t, std::size_t> ghost_offsets;
+    for(auto e : ic.ghosts) {
+      auto it = std::find(entities.begin(), entities.end(), e.id);
+      flog_assert(it != entities.end(), "ghost entity doesn't exist");
+      ghost_offsets[e.id] = std::distance(entities.begin(), it);
+    } // for
+
+    /*
+      We also need to create a lookup table so that we can provide
+      local shared offset information to other processes that request it.
+     */
+
+    std::map<std::size_t, std::size_t> shared_offsets;
+    for(auto e : ic.shared) {
+      auto it = std::find(entities.begin(), entities.end(), e.id);
+      flog_assert(it != entities.end(), "shared entity doesn't exist");
+      shared_offsets[e.id] = std::distance(entities.begin(), it);
+    } // for
+
+    /*
+      Send/Receive requests for shared offsets with other processes.
+     */
+
+    auto requested =
+      util::mpi::all_to_allv([&requests](int r, int) { return requests[r]; });
+
+    /*
+      Fulfill the requests that we received from other processes, i.e.,
+      provide the locaL offset for the requested mesh ids.
+     */
+
+    std::vector<std::vector<std::size_t>> fulfills(size);
+    {
+      std::size_t r{0};
+      for(auto rv : requested) {
+        for(auto c : rv) {
+          fulfills[r].emplace_back(shared_offsets[c]);
+        } // for
+        ++r;
+      } // for
+    } // scope
+
+    /*
+      Send/Receive the local offset information with other processes.
+     */
+
+    auto fulfilled =
+      util::mpi::all_to_allv([&fulfills](int r, int) { return fulfills[r]; });
+
+    /*
+      Setup source pointers.
+     */
+
+    std::size_t r{0};
+    for(auto rv : fulfilled) {
+      if(r == std::size_t(rank)) {
+        ++r;
+        continue;
+      } // if
+
+      auto & points = src_points[r];
+      points.reserve(rv.size());
+      auto & request = requests[r];
+
+      std::size_t i{0};
+      for(auto v : rv) {
+        points.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
+        ++i;
+      }
+      ++r;
+    } // for
+
+    /*
+      Compute local intervals.
+     */
+
+    auto g = ghost_offsets.begin();
+    auto begin = (g++)->second;
+    std::size_t run{1};
+    for(; g != ghost_offsets.end(); ++g) {
+      if(g->second != begin + run) {
+        intervals.emplace_back(std::make_pair(begin, begin + run));
+        begin = g->second;
+        run = 1;
+      }
+      else {
+        ++run;
+      }
+    } // for
+
+    intervals.emplace_back(std::make_pair(begin, begin + run));
+    std::size_t local_itvls = intervals.size();
+
+    /*
+      Gather global interval sizes.
+     */
+
+    num_intervals =
+      util::mpi::all_gather([&local_itvls](int, int) { return local_itvls; });
+  } // idx_itvls
+
+  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
+    std::vector<std::pair<std::size_t, std::size_t>> intervals) {
+    flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
+    std::size_t i{0};
+    for(auto it : intervals) {
+      a[i++] = data::intervals::make({it.first, it.second}, process());
+    } // for
+  }
+
+  template<std::size_t N>
+  static void set_ptrs(
+    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
+    std::map<std::size_t,
+      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
+    for(auto const & si : shared_ptrs) {
+      for(auto p : si.second) {
+        // si.first: owner
+        // p.first: local ghost offset
+        // p.second: remote shared offset
+        a[p.first] = data::points::make(si.first, p.second);
+      } // for
+    } // for
+  }
+
+  template<std::size_t S>
+  static void idx_subspaces(index_coloring const & ic,
+    field<util::id, data::ragged>::mutator<rw> owned,
+    field<util::id, data::ragged>::mutator<rw> exclusive,
+    field<util::id, data::ragged>::mutator<rw> shared,
+    field<util::id, data::ragged>::mutator<rw> ghosts) {
+
+    owned[S].resize(ic.owned.size());
+    {
+      std::size_t i{0};
+      for(auto e : ic.owned) {
+        owned[S][i++] = e;
+      } // for
+    } // scope
+
+    exclusive[S].resize(ic.exclusive.size());
+    {
+      std::size_t i{0};
+      for(auto e : ic.exclusive) {
+        owned[S][i++] = e;
+      } // for
+    } // scope
+
+    shared[S].resize(ic.shared.size());
+    {
+      std::size_t i{0};
+      for(auto e : ic.shared) {
+        owned[S][i++] = e.id;
+      } // for
+    } // scope
+
+    ghosts[S].resize(ic.ghosts.size());
+    {
+      std::size_t i{0};
+      for(auto e : ic.ghosts) {
+        owned[S][i++] = e.id;
+      } // for
+    } // scope
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
@@ -133,106 +410,29 @@ struct util::serial<topo::unstructured_impl::shared_entity> {
 };
 
 template<>
+struct util::serial<topo::unstructured_impl::ghost_entity> {
+  using type = topo::unstructured_impl::ghost_entity;
+  template<class P>
+  static void put(P & p, const type & s) {
+    serial_put(p, std::tie(s.id, s.color));
+  }
+  static type get(const std::byte *& p) {
+    const serial_cast r{p};
+    return type{r, r};
+  }
+};
+
+template<>
 struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, std::tie(c.exclusive, c.shared, c.ghost));
+    serial_put(p, std::tie(c.owned, c.exclusive, c.shared, c.ghosts));
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
-    return type{r, r, r};
+    return type{r, r, r, r};
   }
 };
 
 } // namespace flecsi
-
-#if 0
-template<>
-struct util::serial<topo::unstructured_impl::entity_info> {
-  using type = topo::unstructured_impl::entity_info;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial_put(p, std::tie(c.id, c.rank, c.offset, c.shared));
-  }
-  static type get(const std::byte *& p) {
-    const serial_cast r{p};
-    return type{r, r, r, std::set<std::size_t>(r)};
-  }
-};
-
-struct entity_info {
-  std::size_t id;
-  std::size_t rank;
-  std::size_t offset;
-  std::set<std::size_t> shared;
-
-  /*!
-   Constructor.
-
-   \param id_     The entity id. This is generally specified by the
-                  mesh definition.
-   \param rank_   The rank that owns this entity.
-   \param offset_ The local id or offset of the entity.
-   \param shared_ The list of ranks that share this entity.
-   */
-
-  entity_info(size_t id_ = 0,
-    size_t rank_ = 0,
-    size_t offset_ = 0,
-    std::set<size_t> shared_ = {})
-    : id(id_), rank(rank_), offset(offset_), shared(shared_) {}
-
-  /*!
-   Constructor.
-
-   \param id_     The entity id. This is generally specified by the
-                  mesh definition.
-   \param rank_   The rank that owns this entity.
-   \param offset_ The local id or offset of the entity.
-   \param shared_ The rank that shares this entity.
-   */
-
-  entity_info(size_t id_, size_t rank_, size_t offset_, size_t shared_)
-    : id(id_), rank(rank_), offset(offset_) {
-    shared.emplace(shared_);
-  }
-
-  entity_info(size_t id_,
-    size_t rank_,
-    size_t offset_,
-    std::vector<size_t> shared_)
-    : id(id_), rank(rank_), offset(offset_),
-      shared(shared_.begin(), shared_.end()) {}
-
-  /*!
-   Comparison operator for container insertion. This sorts by the
-   entity id, e.g., as set by the id_ parameter to the constructor.
-   */
-
-  bool operator<(const entity_info & c) const {
-    return id < c.id;
-  } // operator <
-
-  /*!
-    Comparison operator for equivalence.
-   */
-
-  bool operator==(const entity_info & c) const {
-    return id == c.id && rank == c.rank && offset == c.offset &&
-           shared == c.shared;
-  } // operator ==
-
-}; // struct entity_info
-#endif
-
-#if 0
-struct coloring_meta {
-  size_t exclusive;
-  size_t shared;
-  size_t ghost;
-
-  std::set<size_t> dependents; // depend on us
-  std::set<size_t> dependencies; // we depend on them
-};
-#endif

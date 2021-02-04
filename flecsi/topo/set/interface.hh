@@ -33,12 +33,12 @@ namespace topo {
   @ingroup topology
  */
 
-template<typename POLICY_TYPE>
-struct set : set_base_t, data::reference_base {}; // struct set
+template<typename Policy>
+struct set : set_base, data::reference_base {};
 
 template<>
 struct detail::base<set> {
-  using type = set_base_t;
+  using type = set_base;
 };
 
 } // namespace topo

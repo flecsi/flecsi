@@ -94,6 +94,7 @@ struct ntree : ntree_base {
         task<set_dests>,
         task<set_ptrs>,
         util::constant<tree_data>()) {}
+
   // Ntree mandatory fields ---------------------------------------------------
 
   // Entities fields
@@ -199,14 +200,11 @@ struct ntree<Policy>::access {
     size_t rank = run::context::instance().color(); // color();
 
     /* Exchange high and low bound */
-    key_t lokey = e_keys(0);
-    key_t hikey = e_keys(data_field(0).nents - 1);
-
     const auto hibound =
       rank == size - 1 ? key_t::max() : data_field(2).lobound;
     const auto lobound = rank == 0 ? key_t::min() : data_field(1).hibound;
-    assert(lobound <= lokey);
-    assert(hibound >= hikey);
+    assert(lobound <= e_keys(0));
+    assert(hibound >= e_keys(data_field(0).nents - 1));
 
     // Add the root
     hmap.insert(key_t::root(), key_t::root());

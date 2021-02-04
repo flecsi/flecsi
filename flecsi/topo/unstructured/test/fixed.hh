@@ -18,38 +18,13 @@
 
 #include <vector>
 
-#if 0
-struct shared_entity {
-  size_t id;
-  std::vector<size_t> dependents;
-};
-
-struct ghost_entity {
-  size_t id;
-  size_t color;
-};
-
-struct index_coloring {
-  std::vector<std::size_t> exclusive;
-  std::vector<shared_entity> shared;
-  std::vector<ghost_entity> ghost;
-};
-
-struct crs {
-  std::vector<std::size_t> offsets;
-  std::vector<std::size_t> indices;
-};
-
-struct coloring {
-  std::size_t colors;
-  std::vector<std::size_t> idx_allocs;
-  std::vector<index_coloring> idx_colorings;
-  std::vector<std::vector<std::size_t>> cnx_allocs;
-  std::vector<std::vector<crs>> cnx_colorings;
-};
-#endif
-
 namespace ftui = flecsi::topo::unstructured_impl;
+
+namespace fixed {
+
+constexpr std::size_t colors = 4;
+constexpr std::size_t num_cells = 256;
+constexpr std::size_t num_vertices = 289;
 
 // clang-format off
 inline std::vector<std::vector<ftui::crs>> connectivity = {
@@ -263,7 +238,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         132, 133, 150, 149,
         133, 134, 151, 150,
         134, 135, 152, 151,
-
         143, 144, 161, 160,
         144, 145, 162, 161,
         145, 146, 163, 162,
@@ -273,7 +247,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         149, 150, 167, 166,
         150, 151, 168, 167,
         151, 152, 169, 168,
-
         160, 161, 178, 177,
         161, 162, 179, 178,
         162, 163, 180, 179,
@@ -283,7 +256,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         166, 167, 184, 183,
         167, 168, 185, 184,
         168, 169, 186, 185,
-
         177, 178, 195, 194,
         178, 179, 196, 195,
         179, 180, 197, 196,
@@ -293,7 +265,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         183, 184, 201, 200,
         184, 185, 202, 201,
         185, 186, 203, 202,
-
         194, 195, 212, 211,
         195, 196, 213, 212,
         196, 197, 214, 213,
@@ -303,7 +274,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         200, 201, 218, 217,
         201, 202, 219, 218,
         202, 203, 220, 219,
-
         211, 212, 229, 228,
         212, 213, 230, 229,
         213, 214, 231, 230,
@@ -313,7 +283,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         217, 218, 235, 234,
         218, 219, 236, 235,
         219, 220, 237, 236,
-
         228, 229, 246, 245,
         229, 230, 247, 246,
         230, 231, 248, 247,
@@ -323,7 +292,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         234, 235, 252, 251,
         235, 236, 253, 252,
         236, 237, 254, 253,
-
         245, 246, 263, 262,
         246, 247, 264, 263,
         247, 248, 265, 264,
@@ -333,7 +301,6 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
         251, 252, 269, 268,
         252, 253, 270, 269,
         253, 254, 271, 270,
-
         262, 263, 280, 279,
         263, 264, 281, 280,
         264, 265, 282, 281,
@@ -445,6 +412,16 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
 
 inline std::vector<ftui::index_coloring> cells = {
   { /* color 0 */
+    { /* owned */
+        8,   9,  10,  11,  12,  13,  14,  15,
+       24,  25,  26,  27,  28,  29,  30,  31,
+       40,  41,  42,  43,  44,  45,  46,  47,
+       56,  57,  58,  59,  60,  61,  62,  63,
+       72,  73,  74,  75,  76,  77,  78,  79,
+       88,  89,  90,  91,  92,  93,  94,  95,
+      104, 105, 106, 107, 108, 109, 110, 111,
+      120, 121, 122, 123, 124, 125, 126, 127
+    },
     { /* exclusive */
         9,  10,  11,  12,  13,  14,  15,
        25,  26,  27,  28,  29,  30,  31,
@@ -471,7 +448,7 @@ inline std::vector<ftui::index_coloring> cells = {
       { 126, {2} },
       { 127, {2} }
     },
-    { /* ghost */
+    { /* ghosts */
       {   7, 1 },
       {  23, 1 },
       {  39, 1 },
@@ -492,6 +469,16 @@ inline std::vector<ftui::index_coloring> cells = {
     }
   },
   { /* color 1 */
+    { /* owned */
+        0,   1,   2,   3,   4,   5,   6,   7,
+       16,  17,  18,  19,  20,  21,  22,  23,
+       32,  33,  34,  35,  36,  37,  38,  39,
+       48,  49,  50,  51,  52,  53,  54,  55,
+       64,  65,  66,  67,  68,  69,  70,  71,
+       80,  81,  82,  83,  84,  85,  86,  87,
+       96,  97,  98,  99, 100, 101, 102, 103,
+      112, 113, 114, 115, 116, 117, 118, 119
+    },
     { /* exclusive */
         0,   1,   2,   3,   4,   5,   6,
        16,  17,  18,  19,  20,  21,  22,
@@ -502,23 +489,23 @@ inline std::vector<ftui::index_coloring> cells = {
        96,  97,  98,  99, 100, 101, 102
     },
     { /* shared */
-      {   7, {3} },
-      {  23, {3} },
-      {  39, {3} },
-      {  55, {3} },
-      {  71, {3} },
-      {  87, {3} },
-      { 103, {3} },
-      { 112, {0} },
-      { 113, {0} },
-      { 114, {0} },
-      { 115, {0} },
-      { 116, {0} },
-      { 117, {0} },
-      { 118, {0} },
-      { 119, {1, 2, 3} }
+      {   7, {0} },
+      {  23, {0} },
+      {  39, {0} },
+      {  55, {0} },
+      {  71, {0} },
+      {  87, {0} },
+      { 103, {0} },
+      { 112, {3} },
+      { 113, {3} },
+      { 114, {3} },
+      { 115, {3} },
+      { 116, {3} },
+      { 117, {3} },
+      { 118, {3} },
+      { 119, {0, 2, 3} }
     },
-    { /* ghost */
+    { /* ghosts */
       {   8, 0 },
       {  24, 0 },
       {  40, 0 },
@@ -539,6 +526,16 @@ inline std::vector<ftui::index_coloring> cells = {
     }
   },
   { /* color 2 */
+    { /* owned */
+      136, 137, 138, 139, 140, 141, 142, 143,
+      152, 153, 154, 155, 156, 157, 158, 159,
+      168, 169, 170, 171, 172, 173, 174, 175,
+      184, 185, 186, 187, 188, 189, 190, 191,
+      200, 201, 202, 203, 204, 205, 206, 207,
+      216, 217, 218, 219, 220, 221, 222, 223,
+      232, 233, 234, 235, 236, 237, 238, 239,
+      248, 249, 250, 251, 252, 253, 254, 255
+    },
     { /* exclusive */
       153, 154, 155, 156, 157, 158, 159,
       169, 170, 171, 172, 173, 174, 175,
@@ -565,7 +562,7 @@ inline std::vector<ftui::index_coloring> cells = {
       { 232, {3} },
       { 248, {3} }
     },
-    { /* ghost */
+    { /* ghosts */
       { 119, 1 },
       { 120, 0 },
       { 121, 0 },
@@ -586,6 +583,16 @@ inline std::vector<ftui::index_coloring> cells = {
     }
   },
   { /* color 3 */
+    { /* owned */
+      128, 129, 130, 131, 132, 133, 134, 135,
+      144, 145, 146, 147, 148, 149, 150, 151,
+      160, 161, 162, 163, 164, 165, 166, 167,
+      176, 177, 178, 179, 180, 181, 182, 183,
+      192, 193, 194, 195, 196, 197, 198, 199,
+      208, 209, 210, 211, 212, 213, 214, 215,
+      224, 225, 226, 227, 228, 229, 230, 231,
+      240, 241, 242, 243, 244, 245, 246, 247
+    },
     { /* exclusive */
       144, 145, 146, 147, 148, 149, 150,
       160, 161, 162, 163, 164, 165, 166,
@@ -612,7 +619,7 @@ inline std::vector<ftui::index_coloring> cells = {
       { 231, {2} },
       { 247, {2} }
     },
-    { /* ghost */
+    { /* ghosts */
       { 112, 1 },
       { 113, 1 },
       { 114, 1 },
@@ -636,6 +643,17 @@ inline std::vector<ftui::index_coloring> cells = {
 
 inline std::vector<ftui::index_coloring> vertices = {
   { /* color 0 */
+    { /* owned */
+        8,   9,  10,  11,  12,  13,  14,  15,  16,
+       25,  26,  27,  28,  29,  30,  31,  32,  33,
+       42,  43,  44,  45,  46,  47,  48,  49,  50,
+       59,  60,  61,  62,  63,  64,  65,  66,  67,
+       76,  77,  78,  79,  80,  81,  82,  83,  84,
+       93,  94,  95,  96,  97,  98,  99, 100, 101,
+      110, 111, 112, 113, 114, 115, 116, 117, 118,
+      127, 128, 129, 130, 131, 132, 133, 134, 135,
+      144, 145, 146, 147, 148, 149, 150, 151, 152
+    },
     { /* exclusive */
        10,  11,  12,  13,  14,  15,  16,
        27,  28,  29,  30,  31,  32,  33,
@@ -679,7 +697,7 @@ inline std::vector<ftui::index_coloring> vertices = {
       { 151, {2} },
       { 152, {2} }
     },
-    { /* ghost */
+    { /* ghosts */
       {   7, 1 },
       {  24, 1 },
       {  41, 1 },
@@ -702,6 +720,17 @@ inline std::vector<ftui::index_coloring> vertices = {
     }
   },
   { /* color 1 */
+    { /* owned */
+        0,   1,   2,   3,   4,   5,   6,   7,
+       17,  18,  19,  20,  21,  22,  23,  24,
+       34,  35,  36,  37,  38,  39,  40,  41,
+       51,  52,  53,  54,  55,  56,  57,  58,
+       68,  69,  70,  71,  72,  73,  74,  75,
+       85,  86,  87,  88,  89,  90,  91,  92,
+      102, 103, 104, 105, 106, 107, 108, 109,
+      119, 120, 121, 122, 123, 124, 125, 126,
+      136, 137, 138, 139, 140, 141, 142, 143
+    },
     { /* exclusive */
         0,   1,   2,   3,   4,   5,   6,
        17,  18,  19,  20,  21,  22,  23,
@@ -736,7 +765,7 @@ inline std::vector<ftui::index_coloring> vertices = {
       { 142, {3} },
       { 143, {3} }
     },
-    { /* ghost */
+    { /* ghosts */
       {   8, 0 },
       {   9, 0 },
       {  25, 0 },
@@ -768,6 +797,16 @@ inline std::vector<ftui::index_coloring> vertices = {
     }
   },
   { /* color 2 */
+    { /* owned */
+      161, 162, 163, 164, 165, 166, 167, 168, 169,
+      178, 179, 180, 181, 182, 183, 184, 185, 186,
+      195, 196, 197, 198, 199, 200, 201, 202, 203,
+      212, 213, 214, 215, 216, 217, 218, 219, 220,
+      229, 230, 231, 232, 233, 234, 235, 236, 237,
+      246, 247, 248, 249, 250, 251, 252, 253, 254,
+      263, 264, 265, 266, 267, 268, 269, 270, 271,
+      280, 281, 282, 283, 284, 285, 286, 287, 288
+    },
     { /* exclusive */
       180, 181, 182, 183, 184, 185, 186,
       197, 198, 199, 200, 201, 202, 203,
@@ -802,7 +841,7 @@ inline std::vector<ftui::index_coloring> vertices = {
       { 280, {3} },
       { 281, {3} }
     },
-    { /* ghost */
+    { /* ghosts */
       { 126, 1 },
       { 127, 0 },
       { 128, 0 },
@@ -834,6 +873,16 @@ inline std::vector<ftui::index_coloring> vertices = {
     }
   },
   { /* color 3 */
+    { /* owned */
+      153, 154, 155, 156, 157, 158, 159, 160,
+      170, 171, 172, 173, 174, 175, 176, 177,
+      187, 188, 189, 190, 191, 192, 193, 194,
+      204, 205, 206, 207, 208, 209, 210, 211,
+      221, 222, 223, 224, 225, 226, 227, 228,
+      238, 239, 240, 241, 242, 243, 244, 245,
+      255, 256, 257, 258, 259, 260, 261, 262,
+      272, 273, 274, 275, 276, 277, 278, 279
+    },
     { /* exclusive */
       170, 171, 172, 173, 174, 175, 176,
       187, 188, 189, 190, 191, 192, 193,
@@ -860,7 +909,7 @@ inline std::vector<ftui::index_coloring> vertices = {
       { 262, {2} },
       { 279, {2} }
     },
-    { /* ghost */
+    { /* ghosts */
       { 119, 1 },
       { 120, 1 },
       { 121, 1 },
@@ -899,29 +948,6 @@ inline std::vector<ftui::index_coloring> vertices = {
       { 281, 2 }
     }
   },
-};
-
-std::vector<std::vector<std::size_t>> idx_allocs = {
-  {/* color 0 */
-    cells[0].exclusive.size() + cells[0].shared.size() + cells[0].ghost.size(),
-    vertices[0].exclusive.size() + vertices[0].shared.size() +
-      vertices[0].ghost.size()
-  },
-  {/* color 1 */
-    cells[1].exclusive.size() + cells[1].shared.size() + cells[1].ghost.size(),
-    vertices[1].exclusive.size() + vertices[1].shared.size() +
-      vertices[1].ghost.size()
-  },
-  {/* color 2 */
-    cells[2].exclusive.size() + cells[2].shared.size() + cells[2].ghost.size(),
-    vertices[2].exclusive.size() + vertices[2].shared.size() +
-      vertices[2].ghost.size()
-  },
-  {/* color 3 */
-    cells[3].exclusive.size() + cells[3].shared.size() + cells[3].ghost.size(),
-    vertices[3].exclusive.size() + vertices[3].shared.size() +
-      vertices[3].ghost.size()
-  }
 };
 
 std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
@@ -977,6 +1003,8 @@ std::vector<std::vector<std::vector<ftui::crs>>> cnx_colorings = {
   }
 };
 // clang-format on
+
+} // namespace fixed
 
 #if 0
 inline std::vector<flu::index_coloring> cells = {

@@ -31,7 +31,6 @@
   #if !defined(REALM_USE_CMAKE)
     #define REALM_USE_CMAKE
   #endif
-  #define ENABLE_LEGION_TLS
 
   #if !defined(MAPPER_COMPACTION)
     #cmakedefine MAPPER_COMPACTION
@@ -113,8 +112,9 @@
 //----------------------------------------------------------------------------//
 // Annotation severity level
 //----------------------------------------------------------------------------//
+
 #define FLECSI_CALIPER_DETAIL_none 1
 #define FLECSI_CALIPER_DETAIL_low 2
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
-#cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@FLECSI_CALIPER_DETAIL@
+#cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
