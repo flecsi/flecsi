@@ -174,9 +174,10 @@ struct forall_t {
   }; // struct functor
 
   template<typename Lambda>
-  void operator+(Lambda lambda) {
-    Kokkos::parallel_for(
-      "  ", iterator_.size(), functor<Lambda>{iterator_, lambda});
+  void operator+(Lambda && lambda) {
+    Kokkos::parallel_for("  ",
+      iterator_.size(),
+      functor<Lambda>{iterator_, std::forward<Lambda>(lambda)});
   } // operator+
 
   /*!
@@ -186,8 +187,9 @@ struct forall_t {
     Attribution: Nick Moss
    */
   template<typename Callable>
-  void operator<<(Callable l) {
-    Kokkos::parallel_for(name_, iterator_.size(), functor{iterator_, l});
+  void operator<<(Callable && l) {
+    Kokkos::parallel_for(
+      name_, iterator_.size(), functor{iterator_, std::forward<Callable>(l)});
   } // operator<<
 
 private:
