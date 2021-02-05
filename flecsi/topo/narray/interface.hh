@@ -73,7 +73,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
-    std::uint32_t faces;
+    std::array<std::uint32_t, index_spaces::size> faces;
 
     std::array<scoord, index_spaces::size> global, offset, extents;
     std::array<shypercube, index_spaces::size> logical, extended;
@@ -176,7 +176,7 @@ private:
       };
 
       const auto & ci = c.idx_colorings[i];
-      md.faces = ci.faces;
+      md.faces[i] = ci.faces;
       copy(ci.global, md.global[i]);
       copy(ci.offset, md.offset[i]);
       copy(ci.extents, md.extents[i]);
@@ -230,14 +230,14 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_low() {
-    return (meta_.get().faces >> A * 2) & narray_impl::low;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::low;
   }
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_high() {
-    return (meta_.get().faces >> A * 2) & narray_impl::high;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::high;
   }
 
   template<axis A>
