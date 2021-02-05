@@ -13,6 +13,7 @@ print_refc(const flecsi::util::span<const char> & arr) {
   UNIT_CAPTURE() << std::endl;
 }
 
+using namespace flecsi;
 using flecsi::util::span;
 
 int
@@ -249,6 +250,17 @@ array_ref() {
 #else
     EXPECT_TRUE(UNIT_EQUAL_BLESSED("array_ref.blessed"));
 #endif
+
+    {
+      static short twelve[12];
+      constexpr util::mdspan<short, 3> m(twelve, {2, 3, 2});
+      static_assert(&m[1][2][1] == &twelve[11]);
+      static_assert(&m(1, 2, 1) == &twelve[11]);
+      static_assert(&m[1][2][0] == &twelve[10]);
+      static_assert(&m(0, 2, 1) == &twelve[10]);
+      static_assert(&m[1][1][1] == &twelve[6 + 2 + 1]);
+      static_assert(&m(1, 1, 1) == &twelve[6 + 2 + 1]);
+    }
 
     const flecsi::util::iota_view gap(24, 29); // between primes
     EXPECT_EQ(std::accumulate(gap.begin(), gap.end(), 0),

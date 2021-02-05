@@ -28,7 +28,7 @@ format:diff:
   extends: .diff_format_template
   dependencies: []
   variables:
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: util-fedora-30
     FORMAT_VERSION: 8.0.0
   allow_failure: true
@@ -40,7 +40,7 @@ format:check:
       artifacts: true
     - job: tutorial:legion # Hack to make this last. Gitlab needs some mechanism to allow this
   variables:
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: util-fedora-30
 
 #------------------------------------------------------------------------------#
@@ -56,7 +56,7 @@ mpich-defaults:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
 
 #------------------------------------------------------------------------------#
@@ -73,32 +73,32 @@ mpich-legion-gnu:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 mpich-legion-gnu:release:
   extends: .build_template
   needs:
-    ["mpich:release"]
+    ["mpich"]
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: release
+    BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
@@ -114,32 +114,32 @@ mpich-mpi-gnu:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 mpich-mpi-gnu:release:
   extends: .build_template
   needs:
-    ["mpich:release"]
+    ["mpich"]
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: release
+    BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion runtime with MPICH provider,
@@ -151,11 +151,11 @@ mpich-mpi-gnu:release:
 tutorial:legion:
   extends: .tutorial_template
   needs:
-    ["mpich-legion-gnu:release"]
+    ["mpich-legion-gnu"]
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
@@ -176,32 +176,32 @@ openmpi-legion-gnu:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: openmpi
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 openmpi-legion-gnu:release:
   extends: .build_template
   needs:
-    ["openmpi:release"]
+    ["openmpi"]
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: openmpi
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: release
+    BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
@@ -217,32 +217,32 @@ openmpi-mpi-gnu:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: openmpi
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 openmpi-mpi-gnu:release:
   extends: .build_template
   needs:
-    ["openmpi:release"]
+    ["openmpi"]
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: openmpi
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    BUILD_TYPE: release
+    BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
@@ -258,15 +258,15 @@ mpich-legion-clang:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
@@ -282,15 +282,15 @@ mpich-mpi-clang:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: mpich
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
@@ -306,12 +306,12 @@ openmpi-mpi-clang:
   variables:
     ENVIRONMENT: devel
     MPI_PROVIDER: openmpi
-    REGISTRY: gitlab.lanl.gov:5050/laristra/flecsi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
-    BUILD_TYPE: debug
+    BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON

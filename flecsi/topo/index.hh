@@ -148,11 +148,16 @@ template<class T>
 struct ragged_topology : specialization<ragged_category, ragged_topology<T>> {
   using index_space = typename T::index_space;
   using index_spaces = typename T::index_spaces;
+
+  template<index_space S>
+  static constexpr std::size_t privilege_count = T::template privilege_count<S>;
 };
 
 struct with_ragged_base {
-  template<class F>
-  static void extend(field<std::size_t, data::raw>::accessor<rw> a, F old) {
+  template<class F, std::size_t N>
+  static void extend(
+    field<std::size_t, data::raw>::accessor1<privilege_repeat(rw, N)> a,
+    F old) {
     const auto s = a.span();
     const std::size_t i = old(run::context::instance().color());
     // The accessor (chosen to support a resized field) constructs nothing:
@@ -170,8 +175,9 @@ struct with_ragged : private with_ragged_base {
   {
     for(auto f :
       run::context::instance().get_field_info_store<ragged_topology<P>, S>())
-      execute<extend<F>>(data::field_reference<std::size_t, data::raw, P, S>(
-                           *f, static_cast<typename P::core &>(*this)),
+      execute<extend<F, P::template privilege_count<S>>>(
+        data::field_reference<std::size_t, data::raw, P, S>(
+          *f, static_cast<typename P::core &>(*this)),
         old);
   }
 
@@ -205,6 +211,29 @@ struct with_meta { // for interface consistency
   with_meta(std::size_t n) : meta(n) {}
   typename meta_topology<P>::core meta;
 };
+
+struct array_base {
+  using coloring = std::vector<std::size_t>;
+
+protected:
+  static std::size_t index(const coloring & c, std::size_t i) {
+    return c[i];
+  }
+};
+template<class P>
+struct array_category : array_base, repartitioned {
+  explicit array_category(const coloring & c)
+    : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {
+    resize();
+  }
+};
+template<>
+struct detail::base<array_category> {
+  using type = array_base;
+};
+
+template<class P>
+struct array : topo::specialization<array_category, array<P>> {};
 
 /*!
   The \c index type allows users to register data on an

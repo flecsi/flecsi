@@ -87,6 +87,11 @@ target_link_libraries(cycle FleCSI)
 target_link_libraries(cycle ${FLECSI_LIBRARY_DEPENDENCIES}
   ${CMAKE_THREAD_LIBS_INIT})
 
+add_unit(flog
+  SOURCES
+    test/flog.cc
+)
+
 add_unit(program-options
   SOURCES
     test/program-options.cc

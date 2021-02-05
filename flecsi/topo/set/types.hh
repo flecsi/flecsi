@@ -31,9 +31,9 @@ namespace topo {
   @ingroup topology
  */
 
-struct set_base_t {
+struct set_base {
   using coloring = size_t;
-}; // set_base_t
+}; // set_base
 
 } // namespace topo
 } // namespace flecsi

@@ -32,6 +32,7 @@
 #include "flecsi/topo/unstructured/interface.hh"
 #include <flecsi/data/accessor.hh>
 #include <flecsi/data/coloring.hh>
+#include <flecsi/data/privilege.hh>
 
 namespace flecsi {
 

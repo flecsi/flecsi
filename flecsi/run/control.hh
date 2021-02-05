@@ -179,7 +179,7 @@ private:
     point_writer(registry_, gv).template walk_types<control_points>();
     std::string file = program() + "-control-model.dot";
     gv.write(file);
-    return flecsi::run::status::option;
+    return flecsi::run::status::control_model;
   } // write
 
   int write_sorted() {
@@ -187,7 +187,7 @@ private:
     point_writer::write_sorted(sort(), gv);
     std::string file = program() + "-control-model-sorted.dot";
     gv.write(file);
-    return flecsi::run::status::option;
+    return flecsi::run::status::control_model_sorted;
   } // write_sorted
 #endif
 
@@ -288,18 +288,19 @@ public:
     Process control model command-line options.
    */
 
-  static int check_options() {
-    int retval{flecsi::run::status::success};
+  static int check_status(int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-    if(control_model_option.has_value()) {
-      retval |= instance().write();
-    } // if
-    if(control_model_sorted_option.has_value()) {
-      retval |= instance().write_sorted();
-    } // if
+    switch(s) {
+      case flecsi::run::status::control_model:
+        return instance().write();
+      case flecsi::run::status::control_model_sorted:
+        return instance().write_sorted();
+      default:
+        break;
+    } // switch
 #endif
-    return retval;
-  } // write
+    return s;
+  } // check_status
 
 }; // struct control
 

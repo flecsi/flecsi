@@ -17,7 +17,10 @@
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
+#include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"
+
+#include <algorithm>
 
 using namespace flecsi;
 
@@ -26,19 +29,24 @@ std::vector<std::size_t> cells;
 std::vector<std::size_t> vertices;
 } // namespace global
 
-struct unstructured : topo::specialization<topo::unstructured, unstructured> {
+struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   /*--------------------------------------------------------------------------*
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum index_space { vertices, edges, cells };
+  enum index_space { cells, vertices };
   using index_spaces = has<cells, vertices>;
   using connectivities =
     list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
 
-  enum entity_list { dirichlet, neumann, special_vertices };
-  using entity_lists = list<entity<vertices, has<special_vertices>>>;
+  enum entity_list { owned, exclusive, shared, ghosts, special_vertices };
+  using entity_lists =
+    list<entity<cells, has<owned, exclusive, shared, ghosts>>,
+      entity<vertices, has<special_vertices>>>;
+
+  template<auto>
+  static constexpr std::size_t privilege_count = 2;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -51,6 +59,11 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
       return B::template entities<index_space::cells>();
     }
 
+    template<typename B::subspace_list L>
+    auto cells() {
+      return B::template subspace_entities<index_space::cells, L>();
+    }
+
     template<index_space From>
     auto cells(topo::id<From> from) {
       return B::template entities<index_space::cells>(from);
@@ -60,19 +73,26 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
       return B::template entities<index_space::vertices>();
     }
 
+    template<typename B::subspace_list L>
+    auto vertices() {
+      return B::template subspace_entities<index_space::vertices, L>();
+    }
+
     template<index_space From>
     auto vertices(topo::id<From> from) {
       return B::template entities<index_space::vertices>(from);
     }
 
+#if 0
     auto edges() {
       return B::template entities<index_space::edges>();
     }
 
     template<entity_list List>
     auto edges() {
-      return B::template special_entities<unstructured::edges, List>();
+      return B::template special_entities<fixed_mesh::edges, List>();
     }
+#endif
 
   }; // struct interface
 
@@ -81,18 +101,55 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    return {processes(),
-      idx_allocs[process()],
-      idx_colorings[process()],
-      cnx_allocs[process()],
-      cnx_colorings[process()]};
+    return {fixed::colors,
+      {fixed::num_cells, fixed::num_vertices},
+      fixed::idx_colorings[process()],
+      fixed::cnx_allocs[process()],
+      fixed::cnx_colorings[process()]};
   } // color
 
   /*--------------------------------------------------------------------------*
     Initialization
    *--------------------------------------------------------------------------*/
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<rw> c2v,
+  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
+    std::map<std::size_t, topo::unstructured_impl::crs> const & ghost_itvls) {
+    std::size_t i{0}, ioff{0};
+    for(auto const & gi : ghost_itvls) {
+      for(std::size_t o{0}; o < gi.second.offsets.size() - 1; ++o) {
+        const std::size_t start = ioff + gi.second.offsets[o] + 1;
+        const std::size_t end = ioff + gi.second.offsets[o + 1] + 1;
+        a[i++] = data::intervals::make({start, end}, process());
+      } // for
+      ioff = gi.second.offsets.back();
+    } // for
+  }
+
+  static void set_ptrs(field<data::points::Value>::accessor<wo> a,
+    std::map<std::size_t, topo::unstructured_impl::crs> const & ghost_itvls) {
+    std::size_t i{0};
+    for(auto const & gi : ghost_itvls) {
+      for(auto idx : gi.second.indices) {
+        a[i + 1] = data::points::make(idx, gi.first);
+        ++i;
+      } // for
+    } // for
+  }
+
+#if 0
+  static void init_csub(field<util::id, data::ragged>::mutator<rw> own,
+    field<util::id, data::ragged>::mutator<rw> exc,
+    field<util::id, data::ragged>::mutator<rw> shr,
+    field<util::id, data::ragged>::mutator<rw> ghs,
+    topo::unstructured_base::index_coloring const & cell_coloring) {
+    (void)own;
+    exc[flecsi::color()].resize(cell_coloring.exclusive.size());
+    shr[flecsi::color()].resize(cell_coloring.shared.size());
+    ghs[flecsi::color()].resize(cell_coloring.ghosts.size());
+  }
+#endif
+
+  static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
     topo::unstructured_impl::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
@@ -110,8 +167,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     }
   }
 
-  static void init_v2c(field<util::id, data::ragged>::mutator<rw> v2c,
-    field<util::id, data::ragged>::accessor<ro> c2v) {
+  static void init_v2c(field<util::id, data::ragged>::mutator<rw, na> v2c,
+    field<util::id, data::ragged>::accessor<ro, na> c2v) {
     for(std::size_t c{0}; c < c2v.size(); ++c) {
       for(std::size_t v{0}; v < c2v[c].size(); ++v) {
         v2c[c2v[c][v]].push_back(c);
@@ -119,40 +176,40 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     }
   }
 
-  static void initialize(data::topology_slot<unstructured> & s,
+  static void initialize(data::topology_slot<fixed_mesh> & s,
     coloring const & c) {
+
+    /*
+      Define the cell ordering from coloring. This version uses the
+      mesh ordering, i.e., the cells are sorted by ascending mesh id.
+     */
 
     auto cell_coloring = c.idx_colorings[0];
     global::cells.clear();
-    for(auto e : cell_coloring.exclusive) {
+    for(auto e : cell_coloring.owned) {
       global::cells.push_back(e);
     }
 
-    for(auto e : cell_coloring.shared) {
+    for(auto e : cell_coloring.ghosts) {
       global::cells.push_back(e.id);
     }
 
-    for(auto e : cell_coloring.ghost) {
-      global::cells.push_back(e.id);
-    }
-
-    topo::unstructured_impl::force_unique(global::cells);
+    /*
+      Define the vertex ordering from coloring. This version uses the
+      mesh ordering, i.e., the vertices are sorted by ascending mesh id.
+     */
 
     auto vertex_coloring = c.idx_colorings[1];
     global::vertices.clear();
-    for(auto e : vertex_coloring.exclusive) {
+    for(auto e : vertex_coloring.owned) {
       global::vertices.push_back(e);
     }
 
-    for(auto e : vertex_coloring.shared) {
+    for(auto e : vertex_coloring.ghosts) {
       global::vertices.push_back(e.id);
     }
 
-    for(auto e : vertex_coloring.ghost) {
-      global::vertices.push_back(e.id);
-    }
-
-    topo::unstructured_impl::force_unique(global::vertices);
+    util::force_unique(global::vertices);
 
     std::map<std::size_t, std::size_t> vertex_map;
     std::size_t off{0};
@@ -161,26 +218,28 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     }
 
     auto & c2v =
-      s->connect_.get<unstructured::cells>().get<unstructured::vertices>();
+      s->connect_.get<fixed_mesh::cells>().get<fixed_mesh::vertices>();
     execute<init_c2v, mpi>(c2v(s), c.cnx_colorings[0][0], vertex_map);
 
     auto & v2c =
-      s->connect_.get<unstructured::vertices>().get<unstructured::cells>();
+      s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();
     execute<init_v2c, mpi>(v2c(s), c2v(s));
   } // initialize
 
-}; // struct unstructured
+}; // struct fixed_mesh
 
-unstructured::slot mesh;
-unstructured::cslot coloring;
+fixed_mesh::slot mesh;
+fixed_mesh::cslot coloring;
 
-const field<std::size_t>::definition<unstructured, unstructured::cells> cids;
-const field<std::size_t>::definition<unstructured, unstructured::vertices> vids;
+const field<double>::definition<fixed_mesh, fixed_mesh::cells> pressure;
+const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
+const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
+const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
 
 void
-init_ids(unstructured::accessor<ro> m,
-  field<std::size_t>::accessor<wo> cids,
-  field<std::size_t>::accessor<wo> vids) {
+init_ids(fixed_mesh::accessor<ro, ro> m,
+  field<std::size_t>::accessor<wo, wo> cids,
+  field<std::size_t>::accessor<wo, wo> vids) {
   for(auto c : m.cells()) {
     cids[c] = global::cells[c];
   }
@@ -190,9 +249,67 @@ init_ids(unstructured::accessor<ro> m,
 }
 
 void
-print(unstructured::accessor<ro> m,
-  field<std::size_t>::accessor<ro> cids,
-  field<std::size_t>::accessor<ro> vids) {
+init_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<wo, na> p) {
+  flog(warn) << __func__ << std::endl;
+  for(auto c : m.cells()) {
+    p[c] = -1.0;
+  }
+}
+
+void
+update_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> p) {
+  flog(warn) << __func__ << std::endl;
+  for(auto c : m.cells()) {
+    p[c] = color();
+  }
+}
+
+void
+print_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<ro, ro> p) {
+  flog(warn) << __func__ << std::endl;
+  std::stringstream ss;
+  for(auto c : m.cells()) {
+    ss << p[c] << " ";
+  }
+  flog(info) << ss.str() << std::endl;
+}
+
+void
+init_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<wo, na> d) {
+  flog(warn) << __func__ << std::endl;
+  for(auto c : m.vertices()) {
+    d[c] = -1.0;
+  }
+}
+
+void
+update_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> d) {
+  flog(warn) << __func__ << std::endl;
+  for(auto c : m.vertices()) {
+    d[c] = color();
+  }
+}
+
+void
+print_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<ro, ro> d) {
+  flog(warn) << __func__ << std::endl;
+  std::stringstream ss;
+  for(auto c : m.vertices()) {
+    ss << d[c] << " ";
+  }
+  flog(info) << ss.str() << std::endl;
+}
+
+void
+print(fixed_mesh::accessor<ro, ro> m,
+  field<std::size_t>::accessor<ro, wo> cids,
+  field<std::size_t>::accessor<ro, wo> vids) {
   for(auto c : m.cells()) {
     std::stringstream ss;
     ss << "cell(" << cids[c] << "): ";
@@ -217,8 +334,14 @@ fixed_driver() {
   UNIT {
     coloring.allocate();
     mesh.allocate(coloring.get());
-    execute<init_ids>(mesh, cids(mesh), vids(mesh));
-    execute<print>(mesh, cids(mesh), vids(mesh));
+    //    execute<init_ids>(mesh, cids(mesh), vids(mesh));
+    //    execute<print>(mesh, cids(mesh), vids(mesh));
+    execute<init_pressure>(mesh, pressure(mesh));
+    execute<update_pressure>(mesh, pressure(mesh));
+    execute<print_pressure>(mesh, pressure(mesh));
+    execute<init_density>(mesh, density(mesh));
+    execute<update_density>(mesh, density(mesh));
+    execute<print_density>(mesh, density(mesh));
   };
 } // unstructured_driver
 

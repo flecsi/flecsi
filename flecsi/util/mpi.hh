@@ -177,7 +177,7 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 template<typename F>
 inline auto
 one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = decltype(f(int(0), int(1)));
+  using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
 
@@ -233,7 +233,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 template<typename F>
 inline auto
 all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = decltype(f(int(0), int(1)));
+  using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
 
@@ -308,7 +308,52 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   return result;
 } // all_to_allv
 
-} // namespace mpi
+/*!
+  All gather communication pattern implemented using MPI_Allgather. This
+  function is convenient for passing more complicated types. Otherwise,
+  it may make more sense to use MPI_Allgather directly.
 
+  This function uses the FleCSI serialization interface with a packing
+  callable object to communicate data from all ranks to all other ranks.
+
+  @tparam F The packing type with signature \em (rank, size).
+
+  @param f    A callable object.
+  @param comm An MPI communicator.
+
+  @return A std::vector<return_type>, where \rm return_type is the type
+          returned by the callable object.
+ */
+
+template<typename F>
+inline auto
+all_gather(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
+  using return_type = decltype(f(int(0), int(1)));
+
+  auto [rank, size] = info(comm);
+
+  std::size_t count = serial_size<return_type>(f(rank, size));
+  std::vector<std::byte> bytes(size * count);
+
+  MPI_Allgather(serial_put(f(rank, size)).data(),
+    count,
+    type<std::byte>(),
+    bytes.data(),
+    count,
+    type<std::byte>(),
+    comm);
+
+  std::vector<return_type> result;
+  result.reserve(size);
+
+  for(std::size_t r{0}; r < std::size_t(size); ++r) {
+    auto const * p = &bytes[r * count];
+    result.emplace_back(serial_get<return_type>(p));
+  } // for
+
+  return result;
+} // all_gather
+
+} // namespace mpi
 } // namespace util
 } // namespace flecsi

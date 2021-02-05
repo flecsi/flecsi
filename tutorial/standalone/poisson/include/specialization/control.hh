@@ -7,16 +7,16 @@
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
 
-namespace standalone {
+namespace poisson {
 
-enum class cp { initialize, advance, analyze, finalize };
+enum class cp { initialize, solve, analyze, finalize };
 
 inline const char * operator*(cp control_point) {
   switch(control_point) {
     case cp::initialize:
       return "initialize";
-    case cp::advance:
-      return "advance";
+    case cp::solve:
+      return "solve";
     case cp::analyze:
       return "analyze";
     case cp::finalize:
@@ -32,36 +32,15 @@ struct control_policy {
 
   using control = flecsi::run::control<control_policy>;
 
-  static bool cycle_control() {
-    return control::instance().step()++ < control::instance().steps();
-  }
-
   template<auto CP>
   using control_point = flecsi::run::control_point<CP>;
 
-  using cycle = flecsi::run::cycle<cycle_control,
-    control_point<cp::advance>,
-    control_point<cp::analyze>>;
-
-  using control_points = std::
-    tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;
-
-  /*--------------------------------------------------------------------------*
-    State interface
-   *--------------------------------------------------------------------------*/
-
-  size_t & steps() {
-    return steps_;
-  }
-  size_t & step() {
-    return step_;
-  }
-
-private:
-  size_t steps_{0};
-  size_t step_{0};
+  using control_points = std::tuple<control_point<cp::initialize>,
+    control_point<cp::solve>,
+    control_point<cp::analyze>,
+    control_point<cp::finalize>>;
 }; // struct control_policy
 
 using control = flecsi::run::control<control_policy>;
 
-} // namespace standalone
+} // namespace poisson

@@ -101,7 +101,7 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     (void)filename;
     topo::unstructured_impl::simple_definition sd(filename.c_str());
     const size_t colors{processes()};
-    auto [naive, cells, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);
     auto coloring = topo::unstructured_impl::distribute(naive, colors, raw);
 #if 0
@@ -129,8 +129,13 @@ unstructured::slot mesh;
 unstructured::cslot coloring;
 
 void
-init(topo::connect_field::mutator<rw> m) {
-  m[0].resize(2, 47);
+allocate(topo::resize::Field::accessor<wo> a) {
+  a = data::partition::make_row(run::context::instance().color(), 2);
+}
+
+void
+init(field<util::id>::accessor<wo> m) {
+  m[0] = m[1] = 47;
 }
 
 int
@@ -153,7 +158,9 @@ unstructured_driver() {
 
     auto & neuf =
       mesh->special_.get<unstructured::edges>().get<unstructured::neumann>();
-    execute<init>(neuf(mesh->meta));
+    execute<allocate>(neuf.sizes());
+    neuf.resize();
+    execute<init>(mesh->special_field(neuf));
     EXPECT_EQ(test<check>(mesh), 0);
 #endif
   };

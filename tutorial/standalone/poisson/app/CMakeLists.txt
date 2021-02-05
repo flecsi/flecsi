@@ -3,28 +3,34 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-include_directories(${PROJECT_SOURCE_DIR})
+#------------------------------------------------------------------------------#
+# Add application headers.
+#------------------------------------------------------------------------------#
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #------------------------------------------------------------------------------#
 # Add an executable.
 #------------------------------------------------------------------------------#
 
-add_executable(standalone
-  standalone.cc
-  advance.hh
-  analyze.hh
-  data.hh
-  finalize.hh
-  initialize.hh
-  ../specialization/control.hh
-  ../specialization/types.hh
+add_executable(poisson
+  poisson.cc
+  analyze.cc
+  finalize.cc
+  initialize.cc
+  problem.cc
+  solve.cc
+  tasks/init.cc
+  tasks/io.cc
+  tasks/norm.cc
+  tasks/smooth.cc
 )
 
 #------------------------------------------------------------------------------#
 # Add the FleCSI libraries and dependencies.
 #------------------------------------------------------------------------------#
 
-target_link_libraries(standalone
+target_link_libraries(poisson
   ${FleCSI_LIBRARIES}
   ${FleCSI_LIBRARY_DEPENDENCIES}
 )

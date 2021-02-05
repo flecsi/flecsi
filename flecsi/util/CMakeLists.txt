@@ -192,7 +192,7 @@ add_unit(hashtable
 #------------------------------------------------------------------------------#
 # annotation
 #------------------------------------------------------------------------------#
-if (NOT FLECSI_CALIPER_DETAIL STREQUAL "none")
+if (NOT CALIPER_DETAIL STREQUAL "none")
 add_unit(annotation
   SOURCES
   test/annotation.cc

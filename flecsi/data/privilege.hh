@@ -101,6 +101,13 @@ privilege_write(partition_privilege_t p) {
 }
 
 constexpr bool
+privilege_read(std::size_t pack) noexcept {
+  for(auto i = privilege_count(pack); i--;)
+    if(privilege_read(get_privilege(i, pack)))
+      return true;
+  return false;
+}
+constexpr bool
 privilege_write(std::size_t pack) noexcept {
   for(auto i = privilege_count(pack); i--;)
     if(privilege_write(get_privilege(i, pack)))
@@ -137,6 +144,13 @@ privilege_repeat(partition_privilege_t p, std::size_t n) {
     ret |= p;
   }
   return ret;
+}
+
+constexpr partition_privilege_t
+privilege_merge(std::size_t p) {
+  return privilege_discard(p)
+           ? wo
+           : privilege_write(p) ? rw : privilege_read(p) ? ro : na;
 }
 
 } // namespace flecsi

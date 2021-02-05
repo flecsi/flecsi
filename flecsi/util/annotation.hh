@@ -14,14 +14,15 @@
 #pragma once
 
 /*! @file */
-#include <string>
-#include <type_traits>
 
 #include <flecsi-config.h>
 
 #if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
 #include <caliper/Annotation.h>
 #endif
+
+#include <string>
+#include <type_traits>
 
 namespace flecsi {
 namespace util {

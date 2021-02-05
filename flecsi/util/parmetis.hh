@@ -34,12 +34,7 @@ namespace parmetis {
 static std::vector<size_t>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
-  int size, rank;
-  MPI_Group group;
-
-  MPI_Comm_size(comm, &size);
-  MPI_Comm_group(comm, &group);
-  MPI_Group_rank(group, &rank);
+  auto [rank, size] = util::mpi::info(comm);
 
   flog_assert((naive.distribution.size() - 1) == size_t(size),
     "invalid naive coloring! naive.colors("

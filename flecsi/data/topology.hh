@@ -24,6 +24,7 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/run/types.hh"
 
+#include <map>
 #include <set>
 
 namespace flecsi::data {

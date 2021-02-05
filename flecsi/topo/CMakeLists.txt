@@ -24,6 +24,9 @@ set(topo_HEADERS
   global.hh
   index.hh
   size.hh
+  narray/coloring_utils.hh
+  narray/interface.hh
+  narray/types.hh
   ntree/coloring.hh
   ntree/geometry.hh
   ntree/interface.hh
@@ -37,11 +40,11 @@ set(topo_HEADERS
   structured/interface.hh
   structured/simple_box_colorer.hh
   structured/types.hh
+  unstructured/closure_utils.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
   unstructured/interface.hh
   unstructured/types.hh
-  unstructured/closure_utils.hh
   utility_types.hh
 )
 
@@ -80,15 +83,11 @@ add_unit(index
 
 # canonical -------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(canonical
   SOURCES
     canonical/test/canonical.cc
   THREADS 2
   )
-
-endif()
 
 # structured ------------------------------------------------------------------#
 
@@ -143,23 +142,32 @@ add_unit(unstructured
   THREADS 2
 )
 
+if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+
 add_unit(fixed
   SOURCES
     unstructured/test/fixed.cc
   THREADS 4
 )
 
-# ntree -----------------------------------------------------------------------#
+endif()
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+# narray ----------------------------------------------------------------------#
+
+add_unit(narray
+  SOURCES
+    narray/test/narray.cc
+    narray/test/narray.hh
+  THREADS 4
+)
+
+# ntree -----------------------------------------------------------------------#
 
 add_unit(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed
   THREADS 4
 )
-
-endif()
 
 add_unit(ntree_geometry
   SOURCES ntree/test/geometry.cc

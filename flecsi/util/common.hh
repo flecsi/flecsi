@@ -15,13 +15,15 @@
 
 /*! @file */
 
+#include "flecsi/util/offset.hh"
+
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <typeinfo>
-
-#include "flecsi/util/offset.hh"
+#include <vector>
 
 namespace flecsi {
 namespace util {
@@ -121,6 +123,29 @@ unique_name(const T * const t) {
   ss << typeid(T).name() << "-" << address << "-" << id;
   return ss.str();
 } // unique_name
+
+template<typename T>
+void
+force_unique(std::vector<T> & v) {
+  std::sort(v.begin(), v.end());
+  auto first = v.begin();
+  auto last = std::unique(first, v.end());
+  v.erase(last, v.end());
+}
+
+template<typename K, typename T>
+void
+force_unique(std::map<K, std::vector<T>> & m) {
+  for(auto & v : m)
+    force_unique(v.second);
+}
+
+template<typename T>
+void
+force_unique(std::vector<std::vector<T>> & vv) {
+  for(auto & v : vv)
+    force_unique(v);
+}
 
 } // namespace util
 } // namespace flecsi

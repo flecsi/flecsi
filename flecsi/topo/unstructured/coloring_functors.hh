@@ -182,19 +182,25 @@ private:
  */
 
 struct migrate_cells {
+  // clang-format off
   using return_type =
-    std::tuple<std::vector</* over cells */
-                 std::tuple<std::array<std::size_t, 2> /* color, mid> */,
-                   std::vector<std::size_t> /* cell definition (vertex mids) */
-                   >>,
-      std::map</* over cell mids */
-        std::size_t,
-        std::vector<std::size_t> /* cell-to-cell connectivity */
-        >,
-      std::map</* over vertex mids */
-        std::size_t,
+    std::tuple<
+      std::vector</* over cells */
+        std::tuple<
+          std::array<std::size_t, 2> /* color, mesh id> */,
+          std::vector<std::size_t> /* cell definition (vertex mesh ids) */
+        >
+      >,
+      std::map</* over vertices */
+        std::size_t, /* mesh id */
         std::vector<std::size_t> /* vertex-to-cell connectivity */
-        >>;
+      >,
+      std::map</* over cells */
+        std::size_t, /* mesh id */
+        std::vector<std::size_t> /* cell-to-cell connectivity */
+      >
+    >;
+  // clang-format on
 
   migrate_cells(util::dcrs const & naive,
     std::size_t colors,
@@ -260,6 +266,67 @@ private:
   const int size_;
   std::vector<return_type> packs_;
 }; // struct migrate_cells
+
+struct communicate_entities {
+  // clang-format off
+  using return_type =
+    std::tuple<
+      std::vector</* over entities */
+        std::tuple<
+          std::array<std::size_t, 2> /* color, mesh id> */,
+          std::vector<std::size_t> /* entity definition (vertex mesh ids) */
+        >
+      >,
+      std::map</* over vertices */
+        std::size_t, /* mesh id */
+        std::vector<std::size_t> /* vertex-to-entity connectivity */
+      >,
+      std::map</* over entities */
+        std::size_t, /* mesh id */
+        std::vector<std::size_t> /* entity-to-entity connectivity */
+      >
+    >;
+  // clang-format on
+
+  communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
+    std::unordered_map<std::size_t, std::size_t> const & colors,
+    std::vector<std::vector<std::size_t>> const & e2v,
+    std::map<std::size_t, std::vector<std::size_t>> const & v2e,
+    std::map<std::size_t, std::vector<std::size_t>> const & e2e,
+    std::map<std::size_t, std::size_t> const & m2p)
+    : size_(entities.size()) {
+
+    for(auto re : entities) {
+      std::vector<
+        std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
+        entity_pack;
+      std::map<std::size_t, std::vector<std::size_t>> v2e_pack;
+      std::map<std::size_t, std::vector<std::size_t>> e2e_pack;
+
+      for(auto c : re) {
+        const std::array<std::size_t, 2> info{colors.at(c), c};
+        entity_pack.push_back(std::make_tuple(info, e2v[m2p.at(c)]));
+
+        for(auto const & v : e2v[m2p.at(c)]) {
+          v2e_pack[v] = v2e.at(v);
+        } // for
+
+        e2e_pack[c] = e2e.at(c);
+      } // for
+
+      packs_.emplace_back(std::make_tuple(entity_pack, v2e_pack, e2e_pack));
+    } // for
+  } // communicate_entities
+
+  return_type operator()(int rank, int) const {
+    flog_assert(rank < size_, "invalid rank");
+    return packs_[rank];
+  }
+
+private:
+  const int size_;
+  std::vector<return_type> packs_;
+}; // struct communicate_entities
 
 } // namespace unstructured_impl
 } // namespace topo

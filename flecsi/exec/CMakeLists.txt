@@ -42,8 +42,10 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
   set(exec_HEADERS
     ${exec_HEADERS}
+    mpi/future.hh
     mpi/policy.hh
     mpi/reduction_wrapper.hh
+    mpi/task_prologue.hh
   )
 
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
@@ -76,10 +78,12 @@ endif()
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 if(ENABLE_KOKKOS)
+if(CMAKE_BUILD_TYPE MATCHES DEBUG)
   add_unit(kokkos
     SOURCES
       test/kokkos.cc
   )
+endif()
 endif()
 endif()
 
