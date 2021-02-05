@@ -85,14 +85,14 @@ force_unique(std::vector<T> & v) {
 
 template<typename K, typename T>
 void
-force_unique(std::map<K, std::vector<T>> & m) {
+unique_each(std::map<K, T> & m) {
   for(auto & v : m)
     force_unique(v.second);
 }
 
 template<typename T>
 void
-force_unique(std::vector<std::vector<T>> & vv) {
+unique_each(std::vector<T> & vv) {
   for(auto & v : vv)
     force_unique(v);
 }
