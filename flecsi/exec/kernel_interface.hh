@@ -128,8 +128,10 @@ parallel_for(Iterator && iterator,
 
   Kokkos::parallel_for(name,
     iterator.size(),
-    [it = std::move(iterator), f = std::move(lambda)] KOKKOS_FUNCTION(
-      int i) { return f(it[i]); });
+    [it = std::forward<Iterator>(iterator),
+      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i) {
+      return f(it[i]);
+    });
 
 } // parallel_for
 
@@ -174,10 +176,8 @@ struct forall_t {
   }; // struct functor
 
   template<typename Lambda>
-  void operator+(Lambda && lambda) {
-    Kokkos::parallel_for("  ",
-      iterator_.size(),
-      functor<Lambda>{iterator_, std::forward<Lambda>(lambda)});
+  void operator+(Lambda lambda) && {
+    parallel_for(std::move(iterator_), std::move(lambda), "  ");
   } // operator+
 
   /*!
@@ -187,9 +187,8 @@ struct forall_t {
     Attribution: Nick Moss
    */
   template<typename Callable>
-  void operator<<(Callable && l) {
-    Kokkos::parallel_for(
-      name_, iterator_.size(), functor{iterator_, std::forward<Callable>(l)});
+  void operator<<(Callable l) && {
+    parallel_for(std::move(iterator_), std::move(l), name_);
   } // operator<<
 
 private:
@@ -217,8 +216,9 @@ parallel_reduce(Iterator && iterator,
   Kokkos::parallel_reduce(
     name,
     iterator.size(),
-    [it = std::move(iterator), f = std::move(lambda)] KOKKOS_FUNCTION(
-      int i, value_type & tmp) { return f(it[i], tmp); },
+    [it = std::forward<Iterator>(iterator),
+      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i,
+      value_type & tmp) { return f(it[i], tmp); },
     result.kokkos());
   return result.reference();
 
