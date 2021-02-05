@@ -32,6 +32,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <queue>
 #include <stack>
 #include <type_traits>
 #include <unordered_map>
@@ -39,8 +40,6 @@
 namespace flecsi {
 namespace topo {
 
-// Special vector type
-// Cannot contain other std containers
 template<typename T>
 class serdez_vector : public std::vector<T>
 {
@@ -70,9 +69,9 @@ public:
   }
 };
 
-//----------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 // NTree topology.
-//----------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 
 /*!
   @ingroup topology
@@ -102,9 +101,9 @@ struct ntree : ntree_base {
     key_t hibound, lobound;
     std::size_t max_depth = 0;
     std::size_t nents = 0;
-    std::size_t nents_ghosts = 0; 
+    std::size_t nents_ghosts = 0;
     std::size_t nnodes = 0;
-    std::size_t nnodes_ghosts = 0; 
+    std::size_t nnodes_ghosts = 0;
   };
 
   template<std::size_t>
@@ -167,10 +166,11 @@ struct ntree : ntree_base {
   static std::pair<std::size_t, std::size_t> make_distributed_tree(
     typename Policy::template accessor<rw> t,
     const std::vector<hcell_t> & v) {
-    std::pair<std::size_t, std::size_t> sizes = t.get_sizes();
     t.add_boundaries(v);
     t.graphviz_draw(1);
-    return sizes;
+    // std::pair<std::size_t, std::size_t> sizes = t.get_sizes();
+    // return sizes;
+    return t.get_sizes();
   }
 
   static void display_keys(typename Policy::template accessor<ro> t) {
@@ -190,31 +190,6 @@ struct ntree : ntree_base {
     std::cout << std::endl;
   }
 
-#if 0
-  static void
-  xfer_start(typename field<key_t>::template accessor<ro> a, 
-  data::buffers::Start mv) { 
-    auto w1 = mv[0].write(); 
-    w1(a(0)); 
-    auto w2 = mv[1].write(); 
-    w2(a(0));
-    auto w3 = mv[2].write(); 
-    w3(a(0)); 
-  }
-
-  static int
-  xfer(typename field<key_t>::template accessor<rw> a, 
-    data::buffers::Transfer mv) {
-    auto r1 = mv[3].read(); 
-    a(1) = r1(); 
-    auto r2 = mv[4].read(); 
-    a(2) = r2();
-    auto r3 = mv[5].read(); 
-    a(3) = r3(); 
-    return 0; 
-  }
-#endif 
-
   template<class T>
   void make_tree(T && ts) {
     cp_data_tree.issue_copy(data_field.fid);
@@ -223,7 +198,7 @@ struct ntree : ntree_base {
     // Return the list of nodes to share (top of the tree)
     auto fm_top_tree = flecsi::execute<make_local_tree>(ts);
 
-    // Merge all the hcells informations 
+    // Merge all the hcells informations
     std::vector<hcell_t> top_tree;
     std::vector<std::size_t> top_tree_nnodes(colors(), 0);
     std::vector<std::size_t> top_tree_nents(colors(), 0);
@@ -245,7 +220,7 @@ struct ntree : ntree_base {
       }
     }
 
-    // Add the new hcells to the local tree 
+    // Add the new hcells to the local tree
     auto fm_sizes = flecsi::execute<make_distributed_tree>(ts, top_tree);
 
     std::vector<std::size_t> ents_sizes(colors());
@@ -282,11 +257,129 @@ struct ntree : ntree_base {
 
     flecsi::execute<display_keys>(ts);
 
-    // Several rounds of communications to find all the neighbors 
     share_ghosts();
+  }
+
+  static void set_top_tree_entities_dests(
+    field<data::intervals::Value>::accessor<wo> a,
+    const std::vector<std::size_t> & nents_base,
+    const std::vector<std::size_t> & nents_tt) {
+    auto i = process();
+    a(0) =
+      data::intervals::make({nents_base[i], nents_base[i] + nents_tt[i]}, i);
+  }
+
+  static void set_top_tree_entities_ptrs(
+    field<data::points::Value>::accessor<wo> a,
+    const std::vector<std::size_t> & nents_base,
+    const std::vector<hcell_t> & hcells) {
+    auto i = process();
+    std::size_t idx = nents_base[i];
+    for(std::size_t j = 0; j < hcells.size(); ++j) {
+      if(hcells[j].is_ent() && hcells[j].color() != i) {
+        a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
+      }
+    }
+  }
+
+  static void set_top_tree_nodes_dests(
+    field<data::intervals::Value>::accessor<wo> a,
+    const std::vector<std::size_t> & nnodes_base,
+    const std::vector<std::size_t> & nnodes_tt) {
+    auto i = process();
+    a(0) =
+      data::intervals::make({nnodes_base[i], nnodes_base[i] + nnodes_tt[i]}, i);
+  }
+
+  static void set_top_tree_nodes_ptrs(
+    field<data::points::Value>::accessor<wo> a,
+    const std::vector<std::size_t> & nnodes_base,
+    const std::vector<hcell_t> & hcells) {
+    auto i = process();
+    std::size_t idx = nnodes_base[i];
+    for(std::size_t j = 0; j < hcells.size(); ++j) {
+      if(hcells[j].is_node() && hcells[j].color() != i) {
+        a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
+      }
+    }
+  }
+
+  void top_tree_cp(const std::vector<hcell_t> & hcells,
+    const std::vector<std::size_t> & nents_tt,
+    const std::vector<std::size_t> & nnodes_tt,
+    const std::vector<std::size_t> & nents_base,
+    const std::vector<std::size_t> & nnodes_base) {
+    // create the vectors of: destination size (based on total + current
+    // position)
+    auto entities_dests_task = [&nents_base, &nents_tt](auto f) {
+      execute<set_top_tree_entities_dests>(f, nents_base, nents_tt);
+    };
+    auto entities_ptrs_task = [&nents_base, &hcells](auto f) {
+      execute<set_top_tree_entities_ptrs>(f, nents_base, hcells);
+    };
+
+    auto nodes_dests_task = [&nnodes_base, &nnodes_tt](auto f) {
+      execute<set_top_tree_nodes_dests>(f, nnodes_base, nnodes_tt);
+    };
+    auto nodes_ptrs_task = [&nnodes_base, &hcells](auto f) {
+      execute<set_top_tree_nodes_ptrs>(f, nnodes_base, hcells);
+    };
+
+    cp_top_tree_entities = data::copy_plan(*this,
+      data::copy_plan::Sizes(processes(), 1),
+      entities_dests_task,
+      entities_ptrs_task,
+      util::constant<entities>());
+
+    cp_top_tree_nodes = data::copy_plan(*this,
+      data::copy_plan::Sizes(processes(), 1),
+      nodes_dests_task,
+      nodes_ptrs_task,
+      util::constant<nodes>());
+  }
 
 #if 0 
-    // Share the keys 
+  static void
+  xfer_ghosts_req_start(typename field<key_t>::template accessor<ro> a, 
+  data::buffers::Start mv) { 
+    auto w1 = mv[0].write(); 
+    w1(a(0)); 
+    auto w2 = mv[1].write(); 
+    w2(a(0));
+    auto w3 = mv[2].write(); 
+    w3(a(0)); 
+  }
+
+  static int
+  xfer_ghosts_req(typename field<key_t>::template accessor<rw> a, 
+    data::buffers::Transfer mv) {
+    auto r1 = mv[3].read(); 
+    a(1) = r1(); 
+    auto r2 = mv[4].read(); 
+    a(2) = r2();
+    auto r3 = mv[5].read(); 
+    a(3) = r3(); 
+    return 0; 
+  }
+#endif
+
+  // Search neighbors and complete the hmap, create copy plans (or buffer)
+  void share_ghosts() {
+    bool done = false;
+
+    // One to one share using cofm from user and distance function from user.
+
+    // Plan:
+    // 1. Send entities that are in contact with distant ones using cofm +
+    // interaction function => buffer communication
+    // 2. Compute what to send back locally
+    // 2.1 Send the number of entities/nodes to resize the partitions
+    // 3. Send back informations => buffer communication
+
+    // 4. Create copy plan using the informations from the hmap
+
+#if 0 
+    // All to all communicator 
     data::buffers::core buf([] {
       const auto p = processes();
       data::buffers::coloring ret(p);
@@ -302,96 +395,11 @@ struct ntree : ntree_base {
 
     flecsi::execute<display_keys>(ts);
 
-    execute<xfer_start>(e_keys(*this), *buf);
-    while(reduce<xfer, exec::fold::max>(e_keys(*this), *buf).get());
+    // Send all the requested 
+    execute<xfer_ghosts_start>(hcells(*this), *buf);
+    while(reduce<xfer_ghosts, exec::fold::max>(hcells(*this), *buf).get());
 
     flecsi::execute<display_keys>(ts);
-#endif 
-
-  }
-
-  static void set_top_tree_entities_dests(
-     field<data::intervals::Value>::accessor<wo> a, 
-    const std::vector<std::size_t>& nents_base, 
-    const std::vector<std::size_t>& nents_tt){
-      auto i = process(); 
-      a(0) = data::intervals::make({nents_base[i], nents_base[i] + nents_tt[i]},i);
-    } 
-
-  static void set_top_tree_entities_ptrs(
-    field<data::points::Value>::accessor<wo> a,
-    const std::vector<std::size_t>& nents_base, 
-    const std::vector<hcell_t>& hcells){
-      auto i = process();
-      std::size_t idx = nents_base[i]; 
-      for(std::size_t j = 0; j < hcells.size(); ++j) {
-        if(hcells[j].is_ent() && hcells[j].color() != i) {
-          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
-        }
-      }
-    }
-
-  static void set_top_tree_nodes_dests(
-     field<data::intervals::Value>::accessor<wo> a, 
-    const std::vector<std::size_t>& nnodes_base, 
-    const std::vector<std::size_t>& nnodes_tt){
-      auto i = process(); 
-      a(0) = data::intervals::make({nnodes_base[i], nnodes_base[i] + nnodes_tt[i]},i);
-    }
-
-  static void set_top_tree_nodes_ptrs(
-    field<data::points::Value>::accessor<wo> a,
-    const std::vector<std::size_t>& nnodes_base, 
-    const std::vector<hcell_t>& hcells){
-      auto i = process(); 
-      std::size_t idx = nnodes_base[i]; 
-      for(std::size_t j = 0; j < hcells.size(); ++j) {
-        if(hcells[j].is_node() && hcells[j].color() != i) {
-          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
-        }
-      }
-    }
- 
-  void top_tree_cp(const std::vector<hcell_t> & hcells,
-    const std::vector<std::size_t> & nents_tt,
-    const std::vector<std::size_t> & nnodes_tt,
-    const std::vector<std::size_t> & nents_base,
-    const std::vector<std::size_t> & nnodes_base) {
-    // create the vectors of: destination size (based on total + current
-    // position)
-    auto entities_dests_task = [&nents_base, &nents_tt](auto f) {
-      execute<set_top_tree_entities_dests>(f, nents_base, nents_tt);
-    };
-    auto entities_ptrs_task = [&nents_base, &hcells](auto f){
-      execute<set_top_tree_entities_ptrs>(f, nents_base, hcells); 
-    };
-
-    auto nodes_dests_task = [&nnodes_base, &nnodes_tt](auto f) {
-      execute<set_top_tree_nodes_dests>(f, nnodes_base, nnodes_tt);
-    };
-    auto nodes_ptrs_task = [&nnodes_base, &hcells](auto f){
-      execute<set_top_tree_nodes_ptrs>(f, nnodes_base, hcells); 
-    };
-
-    cp_top_tree_entities = data::copy_plan(
-      *this,
-      data::copy_plan::Sizes(processes(), 1), 
-      entities_dests_task, 
-      entities_ptrs_task,  
-      util::constant<entities>()
-    ); 
-
-    cp_top_tree_nodes = data::copy_plan(
-      *this,
-      data::copy_plan::Sizes(processes(), 1), 
-      nodes_dests_task, 
-      nodes_ptrs_task, 
-      util::constant<nodes>()); 
-  }
-
-  // Search neighbors and complete the hmap, create copy plans (or buffer)
-  void share_ghosts(){
-    bool done = false; 
 
     // Create buffer communicator
     // For now, complete all to all   
@@ -406,7 +414,8 @@ struct ntree : ntree_base {
     //  execute<xfer_start>(e_keys(*this), *buf);
     //  while(reduce<xfer, exec::fold::max>(e_keys(*this), *buf).get());
     
-    //}while(!done); 
+    //}while(!done);
+#endif
   }
 
   //---------------------------------------------------------------------------
@@ -416,11 +425,12 @@ struct ntree : ntree_base {
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    if constexpr (Space == entities){
+    if constexpr(Space == entities) {
       cp_top_tree_entities->issue_copy(f.fid());
-    } else if constexpr(Space == nodes){
+    }
+    else if constexpr(Space == nodes) {
       cp_top_tree_nodes->issue_copy(f.fid());
-    } 
+    }
   }
 
   std::size_t colors() const {
@@ -441,6 +451,10 @@ private:
   const static size_t nchildren_ = 1 << dimension;
 };
 
+//---------------------------------------------------------------------------//
+// POLICY ACCESS //
+// --------------------------------------------------------------------------//
+
 template<class Policy>
 template<std::size_t Priv>
 struct ntree<Policy>::access {
@@ -459,25 +473,260 @@ struct ntree<Policy>::access {
     hcells.topology_send(f);
   }
 
-  // Accessors for exclusive and ghost entities 
-  //template<index_space IndexSpace>
+  using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
+
+  // --------------------------------------------------------------------------//
+  //                                 ACCESSORS //
+  // --------------------------------------------------------------------------//
+
+  // Iterate on all exclusive or ghost entities
   template<ptype_t PT = ptype_t::exclusive>
   auto entities() {
-    if constexpr (PT == ptype_t::exclusive){
-      return make_ids<index_space::entities>(util::iota_view<util::id>(
-       0, data_field(0).nents));
-    } else if constexpr (PT == ptype_t::ghost){
-      // Ghosts starts from local to end 
-      return make_ids<index_space::entities>(util::iota_view<util::id>(
-       data_field(0).nents, e_keys.span().size())); 
-    }else{
-      // Iterate on all 
-      return make_ids<index_space::entities>(util::iota_view<util::id>(
-       0, e_keys.span().size()));
+    if constexpr(PT == ptype_t::exclusive) {
+      return make_ids<index_space::entities>(
+        util::iota_view<util::id>(0, data_field(0).nents));
+    }
+    else if constexpr(PT == ptype_t::ghost) {
+      // Ghosts starts from local to end
+      return make_ids<index_space::entities>(
+        util::iota_view<util::id>(data_field(0).nents, e_keys.span().size()));
+    }
+    else {
+      // Iterate on all
+      return make_ids<index_space::entities>(
+        util::iota_view<util::id>(0, e_keys.span().size()));
     }
   }
 
-  using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
+  // Return entities, exclusive/ghosts from a specific node
+  template<ptype_t PT = ptype_t::exclusive>
+  auto entities(const id<index_space::nodes> & node_id) {
+
+    std::vector<id<index_space::entities>> ids;
+    // Get the node and find its sub-entities
+    auto nkey = n_keys[node_id];
+    hmap_t hmap(hcells.span());
+    auto cur = &(hmap.find(nkey)->second);
+    for(std::size_t j = 0; j < nchildren_; ++j) {
+      if(cur->has_child(j)) {
+        key_t ckey = nkey;
+        ckey.push(j);
+        auto it = hmap.find(ckey);
+        if(it->second.is_ent()) {
+          ids.push_back(id<index_space::entities>(it->second.ent_idx()));
+        }
+      } // if
+    } // for
+    return ids;
+  }
+
+  // Iterate on all exclusive or ghost nodes
+  template<ptype_t PT = ptype_t::exclusive>
+  auto nodes() {
+    if constexpr(PT == ptype_t::exclusive) {
+      return make_ids<index_space::nodes>(
+        util::iota_view<util::id>(0, data_field(0).nnodes));
+    }
+    else if constexpr(PT == ptype_t::ghost) {
+      // Ghosts starts from local to end
+      return make_ids<index_space::entities>(
+        util::iota_view<util::id>(data_field(0).nnodes, n_keys.span().size()));
+    }
+    else {
+      // Iterate on all
+      return make_ids<index_space::entities>(
+        util::iota_view<util::id>(0, n_keys.span().size()));
+    }
+  }
+
+  // Return entities, exclusive/ghosts from a specific node
+  template<ptype_t PT = ptype_t::exclusive>
+  auto nodes(const id<index_space::nodes> & node_id) {
+
+    std::vector<id<index_space::nodes>> ids;
+    // Get the node and find its sub-entities
+    auto nkey = n_keys[node_id];
+    hmap_t hmap(hcells.span());
+    auto cur = &(hmap.find(nkey)->second);
+    for(std::size_t j = 0; j < nchildren_; ++j) {
+      if(cur->has_child(j)) {
+        key_t ckey = nkey;
+        ckey.push(j);
+        auto it = hmap.find(ckey);
+        if(it->second.is_node()) {
+          ids.push_back(id<index_space::nodes>(it->second.node_idx()));
+        }
+      } // if
+    } // for
+    return ids;
+  }
+
+  // BFS traversal, return vector of ids
+  auto bfs() {
+    hmap_t hmap(hcells.span());
+
+    std::vector<id<index_space::nodes>> ids;
+    std::queue<hcell_t *> tqueue;
+    tqueue.push(&hmap.find(key_t::root())->second);
+    ids.push_back(id<index_space::nodes>(0));
+
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      assert(cur->is_node());
+      auto nkey = cur->key();
+      for(std::size_t j = 0; j < nchildren_; ++j) {
+        if(cur->has_child(j)) {
+          key_t ckey = nkey;
+          ckey.push(j);
+          auto it = hmap.find(ckey);
+          if(it->second.is_node()) {
+            ids.push_back(id<index_space::nodes>(it->second.idx()));
+            tqueue.push(&it->second);
+          }
+        } // if
+      } // for
+    } // while
+    return ids;
+  } // bfs
+
+  template<ttype_t TT = ttype_t::preorder>
+  auto dfs() {
+
+    hmap_t hmap(hcells.span());
+    std::vector<id<index_space::nodes>> ids;
+
+    // Postorder and reverse postorder
+    if constexpr(TT == ttype_t::postorder || TT == ttype_t::reverse_postorder) {
+
+      std::stack<hcell_t *> stk;
+      stk.push(&hmap.find(key_t::root())->second);
+
+      while(!stk.empty()) {
+        hcell_t * cur = stk.top();
+        stk.pop();
+        auto nkey = cur->key();
+        for(std::size_t j = 0; j < nchildren_; ++j) {
+          if(cur->has_child(j)) {
+            key_t ckey = nkey;
+            ckey.push(j);
+            auto it = hmap.find(ckey);
+            if(it->second.is_node()) {
+              ids.push_back(id<index_space::nodes>(cur->idx()));
+              stk.push(&it->second);
+            }
+          } // if
+        } // for
+      } // while
+      if constexpr(TT == ttype_t::reverse_postorder) {
+        std::reverse(ids.begin(), ids.end());
+      }
+    }
+    // Preorder and reverse preorder
+    else if constexpr(TT == ttype_t::preorder ||
+                      TT == ttype_t::reverse_preorder) {
+      std::stack<hcell_t *> stk;
+      stk.push(&hmap.find(key_t::root())->second);
+
+      while(!stk.empty()) {
+        hcell_t * cur = stk.top();
+        stk.pop();
+        auto nkey = cur->key();
+        ids.push_back(id<index_space::nodes>(cur->idx()));
+        for(std::size_t j = 0; j < nchildren_; ++j) {
+          std::size_t child =
+            nchildren_ - 1 - j; // Take children in reverse order
+          if(cur->has_child(child)) {
+            key_t ckey = nkey;
+            ckey.push(child);
+            auto it = hmap.find(ckey);
+            if(it->second.is_node()) {
+              stk.push(&it->second);
+            }
+          } // if
+        } // for
+      } // while
+      if constexpr(TT == ttype_t::reverse_preorder) {
+        std::reverse(ids.begin(), ids.end());
+      }
+    }
+    else {
+      assert(false && "Error traversal type ttype_t invalid.");
+    } // if
+    return ids;
+  } // dfs
+
+  template<ttype_t TT = ttype_t::preorder>
+  auto dfs_complete() {
+
+    hmap_t hmap(hcells.span());
+    std::vector<id<index_space::nodes>> ids;
+
+    // Postorder and reverse postorder
+    if constexpr(TT == ttype_t::postorder || TT == ttype_t::reverse_postorder) {
+
+      std::stack<hcell_t *> stk;
+      stk.push(&hmap.find(key_t::root())->second);
+
+      while(!stk.empty()) {
+        hcell_t * cur = stk.top();
+        stk.pop();
+        auto nkey = cur->key();
+        for(std::size_t j = 0; j < nchildren_; ++j) {
+          if(cur->has_child(j)) {
+            key_t ckey = nkey;
+            ckey.push(j);
+            auto it = hmap.find(ckey);
+            if(it->second.is_node()) {
+              if(it->second.is_complete())
+                ids.push_back(id<index_space::nodes>(cur->idx()));
+              stk.push(&it->second);
+            }
+          } // if
+        } // for
+      } // while
+      if constexpr(TT == ttype_t::reverse_postorder) {
+        std::reverse(ids.begin(), ids.end());
+      }
+    }
+    // Preorder and reverse preorder
+    else if constexpr(TT == ttype_t::preorder ||
+                      TT == ttype_t::reverse_preorder) {
+      std::stack<hcell_t *> stk;
+      stk.push(&hmap.find(key_t::root())->second);
+
+      while(!stk.empty()) {
+        hcell_t * cur = stk.top();
+        stk.pop();
+        auto nkey = cur->key();
+        if(cur->is_complete())
+          ids.push_back(id<index_space::nodes>(cur->idx()));
+        for(std::size_t j = 0; j < nchildren_; ++j) {
+          std::size_t child =
+            nchildren_ - 1 - j; // Take children in reverse order
+          if(cur->has_child(child)) {
+            key_t ckey = nkey;
+            ckey.push(child);
+            auto it = hmap.find(ckey);
+            if(it->second.is_node()) {
+              stk.push(&it->second);
+            }
+          } // if
+        } // for
+      } // while
+      if constexpr(TT == ttype_t::reverse_preorder) {
+        std::reverse(ids.begin(), ids.end());
+      }
+    }
+    else {
+      assert(false && "Error traversal type ttype_t invalid.");
+    } // if
+    return ids;
+  } // dfs_local
+
+  //---------------------------------------------------------------------------//
+  //                              MAKE TREE //
+  //---------------------------------------------------------------------------//
 
   std::pair<std::size_t, std::size_t> get_sizes() {
     return {data_field(0).nents, data_field(0).nnodes};
@@ -507,8 +756,57 @@ struct ntree<Policy>::access {
     // Update the lo and hi bounds
     data_field(0).lobound = key_t::min();
     data_field(0).hibound = key_t::max();
-    hcell_t * root_ = &(hmap.find(key_t::root())->second);
-    centroid_update(root_, hmap);
+    // Add the nodes added during add_parent indices
+    std::queue<hcell_t *> tqueue;
+    tqueue.push(&hmap.find(key_t::root())->second);
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      assert(cur->is_node());
+      auto nkey = cur->key();
+      if(cur->key() != key_t::root() && cur->idx() == 0 && cur->is_local()) {
+        assert(cur->idx() == 0);
+        std::size_t cnode = data_field(0).nnodes++;
+        cur->set_node_idx(cnode);
+        n_keys(cnode) = cur->key();
+      }
+      for(std::size_t j = 0; j < nchildren_; ++j) {
+        if(cur->has_child(j)) {
+          key_t ckey = nkey;
+          ckey.push(j);
+          auto it = hmap.find(ckey);
+          if(it->second.is_node()) {
+            tqueue.push(&it->second);
+          }
+        } // if
+      } // for
+    } // while
+
+    // Add the other nodes, contiguously at the end
+    tqueue.push(&hmap.find(key_t::root())->second);
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      assert(cur->is_node());
+      auto nkey = cur->key();
+      if(cur->key() != key_t::root() && cur->idx() == 0) {
+        assert(cur->idx() == 0);
+        std::size_t cnode =
+          data_field(0).nnodes + data_field(0).nnodes_ghosts++;
+        cur->set_node_idx(cnode);
+        n_keys(cnode) = cur->key();
+      }
+      for(std::size_t j = 0; j < nchildren_; ++j) {
+        if(cur->has_child(j)) {
+          key_t ckey = nkey;
+          ckey.push(j);
+          auto it = hmap.find(ckey);
+          if(it->second.is_node()) {
+            tqueue.push(&it->second);
+          }
+        } // if
+      } // for
+    } // while
   }
 
   void make_tree() {
@@ -534,7 +832,11 @@ struct ntree<Policy>::access {
     auto root_ = hmap.find(key_t::root());
     root_->second.set_color(rank);
     assert(root_ != hmap.end());
-
+    {
+      std::size_t cnode = data_field(0).nnodes++;
+      root_->second.set_node_idx(cnode);
+      n_keys(cnode) = root_->second.key();
+    }
     size_t current_depth = key_t::max_depth();
     // Entity keys, last and current
     key_t lastekey = key_t(0);
@@ -565,7 +867,12 @@ struct ntree<Policy>::access {
         hiboundnode.pop(current_depth);
         if(loopagain && (iam0 || lastnkey > loboundnode) &&
            (iamlast || lastnkey < hiboundnode)) {
-          finish_subtree(lastnkey, hmap);
+          auto it = hmap.find(lastnkey);
+          assert(it != hmap.end());
+          hcell_t * n = &(it->second);
+          if(!n->is_ent()) {
+            n->set_complete();
+          }
         }
         if(iamlast && lastnkey == key_t::root())
           break;
@@ -595,7 +902,7 @@ struct ntree<Policy>::access {
         // Add a children
         int bit = nkey.last_value();
         parent->add_child(bit);
-        parent->unset();
+        parent->set_node();
         parent = &(hmap.insert(nkey, nkey)->second);
         parent->set_color(rank);
       } // while
@@ -604,7 +911,7 @@ struct ntree<Policy>::access {
       if(old_is_ent) {
         int bit = lastnkey.last_value();
         parent->add_child(bit);
-        parent->unset();
+        parent->set_node();
         auto it = hmap.insert(lastnkey, lastnkey);
         it->second.set_ent_idx(i - 1);
         it->second.set_color(rank);
@@ -626,32 +933,33 @@ struct ntree<Policy>::access {
         std::max(data_field(0).max_depth, current_depth);
 
     } // for
-    // Add the newly created nodes keys
-    // Local traversal to discover all nodes generated 
-    std::vector<hcell_t *> queue;
-    std::vector<hcell_t *> nqueue;
-    queue.push_back(&hmap.find(key_t::root())->second);
-    while(!queue.empty()) {
-      for(hcell_t * cur : queue) {
-        key_t nkey = cur->key();
-        if(cur->is_unset() || cur->is_node()) {
-          if(cur->is_unset()){ 
-            std::size_t cnode = data_field(0).nnodes++;
-            n_keys(cnode) = cur->key();
+
+    // Generate the indices of the local nodes
+    std::queue<hcell_t *> tqueue;
+    tqueue.push(&hmap.find(key_t::root())->second);
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      assert(cur->is_node());
+      auto nkey = cur->key();
+      if(cur->key() != key_t::root()) {
+        assert(cur->idx() == 0);
+        std::size_t cnode = data_field(0).nnodes++;
+        cur->set_node_idx(cnode);
+        n_keys(cnode) = cur->key();
+      }
+      for(std::size_t j = 0; j < nchildren_; ++j) {
+        if(cur->has_child(j)) {
+          key_t ckey = nkey;
+          ckey.push(j);
+          auto it = hmap.find(ckey);
+          if(it->second.is_node()) {
+            tqueue.push(&it->second);
           }
-          for(std::size_t j = 0; j < nchildren_; ++j) {
-            if(cur->has_child(j)) {
-              key_t ckey = nkey;
-              ckey.push(j);
-              auto it = hmap.find(ckey);
-              nqueue.push_back(&it->second);
-            } // if
-          } // for
-        } // if 
+        } // if
       } // for
-      queue = std::move(nqueue);
-      nqueue.clear();
-    } // while  
+    } // while
+
   } // make_tree
 
   // Count number of entities to send to each other color
@@ -666,7 +974,7 @@ struct ntree<Policy>::access {
       for(hcell_t * cur : queue) {
         cur->set_color(color());
         key_t nkey = cur->key();
-        if(cur->is_unset()) {
+        if(cur->is_node() && cur->is_incomplete()) {
           assert(cur->type() != 0);
           for(std::size_t j = 0; j < nchildren_; ++j) {
             if(cur->has_child(j)) {
@@ -706,17 +1014,33 @@ struct ntree<Policy>::access {
       hcell_t * cur = stk.top();
       stk.pop();
       if(cur->is_node()) {
-        output << std::oct << cur->key() << std::dec << " [label=<" << std::oct
-               << cur->key() << std::dec << "<br/><FONT POINT-SIZE=\"10\"> c("
-               << cur->color() << ")</FONT>>,xlabel=\"" << cur->nchildren()
-               << "\"]\n";
-        if(cur->is_nonlocal()) {
-          output << std::oct << cur->key() << std::dec
-                 << " [shape=doublecircle,color=grey]" << std::endl;
+        if(cur->is_complete()) {
+          output << std::oct << cur->key() << std::dec << " [label=<"
+                 << std::oct << cur->key() << std::dec
+                 << "<br/><FONT POINT-SIZE=\"10\"> c(" << cur->color()
+                 << ")</FONT>>,xlabel=\"" << cur->nchildren() << "\"]\n";
+          if(cur->is_nonlocal()) {
+            output << std::oct << cur->key() << std::dec
+                   << " [shape=doublecircle,color=grey]" << std::endl;
+          }
+          else {
+            output << std::oct << cur->key() << std::dec
+                   << " [shape=doublecircle,color=blue]\n";
+          }
         }
         else {
-          output << std::oct << cur->key() << std::dec
-                 << " [shape=doublecircle,color=blue]\n";
+          output << std::oct << cur->key() << std::dec << " [label=<"
+                 << std::oct << cur->key() << std::dec
+                 << "<br/><FONT POINT-SIZE=\"10\"> c(" << cur->color()
+                 << ")</FONT>>,xlabel=\"" << cur->nchildren() << "\"]\n";
+          if(cur->is_nonlocal()) {
+            output << std::oct << cur->key() << std::dec
+                   << " [shape=rect,color=black]" << std::endl;
+          }
+          else {
+            output << std::oct << cur->key() << std::dec
+                   << " [shape=rect,color=blue]\n";
+          }
         }
         // Add the child to the stack and add for display
         for(std::size_t i = 0; i < nchildren_; ++i) {
@@ -743,71 +1067,24 @@ struct ntree<Policy>::access {
                  << " [shape=circle,color=blue]\n";
         }
       }
-      else if(cur->is_unset()) {
-        output << std::oct << cur->key() << std::dec << " [label=<" << std::oct
-               << cur->key() << std::dec << "<br/><FONT POINT-SIZE=\"10\"> c("
-               << cur->color() << ")</FONT>>,xlabel=\"" << cur->nchildren()
-               << "\"]\n";
-        if(cur->is_nonlocal()) {
-          output << std::oct << cur->key() << std::dec
-                 << " [shape=rect,color=black]" << std::endl;
-        }
-        else {
-          output << std::oct << cur->key() << std::dec
-                 << " [shape=rect,color=blue]\n";
-        }
-        for(std::size_t i = 0; i < nchildren_; ++i) {
-          key_t ckey = cur->key();
-          ckey.push(i);
-          auto it = hmap.find(ckey);
-          if(it != hmap.end()) {
-            stk.push(&it->second);
-            output << std::oct << cur->key() << "->" << it->second.key()
-                   << std::dec << std::endl;
-          }
-        }
-      } // if
+      else {
+        // assert(false && "not type for node");
+      }
     } // while
     output << "}\n";
     output.close();
   }
 
 private:
-  void finish_subtree(const key_t & key, hmap_t & hmap) {
-    auto it = hmap.find(key);
-    assert(it != hmap.end());
-    hcell_t * n = &(it->second);
-    if(n->is_ent())
-      return;
-    std::size_t cnode = data_field(0).nnodes++;
-    n_keys(cnode) = key; 
-    n->set_node_idx(cnode);
-    std::vector<std::size_t> entities_ids;
-    std::vector<std::size_t> nodes_ids;
-    for(std::size_t i = 0; i < nchildren_; ++i) {
-      if(n->has_child(i)) {
-        key_t ckey = key;
-        ckey.push(i);
-        auto it = hmap.find(ckey);
-        assert(it != hmap.end());
-        if(it->second.is_ent()) {
-          entities_ids.push_back(it->second.ent_idx());
-        }
-        else {
-          assert(it->second.is_node());
-          nodes_ids.push_back(it->second.node_idx());
-        }
-      } // if
-    } // for
-  }
-
   void load_shared_entity(hcell_t & c, hmap_t & hmap) {
     key_t key = c.key();
     assert(hmap.find(key) == hmap.end());
     auto & cur = hmap.insert(key, key)->second;
     cur.set_nonlocal();
     cur.set_color(c.color());
-    cur.set_ent_idx(c.ent_idx());
+    auto eid = data_field(0).nents + data_field(0).nents_ghosts++;
+
+    cur.set_ent_idx(eid);
     // Add missing parent(s)
     int lastbit = key.pop_value();
     add_parent(key, lastbit, c.color(), hmap);
@@ -815,29 +1092,31 @@ private:
 
   void load_shared_node(hcell_t & c, hmap_t & hmap) {
     key_t key = c.key();
-    assert(hmap.find(key) == hmap.end());
-    auto & cur = hmap.insert(key, key)->second;
-    // cur = c;
-    // cur.set_type(c.type());
-    cur.set_nonlocal();
-    std::size_t cnode = data_field(0).nnodes++;
-    cur.set_node_idx(cnode);
-    cur.set_color(c.color());
-    // Add missing parent(s)
-    int lastbit = key.pop_value();
-    add_parent(key, lastbit, c.color(), hmap);
+    // Node doesnt exists already
+    auto cur = hmap.find(key);
+    if(cur == hmap.end()) {
+      auto & cur = hmap.insert(key, key)->second;
+      cur.set_nonlocal();
+      cur.set_color(c.color());
+      // Add missing parent(s)
+      int lastbit = key.pop_value();
+      add_parent(key, lastbit, c.color(), hmap);
+    }
+    else {
+      assert(false);
+    }
   }
 
   void add_parent(key_t key, int child, const int & color, hmap_t & hmap) {
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
       parent = hmap.insert(key, key);
-      parent->second.set_nonlocal();
+      // parent->second.set_nonlocal();
       parent->second.add_child(child);
       parent->second.set_color(color);
       child = key.pop_value();
     } // while
-    assert(!parent->second.is_node());
+    assert(parent->second.is_incomplete());
     parent->second.add_child(child);
   }
 
@@ -851,41 +1130,7 @@ private:
     return min_max;
   } // key_boundary
 
-  void centroid_update(hcell_t * current, hmap_t & hmap) {
-    key_t nkey = current->key();
-    std::pair<key_t, key_t> min_max = key_boundary(nkey);
-    if(min_max.first >= data_field(0).lobound &&
-       min_max.second <= data_field(0).hibound) {
-      if(current->is_unset()) {
-        std::vector<std::size_t> entities_ids;
-        std::vector<std::size_t> nodes_ids;
-        for(std::size_t i = 0; i < nchildren_; ++i) {
-          if(current->has_child(i)) {
-            key_t ckey = nkey;
-            ckey.push(i);
-            auto it = hmap.find(ckey);
-            assert(it != hmap.end());
-            centroid_update(&(it->second), hmap);
-            if(it->second.is_ent()) {
-              entities_ids.push_back(it->second.ent_idx());
-            }
-            else {
-              assert(it->second.is_node());
-              nodes_ids.push_back(it->second.node_idx());
-            }
-          } // if
-        } // for
-        current->set_nonlocal();
-        std::size_t cnode = data_field(0).nnodes++;
-        current->set_node_idx(cnode);
-        // Policy::compute_centroid(current->node_idx(),
-        //  entities_ids,
-        //  nodes_ids,
-        //  std::forward<Ts>(args)...);
-      } // if
-    }
-  }
-};
+}; // namespace topo
 
 template<>
 struct detail::base<ntree> {

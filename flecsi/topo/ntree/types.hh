@@ -156,10 +156,17 @@ public:
     is_node_ = true;
     idx_ = 0;
   }
-  void unset() {
-    is_ent_ = false;
-    is_node_ = false;
-    idx_ = 0;
+  void set_incomplete() {
+    is_incomplete_ = true;
+  }
+  void set_complete() {
+    is_incomplete_ = false;
+  }
+  bool is_incomplete() {
+    return is_incomplete_;
+  }
+  bool is_complete() {
+    return !is_incomplete_;
   }
 
   void add_child(const int & c) {
@@ -173,9 +180,6 @@ public:
     return is_node_;
   }
 
-  bool is_unset() {
-    return !is_node_ && !is_ent_;
-  }
   unsigned int type() {
     return type_;
   }
@@ -186,6 +190,10 @@ public:
 
   bool is_nonlocal() const {
     return ((type_ & LOCALITY_MASK) >> LOCALITY_DISPL) == NONLOCAL;
+  }
+
+  bool is_local() const {
+    return ((type_ & LOCALITY_MASK) >> LOCALITY_DISPL) == LOCAL;
   }
 
   void set_type(unsigned int type) {
@@ -228,7 +236,8 @@ private:
   key_t key_;
   std::size_t idx_ = 0;
   bool is_ent_ = false;
-  bool is_node_ = false;
+  bool is_node_ = true;
+  bool is_incomplete_ = true;
   unsigned int type_ = 0;
   std::size_t color_;
 };

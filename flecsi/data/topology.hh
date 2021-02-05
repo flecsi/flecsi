@@ -140,7 +140,7 @@ struct region : region_base {
     typename Topo::index_space S>
   void ghost_copy(const field_reference<T, L, Topo, S> & f) {
     constexpr auto np = privilege_count(P);
-    //static_assert(np == Topo::template privilege_count<S>,
+    // static_assert(np == Topo::template privilege_count<S>,
     //  "privilege-count mismatch between accessor and topology type");
     if constexpr(np > 1)
       if(ghost<P>(f.fid()))
