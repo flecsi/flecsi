@@ -58,15 +58,7 @@ public:
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Sort types based on key
-    std::sort(ents.begin(), ents.end(), [](auto & left, auto & right) {
-      if(left.key() < right.key()) {
-        return true;
-      }
-      if(left.key() == right.key()) {
-        return left.id() < right.id();
-      }
-      return false;
-    }); // sort
+    std::sort(ents.begin(), ents.end());
 
     if(size == 1) {
       return;
@@ -102,15 +94,7 @@ public:
     ents = recvbuffer;
 
     // Sort the bodies after reception
-    std::sort(ents.begin(), ents.end(), [](auto & left, auto & right) {
-      if(left.key() < right.key()) {
-        return true;
-      }
-      if(left.key() == right.key()) {
-        return left.id() < right.id();
-      }
-      return false;
-    }); // sort
+    std::sort(ents.begin(), ents.end());
 
 #ifdef OUTPUT
     std::vector<int> totalprocbodies;

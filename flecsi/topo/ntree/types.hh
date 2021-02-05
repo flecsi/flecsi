@@ -70,6 +70,10 @@ public:
     radius_ = radius;
   }
 
+  bool operator<(const sort_entity & s) const {
+    return std::tie(key_, id_) < std::tie(s.key_, s.id_);
+  }
+
   template<size_t D, typename TY, class K>
   friend std::ostream & operator<<(std::ostream & os,
     const sort_entity<D, TY, K> & e);
