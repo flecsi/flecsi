@@ -221,7 +221,7 @@ struct id {
   }
   FLECSI_INLINE_TARGET
   id operator+(difference_type d) const {
-    return id(d + *this);
+    return d + *this;
   }
   FLECSI_INLINE_TARGET
   void operator+(id) const = delete;
