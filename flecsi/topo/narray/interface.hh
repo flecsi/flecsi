@@ -74,11 +74,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     using shypercube = std::array<scoord, 2>;
     std::uint32_t faces;
 
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> global;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> offset;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> extents;
-    std::array<shypercube, index_spaces::size> logical;
-    std::array<shypercube, index_spaces::size> extended;
+    std::array<scoord, index_spaces::size> global, offset, extents;
+    std::array<shypercube, index_spaces::size> logical, extended;
 
     static_assert(std::is_trivial<typename Policy::meta_data>::value,
       "illegal meta data type: must be a trivial type");
