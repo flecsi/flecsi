@@ -27,6 +27,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/types.hh"
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/array_ref.hh"
