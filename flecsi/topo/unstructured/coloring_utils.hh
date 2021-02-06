@@ -467,7 +467,7 @@ closure(Definition const & md,
 #if 1
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
-    ss << log::to_string(primary.owned, "owned") << std::endl;
+    ss << log::container{primary.owned} << std::endl;
 
     ss << "shared:" << std::endl;
     for(auto e : primary.shared) {

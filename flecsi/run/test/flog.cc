@@ -25,7 +25,7 @@ log_driver() {
       for(std::size_t i{0}; i < 10; ++i) {
         v.emplace_back(i);
       }
-      flog(info) << log::to_string(v) << std::endl;
+      flog(info) << log::container{v} << std::endl;
     }
 
     {
@@ -33,7 +33,7 @@ log_driver() {
       for(std::size_t i{0}; i < 10; ++i) {
         v.push_back({0, 1, 2});
       }
-      flog(info) << log::to_string(v) << std::endl;
+      flog(info) << log::container{v} << std::endl;
     }
 
     {
@@ -41,7 +41,7 @@ log_driver() {
       for(std::size_t i{0}; i < 10; ++i) {
         m[i] = i;
       }
-      flog(info) << log::to_string(m) << std::endl;
+      flog(info) << log::container{m} << std::endl;
     }
 
     {
@@ -49,7 +49,7 @@ log_driver() {
       for(std::size_t i{0}; i < 10; ++i) {
         m[i] = {0, 1, 2};
       }
-      flog(info) << log::to_string(m) << std::endl;
+      flog(info) << log::container{m} << std::endl;
     }
   };
 } // flog
