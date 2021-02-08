@@ -123,7 +123,6 @@ struct legion_hdf5_t {
       H5Fcreate(file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     if(hdf5_file_id < 0) {
       flog(error) << "H5Fcreate failed: " << hdf5_file_id << std::endl;
-      assert(0);
       return new_file;
     }
     {
@@ -143,7 +142,6 @@ struct legion_hdf5_t {
     hid_t hdf5_file_id = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
     if(hdf5_file_id < 0) {
       flog(error) << "H5Fopen failed: " << hdf5_file_id << std::endl;
-      assert(0);
       return new_file;
     }
     {
@@ -164,7 +162,6 @@ struct legion_hdf5_t {
     herr_t rc = H5Fclose(hdf5_file_id);
     if(rc < 0) {
       flog(error) << "H5Fclose failed: " << rc << std::endl;
-      assert(0);
       return false;
     }
     {
