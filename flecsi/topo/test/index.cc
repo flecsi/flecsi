@@ -20,7 +20,6 @@
 
 using namespace flecsi;
 using namespace flecsi::data;
-using namespace flecsi::topo;
 
 struct Noisy {
   ~Noisy() {
@@ -35,7 +34,7 @@ struct Noisy {
 
 using double1 = field<double, single>;
 const double1::definition<topo::index> pressure_field;
-using intN = field<int, ragged>;
+using intN = field<int, data::ragged>;
 const intN::definition<topo::index> verts_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;
@@ -43,7 +42,7 @@ const double_at::definition<topo::index> vfrac_field;
 constexpr std::size_t column = 42;
 
 void
-allocate(resize::Field::accessor<wo> a) {
+allocate(topo::resize::Field::accessor<wo> a) {
   const auto i = color();
   a = partition::make_row(i, i + 1);
 }

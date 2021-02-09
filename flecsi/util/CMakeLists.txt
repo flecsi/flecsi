@@ -25,7 +25,7 @@ set(util_HEADERS
   color_map.hh
   common.hh
   constant.hh
-  dag.hh debruijn.hh
+  dag.hh
   demangle.hh
   dimensioned_array.hh
   export_definitions.hh
@@ -37,7 +37,6 @@ set(util_HEADERS
   graphviz.hh
   hashtable.hh
   mpi.hh
-  offset.hh
   reorder.hh
   serialize.hh
   set_intersection.hh

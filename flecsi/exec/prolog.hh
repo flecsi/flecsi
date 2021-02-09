@@ -3,8 +3,9 @@
 #ifndef FLECSI_EXEC_PROLOG_HH
 #define FLECSI_EXEC_PROLOG_HH
 
-#include "flecsi/data/field.hh"
-#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/data/reference.hh"
+#include "flecsi/data/topology_slot.hh"
+#include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
 
 namespace flecsi {

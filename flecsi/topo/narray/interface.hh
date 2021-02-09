@@ -86,12 +86,12 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   };
 
   static inline const typename field<meta_data,
-    data::single>::template definition<meta_topology<narray<Policy>>>
+    data::single>::template definition<meta<narray<Policy>>>
     meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
-  typename meta_topology<narray<Policy>>::core meta_;
+  typename meta<narray<Policy>>::core meta_;
 
   std::size_t colors() const {
     return part_.front().colors();

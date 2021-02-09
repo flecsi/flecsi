@@ -19,7 +19,6 @@
 #error Do not include this file directly!
 #endif
 
-#include "flecsi/run/types.hh"
 #include <flecsi/topo/structured/box_types.hh>
 
 namespace flecsi {
