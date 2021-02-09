@@ -35,9 +35,7 @@ array_ref() {
     UNIT_CAPTURE() << UNIT_TTYPE(refd::pointer) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::reference) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::const_reference) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::const_iterator) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::iterator) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::const_reverse_iterator) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::reverse_iterator) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::size_type) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(refd::difference_type) << std::endl;

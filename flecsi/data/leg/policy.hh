@@ -35,9 +35,9 @@ namespace flecsi {
 namespace data {
 
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
-constexpr int
+constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
-  return (dis + 2) % 3 + 3 * cpt;
+  return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
 }
 
 static_assert(static_cast<Legion::coord_t>(logical_size) == logical_size,
@@ -241,7 +241,7 @@ private:
              r.get_parent_logical_region(src.logical_partition),
              fid,
              src.get_color_space(),
-             Legion::PartitionKind(partitionKind(dis, cpt)),
+             partitionKind(dis, cpt),
              LEGION_AUTO_GENERATE_ID,
              0,
              tag);

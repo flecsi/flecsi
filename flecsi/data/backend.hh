@@ -17,8 +17,6 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/run/types.hh" // field_id_t
-
 #include <cstddef>
 #include <utility>
 

@@ -45,12 +45,8 @@ struct span {
   using reference = T &;
   using const_reference = const T &;
 
-  // These two are implementation-defined:
-  using iterator = pointer;
-  using const_iterator = const_pointer;
-
+  using iterator = pointer; // implementation-defined
   using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   constexpr span() noexcept : span(nullptr, nullptr) {}
   constexpr span(pointer p, size_type sz) : span(p, p + sz) {}
@@ -69,27 +65,15 @@ struct span {
   constexpr iterator begin() const noexcept {
     return p;
   }
-  constexpr const_iterator cbegin() const noexcept {
-    return begin();
-  }
   constexpr iterator end() const noexcept {
     return q;
-  }
-  constexpr const_iterator cend() const noexcept {
-    return end();
   }
 
   constexpr reverse_iterator rbegin() const noexcept {
     return reverse_iterator(end());
   }
-  constexpr const_reverse_iterator crbegin() const noexcept {
-    return rbegin();
-  }
   constexpr reverse_iterator rend() const noexcept {
     return reverse_iterator(begin());
-  }
-  constexpr const_reverse_iterator crend() const noexcept {
-    return rend();
   }
 
   constexpr reference front() const {

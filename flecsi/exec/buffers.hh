@@ -24,7 +24,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/reference.hh"
-#include "flecsi/exec/launch.hh"
+#include "flecsi/data/topology_accessor.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
@@ -36,6 +36,25 @@ inline log::devel_tag param_buffers_tag("param_buffers");
 namespace exec {
 
 namespace detail {
+template<class T, class = void>
+struct buffer {
+  using type = decltype(nullptr);
+  static void apply(T &, type) {}
+};
+template<class T>
+struct buffer<T, util::voided<typename T::TaskBuffer>> {
+  using type = typename T::TaskBuffer;
+  static void apply(T & t, type & b) {
+    t.buffer(b);
+  }
+};
+
+template<class T, class B>
+void
+set_buffer(T & t, B & b) {
+  detail::buffer<T>::apply(t, b);
+}
+
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
 struct param_buffers {
@@ -90,12 +109,14 @@ struct param_buffers : private detail::param_buffers {
 private:
   template<std::size_t... II>
   void buffer(std::index_sequence<II...>) {
-    (set_buffer(std::get<II>(acc), std::get<II>(buf)), ...);
+    (detail::set_buffer(std::get<II>(acc), std::get<II>(buf)), ...);
   }
 
   Tuple & acc;
   const std::string & nm;
-  std::tuple<buffer_t<TT>...> buf;
+  // The auxiliary object that survives the user task needed for a T,
+  // or std::nullptr_t if none.
+  std::tuple<typename detail::buffer<TT>::type...> buf;
 };
 
 } // namespace exec

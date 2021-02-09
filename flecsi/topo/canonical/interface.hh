@@ -49,11 +49,10 @@ struct canonical : canonical_base, with_ragged<Policy> {
   struct access;
 
   canonical(const coloring & c)
-    : with_ragged<Policy>(c.colors),
+    : canonical_base(c.colors), with_ragged<Policy>(c.colors),
       part_(make_partitions(c,
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      meta_(c.colors) {
+        std::make_index_sequence<index_spaces::size>())) {
     init_ragged(index_spaces());
     allocate_connectivities(c, connect_);
   }
@@ -65,7 +64,6 @@ struct canonical : canonical_base, with_ragged<Policy> {
   static inline const connect_t<Policy> connect_;
 
   util::key_array<repartitioned, index_spaces> part_;
-  meta_topo::core meta_;
 
   std::size_t colors() const {
     return part_.front().colors();
@@ -158,7 +156,7 @@ public:
     for(auto & a : size)
       f(a, [&i](typename P::slot & c) { return c->part_[i++].sizes(); });
     mine_.topology_send(f);
-    meta_.topology_send(f, &canonical::meta_);
+    meta_.topology_send(f, &canonical::meta);
     connect_send(f, connect_, canonical::connect_);
   }
 };

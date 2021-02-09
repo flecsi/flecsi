@@ -21,11 +21,8 @@
 #error Do not include this file directly!
 #endif
 
-#include "flecsi/data/field.hh"
-#include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/data/field.hh" // accessor
 #include "flecsi/exec/leg/future.hh"
-#include "flecsi/run/backend.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
 
@@ -85,7 +82,6 @@ private:
   void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> & accessor) {
     auto & reg = regions_[region++];
 
-    //    Legion::FieldAccessor<privilege_mode(get_privilege<0, PRIVILEGES>()),
     const Legion::UnsafeFieldAccessor<DATA_TYPE,
       2,
       Legion::coord_t,

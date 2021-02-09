@@ -82,7 +82,7 @@ struct ntree_base {
     a[2] = data::points::make(i == n - 1 ? i : i + 1, 0);
   }
   template<auto * F> // work around Clang 10.0.1 bug with auto&
-  static constexpr inline auto task = [](auto f) { execute<*F>(f); };
+  static constexpr auto task = [](auto f) { execute<*F>(f); };
 }; // struct ntree_base
 
 } // namespace topo

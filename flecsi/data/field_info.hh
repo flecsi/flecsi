@@ -19,11 +19,28 @@
 #error Do not include this file directly!
 #endif
 
-#include "flecsi/run/types.hh"
+#include "flecsi/util/common.hh"
 
 #include <cstddef>
-#include <limits>
 #include <vector>
+
+#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#include <legion.h>
+
+namespace flecsi {
+
+using field_id_t = Legion::FieldID;
+
+} // namespace flecsi
+
+#else
+
+namespace flecsi {
+
+using field_id_t = size_t;
+
+} // namespace flecsi
+#endif
 
 namespace flecsi {
 namespace data {
@@ -34,11 +51,30 @@ namespace data {
  */
 
 struct field_info_t {
-  field_id_t fid = FIELD_ID_MAX;
-  size_t type_size = std::numeric_limits<size_t>::max();
+  field_id_t fid;
+  std::size_t type_size;
 }; // struct field_info_t
 
 using fields = std::vector<const field_info_t *>;
 
 } // namespace data
+
+//----------------------------------------------------------------------------//
+// This value is used by the Legion runtime backend to automatically
+// assign task and field ids. The current maximum value that is allowed
+// in legion_config.h is 1<<20.
+//
+// We are reserving 4096 places for internal use.
+//----------------------------------------------------------------------------//
+
+#if !defined(FLECSI_GENERATED_ID_MAX)
+// 1044480 = (1<<20) - 4096
+#define FLECSI_GENERATED_ID_MAX 1044480
+#endif
+
+/*!
+  Unique counter for field ids.
+ */
+inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
+
 } // namespace flecsi

@@ -17,14 +17,13 @@
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/run/types.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {
 namespace topo {
 template<class>
-struct ragged_topology; // defined in terms of field
+struct ragged; // defined in terms of field
 }
 
 namespace data {
@@ -53,7 +52,7 @@ struct field_register<T, raw, Topo, Space> : field_info_t {
   explicit field_register(field_id_t i) : field_info_t{i, sizeof(T)} {
     run::context::instance().add_field_info<Topo, Space>(this);
   }
-  field_register() : field_register(unique_fid_t::instance().next()) {}
+  field_register() : field_register(fid_counter()) {}
   // Copying/moving is inadvisable because the context knows the address.
   field_register(const field_register &) = delete;
   field_register & operator=(const field_register &) = delete;
@@ -163,6 +162,8 @@ struct field : data::detail::field_base<T, L> {
       return {*this, t};
     }
   };
+
+  field() = delete;
 };
 
 namespace data {
@@ -193,8 +194,7 @@ struct field_register : field<T, L>::base_type::template Register<Topo, Space> {
 };
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, ragged, Topo, Space>
-  : field<T, ragged>::base_type::template Register<topo::ragged_topology<Topo>,
-      Space> {
+  : field<T, ragged>::base_type::template Register<topo::ragged<Topo>, Space> {
   using Offsets = typename field<T, ragged>::Offsets;
   // We use the same field ID for the offsets:
   typename Offsets::template Register<Topo, Space> off{field_register::fid};

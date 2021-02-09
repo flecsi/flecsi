@@ -19,7 +19,7 @@
 #error Do not include this file directly
 #endif
 
-#include "flecsi/util/debruijn.hh"
+#include "flecsi/util/bitutils.hh"
 
 #include <bitset>
 
@@ -89,18 +89,13 @@ using task_attributes_bitset_t = std::bitset<task_attributes_bits>;
 
 inline task_type_t
 mask_to_task_type(size_t mask) {
-  return static_cast<task_type_t>(util::debruijn32_t::index(mask));
+  return static_cast<task_type_t>(util::bit_width(mask) - 1);
 } // mask_to_task_type
 
 constexpr task_processor_type_t
 mask_to_processor_type(size_t mask) {
-  const size_t processor_mask = mask >> task_type_bits;
-
-  //  flog_assert(processor_mask && !(processor_mask & (processor_mask - 1)),
-  //    "only one processor type can be specified");
-
   return static_cast<task_processor_type_t>(
-    util::debruijn32_t::index(processor_mask));
+    util::bit_width(mask) - task_type_bits - 1);
 } // mask_to_processor_type
 
 constexpr bool

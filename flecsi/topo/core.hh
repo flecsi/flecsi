@@ -24,7 +24,6 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/util/constant.hh"
-#include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
 namespace data {
