@@ -149,6 +149,24 @@ struct serial<std::tuple<TT...>,
     return type{serial_get<TT>(p)...};
   }
 };
+template<class T, std::size_t N>
+struct serial<std::array<T, N>,
+  std::enable_if_t<!memcpyable_v<std::array<T, N>>>> {
+  using type = std::array<T, N>;
+  template<class P>
+  static void put(P & p, const type & a) {
+    for(auto e : a) {
+      serial_put(p, e);
+    }
+  }
+  template<std::size_t... I>
+  static type make_array(const std::byte *& p, std::index_sequence<I...>) {
+    return {(void(I), serial_get<T>(p))...};
+  }
+  static type get(const std::byte *& p) {
+    return make_array(p, std::make_index_sequence<N>());
+  }
+};
 template<class T>
 struct serial<std::vector<T>> {
   using type = std::vector<T>;

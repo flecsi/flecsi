@@ -359,11 +359,10 @@ auto
 reduce(Args &&... args) {
   using namespace exec;
 
-  // Get the FleCSI runtime context
+#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   auto & flecsi_context = run::context::instance();
   std::size_t & flog_task_count = flecsi_context.flog_task_count();
   ++flog_task_count;
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   if(flog_task_count % FLOG_SERIALIZATION_INTERVAL == 0 &&
      reduce_internal<log::log_size, fold::max, flecsi::mpi>().get() >
        FLOG_SERIALIZATION_THRESHOLD)

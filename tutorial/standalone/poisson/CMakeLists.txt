@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.12)
 # Set the project name.
 #------------------------------------------------------------------------------#
 
-project(standalone LANGUAGES CXX C)
+project(poisson LANGUAGES CXX C)
 
 #------------------------------------------------------------------------------#
 # FleCSI currently depends on C++17.
@@ -27,6 +27,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(FleCSI REQUIRED)
 include_directories(${FleCSI_INCLUDE_DIRS})
+
+#------------------------------------------------------------------------------#
+# Find the Kokkos installation.
+#------------------------------------------------------------------------------#
+
+find_package(Kokkos REQUIRED)
 
 #------------------------------------------------------------------------------#
 # App

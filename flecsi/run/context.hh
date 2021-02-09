@@ -53,7 +53,9 @@ struct context_t; // supplied by backend
 enum status : int {
   success,
   help,
-  option,
+  control_model,
+  control_model_sorted,
+  clean, // greater than this implies an error
   command_line_error,
   error, // add specific error modes
 }; // initialization_codes
@@ -304,6 +306,12 @@ struct context {
       if(vm.count("help")) {
         print_usage(program_, master, flecsi_desc);
         return status::help;
+      } // if
+      if(vm.count("control-model")) {
+        return status::control_model;
+      } // if
+      if(vm.count("control-model-sorted")) {
+        return status::control_model_sorted;
       } // if
 
       boost::program_options::notify(vm);

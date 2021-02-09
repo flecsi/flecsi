@@ -23,12 +23,16 @@
 #include "flecsi/topo/unstructured/coloring_functors.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/dcrs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
+#include "flecsi/util/set_utils.hh"
 
+#include <algorithm>
 #include <iterator>
 #include <map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -36,40 +40,20 @@ namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
 
-template<typename T>
-void
-force_unique(std::vector<T> & v) {
-  std::sort(v.begin(), v.end());
-  auto first = v.begin();
-  auto last = std::unique(first, v.end());
-  v.erase(last, v.end());
-}
-
-template<typename K, typename T>
-void
-force_unique(std::map<K, std::vector<T>> & m) {
-  for(auto & v : m)
-    force_unique(v.second);
-}
-
-template<typename T>
-void
-force_unique(std::vector<std::vector<T>> & vv) {
-  for(auto & v : vv)
-    force_unique(v);
-}
-
 /*!
  */
 
 template<typename Definition>
-auto
+inline auto
 make_dcrs(Definition const & md,
   std::size_t through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  util::color_map cm(size, size, md.num_entities(Definition::dimension()));
+  std::size_t nc = md.num_entities(Definition::dimension());
+  std::size_t nv = md.num_entities(0);
+
+  util::color_map cm(size, size, nc);
 
   /*
     Get the initial cells for this rank. The cells will be read by
@@ -99,7 +83,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Request all referencers of our connected vertices
-  util::color_map vm(size, size, md.num_entities(0));
+  util::color_map vm(size, size, nv);
   auto referencers = util::mpi::all_to_allv<vertex_referencers>(
     {v2c, vm.distribution(), rank}, comm);
 
@@ -120,7 +104,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  force_unique(v2c);
+  util::force_unique(v2c);
 
   std::vector<std::vector<std::size_t>> referencer_inverse(size);
 
@@ -134,7 +118,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate inverses
-  force_unique(referencer_inverse);
+  util::force_unique(referencer_inverse);
 
   // Request vertex-to-cell connectivity for the cells that are
   // on other ranks in the naive cell distribution.
@@ -150,25 +134,24 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  force_unique(v2c);
+  util::force_unique(v2c);
 
   std::map<std::size_t, std::vector<std::size_t>> c2c;
   std::size_t c{offset};
   for(auto & cd /* cell definition */ : c2v) {
-    std::map<std::size_t, std::size_t> thru_counts;
+    std::map<std::size_t, std::size_t> through;
 
     for(auto v : cd) {
       auto it = v2c.find(v);
       if(it != v2c.end()) {
-        for(auto rc : v2c[v]) {
-          if(rc != c) {
-            thru_counts[rc] += 1;
-          } // if
+        for(auto rc : v2c.at(v)) {
+          if(rc != c)
+            ++through[rc];
         } // for
       } // if
     } // for
 
-    for(auto tc : thru_counts) {
+    for(auto tc : through) {
       if(tc.second > through_dimension) {
         c2c[c].emplace_back(tc.first);
         c2c[tc.first].emplace_back(c);
@@ -179,7 +162,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate connections
-  force_unique(c2c);
+  util::force_unique(c2c);
 
   util::dcrs dcrs;
   dcrs.distribution = cm.distribution();
@@ -193,7 +176,7 @@ make_dcrs(Definition const & md,
     dcrs.offsets.emplace_back(dcrs.offsets[c] + c2c[offset + c].size());
   } // for
 
-  return std::make_tuple(dcrs, c2v, v2c, c2c);
+  return std::make_tuple(dcrs, std::make_pair(nc, nv), c2v, v2c, c2c);
 } // make_dcrs
 
 inline std::vector<std::vector<std::size_t>>
@@ -219,7 +202,7 @@ distribute(util::dcrs const & naive,
   return primaries;
 } // distribute
 
-auto
+inline auto
 migrate(util::dcrs const & naive,
   size_t colors,
   std::vector<std::size_t> const & index_colors,
@@ -233,53 +216,290 @@ migrate(util::dcrs const & naive,
     {naive, colors, index_colors, c2v, v2c, c2c, rank}, comm);
 
   std::map<std::size_t, std::vector<std::size_t>> primaries;
-  std::vector<std::size_t> l2m;
+  std::vector<std::size_t> p2m; /* process to mesh map */
+  std::map<std::size_t, std::size_t> m2p;
 
   for(auto const & r : migrated) {
     auto const & cell_pack = std::get<0>(r);
-    for(auto const & c : cell_pack) {
-      auto const & info = std::get<0>(c);
-      c2v.emplace_back(std::get<1>(c));
-      l2m.emplace_back(std::get<1>(info));
+    for(auto const & c : cell_pack) { /* std::vector over cells */
+      auto const & info = std::get<0>(c); /* std::array<color, mesh id> */
+      c2v.emplace_back(std::get<1>(c)); /* cell definition (vertex mesh ids) */
+      m2p[std::get<1>(info)] = c2v.size() - 1; /* offset map */
+      p2m.emplace_back(std::get<1>(info)); /* cell mesh id */
       primaries[std::get<0>(info)].emplace_back(std::get<1>(info));
     } // for
 
+    // vertex-to-cell connectivity
     auto v2c_pack = std::get<1>(r);
     for(auto const & v : v2c_pack) {
       v2c.try_emplace(v.first, v.second);
     } // for
 
+    // cell-to-cell connectivity
     auto c2c_pack = std::get<2>(r);
     for(auto const & c : c2c_pack) {
       c2c.try_emplace(c.first, c.second);
     } // for
   } // for
 
-  return std::make_pair(primaries, l2m);
+  return std::make_tuple(primaries, p2m, m2p);
 } // migrate
 
-template<typename Policy>
-auto
-closure(std::vector<std::size_t> const & primary,
+template<typename Policy, typename Definition>
+inline auto
+closure(Definition const & md,
+  std::size_t colors,
+  std::vector<std::size_t> const & raw,
+  std::map<std::size_t, std::vector<std::size_t>> const & primaries,
+  std::vector<std::vector<std::size_t>> & e2v,
+  std::map<std::size_t, std::vector<std::size_t>> & v2e,
+  std::map<std::size_t, std::vector<std::size_t>> & e2e,
+  std::map<std::size_t, std::size_t> & m2p,
+  std::vector<std::size_t> & p2m,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  unstructured_base::coloring coloring;
-  coloring.colors = size;
-  coloring.idx_allocs.resize(1 + Policy::auxiliary_colorings);
-  coloring.idx_colorings.resize(1 + Policy::auxiliary_colorings);
+  std::size_t ne = md.num_entities(Policy::primary::dimension);
 
-  (void)rank;
-  (void)primary;
+  /*
+    Save color info for all of our initial local entities. The variable
+    'e2co' will get updated as we build out our dependencies.
+   */
 
-  constexpr std::size_t depth = Policy::primary::depth;
-
-  for(std::size_t d{0}; d < depth; ++d) {
-    // get entity neighbors
-
+  std::unordered_map<std::size_t, std::size_t> e2co;
+  std::map<std::size_t, std::vector<std::size_t>> wkset;
+  for(auto const & p : primaries) {
+    wkset[p.first].reserve(p.second.size());
+    for(auto e : p.second) {
+      e2co.try_emplace(e, p.first);
+      wkset[p.first].emplace_back(e);
+    } // for
   } // for
 
-  return coloring;
+  std::unordered_map<std::size_t, std::set<std::size_t>> dependents;
+  std::unordered_map<std::size_t, std::set<std::size_t>> dependencies;
+  std::unordered_map<std::size_t, std::set<std::size_t>> shared;
+  std::unordered_map<std::size_t, std::set<std::size_t>> ghosts;
+
+  constexpr std::size_t depth = Policy::primary::depth;
+  for(std::size_t d{0}; d < depth + 1; ++d) {
+    std::vector<std::size_t> layer;
+
+    /*
+      Create request layer, and add local information.
+     */
+
+    for(auto const & p : primaries) {
+      for(auto e : wkset.at(p.first)) {
+        for(auto v : e2v[m2p.at(e)]) {
+          for(auto en : v2e.at(v)) {
+            if(e2e.find(en) == e2e.end()) {
+              // If we don't have the entity, we need to request it.
+              layer.emplace_back(en);
+
+              // Collect the dependent color for request.
+              dependencies[en].insert(p.first);
+
+              // If we're within the requested depth, this is also
+              // a ghost entity.
+              if(d < depth) {
+                ghosts[p.first].insert(en);
+              }
+            }
+            else if(d < depth && e2co.at(en) != p.first) {
+              // This entity is on the local process, but not
+              // owned by the current color.
+
+              // Add this entity to the shared of the owning color.
+              shared[e2co.at(en)].insert(en);
+
+              // Add the current color as a dependent.
+              dependents[en].insert(p.first);
+
+              // This entity is a ghost for the current color.
+              ghosts[p.first].insert(en);
+            } // if
+          } // for
+        } // for
+      } // for
+
+      wkset.at(p.first).clear();
+    } // for
+
+    util::force_unique(layer);
+
+    /*
+      Request entity owners from naive-owners.
+     */
+
+    std::vector<std::vector<std::size_t>> requests(size);
+    util::color_map nm(size, size, ne);
+    for(auto e : layer) {
+      requests[nm.process(nm.index_color(e))].emplace_back(e);
+    } // for
+
+    std::vector<std::vector<std::pair<std::size_t, std::set<std::size_t>>>>
+      reqs(size);
+    {
+      auto requested = util::mpi::all_to_allv(
+        [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+
+      /*
+        Fulfill naive-owner requests with migrated owners.
+       */
+
+      std::vector<std::vector<std::size_t>> fulfills(size);
+      {
+        std::size_t r{0};
+        util::color_map cm(size, colors, ne);
+        for(auto rv : requested) {
+          for(auto e : rv) {
+            const std::size_t start = nm.index_offset(rank, 0);
+            fulfills[r].emplace_back(cm.process(raw[e - start]));
+          } // for
+          ++r;
+        } // for
+      } // scope
+
+      auto fulfilled = util::mpi::all_to_allv(
+        [&fulfills](int r, int) -> auto & { return fulfills[r]; }, comm);
+
+      /*
+        Request entity information from migrated owners.
+       */
+
+      std::vector<std::size_t> offs(size, 0ul);
+      for(auto e : layer) {
+        auto p = nm.process(nm.index_color(e));
+        reqs[fulfilled[p][offs[p]++]].emplace_back(
+          std::make_pair(e, dependencies.at(e)));
+      } // for
+    } // scope
+
+    auto requested = util::mpi::all_to_allv(
+      [&reqs](int r, int) -> auto & { return reqs[r]; }, comm);
+
+    /*
+      Keep track of dependent colors for requested entities.
+     */
+
+    requests.clear();
+    requests.resize(size);
+    std::size_t r{0};
+    for(auto rv : requested) {
+      for(auto e : rv) {
+        requests[r].emplace_back(e.first);
+        if(d < depth) {
+          dependents[e.first].insert(e.second.begin(), e.second.end());
+          shared[e2co.at(e.first)].insert(e.first);
+        }
+      } // for
+      ++r;
+    } // for
+
+    auto fulfilled = util::mpi::all_to_allv<communicate_entities>(
+      {requests, e2co, e2v, v2e, e2e, m2p}, comm);
+
+    /*
+      Update local information.
+     */
+
+    for(auto const & r : fulfilled) {
+      auto const & entity_pack = std::get<0>(r);
+      for(auto const & e : entity_pack) {
+        auto const & info = std::get<0>(e);
+        e2v.emplace_back(std::get<1>(e));
+        m2p[std::get<1>(info)] = e2v.size() - 1;
+        p2m.emplace_back(std::get<1>(info));
+        e2co.try_emplace(std::get<1>(info), std::get<0>(info));
+
+        for(auto co : dependencies.at(std::get<1>(info))) {
+          wkset.at(co).emplace_back(std::get<1>(info));
+        } // for
+      } // for
+
+      // vertex-to-cell connectivity
+      auto v2e_pack = std::get<1>(r);
+      for(auto const & v : v2e_pack) {
+        v2e.try_emplace(v.first, v.second);
+      } // for
+
+      // cell-to-cell connectivity
+      auto e2e_pack = std::get<2>(r);
+      for(auto const & e : e2e_pack) {
+        e2e.try_emplace(e.first, e.second);
+      } // for
+    } // for
+  } // for
+
+  std::map<std::size_t, unstructured_base::coloring> colorings;
+
+  for(auto p : primaries) {
+    colorings[p.first].idx_colorings.resize(1 + Policy::auxiliary_colorings);
+
+    auto & primary =
+      colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+    // primary.owned = p.second;
+    primary.owned.reserve(p.second.size());
+    primary.owned.insert(
+      primary.owned.begin(), p.second.begin(), p.second.end());
+
+    for(auto e : p.second) {
+      if(shared.at(p.first).count(e)) {
+        auto d = dependents.at(e);
+        primary.shared.emplace_back(
+          shared_entity{e, {dependents.at(e).begin(), dependents.at(e).end()}});
+      }
+      else {
+        primary.exclusive.emplace_back(e);
+      } // if
+    } // for
+
+    for(auto e : ghosts.at(p.first)) {
+      primary.ghosts.emplace_back(ghost_entity{e, e2co.at(e)});
+    } // for
+
+    util::force_unique(primary.owned);
+    util::force_unique(primary.exclusive);
+    util::force_unique(primary.shared);
+    util::force_unique(primary.ghosts);
+
+#if 1
+    std::stringstream ss;
+    ss << "color " << p.first << std::endl;
+    ss << log::to_string(primary.owned, "owned") << std::endl;
+
+    ss << "shared:" << std::endl;
+    for(auto e : primary.shared) {
+      ss << "  " << e.id << ": { ";
+      for(auto d : e.dependents) {
+        ss << d << " ";
+      }
+      ss << "}" << std::endl;
+    } // for
+    ss << std::endl;
+
+    ss << "ghosts: ";
+    for(auto e : primary.ghosts) {
+      ss << "(" << e.id << ", " << e.color << ") ";
+    } // for
+    ss << std::endl;
+
+    flog(warn) << ss.str() << std::endl;
+#endif
+  } // for
+
+#if 0
+  for(auto p : primaries) {
+    auto const & primary =
+      colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+
+    for(auto e : primary.owned) {
+    } // for
+  } // for
+#endif
+
+  return colorings;
 } // closure
 
 } // namespace unstructured_impl

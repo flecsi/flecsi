@@ -3,36 +3,30 @@
    All rights reserved.
                                                                               */
 
-#include "advance.hh"
 #include "analyze.hh"
-#include "data.hh"
 #include "finalize.hh"
 #include "initialize.hh"
+#include "options.hh"
+#include "problem.hh"
+#include "solve.hh"
 #include "specialization/control.hh"
+#include "state.hh"
 
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-using namespace standalone;
-
 int
 main(int argc, char ** argv) {
   auto status = flecsi::initialize(argc, argv);
+  status = poisson::control::check_status(status);
 
   if(status != flecsi::run::status::success) {
-    return status == flecsi::run::status::help ? 0 : status;
+    return status < flecsi::run::status::clean ? 0 : status;
   }
-
-  status = control::check_options();
-
-  if(status != flecsi::run::status::success) {
-    flecsi::finalize();
-    return status == flecsi::run::status::option ? 0 : status;
-  } // if
 
   flecsi::log::add_output_stream("clog", std::clog, true);
 
-  status = flecsi::start(control::execute);
+  status = flecsi::start(poisson::control::execute);
 
   flecsi::finalize();
 

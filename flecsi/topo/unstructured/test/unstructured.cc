@@ -101,7 +101,7 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     (void)filename;
     topo::unstructured_impl::simple_definition sd(filename.c_str());
     const size_t colors{processes()};
-    auto [naive, cells, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);
     auto coloring = topo::unstructured_impl::distribute(naive, colors, raw);
 #if 0

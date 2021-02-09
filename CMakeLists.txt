@@ -197,6 +197,7 @@ if(NOT FORMAT_ONLY)
   #----------------------------------------------------------------------------#
 
   include(annotation)
+  set(FLECSI_CALIPER_DETAIL ${CALIPER_DETAIL})
 
   #----------------------------------------------------------------------------#
   # Runtime models
@@ -254,6 +255,10 @@ if(NOT FORMAT_ONLY)
     set(_runtime_path ${PROJECT_SOURCE_DIR}/flecsi/execution/mpi)
 
     set(FLECSI_RUNTIME_LIBRARIES ${DL_LIBS} ${MPI_LIBRARIES})
+
+  #----------------------------------------------------------------------------#
+  # HPX interface
+  #----------------------------------------------------------------------------#
 
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
@@ -494,7 +499,7 @@ if(NOT FORMAT_ONLY)
   summary_option("ENABLE_GRAPHVIZ" ${ENABLE_GRAPHVIZ} "")
   summary_option("ENABLE_OPENMP" ${ENABLE_OPENMP} "")
   summary_option("ENABLE_HDF5" ${ENABLE_HDF5} "")
-  summary_info("FLECSI_CALIPER_DETAIL" "${FLECSI_CALIPER_DETAIL}" TRUE)
+  summary_info("CALIPER_DETAIL" "${CALIPER_DETAIL}" TRUE)
 
   message(STATUS ${_summary})
 
