@@ -33,6 +33,7 @@ SCRIPT_FLOG_ENABLE_DEVELOPER_MODE="OFF"
 SCRIPT_ENABLE_UNIT_TESTS="ON"
 SCRIPT_ENABLE_GRAPHVIZ="ON"
 SCRIPT_ENABLE_DOCUMENTATION="ON"
+SCRIPT_ENABLE_KOKKOS="OFF"
 
 CLANG_FORMAT=""
 if [ -n "${CLANG_FORMAT_EXECUTABLE}" ] ; then
@@ -59,6 +60,7 @@ do
 			echo ""
 			echo "User mode: release, disable tests"
 			echo ""
+			echo "kokkos"
 			echo "You can set the path to the clang-format executable like:"
 			echo "$ export CLANG_FORMAT_EXECUTABLE=/path/to/clang-format"
 			exit
@@ -87,7 +89,7 @@ do
       SCRIPT_C_COMPILER=clang
       SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=5 $warn"
       SCRIPT_CXX_COMPILER=clang++
-      SCRIPT_CXX_FLAGS=$SCRIPT_C_FLAGS
+      SCRIPT_CXX_FLAGS="$SCRIPT_C_FLAGS -Wno-unknown-cuda-version"
     ;;
     gnu)
       SCRIPT_C_COMPILER=gcc
@@ -101,6 +103,9 @@ do
       SCRIPT_C_FLAGS="-diag-error-limit=5 $warn"
       SCRIPT_CXX_COMPILER=icpc
       SCRIPT_CXX_FLAGS=$SCRIPT_C_FLAGS
+    ;;
+    kokkos)
+      SCRIPT_ENABLE_KOKKOS="ON"
     ;;
     *)
       cmake_args="$cmake_args $1"
@@ -127,6 +132,7 @@ echo "$cmake_mode" \
   "-DENABLE_UNIT_TESTS=$SCRIPT_ENABLE_UNIT_TESTS" \
   "-DENABLE_GRAPHVIZ=$SCRIPT_ENABLE_GRAPHVIZ" \
   "-DENABLE_DOCUMENTATION=$SCRIPT_ENABLE_DOCUMENTATION" \
+  "-DENABLE_KOKKOS=$SCRIPT_ENABLE_KOKKOS" \
   "${CLANG_FORMAT}" \
   "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} $cmake_args $cwd"
 echo ""
@@ -143,6 +149,7 @@ $cmake_mode \
   -DENABLE_UNIT_TESTS=$SCRIPT_ENABLE_UNIT_TESTS \
   -DENABLE_GRAPHVIZ=$SCRIPT_ENABLE_GRAPHVIZ \
   -DENABLE_DOCUMENTATION=$SCRIPT_ENABLE_DOCUMENTATION \
+  -DENABLE_KOKKOS=$SCRIPT_ENABLE_KOKKOS \
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
   ${CLANG_FORMAT} \
   $cmake_args \

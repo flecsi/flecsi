@@ -18,19 +18,20 @@
 
 using namespace flecsi;
 
-using double1 = field<double, data::single>;
-const double1::definition<topo::global> energy_field;
+using double_field = field<double, data::single>;
+
+const double_field::definition<topo::global> energy_field;
 
 namespace future_test {
 
 double
-init(double a, double1::accessor<wo> ga) {
+init(double a, double_field::accessor<wo> ga) {
   ga = a;
   return a + 1;
 }
 
 int
-check(future<double> x, double1::accessor<ro> ga) {
+check(future<double> x, double_field::accessor<ro> ga) {
   UNIT {
     static_assert(std::is_same_v<decltype(ga.get()), const double &>);
     ASSERT_EQ(x.get(), ga + 1 + color());

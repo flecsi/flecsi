@@ -362,13 +362,6 @@ struct context {
     } // if
 #endif
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-    if(initialize_dependent_) {
-      // Need to capture status from this
-      Kokkos::initialize(argc, argv);
-    } // if
-#endif
-
     initialized_ = true;
 
     return status::success;
@@ -379,11 +372,6 @@ struct context {
     log::state::instance().finalize();
 #endif
 
-    if(initialize_dependent_) {
-#if defined(FLECSI_ENABLE_KOKKOS)
-      Kokkos::finalize();
-#endif
-    } // if
   } // finalize_generic
 
 #ifdef DOXYGEN // these functions are implemented per-backend

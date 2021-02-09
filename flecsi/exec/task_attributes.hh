@@ -45,6 +45,14 @@ enum task_attributes_mask_t : size_t {
   mpi = 0x20
 }; // task_attributes_mask_t
 
+constexpr auto default_accelerator =
+#if defined(__NVCC__) || defined(__CUDACC__)
+  toc
+#else
+  loc
+#endif
+  ;
+
 namespace exec {
 
 /*!

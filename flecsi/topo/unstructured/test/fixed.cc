@@ -266,6 +266,16 @@ update_pressure(fixed_mesh::accessor<ro, ro> m,
   }
 }
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+void
+parallel_update_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> p) {
+  forall(c, m.cells(), "pressure_c") {
+    p[c] += 0.0;
+  };
+}
+#endif
+
 void
 print_pressure(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<ro, ro> p) {
@@ -338,6 +348,10 @@ fixed_driver() {
     //    execute<print>(mesh, cids(mesh), vids(mesh));
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure>(mesh, pressure(mesh));
+#if defined(FLECSI_ENABLE_KOKKOS)
+    execute<parallel_update_pressure, default_accelerator>(
+      mesh, pressure(mesh));
+#endif
     execute<print_pressure>(mesh, pressure(mesh));
     execute<init_density>(mesh, density(mesh));
     execute<update_density>(mesh, density(mesh));

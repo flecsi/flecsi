@@ -79,6 +79,8 @@ public:
         local_cpus.push_back(p);
       else if(p.kind() == legion_proc::TOC_PROC)
         local_gpus.push_back(p);
+      else if(p.kind() == legion_proc::OMP_PROC)
+        local_omps.push_back(p);
       else
         continue;
 

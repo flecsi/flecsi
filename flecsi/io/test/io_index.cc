@@ -25,21 +25,22 @@
 using namespace flecsi;
 using namespace flecsi::data;
 
-using double1 = field<double, single>;
-const double1::definition<topo::index> test_value_1, test_value_2, test_value_3;
+typedef field<double, single> double_field_t;
+const double_field_t::definition<topo::index> test_value_1, test_value_2,
+  test_value_3;
 
 void
-assign(double1::accessor<rw> ia) {
+assign(double_field_t::accessor<rw> ia) {
   ia = color();
 } // assign
 
 void
-reset_zero(double1::accessor<rw> ia) {
+reset_zero(double_field_t::accessor<rw> ia) {
   ia = -1;
 } // assign
 
 int
-check(double1::accessor<ro> ia) {
+check(double_field_t::accessor<ro> ia) {
   UNIT { ASSERT_EQ(ia, color()); };
 } // print
 

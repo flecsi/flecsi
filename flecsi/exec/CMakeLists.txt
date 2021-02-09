@@ -82,6 +82,8 @@ if(CMAKE_BUILD_TYPE MATCHES DEBUG)
   add_unit(kokkos
     SOURCES
       test/kokkos.cc
+    THREADS
+     2 #warning 2 is required when running with CUDA since color topology has 2 colors
   )
 endif()
 endif()

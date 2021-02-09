@@ -15,6 +15,7 @@
 
 #include <flecsi-config.h>
 
+#include <ctime>
 #include <string>
 
 #define _flog_util_stringify(s) #s

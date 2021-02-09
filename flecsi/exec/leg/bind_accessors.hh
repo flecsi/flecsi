@@ -95,6 +95,7 @@ private:
       r.hi[1] - r.lo[1] + 1));
   }
 
+  // need more explanation here
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
     p.send(visitor());

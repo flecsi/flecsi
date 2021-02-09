@@ -204,7 +204,8 @@ detail::register_task() {
                                    ? Legion::Processor::TOC_PROC
                                    : Legion::Processor::LOC_PROC;
   registrar.add_constraint(Legion::ProcessorConstraint(kind));
-  registrar.set_leaf(leaf_task(A));
+
+  registrar.set_leaf(leaf_task(A) || !inner_task(A));
   registrar.set_inner(inner_task(A));
   registrar.set_idempotent(idempotent_task(A));
 
