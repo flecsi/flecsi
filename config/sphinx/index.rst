@@ -49,6 +49,7 @@ Introduction
   src/tutorial
   src/user-guide
   src/developer-guide
+  src/summary
   API Reference <http://laristra.github.io/flecsi/doxygen>
   src/team
 

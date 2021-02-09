@@ -48,6 +48,43 @@ inline std::size_t next_id;
 template<template<class> class T>
 using base_t = typename detail::base<T>::type;
 
+#ifdef DOXYGEN
+/// An example topology base that is not really implemented.
+struct core_base {
+  /// The type, independent of specialization, from which the corresponding
+  /// core topology type is constructed.
+  using coloring = std::nullptr_t;
+};
+
+/// An example core topology that is not really implemented.
+/// \tparam P topology specialization, used here as a policy
+template<class P>
+struct core : core_base { // with_ragged<P> is often another base class
+  /// Default-constructible base for topology accessors.
+  template<std::size_t Priv>
+  struct access {
+    /// \see send_tag
+    template<class F>
+    void send(F &&);
+  };
+
+  explicit core(coloring);
+
+  std::size_t colors() const;
+
+  template<typename P::index_space>
+  data::region & get_region();
+
+  // As a special case, the global topology does not define this.
+  template<typename P::index_space>
+  const data::partition & get_partition(field_id_t) const;
+};
+template<>
+struct detail::base<core> {
+  using type = core_base;
+};
+#endif
+
 struct specialization_base {
   // For connectivity tuples:
   template<auto V, class T>
@@ -108,6 +145,18 @@ struct specialization : specialization_base {
 
   static void initialize(slot &, coloring const &) {}
 };
+
+#ifdef DOXYGEN
+/// An example specialization that is not really implemented.
+/// No member is needed in all circumstances.
+/// See also the members marked for overriding in \c specialization.
+struct topology : specialization<core, topology> {
+  static coloring color(...); ///< for coloring_slot
+
+  using connectivities = list<>; ///< for connect_t/connect_access
+  using entity_lists = list<>; ///< for lists_t/list_access
+};
+#endif
 
 } // namespace topo
 } // namespace flecsi
