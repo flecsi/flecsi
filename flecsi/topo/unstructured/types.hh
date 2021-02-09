@@ -41,11 +41,11 @@ struct shared_entity {
   std::size_t id;
   std::vector<std::size_t> dependents;
 
-  bool operator<(shared_entity const & s) {
+  bool operator<(const shared_entity & s) const {
     return id < s.id;
   }
 
-  bool operator==(shared_entity const & s) {
+  bool operator==(const shared_entity & s) const {
     return id == s.id &&
            std::equal(
              dependents.begin(), dependents.end(), s.dependents.begin());
@@ -68,11 +68,11 @@ struct ghost_entity {
   std::size_t id;
   std::size_t color;
 
-  bool operator<(ghost_entity const & g) {
+  bool operator<(const ghost_entity & g) const {
     return id < g.id;
   }
 
-  bool operator==(ghost_entity const & g) {
+  bool operator==(const ghost_entity & g) const {
     return id == g.id && color == g.color;
   }
 };
