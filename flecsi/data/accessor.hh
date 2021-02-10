@@ -237,7 +237,7 @@ struct ragged_accessor
       return field_reference<T,
         raw,
         topo::ragged<typename R::Topology>,
-        R::space>({i, 0}, t);
+        R::space>({i, 0, {}}, t);
     });
     f(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:

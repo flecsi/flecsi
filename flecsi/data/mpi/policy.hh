@@ -89,7 +89,8 @@ private:
 };
 
 struct region {
-  region(size2 s, const fields & fs) : p(new region_impl(s, fs)) {}
+  region(size2 s, const fields & fs, const char * = nullptr)
+    : p(new region_impl(s, fs)) {}
 
   size2 size() const {
     return p->size();

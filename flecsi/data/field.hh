@@ -17,6 +17,7 @@
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
+#include "flecsi/util/demangle.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
@@ -49,7 +50,8 @@ struct field_register;
 // All field registration is ultimately defined in terms of raw fields.
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, raw, Topo, Space> : field_info_t {
-  explicit field_register(field_id_t i) : field_info_t{i, sizeof(T)} {
+  explicit field_register(field_id_t i)
+    : field_info_t{i, sizeof(T), util::type<T>()} {
     run::context::instance().add_field_info<Topo, Space>(this);
   }
   field_register() : field_register(fid_counter()) {}
