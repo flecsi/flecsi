@@ -162,30 +162,26 @@ private:
     meta_data & md = m;
 
     for(std::size_t i{0}; i < index_spaces::size; ++i) {
-      auto const & cg = c.idx_colorings[i].global;
-      auto const & co = c.idx_colorings[i].offset;
-      auto const & ce = c.idx_colorings[i].extents;
+      static constexpr auto copy = [](const coord & c,
+                                     typename meta_data::scoord & s) {
+        const auto n = s.size();
+        flog_assert(
+          c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
+        std::copy_n(c.begin(), n, s.begin());
+      };
+      static constexpr auto copy2 = [](const hypercube & h,
+                                      typename meta_data::shypercube & s) {
+        for(auto i = h.size(); i--;)
+          copy(h[i], s[i]);
+      };
 
-      flog_assert(cg.size() == dimension,
-        "invalid #axes(" << cg.size() << ") must be: " << dimension);
-      flog_assert(co.size() == dimension,
-        "invalid #axes(" << co.size() << ") must be: " << dimension);
-      flog_assert(ce.size() == dimension,
-        "invalid #axes(" << ce.size() << ") must be: " << dimension);
-
-      md.faces = c.idx_colorings[i].faces;
-
-      std::copy_n(cg.begin(), dimension, md.global[i].begin());
-      std::copy_n(co.begin(), dimension, md.offset[i].begin());
-      std::copy_n(ce.begin(), dimension, md.extents[i].begin());
-
-      auto const & cl = c.idx_colorings[i].logical;
-      std::copy_n(cl[0].begin(), dimension, md.logical[i][0].begin());
-      std::copy_n(cl[1].begin(), dimension, md.logical[i][1].begin());
-
-      auto const & cex = c.idx_colorings[i].extended;
-      std::copy_n(cex[0].begin(), dimension, md.extended[i][0].begin());
-      std::copy_n(cex[1].begin(), dimension, md.extended[i][1].begin());
+      const auto & ci = c.idx_colorings[i];
+      md.faces = ci.faces;
+      copy(ci.global, md.global[i]);
+      copy(ci.offset, md.offset[i]);
+      copy(ci.extents, md.extents[i]);
+      copy2(ci.logical, md.logical[i]);
+      copy2(ci.extended, md.extended[i]);
     } // for
   } // set_meta
 

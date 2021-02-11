@@ -354,38 +354,14 @@ struct unstructured_base {
     field<util::id, data::ragged>::mutator<rw> exclusive,
     field<util::id, data::ragged>::mutator<rw> shared,
     field<util::id, data::ragged>::mutator<rw> ghosts) {
+    const auto cp = [](auto r, const std::vector<util::id> & v) {
+      r.assign(v.begin(), v.end());
+    };
 
-    owned[S].resize(ic.owned.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.owned) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    exclusive[S].resize(ic.exclusive.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.exclusive) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    shared[S].resize(ic.shared.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.shared) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
-
-    ghosts[S].resize(ic.ghosts.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.ghosts) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
+    cp(owned[S], ic.owned);
+    cp(exclusive[S], ic.exclusive);
+    cp(shared[S], ic.shared);
+    cp(ghosts[S], ic.ghosts);
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
