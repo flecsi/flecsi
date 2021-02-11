@@ -370,11 +370,7 @@ private:
       dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
     Legion::RegionRequirement rr_pos(
       dest, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg);
-
-    rr_pos.add_field(ptr_fid);
-
     cl_.add_src_indirect_field(ptr_fid, rr_pos);
-    assert(!cl_.src_indirect_is_range[0]);
   }
 
   Legion::IndexCopyLauncher cl_;
