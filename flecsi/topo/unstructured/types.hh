@@ -235,7 +235,7 @@ struct unstructured_base {
      */
 
     std::map<std::size_t, std::size_t> shared_offsets;
-    for(auto e : ic.shared) {
+    for(auto & e : ic.shared) {
       auto it = std::find(entities.begin(), entities.end(), e.id);
       flog_assert(it != entities.end(), "shared entity doesn't exist");
       shared_offsets[e.id] = std::distance(entities.begin(), it);
@@ -245,8 +245,9 @@ struct unstructured_base {
       Send/Receive requests for shared offsets with other processes.
      */
 
-    auto requested =
-      util::mpi::all_to_allv([&requests](int r, int) { return requests[r]; });
+    auto requested = util::mpi::all_to_allv([&requests](int r, int) -> auto & {
+      return requests[r];
+    });
 
     /*
       Fulfill the requests that we received from other processes, i.e.,
@@ -256,7 +257,7 @@ struct unstructured_base {
     std::vector<std::vector<std::size_t>> fulfills(size);
     {
       std::size_t r{0};
-      for(auto rv : requested) {
+      for(const auto & rv : requested) {
         for(auto c : rv) {
           fulfills[r].emplace_back(shared_offsets[c]);
         } // for
@@ -268,15 +269,15 @@ struct unstructured_base {
       Send/Receive the local offset information with other processes.
      */
 
-    auto fulfilled =
-      util::mpi::all_to_allv([&fulfills](int r, int) { return fulfills[r]; });
+    auto fulfilled = util::mpi::all_to_allv(
+      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); });
 
     /*
       Setup source pointers.
      */
 
     std::size_t r{0};
-    for(auto rv : fulfilled) {
+    for(const auto & rv : fulfilled) {
       if(r == std::size_t(rank)) {
         ++r;
         continue;
