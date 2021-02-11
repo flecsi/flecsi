@@ -87,13 +87,6 @@ private:
     return {{typename T::value_type(m.template get<VV>().fid)...}};
   }
 };
-
-struct identity {
-  template<class T>
-  T && operator()(T && x) {
-    return std::forward<T>(x);
-  }
-};
 } // namespace detail
 
 // Accessors for the connectivity requested by a topology.
@@ -132,7 +125,7 @@ private:
 template<class P, std::size_t Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
-template<class F, class... VT, class C, class S = detail::identity>
+template<class F, class... VT, class C, class S = util::identity>
 void connect_send(F && f,
   util::key_tuple<VT...> & ca,
   C & cf,

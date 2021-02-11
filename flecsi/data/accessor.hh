@@ -16,7 +16,7 @@
 /*!
   @file
 
-  This file contains implementations of field accessor types.
+  Trhis file contains implementations of field accessor types.
  */
 
 #if !defined(__FLECSI_PRIVATE__)
@@ -919,6 +919,32 @@ public:
 
 private:
   base_type rag;
+};
+
+template<typename T>
+struct scalar_access : send_tag {
+
+  template<class F>
+  void send(F && f) {
+    // flecsi::field<T,single>::accessor<ro> acc(fid_);
+    accessor<single, T, privilege_pack<ro>> acc(fid_);
+    util::identity id;
+    f(acc, id);
+    if(acc.get_base().span().data())
+      scalar_ = T(); // backend_function_of_accessor(acc);
+  }
+
+  T & data() {
+    return scalar_;
+  }
+
+  size_t identifier() {
+    return fid_;
+  }
+
+private:
+  T scalar_;
+  size_t fid_ = topo::resize::field.fid;
 };
 
 } // namespace data

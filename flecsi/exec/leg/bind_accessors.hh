@@ -110,6 +110,26 @@ private:
   }
 
   /*--------------------------------------------------------------------------*
+   Special accessors to access scalar data on the device
+  *---------------------------------------------------------------------------*/
+
+  template<typename T>
+  void visit(data::scalar_access<T> & accessor) {
+
+    auto & reg = regions_[region++];
+
+    const Legion::UnsafeFieldAccessor<T,
+      2,
+      Legion::coord_t,
+      Realm::AffineAccessor<T, 2, Legion::coord_t>>
+      ac(reg, accessor.identifier(), sizeof(T));
+    const auto dom = legion_runtime_->get_index_space_domain(
+      legion_context_, reg.get_logical_region().get_index_space());
+
+    accessor.data() = ac.read(Legion::Domain::DomainPointIterator(dom).p);
+  }
+
+  /*--------------------------------------------------------------------------*
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 

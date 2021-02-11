@@ -97,5 +97,12 @@ force_unique(std::vector<std::vector<T>> & vv) {
     force_unique(v);
 }
 
+struct identity {
+  template<class T>
+  T && operator()(T && x) {
+    return std::forward<T>(x);
+  }
+};
+
 } // namespace util
 } // namespace flecsi
