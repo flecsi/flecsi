@@ -55,10 +55,13 @@ struct shared_entity {
 inline std::ostream &
 operator<<(std::ostream & stream, shared_entity const & s) {
   stream << "<" << s.id << ": ";
+  bool first = true;
   for(auto d : s.dependents) {
-    stream << d;
-    if(d != s.dependents.back())
+    if(first)
+      first = false;
+    else
       stream << ", ";
+    stream << d;
   } // for
   stream << ">";
   return stream;
