@@ -328,7 +328,7 @@ struct unstructured_base {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
-      a[i++] = data::intervals::make({it.first, it.second}, process());
+      a[i++] = data::intervals::make(it, process());
     } // for
   }
 
