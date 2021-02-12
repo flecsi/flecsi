@@ -264,13 +264,13 @@ using launch_space_t = Legion::IndexSpace;
 inline void
 checkpoint_data(const std::string & file_name,
   Legion::IndexSpace launch_space,
-  std::vector<legion_hdf5_region_t> & hdf5_region_vector,
+  const std::vector<legion_hdf5_region_t> & hdf5_region_vector,
   bool attach_flag) {
   Legion::Runtime * runtime = Legion::Runtime::get_runtime();
   Legion::Context ctx = Legion::Runtime::get_context();
 
   std::vector<FieldNames> field_string_map_vector;
-  for(legion_hdf5_region_t & it : hdf5_region_vector) {
+  for(auto & it : hdf5_region_vector) {
     field_string_map_vector.push_back(it.field_string_map);
   }
 
@@ -288,7 +288,7 @@ checkpoint_data(const std::string & file_name,
     Legion::ArgumentMap());
 
   int idx = 0;
-  for(legion_hdf5_region_t & it : hdf5_region_vector) {
+  for(auto & it : hdf5_region_vector) {
     checkpoint_launcher.add_region_requirement(
       Legion::RegionRequirement(it.logical_partition,
         0 /*projection ID*/,
@@ -296,8 +296,7 @@ checkpoint_data(const std::string & file_name,
         EXCLUSIVE,
         it.logical_region));
 
-    FieldNames & field_string_map = it.field_string_map;
-    for(std::pair<const Legion::FieldID, std::string> & it : field_string_map) {
+    for(auto & it : it.field_string_map) {
       checkpoint_launcher.region_requirements[idx].add_field(it.first);
     }
     idx++;
@@ -318,13 +317,13 @@ checkpoint_data(const std::string & file_name,
 inline void
 recover_data(const std::string & file_name,
   Legion::IndexSpace launch_space,
-  std::vector<legion_hdf5_region_t> & hdf5_region_vector,
+  const std::vector<legion_hdf5_region_t> & hdf5_region_vector,
   bool attach_flag) {
   Legion::Runtime * runtime = Legion::Runtime::get_runtime();
   Legion::Context ctx = Legion::Runtime::get_context();
 
   std::vector<FieldNames> field_string_map_vector;
-  for(legion_hdf5_region_t & it : hdf5_region_vector) {
+  for(auto & it : hdf5_region_vector) {
     field_string_map_vector.push_back(it.field_string_map);
   }
 
@@ -340,7 +339,7 @@ recover_data(const std::string & file_name,
     Legion::TaskArgument((void *)(task_args.data()), task_args.size()),
     Legion::ArgumentMap());
   int idx = 0;
-  for(legion_hdf5_region_t & it : hdf5_region_vector) {
+  for(auto & it : hdf5_region_vector) {
     recover_launcher.add_region_requirement(
       Legion::RegionRequirement(it.logical_partition,
         0 /*projection ID*/,
@@ -348,8 +347,7 @@ recover_data(const std::string & file_name,
         EXCLUSIVE,
         it.logical_region));
 
-    FieldNames & field_string_map = it.field_string_map;
-    for(std::pair<const Legion::FieldID, std::string> & it : field_string_map) {
+    for(auto & it : it.field_string_map) {
       recover_launcher.region_requirements[idx].add_field(it.first);
     }
     idx++;
@@ -429,9 +427,8 @@ struct io_interface_t {
       checkpoint_region.field_string_map[p->fid] = std::to_string(p->fid);
     }
 
-    std::vector<legion_hdf5_region_t> hdf5_region_vector;
-    hdf5_region_vector.push_back(checkpoint_region);
-    checkpoint_data(file_name, file.index_space, hdf5_region_vector, true);
+    checkpoint_data(
+      file_name, file.index_space, {std::move(checkpoint_region)}, true);
   } // checkpoint_process_topology
 
   void recover_process_topology(const std::string & file_name) {
@@ -455,9 +452,8 @@ struct io_interface_t {
       recover_region.field_string_map[p->fid] = std::to_string(p->fid);
     }
 
-    std::vector<legion_hdf5_region_t> hdf5_region_vector;
-    hdf5_region_vector.push_back(recover_region);
-    recover_data(file_name, file.index_space, hdf5_region_vector, true);
+    recover_data(
+      file_name, file.index_space, {std::move(recover_region)}, true);
   } // recover_process_topology
 
 private:

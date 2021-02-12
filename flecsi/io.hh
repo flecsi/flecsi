@@ -41,11 +41,11 @@ struct hdf5_t {
 
 void checkpoint_data(const std::string &,
   launch_space_t,
-  std::vector<hdf5_region_t> &,
+  const std::vector<hdf5_region_t> &,
   bool attach);
 void recover_data(const std::string &,
   launch_space_t,
-  std::vector<hdf5_region_t> &,
+  const std::vector<hdf5_region_t> &,
   bool attach);
 
 #ifdef DOXYGEN
