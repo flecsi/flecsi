@@ -33,43 +33,22 @@ namespace topo {
 namespace narray_impl {
 
 inline std::vector<std::size_t>
-sieve(std::size_t n) {
-  std::vector<bool> prime(n + 1, true);
-  std::vector<std::size_t> ret;
-
-  for(std::size_t p{2}; p * p <= n; ++p) {
-    if(prime[p]) {
-      for(std::size_t i{2 * p}; i <= n; i += p) {
-        prime[i] = false;
-      }
-    }
-  }
-
-  for(std::size_t p{2}; p <= n; ++p) {
-    if(prime[p])
-      ret.push_back(p);
-  }
-
-  return ret;
-} // sieve
-
-inline std::vector<std::size_t>
 factor(std::size_t np) {
   std::vector<std::size_t> facs;
-  auto primes = sieve(np);
-
-  std::size_t p{0};
-  while(np != 1) {
-    if(np % primes[p] == 0) {
-      facs.push_back(primes[p]);
-      np = np / primes[p];
+  const auto test = [&](std::size_t f) {
+    while(!(np % f)) {
+      facs.push_back(f);
+      np /= f;
     }
-    else {
-      ++p;
-    }
-  }
+  };
 
-  std::sort(facs.begin(), facs.end());
+  // Trivial wheel factorization:
+  test(2);
+  test(3);
+  for(std::size_t i = 5, step = 2; i * i <= np; i += step, step = 2 * 3 - step)
+    test(i);
+  if(np > 1) // i.e., the largest prime factor is >3 and unique
+    facs.push_back(np);
   std::reverse(facs.begin(), facs.end());
 
   return facs;
