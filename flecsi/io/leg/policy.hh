@@ -39,6 +39,7 @@
 
 namespace flecsi {
 namespace io {
+using FieldNames = std::map<Legion::FieldID, std::string>;
 
 inline void checkpoint_with_attach_task(const Legion::Task * task,
   const std::vector<Legion::PhysicalRegion> & regions,
@@ -67,7 +68,7 @@ struct legion_hdf5_region_t {
   Legion::LogicalRegion logical_region;
   Legion::LogicalPartition logical_partition;
   std::string logical_region_name;
-  std::map<Legion::FieldID, std::string> field_string_map;
+  FieldNames field_string_map;
 };
 
 /*----------------------------------------------------------------------------*
@@ -268,7 +269,7 @@ checkpoint_data(const std::string & file_name,
   Legion::Runtime * runtime = Legion::Runtime::get_runtime();
   Legion::Context ctx = Legion::Runtime::get_context();
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
   for(legion_hdf5_region_t & it : hdf5_region_vector) {
     field_string_map_vector.push_back(it.field_string_map);
   }
@@ -295,8 +296,7 @@ checkpoint_data(const std::string & file_name,
         EXCLUSIVE,
         it.logical_region));
 
-    std::map<Legion::FieldID, std::string> & field_string_map =
-      it.field_string_map;
+    FieldNames & field_string_map = it.field_string_map;
     for(std::pair<const Legion::FieldID, std::string> & it : field_string_map) {
       checkpoint_launcher.region_requirements[idx].add_field(it.first);
     }
@@ -323,7 +323,7 @@ recover_data(const std::string & file_name,
   Legion::Runtime * runtime = Legion::Runtime::get_runtime();
   Legion::Context ctx = Legion::Runtime::get_context();
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
   for(legion_hdf5_region_t & it : hdf5_region_vector) {
     field_string_map_vector.push_back(it.field_string_map);
   }
@@ -348,8 +348,7 @@ recover_data(const std::string & file_name,
         EXCLUSIVE,
         it.logical_region));
 
-    std::map<Legion::FieldID, std::string> & field_string_map =
-      it.field_string_map;
+    FieldNames & field_string_map = it.field_string_map;
     for(std::pair<const Legion::FieldID, std::string> & it : field_string_map) {
       recover_launcher.region_requirements[idx].add_field(it.first);
     }
@@ -372,7 +371,7 @@ struct io_interface_t {
     assert(num_files == (int)processes());
     auto & index_runtime_data = process_topology.get();
 
-    std::map<Legion::FieldID, std::string> field_string_map;
+    FieldNames field_string_map;
 
     for(const auto p :
       run::context::instance().get_field_info_store<topo::index>()) {
@@ -480,11 +479,10 @@ checkpoint_with_attach_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
 
   field_string_map_vector =
-    util::serial_get<std::vector<std::map<Legion::FieldID, std::string>>>(
-      task_args);
+    util::serial_get<std::vector<FieldNames>>(task_args);
 
   std::string fname = util::serial_get<std::string>(task_args);
   fname = fname + std::to_string(point);
@@ -515,9 +513,8 @@ checkpoint_with_attach_task(const Legion::Task * task,
       EXTERNAL_HDF5_FILE, attach_dst_lr, attach_dst_lr);
     std::map<Legion::FieldID, const char *> field_map;
     std::set<Legion::FieldID> field_set = task->regions[rid].privilege_fields;
-    std::map<Legion::FieldID, std::string>::iterator map_it;
     for(Legion::FieldID it : field_set) {
-      map_it = field_string_map_vector[rid].find(it);
+      const auto map_it = field_string_map_vector[rid].find(it);
       if(map_it != field_string_map_vector[rid].end()) {
         field_map.insert(std::make_pair(it, (map_it->second).c_str()));
       }
@@ -569,11 +566,10 @@ checkpoint_without_attach_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
 
   field_string_map_vector =
-    util::serial_get<std::vector<std::map<Legion::FieldID, std::string>>>(
-      task_args);
+    util::serial_get<std::vector<FieldNames>>(task_args);
 
   std::string fname = util::serial_get<std::string>(task_args);
   fname = fname + std::to_string(point);
@@ -636,11 +632,10 @@ recover_with_attach_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
 
   field_string_map_vector =
-    util::serial_get<std::vector<std::map<Legion::FieldID, std::string>>>(
-      task_args);
+    util::serial_get<std::vector<FieldNames>>(task_args);
 
   std::string fname = util::serial_get<std::string>(task_args);
   fname = fname + std::to_string(point);
@@ -655,9 +650,8 @@ recover_with_attach_task(const Legion::Task * task,
       EXTERNAL_HDF5_FILE, attach_src_lr, attach_src_lr);
     std::map<Legion::FieldID, const char *> field_map;
     std::set<Legion::FieldID> field_set = task->regions[rid].privilege_fields;
-    std::map<Legion::FieldID, std::string>::iterator map_it;
     for(Legion::FieldID it : field_set) {
-      map_it = field_string_map_vector[rid].find(it);
+      const auto map_it = field_string_map_vector[rid].find(it);
       if(map_it != field_string_map_vector[rid].end()) {
         field_map.insert(std::make_pair(it, (map_it->second).c_str()));
       }
@@ -708,11 +702,10 @@ recover_without_attach_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  std::vector<std::map<Legion::FieldID, std::string>> field_string_map_vector;
+  std::vector<FieldNames> field_string_map_vector;
 
   field_string_map_vector =
-    util::serial_get<std::vector<std::map<Legion::FieldID, std::string>>>(
-      task_args);
+    util::serial_get<std::vector<FieldNames>>(task_args);
 
   std::string fname = util::serial_get<std::string>(task_args);
   fname = fname + std::to_string(point);
