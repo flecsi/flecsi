@@ -330,14 +330,17 @@ public:
       return o->add.max_size();
     }
     size_type capacity() const noexcept {
-      // We can't count the span, since the client might remove all its
-      // elements and then work back up to capacity().  The strange result is
+      // We can't count the span and the vector, since the client might remove
+      // all the elements from the span and then add to the vector up to our
+      // return value.  The strange result is
       // that size() can be greater than capacity(), but that just means that
       // every operation might invalidate everything.
-      return o->add.capacity();
+      const auto c = o->add.capacity();
+      return o->add.empty() ? std::max(s.size(), c) : c;
     }
     void reserve(size_type n) const {
-      o->add.reserve(n);
+      if(!o->add.empty() || n > s.size())
+        o->add.reserve(n);
     }
     void shrink_to_fit() const { // repacks into span; only basic guarantee
       const size_type mv = std::min(o->add.size(), o->del);
@@ -511,7 +514,9 @@ public:
           pop_back();
       }
       else {
-        reserve(n - (o->add.empty() ? s.size() : 0));
+        // We can reduce the reservation because we're only appending:
+        if(const auto sc = o->add.empty() ? s.size() : brk(); n > sc)
+          o->add.reserve(n - sc);
 
         struct cleanup {
           const row & r;
