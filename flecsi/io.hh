@@ -39,6 +39,7 @@ struct hdf5_t {
 };
 #endif
 
+template<bool = true>
 void checkpoint_data(const std::string &,
   launch_space_t,
   const std::vector<hdf5_region_t> &,

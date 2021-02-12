@@ -261,6 +261,7 @@ using hdf5_t = legion_hdf5_t;
 using hdf5_region_t = legion_hdf5_region_t;
 using launch_space_t = Legion::IndexSpace;
 
+template<bool W = true> // whether to write or read the file
 inline void
 checkpoint_data(const std::string & file_name,
   Legion::IndexSpace launch_space,
@@ -277,10 +278,13 @@ checkpoint_data(const std::string & file_name,
   std::vector<std::byte> task_args;
   task_args = util::serial_put(std::tie(field_string_map_vector, file_name));
 
-  auto task_id =
-    attach_flag
-      ? exec::leg::task_id<checkpoint_with_attach_task, loc | inner>
-      : exec::leg::task_id<checkpoint_without_attach_task, loc | leaf>;
+  const auto task_id =
+    attach_flag ? exec::leg::task_id<(W ? checkpoint_with_attach_task
+                                        : recover_with_attach_task),
+                    loc | inner>
+                : exec::leg::task_id<(W ? checkpoint_without_attach_task
+                                        : recover_without_attach_task),
+                    loc | leaf>;
 
   Legion::IndexLauncher checkpoint_launcher(task_id,
     launch_space,
@@ -292,7 +296,7 @@ checkpoint_data(const std::string & file_name,
     checkpoint_launcher.add_region_requirement(
       Legion::RegionRequirement(it.logical_partition,
         0 /*projection ID*/,
-        READ_ONLY,
+        W ? READ_ONLY : WRITE_DISCARD,
         EXCLUSIVE,
         it.logical_region));
 
@@ -304,9 +308,9 @@ checkpoint_data(const std::string & file_name,
 
   {
     log::devel_guard guard(io_tag);
-    flog_devel(info) << "Start checkpoint file " << file_name
-                     << " regions size " << hdf5_region_vector.size()
-                     << std::endl;
+    flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
+                     << file_name << " regions size "
+                     << hdf5_region_vector.size() << std::endl;
   }
 
   Legion::FutureMap fumap =
@@ -319,48 +323,8 @@ recover_data(const std::string & file_name,
   Legion::IndexSpace launch_space,
   const std::vector<legion_hdf5_region_t> & hdf5_region_vector,
   bool attach_flag) {
-  Legion::Runtime * runtime = Legion::Runtime::get_runtime();
-  Legion::Context ctx = Legion::Runtime::get_context();
-
-  std::vector<FieldNames> field_string_map_vector;
-  for(auto & it : hdf5_region_vector) {
-    field_string_map_vector.push_back(it.field_string_map);
-  }
-
-  std::vector<std::byte> task_args;
-  task_args = util::serial_put(std::tie(field_string_map_vector, file_name));
-
-  auto task_id =
-    attach_flag ? exec::leg::task_id<recover_with_attach_task, loc | inner>
-                : exec::leg::task_id<recover_without_attach_task, loc | leaf>;
-
-  Legion::IndexLauncher recover_launcher(task_id,
-    launch_space,
-    Legion::TaskArgument((void *)(task_args.data()), task_args.size()),
-    Legion::ArgumentMap());
-  int idx = 0;
-  for(auto & it : hdf5_region_vector) {
-    recover_launcher.add_region_requirement(
-      Legion::RegionRequirement(it.logical_partition,
-        0 /*projection ID*/,
-        WRITE_DISCARD,
-        EXCLUSIVE,
-        it.logical_region));
-
-    for(auto & it : it.field_string_map) {
-      recover_launcher.region_requirements[idx].add_field(it.first);
-    }
-    idx++;
-  }
-
-  {
-    log::devel_guard guard(io_tag);
-    flog_devel(info) << "Start recover file " << file_name << " regions size "
-                     << hdf5_region_vector.size() << std::endl;
-  }
-
-  Legion::FutureMap fumap = runtime->execute_index_space(ctx, recover_launcher);
-  fumap.wait_all_results();
+  checkpoint_data<false>(
+    file_name, launch_space, hdf5_region_vector, attach_flag);
 } // recover_data
 
 struct io_interface_t {
