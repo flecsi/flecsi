@@ -253,13 +253,10 @@ checkpoint_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  std::vector<FieldNames> field_string_map_vector;
-
-  field_string_map_vector =
+  const auto field_string_map_vector =
     util::serial_get<std::vector<FieldNames>>(task_args);
-
-  std::string fname = util::serial_get<std::string>(task_args);
-  fname = fname + std::to_string(point);
+  const auto fname =
+    util::serial_get<std::string>(task_args) + std::to_string(point);
 
   hdf5_t checkpoint_file({});
   if constexpr(A) {
@@ -380,13 +377,12 @@ checkpoint_data(const std::string & file_name,
   Legion::Runtime * runtime = Legion::Runtime::get_runtime();
   Legion::Context ctx = Legion::Runtime::get_context();
 
-  std::vector<FieldNames> field_string_map_vector;
-  for(auto & it : hdf5_region_vector) {
-    field_string_map_vector.push_back(it.field_string_map);
-  }
-
-  std::vector<std::byte> task_args;
-  task_args = util::serial_put(std::tie(field_string_map_vector, file_name));
+  const auto task_args = util::serial_buffer([&](auto & p) {
+    util::serial_put(p, hdf5_region_vector.size());
+    for(auto & h : hdf5_region_vector)
+      util::serial_put(p, h.field_string_map);
+    util::serial_put(p, file_name);
+  });
 
   const auto task_id =
     attach_flag ? exec::leg::task_id<checkpoint_task<W, true>, loc | inner>
