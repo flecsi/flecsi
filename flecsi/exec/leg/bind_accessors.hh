@@ -61,9 +61,10 @@ struct bind_accessors {
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
-    std::vector<Legion::Future> const & futures)
+    std::vector<Legion::Future> const & futures,
+    task_processor_type_t p)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
-      regions_(regions), futures_(futures) {}
+      regions_(regions), futures_(futures), processor_(p) {}
 
   template<class A>
   void operator()(A & a) {
@@ -112,7 +113,6 @@ private:
   /*--------------------------------------------------------------------------*
    Special accessors to access scalar data on the device
   *---------------------------------------------------------------------------*/
-
   template<typename T>
   void visit(data::scalar_access<T> & accessor) {
 
@@ -126,7 +126,20 @@ private:
     const auto dom = legion_runtime_->get_index_space_domain(
       legion_context_, reg.get_logical_region().get_index_space());
 
-    accessor.data() = ac.read(Legion::Domain::DomainPointIterator(dom).p);
+    if(processor_ == task_processor_type_t::toc) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+      T * tmp = &accessor.data();
+      cudaMemcpy(ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
+        tmp,
+        sizeof(T),
+        cudaMemcpyDeviceToHost);
+#else
+      flog_assert(false, "Cuda should be enabled when using toc task");
+#endif
+    }
+    else {
+      accessor.data() = ac.read(Legion::Domain::DomainPointIterator(dom).p);
+    }
   }
 
   /*--------------------------------------------------------------------------*
@@ -150,6 +163,7 @@ private:
   const std::vector<Legion::PhysicalRegion> & regions_;
   size_t future_id = 0;
   const std::vector<Legion::Future> & futures_;
+  task_processor_type_t processor_;
 
 }; // struct bind_accessors
 

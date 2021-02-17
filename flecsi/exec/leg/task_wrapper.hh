@@ -273,7 +273,7 @@ struct task_wrapper {
     auto tname = util::symbol<F>();
     const param_buffers buf(task_args, tname);
     (ann::rguard<ann::execute_task_bind>(tname),
-      bind_accessors(runtime, context, regions, task->futures)(task_args));
+      bind_accessors(runtime, context, regions, task->futures, P)(task_args));
     return ann::rguard<ann::execute_task_user>(tname),
            apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
@@ -305,7 +305,9 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
     auto tname = util::symbol<F>();
     const param_buffers buf(*p, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
-      bind_accessors(runtime, context, regions, task->futures)(*p);
+      bind_accessors(
+        runtime, context, regions, task->futures, task_processor_type_t::mpi)(
+        *p);
 
     // Set the MPI function and make the runtime active.
     if constexpr(std::is_void_v<RETURN>) {

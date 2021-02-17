@@ -931,7 +931,7 @@ struct scalar_access : send_tag {
     util::identity id;
     f(acc, id);
     if(acc.get_base().span().data())
-      scalar_ = T(); // backend_function_of_accessor(acc);
+      scalar_ = *acc.get_base().span().data();
   }
 
   T & data() {
