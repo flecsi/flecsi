@@ -427,13 +427,6 @@ struct io_interface_t {
     assert(num_files == (int)processes());
     auto & index_runtime_data = process_topology.get();
 
-    FieldNames field_string_map;
-
-    for(const auto p :
-      run::context::instance().get_field_info_store<topo::index>()) {
-      field_string_map[p->fid] = std::to_string(p->fid);
-    }
-
     Legion::Runtime * runtime = Legion::Runtime::get_runtime();
     Legion::Context ctx = Legion::Runtime::get_context();
     Legion::Rect<1> file_color_bounds(0, num_files - 1);
