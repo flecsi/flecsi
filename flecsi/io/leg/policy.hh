@@ -260,10 +260,11 @@ checkpoint_task(const Legion::Task * task,
         Legion::Rect<2> rect =
           runtime->get_index_space_domain(ctx, rr.region.get_index_space());
         size_t domain_size = rect.volume();
+        auto & m = field_string_map_vector[rid];
 
         for(Legion::FieldID fid : rr.privilege_fields) {
           checkpoint_file.create_dataset(
-            std::to_string(fid), domain_size * sizeof(double));
+            m.at(fid), domain_size * sizeof(double));
         }
       }
       checkpoint_file.close();
