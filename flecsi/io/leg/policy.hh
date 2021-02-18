@@ -465,10 +465,15 @@ struct io_interface_t {
 
 private:
   legion_hdf5_region_t region() const {
+    auto & fs = run::context::instance().get_field_info_store<topo::index>();
+    std::map<std::string, std::pair<unsigned, unsigned>> count;
+    for(const auto p : fs)
+      ++count[p->name].first;
     FieldNames fn;
-    for(const auto p :
-      run::context::instance().get_field_info_store<topo::index>())
-      fn.emplace(p->fid, std::to_string(p->fid));
+    for(const auto p : fs) {
+      auto & [c, i] = count.at(p->name);
+      fn.emplace(p->fid, p->name + (c > 1 ? " #" + std::to_string(++i) : ""));
+    }
     return {process_topology->logical_region,
       logical_partition,
       "process_topology",
