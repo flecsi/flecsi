@@ -51,7 +51,7 @@ void recover_data(const std::string &,
 
 #ifdef DOXYGEN
 struct io_interface_t {
-  void add_process_topology(int num_files);
+  explicit io_interface_t(int num_files);
   void checkpoint_process_topology(const std::string &);
   void recover_process_topology(const std::string &);
 };

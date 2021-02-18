@@ -60,10 +60,9 @@ index_driver() {
     auto & flecsi_context = run::context::instance();
     // TODO:  support N-to-M
     int num_files = flecsi_context.processes();
-    io::io_interface_t cp_io;
+    io::io_interface_t cp_io(num_files);
     const std::string outfile{"io_index.dat"};
 
-    cp_io.add_process_topology(num_files);
     cp_io.checkpoint_process_topology(outfile);
 
     execute<reset_zero>(fh1);

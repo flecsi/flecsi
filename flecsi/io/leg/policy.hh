@@ -423,98 +423,61 @@ recover_data(const std::string & file_name,
 } // recover_data
 
 struct io_interface_t {
-  void add_process_topology(int num_files) {
-    // TODO:  allow for num_files != # of ranks
-    assert(num_files == (int)processes());
-    auto & index_runtime_data = process_topology.get();
-
-    Legion::Runtime * runtime = Legion::Runtime::get_runtime();
-    Legion::Context ctx = Legion::Runtime::get_context();
-    Legion::Rect<1> file_color_bounds(0, num_files - 1);
-    data::leg::unique_index_space process_topology_file_is =
-      runtime->create_index_space(ctx, file_color_bounds);
-#if 0 
-    process_topology_file_ip = runtime->create_pending_partition(ctx, index_runtime_data.index_space, process_topology_file_is);
-    int idx = 0; 
-    int num_subregions = index_runtime_data.colors;
-    for (int point = 0; point < hdf5_file.num_files; point++) {
+  explicit io_interface_t(int num_files)
+    : index_space([&] {
+        // TODO:  allow for num_files != # of ranks
+        assert(num_files == (int)processes());
+        Legion::Rect<1> file_color_bounds(0, num_files - 1);
+        return data::leg::run().create_index_space(
+          data::leg::ctx(), file_color_bounds);
+      }()),
+      index_partition(data::leg::run().create_equal_partition(data::leg::ctx(),
+        process_topology->index_space,
+        index_space)),
+      logical_partition(data::leg::run().get_logical_partition(data::leg::ctx(),
+        process_topology->logical_region,
+        index_partition)) {
+#if 0 // with create_pending_partition
+    int idx = 0;
+    int num_subregions = process_topology->colors;
+    for(int point = 0; point < hdf5_file.num_files; point++) {
       std::vector<IndexSpace> subspaces;
-      for (int i = 0; i < num_subregions/hdf5_file.num_files; i++) {
-        subspaces.push_back(runtime->get_index_subspace(ctx, index_runtime_data.color_partition.get_index_partition(), idx));
-        idx ++;
+      for(int i = 0; i < num_subregions / hdf5_file.num_files; i++) {
+        subspaces.push_back(
+          data::leg::run().get_index_subspace(data::leg::ctx(),
+            process_topology->color_partition.get_index_partition(),
+            idx));
+        idx++;
       }
-      runtime->create_index_space_union(ctx, process_topology_file_ip, point, subspaces);
+      data::leg::run().create_index_space_union(
+        data::leg::ctx(), index_partition, point, subspaces);
     }
-#else
-    data::leg::unique_index_partition process_topology_file_ip =
-      runtime->create_equal_partition(
-        ctx, index_runtime_data.index_space, process_topology_file_is);
 #endif
-    data::leg::unique_logical_partition process_topology_file_lp =
-      runtime->get_logical_partition(
-        ctx, index_runtime_data.logical_region, process_topology_file_ip);
-
-    file_map[&index_runtime_data] = {std::move(process_topology_file_is),
-      std::move(process_topology_file_ip),
-      std::move(process_topology_file_lp)};
-  } // add_process_topology
+  }
 
   void checkpoint_process_topology(const std::string & file_name) {
-    auto const & fid_vector =
-      run::context::instance().get_field_info_store<topo::index>();
-
-    auto & index_runtime_data = process_topology.get();
-    {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << "Checkpoint default index topology, fields size "
-                       << fid_vector.size() << std::endl;
-    }
-
-    const auto & file = file_map[&index_runtime_data];
-    legion_hdf5_region_t checkpoint_region{index_runtime_data.logical_region,
-      file.logical_partition,
-      "process_topology",
-      {}};
-    for(const auto p : fid_vector) {
-      checkpoint_region.field_string_map[p->fid] = std::to_string(p->fid);
-    }
-
-    checkpoint_data(
-      file_name, file.index_space, {std::move(checkpoint_region)}, true);
+    checkpoint_data(file_name, index_space, {region()}, true);
   } // checkpoint_process_topology
 
   void recover_process_topology(const std::string & file_name) {
-    auto const & fid_vector =
-      run::context::instance().get_field_info_store<topo::index>();
-
-    auto & index_runtime_data = process_topology.get();
-
-    {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << "Recover default index topology, fields size "
-                       << fid_vector.size() << std::endl;
-    }
-
-    const auto & file = file_map[&index_runtime_data];
-    legion_hdf5_region_t recover_region{index_runtime_data.logical_region,
-      file.logical_partition,
-      "process_topology",
-      {}};
-    for(const auto p : fid_vector) {
-      recover_region.field_string_map[p->fid] = std::to_string(p->fid);
-    }
-
-    recover_data(
-      file_name, file.index_space, {std::move(recover_region)}, true);
+    recover_data(file_name, index_space, {region()}, true);
   } // recover_process_topology
 
 private:
-  struct topology_data {
-    data::leg::unique_index_space index_space;
-    data::leg::unique_index_partition index_partition;
-    data::leg::unique_logical_partition logical_partition;
-  };
-  std::map<const topo::index::core *, topology_data> file_map;
+  legion_hdf5_region_t region() const {
+    FieldNames fn;
+    for(const auto p :
+      run::context::instance().get_field_info_store<topo::index>())
+      fn.emplace(p->fid, std::to_string(p->fid));
+    return {process_topology->logical_region,
+      logical_partition,
+      "process_topology",
+      std::move(fn)};
+  }
+
+  data::leg::unique_index_space index_space;
+  data::leg::unique_index_partition index_partition;
+  data::leg::unique_logical_partition logical_partition;
 };
 
 } // namespace io
