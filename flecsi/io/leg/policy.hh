@@ -110,11 +110,10 @@ struct legion_hdf5_t {
     hid_t memtype = H5Tcopy(H5T_C_S1);
     status = H5Tset_size(memtype, H5T_VARIABLE);
 
-    hsize_t dims[1] = {1};
-    hid_t dataspace_id = H5Screate_simple(1, dims, NULL);
+    const hsize_t dim = 1;
+    hid_t dataspace_id = H5Screate_simple(1, &dim, NULL);
 
-    const char * data[1];
-    data[0] = str.c_str();
+    const auto data = str.c_str();
     hid_t dset = H5Dcreate2(group_id,
       dataset_name.c_str(),
       filetype,
@@ -122,7 +121,7 @@ struct legion_hdf5_t {
       H5P_DEFAULT,
       H5P_DEFAULT,
       H5P_DEFAULT);
-    status = H5Dwrite(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+    status = H5Dwrite(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
 
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
     status = H5Dclose(dset);
@@ -160,14 +159,14 @@ struct legion_hdf5_t {
     hid_t memtype = H5Tcopy(H5T_C_S1);
     status = H5Tset_size(memtype, H5T_VARIABLE);
 
-    char * data[1];
-    status = H5Dread(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+    char * data;
+    status = H5Dread(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
 
-    str = str + std::string(data[0]);
+    str += data;
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
 
     hid_t space = H5Dget_space(dset);
-    status = H5Dvlen_reclaim(memtype, space, H5P_DEFAULT, data);
+    status = H5Dvlen_reclaim(memtype, space, H5P_DEFAULT, &data);
     status = H5Dclose(dset);
     status = H5Tclose(filetype);
     status = H5Tclose(memtype);
