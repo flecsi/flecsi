@@ -90,24 +90,17 @@ struct legion_hdf5_t {
     // status = H5Eset_auto(NULL, NULL);
     // status = H5Gget_objinfo (hdf5_file_id, group_name, 0, NULL);
 
-    hid_t group_id;
-    auto it = hdf5_groups.find(group_name);
-    if(it != hdf5_groups.end()) {
-      group_id = H5Gopen2(hdf5_file_id, group_name.c_str(), H5P_DEFAULT);
-    }
-    else {
-      group_id = H5Gcreate2(hdf5_file_id,
-        group_name.c_str(),
-        H5P_DEFAULT,
-        H5P_DEFAULT,
-        H5P_DEFAULT);
-      hdf5_groups.emplace(group_name);
-    }
+    const bool add = hdf5_groups.insert(group_name).second;
+    const hid_t group_id =
+      add ? H5Gcreate2(hdf5_file_id,
+              group_name.c_str(),
+              H5P_DEFAULT,
+              H5P_DEFAULT,
+              H5P_DEFAULT)
+          : H5Gopen2(hdf5_file_id, group_name.c_str(), H5P_DEFAULT);
     if(group_id < 0) {
-      if(it != hdf5_groups.end())
-        flog(error) << "H5Gopen2 failed: " << group_id << std::endl;
-      else
-        flog(error) << "H5Gcreate2 failed: " << group_id << std::endl;
+      flog(error) << (add ? "H5Gcreate2" : "H5Gopen2")
+                  << " failed: " << group_id << std::endl;
       close();
       return false;
     }
