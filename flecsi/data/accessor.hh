@@ -16,7 +16,7 @@
 /*!
   @file
 
-  Trhis file contains implementations of field accessor types.
+  This file contains implementations of field accessor types.
  */
 
 #if !defined(__FLECSI_PRIVATE__)
