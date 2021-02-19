@@ -128,8 +128,7 @@ private:
 
     if(processor_ == task_processor_type_t::toc) {
 #if defined(__NVCC__) || defined(__CUDACC__)
-      T * tmp = &accessor.data();
-      cudaMemcpy(tmp,
+      cudaMemcpy(&accessor.data(),
         ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
         sizeof(T),
         cudaMemcpyDeviceToHost);
