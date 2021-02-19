@@ -135,7 +135,7 @@ to_vector(span<T> s) {
 template<class T, unsigned short D>
 struct mdspan {
   static_assert(D > 0);
-  using index_type = std::size_t;
+  using size_type = std::size_t;
   using Strides = std::array<std::size_t, D - 1>;
   using Sizes = std::array<std::size_t, D>;
 
@@ -153,10 +153,10 @@ struct mdspan {
   template<class... I>
   constexpr decltype(auto) operator()(I... inds) const noexcept {
     static_assert(sizeof...(inds) == D);
-    return p[index(index_type(inds)...)];
+    return p[index(size_type(inds)...)];
   }
 
-  constexpr decltype(auto) operator[](index_type i) const noexcept {
+  constexpr decltype(auto) operator[](size_type i) const noexcept {
     assert(i < sizes[D - 1]);
     if constexpr(D > 1)
       return mdspan<T, D - 1>(
@@ -182,7 +182,7 @@ private:
 #endif
 
   template<class I0, class... I>
-  constexpr index_type index(I0 i0, I... inds) const noexcept {
+  constexpr size_type index(I0 i0, I... inds) const noexcept {
     static_assert(sizeof...(inds) == D - 1);
 #if !defined(NDEBUG)
     check_bounds(i0, inds...);
