@@ -61,10 +61,9 @@ struct bind_accessors {
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,
-    std::vector<Legion::Future> const & futures,
-    task_processor_type_t p)
+    std::vector<Legion::Future> const & futures)
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
-      regions_(regions), futures_(futures), processor_(p) {}
+      regions_(regions), futures_(futures) {}
 
   template<class A>
   void operator()(A & a) {
@@ -111,37 +110,6 @@ private:
   }
 
   /*--------------------------------------------------------------------------*
-   Special accessors to access scalar data on the device
-  *---------------------------------------------------------------------------*/
-  template<typename T>
-  void visit(data::scalar_access<T> & accessor) {
-
-    auto & reg = regions_[region++];
-
-    const Legion::UnsafeFieldAccessor<T,
-      2,
-      Legion::coord_t,
-      Realm::AffineAccessor<T, 2, Legion::coord_t>>
-      ac(reg, accessor.identifier(), sizeof(T));
-    const auto dom = legion_runtime_->get_index_space_domain(
-      legion_context_, reg.get_logical_region().get_index_space());
-
-    if(processor_ == task_processor_type_t::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      cudaMemcpy(&accessor.data(),
-        ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
-        sizeof(T),
-        cudaMemcpyDeviceToHost);
-#else
-      flog_assert(false, "Cuda should be enabled when using toc task");
-#endif
-    }
-    else {
-      accessor.data() = ac.read(Legion::Domain::DomainPointIterator(dom).p);
-    }
-  }
-
-  /*--------------------------------------------------------------------------*
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
@@ -162,7 +130,6 @@ private:
   const std::vector<Legion::PhysicalRegion> & regions_;
   size_t future_id = 0;
   const std::vector<Legion::Future> & futures_;
-  task_processor_type_t processor_;
 
 }; // struct bind_accessors
 

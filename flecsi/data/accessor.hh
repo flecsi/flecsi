@@ -922,7 +922,7 @@ private:
 };
 
 template<typename T>
-struct scalar_access : send_tag {
+struct scalar_access : send_tag, bind_tag {
 
   template<class F>
   void send(F && f) {
@@ -930,8 +930,8 @@ struct scalar_access : send_tag {
     accessor<single, T, privilege_pack<ro>> acc(fid_);
     util::identity id;
     f(acc, id);
-    if(acc.get_base().span().data())
-      scalar_ = *acc.get_base().span().data();
+    if(const auto p = acc.get_base().span().data())
+      scalar_ = get_scalar_from_accessor(p);
   }
 
   T & data() {

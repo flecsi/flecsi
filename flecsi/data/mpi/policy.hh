@@ -377,5 +377,11 @@ private:
   std::size_t max_local_source_idx = 0;
   std::size_t nreqs = 0;
 };
+
+template<typename T>
+T
+get_scalar_from_accessor(const T * ptr) {
+  return *ptr;
+}
 } // namespace data
 } // namespace flecsi
