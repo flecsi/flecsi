@@ -389,5 +389,23 @@ public:
   }
 };
 
+template<typename T>
+T
+get_scalar_from_accessor(const T * ptr) {
+  T tmp;
+  if(Legion::Processor::get_executing_processor().kind() ==
+     Legion::Processor::TOC_PROC) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+    cudaMemcpy(&tmp, ptr, sizeof(T), cudaMemcpyDeviceToHost);
+#else
+    flog_assert(false, "Cuda should be enabled when using toc task");
+#endif
+  }
+  else {
+    tmp = *ptr;
+  }
+  return tmp;
+}
+
 } // namespace data
 } // namespace flecsi
