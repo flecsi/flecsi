@@ -73,8 +73,8 @@ index_driver() {
     assert(num_ranks % num_files == 0);
     int num_ranks_per_file = num_ranks / num_files;
     if(my_rank % num_ranks_per_file == 0) {
-      io::hdf5_t checkpoint_file = io::hdf5_t::open(
-        outfile + std::to_string(my_rank / num_ranks_per_file));
+      io::hdf5 checkpoint_file =
+        io::hdf5::open(outfile + std::to_string(my_rank / num_ranks_per_file));
 
       checkpoint_file.write_string("control", "ds2", "test string 2");
 
