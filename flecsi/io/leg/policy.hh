@@ -230,8 +230,6 @@ struct legion_hdf5_t {
   Legion HDF5 checkpoint interface.
  *----------------------------------------------------------------------------*/
 using hdf5_t = legion_hdf5_t;
-using hdf5_region_t = legion_hdf5_region_t;
-using launch_space_t = Legion::IndexSpace;
 
 // This one task handles all I/O variations: read or Write, Attach or not.
 template<bool W, bool A>
@@ -411,19 +409,10 @@ checkpoint_data(const std::string & file_name,
   Legion::FutureMap fumap =
     runtime->execute_index_space(ctx, checkpoint_launcher);
   fumap.wait_all_results();
-} // checkpoint_data
+}
 
-inline void
-recover_data(const std::string & file_name,
-  Legion::IndexSpace launch_space,
-  const std::vector<legion_hdf5_region_t> & hdf5_region_vector,
-  bool attach_flag) {
-  checkpoint_data<false>(
-    file_name, launch_space, hdf5_region_vector, attach_flag);
-} // recover_data
-
-struct io_interface_t {
-  explicit io_interface_t(int num_files)
+struct io_region {
+  explicit io_region(int num_files)
     : index_space([&] {
         // TODO:  allow for num_files != # of ranks
         assert(num_files == (int)processes());
@@ -455,16 +444,8 @@ struct io_interface_t {
 #endif
   }
 
-  void checkpoint_process_topology(const std::string & file_name) {
-    checkpoint_data(file_name, index_space, {region()}, true);
-  } // checkpoint_process_topology
-
-  void recover_process_topology(const std::string & file_name) {
-    recover_data(file_name, index_space, {region()}, true);
-  } // recover_process_topology
-
-private:
-  legion_hdf5_region_t region() const {
+  template<bool W = true> // whether to write or read the file
+  void checkpoint_process_topology(const std::string & f, bool attach) const {
     auto & fs = run::context::instance().get_field_info_store<topo::index>();
     std::map<std::string, std::pair<unsigned, unsigned>> count;
     for(const auto p : fs)
@@ -474,16 +455,32 @@ private:
       auto & [c, i] = count.at(p->name);
       fn.emplace(p->fid, p->name + (c > 1 ? " #" + std::to_string(++i) : ""));
     }
-    return {process_topology->logical_region,
-      logical_partition,
-      "process_topology",
-      std::move(fn)};
+    checkpoint_data<W>(f,
+      index_space,
+      {{process_topology->logical_region,
+        logical_partition,
+        "process_topology",
+        std::move(fn)}},
+      attach);
   }
 
   data::leg::unique_index_space index_space;
   data::leg::unique_index_partition index_partition;
   data::leg::unique_logical_partition logical_partition;
 };
+
+inline void
+checkpoint_data(const std::string & file_name,
+  int num_files,
+  bool attach_flag) {
+  io_region(num_files).checkpoint_process_topology(file_name, attach_flag);
+} // checkpoint_data
+
+inline void
+recover_data(const std::string & file_name, int num_files, bool attach_flag) {
+  io_region(num_files).checkpoint_process_topology<false>(
+    file_name, attach_flag);
+} // recover_data
 
 } // namespace io
 } // namespace flecsi

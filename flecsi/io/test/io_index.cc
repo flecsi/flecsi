@@ -60,10 +60,9 @@ index_driver() {
     auto & flecsi_context = run::context::instance();
     // TODO:  support N-to-M
     int num_files = flecsi_context.processes();
-    io::io_interface_t cp_io(num_files);
     const std::string outfile{"io_index.dat"};
 
-    cp_io.checkpoint_process_topology(outfile);
+    io::checkpoint_data(outfile, num_files);
 
     execute<reset_zero>(fh1);
     execute<reset_zero>(fh2);
@@ -85,7 +84,7 @@ index_driver() {
       checkpoint_file.close();
     }
 
-    cp_io.recover_process_topology(outfile);
+    io::recover_data(outfile, processes());
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);

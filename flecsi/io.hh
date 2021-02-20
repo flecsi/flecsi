@@ -19,9 +19,7 @@
 
 namespace flecsi::io {
 
-#ifdef DOXYGEN // these are implemented per-backend
-typedef unspecified hdf5_region_t, launch_space_t;
-
+#ifdef DOXYGEN // implemented per-backend
 struct hdf5_t {
   static hdf5_t create(const std::string &);
   static hdf5_t open(const std::string &);
@@ -39,22 +37,7 @@ struct hdf5_t {
 };
 #endif
 
-template<bool = true>
-void checkpoint_data(const std::string &,
-  launch_space_t,
-  const std::vector<hdf5_region_t> &,
-  bool attach);
-void recover_data(const std::string &,
-  launch_space_t,
-  const std::vector<hdf5_region_t> &,
-  bool attach);
-
-#ifdef DOXYGEN
-struct io_interface_t {
-  explicit io_interface_t(int num_files);
-  void checkpoint_process_topology(const std::string &);
-  void recover_process_topology(const std::string &);
-};
-#endif
+void checkpoint_data(const std::string &, int files, bool attach = true);
+void recover_data(const std::string &, int files, bool attach = true);
 
 } // namespace flecsi::io
