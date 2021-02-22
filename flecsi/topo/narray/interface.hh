@@ -127,18 +127,18 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic) {
+  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
 
-    execute<idx_itvls, mpi>(ic, num_intervals);
+    execute<idx_itvls, mpi>(ic, num_intervals, comm);
 
     // clang-format off
-    auto dest_task = [&ic](auto f) {
-      execute<set_dests, mpi>(f, ic.intervals);
+    auto dest_task = [&ic, &comm](auto f) {
+      execute<set_dests, mpi>(f, ic.intervals, comm);
     };
 
-    auto ptrs_task = [&ic](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
+    auto ptrs_task = [&ic, &comm](auto f) {
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points, comm);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -153,7 +153,7 @@ private:
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index])...}};
+    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
   }
 
   static void set_meta(
