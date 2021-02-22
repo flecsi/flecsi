@@ -45,7 +45,6 @@ using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 
 struct index_coloring {
-
   /*
     Store the axis orientations of this color.
    */
@@ -124,6 +123,7 @@ struct narray_base {
   using index_coloring = narray_impl::index_coloring;
 
   struct coloring {
+    MPI_Comm comm;
     std::size_t colors;
     std::vector<index_coloring> idx_colorings;
   }; // struct coloring
@@ -137,13 +137,15 @@ struct narray_base {
   }
 
   static void idx_itvls(index_coloring const & ic,
-    std::vector<std::size_t> & num_intervals) {
-    num_intervals =
-      util::mpi::all_gather([&ic](int, int) { return ic.intervals.size(); });
+    std::vector<std::size_t> & num_intervals,
+    MPI_Comm const & comm) {
+    num_intervals = util::mpi::all_gather(
+      [&ic](int, int) { return ic.intervals.size(); }, comm);
   }
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> const & intervals) {
+    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    MPI_Comm const &) {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
@@ -155,7 +157,8 @@ struct narray_base {
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
+      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {
         // si.first: owner

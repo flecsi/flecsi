@@ -11,6 +11,7 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
+#pragma once
 
 #if !defined(__FLECSI_PRIVATE__)
 #error Do not include this file directly!

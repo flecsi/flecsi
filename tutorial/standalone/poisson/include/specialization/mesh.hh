@@ -97,10 +97,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       auto const loff =
         B::template offset<index_space::vertices, A, B::range::logical>();
 
-      if(B::template is_low<A>()) {
+      if(B::template is_low<index_space::vertices, A>()) {
         return i == loff;
       }
-      else if(B::template is_high<A>()) {
+      else if(B::template is_high<index_space::vertices, A>()) {
         auto const lsize =
           B::template size<index_space::vertices, A, B::range::logical>();
         return i == (lsize - loff);

@@ -139,6 +139,15 @@ struct unstructured_base {
   using crs = unstructured_impl::crs;
 
   struct coloring {
+    /*
+      The current coloring utilities and topology initialization assume
+      the use of MPI. This could change in the future, e.g., if legion
+      matures to the point of developing its own software stack. However,
+      for the time being, this comm is provided to retain consistency
+      with the coloring utilities for unstructured.
+     */
+
+    MPI_Comm comm;
 
     /*
       The number of colors in this coloring
@@ -190,7 +199,9 @@ struct unstructured_base {
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
-      src_points) {
+      src_points,
+    field<util::id>::accessor<wo, na> fmd,
+    MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
     /*
@@ -202,7 +213,7 @@ struct unstructured_base {
       entities.push_back(e);
     } // for
 
-    auto [rank, size] = util::mpi::info();
+    auto [rank, size] = util::mpi::info(comm);
 
     std::vector<std::vector<std::size_t>> requests(size);
     for(auto e : ic.ghosts) {
@@ -216,6 +227,20 @@ struct unstructured_base {
      */
 
     util::force_unique(entities);
+
+    /*
+      Initialize the local to MIS map.
+     */
+
+    flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
+      "entities size(" << entities.size() << ") doesn't match sum of owned("
+                       << ic.owned.size() << ") and ghosts(" << ic.ghosts.size()
+                       << ")");
+
+    std::size_t off{0};
+    for(auto e : entities) {
+      fmd[off++] = e;
+    }
 
     /*
       After the entity order has been established, we need to create
@@ -245,9 +270,8 @@ struct unstructured_base {
       Send/Receive requests for shared offsets with other processes.
      */
 
-    auto requested = util::mpi::all_to_allv([&requests](int r, int) -> auto & {
-      return requests[r];
-    });
+    auto requested = util::mpi::all_to_allv(
+      [&requests](int r, int) -> auto & { return requests[r]; }, comm);
 
     /*
       Fulfill the requests that we received from other processes, i.e.,
@@ -270,8 +294,7 @@ struct unstructured_base {
      */
 
     auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); });
-
+      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
     /*
       Setup source pointers.
      */
@@ -320,12 +343,13 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals =
-      util::mpi::all_gather([&local_itvls](int, int) { return local_itvls; });
+    num_intervals = util::mpi::all_gather(
+      [&local_itvls](int, int) { return local_itvls; }, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> intervals) {
+    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    MPI_Comm const &) {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
@@ -337,7 +361,8 @@ struct unstructured_base {
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
+      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {
         // si.first: owner

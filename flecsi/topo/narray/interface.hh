@@ -73,7 +73,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
-    std::uint32_t faces;
+    std::array<std::uint32_t, index_spaces::size> faces;
 
     std::array<scoord, index_spaces::size> global, offset, extents;
     std::array<shypercube, index_spaces::size> logical, extended;
@@ -127,18 +127,18 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic) {
+  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
 
-    execute<idx_itvls, mpi>(ic, num_intervals);
+    execute<idx_itvls, mpi>(ic, num_intervals, comm);
 
     // clang-format off
-    auto dest_task = [&ic](auto f) {
-      execute<set_dests, mpi>(f, ic.intervals);
+    auto dest_task = [&ic, &comm](auto f) {
+      execute<set_dests, mpi>(f, ic.intervals, comm);
     };
 
-    auto ptrs_task = [&ic](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
+    auto ptrs_task = [&ic, &comm](auto f) {
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points, comm);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -153,7 +153,7 @@ private:
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index])...}};
+    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
   }
 
   static void set_meta(
@@ -176,7 +176,7 @@ private:
       };
 
       const auto & ci = c.idx_colorings[i];
-      md.faces = ci.faces;
+      md.faces[i] = ci.faces;
       copy(ci.global, md.global[i]);
       copy(ci.offset, md.offset[i]);
       copy(ci.extents, md.extents[i]);
@@ -230,14 +230,14 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_low() {
-    return (meta_.get().faces >> A * 2) & narray_impl::low;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::low;
   }
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_high() {
-    return (meta_.get().faces >> A * 2) & narray_impl::high;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::high;
   }
 
   template<axis A>

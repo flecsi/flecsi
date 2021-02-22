@@ -85,12 +85,13 @@ struct mesh : topo::specialization<topo::narray, mesh> {
 
   static coloring color(std::vector<coloring_definition> index_definitions) {
     auto [colors, index_colorings] =
-      topo::narray_impl::color(index_definitions);
+      topo::narray_impl::color(index_definitions, MPI_COMM_WORLD);
 
     flog_assert(colors == processes(),
       "current implementation is restricted to 1-to-1 mapping");
 
     coloring c;
+    c.comm = MPI_COMM_WORLD;
     c.colors = colors;
     for(auto idx : index_colorings) {
       for(auto ic : idx) {
