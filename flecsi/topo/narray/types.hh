@@ -44,6 +44,20 @@ using coord = std::vector<std::size_t>;
 using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 
+/*
+  Input type for color method.
+ */
+
+struct coloring_definition {
+  coord axis_colors;
+  coord axis_extents;
+  coord axis_hdepths;
+  coord axis_bdepths;
+  std::vector<bool> axis_periodic;
+  bool diagonals = false;
+  bool create_plan = true;
+};
+
 struct index_coloring {
   /*
     Store the axis orientations of this color.
@@ -121,6 +135,9 @@ struct index_coloring {
 
 struct narray_base {
   using index_coloring = narray_impl::index_coloring;
+  using coord = narray_impl::coord;
+  using hypercube = narray_impl::hypercube;
+  using coloring_definition = narray_impl::coloring_definition;
 
   struct coloring {
     MPI_Comm comm;
