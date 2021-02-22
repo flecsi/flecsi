@@ -54,12 +54,19 @@ int
 narray_driver() {
   UNIT {
     {
+      using topo::narray_impl::factor;
+      using V = std::vector<std::size_t>;
+      EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
+      EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
+    }
+
+    {
       mesh::coord indices{8, 8};
       // mesh::coord indices{16, 16};
       // mesh::coord indices{25, 10};
       // mesh::coord indices{10, 25};
       auto colors = topo::narray_impl::distribute(processes(), indices);
-      flog(warn) << log::to_string(colors, "colors") << std::endl;
+      flog(warn) << log::container{colors} << std::endl;
       // mesh::coord colors{2, 2};
 
       mesh::coord hdepths{1, 1};

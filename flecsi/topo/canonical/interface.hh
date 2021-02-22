@@ -57,8 +57,6 @@ struct canonical : canonical_base, with_ragged<Policy> {
     allocate_connectivities(c, connect_);
   }
 
-  static void initialize(typename Policy::slot &, coloring const &) {}
-
   // The first index space is distinguished in that we decorate it:
   static inline const field<int>::definition<Policy, index_spaces::first> mine_;
   static inline const connect_t<Policy> connect_;

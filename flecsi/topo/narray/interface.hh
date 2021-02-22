@@ -27,6 +27,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/types.hh"
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/array_ref.hh"
@@ -74,14 +75,11 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     using shypercube = std::array<scoord, 2>;
     std::uint32_t faces;
 
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> global;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> offset;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> extents;
-    std::array<shypercube, index_spaces::size> logical;
-    std::array<shypercube, index_spaces::size> extended;
+    std::array<scoord, index_spaces::size> global, offset, extents;
+    std::array<shypercube, index_spaces::size> logical, extended;
 
-    static_assert(std::is_trivial<typename Policy::meta_data>::value,
-      "illegal meta data type: must be a trivial type");
+    static_assert(data::portable_v<typename Policy::meta_data>,
+      "meta_data not a valid field type");
     typename Policy::meta_data meta;
   };
 
@@ -164,30 +162,26 @@ private:
     meta_data & md = m;
 
     for(std::size_t i{0}; i < index_spaces::size; ++i) {
-      auto const & cg = c.idx_colorings[i].global;
-      auto const & co = c.idx_colorings[i].offset;
-      auto const & ce = c.idx_colorings[i].extents;
+      static constexpr auto copy = [](const coord & c,
+                                     typename meta_data::scoord & s) {
+        const auto n = s.size();
+        flog_assert(
+          c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
+        std::copy_n(c.begin(), n, s.begin());
+      };
+      static constexpr auto copy2 = [](const hypercube & h,
+                                      typename meta_data::shypercube & s) {
+        for(auto i = h.size(); i--;)
+          copy(h[i], s[i]);
+      };
 
-      flog_assert(cg.size() == dimension,
-        "invalid #axes(" << cg.size() << ") must be: " << dimension);
-      flog_assert(co.size() == dimension,
-        "invalid #axes(" << co.size() << ") must be: " << dimension);
-      flog_assert(ce.size() == dimension,
-        "invalid #axes(" << ce.size() << ") must be: " << dimension);
-
-      md.faces = c.idx_colorings[i].faces;
-
-      std::copy_n(cg.begin(), dimension, md.global[i].begin());
-      std::copy_n(co.begin(), dimension, md.offset[i].begin());
-      std::copy_n(ce.begin(), dimension, md.extents[i].begin());
-
-      auto const & cl = c.idx_colorings[i].logical;
-      std::copy_n(cl[0].begin(), dimension, md.logical[i][0].begin());
-      std::copy_n(cl[1].begin(), dimension, md.logical[i][1].begin());
-
-      auto const & cex = c.idx_colorings[i].extended;
-      std::copy_n(cex[0].begin(), dimension, md.extended[i][0].begin());
-      std::copy_n(cex[1].begin(), dimension, md.extended[i][1].begin());
+      const auto & ci = c.idx_colorings[i];
+      md.faces = ci.faces;
+      copy(ci.global, md.global[i]);
+      copy(ci.offset, md.offset[i]);
+      copy(ci.extents, md.extents[i]);
+      copy2(ci.logical, md.logical[i]);
+      copy2(ci.extended, md.extended[i]);
     } // for
   } // set_meta
 

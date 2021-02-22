@@ -37,6 +37,48 @@
 
 namespace flecsi {
 namespace log {
+namespace detail {
+template<class, class = void>
+struct stream;
+template<class T>
+std::ostream &
+put(std::ostream & o, const T & t) {
+  stream<T>::put(o, t);
+  return o;
+}
+
+template<class T>
+struct stream<T,
+  decltype(void(std::declval<std::ostream &>() << std::declval<const T &>()))> {
+  static void put(std::ostream & o, const T & t) {
+    o << t;
+  }
+};
+template<template<typename, typename> typename C, typename T, typename A>
+struct stream<C<T, A>> {
+  static void put(std::ostream & o, C<T, A> const & c) {
+    std::size_t i{0};
+    for(auto & t : c)
+      detail::put(o << i++ << ":\n  ", t) << '\n';
+  }
+};
+template<typename K, typename V>
+struct stream<std::map<K, V>> {
+  static void put(std::ostream & o, const std::map<K, V> & m) {
+    for(auto & [k, v] : m)
+      detail::put(detail::put(o, k) << ":\n  ", v) << '\n';
+  }
+};
+template<typename T>
+struct stream<std::unordered_set<T>> {
+  static void put(std::ostream & o, const std::unordered_set<T> & s) {
+    o << "{";
+    for(auto & e : s)
+      detail::put(o << "\n  ", e);
+    o << "\n}";
+  }
+};
+} // namespace detail
 
 struct guard;
 
@@ -113,84 +155,16 @@ add_output_stream(std::string const & label,
   Use at your own risk.
  */
 
-template<typename T>
-auto
-to_string(T const & t) {
-  std::stringstream ss;
-  ss << t;
-  return ss.str();
-} //
-
-template<template<typename, typename> typename C,
-  typename V,
-  typename A = std::allocator<V>>
-auto
-to_string(C<V, A> const & c, std::string label = "container") {
-  std::stringstream ss;
-
-  if(label != "")
-    ss << label << ":" << std::endl;
-
-  std::size_t i{0};
-  ss << " ";
-  for(auto e : c) {
-    if constexpr(std::is_trivial<V>::value) {
-      ss << e << " ";
-    }
-    else {
-      ss << i++ << ":\n  " << to_string(e, "") << std::endl;
-    } // if
-  } // for
-  return ss.str();
-}
-
-template<typename K, typename V>
-auto
-to_string(std::map<K, V> const & m, std::string label = "map") {
-  std::stringstream ss;
-
-  if(label != "")
-    ss << label << ":" << std::endl;
-
-  for(auto i : m) {
-    if constexpr(std::is_trivial<V>::value) {
-      ss << "(" << i.first << "," << i.second << ") ";
-    }
-    else {
-      ss << i.first << ": [" << to_string(i.second, "") << "]" << std::endl;
-    } // if
-  } // for
-  return ss.str();
-}
-
-template<typename K>
-auto
-to_string(std::unordered_set<K> const & s,
-  std::string label = "unordered set") {
-  std::stringstream ss;
-
-  if(label != "")
-    ss << label << ":" << std::endl;
-
-  if constexpr(std::is_trivial<K>::value) {
-    std::size_t i{0};
-    ss << "{ ";
-    for(auto e : s) {
-      ss << e;
-      if(i++ != s.size() - 1)
-        ss << ", ";
-    } // for
-    ss << " }";
+template<class T>
+struct container {
+  container(const T & t) : t(t) {}
+  friend std::ostream & operator<<(std::ostream & o, const container & c) {
+    return detail::put(o, c.t);
   }
-  else {
-    std::size_t i{0};
-    for(auto e : s) {
-      ss << i++ << ":\n  " << to_string(e, "") << std::endl;
-    } // for
-  } // if
 
-  return ss.str();
-}
+private:
+  const T & t;
+};
 
 } // namespace log
 } // namespace flecsi
@@ -363,31 +337,13 @@ struct devel_guard {
 inline void
 add_output_stream(std::string const &, std::ostream &, bool = false) {}
 
-template<typename T>
-auto
-to_string(T const &) {
-  return "";
-}
-
-template<template<typename, typename> typename C,
-  typename V,
-  typename A = std::allocator<V>>
-auto
-to_string(C<V, A> const &, std::string) {
-  return "";
-}
-
-template<typename K, typename V>
-auto
-to_string(std::map<K, V> const &, std::string) {
-  return "";
-}
-
-template<typename K>
-auto
-to_string(std::unordered_set<K> const &, std::string) {
-  return "";
-}
+template<class T>
+struct container {
+  container(T &) {}
+  friend std::ostream & operator<<(std::ostream & o, const container &) {
+    return o;
+  }
+};
 
 } // namespace log
 } // namespace flecsi
@@ -415,6 +371,14 @@ to_string(std::unordered_set<K> const &, std::string) {
 #define __flog_internal_wait_on_flusher()
 
 #endif // FLECSI_ENABLE_FLOG
+
+namespace flecsi::log {
+template<typename T>
+auto
+to_string(T const & t) {
+  return std::move(std::stringstream() << container(t)).str();
+}
+} // namespace flecsi::log
 
 /*!
   @def fixme

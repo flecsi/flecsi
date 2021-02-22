@@ -104,7 +104,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  util::force_unique(v2c);
+  util::unique_each(v2c);
 
   std::vector<std::vector<std::size_t>> referencer_inverse(size);
 
@@ -118,7 +118,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate inverses
-  util::force_unique(referencer_inverse);
+  util::unique_each(referencer_inverse);
 
   // Request vertex-to-cell connectivity for the cells that are
   // on other ranks in the naive cell distribution.
@@ -134,7 +134,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  util::force_unique(v2c);
+  util::unique_each(v2c);
 
   std::map<std::size_t, std::vector<std::size_t>> c2c;
   std::size_t c{offset};
@@ -162,7 +162,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate connections
-  util::force_unique(c2c);
+  util::unique_each(c2c);
 
   util::dcrs dcrs;
   dcrs.distribution = cm.distribution();
@@ -467,7 +467,7 @@ closure(Definition const & md,
 #if 1
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
-    ss << log::to_string(primary.owned, "owned") << std::endl;
+    ss << log::container{primary.owned} << std::endl;
 
     ss << "shared:" << std::endl;
     for(auto e : primary.shared) {

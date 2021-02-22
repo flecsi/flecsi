@@ -30,6 +30,7 @@
 #include <flecsi/data/field.hh>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <stack>
 
@@ -58,6 +59,9 @@ void
 destroy(const field_reference<T, L, Topo, S> & r) {
   execute<destroy_task<T, L, privilege_repeat(rw, privilege_count(P))>>(r);
 }
+template<class T>
+inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
+  typename std::iterator_traits<T>::iterator_category>;
 } // namespace detail
 
 // All accessors are ultimately implemented in terms of those for the raw
@@ -314,6 +318,26 @@ public:
 
     row(const raw_row & r) : raw_row(r) {}
 
+    void assign(size_type n, const T & t) const {
+      clear();
+      resize(n, t);
+    }
+    template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
+    void assign(I a, I b) const {
+      clear();
+      if constexpr(detail::forward_v<I>) {
+        for(auto n = std::min(std::distance(a, b), s.size()); n--; ++a)
+          push_span(*a);
+        o->add.assign(a, b);
+      }
+      else
+        while(a != b)
+          push_back(*a++);
+    }
+    void assign(std::initializer_list<T> l) const {
+      assign(l.begin(), l.end());
+    }
+
     using raw_row::operator[];
     T & front() const {
       return *this->begin();
@@ -330,14 +354,17 @@ public:
       return o->add.max_size();
     }
     size_type capacity() const noexcept {
-      // We can't count the span, since the client might remove all its
-      // elements and then work back up to capacity().  The strange result is
+      // We can't count the span and the vector, since the client might remove
+      // all the elements from the span and then add to the vector up to our
+      // return value.  The strange result is
       // that size() can be greater than capacity(), but that just means that
       // every operation might invalidate everything.
-      return o->add.capacity();
+      const auto c = o->add.capacity();
+      return o->add.empty() ? std::max(s.size(), c) : c;
     }
     void reserve(size_type n) const {
-      o->add.reserve(n);
+      if(!o->add.empty() || n > s.size())
+        o->add.reserve(n);
     }
     void shrink_to_fit() const { // repacks into span; only basic guarantee
       const size_type mv = std::min(o->add.size(), o->del);
@@ -400,7 +427,7 @@ public:
         insert(j, *a);
       return i;
     }
-    iterator insert(iterator i, std::initializer_list<T> l) {
+    iterator insert(iterator i, std::initializer_list<T> l) const {
       return insert(i, l.begin(), l.end());
     }
     template<class... AA>
@@ -511,7 +538,9 @@ public:
           pop_back();
       }
       else {
-        reserve(n - (o->add.empty() ? s.size() : 0));
+        // We can reduce the reservation because we're only appending:
+        if(const auto sc = o->add.empty() ? s.size() : brk(); n > sc)
+          o->add.reserve(n - sc);
 
         struct cleanup {
           const row & r;

@@ -59,6 +59,18 @@ struct field_register<T, raw, Topo, Space> : field_info_t {
   field_register(const field_register &) = delete;
   field_register & operator=(const field_register &) = delete;
 };
+
+// Work around the fact that std::is_trivially_move_constructible_v checks
+// for a trivial destructor in some implementations:
+template<class T>
+union move_check // movable only if trivially so
+{
+  T t;
+  ~move_check();
+};
+template<class T>
+inline constexpr bool is_trivially_move_constructible_v =
+  std::is_move_constructible_v<move_check<T>>;
 } // namespace detail
 
 /// Identifies a field on a particular topology instance.
@@ -120,6 +132,13 @@ struct field_reference : field_reference_t<Topo> {
   }
 };
 
+// This is the portion of field validity that can be checked and that
+// doesn't exclude things like std::tuple<int>.  It's similar to (the
+// proposed) trivial relocatability, but excludes std::vector.
+template<class T>
+inline constexpr bool portable_v =
+  std::is_object_v<T> && !std::is_pointer_v<T> &&
+  detail::is_trivially_move_constructible_v<T>;
 } // namespace data
 
 /// Helper type to define and access fields.
@@ -128,6 +147,7 @@ struct field_reference : field_reference_t<Topo> {
 /// \tparam L data layout
 template<class T, data::layout L = data::dense>
 struct field : data::detail::field_base<T, L> {
+  static_assert(data::portable_v<T>);
   using value_type = T;
 
   template<std::size_t Priv>

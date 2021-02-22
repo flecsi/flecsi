@@ -33,43 +33,22 @@ namespace topo {
 namespace narray_impl {
 
 inline std::vector<std::size_t>
-sieve(std::size_t n) {
-  std::vector<bool> prime(n + 1, true);
-  std::vector<std::size_t> ret;
-
-  for(std::size_t p{2}; p * p <= n; ++p) {
-    if(prime[p]) {
-      for(std::size_t i{2 * p}; i <= n; i += p) {
-        prime[i] = false;
-      }
-    }
-  }
-
-  for(std::size_t p{2}; p <= n; ++p) {
-    if(prime[p])
-      ret.push_back(p);
-  }
-
-  return ret;
-} // sieve
-
-inline std::vector<std::size_t>
 factor(std::size_t np) {
   std::vector<std::size_t> facs;
-  auto primes = sieve(np);
-
-  std::size_t p{0};
-  while(np != 1) {
-    if(np % primes[p] == 0) {
-      facs.push_back(primes[p]);
-      np = np / primes[p];
+  const auto test = [&](std::size_t f) {
+    while(!(np % f)) {
+      facs.push_back(f);
+      np /= f;
     }
-    else {
-      ++p;
-    }
-  }
+  };
 
-  std::sort(facs.begin(), facs.end());
+  // Trivial wheel factorization:
+  test(2);
+  test(3);
+  for(std::size_t i = 5, step = 2; i * i <= np; i += step, step = 2 * 3 - step)
+    test(i);
+  if(np > 1) // i.e., the largest prime factor is >3 and unique
+    facs.push_back(np);
   std::reverse(facs.begin(), facs.end());
 
   return facs;
@@ -319,8 +298,7 @@ color(std::vector<coloring_definition> const & index_spaces,
       }
       idx_colors *= axis_colors[d];
       indices *= axis_extents[d];
-      axcm.emplace_back(
-        util::color_map{axis_colors[d], axis_colors[d], axis_extents[d]});
+      axcm.emplace_back(axis_colors[d], axis_colors[d], axis_extents[d]);
     } // for
 
     flog_assert(idx_colors == colors,
@@ -392,8 +370,8 @@ color(std::vector<coloring_definition> const & index_spaces,
 
         // This won't be necessary with c++20. In c++17 lambdas can't
         // capture structured bindings.
-        auto idx_coloring = idxco;
-        auto ghost_intervals = ghstitvls;
+        auto & idx_coloring = idxco;
+        auto & ghost_intervals = ghstitvls;
 
         /*
           Here we compose the intervals from each sub-dimension to form
@@ -402,73 +380,75 @@ color(std::vector<coloring_definition> const & index_spaces,
 
         std::function<std::vector<std::pair<coord, hypercube>>(
           std::size_t, std::size_t)>
-          expand =
-            [idx_coloring, color_indices, ghost_intervals, diagonals, &expand](
-              std::size_t dim, std::size_t top) {
-              std::vector<std::pair<coord, hypercube>> sregs;
+          expand = [&idx_coloring,
+                     &color_indices,
+                     &ghost_intervals,
+                     diagonals,
+                     &expand](std::size_t dim, std::size_t top) {
+            std::vector<std::pair<coord, hypercube>> sregs;
 
-              for(std::size_t axis{0}; axis < dim; ++axis) {
-                if(sregs.size() && dim == top) {
-                  /*
-                    Expand the subregions from the lower dimensions.
-                   */
-
-                  auto subs = sregs;
-                  sregs.clear();
-                  for(size_t off{idx_coloring.logical[0][axis]};
-                      off < idx_coloring.logical[1][axis];
-                      ++off) {
-                    for(auto s : subs) {
-                      s.first[axis] = color_indices[axis];
-                      s.second[0][axis] = off;
-                      s.second[1][axis] = off + 1;
-                      sregs.emplace_back(s);
-                    } // for
-                  } // for
-                } // if
-
+            for(std::size_t axis{0}; axis < dim; ++axis) {
+              if(sregs.size() && dim == top) {
                 /*
-                  Add the subregions for this dimension.
+                  Expand the subregions from the lower dimensions.
                  */
 
-                for(auto i : ghost_intervals[axis]) {
-                  coord co(top, 0);
-                  coord start(top, 0);
-                  coord end(top, 0);
-                  for(std::size_t a{0}; a < axis; ++a) {
-                    co[a] = color_indices[a];
-                    start[a] = idx_coloring.logical[0][a];
-                    end[a] = idx_coloring.logical[1][a];
+                auto subs = std::move(sregs);
+                sregs.clear();
+                for(size_t off{idx_coloring.logical[0][axis]};
+                    off < idx_coloring.logical[1][axis];
+                    ++off) {
+                  for(auto & s : subs) {
+                    s.first[axis] = color_indices[axis];
+                    s.second[0][axis] = off;
+                    s.second[1][axis] = off + 1;
+                    sregs.emplace_back(s);
                   } // for
-
-                  co[axis] = i.first;
-                  start[axis] = i.second.first;
-                  end[axis] = i.second.second;
-                  sregs.push_back({co, hypercube{start, end}});
-
-                  if(diagonals && axis > 0) {
-                    /*
-                      Recurse to pull up lower dimensions.
-                     */
-
-                    auto ssubs = expand(dim - 1, top);
-
-                    /*
-                      Add axis information from this dimension to new diagonals.
-                     */
-
-                    for(auto ss : ssubs) {
-                      ss.first[axis] = i.first;
-                      ss.second[0][axis] = i.second.first;
-                      ss.second[1][axis] = i.second.second;
-                      sregs.emplace_back(ss);
-                    } // for
-                  } // if
                 } // for
-              } // for
+              } // if
 
-              return sregs;
-            };
+              /*
+                Add the subregions for this dimension.
+               */
+
+              for(auto i : ghost_intervals[axis]) {
+                coord co(top, 0);
+                coord start(top, 0);
+                coord end(top, 0);
+                for(std::size_t a{0}; a < axis; ++a) {
+                  co[a] = color_indices[a];
+                  start[a] = idx_coloring.logical[0][a];
+                  end[a] = idx_coloring.logical[1][a];
+                } // for
+
+                co[axis] = i.first;
+                start[axis] = i.second.first;
+                end[axis] = i.second.second;
+                sregs.push_back({co, hypercube{start, end}});
+
+                if(diagonals && axis > 0) {
+                  /*
+                    Recurse to pull up lower dimensions.
+                   */
+
+                  auto ssubs = expand(dim - 1, top);
+
+                  /*
+                    Add axis information from this dimension to new diagonals.
+                   */
+
+                  for(auto ss : ssubs) {
+                    ss.first[axis] = i.first;
+                    ss.second[0][axis] = i.second.first;
+                    ss.second[1][axis] = i.second.second;
+                    sregs.emplace_back(ss);
+                  } // for
+                } // if
+              } // for
+            } // for
+
+            return sregs;
+          };
 
         auto subregions = expand(dimension, dimension);
 
@@ -480,7 +460,7 @@ color(std::vector<coloring_definition> const & index_spaces,
           Compute a remote index from a global coordinate.
          */
 
-        auto rmtidx = [dimension, axis_bdepths](
+        auto rmtidx = [dimension, &axis_bdepths](
                         index_coloring const & idxco, coord const & gidx) {
           coord result(dimension);
           for(std::size_t axis{0}; axis < dimension; ++axis) {
@@ -499,7 +479,7 @@ color(std::vector<coloring_definition> const & index_spaces,
           Map a local coordinate to a global one.
          */
 
-        auto l2g = [dimension, faces, axis_bdepths](
+        auto l2g = [dimension, faces, &axis_bdepths](
                      index_coloring const & idxco, coord const & idx) {
           coord result(dimension);
           for(std::size_t axis{0}; axis < dimension; ++axis) {
@@ -571,7 +551,7 @@ color(std::vector<coloring_definition> const & index_spaces,
            */
 
           std::function<void(std::size_t, hypercube, std::size_t)> make =
-            [&idx_coloring, idxmap, &op2cls, &idx2co, &l2g, &rmtidx, &make](
+            [&idx_coloring, &idxmap, &op2cls, &idx2co, &l2g, &rmtidx, &make](
               std::size_t clr, hypercube const & subregion, std::size_t axis) {
               if(axis == 0) {
                 // Compute the local memory interval.
@@ -614,11 +594,11 @@ color(std::vector<coloring_definition> const & index_spaces,
           make(co, s.second, dimension - 1);
         } // for
 
-        coloring.emplace(c, idx_coloring);
+        coloring.emplace(c, std::move(idx_coloring));
       } // for
     } // if
 
-    colorings.emplace_back(coloring);
+    colorings.push_back(std::move(coloring));
   } // for
 
   return std::make_pair(colors, colorings);

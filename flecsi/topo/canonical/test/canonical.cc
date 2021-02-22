@@ -73,7 +73,7 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> c) {
     for(const auto v : t.entities<canon::vertices>()) {
       static_assert(
         std::is_same_v<decltype(v), const topo::id<canon::vertices>>);
-      last = v;
+      last = v + 0;
     }
     EXPECT_EQ((last + 1) / 2, 4u);
     c(0) = p0;

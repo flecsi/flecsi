@@ -55,10 +55,13 @@ struct shared_entity {
 inline std::ostream &
 operator<<(std::ostream & stream, shared_entity const & s) {
   stream << "<" << s.id << ": ";
+  bool first = true;
   for(auto d : s.dependents) {
-    stream << d;
-    if(d != s.dependents.back())
+    if(first)
+      first = false;
+    else
       stream << ", ";
+    stream << d;
   } // for
   stream << ">";
   return stream;
@@ -232,7 +235,7 @@ struct unstructured_base {
      */
 
     std::map<std::size_t, std::size_t> shared_offsets;
-    for(auto e : ic.shared) {
+    for(auto & e : ic.shared) {
       auto it = std::find(entities.begin(), entities.end(), e.id);
       flog_assert(it != entities.end(), "shared entity doesn't exist");
       shared_offsets[e.id] = std::distance(entities.begin(), it);
@@ -242,8 +245,9 @@ struct unstructured_base {
       Send/Receive requests for shared offsets with other processes.
      */
 
-    auto requested =
-      util::mpi::all_to_allv([&requests](int r, int) { return requests[r]; });
+    auto requested = util::mpi::all_to_allv([&requests](int r, int) -> auto & {
+      return requests[r];
+    });
 
     /*
       Fulfill the requests that we received from other processes, i.e.,
@@ -253,7 +257,7 @@ struct unstructured_base {
     std::vector<std::vector<std::size_t>> fulfills(size);
     {
       std::size_t r{0};
-      for(auto rv : requested) {
+      for(const auto & rv : requested) {
         for(auto c : rv) {
           fulfills[r].emplace_back(shared_offsets[c]);
         } // for
@@ -265,15 +269,15 @@ struct unstructured_base {
       Send/Receive the local offset information with other processes.
      */
 
-    auto fulfilled =
-      util::mpi::all_to_allv([&fulfills](int r, int) { return fulfills[r]; });
+    auto fulfilled = util::mpi::all_to_allv(
+      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); });
 
     /*
       Setup source pointers.
      */
 
     std::size_t r{0};
-    for(auto rv : fulfilled) {
+    for(const auto & rv : fulfilled) {
       if(r == std::size_t(rank)) {
         ++r;
         continue;
@@ -325,7 +329,7 @@ struct unstructured_base {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
-      a[i++] = data::intervals::make({it.first, it.second}, process());
+      a[i++] = data::intervals::make(it, process());
     } // for
   }
 
@@ -350,38 +354,14 @@ struct unstructured_base {
     field<util::id, data::ragged>::mutator<rw> exclusive,
     field<util::id, data::ragged>::mutator<rw> shared,
     field<util::id, data::ragged>::mutator<rw> ghosts) {
+    const auto cp = [](auto r, const std::vector<util::id> & v) {
+      r.assign(v.begin(), v.end());
+    };
 
-    owned[S].resize(ic.owned.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.owned) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    exclusive[S].resize(ic.exclusive.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.exclusive) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    shared[S].resize(ic.shared.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.shared) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
-
-    ghosts[S].resize(ic.ghosts.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.ghosts) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
+    cp(owned[S], ic.owned);
+    cp(exclusive[S], ic.exclusive);
+    cp(shared[S], ic.shared);
+    cp(ghosts[S], ic.ghosts);
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
