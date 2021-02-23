@@ -166,10 +166,11 @@ struct mdspan {
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](size_type i) const noexcept {
     assert(i < extent(0));
+    const auto q = p + i * step(1);
     if constexpr(D > 1)
-      return mdspan<T, D - 1>(p + i * strides[1], &strides[1]);
+      return mdspan<T, D - 1>(q, &strides[1]);
     else
-      return p[i];
+      return *q;
   }
 
 private:
