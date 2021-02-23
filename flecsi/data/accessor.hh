@@ -926,8 +926,7 @@ struct scalar_access : send_tag, bind_tag {
 
   template<class F>
   void send(F && f) {
-    // flecsi::field<T,single>::accessor<ro> acc(fid_);
-    accessor<single, T, privilege_pack<ro>> acc(fid_);
+    typename flecsi::field<T>::template accessor<ro> acc(fid_);
     util::identity id;
     f(acc, id);
     if(const auto p = acc.get_base().span().data())
