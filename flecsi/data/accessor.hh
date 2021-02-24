@@ -950,6 +950,31 @@ private:
   base_type rag;
 };
 
+template<typename T>
+struct scalar_access : send_tag, bind_tag {
+
+  template<class F>
+  void send(F && f) {
+    typename flecsi::field<T>::template accessor<ro> acc(fid_);
+    util::identity id;
+    f(acc, id);
+    if(const auto p = acc.get_base().span().data())
+      scalar_ = get_scalar_from_accessor(p);
+  }
+
+  T & data() {
+    return scalar_;
+  }
+
+  size_t identifier() {
+    return fid_;
+  }
+
+private:
+  T scalar_;
+  size_t fid_ = topo::resize::field.fid;
+};
+
 } // namespace data
 
 template<data::layout L, class T, std::size_t P>
