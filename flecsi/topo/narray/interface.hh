@@ -204,7 +204,8 @@ template<std::size_t Privileges>
 struct narray<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Privileges>;
-  util::key_array<resize::accessor<ro>, index_spaces> size_;
+  util::key_array<data::scalar_access<data::partition::row>, index_spaces>
+    size_;
 
   accessor<meta_field> meta_;
 
@@ -353,7 +354,7 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_.get().extents[S]);
+      s.data(), meta_.get().extents[S].data());
   }
 
   template<class F>

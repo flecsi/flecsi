@@ -136,12 +136,18 @@ template<class T, unsigned short D>
 struct mdspan {
   static_assert(D > 0);
   using size_type = std::size_t;
-  using Sizes = std::array<std::size_t, D>;
 
-  constexpr mdspan(T * p, const Sizes & sz) noexcept : p(p), strides(sz) {
+  FLECSI_INLINE_TARGET
+  constexpr mdspan(T * p, const size_type * sz) noexcept : p(p), strides() {
+    for(int d = 0; d < D; d++)
+      strides[d] = sz[d];
+
     for(int d = D - 1; d-- > 0;) // premultiply to convert to strides
       strides[d] *= strides[d + 1];
   }
+
+  constexpr mdspan(T * p, const std::array<size_type, D> & sz) noexcept
+    : mdspan(p, sz.data()) {}
 
   constexpr std::size_t extent(unsigned short i) const noexcept {
     return step(i) / step(i + 1);
@@ -157,11 +163,11 @@ struct mdspan {
     return p[i];
   }
 
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](size_type i) const noexcept {
     assert(i < extent(0));
     if constexpr(D > 1)
-      return mdspan<T, D - 1>(
-        p + i * strides[1], tail(std::make_index_sequence<D - 1>()));
+      return mdspan<T, D - 1>(p + i * strides[1], &strides[1]);
     else
       return p[i];
   }
@@ -172,14 +178,8 @@ private:
     return i == D ? 1 : strides[i];
   }
 
-  template<std::size_t... II>
-  constexpr std::array<std::size_t, sizeof...(II)> tail(
-    std::index_sequence<II...>) const noexcept {
-    return {strides[1 + II]...};
-  }
-
   T * p;
-  Sizes strides;
+  size_type strides[D];
 };
 
 /// A very simple emulation of std::ranges::iota_view from C++20.

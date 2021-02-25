@@ -24,11 +24,21 @@ using namespace flecsi;
 void
 extents(mesh::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh::entities>(ca);
+  auto cl = color();
+#if defined(FLECSI_ENABLE_KOKKOS)
+  auto x_ex = m.extents<mesh::x_axis>();
+  forall(j, m.extents<mesh::y_axis>(), "extents") {
+    for(auto i : x_ex)
+      c[j][i] = cl;
+  };
+
+#else
   for(auto j : m.extents<mesh::y_axis>()) {
     for(auto i : m.extents<mesh::x_axis>()) {
-      c[j][i] = color();
+      c[j][i] = cl;
     } // for
   } // for
+#endif
 }
 
 void
@@ -76,7 +86,7 @@ narray_driver() {
         {colors, indices, hdepths, bdepths, periodic, true}};
       coloring.allocate(index_definitions);
       m.allocate(coloring.get());
-      execute<extents>(m, cs(m));
+      execute<extents, default_accelerator>(m, cs(m));
       execute<print>(m, cs(m));
     } // scope
 
