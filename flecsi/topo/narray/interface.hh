@@ -27,6 +27,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/types.hh"
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/array_ref.hh"
@@ -72,26 +73,23 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
-    std::uint32_t faces;
+    std::array<std::uint32_t, index_spaces::size> faces;
 
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> global;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> offset;
-    std::array<std::array<std::size_t, dimension>, index_spaces::size> extents;
-    std::array<shypercube, index_spaces::size> logical;
-    std::array<shypercube, index_spaces::size> extended;
+    std::array<scoord, index_spaces::size> global, offset, extents;
+    std::array<shypercube, index_spaces::size> logical, extended;
 
-    static_assert(std::is_trivial<typename Policy::meta_data>::value,
-      "illegal meta data type: must be a trivial type");
+    static_assert(data::portable_v<typename Policy::meta_data>,
+      "meta_data not a valid field type");
     typename Policy::meta_data meta;
   };
 
   static inline const typename field<meta_data,
-    data::single>::template definition<meta_topology<narray<Policy>>>
+    data::single>::template definition<meta<narray<Policy>>>
     meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
-  typename meta_topology<narray<Policy>>::core meta_;
+  typename meta<narray<Policy>>::core meta_;
 
   std::size_t colors() const {
     return part_.front().colors();
@@ -129,18 +127,19 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic) {
+  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
 
-    execute<idx_itvls, mpi>(ic, num_intervals);
+    execute<idx_itvls, mpi>(ic, num_intervals, comm);
 
     // clang-format off
-    auto dest_task = [&ic](auto f) {
-      execute<set_dests, mpi>(f, ic.intervals);
+    auto dest_task = [&ic, &comm](auto f) {
+      execute<set_dests, mpi>(f, ic.intervals, comm);
     };
 
-    auto ptrs_task = [&ic](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
+    auto ptrs_task = [&ic, &comm](auto f) {
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+        f, ic.points, comm);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -155,7 +154,7 @@ private:
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index])...}};
+    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
   }
 
   static void set_meta(
@@ -164,30 +163,26 @@ private:
     meta_data & md = m;
 
     for(std::size_t i{0}; i < index_spaces::size; ++i) {
-      auto const & cg = c.idx_colorings[i].global;
-      auto const & co = c.idx_colorings[i].offset;
-      auto const & ce = c.idx_colorings[i].extents;
+      static constexpr auto copy = [](const coord & c,
+                                     typename meta_data::scoord & s) {
+        const auto n = s.size();
+        flog_assert(
+          c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
+        std::copy_n(c.begin(), n, s.begin());
+      };
+      static constexpr auto copy2 = [](const hypercube & h,
+                                      typename meta_data::shypercube & s) {
+        for(auto i = h.size(); i--;)
+          copy(h[i], s[i]);
+      };
 
-      flog_assert(cg.size() == dimension,
-        "invalid #axes(" << cg.size() << ") must be: " << dimension);
-      flog_assert(co.size() == dimension,
-        "invalid #axes(" << co.size() << ") must be: " << dimension);
-      flog_assert(ce.size() == dimension,
-        "invalid #axes(" << ce.size() << ") must be: " << dimension);
-
-      md.faces = c.idx_colorings[i].faces;
-
-      std::copy_n(cg.begin(), dimension, md.global[i].begin());
-      std::copy_n(co.begin(), dimension, md.offset[i].begin());
-      std::copy_n(ce.begin(), dimension, md.extents[i].begin());
-
-      auto const & cl = c.idx_colorings[i].logical;
-      std::copy_n(cl[0].begin(), dimension, md.logical[i][0].begin());
-      std::copy_n(cl[1].begin(), dimension, md.logical[i][1].begin());
-
-      auto const & cex = c.idx_colorings[i].extended;
-      std::copy_n(cex[0].begin(), dimension, md.extended[i][0].begin());
-      std::copy_n(cex[1].begin(), dimension, md.extended[i][1].begin());
+      const auto & ci = c.idx_colorings[i];
+      md.faces[i] = ci.faces;
+      copy(ci.global, md.global[i]);
+      copy(ci.offset, md.offset[i]);
+      copy(ci.extents, md.extents[i]);
+      copy2(ci.logical, md.logical[i]);
+      copy2(ci.extended, md.extended[i]);
     } // for
   } // set_meta
 
@@ -236,14 +231,14 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_low() {
-    return (meta_.get().faces >> A * 2) & narray_impl::low;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::low;
   }
 
-  template<axis A>
+  template<index_space S, axis A>
   bool is_high() {
-    return (meta_.get().faces >> A * 2) & narray_impl::high;
+    return (meta_.get().faces[S] >> A * 2) & narray_impl::high;
   }
 
   template<axis A>

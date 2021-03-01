@@ -33,6 +33,29 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+namespace detail {
+struct vector { // for *v functions
+  explicit vector(std::size_t n) {
+    off.reserve(n);
+    sz.reserve(n);
+  }
+
+  std::vector<std::byte> data;
+  std::vector<int> off, sz;
+
+  void skip() {
+    sz.push_back(0);
+    off.push_back(data.size());
+  }
+  template<class T>
+  void put(const T & t) {
+    const auto n = off.emplace_back(data.size());
+    data.resize(n + sz.emplace_back(serial_size(t)));
+    auto * p = data.data() + n;
+    serial_put(p, t);
+  }
+};
+} // namespace detail
 
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
@@ -181,33 +204,36 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = info(comm);
 
-  std::vector<std::vector<std::byte>> data(size);
-
+  detail::vector v(size);
+  v.skip(); // v.sz used even off-root
   if(rank == 0) {
-    std::vector<MPI_Request> requests;
-    requests.reserve(2 * (size - 1));
-
     for(size_t r{1}; r < std::size_t(size); ++r) {
-      data[r] = serial_put(f(r, size));
-      const std::size_t bytes = data[r].size();
-
-      requests.resize(requests.size() + 1);
-      MPI_Isend(&bytes, 1, type<std::size_t>(), r, 0, comm, &requests.back());
-      requests.resize(requests.size() + 1);
-      MPI_Isend(
-        data[r].data(), bytes, type<std::byte>(), r, 0, comm, &requests.back());
+      v.put(f(r, size));
     } // for
-
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), requests.data(), status.data());
   }
-  else {
-    std::size_t bytes{0};
-    MPI_Status status;
-    MPI_Recv(&bytes, 1, type<std::size_t>(), 0, 0, comm, &status);
-    std::vector<std::byte> data(bytes);
-    MPI_Recv(data.data(), bytes, type<std::byte>(), 0, 0, comm, &status);
-    auto const * p = data.data();
+
+  MPI_Scatter(v.sz.data(),
+    1,
+    MPI_INT,
+    rank ? v.sz.data() : MPI_IN_PLACE,
+    1,
+    MPI_INT,
+    0,
+    comm);
+  if(rank)
+    v.data.resize(v.sz.front());
+  MPI_Scatterv(v.data.data(),
+    v.sz.data(),
+    v.off.data(),
+    MPI_BYTE,
+    v.data.data(),
+    v.sz.front(),
+    MPI_BYTE,
+    0,
+    comm);
+
+  if(rank) {
+    auto const * p = v.data.data();
     return serial_get<return_type>(p);
   } // if
 
@@ -215,8 +241,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 } // one_to_allv
 
 /*!
-  All-to-All (variable) communication pattern implemented with non-blocking
-  send and receive operations.
+  All-to-All (variable) communication pattern.
 
   This function uses the FleCSI serialization interface with a packing
   callable object to communicate data from all ranks to all other ranks.
@@ -237,72 +262,48 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = info(comm);
 
-  std::vector<std::size_t> counts;
-  counts.reserve(size);
-  std::vector<std::size_t> bytes(size);
-
-  for(std::size_t r{0}; r < std::size_t(size); ++r) {
-    counts.emplace_back(serial_size<return_type>(f(r, size)));
-  } // for
-
-  MPI_Alltoall(counts.data(),
-    1,
-    type<std::size_t>(),
-    bytes.data(),
-    1,
-    type<std::size_t>(),
-    comm);
-
-  std::vector<std::vector<std::byte>> recv_bufs(size);
-
+  detail::vector recv(size);
   {
-    std::vector<MPI_Request> requests;
-    requests.reserve(2 * size);
-    std::vector<std::vector<std::byte>> send_bufs(size);
+    detail::vector send(size);
 
-    for(std::size_t r{0}; r < std::size_t(size); ++r) {
-      if(bytes[r] > 0) {
-        recv_bufs[r].resize(bytes[r]);
-        requests.resize(requests.size() + 1);
-        MPI_Irecv(recv_bufs[r].data(),
-          recv_bufs[r].size(),
-          type<std::byte>(),
-          r,
-          0,
-          comm,
-          &requests.back());
-      } // if
+    for(int r = 0; r < size; ++r) {
+      if(r == rank)
+        send.skip();
+      else
+        send.put(f(r, size));
     } // for
 
-    bytes.clear();
+    recv.sz.resize(size);
+    MPI_Alltoall(send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm);
 
-    for(std::size_t r{0}; r < std::size_t(size); ++r) {
-      if(counts[r] > 0) {
-        requests.resize(requests.size() + 1);
-        send_bufs[r] = serial_put(f(r, size));
-        MPI_Isend(send_bufs[r].data(),
-          send_bufs[r].size(),
-          type<std::byte>(),
-          r,
-          0,
-          comm,
-          &requests.back());
-      } // if
-    } // for
+    {
+      int o = 0;
+      for(const auto n : recv.sz) {
+        recv.off.push_back(o);
+        o += n;
+      }
+      recv.data.resize(o);
+    }
 
-    counts.clear();
-
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), requests.data(), status.data());
-  } // scope
+    MPI_Alltoallv(send.data.data(),
+      send.sz.data(),
+      send.off.data(),
+      MPI_BYTE,
+      recv.data.data(),
+      recv.sz.data(),
+      recv.off.data(),
+      MPI_BYTE,
+      comm);
+  }
 
   std::vector<return_type> result;
   result.reserve(size);
-  for(std::size_t r{0}; r < std::size_t(size); ++r) {
-    if(recv_bufs[r].size() > 0) {
-      auto const * p = recv_bufs[r].data();
-      result.emplace_back(serial_get<return_type>(p));
-    }
+  const std::byte * const p = recv.data.data();
+  for(int r = 0; r < size; ++r) {
+    if(r == rank)
+      result.push_back(f(r, size));
+    else
+      result.push_back(serial_get1<return_type>(p + recv.off[r]));
   } // for
 
   return result;

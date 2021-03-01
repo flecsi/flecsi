@@ -41,11 +41,11 @@ struct shared_entity {
   std::size_t id;
   std::vector<std::size_t> dependents;
 
-  bool operator<(shared_entity const & s) {
+  bool operator<(const shared_entity & s) const {
     return id < s.id;
   }
 
-  bool operator==(shared_entity const & s) {
+  bool operator==(const shared_entity & s) const {
     return id == s.id &&
            std::equal(
              dependents.begin(), dependents.end(), s.dependents.begin());
@@ -55,10 +55,13 @@ struct shared_entity {
 inline std::ostream &
 operator<<(std::ostream & stream, shared_entity const & s) {
   stream << "<" << s.id << ": ";
+  bool first = true;
   for(auto d : s.dependents) {
-    stream << d;
-    if(d != s.dependents.back())
+    if(first)
+      first = false;
+    else
       stream << ", ";
+    stream << d;
   } // for
   stream << ">";
   return stream;
@@ -68,11 +71,11 @@ struct ghost_entity {
   std::size_t id;
   std::size_t color;
 
-  bool operator<(ghost_entity const & g) {
+  bool operator<(const ghost_entity & g) const {
     return id < g.id;
   }
 
-  bool operator==(ghost_entity const & g) {
+  bool operator==(const ghost_entity & g) const {
     return id == g.id && color == g.color;
   }
 };
@@ -136,6 +139,15 @@ struct unstructured_base {
   using crs = unstructured_impl::crs;
 
   struct coloring {
+    /*
+      The current coloring utilities and topology initialization assume
+      the use of MPI. This could change in the future, e.g., if legion
+      matures to the point of developing its own software stack. However,
+      for the time being, this comm is provided to retain consistency
+      with the coloring utilities for unstructured.
+     */
+
+    MPI_Comm comm;
 
     /*
       The number of colors in this coloring
@@ -187,7 +199,9 @@ struct unstructured_base {
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
-      src_points) {
+      src_points,
+    field<util::id>::accessor<wo, na> fmd,
+    MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
     /*
@@ -199,7 +213,7 @@ struct unstructured_base {
       entities.push_back(e);
     } // for
 
-    auto [rank, size] = util::mpi::info();
+    auto [rank, size] = util::mpi::info(comm);
 
     std::vector<std::vector<std::size_t>> requests(size);
     for(auto e : ic.ghosts) {
@@ -213,6 +227,20 @@ struct unstructured_base {
      */
 
     util::force_unique(entities);
+
+    /*
+      Initialize the local to MIS map.
+     */
+
+    flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
+      "entities size(" << entities.size() << ") doesn't match sum of owned("
+                       << ic.owned.size() << ") and ghosts(" << ic.ghosts.size()
+                       << ")");
+
+    std::size_t off{0};
+    for(auto e : entities) {
+      fmd[off++] = e;
+    }
 
     /*
       After the entity order has been established, we need to create
@@ -232,7 +260,7 @@ struct unstructured_base {
      */
 
     std::map<std::size_t, std::size_t> shared_offsets;
-    for(auto e : ic.shared) {
+    for(auto & e : ic.shared) {
       auto it = std::find(entities.begin(), entities.end(), e.id);
       flog_assert(it != entities.end(), "shared entity doesn't exist");
       shared_offsets[e.id] = std::distance(entities.begin(), it);
@@ -242,8 +270,8 @@ struct unstructured_base {
       Send/Receive requests for shared offsets with other processes.
      */
 
-    auto requested =
-      util::mpi::all_to_allv([&requests](int r, int) { return requests[r]; });
+    auto requested = util::mpi::all_to_allv(
+      [&requests](int r, int) -> auto & { return requests[r]; }, comm);
 
     /*
       Fulfill the requests that we received from other processes, i.e.,
@@ -253,7 +281,7 @@ struct unstructured_base {
     std::vector<std::vector<std::size_t>> fulfills(size);
     {
       std::size_t r{0};
-      for(auto rv : requested) {
+      for(const auto & rv : requested) {
         for(auto c : rv) {
           fulfills[r].emplace_back(shared_offsets[c]);
         } // for
@@ -265,15 +293,14 @@ struct unstructured_base {
       Send/Receive the local offset information with other processes.
      */
 
-    auto fulfilled =
-      util::mpi::all_to_allv([&fulfills](int r, int) { return fulfills[r]; });
-
+    auto fulfilled = util::mpi::all_to_allv(
+      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
     /*
       Setup source pointers.
      */
 
     std::size_t r{0};
-    for(auto rv : fulfilled) {
+    for(const auto & rv : fulfilled) {
       if(r == std::size_t(rank)) {
         ++r;
         continue;
@@ -316,16 +343,17 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals =
-      util::mpi::all_gather([&local_itvls](int, int) { return local_itvls; });
+    num_intervals = util::mpi::all_gather(
+      [&local_itvls](int, int) { return local_itvls; }, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> intervals) {
+    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    MPI_Comm const &) {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
-      a[i++] = data::intervals::make({it.first, it.second}, process());
+      a[i++] = data::intervals::make(it, process());
     } // for
   }
 
@@ -333,7 +361,8 @@ struct unstructured_base {
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
+      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {
         // si.first: owner
@@ -350,42 +379,18 @@ struct unstructured_base {
     field<util::id, data::ragged>::mutator<rw> exclusive,
     field<util::id, data::ragged>::mutator<rw> shared,
     field<util::id, data::ragged>::mutator<rw> ghosts) {
+    const auto cp = [](auto r, const std::vector<util::id> & v) {
+      r.assign(v.begin(), v.end());
+    };
 
-    owned[S].resize(ic.owned.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.owned) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    exclusive[S].resize(ic.exclusive.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.exclusive) {
-        owned[S][i++] = e;
-      } // for
-    } // scope
-
-    shared[S].resize(ic.shared.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.shared) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
-
-    ghosts[S].resize(ic.ghosts.size());
-    {
-      std::size_t i{0};
-      for(auto e : ic.ghosts) {
-        owned[S][i++] = e.id;
-      } // for
-    } // scope
+    cp(owned[S], ic.owned);
+    cp(exclusive[S], ic.exclusive);
+    cp(shared[S], ic.shared);
+    cp(ghosts[S], ic.ghosts);
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = data::partition::make_row(color(), size);
+    a = data::partition::make_row(flecsi::color(), size);
   }
 
 }; // struct unstructured_base

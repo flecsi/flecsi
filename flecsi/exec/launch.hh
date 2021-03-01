@@ -20,7 +20,8 @@
 #endif
 
 #include "flecsi/data/field.hh"
-#include "flecsi/topo/core.hh"
+#include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/type_traits.hh"
 
 #include <cstddef>
 #include <optional>
@@ -118,19 +119,6 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
           launch_combine(launch<std::decay_t<PP>, AA>::get(aa)))
     .get();
 }
-
-template<class T, class = void>
-struct buffer {
-  using type = decltype(nullptr);
-  static void apply(T &, type) {}
-};
-template<class T>
-struct buffer<T, util::voided<typename T::TaskBuffer>> {
-  using type = typename T::TaskBuffer;
-  static void apply(T & t, type & b) {
-    t.buffer(b);
-  }
-};
 } // namespace detail
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
@@ -174,13 +162,16 @@ struct partial : std::tuple<AA...> {
   template<class... TT>
   constexpr decltype(auto) operator()(TT &&... tt) const & {
     return std::apply(F,
-      std::tuple_cat(std::tuple<const AA &...>(*this),
+      // we have to call static_cast over *this due to the bug in cuda10+gcc9.0
+      // configuration
+      std::tuple_cat(
+        std::tuple<const AA &...>(static_cast<const Base &>(*this)),
         std::forward_as_tuple(std::forward<TT>(tt)...)));
   }
   template<class... TT>
   constexpr decltype(auto) operator()(TT &&... tt) && {
     return std::apply(F,
-      std::tuple_cat(std::tuple<AA &&...>(std::move(*this)),
+      std::tuple_cat(std::tuple<AA &&...>(static_cast<Base &&>(*this)),
         std::forward_as_tuple(std::forward<TT>(tt)...)));
   }
 
@@ -229,16 +220,6 @@ struct future<Return, exec::launch_type_t::index> {
 #endif
 
 namespace exec {
-// The auxiliary object that survives the user task needed for a T,
-// or std::nullptr_t if none.
-template<class T>
-using buffer_t = typename detail::buffer<T>::type;
-template<class T>
-void
-set_buffer(T & t, buffer_t<T> & b) {
-  detail::buffer<T>::apply(t, b);
-}
-
 template<class R>
 struct detail::task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {

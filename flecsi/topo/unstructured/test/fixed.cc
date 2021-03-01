@@ -101,7 +101,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    return {fixed::colors,
+    return {MPI_COMM_WORLD,
+      fixed::colors,
       {fixed::num_cells, fixed::num_vertices},
       fixed::idx_colorings[process()],
       fixed::cnx_allocs[process()],
@@ -171,6 +172,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     field<util::id, data::ragged>::accessor<ro, na> c2v) {
     for(std::size_t c{0}; c < c2v.size(); ++c) {
       for(std::size_t v{0}; v < c2v[c].size(); ++v) {
+        flog(trace) << "v: " << c2v[c][v] << " c: " << c << std::endl;
         v2c[c2v[c][v]].push_back(c);
       }
     }
@@ -224,6 +226,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     auto & v2c =
       s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();
     execute<init_v2c, mpi>(v2c(s), c2v(s));
+    // execute<topo::unstructured_impl::transpose, mpi>(v2c(s), c2v(s));
   } // initialize
 
 }; // struct fixed_mesh
@@ -265,6 +268,16 @@ update_pressure(fixed_mesh::accessor<ro, ro> m,
     p[c] = color();
   }
 }
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+void
+parallel_update_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> p) {
+  forall(c, m.cells(), "pressure_c") {
+    p[c] += 0.0;
+  };
+}
+#endif
 
 void
 print_pressure(fixed_mesh::accessor<ro, ro> m,
@@ -308,23 +321,29 @@ print_density(fixed_mesh::accessor<ro, ro> m,
 
 void
 print(fixed_mesh::accessor<ro, ro> m,
-  field<std::size_t>::accessor<ro, wo> cids,
-  field<std::size_t>::accessor<ro, wo> vids) {
+  field<std::size_t>::accessor<ro, ro> cids,
+  field<std::size_t>::accessor<ro, ro> vids) {
+  (void)cids;
+#if 1
   for(auto c : m.cells()) {
     std::stringstream ss;
-    ss << "cell(" << cids[c] << "): ";
+    ss << "cell(" << cids[c] << "," << c << "): ";
     for(auto v : m.vertices(c)) {
       ss << vids[v] << " ";
     }
     flog(info) << ss.str() << std::endl;
   }
+#endif
 
   for(auto v : m.vertices()) {
     std::stringstream ss;
-    ss << "vertex(" << vids[v] << "): ";
+    ss << "vertex(" << vids[v] << "," << v << "): ";
+    ss << m.cells(v).size();
+#if 0
     for(auto c : m.cells(v)) {
       ss << cids[c] << " ";
     }
+#endif
     flog(info) << ss.str() << std::endl;
   }
 }
@@ -334,14 +353,20 @@ fixed_driver() {
   UNIT {
     coloring.allocate();
     mesh.allocate(coloring.get());
-    //    execute<init_ids>(mesh, cids(mesh), vids(mesh));
-    //    execute<print>(mesh, cids(mesh), vids(mesh));
+    execute<init_ids>(mesh, cids(mesh), vids(mesh));
+    execute<print>(mesh, cids(mesh), vids(mesh));
+#if 0
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure>(mesh, pressure(mesh));
+#if defined(FLECSI_ENABLE_KOKKOS)
+    execute<parallel_update_pressure, default_accelerator>(
+      mesh, pressure(mesh));
+#endif
     execute<print_pressure>(mesh, pressure(mesh));
     execute<init_density>(mesh, density(mesh));
     execute<update_density>(mesh, density(mesh));
     execute<print_density>(mesh, density(mesh));
+#endif
   };
 } // unstructured_driver
 

@@ -22,7 +22,6 @@
 #include "flecsi/util/bitutils.hh"
 
 #include <cstddef>
-#include <tuple>
 #include <utility>
 
 namespace flecsi {

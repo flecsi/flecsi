@@ -73,6 +73,19 @@ struct unstructured : unstructured_base,
   static inline const connect_t<Policy> connect_;
   static inline const field<util::id>::definition<array<Policy>> special_field;
 
+  template<typename, typename>
+  struct key_define;
+
+  template<typename T, auto... SS>
+  struct key_define<T, util::constants<SS...>> {
+    using type = util::key_tuple<util::key_type<SS,
+      typename field<T>::template definition<Policy, SS>>...>;
+  };
+
+  static inline const typename key_define<util::id, index_spaces>::type
+    forward_map_;
+  //  util::key_array<repartition, index_spaces> map_;
+
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
@@ -88,6 +101,11 @@ struct unstructured : unstructured_base,
   template<index_space S>
   const data::partition & get_partition(field_id_t) const {
     return part_.template get<S>();
+  }
+
+  template<index_space S>
+  auto const & forward_map() {
+    return forward_map_.template get<S>();
   }
 
   template<typename Type,
@@ -112,25 +130,28 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic) {
+  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
       points;
 
-    execute<idx_itvls, mpi>(ic, num_intervals, intervals, points);
+    auto const & fmd = forward_map_.template get<S>();
+    execute<idx_itvls, mpi>(
+      ic, num_intervals, intervals, points, fmd(*this), comm);
 
     // clang-format off
-    auto dest_task = [&intervals](auto f) {
-      execute<set_dests, mpi>(f, intervals);
+    auto dest_task = [&intervals, &comm](auto f) {
+      execute<set_dests, mpi>(f, intervals, comm);
     };
 
-    auto ptrs_task = [&points](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, points);
+    auto ptrs_task = [&points, &comm](auto f) {
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+        f, points, comm);
     };
+    // clang-format on
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
-    // clang-format on
   }
 
   template<auto... Value, std::size_t... Index>
@@ -141,7 +162,7 @@ private:
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index])...}};
+    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
   }
 
   template<auto... VV, typename... TT>
@@ -187,7 +208,8 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<resize::accessor<ro>, index_spaces> size_;
+  util::key_array<data::scalar_access<data::partition::row>, index_spaces>
+    size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;
 
@@ -215,7 +237,7 @@ public:
   template<index_space IndexSpace>
   auto entities() {
     return make_ids<IndexSpace>(util::iota_view<util::id>(
-      0, data::partition::row_size(size_.template get<IndexSpace>())));
+      0, data::partition::row_size(size_.template get<IndexSpace>().data())));
   }
 
   /*!

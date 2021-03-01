@@ -120,26 +120,18 @@ public:
   which may require indirection.
  */
 
-template<typename ITERATOR, typename LAMBDA>
+template<typename Iterator, typename Lambda>
 void
-parallel_for(ITERATOR iterator, LAMBDA lambda, std::string name = "") {
-
-  struct functor {
-
-    functor(ITERATOR & iterator, LAMBDA & lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i) const {
-      lambda_(iterator_[i]);
-    } // operator()
-
-  private:
-    ITERATOR & iterator_;
-    LAMBDA & lambda_;
-
-  }; // struct functor
-
-  Kokkos::parallel_for(name, iterator.size(), functor{iterator, lambda});
+parallel_for(Iterator && iterator,
+  Lambda && lambda,
+  const std::string & name = "") {
+  const auto n = iterator.size(); // before moving
+  Kokkos::parallel_for(name,
+    n,
+    [it = std::forward<Iterator>(iterator),
+      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i) {
+      return f(it[i]);
+    });
 
 } // parallel_for
 
@@ -148,95 +140,42 @@ parallel_for(ITERATOR iterator, LAMBDA lambda, std::string name = "") {
   execution.
  */
 
-template<typename ITERATOR>
+template<typename Iterator>
 struct forall_t {
+  template<typename Callable>
+  void operator->*(Callable l) && {
+    parallel_for(std::move(iterator_), std::move(l), name_);
+  }
 
-  /*!
-    Construct a forall_t instance.
-
-    @param iterator A valid C++ RandomAccess iterator.
-    @param name     An optional name that can be used for debugging.
-   */
-
-  forall_t(ITERATOR iterator, std::string name = "")
-    : iterator_(iterator), name_(name) {}
-
-  /*!
-    The functor type wraps FleCSI iterators that have indirection.
-
-    @tparam LAMBDA The user-defined lambda function.
-   */
-
-  template<typename LAMBDA>
-  struct functor {
-
-    functor(ITERATOR iterator, LAMBDA lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i) const {
-      lambda_(iterator_[i]);
-    } // operator()
-
-  private:
-    ITERATOR iterator_;
-    LAMBDA lambda_;
-
-  }; // struct functor
-
-  template<typename LAMBDA>
-  void operator+(LAMBDA lambda) {
-    Kokkos::parallel_for(
-      "  ", iterator_.size(), functor<LAMBDA>{iterator_, lambda});
-  } // operator+
-
-  /*!
-    This overload of the insertion operator allows pretty syntax when invoking
-    forall_t.
-
-    Attribution: Nick Moss
-   */
-  template<typename CALLABLE>
-  void operator<<(CALLABLE l) {
-    Kokkos::parallel_for(name_, iterator_.size(), functor{iterator_, l});
-  } // operator<<
-
-private:
-  ITERATOR iterator_;
+  Iterator iterator_;
   std::string name_;
-
 }; // struct forall_t
+template<class I>
+forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
 #define forall(it, iterator, name)                                             \
-  flecsi::exec::forall_t{iterator, name} + KOKKOS_LAMBDA(auto it)
+  ::flecsi::exec::forall_t{iterator, name}->*KOKKOS_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
   to work with FleCSI's topology iterator types.
  */
-template<class R, class T, typename ITERATOR, typename LAMBDA>
+template<class R, class T, typename Iterator, typename Lambda>
 T
-parallel_reduce(ITERATOR iterator, LAMBDA lambda, std::string name = "") {
+parallel_reduce(Iterator && iterator,
+  Lambda && lambda,
+  const std::string & name = "") {
 
   using value_type = T;
-
-  struct functor {
-
-    functor(ITERATOR & iterator, LAMBDA & lambda)
-      : iterator_(iterator), lambda_(lambda) {}
-
-    KOKKOS_INLINE_FUNCTION void operator()(int i, value_type & tmp) const {
-      lambda_(iterator_[i], tmp);
-    } // operator()
-
-  private:
-    ITERATOR & iterator_;
-    LAMBDA & lambda_;
-
-  }; // struct functor
-
   kok::wrap<R, T> result;
+  const auto n = iterator.size(); // before moving
   Kokkos::parallel_reduce(
-    name, iterator.size(), functor{iterator, lambda}, result.kokkos());
+    name,
+    n,
+    [it = std::forward<Iterator>(iterator),
+      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i,
+      value_type & tmp) { return f(it[i], tmp); },
+    result.kokkos());
   return result.reference();
 
 } // parallel_reduce
@@ -245,25 +184,17 @@ parallel_reduce(ITERATOR iterator, LAMBDA lambda, std::string name = "") {
   The reduce_all type provides a pretty interface for invoking data-parallel
   reductions.
  */
-template<class ITERATOR, class R, class T>
+template<class Iterator, class R, class T>
 struct reduceall_t {
-
-  reduceall_t(ITERATOR iterator, std::string name = "")
-    : iterator_(iterator), name_(name) {}
-
-  using value_type = T;
-
-  template<typename LAMBDA>
-  T operator->*(LAMBDA lambda) && {
+  template<typename Lambda>
+  T operator->*(Lambda lambda) && {
     return parallel_reduce<R, T>(
       std::move(iterator_), std::move(lambda), name_);
-  } // operator+
+  }
 
-private:
-  ITERATOR iterator_;
+  Iterator iterator_;
   std::string name_;
-
-}; // forall_t
+};
 
 template<class R, class T, class I>
 reduceall_t<I, R, T>
@@ -273,7 +204,7 @@ make_reduce(I i, std::string n) {
 
 #define reduceall(it, tmp, iterator, R, T, name)                               \
   ::flecsi::exec::make_reduce<R, T>(iterator, name)                            \
-      ->*KOKKOS_LAMBDA(auto it, T & tmp)
+      ->*KOKKOS_LAMBDA(auto && it, T & tmp)
 
 //----------------------------------------------------------------------------//
 //! Abstraction function for fine-grained, data-parallel interface.
@@ -287,18 +218,18 @@ make_reduce(I i, std::string n) {
 //! @ingroup execution
 //----------------------------------------------------------------------------//
 
-template<class R, typename FUNCTION>
+template<class R, typename Function>
 inline void
-for_each(R && r, FUNCTION && function) {
-  std::for_each(r.begin(), r.end(), std::forward<FUNCTION>(function));
+for_each(R && r, Function && function) {
+  std::for_each(r.begin(), r.end(), std::forward<Function>(function));
 } // for_each_u
 
 //----------------------------------------------------------------------------//
 //! Abstraction function for fine-grained, data-parallel interface.
 //!
 //! @tparam R range type
-//! @tparam FUNCTION    The calleable object type.
-//! @tparam REDUCTION   The reduction variabel type.
+//! @tparam Function    The calleable object type.
+//! @tparam Reduction   The reduction variabel type.
 //!
 //! @param r range over which to execute \a function
 //! @param function     The calleable object instance.
@@ -306,9 +237,9 @@ for_each(R && r, FUNCTION && function) {
 //! @ingroup execution
 //----------------------------------------------------------------------------//
 
-template<class R, typename FUNCTION, typename REDUCTION>
+template<class R, typename Function, typename Reduction>
 inline void
-reduce_each(R && r, REDUCTION & reduction, FUNCTION && function) {
+reduce_each(R && r, Reduction & reduction, Function && function) {
   for(const auto & e : r)
     function(e, reduction);
 } // reduce_each_u

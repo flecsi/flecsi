@@ -356,7 +356,6 @@ if(NOT FORMAT_ONLY)
     DESTINATION include
   )
 
-
   #----------------------------------------------------------------------------#
   # mesh-gen target
   #----------------------------------------------------------------------------#
@@ -437,11 +436,7 @@ if(NOT FORMAT_ONLY)
   # Link necessary libraries.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_LIBRARIES OR COLORING_LIBRARIES)
-    add_target_link_libraries(
-      FleCSI ${FLECSI_RUNTIME_LIBRARIES} ${COLORING_LIBRARIES}
-    )
-  endif()
+  target_link_libraries( FleCSI PUBLIC ${FLECSI_LIBRARY_DEPENDENCIES})
 
   if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
@@ -495,7 +490,7 @@ if(NOT FORMAT_ONLY)
   summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
   string(APPEND _summary "\n")
   summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}
-    " (${FLECSI_NODE_PLATFORM} platform)")
+    " (${Kokkos_DEVICES})")
   if(ENABLE_DOCUMENTATION)
     summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
     summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")

@@ -3,8 +3,9 @@
 #ifndef FLECSI_EXEC_PROLOG_HH
 #define FLECSI_EXEC_PROLOG_HH
 
-#include "flecsi/data/field.hh"
-#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/data/reference.hh"
+#include "flecsi/data/topology_slot.hh"
+#include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
 
 namespace flecsi {
@@ -51,6 +52,7 @@ private:
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
+  // The const prevents being a better match than more specialized overloads.
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::convert_tag, A>> visit(P &,
     const A &) {

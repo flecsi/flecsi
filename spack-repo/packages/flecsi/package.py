@@ -47,6 +47,9 @@ class Flecsi(CMakePackage):
     variant('kokkos', default=False,
             description='Enable Kokkos Support')
 
+    variant('cuda', default=False,
+             description='Enable CUDA Support')
+
     variant('openmp', default=False,
             description='Enable OpenMP Support')
 
@@ -149,5 +152,10 @@ class Flecsi(CMakePackage):
 
         if '~unit' in spec:
             options.append('-DENABLE_UNIT_TESTS=OFF')
+
+        if '+kokkos' in spec:
+            options.append('-DENABLE_KOKKOS=ON')
+        else:
+            options.append('-DENABLE_KOKKOS=OFF')
 
         return options

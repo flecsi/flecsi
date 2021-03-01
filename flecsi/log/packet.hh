@@ -79,7 +79,8 @@ struct packet_t {
       usec_bytes);
 
     std::ostringstream oss;
-    oss << msg;
+    if(msg)
+      oss << msg;
 
     strcpy(bytes_.data() + sec_bytes + usec_bytes, oss.str().c_str());
   } // packet_t
@@ -104,7 +105,7 @@ struct packet_t {
     return sec_bytes + usec_bytes + FLOG_MAX_MESSAGE_SIZE;
   } // bytes
 
-  bool operator<(packet_t const & b) {
+  bool operator<(packet_t const & b) const {
     return this->seconds() == b.seconds() ? this->useconds() < b.useconds()
                                           : this->seconds() < b.seconds();
   } // operator <

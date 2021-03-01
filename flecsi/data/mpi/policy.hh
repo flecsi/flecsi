@@ -89,7 +89,8 @@ private:
 };
 
 struct region {
-  region(size2 s, const fields & fs) : p(new region_impl(s, fs)) {}
+  region(size2 s, const fields & fs, const char * = nullptr)
+    : p(new region_impl(s, fs)) {}
 
   size2 size() const {
     return p->size();
@@ -277,12 +278,22 @@ struct copy_engine {
       }
     }
 
-    // Do a limited, ragged Alltoall communication (like util::mpi::alltoallv
-    // but without the serialization overhead) to create the inverse mapping of
+    // Create the inverse mapping of
     // group_shared_entities. This creates a map from remote destination rank to
     // a vector of *local* source indices. This information is later used by
     // MPI_Send().
-    remote_ghost_entities = shuffle(grouped_shared_entities);
+    {
+      std::size_t r = 0;
+      for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
+            static const std::vector<std::size_t> empty;
+            const auto i = grouped_shared_entities.find(r);
+            return i == grouped_shared_entities.end() ? empty : i->second;
+          })) {
+        if(!v.empty())
+          remote_ghost_entities.try_emplace(r, std::move(v));
+        ++r;
+      }
+    }
 
     // We need to figure out the max local source index in order to give correct
     // nelems when calling region::get_storage().
@@ -359,59 +370,6 @@ private:
   // (rank, { indices })
   using SendPoints = std::map<std::size_t, std::vector<std::size_t>>;
 
-  static SendPoints shuffle(const SendPoints & shared_entities) {
-    auto [not_used, nranks] = util::mpi::info(MPI_COMM_WORLD);
-
-    std::vector<std::size_t> recv_counts(nranks);
-    for(const auto & [rank, indices] : shared_entities) {
-      recv_counts[rank] = indices.size();
-    }
-
-    MPI_Alltoall(MPI_IN_PLACE,
-      1, // ignored
-      util::mpi::type<std::size_t>(), // ignored
-      recv_counts.data(),
-      1,
-      util::mpi::type<std::size_t>(),
-      MPI_COMM_WORLD);
-
-    std::vector<MPI_Request> requests;
-    // We need to reserve enough memory for request, otherwise, .resize()
-    // will invalidate &requests.back(). Since we send and receive at most
-    // one message to each peer, the total number of requests is upper bounded
-    // by 2 * nranks.
-    requests.reserve(2 * nranks);
-    SendPoints results;
-    for(int i{0}; i < nranks; ++i) {
-      if(recv_counts[i] > 0) {
-        results.emplace(i, recv_counts[i]);
-        requests.resize(requests.size() + 1);
-        MPI_Irecv(results[i].data(),
-          recv_counts[i],
-          util::mpi::type<std::size_t>(),
-          i,
-          0,
-          MPI_COMM_WORLD,
-          &requests.back());
-      }
-    }
-
-    for(const auto & [rank, indices] : shared_entities) {
-      requests.resize(requests.size() + 1);
-      MPI_Isend(indices.data(),
-        indices.size(),
-        util::mpi::type<std::size_t>(),
-        int(rank),
-        0,
-        MPI_COMM_WORLD,
-        &requests.back());
-    }
-
-    std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), requests.data(), status.data());
-    return results;
-  }
-
   const points & source;
   const intervals & destination;
   field_id_t meta_fid;
@@ -419,5 +377,11 @@ private:
   std::size_t max_local_source_idx = 0;
   std::size_t nreqs = 0;
 };
+
+template<typename T>
+T
+get_scalar_from_accessor(const T * ptr) {
+  return *ptr;
+}
 } // namespace data
 } // namespace flecsi

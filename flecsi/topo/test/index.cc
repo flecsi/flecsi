@@ -20,7 +20,6 @@
 
 using namespace flecsi;
 using namespace flecsi::data;
-using namespace flecsi::topo;
 
 struct Noisy {
   ~Noisy() {
@@ -33,8 +32,8 @@ struct Noisy {
   static inline std::size_t count;
 };
 
-using double1 = field<double, single>;
-const double1::definition<topo::index> pressure_field;
+using double_field = field<double, single>;
+const double_field::definition<topo::index> pressure_field;
 using intN = field<int, ragged>;
 const intN::definition<topo::index> verts_field;
 using double_at = field<double, sparse>;
@@ -43,7 +42,7 @@ const double_at::definition<topo::index> vfrac_field;
 constexpr std::size_t column = 42;
 
 void
-allocate(resize::Field::accessor<wo> a) {
+allocate(topo::resize::Field::accessor<wo> a) {
   const auto i = color();
   a = partition::make_row(i, i + 1);
 }
@@ -93,7 +92,7 @@ using noisy = field<Noisy, single>;
 const noisy::definition<topo::index> noisy_field;
 
 void
-assign(double1::accessor<wo> p,
+assign(double_field::accessor<wo> p,
   intN::accessor<rw> r,
   double_at::accessor<rw> sp) {
   const auto i = color();
@@ -110,7 +109,7 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
 }
 
 int
-check(double1::accessor<ro> p,
+check(double_field::accessor<ro> p,
   intN::accessor<ro> r,
   double_at::accessor<ro> sp,
   noisy::accessor<ro> n) {

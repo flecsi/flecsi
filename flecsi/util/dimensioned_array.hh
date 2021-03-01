@@ -16,10 +16,9 @@
 /*! @file */
 
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <ostream>
-
-#include "flecsi/util/common.hh"
 
 namespace flecsi {
 namespace util {

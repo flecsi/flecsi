@@ -22,7 +22,8 @@
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/run/types.hh"
+#include "flecsi/util/constant.hh"
+#include "flecsi/util/demangle.hh"
 
 #include <map>
 #include <set>
@@ -32,9 +33,11 @@ template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
 
 #ifdef DOXYGEN // implemented per-backend
+// It is not required that any of these types be movable.
+
 // A rectangular abstract array.
 struct region_base {
-  region(size2, const fields &);
+  region(size2, const fields &, const char * = nullptr);
 
   size2 size() const;
 
@@ -47,13 +50,15 @@ protected:
 
 // A prefix of each row in a region_base.
 struct partition {
-  static auto make_row(std::size_t i, std::size_t n);
+  // The row type is defined by the backend:
+  static auto make_row(std::size_t i, std::size_t n); // "constructor"
   using row = decltype(make_row(0, 0));
-  static std::size_t row_size(const row &);
+  static std::size_t row_size(const row &); // "accessor"
 
   explicit partition(region_base &); // divides into rows
-  // Derives row lengths from the field values (which should be of type row
-  // and be equal in number to the rows).  The argument partition must survive
+  // Derives row lengths from the field values (of type 'row') accessed via
+  // the partition argument, which must have the same number of rows and have
+  // length 1 on each row.  The argument partition must survive
   // until this partition is updated or destroyed.
   partition(region_base &,
     const partition &,
@@ -61,8 +66,9 @@ struct partition {
     completeness = incomplete);
 
   std::size_t colors() const;
+  // The same effect as the constructor, reusing the same region_base.
   void update(const partition &, field_id_t, completeness = incomplete);
-  template<topo::single_space>
+  template<topo::single_space> // for convenience for simple topologies
   const partition & get_partition(field_id_t) const {
     return *this;
   }
@@ -70,11 +76,12 @@ struct partition {
 
 // A subset of each row in a region_base, expressed as a set of intervals.
 struct intervals {
-  static auto make(subrow, std::size_t r = color());
+  static auto make(subrow, std::size_t r = color()); // constructor, as above
   using Value = decltype(make({}));
 
   // Derives intervals from the field values (which should be of type Value)
-  // in each row of the argument partition, which must outlive this value.
+  // in each row of the argument partition, which must have the same number of
+  // rows as the region_base and must outlive this value.
   intervals(const region_base &,
     const partition &,
     field_id_t,
@@ -83,11 +90,12 @@ struct intervals {
 
 // A set of elements in a region_base for (not of!) each row.
 struct points {
-  static auto make(std::size_t r, std::size_t);
+  static auto make(std::size_t r, std::size_t); // constructor, as above
   using Value = decltype(make(0, 0));
 
   // Derives points from the field values (which should be of type Value)
-  // in each row of the argument partition, which must outlive this value.
+  // in each row of the intervals argument, which must have the same number of
+  // rows as the region_base and must outlive this value.
   // The points need not be unique.
   points(const region_base &,
     const intervals &,
@@ -106,6 +114,12 @@ struct copy_engine {
 
 struct region : region_base {
   using region_base::region_base;
+  // key_type is a bit odd here, but we lack a generic single-type wrapper.
+  template<class Topo, typename Topo::index_space S>
+  region(size2 s, util::key_type<S, Topo>)
+    : region_base(s,
+        run::context::instance().get_field_info_store<Topo, S>(),
+        (util::type<Topo>() + '[' + std::to_string(S) + ']').c_str()) {}
 
   template<class D>
   void cleanup(field_id_t f, D d, bool hard = true) {
@@ -148,7 +162,7 @@ struct region : region_base {
         f.topology().ghost_copy(f);
   }
 
-  template<topo::single_space>
+  template<topo::single_space> // for convenience for simple topologies
   region & get_region() {
     return *this;
   }
@@ -182,7 +196,7 @@ private:
 template<class Topo, typename Topo::index_space Index = Topo::default_space()>
 region
 make_region(size2 s) {
-  return {s, run::context::instance().get_field_info_store<Topo, Index>()};
+  return {s, util::key_type<Index, Topo>()};
 }
 
 template<class P>

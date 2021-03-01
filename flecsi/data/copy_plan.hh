@@ -202,6 +202,8 @@ struct buffers_category : buffers_base, topo::array_category<P> {
         return ret;
       }()) {}
 
+  // Low indices are send buffers, in the order specified in the graph;
+  // higher indices are receive buffers, in order of sending color.
   auto operator*() {
     return field(*this);
   }

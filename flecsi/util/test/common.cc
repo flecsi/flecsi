@@ -15,7 +15,6 @@
 #define __FLECSI_PRIVATE__
 #include "flecsi/util/common.hh"
 #include "flecsi/util/constant.hh"
-#include "flecsi/util/debruijn.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/static_verify.hh"
@@ -176,17 +175,6 @@ static_assert(util::is_tuple<std::tuple<int>>::value);
 static_assert(util::is_tuple<std::tuple<int, char>>::value);
 
 // ---------------
-constexpr bool
-debruijn(std::uint32_t x) {
-  for(std::uint32_t i = 0; i < 32; ++i)
-    if(util::debruijn32_t::index(x << i) != i)
-      return false;
-  return true;
-}
-
-static_assert(util::debruijn32_t::index(0) == 0);
-static_assert(debruijn(1));
-
 int
 common() {
   UNIT {
@@ -200,40 +188,11 @@ common() {
     UNIT_CAPTURE() << flecsi::util::square(20.0) << std::endl;
     UNIT_CAPTURE() << std::endl;
 
-    // ------------------------
-    // Unique ID constructs
-    // ------------------------
-
-    // FLECSI_GENERATED_ID_MAX
-    // We won't test the particular value, as it looks like the sort
-    // of thing that might change over time
-    EXPECT_TRUE(FLECSI_GENERATED_ID_MAX > 0);
-
-    // unique_id_t
-    struct unique_type_t {};
-    auto & a = flecsi::util::unique_id<unique_type_t, int, 10>::instance();
-    auto & b = flecsi::util::unique_id<unique_type_t, int, 10>::instance();
-    EXPECT_EQ(&a, &b); // because type is a singleton
-
-    auto & c = flecsi::util::unique_id<unique_type_t, int>::instance();
-    auto & d = flecsi::util::unique_id<unique_type_t, int>::instance();
-    EXPECT_EQ(&c, &d); // singleton again
-    EXPECT_NE(
-      (void *)&c, (void *)&a); // != (different template specializations)
-
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << a.next() << std::endl;
-    UNIT_CAPTURE() << std::endl;
-
-    // unique_name
-    // Just exercise; return value generally changes between runs
-    const int i = 2;
-    const float f = float(3.14);
-    EXPECT_NE(flecsi::util::unique_name(&i), "");
-    EXPECT_NE(flecsi::util::unique_name(&i), "");
-    EXPECT_NE(flecsi::util::unique_name(&f), "");
-    EXPECT_NE(flecsi::util::unique_name(&f), "");
+    {
+      util::counter<2> a(0);
+      EXPECT_EQ(a(), 1);
+      EXPECT_EQ(a(), 2);
+    }
 
     {
       constexpr util::key_array<int, c31> m{};
@@ -247,13 +206,6 @@ common() {
         p{1, nullptr};
       static_assert(p.get<2>() == 1);
       static_assert(p.get<8>() == nullptr);
-    }
-
-    {
-      std::mt19937 random;
-      random.seed(12345);
-      for(int n = 10000; n--;)
-        EXPECT_TRUE(debruijn(random() | 1));
     }
 
     {

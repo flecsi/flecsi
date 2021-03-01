@@ -13,6 +13,10 @@
                                                                               */
 #pragma once
 
+#if !defined(__FLECSI_PRIVATE__)
+#error Do not include this file directly!
+#endif
+
 /*! @file */
 
 #include <array>
@@ -22,6 +26,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "flecsi/util/target.hh"
 
 namespace flecsi {
 namespace util {
@@ -39,12 +45,8 @@ struct span {
   using reference = T &;
   using const_reference = const T &;
 
-  // These two are implementation-defined:
-  using iterator = pointer;
-  using const_iterator = const_pointer;
-
+  using iterator = pointer; // implementation-defined
   using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   constexpr span() noexcept : span(nullptr, nullptr) {}
   constexpr span(pointer p, size_type sz) : span(p, p + sz) {}
@@ -63,27 +65,15 @@ struct span {
   constexpr iterator begin() const noexcept {
     return p;
   }
-  constexpr const_iterator cbegin() const noexcept {
-    return begin();
-  }
   constexpr iterator end() const noexcept {
     return q;
-  }
-  constexpr const_iterator cend() const noexcept {
-    return end();
   }
 
   constexpr reverse_iterator rbegin() const noexcept {
     return reverse_iterator(end());
   }
-  constexpr const_reverse_iterator crbegin() const noexcept {
-    return rbegin();
-  }
   constexpr reverse_iterator rend() const noexcept {
     return reverse_iterator(begin());
-  }
-  constexpr const_reverse_iterator crend() const noexcept {
-    return rend();
   }
 
   constexpr reference front() const {
@@ -145,67 +135,51 @@ to_vector(span<T> s) {
 template<class T, unsigned short D>
 struct mdspan {
   static_assert(D > 0);
-  using index_type = std::size_t;
-  using Strides = std::array<std::size_t, D - 1>;
+  using size_type = std::size_t;
   using Sizes = std::array<std::size_t, D>;
 
-  constexpr mdspan(T * p, const Sizes & sz) noexcept
-    : p(p), strides(head(sz, std::make_index_sequence<D - 1>())), sizes(sz) {
-    for(int d = 1; d < D - 1; ++d)
-      strides[d] *= strides[d - 1];
+  constexpr mdspan(T * p, const Sizes & sz) noexcept : p(p), strides(sz) {
+    for(int d = D - 1; d-- > 0;) // premultiply to convert to strides
+      strides[d] *= strides[d + 1];
   }
 
   constexpr std::size_t extent(unsigned short i) const noexcept {
-    assert(i < D);
-    return sizes[i];
+    return step(i) / step(i + 1);
   }
 
   template<class... I>
   constexpr decltype(auto) operator()(I... inds) const noexcept {
     static_assert(sizeof...(inds) == D);
-    return p[index(index_type(inds)...)];
+    unsigned short d = D;
+    size_type i = 0;
+    ((i += size_type(inds) * step(d--), assert(size_type(inds) < extent(d))),
+      ...); // guarantee evaluation order
+    return p[i];
   }
 
-  constexpr decltype(auto) operator[](index_type i) const noexcept {
-    assert(i < sizes[D - 1]);
+  constexpr decltype(auto) operator[](size_type i) const noexcept {
+    assert(i < extent(0));
     if constexpr(D > 1)
       return mdspan<T, D - 1>(
-        p + i * strides[D - 2], head(sizes, std::make_index_sequence<D - 1>()));
+        p + i * strides[1], tail(std::make_index_sequence<D - 1>()));
     else
       return p[i];
   }
 
 private:
+  constexpr size_type step(unsigned short i) const noexcept {
+    assert(i <= D);
+    return i == D ? 1 : strides[i];
+  }
+
   template<std::size_t... II>
-  static constexpr std::array<std::size_t, sizeof...(II)> head(
-    const std::array<std::size_t, sizeof...(II) + 1> & arr,
-    std::index_sequence<II...>) noexcept {
-    return {arr[II]...};
-  }
-
-#if !defined(NDEBUG)
-  template<class... I>
-  constexpr void check_bounds(I... inds) const noexcept {
-    std::size_t i = 0;
-    (assert(inds < sizes[i++]), ...);
-  }
-#endif
-
-  template<class I0, class... I>
-  constexpr index_type index(I0 i0, I... inds) const noexcept {
-    static_assert(sizeof...(inds) == D - 1);
-#if !defined(NDEBUG)
-    check_bounds(i0, inds...);
-#endif
-    std::size_t i = 0;
-    std::size_t ret = i0;
-    ((ret += inds * strides[i++]), ...);
-    return ret;
+  constexpr std::array<std::size_t, sizeof...(II)> tail(
+    std::index_sequence<II...>) const noexcept {
+    return {strides[1 + II]...};
   }
 
   T * p;
-  Strides strides;
-  Sizes sizes;
+  Sizes strides;
 };
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
@@ -522,10 +496,12 @@ struct transform_view {
       return !(*this < i);
     }
 
+    FLECSI_INLINE_TARGET
     constexpr reference operator*() const {
       return (*f)(*p);
     }
     // operator-> makes sense only for a true 'reference'
+    FLECSI_INLINE_TARGET
     constexpr reference operator[](difference_type n) const {
       return *(*this + n);
     }
@@ -548,30 +524,40 @@ struct transform_view {
   constexpr transform_view(C && c, F f = {})
     : transform_view(std::begin(c), std::end(c), std::move(f)) {}
 
+  FLECSI_INLINE_TARGET
   constexpr iterator begin() const noexcept {
     return {b, &f};
   }
+  FLECSI_INLINE_TARGET
   constexpr iterator end() const noexcept {
     return {e, &f};
   }
 
+  FLECSI_INLINE_TARGET
   constexpr bool empty() const {
     return b == e;
   }
+  FLECSI_INLINE_TARGET
   constexpr explicit operator bool() const {
     return !empty();
   }
 
+  FLECSI_INLINE_TARGET
   constexpr auto size() const {
     return std::distance(b, e);
   }
 
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) front() const {
     return *begin();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) back() const {
     return *--end();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](
     typename std::iterator_traits<I>::difference_type i) const {
     return begin()[i];

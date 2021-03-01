@@ -85,13 +85,6 @@ auto
 make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
-
-#ifdef FLECSI_ENABLE_FLOG
-inline auto
-log_size() {
-  return log::state::instance().packets().size();
-}
-#endif
 } // namespace detail
 
 template<auto & F, class Reduction, size_t Attributes, typename... Args>
@@ -142,6 +135,14 @@ reduce_internal(Args &&... args) {
   const auto task = leg::task_id<wrap::execute,
     Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
 
+  const auto add = [&](auto & l) {
+    for(auto & req : pro.region_requirements())
+      l.add_region_requirement(req);
+    l.futures = std::move(pro).futures();
+    if(processor_type == task_processor_type_t::toc)
+      l.tag = run::mapper::prefer_gpu;
+  };
+
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
     {
       log::devel_guard guard(execution_tag);
@@ -149,14 +150,7 @@ reduce_internal(Args &&... args) {
     }
 
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
-
-    // adding region requirements to the launcher
-    for(auto & req : pro.region_requirements()) {
-      launcher.add_region_requirement(req);
-    } // for
-
-    // adding futures to the launcher
-    launcher.futures = std::move(pro).futures();
+    add(launcher);
 
     return future<return_t>{
       legion_runtime->execute_task(legion_context, launcher)};
@@ -175,14 +169,7 @@ reduce_internal(Args &&... args) {
     Legion::ArgumentMap arg_map;
     Legion::IndexLauncher launcher(
       task, launch_domain, TaskArgument(buf.data(), buf.size()), arg_map);
-
-    // adding region requirement to the launcher
-    for(auto & req : pro.region_requirements()) {
-      launcher.add_region_requirement(req);
-    } // for
-
-    // adding futures to the launcher
-    launcher.futures = std::move(pro).futures();
+    add(launcher);
     launcher.point_futures.assign(
       pro.future_maps().begin(), pro.future_maps().end());
 

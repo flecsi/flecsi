@@ -17,14 +17,14 @@
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/run/types.hh"
+#include "flecsi/util/demangle.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {
 namespace topo {
 template<class>
-struct ragged_topology; // defined in terms of field
+struct ragged; // defined in terms of field
 }
 
 namespace data {
@@ -36,6 +36,10 @@ namespace data {
 /// \tparam Priv access privileges
 template<layout L, typename T, std::size_t Priv>
 struct accessor;
+
+/// A specialized accessor used to return scalar values
+template<typename T>
+struct scalar_access;
 
 /// A specialized accessor for changing the extent of dynamic layouts.
 template<layout, class, std::size_t Priv>
@@ -50,14 +54,27 @@ struct field_register;
 // All field registration is ultimately defined in terms of raw fields.
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, raw, Topo, Space> : field_info_t {
-  explicit field_register(field_id_t i) : field_info_t{i, sizeof(T)} {
+  explicit field_register(field_id_t i)
+    : field_info_t{i, sizeof(T), util::type<T>()} {
     run::context::instance().add_field_info<Topo, Space>(this);
   }
-  field_register() : field_register(unique_fid_t::instance().next()) {}
+  field_register() : field_register(fid_counter()) {}
   // Copying/moving is inadvisable because the context knows the address.
   field_register(const field_register &) = delete;
   field_register & operator=(const field_register &) = delete;
 };
+
+// Work around the fact that std::is_trivially_move_constructible_v checks
+// for a trivial destructor in some implementations:
+template<class T>
+union move_check // movable only if trivially so
+{
+  T t;
+  ~move_check();
+};
+template<class T>
+inline constexpr bool is_trivially_move_constructible_v =
+  std::is_move_constructible_v<move_check<T>>;
 } // namespace detail
 
 /// Identifies a field on a particular topology instance.
@@ -119,6 +136,13 @@ struct field_reference : field_reference_t<Topo> {
   }
 };
 
+// This is the portion of field validity that can be checked and that
+// doesn't exclude things like std::tuple<int>.  It's similar to (the
+// proposed) trivial relocatability, but excludes std::vector.
+template<class T>
+inline constexpr bool portable_v =
+  std::is_object_v<T> && !std::is_pointer_v<T> &&
+  detail::is_trivially_move_constructible_v<T>;
 } // namespace data
 
 /// Helper type to define and access fields.
@@ -127,6 +151,7 @@ struct field_reference : field_reference_t<Topo> {
 /// \tparam L data layout
 template<class T, data::layout L = data::dense>
 struct field : data::detail::field_base<T, L> {
+  static_assert(data::portable_v<T>);
   using value_type = T;
 
   template<std::size_t Priv>
@@ -163,6 +188,8 @@ struct field : data::detail::field_base<T, L> {
       return {*this, t};
     }
   };
+
+  field() = delete;
 };
 
 namespace data {
@@ -193,8 +220,7 @@ struct field_register : field<T, L>::base_type::template Register<Topo, Space> {
 };
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, ragged, Topo, Space>
-  : field<T, ragged>::base_type::template Register<topo::ragged_topology<Topo>,
-      Space> {
+  : field<T, ragged>::base_type::template Register<topo::ragged<Topo>, Space> {
   using Offsets = typename field<T, ragged>::Offsets;
   // We use the same field ID for the offsets:
   typename Offsets::template Register<Topo, Space> off{field_register::fid};

@@ -35,9 +35,9 @@ namespace flecsi {
 namespace data {
 
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
-constexpr int
+constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
-  return (dis + 2) % 3 + 3 * cpt;
+  return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
 }
 
 static_assert(static_cast<Legion::coord_t>(logical_size) == logical_size,
@@ -82,6 +82,9 @@ struct unique_handle {
   unique_handle() = default;
   unique_handle(T t) : h(t) {}
   unique_handle(unique_handle && u) noexcept : h(std::exchange(u.h, {})) {}
+  // Prevent erroneous conversion through T constructor:
+  template<class U>
+  unique_handle(unique_handle<U> &&) = delete;
   ~unique_handle() {
     if(*this) // empty LogicalRegions, at least, cannot be deleted
       destroy(h);
@@ -113,22 +116,63 @@ upper(std::size_t n) {
   return static_cast<Legion::coord_t>(n) - 1;
 }
 
+template<class T>
+const char *
+name(const T & t, const char * def = nullptr) {
+  // NB: retrieve_name aborts if no name is set.
+  const void * ret;
+  std::size_t sz;
+  return run().retrieve_semantic_information(
+           t, NAME_SEMANTIC_TAG, ret, sz, true)
+           ? static_cast<const char *>(ret)
+           : def;
+}
+template<class T>
+auto
+named0(const T & t, const char * n) {
+  unique_handle ret(t);
+  if(n)
+    run().attach_name(t, n);
+  return ret;
+}
+// Avoid non-type-erased unique_handle specializations:
+inline auto
+named(const Legion::IndexSpace & s, const char * n) {
+  return named0(s, n);
+}
+inline auto
+named(const Legion::IndexPartition & p, const char * n) {
+  return named0(p, n);
+}
+inline auto
+named(const Legion::LogicalRegion & r, const char * n) {
+  return named0(r, n);
+}
+inline auto
+named(const Legion::LogicalPartition & p, const char * n) {
+  return named0(p, n);
+}
+
 struct region {
-  region(size2 s, const fields & fs)
-    : index_space(run().create_index_space(ctx(),
-        Legion::Rect<2>({0, 0},
-          Legion::Point<2>(upper(s.first), upper(s.second))))),
+  region(size2 s, const fields & fs, const char * name = nullptr)
+    : index_space(named(run().create_index_space(ctx(),
+                          Legion::Rect<2>({0, 0},
+                            Legion::Point<2>(upper(s.first), upper(s.second)))),
+        name)),
       field_space([&fs] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
         const auto c = ctx();
         unique_field_space ret = r.create_field_space(c);
         Legion::FieldAllocator allocator = r.create_field_allocator(c, ret);
-        for(auto const & fi : fs)
+        for(auto const & fi : fs) {
           allocator.allocate_field(fi->type_size, fi->fid);
+          r.attach_name(ret, fi->fid, fi->name.c_str());
+        }
         return ret;
       }()),
       logical_region(
-        run().create_logical_region(ctx(), index_space, field_space)) {}
+        named(run().create_logical_region(ctx(), index_space, field_space),
+          name)) {}
 
   size2 size() const {
     const auto p = run().get_index_space_domain(index_space).hi();
@@ -168,26 +212,33 @@ protected:
   partition_base(const region & r, unique_index_partition ip)
     : index_partition(std::move(ip)), logical_partition(log(r)) {}
 
+  static unique_logical_partition log(const Legion::LogicalRegion & r,
+    const Legion::IndexPartition & p) {
+    return named(run().get_logical_partition(r, p),
+      (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
+  }
+
 private:
   // The type-erased version assumes a square transformation matrix.
   partition_base(const region & reg, Legion::DomainPoint hi)
     : color_space(run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))),
-      index_partition(run().create_partition_by_restriction(
-        ctx(),
-        Legion::IndexSpaceT<2>(reg.index_space),
-        Legion::IndexSpaceT<1>(color_space),
-        [&] {
-          Legion::Transform<2, 1> ret;
-          ret.rows[0].x = 1;
-          ret.rows[1].x = 0;
-          return ret;
-        }(),
-        {{0, 0}, {0, hi[1]}},
-        DISJOINT_COMPLETE_KIND)),
+      index_partition(named(run().create_partition_by_restriction(
+                              ctx(),
+                              Legion::IndexSpaceT<2>(reg.index_space),
+                              Legion::IndexSpaceT<1>(color_space),
+                              [&] {
+                                Legion::Transform<2, 1> ret;
+                                ret.rows[0].x = 1;
+                                ret.rows[1].x = 0;
+                                return ret;
+                              }(),
+                              {{0, 0}, {0, hi[1]}},
+                              DISJOINT_COMPLETE_KIND),
+        name(reg.index_space))),
       logical_partition(log(reg)) {}
 
   unique_logical_partition log(const region & reg) const {
-    return run().get_logical_partition(reg.logical_region, index_partition);
+    return log(reg.logical_region, index_partition);
   }
 };
 
@@ -209,8 +260,7 @@ protected:
     auto & r = run();
     auto ip =
       part(r.get_parent_index_space(index_partition), src, fid, dis, cpt);
-    logical_partition = r.get_logical_partition(
-      r.get_parent_logical_region(logical_partition), ip);
+    logical_partition = log(r.get_parent_logical_region(logical_partition), ip);
     index_partition = std::move(ip); // can't fail
   }
 
@@ -231,20 +281,23 @@ private:
 
     auto tag = flecsi::run::tag_index_partition(part_color);
 
-    return [&r](auto &&... aa) {
-      return R ? r.create_partition_by_image_range(
-                   std::forward<decltype(aa)>(aa)...)
-               : r.create_partition_by_image(std::forward<decltype(aa)>(aa)...);
-    }(ctx(),
-             is,
-             src.logical_partition,
-             r.get_parent_logical_region(src.logical_partition),
-             fid,
-             src.get_color_space(),
-             Legion::PartitionKind(partitionKind(dis, cpt)),
-             LEGION_AUTO_GENERATE_ID,
-             0,
-             tag);
+    return named(
+      [&r](auto &&... aa) {
+        return R ? r.create_partition_by_image_range(
+                     std::forward<decltype(aa)>(aa)...)
+                 : r.create_partition_by_image(
+                     std::forward<decltype(aa)>(aa)...);
+      }(ctx(),
+        is,
+        src.logical_partition,
+        r.get_parent_logical_region(src.logical_partition),
+        fid,
+        src.get_color_space(),
+        partitionKind(dis, cpt),
+        LEGION_AUTO_GENERATE_ID,
+        0,
+        tag),
+      name(src.index_partition));
   }
 };
 
@@ -317,11 +370,7 @@ private:
       dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
     Legion::RegionRequirement rr_pos(
       dest, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg);
-
-    rr_pos.add_field(ptr_fid);
-
     cl_.add_src_indirect_field(ptr_fid, rr_pos);
-    assert(!cl_.src_indirect_is_range[0]);
   }
 
   Legion::IndexCopyLauncher cl_;
@@ -339,6 +388,24 @@ public:
     copy_engine(*this).go(f);
   }
 };
+
+template<typename T>
+T
+get_scalar_from_accessor(const T * ptr) {
+  T tmp;
+  if(Legion::Processor::get_executing_processor().kind() ==
+     Legion::Processor::TOC_PROC) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+    cudaMemcpy(&tmp, ptr, sizeof(T), cudaMemcpyDeviceToHost);
+#else
+    flog_assert(false, "Cuda should be enabled when using toc task");
+#endif
+  }
+  else {
+    tmp = *ptr;
+  }
+  return tmp;
+}
 
 } // namespace data
 } // namespace flecsi

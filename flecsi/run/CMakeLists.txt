@@ -17,7 +17,6 @@ set(run_HEADERS
   context.hh
   control.hh
   point_walker.hh
-  types.hh
 )
 
 set(run_SOURCES

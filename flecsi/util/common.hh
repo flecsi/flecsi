@@ -15,20 +15,16 @@
 
 /*! @file */
 
-#include "flecsi/util/offset.hh"
-
+#include <cassert>
 #include <cstdint>
 #include <functional>
 #include <limits>
 #include <map>
-#include <sstream>
-#include <typeinfo>
+#include <type_traits>
 #include <vector>
 
 namespace flecsi {
 namespace util {
-
-using offset_t = offset<16>;
 
 //----------------------------------------------------------------------------//
 // Entity id type. This type should be used for id types for entities
@@ -62,67 +58,21 @@ square(const T & a) {
   return a * a;
 }
 
-//----------------------------------------------------------------------------//
-// Unique Identifier Utilities
-//----------------------------------------------------------------------------//
+/// A counter with a maximum.
+template<auto M>
+struct counter {
+  using type = decltype(M);
 
-//----------------------------------------------------------------------------//
-// This value is used by the Legion runtime backend to automatically
-// assign task and field ids. The current maximum value that is allowed
-// in legion_config.h is 1<<20.
-//
-// We are reserving 4096 places for internal use.
-//----------------------------------------------------------------------------//
+  constexpr explicit counter(type l) : last(l) {}
 
-#if !defined(FLECSI_GENERATED_ID_MAX)
-// 1044480 = (1<<20) - 4096
-#define FLECSI_GENERATED_ID_MAX 1044480
-#endif
-
-/*!
-  The unique_id type provides a utility to generate a series of unique ids.
-
-  @tparam UNIQUENESS_TYPE A dummy type to differentiate instances.
-  @tparam COUNTER_TYPE    The underlying counter type.
-  @tparam MAXIMUM         The maximum legal id.
- */
-
-template<typename UNIQUENESS_TYPE,
-  typename COUNTER_TYPE = size_t,
-  COUNTER_TYPE MAXIMUM = (std::numeric_limits<COUNTER_TYPE>::max)()>
-struct unique_id {
-
-  static_assert(std::is_integral<COUNTER_TYPE>::value,
-    "COUNTER_TYPE must be an integral type");
-
-  static unique_id & instance() {
-    static unique_id u;
-    return u;
-  } // instance
-
-  auto next() {
-    assert(id_ + 1 <= MAXIMUM && "id exceeds maximum value");
-    return ++id_;
-  } // next
+  const type & operator()() {
+    assert(last < M && "counter overflow");
+    return ++last;
+  }
 
 private:
-  unique_id() : id_(0) {}
-  unique_id(const unique_id &) {}
-  ~unique_id() {}
-
-  COUNTER_TYPE id_;
-}; // unique_id
-
-//! Create a unique name from the type, address, and unique id
-template<typename T>
-std::string
-unique_name(const T * const t) {
-  const void * const address = static_cast<const void *>(t);
-  const std::size_t id = unique_id<T>::instance().next();
-  std::stringstream ss;
-  ss << typeid(T).name() << "-" << address << "-" << id;
-  return ss.str();
-} // unique_name
+  type last;
+};
 
 template<typename T>
 void
@@ -135,17 +85,24 @@ force_unique(std::vector<T> & v) {
 
 template<typename K, typename T>
 void
-force_unique(std::map<K, std::vector<T>> & m) {
+unique_each(std::map<K, T> & m) {
   for(auto & v : m)
     force_unique(v.second);
 }
 
 template<typename T>
 void
-force_unique(std::vector<std::vector<T>> & vv) {
+unique_each(std::vector<T> & vv) {
   for(auto & v : vv)
     force_unique(v);
 }
+
+struct identity {
+  template<class T>
+  T && operator()(T && x) {
+    return std::forward<T>(x);
+  }
+};
 
 } // namespace util
 } // namespace flecsi

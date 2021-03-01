@@ -27,9 +27,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using axes = has<x_axis, y_axis>;
   enum orientation { low, high };
 
-  using coord = flecsi::topo::narray<mesh>::coord;
-  using hypercube = flecsi::topo::narray<mesh>::hypercube;
-  using coloring_definition = flecsi::topo::narray<mesh>::coloring_definition;
+  using coord = base::coord;
+  using hypercube = base::hypercube;
+  using coloring_definition = base::coloring_definition;
 
   struct meta_data {
     double delta;
@@ -97,10 +97,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       auto const loff =
         B::template offset<index_space::vertices, A, B::range::logical>();
 
-      if(B::template is_low<A>()) {
+      if(B::template is_low<index_space::vertices, A>()) {
         return i == loff;
       }
-      else if(B::template is_high<A>()) {
+      else if(B::template is_high<index_space::vertices, A>()) {
         auto const lsize =
           B::template size<index_space::vertices, A, B::range::logical>();
         return i == (lsize - loff);
@@ -112,7 +112,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   }; // struct interface
 
   static auto distribute(std::size_t np, std::vector<std::size_t> indices) {
-    return flecsi::topo::narray_impl::distribute(np, indices);
+    return flecsi::topo::narray_utils::distribute(np, indices);
   } // distribute
 
   /*--------------------------------------------------------------------------*
@@ -126,12 +126,13 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     std::vector<coloring_definition> color_definitions{
       {axis_colors, axis_extents, hdepths, bdepths, periodic}};
     auto [colors, index_colorings] =
-      flecsi::topo::narray_impl::color(color_definitions);
+      flecsi::topo::narray_utils::color(color_definitions, MPI_COMM_WORLD);
 
     flog_assert(colors == flecsi::processes(),
       "current implementation is restricted to 1-to-1 mapping");
 
     coloring c;
+    c.comm = MPI_COMM_WORLD;
     c.colors = colors;
     for(auto idx : index_colorings) {
       for(auto ic : idx) {

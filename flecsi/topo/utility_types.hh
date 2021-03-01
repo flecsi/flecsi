@@ -21,7 +21,6 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/topo/index.hh" // meta_topo
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
 
@@ -88,13 +87,6 @@ private:
     return {{typename T::value_type(m.template get<VV>().fid)...}};
   }
 };
-
-struct identity {
-  template<class T>
-  T && operator()(T && x) {
-    return std::forward<T>(x);
-  }
-};
 } // namespace detail
 
 // Accessors for the connectivity requested by a topology.
@@ -133,7 +125,7 @@ private:
 template<class P, std::size_t Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
-template<class F, class... VT, class C, class S = detail::identity>
+template<class F, class... VT, class C, class S = util::identity>
 void connect_send(F && f,
   util::key_tuple<VT...> & ca,
   C & cf,
@@ -176,11 +168,15 @@ struct id {
   using difference_type = std::make_signed_t<T>;
 
   id() = default; // allow trivial default initialization
+  FLECSI_INLINE_TARGET
   explicit id(T t) : t(t) {}
 
+  FLECSI_INLINE_TARGET
   T operator+() const {
     return t;
   }
+
+  FLECSI_INLINE_TARGET
   operator T() const {
     return t;
   }
@@ -188,43 +184,53 @@ struct id {
   // Prevent assigning to transform_view results:
   id & operator=(const id &) & = default;
 
+  FLECSI_INLINE_TARGET
   id & operator++() & {
     ++t;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator++(int) & {
     id ret = *this;
     ++*this;
     return ret;
   }
+  FLECSI_INLINE_TARGET
   id & operator--() & {
     --t;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator--(int) & {
     id ret = *this;
     --*this;
     return ret;
   }
 
+  FLECSI_INLINE_TARGET
   id & operator+=(difference_type d) & {
     t += d;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator+(difference_type d) const {
-    return id(d + *this);
+    return d + *this;
   }
+  FLECSI_INLINE_TARGET
   void operator+(id) const = delete;
   friend id operator+(difference_type d, id i) {
     return i += d;
   }
+  FLECSI_INLINE_TARGET
   id & operator-=(difference_type d) & {
     t -= d;
     return *this;
   }
+  FLECSI_INLINE_TARGET
   id operator-(difference_type d) const {
     return id(difference_type(*this) - d);
   }
+  FLECSI_INLINE_TARGET
   difference_type operator-(id i) const { // also avoids ambiguity
     return difference_type(t) - difference_type(i.t);
   }
@@ -234,7 +240,8 @@ private:
 };
 
 template<auto S, class C>
-auto make_ids(C && c) { // NB: return value may be lifetime-bound to c
+FLECSI_INLINE_TARGET auto make_ids(
+  C && c) { // NB: return value may be lifetime-bound to c
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }

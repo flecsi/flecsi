@@ -54,12 +54,19 @@ int
 narray_driver() {
   UNIT {
     {
+      using topo::narray_utils::factor;
+      using V = std::vector<std::size_t>;
+      EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
+      EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
+    }
+
+    {
       mesh::coord indices{8, 8};
       // mesh::coord indices{16, 16};
       // mesh::coord indices{25, 10};
       // mesh::coord indices{10, 25};
-      auto colors = topo::narray_impl::distribute(processes(), indices);
-      flog(warn) << log::to_string(colors, "colors") << std::endl;
+      auto colors = topo::narray_utils::distribute(processes(), indices);
+      flog(warn) << log::container{colors} << std::endl;
       // mesh::coord colors{2, 2};
 
       mesh::coord hdepths{1, 1};
@@ -75,13 +82,13 @@ narray_driver() {
 
     {
       mesh::coord indices{8, 8, 8};
-      auto colors = topo::narray_impl::distribute(processes(), indices);
+      auto colors = topo::narray_utils::distribute(processes(), indices);
       mesh::coord hdepths{1, 1, 1};
       mesh::coord bdepths{0, 0, 0};
       std::vector<bool> periodic{false, false, false};
       std::vector<mesh::coloring_definition> index_definitions = {
         {colors, indices, hdepths, bdepths, periodic, true}};
-      auto [clrs, idx_clrngs] = topo::narray_impl::color(index_definitions);
+      auto [clrs, idx_clrngs] = topo::narray_utils::color(index_definitions);
     } // scope
   };
 } // coloring_driver

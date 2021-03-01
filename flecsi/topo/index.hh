@@ -76,9 +76,11 @@ resize_repartitioned(repartitioned & rep, F f) {
 
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partitioned : data::region {
-  ragged_partitioned(std::size_t r, const data::fields & fs)
-    : region({r, data::logical_size}, fs) {
-    for(const auto & fi : fs)
+  template<class Topo, typename Topo::index_space S>
+  ragged_partitioned(std::size_t r, util::key_type<S, Topo> kt)
+    : region({r, data::logical_size}, kt) {
+    for(const auto & fi :
+      run::context::instance().get_field_info_store<Topo, S>())
       part.try_emplace(fi->fid, *this);
   }
   repartition & operator[](field_id_t i) {
@@ -139,13 +141,12 @@ private:
   make_partitions(std::size_t n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
   ) {
-    return {{ragged_partitioned(
-      n, run::context::instance().get_field_info_store<P, VV>())...}};
+    return {{ragged_partitioned(n, util::key_type<VV, P>())...}};
   }
   util::key_array<ragged_partitioned, index_spaces> part;
 };
 template<class T>
-struct ragged_topology : specialization<ragged_category, ragged_topology<T>> {
+struct ragged : specialization<ragged_category, ragged<T>> {
   using index_space = typename T::index_space;
   using index_spaces = typename T::index_spaces;
 
@@ -174,14 +175,14 @@ struct with_ragged : private with_ragged_base {
     F old = zero::partial) // serializable function from color to old size
   {
     for(auto f :
-      run::context::instance().get_field_info_store<ragged_topology<P>, S>())
+      run::context::instance().get_field_info_store<topo::ragged<P>, S>())
       execute<extend<F, P::template privilege_count<S>>>(
         data::field_reference<std::size_t, data::raw, P, S>(
           *f, static_cast<typename P::core &>(*this)),
         old);
   }
 
-  typename ragged_topology<P>::core ragged;
+  typename topo::ragged<P>::core ragged;
 };
 
 template<>
@@ -191,9 +192,9 @@ struct detail::base<ragged_category> {
 
 // The user-facing variant of the color category supports ragged fields.
 template<class P>
-struct index_category : color_category<P>, with_ragged<P> {
+struct index_category : color<P>, with_ragged<P> {
   index_category(const index_base::coloring & c)
-    : color_category<P>(c), with_ragged<P>(c.size()) {
+    : color<P>(c), with_ragged<P>(c.size()) {
     this->template extend_offsets<elements>();
   }
 };
@@ -204,12 +205,12 @@ struct detail::base<index_category> {
 
 // A subtopology for holding topology-specific metadata per color.
 template<class P>
-struct meta_topology : specialization<index_category, meta_topology<P>> {};
+struct meta : specialization<index_category, meta<P>> {};
 
 template<class P>
 struct with_meta { // for interface consistency
   with_meta(std::size_t n) : meta(n) {}
-  typename meta_topology<P>::core meta;
+  typename topo::meta<P>::core meta;
 };
 
 struct array_base {
