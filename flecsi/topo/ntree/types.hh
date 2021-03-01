@@ -102,12 +102,13 @@ class hcell_base_t
 
   enum type_displ : int {
     CHILD_DISPL = 0,
-    LOCALITY_DISPL = 1 << dimension,
-    REQUESTED_DISPL = (1 << dimension) + 2,
-    NCHILD_RECV_DISPL = (1 << dimension) + 3
+    LOCALITY_DISPL = nchildren_,
+    REQUESTED_DISPL = (nchildren_) + 2,
+    NCHILD_RECV_DISPL = (nchildren_) + 3
   };
   enum type_mask : int {
-    CHILD_MASK = 0b11111111,
+    // 1: 0b11, 2: 0b1111, 3: 0b11111111
+    CHILD_MASK = (1 << nchildren_) - 1,
     LOCALITY_MASK = 0b11 << LOCALITY_DISPL,
     REQUESTED_MASK = 0b1 << REQUESTED_DISPL,
     NCHILD_RECV_MASK = 0b1111 << NCHILD_RECV_DISPL
@@ -188,6 +189,10 @@ public:
     return type_ & (1 << c);
   }
 
+  bool has_child() const {
+    return type_ & CHILD_MASK;
+  }
+
   bool is_nonlocal() const {
     return ((type_ & LOCALITY_MASK) >> LOCALITY_DISPL) == NONLOCAL;
   }
@@ -231,6 +236,11 @@ public:
   template<size_t DD, typename TT, class KK>
   friend std::ostream & operator<<(std::ostream & os,
     const hcell_base_t<DD, TT, KK> & hb);
+
+    friend bool operator<(const hcell_base_t& l, const hcell_base_t& r)
+    {
+        return l.key_<r.key_; 
+    }
 
 private:
   key_t key_;

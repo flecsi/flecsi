@@ -47,30 +47,39 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   using point_t = util::point<double, dimension>;
 
-  static inline const field<point_t>::definition<sph_ntree_t,
-    sph_ntree_t::base::entities>
-    e_coordinates;
-  static inline const field<double>::definition<sph_ntree_t,
-    sph_ntree_t::base::entities>
-    e_radius, e_masses;
+  struct interaction_nodes {
+    point_t coordinates;
+    double mass;
+    double radius;
+  };
 
-  static inline const field<double>::definition<sph_ntree_t,
+  // Problem: this contains the color which should not 
+  // depend on the topology user 
+  struct interaction_entities {
+    std::size_t color; 
+    point_t coordinates;
+    double mass;
+    double radius;
+  };
+
+  static inline const field<interaction_entities>::definition<sph_ntree_t,
+    sph_ntree_t::base::entities>
+    e_i;
+
+  static inline const field<interaction_nodes>::definition<sph_ntree_t,
     sph_ntree_t::base::nodes>
-    n_radius, n_masses;
-  static inline const field<point_t>::definition<sph_ntree_t,
-    sph_ntree_t::base::nodes>
-    n_coordinates;
+    n_i;
 
   static void init_fields(sph_ntree_t::accessor<wo> t,
-    field<point_t>::accessor<wo> coordinates,
-    field<double>::accessor<wo> radius,
-    field<double>::accessor<wo> masses,
+    field<interaction_entities>::accessor<wo> e_i,
     const std::vector<sph_ntree_t::ent_t> & ents) {
+    auto c = process();
     for(size_t i = 0; i < ents.size(); ++i) {
-      coordinates(i) = ents[i].coordinates();
-      radius(i) = ents[i].radius();
+      e_i(i).coordinates = ents[i].coordinates();
+      e_i(i).radius = ents[i].radius();
+      e_i(i).color = c; 
       t.e_keys(i) = ents[i].key();
-      masses(i) = 1;
+      e_i(i).mass = ents[i].mass();
     }
     t.exchange_boundaries();
   } // init_task
@@ -79,28 +88,25 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     coloring,
     std::vector<ent_t> & ents) {
 
-    flecsi::execute<init_fields, flecsi::mpi>(
-      ts, e_coordinates(ts), e_radius(ts), e_masses(ts), ents);
+    flecsi::execute<init_fields, flecsi::mpi>(ts, e_i(ts), ents);
 
     ts->make_tree(ts);
+
     flecsi::execute<compute_centroid_local>(ts,
       topo::ntree<sph_ntree_t>::n_keys(ts),
-      n_masses(ts),
-      n_coordinates(ts),
-      n_radius(ts),
+      n_i(ts),
       topo::ntree<sph_ntree_t>::e_keys(ts),
-      e_masses(ts),
-      e_coordinates(ts),
-      e_radius(ts));
+      e_i(ts));
     flecsi::execute<compute_centroid>(ts,
       topo::ntree<sph_ntree_t>::n_keys(ts),
-      n_masses(ts),
-      n_coordinates(ts),
-      n_radius(ts),
+      n_i(ts),
       topo::ntree<sph_ntree_t>::e_keys(ts),
-      e_masses(ts),
-      e_coordinates(ts),
-      e_radius(ts));
+      e_i(ts));
+
+    ts->share_ghosts(ts, e_i, n_i);
+
+    // Recompute center of masses to include new entities/nodes
+    // See if it is mandatory 
   }
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
@@ -154,45 +160,39 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // the whole tree information
   static void compute_centroid_local(sph_ntree_t::accessor<rw, na> t,
     field<key_t>::accessor<rw, na> n_k,
-    field<double>::accessor<rw, na> n_m,
-    field<point_t>::accessor<rw, na> n_p,
-    field<double>::accessor<rw, na> n_r,
+    field<interaction_nodes>::accessor<rw, na> n_i,
     field<key_t>::accessor<rw, na> e_k,
-    field<double>::accessor<rw, na> e_m,
-    field<point_t>::accessor<rw, na> e_p,
-    field<double>::accessor<rw, na> e_r) {
-
-    int c = run::context::instance().color();
+    field<interaction_entities>::accessor<rw, na> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs_complete<ttype_t::reverse_preorder>()) {
       // Get entities and nodes under this node
-      point_t coordinates = point_t{};
+      point_t coordinates = 0.;
       double radius = 0;
       double mass = 0;
       // Get entities child of this node
       for(auto e_idx : t.entities(n_idx)) {
-        coordinates += e_m[e_idx] * e_p[e_idx];
-        mass += e_m[e_idx];
+        coordinates += e_i[e_idx].mass * e_i[e_idx].coordinates;
+        mass += e_i[e_idx].mass;
       }
       // Get nodes child of this node
       for(auto nc_idx : t.nodes(n_idx)) {
-        coordinates += n_m[nc_idx] * n_p[nc_idx];
-        mass += n_m[nc_idx];
+        coordinates += n_i[nc_idx].mass * n_i[nc_idx].coordinates;
+        mass += n_i[nc_idx].mass;
       }
       assert(mass != 0.);
       coordinates /= mass;
       for(auto e_idx : t.entities(n_idx)) {
-        double dist = distance(coordinates, e_p[e_idx]);
-        radius = std::max(radius, dist);
+        double dist = distance(coordinates, e_i[e_idx].coordinates);
+        radius = std::max(radius, dist + e_i[e_idx].radius);
       }
       for(auto nc_idx : t.nodes(n_idx)) {
-        double dist = distance(coordinates, n_p[nc_idx]);
-        radius = std::max(radius, dist + n_r[nc_idx]);
+        double dist = distance(coordinates, n_i[nc_idx].coordinates);
+        radius = std::max(radius, dist + n_i[nc_idx].radius);
       }
-      n_p[n_idx] = coordinates;
-      n_r[n_idx] = radius;
-      n_m[n_idx] = mass;
+      n_i[n_idx].coordinates = coordinates;
+      n_i[n_idx].radius = radius;
+      n_i[n_idx].mass = mass;
     }
   } // compute_centroid_local
 
@@ -201,49 +201,75 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // the whole tree information
   static void compute_centroid(sph_ntree_t::accessor<rw, ro> t,
     field<key_t>::accessor<rw, ro> n_k,
-    field<double>::accessor<rw, ro> n_m,
-    field<point_t>::accessor<rw, ro> n_p,
-    field<double>::accessor<rw, ro> n_r,
+    field<interaction_nodes>::accessor<rw, ro> n_i,
     field<key_t>::accessor<ro, ro> e_k,
-    field<double>::accessor<ro, ro> e_m,
-    field<point_t>::accessor<ro, ro> e_p,
-    field<double>::accessor<ro, ro> e_r) {
-
-    int c = run::context::instance().color();
+    field<interaction_entities>::accessor<ro, ro> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder>()) {
-      if(n_m[n_idx] == 0) {
+      if(n_i[n_idx].mass == 0) {
         // Get entities and nodes under this node
-        point_t coordinates = point_t{};
+        point_t coordinates = 0.;
         double radius = 0;
         double mass = 0;
         // Get entities child of this node
         for(auto e_idx : t.entities(n_idx)) {
-          coordinates += e_m[e_idx] * e_p[e_idx];
-          mass += e_m[e_idx];
+          coordinates += e_i[e_idx].mass * e_i[e_idx].coordinates;
+          mass += e_i[e_idx].mass;
         }
         // Get nodes child of this node
         for(auto nc_idx : t.nodes(n_idx)) {
-          coordinates += n_m[nc_idx] * n_p[nc_idx];
-          mass += n_m[nc_idx];
+          coordinates += n_i[nc_idx].mass * n_i[nc_idx].coordinates;
+          mass += n_i[nc_idx].mass;
         }
-        // assert(mass != 0.);
+        assert(mass != 0.);
         coordinates /= mass;
         for(auto e_idx : t.entities(n_idx)) {
-          double dist = distance(coordinates, e_p[e_idx]);
-          radius = std::max(radius, dist);
+          double dist = distance(coordinates, e_i[e_idx].coordinates);
+          radius = std::max(radius, dist + e_i[e_idx].radius);
         }
         for(auto nc_idx : t.nodes(n_idx)) {
-          double dist = distance(coordinates, n_p[nc_idx]);
-          radius = std::max(radius, dist + n_r[nc_idx]);
+          double dist = distance(coordinates, n_i[nc_idx].coordinates);
+          radius = std::max(radius, dist + n_i[nc_idx].radius);
         }
-        n_p[n_idx] = coordinates;
-        n_r[n_idx] = radius;
-        n_m[n_idx] = mass;
+        n_i[n_idx].coordinates = coordinates;
+        n_i[n_idx].radius = radius;
+        n_i[n_idx].mass = mass;
+      }
+      if(n_idx == 0) {
+        std::cout << "Total mass: " << n_i[0].mass << std::endl;
       }
     }
   } // compute_centroid
+
+  static bool intersect_entity_node(topo::id<topo::ntree_base::entities> e_idx,
+    topo::id<topo::ntree_base::nodes> n_idx,
+    field<interaction_entities>::accessor<ro, ro> e_i,
+    field<interaction_nodes>::accessor<ro, ro> n_i) {
+    double dist = distance(n_i[n_idx].coordinates, e_i[e_idx].coordinates);
+    if(dist <= n_i[n_idx].radius + e_i[e_idx].radius)
+      return true;
+    return false;
+  }
+
+  static bool intersect_node_node(topo::id<topo::ntree_base::nodes> node_1,
+    topo::id<topo::ntree_base::nodes> node_2,
+    field<interaction_nodes>::accessor<ro, ro> n_i) {
+    double dist = distance(n_i[node_1].coordinates, n_i[node_2].coordinates);
+    if(dist <= n_i[node_1].radius + n_i[node_2].radius)
+      return true;
+    return false;
+  }
+
+  static bool intersect_entity_entity(
+    topo::id<topo::ntree_base::entities> ent_1,
+    topo::id<topo::ntree_base::entities> ent_2,
+    field<interaction_entities>::accessor<ro, ro> e_i) {
+    double dist = distance(e_i[ent_1].coordinates, e_i[ent_2].coordinates);
+    if(dist <= e_i[ent_1].radius + e_i[ent_2].radius)
+      return true;
+    return false;
+  }
 
 }; // sph_ntree_t
 
@@ -260,12 +286,9 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
 void
 init_density(sph_ntree_t::accessor<ro> t,
   field<double>::accessor<wo, na> p,
-  field<double>::accessor<wo, na> e_m,
-  field<double>::accessor<wo, na> e_r) {
-  double v = static_cast<double>(color());
-  double tmp = 0;
+  field<sph_ntree_t::interaction_entities>::accessor<wo, na> e_i) {
   for(auto a : t.entities()) {
-    p[a] = e_m[a] * e_r[a];
+    p[a] = e_i[a].mass * e_i[a].radius;
   }
 }
 
@@ -291,9 +314,8 @@ ntree_driver() {
   sph_ntree.allocate(coloring.get(), ents);
 
   auto d = density(sph_ntree);
-  auto e_m = sph_ntree_t::e_masses(sph_ntree);
-  auto e_r = sph_ntree_t::e_radius(sph_ntree);
-  flecsi::execute<init_density>(sph_ntree, d, e_m, e_r);
+  auto e_i = sph_ntree_t::e_i(sph_ntree);
+  flecsi::execute<init_density>(sph_ntree, d, e_i);
   flecsi::execute<print_density>(sph_ntree, d);
 
   return 0;

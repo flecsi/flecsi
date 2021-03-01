@@ -130,23 +130,10 @@ public:
   //! Assignment operator.
   //--------------------------------------------------------------------------//
 
-  constexpr dimensioned_array & operator=(dimensioned_array const & rhs) {
-    if(this != &rhs) {
-      data_ = rhs.data_;
-    } // if
-
-    return *this;
-  } // operator =
-
-  //--------------------------------------------------------------------------//
-  //! Assignment operator.
-  //--------------------------------------------------------------------------//
-
   constexpr dimensioned_array & operator=(const TYPE & val) {
     for(size_t i = 0; i < DIMENSION; i++) {
       data_[i] = val;
     } // for
-
     return *this;
   } // operator =
 
