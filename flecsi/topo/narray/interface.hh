@@ -138,7 +138,8 @@ private:
     };
 
     auto ptrs_task = [&ic, &comm](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points, comm);
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+        f, ic.points, comm);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
