@@ -36,4 +36,5 @@ if(ENABLE_MPI)
   endif()
   # And append libraries, along with required flags and preprocessor defs, to expected variable
   list(APPEND FLECSI_RUNTIME_LIBRARIES MPI::MPI_CXX MPI::MPI_C)
+  list(APPEND FLECSI_LIBRARY_DEPENDENCIES MPI::MPI_CXX MPI::MPI_C)
 endif()
