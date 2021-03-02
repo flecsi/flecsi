@@ -246,14 +246,14 @@ template<bool R = true>
 struct partition : partition_base {
   using partition_base::partition_base;
   partition(region & reg,
-    const partition<> & src,
+    const partition_base & src,
     field_id_t fid,
     disjointness dis = def_dis,
     completeness cpt = incomplete)
     : partition_base(reg, part(reg.index_space, src, fid, dis, cpt)) {}
 
 protected:
-  void update(const partition & src,
+  void update(const partition_base & src,
     field_id_t fid,
     disjointness dis = def_dis,
     completeness cpt = incomplete) {
@@ -270,7 +270,7 @@ private:
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
   unique_index_partition part(const Legion::IndexSpace & is,
-    const partition<> & src,
+    const partition_base & src,
     field_id_t fid,
     disjointness dis,
     completeness cpt) {
