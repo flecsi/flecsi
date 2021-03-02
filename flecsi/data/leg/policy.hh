@@ -197,54 +197,63 @@ private:
 };
 
 struct partition_base {
-  unique_index_space color_space; // empty when made from another partition
   unique_index_partition index_partition;
   unique_logical_partition logical_partition;
 
-  // This is the same as color_space when that is non-empty.
   Legion::IndexSpace get_color_space() const {
     return run().get_index_partition_color_space_name(index_partition);
   }
 
+  // NB: intervals and points are not advertised as deriving from this class.
+  std::size_t colors() const {
+    return leg::run().get_index_space_domain(get_color_space()).get_volume();
+  }
+  template<topo::single_space>
+  const partition_base & get_partition(field_id_t) const {
+    return *this;
+  }
+
 protected:
-  partition_base(const region & reg)
-    : partition_base(reg, run().get_index_space_domain(reg.index_space).hi()) {}
   partition_base(const region & r, unique_index_partition ip)
-    : index_partition(std::move(ip)), logical_partition(log(r)) {}
+    : index_partition(std::move(ip)),
+      logical_partition(log(r.logical_region, index_partition)) {}
 
   static unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
     return named(run().get_logical_partition(r, p),
       (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
   }
+};
+
+struct with_color { // for initialization order
+  unique_index_space color_space;
+};
+struct rows : with_color, partition_base {
+  explicit rows(const region & reg)
+    : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
 
 private:
   // The type-erased version assumes a square transformation matrix.
-  partition_base(const region & reg, Legion::DomainPoint hi)
-    : color_space(run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))),
-      index_partition(named(run().create_partition_by_restriction(
-                              ctx(),
-                              Legion::IndexSpaceT<2>(reg.index_space),
-                              Legion::IndexSpaceT<1>(color_space),
-                              [&] {
-                                Legion::Transform<2, 1> ret;
-                                ret.rows[0].x = 1;
-                                ret.rows[1].x = 0;
-                                return ret;
-                              }(),
-                              {{0, 0}, {0, hi[1]}},
-                              DISJOINT_COMPLETE_KIND),
-        name(reg.index_space))),
-      logical_partition(log(reg)) {}
-
-  unique_logical_partition log(const region & reg) const {
-    return log(reg.logical_region, index_partition);
-  }
+  rows(const region & reg, Legion::DomainPoint hi)
+    : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
+      partition_base(reg,
+        named(run().create_partition_by_restriction(
+                ctx(),
+                Legion::IndexSpaceT<2>(reg.index_space),
+                Legion::IndexSpaceT<1>(color_space),
+                [&] {
+                  Legion::Transform<2, 1> ret;
+                  ret.rows[0].x = 1;
+                  ret.rows[1].x = 0;
+                  return ret;
+                }(),
+                {{0, 0}, {0, hi[1]}},
+                DISJOINT_COMPLETE_KIND),
+          name(reg.index_space))) {}
 };
 
 template<bool R = true>
 struct partition : partition_base {
-  using partition_base::partition_base;
   partition(region & reg,
     const partition_base & src,
     field_id_t fid,
@@ -304,8 +313,10 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
+using partition = leg::partition_base;
+using leg::rows;
 
-struct partition : leg::partition<> {
+struct prefixes : leg::partition<> {
   using row = Legion::Rect<2>;
 
   static row make_row(std::size_t i, std::size_t n) {
@@ -317,22 +328,12 @@ struct partition : leg::partition<> {
   }
 
   using leg::partition<>::partition;
-  explicit partition(region_base & r) : leg::partition<>(r) {}
 
   using leg::partition<>::update;
-
-  std::size_t colors() const {
-    return leg::run().get_index_space_domain(get_color_space()).get_volume();
-  }
-
-  template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
-    return *this;
-  }
 };
 
 struct intervals : leg::partition<> {
-  using Value = data::partition::row;
+  using Value = prefixes::row;
 
   static Value make(subrow n,
     std::size_t i = run::context::instance().color()) {

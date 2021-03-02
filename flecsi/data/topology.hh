@@ -50,28 +50,35 @@ protected:
 
 // A prefix of each row in a region_base.
 struct partition {
+  std::size_t colors() const;
+  template<topo::single_space> // for convenience for simple topologies
+  const partition & get_partition(field_id_t) const {
+    return *this;
+  }
+};
+
+// All of each row in a region_base.
+struct rows : partition {
+  explicit rows(region_base &);
+};
+
+struct prefixes : partition {
   // The row type is defined by the backend:
   static auto make_row(std::size_t i, std::size_t n); // "constructor"
   using row = decltype(make_row(0, 0));
   static std::size_t row_size(const row &); // "accessor"
 
-  explicit partition(region_base &); // divides into rows
   // Derives row lengths from the field values (of type 'row') accessed via
   // the partition argument, which must have the same number of rows and have
   // length 1 on each row.  The argument partition must survive
   // until this partition is updated or destroyed.
-  partition(region_base &,
+  prefixes(region_base &,
     const partition &,
     field_id_t,
     completeness = incomplete);
 
-  std::size_t colors() const;
   // The same effect as the constructor, reusing the same region_base.
   void update(const partition &, field_id_t, completeness = incomplete);
-  template<topo::single_space> // for convenience for simple topologies
-  const partition & get_partition(field_id_t) const {
-    return *this;
-  }
 };
 
 // A subset of each row in a region_base, expressed as a set of intervals.

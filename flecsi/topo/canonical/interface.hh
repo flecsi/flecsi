@@ -131,7 +131,7 @@ public:
   template<index_space S>
   auto entities() {
     return make_ids<S>(util::iota_view<util::id>(
-      0, data::partition::row_size(size.template get<S>())));
+      0, data::prefixes::row_size(size.template get<S>())));
   }
 
   template<index_space F, index_space T>

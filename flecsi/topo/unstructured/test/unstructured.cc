@@ -130,7 +130,7 @@ unstructured::cslot coloring;
 
 void
 allocate(topo::resize::Field::accessor<wo> a) {
-  a = data::partition::make_row(run::context::instance().color(), 2);
+  a = data::prefixes::make_row(run::context::instance().color(), 2);
 }
 
 void

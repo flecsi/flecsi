@@ -35,13 +35,13 @@ inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
 // A partition with a field for dynamically resizing it.
-struct repartition : with_size, data::partition {
+struct repartition : with_size, data::prefixes {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
   template<class F = decltype(zero::partial)>
   repartition(data::region & r, F f = zero::partial)
-    : with_size(r.size().first), partition(r, sz, [&] {
+    : with_size(r.size().first), prefixes(r, sz, [&] {
         const auto r = sizes();
         execute<fill<F>>(r, f);
         return r.fid();
@@ -54,7 +54,7 @@ private:
   template<class F>
   static void fill(resize::Field::accessor<wo> a, const F & f) {
     const auto i = run::context::instance().color();
-    a = data::partition::make_row(i, f(i));
+    a = data::prefixes::make_row(i, f(i));
   }
 };
 

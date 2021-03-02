@@ -28,7 +28,7 @@ struct index_base {
 // Suitable for the single layout but not the ragged layout, which is
 // implemented in terms of this topology.
 template<class P>
-struct color : index_base, data::partitioned<data::partition> {
+struct color : index_base, data::partitioned<data::rows> {
   color(const coloring & c)
     : partitioned(data::make_region<P>({c.size(), 1})) {}
 };
@@ -40,7 +40,7 @@ struct detail::base<color> {
 // A subtopology for storing/updating row sizes of a partition.
 struct resize : specialization<color, resize> {
   // cslot is useless without a color function, but we don't need it.
-  using Field = flecsi::field<data::partition::row, data::single>;
+  using Field = flecsi::field<data::prefixes::row, data::single>;
   static const Field::definition<resize> field;
   template<partition_privilege_t P>
   using accessor = data::accessor_member<field, privilege_pack<P>>;
