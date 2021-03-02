@@ -269,7 +269,7 @@ private:
 
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
-  unique_index_partition part(const Legion::IndexSpace & is,
+  static unique_index_partition part(const Legion::IndexSpace & is,
     const partition_base & src,
     field_id_t fid,
     disjointness dis,
