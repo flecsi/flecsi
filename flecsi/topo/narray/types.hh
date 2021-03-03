@@ -19,7 +19,7 @@
 #error Do not include this file directly!
 #endif
 
-#include "flecsi/data/topology.hh"
+#include "flecsi/data/copy.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/color_map.hh"

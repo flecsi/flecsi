@@ -23,7 +23,6 @@
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/index.hh"
