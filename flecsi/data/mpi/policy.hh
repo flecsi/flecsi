@@ -15,7 +15,6 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/topo/core.hh" // single_space
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/mpi.hh"
 

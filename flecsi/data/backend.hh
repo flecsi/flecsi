@@ -20,6 +20,8 @@
 #include <cstddef>
 #include <utility>
 
+#include "flecsi/topo/core.hh" // single_space
+
 namespace flecsi::data {
 // Use {} if unknown:
 enum completeness { unknown = 0, complete = 1, incomplete = 2 };

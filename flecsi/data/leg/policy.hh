@@ -25,7 +25,6 @@
 
 #include "flecsi/run/backend.hh"
 #include "flecsi/run/leg/mapper.hh"
-#include "flecsi/topo/core.hh" // single_space
 
 #include <legion.h>
 
