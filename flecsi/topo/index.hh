@@ -41,13 +41,13 @@ struct repartition : with_size, data::prefixes {
   // consider using make_partial.
   template<class F = decltype(zero::partial)>
   repartition(data::region & r, F f = zero::partial)
-    : with_size(r.size().first), prefixes(r, sz, [&] {
+    : with_size(r.size().first), prefixes(r, [&] {
         const auto r = sizes();
         execute<fill<F>>(r, f);
-        return r.fid();
+        return r;
       }()) {}
   void resize() { // apply sizes stored in the field
-    update(sz, resize::field.fid);
+    update(sizes());
   }
 
 private:

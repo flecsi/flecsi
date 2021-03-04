@@ -21,16 +21,15 @@ struct prefixes : partition {
   static std::size_t row_size(const row &); // "accessor"
 
   // Derives row lengths from the field values (of type 'row') accessed via
-  // the partition argument, which must have the same number of rows and have
-  // length 1 on each row.  The argument partition must survive
-  // until this partition is updated or destroyed.
-  prefixes(region_base &,
-    const partition &,
-    field_id_t,
-    completeness = incomplete);
+  // the field accessor argument.  The partition hosting the field must have
+  // the same number of rows as the region, have length 1 on each row, and
+  // survive until this partition is updated or destroyed.
+  template<class F>
+  prefixes(region_base &, F, completeness = incomplete);
 
   // The same effect as the constructor, reusing the same region_base.
-  void update(const partition &, field_id_t, completeness = incomplete);
+  template<class F>
+  void update(F, completeness = incomplete);
 };
 
 // A subset of each row in a region_base, expressed as a set of intervals.

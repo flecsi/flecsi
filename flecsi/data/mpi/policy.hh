@@ -152,22 +152,20 @@ struct prefixes : partition {
     return r;
   }
 
-  prefixes(region & r,
-    const partition & other,
-    field_id_t fid,
-    completeness = incomplete)
-    : partition(r) {
+  template<class F>
+  prefixes(region & r, F f, completeness = incomplete) : partition(r) {
     // Constructor for the case when how the data is partitioned is stored
     // as a field in another region referenced by the "other' partition.
     // Delegate to update().
-    update(other, fid);
+    update(std::move(f));
   }
 
-  void
-  update(const partition & other, field_id_t fid, completeness = incomplete) {
+  template<class F>
+  void update(F f, completeness = incomplete) {
     // The number of elements for each ranks is stored as a field of the
     // prefixes::row data type on the `other` partition.
-    const auto s = other.get_storage<row>(fid); // non-owning span
+    const auto s =
+      f.get_partition().template get_storage<row>(f.fid()); // non-owning span
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];

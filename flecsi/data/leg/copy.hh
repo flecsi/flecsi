@@ -4,6 +4,7 @@
 #define FLECSI_DATA_LEG_COPY_HH
 
 #include "flecsi/data/backend.hh" // don't use policy.hh directly
+#include "flecsi/data/field.hh"
 
 namespace flecsi::data {
 
@@ -18,9 +19,14 @@ struct prefixes : leg::partition<> {
     return r.hi[1] - r.lo[1] + 1;
   }
 
-  using leg::partition<>::partition;
+  template<class F>
+  prefixes(region & reg, F f, completeness cpt = incomplete)
+    : partition(reg, f.get_partition(), f.fid(), cpt) {}
 
-  using leg::partition<>::update;
+  template<class F>
+  void update(F f, completeness cpt = incomplete) {
+    partition::update(f.get_partition(), f.fid(), cpt);
+  }
 };
 
 struct intervals : leg::partition<> {
