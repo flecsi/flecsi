@@ -256,31 +256,25 @@ struct partition : partition_base {
   partition(region & reg,
     const partition_base & src,
     field_id_t fid,
-    disjointness dis = def_dis,
     completeness cpt = incomplete)
-    : partition_base(reg, part(reg.index_space, src, fid, dis, cpt)) {}
+    : partition_base(reg, part(reg.index_space, src, fid, cpt)) {}
 
 protected:
   void update(const partition_base & src,
     field_id_t fid,
-    disjointness dis = def_dis,
     completeness cpt = incomplete) {
     auto & r = run();
-    auto ip =
-      part(r.get_parent_index_space(index_partition), src, fid, dis, cpt);
+    auto ip = part(r.get_parent_index_space(index_partition), src, fid, cpt);
     logical_partition = log(r.get_parent_logical_region(logical_partition), ip);
     index_partition = std::move(ip); // can't fail
   }
 
 private:
-  static constexpr disjointness def_dis = R ? disjoint : compute;
-
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
   static unique_index_partition part(const Legion::IndexSpace & is,
     const partition_base & src,
     field_id_t fid,
-    disjointness dis,
     completeness cpt) {
     auto & r = run();
 
@@ -301,7 +295,7 @@ private:
         r.get_parent_logical_region(src.logical_partition),
         fid,
         src.get_color_space(),
-        partitionKind(dis, cpt),
+        partitionKind(R ? disjoint : compute, cpt),
         LEGION_AUTO_GENERATE_ID,
         0,
         tag),
