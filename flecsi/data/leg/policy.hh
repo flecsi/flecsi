@@ -312,19 +312,17 @@ using leg::rows;
 template<typename T>
 T
 get_scalar_from_accessor(const T * ptr) {
-  T tmp;
   if(Legion::Processor::get_executing_processor().kind() ==
      Legion::Processor::TOC_PROC) {
 #if defined(__NVCC__) || defined(__CUDACC__)
+    T tmp;
     cudaMemcpy(&tmp, ptr, sizeof(T), cudaMemcpyDeviceToHost);
+    return tmp;
 #else
     flog_assert(false, "Cuda should be enabled when using toc task");
 #endif
   }
-  else {
-    tmp = *ptr;
-  }
-  return tmp;
+  return *ptr;
 }
 
 } // namespace data
