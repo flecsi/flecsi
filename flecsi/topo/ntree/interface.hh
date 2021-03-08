@@ -683,7 +683,6 @@ struct ntree<Policy>::access {
     typename field<ntree_data>::template accessor<ro> td) {
     hmap_t hmap(hcells.span());
     auto cs = run::context::instance().colors();
-    auto c = run::context::instance().color();
     serdez_vector<std::pair<hcell_t, std::size_t>> entities;
 
     // Make a tree traversal per last elements in the intersection field.
@@ -695,7 +694,6 @@ struct ntree<Policy>::access {
       ent_id id(i);
 
       std::size_t tcolor = e_i(i).color;
-      assert(tcolor != c);
       std::queue<hcell_t *> tqueue;
       tqueue.push(&hmap.find(key_t::root())->second);
       while(!tqueue.empty()) {
