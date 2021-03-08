@@ -117,7 +117,7 @@ struct ntree : ntree_base {
 
   struct ntree_comm{
     std::size_t color; 
-    bool visited; 
+    bool visited = false; 
   };
 
   struct color_id {
@@ -424,6 +424,7 @@ struct ntree : ntree_base {
   static void xfer_entities_req_start(
     typename field<interaction_entities>::template accessor<rw> a,
     data::buffers::Start mv,
+    typename field<ntree_comm>::template accessor<rw> cd,
     typename field<ntree_data>::template accessor<rw> td,
     const std::vector<color_id> & f) {
     // For all colors
@@ -445,6 +446,7 @@ struct ntree : ntree_base {
 
   static int xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw> a,
+    typename field<ntree_comm>::template accessor<rw> cd,
     typename field<ntree_data>::template accessor<rw> td,
     data::buffers::Transfer mv,
     const std::vector<color_id> & f) {
@@ -522,6 +524,7 @@ struct ntree : ntree_base {
     }());
 
     std::size_t buffer_size = data::buffers::Buffer::size/sizeof(interaction_entities); 
+    // X times, to not reallocate everytime 
     buffer_size *= 2; 
 
     // Get current sizes 
@@ -535,11 +538,13 @@ struct ntree : ntree_base {
     }
 
     resize_repartitioned(
+      part.template get<comm_data>(), make_partial<allocate>(ents_sizes_rz)); 
+    resize_repartitioned(
       part.template get<entities>(), make_partial<allocate>(ents_sizes_rz));
 
     // Perform buffered copy 
-    execute<xfer_entities_req_start>(e_i(*this), *buf, data_field(*this), to_send.get(process()));
-    while(reduce<xfer_entities_req, exec::fold::max>(e_i(*this),  data_field(*this), *buf,
+    execute<xfer_entities_req_start>(e_i(*this), *buf, comm_field(*this), data_field(*this), to_send.get(process()));
+    while(reduce<xfer_entities_req, exec::fold::max>(e_i(*this), comm_field(*this), data_field(*this), *buf,
       to_send.get(process())).get())
     {
       // Resize the partition if the maximum size is reached 
@@ -609,7 +614,6 @@ struct ntree : ntree_base {
 
     // ---- Debug -----
     //cp_entities->issue_copy(e_keys.fid);
-
     //flecsi::execute<fake_init_k>(e_keys(*this)); 
     //flecsi::execute<display_keys>(ts);
     // ----------------
