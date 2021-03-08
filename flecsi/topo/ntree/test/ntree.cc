@@ -316,10 +316,8 @@ ntree_driver() {
   auto d = density(sph_ntree);
   auto e_i = sph_ntree_t::e_i(sph_ntree);
 
-  for(int i = 0; i < 2; ++i) {
-    flecsi::execute<init_density>(sph_ntree, d, e_i);
-    flecsi::execute<print_density>(sph_ntree, d);
-  }
+  flecsi::execute<init_density>(sph_ntree, d, e_i);
+  flecsi::execute<print_density>(sph_ntree, d);
 
   return 0;
 } // ntree_driver
