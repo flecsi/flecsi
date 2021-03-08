@@ -236,9 +236,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
         n_i[n_idx].radius = radius;
         n_i[n_idx].mass = mass;
       }
-      if(n_idx == 0) {
-        std::cout << "Total mass: " << n_i[0].mass << std::endl;
-      }
     }
   } // compute_centroid
 
@@ -286,10 +283,13 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
 void
 init_density(sph_ntree_t::accessor<ro> t,
   field<double>::accessor<wo, na> p,
-  field<sph_ntree_t::interaction_entities>::accessor<wo, na> e_i) {
+  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
+  std::cout<<color()<< " Init task: "<<std::endl;
   for(auto a : t.entities()) {
     p[a] = e_i[a].mass * e_i[a].radius;
+    std::cout<<p[a]<<" - ";
   }
+  std::cout<<std::endl;
 }
 
 void
