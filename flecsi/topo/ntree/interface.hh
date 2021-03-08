@@ -422,7 +422,7 @@ struct ntree : ntree_base {
     typename field<interaction_entities>::template accessor<rw> a,
     data::buffers::Start mv,
     typename field<ntree_comm>::template accessor<rw>,
-    typename field<ntree_data>::template accessor<rw> td,
+    typename field<ntree_data>::template accessor<rw>,
     const std::vector<color_id> & f) {
     // For all colors
     int cur = 0;
@@ -445,7 +445,7 @@ struct ntree : ntree_base {
     typename field<ntree_comm>::template accessor<rw>,
     typename field<ntree_data>::template accessor<rw> td,
     data::buffers::Transfer mv,
-    const std::vector<color_id> & f) {
+    const std::vector<color_id> &) {
     // 1. Read sent data
     // For all colors
     int cur = 0;
