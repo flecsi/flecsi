@@ -31,7 +31,8 @@ namespace topo {
 struct ntree_base {
   enum index_space { entities, nodes, hashmap, tree_data, comm_data };
   // static constexpr std::size_t index_spaces = 1;
-  using index_spaces = util::constants<entities, nodes, hashmap, tree_data, comm_data>;
+  using index_spaces =
+    util::constants<entities, nodes, hashmap, tree_data, comm_data>;
   // Parallel types for nodes and entities
   enum ptype_t { exclusive, ghost, all };
   // traversal types for DFS
@@ -41,7 +42,7 @@ struct ntree_base {
 
     coloring(std::size_t nparts)
       : nparts_(nparts), global_hmap_(nparts * local_hmap_),
-        hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3), 
+        hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3),
         cdata_offset_(nparts, 100) {}
 
     // Global
@@ -66,8 +67,8 @@ struct ntree_base {
     // tdata
     std::vector<std::size_t> tdata_offset_;
 
-    // cdata 
-    std::vector<std::size_t> cdata_offset_; 
+    // cdata
+    std::vector<std::size_t> cdata_offset_;
 
     // All global sizes array for make_partition
     std::vector<std::size_t> global_sizes_;

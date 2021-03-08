@@ -53,10 +53,10 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  // Problem: this contains the color which should not 
-  // depend on the topology user 
+  // Problem: this contains the color which should not
+  // depend on the topology user
   struct interaction_entities {
-    std::size_t color; 
+    std::size_t color;
     point_t coordinates;
     double mass;
     double radius;
@@ -77,7 +77,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     for(size_t i = 0; i < ents.size(); ++i) {
       e_i(i).coordinates = ents[i].coordinates();
       e_i(i).radius = ents[i].radius();
-      e_i(i).color = c; 
+      e_i(i).color = c;
       t.e_keys(i) = ents[i].key();
       e_i(i).mass = ents[i].mass();
     }
@@ -106,7 +106,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     ts->share_ghosts(ts, e_i, n_i);
 
     // Recompute center of masses to include new entities/nodes
-    // See if it is mandatory 
+    // See if it is mandatory
   }
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
@@ -284,12 +284,12 @@ void
 init_density(sph_ntree_t::accessor<ro> t,
   field<double>::accessor<wo, na> p,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
-  std::cout<<color()<< " Init task: "<<std::endl;
+  std::cout << color() << " Init task: " << std::endl;
   for(auto a : t.entities()) {
     p[a] = e_i[a].mass * e_i[a].radius;
-    std::cout<<p[a]<<" - ";
+    std::cout << p[a] << " - ";
   }
-  std::cout<<std::endl;
+  std::cout << std::endl;
 }
 
 void
@@ -315,8 +315,11 @@ ntree_driver() {
 
   auto d = density(sph_ntree);
   auto e_i = sph_ntree_t::e_i(sph_ntree);
-  flecsi::execute<init_density>(sph_ntree, d, e_i);
-  flecsi::execute<print_density>(sph_ntree, d);
+
+  for(int i = 0; i < 2; ++i) {
+    flecsi::execute<init_density>(sph_ntree, d, e_i);
+    flecsi::execute<print_density>(sph_ntree, d);
+  }
 
   return 0;
 } // ntree_driver

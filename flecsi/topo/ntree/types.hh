@@ -241,10 +241,9 @@ public:
   friend std::ostream & operator<<(std::ostream & os,
     const hcell_base_t<DD, TT, KK> & hb);
 
-    friend bool operator<(const hcell_base_t& l, const hcell_base_t& r)
-    {
-        return l.key_<r.key_; 
-    }
+  friend bool operator<(const hcell_base_t & l, const hcell_base_t & r) {
+    return l.key_ < r.key_;
+  }
 
 private:
   key_t key_;
