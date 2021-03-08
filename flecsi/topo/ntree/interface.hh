@@ -302,9 +302,9 @@ struct ntree : ntree_base {
   }
 
   static void fake_init_e(
-    typename field<interaction_entities>::template accessor<rw> a) {}
+    typename field<interaction_entities>::template accessor<rw>) {}
 
-  static void fake_init_k(typename field<key_t>::template accessor<rw> a) {}
+  static void fake_init_k(typename field<key_t>::template accessor<rw>) {}
 
   // ---------------------------- Top tree construction -----------------------
 
@@ -421,12 +421,11 @@ struct ntree : ntree_base {
   static void xfer_entities_req_start(
     typename field<interaction_entities>::template accessor<rw> a,
     data::buffers::Start mv,
-    typename field<ntree_comm>::template accessor<rw> cd,
+    typename field<ntree_comm>::template accessor<rw>,
     typename field<ntree_data>::template accessor<rw> td,
     const std::vector<color_id> & f) {
     // For all colors
     int cur = 0;
-    bool full = false;
     auto color = run::context::instance().color();
     for(std::size_t c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
@@ -443,7 +442,7 @@ struct ntree : ntree_base {
 
   static int xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw> a,
-    typename field<ntree_comm>::template accessor<rw> cd,
+    typename field<ntree_comm>::template accessor<rw>,
     typename field<ntree_data>::template accessor<rw> td,
     data::buffers::Transfer mv,
     const std::vector<color_id> & f) {
@@ -483,7 +482,7 @@ struct ntree : ntree_base {
   }
 
   static void load_entities_task(typename Policy::template accessor<rw> t,
-    typename field<ntree_data>::template accessor<ro> td,
+    typename field<ntree_data>::template accessor<ro>,
     const std::vector<std::pair<hcell_t, std::size_t>> & recv) {
     auto hmap = t.get_hmap();
     for(std::size_t i = 0; i < recv.size(); ++i) {
@@ -497,7 +496,6 @@ struct ntree : ntree_base {
   // Search neighbors and complete the hmap, create copy plans (or buffer)
   template<class T, class TT, class TTT>
   void share_ghosts(T && ts, TT && e_i, TTT & n_i) {
-    bool done = false;
 
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts, e_i(ts), n_i(ts));
