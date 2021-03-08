@@ -159,9 +159,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   static void compute_centroid_local(sph_ntree_t::accessor<rw, na> t,
-    field<key_t>::accessor<rw, na> n_k,
+    field<key_t>::accessor<rw, na>,
     field<interaction_nodes>::accessor<rw, na> n_i,
-    field<key_t>::accessor<rw, na> e_k,
+    field<key_t>::accessor<rw, na>,
     field<interaction_entities>::accessor<rw, na> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
@@ -200,9 +200,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   static void compute_centroid(sph_ntree_t::accessor<rw, ro> t,
-    field<key_t>::accessor<rw, ro> n_k,
+    field<key_t>::accessor<rw, ro>,
     field<interaction_nodes>::accessor<rw, ro> n_i,
-    field<key_t>::accessor<ro, ro> e_k,
+    field<key_t>::accessor<ro, ro>,
     field<interaction_entities>::accessor<ro, ro> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first

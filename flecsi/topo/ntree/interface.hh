@@ -425,7 +425,7 @@ struct ntree : ntree_base {
     typename field<ntree_data>::template accessor<rw>,
     const std::vector<color_id> & f) {
     // For all colors
-    int cur = 0;
+    std::size_t cur = 0;
     auto color = run::context::instance().color();
     for(std::size_t c = 0; c < run::context::instance().colors(); ++c) {
       if(c != color) {
@@ -751,6 +751,7 @@ struct ntree<Policy>::access {
     typename field<interaction_nodes>::template accessor<ro, ro> n_i) {
     // The ranks to send and the id of the entity
     serdez_vector<color_id> entities;
+    auto color = run::context::instance().color();
     hmap_t hmap(hcells.span());
     // 1. for all local entities
     for(std::size_t i = 0; i < data_field(0).nents; ++i) {
@@ -799,7 +800,7 @@ struct ntree<Policy>::access {
       } // while
       // If color present in set, send this entity
       for(auto v : send_colors) {
-        entities.push_back(color_id{v, id});
+        entities.push_back(color_id{v, id, color});
       } // for
     } // for
     return entities;
