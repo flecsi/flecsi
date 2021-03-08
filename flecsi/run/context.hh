@@ -31,6 +31,7 @@
 #endif
 
 #include <cstddef>
+#include <cstdlib> // getenv
 #include <functional>
 #include <map>
 #include <set>
@@ -151,6 +152,11 @@ struct context {
    *--------------------------------------------------------------------------*/
 
   inline int initialize_generic(int argc, char ** argv, bool dependent) {
+    if(const auto p = std::getenv("FLECSI_SLEEP")) {
+      const auto n = std::atoi(p);
+      std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
+      sleep(n);
+    }
 
     initialize_dependent_ = dependent;
 
