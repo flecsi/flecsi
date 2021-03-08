@@ -361,10 +361,8 @@ struct ntree : ntree_base {
     }
 
     // Properly resize the partitions for the new number of ents + ghosts
-    resize_repartitioned(
-      part.template get<entities>(), make_partial<allocate>(ents_sizes_rz));
-    resize_repartitioned(
-      part.template get<nodes>(), make_partial<allocate>(nodes_sizes_rz));
+    part.template get<entities>().resize(make_partial<allocate>(ents_sizes_rz));
+    part.template get<nodes>().resize(make_partial<allocate>(nodes_sizes_rz));
 
     // Create copy plan for the top tree
     top_tree_cp(
@@ -529,10 +527,9 @@ struct ntree : ntree_base {
       ents_sizes_rz[c] = f[0].first + f[1].first + f[2].first + buffer_size;
     }
 
-    resize_repartitioned(
-      part.template get<comm_data>(), make_partial<allocate>(ents_sizes_rz));
-    resize_repartitioned(
-      part.template get<entities>(), make_partial<allocate>(ents_sizes_rz));
+    part.template get<comm_data>().resize(
+      make_partial<allocate>(ents_sizes_rz));
+    part.template get<entities>().resize(make_partial<allocate>(ents_sizes_rz));
 
     // Perform buffered copy
     execute<xfer_entities_req_start>(e_i(*this),
@@ -550,8 +547,9 @@ struct ntree : ntree_base {
       for(std::size_t c = 0; c < colors(); ++c) {
         ents_sizes_rz[c] += buffer_size;
       }
-      resize_repartitioned(
-        part.template get<entities>(), make_partial<allocate>(ents_sizes_rz));
+
+      part.template get<entities>().resize(
+        make_partial<allocate>(ents_sizes_rz));
     }
 
     // ------------------------ Debug -------------------
@@ -596,8 +594,7 @@ struct ntree : ntree_base {
     }
 
     // Resize partitions
-    resize_repartitioned(
-      part.template get<entities>(), make_partial<allocate>(nents_rz));
+    part.template get<entities>().resize(make_partial<allocate>(nents_rz));
 
     // create copy plan for ghosts entities
     auto entities_dests_task = [&nents_base, &nents_tt](auto f) {

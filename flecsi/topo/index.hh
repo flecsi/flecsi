@@ -46,8 +46,16 @@ struct repartition : with_size, data::partition {
         execute<fill<F>>(r, f);
         return r.fid();
       }()) {}
+
   void resize() { // apply sizes stored in the field
     update(sz, resize::field.fid);
+  }
+
+  template<class F>
+  void resize(F f) {
+    const auto r = this->sizes();
+    flecsi::execute<repartition::fill<F>>(r, f);
+    this->resize();
   }
 
 private:
@@ -64,14 +72,6 @@ template<class T, typename T::index_space S = T::default_space(), class F>
 repartitioned
 make_repartitioned(std::size_t r, F f) {
   return {data::make_region<T, S>({r, data::logical_size}), std::move(f)};
-}
-
-template<class F>
-void
-resize_repartitioned(repartitioned & rep, F f) {
-  const auto r = rep.sizes();
-  flecsi::execute<repartition::fill<F>>(r, f);
-  rep.resize();
 }
 
 // Stores the flattened elements of the ragged fields on an index space.
