@@ -51,14 +51,14 @@ struct unstructured : unstructured_base,
   struct access;
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+    : with_ragged<Policy>(c.at(0).colors), with_meta<Policy>(c.at(0).colors),
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      special_(c.colors) {
+      special_(c.at(0).colors) {
     init_ragged(index_spaces());
     allocate_connectivities(c, connect_);
 #if 0
@@ -104,6 +104,11 @@ struct unstructured : unstructured_base,
     return forward_map_.template get<S>();
   }
 
+  template<index_space S>
+  auto reverse_map() && {
+    return std::move(reverse_map_.template get<S>());
+  }
+
   template<typename Type,
     data::layout Layout,
     typename Topo,
@@ -121,11 +126,11 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
+    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
+      c.at(0).idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_colorings[Index]))...}};
+    return {{make_repartitioned<Policy, Value>(c.at(0).colors,
+      make_partial<idx_size>(c.at(0).idx_colorings[Index]))...}};
   }
 
   template<index_space S>
@@ -138,8 +143,13 @@ private:
       points;
 
     auto const & fmd = forward_map_.template get<S>();
-    execute<idx_itvls<NP>, mpi>(
-      ic, num_intervals, intervals, points, fmd(*this), comm);
+    execute<idx_itvls<NP>, mpi>(ic,
+      num_intervals,
+      intervals,
+      points,
+      fmd(*this),
+      reverse_map_.template get<S>(),
+      comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
@@ -160,10 +170,10 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
+    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
+      c.at(0).idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
+    return {{make_plan<Value>(c.at(0).idx_colorings[Index], c.at(0).comm)...}};
   }
 
   template<auto... VV, typename... TT>
@@ -172,7 +182,7 @@ private:
     std::size_t entity = 0;
     (
       [&](TT const & row) {
-        auto & cc = c.cnx_allocs[entity++];
+        auto & cc = c.at(0).cnx_allocs[entity++];
         std::size_t is{0};
         for(auto & fd : row) {
           auto & p = this->ragged.template get_partition<VV>(fd.fid);
@@ -195,6 +205,9 @@ private:
   void init_ragged(util::constants<SS...>) {
     (this->template extend_offsets<SS>(), ...);
   }
+
+  util::key_array<std::map<std::size_t, std::size_t>, index_spaces>
+    reverse_map_;
 }; // struct unstructured
 
 /*----------------------------------------------------------------------------*
