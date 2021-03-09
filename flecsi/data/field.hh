@@ -38,7 +38,7 @@ template<layout L, typename T, std::size_t Priv>
 struct accessor;
 
 /// A specialized accessor used to return scalar values
-template<typename T>
+template<typename T, auto & F>
 struct scalar_access;
 
 /// A specialized accessor for changing the extent of dynamic layouts.

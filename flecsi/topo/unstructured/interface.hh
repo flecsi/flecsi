@@ -208,7 +208,9 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<data::partition::row>, index_spaces>
+  util::key_array<
+    data::scalar_access<data::partition::row, topo::resize::field>,
+    index_spaces>
     size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;

@@ -950,16 +950,32 @@ private:
   base_type rag;
 };
 
-template<typename T>
+template<typename T, auto & F>
 struct scalar_access : send_tag, bind_tag {
 
-  template<class F>
-  void send(F && f) {
-    typename flecsi::field<T>::template accessor<ro> acc(fid_);
+  template<class Func>
+  void send(Func && f) {
+    typename flecsi::field<T>::template accessor<ro> acc(F.fid);
     util::identity id;
     f(acc, id);
     if(const auto p = acc.get_base().span().data())
       scalar_ = get_scalar_from_accessor(p);
+  }
+
+  T * operator->() {
+    return &scalar_;
+  }
+
+  const T * operator->() const {
+    return &scalar_;
+  }
+
+  T * operator*() {
+    return &scalar_;
+  }
+
+  const T * operator*() const {
+    return &scalar_;
   }
 
   T & data() {
@@ -967,12 +983,11 @@ struct scalar_access : send_tag, bind_tag {
   }
 
   size_t identifier() {
-    return fid_;
+    return F.fid;
   }
 
 private:
   T scalar_;
-  size_t fid_ = topo::resize::field.fid;
 };
 
 } // namespace data
