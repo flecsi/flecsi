@@ -33,12 +33,12 @@ const double_field_t::definition<topo::index> test_value_1, test_value_2,
   test_value_3;
 
 void
-assign(double_field_t::accessor<rw> ia) {
+assign(double_field_t::accessor<wo> ia) {
   ia = color();
 } // assign
 
 void
-reset_zero(double_field_t::accessor<rw> ia) {
+reset_zero(double_field_t::accessor<wo> ia) {
   ia = -1;
 } // assign
 
