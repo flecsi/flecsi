@@ -85,8 +85,8 @@ private:
     std::index_sequence<II...>) {
     flog_assert(c.is_allocs.size() == sizeof...(VV),
       c.is_allocs.size() << " sizes for " << sizeof...(VV) << " index spaces");
-    return {{make_repartitioned<Policy, VV>(c.colors,
-      make_partial<is_size>(c.is_allocs[II], c.is_allocs.size()))...}};
+    return {{make_repartitioned<Policy, VV>(
+      c.colors, make_partial<is_size>(c.is_allocs[II], c.colors))...}};
   }
 
   template<auto... VV, typename... TT>
