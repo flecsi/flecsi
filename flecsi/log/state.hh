@@ -252,6 +252,13 @@ public:
   }
 
   /*!
+    Return a reference to the mutex for the active tag
+  */
+  std::mutex & active_tag_mutex() {
+    return active_tag_mutex_;
+  }
+
+  /*!
     Return the tag name associated with a tag id.
    */
 
@@ -265,6 +272,7 @@ public:
    */
 
   std::string active_tag_name() {
+    std::lock_guard guard(active_tag_mutex_);
     assert(tag_reverse_map_.find(active_tag_) != tag_reverse_map_.end());
     return tag_reverse_map_[active_tag_];
   }
@@ -392,6 +400,7 @@ private:
 
   size_t tag_id_;
   size_t active_tag_;
+  std::mutex active_tag_mutex_;
   std::bitset<FLOG_TAG_BITS> tag_bitset_;
   std::unordered_map<std::string, size_t> tag_map_;
   std::unordered_map<size_t, std::string> tag_reverse_map_;
