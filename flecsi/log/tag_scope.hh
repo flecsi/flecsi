@@ -46,12 +46,10 @@ struct tag_scope_t {
         << FLOG_COLOR_PLAIN << std::endl;
     } // if
 
-    std::lock_guard guard(state::instance().active_tag_mutex());
     state::instance().active_tag() = tag;
   } // tag_scope_t
 
   ~tag_scope_t() {
-    std::lock_guard guard(state::instance().active_tag_mutex());
     state::instance().active_tag() = stash_;
   } // ~tag_scope_t
 
