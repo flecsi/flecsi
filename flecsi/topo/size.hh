@@ -12,8 +12,7 @@ namespace flecsi::topo {
 
 // A subtopology for storing/updating row sizes of a partition.
 struct resize : specialization<color, resize> {
-  // cslot is useless without a color function, but we don't need it.
-  using Field = flecsi::field<data::prefixes::row, data::single>;
+  using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
   template<partition_privilege_t P>
   using accessor = data::accessor_member<field, privilege_pack<P>>;

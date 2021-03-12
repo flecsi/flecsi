@@ -53,8 +53,7 @@ struct repartition : with_size, data::prefixes {
 private:
   template<class F>
   static void fill(resize::Field::accessor<wo> a, const F & f) {
-    const auto i = run::context::instance().color();
-    a = data::prefixes::make_row(i, f(i));
+    a = f(run::context::instance().color());
   }
 };
 

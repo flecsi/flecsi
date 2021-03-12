@@ -14,22 +14,17 @@ namespace flecsi::data {
 #ifdef DOXYGEN // implemented per-backend
 // It is not required that any of these types be movable.
 
-struct prefixes : partition {
-  // The row type is defined by the backend:
-  static auto make_row(std::size_t i, std::size_t n); // "constructor"
-  using row = decltype(make_row(0, 0));
-  static std::size_t row_size(const row &); // "accessor"
-
-  // Derives row lengths from the field values (of type 'row') accessed via
-  // the field accessor argument.  The partition hosting the field must have
-  // the same number of rows as the region, have length 1 on each row, and
-  // survive until this partition is updated or destroyed.
+struct prefixes : partition, prefixes_base {
+  // Derives row lengths from the Field values accessed via the field accessor
+  // argument.  The partition hosting the field must have the same number of
+  // rows as the region and survive until this partition is updated or
+  // destroyed.
   template<class F>
-  prefixes(region_base &, F, completeness = incomplete);
+  prefixes(region_base &, F);
 
   // The same effect as the constructor, reusing the same region_base.
   template<class F>
-  void update(F, completeness = incomplete);
+  void update(F);
 };
 
 // A subset of each row in a region_base, expressed as a set of intervals.

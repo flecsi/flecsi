@@ -130,8 +130,7 @@ public:
   // NB: iota_view's iterators are allowed to outlive it.
   template<index_space S>
   auto entities() {
-    return make_ids<S>(util::iota_view<util::id>(
-      0, data::prefixes::row_size(size.template get<S>())));
+    return make_ids<S>(util::iota_view<util::id>(0, size.template get<S>()));
   }
 
   template<index_space F, index_space T>

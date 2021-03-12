@@ -43,8 +43,7 @@ constexpr std::size_t column = 42;
 
 void
 allocate(topo::resize::Field::accessor<wo> a) {
-  const auto i = color();
-  a = prefixes::make_row(i, i + 1);
+  a = color() + 1;
 }
 void
 irows(intN::mutator<rw> r) {

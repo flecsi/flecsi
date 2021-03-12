@@ -235,8 +235,8 @@ public:
 
   template<index_space IndexSpace>
   auto entities() {
-    return make_ids<IndexSpace>(util::iota_view<util::id>(
-      0, data::prefixes::row_size(size_.template get<IndexSpace>().data())));
+    return make_ids<IndexSpace>(
+      util::iota_view<util::id>(0, size_.template get<IndexSpace>().data()));
   }
 
   /*!

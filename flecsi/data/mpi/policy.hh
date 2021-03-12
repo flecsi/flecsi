@@ -143,17 +143,9 @@ struct rows : partition {
   }
 };
 
-struct prefixes : partition {
-  using row = std::size_t;
-  static row make_row(std::size_t, std::size_t n) {
-    return n;
-  }
-  static std::size_t row_size(const row & r) {
-    return r;
-  }
-
+struct prefixes : partition, prefixes_base {
   template<class F>
-  prefixes(region & r, F f, completeness = incomplete) : partition(r) {
+  prefixes(region & r, F f) : partition(r) {
     // Constructor for the case when how the data is partitioned is stored
     // as a field in another region referenced by the "other' partition.
     // Delegate to update().
@@ -161,7 +153,7 @@ struct prefixes : partition {
   }
 
   template<class F>
-  void update(F f, completeness = incomplete) {
+  void update(F f) {
     // The number of elements for each ranks is stored as a field of the
     // prefixes::row data type on the `other` partition.
     const auto s =
