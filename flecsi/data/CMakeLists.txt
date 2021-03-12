@@ -21,6 +21,7 @@ set(data_HEADERS
   accessor.hh
   backend.hh
   coloring.hh
+  copy.hh
   reference.hh
   field.hh
   field_info.hh
@@ -38,6 +39,7 @@ set(data_SOURCES
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
   set(data_HEADERS
+    leg/copy.hh
     leg/policy.hh
     ${data_HEADERS}
   )

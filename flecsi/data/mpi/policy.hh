@@ -15,7 +15,6 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/topo/core.hh" // single_space
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/mpi.hh"
 
@@ -110,33 +109,6 @@ private:
 };
 
 struct partition {
-  using row = std::size_t;
-  static row make_row(std::size_t, std::size_t n) {
-    return n;
-  }
-  static std::size_t row_size(const row & r) {
-    return r;
-  }
-
-  explicit partition(region & r) : r(&*r) {
-    // This constructor is usually (almost always) called when r.s.second != a
-    // large number, meaning it has the actual value. In this case, r.s.second
-    // is the number of elements in the partition on this rank (the same value
-    // on all ranks though).
-    nelems = r.size().second;
-  }
-
-  partition(region & r,
-    const partition & other,
-    field_id_t fid,
-    completeness = incomplete)
-    : r(&*r) {
-    // Constructor for the case when how the data is partitioned is stored
-    // as a field in another region referenced by the "other' partition.
-    // Delegate to update().
-    update(other, fid);
-  }
-
   std::size_t colors() const {
     // number of rows, essentially the number of MPI ranks.
     return r->size().first;
@@ -147,35 +119,60 @@ struct partition {
     return r->get_storage<T>(fid, nelems);
   }
 
-  void
-  update(const partition & other, field_id_t fid, completeness = incomplete) {
-    // The number of elements for each ranks is stored as a field of the
-    // partition::row data type on the `other` partition.
-    const auto s = other.get_storage<row>(fid); // non-owning span
-    flog_assert(
-      s.size() == 1, "underlying partition must have size 1, not " << s.size());
-    nelems = s[0];
-  }
-
   template<topo::single_space>
   const partition & get_partition(field_id_t) const {
     return *this;
   }
 
+private:
+  region_impl * r;
+
+protected:
+  partition(region & r) : r(&*r) {}
+  // number of elements in this partition on this particular rank.
+  size_t nelems = 0;
+};
+
+struct rows : partition {
+  explicit rows(region & r) : partition(r) {
+    // This constructor is usually (almost always) called when r.s.second != a
+    // large number, meaning it has the actual value. In this case, r.s.second
+    // is the number of elements in the partition on this rank (the same value
+    // on all ranks though).
+    nelems = r.size().second;
+  }
+};
+
+struct prefixes : partition, prefixes_base {
+  template<class F>
+  prefixes(region & r, F f) : partition(r) {
+    // Constructor for the case when how the data is partitioned is stored
+    // as a field in another region referenced by the "other' partition.
+    // Delegate to update().
+    update(std::move(f));
+  }
+
+  template<class F>
+  void update(F f) {
+    // The number of elements for each ranks is stored as a field of the
+    // prefixes::row data type on the `other` partition.
+    const auto s =
+      f.get_partition().template get_storage<row>(f.fid()); // non-owning span
+    flog_assert(
+      s.size() == 1, "underlying partition must have size 1, not " << s.size());
+    nelems = s[0];
+  }
+
   size_t size() const {
     return nelems;
   }
-
-private:
-  region_impl * r;
-  // number of elements in this partition on this particular rank.
-  size_t nelems = 0;
 };
 } // namespace mpi
 
 // For backend-agnostic interface:
 using region_base = mpi::region;
 using mpi::partition;
+using mpi::rows, mpi::prefixes;
 
 struct intervals {
   using Value = subrow; // [begin, end)

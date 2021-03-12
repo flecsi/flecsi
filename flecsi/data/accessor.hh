@@ -670,8 +670,7 @@ public:
       off(is) += delta += ov.add.size() - ov.del;
       ov.add.clear();
     }
-    sz = data::partition::make_row(
-      run::context::instance().color(), grow(acc.total(), all.size()));
+    sz = grow(acc.total(), all.size());
   }
 
 private:

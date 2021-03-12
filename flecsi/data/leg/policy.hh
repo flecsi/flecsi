@@ -25,7 +25,6 @@
 
 #include "flecsi/run/backend.hh"
 #include "flecsi/run/leg/mapper.hh"
-#include "flecsi/topo/core.hh" // single_space
 
 #include <legion.h>
 
@@ -197,82 +196,97 @@ private:
 };
 
 struct partition_base {
-  unique_index_space color_space; // empty when made from another partition
   unique_index_partition index_partition;
   unique_logical_partition logical_partition;
+  // A smaller index space when some colors exist purely for completeness.
+  Legion::IndexSpace colors_used;
 
-  // This is the same as color_space when that is non-empty.
-  Legion::IndexSpace get_color_space() const {
-    return run().get_index_partition_color_space_name(index_partition);
+  // NB: intervals and points are not advertised as deriving from this class.
+  std::size_t colors() const {
+    return leg::run().get_index_space_domain(colors_used).get_volume();
+  }
+  template<topo::single_space>
+  const partition_base & get_partition(field_id_t) const {
+    return *this;
   }
 
 protected:
-  partition_base(const region & reg)
-    : partition_base(reg, run().get_index_space_domain(reg.index_space).hi()) {}
   partition_base(const region & r, unique_index_partition ip)
-    : index_partition(std::move(ip)), logical_partition(log(r)) {}
+    : partition_base(r,
+        std::move(ip),
+        run().get_index_partition_color_space_name(ip)) {}
+  // The rvalue reference defers the move in the two-argument constructor.
+  partition_base(const region & r,
+    unique_index_partition && ip,
+    Legion::IndexSpace c)
+    : index_partition(std::move(ip)),
+      logical_partition(log(r.logical_region, index_partition)),
+      colors_used(c) {}
 
   static unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
     return named(run().get_logical_partition(r, p),
       (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
   }
+};
+
+struct with_color { // for initialization order
+  unique_index_space color_space;
+};
+struct rows : with_color, partition_base {
+  explicit rows(const region & reg)
+    : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
 
 private:
   // The type-erased version assumes a square transformation matrix.
-  partition_base(const region & reg, Legion::DomainPoint hi)
-    : color_space(run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))),
-      index_partition(named(run().create_partition_by_restriction(
-                              ctx(),
-                              Legion::IndexSpaceT<2>(reg.index_space),
-                              Legion::IndexSpaceT<1>(color_space),
-                              [&] {
-                                Legion::Transform<2, 1> ret;
-                                ret.rows[0].x = 1;
-                                ret.rows[1].x = 0;
-                                return ret;
-                              }(),
-                              {{0, 0}, {0, hi[1]}},
-                              DISJOINT_COMPLETE_KIND),
-        name(reg.index_space))),
-      logical_partition(log(reg)) {}
-
-  unique_logical_partition log(const region & reg) const {
-    return log(reg.logical_region, index_partition);
-  }
+  rows(const region & reg, Legion::DomainPoint hi)
+    : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
+      partition_base(reg,
+        named(run().create_partition_by_restriction(
+                ctx(),
+                Legion::IndexSpaceT<2>(reg.index_space),
+                Legion::IndexSpaceT<1>(color_space),
+                [&] {
+                  Legion::Transform<2, 1> ret;
+                  ret.rows[0].x = 1;
+                  ret.rows[1].x = 0;
+                  return ret;
+                }(),
+                {{0, 0}, {0, hi[1]}},
+                DISJOINT_COMPLETE_KIND),
+          name(reg.index_space))) {}
 };
 
 template<bool R = true>
 struct partition : partition_base {
-  using partition_base::partition_base;
   partition(region & reg,
-    const partition<> & src,
+    const partition_base & src,
     field_id_t fid,
-    disjointness dis = def_dis,
     completeness cpt = incomplete)
-    : partition_base(reg, part(reg.index_space, src, fid, dis, cpt)) {}
+    : partition(reg, src, fid, cpt, src.colors_used) {}
+  partition(region & reg,
+    const partition_base & src,
+    field_id_t fid,
+    completeness cpt,
+    Legion::IndexSpace used)
+    : partition_base(reg, part(reg.index_space, src, fid, cpt), used) {}
 
 protected:
-  void update(const partition & src,
+  void update(const partition_base & src,
     field_id_t fid,
-    disjointness dis = def_dis,
     completeness cpt = incomplete) {
     auto & r = run();
-    auto ip =
-      part(r.get_parent_index_space(index_partition), src, fid, dis, cpt);
+    auto ip = part(r.get_parent_index_space(index_partition), src, fid, cpt);
     logical_partition = log(r.get_parent_logical_region(logical_partition), ip);
     index_partition = std::move(ip); // can't fail
   }
 
 private:
-  static constexpr disjointness def_dis = R ? disjoint : compute;
-
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
-  unique_index_partition part(const Legion::IndexSpace & is,
-    const partition<> & src,
+  static unique_index_partition part(const Legion::IndexSpace & is,
+    const partition_base & src,
     field_id_t fid,
-    disjointness dis,
     completeness cpt) {
     auto & r = run();
 
@@ -292,8 +306,8 @@ private:
         src.logical_partition,
         r.get_parent_logical_region(src.logical_partition),
         fid,
-        src.get_color_space(),
-        partitionKind(dis, cpt),
+        src.colors_used,
+        partitionKind(R ? disjoint : compute, cpt),
         LEGION_AUTO_GENERATE_ID,
         0,
         tag),
@@ -304,107 +318,23 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-
-struct partition : leg::partition<> {
-  using row = Legion::Rect<2>;
-
-  static row make_row(std::size_t i, std::size_t n) {
-    const Legion::coord_t r = i;
-    return {{r, 0}, {r, leg::upper(n)}};
-  }
-  static std::size_t row_size(const row & r) {
-    return r.hi[1] - r.lo[1] + 1;
-  }
-
-  using leg::partition<>::partition;
-  explicit partition(region_base & r) : leg::partition<>(r) {}
-
-  using leg::partition<>::update;
-
-  std::size_t colors() const {
-    return leg::run().get_index_space_domain(get_color_space()).get_volume();
-  }
-
-  template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
-    return *this;
-  }
-};
-
-struct intervals : leg::partition<> {
-  using Value = data::partition::row;
-
-  static Value make(subrow n,
-    std::size_t i = run::context::instance().color()) {
-    const Legion::coord_t r = i;
-    const Legion::coord_t ln = n.first;
-    return {{r, ln}, {r, leg::upper(n.second)}};
-  }
-
-  using partition::partition;
-};
-
-struct points : leg::partition<false> {
-  using Value = Legion::Point<2>;
-
-  static auto make(std::size_t r, std::size_t i) {
-    return Value(r, i);
-  }
-
-  using partition::partition;
-};
-
-struct copy_engine {
-  copy_engine(const points & src, const intervals & dest, field_id_t f)
-    : copy_engine(src, dest.logical_partition, f) {}
-
-private:
-  copy_engine(const points & src, Legion::LogicalPartition dest, field_id_t f)
-    : copy_engine(src, leg::run().get_parent_logical_region(dest), dest, f) {}
-  copy_engine(const points & src,
-    Legion::LogicalRegion lreg,
-    Legion::LogicalPartition dest,
-    field_id_t ptr_fid)
-    : cl_(src.get_color_space()),
-      src(src.logical_partition, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg),
-      dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
-    Legion::RegionRequirement rr_pos(
-      dest, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg);
-    cl_.add_src_indirect_field(ptr_fid, rr_pos);
-  }
-
-  Legion::IndexCopyLauncher cl_;
-  Legion::RegionRequirement src, dest;
-
-  void go(field_id_t f) && {
-    src.add_field(f);
-    dest.add_field(f);
-    cl_.add_copy_requirements(src, dest);
-    leg::run().issue_copy_operation(leg::ctx(), cl_);
-  }
-
-public:
-  void operator()(field_id_t f) const {
-    copy_engine(*this).go(f);
-  }
-};
+using partition = leg::partition_base;
+using leg::rows;
 
 template<typename T>
 T
 get_scalar_from_accessor(const T * ptr) {
-  T tmp;
   if(Legion::Processor::get_executing_processor().kind() ==
      Legion::Processor::TOC_PROC) {
 #if defined(__NVCC__) || defined(__CUDACC__)
+    T tmp;
     cudaMemcpy(&tmp, ptr, sizeof(T), cudaMemcpyDeviceToHost);
+    return tmp;
 #else
     flog_assert(false, "Cuda should be enabled when using toc task");
 #endif
   }
-  else {
-    tmp = *ptr;
-  }
-  return tmp;
+  return *ptr;
 }
 
 } // namespace data
