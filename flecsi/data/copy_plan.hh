@@ -273,7 +273,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         if(!w(i) || !w(n - skip))
           return false;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
-          if(w(row[skip]))
+          if(w(row[s]))
             ++b.off;
           else {
             flog_assert(b.len > 2, "no data fits");
