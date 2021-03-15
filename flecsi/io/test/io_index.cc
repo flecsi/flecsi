@@ -20,10 +20,7 @@
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/io.hh"
-#include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
-
-#include <mpi.h>
 
 using namespace flecsi;
 using namespace flecsi::data;
@@ -62,7 +59,7 @@ index_driver() {
     int num_files = flecsi_context.processes();
     const std::string outfile{"io_index.dat"};
 
-    io::checkpoint_data(outfile, num_files);
+    io::checkpoint_process_topology(outfile, num_files);
 
     execute<reset_zero>(fh1);
     execute<reset_zero>(fh2);
@@ -84,7 +81,7 @@ index_driver() {
       checkpoint_file.close();
     }
 
-    io::recover_data(outfile, processes());
+    io::recover_process_topology(outfile, num_files);
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);

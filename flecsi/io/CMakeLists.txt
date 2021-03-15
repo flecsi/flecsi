@@ -74,6 +74,12 @@ set(io_SOURCES
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
+add_unit(hdf5_restart
+  SOURCES
+    test/hdf5_restart.cc
+  THREADS 4
+)
+
 add_unit(io_index
   SOURCES
     test/io_index.cc
