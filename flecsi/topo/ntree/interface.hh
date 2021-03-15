@@ -109,7 +109,7 @@ struct ntree : ntree_base {
     std::size_t nents = 0;
     std::size_t nents_top_tree = 0;
     std::size_t nents_ghosts = 0;
-    std::size_t nents_send = 0;
+    std::size_t nents_recv = 0;
     std::size_t nnodes = 0;
     std::size_t nnodes_top_tree = 0;
     std::size_t nnodes_ghosts = 0;
@@ -169,6 +169,13 @@ struct ntree : ntree_base {
   static inline const typename field<ntree_comm>::template definition<Policy,
     comm_data>
     comm_field;
+
+  static inline const typename field<
+    interaction_entities>::template definition<Policy, entities>
+    e_i;
+  static inline const typename field<
+    interaction_nodes>::template definition<Policy, nodes>
+    n_i;
 
   // --------------------------------------------------------------------------
 
@@ -269,36 +276,38 @@ struct ntree : ntree_base {
 
   // -------------------------------  Debug functions -------------------------
 
-  static void display_keys(typename Policy::template accessor<ro> t) {
+  static void display_ids(
+    typename field<interaction_entities>::template accessor<ro> e_i) {
     auto c = run::context::instance().color();
-    std::cout << c << ": E: ";
-    for(auto a : t.e_keys.span()) {
-      auto b = a;
-      b.truncate(5);
-      std::cout << b << " - ";
-    }
-    std::cout << " L: " << t.data_field(0).nents
-              << " T: " << t.data_field(0).nents_top_tree
-              << " D: " << t.data_field(0).nents_ghosts << std::endl;
-    std::cout << c << ": N: ";
-    for(auto a : t.n_keys.span()) {
-      auto b = a;
-      b.truncate(5);
-      std::cout << b << " - ";
-    }
-    std::cout << " L: " << t.data_field(0).nnodes
-              << " T: " << t.data_field(0).nnodes_top_tree
-              << " D: " << t.data_field(0).nnodes_ghosts << std::endl;
-  }
-
-  static void display_coords(
-    typename field<interaction_entities>::template accessor<rw> a) {
-    auto c = run::context::instance().color();
-    std::cout << c << ": Coords E: ";
-    for(auto a : a.span()) {
-      std::cout << a.coordinates << " - ";
+    std::cout << c << " e_i: ";
+    for(auto a : e_i.span()) {
+      std::cout << a.id << " - ";
     }
     std::cout << std::endl;
+  }
+
+  static void display_keys(typename field<key_t>::template accessor<ro> e_keys,
+    typename field<key_t>::template accessor<ro> n_keys,
+    typename field<ntree_data>::template accessor<ro> td) {
+
+    std::cout << "Display keys" << std::endl;
+    auto c = run::context::instance().color();
+    std::cout << c << ": E: ";
+    for(auto a : e_keys.span()) {
+      auto b = a;
+      b.truncate(5);
+      std::cout << b << " - ";
+    }
+    std::cout << " L: " << td(0).nents << " T: " << td(0).nents_top_tree
+              << " D: " << td(0).nents_ghosts << std::endl;
+    std::cout << c << ": N: ";
+    for(auto a : n_keys.span()) {
+      auto b = a;
+      b.truncate(5);
+      std::cout << b << " - ";
+    }
+    std::cout << " L: " << td(0).nnodes << " T: " << td(0).nnodes_top_tree
+              << " D: " << td(0).nnodes_ghosts << std::endl;
   }
 
   static void fake_init_e(
@@ -371,9 +380,9 @@ struct ntree : ntree_base {
     // ------------------- DEBUG -------------------
     // cp_top_tree_entities->issue_copy(e_keys.fid);
     // cp_top_tree_nodes->issue_copy(n_keys.fid);
-
-    // flecsi::execute<fake_init_k>(e_keys(*this));
-    // flecsi::execute<display_keys>(ts);
+    // cp_top_tree_entities->issue_copy(e_i.fid);
+    // flecsi::execute<fake_init_e>(e_i(*this));
+    // flecsi::execute<display_ids>(e_i(*this));
     // --------------------------------------------
   }
 
@@ -429,14 +438,14 @@ struct ntree : ntree_base {
       if(c != color) {
         auto w = mv[cur].write();
         for(auto v : f) {
-          if(v.color == cur) {
+          if(v.color == c) {
             w(a(v.id));
           } // if
         } // for
         ++cur;
       } // if
     } // for
-  } // xfer_entities_req_start
+  } // xfer_nodes_req_start
 
   static int xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw> a,
@@ -454,7 +463,7 @@ struct ntree : ntree_base {
       if(c != color) {
         auto r = mv[cur + cs - 1].read();
         while(r) {
-          a(idx + td(0).nents_send++) = r();
+          a(idx + td(0).nents_recv++) = r();
         } // while
         ++cur;
       } // if
@@ -462,21 +471,16 @@ struct ntree : ntree_base {
     // 2. if needed, keep copying
 
     return 0;
-  }
+  } // xfer_entities_req
 
   static serdez_vector<color_id> find_task(
-    typename Policy::template accessor<rw> t,
-    typename field<interaction_entities>::template accessor<ro, ro> e_i,
-    typename field<interaction_nodes>::template accessor<ro, ro> n_i) {
-    return t.find_send_entities(e_i, n_i);
+    typename Policy::template accessor<rw> t) {
+    return t.find_send_entities();
   }
 
   static serdez_vector<std::pair<hcell_t, std::size_t>> find_distant_task(
-    typename Policy::template accessor<rw> t,
-    typename field<interaction_entities>::template accessor<ro, ro> e_i,
-    typename field<interaction_nodes>::template accessor<ro, ro> n_i,
-    typename field<ntree_data>::template accessor<ro> td) {
-    return t.find_intersect_entities(e_i, n_i, td);
+    typename Policy::template accessor<rw> t) {
+    return t.find_intersect_entities();
   }
 
   static void load_entities_task(typename Policy::template accessor<rw> t,
@@ -492,11 +496,11 @@ struct ntree : ntree_base {
   // ----------------------------------- Share ghosts -------------------------
 
   // Search neighbors and complete the hmap, create copy plans (or buffer)
-  template<class T, class TT, class TTT>
-  void share_ghosts(T && ts, TT && e_i, TTT & n_i) {
+  template<class T>
+  void share_ghosts(T && ts) {
 
     // Find entities that will be used
-    auto to_send = flecsi::execute<find_task>(ts, e_i(ts), n_i(ts));
+    auto to_send = flecsi::execute<find_task>(ts);
 
     // Create all to all buffer copy
     data::buffers::core buf([] {
@@ -554,12 +558,11 @@ struct ntree : ntree_base {
 
     // ------------------------ Debug -------------------
     // flecsi::execute<fake_init_e>(e_i(*this));
-    // flecsi::execute<display_coords>(e_i(*this));
+    // flecsi::execute<display_ids>(e_i(*this));
     // -------------------------------------------------
 
     // Find the interactions with the extra particles locally
-    auto to_reply = flecsi::execute<find_distant_task>(
-      ts, e_i(*this), n_i(*this), data_field(*this));
+    auto to_reply = flecsi::execute<find_distant_task>(ts);
 
     // Compute which entities are destinated for this process
     // This is not efficient since it is performed on the top level task and is
@@ -612,8 +615,10 @@ struct ntree : ntree_base {
 
     // ---- Debug -----
     // cp_entities->issue_copy(e_keys.fid);
-    // flecsi::execute<fake_init_k>(e_keys(*this));
-    // flecsi::execute<display_keys>(ts);
+    // cp_entities->issue_copy(e_keys.fid);
+    // cp_entities->issue_copy(e_i.fid);
+    // flecsi::execute<fake_init_e>(e_i(*this));
+    // flecsi::execute<display_ids>(e_i(*this));
     // ----------------
   }
 
@@ -666,6 +671,8 @@ struct ntree<Policy>::access {
   accessor<ntree::n_keys> n_keys;
   accessor<ntree::data_field> data_field;
   accessor<ntree::hcells> hcells;
+  accessor<ntree::e_i> e_i;
+  accessor<ntree::n_i> n_i;
 
   template<class F>
   void send(F && f) {
@@ -673,14 +680,13 @@ struct ntree<Policy>::access {
     n_keys.topology_send(f);
     data_field.topology_send(f);
     hcells.topology_send(f);
+    e_i.topology_send(f);
+    n_i.topology_send(f);
   }
 
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
 
-  auto find_intersect_entities(
-    typename field<interaction_entities>::template accessor<ro, ro> e_i,
-    typename field<interaction_nodes>::template accessor<ro, ro> n_i,
-    typename field<ntree_data>::template accessor<ro> td) {
+  auto find_intersect_entities() {
     hmap_t hmap(hcells.span());
     auto cs = run::context::instance().colors();
     serdez_vector<std::pair<hcell_t, std::size_t>> entities;
@@ -688,12 +694,14 @@ struct ntree<Policy>::access {
     // Make a tree traversal per last elements in the intersection field.
     // Caution entities can be detected several time for the same neighbor.
     std::vector<std::set<hcell_t>> send_ids(cs);
-    std::size_t start = td(0).nents + td(0).nents_top_tree + td(0).nents_ghosts;
-    std::size_t stop = start + td(0).nents_send;
+    std::size_t start = data_field(0).nents + data_field(0).nents_top_tree +
+                        data_field(0).nents_ghosts;
+    std::size_t stop = start + data_field(0).nents_recv;
     for(std::size_t i = start; i < stop; ++i) {
       ent_id id(i);
 
       std::size_t tcolor = e_i(i).color;
+      assert(tcolor != run::context::instance().color());
       std::queue<hcell_t *> tqueue;
       tqueue.push(&hmap.find(key_t::root())->second);
       while(!tqueue.empty()) {
@@ -703,7 +711,7 @@ struct ntree<Policy>::access {
         // Intersection
         if(cur->is_node()) {
           if(Policy::intersect_entity_node(
-               id, topo::id<ntree_base::nodes>(cur->node_idx()), e_i, n_i)) {
+               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
             if(cur->has_child()) {
               for(std::size_t j = 0; j < nchildren_; ++j) {
                 if(cur->has_child(j)) {
@@ -720,9 +728,14 @@ struct ntree<Policy>::access {
           } // if
         }
         else {
+          // cur->is_ent()
+          // \todo add check here to see if the entities interact
+          // For now, send a maximum of 8 entities
           assert(cur->is_ent());
           if(cur->is_local()) {
             send_ids[tcolor].insert(*cur);
+            assert(cur->color() == run::context::instance().color());
+            assert(tcolor != run::context::instance().color());
           }
           else {
             // Do nothing, someone else holds it
@@ -737,13 +750,10 @@ struct ntree<Policy>::access {
         entities.push_back({a, i});
       }
     }
-
     return entities;
   }
 
-  auto find_send_entities(
-    typename field<interaction_entities>::template accessor<ro, ro> e_i,
-    typename field<interaction_nodes>::template accessor<ro, ro> n_i) {
+  auto find_send_entities() {
     // The ranks to send and the id of the entity
     serdez_vector<color_id> entities;
     auto color = run::context::instance().color();
@@ -757,7 +767,7 @@ struct ntree<Policy>::access {
       std::set<std::size_t> send_colors;
       // 2. Find if this entity is in contact with a distant node
       // \TODO Might be better to do the invert, for all non local nodes
-      // search all local entities in contact.
+      // search all local entities in contact: less work
       while(!tqueue.empty()) {
         hcell_t * cur = tqueue.front();
         tqueue.pop();
@@ -766,7 +776,7 @@ struct ntree<Policy>::access {
         // Intersection
         if(cur->is_node()) {
           if(Policy::intersect_entity_node(
-               id, topo::id<ntree_base::nodes>(cur->node_idx()), e_i, n_i)) {
+               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
             if(cur->has_child()) {
               for(std::size_t j = 0; j < nchildren_; ++j) {
                 if(cur->has_child(j)) {
@@ -795,6 +805,7 @@ struct ntree<Policy>::access {
       } // while
       // If color present in set, send this entity
       for(auto v : send_colors) {
+        assert(v != color);
         entities.push_back(color_id{v, id, color});
       } // for
     } // for
@@ -827,7 +838,7 @@ struct ntree<Policy>::access {
 
   // Return entities, exclusive/ghosts from a specific node
   template<ptype_t PT = ptype_t::exclusive>
-  auto entities(const id<index_space::nodes> & node_id) {
+  auto entities(const id<index_space::nodes> & node_id) const {
 
     std::vector<id<index_space::entities>> ids;
     // Get the node and find its sub-entities
@@ -844,6 +855,42 @@ struct ntree<Policy>::access {
         }
       } // if
     } // for
+    return ids;
+  }
+
+  auto neighbors(const id<index_space::entities> & ent_id) const {
+    hmap_t hmap(hcells.span());
+    std::vector<id<index_space::entities>> ids;
+    // Perform tree traversal to find neighbors
+    std::queue<hcell_t *> tqueue;
+
+    tqueue.push(&hmap.find(key_t::root())->second);
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      auto nkey = cur->key();
+      if(cur->is_node()) {
+        if(Policy::intersect_entity_node(
+             e_i(ent_id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+          if(cur->has_child()) {
+            for(std::size_t j = 0; j < nchildren_; ++j) {
+              if(cur->has_child(j)) {
+                key_t ckey = nkey;
+                ckey.push(j);
+                auto it = hmap.find(ckey);
+                tqueue.push(&it->second);
+              } // if
+            } // for
+          } // if
+        }
+      }
+      else {
+        if(Policy::intersect_entity_entity(e_i(ent_id),
+             e_i(topo::id<ntree_base::entities>(cur->ent_idx())))) {
+          ids.push_back(topo::id<ntree_base::entities>(cur->ent_idx()));
+        }
+      }
+    } //
     return ids;
   }
 
@@ -1392,6 +1439,8 @@ struct ntree<Policy>::access {
       auto & cur = hmap.insert(key, key)->second;
       auto eid = data_field(0).nents + data_field(0).nents_top_tree +
                  data_field(0).nents_ghosts++;
+      cur.set_nonlocal();
+      cur.set_color(c);
       cur.set_ent_idx(eid);
     }
   }

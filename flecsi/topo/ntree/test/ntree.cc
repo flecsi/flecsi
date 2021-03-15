@@ -21,6 +21,9 @@
 #include "flecsi/topo/ntree/interface.hh"
 #include "flecsi/topo/ntree/types.hh"
 
+#include "flecsi/execution.hh"
+#include "flecsi/flog.hh"
+
 #include "txt_definition.hh"
 
 using namespace flecsi;
@@ -48,6 +51,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   using point_t = util::point<double, dimension>;
 
   struct interaction_nodes {
+    int id;
     point_t coordinates;
     double mass;
     double radius;
@@ -56,19 +60,12 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // Problem: this contains the color which should not
   // depend on the topology user
   struct interaction_entities {
+    int id;
     std::size_t color;
     point_t coordinates;
     double mass;
     double radius;
   };
-
-  static inline const field<interaction_entities>::definition<sph_ntree_t,
-    sph_ntree_t::base::entities>
-    e_i;
-
-  static inline const field<interaction_nodes>::definition<sph_ntree_t,
-    sph_ntree_t::base::nodes>
-    n_i;
 
   static void init_fields(sph_ntree_t::accessor<wo> t,
     field<interaction_entities>::accessor<wo> e_i,
@@ -78,6 +75,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
       e_i(i).coordinates = ents[i].coordinates();
       e_i(i).radius = ents[i].radius();
       e_i(i).color = c;
+      e_i(i).id = ents[i].id();
       t.e_keys(i) = ents[i].key();
       e_i(i).mass = ents[i].mass();
     }
@@ -88,25 +86,23 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     coloring,
     std::vector<ent_t> & ents) {
 
-    flecsi::execute<init_fields, flecsi::mpi>(ts, e_i(ts), ents);
+    flecsi::execute<init_fields, flecsi::mpi>(
+      ts, topo::ntree<sph_ntree_t>::e_i(ts), ents);
 
     ts->make_tree(ts);
 
     flecsi::execute<compute_centroid_local>(ts,
       topo::ntree<sph_ntree_t>::n_keys(ts),
-      n_i(ts),
+      topo::ntree<sph_ntree_t>::n_i(ts),
       topo::ntree<sph_ntree_t>::e_keys(ts),
-      e_i(ts));
+      topo::ntree<sph_ntree_t>::e_i(ts));
     flecsi::execute<compute_centroid>(ts,
       topo::ntree<sph_ntree_t>::n_keys(ts),
-      n_i(ts),
+      topo::ntree<sph_ntree_t>::n_i(ts),
       topo::ntree<sph_ntree_t>::e_keys(ts),
-      e_i(ts));
+      topo::ntree<sph_ntree_t>::e_i(ts));
 
-    ts->share_ghosts(ts, e_i, n_i);
-
-    // Recompute center of masses to include new entities/nodes
-    // See if it is mandatory
+    ts->share_ghosts(ts);
   }
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
@@ -139,7 +135,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     if(rank == 0)
       flog(info) << oss.str() << std::endl;
 
-    c.local_nodes_ = c.local_entities_ + 10;
+    c.local_nodes_ = c.local_entities_ + 20;
     c.global_nodes_ = c.global_entities_;
     c.nodes_offset_ = c.entities_offset_;
     std::for_each(c.nodes_offset_.begin(),
@@ -239,31 +235,26 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     }
   } // compute_centroid
 
-  static bool intersect_entity_node(topo::id<topo::ntree_base::entities> e_idx,
-    topo::id<topo::ntree_base::nodes> n_idx,
-    field<interaction_entities>::accessor<ro, ro> e_i,
-    field<interaction_nodes>::accessor<ro, ro> n_i) {
-    double dist = distance(n_i[n_idx].coordinates, e_i[e_idx].coordinates);
-    if(dist <= n_i[n_idx].radius + e_i[e_idx].radius)
+  static bool intersect_entity_node(const interaction_entities & ie,
+    const interaction_nodes & in) {
+    double dist = distance(in.coordinates, ie.coordinates);
+    if(dist <= in.radius + ie.radius)
       return true;
     return false;
   }
 
-  static bool intersect_node_node(topo::id<topo::ntree_base::nodes> node_1,
-    topo::id<topo::ntree_base::nodes> node_2,
-    field<interaction_nodes>::accessor<ro, ro> n_i) {
-    double dist = distance(n_i[node_1].coordinates, n_i[node_2].coordinates);
-    if(dist <= n_i[node_1].radius + n_i[node_2].radius)
+  static bool intersect_node_node(const interaction_nodes & in1,
+    const interaction_nodes & in2) {
+    double dist = distance(in1.coordinates, in2.coordinates);
+    if(dist <= in1.radius + in2.radius)
       return true;
     return false;
   }
 
-  static bool intersect_entity_entity(
-    topo::id<topo::ntree_base::entities> ent_1,
-    topo::id<topo::ntree_base::entities> ent_2,
-    field<interaction_entities>::accessor<ro, ro> e_i) {
-    double dist = distance(e_i[ent_1].coordinates, e_i[ent_2].coordinates);
-    if(dist <= e_i[ent_1].radius + e_i[ent_2].radius)
+  static bool intersect_entity_entity(const interaction_entities & ie1,
+    const interaction_entities & ie2) {
+    double dist = distance(ie1.coordinates, ie2.coordinates);
+    if(dist <= ie1.radius + ie2.radius)
       return true;
     return false;
   }
@@ -281,27 +272,69 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   pressure;
 
 void
-init_density(sph_ntree_t::accessor<ro> t,
-  field<double>::accessor<wo, na> p,
+check_neighbors(sph_ntree_t::accessor<rw> t,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
-  std::cout << color() << " Init task: " << std::endl;
-  for(auto a : t.entities()) {
-    p[a] = e_i[a].mass * e_i[a].radius;
-    std::cout << p[a] << " - ";
+  std::vector<std::pair<int, int>> stencil = {{2, 0},
+    {1, 0},
+    {0, 0},
+    {-1, 0},
+    {-2, 0},
+    {0, 2},
+    {0, 1},
+    {0, -1},
+    {0, -2},
+    {1, 1},
+    {1, -1},
+    {-1, 1},
+    {-1, -1}};
+  // Check neighbors of entities
+  for(auto e : t.entities()) {
+    std::vector<std::pair<std::size_t, bool>> s_id; // stencil ids
+    std::size_t eid = e_i(e).id;
+    // Compute stencil based on id
+    int line = eid / 7;
+    int col = eid % 7;
+    for(int i = 0; i < stencil.size(); ++i) {
+      int l = line + stencil[i].first;
+      int c = col + stencil[i].second;
+      if(l >= 0 && l < 7)
+        if(c >= 0 && c < 7)
+          s_id.push_back(std::make_pair(l * 7 + c, false));
+    }
+    for(auto n : t.neighbors(e)) {
+      std::size_t n_id = e_i[n].id;
+      auto f = std::find(s_id.begin(), s_id.end(), std::make_pair(n_id, false));
+      assert(f != s_id.end());
+      f->second = true;
+    }
+    // Check that all are found
+    for(auto a : s_id)
+      assert(a.second == true);
   }
-  std::cout << std::endl;
 }
 
 void
-print_density(sph_ntree_t::accessor<ro> t, field<double>::accessor<ro, ro> p) {
+init_density(sph_ntree_t::accessor<ro> t,
+  field<double>::accessor<wo, na> p,
+  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
+  int i = 0;
+  for(auto a : t.entities()) {
+    p[a] = e_i[a].mass * e_i[a].radius;
+  }
+}
+
+void
+print_density(sph_ntree_t::accessor<ro> t,
+  field<double>::accessor<ro, ro> p,
+  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
   std::cout << color() << " Print density exclusive: ";
   for(auto a : t.entities()) {
-    std::cout << p[a] << " - ";
+    std::cout << e_i[a].id << " - ";
   }
   std::cout << std::endl;
   std::cout << color() << " Print density ghosts: ";
   for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
-    std::cout << p[a] << " - ";
+    std::cout << e_i[a].id << " - ";
   }
   std::cout << std::endl;
 }
@@ -314,10 +347,11 @@ ntree_driver() {
   sph_ntree.allocate(coloring.get(), ents);
 
   auto d = density(sph_ntree);
-  auto e_i = sph_ntree_t::e_i(sph_ntree);
+  auto e_i = topo::ntree<sph_ntree_t>::e_i(sph_ntree);
 
   flecsi::execute<init_density>(sph_ntree, d, e_i);
-  flecsi::execute<print_density>(sph_ntree, d);
+  flecsi::execute<print_density>(sph_ntree, d, e_i);
+  flecsi::execute<check_neighbors>(sph_ntree, e_i);
 
   return 0;
 } // ntree_driver

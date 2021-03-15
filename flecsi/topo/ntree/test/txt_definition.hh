@@ -63,7 +63,7 @@ public:
   }
 
   size_t distribution(const int & i) const {
-    return distribution_[i];
+    return entities_.size();
   }
 
   std::pair<size_t, size_t> offset(const int & i) const {
