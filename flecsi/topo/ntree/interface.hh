@@ -624,6 +624,19 @@ struct ntree : ntree_base {
 
   //---------------------------------------------------------------------------
 
+  //------------------------------ reset tree ---------------------------------
+
+  static void reset_task(typename Policy::template accessor<rw> t) {
+    t.reset();
+  }
+
+  template<class T>
+  void reset(T && ts) {
+    flecsi::execute<reset_task>(ts);
+  }
+
+  //---------------------------------------------------------------------------
+
   template<typename Type,
     data::layout Layout,
     typename Topo,
@@ -685,6 +698,19 @@ struct ntree<Policy>::access {
   }
 
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
+
+  void reset() {
+    hmap_t hmap(hcells.span());
+    hmap.clear();
+    data_field(0).max_depth = 0;
+    // data_field(0).nents = 0;
+    data_field(0).nents_top_tree = 0;
+    data_field(0).nents_ghosts = 0;
+    data_field(0).nents_recv = 0;
+    data_field(0).nnodes = 0;
+    data_field(0).nnodes_top_tree = 0;
+    data_field(0).nnodes_ghosts = 0;
+  }
 
   auto find_intersect_entities() {
     hmap_t hmap(hcells.span());

@@ -62,7 +62,7 @@ public:
     return nglobal_entities_;
   }
 
-  size_t distribution(const int & i) const {
+  size_t distribution() const {
     return entities_.size();
   }
 

@@ -71,7 +71,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     field<interaction_entities>::accessor<wo> e_i,
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
-    for(size_t i = 0; i < ents.size(); ++i) {
+    for(std::size_t i = 0; i < ents.size(); ++i) {
       e_i(i).coordinates = ents[i].coordinates();
       e_i(i).radius = ents[i].radius();
       e_i(i).color = c;
@@ -85,12 +85,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
     coloring,
     std::vector<ent_t> & ents) {
-
     flecsi::execute<init_fields, flecsi::mpi>(
       ts, topo::ntree<sph_ntree_t>::e_i(ts), ents);
-
     ts->make_tree(ts);
-
     flecsi::execute<compute_centroid_local>(ts,
       topo::ntree<sph_ntree_t>::n_keys(ts),
       topo::ntree<sph_ntree_t>::n_i(ts),
@@ -101,9 +98,28 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
       topo::ntree<sph_ntree_t>::n_i(ts),
       topo::ntree<sph_ntree_t>::e_keys(ts),
       topo::ntree<sph_ntree_t>::e_i(ts));
-
     ts->share_ghosts(ts);
   }
+
+#if 0 
+  static void update(data::topology_slot<sph_ntree_t> & ts){
+    ts->reset(ts); 
+    // update keys 
+    flecsi::execute<compute_keys>(ts,topo::ntree<sph_ntree_t>::e_keys(*this)); 
+    ts->make_tree(ts);
+    flecsi::execute<compute_centroid_local>(ts,
+      topo::ntree<sph_ntree_t>::n_keys(ts),
+      topo::ntree<sph_ntree_t>::n_i(ts),
+      topo::ntree<sph_ntree_t>::e_keys(ts),
+      topo::ntree<sph_ntree_t>::e_i(ts));
+    flecsi::execute<compute_centroid>(ts,
+      topo::ntree<sph_ntree_t>::n_keys(ts),
+      topo::ntree<sph_ntree_t>::n_i(ts),
+      topo::ntree<sph_ntree_t>::e_keys(ts),
+      topo::ntree<sph_ntree_t>::e_i(ts));
+    ts->share_ghosts(ts);
+  }
+#endif
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
@@ -117,7 +133,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     c.global_entities_ = hd.global_num_entities();
     c.entities_distribution_.resize(size);
     for(int i = 0; i < size; ++i)
-      c.entities_distribution_[i] = hd.distribution(i);
+      c.entities_distribution_[i] = hd.distribution();
     c.entities_offset_.resize(size);
 
     ents = hd.entities();
@@ -294,7 +310,7 @@ check_neighbors(sph_ntree_t::accessor<rw> t,
     // Compute stencil based on id
     int line = eid / 7;
     int col = eid % 7;
-    for(int i = 0; i < stencil.size(); ++i) {
+    for(int i = 0; i < static_cast<int>(stencil.size()); ++i) {
       int l = line + stencil[i].first;
       int c = col + stencil[i].second;
       if(l >= 0 && l < 7)
@@ -317,7 +333,6 @@ void
 init_density(sph_ntree_t::accessor<ro> t,
   field<double>::accessor<wo, na> p,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
-  int i = 0;
   for(auto a : t.entities()) {
     p[a] = e_i[a].mass * e_i[a].radius;
   }
@@ -325,18 +340,22 @@ init_density(sph_ntree_t::accessor<ro> t,
 
 void
 print_density(sph_ntree_t::accessor<ro> t,
-  field<double>::accessor<ro, ro> p,
+  field<double>::accessor<ro, ro>,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
   std::cout << color() << " Print density exclusive: ";
   for(auto a : t.entities()) {
     std::cout << e_i[a].id << " - ";
   }
   std::cout << std::endl;
-  std::cout << color() << " Print density ghosts: ";
-  for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
-    std::cout << e_i[a].id << " - ";
+}
+
+void
+move_entities(sph_ntree_t::accessor<ro> t,
+  field<sph_ntree_t::interaction_entities>::accessor<rw, ro> e_i) {
+  for(auto a : t.entities()) {
+    // Add 1 on z coordinate
+    e_i[a].coordinates[2] += 1;
   }
-  std::cout << std::endl;
 }
 
 int
@@ -352,6 +371,9 @@ ntree_driver() {
   flecsi::execute<init_density>(sph_ntree, d, e_i);
   flecsi::execute<print_density>(sph_ntree, d, e_i);
   flecsi::execute<check_neighbors>(sph_ntree, e_i);
+
+  flecsi::execute<move_entities>(sph_ntree, e_i);
+  // sph_ntree_t::update(sph_ntree);
 
   return 0;
 } // ntree_driver
