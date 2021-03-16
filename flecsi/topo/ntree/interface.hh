@@ -631,6 +631,9 @@ struct ntree : ntree_base {
 
   void reset(typename Policy::slot & ts) {
     flecsi::execute<reset_task>(ts);
+    cp_top_tree_entities.reset();
+    cp_top_tree_nodes.reset();
+    cp_entities.reset();
   }
 
   //---------------------------------------------------------------------------
@@ -708,9 +711,6 @@ struct ntree<Policy>::access {
     data_field(0).nnodes = 0;
     data_field(0).nnodes_top_tree = 0;
     data_field(0).nnodes_ghosts = 0;
-    cp_top_tree_entities.reset();
-    cp_top_tree_nodes.reset();
-    cp_entities.reset();
   }
 
   auto find_intersect_entities() {
