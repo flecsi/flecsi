@@ -320,8 +320,7 @@ struct ntree : ntree_base {
   /**
    * @brief  Build the local tree and share the top part of the tree
    */
-  template<class T>
-  void make_tree(T && ts) {
+  void make_tree(typename Policy::slot & ts) {
     cp_data_tree.issue_copy(data_field.fid);
 
     // Create the local tree
@@ -497,8 +496,7 @@ struct ntree : ntree_base {
   // ----------------------------------- Share ghosts -------------------------
 
   // Search neighbors and complete the hmap, create copy plans (or buffer)
-  template<class T>
-  void share_ghosts(T && ts) {
+  void share_ghosts(typename Policy::slot & ts) {
 
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts);
@@ -631,8 +629,7 @@ struct ntree : ntree_base {
     t.reset();
   }
 
-  template<class T>
-  void reset(T && ts) {
+  void reset(typename Policy::slot & ts) {
     flecsi::execute<reset_task>(ts);
   }
 
