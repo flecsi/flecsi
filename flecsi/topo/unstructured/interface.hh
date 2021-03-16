@@ -113,7 +113,10 @@ struct unstructured : unstructured_base,
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
+    if constexpr(Layout == data::ragged)
+      ; // TODO
+    else
+      plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
