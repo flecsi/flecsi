@@ -324,9 +324,11 @@ check_neighbors(sph_ntree_t::accessor<rw> t,
       f->second = true;
     }
     // Check that all are found
+#if DEBUG
     for(auto a : s_id)
       assert(a.second == true);
   }
+#endif 
 }
 
 void
