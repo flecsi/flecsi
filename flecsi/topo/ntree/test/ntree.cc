@@ -289,7 +289,7 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
 
 void
 check_neighbors(sph_ntree_t::accessor<rw> t,
-  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
+  field<sph_ntree_t::interaction_entities>::accessor<ro, ro> e_i) {
   std::vector<std::pair<int, int>> stencil = {{2, 0},
     {1, 0},
     {0, 0},
@@ -344,9 +344,19 @@ void
 print_density(sph_ntree_t::accessor<ro> t,
   field<double>::accessor<ro, ro>,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
-  std::cout << color() << " Print density exclusive: ";
+  std::cout << color() << " Print id exclusive: ";
   for(auto a : t.entities()) {
     std::cout << e_i[a].id << " - ";
+  }
+  std::cout << std::endl;
+  std::cout << color() << " Print id ghosts : ";
+  for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
+    std::cout << e_i[a].id << " - ";
+  }
+  std::cout << std::endl;
+  std::cout << color() << " Print id all : ";
+  for(auto a : e_i.span()) {
+    std::cout << a.id << " - ";
   }
   std::cout << std::endl;
 }

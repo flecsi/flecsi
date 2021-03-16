@@ -194,7 +194,7 @@ struct ntree : ntree_base {
   static serdez_vector<hcell_t> make_tree_local_task(
     typename Policy::template accessor<rw> t) {
     t.make_tree();
-    t.graphviz_draw(0);
+    // t.graphviz_draw(0);
     return t.top_tree_boundaries();
   } // make_tree
 
@@ -202,7 +202,7 @@ struct ntree : ntree_base {
     typename Policy::template accessor<rw> t,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
-    t.graphviz_draw(1);
+    // t.graphviz_draw(1);
     return t.get_sizes();
   }
 
@@ -377,9 +377,10 @@ struct ntree : ntree_base {
     top_tree_cp(
       top_tree, top_tree_nents, top_tree_nnodes, ents_sizes, nodes_sizes);
 
+    cp_top_tree_entities->issue_copy(e_keys.fid);
+    cp_top_tree_nodes->issue_copy(n_keys.fid);
+
     // ------------------- DEBUG -------------------
-    // cp_top_tree_entities->issue_copy(e_keys.fid);
-    // cp_top_tree_nodes->issue_copy(n_keys.fid);
     // cp_top_tree_entities->issue_copy(e_i.fid);
     // flecsi::execute<fake_init_e>(e_i(*this));
     // flecsi::execute<display_ids>(e_i(*this));
@@ -613,10 +614,10 @@ struct ntree : ntree_base {
       entities_ptrs_task,
       util::constant<entities>()));
 
+    cp_entities->issue_copy(e_keys.fid);
+    cp_entities->issue_copy(e_i.fid);
+
     // ---- Debug -----
-    // cp_entities->issue_copy(e_keys.fid);
-    // cp_entities->issue_copy(e_keys.fid);
-    // cp_entities->issue_copy(e_i.fid);
     // flecsi::execute<fake_init_e>(e_i(*this));
     // flecsi::execute<display_ids>(e_i(*this));
     // ----------------
@@ -710,6 +711,9 @@ struct ntree<Policy>::access {
     data_field(0).nnodes = 0;
     data_field(0).nnodes_top_tree = 0;
     data_field(0).nnodes_ghosts = 0;
+    cp_top_tree_entities.reset();
+    cp_top_tree_nodes.reset();
+    cp_entities.reset();
   }
 
   auto find_intersect_entities() {
