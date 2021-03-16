@@ -410,17 +410,17 @@ struct ntree : ntree_base {
       execute<set_top_tree_nodes_ptrs>(f, nnodes_base, hcells);
     };
 
-    cp_top_tree_entities = data::copy_plan(*this,
+    cp_top_tree_entities.emplace(data::copy_plan(*this,
       data::copy_plan::Sizes(processes(), 1),
       entities_dests_task,
       entities_ptrs_task,
-      util::constant<entities>());
+      util::constant<entities>()));
 
-    cp_top_tree_nodes = data::copy_plan(*this,
+    cp_top_tree_nodes.emplace(data::copy_plan(*this,
       data::copy_plan::Sizes(processes(), 1),
       nodes_dests_task,
       nodes_ptrs_task,
-      util::constant<nodes>());
+      util::constant<nodes>()));
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
@@ -607,11 +607,11 @@ struct ntree : ntree_base {
       execute<set_entities_ptrs>(f, nents_base, recv);
     };
 
-    cp_entities = data::copy_plan(*this,
+    cp_entities.emplace(data::copy_plan(*this,
       data::copy_plan::Sizes(processes(), 1),
       entities_dests_task,
       entities_ptrs_task,
-      util::constant<entities>());
+      util::constant<entities>()));
 
     // ---- Debug -----
     // cp_entities->issue_copy(e_keys.fid);
