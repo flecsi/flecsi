@@ -64,8 +64,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      meta_(c.colors) {
+        std::make_index_sequence<index_spaces::size>())) {
     init_ragged(index_spaces());
     init_meta(c);
   }
@@ -84,12 +83,11 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   };
 
   static inline const typename field<meta_data,
-    data::single>::template definition<meta<narray<Policy>>>
+    data::single>::template definition<meta<Policy>>
     meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
-  typename meta<narray<Policy>>::core meta_;
 
   std::size_t colors() const {
     return part_.front().colors();
@@ -186,7 +184,7 @@ private:
   } // set_meta
 
   void init_meta(narray_base::coloring const & c) {
-    execute<set_meta, mpi>(meta_field(this->meta_), c);
+    execute<set_meta, mpi>(meta_field(this->meta), c);
   }
 
   template<index_space... SS>
@@ -360,7 +358,7 @@ struct narray<Policy>::access {
     for(auto & a : size_) {
       f(a, [&i](typename Policy::slot & n) { return n->part_[i++].sizes(); });
     }
-    f(meta_, [](typename Policy::slot & s) { return meta_field(s->meta_); });
+    f(meta_, [](typename Policy::slot & s) { return meta_field(s->meta); });
   }
 }; // struct narray<Policy>::access
 
