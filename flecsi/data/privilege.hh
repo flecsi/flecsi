@@ -144,6 +144,11 @@ privilege_repeat(partition_privilege_t p, std::size_t n) {
   }
   return ret;
 }
+constexpr std::size_t
+privilege_cat(std::size_t a, std::size_t b) {
+  const auto n = privilege_count(b) * privilege_bits;
+  return a << n | b & (1 << n) - 1;
+}
 
 constexpr partition_privilege_t
 privilege_merge(std::size_t p) {
