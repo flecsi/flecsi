@@ -267,8 +267,8 @@ By inheriting from ``specialization``, a topology type is assigned an ID (for fi
 In turn, the topology type can specify index spaces, provide a factory function for coloring objects, extend the core ``access`` type, and supply other category-specific parameters, as also presented in ``core.hh``.
 The coloring *type*, however, is defined by the category (independent of specialization).
 
-The ``canonical`` topology is a working example of a topology category, particularly of the metaprogramming techniques used to define index spaces and fields that are parametrized by the policy.
-Its unit test is in turn a working example of a specialization (albeit without any accessor extension).
+The ``unstructured`` topology is a useful example of the metaprogramming techniques used to define index spaces and fields that are parametrized by the policy.
+Its unit tests also provide examples of specializations.
 
 Subcomponents
 ^^^^^^^^^^^^^
