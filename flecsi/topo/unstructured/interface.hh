@@ -208,10 +208,7 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<
-    data::scalar_access<data::partition::row, topo::resize::field>,
-    index_spaces>
-    size_;
+  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;
 
@@ -239,7 +236,7 @@ public:
   template<index_space IndexSpace>
   auto entities() {
     return make_ids<IndexSpace>(util::iota_view<util::id>(
-      0, data::partition::row_size(size_.template get<IndexSpace>().data())));
+      0, data::partition::row_size(**size_.template get<IndexSpace>())));
   }
 
   /*!

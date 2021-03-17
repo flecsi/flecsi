@@ -200,12 +200,9 @@ private:
 template<typename Policy>
 template<std::size_t Privileges>
 struct narray<Policy>::access {
-  util::key_array<
-    data::scalar_access<data::partition::row, topo::resize::field>,
-    index_spaces>
-    size_;
+  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
 
-  data::scalar_access<meta_data, narray::meta_field> meta_;
+  data::scalar_access<narray::meta_field> meta_;
 
   access() {}
 

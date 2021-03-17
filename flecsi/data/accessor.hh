@@ -950,44 +950,35 @@ private:
   base_type rag;
 };
 
-template<typename T, auto & F>
+template<auto & F>
 struct scalar_access : send_tag, bind_tag {
+
+  typedef
+    typename std::remove_reference_t<decltype(F)>::Field::value_type value_type;
 
   template<class Func>
   void send(Func && f) {
-    typename flecsi::field<T>::template accessor<ro> acc(F.fid);
+    typename flecsi::field<value_type>::template accessor<ro> acc(F.fid);
     util::identity id;
     f(acc, id);
     if(const auto p = acc.get_base().span().data())
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  T * operator->() {
+  value_type * operator->() {
     return &scalar_;
   }
 
-  const T * operator->() const {
+  const value_type * operator->() const {
     return &scalar_;
   }
 
-  T * operator*() {
+  const value_type * operator*() const {
     return &scalar_;
-  }
-
-  const T * operator*() const {
-    return &scalar_;
-  }
-
-  T & data() {
-    return scalar_;
-  }
-
-  size_t identifier() {
-    return F.fid;
   }
 
 private:
-  T scalar_;
+  value_type scalar_;
 };
 
 } // namespace data
