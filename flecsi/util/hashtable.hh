@@ -156,6 +156,28 @@ public:
     return iterator(ptr, this);
   }
 
+  /**
+   * @brief Return a reference to the object with corresponding key
+   */
+  type_t & at(const key_t & k) {
+    auto f = find(k);
+    if(f == end()) {
+      throw std::out_of_range("Key out of range.");
+    }
+    return f->second;
+  }
+
+  /**
+   * @brief Return a const reference to the object with corresponding key
+   */
+  const type_t & at(const key_t & k) const {
+    auto f = find(k);
+    if(f == end()) {
+      throw std::out_of_range("Key out of range.");
+    }
+    return f->second;
+  }
+
   // Clear all keys
   void clear() {
     nelements_ = 0;

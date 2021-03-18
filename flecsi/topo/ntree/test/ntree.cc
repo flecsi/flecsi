@@ -85,41 +85,18 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
     coloring,
     std::vector<ent_t> & ents) {
-    flecsi::execute<init_fields, flecsi::mpi>(
-      ts, topo::ntree<sph_ntree_t>::e_i(ts), ents);
-    ts->make_tree(ts);
-    flecsi::execute<compute_centroid_local>(ts,
-      topo::ntree<sph_ntree_t>::n_keys(ts),
-      topo::ntree<sph_ntree_t>::n_i(ts),
-      topo::ntree<sph_ntree_t>::e_keys(ts),
-      topo::ntree<sph_ntree_t>::e_i(ts));
-    flecsi::execute<compute_centroid>(ts,
-      topo::ntree<sph_ntree_t>::n_keys(ts),
-      topo::ntree<sph_ntree_t>::n_i(ts),
-      topo::ntree<sph_ntree_t>::e_keys(ts),
-      topo::ntree<sph_ntree_t>::e_i(ts));
-    ts->share_ghosts(ts);
-  }
 
-#if 0 
-  static void update(data::topology_slot<sph_ntree_t> & ts){
-    ts->reset(ts); 
-    // update keys 
-    flecsi::execute<compute_keys>(ts,topo::ntree<sph_ntree_t>::e_keys(*this)); 
+    flecsi::execute<init_fields, flecsi::mpi>(ts, core::e_i(ts), ents);
+
     ts->make_tree(ts);
-    flecsi::execute<compute_centroid_local>(ts,
-      topo::ntree<sph_ntree_t>::n_keys(ts),
-      topo::ntree<sph_ntree_t>::n_i(ts),
-      topo::ntree<sph_ntree_t>::e_keys(ts),
-      topo::ntree<sph_ntree_t>::e_i(ts));
-    flecsi::execute<compute_centroid>(ts,
-      topo::ntree<sph_ntree_t>::n_keys(ts),
-      topo::ntree<sph_ntree_t>::n_i(ts),
-      topo::ntree<sph_ntree_t>::e_keys(ts),
-      topo::ntree<sph_ntree_t>::e_i(ts));
+
+    flecsi::execute<compute_centroid<true>>(
+      ts, core::n_keys(ts), core::n_i(ts), core::e_keys(ts), core::e_i(ts));
+    flecsi::execute<compute_centroid>(
+      ts, core::n_keys(ts), core::n_i(ts), core::e_keys(ts), core::e_i(ts));
+
     ts->share_ghosts(ts);
   }
-#endif
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
@@ -170,57 +147,17 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // Compute local center of masses
   // They will then be sent to other ranks to compute
   // the whole tree information
-  static void compute_centroid_local(sph_ntree_t::accessor<rw, na> t,
+  template<bool local = false>
+  static void compute_centroid(sph_ntree_t::accessor<rw, na> t,
     field<key_t>::accessor<rw, na>,
     field<interaction_nodes>::accessor<rw, na> n_i,
     field<key_t>::accessor<rw, na>,
     field<interaction_entities>::accessor<rw, na> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
-    for(auto n_idx : t.dfs_complete<ttype_t::reverse_preorder>()) {
+    for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
       // Get entities and nodes under this node
-      point_t coordinates = 0.;
-      double radius = 0;
-      double mass = 0;
-      // Get entities child of this node
-      for(auto e_idx : t.entities(n_idx)) {
-        coordinates += e_i[e_idx].mass * e_i[e_idx].coordinates;
-        mass += e_i[e_idx].mass;
-      }
-      // Get nodes child of this node
-      for(auto nc_idx : t.nodes(n_idx)) {
-        coordinates += n_i[nc_idx].mass * n_i[nc_idx].coordinates;
-        mass += n_i[nc_idx].mass;
-      }
-      assert(mass != 0.);
-      coordinates /= mass;
-      for(auto e_idx : t.entities(n_idx)) {
-        double dist = distance(coordinates, e_i[e_idx].coordinates);
-        radius = std::max(radius, dist + e_i[e_idx].radius);
-      }
-      for(auto nc_idx : t.nodes(n_idx)) {
-        double dist = distance(coordinates, n_i[nc_idx].coordinates);
-        radius = std::max(radius, dist + n_i[nc_idx].radius);
-      }
-      n_i[n_idx].coordinates = coordinates;
-      n_i[n_idx].radius = radius;
-      n_i[n_idx].mass = mass;
-    }
-  } // compute_centroid_local
-
-  // Compute local center of masses
-  // They will then be sent to other ranks to compute
-  // the whole tree information
-  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t,
-    field<key_t>::accessor<rw, ro>,
-    field<interaction_nodes>::accessor<rw, ro> n_i,
-    field<key_t>::accessor<ro, ro>,
-    field<interaction_entities>::accessor<ro, ro> e_i) {
-
-    // DFS traversal, reverse preorder, access the lowest nodes first
-    for(auto n_idx : t.dfs<ttype_t::reverse_preorder>()) {
       if(n_i[n_idx].mass == 0) {
-        // Get entities and nodes under this node
         point_t coordinates = 0.;
         double radius = 0;
         double mass = 0;
@@ -385,6 +322,7 @@ ntree_driver() {
   flecsi::execute<check_neighbors>(sph_ntree, e_i);
 
   flecsi::execute<move_entities>(sph_ntree, e_i);
+
   // sph_ntree_t::update(sph_ntree);
 
   return 0;
