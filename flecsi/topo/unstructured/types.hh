@@ -324,12 +324,13 @@ struct unstructured_base {
      */
 
     auto g = ghost_offsets.begin();
-    auto begin = (g++)->second;
-    std::size_t run{1};
+    std::size_t begin = 0, run = 0;
     for(; g != ghost_offsets.end(); ++g) {
-      if(g->second != begin + run) {
-        intervals.emplace_back(std::make_pair(begin, begin + run));
-        begin = g->second;
+      if(!run || g->second != begin + run) {
+        if(run) {
+          intervals.emplace_back(std::make_pair(begin, begin + run));
+          begin = g->second;
+        }
         run = 1;
       }
       else {
