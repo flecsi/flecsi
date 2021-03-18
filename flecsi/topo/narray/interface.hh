@@ -352,10 +352,11 @@ struct narray<Policy>::access {
   template<class F>
   void send(F && f) {
     std::size_t i{0};
-    for(auto & a : size_) {
-      f(a, [&i](typename Policy::slot & n) { return n->part_[i++].sizes(); });
-    }
-    f(meta_, [](typename Policy::slot & s) { return meta_field(s->meta); });
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
+
+    meta_.topology_send(f, &narray::meta);
   }
 }; // struct narray<Policy>::access
 

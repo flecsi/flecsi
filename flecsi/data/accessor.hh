@@ -951,17 +951,17 @@ private:
 };
 
 template<auto & F>
-struct scalar_access : send_tag, bind_tag {
+struct scalar_access : bind_tag {
 
   typedef
     typename std::remove_reference_t<decltype(F)>::Field::value_type value_type;
 
-  template<class Func>
-  void send(Func && f) {
-    typename flecsi::field<value_type>::template accessor<ro> acc(F.fid);
-    util::identity id;
-    f(acc, id);
-    if(const auto p = acc.get_base().span().data())
+  template<class Func, class S>
+  void topology_send(Func && f, S && s) {
+    accessor_member<F, privilege_pack<ro>> acc;
+    acc.topology_send(std::forward<Func>(f), std::forward<S>(s));
+
+    if(const auto p = acc.get_base().get_base().span().data())
       scalar_ = get_scalar_from_accessor(p);
   }
 

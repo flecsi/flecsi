@@ -278,9 +278,9 @@ public:
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
-    for(auto & a : size_) {
-      f(a, [&i](typename Policy::slot & u) { return u->part_[i++].sizes(); });
-    }
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
 
     connect_send(f, connect_, unstructured::connect_);
     lists_send(f, special_, special_field, &unstructured::special_);
