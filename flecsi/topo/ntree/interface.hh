@@ -600,13 +600,37 @@ struct ntree<Policy>::access {
     hmap_t hmap(hcells.span());
     hmap.clear();
     data_field(0).max_depth = 0;
-    // data_field(0).nents = 0;
     data_field(0).top_tree.ents = 0;
     data_field(0).ghosts.ents = 0;
     data_field(0).nents_recv = 0;
     data_field(0).local.nodes = 0;
     data_field(0).top_tree.nodes = 0;
     data_field(0).ghosts.nodes = 0;
+  }
+
+  // Standard traversal function 
+  template<typename FUNC, typename... ARGS> 
+  void traversal(hcell_t* hcell, FUNC&& func, ARGS &&... args) const{
+    hmap_t hmap(hcells.span());
+    std::queue<hcell_t*> tqueue; 
+    tqueue.push(hcell);
+    while(!tqueue.empty()) {
+      hcell_t * cur = tqueue.front();
+      tqueue.pop();
+      // Intersection
+      if(func(cur, std::forward<ARGS>(args)...)){
+        if(cur->has_child()) {
+          auto nkey = cur->key(); 
+          for(std::size_t j = 0; j < nchildren_; ++j) {
+            if(cur->has_child(j)) {
+              key_t ckey = nkey;
+              ckey.push(j);
+              tqueue.push(&hmap.at(ckey));
+            } // if
+          } // for
+        }
+      }
+    } // while  
   }
 
   auto find_intersect_entities() {
@@ -625,46 +649,25 @@ struct ntree<Policy>::access {
 
       std::size_t tcolor = e_i(i).color;
       assert(tcolor != run::context::instance().color());
-      std::queue<hcell_t *> tqueue;
-      tqueue.push(&hmap.at(key_t::root()));
-      while(!tqueue.empty()) {
-        hcell_t * cur = tqueue.front();
-        tqueue.pop();
-        auto nkey = cur->key();
-        // Intersection
-        if(cur->is_node()) {
-          if(Policy::intersect_entity_node(
-               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-            if(cur->has_child()) {
-              for(std::size_t j = 0; j < nchildren_; ++j) {
-                if(cur->has_child(j)) {
-                  key_t ckey = nkey;
-                  ckey.push(j);
-                  tqueue.push(&hmap.at(ckey));
-                } // if
-              } // for
-            }
-            else {
-              assert(cur->is_node());
-            } // if
-          } // if
-        }
-        else {
-          // cur->is_ent()
-          // \todo add check here to see if the entities interact
-          // For now, send a maximum of 8 entities
-          assert(cur->is_ent());
-          if(cur->is_local()) {
-            send_ids[tcolor].insert(*cur);
-            assert(cur->color() == run::context::instance().color());
-            assert(tcolor != run::context::instance().color());
-          }
-          else {
-            // Do nothing, someone else holds it
-          }
-        }
-      } // while
 
+      traversal(
+        &hmap.at(key_t::root()), 
+        [&](hcell_t* cur){
+          if(cur->is_node()) {
+            if(Policy::intersect_entity_node(
+              e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+                return true; 
+            } // if
+          } else {
+            // \todo add check here to see if the entities interact
+            // For now, send a maximum of 8 entities
+            if(cur->is_local()) {
+              send_ids[tcolor].insert(*cur);
+            }
+          }
+          return false; 
+        }
+      );
     } // for
     // Add all the std::sets to the end vector to create the copy plan
     for(std::size_t i = 0; i < cs; ++i) {
@@ -683,48 +686,25 @@ struct ntree<Policy>::access {
     // 1. for all local entities
     for(std::size_t i = 0; i < data_field(0).local.ents; ++i) {
       ent_id id(i);
-      std::queue<hcell_t *> tqueue;
-      tqueue.push(&hmap.at(key_t::root()));
-      // Use a set to not send the information twice
       std::set<std::size_t> send_colors;
-      // 2. Find if this entity is in contact with a distant node
-      // \TODO Might be better to do the invert, for all non local nodes
-      // search all local entities in contact: less work
-      while(!tqueue.empty()) {
-        hcell_t * cur = tqueue.front();
-        tqueue.pop();
-        assert(cur->is_node());
-        auto nkey = cur->key();
-        // Intersection
-        if(cur->is_node()) {
-          if(Policy::intersect_entity_node(
-               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-            if(cur->has_child()) {
-              for(std::size_t j = 0; j < nchildren_; ++j) {
-                if(cur->has_child(j)) {
-                  key_t ckey = nkey;
-                  ckey.push(j);
-                  auto it = hmap.find(ckey);
-                  if(it->second.is_node()) {
-                    tqueue.push(&it->second);
-                  } // if
-                } // if
-              } // for
+      traversal(
+        &hmap.at(key_t::root()), 
+        [&](hcell_t* cur){
+          if(cur->is_node()) {
+            if(Policy::intersect_entity_node(
+              e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+                return true; 
             } // if
-            else {
-              // Check if this node has children, if yes keep going
-              if(!cur->is_local()) {
-                send_colors.insert(cur->color());
-              } // if
-            } // if
-          } // if
-        } // if
-        else {
-          // In this case the entity is already retrieved during the top tree
-          // computation
-          assert(cur->is_ent());
-        } // if
-      } // while
+          } else {
+            // \todo add check here to see if the entities interact
+            // For now, send a maximum of 8 entities
+            if(cur->is_local()) {
+              send_colors.insert(cur->color());
+            }
+          }
+          return false; 
+        }
+      );
       // If color present in set, send this entity
       for(auto v : send_colors) {
         assert(v != color);
@@ -784,34 +764,26 @@ struct ntree<Policy>::access {
     hmap_t hmap(hcells.span());
     std::vector<id<index_space::entities>> ids;
     // Perform tree traversal to find neighbors
-    std::queue<hcell_t *> tqueue;
-    tqueue.push(&hmap.at(key_t::root()));
-    while(!tqueue.empty()) {
-      hcell_t * cur = tqueue.front();
-      tqueue.pop();
-      auto nkey = cur->key();
-      if(cur->is_node()) {
-        if(Policy::intersect_entity_node(
-             e_i(ent_id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-          if(cur->has_child()) {
-            for(std::size_t j = 0; j < nchildren_; ++j) {
-              if(cur->has_child(j)) {
-                key_t ckey = nkey;
-                ckey.push(j);
-                tqueue.push(&hmap.at(ckey));
-              } // if
-            } // for
+    traversal(
+      &hmap.at(key_t::root()), 
+      [&](hcell_t* cur){
+        if(cur->is_node()) {
+          if(Policy::intersect_entity_node(
+            e_i(ent_id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+              return true; 
           } // if
-        }
-      }
-      else {
-        if(Policy::intersect_entity_entity(e_i(ent_id),
+        } else {
+          // \todo add check here to see if the entities interact
+          // For now, send a maximum of 8 entities
+          if(Policy::intersect_entity_entity(e_i(ent_id),
              e_i(topo::id<ntree_base::entities>(cur->ent_idx())))) {
-          ids.push_back(topo::id<ntree_base::entities>(cur->ent_idx()));
+            ids.push_back(topo::id<ntree_base::entities>(cur->ent_idx()));
+          }
         }
+        return false; 
       }
-    } //
-    return ids;
+    );
+    return ids; 
   }
 
   // Iterate on all exclusive or ghost nodes
@@ -1353,11 +1325,9 @@ private:
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
       parent = hmap.insert(key, key);
-
       std::size_t cnode = data_field(0).local.nodes++;
       parent->second.set_node_idx(cnode);
       n_keys(cnode) = key;
-
       // parent->second.set_nonlocal();
       parent->second.add_child(child);
       parent->second.set_color(color);
