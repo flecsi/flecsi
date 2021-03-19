@@ -182,17 +182,15 @@ index_driver() {
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
 
     // Rotate the ragged field by one color:
-    buffers::core buf([] {
+    buffers::core([] {
       const auto p = processes();
       buffers::coloring ret(p);
       std::size_t i = 0;
       for(auto & g : ret)
         g.push_back(++i % p);
       return ret;
-    }());
-    execute<ragged_start>(verts, ghost, *buf);
-    while(reduce<ragged_xfer, exec::fold::max>(verts, ghost, *buf).get())
-      ;
+    }())
+      .xfer<ragged_start, ragged_xfer>(verts, ghost);
 
     EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
   };

@@ -207,6 +207,12 @@ struct buffers_category : buffers_base, topo::array_category<P> {
   auto operator*() {
     return field(*this);
   }
+  template<auto & F, auto & G, class... AA>
+  void xfer(AA &&... aa) {
+    execute<F>(aa..., **this);
+    while(reduce<G, exec::fold::max>(aa..., **this).get())
+      ;
+  }
 
   template<class R>
   void ghost_copy(const R & f) {
