@@ -973,8 +973,12 @@ struct scalar_access : bind_tag {
     return &scalar_;
   }
 
-  const value_type * operator*() const {
-    return &scalar_;
+  value_type & operator*() {
+    return scalar_;
+  }
+
+  const value_type & operator*() const {
+    return scalar_;
   }
 
 private:
