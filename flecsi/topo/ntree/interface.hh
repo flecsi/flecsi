@@ -149,7 +149,21 @@ struct ntree : ntree_base {
         data::copy_plan::Sizes(c.nparts_, 1),
         task<set_dests>,
         task<set_ptrs>,
-        util::constant<tree_data>()) {}
+        util::constant<tree_data>()),
+      buf([] {
+        const auto p = processes();
+        data::buffers::coloring ret(p);
+        for(std::size_t i_r = 0; i_r < ret.size(); ++i_r) {
+          for(std::size_t i = 0; i < processes(); ++i) {
+            if(i != i_r) {
+              ret[i_r].push_back(i);
+            }
+          }
+        }
+        return ret;
+      }()),
+      buffer_size(
+        (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2) {}
 
   // Ntree mandatory fields ---------------------------------------------------
 
@@ -182,6 +196,10 @@ struct ntree : ntree_base {
     n_i;
 
   // --------------------------------------------------------------------------
+
+  // Buffer for ghosts shared
+  data::buffers::core buf;
+  std::size_t buffer_size;
 
   // Use to reference the index spaces by id
   util::key_array<repartitioned, index_spaces> part;
@@ -228,16 +246,9 @@ struct ntree : ntree_base {
     auto i = process();
     std::size_t idx = base[i];
     for(std::size_t j = 0; j < hcells.size(); ++j) {
-      if constexpr(IS == entities) {
-        if(hcells[j].is_ent() && hcells[j].color() != i) {
-          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
-        }
-      }
-      else {
-        if(hcells[j].is_node() && hcells[j].color() != i) {
-          a(idx++) = data::points::make(hcells[j].color(), hcells[j].idx());
-        }
-      }
+      auto & h = hcells[j];
+      if((IS == entities ? h.is_ent() : h.is_node()) && h.color() != i)
+        a(idx++) = data::points::make(h.color(), h.idx());
     }
   }
 
@@ -403,28 +414,8 @@ struct ntree : ntree_base {
 
   // Search neighbors and complete the hmap, create copy plans (or buffer)
   void share_ghosts(typename Policy::slot & ts) {
-
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts);
-
-    // Create all to all buffer copy
-    data::buffers::core buf([] {
-      const auto p = processes();
-      data::buffers::coloring ret(p);
-      for(std::size_t i_r = 0; i_r < ret.size(); ++i_r) {
-        for(std::size_t i = 0; i < processes(); ++i) {
-          if(i != i_r) {
-            ret[i_r].push_back(i);
-          }
-        }
-      }
-      return ret;
-    }());
-
-    std::size_t buffer_size =
-      data::buffers::Buffer::size / sizeof(interaction_entities);
-    // X times, to not reallocate everytime
-    buffer_size *= 2;
 
     // Get current sizes
     auto fm_sizes = flecsi::execute<sizes_task>(data_field(ts));
@@ -608,19 +599,19 @@ struct ntree<Policy>::access {
     data_field(0).ghosts.nodes = 0;
   }
 
-  // Standard traversal function 
-  template<typename FUNC, typename... ARGS> 
-  void traversal(hcell_t* hcell, FUNC&& func, ARGS &&... args) const{
+  // Standard traversal function
+  template<typename FUNC, typename... ARGS>
+  void traversal(hcell_t * hcell, FUNC && func, ARGS &&... args) const {
     hmap_t hmap(hcells.span());
-    std::queue<hcell_t*> tqueue; 
+    std::queue<hcell_t *> tqueue;
     tqueue.push(hcell);
     while(!tqueue.empty()) {
       hcell_t * cur = tqueue.front();
       tqueue.pop();
       // Intersection
-      if(func(cur, std::forward<ARGS>(args)...)){
+      if(func(cur, std::forward<ARGS>(args)...)) {
         if(cur->has_child()) {
-          auto nkey = cur->key(); 
+          auto nkey = cur->key();
           for(std::size_t j = 0; j < nchildren_; ++j) {
             if(cur->has_child(j)) {
               key_t ckey = nkey;
@@ -630,7 +621,7 @@ struct ntree<Policy>::access {
           } // for
         }
       }
-    } // while  
+    } // while
   }
 
   auto find_intersect_entities() {
@@ -650,24 +641,22 @@ struct ntree<Policy>::access {
       std::size_t tcolor = e_i(i).color;
       assert(tcolor != run::context::instance().color());
 
-      traversal(
-        &hmap.at(key_t::root()), 
-        [&](hcell_t* cur){
-          if(cur->is_node()) {
-            if(Policy::intersect_entity_node(
-              e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-                return true; 
-            } // if
-          } else {
-            // \todo add check here to see if the entities interact
-            // For now, send a maximum of 8 entities
-            if(cur->is_local()) {
-              send_ids[tcolor].insert(*cur);
-            }
-          }
-          return false; 
+      traversal(&hmap.at(key_t::root()), [&](hcell_t * cur) {
+        if(cur->is_node()) {
+          if(Policy::intersect_entity_node(
+               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+            return true;
+          } // if
         }
-      );
+        else {
+          // \todo add check here to see if the entities interact
+          // For now, send a maximum of 8 entities
+          if(cur->is_local()) {
+            send_ids[tcolor].insert(*cur);
+          }
+        }
+        return false;
+      });
     } // for
     // Add all the std::sets to the end vector to create the copy plan
     for(std::size_t i = 0; i < cs; ++i) {
@@ -687,24 +676,22 @@ struct ntree<Policy>::access {
     for(std::size_t i = 0; i < data_field(0).local.ents; ++i) {
       ent_id id(i);
       std::set<std::size_t> send_colors;
-      traversal(
-        &hmap.at(key_t::root()), 
-        [&](hcell_t* cur){
-          if(cur->is_node()) {
-            if(Policy::intersect_entity_node(
-              e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-                return true; 
-            } // if
-          } else {
-            // \todo add check here to see if the entities interact
-            // For now, send a maximum of 8 entities
-            if(cur->is_local()) {
-              send_colors.insert(cur->color());
-            }
-          }
-          return false; 
+      traversal(&hmap.at(key_t::root()), [&](hcell_t * cur) {
+        if(cur->is_node()) {
+          if(Policy::intersect_entity_node(
+               e_i(id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+            return true;
+          } // if
         }
-      );
+        else {
+          // \todo add check here to see if the entities interact
+          // For now, send a maximum of 8 entities
+          if(cur->is_local()) {
+            send_colors.insert(cur->color());
+          }
+        }
+        return false;
+      });
       // If color present in set, send this entity
       for(auto v : send_colors) {
         assert(v != color);
@@ -764,26 +751,24 @@ struct ntree<Policy>::access {
     hmap_t hmap(hcells.span());
     std::vector<id<index_space::entities>> ids;
     // Perform tree traversal to find neighbors
-    traversal(
-      &hmap.at(key_t::root()), 
-      [&](hcell_t* cur){
-        if(cur->is_node()) {
-          if(Policy::intersect_entity_node(
-            e_i(ent_id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
-              return true; 
-          } // if
-        } else {
-          // \todo add check here to see if the entities interact
-          // For now, send a maximum of 8 entities
-          if(Policy::intersect_entity_entity(e_i(ent_id),
-             e_i(topo::id<ntree_base::entities>(cur->ent_idx())))) {
-            ids.push_back(topo::id<ntree_base::entities>(cur->ent_idx()));
-          }
-        }
-        return false; 
+    traversal(&hmap.at(key_t::root()), [&](hcell_t * cur) {
+      if(cur->is_node()) {
+        if(Policy::intersect_entity_node(
+             e_i(ent_id), n_i(topo::id<ntree_base::nodes>(cur->node_idx())))) {
+          return true;
+        } // if
       }
-    );
-    return ids; 
+      else {
+        // \todo add check here to see if the entities interact
+        // For now, send a maximum of 8 entities
+        if(Policy::intersect_entity_entity(e_i(ent_id),
+             e_i(topo::id<ntree_base::entities>(cur->ent_idx())))) {
+          ids.push_back(topo::id<ntree_base::entities>(cur->ent_idx()));
+        }
+      }
+      return false;
+    });
+    return ids;
   }
 
   // Iterate on all exclusive or ghost nodes
@@ -906,10 +891,8 @@ struct ntree<Policy>::access {
         hcell_t * cur = stk.top();
         stk.pop();
         auto nkey = cur->key();
-        if constexpr(complete == true) {
-          if(cur->is_complete()) {
-            ids.push_back(id<index_space::nodes>(cur->idx()));
-          }
+        if(!complete || cur->is_complete()) {
+          ids.push_back(id<index_space::nodes>(cur->idx()));
         }
         else {
           ids.push_back(id<index_space::nodes>(cur->idx()));
@@ -1006,7 +989,6 @@ struct ntree<Policy>::access {
     hmap.insert(key_t::root(), key_t::root());
     auto root_ = hmap.find(key_t::root());
     root_->second.set_color(rank);
-    assert(root_ != hmap.end());
     {
       std::size_t cnode = data_field(0).local.nodes++;
       root_->second.set_node_idx(cnode);
@@ -1044,9 +1026,9 @@ struct ntree<Policy>::access {
            (iamlast || lastnkey < hiboundnode)) {
           auto it = hmap.find(lastnkey);
           assert(it != hmap.end());
-          hcell_t * n = &(it->second);
-          if(!n->is_ent()) {
-            n->set_complete();
+          hcell_t & n = it->second;
+          if(!n.is_ent()) {
+            n.set_complete();
           }
         }
         if(iamlast && lastnkey == key_t::root())
