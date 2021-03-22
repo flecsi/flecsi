@@ -63,8 +63,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      meta_(c.colors) {
+        std::make_index_sequence<index_spaces::size>())) {
     init_ragged(index_spaces());
     init_meta(c);
   }
@@ -83,12 +82,11 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   };
 
   static inline const typename field<meta_data,
-    data::single>::template definition<meta<narray<Policy>>>
+    data::single>::template definition<meta<Policy>>
     meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
-  typename meta<narray<Policy>>::core meta_;
 
   std::size_t colors() const {
     return part_.front().colors();
@@ -186,7 +184,7 @@ private:
   } // set_meta
 
   void init_meta(narray_base::coloring const & c) {
-    execute<set_meta, mpi>(meta_field(this->meta_), c);
+    execute<set_meta, mpi>(meta_field(this->meta), c);
   }
 
   template<index_space... SS>
@@ -202,11 +200,9 @@ private:
 template<typename Policy>
 template<std::size_t Privileges>
 struct narray<Policy>::access {
-  template<const auto & F>
-  using accessor = data::accessor_member<F, Privileges>;
-  util::key_array<resize::accessor<ro>, index_spaces> size_;
+  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
 
-  accessor<meta_field> meta_;
+  data::scalar_access<narray::meta_field> meta_;
 
   access() {}
 
@@ -232,12 +228,12 @@ struct narray<Policy>::access {
 
   template<index_space S, axis A>
   bool is_low() {
-    return (meta_.get().faces[S] >> A * 2) & narray_impl::low;
+    return (meta_->faces[S] >> A * 2) & narray_impl::low;
   }
 
   template<index_space S, axis A>
   bool is_high() {
-    return (meta_.get().faces[S] >> A * 2) & narray_impl::high;
+    return (meta_->faces[S] >> A * 2) & narray_impl::high;
   }
 
   template<axis A>
@@ -247,71 +243,69 @@ struct narray<Policy>::access {
 
   // This should be protected
   auto & meta() {
-    return meta_.get().meta;
+    return meta_->meta;
   }
 
   template<index_space S, axis A, range SE>
   std::size_t size() {
-    auto const & md = meta_.get();
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
-      return md.logical[S][1][A];
+      return meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::extended) {
-      return md.extended[S][1][A];
+      return meta_->extended[S][1][A];
     }
     else if constexpr(SE == range::all) {
-      return md.extents[S][A];
+      return meta_->extents[S][A];
     }
     else if constexpr(SE == range::boundary_low) {
-      return md.logical[S][0][A] - md.extended[S][0][A];
+      return meta_->logical[S][0][A] - meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::boundary_high) {
-      return md.extended[S][1][A] - md.logical[S][1][A];
+      return meta_->extended[S][1][A] - meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::ghost_low) {
-      return md.logical[S][0][A];
+      return meta_->logical[S][0][A];
     }
     else if constexpr(SE == range::ghost_high) {
-      return md.extents[S][A] - md.logical[S][1][A];
+      return meta_->extents[S][A] - meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::global) {
-      return md.global[S][A];
+      return meta_->global[S][A];
     }
   }
 
   template<index_space S, axis A, range SE>
   auto extents() {
-    auto const & md = meta_.get();
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid extents identifier");
     if constexpr(SE == range::logical) {
-      return make_ids<S>(
-        util::iota_view<util::id>(md.logical[S][0][A], md.logical[S][1][A]));
+      return make_ids<S>(util::iota_view<util::id>(
+        meta_->logical[S][0][A], meta_->logical[S][1][A]));
     }
     else if constexpr(SE == range::extended) {
-      return make_ids<S>(
-        util::iota_view<util::id>(md.extended[S][0][A], md.extended[S][1][A]));
+      return make_ids<S>(util::iota_view<util::id>(
+        meta_->extended[S][0][A], meta_->extended[S][1][A]));
     }
     else if constexpr(SE == range::all) {
-      return make_ids<S>(util::iota_view<util::id>(0, md.extents[S][A]));
+      return make_ids<S>(util::iota_view<util::id>(0, meta_->extents[S][A]));
     }
     else if constexpr(SE == range::boundary_low) {
       return make_ids<S>(util::iota_view<util::id>(
-        md.extended[S][0][A], md.extended[S][0][A] + size<S, A, SE>()));
+        meta_->extended[S][0][A], meta_->extended[S][0][A] + size<S, A, SE>()));
     }
     else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        md.extended[S][1][A], md.extended[S][1][A] + size<S, A, SE>()));
+        meta_->extended[S][1][A], meta_->extended[S][1][A] + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_low) {
       return make_ids<S>(util::iota_view<util::id>(
-        md.logical[S][0][A], md.logical[S][0][A] + size<S, A, SE>()));
+        meta_->logical[S][0][A], meta_->logical[S][0][A] + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        md.logical[S][1][A], md.logical[S][1][A] + size<S, A, SE>()));
+        meta_->logical[S][1][A], meta_->logical[S][1][A] + size<S, A, SE>()));
     }
     else {
       flog_error("invalid range");
@@ -320,32 +314,31 @@ struct narray<Policy>::access {
 
   template<index_space S, axis A, range SE>
   std::size_t offset() {
-    auto const & md = meta_.get();
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
-      return md.logical[S][0][A];
+      return meta_->logical[S][0][A];
     }
     else if constexpr(SE == range::extended) {
-      return md.extended[S][0][A];
+      return meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::all) {
-      return md.extents[S][A];
+      return meta_->extents[S][A];
     }
     else if constexpr(SE == range::boundary_low) {
-      return md.extended[S][0][A];
+      return meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::boundary_high) {
-      return md.logical[S][1][A];
+      return meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::ghost_low) {
       return 0;
     }
     else if constexpr(SE == range::ghost_high) {
-      return md.logical[S][1][A];
+      return meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::global) {
-      return md.offset[S][A];
+      return meta_->offset[S][A];
     }
   }
 
@@ -353,16 +346,17 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_.get().extents[S]);
+      s.data(), meta_->extents[S].data());
   }
 
   template<class F>
   void send(F && f) {
     std::size_t i{0};
-    for(auto & a : size_) {
-      f(a, [&i](typename Policy::slot & n) { return n->part_[i++].sizes(); });
-    }
-    meta_.topology_send(f, &narray::meta_);
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
+
+    meta_.topology_send(f, &narray::meta);
   }
 }; // struct narray<Policy>::access
 

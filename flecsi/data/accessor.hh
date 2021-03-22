@@ -950,29 +950,39 @@ private:
   base_type rag;
 };
 
-template<typename T>
-struct scalar_access : send_tag, bind_tag {
+template<auto & F>
+struct scalar_access : bind_tag {
 
-  template<class F>
-  void send(F && f) {
-    typename flecsi::field<T>::template accessor<ro> acc(fid_);
-    util::identity id;
-    f(acc, id);
-    if(const auto p = acc.get_base().span().data())
+  typedef
+    typename std::remove_reference_t<decltype(F)>::Field::value_type value_type;
+
+  template<class Func, class S>
+  void topology_send(Func && f, S && s) {
+    accessor_member<F, privilege_pack<ro>> acc;
+    acc.topology_send(std::forward<Func>(f), std::forward<S>(s));
+
+    if(const auto p = acc.get_base().get_base().span().data())
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  T & data() {
+  value_type * operator->() {
+    return &scalar_;
+  }
+
+  const value_type * operator->() const {
+    return &scalar_;
+  }
+
+  value_type & operator*() {
     return scalar_;
   }
 
-  size_t identifier() {
-    return fid_;
+  const value_type & operator*() const {
+    return scalar_;
   }
 
 private:
-  T scalar_;
-  size_t fid_ = topo::resize::field.fid;
+  value_type scalar_;
 };
 
 } // namespace data

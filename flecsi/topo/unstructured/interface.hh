@@ -208,7 +208,7 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<data::prefixes::row>, index_spaces> size_;
+  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;
 
@@ -236,7 +236,7 @@ public:
   template<index_space IndexSpace>
   auto entities() {
     return make_ids<IndexSpace>(
-      util::iota_view<util::id>(0, size_.template get<IndexSpace>().data()));
+      util::iota_view<util::id>(0, *size_.template get<IndexSpace>()));
   }
 
   /*!
@@ -278,9 +278,9 @@ public:
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
-    for(auto & a : size_) {
-      f(a, [&i](typename Policy::slot & u) { return u->part_[i++].sizes(); });
-    }
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
 
     connect_send(f, connect_, unstructured::connect_);
     lists_send(f, special_, special_field, &unstructured::special_);
