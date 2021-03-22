@@ -207,6 +207,12 @@ struct buffers_category : buffers_base, topo::array_category<P> {
   auto operator*() {
     return field(*this);
   }
+  template<auto & F, auto & G, class... AA>
+  void xfer(AA &&... aa) {
+    execute<F>(aa..., **this);
+    while(reduce<G, exec::fold::max>(aa..., **this).get())
+      ;
+  }
 
   template<class R>
   void ghost_copy(const R & f) {
@@ -273,7 +279,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         if(!w(i) || !w(n - skip))
           return false;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
-          if(w(row[skip]))
+          if(w(row[s]))
             ++b.off;
           else {
             flog_assert(b.len > 2, "no data fits");

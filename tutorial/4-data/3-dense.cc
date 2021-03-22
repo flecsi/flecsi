@@ -24,13 +24,10 @@ using namespace flecsi;
 canon::slot canonical;
 canon::cslot coloring;
 
-template<typename T>
-using dense_field = field<T, data::dense>;
-
-const dense_field<double>::definition<canon, canon::cells> pressure;
+const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<wo> t, dense_field<double>::accessor<wo> p) {
+init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
   for(const auto c : t.entities<canon::cells>()) {
     p[c] = double(off++) * 2.0;
@@ -38,7 +35,7 @@ init(canon::accessor<wo> t, dense_field<double>::accessor<wo> p) {
 } // init
 
 void
-print(canon::accessor<ro> t, dense_field<double>::accessor<ro> p) {
+print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   std::size_t off{0};
   for(auto c : t.entities<canon::cells>()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;

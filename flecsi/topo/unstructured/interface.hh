@@ -113,7 +113,10 @@ struct unstructured : unstructured_base,
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
+    if constexpr(Layout == data::ragged)
+      ; // TODO
+    else
+      plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
@@ -131,13 +134,15 @@ private:
 
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
+    constexpr std::size_t NP = Policy::template privilege_count<S>;
+
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
       points;
 
     auto const & fmd = forward_map_.template get<S>();
-    execute<idx_itvls, mpi>(
+    execute<idx_itvls<NP>, mpi>(
       ic, num_intervals, intervals, points, fmd(*this), comm);
 
     // clang-format off
@@ -146,7 +151,7 @@ private:
     };
 
     auto ptrs_task = [&points, &comm](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+      execute<set_ptrs<NP>, mpi>(
         f, points, comm);
     };
     // clang-format on

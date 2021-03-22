@@ -35,7 +35,7 @@ struct Noisy {
 using double_field = field<double, single>;
 const double_field::definition<topo::index> pressure_field;
 using intN = field<int, ragged>;
-const intN::definition<topo::index> verts_field;
+const intN::definition<topo::index> verts_field, ghost_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;
 
@@ -107,9 +107,23 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
   return Noisy::count;
 }
 
+void
+ragged_start(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Start mv) {
+  assert(mv.span().size() == 2u);
+  buffers::ragged::truncate(mv[0])(v, 0);
+  g[0].clear();
+}
+
+int
+ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
+  buffers::ragged::read(g, mv[1], [](std::size_t) { return 0; });
+  return !buffers::ragged{mv[0]}(v, 0);
+}
+
 int
 check(double_field::accessor<ro> p,
   intN::accessor<ro> r,
+  intN::accessor<ro> g,
   double_at::accessor<ro> sp,
   noisy::accessor<ro> n) {
   UNIT {
@@ -122,6 +136,9 @@ check(double_field::accessor<ro> p,
     static_assert(std::is_same_v<decltype(s), const util::span<const int>>);
     ASSERT_EQ(s.size(), me + 1);
     EXPECT_EQ(s.back(), 1);
+    const auto sg = g[0];
+    ASSERT_EQ(sg.size(), me ? me : colors());
+    EXPECT_EQ(sg.back(), 1);
     ASSERT_EQ(sp.size(), 1u);
     const auto sr = sp[0];
     EXPECT_EQ(sr(column + me), 2 * me + 1);
@@ -149,8 +166,11 @@ index_driver() {
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
     }
+    process_topology->ragged.get_partition<topo::elements>(ghost_field.fid)
+      .growth = {processes() + 1};
     const auto pressure = pressure_field(process_topology);
-    const auto verts = verts_field(process_topology);
+    const auto verts = verts_field(process_topology),
+               ghost = ghost_field(process_topology);
     const auto vfrac = vfrac_field(process_topology);
     const auto noise = noisy_field(process_topology);
     execute<irows>(verts);
@@ -160,7 +180,19 @@ index_driver() {
     execute<reset>(noise);
     EXPECT_EQ(
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
-    EXPECT_EQ(test<check>(pressure, verts, vfrac, noise), 0);
+
+    // Rotate the ragged field by one color:
+    buffers::core([] {
+      const auto p = processes();
+      buffers::coloring ret(p);
+      std::size_t i = 0;
+      for(auto & g : ret)
+        g.push_back(++i % p);
+      return ret;
+    }())
+      .xfer<ragged_start, ragged_xfer>(verts, ghost);
+
+    EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
   };
 } // index
 

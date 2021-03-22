@@ -194,13 +194,14 @@ struct unstructured_base {
     point offsets. The references num_intervals, intervals,
     and points, respectively, are filled with this information.
    */
-
+  template<std::size_t N>
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
       src_points,
-    field<util::id>::accessor<wo, na> fmd,
+    field<util::id>::accessor1<privilege_cat(privilege_repeat(wo, N - (N > 1)),
+      privilege_repeat(na, N > 1))> fmd,
     MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
@@ -323,12 +324,13 @@ struct unstructured_base {
      */
 
     auto g = ghost_offsets.begin();
-    auto begin = (g++)->second;
-    std::size_t run{1};
+    std::size_t begin = 0, run = 0;
     for(; g != ghost_offsets.end(); ++g) {
-      if(g->second != begin + run) {
-        intervals.emplace_back(std::make_pair(begin, begin + run));
-        begin = g->second;
+      if(!run || g->second != begin + run) {
+        if(run) {
+          intervals.emplace_back(std::make_pair(begin, begin + run));
+          begin = g->second;
+        }
         run = 1;
       }
       else {
