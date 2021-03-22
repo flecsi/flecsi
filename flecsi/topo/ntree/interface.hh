@@ -161,9 +161,7 @@ struct ntree : ntree_base {
           }
         }
         return ret;
-      }()),
-      buffer_size(
-        (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2) {}
+      }()) {}
 
   // Ntree mandatory fields ---------------------------------------------------
 
@@ -199,7 +197,8 @@ struct ntree : ntree_base {
 
   // Buffer for ghosts shared
   data::buffers::core buf;
-  std::size_t buffer_size;
+  const std::size_t buffer_size =
+    (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2;
 
   // Use to reference the index spaces by id
   util::key_array<repartitioned, index_spaces> part;
@@ -342,38 +341,42 @@ struct ntree : ntree_base {
 
   // ---------------------------- Ghosts exchange tasks -----------------------
 
-  static void xfer_entities_req_start(
+  static auto xfer_entities_req_start(
     typename field<interaction_entities>::template accessor<rw> a,
     data::buffers::Start mv,
-    // typename field<ntree_comm>::template accessor<rw>,
-    typename field<ntree_data>::template accessor<rw>,
     const std::vector<color_id> & f) {
-    // For all colors
     std::size_t cur = 0;
+    std::size_t cs = run::context::instance().colors();
+    std::vector<std::size_t> restart(cs, 0); // Use last value to store total
     auto color = run::context::instance().color();
-    for(std::size_t c = 0; c < run::context::instance().colors(); ++c) {
+    for(std::size_t c = 0; c < cs; ++c) {
       if(c != color) {
         auto w = mv[cur].write();
-        for(auto v : f) {
-          if(v.color == c) {
-            w(a(v.id));
+        for(std::size_t i = 0; i < f.size(); ++i) {
+          if(f[i].color == c) {
+            if(!w(a(f[i].id))) {
+              restart[cur] = i;
+              restart[cs - 1] += i;
+              break;
+            } // if
           } // if
         } // for
         ++cur;
       } // if
     } // for
+    return restart;
   } // xfer_nodes_req_start
 
-  static int xfer_entities_req(
+  static auto xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw> a,
-    // typename field<ntree_comm>::template accessor<rw>,
     typename field<ntree_data>::template accessor<rw> td,
     data::buffers::Transfer mv,
-    const std::vector<color_id> &) {
-    // 1. Read sent data
-    // For all colors
-    int cur = 0;
+    const std::vector<color_id> & f,
+    const std::vector<std::size_t> & v) {
+
     std::size_t cs = run::context::instance().colors();
+    std::vector<std::size_t> restart(cs, 0);
+    int cur = 0;
     std::size_t idx =
       td(0).local.ents + td(0).top_tree.ents + td(0).ghosts.ents;
     auto color = run::context::instance().color();
@@ -386,9 +389,28 @@ struct ntree : ntree_base {
         ++cur;
       } // if
     } // for
-    // 2. if needed, keep copying
 
-    return 0;
+    // Keep copy if needed
+    cur = 0;
+    for(std::size_t c = 0; c < cs; ++c) {
+      if(c != color) {
+        if(v[cur] != 0) {
+          auto w = mv[cur].write();
+          for(std::size_t i = v[cur]; i < f.size(); ++i) {
+            if(f[i].color == c) {
+              if(!w(a(f[i].id))) {
+                restart[cur] = i;
+                restart[cs - 1] += i;
+                break;
+              }
+            } // if
+          } // for
+          ++cur;
+        } // if
+      } // if
+    } // for
+
+    return restart;
   } // xfer_entities_req
 
   static serdez_vector<color_id> find_task(
@@ -416,7 +438,6 @@ struct ntree : ntree_base {
   void share_ghosts(typename Policy::slot & ts) {
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts);
-
     // Get current sizes
     auto fm_sizes = flecsi::execute<sizes_task>(data_field(ts));
 
@@ -432,25 +453,27 @@ struct ntree : ntree_base {
     part.template get<entities>().resize(make_partial<allocate>(ents_sizes_rz));
 
     // Perform buffered copy
-    execute<xfer_entities_req_start>(e_i(*this),
-      *buf,
-      // comm_field(*this),
-      data_field(*this),
-      to_send.get(process()));
-    while(reduce<xfer_entities_req, exec::fold::max>(e_i(*this),
-      // comm_field(*this),
-      data_field(*this),
-      *buf,
-      to_send.get(process()))
-            .get()) {
-      // Resize the partition if the maximum size is reached
-      for(std::size_t c = 0; c < colors(); ++c) {
-        ents_sizes_rz[c] += buffer_size;
-      }
+    auto full = 0;
+    auto vi = execute<xfer_entities_req_start>(
+      e_i(*this), *buf, to_send.get(process()));
+    while((vi = execute<xfer_entities_req>(e_i(*this),
+             data_field(*this),
+             *buf,
+             to_send.get(process()),
+             vi.get(process())))
+            .get(process())[colors() - 1] != 0) {
 
-      part.template get<entities>().resize(
-        make_partial<allocate>(ents_sizes_rz));
-    }
+      // Size of IS is twice buffer size
+      if(!(full % 2)) {
+        // Resize the partition if the maximum size is reached
+        for(std::size_t c = 0; c < colors(); ++c) {
+          ents_sizes_rz[c] += buffer_size;
+        }
+
+        part.template get<entities>().resize(
+          make_partial<allocate>(ents_sizes_rz));
+      } // if
+    } // while
 
     // Find the interactions with the extra particles locally
     auto to_reply = flecsi::execute<find_distant_task>(ts);
@@ -913,9 +936,6 @@ struct ntree<Policy>::access {
       if constexpr(TT == ttype_t::reverse_preorder) {
         std::reverse(ids.begin(), ids.end());
       }
-    }
-    else {
-      assert(false && "Error traversal type ttype_t invalid.");
     } // if
     return ids;
   } // dfs
