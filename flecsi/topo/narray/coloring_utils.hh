@@ -30,7 +30,7 @@
 
 namespace flecsi {
 namespace topo {
-namespace narray_impl {
+namespace narray_utils {
 
 inline std::vector<std::size_t>
 factor(std::size_t np) {
@@ -87,6 +87,8 @@ inline auto
 orientation(std::size_t dimension,
   std::vector<std::size_t> const & color_indices,
   std::vector<std::size_t> const & axis_colors) {
+  using namespace narray_impl;
+
 #define FACE(e, c, c0, c1, c2)                                                 \
   ((((e) == 0) && ((e) == ((c)-1)))                                            \
       ? c1 | c2                                                                \
@@ -113,9 +115,11 @@ make_color(std::size_t dimension,
   std::vector<std::size_t> const & color_indices,
   std::vector<util::color_map> const & axcm,
   uint32_t faces,
-  coord const & hdepths,
-  coord const & bdepths,
+  narray_impl::coord const & hdepths,
+  narray_impl::coord const & bdepths,
   std::vector<bool> periodic) {
+  using namespace narray_impl;
+
   index_coloring idxco;
   idxco.faces = faces;
   idxco.global.resize(dimension);
@@ -235,26 +239,13 @@ make_color(std::size_t dimension,
 } // make_color
 
 /*
-  Convenience type to collect arguments.
- */
-
-struct coloring_definition {
-  coord axis_colors;
-  coord axis_extents;
-  coord axis_hdepths;
-  coord axis_bdepths;
-  std::vector<bool> axis_periodic;
-  bool diagonals = false;
-  bool create_plan = true;
-}; // struct coloring_definition
-
-/*
   Generate a coloring for the provided index space definitions.
  */
 
 inline auto
-color(std::vector<coloring_definition> const & index_spaces,
+color(std::vector<narray_impl::coloring_definition> const & index_spaces,
   MPI_Comm comm = MPI_COMM_WORLD) {
+  using namespace narray_impl;
 
   flog_assert(index_spaces.size() != 0, "no index spaces defined");
 
@@ -604,6 +595,6 @@ color(std::vector<coloring_definition> const & index_spaces,
   return std::make_pair(colors, colorings);
 } // color
 
-} // namespace narray_impl
+} // namespace narray_utils
 } // namespace topo
 } // namespace flecsi

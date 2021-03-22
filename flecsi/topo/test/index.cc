@@ -43,11 +43,10 @@ constexpr std::size_t column = 42;
 
 void
 allocate(topo::resize::Field::accessor<wo> a) {
-  const auto i = color();
-  a = partition::make_row(i, i + 1);
+  a = color() + 1;
 }
 void
-rows(intN::mutator<rw> r) {
+irows(intN::mutator<rw> r) {
   r[0].resize(color() + 1);
 }
 int
@@ -154,8 +153,8 @@ index_driver() {
     const auto verts = verts_field(process_topology);
     const auto vfrac = vfrac_field(process_topology);
     const auto noise = noisy_field(process_topology);
-    execute<rows>(verts);
-    execute<rows>(verts); // to make new size visible
+    execute<irows>(verts);
+    execute<irows>(verts); // to make new size visible
     execute<drows>(vfrac);
     execute<assign>(pressure, verts, vfrac);
     execute<reset>(noise);

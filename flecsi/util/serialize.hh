@@ -64,17 +64,36 @@ T serial_get(const std::byte *& p) { // reconstruct and advance past an object
   return serial<std::remove_const_t<T>>::get(p);
 }
 
+template<class F>
+auto serial_buffer(F && f) { // f should accept a P for serial_put
+  std::size_t sz = 0;
+  f(sz);
+  std::vector<std::byte> ret(sz);
+  auto *const p0 = ret.data(), *p = p0;
+  f(p);
+  flog_assert(p == p0 + sz, "Wrong serialization size");
+  return ret;
+}
+
 template<class T>
 auto serial_put(const T & t) { // for a single object
-  std::vector<std::byte> ret(serial_size(t));
-  auto *const p0 = ret.data(), *p = p0;
-  serial_put(p, t);
-  flog_assert(p == p0 + ret.size(), "Wrong serialization size");
-  return ret;
+  return serial_buffer([&t](auto & p) { serial_put(p, t); });
 }
 template<class T>
 T serial_get1(const std::byte * p) { // for a single object
   return serial_get<T>(p);
+}
+
+// Unlike serial_get<std::vector<T>>, defined to get a size and then elements.
+template<class T, class S = typename std::vector<T>::size_type>
+auto
+serial_get_vector(const std::byte *& p) {
+  auto n = serial_get<S>(p);
+  std::vector<T> ret;
+  ret.reserve(n);
+  while(n--)
+    ret.push_back(serial_get<T>(p));
+  return ret;
 }
 
 struct serial_cast {
@@ -177,12 +196,7 @@ struct serial<std::vector<T>> {
       serial_put(p, t);
   }
   static type get(const std::byte *& p) {
-    auto n = serial_get<typename type::size_type>(p);
-    type ret;
-    ret.reserve(n);
-    while(n--)
-      ret.push_back(serial_get<T>(p));
-    return ret;
+    return serial_get_vector<T>(p);
   }
 };
 template<class T>

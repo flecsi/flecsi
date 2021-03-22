@@ -18,11 +18,8 @@
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
+#include "flecsi/io/hdf5.hh"
 #include "flecsi/topo/index.hh"
-
-namespace flecsi::io {
-using field_reference_t = data::field_reference_t<topo::index>;
-}
 
 /*----------------------------------------------------------------------------*
   This section works with the build system to select the correct runtime

@@ -356,7 +356,6 @@ if(NOT FORMAT_ONLY)
     DESTINATION include
   )
 
-
   #----------------------------------------------------------------------------#
   # mesh-gen target
   #----------------------------------------------------------------------------#
@@ -396,6 +395,8 @@ if(NOT FORMAT_ONLY)
   set(FLECSI_LIBRARY_DIR ${CMAKE_INSTALL_PREFIX}/${LIBDIR})
   set(FLECSI_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include
     ${FLECSI_EXTERNAL_INCLUDE_DIRS})
+	# Setting up target properties for downstream usage
+	target_include_directories(FleCSI PUBLIC ${FLECSI_INCLUDE_DIRS})
 
   set(FLECSI_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI)
 

@@ -145,7 +145,7 @@ check(canon::accessor<ro> t, field<double>::accessor<ro> c) {
 // Making the partition wider would require initializing the new elements.
 void
 shrink(topo::resize::Field::accessor<rw> a) {
-  a = data::partition::make_row(color(), data::partition::row_size(a) - 1);
+  --a.get();
 }
 
 int

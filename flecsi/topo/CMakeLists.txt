@@ -20,6 +20,7 @@
 set(topo_HEADERS
   canonical/interface.hh
   canonical/types.hh
+  color.hh
   core.hh
   global.hh
   index.hh

@@ -16,6 +16,7 @@ if(ENABLE_HDF5)
 
 set(io_HEADERS
   backend.hh
+  hdf5.hh
 )
 
 set(io_SOURCES

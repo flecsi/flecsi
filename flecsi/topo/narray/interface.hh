@@ -23,7 +23,6 @@
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/index.hh"
@@ -136,7 +135,8 @@ private:
     };
 
     auto ptrs_task = [&ic, &comm](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points, comm);
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+        f, ic.points, comm);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};

@@ -237,6 +237,10 @@ struct ragged_accessor
             detail::destroy<P>(r);
         },
         privilege_discard(P));
+      // Resize after the ghost copy (which can add elements and can perform
+      // its own resize) rather than in the mutator before getting here:
+      if constexpr(privilege_write(OP))
+        r.get_partition(r.topology().ragged).resize();
       // We rely on the fact that field_reference uses only the field ID.
       return field_reference<T,
         raw,
@@ -596,10 +600,7 @@ public:
   }
   template<class F>
   void send(F && f) {
-    f(get_base(), [](const auto & r) {
-      r.get_partition(r.topology().ragged).resize();
-      return r;
-    });
+    f(get_base(), util::identity());
     f(get_size(), [](const auto & r) {
       return r.get_partition(r.topology().ragged).sizes();
     });
@@ -670,8 +671,7 @@ public:
       off(is) += delta += ov.add.size() - ov.del;
       ov.add.clear();
     }
-    sz = data::partition::make_row(
-      run::context::instance().color(), grow(acc.total(), all.size()));
+    sz = grow(acc.total(), all.size());
   }
 
 private:

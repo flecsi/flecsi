@@ -33,12 +33,12 @@ const double_field_t::definition<topo::index> test_value_1, test_value_2,
   test_value_3;
 
 void
-assign(double_field_t::accessor<rw> ia) {
+assign(double_field_t::accessor<wo> ia) {
   ia = color();
 } // assign
 
 void
-reset_zero(double_field_t::accessor<rw> ia) {
+reset_zero(double_field_t::accessor<wo> ia) {
   ia = -1;
 } // assign
 
@@ -60,11 +60,9 @@ index_driver() {
     auto & flecsi_context = run::context::instance();
     // TODO:  support N-to-M
     int num_files = flecsi_context.processes();
-    io::io_interface_t cp_io;
     const std::string outfile{"io_index.dat"};
 
-    cp_io.add_process_topology(num_files);
-    cp_io.checkpoint_process_topology(outfile);
+    io::checkpoint_data(outfile, num_files);
 
     execute<reset_zero>(fh1);
     execute<reset_zero>(fh2);
@@ -75,8 +73,8 @@ index_driver() {
     assert(num_ranks % num_files == 0);
     int num_ranks_per_file = num_ranks / num_files;
     if(my_rank % num_ranks_per_file == 0) {
-      io::hdf5_t checkpoint_file = io::hdf5_t::open(
-        outfile + std::to_string(my_rank / num_ranks_per_file));
+      io::hdf5 checkpoint_file =
+        io::hdf5::open(outfile + std::to_string(my_rank / num_ranks_per_file));
 
       checkpoint_file.write_string("control", "ds2", "test string 2");
 
@@ -86,7 +84,7 @@ index_driver() {
       checkpoint_file.close();
     }
 
-    cp_io.recover_process_topology(outfile);
+    io::recover_data(outfile, processes());
 
     EXPECT_EQ(test<check>(fh1), 0);
     EXPECT_EQ(test<check>(fh2), 0);

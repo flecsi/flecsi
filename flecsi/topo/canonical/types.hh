@@ -48,11 +48,12 @@ struct canonical_base : with_meta<canonical_base> {
 
   static std::size_t
   is_size(std::size_t size, std::size_t colors, std::size_t) {
-    return size / colors;
+    auto c = flecsi::color();
+    return (c + 1) * size / colors - c * size / colors;
   }
 
   static void cn_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = data::partition::make_row(flecsi::color(), size);
+    a = size;
   }
 }; // struct canonical_base
 
