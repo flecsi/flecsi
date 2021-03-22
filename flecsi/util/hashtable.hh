@@ -171,11 +171,7 @@ public:
    * @brief Return a const reference to the object with corresponding key
    */
   const type_t & at(const key_t & k) const {
-    auto f = find(k);
-    if(f == end()) {
-      throw std::out_of_range("Key out of range.");
-    }
-    return f->second;
+    return const_cast<hashtable &>(*this).at(k);
   }
 
   // Clear all keys
