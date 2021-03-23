@@ -29,10 +29,9 @@ namespace topo {
 //----------------------------------------------------------------------------//
 
 struct ntree_base {
-  enum index_space { entities, nodes, hashmap, tree_data, comm_data };
+  enum index_space { entities, nodes, hashmap, tree_data };
   // static constexpr std::size_t index_spaces = 1;
-  using index_spaces =
-    util::constants<entities, nodes, hashmap, tree_data, comm_data>;
+  using index_spaces = util::constants<entities, nodes, hashmap, tree_data>;
   // Parallel types for nodes and entities
   enum ptype_t { exclusive, ghost, all };
   // traversal types for DFS
