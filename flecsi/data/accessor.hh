@@ -965,16 +965,8 @@ struct scalar_access : bind_tag {
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  value_type * operator->() {
-    return &scalar_;
-  }
-
   const value_type * operator->() const {
     return &scalar_;
-  }
-
-  value_type & operator*() {
-    return scalar_;
   }
 
   const value_type & operator*() const {
