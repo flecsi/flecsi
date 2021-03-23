@@ -86,7 +86,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     coloring,
     std::vector<ent_t> & ents) {
 
-    flecsi::execute<init_fields, flecsi::mpi>(ts, core::e_i(ts), ents);
+    flecsi::execute<init_fields>(ts, core::e_i(ts), ents);
 
     ts->make_tree(ts);
 

@@ -235,14 +235,14 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   static auto make_tree_distributed_task(
     typename Policy::template accessor<rw> t,
-    typename field<meta_type, data::single>::template accessor<wo> m,
+    typename field<meta_type, data::single>::template accessor<ro> m,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
     return sizes_task(m);
   }
 
   static std::array<ent_node, 3> sizes_task(
-    typename field<meta_type, data::single>::template accessor<wo> m) {
+    typename field<meta_type, data::single>::template accessor<ro> m) {
     return {{m.get().local, m.get().top_tree, m.get().ghosts}};
   }
 
@@ -965,6 +965,7 @@ struct ntree<Policy>::access {
     data_field(0).lobound = process() == 0 ? key_t::min() : e_keys(0);
     data_field(0).hibound =
       process() == processes() - 1 ? key_t::max() : e_keys(mf->local.ents - 1);
+    std::cout<<"data key: "<<data_field(0).lobound<<std::endl;
   }
 
   void add_boundaries(const std::vector<hcell_t> & cells) {
@@ -1003,6 +1004,7 @@ struct ntree<Policy>::access {
   }
 
   void make_tree() {
+    std::cout<<"data key AFTER"<<data_field(0).lobound<<std::endl;
 
     std::cout<<"NENTS 2: "<<mf->local.ents<<std::endl;
     // Cstr htable
@@ -1018,6 +1020,8 @@ struct ntree<Policy>::access {
     const auto lobound = rank == 0 ? key_t::min() : data_field(1).hibound;
     assert(lobound <= e_keys(0));
     assert(hibound >= e_keys(mf->local.ents - 1));
+
+
 
     // Add the root
     hmap.insert(key_t::root(), key_t::root());
