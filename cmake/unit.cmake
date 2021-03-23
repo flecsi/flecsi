@@ -23,6 +23,10 @@ mark_as_advanced(ENABLE_EXPENSIVE_TESTS)
 
 if(ENABLE_UNIT_TESTS)
   enable_testing()
+  add_library(unit-main OBJECT ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
+  if (ENABLE_KOKKOS)
+    target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+  endif()
 endif()
 
 function(add_unit name)
@@ -156,7 +160,7 @@ function(add_unit name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc
+    $<TARGET_OBJECTS:unit-main>
   )
   
   set_target_properties(${name}

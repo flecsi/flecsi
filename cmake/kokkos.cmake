@@ -22,5 +22,7 @@ if(ENABLE_KOKKOS)
     message(FATAL_ERROR "Clang version 8 or greater required for Kokkos")
   endif()
 
+  get_target_property(KOKKOS_COMPILE_OPTIONS Kokkos::kokkoscore INTERFACE_COMPILE_OPTIONS)
+
   list(APPEND FLECSI_LIBRARY_DEPENDENCIES Kokkos::kokkos)
 endif()
