@@ -142,11 +142,12 @@ struct ragged : specialization<ragged_category, ragged<T>> {
   using index_spaces = typename T::index_spaces;
 
   template<index_space S>
-  static constexpr std::size_t privilege_count = T::template privilege_count<S>;
+  static constexpr PrivilegeCount privilege_count =
+    T::template privilege_count<S>;
 };
 
 struct with_ragged_base {
-  template<class F, std::size_t N>
+  template<class F, PrivilegeCount N>
   static void extend(
     field<std::size_t, data::raw>::accessor1<privilege_repeat(rw, N)> a,
     F old) {

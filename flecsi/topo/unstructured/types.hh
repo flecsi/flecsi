@@ -194,7 +194,7 @@ struct unstructured_base {
     point offsets. The references num_intervals, intervals,
     and points, respectively, are filled with this information.
    */
-  template<std::size_t N>
+  template<PrivilegeCount N>
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
@@ -359,7 +359,7 @@ struct unstructured_base {
     } // for
   }
 
-  template<std::size_t N>
+  template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,

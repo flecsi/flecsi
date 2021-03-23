@@ -74,7 +74,7 @@ struct ntree : ntree_base {
     size_t nnodes = 0;
   };
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   ntree(const coloring & c)
@@ -154,7 +154,7 @@ private:
 };
 
 template<class Policy>
-template<std::size_t Priv>
+template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;

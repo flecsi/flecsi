@@ -78,7 +78,7 @@ private:
 
   // All accessors are handled in terms of their underlying raw accessors.
 
-  template<typename DATA_TYPE, size_t PRIVILEGES>
+  template<typename DATA_TYPE, Privileges PRIVILEGES>
   void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> & accessor) {
     auto & reg = regions_[region++];
 

@@ -170,7 +170,7 @@ struct narray_base {
     } // for
   }
 
-  template<std::size_t N>
+  template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,

@@ -46,7 +46,7 @@ namespace flecsi {
 inline log::devel_tag task_wrapper_tag("task_wrapper");
 
 namespace data {
-template<class, std::size_t, std::size_t>
+template<class, Privileges, Privileges>
 struct ragged_accessor;
 
 namespace detail {
@@ -65,7 +65,7 @@ struct convert_accessor {
 } // namespace data
 
 // Send and receive only the reference_base portion:
-template<data::layout L, class T, std::size_t Priv>
+template<data::layout L, class T, Privileges Priv>
 struct util::serial_convert<data::accessor<L, T, Priv>> {
   using type = data::accessor<L, T, Priv>;
   using Rep = std::size_t;
@@ -76,13 +76,13 @@ struct util::serial_convert<data::accessor<L, T, Priv>> {
     return type(r);
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial_convert<data::accessor<data::single, T, Priv>>
   : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};
-template<class T, std::size_t P, std::size_t OP>
+template<class T, Privileges P, Privileges OP>
 struct util::serial_convert<data::ragged_accessor<T, P, OP>>
   : data::detail::convert_accessor<data::ragged_accessor<T, P, OP>> {};
-template<data::layout L, class T, std::size_t Priv>
+template<data::layout L, class T, Privileges Priv>
 struct util::serial<data::mutator<L, T, Priv>> {
   using type = data::mutator<L, T, Priv>;
   template<class P>
@@ -93,7 +93,7 @@ struct util::serial<data::mutator<L, T, Priv>> {
     return serial_get<typename type::base_type>(b);
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
   template<class P>
@@ -105,7 +105,7 @@ struct util::serial<data::mutator<data::ragged, T, Priv>> {
     return {r, r};
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial<data::topology_accessor<T, Priv>,
   std::enable_if_t<!util::memcpyable_v<data::topology_accessor<T, Priv>>>>
   : util::serial_value<data::topology_accessor<T, Priv>> {};

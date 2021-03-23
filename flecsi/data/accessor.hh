@@ -44,13 +44,13 @@ construct(const A & a) {
   const auto s = a.span();
   std::uninitialized_default_construct(s.begin(), s.end());
 }
-template<class T, layout L, std::size_t P>
+template<class T, layout L, Privileges P>
 void
 destroy_task(typename field<T, L>::template accessor1<P> a) {
   const auto s = a.span();
   std::destroy(s.begin(), s.end());
 }
-template<std::size_t P,
+template<Privileges P,
   class T,
   layout L,
   class Topo,
@@ -67,7 +67,7 @@ inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
 // All accessors are ultimately implemented in terms of those for the raw
 // layout, minimizing the amount of backend-specific code required.
 
-template<typename DATA_TYPE, size_t PRIVILEGES>
+template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using value_type = DATA_TYPE;
   // We don't actually inherit from base_type; we don't want its interface.
@@ -113,7 +113,7 @@ private:
   base_type base;
 }; // struct accessor
 
-template<typename DATA_TYPE, size_t PRIVILEGES>
+template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
   using value_type = DATA_TYPE;
   using element_type = std::
@@ -134,7 +134,7 @@ private:
   util::span<element_type> s;
 }; // struct accessor
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using base_type = accessor<raw, T, P>;
   using base_type::base_type;
@@ -180,7 +180,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 
 // The offsets privileges are separate because they are writable for mutators
 // but read-only for even writable accessors.
-template<class T, std::size_t P, std::size_t OP = P>
+template<class T, Privileges P, Privileges OP = P>
 struct ragged_accessor
   : accessor<raw, T, P>,
     send_tag,
@@ -266,13 +266,13 @@ private:
   Offsets off{this->identifier()};
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<ragged, T, P>
   : ragged_accessor<T, P, privilege_repeat(ro, privilege_count(P))> {
   using accessor::ragged_accessor::ragged_accessor;
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct mutator<ragged, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
   static_assert(privilege_write(P) && !privilege_discard(P),
@@ -686,7 +686,7 @@ private:
 };
 
 // Many compilers incorrectly require the 'template' for a base class.
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<sparse, T, P>
   : field<T, sparse>::base_type::template accessor1<P>,
     util::with_index_iterator<const accessor<sparse, T, P>> {
@@ -739,7 +739,7 @@ public:
   }
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct mutator<sparse, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
   using base_type = typename field<T, sparse>::base_type::template mutator1<P>;
@@ -987,14 +987,14 @@ private:
 
 } // namespace data
 
-template<data::layout L, class T, std::size_t P>
+template<data::layout L, class T, Privileges P>
 struct exec::detail::task_param<data::accessor<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static auto replace(const data::field_reference<T, L, Topo, S> & r) {
     return data::accessor<L, T, P>(r.fid());
   }
 };
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   using type = data::mutator<data::ragged, T, P>;
   template<class Topo, typename Topo::index_space S>
@@ -1004,7 +1004,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
       r.get_partition(r.topology().ragged).growth};
   }
 };
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
   using type = data::mutator<data::sparse, T, P>;
   template<class Topo, typename Topo::index_space S>

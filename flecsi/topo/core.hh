@@ -29,7 +29,7 @@ namespace flecsi {
 namespace data {
 template<class>
 struct coloring_slot; // avoid dependency on flecsi::execute
-template<class, std::size_t>
+template<class, Privileges>
 struct topology_accessor; // avoid circularity via launch.hh
 } // namespace data
 
@@ -60,7 +60,7 @@ struct core_base {
 template<class P>
 struct core : core_base { // with_ragged<P> is often another base class
   /// Default-constructible base for topology accessors.
-  template<std::size_t Priv>
+  template<Privileges Priv>
   struct access {
     /// \see send_tag
     template<class F>
@@ -139,7 +139,7 @@ struct specialization : specialization_base {
     return D::index_spaces::value;
   }
   template<auto S> // we can't use D::index_space here
-  static constexpr std::size_t privilege_count =
+  static constexpr PrivilegeCount privilege_count =
     std::is_same_v<decltype(S), typename D::index_space> ? 1 : throw;
 
   static void initialize(slot &, coloring const &) {}

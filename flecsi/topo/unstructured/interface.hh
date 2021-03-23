@@ -51,7 +51,7 @@ struct unstructured : unstructured_base,
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   unstructured(coloring const & c)
@@ -134,7 +134,7 @@ private:
 
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
-    constexpr std::size_t NP = Policy::template privilege_count<S>;
+    constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
@@ -206,7 +206,7 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<std::size_t Privileges>
+template<Privileges Privileges>
 struct unstructured<Policy>::access {
 private:
   using entity_list = typename Policy::entity_list;

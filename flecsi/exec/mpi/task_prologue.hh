@@ -54,7 +54,10 @@ protected:
     single.result_ = index.result;
   }
 
-  template<typename T, size_t P, class Topo, typename Topo::index_space Space>
+  template<typename T,
+    Privileges P,
+    class Topo,
+    typename Topo::index_space Space>
   static void visit(data::accessor<data::raw, T, P> & accessor,
     const data::field_reference<T, data::raw, Topo, Space> & ref) {
     const field_id_t f = ref.fid();

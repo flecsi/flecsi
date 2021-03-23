@@ -48,9 +48,9 @@ struct lists<T, util::types<VT...>> {
     util::key_type<VT::value, util::key_array<T, typename VT::type>>...>;
 };
 
-template<class, std::size_t>
+template<class, Privileges>
 struct key_access;
-template<class... VT, std::size_t Priv>
+template<class... VT, Privileges Priv>
 struct key_access<util::key_tuple<VT...>, Priv> {
   using type = util::key_tuple<util::key_type<VT::value,
     util::key_array<
@@ -66,11 +66,11 @@ template<class P>
 using connect_t = typename detail::connect<P, typename P::connectivities>::type;
 
 namespace detail {
-template<class C, std::size_t Priv>
+template<class C, Privileges Priv>
 using key_access_t = typename key_access<C, Priv>::type;
 
 // A parallel sparse matrix of accessors.
-template<class C, std::size_t Priv>
+template<class C, Privileges Priv>
 struct connect_access : key_access_t<C, Priv> {
   // Prior to C++20, accessor_member can't refer to the subobjects of a
   // connect_t, so the accessors must be initialized externally.
@@ -90,7 +90,7 @@ private:
 } // namespace detail
 
 // Accessors for the connectivity requested by a topology.
-template<class P, std::size_t Priv>
+template<class P, Privileges Priv>
 using connect_access = detail::connect_access<connect_t<P>, Priv>;
 
 template<class T, class P>
@@ -122,7 +122,7 @@ private:
 };
 
 // Accessors for the distinguished entities requested by a topology.
-template<class P, std::size_t Priv>
+template<class P, Privileges Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
 template<class F, class... VT, class C, class S = util::identity>

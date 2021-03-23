@@ -173,7 +173,7 @@ struct mesh1d : topo::specialization<topo::narray, mesh1d> {
   static constexpr std::size_t dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;
@@ -213,7 +213,7 @@ struct mesh2d : topo::specialization<topo::narray, mesh2d> {
   static constexpr std::size_t dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;
@@ -253,7 +253,7 @@ struct mesh3d : topo::specialization<topo::narray, mesh3d> {
   static constexpr std::size_t dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;
