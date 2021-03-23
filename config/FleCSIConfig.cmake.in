@@ -27,6 +27,12 @@ if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
   include(@FLECSI_CMAKE_DIR@/FleCSITargets.cmake)
 endif()
 
+# Propagate MPI dependency
+if(@ENABLE_MPI@)
+  find_package(MPI COMPONENTS C CXX REQUIRED)
+endif()
+#TODO: Propagate other TPL dependencies
+
 #------------------------------------------------------------------------------#
 # Set the FleCSI libraries.
 #------------------------------------------------------------------------------#

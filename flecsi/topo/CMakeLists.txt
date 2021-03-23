@@ -18,8 +18,7 @@
 #------------------------------------------------------------------------------#
 
 set(topo_HEADERS
-  canonical/interface.hh
-  canonical/types.hh
+  color.hh
   core.hh
   global.hh
   index.hh
@@ -78,14 +77,6 @@ set(topo_SOURCES
 add_unit(index
   SOURCES
     test/index.cc
-  THREADS 2
-  )
-
-# canonical -------------------------------------------------------------------#
-
-add_unit(canonical
-  SOURCES
-    canonical/test/canonical.cc
   THREADS 2
   )
 

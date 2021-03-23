@@ -113,7 +113,10 @@ struct unstructured : unstructured_base,
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
+    if constexpr(Layout == data::ragged)
+      ; // TODO
+    else
+      plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
@@ -131,13 +134,15 @@ private:
 
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
+    constexpr std::size_t NP = Policy::template privilege_count<S>;
+
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
       points;
 
     auto const & fmd = forward_map_.template get<S>();
-    execute<idx_itvls, mpi>(
+    execute<idx_itvls<NP>, mpi>(
       ic, num_intervals, intervals, points, fmd(*this), comm);
 
     // clang-format off
@@ -146,7 +151,7 @@ private:
     };
 
     auto ptrs_task = [&points, &comm](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+      execute<set_ptrs<NP>, mpi>(
         f, points, comm);
     };
     // clang-format on
@@ -208,8 +213,7 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<data::partition::row>, index_spaces>
-    size_;
+  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;
 
@@ -236,8 +240,8 @@ public:
 
   template<index_space IndexSpace>
   auto entities() {
-    return make_ids<IndexSpace>(util::iota_view<util::id>(
-      0, data::partition::row_size(size_.template get<IndexSpace>().data())));
+    return make_ids<IndexSpace>(
+      util::iota_view<util::id>(0, *size_.template get<IndexSpace>()));
   }
 
   /*!
@@ -279,9 +283,9 @@ public:
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
-    for(auto & a : size_) {
-      f(a, [&i](typename Policy::slot & u) { return u->part_[i++].sizes(); });
-    }
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
 
     connect_send(f, connect_, unstructured::connect_);
     lists_send(f, special_, special_field, &unstructured::special_);

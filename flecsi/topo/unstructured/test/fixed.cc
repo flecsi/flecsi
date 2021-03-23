@@ -138,10 +138,10 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
   }
 
 #if 0
-  static void init_csub(field<util::id, data::ragged>::mutator<rw> own,
-    field<util::id, data::ragged>::mutator<rw> exc,
-    field<util::id, data::ragged>::mutator<rw> shr,
-    field<util::id, data::ragged>::mutator<rw> ghs,
+  static void init_csub(topo::connect_field::mutator<rw> own,
+    topo::connect_field::mutator<rw> exc,
+    topo::connect_field::mutator<rw> shr,
+    topo::connect_field::mutator<rw> ghs,
     topo::unstructured_base::index_coloring const & cell_coloring) {
     (void)own;
     exc[flecsi::color()].resize(cell_coloring.exclusive.size());
@@ -150,7 +150,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
   }
 #endif
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
+  static void init_c2v(topo::connect_field::mutator<rw, na> c2v,
     topo::unstructured_impl::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
@@ -168,8 +168,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     }
   }
 
-  static void init_v2c(field<util::id, data::ragged>::mutator<rw, na> v2c,
-    field<util::id, data::ragged>::accessor<ro, na> c2v) {
+  static void init_v2c(topo::connect_field::mutator<rw, na> v2c,
+    topo::connect_field::accessor<ro, na> c2v) {
     for(std::size_t c{0}; c < c2v.size(); ++c) {
       for(std::size_t v{0}; v < c2v[c].size(); ++v) {
         flog(trace) << "v: " << c2v[c][v] << " c: " << c << std::endl;
@@ -251,11 +251,43 @@ init_ids(fixed_mesh::accessor<ro, ro> m,
   }
 }
 
+// Exercise the std::vector-like interface:
+int
+permute(topo::connect_field::mutator<rw, na> m) {
+  UNIT {
+    return;
+    const auto && r = m[0];
+    const auto n = r.size();
+    const auto p = &r.front();
+    ASSERT_GT(n, 1u);
+    EXPECT_EQ(p + 1, &r[1]);
+    r.push_back(101);
+    r.pop_back();
+    EXPECT_NE(&r.end()[-2] + 1, &r.back()); // the latter is in the overflow
+    EXPECT_GT(r.size(), r.capacity());
+
+    // Intermediate sizes can exceed the capacity of the underlying raw field:
+    r.insert(r.begin(), 100, 3);
+    EXPECT_EQ(r.end()[-1], 101u);
+    EXPECT_EQ(r[0], r[99]);
+
+    r.erase(r.begin(), r.begin() + 100);
+    r.pop_back();
+    EXPECT_EQ(r.size(), n);
+    EXPECT_NE(&r.front(), p);
+    // TODO: test shrink_to_fit
+
+    // BUG: remove
+    r.clear();
+  };
+}
+
 void
 init_pressure(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<wo, na> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
+    static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
     p[c] = -1.0;
   }
 }
@@ -354,6 +386,11 @@ fixed_driver() {
     coloring.allocate();
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
+    EXPECT_EQ(
+      test<permute>(
+        mesh->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>()(
+          mesh)),
+      0);
     execute<print>(mesh, cids(mesh), vids(mesh));
 #if 0
     execute<init_pressure>(mesh, pressure(mesh));

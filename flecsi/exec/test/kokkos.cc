@@ -15,7 +15,7 @@
 #define __FLECSI_PRIVATE__
 #include <flecsi/data.hh>
 
-#include "flecsi/topo/canonical/interface.hh"
+#include "flecsi/topo/unstructured/interface.hh"
 
 #include "flecsi/util/unit.hh"
 #include <flecsi/data/accessor.hh>
@@ -25,7 +25,7 @@
 
 using namespace flecsi;
 
-struct canon : topo::specialization<topo::canonical, canon> {
+struct canon : topo::specialization<topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
   using connectivities = util::types<from<cells, has<vertices>>>;
@@ -35,7 +35,7 @@ struct canon : topo::specialization<topo::canonical, canon> {
   } // color
 };
 
-canon::slot canonical;
+canon::slot mesh;
 canon::cslot coloring;
 
 const field<int>::definition<canon, canon::cells> cell_field;
@@ -80,11 +80,11 @@ kokkos_driver() {
 
     Kokkos::print_configuration(std::cerr);
 
-    // use canonical
+    // use mesh
     const std::string filename = "input.txt";
     coloring.allocate(filename);
-    canonical.allocate(coloring.get());
-    const auto pressure = cell_field(canonical);
+    mesh.allocate(coloring.get());
+    const auto pressure = cell_field(mesh);
     flecsi::execute<init, default_accelerator>(pressure);
     flecsi::execute<local_kokkos, default_accelerator>(pressure);
   };

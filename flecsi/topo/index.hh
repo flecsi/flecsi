@@ -35,20 +35,20 @@ inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
 // A partition with a field for dynamically resizing it.
-struct repartition : with_size, data::partition {
+struct repartition : with_size, data::prefixes {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
   template<class F = decltype(zero::partial)>
   repartition(data::region & r, F f = zero::partial)
-    : with_size(r.size().first), partition(r, sz, [&] {
+    : with_size(r.size().first), prefixes(r, [&] {
         const auto r = sizes();
         execute<fill<F>>(r, f);
-        return r.fid();
+        return r;
       }()) {}
 
   void resize() { // apply sizes stored in the field
-    update(sz, resize::field.fid);
+    update(sizes());
   }
 
   template<class F>
@@ -61,8 +61,7 @@ struct repartition : with_size, data::partition {
 private:
   template<class F>
   static void fill(resize::Field::accessor<wo> a, const F & f) {
-    const auto i = run::context::instance().color();
-    a = data::partition::make_row(i, f(i));
+    a = f(run::context::instance().color());
   }
 };
 
@@ -191,10 +190,24 @@ struct detail::base<ragged_category> {
 };
 
 // The user-facing variant of the color category supports ragged fields.
+struct index_base {
+  struct coloring {
+    coloring(size_t size) : size_(size) {}
+
+    size_t size() const {
+      return size_;
+    }
+
+  private:
+    size_t size_;
+  };
+};
+
 template<class P>
-struct index_category : color<P>, with_ragged<P> {
+struct index_category : index_base, color<P>, with_ragged<P> {
+  using index_base::coloring; // override color_base::coloring
   index_category(const index_base::coloring & c)
-    : color<P>(c), with_ragged<P>(c.size()) {
+    : color<P>({c.size(), 1}), with_ragged<P>(c.size()) {
     this->template extend_offsets<elements>();
   }
 };

@@ -40,6 +40,7 @@ struct hdf5 {
       if(const herr_t e = H5Fclose(id); e >= 0) {
         log::devel_guard guard(io_tag);
         flog_devel(info) << "Close HDF5 file_id " << id << std::endl;
+        id = -1;
         return true;
       }
       else

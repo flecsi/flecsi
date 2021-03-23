@@ -21,7 +21,6 @@
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh" // base

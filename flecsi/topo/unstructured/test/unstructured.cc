@@ -98,7 +98,6 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 #endif
 
   static coloring color(std::string const & filename) {
-    (void)filename;
     topo::unstructured_impl::simple_definition sd(filename.c_str());
     const size_t colors{processes()};
     auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
@@ -130,7 +129,7 @@ unstructured::cslot coloring;
 
 void
 allocate(topo::resize::Field::accessor<wo> a) {
-  a = data::partition::make_row(run::context::instance().color(), 2);
+  a = 2;
 }
 
 void

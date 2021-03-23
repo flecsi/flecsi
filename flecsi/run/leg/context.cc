@@ -22,7 +22,32 @@
 #include "flecsi/run/leg/mapper.hh"
 #include <flecsi/data.hh>
 
-namespace flecsi::run {
+namespace flecsi {
+namespace data::leg {
+mirror::mirror(size2 s)
+  : rects({s.first, 2}), order({2 * s.first, 1}),
+    part(rects,
+      order,
+      (execute<fill>(halves::field(order)), fid),
+      complete,
+      rects.color_space),
+    width(s.second) {}
+void
+mirror::fill(halves::Field::accessor<wo> a) {
+  const auto d = std::div(static_cast<long>(color()), colors() / 2);
+  a[0] = {{d.rem, d.quot}, {d.rem, d.quot}};
+}
+void
+mirror::extend(field<std::size_t, single>::accessor<ro> r,
+  halves::Field::accessor<wo> w,
+  std::size_t width) {
+  const Legion::coord_t c = color();
+  w[0] = {{c, 0}, {c, upper(r)}};
+  w[1] = {{c, static_cast<Legion::coord_t>(r)}, {c, upper(width)}};
+}
+} // namespace data::leg
+
+namespace run {
 
 using namespace boost::program_options;
 
@@ -248,4 +273,5 @@ context_t::connect_with_mpi(Legion::Context &, Legion::Runtime *) {
   context_t::instance().set_all_processes(launch_bounds);
 } // context_t::connect_with_mpi
 
-} // namespace flecsi::run
+} // namespace run
+} // namespace flecsi

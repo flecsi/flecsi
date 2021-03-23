@@ -237,6 +237,10 @@ struct ragged_accessor
             detail::destroy<P>(r);
         },
         privilege_discard(P));
+      // Resize after the ghost copy (which can add elements and can perform
+      // its own resize) rather than in the mutator before getting here:
+      if constexpr(privilege_write(OP))
+        r.get_partition(r.topology().ragged).resize();
       // We rely on the fact that field_reference uses only the field ID.
       return field_reference<T,
         raw,
@@ -596,10 +600,7 @@ public:
   }
   template<class F>
   void send(F && f) {
-    f(get_base(), [](const auto & r) {
-      r.get_partition(r.topology().ragged).resize();
-      return r;
-    });
+    f(get_base(), util::identity());
     f(get_size(), [](const auto & r) {
       return r.get_partition(r.topology().ragged).sizes();
     });
@@ -670,8 +671,7 @@ public:
       off(is) += delta += ov.add.size() - ov.del;
       ov.add.clear();
     }
-    sz = data::partition::make_row(
-      run::context::instance().color(), grow(acc.total(), all.size()));
+    sz = grow(acc.total(), all.size());
   }
 
 private:
@@ -950,29 +950,39 @@ private:
   base_type rag;
 };
 
-template<typename T>
-struct scalar_access : send_tag, bind_tag {
+template<auto & F>
+struct scalar_access : bind_tag {
 
-  template<class F>
-  void send(F && f) {
-    typename flecsi::field<T>::template accessor<ro> acc(fid_);
-    util::identity id;
-    f(acc, id);
-    if(const auto p = acc.get_base().span().data())
+  typedef
+    typename std::remove_reference_t<decltype(F)>::Field::value_type value_type;
+
+  template<class Func, class S>
+  void topology_send(Func && f, S && s) {
+    accessor_member<F, privilege_pack<ro>> acc;
+    acc.topology_send(std::forward<Func>(f), std::forward<S>(s));
+
+    if(const auto p = acc.get_base().get_base().span().data())
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  T & data() {
+  value_type * operator->() {
+    return &scalar_;
+  }
+
+  const value_type * operator->() const {
+    return &scalar_;
+  }
+
+  value_type & operator*() {
     return scalar_;
   }
 
-  size_t identifier() {
-    return fid_;
+  const value_type & operator*() const {
+    return scalar_;
   }
 
 private:
-  T scalar_;
-  size_t fid_ = topo::resize::field.fid;
+  value_type scalar_;
 };
 
 } // namespace data
