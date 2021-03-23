@@ -92,7 +92,7 @@ task_driver() {
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;
-      ASSERT_EQ(c.task_depth(), 0u);
+      ASSERT_EQ(c.task_depth(), 0);
 
       auto process = c.process();
       auto processes = c.processes();

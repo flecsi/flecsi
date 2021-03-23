@@ -440,7 +440,7 @@ struct context {
     for FleCSI developers to use in enforcing runtime constraints.
    */
 
-  static std::size_t task_depth();
+  static int task_depth();
 
   /*!
     Get the color of this process.

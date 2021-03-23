@@ -82,7 +82,7 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  static size_t task_depth() {
+  static int task_depth() {
     return 0;
   } // task_depth
 

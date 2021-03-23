@@ -134,7 +134,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t task_depth() {
+  static int task_depth() {
     return Legion::Runtime::get_runtime()
       ->get_current_task(Legion::Runtime::get_context())
       ->get_depth();
