@@ -158,8 +158,8 @@ struct ntree : ntree_base, with_meta<Policy> {
         }
         return ret;
       }()) {
-        init_meta(); 
-      }
+    execute<set_meta, mpi>(meta_field(this->meta));
+  }
 
   // Ntree mandatory fields ---------------------------------------------------
 
@@ -204,24 +204,11 @@ struct ntree : ntree_base, with_meta<Policy> {
   const std::size_t buffer_size =
     (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2;
 
-
   static void set_meta(
     typename field<meta_type, data::single>::template accessor<wo> m) {
-    meta_type & md = m;
-    std::cout<<"Init field to zero"<<std::endl;
-    md.max_depth = 0;
-    md.local.ents = 0; 
-    md.local.nodes = 0;
-    md.ghosts.ents = 0; 
-    md.ghosts.nodes = 0; 
-    md.top_tree.ents = 0;
-    md.top_tree.nodes = 0;
-    md.nents_recv = 0;  
-  } // set_meta
 
-  void init_meta() {
-    execute<set_meta, mpi>(meta_field(this->meta));
-  }
+    m.get() = {};
+  } // set_meta
 
   // ----------------------- Top Tree Construction Tasks -----------------------
   // This is decomposed in two steps since
@@ -385,7 +372,7 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   static auto xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw> a,
-    typename field<meta_type, data::single>::template accessor<wo> m,
+    typename field<meta_type, data::single>::template accessor<rw> m,
     data::buffers::Transfer mv,
     const std::vector<color_id> & f,
     const std::vector<std::size_t> & v) {
@@ -441,7 +428,7 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   static void load_entities_task(typename Policy::template accessor<rw> t,
     const std::vector<std::pair<hcell_t, std::size_t>> & recv) {
-    auto hmap = t.get_hmap();
+    auto hmap = t.map();
     for(std::size_t i = 0; i < recv.size(); ++i) {
       t.load_shared_entity_distant(0, recv[i].first.key(), hmap);
     }
@@ -626,8 +613,12 @@ struct ntree<Policy>::access {
 
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
 
+  hmap_t map() const {
+    return hmap_t(hcells.span());
+  }
+
   void reset() {
-    hmap_t hmap(hcells.span());
+    hmap_t hmap = map();
     hmap.clear();
     mf->max_depth = 0;
     mf->top_tree.ents = 0;
@@ -641,7 +632,7 @@ struct ntree<Policy>::access {
   // Standard traversal function
   template<typename FUNC, typename... ARGS>
   void traversal(hcell_t * hcell, FUNC && func, ARGS &&... args) const {
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     std::queue<hcell_t *> tqueue;
     tqueue.push(hcell);
     while(!tqueue.empty()) {
@@ -664,7 +655,7 @@ struct ntree<Policy>::access {
   }
 
   auto find_intersect_entities() {
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     auto cs = run::context::instance().colors();
     serdez_vector<std::pair<hcell_t, std::size_t>> entities;
 
@@ -709,7 +700,7 @@ struct ntree<Policy>::access {
     // The ranks to send and the id of the entity
     serdez_vector<color_id> entities;
     auto color = run::context::instance().color();
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     // 1. for all local entities
     for(std::size_t i = 0; i < mf->local.ents; ++i) {
       ent_id id(i);
@@ -769,7 +760,7 @@ struct ntree<Policy>::access {
     std::vector<id<index_space::entities>> ids;
     // Get the node and find its sub-entities
     auto nkey = n_keys[node_id];
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
     for(std::size_t j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
@@ -785,7 +776,7 @@ struct ntree<Policy>::access {
   }
 
   auto neighbors(const id<index_space::entities> & ent_id) const {
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     std::vector<id<index_space::entities>> ids;
     // Perform tree traversal to find neighbors
     traversal(&hmap.at(key_t::root()), [&](hcell_t * cur) {
@@ -828,13 +819,11 @@ struct ntree<Policy>::access {
   }
 
   // Return entities, exclusive/ghosts from a specific node
-  template<ptype_t PT = ptype_t::exclusive>
   auto nodes(const id<index_space::nodes> & node_id) {
-
     std::vector<id<index_space::nodes>> ids;
     // Get the node and find its sub-entities
     auto nkey = n_keys[node_id];
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     auto cur = &(hmap.find(nkey)->second);
     for(std::size_t j = 0; j < nchildren_; ++j) {
       if(cur->has_child(j)) {
@@ -851,7 +840,7 @@ struct ntree<Policy>::access {
 
   // BFS traversal, return vector of ids
   auto bfs() {
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
 
     std::vector<id<index_space::nodes>> ids;
     std::queue<hcell_t *> tqueue;
@@ -881,7 +870,7 @@ struct ntree<Policy>::access {
   template<ttype_t TT = ttype_t::preorder, bool complete = false>
   auto dfs() {
 
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     std::vector<id<index_space::nodes>> ids;
 
     // Postorder and reverse postorder
@@ -961,15 +950,13 @@ struct ntree<Policy>::access {
   void exchange_boundaries() {
     mf->max_depth = 0;
     mf->local.ents = e_keys.span().size();
-    std::cout<<"NENTS: "<<mf->local.ents<<std::endl;
     data_field(0).lobound = process() == 0 ? key_t::min() : e_keys(0);
     data_field(0).hibound =
       process() == processes() - 1 ? key_t::max() : e_keys(mf->local.ents - 1);
-    std::cout<<"data key: "<<data_field(0).lobound<<std::endl;
   }
 
   void add_boundaries(const std::vector<hcell_t> & cells) {
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     auto color = run::context::instance().color();
     for(auto c : cells) {
       if(c.color() == color)
@@ -999,16 +986,9 @@ struct ntree<Policy>::access {
     }
   }
 
-  auto get_hmap() {
-    return hmap_t(hcells.span());
-  }
-
   void make_tree() {
-    std::cout<<"data key AFTER"<<data_field(0).lobound<<std::endl;
-
-    std::cout<<"NENTS 2: "<<mf->local.ents<<std::endl;
     // Cstr htable
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
 
     // Create the tree
     size_t size = run::context::instance().colors(); // colors();
@@ -1020,8 +1000,6 @@ struct ntree<Policy>::access {
     const auto lobound = rank == 0 ? key_t::min() : data_field(1).hibound;
     assert(lobound <= e_keys(0));
     assert(hibound >= e_keys(mf->local.ents - 1));
-
-
 
     // Add the root
     hmap.insert(key_t::root(), key_t::root());
@@ -1062,9 +1040,7 @@ struct ntree<Policy>::access {
         hiboundnode.pop(current_depth);
         if(loopagain && (iam0 || lastnkey > loboundnode) &&
            (iamlast || lastnkey < hiboundnode)) {
-          auto it = hmap.find(lastnkey);
-          assert(it != hmap.end());
-          hcell_t & n = it->second;
+          hcell_t & n = hmap.at(lastnkey);
           if(!n.is_ent()) {
             n.set_complete();
           }
@@ -1082,7 +1058,7 @@ struct ntree<Policy>::access {
       if(iamlast && i == e_keys.span().size())
         break;
 
-      parent = &(hmap.find(lastnkey)->second);
+      parent = &(hmap.at(lastnkey));
       old_is_ent = parent->is_ent();
       // Insert the eventual missing parents in the tree
       // Find the current parent of the two entities
@@ -1159,7 +1135,7 @@ struct ntree<Policy>::access {
   // Count number of entities to send to each other color
   serdez_vector<hcell_t> top_tree_boundaries() {
     serdez_vector<hcell_t> sdata;
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
     auto color = run::context::instance().color();
     std::vector<hcell_t *> queue;
     std::vector<hcell_t *> nqueue;
@@ -1175,7 +1151,7 @@ struct ntree<Policy>::access {
               key_t ckey = nkey;
               ckey.push(j);
               auto it = hmap.find(ckey);
-              nqueue.push_back(&it->second);
+              nqueue.push_back(&hmap.at(ckey));
             } // if
           } // for
         }
@@ -1200,7 +1176,7 @@ struct ntree<Policy>::access {
     output << "digraph G {\nforcelabels=true;\n";
 
     std::stack<hcell_t *> stk;
-    hmap_t hmap(hcells.span());
+    auto hmap = map();
 
     stk.push(&(hmap.find(key_t::root())->second));
 
