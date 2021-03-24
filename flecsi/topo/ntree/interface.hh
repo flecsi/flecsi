@@ -201,7 +201,7 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   // Buffer for ghosts shared
   data::buffers::core buf;
-  const std::size_t buffer_size =
+  static const std::size_t buffer_size =
     (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2;
 
   static void set_meta(
@@ -350,7 +350,8 @@ struct ntree : ntree_base, with_meta<Policy> {
     const std::vector<color_id> & f) {
     std::size_t cur = 0;
     std::size_t cs = run::context::instance().colors();
-    std::vector<std::size_t> restart(cs, 0); // Use last value to store total
+    serdez_vector<std::size_t> restart; // Use last value to store total
+    restart.resize(cs); 
     auto color = run::context::instance().color();
     for(std::size_t c = 0; c < cs; ++c) {
       if(c != color) {
@@ -378,7 +379,8 @@ struct ntree : ntree_base, with_meta<Policy> {
     const std::vector<std::size_t> & v) {
 
     std::size_t cs = run::context::instance().colors();
-    std::vector<std::size_t> restart(cs, 0);
+    serdez_vector<std::size_t> restart;
+    restart.resize(cs); 
     int cur = 0;
     std::size_t idx =
       m.get().local.ents + m.get().top_tree.ents + m.get().ghosts.ents;
@@ -531,8 +533,6 @@ struct ntree : ntree_base, with_meta<Policy> {
     cp_entities->issue_copy(e_i.fid);
   }
 
-  //---------------------------------------------------------------------------
-
   //------------------------------ reset tree ---------------------------------
 
   static void reset_task(typename Policy::template accessor<rw> t) {
@@ -582,10 +582,9 @@ private:
   const static size_t nchildren_ = 1 << dimension;
 };
 
-//---------------------------------------------------------------------------//
-// POLICY ACCESS //
-// --------------------------------------------------------------------------//
-
+/**
+ * Ntree access
+ */
 template<class Policy>
 template<std::size_t Priv>
 struct ntree<Policy>::access {
@@ -630,8 +629,8 @@ struct ntree<Policy>::access {
   }
 
   // Standard traversal function
-  template<typename FUNC, typename... ARGS>
-  void traversal(hcell_t * hcell, FUNC && func, ARGS &&... args) const {
+  template<typename FUNC>
+  void traversal(hcell_t * hcell, FUNC && func) const {
     auto hmap = map();
     std::queue<hcell_t *> tqueue;
     tqueue.push(hcell);
@@ -639,7 +638,7 @@ struct ntree<Policy>::access {
       hcell_t * cur = tqueue.front();
       tqueue.pop();
       // Intersection
-      if(func(cur, std::forward<ARGS>(args)...)) {
+      if(func(cur)) {
         if(cur->has_child()) {
           auto nkey = cur->key();
           for(std::size_t j = 0; j < nchildren_; ++j) {
