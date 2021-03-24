@@ -87,7 +87,7 @@ make_parameters(AA &&... aa) {
 }
 } // namespace detail
 
-template<auto & F, class Reduction, size_t Attributes, typename... Args>
+template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using namespace Legion;

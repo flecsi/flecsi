@@ -130,7 +130,7 @@ replace_argument(T && t) {
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.
-template<std::size_t A, class P, class... AA>
+template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
   return detail::launch_size<mask_to_processor_type(A) ==

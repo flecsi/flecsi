@@ -144,7 +144,7 @@ inline util::counter<task_id_t(LEGION_MAX_APPLICATION_TASK_ID)> task_counter(
   @ingroup legion-execution
  */
 
-template<typename RETURN, task<RETURN> * TASK, std::size_t A>
+template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
 template<class T>
@@ -173,11 +173,10 @@ tuple_get(const Legion::Task & t) {
   Arbitrary index for each task.
 
   @tparam F          Legion task function.
-  @tparam ATTRIBUTES A size_t holding the mask of the task attributes mask
-                     \ref task_attributes_mask_t.
+  @tparam A task attributes mask
  */
 
-template<auto & F, size_t A = loc | leaf>
+template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #90493
 extern const task_id_t
   task_id = (run::context::instance().register_init(detail::register_task<
@@ -186,7 +185,7 @@ extern const task_id_t
                A>),
     detail::task_counter());
 
-template<typename RETURN, task<RETURN> * TASK, std::size_t A>
+template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void
 detail::register_task() {
   constexpr auto processor_type = mask_to_processor_type(A);

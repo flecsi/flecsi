@@ -21,7 +21,7 @@ using namespace flecsi;
 
 log::devel_tag task_tag("task");
 
-template<std::size_t M,
+template<TaskAttributes M,
   exec::task_processor_type_t T,
   bool F(const exec::task_attributes_bitset_t &)>
 constexpr void

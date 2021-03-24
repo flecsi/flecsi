@@ -25,6 +25,8 @@
 
 namespace flecsi {
 
+using TaskAttributes = unsigned;
+
 /*!
   The task_attributes_mask_t type allows conversion from an eunumeration
   to a bit mask.
@@ -36,7 +38,7 @@ namespace flecsi {
         @endcode
  */
 
-enum task_attributes_mask_t : size_t {
+enum task_attributes_mask_t : TaskAttributes {
   leaf = 0x01,
   inner = 0x02,
   idempotent = 0x04,
@@ -77,23 +79,24 @@ constexpr size_t task_type_bits = 3;
 
 constexpr auto
 as_mask(task_type_t t) {
-  return static_cast<task_attributes_mask_t>(1 << static_cast<std::size_t>(t));
+  return static_cast<task_attributes_mask_t>(
+    1 << static_cast<TaskAttributes>(t));
 }
 constexpr auto
 as_mask(task_processor_type_t t) {
   return static_cast<task_attributes_mask_t>(
-    1 << task_type_bits + static_cast<std::size_t>(t));
+    1 << task_type_bits + static_cast<TaskAttributes>(t));
 }
 
 using task_attributes_bitset_t = std::bitset<task_attributes_bits>;
 
 inline task_type_t
-mask_to_task_type(size_t mask) {
+mask_to_task_type(TaskAttributes mask) {
   return static_cast<task_type_t>(util::bit_width(mask) - 1);
 } // mask_to_task_type
 
 constexpr task_processor_type_t
-mask_to_processor_type(size_t mask) {
+mask_to_processor_type(TaskAttributes mask) {
   return static_cast<task_processor_type_t>(
     util::bit_width(mask) - task_type_bits - 1);
 } // mask_to_processor_type

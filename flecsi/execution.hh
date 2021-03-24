@@ -353,7 +353,7 @@ colors() {
 // To avoid compile- and runtime recursion, only user tasks trigger logging.
 template<auto & Task,
   class Reduction,
-  size_t Attributes = flecsi::loc | flecsi::leaf,
+  TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
   typename... Args>
 auto
 reduce(Args &&... args) {
@@ -384,7 +384,7 @@ reduce(Args &&... args) {
   \see \c execute about parameter and argument types.
  */
 
-template<auto & TASK, size_t ATTRIBUTES, typename... ARGS>
+template<auto & TASK, TaskAttributes ATTRIBUTES, typename... ARGS>
 auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
@@ -409,7 +409,7 @@ execute(ARGS &&... args) {
  */
 
 template<auto & TASK,
-  size_t ATTRIBUTES = flecsi::loc | flecsi::leaf,
+  TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 int
 test(ARGS &&... args) {

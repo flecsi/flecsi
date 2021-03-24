@@ -44,7 +44,7 @@ namespace flecsi {
  */
 
 template<auto & TASK,
-  size_t ATTRIBUTES = flecsi::loc | flecsi::leaf,
+  TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 auto execute(ARGS &&...);
 } // namespace flecsi

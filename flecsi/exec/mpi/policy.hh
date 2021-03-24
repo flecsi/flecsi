@@ -58,7 +58,7 @@ replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
 
 } // namespace detail
 
-template<auto & F, class Reduction, size_t Attributes, typename... Args>
+template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using Traits = util::function_traits<decltype(F)>;
