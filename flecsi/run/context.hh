@@ -643,10 +643,9 @@ protected:
 
   /*
     This type allows storage of runtime field information per topology type.
-    The size_t key is the topology ID; the vector index is the index space.
    */
 
-  std::unordered_map<size_t, std::vector<field_info_store_t>>
+  std::unordered_map<TopologyType, std::vector<field_info_store_t>>
     topology_field_info_map_;
 
   /*

@@ -21,6 +21,7 @@
 
 #include <cstddef> // size_t
 
+#include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/util/constant.hh"
@@ -40,7 +41,7 @@ namespace detail {
 template<template<class> class>
 struct base;
 
-inline std::size_t next_id;
+inline TopologyType next_id;
 } // namespace detail
 
 // To obtain the base class without instantiating a core topology type:
@@ -126,7 +127,7 @@ struct specialization : specialization_base {
   using accessor = data::topology_accessor<D, privilege_pack<Priv...>>;
 
   // Use functions because these are needed during non-local initialization:
-  static std::size_t id() {
+  static TopologyType id() {
     static auto ret = detail::next_id++;
     return ret;
   }
