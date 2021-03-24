@@ -24,7 +24,8 @@ FleCSI has two mechanisms for expressing work:
   FleCSI is defined by three parallel operations: *forall*, *reduceall*,
   and *scan*. Each of these is a fine-grained, data-parallel operation.
   The use of the *kernel* nomenclature is derived from CUDA, and OpenCL,
-  and is conceptually consistent with those models.
+  and is conceptually consistent with those models. Please see example
+  of using *forall* kernels in *parallel* section of the tutorials. 
 
 ----
 
@@ -42,8 +43,5 @@ Launch Domains
 
 Example 3: MPI Tasks
 ++++++++++++++++++++
-
-Kernels
-*******
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

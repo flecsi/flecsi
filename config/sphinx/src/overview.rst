@@ -65,7 +65,7 @@ is also divided into *User Guide*, and *Developer Guide* sections.
   Where appropriate we will annotate the documentation to identify the
   intended user audience.
 
-All users should should read the *User Guide* documentation and work
+All users should read the *User Guide* documentation and work
 through the tutorials, as these describe the runtime, control,
 execution, and data models that define the FLeCSI programming model.
 Users who are interested in developing FleCSI specializations should

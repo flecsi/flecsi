@@ -30,7 +30,7 @@ void
 init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
   for(const auto c : t.entities<canon::cells>()) {
-    p[c] = double(off++) * 2.0;
+    p[c] = (off++) * 2.0;
   } // for
 } // init
 

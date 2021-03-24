@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef CONTROL_HH
+#define CONTROL_HH
 
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
@@ -23,7 +24,7 @@ inline const char * operator*(cp control_point) {
     case cp::advance:
       return "advance";
   }
-  flog_fatal("invalied control point");
+  flog_fatal("invalid control point");
 }
 
 struct control_policy {
@@ -40,3 +41,4 @@ struct control_policy {
 };
 
 using control = flecsi::run::control<control_policy>;
+#endif
