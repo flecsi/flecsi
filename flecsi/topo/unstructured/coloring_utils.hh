@@ -46,7 +46,7 @@ namespace unstructured_impl {
 template<typename Definition>
 inline auto
 make_dcrs(Definition const & md,
-  std::size_t through_dimension,
+  Dimension through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 

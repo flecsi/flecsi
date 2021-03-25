@@ -38,7 +38,7 @@ namespace narray_impl {
 
 enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
-enum axes : std::size_t { x_axis, y_axis, z_axis };
+enum axes : Dimension { x_axis, y_axis, z_axis };
 
 using coord = std::vector<std::size_t>;
 using hypercube = std::array<coord, 2>;

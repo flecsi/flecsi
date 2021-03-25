@@ -17,13 +17,14 @@
 #include "flecsi/util/geometry/point.hh"
 
 namespace tree_colorer {
+using flecsi::Dimension;
 
-template<typename T, typename KEY, int D>
+template<typename T, typename KEY, Dimension D>
 class colorer
 {
   using key_t = KEY;
   using type_t = T;
-  static constexpr int dimension = D;
+  static constexpr Dimension dimension = D;
   using point_t = flecsi::util::point<double, dimension>;
   using range_t = std::array<point_t, 2>;
 
@@ -138,7 +139,7 @@ public:
       trange[0] = ents.back().coordinates();
 
       for(size_t i = 0; i < ents.size(); ++i) {
-        for(size_t d = 0; d < dimension; ++d) {
+        for(Dimension d = 0; d < dimension; ++d) {
 
           if(ents[i].coordinates()[d] + ents[i].radius() > trange[1][d])
             trange[1][d] = ents[i].coordinates()[d] + ents[i].radius();
@@ -147,7 +148,7 @@ public:
             trange[0][d] = ents[i].coordinates()[d] - ents[i].radius();
         }
       }
-      for(size_t d = 0; d < dimension; ++d) {
+      for(Dimension d = 0; d < dimension; ++d) {
         lrange[1][d] = std::max(lrange[1][d], trange[1][d]);
         lrange[0][d] = std::min(lrange[0][d], trange[0][d]);
       }
@@ -155,7 +156,7 @@ public:
 
     double max[dimension];
     double min[dimension];
-    for(size_t i = 0; i < dimension; ++i) {
+    for(Dimension i = 0; i < dimension; ++i) {
       max[i] = lrange[1][i];
       min[i] = lrange[0][i];
     }
@@ -166,7 +167,7 @@ public:
     MPI_Allreduce(
       MPI_IN_PLACE, min, dimension, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
-    for(size_t d = 0; d < dimension; ++d) {
+    for(Dimension d = 0; d < dimension; ++d) {
       range[0][d] = min[d];
       range[1][d] = max[d];
     }

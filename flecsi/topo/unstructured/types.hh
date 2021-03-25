@@ -104,21 +104,20 @@ struct crs {
  */
 
 template<size_t IndexSpace,
-  size_t Dimension,
-  size_t ThroughDimension,
+  Dimension D,
+  Dimension ThroughDimension,
   size_t Depth = 1>
 struct primary_independent {
   static constexpr size_t index_space = IndexSpace;
-  static constexpr size_t dimension = Dimension;
-  static constexpr size_t thru_dimension = ThroughDimension;
+  static constexpr Dimension dimension = D, thru_dimension = ThroughDimension;
   static constexpr size_t depth = Depth;
 }; // struct primary_independent
 
-template<size_t IndexSpace, size_t Dimension, size_t PrimaryDimension>
+template<std::size_t IndexSpace, Dimension D, Dimension PrimaryDimension>
 struct auxiliary_independent {
   static constexpr size_t index_space = IndexSpace;
-  static constexpr size_t dimension = Dimension;
-  static constexpr size_t primary_dimension = PrimaryDimension;
+  static constexpr Dimension dimension = D,
+                             primary_dimension = PrimaryDimension;
 }; // struct auxiliary_independent
 
 inline void

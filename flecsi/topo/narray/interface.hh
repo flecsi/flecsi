@@ -51,7 +51,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
-  static constexpr std::size_t dimension = Policy::dimension;
+  static constexpr Dimension dimension = Policy::dimension;
 
   template<Privileges>
   struct access;

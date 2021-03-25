@@ -26,7 +26,7 @@ namespace unstructured_impl {
 
 struct test_definition {
   using point = std::array<double, 3>;
-  static constexpr std::size_t dimension() {
+  static constexpr Dimension dimension() {
     return 2;
   }
 
@@ -47,7 +47,7 @@ struct test_definition {
   /// Destructor
   ~test_definition() {}
 
-  size_t num_entities(size_t topological_dimension) const {
+  std::size_t num_entities(Dimension topological_dimension) const {
     switch(topological_dimension) {
       case 2:
         return 16;
@@ -58,8 +58,9 @@ struct test_definition {
     } // switch
   } // num_entities
 
-  std::vector<size_t>
-  entities(size_t from_dimension, size_t to_dimension, size_t entity_id) const {
+  std::vector<std::size_t> entities(Dimension from_dimension,
+    Dimension to_dimension,
+    std::size_t entity_id) const {
     assert(from_dimension == 2);
     assert(to_dimension == 0);
     std::vector<size_t> ids(4);
@@ -71,8 +72,8 @@ struct test_definition {
     return ids;
   } // vertices
 
-  const std::vector<std::vector<size_t>> & entities(size_t from_dim,
-    size_t to_dim) const {
+  const std::vector<std::vector<std::size_t>> & entities(Dimension from_dim,
+    Dimension to_dim) const {
     assert(from_dim == 2);
     assert(to_dim == 0);
 
@@ -83,8 +84,9 @@ struct test_definition {
     return vertices_[id];
   } // vertex
 
-  std::set<size_t>
-  entities_set(size_t from_dimension, size_t to_dimension, size_t id) const {
+  std::set<std::size_t> entities_set(Dimension from_dimension,
+    Dimension to_dimension,
+    std::size_t id) const {
     auto vvec = entities(from_dimension, to_dimension, id);
     return std::set<size_t>(vvec.begin(), vvec.end());
   } // entities_set

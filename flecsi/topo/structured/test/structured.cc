@@ -17,12 +17,12 @@ using namespace flecsi::topo::structured_impl;
 
 /* 1D Mesh  */
 struct test_mesh_1d : specialization<structured, test_mesh_1d> {
-  static constexpr std::size_t num_dimensions = 1;
+  static constexpr Dimension num_dimensions = 1;
 
   static coloring color(std::size_t grid_size[num_dimensions],
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
-    std::size_t thru_dim,
+    Dimension thru_dim,
     const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
@@ -45,7 +45,7 @@ topo_driver_1d() {
     std::size_t grid_size[1] = {6};
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
-    std::size_t thru_dim = 0;
+    const Dimension thru_dim = 0;
     const Color ncolors[] = {2};
 
     coloring_1d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);
@@ -84,12 +84,12 @@ topo_driver_1d() {
 
 /* 2D Mesh  */
 struct test_mesh_2d : specialization<structured, test_mesh_2d> {
-  static constexpr std::size_t num_dimensions = 2;
+  static constexpr Dimension num_dimensions = 2;
 
   static coloring color(std::size_t grid_size[num_dimensions],
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
-    std::size_t thru_dim,
+    Dimension thru_dim,
     const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
@@ -111,7 +111,7 @@ topo_driver_2d() {
     std::size_t grid_size[2] = {6, 6};
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
-    std::size_t thru_dim = 0;
+    const Dimension thru_dim = 0;
     const Color ncolors[] = {2, 1};
 
     coloring_2d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);
@@ -151,12 +151,12 @@ topo_driver_2d() {
 
 /* 3D Mesh  */
 struct test_mesh_3d : specialization<structured, test_mesh_3d> {
-  static constexpr std::size_t num_dimensions = 3;
+  static constexpr Dimension num_dimensions = 3;
 
   static coloring color(std::size_t grid_size[num_dimensions],
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
-    std::size_t thru_dim,
+    Dimension thru_dim,
     const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
@@ -178,7 +178,7 @@ topo_driver_3d() {
     std::size_t grid_size[3] = {6, 6, 6};
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
-    std::size_t thru_dim = 0;
+    const Dimension thru_dim = 0;
     const Color ncolors[] = {2, 1, 1};
 
     coloring_3d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);

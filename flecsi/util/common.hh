@@ -24,6 +24,8 @@
 #include <vector>
 
 namespace flecsi {
+using Dimension = unsigned short;
+
 namespace util {
 
 //----------------------------------------------------------------------------//

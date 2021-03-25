@@ -37,8 +37,8 @@ closure(typename Policy::definition const & md,
   unstructured_base::coloring coloring;
 
   constexpr size_t depth = Policy::primary::depth;
-  constexpr size_t dimension = Policy::primary::dimension;
-  constexpr size_t thru_dimension = Policy::primary::thru_dimension;
+  constexpr Dimension dimension = Policy::primary::dimension,
+                      thru_dimension = Policy::primary::thru_dimension;
 
   auto communicator = typename Policy::communicator(comm);
 
@@ -185,8 +185,8 @@ closure(typename Policy::definition const & md,
   auto color_entity = [&](size_t idx, auto tuple_element) {
     using auxiliary_type = decltype(tuple_element);
 
-    constexpr size_t dimension = auxiliary_type::dimension;
-    constexpr size_t primary_dimension = auxiliary_type::primary_dimension;
+    constexpr Dimension dimension = auxiliary_type::dimension,
+                        primary_dimension = auxiliary_type::primary_dimension;
 
     auto & aux_coloring = coloring.idx_colorings[idx + 1];
     auto & aux_coloring_info = coloring.distribution[rank][idx + 1];

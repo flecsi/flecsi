@@ -42,7 +42,10 @@ namespace unstructured_impl {
             are to be found.
  */
 
-template<typename Definition, size_t from_dim, size_t to_dim, size_t thru_dim>
+template<typename Definition,
+  Dimension from_dim,
+  Dimension to_dim,
+  Dimension thru_dim>
 std::set<size_t>
 entity_neighbors(const Definition & md, size_t entity_id) {
   // Get the vertices of the requested id
@@ -92,9 +95,9 @@ entity_neighbors(const Definition & md, size_t entity_id) {
  */
 
 template<typename Definition,
-  size_t from_dim,
-  size_t to_dim,
-  size_t thru_dim,
+  Dimension from_dim,
+  Dimension to_dim,
+  Dimension thru_dim,
   typename U,
   typename = std::enable_if_t<util::is_iterative_container_v<U>>>
 std::set<size_t>
@@ -160,7 +163,7 @@ entity_neighbors(const Definition & md, U && indices) {
   @param id The id of the vertex.
  */
 
-template<typename Definition, size_t from_dim, size_t to_dim>
+template<typename Definition, Dimension from_dim, Dimension to_dim>
 std::set<size_t>
 entity_referencers(const Definition & md, size_t id) {
   std::set<size_t> referencers;
@@ -193,7 +196,7 @@ entity_referencers(const Definition & md, size_t id) {
   @param indices The entity indeces.
  */
 
-template<typename Definition, size_t from_dim, size_t to_dim, typename U>
+template<typename Definition, Dimension from_dim, Dimension to_dim, typename U>
 std::set<size_t>
 entity_closure(const Definition & md, U && indices) {
   std::set<size_t> closure;
