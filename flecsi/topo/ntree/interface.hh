@@ -96,9 +96,6 @@ struct ntree : ntree_base, with_meta<Policy> {
   using interaction_entities = typename Policy::interaction_entities;
   using interaction_nodes = typename Policy::interaction_nodes;
 
-  template<auto>
-  static constexpr std::size_t privilege_count = 2;
-
   struct ntree_data {
     key_t hibound, lobound;
   };
