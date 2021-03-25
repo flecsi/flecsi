@@ -82,7 +82,7 @@ struct ntree_base {
     assert(a.span().size() == 1);
     a[0] = data::intervals::make({1, 3});
   }
-  static void set_ptrs(field<data::points::Value>::accessor<wo,na> a) {
+  static void set_ptrs(field<data::points::Value>::accessor<wo, na> a) {
     const auto & c = run::context::instance();
     const auto i = c.color(), n = c.colors();
     assert(a.span().size() == 3);

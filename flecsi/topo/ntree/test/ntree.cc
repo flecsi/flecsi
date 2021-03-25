@@ -70,8 +70,8 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  static void init_fields(sph_ntree_t::accessor<rw,na> t,
-    field<interaction_entities>::accessor<rw,na> e_i,
+  static void init_fields(sph_ntree_t::accessor<rw, na> t,
+    field<interaction_entities>::accessor<rw, na> e_i,
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
     for(std::size_t i = 0; i < ents.size(); ++i) {
@@ -93,14 +93,11 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
     ts->make_tree(ts);
 
-    flecsi::execute<compute_centroid<true>>(
-      ts, core::n_i(ts), core::e_i(ts));
-    flecsi::execute<compute_centroid>(
-      ts, core::n_i(ts), core::e_i(ts));
+    flecsi::execute<compute_centroid<true>>(ts, core::n_i(ts), core::e_i(ts));
+    flecsi::execute<compute_centroid>(ts, core::n_i(ts), core::e_i(ts));
 
     ts->share_ghosts(ts);
   }
-
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
@@ -152,7 +149,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   template<bool local = false>
-  static void compute_centroid(sph_ntree_t::accessor<rw,na> t,
+  static void compute_centroid(sph_ntree_t::accessor<rw, na> t,
     field<interaction_nodes>::accessor<rw, ro> n_i,
     field<interaction_entities>::accessor<rw, ro> e_i) {
 
