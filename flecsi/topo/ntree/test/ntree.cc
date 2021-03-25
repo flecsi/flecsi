@@ -149,7 +149,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   template<bool local = false>
-  static void compute_centroid(sph_ntree_t::accessor<rw, na> t,
+  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t,
     field<interaction_nodes>::accessor<rw, ro> n_i,
     field<interaction_entities>::accessor<rw, ro> e_i) {
 

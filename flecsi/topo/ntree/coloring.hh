@@ -37,6 +37,30 @@ struct ntree_base {
   // traversal types for DFS
   enum ttype_t { preorder, postorder, reverse_preorder, reverse_postorder };
 
+  using ent_id = topo::id<entities>;
+  using node_id = topo::id<nodes>;
+
+  struct ent_node {
+    std::size_t ents;
+    std::size_t nodes;
+  };
+
+  struct meta_type {
+    std::size_t max_depth;
+    ent_node local, ghosts, top_tree;
+    std::size_t nents_recv;
+  };
+
+  struct en_size {
+    std::vector<std::size_t> ent, node;
+  };
+
+  struct color_id {
+    std::size_t color;
+    ent_id id;
+    std::size_t from_color;
+  };
+
   struct coloring {
 
     coloring(std::size_t nparts)

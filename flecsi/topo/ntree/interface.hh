@@ -90,44 +90,17 @@ struct ntree : ntree_base, with_meta<Policy> {
   using ent_t = typename Policy::ent_t;
   using hash_f = typename Policy::hash_f;
 
-  using index_space = typename Policy::index_space;
-  using index_spaces = typename Policy::index_spaces;
-
   using type_t = double;
   using hcell_t = hcell_base_t<dimension, type_t, key_t>;
 
   using interaction_entities = typename Policy::interaction_entities;
   using interaction_nodes = typename Policy::interaction_nodes;
 
-  using ent_id = topo::id<entities>;
-  using node_id = topo::id<nodes>;
-
   template<auto>
   static constexpr std::size_t privilege_count = 2;
 
-  struct ent_node {
-    std::size_t ents;
-    std::size_t nodes;
-  };
-
   struct ntree_data {
     key_t hibound, lobound;
-  };
-
-  struct meta_type {
-    std::size_t max_depth;
-    ent_node local, ghosts, top_tree;
-    std::size_t nents_recv;
-  };
-
-  struct {
-    std::vector<std::size_t> ent, node;
-  } sz, rz;
-
-  struct color_id {
-    std::size_t color;
-    ent_id id;
-    std::size_t from_color;
   };
 
   template<std::size_t>
@@ -206,6 +179,8 @@ struct ntree : ntree_base, with_meta<Policy> {
   data::buffers::core buf;
   static const std::size_t buffer_size =
     (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2;
+
+  ntree_base::en_size rz, sz;
 
   // ----------------------- Top Tree Construction Tasks -----------------------
   // This is decomposed in two steps since
