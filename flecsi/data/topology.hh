@@ -44,7 +44,7 @@ struct partition {
 
   Color colors() const;
   template<topo::single_space> // for convenience for simple topologies
-  const partition & get_partition(field_id_t) const {
+  partition & get_partition(field_id_t) {
     return *this;
   }
 };

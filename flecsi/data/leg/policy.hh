@@ -224,7 +224,7 @@ struct partition : leg::partition_base { // instead of "using partition ="
   using leg::partition_base::partition_base;
 
   template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
+  partition & get_partition(field_id_t) {
     return *this;
   }
 };
