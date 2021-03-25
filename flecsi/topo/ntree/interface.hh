@@ -101,6 +101,9 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   using ent_id = topo::id<entities>;
   using node_id = topo::id<nodes>;
+  
+  template<auto>  
+  static constexpr std::size_t privilege_count = 2;
 
   struct ent_node {
     std::size_t ents;
@@ -158,7 +161,7 @@ struct ntree : ntree_base, with_meta<Policy> {
         }
         return ret;
       }()) {
-    execute<set_meta, mpi>(meta_field(this->meta));
+    execute<set_meta>(meta_field(this->meta));
   }
 
   // Ntree mandatory fields ---------------------------------------------------
@@ -204,24 +207,19 @@ struct ntree : ntree_base, with_meta<Policy> {
   static const std::size_t buffer_size =
     (data::buffers::Buffer::size / sizeof(interaction_entities)) * 2;
 
-  static void set_meta(
-    typename field<meta_type, data::single>::template accessor<wo> m) {
-
-    m.get() = {};
-  } // set_meta
 
   // ----------------------- Top Tree Construction Tasks -----------------------
   // This is decomposed in two steps since
   // we need to share information using a
   // future_map to continue the construction
   static serdez_vector<hcell_t> make_tree_local_task(
-    typename Policy::template accessor<rw> t) {
+    typename Policy::template accessor<rw,na> t) {
     t.make_tree();
     return t.top_tree_boundaries();
   } // make_tree
 
   static auto make_tree_distributed_task(
-    typename Policy::template accessor<rw> t,
+    typename Policy::template accessor<rw,na> t,
     typename field<meta_type, data::single>::template accessor<ro> m,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
@@ -242,7 +240,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   template<index_space IS = entities>
-  static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo> a,
+  static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo,na> a,
     const std::vector<std::size_t> & base,
     const std::vector<hcell_t> & hcells) {
     auto i = process();
@@ -254,7 +252,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     }
   }
 
-  static void set_entities_ptrs(field<data::points::Value>::accessor<wo> a,
+  static void set_entities_ptrs(field<data::points::Value>::accessor<wo,na> a,
     const std::vector<std::size_t> & nents_base,
     const std::vector<std::pair<hcell_t, std::size_t>> & ids) {
     auto i = process();
@@ -270,8 +268,10 @@ struct ntree : ntree_base, with_meta<Policy> {
   /**
    * @brief  Build the local tree and share the top part of the tree
    */
-  void make_tree(typename Policy::slot & ts) {
-    cp_data_tree.issue_copy(data_field.fid);
+  static void make_tree(typename Policy::slot & ts) {
+
+    auto cs = ts->colors(); 
+    ts->cp_data_tree.issue_copy(data_field.fid);
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
@@ -279,16 +279,16 @@ struct ntree : ntree_base, with_meta<Policy> {
 
     // Merge all the hcells informations for the top tree
     std::vector<hcell_t> top_tree;
-    std::vector<std::size_t> top_tree_nnodes(colors(), 0);
-    std::vector<std::size_t> top_tree_nents(colors(), 0);
+    std::vector<std::size_t> top_tree_nnodes(cs, 0);
+    std::vector<std::size_t> top_tree_nents(cs, 0);
     fm_top_tree.wait();
 
-    for(std::size_t i = 0; i < colors(); ++i) {
+    for(std::size_t i = 0; i < cs; ++i) {
       auto f = fm_top_tree.get(i);
       top_tree.insert(top_tree.end(), f.begin(), f.end());
     }
 
-    for(std::size_t c = 0; c < colors(); ++c) {
+    for(std::size_t c = 0; c < cs; ++c) {
       for(std::size_t j = 0; j < top_tree.size(); ++j) {
         if(top_tree[j].color() != c) {
           if(top_tree[j].is_ent())
@@ -299,53 +299,55 @@ struct ntree : ntree_base, with_meta<Policy> {
       }
     }
 
+
     // Add the new hcells to the local tree + return new sizes for allocation
     auto fm_sizes = flecsi::execute<make_tree_distributed_task>(
-      ts, meta_field(this->meta), top_tree);
+      ts, meta_field(ts->meta), top_tree);
 
-    sz.ent.resize(colors());
-    sz.node.resize(colors());
-    rz.node.resize(colors());
-    rz.ent.resize(colors());
+    ts->sz.ent.resize(cs);
+    ts->sz.node.resize(cs);
+    ts->rz.node.resize(cs);
+    ts->rz.ent.resize(cs);
 
     for(std::size_t i = 0; i < fm_sizes.size(); ++i) {
       auto f = fm_sizes.get(i);
-      sz.ent[i] = f[0].ents;
-      sz.node[i] = f[0].nodes;
+      ts->sz.ent[i] = f[0].ents;
+      ts->sz.node[i] = f[0].nodes;
     }
 
-    for(std::size_t i = 0; i < colors(); ++i) {
-      rz.ent[i] = sz.ent[i] + top_tree_nents[i];
-      rz.node[i] = sz.node[i] + top_tree_nnodes[i];
+    for(std::size_t i = 0; i < cs; ++i) {
+      ts->rz.ent[i] = ts->sz.ent[i] + top_tree_nents[i];
+      ts->rz.node[i] = ts->sz.node[i] + top_tree_nnodes[i];
     }
 
     // Properly resize the partitions for the new number of ents + ghosts
-    part.template get<entities>().resize(make_partial<allocate>(rz.ent));
-    part.template get<nodes>().resize(make_partial<allocate>(rz.node));
+    ts->part.template get<entities>().resize(make_partial<allocate>(ts->rz.ent));
+    ts->part.template get<nodes>().resize(make_partial<allocate>(ts->rz.node));
 
-    cp_top_tree_entities.emplace(
-      *this,
+    ts->cp_top_tree_entities.emplace(
+      ts.get(),
       data::copy_plan::Sizes(processes(), 1),
-      [&](auto f) { execute<set_destination>(f, sz.ent, top_tree_nents); },
+      [&](auto f) { execute<set_destination>(f, ts->sz.ent, top_tree_nents); },
       [&](
-        auto f) { execute<set_top_tree_ptrs<entities>>(f, sz.ent, top_tree); },
+        auto f) { execute<set_top_tree_ptrs<entities>>(f, ts->sz.ent, top_tree); },
       util::constant<entities>());
 
-    cp_top_tree_nodes.emplace(
-      *this,
+    ts->cp_top_tree_nodes.emplace(
+      ts.get(),
       data::copy_plan::Sizes(processes(), 1),
-      [&](auto f) { execute<set_destination>(f, sz.node, top_tree_nnodes); },
-      [&](auto f) { execute<set_top_tree_ptrs<nodes>>(f, sz.node, top_tree); },
+      [&](auto f) { execute<set_destination>(f, ts->sz.node, top_tree_nnodes); },
+      [&](auto f) { execute<set_top_tree_ptrs<nodes>>(f, ts->sz.node, top_tree); },
       util::constant<nodes>());
 
-    cp_top_tree_entities->issue_copy(e_keys.fid);
-    cp_top_tree_nodes->issue_copy(n_keys.fid);
+    ts->cp_top_tree_entities->issue_copy(e_keys.fid);
+    ts->cp_top_tree_nodes->issue_copy(n_keys.fid);
+
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
 
   static auto xfer_entities_req_start(
-    typename field<interaction_entities>::template accessor<rw> a,
+    typename field<interaction_entities>::template accessor<rw,na> a,
     data::buffers::Start mv,
     const std::vector<color_id> & f) {
     std::size_t cur = 0;
@@ -372,7 +374,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   } // xfer_nodes_req_start
 
   static auto xfer_entities_req(
-    typename field<interaction_entities>::template accessor<rw> a,
+    typename field<interaction_entities>::template accessor<rw,na> a,
     typename field<meta_type, data::single>::template accessor<rw> m,
     data::buffers::Transfer mv,
     const std::vector<color_id> & f,
@@ -419,16 +421,16 @@ struct ntree : ntree_base, with_meta<Policy> {
   } // xfer_entities_req
 
   static serdez_vector<color_id> find_task(
-    typename Policy::template accessor<rw> t) {
+    typename Policy::template accessor<rw,na> t) {
     return t.find_send_entities();
   }
 
   static serdez_vector<std::pair<hcell_t, std::size_t>> find_distant_task(
-    typename Policy::template accessor<rw> t) {
+    typename Policy::template accessor<rw,na> t) {
     return t.find_intersect_entities();
   }
 
-  static void load_entities_task(typename Policy::template accessor<rw> t,
+  static void load_entities_task(typename Policy::template accessor<rw,na> t,
     const std::vector<std::pair<hcell_t, std::size_t>> & recv) {
     auto hmap = t.map();
     for(std::size_t i = 0; i < recv.size(); ++i) {
@@ -439,40 +441,40 @@ struct ntree : ntree_base, with_meta<Policy> {
   // ----------------------------------- Share ghosts -------------------------
 
   // Search neighbors and complete the hmap, create copy plans (or buffer)
-  void share_ghosts(typename Policy::slot & ts) {
+  static void share_ghosts(typename Policy::slot & ts) {
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts);
     // Get current sizes
-    auto fm_sizes = flecsi::execute<sizes_task>(meta_field(this->meta));
+    auto fm_sizes = flecsi::execute<sizes_task>(meta_field(ts->meta));
 
-    std::vector<std::size_t> ents_sizes_rz(colors());
+    std::vector<std::size_t> ents_sizes_rz(ts->colors());
     // Resize, add by the max size capability of the buffer
-    for(std::size_t c = 0; c < colors(); ++c) {
+    for(std::size_t c = 0; c < ts->colors(); ++c) {
       auto f = fm_sizes.get(c);
       ents_sizes_rz[c] = f[0].ents + f[1].ents + f[2].ents + buffer_size;
     }
 
-    part.template get<entities>().resize(make_partial<allocate>(ents_sizes_rz));
+    ts->part.template get<entities>().resize(make_partial<allocate>(ents_sizes_rz));
 
     // Perform buffered copy
     auto full = 0;
     auto vi = execute<xfer_entities_req_start>(
-      e_i(*this), *buf, to_send.get(process()));
-    while((vi = execute<xfer_entities_req>(e_i(*this),
-             meta_field(this->meta),
-             *buf,
+      e_i(ts.get()), *(ts->buf), to_send.get(process()));
+    while((vi = execute<xfer_entities_req>(e_i(ts.get()),
+             meta_field(ts->meta),
+             *(ts->buf),
              to_send.get(process()),
              vi.get(process())))
-            .get(process())[colors() - 1] != 0) {
+            .get(process())[ts->colors() - 1] != 0) {
 
       // Size of IS is twice buffer size
       if(!(full % 2)) {
         // Resize the partition if the maximum size is reached
-        for(std::size_t c = 0; c < colors(); ++c) {
+        for(std::size_t c = 0; c < ts->colors(); ++c) {
           ents_sizes_rz[c] += buffer_size;
         }
 
-        part.template get<entities>().resize(
+        ts->part.template get<entities>().resize(
           make_partial<allocate>(ents_sizes_rz));
       } // if
     } // while
@@ -485,7 +487,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     // not an all to all operation recv contains the hcell but also from which
     // color it is received from
     std::vector<std::pair<hcell_t, std::size_t>> recv;
-    for(std::size_t c = 0; c < colors(); ++c) {
+    for(std::size_t c = 0; c < ts->colors(); ++c) {
       auto tr = to_reply.get(c);
       for(auto t : tr) {
         if(t.second == process()) {
@@ -503,7 +505,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     std::vector<std::size_t> nents_rz(processes());
     std::vector<hcell_t> hcells;
 
-    for(std::size_t c = 0; c < colors(); ++c) {
+    for(std::size_t c = 0; c < ts->colors(); ++c) {
       auto f = fm_sizes.get(c);
       nents_base[c] = f[0].ents + f[1].ents + f[2].ents;
       if(c == process()) {
@@ -513,7 +515,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     }
 
     // Resize partitions
-    part.template get<entities>().resize(make_partial<allocate>(nents_rz));
+    ts->part.template get<entities>().resize(make_partial<allocate>(nents_rz));
 
     // create copy plan for ghosts entities
     auto entities_dests_task = [&nents_base, &nents_tt](auto f) {
@@ -523,14 +525,14 @@ struct ntree : ntree_base, with_meta<Policy> {
       execute<set_entities_ptrs>(f, nents_base, recv);
     };
 
-    cp_entities.emplace(data::copy_plan(*this,
+    ts->cp_entities.emplace(data::copy_plan(ts.get(),
       data::copy_plan::Sizes(processes(), 1),
       entities_dests_task,
       entities_ptrs_task,
       util::constant<entities>()));
 
-    cp_entities->issue_copy(e_keys.fid);
-    cp_entities->issue_copy(e_i.fid);
+    ts->cp_entities->issue_copy(e_keys.fid);
+    ts->cp_entities->issue_copy(e_i.fid);
   }
 
   //------------------------------ reset tree ---------------------------------
@@ -539,11 +541,11 @@ struct ntree : ntree_base, with_meta<Policy> {
     t.reset();
   }
 
-  void reset(typename Policy::slot & ts) {
+  static void reset(typename Policy::slot & ts) {
     flecsi::execute<reset_task>(ts);
-    cp_top_tree_entities.reset();
-    cp_top_tree_nodes.reset();
-    cp_entities.reset();
+    ts->cp_top_tree_entities.reset(); 
+    ts->cp_top_tree_nodes.reset(); 
+    ts->cp_entities.reset(); 
   }
 
   //---------------------------------------------------------------------------
@@ -579,6 +581,12 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
 private:
+
+  static void set_meta(
+    typename field<meta_type, data::single>::template accessor<wo> m) {
+    m.get() = {};
+  } // set_meta
+
   const static size_t nchildren_ = 1 << dimension;
 };
 

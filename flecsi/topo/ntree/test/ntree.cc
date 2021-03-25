@@ -43,6 +43,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     }
   };
 
+  template<auto>
+  static constexpr std::size_t privilege_count = 2;
+
   using hash_f = key_t_hasher;
 
   using ent_t = flecsi::topo::sort_entity<dimension, double, key_t>;
@@ -67,8 +70,8 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  static void init_fields(sph_ntree_t::accessor<wo> t,
-    field<interaction_entities>::accessor<wo> e_i,
+  static void init_fields(sph_ntree_t::accessor<rw,na> t,
+    field<interaction_entities>::accessor<rw,na> e_i,
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
     for(std::size_t i = 0; i < ents.size(); ++i) {
@@ -91,12 +94,13 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     ts->make_tree(ts);
 
     flecsi::execute<compute_centroid<true>>(
-      ts, core::n_keys(ts), core::n_i(ts), core::e_keys(ts), core::e_i(ts));
+      ts, core::n_i(ts), core::e_i(ts));
     flecsi::execute<compute_centroid>(
-      ts, core::n_keys(ts), core::n_i(ts), core::e_keys(ts), core::e_i(ts));
+      ts, core::n_i(ts), core::e_i(ts));
 
     ts->share_ghosts(ts);
   }
+
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
@@ -148,11 +152,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   template<bool local = false>
-  static void compute_centroid(sph_ntree_t::accessor<rw, na> t,
-    field<key_t>::accessor<rw, na>,
-    field<interaction_nodes>::accessor<rw, na> n_i,
-    field<key_t>::accessor<rw, na>,
-    field<interaction_entities>::accessor<rw, na> e_i) {
+  static void compute_centroid(sph_ntree_t::accessor<rw,na> t,
+    field<interaction_nodes>::accessor<rw, ro> n_i,
+    field<interaction_entities>::accessor<rw, ro> e_i) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
@@ -225,7 +227,7 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   pressure;
 
 void
-check_neighbors(sph_ntree_t::accessor<rw> t,
+check_neighbors(sph_ntree_t::accessor<rw, ro> t,
   field<sph_ntree_t::interaction_entities>::accessor<ro, ro> e_i) {
   std::vector<std::pair<int, int>> stencil = {{2, 0},
     {1, 0},
@@ -260,7 +262,6 @@ check_neighbors(sph_ntree_t::accessor<rw> t,
       assert(f != s_id.end());
       f->second = true;
     }
-    // Check that all are found
 #if DEBUG
     for(auto a : s_id)
       assert(a.second == true);
@@ -269,7 +270,7 @@ check_neighbors(sph_ntree_t::accessor<rw> t,
 }
 
 void
-init_density(sph_ntree_t::accessor<ro> t,
+init_density(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<wo, na> p,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
   for(auto a : t.entities()) {
@@ -278,7 +279,7 @@ init_density(sph_ntree_t::accessor<ro> t,
 }
 
 void
-print_density(sph_ntree_t::accessor<ro> t,
+print_density(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<ro, ro>,
   field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
   std::cout << color() << " Print id exclusive: ";
@@ -299,7 +300,7 @@ print_density(sph_ntree_t::accessor<ro> t,
 }
 
 void
-move_entities(sph_ntree_t::accessor<ro> t,
+move_entities(sph_ntree_t::accessor<ro, na> t,
   field<sph_ntree_t::interaction_entities>::accessor<rw, ro> e_i) {
   for(auto a : t.entities()) {
     // Add 1 on z coordinate
@@ -322,7 +323,6 @@ ntree_driver() {
   flecsi::execute<check_neighbors>(sph_ntree, e_i);
 
   flecsi::execute<move_entities>(sph_ntree, e_i);
-
   // sph_ntree_t::update(sph_ntree);
 
   return 0;
