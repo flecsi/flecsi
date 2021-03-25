@@ -94,7 +94,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     ts->make_tree(ts);
 
     flecsi::execute<compute_centroid<true>>(ts, core::n_i(ts), core::e_i(ts));
-    flecsi::execute<compute_centroid>(ts, core::n_i(ts), core::e_i(ts));
+    flecsi::execute<compute_centroid<false>>(ts, core::n_i(ts), core::e_i(ts));
 
     ts->share_ghosts(ts);
   }

@@ -1159,7 +1159,6 @@ struct ntree<Policy>::access {
             if(cur->has_child(j)) {
               key_t ckey = nkey;
               ckey.push(j);
-              auto it = hmap.find(ckey);
               nqueue.push_back(&hmap.at(ckey));
             } // if
           } // for
