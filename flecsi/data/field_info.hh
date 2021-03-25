@@ -31,6 +31,7 @@
 namespace flecsi {
 
 using field_id_t = Legion::FieldID;
+using Legion::Color;
 
 } // namespace flecsi
 
@@ -39,6 +40,7 @@ using field_id_t = Legion::FieldID;
 namespace flecsi {
 
 using field_id_t = size_t;
+using Color = unsigned; // MPI uses just int
 
 } // namespace flecsi
 #endif

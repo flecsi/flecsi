@@ -102,20 +102,19 @@ struct lists : lists_t<typename array<P>::core, P> {
   using Base = typename lists::key_tuple;
 
   // Initializes each subtopology to zero size on every color.
-  explicit lists(std::size_t nc)
-    : Base(make_base(nc, typename P::entity_lists())) {}
+  explicit lists(Color nc) : Base(make_base(nc, typename P::entity_lists())) {}
 
   // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
   // coloring-based allocation?
 
 private:
   template<class... VT>
-  Base make_base(std::size_t nc, util::types<VT...> /* to decue a pack */) {
+  Base make_base(Color nc, util::types<VT...> /* to decue a pack */) {
     return {make_base1(nc, typename VT::type())...};
   }
   template<auto... VV>
   util::key_array<typename array<P>::core, util::constants<VV...>>
-  make_base1(std::size_t nc, util::constants<VV...> /* to deduce a pack */) {
+  make_base1(Color nc, util::constants<VV...> /* to deduce a pack */) {
     return {{(
       (void)VV, typename array<P>::core(typename array<P>::coloring(nc)))...}};
   }

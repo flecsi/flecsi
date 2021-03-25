@@ -90,7 +90,7 @@ struct unstructured : unstructured_base,
   util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 
@@ -138,8 +138,7 @@ private:
 
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
-    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
-      points;
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> points;
 
     auto const & fmd = forward_map_.template get<S>();
     execute<idx_itvls<NP>, mpi>(

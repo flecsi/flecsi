@@ -109,7 +109,7 @@ private:
 };
 
 struct partition {
-  std::size_t colors() const {
+  Color colors() const {
     // number of rows, essentially the number of MPI ranks.
     return r->size().first;
   }

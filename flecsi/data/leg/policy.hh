@@ -202,7 +202,7 @@ struct partition_base {
   Legion::IndexSpace colors_used;
 
   // NB: intervals and points are not advertised as deriving from this class.
-  std::size_t colors() const {
+  Color colors() const {
     return leg::run().get_index_space_domain(colors_used).get_volume();
   }
   template<topo::single_space>

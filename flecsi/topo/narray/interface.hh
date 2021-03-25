@@ -88,7 +88,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 

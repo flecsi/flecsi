@@ -181,7 +181,7 @@ make_dcrs(Definition const & md,
 
 inline std::vector<std::vector<std::size_t>>
 distribute(util::dcrs const & naive,
-  size_t colors,
+  Color colors,
   std::vector<std::size_t> const & index_colors,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
@@ -204,7 +204,7 @@ distribute(util::dcrs const & naive,
 
 inline auto
 migrate(util::dcrs const & naive,
-  size_t colors,
+  Color colors,
   std::vector<std::size_t> const & index_colors,
   std::vector<std::vector<std::size_t>> & c2v,
   std::map<std::size_t, std::vector<std::size_t>> & v2c,
@@ -215,7 +215,7 @@ migrate(util::dcrs const & naive,
   auto migrated = util::mpi::all_to_allv<migrate_cells>(
     {naive, colors, index_colors, c2v, v2c, c2c, rank}, comm);
 
-  std::map<std::size_t, std::vector<std::size_t>> primaries;
+  std::map<Color, std::vector<std::size_t>> primaries;
   std::vector<std::size_t> p2m; /* process to mesh map */
   std::map<std::size_t, std::size_t> m2p;
 
@@ -248,9 +248,9 @@ migrate(util::dcrs const & naive,
 template<typename Policy, typename Definition>
 inline auto
 closure(Definition const & md,
-  std::size_t colors,
+  Color colors,
   std::vector<std::size_t> const & raw,
-  std::map<std::size_t, std::vector<std::size_t>> const & primaries,
+  std::map<Color, std::vector<std::size_t>> const & primaries,
   std::vector<std::vector<std::size_t>> & e2v,
   std::map<std::size_t, std::vector<std::size_t>> & v2e,
   std::map<std::size_t, std::vector<std::size_t>> & e2e,
@@ -266,7 +266,7 @@ closure(Definition const & md,
     'e2co' will get updated as we build out our dependencies.
    */
 
-  std::unordered_map<std::size_t, std::size_t> e2co;
+  std::unordered_map<std::size_t, Color> e2co;
   std::map<std::size_t, std::vector<std::size_t>> wkset;
   for(auto const & p : primaries) {
     wkset[p.first].reserve(p.second.size());
@@ -276,10 +276,8 @@ closure(Definition const & md,
     } // for
   } // for
 
-  std::unordered_map<std::size_t, std::set<std::size_t>> dependents;
-  std::unordered_map<std::size_t, std::set<std::size_t>> dependencies;
-  std::unordered_map<std::size_t, std::set<std::size_t>> shared;
-  std::unordered_map<std::size_t, std::set<std::size_t>> ghosts;
+  std::unordered_map<std::size_t, std::set<Color>> dependents, dependencies;
+  std::unordered_map<Color, std::set<std::size_t>> shared, ghosts;
 
   constexpr std::size_t depth = Policy::primary::depth;
   for(std::size_t d{0}; d < depth + 1; ++d) {
@@ -338,8 +336,8 @@ closure(Definition const & md,
       requests[nm.process(nm.index_color(e))].emplace_back(e);
     } // for
 
-    std::vector<std::vector<std::pair<std::size_t, std::set<std::size_t>>>>
-      reqs(size);
+    std::vector<std::vector<std::pair<std::size_t, std::set<Color>>>> reqs(
+      size);
     {
       auto requested = util::mpi::all_to_allv(
         [&requests](int r, int) -> auto & { return requests[r]; }, comm);
@@ -350,7 +348,7 @@ closure(Definition const & md,
 
       std::vector<std::vector<std::size_t>> fulfills(size);
       {
-        std::size_t r{0};
+        Color r = 0;
         util::color_map cm(size, colors, ne);
         for(auto rv : requested) {
           for(auto e : rv) {
@@ -385,7 +383,7 @@ closure(Definition const & md,
 
     requests.clear();
     requests.resize(size);
-    std::size_t r{0};
+    Color r = 0;
     for(auto rv : requested) {
       for(auto e : rv) {
         requests[r].emplace_back(e.first);
@@ -432,7 +430,7 @@ closure(Definition const & md,
     } // for
   } // for
 
-  std::map<std::size_t, unstructured_base::coloring> colorings;
+  std::map<Color, unstructured_base::coloring> colorings;
 
   for(auto p : primaries) {
     colorings[p.first].idx_colorings.resize(1 + Policy::auxiliary_colorings);

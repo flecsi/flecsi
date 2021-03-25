@@ -19,6 +19,7 @@
 #error Do not include this file directly!
 #endif
 
+#include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
@@ -69,7 +70,7 @@ operator<<(std::ostream & stream, shared_entity const & s) {
 
 struct ghost_entity {
   std::size_t id;
-  std::size_t color;
+  Color color;
 
   bool operator<(const ghost_entity & g) const {
     return id < g.id;
@@ -153,7 +154,7 @@ struct unstructured_base {
       The number of colors in this coloring
      */
 
-    std::size_t colors;
+    Color colors;
 
     /*
       The global number of entities in each index space
@@ -198,7 +199,7 @@ struct unstructured_base {
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
-    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> &
       src_points,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
       privilege_repeat<na, (N > 1)>>> fmd,
@@ -362,8 +363,8 @@ struct unstructured_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
+      shared_ptrs,
     MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {

@@ -22,7 +22,7 @@ namespace ftui = flecsi::topo::unstructured_impl;
 
 namespace fixed {
 
-constexpr std::size_t colors = 4;
+constexpr flecsi::Color colors = 4;
 constexpr std::size_t num_cells = 256;
 constexpr std::size_t num_vertices = 289;
 

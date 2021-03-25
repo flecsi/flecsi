@@ -22,7 +22,6 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/reference.hh"
 #include "flecsi/exec/launch.hh"
-#include <cstddef> // size_t
 
 namespace flecsi {
 namespace data {
@@ -64,7 +63,7 @@ struct exec::detail::task_param<data::topology_accessor<T, P>> {
 // thus no specialization for them.
 template<class P, class T>
 struct exec::detail::launch<P, data::topology_slot<T>> {
-  static std::size_t get(const data::topology_slot<T> & t) {
+  static Color get(const data::topology_slot<T> & t) {
     return t.get().colors();
   }
 };

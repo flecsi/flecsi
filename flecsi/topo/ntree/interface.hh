@@ -135,7 +135,7 @@ struct ntree : ntree_base {
     cp_data_tree.issue_copy(data_field.fid);
   }
 
-  std::size_t colors() const {
+  Color colors() const {
     return part.front().colors();
   }
 
@@ -195,8 +195,8 @@ struct ntree<Policy>::access {
     hmap_t hmap(hcells.span());
 
     // Create the tree
-    size_t size = run::context::instance().colors(); // colors();
-    size_t rank = run::context::instance().color(); // color();
+    const Color size = run::context::instance().colors(),
+                rank = run::context::instance().color();
 
     /* Exchange high and low bound */
     const auto hibound =

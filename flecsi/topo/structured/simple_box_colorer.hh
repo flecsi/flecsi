@@ -23,51 +23,52 @@ namespace structured_impl {
 
 // Forward declaration
 template<std::size_t D>
-auto
-create_primary_box(box_core & domain, std::size_t ncolors[D], size_t idx[D]);
+auto create_primary_box(box_core & domain,
+  const Color ncolors[D],
+  const Color idx[D]);
 
 template<std::size_t D>
 typename std::enable_if_t<D == 1> create_exclusive_and_shared_boxes(
   box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank);
+  const Color ncolors[D],
+  const Color idx[D],
+  Color rank);
 
 template<std::size_t D>
 typename std::enable_if_t<D == 2> create_exclusive_and_shared_boxes(
   box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank);
+  Color ncolors[D],
+  Color idx[D],
+  Color rank);
 
 template<std::size_t D>
 typename std::enable_if_t<D == 3> create_exclusive_and_shared_boxes(
   box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank);
+  Color ncolors[D],
+  Color idx[D],
+  Color rank);
 
 template<std::size_t D>
-typename std::enable_if_t<D == 1> create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]);
+std::enable_if_t<D == 1> create_ghost_boxes(box_coloring & colbox,
+  const Color ncolors[D],
+  const Color idx[D]);
 
 template<std::size_t D>
-typename std::enable_if_t<D == 2> create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]);
+std::enable_if_t<D == 2> create_ghost_boxes(box_coloring & colbox,
+  const Color ncolors[D],
+  const Color idx[D]);
 
 template<std::size_t D>
-typename std::enable_if_t<D == 3> create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]);
+std::enable_if_t<D == 3> create_ghost_boxes(box_coloring & colbox,
+  const Color ncolors[D],
+  const Color idx[D]);
 
 void create_domain_halo_boxes(box_coloring & colbox);
 
 void compute_overlaying_bounding_box(box_coloring & colbox);
 
 template<std::size_t D>
-void get_indices(std::size_t cobnds[D], int rank, size_t id[D]);
+void get_indices(const Color cobnds[D], Color rank, Color id[D]);
 
 // Simple partitioning algorithm for structured meshes. Partitions the highest
 // dimensional entities in the  mesh into as many blocks as number of input
@@ -78,7 +79,7 @@ simple_box_colorer(std::size_t grid_size[D],
   std::size_t nghost_layers,
   std::size_t ndomain_layers,
   std::size_t thru_dim,
-  std::size_t ncolors[D]) {
+  const Color ncolors[D]) {
   int size;
   int rank;
 
@@ -109,7 +110,7 @@ simple_box_colorer(std::size_t grid_size[D],
   }
 
   // Obtain indices of the current rank
-  std::size_t idx[D];
+  Color idx[D];
   get_indices<D>(ncolors, rank, idx);
 
   // Step 1: Create global bounding boxes for domain including domain halo
@@ -182,7 +183,7 @@ create_aggregate_info(box_coloring & cbox) {
 
   //#shared entities
   colinfo.shared = 0;
-  std::set<std::size_t> shared_ranks;
+  std::set<Color> shared_ranks;
   for(std::size_t i = 0; i < cbox.shared[0].size(); i++) {
     colinfo.shared += cbox.shared[0][i].domain.size();
     for(std::size_t j = 0; j < cbox.shared[0][i].colors.size(); j++)
@@ -192,7 +193,7 @@ create_aggregate_info(box_coloring & cbox) {
 
   //#ghost entities
   colinfo.ghost = 0;
-  std::set<std::size_t> ghost_ranks;
+  std::set<Color> ghost_ranks;
   for(std::size_t i = 0; i < cbox.ghost[0].size(); i++) {
     colinfo.ghost += cbox.ghost[0][i].domain.size();
     for(std::size_t j = 0; j < cbox.ghost[0][i].colors.size(); j++)
@@ -232,7 +233,7 @@ create_aggregate_info(box_coloring & cbox) {
   }
 
   // Post isends
-  std::set<std::size_t>::iterator it;
+  std::set<Color>::iterator it;
   for(it = shared_ranks.begin(); it != shared_ranks.end(); ++it) {
     MPI_Request request;
     MPI_Isend((void *)&(sbuf), sz, MPI_INT, *it, 0, MPI_COMM_WORLD, &request);
@@ -264,7 +265,9 @@ create_aggregate_info(box_coloring & cbox) {
 
 template<std::size_t D>
 auto
-create_primary_box(box_core & domain, std::size_t ncolors[D], size_t idx[D]) {
+create_primary_box(box_core & domain,
+  const Color ncolors[D],
+  const Color idx[D]) {
   box_core pbox(D);
   for(std::size_t i = 0; i < D; ++i) {
     std::size_t N = domain.upperbnd[i] - domain.lowerbnd[i] + 1;
@@ -284,9 +287,9 @@ create_primary_box(box_core & domain, std::size_t ncolors[D], size_t idx[D]) {
 template<std::size_t D>
 typename std::enable_if_t<D == 1>
 create_exclusive_and_shared_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank) {
+  const Color ncolors[D],
+  const Color idx[D],
+  Color rank) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   std::size_t TD = colbox.partition[0].thru_dim;
@@ -319,7 +322,7 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 
   box_core sbox(D);
   box_color scbox(D);
-  std::size_t ind[D], idx_new[D], cval;
+  Color ind[D], idx_new[D], cval;
 
   {
     for(std::size_t i = 0; i < 3; ++i) {
@@ -381,9 +384,9 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 template<std::size_t D>
 typename std::enable_if_t<D == 2>
 create_exclusive_and_shared_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank) {
+  const Color ncolors[D],
+  const Color idx[D],
+  Color rank) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   std::size_t TD = colbox.partition[0].thru_dim;
@@ -415,7 +418,7 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 
   box_core sbox(D);
   box_color scbox(D);
-  std::size_t ind[D], idx_new[D], cval;
+  Color ind[D], idx_new[D], cval;
 
   {
     for(std::size_t j = 0; j < 3; ++j)
@@ -501,9 +504,9 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 template<std::size_t D>
 typename std::enable_if_t<D == 3>
 create_exclusive_and_shared_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  std::size_t idx[D],
-  std::size_t rank) {
+  const Color ncolors[D],
+  const Color idx[D],
+  Color rank) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   std::size_t TD = colbox.partition[0].thru_dim;
@@ -536,7 +539,7 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 
   box_core sbox(D);
   box_color scbox(D);
-  std::size_t ind[D], idx_new[D], cval;
+  Color ind[D], idx_new[D], cval;
 
   {
     for(std::size_t k = 0; k < 3; ++k)
@@ -721,8 +724,8 @@ create_exclusive_and_shared_boxes(box_coloring & colbox,
 template<std::size_t D>
 typename std::enable_if_t<D == 1>
 create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]) {
+  const Color ncolors[D],
+  const Color idx[D]) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   int TD = colbox.partition[0].thru_dim;
@@ -750,7 +753,7 @@ create_ghost_boxes(box_coloring & colbox,
 
   box_core ghbox(D);
   box_color gcbox(D);
-  std::size_t idx_new[D], cval;
+  Color idx_new[D], cval;
 
   {
     int rankmap[3][2] = {{0, -1}, {1, 0}, {0, 1}};
@@ -780,8 +783,8 @@ create_ghost_boxes(box_coloring & colbox,
 template<std::size_t D>
 typename std::enable_if_t<D == 2>
 create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]) {
+  const Color ncolors[D],
+  const Color idx[D]) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   int TD = colbox.partition[0].thru_dim;
@@ -808,7 +811,7 @@ create_ghost_boxes(box_coloring & colbox,
 
   box_core ghbox(D);
   box_color gcbox(D);
-  std::size_t idx_new[D], cval;
+  Color idx_new[D], cval;
 
   {
     int rankmap[9][3] = {{0, -1, -1},
@@ -850,8 +853,8 @@ create_ghost_boxes(box_coloring & colbox,
 template<std::size_t D>
 typename std::enable_if_t<D == 3>
 create_ghost_boxes(box_coloring & colbox,
-  std::size_t ncolors[D],
-  size_t idx[D]) {
+  const Color ncolors[D],
+  const Color idx[D]) {
   box_core pbox = colbox.partition[0].box;
   std::size_t hl = colbox.partition[0].nghost_layers;
   int TD = colbox.partition[0].thru_dim;
@@ -878,7 +881,7 @@ create_ghost_boxes(box_coloring & colbox,
 
   box_core ghbox(D);
   box_color gcbox(D);
-  std::size_t idx_new[D], cval;
+  Color idx_new[D], cval;
 
   {
     int rankmap[27][4] = {{0, -1, -1, -1},
@@ -1054,12 +1057,12 @@ compute_overlaying_bounding_box(box_coloring & colbox) {
 
 template<std::size_t D>
 void
-get_indices(std::size_t cobnds[D], int rank, size_t id[D]) {
-  std::size_t rem, factor, value;
+get_indices(const Color cobnds[D], Color rank, Color id[D]) {
+  std::size_t rem, value;
 
   rem = rank;
   for(std::size_t i = 0; i < D; ++i) {
-    factor = 1;
+    Color factor = 1;
     for(std::size_t j = 0; j < D - i - 1; ++j)
       factor *= cobnds[j];
 

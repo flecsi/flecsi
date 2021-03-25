@@ -48,7 +48,7 @@ public:
    @ingroup coloring
    */
 
-  size_t size() const {
+  Color size() const {
     int num;
     MPI_Comm_size(comm, &num);
     return num;
@@ -59,7 +59,7 @@ public:
    @ingroup coloring
    */
 
-  size_t rank() const {
+  Color rank() const {
     int rk;
     MPI_Comm_rank(comm, &rk);
     return rk;
@@ -172,7 +172,7 @@ public:
     std::vector<std::set<size_t>> local(primary.size());
 
     // See if we can fill any requests...
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
 
       // Ignore our rank
       if(r == color) {
@@ -223,7 +223,7 @@ public:
     std::set<entity_info> remote;
 
     // Collect all of the information for the remote entities.
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       // Skip these (we already know them!)
       if(r == color) {
         continue;
@@ -252,11 +252,11 @@ public:
 
    @param request_indices FIXME...
                           information.
-   @return A std::unordered_map<size_t, std::set<size_t>> FIXME ...
+   @return A std::unordered_map<Color, std::set<std::size_t>> FIXME ...
 
    @ingroup coloring
   */
-  std::unordered_map<size_t, std::set<size_t>> get_intersection_info(
+  std::unordered_map<Color, std::set<std::size_t>> get_intersection_info(
     const std::set<size_t> & request_indices) {
     auto colors = size();
     auto color = rank();
@@ -289,9 +289,9 @@ public:
     // }
 
     //
-    std::unordered_map<size_t, std::set<size_t>> intersection_map;
+    std::unordered_map<Color, std::set<std::size_t>> intersection_map;
 
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
 
       // Ignore our rank
       if(r == color) {
@@ -339,12 +339,12 @@ public:
 
    @param local_indices The indices of the calling color.
 
-   @return A std::unordered_map<size_t, std::set<size_t>> containing the
+   @return A std::unordered_map<Color, std::set<std::size_t>> containing the
            indices of each rank for the given index space.
 
    @ingroup coloring
    */
-  std::unordered_map<size_t, std::set<size_t>> get_entity_reduction(
+  std::unordered_map<Color, std::set<std::size_t>> get_entity_reduction(
     const std::set<size_t> & local_indices) {
     auto colors = size();
 
@@ -353,9 +353,9 @@ public:
     auto info_indices =
       get_info_indices(local_indices, max_request_indices, colors);
 
-    std::unordered_map<size_t, std::set<size_t>> entity_reduction_map;
+    std::unordered_map<Color, std::set<std::size_t>> entity_reduction_map;
 
-    for(size_t c(0); c < colors; ++c) {
+    for(Color c = 0; c < colors; ++c) {
 
       // Array slice for convenience.
       size_t * info = &info_indices[c * max_request_indices];
@@ -393,7 +393,7 @@ public:
 
     // Collect the size of each rank request to send.
     std::vector<size_t> send_cnts(colors, 0);
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       send_cnts[r] = request_indices[r].size();
     } // for
 
@@ -410,7 +410,7 @@ public:
     // Start receive operations (non-blocking).
     std::vector<std::vector<size_t>> rbuffers(colors);
     std::vector<MPI_Request> requests;
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       if(recv_cnts[r]) {
         rbuffers[r].resize(recv_cnts[r]);
         requests.push_back({});
@@ -426,7 +426,7 @@ public:
 
     // Start send operations (blocking is ok here).
     std::vector<std::vector<size_t>> sbuffers(colors);
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       if(send_cnts[r]) {
         std::copy(request_indices[r].begin(),
           request_indices[r].end(),
@@ -452,7 +452,7 @@ public:
     MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
     // Set the offsets for each requested index in the send buffer.
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       sbuffers[r].resize(rbuffers[r].size());
 
       size_t offset(0);
@@ -467,7 +467,7 @@ public:
 
     // Start receive operations (non-blocking) to get back the
     // offsets we requested.
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       // If we sent a request, prepare to receive an answer.
       if(send_cnts[r]) {
         // We're done with our receive buffers, so we can re-use them.
@@ -484,7 +484,7 @@ public:
     } // for
 
     // Start send operations (blocking is probably ok here).
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       // If we received a request, prepare to send an answer.
       if(recv_cnts[r]) {
         MPI_Send(&sbuffers[r][0],
@@ -501,7 +501,7 @@ public:
     MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
     std::vector<std::set<size_t>> remote(colors);
-    for(size_t r(0); r < colors; ++r) {
+    for(Color r = 0; r < colors; ++r) {
       for(size_t i(0); i < send_cnts[r]; ++i) {
         remote[r].insert(rbuffers[r][i]);
       } // for
@@ -566,7 +566,7 @@ public:
     info_indices =
       get_info_indices(request_indices, max_request_indices, colors);
 
-    for(size_t c(0); c < colors; ++c) {
+    for(Color c = 0; c < colors; ++c) {
 
       size_t * info = &info_indices[c * max_request_indices];
 
@@ -588,7 +588,7 @@ public:
 
    @ingroup coloring
    */
-  std::unordered_map<size_t, coloring_info_t> gather_coloring_info(
+  std::unordered_map<Color, coloring_info_t> gather_coloring_info(
     coloring_info_t & color_info) {
     auto colors = size();
     auto color = rank();
@@ -605,9 +605,9 @@ public:
     int result = MPI_Allgather(
       &color_info, bytes, MPI_BYTE, &buffer, bytes, MPI_BYTE, comm);
 
-    std::unordered_map<size_t, coloring_info_t> coloring_info;
+    std::unordered_map<Color, coloring_info_t> coloring_info;
 
-    for(size_t c(0); c < colors; ++c) {
+    for(Color c=0; c < colors; ++c) {
       coloring_info[c].exclusive = buffer[c].exclusive;
       coloring_info[c].shared = buffer[c].shared;
       coloring_info[c].ghost = buffer[c].ghost;

@@ -52,7 +52,7 @@ send_to_one() {
     if(state::instance().process() == 0) {
       offsets = new int[state::instance().processes()];
 
-      for(size_t p{0}; p < state::instance().processes(); ++p) {
+      for(Color p = 0; p < state::instance().processes(); ++p) {
         offsets[p] = sum;
         sum += sizes[p];
       } // for
@@ -74,7 +74,7 @@ send_to_one() {
 
     if(state::instance().process() == 0) {
 
-      for(size_t p{0}; p < state::instance().processes(); ++p) {
+      for(Color p = 0; p < state::instance().processes(); ++p) {
 
         if(!state::instance().one_process() ||
            p == state::instance().output_process()) {

@@ -57,12 +57,12 @@ struct future<R, exec::launch_type_t::index> {
     MPI_Wait(&request, MPI_STATUS_IGNORE);
   }
 
-  R get(std::size_t index = 0, bool = false) {
+  R get(Color index = 0, bool = false) {
     wait();
     return results.at(index);
   }
 
-  std::size_t size() const {
+  Color size() const {
     return run::context::instance().processes();
   }
 
@@ -82,8 +82,8 @@ private:
 template<>
 struct future<void, exec::launch_type_t::index> {
   void wait(bool = false) {}
-  void get(std::size_t = 0, bool = false) {}
-  std::size_t size() const {
+  void get(Color = 0, bool = false) {}
+  Color size() const {
     return run::context::instance().processes();
   }
 };

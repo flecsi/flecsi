@@ -19,8 +19,6 @@
 #error Do not include this file directly!
 #endif
 
-#include <cstddef> // size_t
-
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
@@ -70,7 +68,7 @@ struct core : core_base { // with_ragged<P> is often another base class
 
   explicit core(coloring);
 
-  std::size_t colors() const;
+  Color colors() const;
 
   template<typename P::index_space>
   data::region & get_region();

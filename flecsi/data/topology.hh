@@ -50,7 +50,7 @@ protected:
 
 // A prefix of each row in a region_base.
 struct partition {
-  std::size_t colors() const;
+  Color colors() const;
   template<topo::single_space> // for convenience for simple topologies
   const partition & get_partition(field_id_t) const {
     return *this;

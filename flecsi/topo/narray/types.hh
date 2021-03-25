@@ -43,13 +43,14 @@ enum axes : std::size_t { x_axis, y_axis, z_axis };
 using coord = std::vector<std::size_t>;
 using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
+using colors = std::vector<Color>;
 
 /*
   Input type for color method.
  */
 
 struct coloring_definition {
-  coord axis_colors;
+  colors axis_colors;
   coord axis_extents;
   coord axis_hdepths;
   coord axis_bdepths;
@@ -114,7 +115,7 @@ struct index_coloring {
     Offsets on the remote color.
    */
 
-  std::map<std::size_t, /* over colors */
+  std::map<Color,
     std::vector<std::pair</* local ghost offset, remote shared offset */
       std::size_t,
       std::size_t>>>
@@ -137,11 +138,12 @@ struct narray_base {
   using index_coloring = narray_impl::index_coloring;
   using coord = narray_impl::coord;
   using hypercube = narray_impl::hypercube;
+  using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
 
   struct coloring {
     MPI_Comm comm;
-    std::size_t colors;
+    Color colors;
     std::vector<index_coloring> idx_colorings;
   }; // struct coloring
 
@@ -173,8 +175,8 @@ struct narray_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
+      shared_ptrs,
     MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {

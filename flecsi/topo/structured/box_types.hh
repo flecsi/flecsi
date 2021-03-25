@@ -164,10 +164,10 @@ struct box_aggregate_info {
   std::size_t ghost;
 
   //! The aggregate set of colors that depend on our shared indices
-  std::set<std::size_t> shared_users;
+  std::set<Color> shared_users;
 
   //! The aggregate set of colors that we depend on for ghosts
-  std::set<std::size_t> ghost_owners;
+  std::set<Color> ghost_owners;
 
   //! The overlay boxes from ghost owners
   std::unordered_map<std::size_t, std::vector<box_core>> ghost_overlays;

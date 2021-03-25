@@ -211,7 +211,7 @@ closure(typename Policy::definition const & md,
           primary_dimension,
           dimension>(md, i);
 
-        size_t min_rank(std::numeric_limits<size_t>::max());
+        Color min_rank = std::numeric_limits<Color>::max();
         std::set<size_t> shared_entities;
 
         // Iterate the direct referencers to assign entity ownership
@@ -229,7 +229,7 @@ closure(typename Policy::definition const & md,
             // it is a local primary.
 
             // Add our rank to compare for ownership.
-            min_rank = std::min(min_rank, size_t(rank));
+            min_rank = std::min(min_rank, rank);
 
             // If the local primary is shared, we need to add all of
             // the ranks that reference it.
@@ -278,7 +278,7 @@ closure(typename Policy::definition const & md,
     } // for
 
     {
-      size_t r(0);
+      Color r = 0;
       for(auto i : entity_requests) {
 
         auto offset(entity_offset_info[r].begin());

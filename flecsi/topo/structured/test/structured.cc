@@ -23,7 +23,7 @@ struct test_mesh_1d : specialization<structured, test_mesh_1d> {
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
     std::size_t thru_dim,
-    std::size_t ncolors[num_dimensions]) {
+    const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
     auto cells_part = simple_box_colorer<num_dimensions>(
@@ -46,7 +46,7 @@ topo_driver_1d() {
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
     std::size_t thru_dim = 0;
-    std::size_t ncolors[1] = {2};
+    const Color ncolors[] = {2};
 
     coloring_1d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);
     tmesh_1d.allocate(coloring_1d.get());
@@ -90,7 +90,7 @@ struct test_mesh_2d : specialization<structured, test_mesh_2d> {
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
     std::size_t thru_dim,
-    std::size_t ncolors[num_dimensions]) {
+    const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
     auto cells_part = simple_box_colorer<num_dimensions>(
@@ -112,7 +112,7 @@ topo_driver_2d() {
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
     std::size_t thru_dim = 0;
-    std::size_t ncolors[2] = {2, 1};
+    const Color ncolors[] = {2, 1};
 
     coloring_2d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);
     tmesh_2d.allocate(coloring_2d.get());
@@ -157,7 +157,7 @@ struct test_mesh_3d : specialization<structured, test_mesh_3d> {
     std::size_t nghost_layers,
     std::size_t ndomain_layers,
     std::size_t thru_dim,
-    std::size_t ncolors[num_dimensions]) {
+    const Color ncolors[num_dimensions]) {
 
     // Create the coloring info for cells
     auto cells_part = simple_box_colorer<num_dimensions>(
@@ -179,7 +179,7 @@ topo_driver_3d() {
     std::size_t nhalo = 1;
     std::size_t nhalo_domain = 2;
     std::size_t thru_dim = 0;
-    std::size_t ncolors[3] = {2, 1, 1};
+    const Color ncolors[] = {2, 1, 1};
 
     coloring_3d.allocate(grid_size, nhalo, nhalo_domain, thru_dim, ncolors);
     tmesh_3d.allocate(coloring_3d.get());

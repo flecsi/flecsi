@@ -104,7 +104,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t process() const {
+  Color process() const {
     return context::process_;
   } // process
 
@@ -112,7 +112,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t processes() const {
+  Color processes() const {
     return context::processes_;
   } // processes
 
@@ -120,7 +120,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t threads_per_process() const {
+  Color threads_per_process() const {
     return context::threads_per_process_;
   } // threads_per_process
 
@@ -128,7 +128,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t threads() const {
+  Color threads() const {
     return context::threads_;
   } // threads
 
@@ -146,7 +146,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t color() {
+  static Color color() {
     flog_assert(
       task_depth() > 0, "this method can only be called from within a task");
     return Legion::Runtime::get_runtime()
@@ -158,7 +158,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t colors() {
+  static Color colors() {
     flog_assert(
       task_depth() > 0, "this method can only be called from within a task");
     return Legion::Runtime::get_runtime()

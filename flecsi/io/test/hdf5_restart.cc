@@ -87,7 +87,7 @@ int
 restart_driver() {
   UNIT {
     mesh2d::coord indices{8, 8};
-    mesh2d::coord colors{4, 1};
+    mesh2d::base::colors colors{4, 1};
     mesh2d::coord hdepths{0, 0};
     mesh2d::coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};
