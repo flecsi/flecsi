@@ -209,7 +209,8 @@ struct field_base<T, ragged> {
 };
 template<class T>
 struct field_base<T, sparse> {
-  using base_type = field<std::pair<std::size_t, T>, ragged>;
+  using key_type = std::size_t;
+  using base_type = field<std::pair<key_type, T>, ragged>;
 };
 
 // Many compilers incorrectly require the 'template' for a base class.

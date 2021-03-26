@@ -704,7 +704,8 @@ struct accessor<sparse, T, P>
     "sparse accessor requires read permission");
 
 private:
-  using FieldBase = typename field<T, sparse>::base_type;
+  using Field = field<T, sparse>;
+  using FieldBase = typename Field::base_type;
 
 public:
   using value_type = typename FieldBase::value_type;
@@ -718,8 +719,9 @@ private:
 public:
   // Use the ragged interface to obtain the span directly.
   struct row {
+    using key_type = typename Field::key_type;
     row(base_row s) : s(s) {}
-    element_type & operator()(std::size_t c) const {
+    element_type & operator()(key_type c) const {
       return std::partition_point(
         s.begin(), s.end(), [c](const value_type & v) { return v.first < c; })
         ->second;
@@ -752,7 +754,11 @@ public:
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
-  using base_type = typename field<T, sparse>::base_type::template mutator1<P>;
+private:
+  using Field = field<T, sparse>;
+
+public:
+  using base_type = typename Field::base_type::template mutator1<P>;
   using size_type = typename base_type::size_type;
   using TaskBuffer = typename base_type::TaskBuffer;
 
@@ -762,7 +768,7 @@ private:
 
 public:
   struct row {
-    using key_type = std::size_t;
+    using key_type = typename Field::key_type;
     using value_type = typename base_row::value_type;
     using size_type = typename base_row::size_type;
 
