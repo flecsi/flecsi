@@ -138,6 +138,7 @@ template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using base_type = accessor<raw, T, P>;
   using base_type::base_type;
+  using size_type = typename decltype(base_type(0).span())::size_type;
 
   accessor(const base_type & b) : base_type(b) {}
 
@@ -148,14 +149,14 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
     @param index The index of the logical array to access.
    */
   FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator()(std::size_t index) const {
+  typename accessor::element_type & operator()(size_type index) const {
     const auto s = this->span();
     flog_assert(index < s.size(), "index out of range");
     return s[index];
   } // operator()
 
   FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator[](std::size_t index) const {
+  typename accessor::element_type & operator[](size_type index) const {
     return this->span()[index];
   }
 
@@ -188,20 +189,22 @@ struct ragged_accessor
   using base_type = typename ragged_accessor::accessor;
   using typename base_type::element_type;
   using Offsets = accessor<dense, std::size_t, OP>;
+  using Offset = typename Offsets::value_type;
+  using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
 
   using base_type::base_type;
   ragged_accessor(const base_type & b) : base_type(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
-  std::size_t size() const noexcept { // not total!
+  size_type size() const noexcept { // not total!
     return off.span().size();
   }
-  std::size_t total() const noexcept {
+  Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
@@ -250,7 +253,7 @@ struct ragged_accessor
     f(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
       r.get_region().template ghost<privilege_pack<wo, wo>>(r.fid());
-      return r.template cast<dense, std::size_t>();
+      return r.template cast<dense, Offset>();
     });
     if constexpr(privilege_discard(P))
       detail::construct(*this); // no-op on caller side
@@ -278,16 +281,22 @@ struct mutator<ragged, T, P>
   static_assert(privilege_write(P) && !privilege_discard(P),
     "mutators require read/write permissions");
   using base_type = ragged_accessor<T, P>;
+  using size_type = typename base_type::size_type;
+
+private:
+  using base_row = typename base_type::row;
+  using base_size = typename base_row::size_type;
+
+public:
   struct Overflow {
-    std::size_t del;
+    base_size del;
     std::vector<T> add;
   };
   using TaskBuffer = std::vector<Overflow>;
 
 private:
-  using base_row = typename base_type::row;
   struct raw_row {
-    using size_type = typename base_row::size_type;
+    using size_type = base_size;
 
     base_row s;
     Overflow * o;
@@ -308,7 +317,7 @@ private:
       return brk() + o->add.size();
     }
 
-    void destroy(std::size_t skip = 0) const {
+    void destroy(size_type skip = 0) const {
       std::destroy(s.begin() + skip, s.begin() + brk());
     }
   };
@@ -576,10 +585,10 @@ public:
   mutator(const base_type & b, const topo::resize::policy & p)
     : acc(b), grow(p) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     return raw_get(i);
   }
-  std::size_t size() const noexcept {
+  size_type size() const noexcept {
     return acc.size();
   }
 
@@ -612,10 +621,11 @@ public:
     // To move each element before overwriting it, we propagate moves outward
     // from each place where the movement switches from rightward to leftward.
     const auto all = acc.get_base().span();
-    const std::size_t n = size();
+    const size_type n = size();
     // Read and write cursors.  It would be possible, if ugly, to run cursors
     // backwards for the rightward-moving portions and do without the stack.
-    std::size_t is = 0, js = 0, id = 0, jd = 0;
+    size_type is = 0, id = 0;
+    base_size js = 0, jd = 0;
     raw_row rs = raw_get(is), rd = raw_get(id);
     struct work {
       void operator()() const {
@@ -665,7 +675,7 @@ public:
     while(++id < n)
       raw_get(id).destroy();
     auto & off = acc.get_offsets();
-    std::size_t delta = 0; // may be "negative"; aliasing is implausible
+    base_size delta = 0; // may be "negative"; aliasing is implausible
     for(is = 0; is < n; ++is) {
       auto & ov = (*over)[is];
       off(is) += delta += ov.add.size() - ov.del;
@@ -675,7 +685,7 @@ public:
   }
 
 private:
-  raw_row raw_get(std::size_t i) const {
+  raw_row raw_get(size_type i) const {
     return {get_base()[i], &(*over)[i]};
   }
 
@@ -722,7 +732,7 @@ public:
   using base_type::base_type;
   accessor(const base_type & b) : base_type(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
 
@@ -743,6 +753,7 @@ template<class T, Privileges P>
 struct mutator<sparse, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
   using base_type = typename field<T, sparse>::base_type::template mutator1<P>;
+  using size_type = typename base_type::size_type;
   using TaskBuffer = typename base_type::TaskBuffer;
 
 private:
@@ -753,7 +764,7 @@ public:
   struct row {
     using key_type = std::size_t;
     using value_type = typename base_row::value_type;
-    using size_type = std::size_t;
+    using size_type = typename base_row::size_type;
 
     // NB: invalidated by insertions/deletions, unlike std::map::iterator.
     struct iterator {
@@ -919,10 +930,10 @@ public:
 
   mutator(const base_type & b) : rag(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     return get_base()[i];
   }
-  std::size_t size() const noexcept {
+  size_type size() const noexcept {
     return rag.size();
   }
 
