@@ -281,3 +281,17 @@ add_executable(data-dense
 target_link_libraries(data-dense ${FleCSI_LIBRARIES}
   ${FleCSI_LIBRARY_DEPENDENCIES})
 add_unit(data-dense)
+
+#------------------------------------------------------------------------------#
+# 5-parallel
+#------------------------------------------------------------------------------#
+
+add_executable(parallel-forall
+  5-parallel/1-forall.cc
+  5-parallel/main.cc
+  5-parallel/control.hh
+  4-data/canonical.hh
+)
+target_link_libraries(parallel-forall ${FleCSI_LIBRARIES}
+  ${FleCSI_LIBRARY_DEPENDENCIES})
+add_unit(parallel-forall)
