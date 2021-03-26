@@ -109,6 +109,7 @@ more advanced FleCSI concepts.
   tutorial/control
   tutorial/execution
   tutorial/data
+  tutorial/parallel
   tutorial/topologies
   tutorial/standalone
 
