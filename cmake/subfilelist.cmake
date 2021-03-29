@@ -8,21 +8,19 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-macro(make_subfilelist result directory)
+function(make_subfilelist result directory)
 
-    file(GLOB children RELATIVE ${directory} ${directory}/*)
+  file(GLOB _CHILDREN RELATIVE ${directory} ${directory}/*)
 
-    set(dirlist "")
+  foreach(_CHILD ${_CHILDREN})
+    if(NOT IS_DIRECTORY ${directory}/${_CHILD})
+      list(APPEND _DIRLIST ${_CHILD})
+    endif()
+  endforeach()
 
-    foreach(child ${children})
-        if(NOT IS_DIRECTORY ${directory}/${child})
-            list(APPEND dirlist ${child})
-        endif()
-    endforeach()
-
-    set(${result} ${dirlist})
-endmacro(make_subfilelist)
+  set(${result} ${_DIRLIST} PARENT_SCOPE)
+endfunction(make_subfilelist)

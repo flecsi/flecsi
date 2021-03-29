@@ -12,13 +12,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
-
-#------------------------------------------------------------------------------#
-# Add local module path.
-#------------------------------------------------------------------------------#
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
+cmake_minimum_required(VERSION 3.12...3.19)
 
 #------------------------------------------------------------------------------#
 # Project.
@@ -28,21 +22,6 @@ project(FleCSI-Tutorial LANGUAGES CXX C)
 
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
-
-#set(CMAKE_SKIP_BUILD_RPATH FALSE)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-#set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-#
-## add the automatically determined parts of the RPATH
-## which point to directories outside the build tree to the install RPATH
-#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-#
-## the RPATH to be used when installing, but only if it's not a system directory
-#list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
-#  "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-#if("${isSystemDir}" STREQUAL "-1")
-#  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-#endif("${isSystemDir}" STREQUAL "-1")
 
 #------------------------------------------------------------------------------#
 # Compiler version requirements.
@@ -96,21 +75,11 @@ function(add_unit name)
   )
 endfunction()
 
-
 #------------------------------------------------------------------------------#
 # FleCSI
 #------------------------------------------------------------------------------#
 
 find_package(FleCSI REQUIRED)
-include_directories(SYSTEM ${FleCSI_INCLUDE_DIRS})
-
-#------------------------------------------------------------------------------#
-# Kokkos, after FleCSI to get FleCSI_* cmakedefines
-#------------------------------------------------------------------------------#
-if(FleCSI_ENABLE_KOKKOS)
-  find_package(Kokkos REQUIRED)
-endif()
-  
 
 #------------------------------------------------------------------------------#
 # FleCSI-Tutorial library.
@@ -129,15 +98,13 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_executable(runtime-minimal
   1-runtime/1-minimal.cc
 )
-target_link_libraries(runtime-minimal ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(runtime-minimal FleCSI::FleCSI)
 add_unit(runtime-minimal)
 
 add_executable(runtime-program_options
   1-runtime/2-program_options.cc
 )
-target_link_libraries(runtime-program_options ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(runtime-program_options FleCSI::FleCSI)
 file(TOUCH ${CMAKE_BINARY_DIR}/input.txt)
 add_unit(runtime-program_options
   ARGUMENTS
@@ -147,14 +114,13 @@ add_unit(runtime-program_options
 add_executable(runtime-flog
   1-runtime/3-flog.cc
 )
-target_link_libraries(runtime-flog ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(runtime-flog FleCSI::FleCSI)
 add_unit(runtime-flog)
 
 add_executable(runtime-caliper
   1-runtime/4-caliper.cc)
-target_link_libraries(runtime-caliper ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(runtime-caliper FleCSI::FleCSI)
+add_unit(runtime-caliper)
 
 #------------------------------------------------------------------------------#
 # 2-control
@@ -164,16 +130,14 @@ add_executable(control-simple
   2-control/1-simple.cc
   2-control/1-simple.hh
 )
-target_link_libraries(control-simple ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-simple FleCSI::FleCSI)
 add_unit(control-simple)
 
 add_executable(control-cycle
   2-control/2-cycle.cc
   2-control/2-cycle.hh
 )
-target_link_libraries(control-cycle ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-cycle FleCSI::FleCSI)
 add_unit(control-cycle)
 
 add_executable(control-subcycle
@@ -181,8 +145,7 @@ add_executable(control-subcycle
   2-control/2-subcycle.hh
 )
 target_compile_definitions(control-subcycle PUBLIC SUBCYCLE)
-target_link_libraries(control-subcycle ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-subcycle FleCSI::FleCSI)
 add_unit(control-subcycle)
 
 add_executable(control-dependencies
@@ -190,16 +153,14 @@ add_executable(control-dependencies
   2-control/3-actions.hh
   2-control/3-dependencies.hh
 )
-target_link_libraries(control-dependencies ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-dependencies FleCSI::FleCSI)
 add_unit(control-dependencies)
 
 add_executable(control-state
   2-control/4-state.cc
   2-control/4-state.hh
 )
-target_link_libraries(control-state ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-state FleCSI::FleCSI)
 add_unit(control-state)
 
 if(ENABLE_DEVELOPER_MODE)
@@ -228,8 +189,7 @@ add_executable(execution-single-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-single-task ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(execution-single-task FleCSI::FleCSI)
 add_unit(execution-single-task)
 
 add_executable(execution-index-task
@@ -237,8 +197,7 @@ add_executable(execution-index-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-index-task ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(execution-index-task FleCSI::FleCSI)
 add_unit(execution-index-task)
 
 add_executable(execution-mpi-task
@@ -246,8 +205,7 @@ add_executable(execution-mpi-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-mpi-task ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(execution-mpi-task FleCSI::FleCSI)
 add_unit(execution-mpi-task)
 
 #------------------------------------------------------------------------------#
@@ -259,8 +217,7 @@ add_executable(data-global
   4-data/main.cc
   4-data/control.hh
 )
-target_link_libraries(data-global ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(data-global FleCSI::FleCSI)
 add_unit(data-global)
 
 add_executable(data-index
@@ -268,8 +225,7 @@ add_executable(data-index
   4-data/main.cc
   4-data/control.hh
 )
-target_link_libraries(data-index ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(data-index FleCSI::FleCSI)
 add_unit(data-index)
 
 add_executable(data-dense
@@ -278,6 +234,5 @@ add_executable(data-dense
   4-data/canonical.hh
   4-data/control.hh
 )
-target_link_libraries(data-dense ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(data-dense FleCSI::FleCSI)
 add_unit(data-dense)

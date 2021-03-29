@@ -15,14 +15,17 @@ if [ -e $cwd/.git ] ; then
   detached=`git status --short --branch`
 
   if [[ $detached =~ "no branch" ]]; then
-    echo "none undefined"
-    exit 0
+    describe=`cat $cwd/.version`
   fi
 
-  describe=`git describe`
+  tags=`git tag`
+  if [[ -n $tags ]]; then
+    describe=`git describe`
+  else
+    describe=`cat $cwd/.version`
+  fi
 else
-  cat $cwd/.version
-  exit 0
+  describe=`cat $cwd/.version`
 fi
 
 IFS='-'
