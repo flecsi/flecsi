@@ -8,7 +8,7 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
@@ -29,5 +29,5 @@ if (NOT CALIPER_DETAIL STREQUAL "none")
 
   message(STATUS "Found Caliper")
 
-  list(APPEND FLECSI_LIBRARY_DEPENDENCIES caliper)
+  list(APPEND TPL_LIBRARIES caliper)
 endif()

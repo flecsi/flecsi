@@ -8,20 +8,24 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
 set(Boost_NO_BOOST_CMAKE ON)
+set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
+mark_as_advanced(ENABLE_BOOST)
 
-find_package(Boost REQUIRED 
-  program_options
-  atomic
-  filesystem
-  regex
-  system)
+if(ENABLE_BOOST)
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+  #----------------------------------------------------------------------------#
+  # Set BOOST_COMPONENTS to the desired components, e.g., program_options,
+  # regex, etc.
+  #----------------------------------------------------------------------------#
 
-list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${Boost_LIBRARIES})
+  find_package(Boost REQUIRED ${BOOST_COMPONENTS})
+
+  list(APPEND TPL_INCLUDES ${Boost_INCLUDE_DIRS})
+  list(APPEND TPL_LIBRARIES ${Boost_LIBRARIES})
+
+endif()

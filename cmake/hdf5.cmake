@@ -8,7 +8,7 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
@@ -29,10 +29,10 @@ if(ENABLE_HDF5)
 
   find_package(HDF5 REQUIRED)
 
-  if(HDF5_FOUND)
-    include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
-    list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${HDF5_LIBRARIES})
-  else()
+  if(NOT HDF5_FOUND)
     message(FATAL_ERROR "HDF5 requested, but not found")
   endif()
+
+  list(APPEND TPL_INCLUDES ${HDF5_INCLUDE_DIRS})
+  list(APPEND TPL_LIBRARIES ${HDF5_LIBRARIES})
 endif()

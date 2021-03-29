@@ -8,7 +8,7 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
@@ -22,13 +22,8 @@ if(ENABLE_LEGION)
     message(FATAL_ERROR "Legion is required for this build configuration")
   endif(NOT Legion_FOUND)
 
-  set(CMAKE_PREFIX_PATH  ${CMAKE_PREFIX_PATH} ${LEGION_INSTALL_DIRS})
-
-  include_directories(SYSTEM ${Legion_INCLUDE_DIRS})
-
-  add_definitions(-DLEGION_USE_CMAKE)
-  add_definitions(-DREALM_USE_CMAKE)
-
-  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${Legion_LIBRARIES})
+  list(APPEND TPL_DEFINES -DLEGION_USE_CMAKE -DREALM_USE_CMAKE)
+  list(APPEND TPL_INCLUDES ${Legion_INCLUDE_DIRS}) 
+  list(APPEND TPL_LIBRARIES ${Legion_LIBRARIES})
 
 endif(ENABLE_LEGION)
