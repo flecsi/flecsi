@@ -12,8 +12,11 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/VERSION
-  OUTPUT_VARIABLE version_output)
+execute_process(
+  COMMAND ${CMAKE_SOURCE_DIR}/VERSION
+  OUTPUT_VARIABLE version_output
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
 string(REGEX REPLACE "\n$" "" version "${version_output}")
 
 # debug
