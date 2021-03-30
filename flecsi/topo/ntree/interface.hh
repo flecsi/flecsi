@@ -111,7 +111,7 @@ struct ntree : ntree_base, with_meta<Policy> {
         make_repartitioned<Policy, hashmap>(c.nparts_,
           make_partial<allocate>(c.hmap_offset_)),
         make_repartitioned<Policy, tree_data>(c.nparts_,
-          make_partial<allocate>(c.tdata_offset_)),  
+          make_partial<allocate>(c.tdata_offset_)),
         make_repartitioned<Policy, meta>(c.nparts_,
           make_partial<allocate>(c.tdata_offset_))}},
       cp_data_tree(*this,
@@ -158,7 +158,8 @@ struct ntree : ntree_base, with_meta<Policy> {
     interaction_nodes>::template definition<Policy, nodes>
     n_i;
 
-  static inline const typename field<meta_type>::template definition<Policy, meta>
+  static inline const typename field<meta_type>::template definition<Policy,
+    meta>
     meta_field;
 
   // --------------------------------------------------------------------------
@@ -269,8 +270,8 @@ struct ntree : ntree_base, with_meta<Policy> {
     }
 
     // Add the new hcells to the local tree + return new sizes for allocation
-    auto fm_sizes = flecsi::execute<make_tree_distributed_task>(
-      ts, meta_field(ts), top_tree);
+    auto fm_sizes =
+      flecsi::execute<make_tree_distributed_task>(ts, meta_field(ts), top_tree);
 
     ts->sz.ent.resize(cs);
     ts->sz.node.resize(cs);
@@ -356,8 +357,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     serdez_vector<std::size_t> restart;
     restart.resize(cs);
     int cur = 0;
-    std::size_t idx =
-      m(0).local.ents + m(0).top_tree.ents + m(0).ghosts.ents;
+    std::size_t idx = m(0).local.ents + m(0).top_tree.ents + m(0).ghosts.ents;
     auto color = run::context::instance().color();
     for(std::size_t c = 0; c < cs; ++c) {
       if(c != color) {
@@ -553,7 +553,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     return part.template get<S>();
   }
 
-private: 
+private:
 
   const static size_t nchildren_ = 1 << dimension;
 };
@@ -572,7 +572,7 @@ struct ntree<Policy>::access {
   accessor<ntree::hcells> hcells;
   accessor<ntree::e_i> e_i;
   accessor<ntree::n_i> n_i;
-  accessor<ntree::meta_field> mf; 
+  accessor<ntree::meta_field> mf;
 
   template<class F>
   void send(F && f) {
@@ -636,7 +636,8 @@ struct ntree<Policy>::access {
     // Make a tree traversal per last elements in the intersection field.
     // Caution entities can be detected several time for the same neighbor.
     std::vector<std::set<hcell_t>> send_ids(cs);
-    std::size_t start = mf(0).local.ents + mf(0).top_tree.ents + mf(0).ghosts.ents;
+    std::size_t start =
+      mf(0).local.ents + mf(0).top_tree.ents + mf(0).ghosts.ents;
     std::size_t stop = start + mf(0).nents_recv;
     for(std::size_t i = start; i < stop; ++i) {
       ent_id id(i);
@@ -697,7 +698,6 @@ struct ntree<Policy>::access {
       });
       // If color present in set, send this entity
       for(auto v : send_colors) {
-        assert(v != color);
         entities.push_back(color_id{v, id, color});
       } // for
     } // for
@@ -863,7 +863,7 @@ struct ntree<Policy>::access {
             ckey.push(j);
             auto it = hmap.find(ckey);
             if(it->second.is_node()) {
-              if constexpr(complete == true) {
+              if constexpr(complete) {
                 if(it->second.is_complete()) {
                   ids.push_back(id<index_space::nodes>(cur->idx()));
                   stk.push(&it->second);
@@ -891,8 +891,10 @@ struct ntree<Policy>::access {
         hcell_t * cur = stk.top();
         stk.pop();
         auto nkey = cur->key();
-        if(!complete || cur->is_complete()) {
-          ids.push_back(id<index_space::nodes>(cur->idx()));
+        if constexpr(complete) {
+          if(cur->is_complete()) {
+            ids.push_back(id<index_space::nodes>(cur->idx()));
+          }
         }
         else {
           ids.push_back(id<index_space::nodes>(cur->idx()));
@@ -925,8 +927,9 @@ struct ntree<Policy>::access {
     mf(0).max_depth = 0;
     mf(0).local.ents = e_keys.span().size();
     data_field(0).lobound = process() == 0 ? key_t::min() : e_keys(0);
-    data_field(0).hibound =
-      process() == processes() - 1 ? key_t::max() : e_keys(mf(0).local.ents - 1);
+    data_field(0).hibound = process() == processes() - 1
+                              ? key_t::max()
+                              : e_keys(mf(0).local.ents - 1);
   }
 
   void add_boundaries(const std::vector<hcell_t> & cells) {

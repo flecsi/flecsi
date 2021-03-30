@@ -156,7 +156,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
       // Get entities and nodes under this node
-      if(n_i[n_idx].mass == 0) {
+      if(local || n_i[n_idx].mass == 0) {
         point_t coordinates = 0.;
         double radius = 0;
         double mass = 0;
