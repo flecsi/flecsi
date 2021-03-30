@@ -247,6 +247,5 @@ add_executable(parallel-forall
   5-parallel/control.hh
   4-data/canonical.hh
 )
-target_link_libraries(parallel-forall ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(parallel-forall FleCSI::FleCSI)
 add_unit(parallel-forall)
