@@ -14,84 +14,66 @@
 
 #define __FLECSI_PRIVATE__
 
-#include <iostream>
-#include <string>
+#include <vector>
 
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
-#include "flecsi/flog.hh"
 #include "flecsi/io.hh"
-#include "flecsi/topo/canonical/interface.hh"
-#include "flecsi/topo/core.hh"
+#include "flecsi/topo/narray/test/narray.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
 
-struct canon : topo::specialization<topo::canonical, canon> {
-  enum index_space { vertices, cells };
-  using index_spaces = has<cells, vertices>;
-  using connectivities = util::types<>;
+mesh::slot m;
+mesh::cslot mc;
 
-  static coloring color(std::string const &) {
-    flog(info) << "invoking coloring" << std::endl;
-    return {4, {32, 45}, {}};
-  }
-};
-
-canon::slot canonical;
-canon::cslot coloring;
-
-template<typename T>
-using dense_field = field<T, data::dense>;
-
-const dense_field<double>::definition<canon, canon::cells> cell_field_1,
-  cell_field_2;
-const dense_field<double>::definition<canon, canon::vertices> vertex_field_1;
+const field<double>::definition<mesh, mesh::entities> m_field_1, m_field_2;
 
 void
-init(canon::accessor<wo> t,
-  dense_field<double>::accessor<wo> f1,
-  dense_field<double>::accessor<wo> f2,
-  dense_field<double>::accessor<wo> vf1) {
-  for(const auto c : t.entities<canon::cells>()) {
-    f1[c] = 100. * color() + double(c);
-    f2[c] = 100. * color() + 20. + double(c);
-  } // for
-  for(const auto v : t.entities<canon::vertices>()) {
-    vf1[v] = 100. * color() + 40. + double(v);
+init(mesh::accessor<ro> m,
+  field<double>::accessor<wo, na> mf1,
+  field<double>::accessor<wo, na> mf2) {
+  auto ms1 = m.mdspan<mesh::entities>(mf1);
+  auto ms2 = m.mdspan<mesh::entities>(mf2);
+  for(auto i : m.extents<mesh::x_axis, mesh::all>()) {
+    for(auto j : m.extents<mesh::y_axis, mesh::all>()) {
+      double val = 16. * color() + 8. * (int)i + (int)j;
+      ms1(j, i) = val;
+      ms2(j, i) = val + 1000.;
+    } // for
   } // for
 } // init
 
 void
-clear(canon::accessor<wo> t,
-  dense_field<double>::accessor<wo> f1,
-  dense_field<double>::accessor<wo> f2,
-  dense_field<double>::accessor<wo> vf1) {
-  for(const auto c : t.entities<canon::cells>()) {
-    f1[c] = 0.;
-    f2[c] = 0.;
-  } // for
-  for(const auto v : t.entities<canon::vertices>()) {
-    vf1[v] = 0.;
+clear(mesh::accessor<ro> m,
+  field<double>::accessor<wo, na> mf1,
+  field<double>::accessor<wo, na> mf2) {
+  auto ms1 = m.mdspan<mesh::entities>(mf1);
+  auto ms2 = m.mdspan<mesh::entities>(mf2);
+  for(auto i : m.extents<mesh::x_axis, mesh::all>()) {
+    for(auto j : m.extents<mesh::y_axis, mesh::all>()) {
+      ms1(j, i) = 0.;
+      ms2(j, i) = 0.;
+    } // for
   } // for
 } // clear
 
 int
-check(canon::accessor<ro> t,
-  dense_field<double>::accessor<ro> f1,
-  dense_field<double>::accessor<ro> f2,
-  dense_field<double>::accessor<ro> vf1) {
+check(mesh::accessor<ro> m,
+  field<double>::accessor<ro, na> mf1,
+  field<double>::accessor<ro, na> mf2) {
   UNIT {
-    for(auto c : t.entities<canon::cells>()) {
-      auto f1exp = 100. * color() + double(c);
-      auto f2exp = 100. * color() + 20. + double(c);
-      ASSERT_EQ(f1[c], f1exp);
-      ASSERT_EQ(f2[c], f2exp);
-    } // for
-    for(const auto v : t.entities<canon::vertices>()) {
-      auto vf1exp = 100. * color() + 40. + double(v);
-      ASSERT_EQ(vf1[v], vf1exp);
+    auto ms1 = m.mdspan<mesh::entities>(mf1);
+    auto ms2 = m.mdspan<mesh::entities>(mf2);
+    for(auto i : m.extents<mesh::x_axis, mesh::all>()) {
+      for(auto j : m.extents<mesh::y_axis, mesh::all>()) {
+        double val = 16. * color() + 8. * (int)i + (int)j;
+        auto s1exp = val;
+        auto s2exp = val + 1000.;
+        ASSERT_EQ(ms1(j, i), s1exp);
+        ASSERT_EQ(ms2(j, i), s2exp);
+      } // for
     } // for
   };
 } // check
@@ -99,25 +81,30 @@ check(canon::accessor<ro> t,
 int
 restart_driver() {
   UNIT {
-    coloring.allocate("test.txt");
-    canonical.allocate(coloring.get());
+    mesh::coord indices{8, 8};
+    mesh::coord colors{4, 1};
+    mesh::coord hdepths{0, 0};
+    mesh::coord bdepths{0, 0};
+    std::vector<bool> periodic{false, false};
+    std::vector<mesh::coloring_definition> index_definitions = {
+      {colors, indices, hdepths, bdepths, periodic, false}};
+    mc.allocate(index_definitions);
+    m.allocate(mc.get());
 
-    auto cf1 = cell_field_1(canonical);
-    auto cf2 = cell_field_2(canonical);
-    auto vf1 = vertex_field_1(canonical);
-    execute<init>(canonical, cf1, cf2, vf1);
+    auto mf1 = m_field_1(m);
+    auto mf2 = m_field_2(m);
+    execute<init>(m, mf1, mf2);
 
     int num_files = 4;
     io::io_interface iif{num_files};
     // TODO:  make this registration automatic, not manual
-    iif.add_region<canon, canon::cells>(canonical);
-    iif.add_region<canon, canon::vertices>(canonical);
+    iif.add_region<mesh, mesh::entities>(m);
     iif.checkpoint_all_fields("hdf5_restart.dat");
 
-    execute<clear>(canonical, cf1, cf2, vf1);
+    execute<clear>(m, mf1, mf2);
     iif.recover_all_fields("hdf5_restart.dat");
 
-    EXPECT_EQ(test<check>(canonical, cf1, cf2, vf1), 0);
+    EXPECT_EQ(test<check>(m, mf1, mf2), 0);
   };
 
   return 0;
