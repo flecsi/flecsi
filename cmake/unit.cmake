@@ -25,6 +25,7 @@ if(ENABLE_UNIT_TESTS)
   enable_testing()
   add_library(unit-main OBJECT ${FLECSI_UNIT_MAIN})
   target_link_libraries(unit-main PRIVATE FleCSI::FleCSI)
+  target_include_directories(unit-main PRIVATE ${CMAKE_BINARY_DIR})
   if (ENABLE_KOKKOS)
     target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
   endif()
@@ -228,6 +229,9 @@ function(add_unit name)
   if(unit_policy_libraries)
     target_link_libraries(${name} PRIVATE ${unit_policy_libraries})
   endif()
+
+
+  target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
 
   if(unit_policy_includes)
       target_include_directories(${name}
