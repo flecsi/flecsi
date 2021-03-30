@@ -83,8 +83,7 @@ add_executable(cycle
   test/package_b.hh
   test/package_c.hh)
 target_link_libraries(cycle FleCSI)
-target_link_libraries(cycle ${FLECSI_LIBRARY_DEPENDENCIES}
-  ${CMAKE_THREAD_LIBS_INIT})
+target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
 
 add_unit(flog
   SOURCES

@@ -204,8 +204,6 @@ if(NOT FORMAT_ONLY)
   configure_file(${PROJECT_SOURCE_DIR}/config/flecsi-config.h.in
     ${CMAKE_BINARY_DIR}/flecsi-config.h @ONLY)
 
-  include_directories(${CMAKE_BINARY_DIR})
-
   install(
     FILES ${CMAKE_BINARY_DIR}/flecsi-config.h
     DESTINATION include
@@ -230,6 +228,8 @@ if(NOT FORMAT_ONLY)
       ${FleCSI_VERSION}
     NAMESPACE
       FleCSI
+    INCLUDE_PRIVATE
+      ${CMAKE_BINARY_DIR}
     LINK_PUBLIC
       ${TPL_LIBRARIES}
   )
