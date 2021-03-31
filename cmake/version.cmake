@@ -16,6 +16,7 @@ execute_process(
   COMMAND ${CMAKE_SOURCE_DIR}/VERSION
   OUTPUT_VARIABLE version_output
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 string(REGEX REPLACE "\n$" "" version "${version_output}")
 
@@ -36,6 +37,7 @@ endif()
 #message(STATUS "branch: ${branch}")
 #message(STATUS "version: ${version}")
 #message(STATUS "fields: ${fields}")
+#message(STATUS "rest: ${rest}")
 
 set(${PROJECT_NAME}_COMMITS)
 if(rest)
