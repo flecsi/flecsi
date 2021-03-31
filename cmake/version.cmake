@@ -14,15 +14,16 @@
 
 execute_process(
   COMMAND ${CMAKE_SOURCE_DIR}/VERSION
-  OUTPUT_VARIABLE version_output
+  OUTPUT_VARIABLE version
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-string(REGEX REPLACE "\n$" "" version "${version_output}")
+string(REGEX REPLACE "\n$" "" version "${version}")
 
 # debug
 # message(STATUS "VERSION: ${version}")
 
-string(REPLACE " " ";" fields ${version_output})
+string(REPLACE " " ";" fields ${version})
 list(LENGTH fields size)
 
 list(GET fields 0 branch)
@@ -36,6 +37,7 @@ endif()
 #message(STATUS "branch: ${branch}")
 #message(STATUS "version: ${version}")
 #message(STATUS "fields: ${fields}")
+#message(STATUS "rest: ${rest}")
 
 set(${PROJECT_NAME}_COMMITS)
 if(rest)
