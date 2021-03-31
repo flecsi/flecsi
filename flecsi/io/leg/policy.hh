@@ -30,13 +30,13 @@
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
 
-#include <flecsi/data.hh>
-#include <flecsi/data/field.hh>
-#include <flecsi/data/leg/policy.hh>
-#include <flecsi/execution.hh>
-#include <flecsi/io/hdf5.hh>
-#include <flecsi/run/context.hh>
-#include <flecsi/util/serialize.hh>
+#include "flecsi/data.hh"
+#include "flecsi/data/field.hh"
+#include "flecsi/data/leg/policy.hh"
+#include "flecsi/execution.hh"
+#include "flecsi/io/hdf5.hh"
+#include "flecsi/run/context.hh"
+#include "flecsi/util/serialize.hh"
 
 #include <hdf5.h>
 #include <legion.h>
@@ -247,7 +247,7 @@ struct io_interface {
 
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   void add_region(typename Topo::slot & slot) {
-    auto fs = run::context::instance().get_field_info_store<Topo, Index>();
+    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
     FieldNames fn;
     for(const auto p : fs) {
       // TODO:  handle types other than double
@@ -259,9 +259,8 @@ struct io_interface {
     hdf5_region_vector.emplace_back(
       legion_hdf5_region_t{(slot->template get_region<Index>().logical_region),
         (slot->template get_partition<Index>(field_id_t()).logical_partition),
-        // TODO:  get a more descriptive name
-        "something",
-        fn});
+        util::type<Topo>() + '[' + std::to_string(Index) + ']',
+        std::move(fn)});
   }
 
   inline void checkpoint_all_fields(const std::string & file_name,
@@ -279,25 +278,6 @@ struct io_interface {
   std::vector<legion_hdf5_region_t> hdf5_region_vector;
   std::map<std::string, unsigned> name_count;
 };
-
-// add special cases for process topology
-inline void
-checkpoint_process_topology(const std::string & file_name,
-  int num_files,
-  bool attach_flag = true) {
-  io_interface iif(num_files);
-  iif.add_region<topo::index>(process_topology);
-  iif.checkpoint_data<true>(file_name, attach_flag);
-} // checkpoint_process_topology
-
-inline void
-recover_process_topology(const std::string & file_name,
-  int num_files,
-  bool attach_flag = true) {
-  io_interface iif(num_files);
-  iif.add_region<topo::index>(process_topology);
-  iif.checkpoint_data<false>(file_name, attach_flag);
-} // recover_data
 
 } // namespace io
 } // namespace flecsi

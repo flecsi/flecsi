@@ -24,13 +24,11 @@ namespace flecsi::io {
 // TODO:  add automatic registration
 void
 checkpoint_all_fields(const std::string & file_name, int num_files) {
-  io_interface iif(num_files);
-  iif.checkpoint_all_fields(file_name);
+  io_interface(num_files).checkpoint_all_fields(file_name);
 }
 void
 recover_all_fields(const std::string & file_name, int num_files) {
-  io_interface iif(num_files);
-  iif.recover_all_fields(file_name);
+  io_interface(num_files).recover_all_fields(file_name);
 }
 
 } // namespace flecsi::io

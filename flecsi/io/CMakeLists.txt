@@ -80,12 +80,6 @@ add_unit(hdf5_restart
   THREADS 4
 )
 
-add_unit(io_index
-  SOURCES
-    test/io_index.cc
-  THREADS 4
-)
-
 add_unit(io_metadata
   SOURCES
     test/io_metadata.cc
