@@ -106,7 +106,7 @@ class Flecsi(CMakePackage):
 
     depends_on('mpi', when='backend=mpi')
     depends_on('mpich@3.4.1', when='^mpich')
-    depends_on('openmpi@3.1.6', when='^openmpi')
+    depends_on('openmpi@4.1.0', when='^openmpi')
 
     # HPX
 
