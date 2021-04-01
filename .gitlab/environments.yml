@@ -7,43 +7,51 @@ include: .gitlab/templates.yml
 mpich:
   extends: .env_template
   dependencies: []
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    VERSION: flecsi@devel
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5 +kokkos
 
 mpich-clang:
   extends: .env_template
   dependencies: []
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
-    VERSION: flecsi@devel
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5 +kokkos
 
 openmpi:
   extends: .env_template
   dependencies: []
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
-    VERSION: flecsi@devel
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5
 
 openmpi-clang:
   extends: .env_template
   dependencies: []
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
-    VERSION: flecsi@devel
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5
