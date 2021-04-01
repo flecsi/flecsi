@@ -27,6 +27,8 @@ include: .gitlab/environments.yml
 format:diff:
   extends: .diff_format_template
   dependencies: []
+  only:
+    - merge_requests
   variables:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: util-fedora-30
@@ -39,6 +41,8 @@ format:check:
     - job: format:diff
       artifacts: true
     - job: tutorial:legion # Hack to make this last. Gitlab needs some mechanism to allow this
+  only:
+    - merge_requests
   variables:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: util-fedora-30
@@ -53,8 +57,10 @@ mpich-defaults:
   extends: .defaults_build_template
   needs:
     ["mpich"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -70,8 +76,10 @@ mpich-legion-gnu:
   extends: .build_template
   needs:
     ["mpich"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -87,8 +95,10 @@ mpich-legion-gnu:release:
   extends: .build_template
   needs:
     ["mpich"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -111,8 +121,10 @@ mpich-mpi-gnu:
   extends: .build_template
   needs:
     ["mpich"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -128,8 +140,10 @@ mpich-mpi-gnu:release:
   extends: .build_template
   needs:
     ["mpich"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -152,8 +166,10 @@ tutorial:legion:
   extends: .tutorial_template
   needs:
     ["mpich-legion-gnu"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -173,8 +189,10 @@ openmpi-legion-gnu:
   extends: .build_template
   needs:
     ["openmpi"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -190,8 +208,10 @@ openmpi-legion-gnu:release:
   extends: .build_template
   needs:
     ["openmpi"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -214,8 +234,10 @@ openmpi-mpi-gnu:
   extends: .build_template
   needs:
     ["openmpi"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -231,8 +253,10 @@ openmpi-mpi-gnu:release:
   extends: .build_template
   needs:
     ["openmpi"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
@@ -255,8 +279,10 @@ mpich-legion-clang:
   extends: .build_template
   needs:
     ["mpich-clang"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
@@ -279,8 +305,10 @@ mpich-mpi-clang:
   extends: .build_template
   needs:
     ["mpich-clang"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
@@ -303,8 +331,10 @@ openmpi-mpi-clang:
   extends: .build_template
   needs:
     ["openmpi-clang"]
+  only:
+    - merge_requests
   variables:
-    ENVIRONMENT: devel
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: clearlinux
