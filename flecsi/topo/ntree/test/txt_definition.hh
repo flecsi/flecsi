@@ -85,6 +85,9 @@ private:
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     // For now read all particles?
     std::ifstream myfile(filename);
+    if(myfile.fail()) {
+      std::cerr << "Cannot open file: " << filename << std::endl;
+    }
     nglobal_entities_ = 0;
     myfile >> nglobal_entities_;
 

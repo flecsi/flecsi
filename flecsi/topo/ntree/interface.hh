@@ -113,7 +113,9 @@ struct ntree : ntree_base, with_meta<Policy> {
         make_repartitioned<Policy, tree_data>(c.nparts_,
           make_partial<allocate>(c.tdata_offset_)),
         make_repartitioned<Policy, meta>(c.nparts_,
-          make_partial<allocate>(c.tdata_offset_))}},
+          make_partial<allocate>(c.tdata_offset_)),
+        make_repartitioned<Policy, comms>(c.nparts_,
+          make_partial<allocate>(c.comms_offset_))}},
       cp_data_tree(*this,
         // Avoid initializer-list constructor:
         data::copy_plan::Sizes(c.nparts_, 1),
@@ -162,6 +164,10 @@ struct ntree : ntree_base, with_meta<Policy> {
     meta>
     meta_field;
 
+  static inline const typename field<std::size_t>::template definition<Policy,
+    comms>
+    comms_field;
+
   // --------------------------------------------------------------------------
 
   // Use to reference the index spaces by id
@@ -182,7 +188,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   // This is decomposed in two steps since
   // we need to share information using a
   // future_map to continue the construction
-  static serdez_vector<hcell_t> make_tree_local_task(
+  static auto make_tree_local_task(
     typename Policy::template accessor<rw, na> t) {
     t.make_tree();
     return t.top_tree_boundaries();
@@ -319,14 +325,13 @@ struct ntree : ntree_base, with_meta<Policy> {
 
   // ---------------------------- Ghosts exchange tasks -----------------------
 
-  static auto xfer_entities_req_start(
+  static void xfer_entities_req_start(
     typename field<interaction_entities>::template accessor<rw, na> a,
+    typename field<std::size_t>::template accessor<wo, na> restart,
     data::buffers::Start mv,
     const std::vector<color_id> & f) {
     std::size_t cur = 0;
     std::size_t cs = run::context::instance().colors();
-    serdez_vector<std::size_t> restart; // Use last value to store total
-    restart.resize(cs);
     auto color = run::context::instance().color();
     for(std::size_t c = 0; c < cs; ++c) {
       if(c != color) {
@@ -334,8 +339,7 @@ struct ntree : ntree_base, with_meta<Policy> {
         for(std::size_t i = 0; i < f.size(); ++i) {
           if(f[i].color == c) {
             if(!w(a(f[i].id))) {
-              restart[cur] = i;
-              restart[cs - 1] += i;
+              restart(cur) = i;
               break;
             } // if
           } // if
@@ -343,19 +347,18 @@ struct ntree : ntree_base, with_meta<Policy> {
         ++cur;
       } // if
     } // for
-    return restart;
   } // xfer_nodes_req_start
 
   static auto xfer_entities_req(
     typename field<interaction_entities>::template accessor<rw, na> a,
     typename field<meta_type>::template accessor<rw, na> m,
+    typename field<std::size_t>::template accessor<rw, na> restart,
     data::buffers::Transfer mv,
-    const std::vector<color_id> & f,
-    const std::vector<std::size_t> & v) {
+    const std::vector<color_id> & f) {
 
+    // Read
     std::size_t cs = run::context::instance().colors();
-    serdez_vector<std::size_t> restart;
-    restart.resize(cs);
+    int stop = 0;
     int cur = 0;
     std::size_t idx = m(0).local.ents + m(0).top_tree.ents + m(0).ghosts.ents;
     auto color = run::context::instance().color();
@@ -373,13 +376,13 @@ struct ntree : ntree_base, with_meta<Policy> {
     cur = 0;
     for(std::size_t c = 0; c < cs; ++c) {
       if(c != color) {
-        if(v[cur] != 0) {
+        if(restart(cur) != 0) {
           auto w = mv[cur].write();
-          for(std::size_t i = v[cur]; i < f.size(); ++i) {
+          for(std::size_t i = restart(c); i < f.size(); ++i) {
             if(f[i].color == c) {
               if(!w(a(f[i].id))) {
-                restart[cur] = i;
-                restart[cs - 1] += i;
+                restart(cur) = i;
+                stop = 1;
                 break;
               }
             } // if
@@ -388,8 +391,7 @@ struct ntree : ntree_base, with_meta<Policy> {
         } // if
       } // if
     } // for
-
-    return restart;
+    return stop;
   } // xfer_entities_req
 
   static serdez_vector<color_id> find_task(
@@ -430,18 +432,17 @@ struct ntree : ntree_base, with_meta<Policy> {
       make_partial<allocate>(ents_sizes_rz));
 
     // Perform buffered copy
-    auto full = 0;
-    auto vi = execute<xfer_entities_req_start>(
-      e_i(ts.get()), *(ts->buf), to_send.get(process()));
-    while((vi = execute<xfer_entities_req>(e_i(ts.get()),
-             meta_field(ts),
-             *(ts->buf),
-             to_send.get(process()),
-             vi.get(process())))
-            .get(process())[ts->colors() - 1] != 0) {
-
+    auto full = 1;
+    execute<xfer_entities_req_start>(
+      e_i(ts.get()), comms_field(ts.get()), *(ts->buf), to_send.get(process()));
+    while(reduce<xfer_entities_req, exec::fold::sum>(e_i(ts.get()),
+      meta_field(ts),
+      comms_field(ts.get()),
+      *(ts->buf),
+      to_send.get(process()))
+            .get()) {
       // Size of IS is twice buffer size
-      if(!(full % 2)) {
+      if(!(++full % 2)) {
         // Resize the partition if the maximum size is reached
         for(std::size_t c = 0; c < ts->colors(); ++c) {
           ents_sizes_rz[c] += buffer_size;
@@ -476,7 +477,6 @@ struct ntree : ntree_base, with_meta<Policy> {
     std::vector<std::size_t> nents_base(processes());
     std::vector<std::size_t> nents_tt(processes());
     std::vector<std::size_t> nents_rz(processes());
-    std::vector<hcell_t> hcells;
 
     for(std::size_t c = 0; c < ts->colors(); ++c) {
       auto f = fm_sizes.get(c);
@@ -554,7 +554,6 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
 private:
-
   const static size_t nchildren_ = 1 << dimension;
 };
 
@@ -1110,7 +1109,7 @@ struct ntree<Policy>::access {
   } // make_tree
 
   // Count number of entities to send to each other color
-  serdez_vector<hcell_t> top_tree_boundaries() {
+  auto top_tree_boundaries() {
     serdez_vector<hcell_t> sdata;
     auto hmap = map();
     auto color = run::context::instance().color();
