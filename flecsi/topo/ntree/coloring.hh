@@ -71,22 +71,22 @@ struct ntree_base {
         comms_offset_(nparts, nparts) {}
 
     // Global
-    size_t nparts_;
+    std::size_t nparts_;
 
     // Entities
-    size_t local_entities_;
-    size_t global_entities_;
+    std::size_t local_entities_;
+    std::size_t global_entities_;
     std::vector<std::size_t> entities_distribution_;
     std::vector<std::size_t> entities_offset_;
 
     // nodes
-    size_t local_nodes_;
-    size_t global_nodes_;
+    std::size_t local_nodes_;
+    std::size_t global_nodes_;
     std::vector<std::size_t> nodes_offset_;
 
     // hmap
     static constexpr size_t local_hmap_ = 1 << 15;
-    size_t global_hmap_;
+    std::size_t global_hmap_;
     std::vector<std::size_t> hmap_offset_;
 
     // tdata

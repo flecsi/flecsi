@@ -48,22 +48,19 @@ public:
   }
 
   inline void legion_serialize(void * buffer) const {
-    char * ptr = (char *)buffer;
-    std::size_t size = this->size();
-    memcpy(ptr, &size, sizeof(std::size_t));
-    ptr += sizeof(std::size_t);
-    for(std::size_t i = 0; i < this->size(); ++i, ptr += sizeof(T)) {
-      memcpy(ptr, this->data() + i, sizeof(T));
+    std::byte * p = static_cast<std::byte *>(buffer);
+    util::serial_put(p, this->size());
+    for(std::size_t i = 0; i < this->size(); ++i) {
+      util::serial_put(p, *(this->data() + i));
     }
   }
 
   inline void legion_deserialize(const void * buffer) {
-    const char * ptr = (const char *)buffer;
-    size_t elements = *(std::size_t *)ptr;
-    ptr += sizeof(std::size_t);
+    const std::byte * p = static_cast<const std::byte *>(buffer);
+    std::size_t elements = util::serial_get<std::size_t>(p);
     this->resize(elements);
-    for(std::size_t i = 0; i < elements; ++i, ptr += sizeof(T)) {
-      memcpy(this->data() + i, ptr, sizeof(T));
+    for(std::size_t i = 0; i < elements; ++i) {
+      (*this)[i] = util::serial_get<T>(p);
     }
   }
 };
