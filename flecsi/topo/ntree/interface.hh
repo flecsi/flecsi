@@ -44,24 +44,18 @@ class serdez_vector : public std::vector<T>
 {
 public:
   inline size_t legion_buffer_size(void) const {
-    return (sizeof(size_t) + (sizeof(T) * this->size()));
+    return util::serial_size(static_cast<std::vector<T>>(*this));
   }
 
   inline void legion_serialize(void * buffer) const {
     std::byte * p = static_cast<std::byte *>(buffer);
-    util::serial_put(p, this->size());
-    for(std::size_t i = 0; i < this->size(); ++i) {
-      util::serial_put(p, *(this->data() + i));
-    }
+    util::serial_put(p, static_cast<std::vector<T>>(*this));
   }
 
   inline void legion_deserialize(const void * buffer) {
     const std::byte * p = static_cast<const std::byte *>(buffer);
-    std::size_t elements = util::serial_get<std::size_t>(p);
-    this->resize(elements);
-    for(std::size_t i = 0; i < elements; ++i) {
-      (*this)[i] = util::serial_get<T>(p);
-    }
+    auto v = util::serial_get1<std::vector<T>>(p);
+    this->swap(v);
   }
 };
 
