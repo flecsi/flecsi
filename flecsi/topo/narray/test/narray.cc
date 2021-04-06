@@ -17,48 +17,25 @@
 #define __FLECSI_PRIVATE__
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/topo/narray/test/narray_tasks.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
 
-void
-extents(mesh::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
-  auto c = m.mdspan<mesh::entities>(ca);
-  auto cl = color();
-#if defined(FLECSI_ENABLE_KOKKOS)
-  auto x_ex = m.extents<mesh::x_axis>();
-  forall(j, m.extents<mesh::y_axis>(), "extents") {
-    for(auto i : x_ex)
-      c[j][i] = cl;
-  };
+// 1D Mesh
+mesh1d::slot m1;
+mesh1d::cslot coloring1;
+const field<std::size_t>::definition<mesh1d, mesh1d::index_space::entities> f1;
 
-#else
-  for(auto j : m.extents<mesh::y_axis>()) {
-    for(auto i : m.extents<mesh::x_axis>()) {
-      c[j][i] = cl;
-    } // for
-  } // for
-#endif
-}
+// 2D Mesh
+mesh2d::slot m2;
+mesh2d::cslot coloring2;
+const field<std::size_t>::definition<mesh2d, mesh2d::index_space::entities> f2;
 
-void
-print(mesh::accessor<ro> m, field<std::size_t>::accessor<ro, ro> ca) {
-  auto c = m.mdspan<mesh::entities>(ca);
-  std::stringstream ss;
-  for(int j{int(m.size<mesh::y_axis, mesh::all>() - 1)}; j >= 0; --j) {
-    for(auto i : m.extents<mesh::x_axis, mesh::all>()) {
-      ss << c[j][i] << " ";
-    } // for
-    ss << std::endl;
-  } // for
-  ss << std::endl;
-  flog(warn) << ss.str() << std::endl;
-}
-
-mesh::slot m;
-mesh::cslot coloring;
-
-const field<std::size_t>::definition<mesh, mesh::entities> cs;
+// 3D Mesh
+mesh3d::slot m3;
+mesh3d::cslot coloring3;
+const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 
 int
 narray_driver() {
@@ -71,34 +48,58 @@ narray_driver() {
     }
 
     {
-      mesh::coord indices{8, 8};
-      // mesh::coord indices{16, 16};
-      // mesh::coord indices{25, 10};
-      // mesh::coord indices{10, 25};
+      // 1D Mesh
+      mesh1d::coord indices{9};
       auto colors = topo::narray_utils::distribute(processes(), indices);
       flog(warn) << log::container{colors} << std::endl;
-      // mesh::coord colors{2, 2};
 
-      mesh::coord hdepths{1, 1};
-      mesh::coord bdepths{0, 0};
-      std::vector<bool> periodic{false, false};
-      std::vector<mesh::coloring_definition> index_definitions = {
+      mesh1d::coord hdepths{1};
+      mesh1d::coord bdepths{2};
+      std::vector<bool> periodic{false};
+      std::vector<mesh1d::coloring_definition> index_definitions = {
         {colors, indices, hdepths, bdepths, periodic, true}};
-      coloring.allocate(index_definitions);
-      m.allocate(coloring.get());
-      execute<extents, default_accelerator>(m, cs(m));
-      execute<print>(m, cs(m));
+
+      coloring1.allocate(index_definitions);
+      m1.allocate(coloring1.get());
+      execute<set_field_1d>(m1, f1(m1));
+      execute<print_field_1d>(m1, f1(m1));
+      execute<check_1d>(m1);
     } // scope
 
     {
-      mesh::coord indices{8, 8, 8};
+      // 2D Mesh
+      mesh2d::coord indices{8, 8};
       auto colors = topo::narray_utils::distribute(processes(), indices);
-      mesh::coord hdepths{1, 1, 1};
-      mesh::coord bdepths{0, 0, 0};
-      std::vector<bool> periodic{false, false, false};
-      std::vector<mesh::coloring_definition> index_definitions = {
+      flog(warn) << log::container{colors} << std::endl;
+
+      mesh2d::coord hdepths{1, 2};
+      mesh2d::coord bdepths{2, 1};
+      std::vector<bool> periodic{false, false};
+      std::vector<mesh2d::coloring_definition> index_definitions = {
         {colors, indices, hdepths, bdepths, periodic, true}};
-      auto [clrs, idx_clrngs] = topo::narray_utils::color(index_definitions);
+      coloring2.allocate(index_definitions);
+      m2.allocate(coloring2.get());
+      execute<set_field_2d>(m2, f2(m2));
+      execute<print_field_2d>(m2, f2(m2));
+      execute<check_2d>(m2);
+    } // scope
+
+    {
+      // 3D Mesh
+      mesh3d::coord indices{3, 3, 4};
+      auto colors = topo::narray_utils::distribute(processes(), indices);
+      flog(warn) << log::container{colors} << std::endl;
+
+      mesh3d::coord hdepths{2, 1, 1};
+      mesh3d::coord bdepths{1, 2, 1};
+      std::vector<bool> periodic{false, false, false};
+      std::vector<mesh3d::coloring_definition> index_definitions = {
+        {colors, indices, hdepths, bdepths, periodic, true}};
+      coloring3.allocate(index_definitions);
+      m3.allocate(coloring3.get());
+      execute<set_field_3d>(m3, f3(m3));
+      execute<print_field_3d>(m3, f3(m3));
+      execute<check_3d>(m3);
     } // scope
   };
 } // coloring_driver
