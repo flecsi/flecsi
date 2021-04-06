@@ -44,12 +44,12 @@ class serdez_vector : public std::vector<T>
 {
 public:
   inline size_t legion_buffer_size(void) const {
-    return util::serial_size(static_cast<std::vector<T>>(*this));
+    return util::serial_size(static_cast<const std::vector<T> &>(*this));
   }
 
   inline void legion_serialize(void * buffer) const {
     std::byte * p = static_cast<std::byte *>(buffer);
-    util::serial_put(p, static_cast<std::vector<T>>(*this));
+    util::serial_put(p, static_cast<const std::vector<T> &>(*this));
   }
 
   inline void legion_deserialize(const void * buffer) {
@@ -70,8 +70,16 @@ public:
 //-----------------------------------------------------------------//
 //! The tree topology is parameterized on a policy P
 //-----------------------------------------------------------------//
+/**
+ * @brief NTree topology.
+ * The Ntree topology implements a distributed  binary, quad and octree
+ * topology.
+ *
+ */
 template<typename Policy>
 struct ntree : ntree_base, with_meta<Policy> {
+
+private:
   // Get types from Policy
   constexpr static unsigned int dimension = Policy::dimension;
   using key_int_t = typename Policy::key_int_t;
@@ -90,6 +98,7 @@ struct ntree : ntree_base, with_meta<Policy> {
     key_t hibound, lobound;
   };
 
+public:
   template<std::size_t>
   struct access;
 
@@ -127,22 +136,12 @@ struct ntree : ntree_base, with_meta<Policy> {
       }()) {}
 
   // Ntree mandatory fields ---------------------------------------------------
-
+public:
   static inline const typename field<key_t>::template definition<Policy,
     entities>
     e_keys;
   static inline const typename field<key_t>::template definition<Policy, nodes>
     n_keys;
-
-  // Hmap fields
-  static inline const typename field<
-    std::pair<key_t, hcell_t>>::template definition<Policy, hashmap>
-    hcells;
-
-  // Tdata field
-  static inline const typename field<ntree_data>::template definition<Policy,
-    tree_data>
-    data_field;
 
   static inline const typename field<
     interaction_entities>::template definition<Policy, entities>
@@ -150,6 +149,16 @@ struct ntree : ntree_base, with_meta<Policy> {
   static inline const typename field<
     interaction_nodes>::template definition<Policy, nodes>
     n_i;
+
+private:
+  // Hmap fields
+  static inline const typename field<
+    std::pair<key_t, hcell_t>>::template definition<Policy, hashmap>
+    hcells;
+  // Tdata field
+  static inline const typename field<ntree_data>::template definition<Policy,
+    tree_data>
+    data_field;
 
   static inline const typename field<meta_type>::template definition<Policy,
     meta>
@@ -176,15 +185,23 @@ struct ntree : ntree_base, with_meta<Policy> {
   ntree_base::en_size rz, sz;
 
   // ----------------------- Top Tree Construction Tasks -----------------------
-  // This is decomposed in two steps since
-  // we need to share information using a
-  // future_map to continue the construction
+  /**
+   * @brief Build the local tree.
+   * Add the entities in the hashmap and create needed nodes.
+   * After this first step, the top tree entities and nodes are returned. These
+   * will build the top tree, shared by all colors.
+   */
   static auto make_tree_local_task(
     typename Policy::template accessor<rw, na> t) {
     t.make_tree();
     return t.top_tree_boundaries();
   } // make_tree
 
+  /**
+   *  @brief Add the top tree to the local tree.
+   * First step is to load the top tree entities and nodes.
+   * The new sizes are then returned to create the copy plan for the top tree.
+   */
   static auto make_tree_distributed_task(
     typename Policy::template accessor<rw, na> t,
     typename field<meta_type>::template accessor<ro, na> m,
@@ -193,12 +210,18 @@ struct ntree : ntree_base, with_meta<Policy> {
     return sizes_task(m);
   }
 
+  /**
+   * @brief Return the number of entities/nodes for local, top tree and ghosts
+   * stores in the respective index spaces.
+   */
   static std::array<ent_node, 3> sizes_task(
     typename field<meta_type>::template accessor<ro, na> m) {
     return {{m(0).local, m(0).top_tree, m(0).ghosts}};
   }
 
-  // Copy plan creation tasks
+  /**
+   * @brief Copy plan: set destination sizes
+   */
   static void set_destination(field<data::intervals::Value>::accessor<wo> a,
     const std::vector<std::size_t> & base,
     const std::vector<std::size_t> & total) {
@@ -206,6 +229,9 @@ struct ntree : ntree_base, with_meta<Policy> {
     a(0) = data::intervals::make({base[i], base[i] + total[i]}, i);
   }
 
+  /**
+   * @brief Copy plan: set pointers for top tree
+   */
   template<index_space IS = entities>
   static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo, na> a,
     const std::vector<std::size_t> & base,
@@ -219,6 +245,9 @@ struct ntree : ntree_base, with_meta<Policy> {
     }
   }
 
+  /**
+   * @brief Copy plan:
+   */
   static void set_entities_ptrs(field<data::points::Value>::accessor<wo, na> a,
     const std::vector<std::size_t> & nents_base,
     const std::vector<std::pair<hcell_t, std::size_t>> & ids) {
@@ -231,7 +260,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   // ---------------------------- Top tree construction -----------------------
-
+public:
   /**
    * @brief  Build the local tree and share the top part of the tree
    */
@@ -315,7 +344,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
-
+private:
   static void xfer_entities_req_start(
     typename field<interaction_entities>::template accessor<rw, na> a,
     typename field<std::size_t>::template accessor<wo, na> restart,
@@ -404,7 +433,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   // ----------------------------------- Share ghosts -------------------------
-
+public:
   // Search neighbors and complete the hmap, create copy plans (or buffer)
   static void share_ghosts(typename Policy::slot & ts) {
     // Find entities that will be used
@@ -500,11 +529,12 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   //------------------------------ reset tree ---------------------------------
-
+private:
   static void reset_task(typename Policy::template accessor<rw> t) {
     t.reset();
   }
 
+public:
   static void reset(typename Policy::slot & ts) {
     flecsi::execute<reset_task>(ts);
     ts->cp_top_tree_entities.reset();
@@ -513,7 +543,7 @@ struct ntree : ntree_base, with_meta<Policy> {
   }
 
   //---------------------------------------------------------------------------
-
+public:
   template<typename Type,
     data::layout Layout,
     typename Topo,
