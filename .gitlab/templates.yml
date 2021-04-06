@@ -28,6 +28,10 @@
     - export PATH=$HOME/.local/bin:$PATH
     - source $HOME/.spack/share/spack/setup-env.sh
 
+.env_spack_environment:
+  script: &env_spack_environment
+    - export SPACK_ENVIRONMENT=`echo -e "${ENVIRONMENT}" | sed 's,\.,-,g'`
+
 #------------------------------------------------------------------------------#
 # env_spack_archive
 #
@@ -79,8 +83,9 @@
     - *env_permissions
     - *print_env_info
     - *env_shell
-    - spack env create ${ENVIRONMENT}-${MPI_PROVIDER}
-    - spack env activate ${ENVIRONMENT}-${MPI_PROVIDER}
+    - *env_spack_environment
+    - spack env create ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - spack repo add spack-repo
     # This uses the legion backend because it also satisfies the dependencies
     # for MPI (and potentially HPX)
@@ -121,7 +126,8 @@
     - *env_permissions
     - *env_spack_restore
     - *env_shell
-    - spack env activate ${ENVIRONMENT}-${MPI_PROVIDER}
+    - *env_spack_environment
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
     - *print_build_info
@@ -171,7 +177,8 @@
     - *env_permissions
     - *env_spack_restore
     - *env_shell
-    - spack env activate ${ENVIRONMENT}-${MPI_PROVIDER}
+    - *env_spack_environment
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
     - *print_defaults_build_info
@@ -211,8 +218,9 @@
     - *env_permissions
     - *env_spack_restore
     - *env_shell
+    - *env_spack_environment
     - export CMAKE_PREFIX_PATH=${CI_PROJECT_DIR}/state/install
-    - spack env activate ${ENVIRONMENT}-${MPI_PROVIDER}
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build-tutorial
     - cd ${CI_PROJECT_DIR}/state/build-tutorial
     - *print_build_tutorial_info
