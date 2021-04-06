@@ -20,9 +20,7 @@
 #include <cstdint>
 #include <map>
 #include <ostream>
-#include <set>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -32,8 +30,15 @@
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
 
-#include <flecsi/data/field.hh>
+#include "flecsi/data.hh"
+#include "flecsi/data/field.hh"
+#include "flecsi/data/leg/policy.hh"
+#include "flecsi/execution.hh"
+#include "flecsi/io/hdf5.hh"
+#include "flecsi/run/context.hh"
+#include "flecsi/util/serialize.hh"
 
+#include <hdf5.h>
 #include <legion.h>
 
 namespace flecsi {
@@ -178,128 +183,101 @@ checkpoint_task(const Legion::Task * task,
   }
 }
 
-template<bool W = true> // whether to write or read the file
-inline void
-checkpoint_data(const std::string & file_name,
-  Legion::IndexSpace launch_space,
-  const std::vector<legion_hdf5_region_t> & hdf5_region_vector,
-  bool attach_flag) {
-  Legion::Runtime * runtime = Legion::Runtime::get_runtime();
-  Legion::Context ctx = Legion::Runtime::get_context();
+struct io_interface {
 
-  const auto task_args = util::serial_buffer([&](auto & p) {
-    util::serial_put(p, hdf5_region_vector.size());
-    for(auto & h : hdf5_region_vector)
-      util::serial_put(p, h.field_string_map);
-    util::serial_put(p, file_name);
-  });
-
-  const auto task_id =
-    attach_flag ? exec::leg::task_id<checkpoint_task<W, true>, loc | inner>
-                : exec::leg::task_id<checkpoint_task<W, false>, loc | leaf>;
-
-  Legion::IndexLauncher checkpoint_launcher(task_id,
-    launch_space,
-    Legion::TaskArgument((void *)(task_args.data()), task_args.size()),
-    Legion::ArgumentMap());
-
-  int idx = 0;
-  for(auto & it : hdf5_region_vector) {
-    checkpoint_launcher.add_region_requirement(
-      Legion::RegionRequirement(it.logical_partition,
-        0 /*projection ID*/,
-        W ? READ_ONLY : WRITE_DISCARD,
-        EXCLUSIVE,
-        it.logical_region));
-
-    for(auto & it : it.field_string_map) {
-      checkpoint_launcher.region_requirements[idx].add_field(it.first);
-    }
-    idx++;
-  }
-
-  {
-    log::devel_guard guard(io_tag);
-    flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
-                     << file_name << " regions size "
-                     << hdf5_region_vector.size() << std::endl;
-  }
-
-  Legion::FutureMap fumap =
-    runtime->execute_index_space(ctx, checkpoint_launcher);
-  fumap.wait_all_results();
-}
-
-struct io_region {
-  explicit io_region(int num_files)
-    : index_space([&] {
+  explicit io_interface(int num_files)
+    : launch_space([&] {
         // TODO:  allow for num_files != # of ranks
         assert(num_files == (int)processes());
         Legion::Rect<1> file_color_bounds(0, num_files - 1);
         return data::leg::run().create_index_space(
           data::leg::ctx(), file_color_bounds);
       }()),
-      index_partition(data::leg::run().create_equal_partition(data::leg::ctx(),
+      launch_partition(data::leg::run().create_equal_partition(data::leg::ctx(),
         process_topology->index_space,
-        index_space)),
-      logical_partition(data::leg::run().get_logical_partition(data::leg::ctx(),
-        process_topology->logical_region,
-        index_partition)) {
-#if 0 // with create_pending_partition
-    int idx = 0;
-    int num_subregions = process_topology->colors;
-    for(int point = 0; point < hdf5_file.num_files; point++) {
-      std::vector<IndexSpace> subspaces;
-      for(int i = 0; i < num_subregions / hdf5_file.num_files; i++) {
-        subspaces.push_back(
-          data::leg::run().get_index_subspace(data::leg::ctx(),
-            process_topology->color_partition.get_index_partition(),
-            idx));
-        idx++;
-      }
-      data::leg::run().create_index_space_union(
-        data::leg::ctx(), index_partition, point, subspaces);
-    }
-#endif
-  }
+        launch_space)) {}
 
   template<bool W = true> // whether to write or read the file
-  void checkpoint_process_topology(const std::string & f, bool attach) const {
-    auto & fs = run::context::instance().get_field_info_store<topo::index>();
-    std::map<std::string, std::pair<unsigned, unsigned>> count;
-    for(const auto p : fs)
-      ++count[p->name].first;
-    FieldNames fn;
-    for(const auto p : fs) {
-      auto & [c, i] = count.at(p->name);
-      fn.emplace(p->fid, p->name + (c > 1 ? " #" + std::to_string(++i) : ""));
+  inline void checkpoint_data(const std::string & file_name, bool attach_flag) {
+    Legion::Runtime * runtime = Legion::Runtime::get_runtime();
+    Legion::Context ctx = Legion::Runtime::get_context();
+
+    const auto task_args = util::serial_buffer([&](auto & p) {
+      util::serial_put(p, hdf5_region_vector.size());
+      for(auto & h : hdf5_region_vector)
+        util::serial_put(p, h.field_string_map);
+      util::serial_put(p, file_name);
+    });
+
+    const auto task_id =
+      attach_flag ? exec::leg::task_id<checkpoint_task<W, true>, loc | inner>
+                  : exec::leg::task_id<checkpoint_task<W, false>, loc | leaf>;
+
+    Legion::IndexLauncher checkpoint_launcher(task_id,
+      launch_space,
+      Legion::TaskArgument((void *)(task_args.data()), task_args.size()),
+      Legion::ArgumentMap());
+
+    int idx = 0;
+    for(auto & it : hdf5_region_vector) {
+      checkpoint_launcher.add_region_requirement(
+        Legion::RegionRequirement(it.logical_partition,
+          0 /*projection ID*/,
+          W ? READ_ONLY : WRITE_DISCARD,
+          EXCLUSIVE,
+          it.logical_region));
+
+      for(auto & it : it.field_string_map) {
+        checkpoint_launcher.region_requirements[idx].add_field(it.first);
+      }
+      idx++;
     }
-    checkpoint_data<W>(f,
-      index_space,
-      {{process_topology->logical_region,
-        logical_partition,
-        "process_topology",
-        std::move(fn)}},
-      attach);
+
+    {
+      log::devel_guard guard(io_tag);
+      flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
+                       << file_name << " regions size "
+                       << hdf5_region_vector.size() << std::endl;
+    }
+
+    Legion::FutureMap fumap =
+      runtime->execute_index_space(ctx, checkpoint_launcher);
+    fumap.wait_all_results();
   }
 
-  data::leg::unique_index_space index_space;
-  data::leg::unique_index_partition index_partition;
-  data::leg::unique_logical_partition logical_partition;
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
+  void add_region(typename Topo::slot & slot) {
+    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
+    FieldNames fn;
+    for(const auto p : fs) {
+      // TODO:  handle types other than double
+      if(p->name != "double")
+        continue;
+      auto & i = name_count[p->name];
+      fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
+    }
+    hdf5_region_vector.emplace_back(
+      legion_hdf5_region_t{(slot->template get_region<Index>().logical_region),
+        (slot->template get_partition<Index>(field_id_t()).logical_partition),
+        util::type<Topo>() + '[' + std::to_string(Index) + ']',
+        std::move(fn)});
+  }
+
+  inline void checkpoint_all_fields(const std::string & file_name,
+    bool attach_flag = true) {
+    checkpoint_data<true>(file_name, attach_flag);
+  } // checkpoint_data
+
+  inline void recover_all_fields(const std::string & file_name,
+    bool attach_flag = true) {
+    checkpoint_data<false>(file_name, attach_flag);
+  } // recover_data
+
+  data::leg::unique_index_space launch_space;
+  data::leg::unique_index_partition launch_partition;
+  std::vector<legion_hdf5_region_t> hdf5_region_vector;
+  std::map<std::string, unsigned> name_count;
 };
-
-inline void
-checkpoint_data(const std::string & file_name,
-  int num_files,
-  bool attach_flag) {
-  io_region(num_files).checkpoint_process_topology(file_name, attach_flag);
-} // checkpoint_data
-
-inline void
-recover_data(const std::string & file_name, int num_files, bool attach_flag) {
-  io_region(num_files).checkpoint_process_topology<false>(
-    file_name, attach_flag);
-} // recover_data
 
 } // namespace io
 } // namespace flecsi
