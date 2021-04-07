@@ -12,13 +12,22 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-option(ENABLE_COVERAGE_BUILD "Do a coverage build" OFF)
-mark_as_advanced(ENABLE_COVERAGE_BUILD)
+option(ENABLE_PARMETIS "Enable ParMETIS" OFF)
 
-if(ENABLE_COVERAGE_BUILD)
-  message(STATUS "Enabling coverage build")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -O0")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -O0")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+if(ENABLE_PARMETIS)
+  find_package(METIS 5.1)
+
+  if(NOT METIS_FOUND)
+    message(FATAL_ERROR "METIS is required for this configuration")
+  endif()
+
+  set(PARMETIS_TEST_RUNS TRUE)
+  find_package(ParMETIS 4.0)
+
+  if(NOT ParMETIS_FOUND)
+    message(FATAL_ERROR "ParMETIS is required for this configuration")
+  endif()
+
+  list(APPEND TPL_INCLUDES ${PARMETIS_INCLUDE_DIRS} ${METIS_INCLUDE_DIRS})
+  list(APPEND TPL_LIBRARIES ${METIS_LIBRARIES} ${PARMETIS_LIBRARIES})
 endif()

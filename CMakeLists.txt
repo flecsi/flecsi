@@ -12,7 +12,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.12...3.19)
 
 #------------------------------------------------------------------------------#
 # Add local module path.
@@ -60,12 +60,6 @@ include(summary)
 include(format)
 
 if(NOT FORMAT_ONLY)
-
-  #----------------------------------------------------------------------------#
-  # Add spotless target
-  #----------------------------------------------------------------------------#
-
-  add_custom_target(spotless rm -rf ${CMAKE_BINARY_DIR}/*)
 
   #----------------------------------------------------------------------------#
   # Add option for setting entity id type 
@@ -118,216 +112,77 @@ if(NOT FORMAT_ONLY)
 
   if(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
+    set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
+    set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
+    set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
   endif()
 
   mark_as_advanced(ENABLE_MPI ENABLE_LEGION ENABLE_HPX)
 
   #----------------------------------------------------------------------------#
-  # Legion
+  # Includes
   #----------------------------------------------------------------------------#
 
-  if(ENABLE_LEGION)
-    include(legion)
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # MPI
-  #----------------------------------------------------------------------------#
-
-  if(ENABLE_MPI)
-    include(mpi)
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # HPX
-  #----------------------------------------------------------------------------#
-
-  if(ENABLE_HPX)
-    include(hpx)
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # OpenMP.
-  #----------------------------------------------------------------------------#
-
+  include(legion)
+  include(mpi)
+  include(parmetis)
+  include(hpx)
   include(openmp)
-
-  #----------------------------------------------------------------------------#
-  # HDF5.
-  #----------------------------------------------------------------------------#
-
   include(hdf5)
-
-  #----------------------------------------------------------------------------#
-  # Documentation.
-  #----------------------------------------------------------------------------#
-
   include(documentation)
-
-  #----------------------------------------------------------------------------#
-  # Graphviz
-  #----------------------------------------------------------------------------#
-
   include(graphviz)
-
-  #----------------------------------------------------------------------------#
-  # Boost.
-  #----------------------------------------------------------------------------#
-
-  set(ENABLE_BOOST ON CACHE BOOL "Enable Boost (required by FleCSI)" FORCE)
-  mark_as_advanced(ENABLE_BOOST)
-
-  include(boost)
-
-  #----------------------------------------------------------------------------#
-  # Kokkos
-  #----------------------------------------------------------------------------#
-
   include(kokkos)
 
-  #----------------------------------------------------------------------------#
-  # Caliper Annotation options
-  #----------------------------------------------------------------------------#
+  list(APPEND
+    BOOST_COMPONENTS
+      program_options
+      atomic
+      filesystem
+      regex
+      system
+  )
+  include(boost)
 
   include(annotation)
+
+  #----------------------------------------------------------------------------#
+  # Caliper.
+  #----------------------------------------------------------------------------#
+
   set(FLECSI_CALIPER_DETAIL ${CALIPER_DETAIL})
 
   #----------------------------------------------------------------------------#
-  # Runtime models
+  # Dynamic libraries.
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_RUNTIME_LIBRARIES)
-
-  set(DL_LIBS)
-  foreach(dl_lib ${CMAKE_DL_LIBS})
-    find_library(DL_LIB ${dl_lib})
+  foreach(_DL_LIB ${CMAKE_DL_LIBS})
+    find_library(DL_LIB ${_DL_LIB})
 
     if(DL_LIB STREQUAL "NOTFOUND")
       message(FATAL_ERROR "Dynamic library not found")
     endif()
 
-    list(APPEND DL_LIBS ${DL_LIB})
+    list(APPEND TPL_LIBRARIES ${DL_LIB})
   endforeach()
-
   mark_as_advanced(DL_LIB)
 
-  #----------------------------------------------------------------------------#
-  # Legion interface
-  #----------------------------------------------------------------------------#
-
-  if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
-    if(NOT MPI_${MPI_LANGUAGE}_FOUND)
-      message (FATAL_ERROR "MPI is required for the legion runtime model")
-    endif()
-
-    if(NOT Legion_FOUND)
-      message (FATAL_ERROR "Legion is required for the legion runtime model")
-    endif()
-
-    set(_runtime_path ${PROJECT_SOURCE_DIR}/flecsi/execution/legion)
-
-    set(FLECSI_RUNTIME_LIBRARIES ${DL_LIBS} ${Legion_LIBRARIES}
-      ${MPI_LIBRARIES})
-
-    list(APPEND FLECSI_INCLUDE_DEPENDENCIES ${Legion_INCLUDE_DIRS})
-
-    option(ENABLE_MAPPER_COMPACTION "Enable Legion Mapper compaction" ON)
-    mark_as_advanced(ENABLE_MAPPER_COMPACTION)
-
-  #----------------------------------------------------------------------------#
-  # MPI interface
-  #----------------------------------------------------------------------------#
-
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
-
-    if(NOT MPI_${MPI_LANGUAGE}_FOUND)
-      message (FATAL_ERROR "MPI is required for the mpi runtime model")
-    endif()
-
-    set(_runtime_path ${PROJECT_SOURCE_DIR}/flecsi/execution/mpi)
-
-    set(FLECSI_RUNTIME_LIBRARIES ${DL_LIBS} ${MPI_LIBRARIES})
-
-  #----------------------------------------------------------------------------#
-  # HPX interface
-  #----------------------------------------------------------------------------#
-
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
-
-    if(NOT HPX_FOUND)
-      message (FATAL_ERROR "HPX is required for the HPX runtime model")
-    endif()
-
-    if(NOT MPI_${MPI_LANGUAGE}_FOUND)
-      message (FATAL_ERROR "MPI is required for the hpx runtime model")
-    endif()
-
-     set(FLECSI_RUNTIME_LIBRARIES ${DL_LIBS} ${MPI_LIBRARIES})
-
-    set(_runtime_path ${PROJECT_SOURCE_DIR}/flecsi/execution/hpx)
-
-  #----------------------------------------------------------------------------#
-  # Default
-  #----------------------------------------------------------------------------#
-
-  else()
-
-    message(FATAL_ERROR "Unrecognized runtime selection")
-
-  endif()
-
-  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_RUNTIME_LIBRARIES})
-
-  #----------------------------------------------------------------------------#
-  # Enable partitioning with METIS
-  #----------------------------------------------------------------------------#
-
-  find_package(METIS 5.1)
-
-  if(ENABLE_MPI)
-    # Counter-intuitive variable: set to TRUE to disable test
-    set(PARMETIS_TEST_RUNS TRUE)
-    find_package(ParMETIS 4.0)
-  endif()
-
-  set(COLORING_LIBRARIES)
-
-  if(METIS_FOUND)
-    list(APPEND COLORING_LIBRARIES ${METIS_LIBRARIES})
-    include_directories(SYSTEM ${METIS_INCLUDE_DIRS})
-    set(ENABLE_METIS TRUE)
-
-    list(APPEND FLECSI_INCLUDE_DEPENDENCIES ${METIS_INCLUDE_DIRS})
-  endif()
-
-  if(PARMETIS_FOUND)
-    list(APPEND COLORING_LIBRARIES ${PARMETIS_LIBRARIES})
-    include_directories(SYSTEM ${PARMETIS_INCLUDE_DIRS})
-    set(ENABLE_PARMETIS TRUE)
-
-    list(APPEND FLECSI_INCLUDE_DEPENDENCIES ${PARMETIS_INCLUDE_DIRS})
-  endif()
-
-  if(NOT COLORING_LIBRARIES)
-    MESSAGE(FATAL_ERROR
-      "You need parmetis to enable partitioning" )
-  endif()
-
-  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${COLORING_LIBRARIES})
+  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_RUNTIME_LIBRARIES})
+  #set(FLECSI_RUNTIME_LIBRARIES)
 
   #----------------------------------------------------------------------------#
   # FLOG and FTEST
   #----------------------------------------------------------------------------#
 
   include(flog)
+
+  set(FLECSI_UNIT_MAIN ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
   include(unit)
 
   #----------------------------------------------------------------------------#
@@ -349,8 +204,6 @@ if(NOT FORMAT_ONLY)
   configure_file(${PROJECT_SOURCE_DIR}/config/flecsi-config.h.in
     ${CMAKE_BINARY_DIR}/flecsi-config.h @ONLY)
 
-  include_directories(${CMAKE_BINARY_DIR})
-
   install(
     FILES ${CMAKE_BINARY_DIR}/flecsi-config.h
     DESTINATION include
@@ -363,46 +216,27 @@ if(NOT FORMAT_ONLY)
   add_executable(mesh-gen tools/mesh-gen.cc)
 
   #----------------------------------------------------------------------------#
-  # Configure environment module.
-  #----------------------------------------------------------------------------#
-
-  configure_file(${PROJECT_SOURCE_DIR}/config/flecsi-module.in
-    ${CMAKE_BINARY_DIR}/flecsi-module @ONLY)
-
-  #----------------------------------------------------------------------------#
   # FleCSI library.
   #----------------------------------------------------------------------------#
 
   include(library)
 
-  add_library_target(FleCSI flecsi EXPORT_TARGET FleCSITargets)
-
-  #----------------------------------------------------------------------------#
-  # Prepare variables for FleCSIConfig file.
-  #----------------------------------------------------------------------------#
-
-  set(FLECSI_EXTERNAL_INCLUDE_DIRS)
-
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    PROPERTY INCLUDE_DIRECTORIES)
-
-  foreach(dir ${dirs})
-    if(NOT ${dir} MATCHES ${CMAKE_CURRENT_SOURCE_DIR})
-      list(APPEND FLECSI_EXTERNAL_INCLUDE_DIRS ${dir})
-    endif()
-  endforeach()
-
-  set(FLECSI_LIBRARY_DIR ${CMAKE_INSTALL_PREFIX}/${LIBDIR})
-  set(FLECSI_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include
-    ${FLECSI_EXTERNAL_INCLUDE_DIRS})
-	# Setting up target properties for downstream usage
-	target_include_directories(FleCSI PUBLIC ${FLECSI_INCLUDE_DIRS})
-
-  set(FLECSI_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI)
+  add_library_target(FleCSI flecsi
+    EXPORT_TARGET
+      FleCSITargets
+    VERSION
+      ${FleCSI_VERSION}
+    NAMESPACE
+      FleCSI
+    INCLUDE_PRIVATE
+      ${CMAKE_BINARY_DIR}
+    LINK_PUBLIC
+      ${TPL_LIBRARIES}
+  )
 
   #----------------------------------------------------------------------------#
   # Extract all project options so they can be exported to the
-  # ProjectConfig.cmake file.
+  # FleCSIConfig.cmake file.
   #----------------------------------------------------------------------------#
 
   get_cmake_property(_variableNames VARIABLES)
@@ -423,46 +257,66 @@ if(NOT FORMAT_ONLY)
       "${FLOG_CONFIG_CODE}\nset(${_variableName} \"${${_variableName}}\")")
   endforeach()
 
-  #----------------------------------------------------------------------------#
-  # Export targets and package.
-  #----------------------------------------------------------------------------#
-
-  export(
-    TARGETS FleCSI
-    FILE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSITargets.cmake
-  )
-
-  export(PACKAGE FleCSI)
-
-  #----------------------------------------------------------------------------#
-  # Link necessary libraries.
-  #----------------------------------------------------------------------------#
-
-  target_link_libraries( FleCSI PUBLIC ${FLECSI_LIBRARY_DEPENDENCIES})
-
-  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
-
-    hpx_setup_target(FleCSI NONAMEPREFIX)
-
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # CMake config file: This should be the last thing to happen.
-  #----------------------------------------------------------------------------#
-
   configure_file(${PROJECT_SOURCE_DIR}/config/FleCSIConfig.cmake.in
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake @ONLY)
 
   install(
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake
-    DESTINATION ${FLECSI_CMAKE_DIR}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
+  )
+
+  #----------------------------------------------------------------------------#
+  # CMake utilities.
+  #----------------------------------------------------------------------------#
+
+  configure_file(${PROJECT_SOURCE_DIR}/config/FleCSICMakeConfig.cmake.in
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake @ONLY)
+
+  install(
+    FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
   )
 
   install(
-    EXPORT FleCSITargets
-    DESTINATION ${FLECSI_CMAKE_DIR}
-    COMPONENT dev
+    FILES ${PROJECT_SOURCE_DIR}/cmake/annotation.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindBreathe.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindLegion.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/flog.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/hpx.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/kokkos.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/legion.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/library.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/mpi.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/parmetis.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/version.cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
   )
+
+  install(
+    FILES ${FLECSI_UNIT_MAIN}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
+    RENAME unit-main.cc
+  )
+
+  #----------------------------------------------------------------------------#
+  # HPX extra.
+  #----------------------------------------------------------------------------#
+
+  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+    hpx_setup_target(FleCSI NONAMEPREFIX)
+  endif()
 
   #----------------------------------------------------------------------------#
   # Output configuration summary.

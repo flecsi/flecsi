@@ -14,29 +14,37 @@
 @FLOG_CONFIG_CODE@
 
 #------------------------------------------------------------------------------#
-# Set the path to the FleCSI headers.
-#------------------------------------------------------------------------------#
-
-set(FleCSI_INCLUDE_DIRS @FLECSI_INCLUDE_DIRS@)
-
-#------------------------------------------------------------------------------#
 # FleCSI library dependencies (contains definitions for IMPORTED targets)
 #------------------------------------------------------------------------------#
 
 if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
-  include(@FLECSI_CMAKE_DIR@/FleCSITargets.cmake)
+  include(@CMAKE_INSTALL_PREFIX@/@LIBDIR@/cmake/FleCSI/FleCSITargets.cmake)
 endif()
 
-# Propagate MPI dependency
-if(@ENABLE_MPI@)
-  find_package(MPI COMPONENTS C CXX REQUIRED)
-endif()
-#TODO: Propagate other TPL dependencies
-
 #------------------------------------------------------------------------------#
-# Set the FleCSI libraries.
+# Handle TPLs
 #------------------------------------------------------------------------------#
 
-set(FleCSI_LIBRARIES FleCSI)
-set(FleCSI_LIBRARY_DEPENDENCIES @FLECSI_LIBRARY_DEPENDENCIES@)
-set(FleCSI_Tut_LIBRARIES FleCSI-Tut)
+find_package(FleCSICMake REQUIRED)
+list(APPEND CMAKE_MODULE_PATH ${FleCSICMake_PREFIX})
+
+set(ENABLE_MPI @ENABLE_MPI@)
+include(mpi)
+
+set(ENABLE_PARMETIS @ENABLE_PARMETIS@)
+include(parmetis)
+
+set(ENABLE_LEGION @ENABLE_LEGION@)
+include(legion)
+
+set(ENABLE_HPX @ENABLE_HPX@)
+include(hpx)
+
+set(ENABLE_KOKKOS @ENABLE_KOKKOS@)
+include(kokkos)
+
+set(CALIPER_DETAIL @CALIPER_DETAIL@)
+include(annotation)
+
+set(ENABLE_GRAPHVIZ @ENABLE_GRAPHVIZ@)
+include(graphviz)

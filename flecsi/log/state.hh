@@ -23,6 +23,7 @@
 #include "flecsi/log/types.hh"
 #include "flecsi/log/utils.hh"
 
+#include <atomic>
 #include <bitset>
 #include <cassert>
 #include <sstream>
@@ -239,7 +240,7 @@ public:
     Return a reference to the active tag (const version).
    */
 
-  const size_t & active_tag() const {
+  const std::atomic<size_t> & active_tag() const {
     return active_tag_;
   }
 
@@ -247,7 +248,7 @@ public:
     Return a reference to the active tag (mutable version).
    */
 
-  size_t & active_tag() {
+  std::atomic<size_t> & active_tag() {
     return active_tag_;
   }
 
@@ -391,7 +392,7 @@ private:
   tee_stream_t stream_;
 
   size_t tag_id_;
-  size_t active_tag_;
+  std::atomic<size_t> active_tag_;
   std::bitset<FLOG_TAG_BITS> tag_bitset_;
   std::unordered_map<std::string, size_t> tag_map_;
   std::unordered_map<size_t, std::string> tag_reverse_map_;

@@ -8,7 +8,7 @@
 # /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
 # //       ///  //////   //////  ////////  //
 #
-# Copyright (c) 2016 Los Alamos National Laboratory, LLC
+# Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 #------------------------------------------------------------------------------#
 
@@ -22,5 +22,8 @@ if(ENABLE_KOKKOS)
     message(FATAL_ERROR "Clang version 8 or greater required for Kokkos")
   endif()
 
-  list(APPEND FLECSI_LIBRARY_DEPENDENCIES Kokkos::kokkos)
+  get_target_property(KOKKOS_COMPILE_OPTIONS Kokkos::kokkoscore
+    INTERFACE_COMPILE_OPTIONS)
+
+  list(APPEND TPL_LIBRARIES Kokkos::kokkos)
 endif()

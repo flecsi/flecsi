@@ -1,15 +1,15 @@
 #------------------------------------------------------------------------------#
-#   @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-#  /@@/////  /@@          @@////@@ @@////// /@@
-#  /@@       /@@  @@@@@  @@    // /@@       /@@
-#  /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-#  /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-#  /@@       /@@/@@//// //@@    @@       /@@/@@
-#  /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-#  //       ///  //////   //////  ////////  //
+#  @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
+# /@@/////  /@@          @@////@@ @@////// /@@
+# /@@       /@@  @@@@@  @@    // /@@       /@@
+# /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
+# /@@////   /@@/@@@@@@@/@@       ////////@@/@@
+# /@@       /@@/@@//// //@@    @@       /@@/@@
+# /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
+# //       ///  //////   //////  ////////  //
 #
-#  Copyright (c) 2016, Los Alamos National Security, LLC
-#  All rights reserved.
+# Copyright (c) 2016, Triad National Security, LLC
+# All rights reserved
 #------------------------------------------------------------------------------#
 
 include(CMakeDependentOption)
@@ -23,6 +23,12 @@ mark_as_advanced(ENABLE_EXPENSIVE_TESTS)
 
 if(ENABLE_UNIT_TESTS)
   enable_testing()
+  add_library(unit-main OBJECT ${FLECSI_UNIT_MAIN})
+  target_link_libraries(unit-main PRIVATE FleCSI::FleCSI)
+  target_include_directories(unit-main PRIVATE ${CMAKE_BINARY_DIR})
+  if (ENABLE_KOKKOS)
+    target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+  endif()
 endif()
 
 function(add_unit name)
@@ -74,7 +80,7 @@ function(add_unit name)
 
   #----------------------------------------------------------------------------#
   # Make sure that MPI_LANGUAGE is set.
-  # This is not a standard variable set by FindMPI, but cinch might set it.
+  # This is not a standard variable set by FindMPI, but we might set it.
   #
   # Right now, the MPI policy only works with C/C++.
   #----------------------------------------------------------------------------#
@@ -96,8 +102,8 @@ function(add_unit name)
   #----------------------------------------------------------------------------#
   # Check to see if the user has specified a runtime and process it.
   #----------------------------------------------------------------------------#
-  if(FLECSI_RUNTIME_MODEL STREQUAL "mpi"
-    AND MPI_${MPI_LANGUAGE}_FOUND)
+
+  if(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
     set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
     set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
@@ -107,9 +113,7 @@ function(add_unit name)
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion"
-    AND MPI_${MPI_LANGUAGE}_FOUND
-    AND Legion_FOUND)
+  elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
     set(unit_policy_flags ${Legion_CXX_FLAGS}
       ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
@@ -156,7 +160,7 @@ function(add_unit name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc
+    $<TARGET_OBJECTS:unit-main>
   )
   
   set_target_properties(${name}
@@ -219,13 +223,15 @@ function(add_unit name)
     target_link_libraries(${name} PRIVATE ${unit_LIBRARIES})
   endif()
 
-  target_link_libraries(${name} PRIVATE FleCSI)
-  target_link_libraries(${name} PRIVATE ${FLECSI_LIBRARY_DEPENDENCIES}
-    ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} PRIVATE FleCSI::FleCSI)
+  target_link_libraries(${name} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
   if(unit_policy_libraries)
     target_link_libraries(${name} PRIVATE ${unit_policy_libraries})
   endif()
+
+
+  target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
 
   if(unit_policy_includes)
       target_include_directories(${name}
