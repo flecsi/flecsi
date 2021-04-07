@@ -21,6 +21,10 @@ if [ -e $cwd/.git ] ; then
   tags=`git tag`
   if [[ -n $tags ]]; then
     describe=`git describe`
+
+    if [[ "$describe" != *"-"* ]]; then
+      describe="$describe-0-0"
+    fi
   else
     describe=`cat $cwd/.version`
   fi
@@ -46,7 +50,6 @@ if [[ ${describe:0:1} == "d" ]]; then
 
 # Feature branch
 elif [[ ${describe:0:1} == "f" ]]; then
-  #major=`echo ${DESCRIBE[0]} | sed 's,f,,'`
   version=`echo ${DESCRIBE[0]} | sed 's,f,,'`
   IFS='.'
   read -ra VERSION <<< "$version"

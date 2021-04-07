@@ -21,7 +21,7 @@ class Flecsi(CMakePackage):
     homepage = 'http://flecsi.org/'
     git      = 'https://github.com/flecsi/flecsi.git'
 
-    version('devel', branch='devel', submodules=False, preferred=False)
+    version('2.0.0', branch='2.0', submodules=False, preferred=False)
 
     #--------------------------------------------------------------------------#
     # Variants
@@ -106,7 +106,7 @@ class Flecsi(CMakePackage):
 
     depends_on('mpi', when='backend=mpi')
     depends_on('mpich@3.4.1', when='^mpich')
-    depends_on('openmpi@3.1.6', when='^openmpi')
+    depends_on('openmpi@4.1.0', when='^openmpi')
 
     # HPX
 
