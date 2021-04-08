@@ -70,17 +70,16 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  static void init_fields(sph_ntree_t::accessor<rw, na> t,
-    field<interaction_entities>::accessor<rw, na> e_i,
+  static void init_fields(sph_ntree_t::accessor<wo, na> t,
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
     for(std::size_t i = 0; i < ents.size(); ++i) {
-      e_i(i).coordinates = ents[i].coordinates();
-      e_i(i).radius = ents[i].radius();
-      e_i(i).color = c;
-      e_i(i).id = ents[i].id();
+      t.e_i(i).coordinates = ents[i].coordinates();
+      t.e_i(i).radius = ents[i].radius();
+      t.e_i(i).color = c;
+      t.e_i(i).id = ents[i].id();
       t.e_keys(i) = ents[i].key();
-      e_i(i).mass = ents[i].mass();
+      t.e_i(i).mass = ents[i].mass();
     }
     t.exchange_boundaries();
   } // init_task
@@ -89,12 +88,12 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     coloring,
     std::vector<ent_t> & ents) {
 
-    flecsi::execute<init_fields>(ts, core::e_i(ts), ents);
+    flecsi::execute<init_fields>(ts, ents);
 
     ts->make_tree(ts);
 
-    flecsi::execute<compute_centroid<true>>(ts, core::n_i(ts), core::e_i(ts));
-    flecsi::execute<compute_centroid<false>>(ts, core::n_i(ts), core::e_i(ts));
+    flecsi::execute<compute_centroid<true>>(ts);
+    flecsi::execute<compute_centroid<false>>(ts);
 
     ts->share_ghosts(ts);
   }
@@ -149,40 +148,38 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   // They will then be sent to other ranks to compute
   // the whole tree information
   template<bool local = false>
-  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t,
-    field<interaction_nodes>::accessor<rw, ro> n_i,
-    field<interaction_entities>::accessor<rw, ro> e_i) {
+  static void compute_centroid(sph_ntree_t::accessor<rw, ro> t) {
 
     // DFS traversal, reverse preorder, access the lowest nodes first
     for(auto n_idx : t.dfs<ttype_t::reverse_preorder, local>()) {
       // Get entities and nodes under this node
-      if(local || n_i[n_idx].mass == 0) {
+      if(local || t.n_i[n_idx].mass == 0) {
         point_t coordinates = 0.;
         double radius = 0;
         double mass = 0;
         // Get entities child of this node
         for(auto e_idx : t.entities(n_idx)) {
-          coordinates += e_i[e_idx].mass * e_i[e_idx].coordinates;
-          mass += e_i[e_idx].mass;
+          coordinates += t.e_i[e_idx].mass * t.e_i[e_idx].coordinates;
+          mass += t.e_i[e_idx].mass;
         }
         // Get nodes child of this node
         for(auto nc_idx : t.nodes(n_idx)) {
-          coordinates += n_i[nc_idx].mass * n_i[nc_idx].coordinates;
-          mass += n_i[nc_idx].mass;
+          coordinates += t.n_i[nc_idx].mass * t.n_i[nc_idx].coordinates;
+          mass += t.n_i[nc_idx].mass;
         }
         assert(mass != 0.);
         coordinates /= mass;
         for(auto e_idx : t.entities(n_idx)) {
-          double dist = distance(coordinates, e_i[e_idx].coordinates);
-          radius = std::max(radius, dist + e_i[e_idx].radius);
+          double dist = distance(coordinates, t.e_i[e_idx].coordinates);
+          radius = std::max(radius, dist + t.e_i[e_idx].radius);
         }
         for(auto nc_idx : t.nodes(n_idx)) {
-          double dist = distance(coordinates, n_i[nc_idx].coordinates);
-          radius = std::max(radius, dist + n_i[nc_idx].radius);
+          double dist = distance(coordinates, t.n_i[nc_idx].coordinates);
+          radius = std::max(radius, dist + t.n_i[nc_idx].radius);
         }
-        n_i[n_idx].coordinates = coordinates;
-        n_i[n_idx].radius = radius;
-        n_i[n_idx].mass = mass;
+        t.n_i[n_idx].coordinates = coordinates;
+        t.n_i[n_idx].radius = radius;
+        t.n_i[n_idx].mass = mass;
       }
     }
   } // compute_centroid

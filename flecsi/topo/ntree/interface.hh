@@ -204,10 +204,8 @@ private:
    */
   static auto make_tree_distributed_task(
     typename Policy::template accessor<rw, na> t,
-    typename field<meta_type>::template accessor<ro, na> m,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
-    return sizes_task(m);
   }
 
   /**
@@ -296,8 +294,8 @@ public:
     }
 
     // Add the new hcells to the local tree + return new sizes for allocation
-    auto fm_sizes =
-      flecsi::execute<make_tree_distributed_task>(ts, meta_field(ts), top_tree);
+    flecsi::execute<make_tree_distributed_task>(ts, top_tree);
+    auto fm_sizes = flecsi::execute<sizes_task>(meta_field(ts));
 
     ts->sz.ent.resize(cs);
     ts->sz.node.resize(cs);
