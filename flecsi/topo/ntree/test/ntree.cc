@@ -221,8 +221,7 @@ const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   pressure;
 
 void
-check_neighbors(sph_ntree_t::accessor<rw, ro> t,
-  field<sph_ntree_t::interaction_entities>::accessor<ro, ro> e_i) {
+check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
   std::vector<std::pair<int, int>> stencil = {{2, 0},
     {1, 0},
     {0, 0},
@@ -239,7 +238,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t,
   // Check neighbors of entities
   for(auto e : t.entities()) {
     std::vector<std::pair<std::size_t, bool>> s_id; // stencil ids
-    std::size_t eid = e_i(e).id;
+    std::size_t eid = t.e_i(e).id;
     // Compute stencil based on id
     int line = eid / 7;
     int col = eid % 7;
@@ -251,7 +250,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t,
           s_id.push_back(std::make_pair(l * 7 + c, false));
     }
     for(auto n : t.neighbors(e)) {
-      std::size_t n_id = e_i[n].id;
+      std::size_t n_id = t.e_i[n].id;
       auto f = std::find(s_id.begin(), s_id.end(), std::make_pair(n_id, false));
       assert(f != s_id.end());
       f->second = true;
@@ -265,40 +264,37 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t,
 
 void
 init_density(sph_ntree_t::accessor<ro, na> t,
-  field<double>::accessor<wo, na> p,
-  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
+  field<double>::accessor<wo, na> p) {
   for(auto a : t.entities()) {
-    p[a] = e_i[a].mass * e_i[a].radius;
+    p[a] = t.e_i[a].mass * t.e_i[a].radius;
   }
 }
 
 void
 print_density(sph_ntree_t::accessor<ro, na> t,
-  field<double>::accessor<ro, ro>,
-  field<sph_ntree_t::interaction_entities>::accessor<ro, na> e_i) {
+  field<double>::accessor<ro, ro>) {
   std::cout << color() << " Print id exclusive: ";
   for(auto a : t.entities()) {
-    std::cout << e_i[a].id << " - ";
+    std::cout << t.e_i[a].id << " - ";
   }
   std::cout << std::endl;
   std::cout << color() << " Print id ghosts : ";
   for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
-    std::cout << e_i[a].id << " - ";
+    std::cout << t.e_i[a].id << " - ";
   }
   std::cout << std::endl;
   std::cout << color() << " Print id all : ";
-  for(auto a : e_i.span()) {
+  for(auto a : t.e_i.span()) {
     std::cout << a.id << " - ";
   }
   std::cout << std::endl;
 }
 
 void
-move_entities(sph_ntree_t::accessor<ro, na> t,
-  field<sph_ntree_t::interaction_entities>::accessor<rw, ro> e_i) {
+move_entities(sph_ntree_t::accessor<rw, na> t) {
   for(auto a : t.entities()) {
     // Add 1 on z coordinate
-    e_i[a].coordinates[2] += 1;
+    t.e_i[a].coordinates[2] += 1;
   }
 }
 
@@ -310,13 +306,12 @@ ntree_driver() {
   sph_ntree.allocate(coloring.get(), ents);
 
   auto d = density(sph_ntree);
-  auto e_i = topo::ntree<sph_ntree_t>::e_i(sph_ntree);
 
-  flecsi::execute<init_density>(sph_ntree, d, e_i);
-  flecsi::execute<print_density>(sph_ntree, d, e_i);
-  flecsi::execute<check_neighbors>(sph_ntree, e_i);
+  flecsi::execute<init_density>(sph_ntree, d);
+  flecsi::execute<print_density>(sph_ntree, d);
+  flecsi::execute<check_neighbors>(sph_ntree);
 
-  flecsi::execute<move_entities>(sph_ntree, e_i);
+  flecsi::execute<move_entities>(sph_ntree);
   // sph_ntree_t::update(sph_ntree);
 
   return 0;
