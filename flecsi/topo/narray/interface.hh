@@ -251,10 +251,10 @@ struct narray<Policy>::access {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
-      return meta_->logical[S][1][A];
+      return meta_->logical[S][1][A] - meta_->logical[S][0][A];
     }
     else if constexpr(SE == range::extended) {
-      return meta_->extended[S][1][A];
+      return meta_->extended[S][1][A] - meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::all) {
       return meta_->extents[S][A];
@@ -266,10 +266,16 @@ struct narray<Policy>::access {
       return meta_->extended[S][1][A] - meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::ghost_low) {
-      return meta_->logical[S][0][A];
+      if(!is_low<S, A>())
+        return meta_->logical[S][0][A];
+      else
+        return 0;
     }
     else if constexpr(SE == range::ghost_high) {
-      return meta_->extents[S][A] - meta_->logical[S][1][A];
+      if(!is_high<S, A>())
+        return meta_->extents[S][A] - meta_->logical[S][1][A];
+      else
+        return 0;
     }
     else if constexpr(SE == range::global) {
       return meta_->global[S][A];
@@ -292,16 +298,14 @@ struct narray<Policy>::access {
       return make_ids<S>(util::iota_view<util::id>(0, meta_->extents[S][A]));
     }
     else if constexpr(SE == range::boundary_low) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->extended[S][0][A], meta_->extended[S][0][A] + size<S, A, SE>()));
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        meta_->extended[S][1][A], meta_->extended[S][1][A] + size<S, A, SE>()));
+        meta_->logical[S][1][A], meta_->logical[S][1][A] + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_low) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->logical[S][0][A], meta_->logical[S][0][A] + size<S, A, SE>()));
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
@@ -323,7 +327,7 @@ struct narray<Policy>::access {
       return meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::all) {
-      return meta_->extents[S][A];
+      return 0;
     }
     else if constexpr(SE == range::boundary_low) {
       return meta_->extended[S][0][A];

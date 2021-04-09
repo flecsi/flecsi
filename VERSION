@@ -55,9 +55,10 @@ elif [[ ${describe:0:1} == "f" ]]; then
   read -ra VERSION <<< "$version"
   major=${VERSION[0]}
   minor=${VERSION[1]}
+  merge=${VERSION[2]}
   commits=${DESCRIBE[1]}
   if (( $commits > 0 )); then
-    echo "feature $major.$minor ($commits commits ahead at $sha)"
+    echo "feature $major.$minor ($commits commits ahead at $sha, with $merge downstream merges)"
   else
     echo "feature $major.$minor"
   fi
