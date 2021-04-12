@@ -28,6 +28,10 @@ endif()
 find_package(FleCSICMake REQUIRED)
 list(APPEND CMAKE_MODULE_PATH ${FleCSICMake_PREFIX})
 
+set(ENABLE_BOOST @ENABLE_BOOST@)
+set(BOOST_COMPONENTS @BOOST_COMPONENTS@)
+include(boost)
+
 set(ENABLE_MPI @ENABLE_MPI@)
 include(mpi)
 
