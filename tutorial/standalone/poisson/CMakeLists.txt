@@ -26,7 +26,6 @@ set(CMAKE_CXX_STANDARD 17)
 #------------------------------------------------------------------------------#
 
 find_package(FleCSI REQUIRED)
-include_directories(${FleCSI_INCLUDE_DIRS})
 
 #------------------------------------------------------------------------------#
 # Find the Kokkos installation.
