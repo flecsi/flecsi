@@ -22,7 +22,6 @@ if(ENABLE_LEGION)
     message(FATAL_ERROR "Legion is required for this build configuration")
   endif(NOT Legion_FOUND)
 
-  list(APPEND TPL_INCLUDES ${Legion_INCLUDE_DIRS}) 
   list(APPEND TPL_LIBRARIES Legion::Legion)
 
 endif(ENABLE_LEGION)
