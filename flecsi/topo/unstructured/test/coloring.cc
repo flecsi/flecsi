@@ -273,8 +273,6 @@ struct closure_policy {
     std::tuple_size<auxiliary>::value;
 
   using definition = topo::unstructured_impl::simple_definition;
-
-  using communicator = topo::unstructured_impl::mpi_communicator;
 };
 
 struct coloring_policy {
@@ -288,8 +286,6 @@ struct coloring_policy {
     std::tuple_size<auxiliary>::value;
 
   using definition = topo::unstructured_impl::simple_definition;
-
-  using communicator = topo::unstructured_impl::mpi_communicator;
 }; // coloring_policy
 
 int

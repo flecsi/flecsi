@@ -17,7 +17,6 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/interface.hh"
-//#include "flecsi/topo/unstructured/mpi_communicator.hh"
 #include "flecsi/topo/unstructured/test/simple_definition.hh"
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
@@ -93,7 +92,6 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     static constexpr size_t auxiliary_colorings =
       std::tuple_size<auxiliary>::value;
     using definition = topo::unstructured_impl::simple_definition;
-    using communicator = topo::unstructured_impl::mpi_communicator;
   }; // struct coloring_policy
 #endif
 

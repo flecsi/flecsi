@@ -25,7 +25,6 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
-#include "flecsi/topo/unstructured/closure_utils.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/topo/utility_types.hh"
