@@ -58,7 +58,10 @@ elif [[ ${describe:0:1} == "f" ]]; then
   merge=${VERSION[2]}
   commits=${DESCRIBE[1]}
   if (( $commits > 0 )); then
-    echo "feature $major.$minor ($commits commits ahead at $sha, with $merge downstream merges)"
+    echo "feature $major.$minor ($commits commits ahead at $sha,"\
+      "with $merge downstream merges)"
+  elif (( $merge > 1)); then
+    echo "feature $major.$minor ($merge downstream merges)"
   else
     echo "feature $major.$minor"
   fi
