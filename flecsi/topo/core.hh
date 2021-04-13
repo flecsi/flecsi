@@ -105,6 +105,8 @@ struct specialization_base {
 
   specialization_base() = delete;
 };
+/// Convenience base class for specialization class templates.
+struct help : specialization_base {}; // intervening class avoids warnings
 
 /// CRTP base for specializations.
 /// \tparam C core topology
