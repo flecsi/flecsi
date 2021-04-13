@@ -38,6 +38,7 @@ namespace topo {
 
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
+
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
@@ -62,24 +63,24 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         std::make_index_sequence<index_spaces::size>())) {
     init_ragged(index_spaces());
     init_meta(c);
+    init_policy_meta(c);
   }
 
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
     std::array<std::uint32_t, index_spaces::size> faces;
-
     std::array<scoord, index_spaces::size> global, offset, extents;
     std::array<shypercube, index_spaces::size> logical, extended;
-
-    static_assert(data::portable_v<typename Policy::meta_data>,
-      "meta_data not a valid field type");
-    typename Policy::meta_data meta;
   };
 
   static inline const typename field<meta_data,
     data::single>::template definition<meta<Policy>>
     meta_field;
+
+  static inline const typename field<typename Policy::meta_data,
+    data::single>::template definition<meta<Policy>>
+    policy_meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
@@ -183,6 +184,14 @@ private:
     execute<set_meta, mpi>(meta_field(this->meta), c);
   }
 
+  // Default initilaization for user policy meta data
+  static void set_policy_meta(typename field<typename Policy::meta_data,
+    data::single>::template accessor<wo>) {}
+
+  void init_policy_meta(narray_base::coloring const &) {
+    execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
+  }
+
   template<index_space... SS>
   void init_ragged(util::constants<SS...>) {
     (this->template extend_offsets<SS>(), ...);
@@ -199,6 +208,7 @@ struct narray<Policy>::access {
   util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
 
   data::scalar_access<narray::meta_field> meta_;
+  data::scalar_access<narray::policy_meta_field> policy_meta_;
 
   access() {}
 
@@ -235,11 +245,6 @@ struct narray<Policy>::access {
   template<axis A>
   bool is_interior() {
     return !is_low<A>() && !is_high<A>();
-  }
-
-  // This should be protected
-  auto & meta() {
-    return meta_->meta;
   }
 
   template<index_space S, axis A, range SE>
@@ -357,6 +362,7 @@ struct narray<Policy>::access {
         f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
 
     meta_.topology_send(f, &narray::meta);
+    policy_meta_.topology_send(f, &narray::meta);
   }
 }; // struct narray<Policy>::access
 

@@ -66,7 +66,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, range SE = interior>
     auto vertices() {
       if constexpr(SE == interior) {
-        auto const & md = B::meta_.get();
+        auto const & md = *(this->meta_);
         return flecsi::topo::make_ids<index_space::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(
             md.logical[index_space::vertices][0][A] + 1,
@@ -82,8 +82,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     double delta() {
-      return B::meta().delta;
-    } // delta
+      return (*(this->policy_meta_)).delta;
+    }
 
     template<axis A>
     double value(std::size_t i) {
@@ -148,22 +148,24 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   using grect = std::array<std::array<double, 2>, 2>;
 
-  static void init_geometry(mesh::accessor<flecsi::rw> m,
-    coloring const & c,
-    grect const & geometry) {
-    double xdelta = std::abs(geometry[0][1] - geometry[0][0]) /
-                    (m.size<x_axis, global>() - 1);
-    double ydelta = std::abs(geometry[1][1] - geometry[1][0]) /
-                    (m.size<y_axis, global>() - 1);
+  static void set_geometry(mesh::accessor<flecsi::rw> sm,
+    typename field<meta_data, flecsi::data::single>::template accessor<wo> m,
+    grect const & g) {
+    meta_data & md = m;
+    double xdelta =
+      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1);
+    double ydelta =
+      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1);
     flog_assert(xdelta == ydelta, "invalid extents: deltas must be equal");
 
-    m.meta().delta = xdelta;
+    md.delta = xdelta;
   }
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,
-    coloring const & c,
+    coloring const &,
     grect const & geometry) {
-    flecsi::execute<init_geometry, flecsi::mpi>(s, c, geometry);
+    flecsi::execute<set_geometry, flecsi::mpi>(
+      s, core::policy_meta_field(s->meta), geometry);
   } // initialize
 
 }; // struct mesh
