@@ -25,7 +25,6 @@ if(ENABLE_BOOST)
 
   find_package(Boost REQUIRED ${BOOST_COMPONENTS})
 
-  list(APPEND TPL_INCLUDES ${Boost_INCLUDE_DIRS})
-  list(APPEND TPL_LIBRARIES ${Boost_LIBRARIES})
+  list(APPEND TPL_LIBRARIES Boost::boost ${Boost_LIBRARIES})
 
 endif()
