@@ -158,8 +158,7 @@ struct narray_base {
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     MPI_Comm const & comm) {
-    num_intervals = util::mpi::all_gather(
-      [&ic](int, int) { return ic.intervals.size(); }, comm);
+    num_intervals = util::mpi::all_gather(ic.intervals.size(), comm);
   }
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,

@@ -345,8 +345,7 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gather(
-      [&local_itvls](int, int) { return local_itvls; }, comm);
+    num_intervals = util::mpi::all_gather(local_itvls, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,

@@ -26,6 +26,7 @@
 #include <complex>
 #include <cstddef> // byte
 #include <cstdint>
+#include <numeric>
 #include <type_traits>
 
 #include <mpi.h>
@@ -56,6 +57,18 @@ struct vector { // for *v functions
   }
 };
 } // namespace detail
+
+inline void
+test(int err) {
+  if(err != MPI_SUCCESS) {
+    char msg[MPI_MAX_ERROR_STRING + 1];
+    int len;
+    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
+      len = 0;
+    msg[len] = 0;
+    flog_fatal("MPI error " << err << ": " << msg);
+  }
+}
 
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
@@ -313,42 +326,53 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   function is convenient for passing more complicated types. Otherwise,
   it may make more sense to use MPI_Allgather directly.
 
-  This function uses the FleCSI serialization interface with a packing
-  callable object to communicate data from all ranks to all other ranks.
+  This function uses the FleCSI serialization interface to copy data from all
+  ranks to all other ranks.
 
-  @tparam F The packing type with signature \em (rank, size).
+  @tparam T serializable data type
 
-  @param f    A callable object.
+  @param t object to send
   @param comm An MPI communicator.
 
-  @return A std::vector<return_type>, where \rm return_type is the type
-          returned by the callable object.
+  @return the values from each rank
  */
 
-template<typename F>
-inline auto
-all_gather(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = decltype(f(int(0), int(1)));
-
+template<typename T>
+std::vector<T>
+all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
 
-  std::size_t count = serial_size<return_type>(f(rank, size));
-  std::vector<std::byte> bytes(size * count);
+  detail::vector v(size); // just a struct here
+  v.sz.resize(size);
+  v.sz[rank] = util::serial_size(t);
 
-  MPI_Allgather(serial_put(f(rank, size)).data(),
-    count,
-    type<std::byte>(),
-    bytes.data(),
-    count,
-    type<std::byte>(),
-    comm);
+  test(MPI_Allgather(
+    MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
 
-  std::vector<return_type> result;
+  v.off.resize(size);
+  std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
+
+  v.data.resize(v.off.back() + v.sz.back());
+  {
+    std::byte * p = v.data.data() + v.off[rank];
+    util::serial_put(p, t);
+  }
+
+  test(MPI_Allgatherv(MPI_IN_PLACE,
+    0,
+    MPI_DATATYPE_NULL,
+    v.data.data(),
+    v.sz.data(),
+    v.off.data(),
+    MPI_BYTE,
+    comm));
+
+  std::vector<T> result;
   result.reserve(size);
 
+  auto p = std::as_const(v).data.data();
   for(int r = 0; r < size; ++r) {
-    auto const * p = &bytes[r * count];
-    result.emplace_back(serial_get<return_type>(p));
+    result.push_back(serial_get<T>(p));
   } // for
 
   return result;
