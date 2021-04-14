@@ -129,10 +129,9 @@ struct util::serial<future<T>> : util::serial_value<future<T>> {};
 
 namespace exec::leg {
 using run::leg::task;
-using task_id_t = Legion::TaskID;
 
 namespace detail {
-inline util::counter<task_id_t(LEGION_MAX_APPLICATION_TASK_ID)> task_counter(
+inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
   run::FLECSI_TOP_LEVEL_TASK_ID);
 /*!
   Register a task with Legion.
@@ -178,7 +177,7 @@ tuple_get(const Legion::Task & t) {
 
 template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #90493
-extern const task_id_t
+extern const Legion::TaskID
   task_id = (run::context::instance().register_init(detail::register_task<
                typename util::function_traits<decltype(F)>::return_type,
                F,

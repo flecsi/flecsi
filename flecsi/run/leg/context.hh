@@ -42,7 +42,7 @@
 
 namespace flecsi::run {
 
-const size_t FLECSI_TOP_LEVEL_TASK_ID = 0;
+inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
 constexpr Legion::MappingTagID force_rank_match = 0x00001000,
                                compacted_storage = 0x00002000,
