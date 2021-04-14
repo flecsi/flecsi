@@ -159,10 +159,7 @@ type() {
   if constexpr(!std::is_void_v<decltype(maybe_static<T>())>)
     return maybe_static<T>();
   else {
-    // Unfortunately, std::tuple<int> is not trivially copyable:
-    static_assert(std::is_trivially_copy_assignable_v<T> ||
-                  std::is_copy_assignable_v<T> &&
-                    std::is_trivially_copy_constructible_v<T>);
+    static_assert(bit_assignable_v<T>);
     // TODO: destroy at MPI_Finalize
     static const MPI_Datatype ret = [] {
       MPI_Datatype data_type;

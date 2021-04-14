@@ -131,12 +131,17 @@ struct serial_container {
 };
 } // namespace detail
 
+// Unfortunately, std::tuple<int> is not trivially copyable, so check more:
 template<class T>
-constexpr bool memcpyable_v =
-  std::is_default_constructible_v<T> && std::is_trivially_move_assignable_v<T>;
+constexpr bool bit_assignable_v =
+  std::is_trivially_copy_assignable_v<T> ||
+  std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>;
+template<class T>
+constexpr bool bit_copyable_v =
+  std::is_default_constructible_v<T> && bit_assignable_v<T>;
 
 template<class T>
-struct serial<T, std::enable_if_t<memcpyable_v<T>>> {
+struct serial<T, std::enable_if_t<bit_copyable_v<T>>> {
   static_assert(!std::is_pointer_v<T>, "Cannot serialize pointers");
   template<class P>
   static void put(P & p, const T & t) {
@@ -152,7 +157,7 @@ struct serial<T, std::enable_if_t<memcpyable_v<T>>> {
 };
 template<class T, class U>
 struct serial<std::pair<T, U>,
-  std::enable_if_t<!memcpyable_v<std::pair<T, U>>>> {
+  std::enable_if_t<!bit_copyable_v<std::pair<T, U>>>> {
   using type = std::pair<T, U>;
   template<class P>
   static void put(P & p, const type & v) {
@@ -164,7 +169,7 @@ struct serial<std::pair<T, U>,
 };
 template<class... TT>
 struct serial<std::tuple<TT...>,
-  std::enable_if_t<!memcpyable_v<std::tuple<TT...>>>> {
+  std::enable_if_t<!bit_copyable_v<std::tuple<TT...>>>> {
   using type = std::tuple<TT...>;
   template<class P>
   static void put(P & p, const type & t) {
@@ -176,7 +181,7 @@ struct serial<std::tuple<TT...>,
 };
 template<class T, std::size_t N>
 struct serial<std::array<T, N>,
-  std::enable_if_t<!memcpyable_v<std::array<T, N>>>> {
+  std::enable_if_t<!bit_copyable_v<std::array<T, N>>>> {
   using type = std::array<T, N>;
   template<class P>
   static void put(P & p, const type & a) {
@@ -244,7 +249,7 @@ struct serial_value { // serializes nothing; returns T()
 template<class T>
 struct serial<T,
   voided<decltype(&T::legion_buffer_size),
-    std::enable_if_t<!memcpyable_v<T>>>> {
+    std::enable_if_t<!bit_copyable_v<T>>>> {
   template<class P>
   static void put(P & p, const T & t) {
     if constexpr(std::is_pointer_v<P>)

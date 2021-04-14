@@ -107,12 +107,12 @@ struct util::serial<data::mutator<data::ragged, T, Priv>> {
 };
 template<class T, Privileges Priv>
 struct util::serial<data::topology_accessor<T, Priv>,
-  std::enable_if_t<!util::memcpyable_v<data::topology_accessor<T, Priv>>>>
+  std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>
   : util::serial_value<data::topology_accessor<T, Priv>> {};
 
 template<auto & F, class... AA>
 struct util::serial<exec::partial<F, AA...>,
-  std::enable_if_t<!util::memcpyable_v<exec::partial<F, AA...>>>> {
+  std::enable_if_t<!util::bit_copyable_v<exec::partial<F, AA...>>>> {
   using type = exec::partial<F, AA...>;
   using Rep = typename type::Base;
   template<class P>
