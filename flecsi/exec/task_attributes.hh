@@ -21,8 +21,6 @@
 
 #include "flecsi/util/bitutils.hh"
 
-#include <bitset>
-
 namespace flecsi {
 
 using TaskAttributes = unsigned;
@@ -88,8 +86,6 @@ as_mask(task_processor_type_t t) {
     1 << task_type_bits + static_cast<TaskAttributes>(t));
 }
 
-using task_attributes_bitset_t = std::bitset<task_attributes_bits>;
-
 inline task_type_t
 mask_to_task_type(TaskAttributes mask) {
   return static_cast<task_type_t>(util::bit_width(mask) - 1);
@@ -100,21 +96,6 @@ mask_to_processor_type(TaskAttributes mask) {
   return static_cast<task_processor_type_t>(
     util::bit_width(mask) - task_type_bits - 1);
 } // mask_to_processor_type
-
-constexpr bool
-leaf_task(task_attributes_bitset_t const & bs) {
-  return bs[static_cast<size_t>(task_type_t::leaf)];
-}
-
-constexpr bool
-inner_task(task_attributes_bitset_t const & bs) {
-  return bs[static_cast<size_t>(task_type_t::inner)];
-}
-
-constexpr bool
-idempotent_task(task_attributes_bitset_t const & bs) {
-  return bs[static_cast<size_t>(task_type_t::idempotent)];
-}
 
 } // namespace exec
 } // namespace flecsi

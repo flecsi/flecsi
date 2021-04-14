@@ -203,9 +203,9 @@ detail::register_task() {
                                    : Legion::Processor::LOC_PROC;
   registrar.add_constraint(Legion::ProcessorConstraint(kind));
 
-  registrar.set_leaf(leaf_task(A) || !inner_task(A));
-  registrar.set_inner(inner_task(A));
-  registrar.set_idempotent(idempotent_task(A));
+  registrar.set_leaf(A & leaf || ~A & inner);
+  registrar.set_inner(A & inner);
+  registrar.set_idempotent(A & idempotent);
 
   /*
     This section of conditionals is necessary because there is still
