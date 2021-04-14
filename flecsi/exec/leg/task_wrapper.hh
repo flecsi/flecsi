@@ -64,13 +64,13 @@ struct convert_accessor {
 } // namespace detail
 } // namespace data
 
-// Send and receive only the reference_base portion:
+// Send and receive only the field ID:
 template<data::layout L, class T, Privileges Priv>
 struct util::serial_convert<data::accessor<L, T, Priv>> {
   using type = data::accessor<L, T, Priv>;
-  using Rep = std::size_t;
+  using Rep = field_id_t;
   static Rep put(const type & r) {
-    return r.identifier();
+    return r.field();
   }
   static type get(const Rep & r) {
     return type(r);

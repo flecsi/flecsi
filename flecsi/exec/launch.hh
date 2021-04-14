@@ -31,6 +31,14 @@
 #include <variant> // monostate
 
 namespace flecsi {
+namespace data { // these have semantics for exec/
+struct bind_tag {}; // must be recognized as a task parameter
+// Provides a send member function that accepts a function to call with a
+// (subsidiary) task parameter and another function to call to transform the
+// corresponding task argument (used only on the caller side).
+struct send_tag {};
+} // namespace data
+
 namespace exec {
 
 namespace detail {

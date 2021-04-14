@@ -23,7 +23,6 @@
 #error Do not include this file directly!
 #endif
 
-#include "flecsi/data/reference.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"
@@ -114,12 +113,16 @@ private:
 }; // struct accessor
 
 template<typename DATA_TYPE, Privileges PRIVILEGES>
-struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
+struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
   using element_type = std::
     conditional_t<privilege_write(PRIVILEGES), value_type, const value_type>;
 
-  explicit accessor(std::size_t f) : reference_base(f) {}
+  explicit accessor(field_id_t f) : f(f) {}
+
+  field_id_t field() const {
+    return f;
+  }
 
   FLECSI_INLINE_TARGET
   auto span() const {
@@ -131,6 +134,7 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
   }
 
 private:
+  field_id_t f;
   util::span<element_type> s;
 }; // struct accessor
 
@@ -266,7 +270,7 @@ struct ragged_accessor
   }
 
 private:
-  Offsets off{this->identifier()};
+  Offsets off{this->field()};
 };
 
 template<class T, Privileges P>

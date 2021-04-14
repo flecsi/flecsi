@@ -20,7 +20,6 @@
 #endif
 
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/reference.hh"
 #include "flecsi/exec/launch.hh"
 
 namespace flecsi {
