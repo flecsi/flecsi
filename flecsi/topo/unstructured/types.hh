@@ -281,7 +281,7 @@ struct unstructured_base {
 
     std::vector<std::vector<std::size_t>> fulfills(size);
     {
-      std::size_t r{0};
+      int r = 0;
       for(const auto & rv : requested) {
         for(auto c : rv) {
           fulfills[r].emplace_back(shared_offsets[c]);
@@ -300,9 +300,9 @@ struct unstructured_base {
       Setup source pointers.
      */
 
-    std::size_t r{0};
+    int r = 0;
     for(const auto & rv : fulfilled) {
-      if(r == std::size_t(rank)) {
+      if(r == rank) {
         ++r;
         continue;
       } // if

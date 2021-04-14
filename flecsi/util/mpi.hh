@@ -35,7 +35,7 @@ namespace util {
 namespace mpi {
 namespace detail {
 struct vector { // for *v functions
-  explicit vector(std::size_t n) {
+  explicit vector(int n) {
     off.reserve(n);
     sz.reserve(n);
   }
@@ -207,9 +207,8 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   detail::vector v(size);
   v.skip(); // v.sz used even off-root
   if(rank == 0) {
-    for(size_t r{1}; r < std::size_t(size); ++r) {
+    for(int r = 1; r < size; ++r)
       v.put(f(r, size));
-    } // for
   }
 
   MPI_Scatter(v.sz.data(),
@@ -347,7 +346,7 @@ all_gather(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   std::vector<return_type> result;
   result.reserve(size);
 
-  for(std::size_t r{0}; r < std::size_t(size); ++r) {
+  for(int r = 0; r < size; ++r) {
     auto const * p = &bytes[r * count];
     result.emplace_back(serial_get<return_type>(p));
   } // for
