@@ -15,7 +15,6 @@
 #include "simple_definition.hh"
 #include "ugm_definition.hh"
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"

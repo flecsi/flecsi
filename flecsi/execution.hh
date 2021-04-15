@@ -15,22 +15,20 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#define __FLECSI_PRIVATE__
+#include "flecsi/exec/backend.hh"
+#include "flecsi/exec/fold.hh"
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+#include "flecsi/exec/kernel_interface.hh"
 #endif
+
+#include "flecsi/flog.hh"
+#include "flecsi/run/backend.hh"
 
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 #include <boost/program_options.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-
-#include "flecsi/exec/backend.hh"
-#include "flecsi/exec/fold.hh"
-#if defined(FLECSI_ENABLE_KOKKOS)
-#include "flecsi/exec/kernel_interface.hh"
-#endif
-#include "flecsi/flog.hh"
-#include "flecsi/run/backend.hh"
 
 /*----------------------------------------------------------------------------*
   Basic runtime interface

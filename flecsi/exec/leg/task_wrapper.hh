@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/leg/bind_accessors.hh"
 #include "flecsi/exec/leg/future.hh"

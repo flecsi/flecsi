@@ -12,7 +12,6 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
 #include <flecsi/data.hh>

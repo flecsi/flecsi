@@ -14,13 +14,9 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#define __FLECSI_PRIVATE__
-#endif
-
+#include "flecsi/data.hh"
 #include "flecsi/run/leg/context.hh"
 #include "flecsi/run/leg/mapper.hh"
-#include <flecsi/data.hh>
 
 namespace flecsi {
 namespace data::leg {

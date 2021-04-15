@@ -12,16 +12,14 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
-
-#include <vector>
-
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/io.hh"
 #include "flecsi/topo/narray/test/narray.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/unit.hh"
+
+#include <vector>
 
 using namespace flecsi;
 

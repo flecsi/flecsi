@@ -11,9 +11,6 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#if !defined(__FLECSI_PRIVATE__)
-#define __FLECSI_PRIVATE__
-#endif
 
 #include "flecsi/run/mpi/context.hh"
 #include "flecsi/data.hh"

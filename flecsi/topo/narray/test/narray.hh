@@ -13,7 +13,6 @@
                                                                               */
 #pragma once
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/data.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/coloring_utils.hh"

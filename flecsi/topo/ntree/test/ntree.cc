@@ -11,15 +11,13 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#define __FLECSI_PRIVATE__
-#include <flecsi/data.hh>
 
+#include "flecsi/data.hh"
+#include "flecsi/topo/ntree/interface.hh"
+#include "flecsi/topo/ntree/types.hh"
 #include "flecsi/util/geometry/filling_curve.hh"
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
-
-#include "flecsi/topo/ntree/interface.hh"
-#include "flecsi/topo/ntree/types.hh"
 
 #include "txt_definition.hh"
 
