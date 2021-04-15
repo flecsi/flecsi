@@ -407,7 +407,7 @@ struct util::serial<topo::unstructured_impl::shared_entity> {
   using type = topo::unstructured_impl::shared_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, std::tie(s.id, s.dependents));
+    serial_put(p, s.id, s.dependents);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
@@ -420,7 +420,7 @@ struct util::serial<topo::unstructured_impl::ghost_entity> {
   using type = topo::unstructured_impl::ghost_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, std::tie(s.id, s.color));
+    serial_put(p, s.id, s.color);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
@@ -433,7 +433,7 @@ struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, std::tie(c.owned, c.exclusive, c.shared, c.ghosts));
+    serial_put(p, c.owned, c.exclusive, c.shared, c.ghosts);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};

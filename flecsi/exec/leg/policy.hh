@@ -127,7 +127,8 @@ reduce_internal(Args &&... args) {
     flecsi_context.mpi_params = &params;
   }
   else {
-    buf = util::serial_put(params);
+    buf = std::apply(
+      [](const auto &... pp) { return util::serial_put_tuple(pp...); }, params);
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;

@@ -98,7 +98,7 @@ struct util::serial<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
-    serial_put(p, std::tie(m.get_base(), m.get_grow()));
+    serial_put(p, m.get_base(), m.get_grow());
   }
   static type get(const std::byte *& b) {
     const serial_cast r{b};
@@ -146,26 +146,15 @@ inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
-template<class T>
-struct decay : std::decay<T> {};
+template<class>
+struct tuple_get;
 template<class... TT>
-struct decay<std::tuple<TT...>> {
-  using type = std::tuple<std::decay_t<TT>...>;
+struct tuple_get<std::tuple<TT...>> {
+  static auto get(const Legion::Task & t) {
+    const auto p = static_cast<const std::byte *>(t.args);
+    return util::serial_get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
+  }
 };
-
-template<class T>
-auto
-tuple_get(const Legion::Task & t) {
-  struct Check {
-    const std::byte *b, *e;
-    Check(const Legion::Task & t)
-      : b(static_cast<const std::byte *>(t.args)), e(b + t.arglen) {}
-    ~Check() {
-      flog_assert(b == e, "Bad Task::arglen");
-    }
-  } ch(t);
-  return util::serial_get<typename decay<T>::type>(ch.b);
-}
 } // namespace detail
 
 /*!
@@ -265,7 +254,7 @@ struct task_wrapper {
     }
 
     // Unpack task arguments
-    auto task_args = detail::tuple_get<param_tuple>(*task);
+    auto task_args = detail::tuple_get<param_tuple>::get(*task);
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();

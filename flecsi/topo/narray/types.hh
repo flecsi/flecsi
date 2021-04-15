@@ -200,14 +200,14 @@ struct util::serial<topo::narray_impl::index_coloring> {
   template<class P>
   static void put(P & p, const type & s) {
     serial_put(p,
-      std::tie(s.faces,
-        s.global,
-        s.extents,
-        s.offset,
-        s.logical,
-        s.extended,
-        s.points,
-        s.intervals));
+      s.faces,
+      s.global,
+      s.extents,
+      s.offset,
+      s.logical,
+      s.extended,
+      s.points,
+      s.intervals);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};

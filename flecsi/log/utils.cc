@@ -39,7 +39,8 @@ send_to_one() {
                     ? new int[state::instance().processes()]
                     : nullptr;
 
-    std::vector<std::byte> data = util::serial_put(state::instance().packets()),
+    std::vector<std::byte> data = util::serial_put_tuple(
+                             state::instance().packets()),
                            buffer;
 
     const int bytes = data.size();
