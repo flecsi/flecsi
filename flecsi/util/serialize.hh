@@ -150,15 +150,13 @@ struct serial<T, std::enable_if_t<memcpyable_v<T>>> {
     return ret;
   }
 };
-// To allow convenient serial_put(std::tie(...)), it is part of the interface
-// that pair and tuple elements are just concatenated.
 template<class T, class U>
 struct serial<std::pair<T, U>,
   std::enable_if_t<!memcpyable_v<std::pair<T, U>>>> {
   using type = std::pair<T, U>;
   template<class P>
   static void put(P & p, const type & v) {
-    serial_put(p, v.first, v.second);
+    serial_put<T, U>(p, v.first, v.second); // explicit T/U rejects references
   }
   static type get(const std::byte *& p) {
     return {serial_get<T>(p), serial_get<U>(p)};
@@ -170,7 +168,7 @@ struct serial<std::tuple<TT...>,
   using type = std::tuple<TT...>;
   template<class P>
   static void put(P & p, const type & t) {
-    std::apply([&p](const TT &... xx) { serial_put(p, xx...); }, t);
+    std::apply([&p](const TT &... xx) { serial_put<TT...>(p, xx...); }, t);
   }
   static type get(const std::byte *& p) {
     return type{serial_get<TT>(p)...};
