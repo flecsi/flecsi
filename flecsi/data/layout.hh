@@ -19,10 +19,6 @@
   This file defines data layouts.
  */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include <cstddef>
 
 namespace flecsi {

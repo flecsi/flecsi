@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"

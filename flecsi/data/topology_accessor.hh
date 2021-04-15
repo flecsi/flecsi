@@ -15,13 +15,10 @@
 
 /*!  @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/reference.hh"
 #include "flecsi/exec/launch.hh"
-#include <cstddef> // size_t
+
+#include <cstddef>
 
 namespace flecsi {
 namespace data {

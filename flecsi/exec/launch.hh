@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly
-#endif
-
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/util/type_traits.hh"

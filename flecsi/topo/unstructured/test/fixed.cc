@@ -11,9 +11,9 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
+
 #include "fixed.hh"
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"

@@ -14,11 +14,8 @@
 #pragma once
 
 /*! @file */
-#include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
+#include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"

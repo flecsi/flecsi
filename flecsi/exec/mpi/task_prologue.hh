@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/mpi/future.hh"

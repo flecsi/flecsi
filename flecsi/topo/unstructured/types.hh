@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"

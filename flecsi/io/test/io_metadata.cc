@@ -12,8 +12,6 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
-
 #include <cassert>
 #include <ostream>
 #include <string>
