@@ -213,38 +213,57 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
-
-  detail::vector v(size);
-  v.skip(); // v.sz used even off-root
-  if(rank == 0) {
-    for(int r = 1; r < size; ++r)
-      v.put(f(r, size));
+  if constexpr(bit_copyable_v<return_type>) {
+    std::vector<return_type> send;
+    if(!rank)
+      send.reserve(size);
+    send.resize(1);
+    if(!rank)
+      for(int r = 1; r < size; ++r)
+        send.push_back(f(r, size));
+    test(MPI_Scatter(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      send.data(),
+      1,
+      type<return_type>(),
+      comm));
+    if(rank)
+      return send.front();
   }
+  else {
+    detail::vector v(size);
+    v.skip(); // v.sz used even off-root
+    if(rank == 0) {
+      for(int r = 1; r < size; ++r)
+        v.put(f(r, size));
+    }
 
-  MPI_Scatter(v.sz.data(),
-    1,
-    MPI_INT,
-    rank ? v.sz.data() : MPI_IN_PLACE,
-    1,
-    MPI_INT,
-    0,
-    comm);
-  if(rank)
-    v.data.resize(v.sz.front());
-  MPI_Scatterv(v.data.data(),
-    v.sz.data(),
-    v.off.data(),
-    MPI_BYTE,
-    v.data.data(),
-    v.sz.front(),
-    MPI_BYTE,
-    0,
-    comm);
+    MPI_Scatter(v.sz.data(),
+      1,
+      MPI_INT,
+      rank ? v.sz.data() : MPI_IN_PLACE,
+      1,
+      MPI_INT,
+      0,
+      comm);
+    if(rank)
+      v.data.resize(v.sz.front());
+    MPI_Scatterv(v.data.data(),
+      v.sz.data(),
+      v.off.data(),
+      MPI_BYTE,
+      v.data.data(),
+      v.sz.front(),
+      MPI_BYTE,
+      0,
+      comm);
 
-  if(rank) {
-    auto const * p = v.data.data();
-    return serial_get<return_type>(p);
-  } // if
+    if(rank) {
+      auto const * p = v.data.data();
+      return serial_get<return_type>(p);
+    } // if
+  }
 
   return f(0, size);
 } // one_to_allv
@@ -270,50 +289,63 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
-
-  detail::vector recv(size);
-  {
-    detail::vector send(size);
-
-    for(int r = 0; r < size; ++r) {
-      if(r == rank)
-        send.skip();
-      else
-        send.put(f(r, size));
-    } // for
-
-    recv.sz.resize(size);
-    MPI_Alltoall(send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm);
-
-    {
-      int o = 0;
-      for(const auto n : recv.sz) {
-        recv.off.push_back(o);
-        o += n;
-      }
-      recv.data.resize(o);
-    }
-
-    MPI_Alltoallv(send.data.data(),
-      send.sz.data(),
-      send.off.data(),
-      MPI_BYTE,
-      recv.data.data(),
-      recv.sz.data(),
-      recv.off.data(),
-      MPI_BYTE,
-      comm);
-  }
-
   std::vector<return_type> result;
   result.reserve(size);
-  const std::byte * const p = recv.data.data();
-  for(int r = 0; r < size; ++r) {
-    if(r == rank)
+  if constexpr(bit_copyable_v<return_type>) {
+    for(int r = 0; r < size; ++r)
       result.push_back(f(r, size));
-    else
-      result.push_back(serial_get1<return_type>(p + recv.off[r]));
-  } // for
+    test(MPI_Alltoall(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      result.data(),
+      1,
+      type<return_type>(),
+      comm));
+  }
+  else {
+    detail::vector recv(size);
+    {
+      detail::vector send(size);
+
+      for(int r = 0; r < size; ++r) {
+        if(r == rank)
+          send.skip();
+        else
+          send.put(f(r, size));
+      } // for
+
+      recv.sz.resize(size);
+      MPI_Alltoall(
+        send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm);
+
+      {
+        int o = 0;
+        for(const auto n : recv.sz) {
+          recv.off.push_back(o);
+          o += n;
+        }
+        recv.data.resize(o);
+      }
+
+      MPI_Alltoallv(send.data.data(),
+        send.sz.data(),
+        send.off.data(),
+        MPI_BYTE,
+        recv.data.data(),
+        recv.sz.data(),
+        recv.off.data(),
+        MPI_BYTE,
+        comm);
+    }
+
+    const std::byte * const p = recv.data.data();
+    for(int r = 0; r < size; ++r) {
+      if(r == rank)
+        result.push_back(f(r, size));
+      else
+        result.push_back(serial_get1<return_type>(p + recv.off[r]));
+    } // for
+  }
 
   return result;
 } // all_to_allv
@@ -338,39 +370,45 @@ template<typename T>
 std::vector<T>
 all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
-
-  detail::vector v(size); // just a struct here
-  v.sz.resize(size);
-  v.sz[rank] = util::serial_size(t);
-
-  test(MPI_Allgather(
-    MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
-
-  v.off.resize(size);
-  std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
-
-  v.data.resize(v.off.back() + v.sz.back());
-  {
-    std::byte * p = v.data.data() + v.off[rank];
-    util::serial_put(p, t);
-  }
-
-  test(MPI_Allgatherv(MPI_IN_PLACE,
-    0,
-    MPI_DATATYPE_NULL,
-    v.data.data(),
-    v.sz.data(),
-    v.off.data(),
-    MPI_BYTE,
-    comm));
-
   std::vector<T> result;
-  result.reserve(size);
+  if constexpr(bit_copyable_v<T>) {
+    const auto typ = type<T>();
+    result.resize(size);
+    test(MPI_Allgather(&t, 1, typ, result.data(), 1, typ, comm));
+  }
+  else {
+    detail::vector v(size); // just a struct here
+    v.sz.resize(size);
+    v.sz[rank] = util::serial_size(t);
 
-  auto p = std::as_const(v).data.data();
-  for(int r = 0; r < size; ++r) {
-    result.push_back(serial_get<T>(p));
-  } // for
+    test(MPI_Allgather(
+      MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
+
+    v.off.resize(size);
+    std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
+
+    v.data.resize(v.off.back() + v.sz.back());
+    {
+      std::byte * p = v.data.data() + v.off[rank];
+      util::serial_put(p, t);
+    }
+
+    test(MPI_Allgatherv(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      v.data.data(),
+      v.sz.data(),
+      v.off.data(),
+      MPI_BYTE,
+      comm));
+
+    result.reserve(size);
+
+    auto p = std::as_const(v).data.data();
+    for(int r = 0; r < size; ++r) {
+      result.push_back(serial_get<T>(p));
+    } // for
+  }
 
   return result;
 } // all_gather
