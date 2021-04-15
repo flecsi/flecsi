@@ -15,7 +15,7 @@
 #include "flecsi/log/utils.hh"
 #include "flecsi/log/packet.hh"
 #include "flecsi/log/state.hh"
-#include "flecsi/util/serialize.hh"
+#include "flecsi/util/mpi.hh"
 
 #if defined(FLECSI_ENABLE_FLOG)
 
@@ -31,6 +31,7 @@ log_size() {
 
 void
 send_to_one() {
+  using util::mpi::test;
 
   if(state::instance().initialized()) {
     std::lock_guard<std::mutex> guard(state::instance().packets_mutex());
@@ -45,7 +46,7 @@ send_to_one() {
 
     const int bytes = data.size();
 
-    MPI_Gather(&bytes, 1, MPI_INT, sizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    test(MPI_Gather(&bytes, 1, MPI_INT, sizes, 1, MPI_INT, 0, MPI_COMM_WORLD));
 
     int * offsets = nullptr;
     int sum{0};
@@ -61,7 +62,7 @@ send_to_one() {
       buffer.resize(sum);
     } // if
 
-    MPI_Gatherv(data.data(),
+    test(MPI_Gatherv(data.data(),
       bytes,
       MPI_CHAR,
       buffer.data(),
@@ -69,7 +70,7 @@ send_to_one() {
       offsets,
       MPI_CHAR,
       0,
-      MPI_COMM_WORLD);
+      MPI_COMM_WORLD));
 
     state::instance().packets().clear();
 

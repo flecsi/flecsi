@@ -76,11 +76,11 @@ protected:
     ().template get_storage<T>(f);
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f))
-        MPI_Bcast(storage.data(),
+        util::mpi::test(MPI_Bcast(storage.data(),
           storage.size(),
           flecsi::util::mpi::type<T>(),
           0,
-          MPI_COMM_WORLD);
+          MPI_COMM_WORLD));
     }
     else
       reg.ghost_copy<P>(ref);

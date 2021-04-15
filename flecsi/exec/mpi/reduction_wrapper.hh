@@ -52,7 +52,7 @@ private:
     } // scope
 
     // Create the operator and register it with the runtime
-    MPI_Op_create(apply, true, &op);
+    util::mpi::test(MPI_Op_create(apply, true, &op));
   }
 
 public:

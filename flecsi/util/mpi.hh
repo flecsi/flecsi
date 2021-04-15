@@ -163,8 +163,8 @@ type() {
     // TODO: destroy at MPI_Finalize
     static const MPI_Datatype ret = [] {
       MPI_Datatype data_type;
-      MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type);
-      MPI_Type_commit(&data_type);
+      test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
+      test(MPI_Type_commit(&data_type));
       return data_type;
     }();
     return ret;
@@ -185,8 +185,8 @@ static_type() {
 inline auto
 info(MPI_Comm comm = MPI_COMM_WORLD) {
   int rank, size;
-  MPI_Comm_size(comm, &size);
-  MPI_Comm_rank(comm, &rank);
+  test(MPI_Comm_size(comm, &size));
+  test(MPI_Comm_rank(comm, &rank));
   return std::make_pair(rank, size);
 } // info
 
@@ -239,17 +239,17 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
         v.put(f(r, size));
     }
 
-    MPI_Scatter(v.sz.data(),
+    test(MPI_Scatter(v.sz.data(),
       1,
       MPI_INT,
       rank ? v.sz.data() : MPI_IN_PLACE,
       1,
       MPI_INT,
       0,
-      comm);
+      comm));
     if(rank)
       v.data.resize(v.sz.front());
-    MPI_Scatterv(v.data.data(),
+    test(MPI_Scatterv(v.data.data(),
       v.sz.data(),
       v.off.data(),
       MPI_BYTE,
@@ -257,7 +257,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       v.sz.front(),
       MPI_BYTE,
       0,
-      comm);
+      comm));
 
     if(rank) {
       auto const * p = v.data.data();
@@ -315,8 +315,8 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       } // for
 
       recv.sz.resize(size);
-      MPI_Alltoall(
-        send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm);
+      test(MPI_Alltoall(
+        send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm));
 
       {
         int o = 0;
@@ -327,7 +327,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
         recv.data.resize(o);
       }
 
-      MPI_Alltoallv(send.data.data(),
+      test(MPI_Alltoallv(send.data.data(),
         send.sz.data(),
         send.off.data(),
         MPI_BYTE,
@@ -335,7 +335,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
         recv.sz.data(),
         recv.off.data(),
         MPI_BYTE,
-        comm);
+        comm));
     }
 
     const std::byte * const p = recv.data.data();

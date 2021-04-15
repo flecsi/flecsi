@@ -43,18 +43,18 @@ struct future<R, exec::launch_type_t::index> {
     results.resize(size());
 
     // Initiate MPI_Iallgather
-    MPI_Iallgather(&result,
+    util::mpi::test(MPI_Iallgather(&result,
       1,
       flecsi::util::mpi::type<R>(),
       results.data(),
       1,
       flecsi::util::mpi::type<R>(),
       MPI_COMM_WORLD,
-      &request);
+      &request));
   }
 
   void wait(bool = false) {
-    MPI_Wait(&request, MPI_STATUS_IGNORE);
+    util::mpi::test(MPI_Wait(&request, MPI_STATUS_IGNORE));
   }
 
   R get(Color index = 0, bool = false) {

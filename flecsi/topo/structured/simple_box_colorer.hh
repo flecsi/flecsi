@@ -80,11 +80,7 @@ simple_box_colorer(std::size_t grid_size[D],
   std::size_t ndomain_layers,
   Dimension thru_dim,
   const Color ncolors[D]) {
-  int size;
-  int rank;
-
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  const auto [rank, size] = util::mpi::info();
 
   // Check that the number of partitions is equal to number of ranks
   int count = 1;
@@ -176,6 +172,7 @@ simple_box_colorer(std::size_t grid_size[D],
 template<Dimension D>
 box_aggregate_info
 create_aggregate_info(box_coloring & cbox) {
+  using util::mpi::test;
   box_aggregate_info colinfo;
 
   //#exclusive entities
@@ -216,9 +213,7 @@ create_aggregate_info(box_coloring & cbox) {
   }
 
   // Post receives
-  int size, rank;
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  const auto [rank, size] = util::mpi::info();
 
   std::vector<int> rbuf[size];
 
@@ -226,8 +221,8 @@ create_aggregate_info(box_coloring & cbox) {
   for(int i = 0; i < size; i++) {
     if(i != rank) {
       MPI_Request request;
-      MPI_Irecv(
-        (void *)&(rbuf[i]), sz, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+      test(MPI_Irecv(
+        (void *)&(rbuf[i]), sz, MPI_INT, i, 0, MPI_COMM_WORLD, &request));
       requests.push_back(request);
     }
   }
@@ -236,13 +231,14 @@ create_aggregate_info(box_coloring & cbox) {
   std::set<Color>::iterator it;
   for(it = shared_ranks.begin(); it != shared_ranks.end(); ++it) {
     MPI_Request request;
-    MPI_Isend((void *)&(sbuf), sz, MPI_INT, *it, 0, MPI_COMM_WORLD, &request);
+    test(MPI_Isend(
+      (void *)&(sbuf), sz, MPI_INT, *it, 0, MPI_COMM_WORLD, &request));
   }
 
   // Wait for all receives to complete
   if(requests.size() > 0) {
     std::vector<MPI_Status> statuses(requests.size());
-    MPI_Waitall(requests.size(), &(requests[0]), &(statuses[0]));
+    test(MPI_Waitall(requests.size(), &(requests[0]), &(statuses[0])));
   }
 
   // Add received data to map

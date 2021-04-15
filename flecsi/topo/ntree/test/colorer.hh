@@ -15,9 +15,11 @@
 #pragma once
 
 #include "flecsi/util/geometry/point.hh"
+#include "flecsi/util/mpi.hh"
 
 namespace tree_colorer {
 using flecsi::Dimension;
+namespace mpi = flecsi::util::mpi;
 
 template<typename T, typename KEY, Dimension D>
 class colorer
@@ -54,9 +56,7 @@ public:
    * @param[in]  nents   The global number of entities
    */
   static void mpi_qsort(std::vector<T> & ents, int nents) {
-    int size, rank;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const auto [rank, size] = mpi::info();
 
     // Sort types based on key
     std::sort(ents.begin(), ents.end());
@@ -102,8 +102,8 @@ public:
     totalprocbodies.resize(size);
     int mybodies = rbodies.size();
     // Share the final array size of everybody
-    MPI_Allgather(
-      &mybodies, 1, MPI_INT, &totalprocbodies[0], 1, MPI_INT, MPI_COMM_WORLD);
+    mpi::test(MPI_Allgather(
+      &mybodies, 1, MPI_INT, &totalprocbodies[0], 1, MPI_INT, MPI_COMM_WORLD));
 #ifdef OUTPUT_TREE_INFO
     std::ostringstream oss;
     oss << "Repartition: ";
@@ -122,10 +122,7 @@ public:
    */
   static void mpi_compute_range(std::vector<type_t> & ents,
     std::array<point_t, 2> & range) {
-
-    int rank, size;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    using mpi::test;
 
     // Compute the local range
     range_t lrange;
@@ -162,10 +159,10 @@ public:
     }
 
     // Do the MPI Reduction
-    MPI_Allreduce(
-      MPI_IN_PLACE, max, dimension, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    MPI_Allreduce(
-      MPI_IN_PLACE, min, dimension, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    test(MPI_Allreduce(
+      MPI_IN_PLACE, max, dimension, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD));
+    test(MPI_Allreduce(
+      MPI_IN_PLACE, min, dimension, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD));
 
     for(Dimension d = 0; d < dimension; ++d) {
       range[0][d] = min[d];
@@ -188,10 +185,9 @@ private:
     std::vector<std::pair<key_t, int64_t>> & splitters,
     std::vector<T> & ents,
     const int64_t & nents) {
+    using mpi::test;
 
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    const auto [rank, size] = mpi::info();
 
     // Create a vector for the samplers
     std::vector<std::pair<key_t, int64_t>> keys_sample;
@@ -222,14 +218,14 @@ private:
     } // if
 
     // Echange the number of samples
-    MPI_Gather(&nsample,
+    test(MPI_Gather(&nsample,
       1,
       MPI_INT,
       &master_recvcounts[0],
       1,
       MPI_INT,
       0,
-      MPI_COMM_WORLD);
+      MPI_COMM_WORLD));
 
     // Master
     // Sort the received keys and create the pivots
@@ -254,7 +250,7 @@ private:
       master_keys.resize(master_nkeys);
     } // if
 
-    MPI_Gatherv(&keys_sample[0],
+    test(MPI_Gatherv(&keys_sample[0],
       nsample * sizeof(std::pair<key_t, int64_t>),
       MPI_BYTE,
       &master_keys[0],
@@ -262,7 +258,7 @@ private:
       &master_offsets[0],
       MPI_BYTE,
       0,
-      MPI_COMM_WORLD);
+      MPI_COMM_WORLD));
 
     // Generate the splitters, add zero and max keys
     splitters.resize(size - 1 + 2);
@@ -292,24 +288,24 @@ private:
     } // if
 
     // Bradcast the splitters
-    MPI_Bcast(&splitters[0],
+    test(MPI_Bcast(&splitters[0],
       (size - 1 + 2) * sizeof(std::pair<key_t, int64_t>),
       MPI_BYTE,
       0,
-      MPI_COMM_WORLD);
+      MPI_COMM_WORLD));
   } // generate_splitters_samples_
 
   static void mpi_alltoallv_p2p_(std::vector<int> & sendcount,
     std::vector<type_t> & sendbuffer,
     std::vector<type_t> & recvbuffer) {
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    using mpi::test;
+
+    const auto [rank, size] = mpi::info();
 
     std::vector<int> recvcount(size), recvoffsets(size), sendoffsets(size);
     // Exchange the send count
-    MPI_Alltoall(
-      &sendcount[0], 1, MPI_INT, &recvcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+    test(MPI_Alltoall(
+      &sendcount[0], 1, MPI_INT, &recvcount[0], 1, MPI_INT, MPI_COMM_WORLD));
     for(int i = 0; i < size; ++i) {
       if(i == 0) {
         recvoffsets[i] = recvcount[i];
@@ -340,28 +336,28 @@ private:
     for(int i = 0; i < size; ++i) {
       if(sendcount[i] != 0) {
         char * start = (char *)&(sendbuffer[0]);
-        MPI_Isend(start + sendoffsets[i],
+        test(MPI_Isend(start + sendoffsets[i],
           sendcount[i],
           MPI_BYTE,
           i,
           0,
           MPI_COMM_WORLD,
-          &request[i]);
+          &request[i]));
       }
     }
     for(int i = 0; i < size; ++i) {
       if(recvcount[i] != 0) {
         char * start = (char *)&(recvbuffer[0]);
-        MPI_Recv(start + recvoffsets[i],
+        test(MPI_Recv(start + recvoffsets[i],
           recvcount[i],
           MPI_BYTE,
           i,
           MPI_ANY_TAG,
           MPI_COMM_WORLD,
-          &status[i]);
+          &status[i]));
       }
       if(sendcount[i] != 0) {
-        MPI_Wait(&request[i], &status[i]);
+        test(MPI_Wait(&request[i], &status[i]));
       }
     } // for
   } // mpi_alltoallv_p2p

@@ -319,6 +319,8 @@ struct copy_engine {
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) const {
+    using util::mpi::test;
+
     auto source_storage =
       source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
@@ -336,31 +338,31 @@ struct copy_engine {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         auto source_rank = remote_sources[ghost_idx].first;
         requests.resize(requests.size() + 1);
-        MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
+        test(MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
           type_size,
           MPI_BYTE,
           source_rank,
           0,
           MPI_COMM_WORLD,
-          &requests.back());
+          &requests.back()));
       }
     }
 
     for(const auto & [dest_rank, local_indices] : remote_ghost_entities) {
       for(auto shared_idx : local_indices) {
         requests.resize(requests.size() + 1);
-        MPI_Isend(source_storage.data() + shared_idx * type_size,
+        test(MPI_Isend(source_storage.data() + shared_idx * type_size,
           type_size,
           MPI_BYTE,
           int(dest_rank),
           0,
           MPI_COMM_WORLD,
-          &requests.back());
+          &requests.back()));
       }
     }
 
     std::vector<MPI_Status> status(requests.size());
-    MPI_Waitall(requests.size(), requests.data(), status.data());
+    test(MPI_Waitall(requests.size(), requests.data(), status.data()));
   }
 
 private:
