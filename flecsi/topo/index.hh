@@ -149,7 +149,7 @@ struct ragged : specialization<ragged_category, ragged<T>> {
 struct with_ragged_base {
   template<class F, PrivilegeCount N>
   static void extend(
-    field<std::size_t, data::raw>::accessor1<privilege_repeat(rw, N)> a,
+    field<std::size_t, data::raw>::accessor1<privilege_repeat<rw, N>> a,
     F old) {
     const auto s = a.span();
     const std::size_t i = old(run::context::instance().color());

@@ -200,8 +200,8 @@ struct unstructured_base {
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
     std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
       src_points,
-    field<util::id>::accessor1<privilege_cat(privilege_repeat(wo, N - (N > 1)),
-      privilege_repeat(na, N > 1))> fmd,
+    field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
+      privilege_repeat<na, (N > 1)>>> fmd,
     MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
@@ -361,7 +361,7 @@ struct unstructured_base {
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
+    field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
     std::map<std::size_t,
       std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
     MPI_Comm const &) {

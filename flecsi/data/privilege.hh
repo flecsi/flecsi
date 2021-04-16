@@ -51,6 +51,14 @@ enum partition_privilege_t : Privileges {
 
 inline constexpr short privilege_bits = 2;
 
+// The leading tag bit which indicates the number of privileges in a pack:
+template<PrivilegeCount N>
+inline constexpr Privileges privilege_empty = [] {
+  const Privileges ret = 1 << privilege_bits * N;
+  static_assert(bool(ret), "too many privileges");
+  return ret;
+}();
+
 /*!
   Utility to allow general privilege components that will match the old
   style of specifying permissions, e.g., <EX, SH, GH> (The old approach was
@@ -62,9 +70,9 @@ inline constexpr short privilege_bits = 2;
 template<partition_privilege_t... PP>
 inline constexpr Privileges privilege_pack = [] {
   static_assert(((PP < 1 << privilege_bits) && ...));
-  Privileges ret = 1; // nonzero to allow recovering sizeof...(PP)
+  Privileges ret = 0;
   ((ret <<= privilege_bits, ret |= PP), ...);
-  return ret;
+  return ret | privilege_empty<sizeof...(PP)>;
 }();
 
 /*!
@@ -138,20 +146,18 @@ privilege_discard(Privileges pack) noexcept {
   return true;
 }
 
-constexpr Privileges
-privilege_repeat(partition_privilege_t p, PrivilegeCount n) {
-  Privileges ret = 1; // see above
-  while(n--) {
-    ret <<= privilege_bits;
-    ret |= p;
-  }
-  return ret;
-}
-constexpr Privileges
-privilege_cat(Privileges a, Privileges b) {
-  const auto n = privilege_count(b) * privilege_bits;
-  return a << n | b & (1 << n) - 1;
-}
+// privilege_pack<P,P,...> (N times)
+template<partition_privilege_t P, PrivilegeCount N>
+inline constexpr Privileges
+  privilege_repeat = privilege_empty<N> |
+                     (privilege_empty<N> - 1) / ((1 << privilege_bits) - 1) * P;
+template<Privileges A, Privileges B>
+inline constexpr Privileges privilege_cat = [] {
+  // Check for overflow:
+  (void)privilege_empty<privilege_count(A) + privilege_count(B)>;
+  const auto e = privilege_empty<privilege_count(B)>;
+  return A * e | B & e - 1;
+}();
 
 constexpr partition_privilege_t
 privilege_merge(Privileges p) {

@@ -262,7 +262,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   using Transfer = field<Buffer>::accessor<rw, ro>;
 
   template<index_space>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   // Utility to transfer the contents of ragged rows via buffers.
   struct ragged {

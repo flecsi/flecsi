@@ -172,7 +172,7 @@ struct narray_base {
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
+    field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
     std::map<std::size_t,
       std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
     MPI_Comm const &) {

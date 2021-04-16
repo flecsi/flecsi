@@ -57,7 +57,7 @@ template<Privileges P,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T, L, privilege_repeat(rw, privilege_count(P))>>(r);
+  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>>>(r);
 }
 template<class T>
 inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
@@ -268,7 +268,7 @@ private:
 
 template<class T, Privileges P>
 struct accessor<ragged, T, P>
-  : ragged_accessor<T, P, privilege_repeat(ro, privilege_count(P))> {
+  : ragged_accessor<T, P, privilege_repeat<ro, privilege_count(P)>> {
   using accessor::ragged_accessor::ragged_accessor;
 };
 
