@@ -30,18 +30,18 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
     for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
       const double x = m.value<mesh::x_axis>(i);
 
-      f[j][i] = sq_klpi * sin(K * PI * x) * sin(L * PI * y);
+      f[i][j] = sq_klpi * sin(K * PI * x) * sin(L * PI * y);
       const double solution = sin(K * PI * x) * sin(L * PI * y);
-      s[j][i] = solution;
+      s[i][j] = solution;
 
       if((m.is_boundary<mesh::x_axis, mesh::low>(i) ||
            m.is_boundary<mesh::x_axis, mesh::high>(i)) ||
          (m.is_boundary<mesh::y_axis, mesh::low>(j) ||
            m.is_boundary<mesh::y_axis, mesh::high>(j))) {
-        u[j][i] = solution;
+        u[i][j] = solution;
       }
       else {
-        u[j][i] = 0.0;
+        u[i][j] = 0.0;
       } // if
     } // for
   } // for
