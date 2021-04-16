@@ -58,9 +58,10 @@ replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
 
 } // namespace detail
 
-template<auto & F, class Reduction, size_t Attributes, typename... Args>
+template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
+  using util::mpi::test;
   using Traits = util::function_traits<decltype(F)>;
   using R = typename Traits::return_type;
 
@@ -124,7 +125,7 @@ reduce_internal(Args &&... args) {
       }
 
       // Broadcast the result from root to the rest of ranks
-      MPI_Bcast(&ret, 1, flecsi::util::mpi::type<R>(), 0, MPI_COMM_WORLD);
+      test(MPI_Bcast(&ret, 1, flecsi::util::mpi::type<R>(), 0, MPI_COMM_WORLD));
 
       // return future<R, launch_type::single> where clients on every rank
       // will get the same value when calling .get().
@@ -146,12 +147,12 @@ reduce_internal(Args &&... args) {
       // corresponding MPI_Op created by register_reduction<>()).
       // TODO: consider non-blocking Allreduce, issue Iallreduce here and wait
       //  for completion at .wait()/.get().
-      MPI_Allreduce(MPI_IN_PLACE,
+      test(MPI_Allreduce(MPI_IN_PLACE,
         &ret,
         1,
         flecsi::util::mpi::type<R>(),
         flecsi::exec::fold::wrap<Reduction, R>::op,
-        MPI_COMM_WORLD);
+        MPI_COMM_WORLD));
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
       return future<R>{std::move(ret)};

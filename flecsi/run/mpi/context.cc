@@ -28,21 +28,18 @@ namespace flecsi::run {
 
 int
 context_t::initialize(int argc, char ** argv, bool dependent) {
+  using util::mpi::test;
+
   if(dependent) {
-    MPI_Init(&argc, &argv);
+    test(MPI_Init(&argc, &argv));
   } // if
 
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-  context::process_ = rank;
-  context::processes_ = size;
+  std::tie(context::process_, context::processes_) = util::mpi::info();
 
   auto status = context::initialize_generic(argc, argv, dependent);
 
   if(status != success && dependent) {
-    MPI_Finalize();
+    test(MPI_Finalize());
   } // if
 
 #if defined(FLECSI_ENABLE_KOKKOS)
@@ -65,7 +62,7 @@ context_t::finalize() {
 
 #ifndef GASNET_CONDUIT_MPI
   if(context::initialize_dependent_) {
-    MPI_Finalize();
+    util::mpi::test(MPI_Finalize());
   } // if
 #endif
 

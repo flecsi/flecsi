@@ -183,11 +183,12 @@ naive_coloring() {
 int
 parmetis_colorer() {
   UNIT {
+    using util::mpi::test;
     topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 
     // Coloring with 5 colors with MPI_COMM_WORLD
     {
-      const size_t colors{5};
+      const Color colors = 5;
       auto [naive, ge, c2v, v2c, c2c] =
         topo::unstructured_impl::make_dcrs(sd, 1);
       auto raw = util::parmetis::color(naive, colors);
@@ -205,7 +206,7 @@ parmetis_colorer() {
 
       {
         std::stringstream ss;
-        size_t color{0};
+        Color color = 0;
         for(auto c : coloring) {
           ss << "color " << color++ << ":" << std::endl;
           for(auto i : c) {
@@ -221,8 +222,8 @@ parmetis_colorer() {
     // Coloring with 5 colors with custom communicator with 2 processes
     {
       MPI_Comm group_comm;
-      MPI_Comm_split(
-        MPI_COMM_WORLD, process() < 2 ? 0 : MPI_UNDEFINED, 0, &group_comm);
+      test(MPI_Comm_split(
+        MPI_COMM_WORLD, process() < 2 ? 0 : MPI_UNDEFINED, 0, &group_comm));
 
       if(process() < 2) {
         auto [naive, ge, c2v, v2c, c2c] =
@@ -244,7 +245,7 @@ parmetis_colorer() {
 
         {
           std::stringstream ss;
-          size_t color{0};
+          Color color = 0;
           for(auto c : coloring) {
             ss << "color " << color++ << ":" << std::endl;
             for(auto i : c) {
@@ -256,7 +257,7 @@ parmetis_colorer() {
           flog_devel(warn) << ss.str();
         } // scope
 
-        MPI_Comm_free(&group_comm);
+        test(MPI_Comm_free(&group_comm));
       } // if
     } // scope
   };
@@ -273,8 +274,6 @@ struct closure_policy {
     std::tuple_size<auxiliary>::value;
 
   using definition = topo::unstructured_impl::simple_definition;
-
-  using communicator = topo::unstructured_impl::mpi_communicator;
 };
 
 struct coloring_policy {
@@ -288,8 +287,6 @@ struct coloring_policy {
     std::tuple_size<auxiliary>::value;
 
   using definition = topo::unstructured_impl::simple_definition;
-
-  using communicator = topo::unstructured_impl::mpi_communicator;
 }; // coloring_policy
 
 int
@@ -298,7 +295,7 @@ dependency_closure() {
     topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
     // Coloring with 5 colors with MPI_COMM_WORLD
     {
-      const size_t colors{processes()};
+      const Color colors=processes();
       auto [naive, ge, c2v, v2c, c2c] =
         topo::unstructured_impl::make_dcrs(sd, 1);
       auto raw = util::parmetis::color(naive, colors);

@@ -42,11 +42,13 @@
 
 namespace flecsi::run {
 
-const size_t FLECSI_TOP_LEVEL_TASK_ID = 0;
+inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
-constexpr size_t force_rank_match = 0x00001000, compacted_storage = 0x00002000,
-                 subrank_launch = 0x00003000, exclusive_lr = 0x00004000,
-                 prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
+constexpr Legion::MappingTagID force_rank_match = 0x00001000,
+                               compacted_storage = 0x00002000,
+                               subrank_launch = 0x00003000,
+                               exclusive_lr = 0x00004000,
+                               prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
 }
 
 namespace leg {
@@ -102,7 +104,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t process() const {
+  Color process() const {
     return context::process_;
   } // process
 
@@ -110,7 +112,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t processes() const {
+  Color processes() const {
     return context::processes_;
   } // processes
 
@@ -118,7 +120,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t threads_per_process() const {
+  Color threads_per_process() const {
     return context::threads_per_process_;
   } // threads_per_process
 
@@ -126,7 +128,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  size_t threads() const {
+  Color threads() const {
     return context::threads_;
   } // threads
 
@@ -134,7 +136,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t task_depth() {
+  static int task_depth() {
     return Legion::Runtime::get_runtime()
       ->get_current_task(Legion::Runtime::get_context())
       ->get_depth();
@@ -144,7 +146,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t color() {
+  static Color color() {
     flog_assert(
       task_depth() > 0, "this method can only be called from within a task");
     return Legion::Runtime::get_runtime()
@@ -156,7 +158,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  static size_t colors() {
+  static Color colors() {
     flog_assert(
       task_depth() > 0, "this method can only be called from within a task");
     return Legion::Runtime::get_runtime()

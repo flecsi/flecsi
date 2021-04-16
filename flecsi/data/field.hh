@@ -34,7 +34,7 @@ namespace data {
 /// \tparam L data layout
 /// \tparam T data type
 /// \tparam Priv access privileges
-template<layout L, typename T, std::size_t Priv>
+template<layout L, typename T, Privileges Priv>
 struct accessor;
 
 /// A specialized accessor used to return scalar values
@@ -42,7 +42,7 @@ template<auto & F>
 struct scalar_access;
 
 /// A specialized accessor for changing the extent of dynamic layouts.
-template<layout, class, std::size_t Priv>
+template<layout, class, Privileges>
 struct mutator;
 
 namespace detail {
@@ -154,9 +154,9 @@ struct field : data::detail::field_base<T, L> {
   static_assert(data::portable_v<T>);
   using value_type = T;
 
-  template<std::size_t Priv>
+  template<Privileges Priv>
   using accessor1 = data::accessor<L, T, Priv>;
-  template<std::size_t Priv>
+  template<Privileges Priv>
   using mutator1 = data::mutator<L, T, Priv>;
   /// The accessor to use as a parameter to receive this sort of field.
   /// \tparam PP the appropriate number of privilege values
@@ -209,7 +209,8 @@ struct field_base<T, ragged> {
 };
 template<class T>
 struct field_base<T, sparse> {
-  using base_type = field<std::pair<std::size_t, T>, ragged>;
+  using key_type = std::size_t;
+  using base_type = field<std::pair<key_type, T>, ragged>;
 };
 
 // Many compilers incorrectly require the 'template' for a base class.
@@ -232,12 +233,12 @@ struct field_register<T, ragged, Topo, Space>
 };
 } // namespace detail
 
-template<class F, std::size_t Priv>
+template<class F, Privileges Priv>
 using field_accessor = // for convenience with decltype
   typename std::remove_reference_t<F>::Field::template accessor1<Priv>;
 // Accessors that are always used with the same (internal) field can be
 // automatically initialized with its ID rather than having to be serialized.
-template<const auto & F, std::size_t Priv>
+template<const auto & F, Privileges Priv>
 struct accessor_member : field_accessor<decltype(F), Priv> {
   accessor_member() : accessor_member::accessor(F.fid) {}
   using accessor_member::accessor::operator=; // for single

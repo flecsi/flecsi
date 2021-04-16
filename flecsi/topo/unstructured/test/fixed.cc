@@ -46,7 +46,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       entity<vertices, has<special_vertices>>>;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   /*--------------------------------------------------------------------------*
     Interface

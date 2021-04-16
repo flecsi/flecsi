@@ -23,7 +23,6 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/reference.hh"
 #include "flecsi/data/topology_accessor.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
@@ -58,15 +57,15 @@ set_buffer(T & t, B & b) {
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
 struct param_buffers {
-  template<data::layout L, typename DATA_TYPE, size_t PRIVILEGES>
+  template<data::layout L, typename DATA_TYPE, Privileges PRIVILEGES>
   void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
 
-  template<data::layout L, class T, std::size_t P>
+  template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
     m.commit();
   }
 
-  template<class Topo, std::size_t P>
+  template<class Topo, Privileges P>
   void visit(data::topology_accessor<Topo, P> &) {}
 
   /*--------------------------------------------------------------------------*

@@ -26,6 +26,7 @@
 #include <complex>
 #include <cstddef> // byte
 #include <cstdint>
+#include <numeric>
 #include <type_traits>
 
 #include <mpi.h>
@@ -35,7 +36,7 @@ namespace util {
 namespace mpi {
 namespace detail {
 struct vector { // for *v functions
-  explicit vector(std::size_t n) {
+  explicit vector(int n) {
     off.reserve(n);
     sz.reserve(n);
   }
@@ -56,6 +57,18 @@ struct vector { // for *v functions
   }
 };
 } // namespace detail
+
+inline void
+test(int err) {
+  if(err != MPI_SUCCESS) {
+    char msg[MPI_MAX_ERROR_STRING + 1];
+    int len;
+    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
+      len = 0;
+    msg[len] = 0;
+    flog_fatal("MPI error " << err << ": " << msg);
+  }
+}
 
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
@@ -146,15 +159,12 @@ type() {
   if constexpr(!std::is_void_v<decltype(maybe_static<T>())>)
     return maybe_static<T>();
   else {
-    // Unfortunately, std::tuple<int> is not trivially copyable:
-    static_assert(std::is_trivially_copy_assignable_v<T> ||
-                  std::is_copy_assignable_v<T> &&
-                    std::is_trivially_copy_constructible_v<T>);
+    static_assert(bit_assignable_v<T>);
     // TODO: destroy at MPI_Finalize
     static const MPI_Datatype ret = [] {
       MPI_Datatype data_type;
-      MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type);
-      MPI_Type_commit(&data_type);
+      test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
+      test(MPI_Type_commit(&data_type));
       return data_type;
     }();
     return ret;
@@ -175,8 +185,8 @@ static_type() {
 inline auto
 info(MPI_Comm comm = MPI_COMM_WORLD) {
   int rank, size;
-  MPI_Comm_size(comm, &size);
-  MPI_Comm_rank(comm, &rank);
+  test(MPI_Comm_size(comm, &size));
+  test(MPI_Comm_rank(comm, &rank));
   return std::make_pair(rank, size);
 } // info
 
@@ -203,39 +213,57 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
-
-  detail::vector v(size);
-  v.skip(); // v.sz used even off-root
-  if(rank == 0) {
-    for(size_t r{1}; r < std::size_t(size); ++r) {
-      v.put(f(r, size));
-    } // for
+  if constexpr(bit_copyable_v<return_type>) {
+    std::vector<return_type> send;
+    if(!rank)
+      send.reserve(size);
+    send.resize(1);
+    if(!rank)
+      for(int r = 1; r < size; ++r)
+        send.push_back(f(r, size));
+    test(MPI_Scatter(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      send.data(),
+      1,
+      type<return_type>(),
+      comm));
+    if(rank)
+      return send.front();
   }
+  else {
+    detail::vector v(size);
+    v.skip(); // v.sz used even off-root
+    if(rank == 0) {
+      for(int r = 1; r < size; ++r)
+        v.put(f(r, size));
+    }
 
-  MPI_Scatter(v.sz.data(),
-    1,
-    MPI_INT,
-    rank ? v.sz.data() : MPI_IN_PLACE,
-    1,
-    MPI_INT,
-    0,
-    comm);
-  if(rank)
-    v.data.resize(v.sz.front());
-  MPI_Scatterv(v.data.data(),
-    v.sz.data(),
-    v.off.data(),
-    MPI_BYTE,
-    v.data.data(),
-    v.sz.front(),
-    MPI_BYTE,
-    0,
-    comm);
+    test(MPI_Scatter(v.sz.data(),
+      1,
+      MPI_INT,
+      rank ? v.sz.data() : MPI_IN_PLACE,
+      1,
+      MPI_INT,
+      0,
+      comm));
+    if(rank)
+      v.data.resize(v.sz.front());
+    test(MPI_Scatterv(v.data.data(),
+      v.sz.data(),
+      v.off.data(),
+      MPI_BYTE,
+      v.data.data(),
+      v.sz.front(),
+      MPI_BYTE,
+      0,
+      comm));
 
-  if(rank) {
-    auto const * p = v.data.data();
-    return serial_get<return_type>(p);
-  } // if
+    if(rank) {
+      auto const * p = v.data.data();
+      return serial_get<return_type>(p);
+    } // if
+  }
 
   return f(0, size);
 } // one_to_allv
@@ -261,50 +289,63 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
-
-  detail::vector recv(size);
-  {
-    detail::vector send(size);
-
-    for(int r = 0; r < size; ++r) {
-      if(r == rank)
-        send.skip();
-      else
-        send.put(f(r, size));
-    } // for
-
-    recv.sz.resize(size);
-    MPI_Alltoall(send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm);
-
-    {
-      int o = 0;
-      for(const auto n : recv.sz) {
-        recv.off.push_back(o);
-        o += n;
-      }
-      recv.data.resize(o);
-    }
-
-    MPI_Alltoallv(send.data.data(),
-      send.sz.data(),
-      send.off.data(),
-      MPI_BYTE,
-      recv.data.data(),
-      recv.sz.data(),
-      recv.off.data(),
-      MPI_BYTE,
-      comm);
-  }
-
   std::vector<return_type> result;
   result.reserve(size);
-  const std::byte * const p = recv.data.data();
-  for(int r = 0; r < size; ++r) {
-    if(r == rank)
+  if constexpr(bit_copyable_v<return_type>) {
+    for(int r = 0; r < size; ++r)
       result.push_back(f(r, size));
-    else
-      result.push_back(serial_get1<return_type>(p + recv.off[r]));
-  } // for
+    test(MPI_Alltoall(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      result.data(),
+      1,
+      type<return_type>(),
+      comm));
+  }
+  else {
+    detail::vector recv(size);
+    {
+      detail::vector send(size);
+
+      for(int r = 0; r < size; ++r) {
+        if(r == rank)
+          send.skip();
+        else
+          send.put(f(r, size));
+      } // for
+
+      recv.sz.resize(size);
+      test(MPI_Alltoall(
+        send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm));
+
+      {
+        int o = 0;
+        for(const auto n : recv.sz) {
+          recv.off.push_back(o);
+          o += n;
+        }
+        recv.data.resize(o);
+      }
+
+      test(MPI_Alltoallv(send.data.data(),
+        send.sz.data(),
+        send.off.data(),
+        MPI_BYTE,
+        recv.data.data(),
+        recv.sz.data(),
+        recv.off.data(),
+        MPI_BYTE,
+        comm));
+    }
+
+    const std::byte * const p = recv.data.data();
+    for(int r = 0; r < size; ++r) {
+      if(r == rank)
+        result.push_back(f(r, size));
+      else
+        result.push_back(serial_get1<return_type>(p + recv.off[r]));
+    } // for
+  }
 
   return result;
 } // all_to_allv
@@ -314,43 +355,60 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   function is convenient for passing more complicated types. Otherwise,
   it may make more sense to use MPI_Allgather directly.
 
-  This function uses the FleCSI serialization interface with a packing
-  callable object to communicate data from all ranks to all other ranks.
+  This function uses the FleCSI serialization interface to copy data from all
+  ranks to all other ranks.
 
-  @tparam F The packing type with signature \em (rank, size).
+  @tparam T serializable data type
 
-  @param f    A callable object.
+  @param t object to send
   @param comm An MPI communicator.
 
-  @return A std::vector<return_type>, where \rm return_type is the type
-          returned by the callable object.
+  @return the values from each rank
  */
 
-template<typename F>
-inline auto
-all_gather(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = decltype(f(int(0), int(1)));
-
+template<typename T>
+std::vector<T>
+all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
+  std::vector<T> result;
+  if constexpr(bit_copyable_v<T>) {
+    const auto typ = type<T>();
+    result.resize(size);
+    test(MPI_Allgather(&t, 1, typ, result.data(), 1, typ, comm));
+  }
+  else {
+    detail::vector v(size); // just a struct here
+    v.sz.resize(size);
+    v.sz[rank] = util::serial_size(t);
 
-  std::size_t count = serial_size<return_type>(f(rank, size));
-  std::vector<std::byte> bytes(size * count);
+    test(MPI_Allgather(
+      MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
 
-  MPI_Allgather(serial_put(f(rank, size)).data(),
-    count,
-    type<std::byte>(),
-    bytes.data(),
-    count,
-    type<std::byte>(),
-    comm);
+    v.off.resize(size);
+    std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
 
-  std::vector<return_type> result;
-  result.reserve(size);
+    v.data.resize(v.off.back() + v.sz.back());
+    {
+      std::byte * p = v.data.data() + v.off[rank];
+      util::serial_put(p, t);
+    }
 
-  for(std::size_t r{0}; r < std::size_t(size); ++r) {
-    auto const * p = &bytes[r * count];
-    result.emplace_back(serial_get<return_type>(p));
-  } // for
+    test(MPI_Allgatherv(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      v.data.data(),
+      v.sz.data(),
+      v.off.data(),
+      MPI_BYTE,
+      comm));
+
+    result.reserve(size);
+
+    auto p = std::as_const(v).data.data();
+    for(int r = 0; r < size; ++r) {
+      result.push_back(serial_get<T>(p));
+    } // for
+  }
 
   return result;
 } // all_gather

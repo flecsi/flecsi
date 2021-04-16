@@ -26,7 +26,7 @@ namespace structured_impl {
 //!
 //----------------------------------------------------------------------------//
 
-template<std::size_t MESH_DIMENSION>
+template<Dimension MESH_DIMENSION>
 class box
 {
 public:
@@ -41,22 +41,22 @@ public:
 
   box(std::vector<std::size_t> & upperbnds) {
     assert(upperbnds.size() == MESH_DIMENSION);
-    for(std::size_t i = 0; i < MESH_DIMENSION; ++i)
+    for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       upperbnds_[i] = upperbnds[i];
 
     size_ = 1;
-    for(std::size_t i = 0; i < MESH_DIMENSION; ++i)
+    for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       size_ *= upperbnds_[i] + 1;
 
     iterator = util::iota_view<id>(0, size_);
   }
 
   box(const id_array & upperbnds) {
-    for(std::size_t i = 0; i < MESH_DIMENSION; ++i)
+    for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       upperbnds_[i] = upperbnds[i];
 
     size_ = 1;
-    for(std::size_t i = 0; i < MESH_DIMENSION; ++i)
+    for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       size_ *= upperbnds_[i] + 1;
 
     iterator = util::iota_view<id>(0, size_);
@@ -72,28 +72,28 @@ public:
   } // upper_bounds
 
   /* Strides */
-  template<std::size_t DIM>
+  template<Dimension DIM>
   auto stride() const {
     return upperbnds_[DIM] + 1;
   } // stride
 
-  auto stride(std::size_t dim) const {
+  auto stride(Dimension dim) const {
     return upperbnds_[dim] + 1;
   } // stride
 
   /* Bounds checking */
-  template<std::size_t DIM>
+  template<Dimension DIM>
   bool check_bounds_index(id index) {
     return (index <= upperbnds_[DIM]);
   } // check_bounds_index
 
-  bool check_bounds_index(std::size_t dim, id index) {
+  bool check_bounds_index(Dimension dim, id index) {
     return (index <= upperbnds_[dim]);
   } // check_bounds_index
 
   bool check_bounds_indices(const id_array indices) {
     bool within_bnds = true;
-    for(std::size_t i = 0; i < MESH_DIMENSION; i++) {
+    for(Dimension i = 0; i < MESH_DIMENSION; i++) {
       within_bnds = within_bnds && (indices[i] <= upperbnds_[i]);
 
       if(!within_bnds)
@@ -113,13 +113,13 @@ public:
    *****************************************************************************/
   auto offset_from_indices(const id_array & indices) const {
     id value;
-    if(MESH_DIMENSION == 1) {
+    if constexpr(MESH_DIMENSION == 1) {
       return value = indices[0];
     }
     else {
       value = indices[MESH_DIMENSION - 2] +
               stride(MESH_DIMENSION - 2) * indices[MESH_DIMENSION - 1];
-      for(std::size_t i = MESH_DIMENSION - 2; i > 0; i--)
+      for(Dimension i = MESH_DIMENSION - 2; i > 0; i--)
         value = indices[i - 1] + stride(i - 1) * value;
       return value;
     }
@@ -132,7 +132,7 @@ public:
   void indices_from_offset(const id & offset, id_array & indices) const {
     id rem = offset;
 
-    for(std::size_t i = 0; i < MESH_DIMENSION; ++i) {
+    for(Dimension i = 0; i < MESH_DIMENSION; ++i) {
       indices[i] = rem % stride(i);
       rem = (rem - indices[i]) / stride(i);
     }
