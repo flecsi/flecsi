@@ -43,9 +43,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
-  using coord = narray_impl::coord;
-  using hypercube = narray_impl::hypercube;
-  using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
