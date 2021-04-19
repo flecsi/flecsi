@@ -69,6 +69,7 @@ struct copy_plan {
       engine(src_partition_, dest_, pointers<P, S>.fid) {}
 
   void issue_copy(const field_id_t & data_fid) const {
+    util::annotation::rguard<util::annotation::execute_task_copy_engine> ann;
     engine(data_fid);
   }
 

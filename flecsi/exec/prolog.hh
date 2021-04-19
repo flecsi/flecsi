@@ -31,6 +31,7 @@ struct prolog : task_prologue {
   // Note that accessors here may be empty versions made to be serialized.
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
+    util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
   }
 
