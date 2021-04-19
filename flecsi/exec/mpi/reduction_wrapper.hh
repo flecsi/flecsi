@@ -35,7 +35,7 @@ private:
     const auto rd = static_cast<const T *>(in);
     const auto rw = static_cast<T *>(inout);
 
-    for(std::size_t i = 0, n = *len; i < n; ++i) {
+    for(int i = 0, n = *len; i < n; ++i) {
       rw[i] = R::combine(rw[i], rd[i]);
     } // for
   }
@@ -48,7 +48,7 @@ private:
     } // scope
 
     // Create the operator and register it with the runtime
-    MPI_Op_create(apply, true, &op);
+    util::mpi::test(MPI_Op_create(apply, true, &op));
   }
 
 public:

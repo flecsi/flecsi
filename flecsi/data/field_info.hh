@@ -27,6 +27,7 @@
 namespace flecsi {
 
 using field_id_t = Legion::FieldID;
+using Legion::Color;
 
 } // namespace flecsi
 
@@ -35,6 +36,7 @@ using field_id_t = Legion::FieldID;
 namespace flecsi {
 
 using field_id_t = size_t;
+using Color = unsigned; // MPI uses just int
 
 } // namespace flecsi
 #endif
@@ -74,5 +76,7 @@ using fields = std::vector<const field_info_t *>;
   Unique counter for field ids.
  */
 inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
+
+using TopologyType = std::size_t;
 
 } // namespace flecsi

@@ -63,11 +63,6 @@ enum status : int {
  */
 
 struct context {
-
-  /*--------------------------------------------------------------------------*
-    Public types.
-   *--------------------------------------------------------------------------*/
-
   using field_info_store_t = data::fields;
 
   /*--------------------------------------------------------------------------*
@@ -395,19 +390,19 @@ struct context {
     Return the current process id.
    */
 
-  std::size_t process() const;
+  Color process() const;
 
   /*!
     Return the number of processes.
    */
 
-  std::size_t processes() const;
+  Color processes() const;
 
   /*!
     Return the number of threads per process.
    */
 
-  std::size_t threads_per_process() const;
+  Color threads_per_process() const;
 
   /*!
     Return the number of execution instances with which the runtime was
@@ -417,7 +412,7 @@ struct context {
     running process that invokded the FleCSI runtime.
    */
 
-  std::size_t threads() const;
+  Color threads() const;
 
   /*!
     Return the current task depth within the execution hierarchy. The
@@ -425,19 +420,19 @@ struct context {
     for FleCSI developers to use in enforcing runtime constraints.
    */
 
-  static std::size_t task_depth();
+  static int task_depth();
 
   /*!
     Get the color of this process.
    */
 
-  std::size_t color() const;
+  Color color() const;
 
   /*!
     Get the number of colors.
    */
 
-  std::size_t colors() const;
+  Color colors() const;
 #endif
 
   /*!
@@ -566,18 +561,9 @@ protected:
    *--------------------------------------------------------------------------*/
 
   bool initialized_ = false;
-  size_t process_ = std::numeric_limits<size_t>::max();
-  size_t processes_ = std::numeric_limits<size_t>::max();
-  size_t threads_per_process_ = std::numeric_limits<size_t>::max();
-  size_t threads_ = std::numeric_limits<size_t>::max();
+  Color process_, processes_, threads_per_process_, threads_;
 
   int exit_status_ = 0;
-
-  /*--------------------------------------------------------------------------*
-    Function data members.
-   *--------------------------------------------------------------------------*/
-
-  std::unordered_map<size_t, void *> function_registry_;
 
   /*--------------------------------------------------------------------------*
     Field data members.
@@ -585,10 +571,9 @@ protected:
 
   /*
     This type allows storage of runtime field information per topology type.
-    The size_t key is the topology ID; the vector index is the index space.
    */
 
-  std::unordered_map<size_t, std::vector<field_info_store_t>>
+  std::unordered_map<TopologyType, std::vector<field_info_store_t>>
     topology_field_info_map_;
 
   /*--------------------------------------------------------------------------*

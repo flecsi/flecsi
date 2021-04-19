@@ -57,14 +57,14 @@ using repartitioned = data::partitioned<repartition>;
 
 template<class T, typename T::index_space S = T::default_space(), class F>
 repartitioned
-make_repartitioned(std::size_t r, F f) {
+make_repartitioned(Color r, F f) {
   return {data::make_region<T, S>({r, data::logical_size}), std::move(f)};
 }
 
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partitioned : data::region {
   template<class Topo, typename Topo::index_space S>
-  ragged_partitioned(std::size_t r, util::key_type<S, Topo> kt)
+  ragged_partitioned(Color r, util::key_type<S, Topo> kt)
     : region({r, data::logical_size}, kt) {
     for(const auto & fi :
       run::context::instance().get_field_info_store<Topo, S>())
@@ -82,7 +82,7 @@ private:
 };
 
 struct ragged_base {
-  using coloring = std::size_t;
+  using coloring = Color;
 };
 template<class P>
 struct ragged_category : ragged_base {
@@ -91,7 +91,7 @@ struct ragged_category : ragged_base {
 
   ragged_category(coloring c) : part(make_partitions(c, index_spaces())) {}
 
-  std::size_t colors() const {
+  Color colors() const {
     return part.front().size().first;
   }
 
@@ -125,7 +125,7 @@ struct ragged_category : ragged_base {
 private:
   template<auto... VV>
   static util::key_array<ragged_partitioned, util::constants<VV...>>
-  make_partitions(std::size_t n,
+  make_partitions(Color n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
   ) {
     return {{ragged_partitioned(n, util::key_type<VV, P>())...}};
@@ -138,13 +138,14 @@ struct ragged : specialization<ragged_category, ragged<T>> {
   using index_spaces = typename T::index_spaces;
 
   template<index_space S>
-  static constexpr std::size_t privilege_count = T::template privilege_count<S>;
+  static constexpr PrivilegeCount privilege_count =
+    T::template privilege_count<S>;
 };
 
 struct with_ragged_base {
-  template<class F, std::size_t N>
+  template<class F, PrivilegeCount N>
   static void extend(
-    field<std::size_t, data::raw>::accessor1<privilege_repeat(rw, N)> a,
+    field<std::size_t, data::raw>::accessor1<privilege_repeat<rw, N>> a,
     F old) {
     const auto s = a.span();
     const std::size_t i = old(run::context::instance().color());
@@ -154,7 +155,7 @@ struct with_ragged_base {
 };
 template<class P>
 struct with_ragged : private with_ragged_base {
-  with_ragged(std::size_t n) : ragged(n) {}
+  with_ragged(Color n) : ragged(n) {}
 
   // Extend an offsets field to define empty rows for the suffix.
   template<typename P::index_space S, class F = decltype(zero::partial)>
@@ -179,23 +180,13 @@ struct detail::base<ragged_category> {
 
 // The user-facing variant of the color category supports ragged fields.
 struct index_base {
-  struct coloring {
-    coloring(size_t size) : size_(size) {}
-
-    size_t size() const {
-      return size_;
-    }
-
-  private:
-    size_t size_;
-  };
+  using coloring = Color;
 };
 
 template<class P>
 struct index_category : index_base, color<P>, with_ragged<P> {
   using index_base::coloring; // override color_base::coloring
-  index_category(const index_base::coloring & c)
-    : color<P>({c.size(), 1}), with_ragged<P>(c.size()) {
+  explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {
     this->template extend_offsets<elements>();
   }
 };
@@ -210,7 +201,7 @@ struct meta : specialization<index_category, meta<P>> {};
 
 template<class P>
 struct with_meta { // for interface consistency
-  with_meta(std::size_t n) : meta(n) {}
+  with_meta(Color n) : meta(n) {}
   typename topo::meta<P>::core meta;
 };
 
@@ -244,8 +235,8 @@ struct array : topo::specialization<array_category, array<P>> {};
   @ingroup topology
  */
 struct index : specialization<index_category, index> {
-  static coloring color(size_t size) {
-    return {size};
+  static coloring color(Color size) {
+    return size;
   } // color
 
 }; // struct index
