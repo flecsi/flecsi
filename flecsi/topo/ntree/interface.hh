@@ -98,8 +98,8 @@ private:
     key_t hibound, lobound;
   };
 
-public:
-  template<std::size_t>
+public: 
+  template<Privileges>
   struct access;
 
   ntree(const coloring & c)
@@ -558,7 +558,7 @@ public:
     }
   }
 
-  std::size_t colors() const {
+  Color colors() const {
     return part.front().colors();
   }
 
@@ -580,7 +580,7 @@ private:
  * Ntree access
  */
 template<class Policy>
-template<std::size_t Priv>
+template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
@@ -986,8 +986,8 @@ struct ntree<Policy>::access {
     auto hmap = map();
 
     // Create the tree
-    size_t size = run::context::instance().colors(); // colors();
-    size_t rank = run::context::instance().color(); // color();
+    const Color size = run::context::instance().colors(),
+                rank = run::context::instance().color();
 
     /* Exchange high and low bound */
     const auto hibound =

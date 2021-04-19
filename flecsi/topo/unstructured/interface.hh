@@ -25,7 +25,6 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
-#include "flecsi/topo/unstructured/closure_utils.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/topo/utility_types.hh"
@@ -51,7 +50,7 @@ struct unstructured : unstructured_base,
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   unstructured(coloring const & c)
@@ -90,7 +89,7 @@ struct unstructured : unstructured_base,
   util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 
@@ -134,12 +133,11 @@ private:
 
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
-    constexpr std::size_t NP = Policy::template privilege_count<S>;
+    constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
-    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
-      points;
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> points;
 
     auto const & fmd = forward_map_.template get<S>();
     execute<idx_itvls<NP>, mpi>(
@@ -206,7 +204,7 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<std::size_t Privileges>
+template<Privileges Privileges>
 struct unstructured<Policy>::access {
 private:
   using entity_list = typename Policy::entity_list;

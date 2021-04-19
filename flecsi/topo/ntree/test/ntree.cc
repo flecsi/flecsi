@@ -100,10 +100,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
-    int size, rank;
-    rank = process();
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const int size = processes(), rank = process();
 
     coloring c(size);
 

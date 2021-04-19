@@ -148,7 +148,7 @@ private:
 
 struct distribute_cells {
   distribute_cells(util::dcrs const & naive,
-    std::size_t colors,
+    Color colors,
     std::vector<std::size_t> const & index_colors,
     int rank)
     : size_(naive.distribution.size() - 1) {
@@ -203,7 +203,7 @@ struct migrate_cells {
   // clang-format on
 
   migrate_cells(util::dcrs const & naive,
-    std::size_t colors,
+    Color colors,
     std::vector<std::size_t> const & index_colors,
     std::vector<std::vector<std::size_t>> & c2v,
     std::map<std::size_t, std::vector<std::size_t>> & v2c,
@@ -289,7 +289,7 @@ struct communicate_entities {
   // clang-format on
 
   communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
-    std::unordered_map<std::size_t, std::size_t> const & colors,
+    std::unordered_map<std::size_t, Color> const & colors,
     std::vector<std::vector<std::size_t>> const & e2v,
     std::map<std::size_t, std::vector<std::size_t>> const & v2e,
     std::map<std::size_t, std::vector<std::size_t>> const & e2e,

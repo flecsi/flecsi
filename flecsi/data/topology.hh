@@ -50,7 +50,7 @@ protected:
 
 // A prefix of each row in a region_base.
 struct partition {
-  std::size_t colors() const;
+  Color colors() const;
   template<topo::single_space> // for convenience for simple topologies
   const partition & get_partition(field_id_t) const {
     return *this;
@@ -82,7 +82,7 @@ struct region : region_base {
   }
 
   // Return whether a copy is needed.
-  template<std::size_t P>
+  template<Privileges P>
   bool ghost(field_id_t i) {
     constexpr auto n = privilege_count(P);
     static_assert(n > 1, "need shared/ghost privileges");
@@ -99,7 +99,7 @@ struct region : region_base {
   }
 
   // Perform a ghost copy if needed.
-  template<std::size_t P,
+  template<Privileges P,
     class T,
     layout L,
     class Topo,

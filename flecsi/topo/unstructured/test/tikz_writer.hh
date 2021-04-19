@@ -90,7 +90,7 @@ struct tikz_writer {
     tex << "\\end{document}" << std::endl;
   } // write_primary
 
-  static void write_color(size_t const color,
+  static void write_color(Color const color,
     size_t const M,
     size_t const N,
     entity_map_t const & exclusive_cells,
@@ -99,7 +99,7 @@ struct tikz_writer {
     entity_map_t const & exclusive_vertices,
     entity_map_t const & shared_vertices,
     entity_map_t const & ghost_vertices) {
-    const size_t round_robin = color % palette.size();
+    const Color round_robin = color % palette.size();
 
     std::stringstream texname;
     texname << "color-" << color << "-" << M << "x" << N << ".tex";
@@ -139,7 +139,7 @@ struct tikz_writer {
           write_node(tex, xoff, yoff, cell, round_robin, false, true);
         }
         else if(gcell != ghost_cells.end()) {
-          const size_t off_round_robin = gcell->second.rank % palette.size();
+          const Color off_round_robin = gcell->second.rank % palette.size();
           write_node(tex, xoff, yoff, cell, off_round_robin, false, true);
         } // if
 
@@ -164,7 +164,7 @@ struct tikz_writer {
           write_node(tex, xoff, yoff, vertex, round_robin, false, true);
         }
         else if(gvertex != ghost_vertices.end()) {
-          const size_t off_round_robin = gvertex->second.rank % palette.size();
+          const Color off_round_robin = gvertex->second.rank % palette.size();
           write_node(tex, xoff, yoff, vertex, off_round_robin, false, true);
         } // if
 
@@ -185,7 +185,7 @@ private:
     double xoff,
     double yoff,
     size_t id,
-    size_t color,
+    Color color,
     bool fill = false,
     bool shared = false) {
     stream << "\\node[";

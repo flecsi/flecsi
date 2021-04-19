@@ -28,7 +28,7 @@ namespace topo {
 /*
  *
  */
-template<size_t DIM, typename T, class KEY>
+template<Dimension DIM, typename T, class KEY>
 class sort_entity
 {
   using point_t = util::point<T, DIM>;
@@ -74,7 +74,7 @@ public:
     return std::tie(key_, id_) < std::tie(s.key_, s.id_);
   }
 
-  template<size_t D, typename TY, class K>
+  template<Dimension D, typename TY, class K>
   friend std::ostream & operator<<(std::ostream & os,
     const sort_entity<D, TY, K> & e);
 
@@ -86,7 +86,7 @@ private:
   type_t radius_;
 }; // class sort_entity
 
-template<size_t DIM, typename T, class KEY>
+template<Dimension DIM, typename T, class KEY>
 std::ostream &
 operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
   os << "Coords: " << e.coordinates() << " Mass: " << e.mass()
@@ -94,13 +94,12 @@ operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
   return os;
 }
 
-template<size_t DIM, typename T, class KEY>
+template<Dimension DIM, typename T, class KEY>
 class hcell_base_t
 {
 
-  const static size_t dimension = DIM;
+  const static Dimension dimension = DIM;
   static constexpr int nchildren_ = 1 << dimension;
-
   using type_t = T;
   using key_t = KEY;
 
@@ -237,7 +236,7 @@ public:
     return nchild;
   }
 
-  template<size_t DD, typename TT, class KK>
+  template<Dimension DD, typename TT, class KK>
   friend std::ostream & operator<<(std::ostream & os,
     const hcell_base_t<DD, TT, KK> & hb);
 
@@ -255,7 +254,7 @@ private:
   std::size_t color_;
 };
 
-template<size_t D, typename T, class K>
+template<Dimension D, typename T, class K>
 std::ostream &
 operator<<(std::ostream & os, const hcell_base_t<D, T, K> & hb) {
   hb.is_node() ? os << "hc node " : os << "hc ent ";
@@ -263,7 +262,7 @@ operator<<(std::ostream & os, const hcell_base_t<D, T, K> & hb) {
   return os;
 }
 
-template<size_t DIM, typename T, class KEY>
+template<Dimension, typename T, class KEY>
 class node
 { node() = default; };
 

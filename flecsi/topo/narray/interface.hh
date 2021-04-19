@@ -51,9 +51,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
-  static constexpr std::size_t dimension = Policy::dimension;
+  static constexpr Dimension dimension = Policy::dimension;
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   narray(coloring const & c)
@@ -88,7 +88,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 
@@ -198,7 +198,7 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<std::size_t Privileges>
+template<Privileges>
 struct narray<Policy>::access {
   util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
 
@@ -346,7 +346,7 @@ struct narray<Policy>::access {
     }
   }
 
-  template<index_space S, typename T, std::size_t P>
+  template<index_space S, typename T, Privileges P>
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(

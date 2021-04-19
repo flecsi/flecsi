@@ -38,9 +38,7 @@ public:
   using colorer_t = tree_colorer::colorer<ent_t, key_t, DIM>;
 
   txt_definition(const std::string & filename) {
-    int size, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    const auto [rank, size] = flecsi::util::mpi::info();
     read_entities_(filename);
     // Compute the range
     colorer_t::mpi_compute_range(entities_, range_);
@@ -80,9 +78,7 @@ public:
 
 private:
   void read_entities_(const std::string & filename) {
-    int size, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    const auto [rank, size] = flecsi::util::mpi::info();
     // For now read all particles?
     std::ifstream myfile(filename);
     if(myfile.fail()) {

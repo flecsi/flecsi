@@ -64,14 +64,14 @@ struct ntree_base {
 
   struct coloring {
 
-    coloring(std::size_t nparts)
+    coloring(Color nparts)
       : nparts_(nparts), global_hmap_(nparts * local_hmap_),
         hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3),
         cdata_offset_(nparts, 100), meta_offset_(nparts, 1),
         comms_offset_(nparts, nparts) {}
 
     // Global
-    std::size_t nparts_;
+    Color nparts_;
 
     // Entities
     std::size_t local_entities_;
