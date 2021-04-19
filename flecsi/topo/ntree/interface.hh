@@ -337,8 +337,6 @@ public:
       },
       util::constant<nodes>());
 
-    ts->cp_top_tree_entities->issue_copy(e_keys.fid);
-    ts->cp_top_tree_nodes->issue_copy(n_keys.fid);
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
@@ -555,6 +553,8 @@ public:
     }
     else if constexpr(Space == nodes) {
       cp_top_tree_nodes->issue_copy(f.fid());
+    } else if constexpr (Space == tree_data){
+      cp_data_tree.issue_copy(f.fid()); 
     }
   }
 
