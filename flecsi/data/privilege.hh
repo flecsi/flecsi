@@ -22,6 +22,9 @@
 
 namespace flecsi {
 
+using Privileges = unsigned;
+using PrivilegeCount = unsigned short;
+
 /*!
   Enumeration for specifying access privleges for data that are passed
   to FleCSI tasks.
@@ -35,7 +38,7 @@ namespace flecsi {
             consistency, and the data are read-write.
  */
 
-enum partition_privilege_t : size_t {
+enum partition_privilege_t : Privileges {
   na = 0b00,
   ro = 0b01,
   wo = 0b10,
@@ -43,6 +46,14 @@ enum partition_privilege_t : size_t {
 }; // enum partition_privilege_t
 
 inline constexpr short privilege_bits = 2;
+
+// The leading tag bit which indicates the number of privileges in a pack:
+template<PrivilegeCount N>
+inline constexpr Privileges privilege_empty = [] {
+  const Privileges ret = 1 << privilege_bits * N;
+  static_assert(bool(ret), "too many privileges");
+  return ret;
+}();
 
 /*!
   Utility to allow general privilege components that will match the old
@@ -53,11 +64,11 @@ inline constexpr short privilege_bits = 2;
   \tparam PP privileges
  */
 template<partition_privilege_t... PP>
-inline constexpr size_t privilege_pack = [] {
+inline constexpr Privileges privilege_pack = [] {
   static_assert(((PP < 1 << privilege_bits) && ...));
-  std::size_t ret = 1; // nonzero to allow recovering sizeof...(PP)
+  Privileges ret = 0;
   ((ret <<= privilege_bits, ret |= PP), ...);
-  return ret;
+  return ret | privilege_empty<sizeof...(PP)>;
 }();
 
 /*!
@@ -66,8 +77,8 @@ inline constexpr size_t privilege_pack = [] {
   \param PACK a \c privilege_pack value
  */
 
-constexpr size_t
-privilege_count(std::size_t PACK) {
+constexpr PrivilegeCount
+privilege_count(Privileges PACK) {
   return (util::bit_width(PACK) - 1) / privilege_bits;
 } // privilege_count
 
@@ -79,7 +90,7 @@ privilege_count(std::size_t PACK) {
  */
 
 constexpr partition_privilege_t
-get_privilege(std::size_t i, std::size_t pack) {
+get_privilege(PrivilegeCount i, Privileges pack) {
   return partition_privilege_t(
     pack >> (privilege_count(pack) - 1 - i) * privilege_bits &
     ((1 << privilege_bits) - 1));
@@ -96,14 +107,14 @@ privilege_write(partition_privilege_t p) {
 }
 
 constexpr bool
-privilege_read(std::size_t pack) noexcept {
+privilege_read(Privileges pack) noexcept {
   for(auto i = privilege_count(pack); i--;)
     if(privilege_read(get_privilege(i, pack)))
       return true;
   return false;
 }
 constexpr bool
-privilege_write(std::size_t pack) noexcept {
+privilege_write(Privileges pack) noexcept {
   for(auto i = privilege_count(pack); i--;)
     if(privilege_write(get_privilege(i, pack)))
       return true;
@@ -112,7 +123,7 @@ privilege_write(std::size_t pack) noexcept {
 
 // Return whether the privileges destroy any existing data.
 constexpr bool
-privilege_discard(std::size_t pack) noexcept {
+privilege_discard(Privileges pack) noexcept {
   // With privilege_pack<na,wo>, the non-ghost can be read later.  With
   // privilege_pack<wo,na>, the ghost data is invalidated either by a
   // subsequent wo or by a ghost copy.
@@ -131,23 +142,21 @@ privilege_discard(std::size_t pack) noexcept {
   return true;
 }
 
-constexpr std::size_t
-privilege_repeat(partition_privilege_t p, std::size_t n) {
-  std::size_t ret = 1; // see above
-  while(n--) {
-    ret <<= privilege_bits;
-    ret |= p;
-  }
-  return ret;
-}
-constexpr std::size_t
-privilege_cat(std::size_t a, std::size_t b) {
-  const auto n = privilege_count(b) * privilege_bits;
-  return a << n | b & (1 << n) - 1;
-}
+// privilege_pack<P,P,...> (N times)
+template<partition_privilege_t P, PrivilegeCount N>
+inline constexpr Privileges
+  privilege_repeat = privilege_empty<N> |
+                     (privilege_empty<N> - 1) / ((1 << privilege_bits) - 1) * P;
+template<Privileges A, Privileges B>
+inline constexpr Privileges privilege_cat = [] {
+  // Check for overflow:
+  (void)privilege_empty<privilege_count(A) + privilege_count(B)>;
+  const auto e = privilege_empty<privilege_count(B)>;
+  return A * e | B & e - 1;
+}();
 
 constexpr partition_privilege_t
-privilege_merge(std::size_t p) {
+privilege_merge(Privileges p) {
   return privilege_discard(p)
            ? wo
            : privilege_write(p) ? rw : privilege_read(p) ? ro : na;

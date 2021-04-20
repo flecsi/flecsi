@@ -87,7 +87,7 @@ namespace detail {
 // color-specific accessors by having one ghost index point for every edge in
 // a directed communication graph.
 struct buffers_base {
-  using coloring = std::vector<std::vector<std::size_t>>; // [src][dest]
+  using coloring = std::vector<std::vector<Color>>; // [src][dest]
   // Each edge gets one buffer which can be used for transferring arbitrary
   // data via serialization.
   struct buffer {
@@ -188,7 +188,7 @@ struct buffers_category : buffers_base, topo::array_category<P> {
   explicit buffers_category(const coloring & c)
     : buffers_category(c, [&c] {
         Points ret(c.size());
-        std::size_t i = 0;
+        Color i = 0;
         for(auto & s : c) {
           std::size_t j = 0;
           for(auto & d : s)
@@ -258,7 +258,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   using Transfer = field<Buffer>::accessor<rw, ro>;
 
   template<index_space>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   // Utility to transfer the contents of ragged rows via buffers.
   struct ragged {

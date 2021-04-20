@@ -44,19 +44,19 @@ mempcpy(std::size_t & x, const void *, std::size_t n) {
 template<class, class = void>
 struct serial;
 
-// Store t at p, advancing past its serialized form.
+// Store tt at p, advancing past the serialized form.
 // For calculating sizes, P should be std::size_t.
 // For actual serialization, P should be std::byte*.
-template<class T, class P>
+template<class... TT, class P>
 void
-serial_put(P & p, const T & t) {
-  serial<std::remove_const_t<T>>::put(p, t);
+serial_put(P & p, const TT &... tt) {
+  (serial<std::remove_const_t<TT>>::put(p, tt), ...);
 }
-template<class T>
+template<class... TT>
 std::size_t serial_size(
-  const T & t) { // wrapper to provide an initial size of 0
+  const TT &... tt) { // wrapper to provide an initial size of 0
   std::size_t ret = 0;
-  serial_put(ret, t);
+  serial_put(ret, tt...);
   return ret;
 }
 template<class T>
@@ -76,12 +76,21 @@ auto serial_buffer(F && f) { // f should accept a P for serial_put
 }
 
 template<class T>
-auto serial_put(const T & t) { // for a single object
-  return serial_buffer([&t](auto & p) { serial_put(p, t); });
-}
-template<class T>
 T serial_get1(const std::byte * p) { // for a single object
   return serial_get<T>(p);
+}
+
+// Conveniences to allocate memory and to send a tuple without copying.
+template<class... TT>
+auto
+serial_put_tuple(const TT &... tt) {
+  return serial_buffer([&](auto & p) { serial_put(p, tt...); });
+}
+template<class... TT>
+auto
+serial_get_tuple(const std::byte * p, const std::byte * e = nullptr) {
+  return std::tuple{serial_get<TT>(p)...};
+  flog_assert(!e || p == e, "Wrong deserialization size");
 }
 
 // Unlike serial_get<std::vector<T>>, defined to get a size and then elements.
@@ -122,12 +131,17 @@ struct serial_container {
 };
 } // namespace detail
 
+// Unfortunately, std::tuple<int> is not trivially copyable, so check more:
 template<class T>
-constexpr bool memcpyable_v =
-  std::is_default_constructible_v<T> && std::is_trivially_move_assignable_v<T>;
+constexpr bool bit_assignable_v =
+  std::is_trivially_copy_assignable_v<T> ||
+  std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>;
+template<class T>
+constexpr bool bit_copyable_v =
+  std::is_default_constructible_v<T> && bit_assignable_v<T>;
 
 template<class T>
-struct serial<T, std::enable_if_t<memcpyable_v<T>>> {
+struct serial<T, std::enable_if_t<bit_copyable_v<T>>> {
   static_assert(!std::is_pointer_v<T>, "Cannot serialize pointers");
   template<class P>
   static void put(P & p, const T & t) {
@@ -141,16 +155,13 @@ struct serial<T, std::enable_if_t<memcpyable_v<T>>> {
     return ret;
   }
 };
-// To allow convenient serial_put(std::tie(...)), it is part of the interface
-// that pair and tuple elements are just concatenated.
 template<class T, class U>
 struct serial<std::pair<T, U>,
-  std::enable_if_t<!memcpyable_v<std::pair<T, U>>>> {
+  std::enable_if_t<!bit_copyable_v<std::pair<T, U>>>> {
   using type = std::pair<T, U>;
   template<class P>
   static void put(P & p, const type & v) {
-    serial_put(p, v.first);
-    serial_put(p, v.second);
+    serial_put<T, U>(p, v.first, v.second); // explicit T/U rejects references
   }
   static type get(const std::byte *& p) {
     return {serial_get<T>(p), serial_get<U>(p)};
@@ -158,11 +169,11 @@ struct serial<std::pair<T, U>,
 };
 template<class... TT>
 struct serial<std::tuple<TT...>,
-  std::enable_if_t<!memcpyable_v<std::tuple<TT...>>>> {
+  std::enable_if_t<!bit_copyable_v<std::tuple<TT...>>>> {
   using type = std::tuple<TT...>;
   template<class P>
   static void put(P & p, const type & t) {
-    std::apply([&p](const TT &... xx) { (serial_put(p, xx), ...); }, t);
+    std::apply([&p](const TT &... xx) { serial_put<TT...>(p, xx...); }, t);
   }
   static type get(const std::byte *& p) {
     return type{serial_get<TT>(p)...};
@@ -170,7 +181,7 @@ struct serial<std::tuple<TT...>,
 };
 template<class T, std::size_t N>
 struct serial<std::array<T, N>,
-  std::enable_if_t<!memcpyable_v<std::array<T, N>>>> {
+  std::enable_if_t<!bit_copyable_v<std::array<T, N>>>> {
   using type = std::array<T, N>;
   template<class P>
   static void put(P & p, const type & a) {
@@ -238,7 +249,7 @@ struct serial_value { // serializes nothing; returns T()
 template<class T>
 struct serial<T,
   voided<decltype(&T::legion_buffer_size),
-    std::enable_if_t<!memcpyable_v<T>>>> {
+    std::enable_if_t<!bit_copyable_v<T>>>> {
   template<class P>
   static void put(P & p, const T & t) {
     if constexpr(std::is_pointer_v<P>)

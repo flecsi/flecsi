@@ -41,7 +41,7 @@ struct mesh {
     double delta;
   };
 
-  static constexpr std::size_t dimension = D;
+  static constexpr Dimension dimension = D;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -169,10 +169,10 @@ struct mesh1d : topo::specialization<topo::narray, mesh1d> {
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
 
-  static constexpr std::size_t dimension = meshbase::dimension;
+  static constexpr Dimension dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;
@@ -210,10 +210,10 @@ struct mesh2d : topo::specialization<topo::narray, mesh2d> {
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
 
-  static constexpr std::size_t dimension = meshbase::dimension;
+  static constexpr Dimension dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;
@@ -250,10 +250,10 @@ struct mesh3d : topo::specialization<topo::narray, mesh3d> {
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
 
-  static constexpr std::size_t dimension = meshbase::dimension;
+  static constexpr Dimension dimension = meshbase::dimension;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   template<class B>
   using interface = meshbase::interface<B>;

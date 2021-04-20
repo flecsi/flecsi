@@ -184,7 +184,7 @@ index_driver() {
     buffers::core([] {
       const auto p = processes();
       buffers::coloring ret(p);
-      std::size_t i = 0;
+      Color i = 0;
       for(auto & g : ret)
         g.push_back(++i % p);
       return ret;

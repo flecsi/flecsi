@@ -35,7 +35,7 @@ sanity() {
       std::unordered_map<size_t, size_t> um{{2, 1}, {3, 2}};
       std::set<size_t> s{0, 1, 2, 3, 4};
 
-      data = serial_put(std::tie(v, m, um, s));
+      data = serial_put_tuple(v, m, um, s);
     } // scope
 
     {
@@ -96,7 +96,7 @@ user_type() {
       type_t t3(3);
       type_t t4(4);
 
-      data = serial_put(std::tie(t0, t1, t2, t3, t4));
+      data = serial_put_tuple(t0, t1, t2, t3, t4);
     } // scope
 
     {
@@ -208,7 +208,7 @@ simple_context() {
       info.id = 24;
       context.add_map_element_info(1, 4, info);
 
-      data = serial_put(context);
+      data = serial_put_tuple(context);
     } // scope
 
     context.clear();
