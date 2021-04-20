@@ -245,11 +245,9 @@ struct io_interface {
     fumap.wait_all_results();
   }
 
-  template<class Topo, size_t Index = Topo::default_space()>
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   legion_hdf5_region_t make_hdf5_region(typename Topo::slot & slot) {
-    using ispace = typename Topo::index_space;
-    constexpr ispace TIndex = (ispace)Index;
-    auto & fs = run::context::instance().get_field_info_store<Topo, TIndex>();
+    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
     FieldNames fn;
     for(const auto p : fs) {
       // TODO:  handle types other than double
@@ -258,24 +256,22 @@ struct io_interface {
       auto & i = name_count[p->name];
       fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
     }
-    return std::move(
-      legion_hdf5_region_t{(slot->template get_region<TIndex>().logical_region),
-        (slot->template get_partition<TIndex>(field_id_t()).logical_partition),
-        util::type<Topo>() + '[' + std::to_string(Index) + ']',
-        std::move(fn)});
+    return legion_hdf5_region_t{
+      (slot->template get_region<Index>().logical_region),
+      (slot->template get_partition<Index>(field_id_t()).logical_partition),
+      util::type<Topo>() + '[' + std::to_string(Index) + ']',
+      std::move(fn)};
   }
 
-  template<class Topo, size_t... Index>
+  template<class Topo, typename Topo::index_space... Index>
   void add_regions(typename Topo::slot & slot,
-    std::index_sequence<Index...> /* to deduce pack */) {
-    hdf5_region_vector.insert(
-      hdf5_region_vector.end(), {make_hdf5_region<Topo, Index>(slot)...});
+    util::constants<Index...> /* to deduce pack */) {
+    (hdf5_region_vector.push_back(make_hdf5_region<Topo, Index>(slot)), ...);
   }
 
   template<class Topo>
   void add_topology(data::topology_slot<Topo> & slot) {
-    constexpr size_t size = Topo::index_spaces::size;
-    add_regions<Topo>(slot, std::make_index_sequence<size>());
+    add_regions<Topo>(slot, typename Topo::index_spaces());
   }
 
   inline void checkpoint_all_fields(const std::string & file_name,
