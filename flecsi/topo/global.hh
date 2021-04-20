@@ -47,7 +47,7 @@ struct global : specialization<global_category, global> {};
 } // namespace topo
 
 // Defined here to avoid circularity via ragged and execute.
-template<data::layout L, class T, std::size_t Priv>
+template<data::layout L, class T, Privileges Priv>
 struct exec::detail::launch<data::accessor<L, T, Priv>,
   data::field_reference<T, L, topo::global, topo::elements>> {
   static std::

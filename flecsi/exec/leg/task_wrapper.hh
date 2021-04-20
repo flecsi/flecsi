@@ -42,7 +42,7 @@ namespace flecsi {
 inline log::devel_tag task_wrapper_tag("task_wrapper");
 
 namespace data {
-template<class, std::size_t, std::size_t>
+template<class, Privileges, Privileges>
 struct ragged_accessor;
 
 namespace detail {
@@ -60,25 +60,25 @@ struct convert_accessor {
 } // namespace detail
 } // namespace data
 
-// Send and receive only the reference_base portion:
-template<data::layout L, class T, std::size_t Priv>
+// Send and receive only the field ID:
+template<data::layout L, class T, Privileges Priv>
 struct util::serial_convert<data::accessor<L, T, Priv>> {
   using type = data::accessor<L, T, Priv>;
-  using Rep = std::size_t;
+  using Rep = field_id_t;
   static Rep put(const type & r) {
-    return r.identifier();
+    return r.field();
   }
   static type get(const Rep & r) {
     return type(r);
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial_convert<data::accessor<data::single, T, Priv>>
   : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};
-template<class T, std::size_t P, std::size_t OP>
+template<class T, Privileges P, Privileges OP>
 struct util::serial_convert<data::ragged_accessor<T, P, OP>>
   : data::detail::convert_accessor<data::ragged_accessor<T, P, OP>> {};
-template<data::layout L, class T, std::size_t Priv>
+template<data::layout L, class T, Privileges Priv>
 struct util::serial<data::mutator<L, T, Priv>> {
   using type = data::mutator<L, T, Priv>;
   template<class P>
@@ -89,26 +89,26 @@ struct util::serial<data::mutator<L, T, Priv>> {
     return serial_get<typename type::base_type>(b);
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
-    serial_put(p, std::tie(m.get_base(), m.get_grow()));
+    serial_put(p, m.get_base(), m.get_grow());
   }
   static type get(const std::byte *& b) {
     const serial_cast r{b};
     return {r, r};
   }
 };
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct util::serial<data::topology_accessor<T, Priv>,
-  std::enable_if_t<!util::memcpyable_v<data::topology_accessor<T, Priv>>>>
+  std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>
   : util::serial_value<data::topology_accessor<T, Priv>> {};
 
 template<auto & F, class... AA>
 struct util::serial<exec::partial<F, AA...>,
-  std::enable_if_t<!util::memcpyable_v<exec::partial<F, AA...>>>> {
+  std::enable_if_t<!util::bit_copyable_v<exec::partial<F, AA...>>>> {
   using type = exec::partial<F, AA...>;
   using Rep = typename type::Base;
   template<class P>
@@ -125,10 +125,9 @@ struct util::serial<future<T>> : util::serial_value<future<T>> {};
 
 namespace exec::leg {
 using run::leg::task;
-using task_id_t = Legion::TaskID;
 
 namespace detail {
-inline util::counter<task_id_t(LEGION_MAX_APPLICATION_TASK_ID)> task_counter(
+inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
   run::FLECSI_TOP_LEVEL_TASK_ID);
 /*!
   Register a task with Legion.
@@ -140,49 +139,37 @@ inline util::counter<task_id_t(LEGION_MAX_APPLICATION_TASK_ID)> task_counter(
   @ingroup legion-execution
  */
 
-template<typename RETURN, task<RETURN> * TASK, std::size_t A>
+template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
-template<class T>
-struct decay : std::decay<T> {};
+template<class>
+struct tuple_get;
 template<class... TT>
-struct decay<std::tuple<TT...>> {
-  using type = std::tuple<std::decay_t<TT>...>;
+struct tuple_get<std::tuple<TT...>> {
+  static auto get(const Legion::Task & t) {
+    const auto p = static_cast<const std::byte *>(t.args);
+    return util::serial_get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
+  }
 };
-
-template<class T>
-auto
-tuple_get(const Legion::Task & t) {
-  struct Check {
-    const std::byte *b, *e;
-    Check(const Legion::Task & t)
-      : b(static_cast<const std::byte *>(t.args)), e(b + t.arglen) {}
-    ~Check() {
-      flog_assert(b == e, "Bad Task::arglen");
-    }
-  } ch(t);
-  return util::serial_get<typename decay<T>::type>(ch.b);
-}
 } // namespace detail
 
 /*!
   Arbitrary index for each task.
 
   @tparam F          Legion task function.
-  @tparam ATTRIBUTES A size_t holding the mask of the task attributes mask
-                     \ref task_attributes_mask_t.
+  @tparam A task attributes mask
  */
 
-template<auto & F, size_t A = loc | leaf>
+template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #90493
-extern const task_id_t
+extern const Legion::TaskID
   task_id = (run::context::instance().register_init(detail::register_task<
                typename util::function_traits<decltype(F)>::return_type,
                F,
                A>),
     detail::task_counter());
 
-template<typename RETURN, task<RETURN> * TASK, std::size_t A>
+template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void
 detail::register_task() {
   constexpr auto processor_type = mask_to_processor_type(A);
@@ -201,9 +188,9 @@ detail::register_task() {
                                    : Legion::Processor::LOC_PROC;
   registrar.add_constraint(Legion::ProcessorConstraint(kind));
 
-  registrar.set_leaf(leaf_task(A) || !inner_task(A));
-  registrar.set_inner(inner_task(A));
-  registrar.set_idempotent(idempotent_task(A));
+  registrar.set_leaf(A & leaf || ~A & inner);
+  registrar.set_inner(A & inner);
+  registrar.set_idempotent(A & idempotent);
 
   /*
     This section of conditionals is necessary because there is still
@@ -263,7 +250,7 @@ struct task_wrapper {
     }
 
     // Unpack task arguments
-    auto task_args = detail::tuple_get<param_tuple>(*task);
+    auto task_args = detail::tuple_get<param_tuple>::get(*task);
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();

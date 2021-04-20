@@ -38,7 +38,7 @@ using are_type = and_<std::is_same<TARGETS, TARGET>...>;
 //! Enumeration for axes.
 //----------------------------------------------------------------------------//
 
-enum class axis : size_t { x = 0, y = 1, z = 2 };
+enum class axis : Dimension { x = 0, y = 1, z = 2 };
 
 //----------------------------------------------------------------------------//
 //! The dimensioned_array type provides a general base for defining
@@ -53,7 +53,7 @@ enum class axis : size_t { x = 0, y = 1, z = 2 };
 //!                   dimensioned_array.
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION, size_t NAMESPACE>
+template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 class dimensioned_array
 {
 public:
@@ -97,7 +97,7 @@ public:
   //! Return the size of the array.
   //--------------------------------------------------------------------------//
 
-  static constexpr size_t size() {
+  static constexpr Dimension size() {
     return DIMENSION;
   }; // size
 
@@ -112,7 +112,7 @@ public:
 
   template<typename ENUM_TYPE>
   constexpr TYPE & operator[](ENUM_TYPE e) {
-    return data_[static_cast<size_t>(e)];
+    return data_[static_cast<Dimension>(e)];
   } // operator []
 
   //--------------------------------------------------------------------------//
@@ -122,7 +122,7 @@ public:
 
   template<typename ENUM_TYPE>
   constexpr TYPE const & operator[](ENUM_TYPE e) const {
-    return data_[static_cast<size_t>(e)];
+    return data_[static_cast<Dimension>(e)];
   } // operator []
 
   //--------------------------------------------------------------------------//
@@ -142,7 +142,7 @@ public:
   //--------------------------------------------------------------------------//
 
   constexpr dimensioned_array & operator=(const TYPE & val) {
-    for(size_t i = 0; i < DIMENSION; i++) {
+    for(Dimension i = 0; i < DIMENSION; i++) {
       data_[i] = val;
     } // for
 
@@ -156,7 +156,7 @@ public:
 #define define_operator(op)                                                    \
   constexpr dimensioned_array & operator op(dimensioned_array const & rhs) {   \
     if(this != &rhs) {                                                         \
-      for(size_t i{0}; i < DIMENSION; i++) {                                   \
+      for(Dimension i = 0; i < DIMENSION; i++) {                               \
         data_[i] op rhs[i];                                                    \
       } /* for */                                                              \
     } /* if */                                                                 \
@@ -170,7 +170,7 @@ public:
 
 #define define_operator_type(op)                                               \
   constexpr dimensioned_array & operator op(TYPE val) {                        \
-    for(size_t i{0}; i < DIMENSION; i++) {                                     \
+    for(Dimension i = 0; i < DIMENSION; i++) {                                 \
       data_[i] op val;                                                         \
     } /* for */                                                                \
                                                                                \
@@ -259,7 +259,7 @@ private:
 //!                   dimensioned_array.
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION, size_t NAMESPACE>
+template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 constexpr dimensioned_array<TYPE, DIMENSION, NAMESPACE>
 operator+(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
   const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & rhs) {
@@ -279,7 +279,7 @@ operator+(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 //!                   dimensioned_array.
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION, size_t NAMESPACE>
+template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 constexpr dimensioned_array<TYPE, DIMENSION, NAMESPACE>
 operator-(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
   const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & rhs) {
@@ -302,13 +302,13 @@ operator-(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 //! @param a      The dimensioned array.
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION, size_t NAMESPACE>
+template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 std::ostream &
 operator<<(std::ostream & stream,
   dimensioned_array<TYPE, DIMENSION, NAMESPACE> const & a) {
   stream << "[";
 
-  for(size_t i = 0; i < DIMENSION; i++) {
+  for(Dimension i = 0; i < DIMENSION; i++) {
     stream << " " << a[i];
   } // for
 

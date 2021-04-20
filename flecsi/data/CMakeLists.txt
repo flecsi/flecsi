@@ -22,7 +22,6 @@ set(data_HEADERS
   backend.hh
   coloring.hh
   copy.hh
-  reference.hh
   field.hh
   field_info.hh
   layout.hh
