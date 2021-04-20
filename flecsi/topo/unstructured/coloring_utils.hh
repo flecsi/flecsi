@@ -39,14 +39,14 @@ namespace unstructured_impl {
 /*!
  */
 
-template<typename Definition>
+template<typename MD>
 inline auto
-make_dcrs(Definition const & md,
+make_dcrs(MD const & md,
   std::size_t through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  std::size_t nc = md.num_entities(Definition::dimension());
+  std::size_t nc = md.num_entities(MD::dimension());
   std::size_t nv = md.num_entities(0);
 
   util::color_map cm(size, size, nc);
@@ -57,8 +57,8 @@ make_dcrs(Definition const & md,
     a naive distribution.
    */
 
-  auto c2v = util::mpi::one_to_allv<pack_cells<Definition>>(
-    {md, cm.distribution()}, comm);
+  auto c2v =
+    util::mpi::one_to_allv<pack_cells<MD>>({md, cm.distribution()}, comm);
 
   /*
     Create a map of vertex-to-cell connectivity information from
@@ -241,10 +241,10 @@ migrate(util::dcrs const & naive,
   return std::make_tuple(primaries, p2m, m2p);
 } // migrate
 
-template<typename Policy, typename Definition>
+template<typename MD>
 inline auto
-closure(Definition const & md,
-  std::size_t colors,
+color(MD const & md,
+  coloring_definition const & cd,
   std::vector<std::size_t> const & raw,
   std::map<std::size_t, std::vector<std::size_t>> const & primaries,
   std::vector<std::vector<std::size_t>> & e2v,
@@ -255,7 +255,7 @@ closure(Definition const & md,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  std::size_t ne = md.num_entities(Policy::primary::dimension);
+  std::size_t ne = md.num_entities(cd.dim);
 
   /*
     Save color info for all of our initial local entities. The variable
@@ -277,7 +277,7 @@ closure(Definition const & md,
   std::unordered_map<std::size_t, std::set<std::size_t>> shared;
   std::unordered_map<std::size_t, std::set<std::size_t>> ghosts;
 
-  constexpr std::size_t depth = Policy::primary::depth;
+  const std::size_t depth = cd.depth;
   for(std::size_t d{0}; d < depth + 1; ++d) {
     std::vector<std::size_t> layer;
 
@@ -347,7 +347,7 @@ closure(Definition const & md,
       std::vector<std::vector<std::size_t>> fulfills(size);
       {
         std::size_t r{0};
-        util::color_map cm(size, colors, ne);
+        util::color_map cm(size, cd.colors, ne);
         for(auto rv : requested) {
           for(auto e : rv) {
             const std::size_t start = nm.index_offset(rank, 0);
@@ -428,13 +428,12 @@ closure(Definition const & md,
     } // for
   } // for
 
-  std::map<std::size_t, unstructured_base::coloring> colorings;
+  unstructured_base::coloring coloring;
 
   for(auto p : primaries) {
-    colorings[p.first].idx_colorings.resize(1 + Policy::auxiliary_colorings);
+    coloring[p.first].idx_colorings.resize(1 + cd.aux.size());
 
-    auto & primary =
-      colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+    auto & primary = coloring.at(p.first).idx_colorings[cd.idx];
     // primary.owned = p.second;
     primary.owned.reserve(p.second.size());
     primary.owned.insert(
@@ -488,15 +487,15 @@ closure(Definition const & md,
 #if 0
   for(auto p : primaries) {
     auto const & primary =
-      colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+      coloring.at(p.first).idx_colorings[cd.idx];
 
     for(auto e : primary.owned) {
     } // for
   } // for
 #endif
 
-  return colorings;
-} // closure
+  return coloring;
+} // color
 
 } // namespace unstructured_impl
 } // namespace topo
