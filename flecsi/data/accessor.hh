@@ -255,8 +255,13 @@ struct ragged_accessor
       r.get_region().template ghost<privilege_pack<wo, wo>>(r.fid());
       return r.template cast<dense, Offset>();
     });
-    if constexpr(privilege_discard(P))
-      detail::construct(*this); // no-op on caller side
+    // These do nothing on the caller side:
+    if constexpr(privilege_discard(OP)) {
+      const auto s = off.span();
+      std::fill(s.begin(), s.end(), 0);
+    }
+    else if constexpr(privilege_discard(P))
+      detail::construct(*this);
   }
 
   template<class Topo, typename Topo::index_space S>
@@ -278,8 +283,6 @@ struct accessor<ragged, T, P>
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
-  static_assert(privilege_write(P) && !privilege_discard(P),
-    "mutators require read/write permissions");
   using base_type = ragged_accessor<T, P>;
   using size_type = typename base_type::size_type;
 
