@@ -245,6 +245,22 @@ struct io_interface {
     fumap.wait_all_results();
   }
 
+  template<class Topo>
+  void add_topology(data::topology_slot<Topo> & slot) {
+    add_regions<Topo>(slot, typename Topo::index_spaces());
+  }
+
+  inline void checkpoint_all_fields(const std::string & file_name,
+    bool attach_flag = true) {
+    checkpoint_data<true>(file_name, attach_flag);
+  } // checkpoint_data
+
+  inline void recover_all_fields(const std::string & file_name,
+    bool attach_flag = true) {
+    checkpoint_data<false>(file_name, attach_flag);
+  } // recover_data
+
+private:
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   legion_hdf5_region_t make_hdf5_region(typename Topo::slot & slot) {
     auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
@@ -269,21 +285,7 @@ struct io_interface {
     (hdf5_region_vector.push_back(make_hdf5_region<Topo, Index>(slot)), ...);
   }
 
-  template<class Topo>
-  void add_topology(data::topology_slot<Topo> & slot) {
-    add_regions<Topo>(slot, typename Topo::index_spaces());
-  }
-
-  inline void checkpoint_all_fields(const std::string & file_name,
-    bool attach_flag = true) {
-    checkpoint_data<true>(file_name, attach_flag);
-  } // checkpoint_data
-
-  inline void recover_all_fields(const std::string & file_name,
-    bool attach_flag = true) {
-    checkpoint_data<false>(file_name, attach_flag);
-  } // recover_data
-
+private:
   data::leg::unique_index_space launch_space;
   data::leg::unique_index_partition launch_partition;
   std::vector<legion_hdf5_region_t> hdf5_region_vector;
