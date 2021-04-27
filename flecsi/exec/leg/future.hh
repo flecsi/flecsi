@@ -63,14 +63,14 @@ struct future<Return, exec::launch_type_t::index> {
     Get a task result.
    */
 
-  Return get(std::size_t index = 0, bool silence_warnings = false) {
+  Return get(Color index = 0, bool silence_warnings = false) {
     if constexpr(std::is_same_v<Return, void>)
       return legion_future_.get_void_result(index, silence_warnings);
     else
       return legion_future_.get_result<Return>(index, silence_warnings);
   } // get
 
-  std::size_t size() const {
+  Color size() const {
     return legion_future_.get_future_map_domain().get_volume();
   }
 

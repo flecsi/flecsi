@@ -70,7 +70,7 @@ struct ntree : ntree_base {
     size_t nnodes = 0;
   };
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   ntree(const coloring & c)
@@ -131,7 +131,7 @@ struct ntree : ntree_base {
     cp_data_tree.issue_copy(data_field.fid);
   }
 
-  std::size_t colors() const {
+  Color colors() const {
     return part.front().colors();
   }
 
@@ -150,7 +150,7 @@ private:
 };
 
 template<class Policy>
-template<std::size_t Priv>
+template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
@@ -191,8 +191,8 @@ struct ntree<Policy>::access {
     hmap_t hmap(hcells.span());
 
     // Create the tree
-    size_t size = run::context::instance().colors(); // colors();
-    size_t rank = run::context::instance().color(); // color();
+    const Color size = run::context::instance().colors(),
+                rank = run::context::instance().color();
 
     /* Exchange high and low bound */
     const auto hibound =

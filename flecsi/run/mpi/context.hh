@@ -58,19 +58,19 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  size_t process() const {
+  Color process() const {
     return process_;
   }
 
-  size_t processes() const {
+  Color processes() const {
     return processes_;
   }
 
-  size_t threads_per_process() const {
+  Color threads_per_process() const {
     return 1;
   }
 
-  size_t threads() const {
+  Color threads() const {
     return 0;
   }
 
@@ -78,7 +78,7 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  static size_t task_depth() {
+  static int task_depth() {
     return 0;
   } // task_depth
 
@@ -86,7 +86,7 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  size_t color() const {
+  Color color() const {
     return process_;
   }
 
@@ -94,7 +94,7 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  size_t colors() const {
+  Color colors() const {
     return processes_;
   }
 };

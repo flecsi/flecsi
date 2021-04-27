@@ -28,12 +28,12 @@ int
 compute_closure() {
   UNIT {
 #if 1
-    const std::size_t colors{4};
+    const Color colors = 4;
     topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
-    // const std::size_t colors{6};
+    // const Color colors = 6;
     // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 #else
-    const std::size_t colors{6};
+    const Color colors = 6;
     topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
 
@@ -72,7 +72,7 @@ compute_closure() {
 
     {
       std::stringstream ss;
-      size_t color{0};
+      Color color=0;
       for(auto p : primaries) {
         ss << "color " << color++ << ":" << std::endl;
         for(auto i : p) {

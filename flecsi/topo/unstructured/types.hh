@@ -15,6 +15,7 @@
 
 /*! @file */
 
+#include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
@@ -65,7 +66,7 @@ operator<<(std::ostream & stream, shared_entity const & s) {
 
 struct ghost_entity {
   std::size_t id;
-  std::size_t color;
+  Color color;
 
   bool operator<(const ghost_entity & g) const {
     return id < g.id;
@@ -99,21 +100,20 @@ struct crs {
  */
 
 template<size_t IndexSpace,
-  size_t Dimension,
-  size_t ThroughDimension,
+  Dimension D,
+  Dimension ThroughDimension,
   size_t Depth = 1>
 struct primary_independent {
   static constexpr size_t index_space = IndexSpace;
-  static constexpr size_t dimension = Dimension;
-  static constexpr size_t thru_dimension = ThroughDimension;
+  static constexpr Dimension dimension = D, thru_dimension = ThroughDimension;
   static constexpr size_t depth = Depth;
 }; // struct primary_independent
 
-template<size_t IndexSpace, size_t Dimension, size_t PrimaryDimension>
+template<std::size_t IndexSpace, Dimension D, Dimension PrimaryDimension>
 struct auxiliary_independent {
   static constexpr size_t index_space = IndexSpace;
-  static constexpr size_t dimension = Dimension;
-  static constexpr size_t primary_dimension = PrimaryDimension;
+  static constexpr Dimension dimension = D,
+                             primary_dimension = PrimaryDimension;
 }; // struct auxiliary_independent
 
 inline void
@@ -163,7 +163,7 @@ struct unstructured_base {
       The global number of colors
      */
 
-    std::size_t colors;
+    Color colors;
 
     /*
       The global number of entities in each index space
@@ -207,14 +207,14 @@ struct unstructured_base {
     and points, respectively, are filled with this information.
    */
 
-  template<std::size_t N>
+  template<PrivilegeCount N>
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     std::vector<std::pair<std::size_t, std::size_t>> & intervals,
-    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>> &
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> &
       src_points,
-    field<util::id>::accessor1<privilege_cat(privilege_repeat(wo, N - (N > 1)),
-      privilege_repeat(na, N > 1))> fmap,
+    field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
+      privilege_repeat<na, (N > 1)>>> fmap,
     std::map<std::size_t, std::size_t> & rmap,
     MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
@@ -297,7 +297,7 @@ struct unstructured_base {
 
     std::vector<std::vector<std::size_t>> fulfills(size);
     {
-      std::size_t r{0};
+      int r = 0;
       for(const auto & rv : requested) {
         for(auto c : rv) {
           fulfills[r].emplace_back(shared_offsets[c]);
@@ -316,9 +316,9 @@ struct unstructured_base {
       Setup source pointers.
      */
 
-    std::size_t r{0};
+    int r = 0;
     for(const auto & rv : fulfilled) {
-      if(r == std::size_t(rank)) {
+      if(r == rank) {
         ++r;
         continue;
       } // if
@@ -361,8 +361,7 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gather(
-      [&local_itvls](int, int) { return local_itvls; }, comm);
+    num_intervals = util::mpi::all_gather(local_itvls, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
@@ -375,11 +374,11 @@ struct unstructured_base {
     } // for
   }
 
-  template<std::size_t N>
+  template<PrivilegeCount N>
   static void set_ptrs(
-    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
-    std::map<std::size_t,
-      std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs,
+    field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
+      shared_ptrs,
     MPI_Comm const &) {
     for(auto const & si : shared_ptrs) {
       for(auto p : si.second) {
@@ -424,7 +423,7 @@ struct util::serial<topo::unstructured_impl::shared_entity> {
   using type = topo::unstructured_impl::shared_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, std::tie(s.id, s.dependents));
+    serial_put(p, s.id, s.dependents);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
@@ -437,7 +436,7 @@ struct util::serial<topo::unstructured_impl::ghost_entity> {
   using type = topo::unstructured_impl::ghost_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, std::tie(s.id, s.color));
+    serial_put(p, s.id, s.color);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
@@ -450,7 +449,7 @@ struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, std::tie(c.owned, c.exclusive, c.shared, c.ghosts));
+    serial_put(p, c.owned, c.exclusive, c.shared, c.ghosts);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};

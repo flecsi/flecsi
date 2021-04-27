@@ -27,25 +27,25 @@ namespace structured_impl {
  */
 
 struct box_core {
-  std::size_t dim = 0;
+  Dimension dim = 0;
   std::size_t bsize = 0;
   std::vector<std::size_t> lowerbnd;
   std::vector<std::size_t> upperbnd;
 
   box_core(){};
-  box_core(std::size_t in_dim) {
+  box_core(Dimension in_dim) {
     dim = in_dim;
     lowerbnd.resize(dim, 0);
     upperbnd.resize(dim, 0);
   }
 
-  std::size_t dimension() {
+  Dimension dimension() {
     return dim;
   }
 
   void local_strides(std::vector<std::size_t> & strides) {
     strides.resize(dim, 0);
-    for(std::size_t i = 0; i < dim; i++)
+    for(Dimension i = 0; i < dim; i++)
       strides[i] = upperbnd[i] - lowerbnd[i] + 1;
   }
 
@@ -59,7 +59,7 @@ struct box_core {
     std::size_t count = 0;
     if((lowerbnd.size() != 0) && (upperbnd.size() != 0)) {
       count = 1;
-      for(std::size_t i = 0; i < dim; i++)
+      for(Dimension i = 0; i < dim; i++)
         count *= upperbnd[i] - lowerbnd[i] + 1;
     }
     return count;
@@ -69,7 +69,7 @@ struct box_core {
     return (compute_size() == 0);
   }
 
-  void resize(std::size_t in_dim) {
+  void resize(Dimension in_dim) {
     dim = in_dim;
     lowerbnd.resize(dim, 0);
     upperbnd.resize(dim, 0);
@@ -106,7 +106,7 @@ struct box_info {
   box_core box;
   std::size_t nghost_layers;
   std::size_t ndomain_layers;
-  std::size_t thru_dim;
+  Dimension thru_dim;
   std::vector<bool> onbnd;
 }; // class box_info
 
@@ -116,9 +116,7 @@ struct box_info {
 struct box_coloring {
   // The primary flag is true if the partition is on the index-space
   // of the primary entity. Ex. the cells or the vertices of the mesh.
-  std::size_t mesh_dim = 0;
-  std::size_t entity_dim = 0;
-  std::size_t primary_dim = 0;
+  Dimension mesh_dim = 0, entity_dim = 0, primary_dim = 0;
   std::size_t num_boxes = 0;
 
   //! The box info for partitioned box
@@ -164,10 +162,10 @@ struct box_aggregate_info {
   std::size_t ghost;
 
   //! The aggregate set of colors that depend on our shared indices
-  std::set<std::size_t> shared_users;
+  std::set<Color> shared_users;
 
   //! The aggregate set of colors that we depend on for ghosts
-  std::set<std::size_t> ghost_owners;
+  std::set<Color> ghost_owners;
 
   //! The overlay boxes from ghost owners
   std::unordered_map<std::size_t, std::vector<box_core>> ghost_overlays;

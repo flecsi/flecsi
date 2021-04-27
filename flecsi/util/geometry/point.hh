@@ -36,7 +36,7 @@ namespace util {
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION>
+template<typename TYPE, Dimension DIMENSION>
 using point = dimensioned_array<TYPE, DIMENSION, 1>;
 
 //----------------------------------------------------------------------------//
@@ -48,11 +48,11 @@ using point = dimensioned_array<TYPE, DIMENSION, 1>;
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION>
+template<typename TYPE, Dimension DIMENSION>
 constexpr point<TYPE, DIMENSION> operator*(TYPE const val,
   point<TYPE, DIMENSION> const & p) {
   point<TYPE, DIMENSION> tmp(p);
-  for(size_t d(0); d < DIMENSION; ++d) {
+  for(Dimension d = 0; d < DIMENSION; ++d) {
     tmp[d] *= val;
   } // for
 
@@ -71,11 +71,11 @@ constexpr point<TYPE, DIMENSION> operator*(TYPE const val,
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION>
+template<typename TYPE, Dimension DIMENSION>
 TYPE
 distance(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
   TYPE sum(0);
-  for(size_t d(0); d < DIMENSION; ++d) {
+  for(Dimension d = 0; d < DIMENSION; ++d) {
     sum += (square)(a[d] - b[d]);
   } // for
 
@@ -94,7 +94,7 @@ distance(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION>
+template<typename TYPE, Dimension DIMENSION>
 constexpr point<TYPE, DIMENSION>
 midpoint(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
   return point<TYPE, DIMENSION>((a + b) / 2.0);
@@ -111,7 +111,9 @@ midpoint(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<template<typename...> class CONTAINER, typename TYPE, size_t DIMENSION>
+template<template<typename...> class CONTAINER,
+  typename TYPE,
+  Dimension DIMENSION>
 constexpr auto
 centroid(CONTAINER<point<TYPE, DIMENSION>> const & points) {
   point<TYPE, DIMENSION> tmp(0.0);
@@ -136,7 +138,7 @@ centroid(CONTAINER<point<TYPE, DIMENSION>> const & points) {
 //! @ingroup geometry
 //----------------------------------------------------------------------------//
 
-template<typename TYPE, size_t DIMENSION>
+template<typename TYPE, Dimension DIMENSION>
 constexpr auto
 centroid(std::initializer_list<point<TYPE, DIMENSION>> points) {
   point<TYPE, DIMENSION> tmp(0.0);

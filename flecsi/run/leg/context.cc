@@ -85,15 +85,16 @@ top_level_task(const Legion::Task *,
 
 int
 context_t::initialize(int argc, char ** argv, bool dependent) {
+  using util::mpi::test;
 
   if(dependent) {
     int version, subversion;
-    MPI_Get_version(&version, &subversion);
+    test(MPI_Get_version(&version, &subversion));
 
 #if defined(GASNET_CONDUIT_MPI)
     if(version == 3 && subversion > 0) {
       int provided;
-      MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+      test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
 
       if(provided < MPI_THREAD_MULTIPLE) {
         std::cerr << "Your implementation of MPI does not support "
@@ -105,24 +106,19 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
     }
     else {
       // Initialize the MPI runtime
-      MPI_Init(&argc, &argv);
+      test(MPI_Init(&argc, &argv));
     } // if
 #else
-    MPI_Init(&argc, &argv);
+    test(MPI_Init(&argc, &argv));
 #endif
   } // if
 
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-  context::process_ = rank;
-  context::processes_ = size;
+  std::tie(context::process_, context::processes_) = util::mpi::info();
 
   auto status = context::initialize_generic(argc, argv, dependent);
 
   if(status != success && dependent) {
-    MPI_Finalize();
+    test(MPI_Finalize());
   } // if
 
   return status;
@@ -138,7 +134,7 @@ context_t::finalize() {
 
 #ifndef GASNET_CONDUIT_MPI
   if(context::initialize_dependent_) {
-    MPI_Finalize();
+    util::mpi::test(MPI_Finalize());
   } // if
 #endif
 } // finalize
@@ -150,6 +146,7 @@ context_t::finalize() {
 int
 context_t::start(const std::function<int()> & action) {
   using namespace Legion;
+  using util::mpi::test;
 
   /*
     Store the top-level action for invocation from the top-level task.
@@ -238,10 +235,10 @@ context_t::start(const std::function<int()> & action) {
   Runtime::start(largv.size(), largv.data(), true);
 
   while(true) {
-    MPI_Barrier(MPI_COMM_WORLD);
+    test(MPI_Barrier(MPI_COMM_WORLD));
     handshake_.mpi_handoff_to_legion();
     handshake_.mpi_wait_on_legion();
-    MPI_Barrier(MPI_COMM_WORLD);
+    test(MPI_Barrier(MPI_COMM_WORLD));
     if(!mpi_task_)
       break;
     mpi_task_();
@@ -259,12 +256,9 @@ context_t::start(const std::function<int()> & action) {
 
 void
 context_t::connect_with_mpi(Legion::Context &, Legion::Runtime *) {
-  int size;
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
   LegionRuntime::Arrays::Rect<1> launch_bounds(
     LegionRuntime::Arrays::Point<1>(0),
-    LegionRuntime::Arrays::Point<1>(size - 1));
+    LegionRuntime::Arrays::Point<1>(processes_ - 1));
 
   context_t::instance().set_all_processes(launch_bounds);
 } // context_t::connect_with_mpi
