@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"
@@ -87,7 +83,7 @@ make_parameters(AA &&... aa) {
 }
 } // namespace detail
 
-template<auto & F, class Reduction, size_t Attributes, typename... Args>
+template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using namespace Legion;
@@ -127,7 +123,8 @@ reduce_internal(Args &&... args) {
     flecsi_context.mpi_params = &params;
   }
   else {
-    buf = util::serial_put(params);
+    buf = std::apply(
+      [](const auto &... pp) { return util::serial_put_tuple(pp...); }, params);
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;

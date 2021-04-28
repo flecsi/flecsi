@@ -12,10 +12,8 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/topo/unstructured/closure_utils.hh"
 #include "flecsi/topo/unstructured/test/test_definition.hh"
 #include "flecsi/util/unit.hh"
 

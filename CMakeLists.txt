@@ -142,9 +142,9 @@ if(NOT FORMAT_ONLY)
 
   list(APPEND
     BOOST_COMPONENTS
-      program_options
       atomic
       filesystem
+      program_options
       regex
       system
   )
@@ -228,6 +228,10 @@ if(NOT FORMAT_ONLY)
       ${FleCSI_VERSION}
     NAMESPACE
       FleCSI
+    DEFINE_PRIVATE
+      ${TPL_DEFINES}
+    INCLUDE_PUBLIC
+      ${TPL_INCLUDES}
     INCLUDE_PRIVATE
       ${CMAKE_BINARY_DIR}
     LINK_PUBLIC
@@ -279,12 +283,12 @@ if(NOT FORMAT_ONLY)
 
   install(
     FILES ${PROJECT_SOURCE_DIR}/cmake/annotation.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindBreathe.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindLegion.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake

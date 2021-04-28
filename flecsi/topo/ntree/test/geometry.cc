@@ -11,7 +11,7 @@
    Copyright (c) 2016, Triad, LLC
    All rights reserved.
                                                                               */
-#define __FLECSI_PRIVATE__
+
 #include "flecsi/topo/ntree/geometry.hh"
 #include "flecsi/util/unit.hh"
 

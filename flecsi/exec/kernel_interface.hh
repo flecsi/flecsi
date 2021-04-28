@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #if !defined(FLECSI_ENABLE_KOKKOS)
 #error FLECSI_ENABLE_KOKKOS not defined! This file depends on Kokkos!
 #endif

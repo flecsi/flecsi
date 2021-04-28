@@ -25,8 +25,6 @@ if(ENABLE_MPI)
     set(MPI_LANGUAGE CXX)
   else()
     find_package(MPI COMPONENTS C CXX REQUIRED)
-    # These probably aren't needed anymore
-    #list(APPEND TPL_DEFINES -DOMPI_SKIP_MPICXX -DMPICH_SKIP_MPICXX)
     list(APPEND TPL_LIBRARIES MPI::MPI_C)
     set(MPI_LANGUAGE C)
   endif()

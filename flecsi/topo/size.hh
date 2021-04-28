@@ -48,7 +48,7 @@ inline const resize::Field::definition<resize> resize::field;
 
 // To control initialization order:
 struct with_size {
-  explicit with_size(std::size_t n, const resize::policy & p = {})
+  explicit with_size(Color n, const resize::policy & p = {})
     : sz({n, 1}), growth(p) {}
   auto sizes() {
     return resize::field(sz);

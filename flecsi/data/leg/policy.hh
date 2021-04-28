@@ -15,10 +15,6 @@
 
 /*!  @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
@@ -202,7 +198,7 @@ struct partition_base {
   Legion::IndexSpace colors_used;
 
   // NB: intervals and points are not advertised as deriving from this class.
-  std::size_t colors() const {
+  Color colors() const {
     return leg::run().get_index_space_domain(colors_used).get_volume();
   }
   template<topo::single_space>

@@ -17,7 +17,7 @@ poisson::task::diff(mesh::accessor<ro> m,
   double sum{0};
   for(auto j : m.vertices<mesh::y_axis>()) {
     for(auto i : m.vertices<mesh::x_axis>()) {
-      sum += pow(a[j][i] - b[j][i], 2);
+      sum += pow(a[i][j] - b[i][j], 2);
     } // for
   } // for
 
@@ -41,8 +41,8 @@ poisson::task::discrete_operator(mesh::accessor<ro> m,
   // clang-format off
   for(auto j : m.vertices<mesh::y_axis>()) {
     for(auto i : m.vertices<mesh::x_axis>()) {
-      Au[j][i] = w * (4.0 * u[j][i] -
-        u[j][i + 1] - u[j][i - 1] - u[j + 1][i] - u[j - 1][i]);
+      Au[i][j] = w * (4.0 * u[i][j] -
+        u[i + 1][j] - u[i - 1][j] - u[i][j + 1] - u[i][j - 1]);
     } // for
   } // for
   // clang-format on

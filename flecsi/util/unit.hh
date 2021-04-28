@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#ifndef __FLECSI_PRIVATE__
-#define __FLECSI_PRIVATE__
-#endif
-
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"

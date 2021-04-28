@@ -20,10 +20,6 @@
 
 #pragma once
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/util/geometry/point.hh"
 
 #include <array>
@@ -41,7 +37,7 @@ namespace topo {
 /*-----------------------------------------------------------------------------*
  * class ntree_geometry
  *-----------------------------------------------------------------------------*/
-template<typename T, size_t D>
+template<typename T, Dimension>
 struct ntree_geometry {};
 
 /*-----------------------------------------------------------------------------*

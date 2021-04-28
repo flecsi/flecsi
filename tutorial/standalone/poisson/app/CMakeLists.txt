@@ -30,7 +30,4 @@ add_executable(poisson
 # Add the FleCSI libraries and dependencies.
 #------------------------------------------------------------------------------#
 
-target_link_libraries(poisson
-  ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES}
-)
+target_link_libraries(poisson FleCSI::FleCSI)
