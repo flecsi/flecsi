@@ -21,6 +21,10 @@ if [ -e $cwd/.git ] ; then
   tags=`git tag`
   if [[ -n $tags ]]; then
     describe=`git describe`
+
+    if [[ "$describe" != *"-"* ]]; then
+      describe="$describe-0-0"
+    fi
   else
     describe=`cat $cwd/.version`
   fi
@@ -40,21 +44,35 @@ sha=${DESCRIBE[2]}
 
 # Devel branch
 if [[ ${describe:0:1} == "d" ]]; then
-  major=`echo ${DESCRIBE[0]} | sed 's,d,,'`
+  version=`echo ${DESCRIBE[0]} | sed 's,d,,'`
+  IFS='.'
+  read -ra VERSION <<< "$version"
+  major=${VERSION[0]}
+  merge=${VERSION[1]}
   commits=${DESCRIBE[1]}
-  echo "devel $major ($commits commits ahead at $sha)"
+  if (( $commits > 0 )); then
+    echo "devel $major ($commits commits ahead at $sha,"\
+      "with $merge downstream merges)"
+  elif (( $merge > 1)); then
+    echo "devel $major ($merge downstream merges)"
+  else
+    echo "devel $major"
+  fi
 
 # Feature branch
 elif [[ ${describe:0:1} == "f" ]]; then
-  #major=`echo ${DESCRIBE[0]} | sed 's,f,,'`
   version=`echo ${DESCRIBE[0]} | sed 's,f,,'`
   IFS='.'
   read -ra VERSION <<< "$version"
   major=${VERSION[0]}
   minor=${VERSION[1]}
+  merge=${VERSION[2]}
   commits=${DESCRIBE[1]}
   if (( $commits > 0 )); then
-    echo "feature $major.$minor ($commits commits ahead at $sha)"
+    echo "feature $major.$minor ($commits commits ahead at $sha,"\
+      "with $merge downstream merges)"
+  elif (( $merge > 1)); then
+    echo "feature $major.$minor ($merge downstream merges)"
   else
     echo "feature $major.$minor"
   fi

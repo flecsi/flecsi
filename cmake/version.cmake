@@ -12,14 +12,18 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/VERSION
-  OUTPUT_VARIABLE version_output)
-string(REGEX REPLACE "\n$" "" version "${version_output}")
+execute_process(
+  COMMAND ${CMAKE_SOURCE_DIR}/VERSION
+  OUTPUT_VARIABLE version
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(REGEX REPLACE "\n$" "" version "${version}")
 
 # debug
 # message(STATUS "VERSION: ${version}")
 
-string(REPLACE " " ";" fields ${version_output})
+string(REPLACE " " ";" fields ${version})
 list(LENGTH fields size)
 
 list(GET fields 0 branch)
@@ -33,6 +37,7 @@ endif()
 #message(STATUS "branch: ${branch}")
 #message(STATUS "version: ${version}")
 #message(STATUS "fields: ${fields}")
+#message(STATUS "rest: ${rest}")
 
 set(${PROJECT_NAME}_COMMITS)
 if(rest)
@@ -45,7 +50,9 @@ endif()
 set(${PROJECT_NAME}_VERSION ${version})
 
 if(branch STREQUAL "devel")
-  math(EXPR next "${version}+1")
+  string(REPLACE "." ";" vfields ${version})
+  list(GET vfields 0 major)
+  math(EXPR next "${major}+1")
   set(${PROJECT_NAME}_DOCUMENTATION_VERSION "${next}.-1 (devel)")
 else()
   set(${PROJECT_NAME}_DOCUMENTATION_VERSION "${version}")
