@@ -28,9 +28,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   enum orientation { low, high };
 
   using coord = base::coord;
+  using colors = base::colors;
   using hypercube = base::hypercube;
   using coloring_definition = base::coloring_definition;
-  using colors = base::colors;
 
   struct meta_data {
     double delta;
@@ -70,8 +70,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
         auto const & md = *(this->meta_);
         return flecsi::topo::make_ids<index_space::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(
-            md.logical[index_space::vertices][0][A] + 1,
-            md.logical[index_space::vertices][1][A] - 1));
+            B::template logical<index_space::vertices, 0, A>() + 1,
+            B::template logical<index_space::vertices, 1, A>() - 1));
       }
       else if constexpr(SE == logical) {
         return B::
