@@ -233,13 +233,10 @@ struct ragged_accessor
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
       auto & t = r.topology().ragged;
-      r.get_region(t).cleanup(
-        i,
-        [=] {
-          if constexpr(!std::is_trivially_destructible_v<T>)
-            detail::destroy<P>(r);
-        },
-        privilege_discard(P));
+      r.get_region(t).cleanup(i, [=] {
+        if constexpr(!std::is_trivially_destructible_v<T>)
+          detail::destroy<P>(r);
+      });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))

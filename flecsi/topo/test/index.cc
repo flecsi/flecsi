@@ -45,11 +45,11 @@ allocate(topo::resize::Field::accessor<wo> a) {
   a = color() + 1;
 }
 void
-irows(intN::mutator<rw> r) {
+irows(intN::mutator<wo> r) {
   r[0].resize(color() + 1);
 }
 int
-drows(double_at::mutator<rw> s) {
+drows(double_at::mutator<wo> s) {
   UNIT {
     const auto me = color();
     const auto && m = s[0];
@@ -107,10 +107,9 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
 }
 
 void
-ragged_start(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Start mv) {
+ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
   buffers::ragged::truncate(mv[0])(v, 0);
-  g[0].clear();
 }
 
 int

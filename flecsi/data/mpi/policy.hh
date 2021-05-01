@@ -99,11 +99,6 @@ struct region {
     return *p;
   }
 
-protected:
-  void vacuous(field_id_t) {
-    /* Nothing to do for  MPI backend */
-  }
-
 private:
   std::unique_ptr<region_impl> p; // to preserve an address on move
 };
