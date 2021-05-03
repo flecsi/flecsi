@@ -13,7 +13,6 @@
                                                                               */
 #pragma once
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/topo/unstructured/types.hh"
 
 #include <vector>

@@ -12,14 +12,11 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
-#include <flecsi/data.hh>
-
+#include "flecsi/data.hh"
+#include "flecsi/data/accessor.hh"
+#include "flecsi/exec/kernel_interface.hh"
 #include "flecsi/topo/unstructured/interface.hh"
-
 #include "flecsi/util/unit.hh"
-#include <flecsi/data/accessor.hh>
-#include <flecsi/exec/kernel_interface.hh>
 
 #include <Kokkos_Core.hpp>
 

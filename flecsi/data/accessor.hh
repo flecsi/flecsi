@@ -19,10 +19,6 @@
   This file contains implementations of field accessor types.
  */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"

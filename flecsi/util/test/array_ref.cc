@@ -1,4 +1,3 @@
-#define __FLECSI_PRIVATE__
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/unit.hh"

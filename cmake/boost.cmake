@@ -25,6 +25,10 @@ if(ENABLE_BOOST)
 
   find_package(Boost REQUIRED ${BOOST_COMPONENTS})
 
-  list(APPEND TPL_LIBRARIES Boost::boost ${Boost_LIBRARIES})
+  list(APPEND TPL_LIBRARIES Boost::boost)
+
+  foreach(_COMP IN LISTS BOOST_COMPONENTS)
+    list(APPEND TPL_LIBRARIES Boost::${_COMP})
+  endforeach()
 
 endif()

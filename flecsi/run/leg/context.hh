@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/run/context.hh"
 
 #if !defined(FLECSI_ENABLE_LEGION)

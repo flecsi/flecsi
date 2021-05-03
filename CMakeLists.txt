@@ -142,9 +142,9 @@ if(NOT FORMAT_ONLY)
 
   list(APPEND
     BOOST_COMPONENTS
-      program_options
       atomic
       filesystem
+      program_options
       regex
       system
   )

@@ -13,7 +13,6 @@
                                                                               */
 #pragma once
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/data.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/coloring_utils.hh"
@@ -200,6 +199,7 @@ struct mesh1d : topo::specialization<topo::narray, mesh1d> {
     }
     return c;
   } // color
+
 }; // mesh1d
 
 struct mesh2d : topo::specialization<topo::narray, mesh2d> {

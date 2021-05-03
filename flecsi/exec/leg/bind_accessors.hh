@@ -17,11 +17,7 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
-#include "flecsi/data/field.hh" // accessor
+#include "flecsi/data/field.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"

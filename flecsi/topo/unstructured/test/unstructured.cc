@@ -12,7 +12,6 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"

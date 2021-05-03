@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/execution.hh"
@@ -98,7 +94,7 @@ private:
     key_t hibound, lobound;
   };
 
-public: 
+public:
   template<Privileges>
   struct access;
 
@@ -336,7 +332,6 @@ public:
         execute<set_top_tree_ptrs<nodes>>(f, ts->sz.node, top_tree);
       },
       util::constant<nodes>());
-
   }
 
   // ---------------------------- Ghosts exchange tasks -----------------------
@@ -553,8 +548,9 @@ public:
     }
     else if constexpr(Space == nodes) {
       cp_top_tree_nodes->issue_copy(f.fid());
-    } else if constexpr (Space == tree_data){
-      cp_data_tree.issue_copy(f.fid()); 
+    }
+    else if constexpr(Space == tree_data) {
+      cp_data_tree.issue_copy(f.fid());
     }
   }
 

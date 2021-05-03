@@ -20,8 +20,6 @@
   data model.
  */
 
-#define __FLECSI_PRIVATE__
-
 #include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"

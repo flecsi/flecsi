@@ -1,4 +1,3 @@
-#define __FLECSI_PRIVATE__
 
 #include <iostream>
 #include <memory>

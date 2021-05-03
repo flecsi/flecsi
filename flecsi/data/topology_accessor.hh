@@ -15,10 +15,6 @@
 
 /*!  @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
 

@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
@@ -130,6 +126,20 @@ transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   }
 }
 
+struct coloring_definition {
+  std::size_t colors;
+  std::size_t idx;
+  std::size_t dim;
+  std::size_t depth;
+
+  struct auxiliary {
+    std::size_t idx;
+    std::size_t dim;
+  };
+
+  std::vector<auxiliary> aux;
+};
+
 } // namespace unstructured_impl
 
 struct unstructured_base {
@@ -138,7 +148,7 @@ struct unstructured_base {
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
-  struct coloring {
+  struct process_color {
     /*
       The current coloring utilities and topology initialization assume
       the use of MPI. This could change in the future, e.g., if legion
@@ -150,7 +160,7 @@ struct unstructured_base {
     MPI_Comm comm;
 
     /*
-      The number of colors in this coloring
+      The global number of colors
      */
 
     Color colors;
@@ -184,6 +194,8 @@ struct unstructured_base {
     std::vector<std::vector<crs>> cnx_colorings;
   };
 
+  using coloring = std::map<std::size_t, process_color>;
+
   static std::size_t idx_size(index_coloring const & ic, std::size_t) {
     return ic.owned.size() + ic.ghosts.size();
   }
@@ -194,6 +206,7 @@ struct unstructured_base {
     point offsets. The references num_intervals, intervals,
     and points, respectively, are filled with this information.
    */
+
   template<PrivilegeCount N>
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
@@ -201,7 +214,8 @@ struct unstructured_base {
     std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> &
       src_points,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
-      privilege_repeat<na, (N > 1)>>> fmd,
+      privilege_repeat<na, (N > 1)>>> fmap,
+    std::map<std::size_t, std::size_t> & rmap,
     MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
@@ -230,7 +244,7 @@ struct unstructured_base {
     util::force_unique(entities);
 
     /*
-      Initialize the local to MIS map.
+      Initialize the forward and reverse maps.
      */
 
     flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
@@ -239,8 +253,10 @@ struct unstructured_base {
                        << ")");
 
     std::size_t off{0};
+    rmap.clear();
     for(auto e : entities) {
-      fmd[off++] = e;
+      fmap[off] = e;
+      rmap[e] = off++;
     }
 
     /*

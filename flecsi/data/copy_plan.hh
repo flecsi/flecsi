@@ -15,10 +15,6 @@ All rights reserved.
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/execution.hh"

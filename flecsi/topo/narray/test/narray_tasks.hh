@@ -14,9 +14,8 @@
                                                                               */
 #pragma once
 
-#define __FLECSI_PRIVATE__
-
 #include "flecsi/util/unit.hh"
+
 #include <set>
 
 /*
