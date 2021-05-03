@@ -17,10 +17,6 @@
 
 #include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/mpi/future.hh"
@@ -54,7 +50,10 @@ protected:
     single.result_ = index.result;
   }
 
-  template<typename T, size_t P, class Topo, typename Topo::index_space Space>
+  template<typename T,
+    Privileges P,
+    class Topo,
+    typename Topo::index_space Space>
   static void visit(data::accessor<data::raw, T, P> & accessor,
     const data::field_reference<T, data::raw, Topo, Space> & ref) {
     const field_id_t f = ref.fid();
@@ -73,11 +72,11 @@ protected:
     ().template get_storage<T>(f);
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f))
-        MPI_Bcast(storage.data(),
+        util::mpi::test(MPI_Bcast(storage.data(),
           storage.size(),
           flecsi::util::mpi::type<T>(),
           0,
-          MPI_COMM_WORLD);
+          MPI_COMM_WORLD));
     }
     else
       reg.ghost_copy<P>(ref);

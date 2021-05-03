@@ -11,9 +11,9 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
+
 #include "fixed.hh"
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
@@ -46,7 +46,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       entity<vertices, has<special_vertices>>>;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -101,56 +101,20 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    return {MPI_COMM_WORLD,
-      fixed::colors,
-      {fixed::num_cells, fixed::num_vertices},
-      fixed::idx_colorings[process()],
-      fixed::cnx_allocs[process()],
-      fixed::cnx_colorings[process()]};
+    return {{0,
+      {MPI_COMM_WORLD,
+        fixed::colors,
+        {fixed::num_cells, fixed::num_vertices},
+        fixed::idx_colorings[process()],
+        fixed::cnx_allocs[process()],
+        fixed::cnx_colorings[process()]}}};
   } // color
 
   /*--------------------------------------------------------------------------*
     Initialization
    *--------------------------------------------------------------------------*/
 
-  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::map<std::size_t, topo::unstructured_impl::crs> const & ghost_itvls) {
-    std::size_t i{0}, ioff{0};
-    for(auto const & gi : ghost_itvls) {
-      for(std::size_t o{0}; o < gi.second.offsets.size() - 1; ++o) {
-        const std::size_t start = ioff + gi.second.offsets[o] + 1;
-        const std::size_t end = ioff + gi.second.offsets[o + 1] + 1;
-        a[i++] = data::intervals::make({start, end}, process());
-      } // for
-      ioff = gi.second.offsets.back();
-    } // for
-  }
-
-  static void set_ptrs(field<data::points::Value>::accessor<wo> a,
-    std::map<std::size_t, topo::unstructured_impl::crs> const & ghost_itvls) {
-    std::size_t i{0};
-    for(auto const & gi : ghost_itvls) {
-      for(auto idx : gi.second.indices) {
-        a[i + 1] = data::points::make(idx, gi.first);
-        ++i;
-      } // for
-    } // for
-  }
-
-#if 0
-  static void init_csub(topo::connect_field::mutator<rw> own,
-    topo::connect_field::mutator<rw> exc,
-    topo::connect_field::mutator<rw> shr,
-    topo::connect_field::mutator<rw> ghs,
-    topo::unstructured_base::index_coloring const & cell_coloring) {
-    (void)own;
-    exc[flecsi::color()].resize(cell_coloring.exclusive.size());
-    shr[flecsi::color()].resize(cell_coloring.shared.size());
-    ghs[flecsi::color()].resize(cell_coloring.ghosts.size());
-  }
-#endif
-
-  static void init_c2v(topo::connect_field::mutator<rw, na> c2v,
+  static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
     topo::unstructured_impl::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
@@ -186,7 +150,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       mesh ordering, i.e., the cells are sorted by ascending mesh id.
      */
 
-    auto cell_coloring = c.idx_colorings[0];
+    auto cell_coloring = c.at(0).idx_colorings[0];
     global::cells.clear();
     for(auto e : cell_coloring.owned) {
       global::cells.push_back(e);
@@ -201,7 +165,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       mesh ordering, i.e., the vertices are sorted by ascending mesh id.
      */
 
-    auto vertex_coloring = c.idx_colorings[1];
+    auto vertex_coloring = c.at(0).idx_colorings[1];
     global::vertices.clear();
     for(auto e : vertex_coloring.owned) {
       global::vertices.push_back(e);
@@ -221,12 +185,14 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
     auto & c2v =
       s->connect_.get<fixed_mesh::cells>().get<fixed_mesh::vertices>();
-    execute<init_c2v, mpi>(c2v(s), c.cnx_colorings[0][0], vertex_map);
+    execute<init_c2v, mpi>(c2v(s), c.at(0).cnx_colorings[0][0], vertex_map);
 
     auto & v2c =
       s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();
+#if 0
     execute<init_v2c, mpi>(v2c(s), c2v(s));
-    // execute<topo::unstructured_impl::transpose, mpi>(v2c(s), c2v(s));
+#endif
+    execute<topo::unstructured_impl::transpose, mpi>(c2v(s), v2c(s));
   } // initialize
 
 }; // struct fixed_mesh

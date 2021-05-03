@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
@@ -42,6 +38,7 @@ namespace topo {
 
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
+
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
@@ -51,9 +48,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
-  static constexpr std::size_t dimension = Policy::dimension;
+  static constexpr Dimension dimension = Policy::dimension;
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   narray(coloring const & c)
@@ -66,29 +63,29 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         std::make_index_sequence<index_spaces::size>())) {
     init_ragged(index_spaces());
     init_meta(c);
+    init_policy_meta(c);
   }
 
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
     std::array<std::uint32_t, index_spaces::size> faces;
-
     std::array<scoord, index_spaces::size> global, offset, extents;
     std::array<shypercube, index_spaces::size> logical, extended;
-
-    static_assert(data::portable_v<typename Policy::meta_data>,
-      "meta_data not a valid field type");
-    typename Policy::meta_data meta;
   };
 
   static inline const typename field<meta_data,
     data::single>::template definition<meta<Policy>>
     meta_field;
 
+  static inline const typename field<typename Policy::meta_data,
+    data::single>::template definition<meta<Policy>>
+    policy_meta_field;
+
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 
@@ -187,6 +184,14 @@ private:
     execute<set_meta, mpi>(meta_field(this->meta), c);
   }
 
+  // Default initilaization for user policy meta data
+  static void set_policy_meta(typename field<typename Policy::meta_data,
+    data::single>::template accessor<wo>) {}
+
+  void init_policy_meta(narray_base::coloring const &) {
+    execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
+  }
+
   template<index_space... SS>
   void init_ragged(util::constants<SS...>) {
     (this->template extend_offsets<SS>(), ...);
@@ -198,11 +203,12 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<std::size_t Privileges>
+template<Privileges>
 struct narray<Policy>::access {
   util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
 
   data::scalar_access<narray::meta_field> meta_;
+  data::scalar_access<narray::policy_meta_field> policy_meta_;
 
   access() {}
 
@@ -241,20 +247,15 @@ struct narray<Policy>::access {
     return !is_low<A>() && !is_high<A>();
   }
 
-  // This should be protected
-  auto & meta() {
-    return meta_->meta;
-  }
-
   template<index_space S, axis A, range SE>
   std::size_t size() {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
-      return meta_->logical[S][1][A];
+      return meta_->logical[S][1][A] - meta_->logical[S][0][A];
     }
     else if constexpr(SE == range::extended) {
-      return meta_->extended[S][1][A];
+      return meta_->extended[S][1][A] - meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::all) {
       return meta_->extents[S][A];
@@ -266,10 +267,16 @@ struct narray<Policy>::access {
       return meta_->extended[S][1][A] - meta_->logical[S][1][A];
     }
     else if constexpr(SE == range::ghost_low) {
-      return meta_->logical[S][0][A];
+      if(!is_low<S, A>())
+        return meta_->logical[S][0][A];
+      else
+        return 0;
     }
     else if constexpr(SE == range::ghost_high) {
-      return meta_->extents[S][A] - meta_->logical[S][1][A];
+      if(!is_high<S, A>())
+        return meta_->extents[S][A] - meta_->logical[S][1][A];
+      else
+        return 0;
     }
     else if constexpr(SE == range::global) {
       return meta_->global[S][A];
@@ -292,16 +299,14 @@ struct narray<Policy>::access {
       return make_ids<S>(util::iota_view<util::id>(0, meta_->extents[S][A]));
     }
     else if constexpr(SE == range::boundary_low) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->extended[S][0][A], meta_->extended[S][0][A] + size<S, A, SE>()));
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        meta_->extended[S][1][A], meta_->extended[S][1][A] + size<S, A, SE>()));
+        meta_->logical[S][1][A], meta_->logical[S][1][A] + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_low) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->logical[S][0][A], meta_->logical[S][0][A] + size<S, A, SE>()));
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
@@ -323,7 +328,7 @@ struct narray<Policy>::access {
       return meta_->extended[S][0][A];
     }
     else if constexpr(SE == range::all) {
-      return meta_->extents[S][A];
+      return 0;
     }
     else if constexpr(SE == range::boundary_low) {
       return meta_->extended[S][0][A];
@@ -342,7 +347,7 @@ struct narray<Policy>::access {
     }
   }
 
-  template<index_space S, typename T, std::size_t P>
+  template<index_space S, typename T, Privileges P>
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
@@ -357,6 +362,7 @@ struct narray<Policy>::access {
         f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
 
     meta_.topology_send(f, &narray::meta);
+    policy_meta_.topology_send(f, &narray::meta);
   }
 }; // struct narray<Policy>::access
 

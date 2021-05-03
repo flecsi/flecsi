@@ -13,10 +13,6 @@
                                                                               */
 #pragma once
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/flog.hh"
 #include <flecsi/util/array_ref.hh>
 #include <utility>

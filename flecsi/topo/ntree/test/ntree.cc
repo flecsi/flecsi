@@ -11,15 +11,13 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#define __FLECSI_PRIVATE__
-#include <flecsi/data.hh>
 
+#include "flecsi/data.hh"
+#include "flecsi/topo/ntree/interface.hh"
+#include "flecsi/topo/ntree/types.hh"
 #include "flecsi/util/geometry/filling_curve.hh"
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
-
-#include "flecsi/topo/ntree/interface.hh"
-#include "flecsi/topo/ntree/types.hh"
 
 #include "txt_definition.hh"
 
@@ -46,10 +44,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
-    int size, rank;
-    rank = process();
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const int size = processes(), rank = process();
 
     coloring c(size);
 

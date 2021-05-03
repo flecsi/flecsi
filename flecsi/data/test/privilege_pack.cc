@@ -12,10 +12,9 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
+#include "flecsi/data.hh"
+#include "flecsi/execution.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/data.hh>
-#include <flecsi/execution.hh>
 
 using namespace flecsi;
 

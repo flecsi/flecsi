@@ -15,7 +15,6 @@
 #include "simple_definition.hh"
 #include "ugm_definition.hh"
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
@@ -25,37 +24,16 @@
 
 using namespace flecsi;
 
-struct closure_policy {
-
-  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
-  // using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 2>;
-
-  using auxiliary =
-    std::tuple<topo::unstructured_impl::auxiliary_independent<1, 0, 2>>;
-
-  static constexpr size_t auxiliary_colorings =
-    std::tuple_size<auxiliary>::value;
-}; // coloring_policy
-
-#if 0
-struct staging_area {
-  std::vector<std::size_t> raw;
-  std::map<std::size_t, std::vector<std::size_t>> primaries;
-}; // struct staging_area
-
-staging_area staging;
-#endif
-
 int
 compute_closure() {
   UNIT {
 #if 1
-    const std::size_t colors{4};
+    const Color colors = 4;
     topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
-    // const std::size_t colors{6};
+    // const Color colors = 6;
     // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 #else
-    const std::size_t colors{6};
+    const Color colors = 6;
     topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
 
@@ -94,7 +72,7 @@ compute_closure() {
 
     {
       std::stringstream ss;
-      size_t color{0};
+      Color color=0;
       for(auto p : primaries) {
         ss << "color " << color++ << ":" << std::endl;
         for(auto i : p) {
@@ -158,11 +136,12 @@ compute_closure() {
 #endif
 
 #if 1
-    auto colorings = topo::unstructured_impl::closure<closure_policy>(
-      sd, colors, raw, primaries, c2v, v2c, c2c, m2p, p2m);
+    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, {{1, 0}}};
+    auto colorings = topo::unstructured_impl::color(
+      sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
-#if 0
+#if 1
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
     for(auto const & v : v2c) {
       std::stringstream ss;

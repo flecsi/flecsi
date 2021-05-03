@@ -39,7 +39,6 @@ set(topo_HEADERS
   structured/interface.hh
   structured/simple_box_colorer.hh
   structured/types.hh
-  unstructured/closure_utils.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
   unstructured/interface.hh
@@ -149,6 +148,7 @@ add_unit(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
+    narray/test/narray_tasks.hh
   THREADS 4
 )
 

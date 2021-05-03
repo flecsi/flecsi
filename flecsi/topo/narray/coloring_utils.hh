@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/types.hh"
 #include "flecsi/util/color_map.hh"
@@ -58,9 +54,9 @@ factor(std::size_t np) {
   Create an axial color distribution for the given number of processes.
  */
 
-inline std::vector<std::size_t>
-distribute(std::size_t np, std::vector<std::size_t> indices) {
-  std::vector<std::size_t> parts(indices.size(), 1);
+inline narray_impl::colors
+distribute(Color np, std::vector<std::size_t> indices) {
+  narray_impl::colors parts(indices.size(), 1);
 
   auto facs = factor(np);
 
@@ -84,9 +80,9 @@ distribute(std::size_t np, std::vector<std::size_t> indices) {
  */
 
 inline auto
-orientation(std::size_t dimension,
-  std::vector<std::size_t> const & color_indices,
-  std::vector<std::size_t> const & axis_colors) {
+orientation(Dimension dimension,
+  const narray_impl::colors & color_indices,
+  const narray_impl::colors & axis_colors) {
   using namespace narray_impl;
 
 #define FACE(e, c, c0, c1, c2)                                                 \
@@ -96,7 +92,7 @@ orientation(std::size_t dimension,
 
   std::uint32_t faces = interior;
   std::uint32_t shft{low};
-  for(std::size_t axis{0}; axis < dimension; ++axis) {
+  for(Dimension axis = 0; axis < dimension; ++axis) {
     faces |=
       FACE(color_indices[axis], axis_colors[axis], interior, shft, shft << 1);
     shft <<= 2;
@@ -111,8 +107,8 @@ orientation(std::size_t dimension,
  */
 
 inline auto
-make_color(std::size_t dimension,
-  std::vector<std::size_t> const & color_indices,
+make_color(Dimension dimension,
+  const narray_impl::colors & color_indices,
   std::vector<util::color_map> const & axcm,
   uint32_t faces,
   narray_impl::coord const & hdepths,
@@ -137,9 +133,9 @@ make_color(std::size_t dimension,
         >>>
     ghstitvls(dimension);
 
-  for(std::size_t axis{0}; axis < dimension; ++axis) {
+  for(Dimension axis = 0; axis < dimension; ++axis) {
     auto axis_color = color_indices[axis];
-    std::size_t axis_colors = axcm[axis].colors();
+    const Color axis_colors = axcm[axis].colors();
     idxco.global[axis] = axcm[axis].indices();
     idxco.extents[axis] = axcm[axis].indices(axis_color, 0);
     idxco.offset[axis] = axcm[axis].index_offset(color_indices[axis], 0);
@@ -249,12 +245,12 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 
   flog_assert(index_spaces.size() != 0, "no index spaces defined");
 
-  const std::size_t dimension = index_spaces[0].axis_colors.size();
+  const Dimension dimension = index_spaces[0].axis_colors.size();
 
   flog_assert(dimension < 17,
     "current implementation is limited to 16 dimensions (uint32_t)");
 
-  std::size_t colors{1};
+  Color nc = 1;
   auto [rank, size] = util::mpi::info(comm);
   std::vector<std::map<std::size_t, index_coloring>> colorings;
 
@@ -280,20 +276,20 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
       sub colors and offsets for an individual axis.
      */
 
-    std::size_t idx_colors{1};
+    Color idx_colors = 1;
     std::size_t indices{1};
     std::vector<util::color_map> axcm;
-    for(std::size_t d{0}; d < dimension; ++d) {
+    for(Dimension d = 0; d < dimension; ++d) {
       if(is == 0) {
-        colors *= axis_colors[d];
+        nc *= axis_colors[d];
       }
       idx_colors *= axis_colors[d];
       indices *= axis_extents[d];
       axcm.emplace_back(axis_colors[d], axis_colors[d], axis_extents[d]);
     } // for
 
-    flog_assert(idx_colors == colors,
-      "index spaces must have a consistent number of colors");
+    flog_assert(
+      idx_colors == nc, "index spaces must have a consistent number of colors");
 
     /*
       Create a color map for the total number of colors (product of axis
@@ -316,13 +312,13 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
         Create a coloring for each color on this process.
        */
 
-      for(std::size_t c{0}; c < cm.colors(rank); ++c) {
+      for(Color c = 0; c < cm.colors(rank); ++c) {
         /*
           Convenience functions to map between colors and indices.
          */
 
-        auto co2idx = [](std::size_t co, coord szs) {
-          coord indices;
+        const auto co2idx = [](Color co, const colors & szs) {
+          colors indices;
           for(auto sz : szs) {
             indices.emplace_back(co % sz);
             co /= sz;
@@ -330,8 +326,9 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           return indices;
         };
 
-        auto idx2co = [](coord const & idx, coord const & szs) {
-          std::size_t co{0}, pr{szs[0]};
+        const auto idx2co = [](const auto & idx, const auto & szs) {
+          auto pr = szs[0];
+          decltype(pr) co = 0;
           for(std::size_t i{0}; i < idx.size() - 1; ++i) {
             co += idx[i + 1] * pr;
             pr *= szs[i + 1];
@@ -369,16 +366,16 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           the actual full-dimensional subregions. These define the coloring.
          */
 
-        std::function<std::vector<std::pair<coord, hypercube>>(
-          std::size_t, std::size_t)>
+        std::function<std::vector<std::pair<colors, hypercube>>(
+          Dimension, Dimension)>
           expand = [&idx_coloring,
                      &color_indices,
                      &ghost_intervals,
                      diagonals,
-                     &expand](std::size_t dim, std::size_t top) {
-            std::vector<std::pair<coord, hypercube>> sregs;
+                     &expand](Dimension dim, Dimension top) {
+            std::vector<std::pair<colors, hypercube>> sregs;
 
-            for(std::size_t axis{0}; axis < dim; ++axis) {
+            for(Dimension axis = 0; axis < dim; ++axis) {
               if(sregs.size() && dim == top) {
                 /*
                   Expand the subregions from the lower dimensions.
@@ -403,10 +400,10 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
                */
 
               for(auto i : ghost_intervals[axis]) {
-                coord co(top, 0);
+                colors co(top, 0);
                 coord start(top, 0);
                 coord end(top, 0);
-                for(std::size_t a{0}; a < axis; ++a) {
+                for(Dimension a = 0; a < axis; ++a) {
                   co[a] = color_indices[a];
                   start[a] = idx_coloring.logical[0][a];
                   end[a] = idx_coloring.logical[1][a];
@@ -454,7 +451,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
         auto rmtidx = [dimension, &axis_bdepths](
                         index_coloring const & idxco, coord const & gidx) {
           coord result(dimension);
-          for(std::size_t axis{0}; axis < dimension; ++axis) {
+          for(Dimension axis = 0; axis < dimension; ++axis) {
             uint32_t bits = idxco.faces >> axis * 2;
             if(bits & low) {
               result[axis] = gidx[axis] + axis_bdepths[axis];
@@ -473,7 +470,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
         auto l2g = [dimension, faces, &axis_bdepths](
                      index_coloring const & idxco, coord const & idx) {
           coord result(dimension);
-          for(std::size_t axis{0}; axis < dimension; ++axis) {
+          for(Dimension axis = 0; axis < dimension; ++axis) {
             uint32_t bits = faces >> axis * 2;
             if(bits & low) {
               if(idx[axis] < idxco.logical[0][axis]) {
@@ -505,7 +502,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 
         auto op2cls = [dimension](coord const & idx) {
           coord result(dimension);
-          for(std::size_t axis{0}; axis < dimension; ++axis) {
+          for(Dimension axis = 0; axis < dimension; ++axis) {
             result[axis] = idx[axis] - 1;
           }
           return result;
@@ -515,7 +512,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           Loop through the subregions and create the actual coloring.
          */
 
-        std::unordered_map<std::size_t, index_coloring> idxmap;
+        std::unordered_map<Color, index_coloring> idxmap;
         for(auto s : subregions) {
           auto co = idx2co(s.first, axis_colors);
           if(idxmap.find(co) == idxmap.end()) {
@@ -541,9 +538,9 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
             to break up the volume into contiguous chunks.
            */
 
-          std::function<void(std::size_t, hypercube, std::size_t)> make =
+          std::function<void(Color, hypercube, Dimension)> make =
             [&idx_coloring, &idxmap, &op2cls, &idx2co, &l2g, &rmtidx, &make](
-              std::size_t clr, hypercube const & subregion, std::size_t axis) {
+              Color clr, hypercube const & subregion, Dimension axis) {
               if(axis == 0) {
                 // Compute the local memory interval.
                 auto const start = idx2co(subregion[0], idx_coloring.extents);
@@ -592,7 +589,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
     colorings.push_back(std::move(coloring));
   } // for
 
-  return std::make_pair(colors, colorings);
+  return std::make_pair(nc, colorings);
 } // color
 
 } // namespace narray_utils

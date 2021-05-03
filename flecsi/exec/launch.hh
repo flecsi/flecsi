@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly
-#endif
-
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/util/type_traits.hh"
@@ -31,6 +27,14 @@
 #include <variant> // monostate
 
 namespace flecsi {
+namespace data { // these have semantics for exec/
+struct bind_tag {}; // must be recognized as a task parameter
+// Provides a send member function that accepts a function to call with a
+// (subsidiary) task parameter and another function to call to transform the
+// corresponding task argument (used only on the caller side).
+struct send_tag {};
+} // namespace data
+
 namespace exec {
 
 namespace detail {
@@ -56,7 +60,7 @@ struct replace_argument<P,
   }
 };
 
-// For each parameter-type/argument pair we have either a std::size_t (the
+// For each parameter-type/argument pair we have either a Color (the
 // size of a required index launch), std::monostate (for a required single
 // launch), or std::nullptr_t (don't care).
 
@@ -72,7 +76,7 @@ template<class P,
   class Topo,
   typename Topo::index_space S>
 struct launch<P, data::field_reference<T, L, Topo, S>> {
-  static std::size_t get(const data::field_reference<T, L, Topo, S> & r) {
+  static Color get(const data::field_reference<T, L, Topo, S> & r) {
     return r.topology().colors();
   }
 };
@@ -130,7 +134,7 @@ replace_argument(T && t) {
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.
-template<std::size_t A, class P, class... AA>
+template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
   return detail::launch_size<mask_to_processor_type(A) ==
@@ -142,10 +146,7 @@ enum class launch_type_t : size_t { single, index };
 
 /// An explicit launch domain size.
 struct launch_domain {
-  std::size_t size() {
-    return size_;
-  }
-  std::size_t size_;
+  Color size_;
 };
 
 /// A simple version of C++20's \c bind_front that can be an argument to a
@@ -213,9 +214,9 @@ struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
   void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
-  Return get(std::size_t index = 0, bool silence_warnings = false);
+  Return get(Color index = 0, bool silence_warnings = false);
   /// Get the number of tasks.
-  std::size_t size() const;
+  Color size() const;
 };
 #endif
 
@@ -229,13 +230,13 @@ struct detail::task_param<future<R>> {
 
 template<class P>
 struct detail::launch<P, launch_domain> {
-  static std::size_t get(const launch_domain & d) {
+  static Color get(const launch_domain & d) {
     return d.size_;
   }
 };
 template<class P, class T>
 struct detail::launch<P, future<T, launch_type_t::index>> {
-  static std::size_t get(const future<T, launch_type_t::index> & f) {
+  static Color get(const future<T, launch_type_t::index> & f) {
     return f.size();
   }
 };

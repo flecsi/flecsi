@@ -14,10 +14,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include <map>
 #include <vector>
 
@@ -35,12 +31,12 @@ struct ntree_base {
 
   struct coloring {
 
-    coloring(std::size_t nparts)
+    coloring(Color nparts)
       : nparts_(nparts), global_hmap_(nparts * local_hmap_),
         hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3) {}
 
     // Global
-    size_t nparts_;
+    Color nparts_;
 
     // Entities
     size_t local_entities_;

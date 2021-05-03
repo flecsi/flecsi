@@ -15,17 +15,12 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
-#include "flecsi/topo/unstructured/closure_utils.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/topo/utility_types.hh"
@@ -51,18 +46,18 @@ struct unstructured : unstructured_base,
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
 
-  template<std::size_t>
+  template<Privileges>
   struct access;
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+    : with_ragged<Policy>(c.at(0).colors), with_meta<Policy>(c.at(0).colors),
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      special_(c.colors) {
+      special_(c.at(0).colors) {
     init_ragged(index_spaces());
     allocate_connectivities(c, connect_);
 #if 0
@@ -90,7 +85,7 @@ struct unstructured : unstructured_base,
   util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
 
-  std::size_t colors() const {
+  Color colors() const {
     return part_.front().colors();
   }
 
@@ -106,6 +101,11 @@ struct unstructured : unstructured_base,
   template<index_space S>
   auto const & forward_map() {
     return forward_map_.template get<S>();
+  }
+
+  template<index_space S>
+  auto reverse_map() && {
+    return std::move(reverse_map_.template get<S>());
   }
 
   template<typename Type,
@@ -125,25 +125,29 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
+    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
+      c.at(0).idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_colorings[Index]))...}};
+    return {{make_repartitioned<Policy, Value>(c.at(0).colors,
+      make_partial<idx_size>(c.at(0).idx_colorings[Index]))...}};
   }
 
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
-    constexpr std::size_t NP = Policy::template privilege_count<S>;
+    constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     std::vector<std::size_t> num_intervals;
     std::vector<std::pair<std::size_t, std::size_t>> intervals;
-    std::map<std::size_t, std::vector<std::pair<std::size_t, std::size_t>>>
-      points;
+    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> points;
 
     auto const & fmd = forward_map_.template get<S>();
-    execute<idx_itvls<NP>, mpi>(
-      ic, num_intervals, intervals, points, fmd(*this), comm);
+    execute<idx_itvls<NP>, mpi>(ic,
+      num_intervals,
+      intervals,
+      points,
+      fmd(*this),
+      reverse_map_.template get<S>(),
+      comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
@@ -164,10 +168,10 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
+    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
+      c.at(0).idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
+    return {{make_plan<Value>(c.at(0).idx_colorings[Index], c.at(0).comm)...}};
   }
 
   template<auto... VV, typename... TT>
@@ -176,7 +180,7 @@ private:
     std::size_t entity = 0;
     (
       [&](TT const & row) {
-        auto & cc = c.cnx_allocs[entity++];
+        auto & cc = c.at(0).cnx_allocs[entity++];
         std::size_t is{0};
         for(auto & fd : row) {
           auto & p = this->ragged.template get_partition<VV>(fd.fid);
@@ -199,6 +203,9 @@ private:
   void init_ragged(util::constants<SS...>) {
     (this->template extend_offsets<SS>(), ...);
   }
+
+  util::key_array<std::map<std::size_t, std::size_t>, index_spaces>
+    reverse_map_;
 }; // struct unstructured
 
 /*----------------------------------------------------------------------------*
@@ -206,7 +213,7 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<std::size_t Privileges>
+template<Privileges Privileges>
 struct unstructured<Policy>::access {
 private:
   using entity_list = typename Policy::entity_list;

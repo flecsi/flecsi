@@ -12,7 +12,6 @@
    All rights reserved.
                                                                               */
 
-#define __FLECSI_PRIVATE__
 #include "flecsi/util/unit.hh"
 #include <flecsi/execution.hh>
 

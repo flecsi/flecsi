@@ -15,10 +15,6 @@
 
 /*! @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"
@@ -48,9 +44,9 @@ struct lists<T, util::types<VT...>> {
     util::key_type<VT::value, util::key_array<T, typename VT::type>>...>;
 };
 
-template<class, std::size_t>
+template<class, Privileges>
 struct key_access;
-template<class... VT, std::size_t Priv>
+template<class... VT, Privileges Priv>
 struct key_access<util::key_tuple<VT...>, Priv> {
   using type = util::key_tuple<util::key_type<VT::value,
     util::key_array<
@@ -66,11 +62,11 @@ template<class P>
 using connect_t = typename detail::connect<P, typename P::connectivities>::type;
 
 namespace detail {
-template<class C, std::size_t Priv>
+template<class C, Privileges Priv>
 using key_access_t = typename key_access<C, Priv>::type;
 
 // A parallel sparse matrix of accessors.
-template<class C, std::size_t Priv>
+template<class C, Privileges Priv>
 struct connect_access : key_access_t<C, Priv> {
   // Prior to C++20, accessor_member can't refer to the subobjects of a
   // connect_t, so the accessors must be initialized externally.
@@ -90,7 +86,7 @@ private:
 } // namespace detail
 
 // Accessors for the connectivity requested by a topology.
-template<class P, std::size_t Priv>
+template<class P, Privileges Priv>
 using connect_access = detail::connect_access<connect_t<P>, Priv>;
 
 template<class T, class P>
@@ -102,27 +98,26 @@ struct lists : lists_t<typename array<P>::core, P> {
   using Base = typename lists::key_tuple;
 
   // Initializes each subtopology to zero size on every color.
-  explicit lists(std::size_t nc)
-    : Base(make_base(nc, typename P::entity_lists())) {}
+  explicit lists(Color nc) : Base(make_base(nc, typename P::entity_lists())) {}
 
   // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
   // coloring-based allocation?
 
 private:
   template<class... VT>
-  Base make_base(std::size_t nc, util::types<VT...> /* to decue a pack */) {
+  Base make_base(Color nc, util::types<VT...> /* to decue a pack */) {
     return {make_base1(nc, typename VT::type())...};
   }
   template<auto... VV>
   util::key_array<typename array<P>::core, util::constants<VV...>>
-  make_base1(std::size_t nc, util::constants<VV...> /* to deduce a pack */) {
+  make_base1(Color nc, util::constants<VV...> /* to deduce a pack */) {
     return {{(
       (void)VV, typename array<P>::core(typename array<P>::coloring(nc)))...}};
   }
 };
 
 // Accessors for the distinguished entities requested by a topology.
-template<class P, std::size_t Priv>
+template<class P, Privileges Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
 template<class F, class... VT, class C, class S = util::identity>

@@ -28,10 +28,10 @@ namespace flecsi {
  * class filling_curve
  * @brief Basic functionality for a space filling curve
  *----------------------------------------------------------------------------*/
-template<std::size_t DIM, typename T, class DERIVED>
+template<Dimension DIM, typename T, class DERIVED>
 class filling_curve
 {
-  static constexpr std::size_t dimension = DIM;
+  static constexpr Dimension dimension = DIM;
   using int_t = T;
   using point_t = util::point<double, dimension>;
 
@@ -203,7 +203,7 @@ public:
 }; // class filling_curve
 
 //! output for filling_curve using output_ function defined in the class
-template<std::size_t D, typename T, class DER>
+template<Dimension D, typename T, class DER>
 std::ostream &
 operator<<(std::ostream & ostr, const filling_curve<D, T, DER> & k) {
   k.output_(ostr);
@@ -214,11 +214,11 @@ operator<<(std::ostream & ostr, const filling_curve<D, T, DER> & k) {
  * class hilbert_curve
  * @brief Implementation of the hilbert peano space filling curve
  *----------------------------------------------------------------------------*/
-template<std::size_t DIM, typename T>
+template<Dimension DIM, typename T>
 class hilbert_curve : public filling_curve<DIM, T, hilbert_curve<DIM, T>>
 {
   using int_t = T;
-  static constexpr std::size_t dimension = DIM;
+  static constexpr Dimension dimension = DIM;
   using coord_t = std::array<int_t, dimension>;
   using point_t = flecsi::util::point<double, dimension>;
 
@@ -246,7 +246,7 @@ public:
     const int_t max_val = (int_t(1) << (bits_ - 1) / dimension) - 1;
 
     // Convert the position to integer
-    for(std::size_t i = 0; i < dimension; ++i) {
+    for(Dimension i = 0; i < dimension; ++i) {
       double min = range[0][i];
       double scale = range[1][i] - min;
       coords[i] = std::min(max_val,
@@ -262,7 +262,7 @@ public:
     int_t mask = static_cast<int_t>(1) << (max_depth_);
     for(int_t s = mask >> 1; s > 0; s >>= 1) {
       std::array<int_t, dimension> bits;
-      for(std::size_t j = 0; j < dimension; ++j) {
+      for(Dimension j = 0; j < dimension; ++j) {
         bits[j] = (s & coords[j]) > 0;
       }
       if(dimension == 2) {
@@ -306,7 +306,7 @@ public:
       key >>= dimension;
     }
     assert(key == int_t(1));
-    for(std::size_t j = 0; j < dimension; ++j) {
+    for(Dimension j = 0; j < dimension; ++j) {
       double min = range[0][j];
       double scale = range[1][j] - min;
       p[j] =
@@ -444,12 +444,12 @@ private:
  * class morton_curve
  * @brief Implementation of the Morton space filling curve (Z ordering)
  *----------------------------------------------------------------------------*/
-template<std::size_t DIM, typename T>
+template<Dimension DIM, typename T>
 class morton_curve : public filling_curve<DIM, T, morton_curve<DIM, T>>
 {
 
   using int_t = T;
-  static constexpr std::size_t dimension = DIM;
+  static constexpr Dimension dimension = DIM;
   using coord_t = std::array<int_t, dimension>;
   using point_t = flecsi::util::point<double, dimension>;
 
@@ -472,7 +472,7 @@ public:
     assert(depth <= max_depth_);
     std::array<int_t, dimension> coords;
     const int_t max_val = (int_t(1) << (bits_ - 1) / dimension) - 1;
-    for(std::size_t i = 0; i < dimension; ++i) {
+    for(Dimension i = 0; i < dimension; ++i) {
       double min = range[0][i];
       double scale = range[1][i] - min;
       coords[i] = std::min(max_val,
@@ -482,7 +482,7 @@ public:
     } // for
     std::size_t k = 0;
     for(std::size_t i = max_depth_ - depth; i < max_depth_; ++i) {
-      for(std::size_t j = 0; j < dimension; ++j) {
+      for(Dimension j = 0; j < dimension; ++j) {
         int_t bit = (coords[j] & int_t(1) << i) >> i;
         value_ |= bit << (k * dimension + j);
       } // for
@@ -497,14 +497,14 @@ public:
     int_t id = value_;
     std::size_t d = 0;
     while(id >> dimension != int_t(0)) {
-      for(std::size_t j = 0; j < dimension; ++j) {
+      for(Dimension j = 0; j < dimension; ++j) {
         coords[j] |= (((int_t(1) << j) & id) >> j) << d;
       } // for
       id >>= dimension;
       ++d;
     } // while
     constexpr int_t m = (int_t(1) << max_depth_) - 1;
-    for(std::size_t j = 0; j < dimension; ++j) {
+    for(Dimension j = 0; j < dimension; ++j) {
       double min = range[0][j];
       double scale = range[1][j] - min;
       coords[j] <<= max_depth_ - d;
@@ -529,13 +529,13 @@ public:
     int_t id = value_;
     std::size_t d = 0;
     while(id != root) {
-      for(std::size_t j = 0; j < dimension; ++j) {
+      for(Dimension j = 0; j < dimension; ++j) {
         coords[j] |= (((int_t(1) << j) & id) >> j) << d;
       }
       id >>= dimension;
       ++d;
     }
-    for(std::size_t i = 0; i < dimension; ++i) {
+    for(Dimension i = 0; i < dimension; ++i) {
       // apply the reduction
       for(std::size_t j = d; j > 0; --j) {
         double nu = (result[0][i] + result[1][i]) / 2.;

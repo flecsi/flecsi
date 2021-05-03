@@ -11,13 +11,12 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#define __FLECSI_PRIVATE__
-#define __FLECSI_PRIVATE__
+
+#include "flecsi/data.hh"
+#include "flecsi/execution.hh"
+#include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/data.hh>
-#include <flecsi/execution.hh>
-#include <flecsi/util/array_ref.hh>
 
 using namespace flecsi;
 using namespace flecsi::data;

@@ -15,12 +15,7 @@
 
 /*! file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
-#include <cstddef> // size_t
-
+#include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/util/constant.hh"
@@ -29,7 +24,7 @@ namespace flecsi {
 namespace data {
 template<class>
 struct coloring_slot; // avoid dependency on flecsi::execute
-template<class, std::size_t>
+template<class, Privileges>
 struct topology_accessor; // avoid circularity via launch.hh
 } // namespace data
 
@@ -40,7 +35,7 @@ namespace detail {
 template<template<class> class>
 struct base;
 
-inline std::size_t next_id;
+inline TopologyType next_id;
 } // namespace detail
 
 // To obtain the base class without instantiating a core topology type:
@@ -60,7 +55,7 @@ struct core_base {
 template<class P>
 struct core : core_base { // with_ragged<P> is often another base class
   /// Default-constructible base for topology accessors.
-  template<std::size_t Priv>
+  template<Privileges Priv>
   struct access {
     /// \see send_tag
     template<class F>
@@ -69,7 +64,7 @@ struct core : core_base { // with_ragged<P> is often another base class
 
   explicit core(coloring);
 
-  std::size_t colors() const;
+  Color colors() const;
 
   template<typename P::index_space>
   data::region & get_region();
@@ -105,6 +100,8 @@ struct specialization_base {
 
   specialization_base() = delete;
 };
+/// Convenience base class for specialization class templates.
+struct help : specialization_base {}; // intervening class avoids warnings
 
 /// CRTP base for specializations.
 /// \tparam C core topology
@@ -126,7 +123,7 @@ struct specialization : specialization_base {
   using accessor = data::topology_accessor<D, privilege_pack<Priv...>>;
 
   // Use functions because these are needed during non-local initialization:
-  static std::size_t id() {
+  static TopologyType id() {
     static auto ret = detail::next_id++;
     return ret;
   }
@@ -139,7 +136,7 @@ struct specialization : specialization_base {
     return D::index_spaces::value;
   }
   template<auto S> // we can't use D::index_space here
-  static constexpr std::size_t privilege_count =
+  static constexpr PrivilegeCount privilege_count =
     std::is_same_v<decltype(S), typename D::index_space> ? 1 : throw;
 
   static void initialize(slot &, coloring const &) {}

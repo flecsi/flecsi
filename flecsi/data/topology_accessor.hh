@@ -15,13 +15,8 @@
 
 /*!  @file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
-#include "flecsi/data/reference.hh"
+#include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
-#include <cstddef> // size_t
 
 namespace flecsi {
 namespace data {
@@ -38,7 +33,7 @@ namespace data {
   \tparam T topology type
   \tparam Priv privilege pack
  */
-template<class T, std::size_t Priv>
+template<class T, Privileges Priv>
 struct topology_accessor
   : T::template interface<typename T::core::template access<Priv>>,
     bind_tag,
@@ -52,7 +47,7 @@ struct topology_accessor
 
 } // namespace data
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct exec::detail::task_param<data::topology_accessor<T, P>> {
   static auto replace(const typename T::slot &) {
     return data::topology_accessor<T, P>();
@@ -63,7 +58,7 @@ struct exec::detail::task_param<data::topology_accessor<T, P>> {
 // thus no specialization for them.
 template<class P, class T>
 struct exec::detail::launch<P, data::topology_slot<T>> {
-  static std::size_t get(const data::topology_slot<T> & t) {
+  static Color get(const data::topology_slot<T> & t) {
     return t.get().colors();
   }
 };
