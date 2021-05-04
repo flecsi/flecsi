@@ -21,8 +21,8 @@
 using namespace flecsi;
 
 template<std::size_t D>
-struct mesh {
-  static_assert((D >= 1 && D <= 3), "Invalid dimension for testing !");
+struct mesh : topo::specialization<topo::narray, mesh<D>> {
+  static_assert((D >= 1 && D <= 6), "Invalid dimension for testing !");
 
   enum index_space { entities };
   enum range {
@@ -42,6 +42,33 @@ struct mesh {
   };
 
   static constexpr std::size_t dimension = D;
+ 
+  template<auto>
+  static constexpr std::size_t privilege_count = 2; 
+
+  using index_spaces = typename mesh::template has<entities>;
+  using axes = typename mesh::template has<x_axis, y_axis, z_axis>;
+  using coord = typename mesh::base::coord;
+  using coloring_definition = typename mesh::base::coloring_definition;
+  using coloring = typename mesh::base::coloring;
+
+  static coloring color(std::vector<coloring_definition> index_definitions) {
+    auto [colors, index_colorings] =
+      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
+
+    flog_assert(colors == processes(),
+      "current implementation is restricted to 1-to-1 mapping");
+
+    coloring c;
+    c.comm = MPI_COMM_WORLD;
+    c.colors = colors;
+    for(auto idx : index_colorings) {
+      for(auto ic : idx) {
+        c.idx_colorings.emplace_back(ic.second);
+      }
+    }
+    return c;
+  } // color
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -161,123 +188,3 @@ struct mesh {
   };
 }; // mesh
 
-struct mesh1d : topo::specialization<topo::narray, mesh1d> {
-  using meshbase = mesh<1>;
-
-  using index_space = meshbase::index_space;
-  using range = meshbase::range;
-  using axis = meshbase::axis;
-  using meta_data = meshbase::meta_data;
-
-  static constexpr std::size_t dimension = meshbase::dimension;
-
-  template<auto>
-  static constexpr std::size_t privilege_count = 2;
-
-  template<class B>
-  using interface = meshbase::interface<B>;
-
-  using index_spaces = has<index_space::entities>;
-  using axes = has<axis::x_axis>;
-  using coord = base::coord;
-  using coloring_definition = base::coloring_definition;
-
-  static coloring color(std::vector<coloring_definition> index_definitions) {
-    auto [colors, index_colorings] =
-      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
-
-    flog_assert(colors == processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
-    coloring c;
-    c.comm = MPI_COMM_WORLD;
-    c.colors = colors;
-    for(auto idx : index_colorings) {
-      for(auto ic : idx) {
-        c.idx_colorings.emplace_back(ic.second);
-      }
-    }
-    return c;
-  } // color
-
-}; // mesh1d
-
-struct mesh2d : topo::specialization<topo::narray, mesh2d> {
-  using meshbase = mesh<2>;
-
-  using index_space = meshbase::index_space;
-  using range = meshbase::range;
-  using axis = meshbase::axis;
-  using meta_data = meshbase::meta_data;
-
-  static constexpr std::size_t dimension = meshbase::dimension;
-
-  template<auto>
-  static constexpr std::size_t privilege_count = 2;
-
-  template<class B>
-  using interface = meshbase::interface<B>;
-
-  using index_spaces = has<index_space::entities>;
-  using axes = has<axis::x_axis, axis::y_axis>;
-  using coord = base::coord;
-  using coloring_definition = base::coloring_definition;
-
-  static coloring color(std::vector<coloring_definition> index_definitions) {
-    auto [colors, index_colorings] =
-      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
-
-    flog_assert(colors == processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
-    coloring c;
-    c.comm = MPI_COMM_WORLD;
-    c.colors = colors;
-    for(auto idx : index_colorings) {
-      for(auto ic : idx) {
-        c.idx_colorings.emplace_back(ic.second);
-      }
-    }
-    return c;
-  } // color
-}; // mesh2d
-
-struct mesh3d : topo::specialization<topo::narray, mesh3d> {
-  using meshbase = mesh<3>;
-
-  using index_space = meshbase::index_space;
-  using range = meshbase::range;
-  using axis = meshbase::axis;
-  using meta_data = meshbase::meta_data;
-
-  static constexpr std::size_t dimension = meshbase::dimension;
-
-  template<auto>
-  static constexpr std::size_t privilege_count = 2;
-
-  template<class B>
-  using interface = meshbase::interface<B>;
-
-  using index_spaces = has<index_space::entities>;
-  using axes = has<axis::x_axis, axis::y_axis, axis::z_axis>;
-  using coord = base::coord;
-  using coloring_definition = base::coloring_definition;
-
-  static coloring color(std::vector<coloring_definition> index_definitions) {
-    auto [colors, index_colorings] =
-      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
-
-    flog_assert(colors == processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
-    coloring c;
-    c.comm = MPI_COMM_WORLD;
-    c.colors = colors;
-    for(auto idx : index_colorings) {
-      for(auto ic : idx) {
-        c.idx_colorings.emplace_back(ic.second);
-      }
-    }
-    return c;
-  } // color
-}; // mesh3d

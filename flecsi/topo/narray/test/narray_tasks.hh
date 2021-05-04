@@ -17,13 +17,21 @@
 #include "flecsi/util/unit.hh"
 
 #include <set>
+#include <cmath>
+
+using mesh1d = mesh<1>; 
+using mesh2d = mesh<2>; 
+using mesh3d = mesh<3>; 
+using mesh4d = mesh<4>; 
+using mesh6d = mesh<6>; 
+
 
 /*
  * 1D tasks
  */
 
 void
-set_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
+init_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh1d::index_space::entities>(ca);
   for(auto i : m.extents<mesh1d::axis::x_axis>()) {
     c[i] = color();
@@ -36,14 +44,35 @@ print_field_1d(mesh1d::accessor<ro> m,
   auto c = m.mdspan<mesh1d::index_space::entities>(ca);
   std::stringstream ss;
   for(auto i : m.extents<mesh1d::axis::x_axis, mesh1d::range::all>()) {
-    ss << c[i] << " ";
+    ss << c[i] << "   ";
   } // for
   ss << std::endl;
   flog(warn) << ss.str() << std::endl;
 }
 
+void
+update_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<rw, na> ca) {
+  auto r = color(); 
+  auto c = m.mdspan<mesh1d::index_space::entities>(ca);
+  for(auto i : m.extents<mesh1d::axis::x_axis>()) {
+    c[i] = std::pow(10, r);
+  } // for
+}
+/*
 int
-check_1d(mesh1d::accessor<ro> m) {
+check_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<rw, na> ca) {
+ UNIT {
+  std::set<int> ngb_ranks[4] = {}
+  auto r = color(); 
+  auto c = m.mdspan<mesh1d::index_space::entities>(ca);
+  for(auto i : m.extents<mesh1d::axis::x_axis>()) {
+    c[i] = std::pow(10, r);
+  } // for
+ }; //unit
+} //check_field_1d
+*/
+int
+check_mesh_1d(mesh1d::accessor<ro> m) {
   UNIT {
     using r = mesh1d::range;
     using ax = mesh1d::axis;
@@ -111,18 +140,18 @@ check_1d(mesh1d::accessor<ro> m) {
       EXPECT_EQ(xoffsets[i], xoffsets_ex[process()][i]);
     }
   };
-} // check_1d
+} // check_mesh_1d
 
 /*
  * 2D tasks
  */
 
 void
-set_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
+init_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh2d::index_space::entities>(ca);
   for(auto j : m.extents<mesh2d::axis::y_axis>()) {
-    for(auto i : m.extents<mesh2d::axis::x_axis>()) {
-      c[i][j] = color();
+   for(auto i : m.extents<mesh2d::axis::x_axis>()) {
+      c[j][i] = color();
     } // for
   } // for
 }
@@ -135,16 +164,26 @@ print_field_2d(mesh2d::accessor<ro> m,
   for(int j = m.size<mesh2d::axis::y_axis, mesh2d::range::all>() - 1; j >= 0;
       --j) {
     for(auto i : m.extents<mesh2d::axis::x_axis, mesh2d::range::all>()) {
-      ss << c[i][j] << " ";
+      ss << c[j][i] << "   ";
     } // for
     ss << std::endl;
   } // for
-  ss << std::endl;
   flog(warn) << ss.str() << std::endl;
 }
 
+void
+update_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<rw, na> ca) {
+  auto r = color(); 
+  auto c = m.mdspan<mesh2d::index_space::entities>(ca);
+  for(auto j : m.extents<mesh2d::axis::y_axis>()) {
+    for(auto i : m.extents<mesh2d::axis::x_axis>()) {
+      c[j][i]= std::pow(10, r);
+    } // for
+  } // for
+}
+
 int
-check_2d(mesh2d::accessor<ro> m) {
+check_mesh_2d(mesh2d::accessor<ro> m) {
   UNIT {
     using r = mesh2d::range;
     using ax = mesh2d::axis;
@@ -275,19 +314,19 @@ check_2d(mesh2d::accessor<ro> m) {
       EXPECT_EQ(yoffsets[i], yoffsets_ex[process()][i]);
     }
   };
-} // check_2d
+} // check_mesh_2d
 
 /*
  * 3D tasks
  */
 
 void
-set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
+init_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh3d::index_space::entities>(ca);
   for(auto k : m.extents<mesh3d::axis::z_axis>()) {
     for(auto j : m.extents<mesh3d::axis::y_axis>()) {
       for(auto i : m.extents<mesh3d::axis::x_axis>()) {
-        c[i][j][k] = color();
+        c[k][j][i] = color();
       } // for
     } // for
   } // for
@@ -303,7 +342,7 @@ print_field_3d(mesh3d::accessor<ro> m,
     for(int j = m.size<mesh3d::axis::y_axis, mesh3d::range::all>() - 1; j >= 0;
         --j) {
       for(auto i : m.extents<mesh3d::axis::x_axis, mesh3d::range::all>()) {
-        ss << c[i][j][k] << " ";
+        ss << c[k][j][i] << "   ";
       } // for
       ss << std::endl;
     } // for
@@ -313,8 +352,21 @@ print_field_3d(mesh3d::accessor<ro> m,
   flog(warn) << ss.str() << std::endl;
 }
 
+void
+update_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<rw, na> ca) {
+  auto r = color(); 
+  auto c = m.mdspan<mesh3d::index_space::entities>(ca);
+  for(auto k : m.extents<mesh3d::axis::z_axis>()) {
+    for(auto j : m.extents<mesh3d::axis::y_axis>()) {
+      for(auto i : m.extents<mesh3d::axis::x_axis>()) {
+        c[k][j][i] = std::pow(10, r);
+      } // for
+    } // for
+  } // for
+}
+
 int
-check_3d(mesh3d::accessor<ro> m) {
+check_mesh_3d(mesh3d::accessor<ro> m) {
   UNIT {
     using r = mesh3d::range;
     using ax = mesh3d::axis;
@@ -494,4 +546,5 @@ check_3d(mesh3d::accessor<ro> m) {
       EXPECT_EQ(zoffsets[i], zoffsets_ex[process()][i]);
     }
   };
-} // check_3d
+} // check_mesh_3d
+
