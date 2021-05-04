@@ -207,6 +207,35 @@ string_case_compare(const char * lhs, const char * rhs) {
   return strcasecmp(lhs, rhs) == 0;
 } // string_case_compare
 
+// Source: https://stackoverflow.com/a/22759544
+template<typename S, typename T>
+class is_streamable
+{
+  template<typename SS, typename TT>
+  static auto test(int)
+    -> decltype(std::declval<SS &>() << std::declval<TT>(), std::true_type());
+
+  template<typename, typename>
+  static auto test(...) -> std::false_type;
+
+public:
+  static const bool value = decltype(test<S, T>(0))::value;
+};
+
+template<class T1, class T2>
+inline std::string
+format_cond(T1 && v1, T2 && v2, const char * cond) {
+  std::ostringstream os;
+  if constexpr(is_streamable<std::ostringstream, T1>::value and
+               is_streamable<std::ostringstream, T2>::value)
+    os << v1 << " " << cond << " " << v2;
+  else {
+    os << demangle(typeid(T1).name()) << " " << cond << " "
+       << demangle(typeid(T2).name());
+  }
+  return os.str();
+}
+
 } // namespace unit
 } // namespace util
 } // namespace flecsi
@@ -249,41 +278,91 @@ string_case_compare(const char * lhs, const char * rhs) {
     ::flecsi::util::unit::expect_handler_t(                                    \
       #condition, __FILE__, __LINE__, auto_unit_state)
 
+#define HANDLE_ASSERT_COMP(val1, val2, comp)                                   \
+  return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(           \
+           ::flecsi::util::unit::format_cond(val1, val2, #comp).c_str(),       \
+           __FILE__,                                                           \
+           __LINE__,                                                           \
+           auto_unit_state)
+
+#define HANDLE_EXPECT_COMP(val1, val2, comp)                                   \
+  ::flecsi::util::unit::expect_handler_t(                                      \
+    ::flecsi::util::unit::format_cond(val1, val2, #comp).c_str(),              \
+    __FILE__,                                                                  \
+    __LINE__,                                                                  \
+    auto_unit_state)
+
 #define ASSERT_EQ(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_equal((val1), (val2)))                         \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, ==)
 
 #define EXPECT_EQ(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_equal((val1), (val2)))                         \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, ==)
 
 #define ASSERT_NE(val1, val2)                                                  \
-  ASSERT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
+  if(!::flecsi::util::unit::test_equal((val1), (val2)))                        \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, !=)
 
 #define EXPECT_NE(val1, val2)                                                  \
-  EXPECT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
+  if(!::flecsi::util::unit::test_equal((val1), (val2)))                        \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, !=)
 
 #define ASSERT_LT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
+  if(::flecsi::util::unit::test_less((val1), (val2)))                          \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, <)
 
 #define EXPECT_LT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
+  if(::flecsi::util::unit::test_less((val1), (val2)))                          \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, <)
 
 #define ASSERT_LE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_less_equal((val1), (val2)))                    \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, <=)
 
 #define EXPECT_LE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_less_equal((val1), (val2)))                    \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, <=)
 
 #define ASSERT_GT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
+  if(::flecsi::util::unit::test_greater((val1), (val2)))                       \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, >)
 
 #define EXPECT_GT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
+  if(::flecsi::util::unit::test_greater((val1), (val2)))                       \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, >)
 
 #define ASSERT_GE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_greater_equal((val1), (val2)))                 \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_ASSERT_COMP(val1, val2, >=)
 
 #define EXPECT_GE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
+  if(::flecsi::util::unit::test_greater_equal((val1), (val2)))                 \
+    ;                                                                          \
+  else                                                                         \
+    HANDLE_EXPECT_COMP(val1, val2, >=)
 
 #define ASSERT_STREQ(str1, str2)                                               \
   if(::flecsi::util::unit::string_compare(str1, str2))                         \
