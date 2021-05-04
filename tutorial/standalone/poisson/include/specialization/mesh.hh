@@ -30,6 +30,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using coord = base::coord;
   using hypercube = base::hypercube;
   using coloring_definition = base::coloring_definition;
+  using colors = base::colors;
 
   struct meta_data {
     double delta;
@@ -119,21 +120,21 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     Color Method.
    *--------------------------------------------------------------------------*/
 
-  static coloring color(coord axis_colors, coord axis_extents) {
+  static coloring color(colors axis_colors, coord axis_extents) {
     coord hdepths{1, 1};
     coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};
     std::vector<coloring_definition> color_definitions{
       {axis_colors, axis_extents, hdepths, bdepths, periodic}};
-    auto [colors, index_colorings] =
+    auto [ncolors, index_colorings] =
       flecsi::topo::narray_utils::color(color_definitions, MPI_COMM_WORLD);
 
-    flog_assert(colors == flecsi::processes(),
+    flog_assert(ncolors == flecsi::processes(),
       "current implementation is restricted to 1-to-1 mapping");
 
     coloring c;
     c.comm = MPI_COMM_WORLD;
-    c.colors = colors;
+    c.colors = ncolors;
     for(auto idx : index_colorings) {
       for(auto ic : idx) {
         c.idx_colorings.emplace_back(ic.second);
