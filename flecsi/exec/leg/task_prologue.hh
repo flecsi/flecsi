@@ -81,8 +81,7 @@ protected:
 
     reg.ghost_copy<PRIVILEGES>(r);
 
-    const Legion::PrivilegeMode m =
-      reg.poll_discard(f) ? WRITE_DISCARD : privilege_mode(PRIVILEGES);
+    const Legion::PrivilegeMode m = privilege_mode(PRIVILEGES);
     const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);

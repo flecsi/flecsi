@@ -61,7 +61,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())) {
-    init_ragged(index_spaces());
     init_meta(c);
     init_policy_meta(c);
   }
@@ -190,11 +189,6 @@ private:
 
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
-  }
-
-  template<index_space... SS>
-  void init_ragged(util::constants<SS...>) {
-    (this->template extend_offsets<SS>(), ...);
   }
 }; // struct narray
 
