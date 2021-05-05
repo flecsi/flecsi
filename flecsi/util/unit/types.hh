@@ -34,7 +34,6 @@ struct state_t {
 
   state_t(std::string name) {
     name_ = name;
-    error_stream_.str(std::string());
   } // initialize
 
   ~state_t() {
@@ -42,8 +41,7 @@ struct state_t {
 
     if(error_stream_.str().size()) {
       std::stringstream stream;
-      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << FLOG_COLOR_PLAIN
-             << std::endl;
+      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << std::endl;
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
@@ -97,10 +95,6 @@ struct assert_handler_t {
 
   ~assert_handler_t() {
     runtime_.stringstream() << FLOG_COLOR_PLAIN << std::endl;
-    std::stringstream stream;
-    stream << FLOG_OUTPUT_LTRED("TEST FAILED " << runtime_.name())
-           << FLOG_COLOR_PLAIN << std::endl;
-    stream << runtime_.stringstream().str();
   } // ~assert_handler_t
 
   template<typename T>
