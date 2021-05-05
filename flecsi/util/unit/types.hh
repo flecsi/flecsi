@@ -39,7 +39,7 @@ struct state_t {
   ~state_t() {
     log::devel_guard guard(unit_tag);
 
-    if(error_stream_.str().size()) {
+    if(result_) {
       std::stringstream stream;
       stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << std::endl;
       stream << error_stream_.str();
