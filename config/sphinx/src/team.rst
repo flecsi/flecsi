@@ -122,7 +122,16 @@ Davis Herring
       **XCP-1: Lagrangian Codes** |br|
       *Los Alamos National Laboratory*
 
-      Davis is ...
+      Davis is a physicist and computer scientist with experience in
+      numerical modeling techniques and software library design.  Before
+      working on FleCSI, he was the lead architect for Ingen, the unified
+      library developed by the SimTools project for creating geometric models,
+      2D meshes, and physical parameter input for computational physics
+      simulations.  He has also published on the subject of molecular dynamics
+      simulations conducted in T-1.
+      Davis and Ollie represent LANL on the ISO C++ committee; in turn, Davis
+      has worked to improve the user-interface and maintainability of FleCSI 2
+      by taking advantage of modern C++ features. 
 
 |clearboth|
 
@@ -194,7 +203,13 @@ Julien Loiseau
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Julien is ...
+      Julien is a High Performance Computing scientist in the Co-Design
+      Team at LANL. His research focuses on the new parallel and distributed
+      architectures for the next generation of supercomputers for scientific
+      simulation.
+      He is currently working on several aspects of development from topology
+      in FleCSI, GPU support using Kokkos in the Exasheds project and Smoothed
+      Particles Hydrodynamics as lead CS developer of FleCSPH.  
 
 |clearboth|
 
@@ -213,7 +228,12 @@ Charles Ferenbaugh
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Charles is ...
+      Charles Ferenbaugh is a computer scientist and software engineer
+      on HPC code projects in LANL's Advanced Simulation and Computing
+      program. He currently contributes to two large multiphysics code
+      projects: the Eulerian Applications Project and the Ristra/Next
+      Generation Code Project. He has also been a part of LANL research
+      efforts in advanced architectures and programming models. 
 
 |clearboth|
 
