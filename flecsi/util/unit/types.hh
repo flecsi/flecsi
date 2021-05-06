@@ -28,8 +28,6 @@ inline log::devel_tag unit_tag("unit");
 namespace util {
 namespace unit {
 
-struct assert_handler_t;
-
 struct state_t {
 
   state_t(std::string name) {
@@ -51,10 +49,6 @@ struct state_t {
     } // if
   } // process
 
-  int & result() {
-    return result_;
-  }
-
   const std::string & name() const {
     return name_;
   }
@@ -63,14 +57,30 @@ struct state_t {
     return error_stream_;
   } // stream
 
+  template<bool A>
+  bool test(bool b, const char * what, const char * file, int line) {
+    if(!b) {
+      result_ = 1;
+      if(A)
+        error_stream_ << FLOG_OUTPUT_LTRED("ASSERT FAILED") << ": '";
+      else
+        error_stream_ << FLOG_OUTPUT_YELLOW("EXPECT FAILED") << ": '";
+      error_stream_ << what << "' at " << FLOG_COLOR_BROWN << file << ':'
+                    << line << ' ';
+    }
+    return b;
+  }
+
   template<class F>
   int operator->*(F f) { // highest binary precedence
     f();
-    return result();
+    return result_;
   }
 
   // Allows 'return' before <<:
-  void operator>>=(const assert_handler_t &) const {}
+  void operator>>=(const std::ostream &) {
+    error_stream_ << FLOG_COLOR_PLAIN << std::endl;
+  }
 
 private:
   int result_ = 0;
@@ -78,76 +88,6 @@ private:
   std::stringstream error_stream_;
 
 }; // struct state_t
-
-struct assert_handler_t {
-
-  assert_handler_t(const char * condition,
-    const char * file,
-    int line,
-    state_t & runtime)
-    : runtime_(runtime) {
-    runtime_.result() = 1;
-    runtime_.stringstream()
-      << FLOG_OUTPUT_LTRED("ASSERT FAILED") << ": assertion '" << condition
-      << "' failed in " << FLOG_OUTPUT_BROWN(file << ":" << line)
-      << FLOG_COLOR_BROWN << " ";
-  } // assert_handler_t
-
-  ~assert_handler_t() {
-    runtime_.stringstream() << FLOG_COLOR_PLAIN << std::endl;
-  } // ~assert_handler_t
-
-  template<typename T>
-  assert_handler_t & operator<<(const T & value) {
-    runtime_.stringstream() << value;
-    return *this;
-  } // operator <<
-
-  assert_handler_t & operator<<(
-    ::std::ostream & (*basic_manipulator)(::std::ostream & stream)) {
-    runtime_.stringstream() << basic_manipulator;
-    return *this;
-  } // operator <<
-
-private:
-  state_t & runtime_;
-
-}; // assert_handler_t
-
-struct expect_handler_t {
-
-  expect_handler_t(const char * condition,
-    const char * file,
-    int line,
-    state_t & runtime)
-    : runtime_(runtime) {
-    runtime_.result() = 1;
-    runtime_.stringstream()
-      << FLOG_OUTPUT_YELLOW("EXPECT FAILED") << ": unexpected '" << condition
-      << "' occurred in " << FLOG_OUTPUT_BROWN(file << ":" << line)
-      << FLOG_COLOR_BROWN << " ";
-  } // expect_handler_t
-
-  ~expect_handler_t() {
-    runtime_.stringstream() << FLOG_COLOR_PLAIN << std::endl;
-  } // ~expect_handler_t
-
-  template<typename T>
-  expect_handler_t & operator<<(const T & value) {
-    runtime_.stringstream() << value;
-    return *this;
-  } // operator <<
-
-  expect_handler_t & operator<<(
-    ::std::ostream & (*basic_manipulator)(::std::ostream & stream)) {
-    runtime_.stringstream() << basic_manipulator;
-    return *this;
-  } // operator <<
-
-private:
-  state_t & runtime_;
-
-}; // expect_handler_t
 
 template<typename T1, typename T2>
 inline bool
@@ -215,15 +155,14 @@ string_case_compare(const char * lhs, const char * rhs) {
 
 #define UNIT_TTYPE(type) ::flecsi::util::demangle(typeid(type).name())
 
-#define CHECK(ret, typ, condition, what)                                       \
-  if(condition)                                                                \
+#define CHECK(ret, A, condition, what)                                         \
+  if(auto_unit_state.test<A>(condition, what, __FILE__, __LINE__))             \
     ;                                                                          \
   else                                                                         \
-    ret ::flecsi::util::unit::typ##_handler_t(                                 \
-      what, __FILE__, __LINE__, auto_unit_state)
+    ret auto_unit_state >>= auto_unit_state.stringstream()
 
-#define ASSERT_TRUE(c) CHECK(return auto_unit_state >>=, assert, c, #c)
-#define EXPECT_TRUE(c) CHECK(, expect, c, #c)
+#define ASSERT_TRUE(c) CHECK(return, true, c, #c)
+#define EXPECT_TRUE(c) CHECK(, false, c, #c)
 
 #define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
 #define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
@@ -246,13 +185,13 @@ string_case_compare(const char * lhs, const char * rhs) {
 #define ASSERT_GE(x, y) ASSERT_CMP(x, y, , greater_equal)
 #define EXPECT_GE(x, y) EXPECT_CMP(x, y, , greater_equal)
 
-#define CHECK_STR(ret, typ, x, y, neg, f, op, sfx)                             \
-  CHECK(ret, typ, neg ::flecsi::util::unit::f(x, y), a #op b sfx)
+#define CHECK_STR(ret, A, x, y, neg, f, op, sfx)                               \
+  CHECK(ret, A, neg ::flecsi::util::unit::f(x, y), a #op b sfx)
 
 #define ASSERT_STR(x, y, neg, f, op, sfx)                                      \
-  CHECK_STR(return auto_unit_state >>=, assert, neg, x, y, f, op, sfx)
+  CHECK_STR(return, true, x, y, neg, f, op, sfx)
 #define EXPECT_STR(x, y, neg, f, op, sfx)                                      \
-  CHECK_STR(, expect, neg, x, y, f, op, sfx)
+  CHECK_STR(, false, x, y, neg, f, op, sfx)
 
 #define ASSERT_STREQ(x, y) ASSERT_STR(x, y, , string_compare, ==, "")
 #define EXPECT_STREQ(x, y) EXPECT_STR(x, y, , string_compare, ==, "")
