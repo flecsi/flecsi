@@ -215,137 +215,57 @@ string_case_compare(const char * lhs, const char * rhs) {
 
 #define UNIT_TTYPE(type) ::flecsi::util::demangle(typeid(type).name())
 
-#define ASSERT_TRUE(condition)                                                 \
+#define CHECK(ret, typ, condition, what)                                       \
   if(condition)                                                                \
     ;                                                                          \
   else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             #condition, __FILE__, __LINE__, auto_unit_state)
+    ret ::flecsi::util::unit::typ##_handler_t(                                 \
+      what, __FILE__, __LINE__, auto_unit_state)
 
-#define EXPECT_TRUE(condition)                                                 \
-  if(condition)                                                                \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      #condition, __FILE__, __LINE__, auto_unit_state)
+#define ASSERT_TRUE(c) CHECK(return auto_unit_state >>=, assert, c, #c)
+#define EXPECT_TRUE(c) CHECK(, expect, c, #c)
 
-#define ASSERT_FALSE(condition)                                                \
-  if(!(condition))                                                             \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             #condition, __FILE__, __LINE__, auto_unit_state)
+#define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
+#define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
 
-#define EXPECT_FALSE(condition)                                                \
-  if(!(condition))                                                             \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      #condition, __FILE__, __LINE__, auto_unit_state)
+#define ASSERT_CMP(x, y, neg, f)                                               \
+  ASSERT_TRUE(neg ::flecsi::util::unit::test_##f(x, y))
+#define EXPECT_CMP(x, y, neg, f)                                               \
+  EXPECT_TRUE(neg ::flecsi::util::unit::test_##f(x, y))
 
-#define ASSERT_EQ(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
+#define ASSERT_EQ(x, y) ASSERT_CMP(x, y, , equal)
+#define EXPECT_EQ(x, y) EXPECT_CMP(x, y, , equal)
+#define ASSERT_NE(x, y) ASSERT_CMP(x, y, !, equal)
+#define EXPECT_NE(x, y) EXPECT_CMP(x, y, !, equal)
+#define ASSERT_LT(x, y) ASSERT_CMP(x, y, , less)
+#define EXPECT_LT(x, y) EXPECT_CMP(x, y, , less)
+#define ASSERT_LE(x, y) ASSERT_CMP(x, y, , less_equal)
+#define EXPECT_LE(x, y) EXPECT_CMP(x, y, , less_equal)
+#define ASSERT_GT(x, y) ASSERT_CMP(x, y, , greater)
+#define EXPECT_GT(x, y) EXPECT_CMP(x, y, , greater)
+#define ASSERT_GE(x, y) ASSERT_CMP(x, y, , greater_equal)
+#define EXPECT_GE(x, y) EXPECT_CMP(x, y, , greater_equal)
 
-#define EXPECT_EQ(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
+#define CHECK_STR(ret, typ, x, y, neg, f, op, sfx)                             \
+  CHECK(ret, typ, neg ::flecsi::util::unit::f(x, y), a #op b sfx)
 
-#define ASSERT_NE(val1, val2)                                                  \
-  ASSERT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
+#define ASSERT_STR(x, y, neg, f, op, sfx)                                      \
+  CHECK_STR(return auto_unit_state >>=, assert, neg, x, y, f, op, sfx)
+#define EXPECT_STR(x, y, neg, f, op, sfx)                                      \
+  CHECK_STR(, expect, neg, x, y, f, op, sfx)
 
-#define EXPECT_NE(val1, val2)                                                  \
-  EXPECT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
-
-#define ASSERT_LT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
-
-#define EXPECT_LT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
-
-#define ASSERT_LE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
-
-#define EXPECT_LE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
-
-#define ASSERT_GT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
-
-#define EXPECT_GT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
-
-#define ASSERT_GE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
-
-#define EXPECT_GE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
-
-#define ASSERT_STREQ(str1, str2)                                               \
-  if(::flecsi::util::unit::string_compare(str1, str2))                         \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             str1 " == " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define EXPECT_STREQ(str1, str2)                                               \
-  if(::flecsi::util::unit::string_compare(str1, str2))                         \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      str1 " == " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define ASSERT_STRNE(str1, str2)                                               \
-  if(!::flecsi::util::unit::string_compare(str1, str2))                        \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             str1 " != " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define EXPECT_STRNE(str1, str2)                                               \
-  if(!::flecsi::util::unit::string_compare(str1, str2))                        \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      str1 " != " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define ASSERT_STRCASEEQ(str1, str2)                                           \
-  if(::flecsi::util::unit::string_case_compare(str1, str2))                    \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(str1     \
-             " == " str2 " (case insensitive)",                                \
-             __FILE__,                                                         \
-             __LINE__,                                                         \
-             auto_unit_state)
-
-#define EXPECT_STRCASEEQ(str1, str2)                                           \
-  if(::flecsi::util::unit::string_case_compare(str1, str2))                    \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(str1 " == " str2                    \
-                                                " (case insensitive)",         \
-      __FILE__,                                                                \
-      __LINE__,                                                                \
-      auto_unit_state)
-
-#define ASSERT_STRCASENE(str1, str2)                                           \
-  if(!::flecsi::util::unit::string_case_compare(str1, str2))                   \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(str1     \
-             " == " str2 " (case insensitive)",                                \
-             __FILE__,                                                         \
-             __LINE__,                                                         \
-             auto_unit_state)
-
-#define EXPECT_STRCASENE(str1, str2)                                           \
-  if(!::flecsi::util::unit::string_case_compare(str1, str2))                   \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(str1 " == " str2                    \
-                                                " (case insensitive)",         \
-      __FILE__,                                                                \
-      __LINE__,                                                                \
-      auto_unit_state)
+#define ASSERT_STREQ(x, y) ASSERT_STR(x, y, , string_compare, ==, "")
+#define EXPECT_STREQ(x, y) EXPECT_STR(x, y, , string_compare, ==, "")
+#define ASSERT_STRNE(x, y) ASSERT_STR(x, y, !, string_compare, !=, "")
+#define EXPECT_STRNE(x, y) EXPECT_STR(x, y, !, string_compare, !=, "")
+#define ASSERT_STRCASEEQ(x, y)                                                 \
+  ASSERT_STR(x, y, , string_case_compare, ==, " (case insensitive)")
+#define EXPECT_STRCASEEQ(x, y)                                                 \
+  EXPECT_STR(x, y, , string_case_compare, ==, " (case insensitive)")
+#define ASSERT_STRCASENE(x, y)                                                 \
+  ASSERT_STR(x, y, !, string_case_compare, !=, " (case insensitive)")
+#define EXPECT_STRCASENE(x, y)                                                 \
+  EXPECT_STR(x, y, !, string_case_compare, !=, " (case insensitive)")
 
 // Provide access to the output stream to allow user to capture output
 #define UNIT_CAPTURE()                                                         \
