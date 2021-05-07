@@ -50,9 +50,6 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
 template<auto CP>
 using control_point = util::constant<CP>;
 
-/*!
- */
-
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 

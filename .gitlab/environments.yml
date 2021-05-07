@@ -26,7 +26,7 @@ mpich-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-32
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5 +kokkos
 
@@ -52,6 +52,6 @@ openmpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-32
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5

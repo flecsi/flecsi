@@ -285,7 +285,7 @@ mpich-legion-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-32
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: clang++
@@ -311,7 +311,7 @@ mpich-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-32
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
@@ -337,7 +337,7 @@ openmpi-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-32
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
