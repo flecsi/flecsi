@@ -342,7 +342,7 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_->extents[S].data());
+      s.data(), meta_->extents[S]);
   }
 
   template<class F>
