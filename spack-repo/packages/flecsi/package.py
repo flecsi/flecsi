@@ -65,7 +65,7 @@ class Flecsi(CMakePackage):
 
     # Boost
 
-    depends_on('boost@1.70.0 cxxstd=17 +program_options +atomic '
+    depends_on('boost@1.70.0: cxxstd=17 +program_options +atomic '
         '+filesystem +regex +system')
 
     # Caliper
@@ -102,12 +102,12 @@ class Flecsi(CMakePackage):
     # MPI
 
     depends_on('mpi', when='backend=mpi')
-    depends_on('mpich@3.4.1', when='^mpich')
-    depends_on('openmpi@4.1.0', when='^openmpi')
+    depends_on('mpich@3.4.1:', when='^mpich')
+    depends_on('openmpi@4.1.0:', when='^openmpi')
 
     # HPX
 
-    depends_on('hpx@1.3.0 cxxstd=17 malloc=system',when='backend=hpx')
+    depends_on('hpx@1.3.0: cxxstd=17 malloc=system',when='backend=hpx')
 
     #--------------------------------------------------------------------------#
     # Conflicts
