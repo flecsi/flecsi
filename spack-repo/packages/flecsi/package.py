@@ -67,7 +67,7 @@ class Flecsi(CMakePackage):
 
     # Boost
 
-    depends_on('boost@1.70.0 cxxstd=17 +program_options +atomic '
+    depends_on('boost@1.70.0: cxxstd=17 +program_options +atomic '
         '+filesystem +regex +system')
 
     # Caliper
@@ -89,13 +89,12 @@ class Flecsi(CMakePackage):
 
     # Kokkos
 
-    depends_on('kokkos@3.2.00:', when='+kokkos')
+    depends_on('kokkos@3.3.01:', when='+kokkos')
 
     # Legion
 
     depends_on('legion@ctrl-rep-9:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
-    depends_on('hdf5@1.10.7:',when='backend=legion +hdf5')
 
     # Metis
 
@@ -105,12 +104,12 @@ class Flecsi(CMakePackage):
     # MPI
 
     depends_on('mpi', when='backend=mpi')
-    depends_on('mpich@3.4.1', when='^mpich')
-    depends_on('openmpi@4.1.0', when='^openmpi')
+    depends_on('mpich@3.4.1:', when='^mpich')
+    depends_on('openmpi@4.1.0:', when='^openmpi')
 
     # HPX
 
-    depends_on('hpx@1.3.0 cxxstd=17 malloc=system',when='backend=hpx')
+    depends_on('hpx@1.3.0: cxxstd=17 malloc=system',when='backend=hpx')
 
     #--------------------------------------------------------------------------#
     # Conflicts
