@@ -83,7 +83,7 @@ class Flecsi(CMakePackage):
 
     # HDF5
 
-    depends_on('hdf5+mpi', when='+hdf5')
+    depends_on('hdf5+mpi+hl', when='+hdf5')
 
     # Kokkos
 
