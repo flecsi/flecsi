@@ -85,11 +85,11 @@ class Flecsi(CMakePackage):
 
     # HDF5
 
-    depends_on('hdf5+mpi', when='+hdf5')
+    depends_on('hdf5+mpi+hl', when='+hdf5')
 
     # Kokkos
 
-    depends_on('kokkos@3.3.01:', when='+kokkos')
+    depends_on('kokkos', when='+kokkos')
 
     # Legion
 
@@ -98,18 +98,16 @@ class Flecsi(CMakePackage):
 
     # Metis
 
-    depends_on('metis@5.1.0:')
-    depends_on('parmetis@4.0.3:')
+    depends_on('metis')
+    depends_on('parmetis')
 
     # MPI
 
-    depends_on('mpi', when='backend=mpi')
-    depends_on('mpich@3.4.1:', when='^mpich')
-    depends_on('openmpi@4.1.0:', when='^openmpi')
+    depends_on('mpi')
 
     # HPX
 
-    depends_on('hpx@1.3.0: cxxstd=17 malloc=system',when='backend=hpx')
+    depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
 
     #--------------------------------------------------------------------------#
     # Conflicts
