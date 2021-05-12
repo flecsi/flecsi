@@ -344,6 +344,12 @@ struct narray<Policy>::access {
     return util::mdspan<typename decltype(s)::element_type, dimension>(
       s.data(), meta_->extents[S]);
   }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), meta_->extents[S]);
+  }
 
   template<class F>
   void send(F && f) {
