@@ -29,5 +29,6 @@ if (NOT CALIPER_DETAIL STREQUAL "none")
 
   message(STATUS "Found Caliper")
 
+  list(APPEND TPL_INCLUDES  ${caliper_INCLUDE_DIR})
   list(APPEND TPL_LIBRARIES caliper)
 endif()

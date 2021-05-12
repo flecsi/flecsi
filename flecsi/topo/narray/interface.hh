@@ -43,9 +43,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
-  using coord = narray_impl::coord;
-  using hypercube = narray_impl::hypercube;
-  using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
@@ -61,7 +58,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())) {
-    init_ragged(index_spaces());
     init_meta(c);
     init_policy_meta(c);
   }
@@ -208,11 +204,6 @@ private:
 
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
-  }
-
-  template<index_space... SS>
-  void init_ragged(util::constants<SS...>) {
-    (this->template extend_offsets<SS>(), ...);
   }
 }; // struct narray
 
@@ -405,7 +396,13 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), extents<S>().data());
+      s.data(), extents<S>());
+  }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), extents<S>());
   }
 
   template<class F>

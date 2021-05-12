@@ -40,7 +40,7 @@ struct topology_slot : convert_tag {
   }
 
   void deallocate() {
-    // data.reset();
+    data.reset();
   } // deallocate
 
   core & get() {

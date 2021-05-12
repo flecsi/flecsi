@@ -265,10 +265,6 @@ struct tee_stream_t : public std::ostream {
     } // if
   } // tee_stream_t
 
-  tee_stream_t & operator*() {
-    return *this;
-  } // operator *
-
   /*!
     Add a new buffer to the output.
    */
