@@ -27,7 +27,7 @@ poisson::task::io(mesh::accessor<ro> m, field<double>::accessor<ro, ro> ua) {
     const double y = m.value<mesh::y_axis>(j);
     for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
       const double x = m.value<mesh::x_axis>(i);
-      solution << x << " " << y << " " << u[i][j] << std::endl;
+      solution << x << " " << y << " " << u[j][i] << std::endl;
     } // for
   } // for
 } // io
