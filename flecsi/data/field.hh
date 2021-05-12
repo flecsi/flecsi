@@ -280,11 +280,6 @@ struct field_register<T, ragged, Topo, Space>
   using Offsets = typename field<T, ragged>::Offsets;
   // We use the same field ID for the offsets:
   typename Offsets::template Register<Topo, Space> off{field_register::fid};
-
-  typename Offsets::template Reference<Topo, Space> offsets(
-    topology_slot<Topo> & t) const {
-    return {off, t};
-  }
 };
 } // namespace detail
 

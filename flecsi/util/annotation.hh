@@ -84,7 +84,10 @@ struct execute_task_unbind : execute_task<execute_task_unbind> {
   inline static const std::string tag{"unbind-accessors"};
   static constexpr detail detail_level = detail::high;
 };
-
+struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
+  inline static const std::string tag{"copy-engine"};
+  static constexpr detail detail_level = detail::high;
+};
 /**
  * Tag beginning of a custom named code region.
  *

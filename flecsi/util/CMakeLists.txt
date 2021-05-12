@@ -20,7 +20,6 @@
 set(util_HEADERS
   annotation.hh
   array_ref.hh
-  bit_buffer.hh
   bitutils.hh
   color_map.hh
   common.hh
@@ -46,7 +45,6 @@ set(util_HEADERS
   tuple_visitor.hh
   tuple_walker.hh
   type_traits.hh
-  uint128.hh
   unit.hh
   unit/output.hh
   unit/types.hh
