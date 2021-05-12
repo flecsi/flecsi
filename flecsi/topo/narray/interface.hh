@@ -43,9 +43,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
-  using coord = narray_impl::coord;
-  using hypercube = narray_impl::hypercube;
-  using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
@@ -345,7 +342,13 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_->extents[S].data());
+      s.data(), meta_->extents[S]);
+  }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), meta_->extents[S]);
   }
 
   template<class F>

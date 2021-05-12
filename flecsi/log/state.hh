@@ -205,7 +205,7 @@ public:
    */
 
   std::ostream & stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!
@@ -214,7 +214,7 @@ public:
    */
 
   tee_stream_t & config_stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!
