@@ -3,7 +3,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13...3.20)
 
 #------------------------------------------------------------------------------#
 # Set the project name.
