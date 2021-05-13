@@ -18,8 +18,8 @@ poisson::task::smooth(mesh::accessor<ro> m,
   // clang-format off
   for(auto j : m.vertices<mesh::y_axis>()) {
     for(auto i : m.vertices<mesh::x_axis>()) {
-      u[i][j] = 0.25 * (dsqr * f[i][j] +
-        u[i + 1][j] + u[i - 1][j] + u[i][j + 1] + u[i][j - 1]);
+      u[j][i] = 0.25 * (dsqr * f[j][i] +
+        u[j][i + 1] + u[j][i - 1] + u[j + 1][i] + u[j - 1][i]);
     } // for
   } // for
   // clang format on
