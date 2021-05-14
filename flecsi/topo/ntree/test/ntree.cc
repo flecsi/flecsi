@@ -98,25 +98,21 @@ sph_ntree_t::cslot coloring;
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   entity_field;
 
-int
+void
 init_task(sph_ntree_t::accessor<wo> t,
   const std::vector<sph_ntree_t::ent_t> & ents) {
-  UNIT {
-    for(size_t i = 0; i < ents.size(); ++i) {
-      t.e_coordinates(i) = ents[i].coordinates();
-      t.e_radius(i) = ents[i].radius();
-      t.e_keys(i) = ents[i].key();
-    }
-    t.exchange_boundaries();
-  };
+  for(size_t i = 0; i < ents.size(); ++i) {
+    t.e_coordinates(i) = ents[i].coordinates();
+    t.e_radius(i) = ents[i].radius();
+    t.e_keys(i) = ents[i].key();
+  }
+  t.exchange_boundaries();
 } // init_task
 
-int
+void
 make_tree(sph_ntree_t::accessor<rw> t) {
-  UNIT {
-    t.make_tree();
-    t.graphviz_draw(0);
-  };
+  t.make_tree();
+  t.graphviz_draw(0);
 } // make_tree
 
 // The initialization part of the execution model
