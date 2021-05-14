@@ -156,14 +156,11 @@ struct detail::base<ragged_category> {
 };
 
 // The user-facing variant of the color category supports ragged fields.
-struct index_base {
-  using coloring = Color;
-};
+struct index_base : column_base {};
 
 template<class P>
-struct index_category : index_base, color<P>, with_ragged<P> {
-  using index_base::coloring; // override color_base::coloring
-  explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {}
+struct index_category : index_base, column<P>, with_ragged<P> {
+  explicit index_category(coloring c) : column<P>(c), with_ragged<P>(c) {}
 };
 template<>
 struct detail::base<index_category> {

@@ -23,6 +23,21 @@ struct detail::base<color> {
   using type = color_base;
 };
 
+// The common special case of one index point per color.
+struct column_base {
+  using coloring = Color;
+};
+
+template<class P>
+struct column : column_base, color<P> {
+  using column_base::coloring;
+  explicit column(coloring c) : color<P>({c, 1}) {}
+};
+template<>
+struct detail::base<column> {
+  using type = column_base;
+};
+
 } // namespace flecsi::topo
 
 #endif
