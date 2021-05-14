@@ -75,7 +75,7 @@ mpich-defaults:
 mpich-legion-gnu:
   extends: .build_template
   needs:
-    ["mpich"]
+    ["mpich-debug"]
   only:
     - merge_requests
   variables:
@@ -120,7 +120,7 @@ mpich-legion-gnu:release:
 mpich-mpi-gnu:
   extends: .build_template
   needs:
-    ["mpich"]
+    ["mpich-debug"]
   only:
     - merge_requests
   variables:
@@ -188,7 +188,7 @@ tutorial:legion:
 openmpi-legion-gnu:
   extends: .build_template
   needs:
-    ["openmpi"]
+    ["openmpi-debug"]
   only:
     - merge_requests
   variables:
@@ -233,7 +233,7 @@ openmpi-legion-gnu:release:
 openmpi-mpi-gnu:
   extends: .build_template
   needs:
-    ["openmpi"]
+    ["openmpi-debug"]
   only:
     - merge_requests
   variables:
@@ -278,7 +278,7 @@ openmpi-mpi-gnu:release:
 mpich-legion-clang:
   extends: .build_template
   needs:
-    ["mpich-clang"]
+    ["mpich-clang-debug"]
   only:
     - merge_requests
   variables:
@@ -304,7 +304,7 @@ mpich-legion-clang:
 mpich-mpi-clang:
   extends: .build_template
   needs:
-    ["mpich-clang"]
+    ["mpich-clang-debug"]
   only:
     - merge_requests
   variables:
@@ -330,7 +330,7 @@ mpich-mpi-clang:
 openmpi-mpi-clang:
   extends: .build_template
   needs:
-    ["openmpi-clang"]
+    ["openmpi-clang-debug"]
   only:
     - merge_requests
   variables:
