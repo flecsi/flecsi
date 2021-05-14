@@ -17,6 +17,19 @@ mpich:
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5 +kokkos
 
+mpich-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: centos-8
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 +kokkos ^legion build_type=Debug
+
 mpich-clang:
   extends: .env_template
   dependencies: []
@@ -29,6 +42,19 @@ mpich-clang:
     IMAGE: clearlinux
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5 +kokkos
+
+mpich-clang-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: clearlinux
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 +kokkos ^legion build_type=Debug
 
 openmpi:
   extends: .env_template
@@ -43,6 +69,19 @@ openmpi:
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5
 
+openmpi-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: openmpi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: centos-8
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 ^legion build_type=Debug
+
 openmpi-clang:
   extends: .env_template
   dependencies: []
@@ -55,3 +94,16 @@ openmpi-clang:
     IMAGE: clearlinux
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: +hdf5
+
+openmpi-clang-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: openmpi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: clearlinux
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 ^legion build_type=Debug
