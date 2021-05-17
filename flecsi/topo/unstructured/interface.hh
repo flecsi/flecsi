@@ -50,14 +50,14 @@ struct unstructured : unstructured_base,
   struct access;
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c.at(0).colors), with_meta<Policy>(c.at(0).colors),
+    : with_ragged<Policy>(c[0].colors), with_meta<Policy>(c[0].colors),
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      special_(c.at(0).colors) {
+      special_(c[0].colors) {
     allocate_connectivities(c, connect_);
 #if 0
     make_subspaces(c, std::make_index_sequence<index_spaces::size>());
@@ -119,16 +119,21 @@ struct unstructured : unstructured_base,
   }
 
 private:
+  void print(std::size_t v, std::size_t i) {
+    flog(info) << "value: " << v << " index: " << i << std::endl;
+  }
+
   template<auto... Value, std::size_t... Index>
   util::key_array<repartitioned, util::constants<Value...>> make_partitions(
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
-      c.at(0).idx_colorings.size()
+    (print(Value, Index), ...);
+    flog_assert(c[0].idx_colorings.size() == sizeof...(Value),
+      c[0].idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(c.at(0).colors,
-      make_partial<idx_size>(c.at(0).idx_colorings[Index]))...}};
+    return {{make_repartitioned<Policy, Value>(
+      c[0].colors, make_partial<idx_size>(c[0].idx_colorings[Index]))...}};
   }
 
   template<index_space S>
@@ -167,21 +172,30 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c.at(0).idx_colorings.size() == sizeof...(Value),
-      c.at(0).idx_colorings.size()
+    flog_assert(c[0].idx_colorings.size() == sizeof...(Value),
+      c[0].idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.at(0).idx_colorings[Index], c.at(0).comm)...}};
+    return {{make_plan<Value>(c[0].idx_colorings[Index], c[0].comm)...}};
   }
+
+  /*
+    Allocate space for connectivity information for the given connectivity
+    type. This method has a double pack expansion because each entity type may
+    have connections to multiple other entity types, e.g., if there are
+    entity types a, b, and c, a could connect to b and c, etc.
+
+    @param VV Entity constants from the user's policy.
+   */
 
   template<auto... VV, typename... TT>
   void allocate_connectivities(const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
     std::size_t entity = 0;
     (
-      [&](TT const & row) {
-        auto & cc = c.at(0).cnx_allocs[entity++];
+      [&](TT const & row) { // invoked for each from-entity
+        auto & cc = c[0].cnx_allocs[entity++];
         std::size_t is{0};
-        for(auto & fd : row) {
+        for(auto & fd : row) { // invoked for each to-entity
           auto & p = this->ragged.template get_partition<VV>(fd.fid);
           execute<cnx_size>(cc[is++], p.sizes());
         }
@@ -276,7 +290,7 @@ public:
       return make_ids<I>(shared_.template get<I>().template get<L>()[0]);
     }
     else {
-      return make_ids<I>(ghosts_.template get<I>().template get<L>()[0]);
+      return make_ids<I>(ghost_.template get<I>().template get<L>()[0]);
     }
 #endif
   }

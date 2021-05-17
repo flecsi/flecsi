@@ -35,15 +35,14 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum index_space { cells, vertices };
+  enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
   using connectivities =
     list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
 
-  enum entity_list { owned, exclusive, shared, ghosts, special_vertices };
-  using entity_lists =
-    list<entity<cells, has<owned, exclusive, shared, ghosts>>,
-      entity<vertices, has<special_vertices>>>;
+  enum entity_list { owned, exclusive, shared, ghost, special_vertices };
+  using entity_lists = list<entity<cells, has<owned, exclusive, shared, ghost>>,
+    entity<vertices, has<special_vertices>>>;
 
   template<auto>
   static constexpr PrivilegeCount privilege_count = 2;
@@ -101,13 +100,24 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    return {{0,
-      {MPI_COMM_WORLD,
-        fixed::colors,
-        {fixed::num_cells, fixed::num_vertices},
-        fixed::idx_colorings[process()],
-        fixed::cnx_allocs[process()],
-        fixed::cnx_colorings[process()]}}};
+    flog_assert(processes() == fixed::colors, "color to process mismatch");
+
+    // clang-format off
+    return
+      {
+        {
+          MPI_COMM_WORLD,
+          process(),
+          fixed::colors,
+          {
+            fixed::num_cells, fixed::num_vertices
+          },
+          fixed::idx_colorings[process()],
+          fixed::cnx_allocs[process()],
+          fixed::cnx_colorings[process()]
+        }
+      };
+    // clang-format on
   } // color
 
   /*--------------------------------------------------------------------------*
@@ -156,9 +166,11 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       global::cells.push_back(e);
     }
 
-    for(auto e : cell_coloring.ghosts) {
+    for(auto e : cell_coloring.ghost) {
       global::cells.push_back(e.id);
     }
+
+    util::force_unique(global::cells);
 
     /*
       Define the vertex ordering from coloring. This version uses the
@@ -171,7 +183,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       global::vertices.push_back(e);
     }
 
-    for(auto e : vertex_coloring.ghosts) {
+    for(auto e : vertex_coloring.ghost) {
       global::vertices.push_back(e.id);
     }
 

@@ -99,6 +99,15 @@ struct color_map {
   }
 
   /*!
+    Return true if the process owns the global color id.
+   */
+
+  bool has_color(Color process, Color color) const {
+    return color >= color_offset(process) &&
+           color < color_offset(process) + colors(process);
+  }
+
+  /*!
     The total number of colors.
    */
 

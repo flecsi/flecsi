@@ -37,7 +37,7 @@ compute_closure() {
     topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
 
-    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);
 
 #if 0
@@ -136,12 +136,16 @@ compute_closure() {
 #endif
 
 #if 1
-    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, {{1, 0}}};
+    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, 1, {{}}};
     auto colorings = topo::unstructured_impl::color(
       sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
-#if 1
+    for(auto pc : colorings) {
+      flog(info) << "color: " << pc.color << std::endl;
+    } // for
+
+#if 0
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
     for(auto const & v : v2c) {
       std::stringstream ss;

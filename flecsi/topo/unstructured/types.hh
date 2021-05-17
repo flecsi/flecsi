@@ -38,14 +38,23 @@ struct shared_entity {
   std::size_t id;
   std::vector<std::size_t> dependents;
 
+  /*
+    These operators are designed to be used with util::force_unique, which
+    first applies std::sort (using operator<), and then applies std::unique
+    (using operator==). The implementation of the operators is designed to be
+    greedy, i.e., it favors shared entity variants that have more dependents by
+    placing them first in the sorted order. When std::unique is applied, the
+    variant with the most dependents will be kept.
+   */
+
   bool operator<(const shared_entity & s) const {
-    return id < s.id;
+    return id == s.id ? dependents.size() > s.dependents.size()
+                      : /* greedy dependendents */
+             id < s.id;
   }
 
   bool operator==(const shared_entity & s) const {
-    return id == s.id &&
-           std::equal(
-             dependents.begin(), dependents.end(), s.dependents.begin());
+    return id == s.id; // ignores dependendents
   }
 };
 
@@ -84,10 +93,11 @@ operator<<(std::ostream & stream, ghost_entity const & g) {
 }
 
 struct index_coloring {
+  std::vector<std::size_t> all;
   std::vector<std::size_t> owned;
   std::vector<std::size_t> exclusive;
   std::vector<shared_entity> shared;
-  std::vector<ghost_entity> ghosts;
+  std::vector<ghost_entity> ghost;
 };
 
 struct crs {
@@ -127,14 +137,17 @@ transpose(field<util::id, data::ragged>::accessor<ro, na> input,
 }
 
 struct coloring_definition {
-  std::size_t colors;
+  Color colors;
   std::size_t idx;
   std::size_t dim;
   std::size_t depth;
 
+  std::size_t vidx;
+
   struct auxiliary {
     std::size_t idx;
     std::size_t dim;
+    bool cnx;
   };
 
   std::vector<auxiliary> aux;
@@ -160,6 +173,12 @@ struct unstructured_base {
     MPI_Comm comm;
 
     /*
+      The global id of this color
+     */
+
+    Color color;
+
+    /*
       The global number of colors
      */
 
@@ -180,7 +199,12 @@ struct unstructured_base {
 
     std::vector<index_coloring> idx_colorings;
 
-    /* The local allocation size for each connectivity */
+    /*
+     The local allocation size for each connectivity. The outer vector
+     is over index spaces. The inner vector is over connectivities between
+     the outer entity type and another entity type. The ordering follows
+     that given in the specialization policy.
+     */
 
     std::vector<std::vector<std::size_t>> cnx_allocs;
 
@@ -188,16 +212,17 @@ struct unstructured_base {
       The local graph for each connectivity.
 
       The graph information is expressed in the mesh index space,
-      i.e., the ids are global.
+      i.e., the ids are global. The outer and inner vectors are like
+      cnx_allocs.
      */
 
     std::vector<std::vector<crs>> cnx_colorings;
-  };
+  }; // struct process_color
 
-  using coloring = std::map<std::size_t, process_color>;
+  using coloring = std::vector<process_color>;
 
   static std::size_t idx_size(index_coloring const & ic, std::size_t) {
-    return ic.owned.size() + ic.ghosts.size();
+    return ic.owned.size() + ic.ghost.size();
   }
 
   /*
@@ -231,7 +256,7 @@ struct unstructured_base {
     auto [rank, size] = util::mpi::info(comm);
 
     std::vector<std::vector<std::size_t>> requests(size);
-    for(auto e : ic.ghosts) {
+    for(auto e : ic.ghost) {
       entities.push_back(e.id);
       requests[e.color].emplace_back(e.id);
     } // for
@@ -247,9 +272,9 @@ struct unstructured_base {
       Initialize the forward and reverse maps.
      */
 
-    flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
+    flog_assert(entities.size() == (ic.owned.size() + ic.ghost.size()),
       "entities size(" << entities.size() << ") doesn't match sum of owned("
-                       << ic.owned.size() << ") and ghosts(" << ic.ghosts.size()
+                       << ic.owned.size() << ") and ghost(" << ic.ghost.size()
                        << ")");
 
     std::size_t off{0};
@@ -265,7 +290,7 @@ struct unstructured_base {
      */
 
     std::map<std::size_t, std::size_t> ghost_offsets;
-    for(auto e : ic.ghosts) {
+    for(auto e : ic.ghost) {
       auto it = std::find(entities.begin(), entities.end(), e.id);
       flog_assert(it != entities.end(), "ghost entity doesn't exist");
       ghost_offsets[e.id] = std::distance(entities.begin(), it);
@@ -395,7 +420,7 @@ struct unstructured_base {
     field<util::id, data::ragged>::mutator<rw> owned,
     field<util::id, data::ragged>::mutator<rw> exclusive,
     field<util::id, data::ragged>::mutator<rw> shared,
-    field<util::id, data::ragged>::mutator<rw> ghosts) {
+    field<util::id, data::ragged>::mutator<rw> ghost) {
     const auto cp = [](auto r, const std::vector<util::id> & v) {
       r.assign(v.begin(), v.end());
     };
@@ -403,7 +428,7 @@ struct unstructured_base {
     cp(owned[S], ic.owned);
     cp(exclusive[S], ic.exclusive);
     cp(shared[S], ic.shared);
-    cp(ghosts[S], ic.ghosts);
+    cp(ghost[S], ic.ghost);
   }
 
   static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
@@ -449,11 +474,11 @@ struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, c.owned, c.exclusive, c.shared, c.ghosts);
+    serial_put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
-    return type{r, r, r, r};
+    return type{r, r, r, r, r};
   }
 };
 

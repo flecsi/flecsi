@@ -18,6 +18,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/util/mpi.hh"
+#include "flecsi/util/types.hh"
 
 #if !defined(FLECSI_ENABLE_PARMETIS)
 #error FLECSI_ENABLE_PARMETIS not defined! This file depends on ParMETIS!
@@ -31,7 +32,7 @@ namespace flecsi {
 namespace util {
 namespace parmetis {
 
-static std::vector<size_t>
+static std::vector<Color>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);
