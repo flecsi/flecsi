@@ -70,7 +70,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
     std::array<std::uint32_t, index_spaces::size> faces;
-    std::array<scoord, index_spaces::size> global, offset, extents, extents_reverse;
+    std::array<scoord, index_spaces::size> global, offset, extents;
     std::array<shypercube, index_spaces::size> logical, extended;
   };
 
@@ -178,9 +178,6 @@ private:
       copy2(ci.logical, md.logical[i]);
       copy2(ci.extended, md.extended[i]);
  
-      std::size_t dim = ci.extents.size(); 
-      for (std::size_t d = 0; d < dim; d++)
-         md.extents_reverse[i][dim-d-1] = ci.extents[d];
     } // for
   } // set_meta
 
@@ -355,7 +352,7 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_->extents_reverse[S].data());
+      s.data(), meta_->extents[S].data());
   }
 
   template<class F>
