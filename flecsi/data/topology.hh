@@ -51,6 +51,10 @@ struct partition {
 struct rows : partition {
   explicit rows(region_base &);
 };
+
+// Read from what might be a device pointer.
+template<typename T>
+T get_scalar_from_accessor(const T *);
 #endif
 
 struct region : region_base {
