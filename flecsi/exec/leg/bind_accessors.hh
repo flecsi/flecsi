@@ -74,7 +74,7 @@ private:
 
   // All accessors are handled in terms of their underlying raw accessors.
 
-  template<typename DATA_TYPE, size_t PRIVILEGES>
+  template<typename DATA_TYPE, Privileges PRIVILEGES>
   void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> & accessor) {
     auto & reg = regions_[region++];
 
@@ -82,7 +82,7 @@ private:
       2,
       Legion::coord_t,
       Realm::AffineAccessor<DATA_TYPE, 2, Legion::coord_t>>
-      ac(reg, accessor.identifier(), sizeof(DATA_TYPE));
+      ac(reg, accessor.field(), sizeof(DATA_TYPE));
     const auto dom = legion_runtime_->get_index_space_domain(
       legion_context_, reg.get_logical_region().get_index_space());
     const auto r = dom.get_rect<2>();

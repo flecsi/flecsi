@@ -142,7 +142,7 @@ find_incident_boxes(std::size_t bid,
   std::vector<box_color> & in_boxes,
   std::vector<int> & inbox_ids) {
   inbox_ids.clear();
-  std::size_t dim = mbox.domain.dim;
+  const Dimension dim = mbox.domain.dim;
 
   std::size_t nbids = pow(3, dim);
 
@@ -150,7 +150,7 @@ find_incident_boxes(std::size_t bid,
     for(std::size_t s = 0; s < nbids; s++) {
       bool incident = true;
       // check incidence
-      for(std::size_t d = 0; d < dim; d++) {
+      for(Dimension d = 0; d < dim; d++) {
 
         auto bid2dir_map = bid2dir(dim, d);
         auto mval = bid2dir_map[bid];
@@ -210,7 +210,7 @@ find_incident_boxes(std::size_t bid,
 void
 color_dependent_entities_(box_coloring & colored_cells,
   std::vector<box_coloring> & col_depents) {
-  int dim = colored_cells.mesh_dim;
+  const Dimension dim = colored_cells.mesh_dim;
   col_depents.resize(dim);
 
   auto & ebox = colored_cells.exclusive[0];
@@ -220,7 +220,7 @@ color_dependent_entities_(box_coloring & colored_cells,
   auto & obox = colored_cells.overlay[0];
   auto & strides = colored_cells.strides[0];
 
-  for(int edim = 0; edim < dim; edim++) {
+  for(Dimension edim = 0; edim < dim; edim++) {
     auto map = dim2bounds(dim, edim);
     int nboxes = map.size();
     col_depents[edim].mesh_dim = dim;
@@ -233,7 +233,7 @@ color_dependent_entities_(box_coloring & colored_cells,
     for(int b = 0; b < nboxes; ++b) {
       // set bounds
       box_color box(dim);
-      for(int d = 0; d < dim; d++) {
+      for(Dimension d = 0; d < dim; d++) {
         box.domain.lowerbnd[d] = ebox.domain.lowerbnd[d];
         box.domain.upperbnd[d] = ebox.domain.upperbnd[d] + map[b][d];
       }
@@ -252,7 +252,7 @@ color_dependent_entities_(box_coloring & colored_cells,
       for(int b = 0; b < nboxes; ++b) {
         // set bounds
         box_color box(dim);
-        for(int d = 0; d < dim; d++) {
+        for(Dimension d = 0; d < dim; d++) {
           box.domain.lowerbnd[d] = shboxes[s].domain.lowerbnd[d];
           box.domain.upperbnd[d] = shboxes[s].domain.upperbnd[d] + map[b][d];
         }
@@ -272,7 +272,7 @@ color_dependent_entities_(box_coloring & colored_cells,
       for(int b = 0; b < nboxes; ++b) {
         // set bounds
         box_color box(dim);
-        for(int d = 0; d < dim; d++) {
+        for(Dimension d = 0; d < dim; d++) {
           box.domain.lowerbnd[d] = ghboxes[g].domain.lowerbnd[d];
           box.domain.upperbnd[d] = ghboxes[g].domain.upperbnd[d] + map[b][d];
         }
@@ -292,7 +292,7 @@ color_dependent_entities_(box_coloring & colored_cells,
       for(int b = 0; b < nboxes; ++b) {
         // set bounds
         box_color box(dim);
-        for(int d = 0; d < dim; d++) {
+        for(Dimension d = 0; d < dim; d++) {
           box.domain.lowerbnd[d] = dhboxes[dh].domain.lowerbnd[d];
           box.domain.upperbnd[d] = dhboxes[dh].domain.upperbnd[d] + map[b][d];
         }
@@ -317,7 +317,7 @@ color_dependent_entities_(box_coloring & colored_cells,
       }
 
       std::vector<std::size_t> str(dim);
-      for(int d = 0; d < dim; d++) {
+      for(Dimension d = 0; d < dim; d++) {
         str[d] = strides[d] + map[b][d];
       }
 

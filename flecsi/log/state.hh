@@ -19,6 +19,9 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
+#define __FLECSI_PRIVATE__
+
+#include "flecsi/data/field_info.hh"
 #include "flecsi/log/packet.hh"
 #include "flecsi/log/types.hh"
 #include "flecsi/log/utils.hh"
@@ -78,7 +81,7 @@ public:
 
   int initialize(std::string active = "none",
     int verbose = 0,
-    std::size_t one_process = -1) {
+    Color one_process = -1) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -202,7 +205,7 @@ public:
    */
 
   std::ostream & stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!
@@ -211,7 +214,7 @@ public:
    */
 
   tee_stream_t & config_stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!
@@ -315,15 +318,15 @@ public:
     return one_process_ < processes_;
   }
 
-  size_t output_process() const {
+  Color output_process() const {
     return one_process_;
   }
 
-  std::size_t process() {
+  Color process() {
     return process_;
   }
 
-  std::size_t processes() {
+  Color processes() {
     return processes_;
   }
 
@@ -398,7 +401,7 @@ private:
   std::unordered_map<size_t, std::string> tag_reverse_map_;
 
 #if defined(FLOG_ENABLE_MPI)
-  std::size_t one_process_, process_, processes_;
+  Color one_process_, process_, processes_;
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
   std::vector<packet_t> packets_;

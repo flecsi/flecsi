@@ -281,7 +281,7 @@ program() {
   Return the current process id.
  */
 
-inline size_t
+inline Color
 process() {
   return run::context::instance().process();
 }
@@ -290,7 +290,7 @@ process() {
   Return the number of processes.
  */
 
-inline size_t
+inline Color
 processes() {
   return run::context::instance().processes();
 }
@@ -299,7 +299,7 @@ processes() {
   Return the number of threads per process.
  */
 
-inline size_t
+inline Color
 threads_per_process() {
   return run::context::instance().threads_per_process();
 }
@@ -312,7 +312,7 @@ threads_per_process() {
   running process that invokded the FleCSI runtime.
  */
 
-inline size_t
+inline Color
 threads() {
   return run::context::instance().threads();
 }
@@ -322,7 +322,7 @@ threads() {
   valid if invoked from within a task.
  */
 
-inline size_t
+inline Color
 color() {
   return run::context::instance().color();
 }
@@ -332,7 +332,7 @@ color() {
   only valid if invoked from within a task.
  */
 
-inline size_t
+inline Color
 colors() {
   return run::context::instance().colors();
 }
@@ -351,7 +351,7 @@ colors() {
 // To avoid compile- and runtime recursion, only user tasks trigger logging.
 template<auto & Task,
   class Reduction,
-  size_t Attributes = flecsi::loc | flecsi::leaf,
+  TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
   typename... Args>
 auto
 reduce(Args &&... args) {
@@ -382,7 +382,7 @@ reduce(Args &&... args) {
   \see \c execute about parameter and argument types.
  */
 
-template<auto & TASK, size_t ATTRIBUTES, typename... ARGS>
+template<auto & TASK, TaskAttributes ATTRIBUTES, typename... ARGS>
 auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
@@ -407,7 +407,7 @@ execute(ARGS &&... args) {
  */
 
 template<auto & TASK,
-  size_t ATTRIBUTES = flecsi::loc | flecsi::leaf,
+  TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 int
 test(ARGS &&... args) {

@@ -32,7 +32,7 @@ class simple_definition
 {
 public:
   using point = std::array<double, 2>;
-  static constexpr std::size_t dimension() {
+  static constexpr Dimension dimension() {
     return 2;
   }
 
@@ -75,7 +75,7 @@ public:
   simple_definition(const simple_definition &) = delete;
   simple_definition & operator=(const simple_definition &) = delete;
 
-  size_t num_entities(size_t dimension) const {
+  std::size_t num_entities(Dimension dimension) const {
     flog_assert(dimension == 0 || dimension == 2, "invalid dimension");
     return dimension == 0 ? num_vertices_ : num_cells_;
   }
@@ -87,8 +87,8 @@ public:
     @param [in] to_dim the dimension of entities we wish to return
    */
 
-  const std::vector<std::vector<size_t>> & entities(size_t from_dim,
-    size_t to_dim) const {
+  const std::vector<std::vector<std::size_t>> & entities(Dimension from_dim,
+    Dimension to_dim) const {
     flog_assert(from_dim == 2, "invalid dimension " << from_dim);
     flog_assert(to_dim == 0, "invalid dimension " << to_dim);
     return ids_;
@@ -102,7 +102,7 @@ public:
    */
 
   std::vector<size_t>
-  entities(size_t from_dim, size_t to_dim, size_t entity_id) const {
+  entities(Dimension from_dim, Dimension to_dim, std::size_t entity_id) const {
     flog_assert(from_dim == 2, "invalid dimension " << from_dim);
     flog_assert(to_dim == 0, "invalid dimension " << to_dim);
 

@@ -100,7 +100,7 @@ future_driver() {
 
     auto fsum = reduce<reduction_task, exec::fold::sum>(a, ld);
     int sum = 0;
-    for(size_t i = 0; i < run::context::instance().processes(); i++)
+    for(Color i = 0; i < run::context::instance().processes(); i++)
       sum += a + i;
     EXPECT_EQ(fsum.get(), sum);
   };

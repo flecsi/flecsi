@@ -56,7 +56,7 @@ private:
     @param mode privilege
    */
 
-  static Legion::PrivilegeMode privilege_mode(size_t mode) {
+  static Legion::PrivilegeMode privilege_mode(Privileges mode) {
     // Reduce the read and write permissions for each privilege separately:
     bool r = false, w = false;
     for(auto i = privilege_count(mode); i-- && !(r && w);) {
@@ -72,7 +72,7 @@ private:
 protected:
   // This implementation can be generic because all topologies are expected to
   // provide get_region (and, with one exception, get_partition).
-  template<typename DATA_TYPE, size_t PRIVILEGES, auto Space, class Topo>
+  template<typename DATA_TYPE, Privileges PRIVILEGES, auto Space, class Topo>
   void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> &,
     const data::field_reference<DATA_TYPE, data::raw, Topo, Space> & r) {
     const field_id_t f = r.fid();
@@ -81,8 +81,7 @@ protected:
 
     reg.ghost_copy<PRIVILEGES>(r);
 
-    const Legion::PrivilegeMode m =
-      reg.poll_discard(f) ? WRITE_DISCARD : privilege_mode(PRIVILEGES);
+    const Legion::PrivilegeMode m = privilege_mode(PRIVILEGES);
     const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);

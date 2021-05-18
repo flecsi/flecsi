@@ -42,8 +42,8 @@ init(mesh2d::accessor<ro> m,
   for(auto i : m.extents<ax::x_axis, rg::all>()) {
     for(auto j : m.extents<ax::y_axis, rg::all>()) {
       double val = 16. * color() + 8. * (int)i + (int)j;
-      ms1(j, i) = val;
-      ms2(j, i) = val + 1000.;
+      ms1[j][i] = val;
+      ms2[j][i] = val + 1000.;
     } // for
   } // for
 } // init
@@ -56,8 +56,8 @@ clear(mesh2d::accessor<ro> m,
   auto ms2 = m.mdspan<is::entities>(mf2);
   for(auto i : m.extents<ax::x_axis, rg::all>()) {
     for(auto j : m.extents<ax::y_axis, rg::all>()) {
-      ms1(j, i) = 0.;
-      ms2(j, i) = 0.;
+      ms1[j][i] = 0.;
+      ms2[j][i] = 0.;
     } // for
   } // for
 } // clear
@@ -74,8 +74,8 @@ check(mesh2d::accessor<ro> m,
         double val = 16. * color() + 8. * (int)i + (int)j;
         auto s1exp = val;
         auto s2exp = val + 1000.;
-        ASSERT_EQ(ms1(j, i), s1exp);
-        ASSERT_EQ(ms2(j, i), s2exp);
+        ASSERT_EQ(ms1[j][i], s1exp);
+        ASSERT_EQ(ms2[j][i], s2exp);
       } // for
     } // for
   };
@@ -85,7 +85,7 @@ int
 restart_driver() {
   UNIT {
     mesh2d::coord indices{8, 8};
-    mesh2d::coord colors{4, 1};
+    mesh2d::base::colors colors{4, 1};
     mesh2d::coord hdepths{0, 0};
     mesh2d::coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};

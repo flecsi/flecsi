@@ -38,6 +38,10 @@ const intN::definition<topo::index> verts_field, ghost_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;
 
+using trivial_array = topo::array<void>;
+using short_part = field<short, particle>;
+const short_part::definition<trivial_array> particles;
+
 constexpr std::size_t column = 42;
 
 void
@@ -45,11 +49,11 @@ allocate(topo::resize::Field::accessor<wo> a) {
   a = color() + 1;
 }
 void
-irows(intN::mutator<rw> r) {
+irows(intN::mutator<wo> r) {
   r[0].resize(color() + 1);
 }
 int
-drows(double_at::mutator<rw> s) {
+drows(double_at::mutator<wo> s) {
   UNIT {
     const auto me = color();
     const auto && m = s[0];
@@ -107,10 +111,9 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
 }
 
 void
-ragged_start(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Start mv) {
+ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
   buffers::ragged::truncate(mv[0])(v, 0);
-  g[0].clear();
 }
 
 int
@@ -144,6 +147,48 @@ check(double_field::accessor<ro> p,
     EXPECT_EQ(n.get().i, Noisy::value());
   };
 } // print
+
+int
+part(short_part::mutator<wo> a) {
+  UNIT {
+    const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
+    short sum = 0, chk = 0;
+    unsigned digits = 0;
+    for(auto x : pi) {
+      a.insert(x);
+      sum += x;
+      if(x)
+        ++digits;
+    }
+    EXPECT_EQ(a.size(), a.capacity());
+    for(auto i = a.begin(), e = a.end(); i != e;)
+      if(*i)
+        ++i;
+      else
+        i = a.erase(i); // pi doesn't have 0s in it!
+    EXPECT_EQ(a.size(), digits);
+    for(auto & x : a)
+      chk += x;
+    EXPECT_EQ(sum, chk);
+    for(auto i = a.end(), b = a.begin(); i != b;)
+      sum -= *--i;
+    EXPECT_FALSE(sum);
+
+    a.clear();
+    EXPECT_EQ(a.size(), 0u);
+    const auto i1 = a.insert(1), i2 = a.insert(2), i3 = a.insert(3);
+    EXPECT_EQ(a.size(), 3u);
+    a.erase(i1);
+    EXPECT_EQ(a.size(), 2u);
+    a.erase(i2); // goes on the free list after i1
+    EXPECT_EQ(a.size(), 1u);
+    const auto i4 = a.insert(4);
+    EXPECT_EQ(a.size(), 2u);
+    EXPECT_EQ(*i3, 3);
+    EXPECT_EQ(*i4, 4);
+    EXPECT_EQ(i3, a.get_iterator_from_pointer(&*i3));
+  };
+}
 
 int
 index_driver() {
@@ -184,7 +229,7 @@ index_driver() {
     buffers::core([] {
       const auto p = processes();
       buffers::coloring ret(p);
-      std::size_t i = 0;
+      Color i = 0;
       for(auto & g : ret)
         g.push_back(++i % p);
       return ret;
@@ -192,6 +237,10 @@ index_driver() {
       .xfer<ragged_start, ragged_xfer>(verts, ghost);
 
     EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
+
+    // Duplicate work to support the MPI backend:
+    trivial_array::core a(trivial_array::coloring(processes(), 12));
+    EXPECT_EQ(test<part>(particles(a)), 0);
   };
 } // index
 

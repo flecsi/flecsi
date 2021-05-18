@@ -50,9 +50,6 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
 template<auto CP>
 using control_point = util::constant<CP>;
 
-/*!
- */
-
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 
@@ -195,14 +192,14 @@ private:
 
 public:
   /*!
-    Return the user's control state.
+    Return the user's control policy.
 
     @return The singleton instance of the user's control policy type. Users can
             add arbitrary data members and interfaces to this type that can be
             to store control state information.
    */
 
-  static ControlPolicy & state() {
+  static ControlPolicy & policy() {
     return instance();
   }
 

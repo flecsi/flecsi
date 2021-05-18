@@ -19,7 +19,6 @@
   This file contains implementations of field accessor types.
  */
 
-#include "flecsi/data/reference.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"
@@ -34,36 +33,51 @@ namespace flecsi {
 namespace data {
 
 namespace detail {
-template<class A>
+template<bool Span = true, class A>
 void
 construct(const A & a) {
-  const auto s = a.span();
-  std::uninitialized_default_construct(s.begin(), s.end());
+  if constexpr(Span)
+    construct<false>(a.span());
+  else
+    std::uninitialized_default_construct(a.begin(), a.end());
 }
-template<class T, layout L, std::size_t P>
+template<class T, layout L, Privileges P, bool Span>
 void
 destroy_task(typename field<T, L>::template accessor1<P> a) {
-  const auto s = a.span();
+  const auto && s = [&] {
+    if constexpr(Span)
+      return a.span();
+    else
+      return a;
+  }();
   std::destroy(s.begin(), s.end());
 }
-template<std::size_t P,
+template<Privileges P,
+  bool Span = true,
   class T,
   layout L,
   class Topo,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T, L, privilege_repeat(rw, privilege_count(P))>>(r);
+  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>>(
+    r);
 }
 template<class T>
 inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
   typename std::iterator_traits<T>::iterator_category>;
+template<class T, Privileges P>
+using element_t = std::conditional_t<privilege_write(P), T, const T>;
+template<class T, Privileges P, bool M>
+using particle_raw =
+  typename field<T, data::particle>::base_type::template accessor1<
+    !M && get_privilege(0, P) == wo ? privilege_pack<rw> : P>;
 } // namespace detail
 
 // All accessors are ultimately implemented in terms of those for the raw
 // layout, minimizing the amount of backend-specific code required.
 
-template<typename DATA_TYPE, size_t PRIVILEGES>
+template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using value_type = DATA_TYPE;
   // We don't actually inherit from base_type; we don't want its interface.
@@ -109,13 +123,16 @@ private:
   base_type base;
 }; // struct accessor
 
-template<typename DATA_TYPE, size_t PRIVILEGES>
-struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
+template<typename DATA_TYPE, Privileges PRIVILEGES>
+struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
-  using element_type = std::
-    conditional_t<privilege_write(PRIVILEGES), value_type, const value_type>;
+  using element_type = detail::element_t<DATA_TYPE, PRIVILEGES>;
 
-  explicit accessor(std::size_t f) : reference_base(f) {}
+  explicit accessor(field_id_t f) : f(f) {}
+
+  field_id_t field() const {
+    return f;
+  }
 
   FLECSI_INLINE_TARGET
   auto span() const {
@@ -127,13 +144,15 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : reference_base {
   }
 
 private:
+  field_id_t f;
   util::span<element_type> s;
 }; // struct accessor
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using base_type = accessor<raw, T, P>;
   using base_type::base_type;
+  using size_type = typename decltype(base_type(0).span())::size_type;
 
   accessor(const base_type & b) : base_type(b) {}
 
@@ -144,14 +163,14 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
     @param index The index of the logical array to access.
    */
   FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator()(std::size_t index) const {
+  typename accessor::element_type & operator()(size_type index) const {
     const auto s = this->span();
     flog_assert(index < s.size(), "index out of range");
     return s[index];
   } // operator()
 
   FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator[](std::size_t index) const {
+  typename accessor::element_type & operator[](size_type index) const {
     return this->span()[index];
   }
 
@@ -176,7 +195,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 
 // The offsets privileges are separate because they are writable for mutators
 // but read-only for even writable accessors.
-template<class T, std::size_t P, std::size_t OP = P>
+template<class T, Privileges P, Privileges OP = P>
 struct ragged_accessor
   : accessor<raw, T, P>,
     send_tag,
@@ -184,20 +203,22 @@ struct ragged_accessor
   using base_type = typename ragged_accessor::accessor;
   using typename base_type::element_type;
   using Offsets = accessor<dense, std::size_t, OP>;
+  using Offset = typename Offsets::value_type;
+  using size_type = typename Offsets::size_type;
   using row = util::span<element_type>;
 
   using base_type::base_type;
   ragged_accessor(const base_type & b) : base_type(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
-  std::size_t size() const noexcept { // not total!
+  size_type size() const noexcept { // not total!
     return off.span().size();
   }
-  std::size_t total() const noexcept {
+  Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
@@ -226,13 +247,10 @@ struct ragged_accessor
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
       auto & t = r.topology().ragged;
-      r.get_region(t).cleanup(
-        i,
-        [=] {
-          if constexpr(!std::is_trivially_destructible_v<T>)
-            detail::destroy<P>(r);
-        },
-        privilege_discard(P));
+      r.get_region(t).cleanup(i, [=] {
+        if constexpr(!std::is_trivially_destructible_v<T>)
+          detail::destroy<P>(r);
+      });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
@@ -246,10 +264,15 @@ struct ragged_accessor
     f(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
       r.get_region().template ghost<privilege_pack<wo, wo>>(r.fid());
-      return r.template cast<dense, std::size_t>();
+      return r.template cast<dense, Offset>();
     });
-    if constexpr(privilege_discard(P))
-      detail::construct(*this); // no-op on caller side
+    // These do nothing on the caller side:
+    if constexpr(privilege_discard(OP)) {
+      const auto s = off.span();
+      std::fill(s.begin(), s.end(), 0);
+    }
+    else if constexpr(privilege_discard(P))
+      detail::construct(*this);
   }
 
   template<class Topo, typename Topo::index_space S>
@@ -259,31 +282,35 @@ struct ragged_accessor
   }
 
 private:
-  Offsets off{this->identifier()};
+  Offsets off{this->field()};
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<ragged, T, P>
-  : ragged_accessor<T, P, privilege_repeat(ro, privilege_count(P))> {
+  : ragged_accessor<T, P, privilege_repeat<ro, privilege_count(P)>> {
   using accessor::ragged_accessor::ragged_accessor;
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct mutator<ragged, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
-  static_assert(privilege_write(P) && !privilege_discard(P),
-    "mutators require read/write permissions");
   using base_type = ragged_accessor<T, P>;
+  using size_type = typename base_type::size_type;
+
+private:
+  using base_row = typename base_type::row;
+  using base_size = typename base_row::size_type;
+
+public:
   struct Overflow {
-    std::size_t del;
+    base_size del;
     std::vector<T> add;
   };
   using TaskBuffer = std::vector<Overflow>;
 
 private:
-  using base_row = typename base_type::row;
   struct raw_row {
-    using size_type = typename base_row::size_type;
+    using size_type = base_size;
 
     base_row s;
     Overflow * o;
@@ -304,7 +331,7 @@ private:
       return brk() + o->add.size();
     }
 
-    void destroy(std::size_t skip = 0) const {
+    void destroy(size_type skip = 0) const {
       std::destroy(s.begin() + skip, s.begin() + brk());
     }
   };
@@ -572,10 +599,10 @@ public:
   mutator(const base_type & b, const topo::resize::policy & p)
     : acc(b), grow(p) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     return raw_get(i);
   }
-  std::size_t size() const noexcept {
+  size_type size() const noexcept {
     return acc.size();
   }
 
@@ -608,10 +635,11 @@ public:
     // To move each element before overwriting it, we propagate moves outward
     // from each place where the movement switches from rightward to leftward.
     const auto all = acc.get_base().span();
-    const std::size_t n = size();
+    const size_type n = size();
     // Read and write cursors.  It would be possible, if ugly, to run cursors
     // backwards for the rightward-moving portions and do without the stack.
-    std::size_t is = 0, js = 0, id = 0, jd = 0;
+    size_type is = 0, id = 0;
+    base_size js = 0, jd = 0;
     raw_row rs = raw_get(is), rd = raw_get(id);
     struct work {
       void operator()() const {
@@ -661,7 +689,7 @@ public:
     while(++id < n)
       raw_get(id).destroy();
     auto & off = acc.get_offsets();
-    std::size_t delta = 0; // may be "negative"; aliasing is implausible
+    base_size delta = 0; // may be "negative"; aliasing is implausible
     for(is = 0; is < n; ++is) {
       auto & ov = (*over)[is];
       off(is) += delta += ov.add.size() - ov.del;
@@ -671,7 +699,7 @@ public:
   }
 
 private:
-  raw_row raw_get(std::size_t i) const {
+  raw_row raw_get(size_type i) const {
     return {get_base()[i], &(*over)[i]};
   }
 
@@ -682,7 +710,7 @@ private:
 };
 
 // Many compilers incorrectly require the 'template' for a base class.
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct accessor<sparse, T, P>
   : field<T, sparse>::base_type::template accessor1<P>,
     util::with_index_iterator<const accessor<sparse, T, P>> {
@@ -690,7 +718,8 @@ struct accessor<sparse, T, P>
     "sparse accessor requires read permission");
 
 private:
-  using FieldBase = typename field<T, sparse>::base_type;
+  using Field = field<T, sparse>;
+  using FieldBase = typename Field::base_type;
 
 public:
   using value_type = typename FieldBase::value_type;
@@ -704,8 +733,9 @@ private:
 public:
   // Use the ragged interface to obtain the span directly.
   struct row {
+    using key_type = typename Field::key_type;
     row(base_row s) : s(s) {}
-    element_type & operator()(std::size_t c) const {
+    element_type & operator()(key_type c) const {
       return std::partition_point(
         s.begin(), s.end(), [c](const value_type & v) { return v.first < c; })
         ->second;
@@ -718,7 +748,7 @@ public:
   using base_type::base_type;
   accessor(const base_type & b) : base_type(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
 
@@ -735,10 +765,15 @@ public:
   }
 };
 
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct mutator<sparse, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
-  using base_type = typename field<T, sparse>::base_type::template mutator1<P>;
+private:
+  using Field = field<T, sparse>;
+
+public:
+  using base_type = typename Field::base_type::template mutator1<P>;
+  using size_type = typename base_type::size_type;
   using TaskBuffer = typename base_type::TaskBuffer;
 
 private:
@@ -747,9 +782,9 @@ private:
 
 public:
   struct row {
-    using key_type = std::size_t;
+    using key_type = typename Field::key_type;
     using value_type = typename base_row::value_type;
-    using size_type = std::size_t;
+    using size_type = typename base_row::size_type;
 
     // NB: invalidated by insertions/deletions, unlike std::map::iterator.
     struct iterator {
@@ -915,10 +950,10 @@ public:
 
   mutator(const base_type & b) : rag(b) {}
 
-  row operator[](std::size_t i) const {
+  row operator[](size_type i) const {
     return get_base()[i];
   }
-  std::size_t size() const noexcept {
+  size_type size() const noexcept {
     return rag.size();
   }
 
@@ -946,6 +981,270 @@ private:
   base_type rag;
 };
 
+template<class T, Privileges P, bool M>
+struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
+  static_assert(privilege_count(P) == 1, "particles cannot be ghosts");
+  using base_type = detail::particle_raw<T, P, M>;
+  using size_type = typename decltype(base_type(0).span())::size_type;
+  using Particle = typename base_type::value_type;
+  // Override base class aliases:
+  using value_type = T;
+  using element_type = detail::element_t<T, P>;
+
+  struct iterator {
+    using reference = element_type &;
+    using value_type = element_type;
+    using pointer = element_type *;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    iterator() noexcept : iterator(nullptr, 0) {}
+    iterator(const particle_accessor * a, size_type i) : a(a), i(i) {}
+
+    reference operator*() const {
+      return a->span()[i].data;
+    }
+    pointer operator->() const {
+      return &**this;
+    }
+
+    iterator & operator++() {
+      const auto s = a->span();
+      if(++i != s.size())
+        i += s[i].skip;
+      return *this;
+    }
+    iterator operator++(int) {
+      iterator ret = *this;
+      ++*this;
+      return ret;
+    }
+    iterator & operator--() {
+      if(--i)
+        i -= a->span()[i].skip;
+      return *this;
+    }
+    iterator operator--(int) {
+      iterator ret = *this;
+      --*this;
+      return ret;
+    }
+
+    bool operator==(const iterator & o) const {
+      return i == o.i;
+    }
+    bool operator!=(const iterator & o) const {
+      return i != o.i;
+    }
+    bool operator<(const iterator & o) const {
+      return i < o.i;
+    }
+    bool operator<=(const iterator & o) const {
+      return i <= o.i;
+    }
+    bool operator>(const iterator & o) const {
+      return i > o.i;
+    }
+    bool operator>=(const iterator & o) const {
+      return i >= o.i;
+    }
+
+    size_type location() const noexcept {
+      return i;
+    }
+
+  private:
+    const particle_accessor * a;
+    size_type i;
+  };
+
+  using base_type::base_type;
+  particle_accessor(const base_type & b) : base_type(b) {}
+
+  // This interface is a subset of that proposed for std::hive.
+
+  size_type size() const {
+    const auto s = this->span();
+    const auto n = s.size();
+    const auto i = n ? s.front().skip : 0;
+    return i == n ? n : s[i].free.prev;
+  }
+  size_type capacity() const {
+    return this->span().size();
+  }
+  bool empty() const {
+    return !size();
+  }
+
+  iterator begin() const {
+    const auto s = this->span();
+    return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
+  }
+  iterator end() const {
+    return {this, capacity()};
+  }
+
+  iterator get_iterator_from_pointer(element_type * the_pointer) const {
+    static_assert(std::is_standard_layout_v<Particle>);
+    const auto * const p = reinterpret_cast<Particle *>(the_pointer);
+    const auto ret = p - this->span().data();
+    // Some skipfield values are unused, so this isn't reliable:
+    flog_assert(!p->skip != !ret, "field slot is empty");
+    return iterator(this, ret);
+  }
+
+  base_type & get_base() {
+    return *this;
+  }
+  const base_type & get_base() const {
+    return *this;
+  }
+
+  template<class F>
+  void send(F && f) {
+    std::forward<F>(f)(get_base(), [](const auto & r) {
+      if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
+        r.get_region().cleanup(r.fid(), [r] { detail::destroy<P, false>(r); });
+      return r.template cast<raw, Particle>();
+    });
+  }
+
+protected:
+  size_type first_skip() const { // after special first element
+    const auto s = this->span();
+    return s.size() == 1 ? 0 : s[1].skip;
+  }
+};
+
+template<class T, Privileges P>
+struct accessor<particle, T, P> : particle_accessor<T, P, false> {
+  using accessor::particle_accessor::particle_accessor;
+
+  template<class F>
+  void send(F && f) {
+    accessor::particle_accessor::send(std::forward<F>(f));
+    if constexpr(privilege_discard(P))
+      detail::construct<false>(*this); // no-op on caller side
+  }
+};
+
+template<class T, Privileges P>
+struct mutator<particle, T, P> : particle_accessor<T, P, true> {
+  using base_type = particle_accessor<T, P, true>;
+  using typename base_type::iterator;
+  using typename base_type::value_type;
+  using Skip = typename base_type::base_type::value_type::size_type;
+
+  // We don't support automatic resizing since we don't control the region.
+  // TODO: Support manual resizing (by updating the skipfield appropriately)
+  using base_type::base_type;
+
+  // Since, by design, the skipfield data structure requires no lookaside
+  // tables, accessor could provide it instead of having this class at all.
+  // However, the natural wo semantics differ between the two cases.
+
+  void clear() const {
+    std::destroy(this->begin(), this->end());
+    init();
+  }
+
+  iterator insert(const value_type & v) const {
+    return emplace(v);
+  }
+  iterator insert(value_type && v) const {
+    return emplace(std::move(v));
+  }
+  /// Create an element, in constant time.
+  /// \return an iterator to the new element
+  template<class... AA>
+  iterator emplace(AA &&... aa) const {
+    const auto s = this->span();
+    const auto n = s.size();
+    flog_assert(n, "no particle space");
+    Skip &ptr = s.front().skip, ret = ptr;
+    flog_assert(ret != n, "too many particles");
+    auto * const head = &s[ret];
+    Skip & skip = head->skip;
+    const auto link = head->emplace(std::forward<AA>(aa)...);
+    if(!ret || skip == 1) // erasing a run
+      ptr = link.next;
+    else { // shrinking a run
+      auto & h2 = s[++ptr];
+      h2.skip = head[skip - 1].skip = skip - 1;
+      h2.free.next = link.next;
+    }
+    if(ret)
+      skip = 0;
+    if(ptr != n) // update size
+      s[ptr].free.prev = link.prev + 1;
+    return {this, ret};
+  }
+
+  /// Remove an element, in constant time.
+  /// \return an iterator past the removed element
+  iterator erase(const iterator & it) const {
+    const auto s = this->span();
+    const auto n = s.size();
+    flog_assert(n, "no particles to erase");
+    Skip & ptr = s.front().skip;
+    const typename mutator::size_type i = it.location();
+    auto * const rm = &s[i];
+
+    const Skip end = i > 1 ? rm[-1].skip : 0, // adjacent empty run lengths
+      beg = i && i < n - 1 ? rm[1].skip : 0;
+    if(i)
+      rm[-end].skip = rm[beg].skip = beg + end + 1; // set up new run
+
+    if(end)
+      rm->reset(); // no links in middle of run
+    // Update free list:
+    if(beg) {
+      const auto & f = rm[1].free;
+      Skip & up = ptr == i + 1 ? ptr : s[f.prev].free.next;
+      if(end)
+        up = f.next; // remove right-hand run from list
+      else {
+        --up;
+        rm->reset(f.prev, f.next);
+      }
+    }
+    else if(!end) { // new run
+      Skip & up = ptr ? ptr : s.front().free.next; // keep element 0 first
+      if(!ptr && up < n)
+        s[up].free.prev = i;
+      rm->reset(ptr && ptr < n ? /* size: */ s[ptr].free.prev : ptr, up);
+      up = i;
+    }
+    --s[ptr].free.prev;
+
+    return iterator(this, 1 + (i ? i + beg : this->first_skip()));
+  }
+
+  void commit() const {}
+
+  template<class F>
+  void send(F && f) {
+    base_type::send(std::forward<F>(f));
+    if constexpr(privilege_discard(P))
+      init(); // no-op on caller side
+  }
+
+private:
+  void init() const {
+    const auto s = this->span();
+    if(const auto n = s.size()) {
+      auto & a = s.front();
+      a.free = {0, 1};
+      a.skip = 0;
+      if(n > 1) {
+        auto & b = s[1];
+        b.free = {0, n};
+        b.skip = s.back().skip = n - 1;
+      }
+    }
+  }
+};
+
 template<auto & F>
 struct scalar_access : bind_tag {
 
@@ -961,16 +1260,8 @@ struct scalar_access : bind_tag {
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  value_type * operator->() {
-    return &scalar_;
-  }
-
   const value_type * operator->() const {
     return &scalar_;
-  }
-
-  value_type & operator*() {
-    return scalar_;
   }
 
   const value_type & operator*() const {
@@ -983,14 +1274,21 @@ private:
 
 } // namespace data
 
-template<data::layout L, class T, std::size_t P>
+template<data::layout L, class T, Privileges P>
 struct exec::detail::task_param<data::accessor<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static auto replace(const data::field_reference<T, L, Topo, S> & r) {
     return data::accessor<L, T, P>(r.fid());
   }
 };
-template<class T, std::size_t P>
+template<data::layout L, class T, Privileges P>
+struct exec::detail::task_param<data::mutator<L, T, P>> {
+  template<class Topo, typename Topo::index_space S>
+  static auto replace(const data::field_reference<T, L, Topo, S> & r) {
+    return data::mutator<L, T, P>(r.fid());
+  }
+};
+template<class T, Privileges P>
 struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   using type = data::mutator<data::ragged, T, P>;
   template<class Topo, typename Topo::index_space S>
@@ -1000,7 +1298,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
       r.get_partition(r.topology().ragged).growth};
   }
 };
-template<class T, std::size_t P>
+template<class T, Privileges P>
 struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
   using type = data::mutator<data::sparse, T, P>;
   template<class Topo, typename Topo::index_space S>

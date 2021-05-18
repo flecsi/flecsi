@@ -3,7 +3,6 @@
 #ifndef FLECSI_EXEC_PROLOG_HH
 #define FLECSI_EXEC_PROLOG_HH
 
-#include "flecsi/data/reference.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
@@ -31,6 +30,7 @@ struct prolog : task_prologue {
   // Note that accessors here may be empty versions made to be serialized.
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
+    util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
   }
 

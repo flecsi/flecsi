@@ -36,17 +36,11 @@ struct region_base {
   region(size2, const fields &, const char * = nullptr);
 
   size2 size() const;
-
-protected:
-  // For convenience, we always use rw accessors for certain fields that
-  // initially contain no constructed objects; this call indicates that no
-  // initialization is needed.
-  void vacuous(field_id_t);
 };
 
 // A prefix of each row in a region_base.
 struct partition {
-  std::size_t colors() const;
+  Color colors() const;
   template<topo::single_space> // for convenience for simple topologies
   const partition & get_partition(field_id_t) const {
     return *this;
@@ -69,16 +63,13 @@ struct region : region_base {
         (util::type<Topo>() + '[' + std::to_string(S) + ']').c_str()) {}
 
   template<class D>
-  void cleanup(field_id_t f, D d, bool hard = true) {
+  void cleanup(field_id_t f, D d) {
     // We assume that creating the objects will be successful:
-    if(hard)
-      destroy.insert_or_assign(f, std::move(d));
-    else if(destroy.try_emplace(f, std::move(d)).second)
-      vacuous(f);
+    destroy.insert_or_assign(f, std::move(d));
   }
 
   // Return whether a copy is needed.
-  template<std::size_t P>
+  template<Privileges P>
   bool ghost(field_id_t i) {
     constexpr auto n = privilege_count(P);
     static_assert(n > 1, "need shared/ghost privileges");
@@ -95,7 +86,7 @@ struct region : region_base {
   }
 
   // Perform a ghost copy if needed.
-  template<std::size_t P,
+  template<Privileges P,
     class T,
     layout L,
     class Topo,
