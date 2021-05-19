@@ -13,7 +13,7 @@ poisson::task::smooth(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> fa) {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
-  const auto dsqr = pow(m.delta(), 2);
+  const auto dsqr = m.xdelta() * m.ydelta();
 
   // clang-format off
   for(auto j : m.vertices<mesh::y_axis>()) {

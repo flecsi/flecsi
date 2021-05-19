@@ -26,7 +26,7 @@ poisson::task::diff(mesh::accessor<ro> m,
 
 double
 poisson::task::scale(mesh::accessor<ro> m, double sum) {
-  return pow(m.delta(), 2) * sum;
+  return m.xdelta() * m.ydelta() * sum;
 } // scale
 
 void
@@ -36,7 +36,7 @@ poisson::task::discrete_operator(mesh::accessor<ro> m,
   auto u = m.mdspan<mesh::vertices>(ua);
   auto Au = m.mdspan<mesh::vertices>(Aua);
 
-  const double w = 1.0 / pow(m.delta(), 2);
+  const double w = 1.0 / (m.xdelta() * m.ydelta());
 
   // clang-format off
   for(auto j : m.vertices<mesh::y_axis>()) {
