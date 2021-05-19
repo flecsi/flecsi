@@ -262,11 +262,14 @@ struct copy_engine {
       destination.get_storage<const points::Value>(meta_fid);
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
-    SendPoints grouped_shared_entities;
+    SendPoints remote_shared_entities;
     for(const auto & [begin, end] : destination.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
-        grouped_shared_entities[shared.first].emplace_back(shared.second);
+        remote_shared_entities[shared.first].emplace_back(shared.second);
+        // We also group local ghost entities into (src rank, { local ghost
+        // ids})
+        ghost_entities[shared.first].emplace_back(ghost_idx);
       }
     }
 
@@ -278,18 +281,18 @@ struct copy_engine {
       std::size_t r = 0;
       for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
             static const std::vector<std::size_t> empty;
-            const auto i = grouped_shared_entities.find(r);
-            return i == grouped_shared_entities.end() ? empty : i->second;
+            const auto i = remote_shared_entities.find(r);
+            return i == remote_shared_entities.end() ? empty : i->second;
           })) {
         if(!v.empty())
-          remote_ghost_entities.try_emplace(r, std::move(v));
+          shared_entities.try_emplace(r, std::move(v));
         ++r;
       }
     }
 
     // We need to figure out the max local source index in order to give correct
     // nelems when calling region::get_storage().
-    for(const auto & [rank, indices] : remote_ghost_entities) {
+    for(const auto & [rank, indices] : shared_entities) {
       max_local_source_idx = std::max(max_local_source_idx,
         *std::max_element(indices.begin(), indices.end()));
     }
@@ -302,8 +305,8 @@ struct copy_engine {
       0,
       std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
       [](const auto & p) { return p.second - p.first; });
-    auto nsends = std::transform_reduce(remote_ghost_entities.begin(),
-      remote_ghost_entities.end(),
+    auto nsends = std::transform_reduce(shared_entities.begin(),
+      shared_entities.end(),
       0,
       std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
       [](const auto & p) { return p.second.size(); });
@@ -326,30 +329,26 @@ struct copy_engine {
     std::vector<MPI_Request> requests;
     requests.reserve(nreqs);
 
-    auto remote_sources =
-      destination.get_storage<const points::Value>(meta_fid);
-
-    for(const auto & [begin, end] : destination.ghost_ranges) {
-      for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
-        auto source_rank = remote_sources[ghost_idx].first;
+    for(const auto & [src_rank, local_ghost_indices] : ghost_entities) {
+      for(auto ghost_idx : local_ghost_indices) {
         requests.resize(requests.size() + 1);
         test(MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
           type_size,
           MPI_BYTE,
-          source_rank,
+          src_rank,
           0,
           MPI_COMM_WORLD,
           &requests.back()));
       }
     }
 
-    for(const auto & [dest_rank, local_indices] : remote_ghost_entities) {
-      for(auto shared_idx : local_indices) {
+    for(const auto & [dst_rank, local_shared_indices] : shared_entities) {
+      for(auto shared_idx : local_shared_indices) {
         requests.resize(requests.size() + 1);
         test(MPI_Isend(source_storage.data() + shared_idx * type_size,
           type_size,
           MPI_BYTE,
-          int(dest_rank),
+          int(dst_rank),
           0,
           MPI_COMM_WORLD,
           &requests.back()));
@@ -361,13 +360,14 @@ struct copy_engine {
   }
 
 private:
-  // (rank, { indices })
+  // (remote rank, { local indices })
   using SendPoints = std::map<std::size_t, std::vector<std::size_t>>;
 
   const points & source;
   const intervals & destination;
   field_id_t meta_fid;
-  SendPoints remote_ghost_entities;
+  SendPoints ghost_entities; // (src rank,  { local ghost indices})
+  SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0;
   std::size_t nreqs = 0;
 };
