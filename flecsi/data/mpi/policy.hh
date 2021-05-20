@@ -267,16 +267,15 @@ struct copy_engine {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
-        // We also group local ghost entities into (src rank, { local ghost
-        // ids})
+        // We also group local ghost entities into
+        // (src rank, { local ghost ids})
         ghost_entities[shared.first].emplace_back(ghost_idx);
       }
     }
 
-    // Create the inverse mapping of
-    // group_shared_entities. This creates a map from remote destination rank to
-    // a vector of *local* source indices. This information is later used by
-    // MPI_Send().
+    // Create the inverse mapping of group_shared_entities. This creates a map
+    // from remote destination rank to a vector of *local* source indices. This
+    // information is later used by MPI_Send().
     {
       std::size_t r = 0;
       for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
@@ -297,10 +296,6 @@ struct copy_engine {
         *std::max_element(indices.begin(), indices.end()));
     }
     max_local_source_idx += 1;
-
-    // We need to reserve enough memory for MPI requests used in operator().
-    // This only need to be calculated once.
-    nreqs = ghost_entities.size() + shared_entities.size();
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
@@ -314,14 +309,14 @@ struct copy_engine {
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
-    requests.reserve(nreqs);
+    requests.reserve(ghost_entities.size() + shared_entities.size());
 
-    std::map<std::size_t, std::vector<std::byte>> recv_buffers;
+    std::vector<std::vector<std::byte>> recv_buffers;
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
-      recv_buffers.emplace(src_rank, ghost_indices.size() * type_size);
+      recv_buffers.emplace_back(ghost_indices.size() * type_size);
       requests.resize(requests.size() + 1);
-      test(MPI_Irecv(recv_buffers[src_rank].data(),
-        int(recv_buffers[src_rank].size()),
+      test(MPI_Irecv(recv_buffers.back().data(),
+        int(recv_buffers.back().size()),
         MPI_BYTE,
         int(src_rank),
         0,
@@ -329,18 +324,18 @@ struct copy_engine {
         &requests.back()));
     }
 
-    std::map<std::size_t, std::vector<std::byte>> send_buffers;
+    std::vector<std::vector<std::byte>> send_buffers;
     for(const auto & [dst_rank, shared_indices] : shared_entities) {
       requests.resize(requests.size() + 1);
-      send_buffers.emplace(dst_rank, shared_indices.size() * type_size);
+      send_buffers.emplace_back(shared_indices.size() * type_size);
       std::size_t i = 0;
       for(auto shared_idx : shared_indices) {
-        std::memcpy(send_buffers[dst_rank].data() + i++ * type_size,
+        std::memcpy(send_buffers.back().data() + i++ * type_size,
           source_storage.data() + shared_idx * type_size,
           type_size);
       }
-      test(MPI_Isend(send_buffers[dst_rank].data(),
-        int(send_buffers[dst_rank].size()),
+      test(MPI_Isend(send_buffers.back().data(),
+        int(send_buffers.back().size()),
         MPI_BYTE,
         int(dst_rank),
         0,
@@ -352,26 +347,27 @@ struct copy_engine {
     test(MPI_Waitall(int(requests.size()), requests.data(), status.data()));
 
     // copy from intermediate receive buffer to destination storage
+    auto recv_buffer = recv_buffers.begin();
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
       std::size_t i = 0;
       for(auto ghost_idx : ghost_indices) {
         std::memcpy(destination_storage.data() + ghost_idx * type_size,
-          recv_buffers[src_rank].data() + i++ * type_size,
+          recv_buffer->data() + i++ * type_size,
           type_size);
       }
+      recv_buffer++;
     }
   }
 
 private:
   // (remote rank, { local indices })
-  using SendPoints = std::map<std::size_t, std::vector<std::size_t>>;
+  using SendPoints = std::map<Color, std::vector<std::size_t>>;
 
   const points & source;
   const intervals & destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0;
-  std::size_t nreqs = 0;
 };
 
 template<typename T>
