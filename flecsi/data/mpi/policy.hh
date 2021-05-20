@@ -252,7 +252,7 @@ struct copy_engine {
   copy_engine(const points & points,
     const intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
-    : source(points), destination(intervals), meta_fid(meta_fid) {
+    : source(points), destination(intervals) {
     // There is no information about the indices of local shared entities,
     // ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
@@ -368,7 +368,6 @@ private:
 
   const points & source;
   const intervals & destination;
-  field_id_t meta_fid;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0;
