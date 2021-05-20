@@ -97,12 +97,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
     template<axis A>
     double value(std::size_t i) {
-      return (A == x_axis)
-               ? xdelta()
-               : ydelta() * (B::template offset<index_space::vertices,
-                               A,
-                               B::range::global>() +
-                              i);
+      return (A == x_axis ? xdelta() : ydelta()) *
+             (B::template offset<index_space::vertices, A, B::range::global>() +
+               i);
     }
 
     template<axis A, orientation E>
