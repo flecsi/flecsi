@@ -333,7 +333,7 @@ struct copy_engine {
     for(const auto & [dst_rank, shared_indices] : shared_entities) {
       requests.resize(requests.size() + 1);
       send_buffers.emplace(dst_rank, shared_indices.size() * type_size);
-      for(int i = 0; i < shared_indices.size(); ++i) {
+      for(std::size_t i = 0; i < shared_indices.size(); ++i) {
         auto shared_idx = shared_indices[i];
         std::memcpy(send_buffers[dst_rank].data() + i * type_size,
           source_storage.data() + shared_idx * type_size,
@@ -353,7 +353,7 @@ struct copy_engine {
 
     // copy from intermediate receive buffer to destination storage
     for(const auto & [src_rank, local_ghost_indices] : ghost_entities) {
-      for(int i = 0; i < local_ghost_indices.size(); ++i) {
+      for(std::size_t i = 0; i < local_ghost_indices.size(); ++i) {
         auto ghost_idx = local_ghost_indices[i];
         std::memcpy(destination_storage.data() + ghost_idx * type_size,
           recv_buffers[src_rank].data() + i * type_size,
