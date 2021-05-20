@@ -321,9 +321,9 @@ struct copy_engine {
       recv_buffers.emplace(src_rank, ghost_indices.size() * type_size);
       requests.resize(requests.size() + 1);
       test(MPI_Irecv(recv_buffers[src_rank].data(),
-        ghost_indices.size() * type_size,
+        int(recv_buffers[src_rank].size()),
         MPI_BYTE,
-        src_rank,
+        int(src_rank),
         0,
         MPI_COMM_WORLD,
         &requests.back()));
@@ -340,7 +340,7 @@ struct copy_engine {
           type_size);
       }
       test(MPI_Isend(send_buffers[dst_rank].data(),
-        shared_indices.size() * type_size,
+        int(send_buffers[dst_rank].size()),
         MPI_BYTE,
         int(dst_rank),
         0,
@@ -349,12 +349,12 @@ struct copy_engine {
     }
 
     std::vector<MPI_Status> status(requests.size());
-    test(MPI_Waitall(requests.size(), requests.data(), status.data()));
+    test(MPI_Waitall(int(requests.size()), requests.data(), status.data()));
 
     // copy from intermediate receive buffer to destination storage
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
       std::size_t i = 0;
-      for (auto ghost_idx : ghost_indices) {
+      for(auto ghost_idx : ghost_indices) {
         std::memcpy(destination_storage.data() + ghost_idx * type_size,
           recv_buffers[src_rank].data() + i++ * type_size,
           type_size);
