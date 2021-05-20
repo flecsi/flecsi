@@ -91,15 +91,18 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       return (*(this->policy_meta_)).ydelta;
     }
 
+    double dxdy() {
+      return xdelta() * ydelta();
+    }
+
     template<axis A>
     double value(std::size_t i) {
-      return [this]() {
-        if constexpr(A == x_axis)
-          return xdelta();
-        else
-          return ydelta();
-      }() * (B::template offset<index_space::vertices, A, B::range::global>() +
-              i);
+      return (A == x_axis)
+               ? xdelta()
+               : ydelta() * (B::template offset<index_space::vertices,
+                               A,
+                               B::range::global>() +
+                              i);
     }
 
     template<axis A, orientation E>
