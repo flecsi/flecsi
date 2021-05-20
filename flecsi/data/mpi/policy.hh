@@ -300,18 +300,7 @@ struct copy_engine {
 
     // We need to reserve enough memory for MPI requests used in operator().
     // This only need to be calculated once.
-    auto nrecvs = std::transform_reduce(destination.ghost_ranges.begin(),
-      destination.ghost_ranges.end(),
-      0,
-      std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto & p) { return p.second - p.first; });
-    auto nsends = std::transform_reduce(shared_entities.begin(),
-      shared_entities.end(),
-      0,
-      std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto & p) { return p.second.size(); });
-
-    nreqs = nrecvs + nsends;
+    nreqs = ghost_entities.size() + shared_entities.size();
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
@@ -322,41 +311,55 @@ struct copy_engine {
     auto source_storage =
       source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
-
-    // FIXME: should we assert(source_type_size == dest_type_size)?
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
     requests.reserve(nreqs);
 
-    for(const auto & [src_rank, local_ghost_indices] : ghost_entities) {
-      for(auto ghost_idx : local_ghost_indices) {
-        requests.resize(requests.size() + 1);
-        test(MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
-          type_size,
-          MPI_BYTE,
-          src_rank,
-          0,
-          MPI_COMM_WORLD,
-          &requests.back()));
-      }
+    std::map<std::size_t, std::vector<std::byte>> recv_buffers;
+    for(const auto & [src_rank, ghost_indices] : ghost_entities) {
+      recv_buffers.emplace(src_rank, ghost_indices.size() * type_size);
+      requests.resize(requests.size() + 1);
+      test(MPI_Irecv(recv_buffers[src_rank].data(),
+        ghost_indices.size() * type_size,
+        MPI_BYTE,
+        src_rank,
+        0,
+        MPI_COMM_WORLD,
+        &requests.back()));
     }
 
-    for(const auto & [dst_rank, local_shared_indices] : shared_entities) {
-      for(auto shared_idx : local_shared_indices) {
-        requests.resize(requests.size() + 1);
-        test(MPI_Isend(source_storage.data() + shared_idx * type_size,
-          type_size,
-          MPI_BYTE,
-          int(dst_rank),
-          0,
-          MPI_COMM_WORLD,
-          &requests.back()));
+    std::map<std::size_t, std::vector<std::byte>> send_buffers;
+    for(const auto & [dst_rank, shared_indices] : shared_entities) {
+      requests.resize(requests.size() + 1);
+      send_buffers.emplace(dst_rank, shared_indices.size() * type_size);
+      for(int i = 0; i < shared_indices.size(); ++i) {
+        auto shared_idx = shared_indices[i];
+        std::memcpy(send_buffers[dst_rank].data() + i * type_size,
+          source_storage.data() + shared_idx * type_size,
+          type_size);
       }
+      test(MPI_Isend(send_buffers[dst_rank].data(),
+        shared_indices.size() * type_size,
+        MPI_BYTE,
+        int(dst_rank),
+        0,
+        MPI_COMM_WORLD,
+        &requests.back()));
     }
 
     std::vector<MPI_Status> status(requests.size());
     test(MPI_Waitall(requests.size(), requests.data(), status.data()));
+
+    // copy from intermediate receive buffer to destination storage
+    for(const auto & [src_rank, local_ghost_indices] : ghost_entities) {
+      for(int i = 0; i < local_ghost_indices.size(); ++i) {
+        auto ghost_idx = local_ghost_indices[i];
+        std::memcpy(destination_storage.data() + ghost_idx * type_size,
+          recv_buffers[src_rank].data() + i * type_size,
+          type_size);
+      }
+    }
   }
 
 private:
