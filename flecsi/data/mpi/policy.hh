@@ -333,9 +333,9 @@ struct copy_engine {
     for(const auto & [dst_rank, shared_indices] : shared_entities) {
       requests.resize(requests.size() + 1);
       send_buffers.emplace(dst_rank, shared_indices.size() * type_size);
-      for(std::size_t i = 0; i < shared_indices.size(); ++i) {
-        auto shared_idx = shared_indices[i];
-        std::memcpy(send_buffers[dst_rank].data() + i * type_size,
+      std::size_t i = 0;
+      for(auto shared_idx : shared_indices) {
+        std::memcpy(send_buffers[dst_rank].data() + i++ * type_size,
           source_storage.data() + shared_idx * type_size,
           type_size);
       }
@@ -352,11 +352,11 @@ struct copy_engine {
     test(MPI_Waitall(requests.size(), requests.data(), status.data()));
 
     // copy from intermediate receive buffer to destination storage
-    for(const auto & [src_rank, local_ghost_indices] : ghost_entities) {
-      for(std::size_t i = 0; i < local_ghost_indices.size(); ++i) {
-        auto ghost_idx = local_ghost_indices[i];
+    for(const auto & [src_rank, ghost_indices] : ghost_entities) {
+      std::size_t i = 0;
+      for (auto ghost_idx : ghost_indices) {
         std::memcpy(destination_storage.data() + ghost_idx * type_size,
-          recv_buffers[src_rank].data() + i * type_size,
+          recv_buffers[src_rank].data() + i++ * type_size,
           type_size);
       }
     }
