@@ -35,8 +35,10 @@ struct future<R> {
   // FIXME: do we need to call fut.wait() in the destructor?
 
   // FIXME: can we make fut private?
-//private:
-  // flecsi::future needs to be copyable
+  // private:
+
+  // Note: flecsi::future needs to be copyable and passed by value to user tasks
+  // and .wait()/.get() called. See future.cc unit test for use case.
   std::shared_future<R> fut;
 };
 
