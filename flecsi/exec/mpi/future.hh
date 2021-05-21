@@ -48,7 +48,6 @@ struct future<void> {
 
 template<typename R>
 struct future<R, exec::launch_type_t::index> {
-  // FIXME: what does copying mean?
   explicit future(R result) : result(result) {
     results.resize(size());
 

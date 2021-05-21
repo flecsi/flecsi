@@ -113,10 +113,6 @@ reduce_internal(Args &&... args) {
       return future<void>{};
     }
     else {
-      // TODO: consider non-blocking Bcast, issue Bcast here and wait for
-      //  completion at .wait()/.get().
-      // TODO: wrap this in std::async and use std::future for async execution
-      //  and communication.
       auto ret = std::make_unique<R>();
       if(root) {
         *ret = std::apply(F, std::move(params));
@@ -158,8 +154,6 @@ reduce_internal(Args &&... args) {
 
       // 2. Reduce the local return values with the Reduction (using its
       // corresponding MPI_Op created by register_reduction<>()).
-      // TODO: consider non-blocking Allreduce, issue Iallreduce here and wait
-      //  for completion at .wait()/.get().
       auto request = std::make_unique<MPI_Request>();
       test(MPI_Iallreduce(MPI_IN_PLACE,
         ret.get(),
@@ -171,8 +165,6 @@ reduce_internal(Args &&... args) {
 
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
-      //      return future<R>{std::async([ret = std::move(ret)]() { return ret;
-      //      })};
       return future<R>{
         // We will wait for the completion of the non-blocking Allreduce in the
         // async task.
