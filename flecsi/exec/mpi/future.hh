@@ -18,16 +18,26 @@
 #include "flecsi/exec/launch.hh"
 #include "flecsi/util/mpi.hh"
 
+#include <future>
+
 namespace flecsi {
 
 template<typename R>
 struct future<R> {
-  void wait() {}
-  R get(bool = false) {
-    return result_;
+  void wait() {
+    fut.wait();
   }
 
-  R result_{};
+  R get(bool = false) {
+    return fut.get();
+  }
+
+  // FIXME: do we need to call fut.wait() in the destructor?
+
+  // FIXME: can we make fut private?
+//private:
+  // flecsi::future needs to be copyable
+  std::shared_future<R> fut;
 };
 
 template<>
