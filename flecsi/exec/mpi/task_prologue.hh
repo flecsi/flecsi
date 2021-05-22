@@ -47,9 +47,7 @@ protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     future<R, exec::launch_type_t::index> & index) {
-    // FIXME: this is a very ugly make_ready_future.
-    auto result = index.result;
-    single.fut = std::async([result]() { return result; });
+    single.fut = make_ready_future(index.result);
   }
 
   template<typename T,

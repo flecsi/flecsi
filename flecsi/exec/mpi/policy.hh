@@ -120,7 +120,7 @@ reduce_internal(Args &&... args) {
 
       auto request = std::make_unique<MPI_Request>();
 
-      // Initiate Ibroadcast to brocast the result from root to the rest of
+      // Initiate Ibroadcast to broadcast the result from root to the rest of
       // ranks
       test(MPI_Ibcast(ret.get(),
         1,
@@ -131,13 +131,13 @@ reduce_internal(Args &&... args) {
 
       // return future<R, launch_type::single> where clients on every rank
       // will get the same value when calling .get().
-      return future<R>{
+      return async(
         // We will wait for the completion of the non-blocking Bcast in the
         // async task.
-        std::async([ret = std::move(ret), request = std::move(request)]() {
+        [ret = std::move(ret), request = std::move(request)]() {
           util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
           return *ret;
-        })};
+        });
     }
   }
   else {
@@ -165,13 +165,13 @@ reduce_internal(Args &&... args) {
 
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
-      return future<R>{
+      return async(
         // We will wait for the completion of the non-blocking Allreduce in the
         // async task.
-        std::async([ret = std::move(ret), request = std::move(request)]() {
+        [ret = std::move(ret), request = std::move(request)]() {
           util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
           return *ret;
-        })};
+        });
     }
     else if constexpr(!std::is_void_v<R>)
       // There is an Allgather happening in the constructor of future<R, index>
