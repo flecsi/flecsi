@@ -33,8 +33,6 @@ struct future<R> {
     return fut.get();
   }
 
-  // FIXME: do we need to call fut.wait() in the destructor?
-
   // Note: flecsi::future needs to be copyable and passed by value to user tasks
   // and .wait()/.get() called. See future.cc unit test for use case.
   std::shared_future<R> fut;
@@ -50,6 +48,8 @@ template<typename F>
 auto
 async(F && f) {
   using R = typename util::function_traits<F>::return_type;
+  // The std::future returned by std::async will call the .wait()
+  // in the destructor.
   return future<R>{std::async(std::forward<F>(f)).share()};
 }
 
