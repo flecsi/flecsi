@@ -78,7 +78,8 @@ reduce_internal(Args &&... args) {
 
   // Now we have accessors, we need to bind the accessor to real memory
   // for the data field. We also need to patch up default conversion
-  // from args to params, especially for the future<>.
+  // from args to params, especially for the future<>. Ghost copy for
+  // the fields is also done in the prolog.
   prolog(params, args...);
 
   // Different kinds of task invocation with flecsi::execute():
