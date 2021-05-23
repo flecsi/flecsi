@@ -31,7 +31,7 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
     int provided;
     test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
 
-    if (provided < MPI_THREAD_MULTIPLE) {
+    if(provided < MPI_THREAD_MULTIPLE) {
       std::cerr << "Your implementation of MPI does not support "
                    "MPI_THREAD_MULTIPLE which is required!"
                 << std::endl;
