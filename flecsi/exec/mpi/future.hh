@@ -16,9 +16,9 @@
 /*! @file */
 
 #include "flecsi/exec/launch.hh"
+#include "flecsi/util/function_traits.hh"
 #include "flecsi/util/mpi.hh"
 
-#include <flecsi/util/function_traits.hh>
 #include <future>
 
 namespace flecsi {
