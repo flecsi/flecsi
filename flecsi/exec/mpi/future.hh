@@ -34,7 +34,7 @@ struct future<R> {
   }
 
   ~future() {
-    if (fut.valid())
+    if(fut.valid())
       fut.wait();
   }
 
