@@ -270,10 +270,9 @@ struct copy_engine {
       }
     }
 
-    // Create the inverse mapping of
-    // group_shared_entities. This creates a map from remote destination rank to
-    // a vector of *local* source indices. This information is later used by
-    // MPI_Send().
+    // Create the inverse mapping of group_shared_entities. This creates a map
+    // from remote destination rank to a vector of *local* source indices. This
+    // information is later used by MPI_Send().
     {
       std::size_t r = 0;
       for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
