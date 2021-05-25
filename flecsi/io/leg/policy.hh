@@ -245,22 +245,9 @@ struct io_interface {
     fumap.wait_all_results();
   }
 
-  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  void add_region(typename Topo::slot & slot) {
-    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
-    FieldNames fn;
-    for(const auto p : fs) {
-      // TODO:  handle types other than double
-      if(p->name != "double")
-        continue;
-      auto & i = name_count[p->name];
-      fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
-    }
-    hdf5_region_vector.emplace_back(
-      legion_hdf5_region_t{(slot->template get_region<Index>().logical_region),
-        (slot->template get_partition<Index>(field_id_t()).logical_partition),
-        util::type<Topo>() + '[' + std::to_string(Index) + ']',
-        std::move(fn)});
+  template<class Topo>
+  void add_topology(data::topology_slot<Topo> & slot) {
+    add_regions<Topo>(slot, typename Topo::index_spaces());
   }
 
   inline void checkpoint_all_fields(const std::string & file_name,
@@ -273,6 +260,32 @@ struct io_interface {
     checkpoint_data<false>(file_name, attach_flag);
   } // recover_data
 
+private:
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
+  legion_hdf5_region_t make_hdf5_region(typename Topo::slot & slot) {
+    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
+    FieldNames fn;
+    for(const auto p : fs) {
+      // TODO:  handle types other than double
+      if(p->name != "double")
+        continue;
+      auto & i = name_count[p->name];
+      fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
+    }
+    return legion_hdf5_region_t{
+      (slot->template get_region<Index>().logical_region),
+      (slot->template get_partition<Index>(field_id_t()).logical_partition),
+      util::type<Topo>() + '[' + std::to_string(Index) + ']',
+      std::move(fn)};
+  }
+
+  template<class Topo, typename Topo::index_space... Index>
+  void add_regions(typename Topo::slot & slot,
+    util::constants<Index...> /* to deduce pack */) {
+    (hdf5_region_vector.push_back(make_hdf5_region<Topo, Index>(slot)), ...);
+  }
+
+private:
   data::leg::unique_index_space launch_space;
   data::leg::unique_index_partition launch_partition;
   std::vector<legion_hdf5_region_t> hdf5_region_vector;

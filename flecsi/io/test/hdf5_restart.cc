@@ -100,8 +100,7 @@ restart_driver() {
 
     int num_files = 4;
     io::io_interface iif{num_files};
-    // TODO:  make this registration automatic, not manual
-    iif.add_region<mesh2d, mesh2d::index_space::entities>(m);
+    iif.add_topology(m);
     iif.checkpoint_all_fields("hdf5_restart.dat");
 
     execute<clear>(m, mf1, mf2);
