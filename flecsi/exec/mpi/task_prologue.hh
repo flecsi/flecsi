@@ -90,9 +90,9 @@ protected:
         return *t;
       else
         // The partition controls how much memory is allocated.
-        return t.template get_partition<Space>();
+        return *t.template get_partition<Space>();
     }
-    ().template get_storage<T, ProcessorType>(f);
+    ()->template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
   } // visit generic topology
 

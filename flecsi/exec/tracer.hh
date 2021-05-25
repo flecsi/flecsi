@@ -1,5 +1,8 @@
-#ifndef FLECSI_MPI_EXEC_TRACER_HH
-#define FLECSI_MPI_EXEC_TRACER_HH
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
+
+#ifndef FLECSI_EXEC_LOCAL_TRACER_HH
+#define FLECSI_EXEC_LOCAL_TRACER_HH
 
 namespace flecsi::exec {
 
@@ -29,4 +32,4 @@ private:
 
 } // namespace flecsi::exec
 
-#endif // FLECSI_MPI_EXEC_TRACER_HH
+#endif // FLECSI_EXEC_LOCAL_TRACER_HH

@@ -1,5 +1,8 @@
 #include "flecsi/run/backend.hh"
 
+#include <chrono>
+#include <thread>
+
 namespace po = boost::program_options;
 
 namespace flecsi::run {
@@ -33,7 +36,7 @@ context::initialize_generic(int argc, char ** argv, bool dependent) {
   if(const auto p = std::getenv("FLECSI_SLEEP")) {
     const auto n = std::atoi(p);
     std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
-    sleep(n);
+    std::this_thread::sleep_for(std::chrono::seconds(n));
   }
 
   initialize_dependent_ = dependent;

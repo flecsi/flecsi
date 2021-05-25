@@ -122,7 +122,7 @@ Parallelization options
   compiler to enable language support for OpenMP.
 
 * **FLECSI_BACKEND [default: legion]** |br|
-  Specify the backend to use. Currently, *legion* and *mpi* are
+  Specify the backend to use. Currently, *legion*, *hpx*, and *mpi* are
   the only valid options.
 
 Documentation options

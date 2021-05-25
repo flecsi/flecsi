@@ -10,6 +10,9 @@
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/util/constant.hh"
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 namespace flecsi {
 namespace data {
 template<class>

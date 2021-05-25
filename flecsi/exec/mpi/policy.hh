@@ -8,8 +8,8 @@
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
-#include "flecsi/exec/mpi/tracer.hh"
 #include "flecsi/exec/prolog.hh"
+#include "flecsi/exec/tracer.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
 
@@ -29,26 +29,6 @@ namespace exec {
 /// Direct task execution.
 /// \ingroup execution
 /// \{
-namespace detail {
-
-// AA is what the user gives us when calling execute(), PP is what
-// the user defined function/task expects. PP may not be the same
-// as AA, for example, user pass a field_reference as an argument
-// to execute() but the task expects an data accessor as its formal
-// parameter. In this case replace_argument replaces a
-// field_reference with an accessor. This is done through various
-// specialization of the exec::detail::task_param<> template.
-template<class... PP, class... AA>
-auto
-replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  // Specify the template arguments explicitly to produce references to
-  // unchanged arguments.
-  return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
-    aa)))...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
-}
-
-} // namespace detail
-
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {

@@ -32,6 +32,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 
 #cmakedefine FLECSI_ENABLE_MPI
 #cmakedefine FLECSI_ENABLE_LEGION
+#cmakedefine FLECSI_ENABLE_HPX
 
 //----------------------------------------------------------------------------//
 // Enable Legion thread-local storage interface
@@ -146,5 +147,10 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
 
 /// \}
+
+#if defined(FLECSI_ENABLE_HPX)
+// include this as early as possible
+#include <hpx/config.hpp>
+#endif
 
 #endif

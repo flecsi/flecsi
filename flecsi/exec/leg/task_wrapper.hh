@@ -7,8 +7,8 @@
 #include <flecsi-config.h>
 
 #include "flecsi/exec/buffers.hh"
-#include "flecsi/exec/leg/bind_accessors.hh"
 #include "flecsi/exec/leg/future.hh"
+#include "flecsi/exec/local/bind_parameters.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/annotation.hh"
@@ -276,7 +276,7 @@ struct task_wrapper {
     auto tname = util::symbol<F>();
     const param_buffers buf(task_args, tname);
     (ann::rguard<ann::execute_task_bind>(tname),
-      bind_accessors<P>(runtime, context, regions, task->futures)(task_args));
+      bind_parameters<P>(task_args, runtime, context, regions, task->futures));
     return ann::rguard<ann::execute_task_user>(tname),
            apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
@@ -308,8 +308,7 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
     auto tname = util::symbol<F>();
     const param_buffers buf(*p, tname);
     (ann::rguard<ann::execute_task_bind>(tname)),
-      bind_accessors<LegionProcessor>(runtime, context, regions, task->futures)(
-        *p);
+      bind_parameters<LegionProcessor>(*p, runtime, context, regions, task->futures);
 
     // Set the MPI function and make the runtime active.
     if constexpr(std::is_void_v<RETURN>) {

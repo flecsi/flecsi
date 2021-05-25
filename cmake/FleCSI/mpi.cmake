@@ -11,4 +11,11 @@ macro(flecsi_enable_mpi target ENABLE_CXX_BINDINGS)
     target_link_libraries(${target} PUBLIC MPI::MPI_C)
     set(MPI_LANGUAGE C)
   endif()
+
+  if(MSVC)
+    target_compile_definitions(${target} PUBLIC
+      _CRT_SECURE_NO_WARNINGS
+      NOMINMAX)
+  endif()
+
 endmacro()

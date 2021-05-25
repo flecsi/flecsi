@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"
+#include "flecsi/util/array_ref.hh"
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>
@@ -118,7 +119,8 @@ public:
 } // namespace kok
 #endif
 
-struct policy_tag {};
+struct policy_tag {
+};
 
 struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)

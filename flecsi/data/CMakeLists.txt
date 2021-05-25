@@ -37,21 +37,31 @@ if(FLECSI_BACKEND STREQUAL "legion")
 elseif(FLECSI_BACKEND STREQUAL "mpi")
 
   set(data_HEADERS
+    local/copy.hh
+    local/policy.hh
+    local/storage.hh
     mpi/copy.hh
     mpi/policy.hh
     ${data_HEADERS}
   )
 
   set(data_SOURCES
+    local/copy.cc
     ${data_SOURCES}
   )
 
 elseif(FLECSI_BACKEND STREQUAL "hpx")
 
   set(data_HEADERS ${data_HEADERS}
+    local/copy.hh
+    local/policy.hh
+    local/storage.hh
+    hpx/copy.hh
+    hpx/policy.hh
   )
 
   set(data_SOURCES
+    local/copy.cc
     ${data_SOURCES}
   )
 

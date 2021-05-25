@@ -60,7 +60,7 @@ print_test(particle_field::accessor<ro> particle_t) {
     ss << std::endl;
   }
   flog(info) << ss.str() << std::endl;
-  std::cout << "before num_particle=" << particle_t.size()
+  std::cout << "before num_particle=" << particle_t.size() << ", "
             << "particle_cap=" << particle_t.capacity() << std::endl;
 }
 
@@ -77,8 +77,8 @@ insert_test(accessorm m,
       particle_t_m.insert(p_t);
     }
   }
-  std::cout << "after num_particle=" << particle_t_m.size()
-            << "particle_cap=" << particle_t_m.capacity()
+  std::cout << "after num_particle=" << particle_t_m.size() << ", "
+            << "particle_cap=" << particle_t_m.capacity() << ", "
             << "from rank=" << rank << std::endl;
 }
 

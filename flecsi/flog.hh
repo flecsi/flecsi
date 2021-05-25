@@ -22,8 +22,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <unistd.h>
-
 namespace flecsi {
 namespace log = flog;
 }
@@ -397,7 +395,9 @@ private:
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define FLOG_FLUSH_WAIT usleep(FLOG_PACKET_FLUSH_INTERVAL)
+#define FLOG_FLUSH_WAIT                                                        \
+  std::this_thread::sleep_for(                                                 \
+    std::chrono::microseconds(FLOG_PACKET_FLUSH_INTERVAL));
 
 #else // FLECSI_ENABLE_FLOG
 

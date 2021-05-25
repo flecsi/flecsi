@@ -8,7 +8,7 @@ Build & Install
 ***************
 
 FleCSI can be configured to run with different distributed-memory
-runtimes, including Legion and MPI.
+runtimes, including Legion, HPX, and MPI.
 FleCSI also has support for various
 fine-grained, node-level runtimes, including OpenMP, Kokkos, and
 the C++17 extensions for parallelism. Full documentation for FleCSI

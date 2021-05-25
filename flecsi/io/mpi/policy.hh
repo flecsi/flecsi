@@ -156,7 +156,7 @@ struct io_interface {
         int item_size = fp->type_size;
         std::string field_name = region_name + " field " + std::to_string(fid);
 
-        const auto data = isd.partition->get_raw_storage(fid, item_size);
+        const auto data = (*isd.partition)->get_raw_storage(fid, item_size);
         hsize_t size = data.size() / item_size;
         void * buffer = data.data();
         checkpoint_field<W>(

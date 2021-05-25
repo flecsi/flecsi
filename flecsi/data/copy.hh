@@ -12,6 +12,8 @@
 #include "flecsi/data/leg/copy.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 #include "flecsi/data/mpi/copy.hh"
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
+#include "flecsi/data/hpx/copy.hh"
 #endif
 
 /// \cond core
@@ -81,7 +83,7 @@ struct copy_engine {
   copy_engine(const points & src, const intervals & dest, field_id_t id);
 
   /// Copy one field from \a src to \a dest.
-  void operator()(field_id_t) const;
+  void operator()(field_id_t);
 };
 
 struct pointers : partition { // up to one source row number in each row
