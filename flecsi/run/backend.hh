@@ -34,7 +34,7 @@
 
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
 
-#include "hpx/context.hh"
+#include "flecsi/run/hpx/context.hh"
 
 #endif // FLECSI_RUNTIME_MODEL
 

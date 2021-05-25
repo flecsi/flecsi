@@ -31,7 +31,9 @@
 #include <unordered_set>
 #include <vector>
 
+#if !defined(_WIN32)
 #include <unistd.h>
+#endif
 
 #if defined(FLECSI_ENABLE_FLOG)
 
@@ -340,7 +342,9 @@ private:
   ::flecsi::log::message<flecsi::log::error>(__FILE__, __LINE__).format()      \
     << stream
 
-#define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
+#define __flog_internal_wait_on_flusher()                                      \
+  std::this_thread::sleep_for(                                                 \
+    std::chrono::microseconds(FLOG_PACKET_FLUSH_INTERVAL));
 
 #else // FLECSI_ENABLE_FLOG
 

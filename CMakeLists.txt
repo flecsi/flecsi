@@ -27,7 +27,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 project(FleCSI LANGUAGES CXX C)
 
 set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
+if(MSVC)
+  set(CMAKE_CXX_STANDARD 20)
+else()
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
 #------------------------------------------------------------------------------#
 # Compiler version requirements.
@@ -62,7 +66,7 @@ include(format)
 if(NOT FORMAT_ONLY)
 
   #----------------------------------------------------------------------------#
-  # Add option for setting entity id type 
+  # Add option for setting entity id type
   #----------------------------------------------------------------------------#
 
   set(FLECSI_ID_TYPE "std::uint32_t" CACHE STRING
@@ -114,14 +118,18 @@ if(NOT FORMAT_ONLY)
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
+    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
+    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
+    set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
+    set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
   endif()
 
   mark_as_advanced(ENABLE_MPI ENABLE_LEGION ENABLE_HPX)
@@ -318,9 +326,9 @@ if(NOT FORMAT_ONLY)
   # HPX extra.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
-    hpx_setup_target(FleCSI NONAMEPREFIX)
-  endif()
+#  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+#    hpx_setup_target(FleCSI NONAMEPREFIX)
+#  endif()
 
   #----------------------------------------------------------------------------#
   # Output configuration summary.

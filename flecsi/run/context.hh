@@ -29,12 +29,14 @@
 #include <Kokkos_Core.hpp>
 #endif
 
+#include <chrono>
 #include <cstddef>
 #include <cstdlib> // getenv
 #include <functional>
 #include <map>
 #include <set>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -156,7 +158,7 @@ struct context {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
       std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
-      sleep(n);
+      std::this_thread::sleep_for(std::chrono::seconds(n));
     }
 
     initialize_dependent_ = dependent;

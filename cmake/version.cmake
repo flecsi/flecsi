@@ -18,6 +18,11 @@ execute_process(
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+if(NOT version)
+  set(version ${FLECSI_VERSION})
+endif()
+
 string(REGEX REPLACE "\n$" "" version "${version}")
 
 # debug

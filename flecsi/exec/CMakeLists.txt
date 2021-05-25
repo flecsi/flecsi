@@ -50,6 +50,13 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
+  set(exec_HEADERS
+    ${exec_HEADERS}
+    hpx/future.hh
+    hpx/policy.hh
+    hpx/task_prologue.hh
+  )
+
 endif()
 
 #------------------------------------------------------------------------------#
