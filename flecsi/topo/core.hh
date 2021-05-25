@@ -96,7 +96,7 @@ struct specialization_base {
   using index_space = single_space;
   using index_spaces = util::constants<elements>;
   template<class B>
-  using interface = B;
+  using interface_ = B;
 
   specialization_base() = delete;
 };

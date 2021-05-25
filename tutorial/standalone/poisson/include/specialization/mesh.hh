@@ -47,7 +47,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface : B {
+  struct interface_ : B {
 
     template<axis A, range SE = interior>
     std::size_t size() {

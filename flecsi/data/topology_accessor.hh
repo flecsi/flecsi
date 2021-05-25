@@ -35,11 +35,11 @@ namespace data {
  */
 template<class T, Privileges Priv>
 struct topology_accessor
-  : T::template interface<typename T::core::template access<Priv>>,
+  : T::template interface_<typename T::core::template access<Priv>>,
     bind_tag,
     send_tag {
   using core = typename T::core::template access<Priv>;
-  static_assert(sizeof(typename T::template interface<core>) == sizeof(core),
+  static_assert(sizeof(typename T::template interface_<core>) == sizeof(core),
     "topology interfaces may not add data members");
 
   explicit topology_accessor() = default;

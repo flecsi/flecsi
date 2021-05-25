@@ -40,7 +40,7 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface : B {
+  struct interface_ : B {
 
     auto cells() {
       return B::template entities<index_space::cells>();

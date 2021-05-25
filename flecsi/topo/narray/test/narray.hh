@@ -99,7 +99,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface : B {
+  struct interface_ : B {
 
     template<axis A, range SE = logical>
     std::size_t size() {
