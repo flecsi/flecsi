@@ -39,19 +39,26 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 void
-modify1(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.entities<canon::cells>(), "modify1") {
-    p[c] += 1;
+reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+  auto res = reduceall(
+    c, up, t.entities<canon::cells>(), exec::fold::max, double, "reduce1") {
+    up = p[c];
   }; // forall
-} // modify
+
+  assert(res == 2.0);
+
+} // reduce1
 
 void
-modify2(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  flecsi::exec::parallel_for(
+reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
+  auto res = flecsi::exec::parallel_reduce<exec::fold::max, double>(
     t.entities<canon::cells>(),
-    KOKKOS_LAMBDA(auto c) { p[c] += 1; },
-    std::string("modify2"));
-} // modifyendif
+    KOKKOS_LAMBDA(auto c, double & up) { up = p[c]; },
+    std::string("reduce2"));
+
+  assert(res == 2.0);
+
+} // reduce2
 
 #endif
 
@@ -77,8 +84,8 @@ advance() {
   // In case of Kookos bult with GPU, default execution space will be GPU
   // We rely on Legion moving data between devices for the legion back-end and
   // UVM for the MPI back-end
-  execute<modify1, default_accelerator>(canonical, pf);
-  execute<modify2, default_accelerator>(canonical, pf);
+  execute<reduce1, default_accelerator>(canonical, pf);
+  execute<reduce2, default_accelerator>(canonical, pf);
 #endif
   // cpu_task
   execute<print>(canonical, pf);
