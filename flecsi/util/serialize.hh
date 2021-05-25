@@ -135,7 +135,7 @@ struct serial_container {
 template<class T>
 constexpr bool bit_assignable_v =
   std::is_trivially_copy_assignable_v<T> ||
-  std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>;
+  (std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>);
 template<class T>
 constexpr bool bit_copyable_v =
   std::is_default_constructible_v<T> && bit_assignable_v<T>;
