@@ -34,12 +34,15 @@ struct future<R> {
   }
 
   ~future() {
+    // 'fut' might not have a valid shared state due to the "default"
+    // construction used for converting future<R, index> to future<R, single>
+    // in the generic code.
     if(fut.valid())
       fut.wait();
   }
 
   // Note: flecsi::future needs to be copyable and passed by value to user tasks
-  // and .wait()/.get() called. See future.cc unit test for use case.
+  // and .wait()/.get() called. See future.cc unit test for such a use case.
   std::shared_future<R> fut;
 };
 
