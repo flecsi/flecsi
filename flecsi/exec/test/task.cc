@@ -72,6 +72,11 @@ mpi(int * p) {
 
 } // namespace hydro
 
+float
+mpi_test_make_params(float const & f) {
+  return f;
+}
+
 flog::devel_tag color_tag("color");
 
 namespace {
@@ -178,9 +183,13 @@ task_driver() {
     ASSERT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
     ASSERT_EQ(x, 1); // NB: MPI calls are synchronous
 
-    EXPECT_EQ(test<index_task>(exec::launch_domain{
-                processes() + 4 * (FLECSI_BACKEND != FLECSI_BACKEND_mpi)}),
-      0);
+    double mpi_d = 42.0;
+    ASSERT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
+
+    constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
+                              (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
+    EXPECT_EQ(
+      test<index_task>(exec::launch_domain{processes() + 4 * add_four}), 0);
 
     // Test reduction
     auto np = processes();

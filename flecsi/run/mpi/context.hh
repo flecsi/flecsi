@@ -10,7 +10,7 @@
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
 #endif
 
-#include "flecsi/run/context.hh"
+#include "flecsi/run/local/context.hh"
 
 #include <boost/program_options.hpp>
 #include <mpi.h>
@@ -23,32 +23,20 @@ namespace flecsi::run {
 /// \ingroup runtime
 /// \{
 
-struct context_t : context {
+struct context_t : local::context {
 
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
 
   /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  void finalize();
-
-  /*!
-    Documnetation for this interface is in the top-level context type.
+    Documentation for this interface is in the top-level context type.
    */
 
   int start(const std::function<int()> &);
 
   /*!
-    Documnetation for this interface is in the top-level context type.
+    Documentation for this interface is in the top-level context type.
    */
 
   Color process() const {
@@ -68,7 +56,7 @@ struct context_t : context {
   }
 
   /*
-    Documnetation for this interface is in the top-level context type.
+    Documentation for this interface is in the top-level context type.
    */
 
   static int task_depth() {
@@ -76,7 +64,7 @@ struct context_t : context {
   } // task_depth
 
   /*
-    Documnetation for this interface is in the top-level context type.
+    Documentation for this interface is in the top-level context type.
    */
 
   Color color() const {
@@ -84,7 +72,7 @@ struct context_t : context {
   }
 
   /*
-    Documnetation for this interface is in the top-level context type.
+    Documentation for this interface is in the top-level context type.
    */
 
   Color colors() const {

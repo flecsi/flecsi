@@ -13,6 +13,9 @@ set(exec_HEADERS
   task_attributes.hh
 )
 
+set(exec_SOURCES
+)
+
 if(FLECSI_BACKEND STREQUAL "legion")
 
   set(exec_HEADERS
@@ -24,6 +27,7 @@ if(FLECSI_BACKEND STREQUAL "legion")
     leg/task_prologue.hh
     leg/reduction_wrapper.hh
     leg/tracer.hh
+    local/bind_parameters.hh
   )
 
 elseif(FLECSI_BACKEND STREQUAL "mpi")
@@ -34,11 +38,21 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
     mpi/policy.hh
     mpi/reduction_wrapper.hh
     mpi/task_prologue.hh
-    mpi/tracer.hh
+    tracer.hh
   )
 
 elseif(FLECSI_BACKEND STREQUAL "hpx")
 
+  set(exec_HEADERS
+    ${exec_HEADERS}
+    hpx/bind_accessors.hh
+    hpx/future.hh
+    hpx/policy.hh
+    hpx/reduction_wrapper.hh
+    hpx/task_prologue.hh
+    local/bind_parameters.hh
+    tracer.hh
+  )
 endif()
 
 #------------------------------------------------------------------------------#
@@ -47,6 +61,15 @@ endif()
 
 set(exec_HEADERS
   ${exec_HEADERS}
+  PARENT_SCOPE
+)
+
+#------------------------------------------------------------------------------#
+# Export source list to parent scope.
+#------------------------------------------------------------------------------#
+
+set(exec_SOURCES
+  ${exec_SOURCES}
   PARENT_SCOPE
 )
 

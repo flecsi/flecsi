@@ -12,8 +12,8 @@ Release Notes
    and Fixed.
 
    Each such section discusses some subsequence of Build, Runtime, Data,
-   Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
-   Utilities, and Logging.
+   Execution, Topologies, Legion backend, MPI backend, HPX backend, On-node
+   parallelism, Utilities, and Logging.
 
 Changes in v2.2.0
 +++++++++++++++++
@@ -73,6 +73,10 @@ New features
 * MPI backend
 
   * The ``toc`` processor type is supported.
+
+* HPX backend
+
+  * FleCSI now supports HPX as a runtime backend.
 
 * On-node parallelism
 

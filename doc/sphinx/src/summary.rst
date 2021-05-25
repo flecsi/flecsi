@@ -29,6 +29,7 @@ The conceit is that code (in FleCSI and its clients) that is compatible with Leg
 The MPI backend uses MPI to transfer data; since MPI does not facilitate general allocation and task launches, these are implemented in terms of ordinary C++ constructs.
 It is not intended that it support every FleCSI feature, since some would require implementing a task system of complexity comparable to that of Legion.
 Neither is it required for using existing MPI-based libraries; Legion itself uses MPI and can be made compatible with them.
+The HPX backend also uses MPI for the data transfer; it however only supports trivial launch maps.
 
 Other components provide support for the above activities:
 

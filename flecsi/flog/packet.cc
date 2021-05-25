@@ -4,7 +4,24 @@
 #include "flecsi/flog/state.hh"
 #include "flecsi/flog/types.hh"
 
+#include <chrono>
+#include <thread>
+
 #if defined(FLECSI_ENABLE_FLOG)
+
+#if defined(_WIN32)
+#include <sys/timeb.h>
+int
+gettimeofday(struct timeval * t, void * timezone) {
+  struct _timeb timebuffer;
+  _ftime(&timebuffer);
+  t->tv_sec = timebuffer.time;
+  t->tv_usec = 1000 * timebuffer.millitm;
+  return 0;
+}
+#else
+#include <sys/time.h>
+#endif
 
 namespace flecsi {
 namespace flog {
@@ -13,7 +30,8 @@ namespace flog {
 void
 flush_packets() {
   while(state::instance().run_flusher()) {
-    usleep(FLOG_PACKET_FLUSH_INTERVAL);
+    std::this_thread::sleep_for(
+      std::chrono::microseconds(FLOG_PACKET_FLUSH_INTERVAL));
     std::lock_guard<std::mutex> guard(state::instance().packets_mutex());
 
     if(state::instance().serialized()) {

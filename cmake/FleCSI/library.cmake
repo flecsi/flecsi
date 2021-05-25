@@ -14,7 +14,9 @@ function(add_library_target target directory)
   # Setup argument options
   #----------------------------------------------------------------------------#
 
-  set(options)
+  set(options
+    STATIC
+  )
   set(one_value_args
     VERSION
     SOVERSION
@@ -90,21 +92,21 @@ function(add_library_target target directory)
   # This loop adds header and source files for each listed sub-directory
   # to the main header and source file lists.
   #----------------------------------------------------------------------------#
-  
+
   foreach(_SUBDIR ${_SUBDIRECTORIES})
- 
+
     if(NOT EXISTS ${_SOURCEDIR}/${_SUBDIR}/CMakeLists.txt)
       continue()
     endif()
-  
+
     message(STATUS "Adding source subdirectory '${_SUBDIR}' to ${target}")
-  
+
     unset(${_SUBDIR}_HEADERS)
     unset(${_SUBDIR}_SOURCES)
-  
+
     add_subdirectory(${directory}/${_SUBDIR})
     list(APPEND _SUBDIRS ${_SOURCEDIR}/${_SUBDIR})
-  
+
     foreach(_HEADER ${${_SUBDIR}_HEADERS})
       if(NOT EXISTS ${_SOURCEDIR}/${_SUBDIR}/${_HEADER})
         message(FATAL_ERROR
@@ -114,11 +116,11 @@ function(add_library_target target directory)
       list(APPEND _INSTALL_HEADERS ${_SUBDIR}/${_HEADER})
       list(APPEND _HEADERS ${_SOURCEDIR}/${_SUBDIR}/${_HEADER})
     endforeach()
-  
+
     foreach(_SOURCE ${${_SUBDIR}_SOURCES})
       list(APPEND _SOURCES ${_SOURCEDIR}/${_SUBDIR}/${_SOURCE})
     endforeach()
-  
+
   endforeach(_SUBDIR)
 
   #----------------------------------------------------------------------------#
@@ -151,7 +153,7 @@ function(add_library_target target directory)
   )
 
   target_include_directories(${target}
-    SYSTEM    
+    SYSTEM
     PUBLIC
       ${lib_INCLUDE_PUBLIC}
     PRIVATE

@@ -9,6 +9,9 @@
 
 #include <algorithm>
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 using namespace flecsi;
 
 struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
@@ -339,7 +342,9 @@ print(fixed_mesh::accessor<ro, ro, ro> m,
 
 static bool
 rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
-  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n);
+  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi &&
+                                     FLECSI_BACKEND != FLECSI_BACKEND_hpx)) %
+                        n);
   return false;
 }
 
