@@ -37,12 +37,15 @@ poisson::task::discrete_operator(mesh::accessor<ro> m,
   auto Au = m.mdspan<mesh::vertices>(Aua);
 
   const double w = 1.0 / m.dxdy();
+  const auto dx_over_dy = m.xdelta() / m.ydelta();
+  const auto dy_over_dx = m.ydelta() / m.xdelta();
 
   // clang-format off
   for(auto j : m.vertices<mesh::y_axis>()) {
     for(auto i : m.vertices<mesh::x_axis>()) {
-      Au[j][i] = w * (4.0 * u[j][i] -
-        u[j][i + 1] - u[j][i - 1] - u[j + 1][i] - u[j - 1][i]);
+      Au[j][i] = w * (2.0 * (dx_over_dy + dy_over_dx) * u[j][i] -
+                      dy_over_dx * (u[j][i + 1] + u[j][i - 1]) -
+                      dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
   } // for
   // clang-format on
