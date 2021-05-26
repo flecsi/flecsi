@@ -45,9 +45,6 @@ class Flecsi(CMakePackage):
     variant('kokkos', default=False,
             description='Enable Kokkos Support')
 
-    variant('cuda', default=False,
-             description='Enable CUDA Support')
-
     variant('openmp', default=False,
             description='Enable OpenMP Support')
 
@@ -75,7 +72,7 @@ class Flecsi(CMakePackage):
 
     # CMake
 
-    depends_on('cmake@3.12:3.18.4')
+    depends_on('cmake@3.12:')
 
     # Graphviz
 
@@ -93,6 +90,7 @@ class Flecsi(CMakePackage):
 
     depends_on('legion@ctrl-rep-10:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
+    depends_on('legion+shared',when='backend=legion +shared')
 
     # Metis
 
