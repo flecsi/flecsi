@@ -4,6 +4,7 @@
 #define FLECSI_DATA_LEG_COPY_HH
 
 #include "flecsi/data/backend.hh" // don't use policy.hh directly
+#include "flecsi/run/backend.hh"
 #include "flecsi/topo/color.hh"
 
 namespace flecsi::data {
