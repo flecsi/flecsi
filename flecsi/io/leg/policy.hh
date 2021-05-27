@@ -201,11 +201,14 @@ struct io_interface {
   inline void checkpoint_data(const std::string & file_name, bool attach_flag) {
     Legion::Runtime * runtime = Legion::Runtime::get_runtime();
     Legion::Context ctx = Legion::Runtime::get_context();
+    auto & context = run::context::instance();
+    auto & isd_vector = context.get_index_space_data();
 
     const auto task_args = util::serial_buffer([&](auto & p) {
-      util::serial_put(p, hdf5_region_vector.size());
-      for(auto & h : hdf5_region_vector)
-        util::serial_put(p, h.field_string_map);
+      util::serial_put(p, isd_vector.size());
+      for(auto & isd : isd_vector) {
+        util::serial_put(p, make_field_string_map(*(isd.fields)));
+      }
       util::serial_put(p, file_name);
     });
 
@@ -219,16 +222,18 @@ struct io_interface {
       Legion::ArgumentMap());
 
     int idx = 0;
-    for(auto & it : hdf5_region_vector) {
+    for(auto & isd : isd_vector) {
       checkpoint_launcher.add_region_requirement(
-        Legion::RegionRequirement(it.logical_partition,
+        Legion::RegionRequirement(isd.partition->logical_partition,
           0 /*projection ID*/,
           W ? READ_ONLY : WRITE_DISCARD,
           EXCLUSIVE,
-          it.logical_region));
+          isd.region->logical_region));
 
-      for(auto & it : it.field_string_map) {
-        checkpoint_launcher.region_requirements[idx].add_field(it.first);
+      for(auto & fi : *(isd.fields)) {
+        if(fi->name != "double")
+          continue;
+        checkpoint_launcher.region_requirements[idx].add_field(fi->fid);
       }
       idx++;
     }
@@ -236,18 +241,13 @@ struct io_interface {
     {
       log::devel_guard guard(io_tag);
       flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
-                       << file_name << " regions size "
-                       << hdf5_region_vector.size() << std::endl;
+                       << file_name << " regions size " << isd_vector.size()
+                       << std::endl;
     }
 
     Legion::FutureMap fumap =
       runtime->execute_index_space(ctx, checkpoint_launcher);
     fumap.wait_all_results();
-  }
-
-  template<class Topo>
-  void add_topology(data::topology_slot<Topo> & slot) {
-    add_regions<Topo>(slot, typename Topo::index_spaces());
   }
 
   inline void checkpoint_all_fields(const std::string & file_name,
@@ -261,9 +261,8 @@ struct io_interface {
   } // recover_data
 
 private:
-  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  legion_hdf5_region_t make_hdf5_region(typename Topo::slot & slot) {
-    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
+  FieldNames make_field_string_map(const data::fields & fs) {
+    std::map<std::string, unsigned> name_count;
     FieldNames fn;
     for(const auto p : fs) {
       // TODO:  handle types other than double
@@ -272,24 +271,12 @@ private:
       auto & i = name_count[p->name];
       fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
     }
-    return legion_hdf5_region_t{
-      (slot->template get_region<Index>().logical_region),
-      (slot->template get_partition<Index>(field_id_t()).logical_partition),
-      util::type<Topo>() + '[' + std::to_string(Index) + ']',
-      std::move(fn)};
-  }
-
-  template<class Topo, typename Topo::index_space... Index>
-  void add_regions(typename Topo::slot & slot,
-    util::constants<Index...> /* to deduce pack */) {
-    (hdf5_region_vector.push_back(make_hdf5_region<Topo, Index>(slot)), ...);
+    return fn;
   }
 
 private:
   data::leg::unique_index_space launch_space;
   data::leg::unique_index_partition launch_partition;
-  std::vector<legion_hdf5_region_t> hdf5_region_vector;
-  std::map<std::string, unsigned> name_count;
 };
 
 } // namespace io

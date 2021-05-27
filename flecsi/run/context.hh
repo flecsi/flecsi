@@ -19,6 +19,8 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/util/constant.hh"
+#include "flecsi/util/demangle.hh"
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -39,6 +41,30 @@
 
 namespace flecsi {
 
+// forward declarations
+namespace data {
+struct region;
+// TODO:  find a less ugly way to do this
+#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+namespace leg {
+struct partition_base;
+}
+using partition = leg::partition_base;
+#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+namespace mpi {
+struct partition;
+}
+using partition = mpi::partition;
+#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+// TODO:  figure out what goes here
+#endif
+} // namespace data
+
+namespace topo {
+struct global_base;
+struct structured_base;
+} // namespace topo
+
 inline log::devel_tag context_tag("context");
 
 namespace run {
@@ -54,6 +80,13 @@ enum status : int {
   command_line_error,
   error, // add specific error modes
 }; // initialization_codes
+
+struct index_space_data_t {
+  const data::region * region;
+  const data::partition * partition;
+  const data::fields * fields;
+  std::string index_type;
+};
 
 /*!
   The context type provides a high-level execution context interface that
@@ -485,6 +518,42 @@ struct context {
   } // get_field_info_store
 
   /*--------------------------------------------------------------------------*
+    Index space interface.
+   *--------------------------------------------------------------------------*/
+
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
+  index_space_data_t make_index_space_data(typename Topo::slot & slot) {
+    auto & fs = get_field_info_store<Topo, Index>();
+
+    return index_space_data_t{&(slot->template get_region<Index>()),
+      &(slot->template get_partition<Index>(field_id_t())),
+      &fs,
+      util::type<Topo>() + '[' + std::to_string(Index) + ']'};
+  }
+
+  template<class Topo, typename Topo::index_space... Index>
+  void add_index_spaces(typename Topo::slot & slot,
+    util::constants<Index...> /* to deduce pack */) {
+    (index_space_data_vector_.push_back(
+       make_index_space_data<Topo, Index>(slot)),
+      ...);
+  }
+
+  template<class Topo>
+  void add_topology(typename Topo::slot & slot) {
+    // global topology doesn't define get_partitions, so skip for now
+    constexpr bool is_global =
+      std::is_same_v<typename Topo::base, topo::global_base>;
+    if constexpr(!is_global) {
+      add_index_spaces<Topo>(slot, typename Topo::index_spaces());
+    }
+  }
+
+  const std::vector<index_space_data_t> & get_index_space_data() const {
+    return index_space_data_vector_;
+  }
+
+  /*--------------------------------------------------------------------------*
     Task Launch interface.
    *--------------------------------------------------------------------------*/
 
@@ -584,6 +653,9 @@ protected:
 
 private:
   std::vector<void (*)()> init_registry;
+
+  std::vector<index_space_data_t> index_space_data_vector_;
+
 }; // struct context
 
 } // namespace run
