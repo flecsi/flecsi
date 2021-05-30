@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>CMake Configuration Options &mdash; FleCSI invalid documentation</title>
+  <title>CMake Configuration Options &mdash; FleCSI 2.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,22 +24,20 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -65,7 +66,7 @@
             
             
               <div class="version">
-                Version: invalid
+                Version: 2.1
               </div>
             
           
@@ -82,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -96,13 +98,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -141,7 +146,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>CMake Configuration Options</li>
     
@@ -310,20 +315,6 @@ Specify the C++ type to use for the FleCSI counter interface.</p></li>
 Select the design-by-contract action.</p></li>
 <li><p><strong>FLECSI_DBC_REQUIRE [default: ON]</strong> <br />
 Enable DBC pre/post condition assertions.</p></li>
-<li><p><strong>FLECSI_ID_FBITS [default: 4]</strong> <br />
-Specify the number of bits to be used to represent id flags. This
-option affects the number of entities that can be represented on a
-FleCSI mesh type. The number of bits used to represent entities is
-62-FLECSI_ID_PBITS-FLECSI_ID_FBITS. With the current defaults there
-are 38 bits available to represent entities, i.e., up to 274877906944
-entities can be resolved.</p></li>
-<li><p><strong>FLECSI_ID_PBITS [default: 20]</strong> <br />
-Specify the number of bits to be used to represent partition ids. This
-option affects the number of entities that can be represented on a
-FleCSI mesh type. The number of bits used to represent entities is
-62-FLECSI_ID_PBITS-FLECSI_ID_FBITS. With the current defaults there
-are 38 bits available to represent entities, i.e., up to 274877906944
-entities can be resolved.</p></li>
 <li><p><strong>FLECSI_RUNTIME_MODEL [default: mpi]</strong> <br />
 Specify the low-level runtime model. Currently, <em>legion</em> and <em>mpi</em> are
 the only valid options.</p></li>
@@ -345,11 +336,19 @@ git describe.</p></li>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -360,7 +359,6 @@ git describe.</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

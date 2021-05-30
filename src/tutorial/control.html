@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Control Model &mdash; FleCSI invalid documentation</title>
+  <title>Control Model &mdash; FleCSI 2.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,26 +24,24 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Standalone" href="standalone.html" />
-    <link rel="prev" title="Runtime" href="runtime.html" /> 
+    <link rel="next" title="Execution Model" href="execution.html" />
+    <link rel="prev" title="Runtime Model" href="runtime.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: invalid
+                Version: 2.1
               </div>
             
           
@@ -84,6 +85,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -100,15 +102,22 @@
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#using-the-docker-container">Using the Docker Container</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Control Model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#control-flow-graphs-directed-acyclic-graphs">Control-Flow Graphs &amp; Directed Acyclic Graphs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#flecsibility">FleCSIbility</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-1-simple">Example 1: Simple</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-2-cycles">Example 2: Cycles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-3-dependencies">Example 3: Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-4-control-state">Example 4: Control State</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="topologies.html">Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="standalone.html">Standalone</a></li>
 </ul>
 </li>
@@ -116,13 +125,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -161,7 +173,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -306,9 +318,9 @@ simulation executes.</p>
 Because FleCSI does not force her to add actions to a static loop, she
 can instead put it in a source file that only needs to link to the
 control points definition of the application.
-She still has to build an application driver. However, if the
-application packages are primarily developed as libraries, this is easy
-to do.</p>
+She still has to build an application driver.
+However, if the application packages are primarily developed as
+libraries, this is easy to do.</p>
 <p>Without going into the specific details yet, inserting a new action <em>N</em>
 under <em>Control Point 2</em> would look something like this:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">actionN</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">two</span><span class="o">&gt;</span> <span class="n">action_n</span><span class="p">;</span>
@@ -359,12 +371,13 @@ define the substance of the simulation.</p>
 <div class="section" id="example-1-simple">
 <h2>Example 1: Simple<a class="headerlink" href="#example-1-simple" title="Permalink to this headline">¶</a></h2>
 <p>This example will show you how to construct the simplest non-trivial
-control model that might make sense for an application. <a class="reference internal" href="#simple"><span class="std std-numref">Fig. 5</span></a>
-shows the control model, which has three control points (<em>initialize</em>,
-<em>advance</em>, and <em>finalize</em>) with one action under each. This is still not
-a very useful example because it lacks cycles (introduced in the next
-example). However, it will serve to introduce the definition of a
-control model from the core FleCSI type.</p>
+control model that might make sense for an application.
+<a class="reference internal" href="#simple"><span class="std std-numref">Fig. 5</span></a> shows the control model, which has three control points
+(<em>initialize</em>, <em>advance</em>, and <em>finalize</em>) with one action under each.
+This is still not a very useful example because it lacks cycles
+(introduced in the next example).
+However, it will serve to introduce the definition of a control model
+from the core FleCSI type.</p>
 <div class="figure align-center" id="id5">
 <span id="simple"></span><a class="reference internal image-reference" href="../../_images/simple.png"><img alt="../../_images/simple.png" src="../../_images/simple.png" style="width: 60%;" /></a>
 <p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Control Model for Example 1.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
@@ -393,7 +406,10 @@ these, we use an enumeration. Consider the following from
 </pre></div>
 </div>
 <p>The name of the enumeration (<em>cp</em>) is arbitrary.
-However, it is useful to make it concise because it will be used in the application code (This is not precisely true because the specialization developer may choose to define helper types for registering actions, but it is true for this example.)
+However, it is useful to make it concise because it will be used in the
+application code (This is not precisely true because the specialization
+developer may choose to define helper types for registering actions, but
+it is true for this example.)
 At any rate, the name is not important because it will be used as a type
 definition in our control policy.</p>
 <p>In addition to the enumeration itself, we also define an operator
@@ -426,98 +442,99 @@ static array of string literals.
 The labels are used to create visualizations of the control model.</p>
 <p>The following defines the actual control policy (We will discuss the
 individual parts.):</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  Control policy for this example. The control policy primarily defines types
-  that are used by the core control type to define the control-flow model for
-  the program. For this simple example, the policy captures the user-defined
-  enumeration of control-points identifiers, defines an empty node policy, and
-  defines the order of control point execution using std::tuple.
- */
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">  Control policy for this example. The control policy primarily defines types</span>
+<span class="cm">  that are used by the core control type to define the control-flow model for</span>
+<span class="cm">  the program. For this simple example, the policy captures the user-defined</span>
+<span class="cm">  enumeration of control-points identifiers, defines an empty node policy, and</span>
+<span class="cm">  defines the order of control point execution using std::tuple.</span>
+<span class="cm"> */</span>
 
-struct control_policy {
+<span class="k">struct</span> <span class="n">control_policy</span> <span class="p">{</span>
 
-  /*
-    Capture the control points enumeration type. This type is used in the
-    control policy interface whenever a control point is required.
-   */
+  <span class="cm">/*</span>
+<span class="cm">    Capture the control points enumeration type. This type is used in the</span>
+<span class="cm">    control policy interface whenever a control point is required.</span>
+<span class="cm">   */</span>
 
-  using control_points_enum = cp;
+  <span class="k">using</span> <span class="n">control_points_enum</span> <span class="o">=</span> <span class="n">cp</span><span class="p">;</span>
 
-  /*
-    The actions that are added under each control point are used to form a
-    directed acyclic graph (DAG). The node_policy type allows the user to add
-    interfaces and data that are available from, and are carried with the
-    action. A more complex example will demonstrate this capability.
-   */
+  <span class="cm">/*</span>
+<span class="cm">    The actions that are added under each control point are used to form a</span>
+<span class="cm">    directed acyclic graph (DAG). The node_policy type allows the user to add</span>
+<span class="cm">    interfaces and data that are available from, and are carried with the</span>
+<span class="cm">    action. A more complex example will demonstrate this capability.</span>
+<span class="cm">   */</span>
 
-  struct node_policy {};
+  <span class="k">struct</span> <span class="n">node_policy</span> <span class="p">{};</span>
 
-  /*
-    This is a convenience type definition that provides typeification of an
-    integer value.
-   */
+  <span class="cm">/*</span>
+<span class="cm">    This is a convenience type definition that provides typeification of an</span>
+<span class="cm">    integer value.</span>
+<span class="cm">   */</span>
 
-  template&lt;auto CP&gt;
-  using control_point = flecsi::control_point&lt;CP&gt;;
+  <span class="k">template</span><span class="o">&lt;</span><span class="k">auto</span> <span class="n">CP</span><span class="o">&gt;</span>
+  <span class="k">using</span> <span class="n">control_point</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control_point</span><span class="o">&lt;</span><span class="n">CP</span><span class="o">&gt;</span><span class="p">;</span>
 
-  /*
-    The control_points tuple defines the actual control points as typeified
-    integers derived from the control point identifiers from the user-defined
-    enumeration.
-   */
+  <span class="cm">/*</span>
+<span class="cm">    The control_points tuple defines the actual control points as typeified</span>
+<span class="cm">    integers derived from the control point identifiers from the user-defined</span>
+<span class="cm">    enumeration.</span>
+<span class="cm">   */</span>
 
-  using control_points = std::tuple&lt;control_point&lt;cp::initialize&gt;,
-    control_point&lt;cp::advance&gt;,
-    control_point&lt;cp::finalize&gt;&gt;;
-};
-
-/*
+  <span class="k">using</span> <span class="n">control_points</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>The first type definition in the policy captures the control points
-enumeration type. This type is used in the control interface for
-declaring actions:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    Capture the control points enumeration type. This type is used in the
-    control policy interface whenever a control point is required.
-   */
+enumeration type.
+This type is used in the control interface for declaring actions:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="cm">/*</span>
+<span class="cm">    Capture the control points enumeration type. This type is used in the</span>
+<span class="cm">    control policy interface whenever a control point is required.</span>
+<span class="cm">   */</span>
 
-  using control_points_enum = cp;
-
+  <span class="k">using</span> <span class="n">control_points_enum</span> <span class="o">=</span> <span class="n">cp</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The next type is the <em>node_policy</em>. Each set of actions under a control
-point forms a DAG. Specifying a non-trivial node policy allows the user
-to add additional interfaces and data to an action. In this simple
-example, the node type is empty:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    The actions that are added under each control point are used to form a
-    directed acyclic graph (DAG). The node_policy type allows the user to add
-    interfaces and data that are available from, and are carried with the
-    action. A more complex example will demonstrate this capability.
-   */
+point forms a DAG.
+Specifying a non-trivial node policy allows the user to add additional
+interfaces and data to an action.
+In this simple example, the node type is empty:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="cm">/*</span>
+<span class="cm">    The actions that are added under each control point are used to form a</span>
+<span class="cm">    directed acyclic graph (DAG). The node_policy type allows the user to add</span>
+<span class="cm">    interfaces and data that are available from, and are carried with the</span>
+<span class="cm">    action. A more complex example will demonstrate this capability.</span>
+<span class="cm">   */</span>
 
-  struct node_policy {};
-
+  <span class="k">struct</span> <span class="n">node_policy</span> <span class="p">{};</span>
 </pre></div>
 </div>
 <p>The actual control points are defined as a std::tuple of the typeified
-integer-valued control points enumeration. The templated <em>control_point</em>
-definition is a convenience interface for typeifying the control points:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    This is a convenience type definition that provides typeification of an
-    integer value.
-   */
+integer-valued control points enumeration.
+The templated <em>control_point</em> definition is a convenience interface for
+typeifying the control points:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="cm">/*</span>
+<span class="cm">    This is a convenience type definition that provides typeification of an</span>
+<span class="cm">    integer value.</span>
+<span class="cm">   */</span>
 
-  template&lt;auto CP&gt;
-  using control_point = flecsi::control_point&lt;CP&gt;;
+  <span class="k">template</span><span class="o">&lt;</span><span class="k">auto</span> <span class="n">CP</span><span class="o">&gt;</span>
+  <span class="k">using</span> <span class="n">control_point</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control_point</span><span class="o">&lt;</span><span class="n">CP</span><span class="o">&gt;</span><span class="p">;</span>
 
-  /*
-    The control_points tuple defines the actual control points as typeified
-    integers derived from the control point identifiers from the user-defined
-    enumeration.
-   */
+  <span class="cm">/*</span>
+<span class="cm">    The control_points tuple defines the actual control points as typeified</span>
+<span class="cm">    integers derived from the control point identifiers from the user-defined</span>
+<span class="cm">    enumeration.</span>
+<span class="cm">   */</span>
 
-  using control_points = std::tuple&lt;control_point&lt;cp::initialize&gt;,
-    control_point&lt;cp::advance&gt;,
-    control_point&lt;cp::finalize&gt;&gt;;
-};
+  <span class="k">using</span> <span class="n">control_points</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>In the above <em>control_points</em> tuple definition, the order is important,
@@ -525,20 +542,21 @@ as it is the order in which the control points will be sorted, and thus
 executed.</p>
 <p>Finally, after the control policy, we define a fully-qualified control
 type. This is the control type that we will use in our example application.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  Define a fully-qualified control type for the end user.
- */
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">  Define a fully-qualified control type for the end user.</span>
+<span class="cm"> */</span>
 
-using control = flecsi::control&lt;control_policy&gt;;
-
+<span class="k">using</span> <span class="n">control</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control</span><span class="o">&lt;</span><span class="n">control_policy</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>That’s the entire control policy for this example. Without comments, it
-is about 20 lines of code. Let’s see how we use it!</p>
+<p>That’s the entire control policy for this example.
+Without comments, it is about 20 lines of code. Let’s see how we use it!</p>
 </div>
 <div class="section" id="using-the-control-interface">
 <h3>Using the Control Interface<a class="headerlink" href="#using-the-control-interface" title="Permalink to this headline">¶</a></h3>
-<p>The source for this example is in <em>tutorial/2-control/1-simple.cc</em>. Much
-of the actual main function is the same as in the previous examples.
+<p>The source for this example is in <em>tutorial/2-control/1-simple.cc</em>.
+Much of the actual main function is the same as in the previous
+examples.
 Let’s first consider the parts that are different.</p>
 <p>As referenced earlier, the control type adds some command-line options to
 the program.
@@ -557,17 +575,11 @@ otherwise:</p>
 <span class="cm">    specified on the command line, and handles them appropriately.</span>
 <span class="cm">   */</span>
 
-  <span class="n">status</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">check_options</span><span class="p">();</span>
-
-  <span class="cm">/*</span>
-<span class="cm">    Check the return after control-model checks. Because this is after</span>
-<span class="cm">    initialization, we need to call finalize if the program is exiting.</span>
-<span class="cm">   */</span>
+  <span class="n">status</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
 
   <span class="k">if</span><span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">status</span> <span class="o">==</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">control</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">status</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// if</span>
+    <span class="k">return</span> <span class="n">status</span> <span class="o">&lt;</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">status</span><span class="p">;</span>
+  <span class="p">}</span>
 </pre></div>
 </div>
 <p>The last part of the main function is not really different from previous
@@ -587,9 +599,9 @@ of the cycles, and actions registered on the control model:</p>
 <p>Now that we have defined the control model, and added it to our runtime
 setup, the only thing that remains is to add some actions under the
 control points.</p>
-<p>As stated, actions are nothing more than C/C++ functions. For this
-example, there are three actions, which all have the same form. We list
-only the <em>initialize</em> function here:</p>
+<p>As stated, actions are nothing more than C/C++ functions.
+For this example, there are three actions, which all have the same form.
+We list only the <em>initialize</em> function here:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">  Function definition of an initialize action.</span>
 <span class="cm"> */</span>
@@ -652,8 +664,8 @@ a nice looking PDF of the graph, try:</p>
 <div class="section" id="example-2-cycles">
 <h2>Example 2: Cycles<a class="headerlink" href="#example-2-cycles" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="#cycle"><span class="std std-numref">Fig. 6</span></a> shows a slightly more realistic control model that
-cycles over <em>advance</em> and <em>analyze</em> control points. This example
-demonstrates how to add a cycle.</p>
+cycles over <em>advance</em> and <em>analyze</em> control points.
+This example demonstrates how to add a cycle.</p>
 <div class="figure align-center" id="id6">
 <span id="cycle"></span><a class="reference internal image-reference" href="../../_images/cycle.png"><img alt="../../_images/cycle.png" src="../../_images/cycle.png" style="width: 60%;" /></a>
 <p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">Example FleCSI Control Model with Cycle.</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
@@ -683,7 +695,7 @@ core FleCSI cycle type:</p>
 <span class="cm">    addition of a predicate function that controls termination of the cycle.</span>
 <span class="cm">   */</span>
 
-  <span class="k">using</span> <span class="n">cycle</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">cycle</span><span class="o">&lt;</span><span class="n">cycle_control</span><span class="p">,</span>
+  <span class="k">using</span> <span class="n">cycle</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">cycle</span><span class="o">&lt;</span><span class="n">cycle_control</span><span class="p">,</span>
     <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="n">control_point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">analyze</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 </pre></div>
@@ -709,13 +721,15 @@ complex, e.g., invoking a reduction to compute a variable time step.</p>
 One important aspect of this pattern is that the <em>host</em> type (in this
 case the core control type) inherits from the <em>policy</em> type (the
 <em>control_policy</em> type). This allows the specialization to add data
-members that will be carried with the control instance.</p>
+members that will be carried with the control instance. This is
+covered in detail in <a class="reference internal" href="#tut-cm-state"><span class="std std-ref">Example 4: Control State</span></a> below.</p>
 </div>
 <p>Notice that the <em>cycle_control</em> function is static, and uses the
 <em>instance</em> method to access the single instance of the control object.
 The singleton instance can access any data members that have been added
-to the policy. In this case, we use it to access the <em>step_</em> data member
-that keeps track of which simulation step we are on:</p>
+to the policy.
+In this case, we use it to access the <em>step_</em> data member that keeps
+track of which simulation step we are on:</p>
 <p>Although this example is simple, in general, we can use this design
 pattern to access simulation control state variables.</p>
 <p>The last piece needed to add the cycle is the actual definition of the
@@ -738,7 +752,7 @@ main function for this example is the same.</p>
 enumeration values and cycles, such that cycles can be nested. It
 seems unlikely that most HPC simulations would need more than a couple
 of levels of cycling. However, FleCSI supports arbitrary cycle depths.
-<a class="reference internal" href="standalone.html#subcycle"><span class="std std-numref">Fig. 8</span></a> shows a sub-cycling control model. The details of
+<a class="reference internal" href="standalone.html#subcycle"><span class="std std-numref">Fig. 9</span></a> shows a sub-cycling control model. The details of
 the program to generate this figure are not discussed here. However,
 you can view the source in <em>tutorial/2-control/2-subcycle.hh</em>.</p>
 </div>
@@ -746,6 +760,265 @@ you can view the source in <em>tutorial/2-control/2-subcycle.hh</em>.</p>
 <span id="subcycle"></span><a class="reference internal image-reference" href="../../_images/subcycle.png"><img alt="../../_images/subcycle.png" src="../../_images/subcycle.png" style="width: 60%;" /></a>
 <p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">Example FleCSI Control Model with Sub-cycles.</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </div>
+</div>
+<div class="section" id="example-3-dependencies">
+<h2>Example 3: Dependencies<a class="headerlink" href="#example-3-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>The code for this example provides a more detailed demonstration of
+adding dependencies between actions.
+In particular, it demonstrates adding dependencies after-the-fact.
+The resulting control model is shown in <a class="reference internal" href="#dependencies"><span class="std std-numref">Fig. 8</span></a>.</p>
+<div class="figure align-center" id="id8">
+<span id="dependencies"></span><a class="reference internal image-reference" href="../../_images/dependencies.png"><img alt="../../_images/dependencies.png" src="../../_images/dependencies.png" style="width: 60%;" /></a>
+<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Example Action Dependencies.</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</div>
+<p>For the most part, this example is self-explanatory.
+Several actions are defined for the two control points in
+<em>3-actions.hh</em>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">  Register several actions under control point one.</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span>
+<span class="nf">package_a</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_a&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_a</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp1</span><span class="o">&gt;</span> <span class="n">package_a_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">package_b</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_b&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_b</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp1</span><span class="o">&gt;</span> <span class="n">package_b_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">package_c</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_c&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_c</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp1</span><span class="o">&gt;</span> <span class="n">package_c_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">package_d</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_d&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_d</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp1</span><span class="o">&gt;</span> <span class="n">package_d_action</span><span class="p">;</span>
+
+<span class="cm">/*</span>
+<span class="cm">  Register several actions under control point one.</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span>
+<span class="nf">package_e</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_e&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_e</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp2</span><span class="o">&gt;</span> <span class="n">package_e_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">package_f</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_f&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_f</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp2</span><span class="o">&gt;</span> <span class="n">package_f_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">package_g</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;package_g&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">package_g</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">cp2</span><span class="o">&gt;</span> <span class="n">package_g_action</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Additionally, several dependencies are defined in the same file:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">  Add dependencies a -&gt; b, b -&gt; d, and a -&gt; d, i.e.,</span>
+<span class="cm">  b depends on a, d depends on b, and d depends on a.</span>
+<span class="cm"> */</span>
+
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_ba</span> <span class="o">=</span> <span class="n">package_b_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_a_action</span><span class="p">);</span>
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_db</span> <span class="o">=</span> <span class="n">package_d_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_b_action</span><span class="p">);</span>
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_da</span> <span class="o">=</span> <span class="n">package_d_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_a_action</span><span class="p">);</span>
+
+<span class="cm">/*</span>
+<span class="cm">  Add dependencies e -&gt; f, e -&gt; g, and f -&gt; g, i.e., f depends on e,</span>
+<span class="cm">  g depends on e, and g depends on f.</span>
+<span class="cm"> */</span>
+
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_fe</span> <span class="o">=</span> <span class="n">package_f_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_e_action</span><span class="p">);</span>
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_ge</span> <span class="o">=</span> <span class="n">package_g_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_e_action</span><span class="p">);</span>
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_gf</span> <span class="o">=</span> <span class="n">package_g_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_f_action</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Finally, the additional dependencies from c to a, and from d to c, are
+added in the <em>3-dependencies.cc</em> file:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">  Add dependencies a -&gt; c, and c -&gt; d. These dependencies are added here to</span>
+<span class="cm">  demonstrate that action relationships do not have to be defined in a single</span>
+<span class="cm">  source file.</span>
+<span class="cm"> */</span>
+
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_ca</span> <span class="o">=</span> <span class="n">package_c_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_a_action</span><span class="p">);</span>
+<span class="k">const</span> <span class="k">auto</span> <span class="n">dep_dc</span> <span class="o">=</span> <span class="n">package_d_action</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">package_c_action</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The point of defining the dependencies involving c in a different file
+is to demonstrate that dependencies do not need to be collocated,
+provided that they honor normal C++ declaration rules.</p>
+</div>
+<div class="section" id="example-4-control-state">
+<span id="tut-cm-state"></span><h2>Example 4: Control State<a class="headerlink" href="#example-4-control-state" title="Permalink to this headline">¶</a></h2>
+<p>The design of the core control type <code class="docutils literal notranslate"><span class="pre">flecsi::run::control</span></code> allows users
+to add data members that will be carried with the control instance, and
+are accessible to the user through the <code class="docutils literal notranslate"><span class="pre">state()</span></code> method:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">ControlPolicy</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="nl">control</span> <span class="p">:</span> <span class="n">ControlPolicy</span> <span class="p">{</span>
+
+  <span class="c1">// ...</span>
+
+  <span class="n">ControlPolicy</span> <span class="o">&amp;</span> <span class="n">state</span><span class="p">();</span>
+
+  <span class="c1">// ...</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>This means that, if you have defined your control policy with interface
+methods and data members, they can be accessed like:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">state</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">();</span>
+<span class="n">state</span><span class="p">.</span><span class="n">my_method</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Let’s consider a concrete example of this. In
+<em>tutorial/2-control/4-state.hh</em>, we define a control policy with several
+methods, and some private data:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="kt">size_t</span> <span class="o">&amp;</span> <span class="n">step</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">step_</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">size_t</span> <span class="o">&amp;</span> <span class="n">steps</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">steps_</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">void</span> <span class="n">allocate_values</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">values_</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">size_t</span><span class="p">[</span><span class="n">size</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="kt">void</span> <span class="n">deallocate_values</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">delete</span><span class="p">[]</span> <span class="n">values_</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="n">values</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">values_</span><span class="p">;</span>
+  <span class="p">}</span>
+
+<span class="k">private</span><span class="o">:</span>
+  <span class="cm">/*--------------------------------------------------------------------------*</span>
+<span class="cm">    State members</span>
+<span class="cm">   *--------------------------------------------------------------------------*/</span>
+
+  <span class="kt">size_t</span> <span class="n">step_</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+  <span class="kt">size_t</span> <span class="n">steps_</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="n">values_</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">using</span> <span class="n">control</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control</span><span class="o">&lt;</span><span class="n">control_policy</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Although this example demonstrates the ability to allocate heap data
+through the control state interface, this approach must not be used
+to allocate data that will be modified by a task during the
+simulation, i.e., control state data should only be used to
+implement the control logic of the run, and should be treated as
+globally constant in the context of task execution.
+The FleCSI data model provides other mechanisms for creating
+and managing state data, which are documented in the <a class="reference internal" href="parallel.html#tut-dm"><span class="std std-ref">Distributed and shared memory parallelism</span></a>
+section of this tutorial.</p>
+</div>
+<p>These interfaces are used to implement the example actions in
+<em>tutorial/2-control/4-state.cc</em>. The basic structure of the example
+allocates a simple array, initializes the values, modifies the values,
+and frees the data. Again, the code is self-explanatory:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
+<span class="nf">allocate</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;allocate&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="cm">/*</span>
+<span class="cm">    Call a method of the control policy to allocate an array of size 10.</span>
+<span class="cm">   */</span>
+
+  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">allocate_values</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">allocate</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">allocate</span><span class="o">&gt;</span> <span class="n">allocate_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">initialize</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;initialize&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="cm">/*</span>
+<span class="cm">    Access the array through the &#39;values()&#39; method, and initialize.</span>
+<span class="cm">   */</span>
+
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
+
+  <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
+  <span class="p">}</span> <span class="c1">// for</span>
+
+  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">steps</span><span class="p">()</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">initialize</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span> <span class="n">initialize_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="n">ss</span><span class="p">;</span>
+
+  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;advance &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">step</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="cm">/*</span>
+<span class="cm">    Access the array through the &#39;values()&#39; method, and modify.</span>
+<span class="cm">   */</span>
+
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
+
+  <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
+    <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span> <span class="c1">// for</span>
+
+  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span> <span class="n">advance_action</span><span class="p">;</span>
+
+<span class="kt">int</span>
+<span class="nf">finalize</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;finalize&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="cm">/*</span>
+<span class="cm">    Deallocate the array using the control policy interface.</span>
+<span class="cm">   */</span>
+
+  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">deallocate_values</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">finalize</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;</span> <span class="n">finalize_action</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The primary take-away from this example should be that users can define
+arbitrary C++ interfaces and data, provided that they are not modified
+by a task. Modifying these data in FleCSI actions (outside of a task) is
+fine.</p>
 </div>
 </div>
 
@@ -757,10 +1030,10 @@ you can view the source in <em>tutorial/2-control/2-subcycle.hh</em>.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="standalone.html" class="btn btn-neutral float-right" title="Standalone" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="execution.html" class="btn btn-neutral float-right" title="Execution Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="runtime.html" class="btn btn-neutral float-left" title="Runtime" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="runtime.html" class="btn btn-neutral float-left" title="Runtime Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -769,11 +1042,19 @@ you can view the source in <em>tutorial/2-control/2-subcycle.hh</em>.</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -784,7 +1065,6 @@ you can view the source in <em>tutorial/2-control/2-subcycle.hh</em>.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

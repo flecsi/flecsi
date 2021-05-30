@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Runtime &mdash; FleCSI invalid documentation</title>
+  <title>Runtime Model &mdash; FleCSI 2.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,22 +24,20 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Control Model" href="control.html" />
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: invalid
+                Version: 2.1
               </div>
             
           
@@ -84,6 +85,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -100,13 +102,19 @@
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#using-the-docker-container">Using the Docker Container</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Runtime</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Runtime Model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#example-1-minimal">Example 1: Minimal</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-2-program-options">Example 2: Program Options</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-3-flog-flecsi-logging-utility">Example 3: FLOG (FleCSI Logging Utility)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-4-caliper-annotations">Example 4: Caliper Annotations</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="topologies.html">Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="standalone.html">Standalone</a></li>
 </ul>
 </li>
@@ -114,13 +122,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -159,11 +170,11 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
-      <li>Runtime</li>
+      <li>Runtime Model</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -182,8 +193,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="runtime">
-<h1>Runtime<a class="headerlink" href="#runtime" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="runtime-model">
+<h1>Runtime Model<a class="headerlink" href="#runtime-model" title="Permalink to this headline">¶</a></h1>
 <p>Using FleCSI requires proper initialization and configuration of the
 FleCSI runtime. These examples illustrate some of the basic steps and
 options that are available.</p>
@@ -230,7 +241,7 @@ action to print out <em>Hello World</em>. Code for this example can be found in
 <span class="cp">#include</span> <span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
 
 <span class="cm">/*</span>
-<span class="cm">  The top-level action can be any C/C++ function that takes (int, char**) and</span>
+<span class="cm">  The top-level action can be any C/C++ function that takes no arguments and</span>
 <span class="cm">  returns an int.</span>
 
 <span class="cm">  In this simple example, we only print a message to indicate that the</span>
@@ -329,7 +340,7 @@ options will be in a <em>Car Options</em> section, while the purpose will be
 under the <em>Ride Options</em> section. The passenger list is a positional
 argument to the program. The help output for the entire program looks
 like this:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: program_options &lt;passenger-list&gt;</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: runtime-program_options &lt;passenger-list&gt;</span>
 
 <span class="go">Positional Options:</span>
 <span class="go">  passenger-list The list of passengers for this trip [.txt].</span>
@@ -349,24 +360,20 @@ like this:</p>
 <span class="go">  --lightspeed                          Travel at the speed of light.</span>
 
 <span class="go">FleCSI Options:</span>
+<span class="go">  --backend-args arg             Pass arguments to the runtime backend. The</span>
+<span class="go">                                 single argument is a quoted string of</span>
+<span class="go">                                 backend-specific options.</span>
 <span class="go">  --flog-tags arg (=all)         Enable the specified output tags, e.g.,</span>
-<span class="go">                                 --flog-tags=tag1,tag2.</span>
+<span class="go">                                 --flog-tags=tag1,tag2. Use &#39;--flog-tags=all&#39;</span>
+<span class="go">                                 to show all output, and</span>
+<span class="go">                                 &#39;--flog-tags=unscoped&#39; to show only unguarded</span>
+<span class="go">                                 output.</span>
 <span class="go">  --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing &#39;-1&#39; will strip</span>
 <span class="go">                                 any additional decorations added by flog and</span>
 <span class="go">                                 will only output the user&#39;s message.</span>
-<span class="go">  --flog-process arg (=-1)       Restrict output to the specified process id.</span>
-
-<span class="go">Available FLOG Tags (FleCSI Logging Utility):</span>
-<span class="go">  execution</span>
-<span class="go">  task_wrapper</span>
-<span class="go">  legion_mapper</span>
-<span class="go">  unbind_accessors</span>
-<span class="go">  topologies</span>
-<span class="go">  reduction_wrapper</span>
-<span class="go">  context</span>
-<span class="go">  registration</span>
-<span class="go">  bind_accessors</span>
-<span class="go">  task_prologue</span>
+<span class="go">  --flog-process arg (=0)        Restrict output to the specified process id.</span>
+<span class="go">                                 The default is process 0. Use</span>
+<span class="go">                                 &#39;--flog_process=-1&#39; to enable all processes.</span>
 </pre></div>
 </div>
 <p>This shows the program usage, the basic options, e.g., <code class="docutils literal notranslate"><span class="pre">--help</span></code>, the
@@ -397,9 +404,11 @@ this option, we use the following declaration:</p>
   <span class="s">&quot;level,l&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="mi">1</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="kt">int</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">11</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">11</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;value(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 </pre></div>
 </div>
@@ -429,7 +438,7 @@ passed at invocation. The implicit value is used if the option is
 passed without a value. If zero is specified, the option does not take
 an argument, and an implicit value must be provided. If multi is
 specified, the option takes multiple values.</p></li>
-<li><p><em>check ([](flecsi::any const &amp;…)</em> <br />
+<li><p><em>check ([](flecsi::any const &amp;, std::stringstream &amp; ss…)</em> <br />
 An optional, user-defined predicate to validate the value passed by
 the user.</p></li>
 </ul>
@@ -445,9 +454,11 @@ value type:</p>
   <span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="s">&quot;manual&quot;</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;manual&quot;</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;automatic&quot;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;manual&quot;</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;automatic&quot;</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;option(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) is invalid&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 </pre></div>
 </div>
@@ -498,9 +509,11 @@ code:</p>
   <span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="kt">size_t</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="n">personal</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="n">business</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="n">personal</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="n">business</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;value(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) is invalid&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 </pre></div>
 </div>
@@ -534,9 +547,11 @@ argument to the program itself:</p>
 <span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
   <span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
   <span class="mi">1</span><span class="p">,</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;file(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 </pre></div>
 </div>
@@ -640,9 +655,11 @@ is required), and can be accessed using the <em>value()</em> method:</p>
   <span class="s">&quot;level,l&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="mi">1</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="kt">int</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">11</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">11</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;value(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 
 <span class="cm">/*</span>
@@ -655,9 +672,11 @@ is required), and can be accessed using the <em>value()</em> method:</p>
   <span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="s">&quot;manual&quot;</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;manual&quot;</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;automatic&quot;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;manual&quot;</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&quot;automatic&quot;</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;option(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) is invalid&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 
 <span class="cm">/*</span>
@@ -685,9 +704,11 @@ is required), and can be accessed using the <em>value()</em> method:</p>
   <span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
   <span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
   <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="kt">size_t</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="n">personal</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="n">business</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="n">personal</span> <span class="o">||</span> <span class="n">value</span> <span class="o">==</span> <span class="n">business</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;value(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) is invalid&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 
 <span class="cm">/*</span>
@@ -709,9 +730,11 @@ is required), and can be accessed using the <em>value()</em> method:</p>
 <span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
   <span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
   <span class="mi">1</span><span class="p">,</span>
-  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="o">&amp;</span> <span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
+             <span class="o">?</span> <span class="nb">true</span>
+             <span class="o">:</span> <span class="p">(</span><span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;file(&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">false</span><span class="p">;</span>
   <span class="p">});</span>
 
 <span class="cm">/*</span>
@@ -804,35 +827,40 @@ is required), and can be accessed using the <em>value()</em> method:</p>
 <h2>Example 3: FLOG (FleCSI Logging Utility)<a class="headerlink" href="#example-3-flog-flecsi-logging-utility" title="Permalink to this headline">¶</a></h2>
 <p>FLOG provides users with a mechanism to print logging information to
 various stream buffers, similar to the C++ objects std::cout, std::cerr,
-and std::clog.  Multiple streams can be used simultaneously, so that
-information about the running state of a program can be captured and
-displayed at the same time.  In this example, we show how FLOG can be
-configured to stream output to a file buffer, and the std::clog stream
-buffer.</p>
+and std::clog.
+Multiple streams can be used simultaneously, so that information about
+the running state of a program can be captured and displayed at the same
+time.
+In this example, we show how FLOG can be configured to stream output to
+a file buffer, and the std::clog stream buffer.</p>
 <p>Before attempting this example, you should make sure that you have
-configured and built FleCSI with ENABLE_FLOG=ON. Additional options
-that are useful are:</p>
+configured and built FleCSI with ENABLE_FLOG=ON.
+Additional useful options are:</p>
 <ul class="simple">
 <li><p>FLOG_ENABLE_COLOR_OUTPUT=ON</p></li>
 <li><p>FLOG_ENABLE_TAGS=ON</p></li>
 <li><p>FLOG_STRIP_LEVEL=0</p></li>
+<li><p>FLOG_ENABLE_DEBUG=OFF</p></li>
+<li><p>FLOG_DEVELOPER_MODE=OFF</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>One of the challenges of using distributed-memory and tasking runtimes
-is that output written to the console often gets clobbered because
-multiple threads of execution are all writing to the same descriptor
-concurrently. FLOG fixes this by collecting output from different
-threads and serializing it. This is an important and useful feature of
-FLOG.</p>
+is that output written to the console often collide because multiple
+threads of execution are all writing to the same descriptor
+concurrently.
+FLOG fixes this by collecting output from different threads and
+serializing it.
+This is an important and useful feature of FLOG.</p>
 </div>
 <div class="section" id="buffer-configuration">
 <h3>Buffer Configuration<a class="headerlink" href="#buffer-configuration" title="Permalink to this headline">¶</a></h3>
-<p>By default, FLOG does not produce any output (even when enabled). In
-order to see or capture output, your application must add at least one
-output stream. This should be done after flecsi::initialize has been
-invoked, and before flecsi::start. Consider the main function for this
-example:</p>
+<p>By default, FLOG does not produce any output (even when enabled).
+In order to see or capture output, your application must add at least
+one output stream.
+This should be done after flecsi::initialize has been invoked, and
+before flecsi::start.
+Consider the main function for this example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
 
@@ -1019,22 +1047,30 @@ the <code class="docutils literal notranslate"><span class="pre">--flog-tags</sp
 <p>You should experiment with invoking this example:</p>
 <p>Invoking this example with the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag will show the available
 tags:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> ./flog --help
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> ./runtime-flog --help
 </pre></div>
 </div>
 <p>which should look something like this:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: flog</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: runtime-flog</span>
 
 <span class="go">Basic Options:</span>
-<span class="go">  -h [ --help ]                   Print this message and exit.</span>
+<span class="go">  -h [ --help ]         Print this message and exit.</span>
 
 <span class="go">FleCSI Options:</span>
-<span class="go">  --flog-tags arg (=all)          Enable the specified output tags, e.g.,</span>
-<span class="go">                                  --flog-tags=tag1,tag2.</span>
-<span class="go">  --flog-verbose [=arg(=1)] (=0)  Enable verbose output. Passing &#39;-1&#39; will</span>
-<span class="go">                                  strip any additional decorations added by</span>
-<span class="go">                                  flog and will only output the user&#39;s message.</span>
-<span class="go">  --flog-process arg (=-1)        Restrict output to the specified process id.</span>
+<span class="go">  --backend-args arg             Pass arguments to the runtime backend. The</span>
+<span class="go">                                 single argument is a quoted string of</span>
+<span class="go">                                 backend-specific options.</span>
+<span class="go">  --flog-tags arg (=all)         Enable the specified output tags, e.g.,</span>
+<span class="go">                                 --flog-tags=tag1,tag2. Use &#39;--flog-tags=all&#39;</span>
+<span class="go">                                 to show all output, and</span>
+<span class="go">                                 &#39;--flog-tags=unscoped&#39; to show only unguarded</span>
+<span class="go">                                 output.</span>
+<span class="go">  --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing &#39;-1&#39; will strip</span>
+<span class="go">                                 any additional decorations added by flog and</span>
+<span class="go">                                 will only output the user&#39;s message.</span>
+<span class="go">  --flog-process arg (=0)        Restrict output to the specified process id.</span>
+<span class="go">                                 The default is process 0. Use</span>
+<span class="go">                                 &#39;--flog_process=-1&#39; to enable all processes.</span>
 
 <span class="go">Available FLOG Tags (FleCSI Logging Utility):</span>
 <span class="go">  tag2</span>
@@ -1054,6 +1090,234 @@ unguarded sections, and for output guarded with the <em>tag1</em> tag:</p>
 <span class="go">[ERROR tag1 p0] Error level output (in tag1 guard)</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="flog-options-cmake">
+<h3>FLOG Options (CMake)<a class="headerlink" href="#flog-options-cmake" title="Permalink to this headline">¶</a></h3>
+<p>Defaults for the FLOG options have been chosen in an attempt to most
+closely model the behavior one would expect from the execution and
+output of a standard MPI program.
+However, because of the asynchronous nature of FleCSI’s execution model,
+it is important to understand the options that control FLOG’s behavior,
+as it can sometimes be counter-intuitive.</p>
+<p>As stated in the preceding sections, FLOG buffers and serializes output
+to avoid collisions from different threads.
+As a safeguard, FleCSI’s default settings flush these buffers
+periodically, so as to avoid memory capacity issues.
+The CMake configuration options <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL</span></code> and
+<code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_THRESHOLD</span></code> define this behavior:</p>
+<ul class="simple">
+<li><p><em>FLOG_SERIALIZATION_INTERVAL</em> <br />
+The serialization iterval specifies how often FleCSI should check for
+buffered output (requires reduction) as a number of
+tasks executed, i.e., if the serialization interval is set to 100,
+FleCSI will check how many messages have been injected into the stream
+of each process every multiple of 100 task executions. <br />
+<em>(default: 1024)</em></p></li>
+<li><p><em>FLOG_SERIALIZATION_THRESHOLD</em> <br />
+The serialization threshold sets the number of messages that must have
+accumulated before output will be collected (requires reduction) to a
+single process and written to the output streams. <br />
+<em>(default: 1024)</em></p></li>
+</ul>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>It is important to understand and tune FLOG serialization to your
+application.
+Serialization inhibits task asynchrony.
+When balanced, the performance effects should be very minimal.
+However, overly aggressive settings, e.g.,
+<code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL=1</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_THRESHOLD=1</span></code>, could force complete serialization
+of your application.
+This can be beneficial for debugging, but should not be used for
+actual simulation runs.</p>
+</div>
+<p>For many applications, there is a natural serialization interval that
+implicitly starts at the beginning of the simulation time evolution.
+FleCSI provides a function <code class="docutils literal notranslate"><span class="pre">flecsi::log::flush()</span></code> that can be used to
+force FleCSI to serialize, and flush output.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Best practice for FLOG serialization is to leave the default settings
+for <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL</span></code> and
+<code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_THRESHOLD</span></code>, and to use <code class="docutils literal notranslate"><span class="pre">flecsi::log::flush()</span></code>
+at an appropriate point in your application to force output.</p>
+</div>
+</div>
+<div class="section" id="flog-options-command-line">
+<h3>FLOG Options (Command-Line)<a class="headerlink" href="#flog-options-command-line" title="Permalink to this headline">¶</a></h3>
+<p>We have already covered the <code class="docutils literal notranslate"><span class="pre">--flog-tags</span></code> option.
+There are currently two other options that control FLOG output:</p>
+<ul class="simple">
+<li><p><em>–flog-verbose</em> <br />
+This option controls how much additional information is output with
+your <code class="docutils literal notranslate"><span class="pre">flog(severity)</span></code> message.
+A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> will turn off any additional decorations, while a
+value of <code class="docutils literal notranslate"><span class="pre">1</span></code> will add additional information.
+By default, the severity level and process are output. <br />
+<em>(default: 0)</em></p></li>
+<li><p><em>–flog-process</em> <br />
+This options allows the user to restrict output to the specified
+process id.
+A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> will enable output of all processes.
+By default, output is restricted to process <code class="docutils literal notranslate"><span class="pre">0</span></code>. <br />
+<em>(default: 0)</em></p></li>
+</ul>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>By default, FLOG only writes output to process <code class="docutils literal notranslate"><span class="pre">0</span></code>. Pass
+<code class="docutils literal notranslate"><span class="pre">--flog-process=-1</span></code> to enable output from all processes.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Logging output can sometimes have unexpected behavior.
+Consider the case where you are viewing output only from process
+<code class="docutils literal notranslate"><span class="pre">0</span></code>, and the runtime maps a task to process <code class="docutils literal notranslate"><span class="pre">1</span></code>.
+You will not see the messages from that task in the logging output.
+This is not an error.
+In general, some experimentation is necessary to achieve the desired
+level of output with FLOG and FleCSI.</p>
+</div>
+</div>
+</div>
+<div class="section" id="example-4-caliper-annotations">
+<h2>Example 4: Caliper Annotations<a class="headerlink" href="#example-4-caliper-annotations" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://software.llnl.gov/Caliper/">Caliper</a> Annotation interface in
+FleCSI is used internally to inject Caliper instrumentation throughout the code.
+This enables users to investigate runtime overhead and application performance
+with Caliper.  Users can also use this interface to add additional annotations
+to performance sensitive regions of their applications.</p>
+<p>To CMake variable <em>FLECSI_CALIPER_DETAIL</em> is used to disable or control the
+level of detail in included Caliper annotations.  The currently available
+options are:</p>
+<ul class="simple">
+<li><p><em>FLECSI_CALIPER_DETAIL=none</em> <br />
+Caliper annotations are disabled</p></li>
+<li><p><em>FLECSI_CALIPER_DETAIL=low</em> <br />
+Annotations marked with low severity detail are included</p></li>
+<li><p><em>FLECSI_CALIPER_DETAIL=medium</em> <br />
+Annotations marked with low and medium severity detail are included</p></li>
+<li><p><em>FLECSI_CALIPER_DETAIL=high</em> <br />
+All annotations are included</p></li>
+</ul>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>To use Caliper annotations with the Legion backend, the Legion option
+<code class="docutils literal notranslate"><span class="pre">--ll:force-kthreads</span></code> must be used.  Caliper is not aware of Legion
+user-level threads, so additional care must be practiced when using
+annotations with this runtime.</p>
+</div>
+<div class="section" id="adding-annotations">
+<h3>Adding Annotations<a class="headerlink" href="#adding-annotations" title="Permalink to this headline">¶</a></h3>
+<p>In addition to instrumenting FleCSI runtime overhead, the annotation interface
+can be used to add annotations to applications.  This allows users to instrument
+their code and use Caliper to collect timing data.  An annotation for a code
+region must specify a detail level, context, and name.  The detail level is used
+to selectively control the inclusion of an annotation using the cmake variable
+<em>FLECSI_CALIPER_DETAIL</em>.  The context for an annotation is used as a named
+grouping for annotations.  In caliper, this can be used to filter and aggregate
+annotations using the <a class="reference external" href="http://software.llnl.gov/Caliper/calql.html">caliper query language</a>.</p>
+<p>To annotation a code region, either scope guards or explicit begin and end
+functions are called.  Consider the main function for this example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="n">status</span> <span class="o">=</span> <span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span> <span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
+              <span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
+    <span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
+
+  <span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">status</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// main</span>
+</pre></div>
+</div>
+<p>A scope guard is used to annotation the top level task:</p>
+<p>For this region, the FleCSI execution context <code class="docutils literal notranslate"><span class="pre">annotation::execution</span></code> is
+specified along with a detail level of <code class="docutils literal notranslate"><span class="pre">annnotation::detail::low</span></code>.
+To avoid hard coding strings throughout an application, annotation regions can be
+specified using structs that inherit from <code class="docutils literal notranslate"><span class="pre">annotation::region</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">char</span> <span class="n">name</span><span class="p">[]</span> <span class="o">=</span> <span class="s">&quot;User-Execution&quot;</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">main_region</span> <span class="p">:</span> <span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="kr">inline</span> <span class="k">static</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">name</span><span class="p">{</span><span class="s">&quot;main&quot;</span><span class="p">};</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">sleeper_region</span> <span class="p">:</span> <span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="kr">inline</span> <span class="k">static</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">name</span><span class="p">{</span><span class="s">&quot;sleeper&quot;</span><span class="p">};</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nl">sleeper_subtask</span> <span class="p">:</span> <span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="kr">inline</span> <span class="k">static</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">name</span><span class="p">{</span><span class="s">&quot;subtask&quot;</span><span class="p">};</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="n">annotation</span><span class="o">::</span><span class="n">detail</span> <span class="n">detail_level</span> <span class="o">=</span> <span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">high</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">void</span>
+<span class="nf">sleeper</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">sleeper_region</span><span class="o">&gt;</span> <span class="n">guard</span><span class="p">;</span>
+
+  <span class="n">annotation</span><span class="o">::</span><span class="n">begin</span><span class="o">&lt;</span><span class="n">sleeper_subtask</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">400</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>This first defines a new annotation context <code class="docutils literal notranslate"><span class="pre">user_execution</span></code> by inheriting
+from <code class="docutils literal notranslate"><span class="pre">annotation::context</span></code> and specifying a name for the context.  Three code
+regions are then defined using this context.  The first two regions use the
+default detail level of <code class="docutils literal notranslate"><span class="pre">annotation::detail::medium</span></code>.  The main function is
+then annotated using a scope guard:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>The sleeper function demonstrates the use of calls to begin and end as opposed to using scope guards:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">top_level_action</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="n">sleeper</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="generating-reports">
+<h3>Generating Reports<a class="headerlink" href="#generating-reports" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://software.llnl.gov/Caliper/configuration.html">Caliper configuration files</a> can be used to generate
+configure caliper to generate reports for annotated regions of the code.  For
+example, consider the following caliper configuration file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># [flecsi]</span>
+<span class="nv">CALI_SERVICES_ENABLE</span><span class="o">=</span>aggregate,event,mpi,mpireport,timestamp
+<span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
+<span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution, count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; where FleCSI-Execution format table order by percent_total#sum#time.duration desc&quot;</span>
+
+<span class="c1"># [user]</span>
+<span class="nv">CALI_SERVICES_ENABLE</span><span class="o">=</span>aggregate,event,mpi,mpireport,timestamp
+<span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
+<span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select User-Execution, count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; where User-Execution format table order by percent_total#sum#time.duration desc&quot;</span>
+
+<span class="c1"># [all]</span>
+<span class="nv">CALI_SERVICES_ENABLE</span><span class="o">=</span>aggregate,event,mpi,mpireport,timestamp
+<span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
+<span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution,User-Execution,count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; format table order by percent_total#sum#time.duration desc&quot;</span>
+</pre></div>
+</div>
+<p>This file defines three caliper configuration profiles that can be used to
+generate reports using the <code class="docutils literal notranslate"><span class="pre">mpireport</span></code> service (see
+<a class="reference external" href="http://software.llnl.gov/Caliper/services.html">http://software.llnl.gov/Caliper/services.html</a>).  This service aggregates
+timings across all ranks using <code class="docutils literal notranslate"><span class="pre">CALI_MPI_REPORT_CONFIG</span></code> query statements.  For
+example, to run with the second configuration profile in this file (named
+user), ensure <code class="docutils literal notranslate"><span class="pre">caliper.config</span></code> is in your working directory and run with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CALI_CONFIG_PROFILE</span><span class="o">=</span><span class="n">user</span> <span class="o">./</span><span class="n">runtime</span><span class="o">-</span><span class="n">caliper</span>
+</pre></div>
+</div>
+<p>When the program completes, caliper flushes the aggregated timings to a report
+file named <code class="docutils literal notranslate"><span class="pre">report.cali</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">User</span><span class="o">-</span><span class="n">Execution</span>  <span class="n">count</span> <span class="nb">min</span><span class="o">-</span><span class="n">time</span> <span class="nb">max</span><span class="o">-</span><span class="n">time</span> <span class="n">total</span><span class="o">-</span><span class="n">time</span><span class="o">-%</span>
+<span class="n">sleeper</span><span class="o">/</span><span class="n">subtask</span>     <span class="mi">1</span> <span class="mf">0.400095</span> <span class="mf">0.400095</span>    <span class="mf">57.141409</span>
+<span class="n">sleeper</span>             <span class="mi">2</span> <span class="mf">0.300089</span> <span class="mf">0.300089</span>    <span class="mf">42.858591</span>
+</pre></div>
+</div>
+<p>The output represents collected timings for annotations in the
+<code class="docutils literal notranslate"><span class="pre">User-Execution</span></code> annotation context.</p>
 </div>
 </div>
 </div>
@@ -1078,11 +1342,19 @@ unguarded sections, and for output guarded with the <em>tag1</em> tag:</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1093,7 +1365,6 @@ unguarded sections, and for output guarded with the <em>tag1</em> tag:</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

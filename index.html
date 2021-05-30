@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; FleCSI invalid documentation</title>
+  <title>Introduction &mdash; FleCSI 2.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
   
   
@@ -21,22 +24,20 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Overview" href="src/overview.html" /> 
@@ -66,7 +67,7 @@
             
             
               <div class="version">
-                Version: invalid
+                Version: 2.1
               </div>
             
           
@@ -83,6 +84,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,13 +99,16 @@
 <li class="toctree-l1"><a class="reference internal" href="src/tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src/user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src/developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src/summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src/team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="src/team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -142,7 +147,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
       <li>Introduction</li>
     
@@ -231,7 +236,7 @@ structure representations.</p>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/tutorial.html#tutorial-examples">Tutorial Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/tutorial/runtime.html">Runtime</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/runtime.html">Runtime Model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-1-minimal">Example 1: Minimal</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-2-program-options">Example 2: Program Options</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#example-program">Example Program</a></li>
@@ -244,6 +249,13 @@ structure representations.</p>
 <li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#writing-to-buffers">Writing to Buffers</a></li>
 <li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#controlling-output-strip-levels">Controlling Output - Strip Levels</a></li>
 <li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#controlling-output-tag-groups">Controlling Output - Tag Groups</a></li>
+<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#flog-options-cmake">FLOG Options (CMake)</a></li>
+<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#flog-options-command-line">FLOG Options (Command-Line)</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/runtime.html#example-4-caliper-annotations">Example 4: Caliper Annotations</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#adding-annotations">Adding Annotations</a></li>
+<li class="toctree-l5"><a class="reference internal" href="src/tutorial/runtime.html#generating-reports">Generating Reports</a></li>
 </ul>
 </li>
 </ul>
@@ -258,8 +270,32 @@ structure representations.</p>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-2-cycles">Example 2: Cycles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-3-dependencies">Example 3: Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/control.html#example-4-control-state">Example 4: Control State</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/execution.html#tasks">Tasks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-1-single-tasks">Example 1: Single Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-2-index-tasks">Example 2: Index Tasks</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="src/tutorial/execution.html#launch-domains">Launch Domains</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/execution.html#example-3-mpi-tasks">Example 3: MPI Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/data.html">Data Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-1-global-data">Example 1: Global data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-2-index-data">Example 2: Index data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/parallel.html">Distributed and shared memory parallelism</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/parallel.html#example-1-forall-macro-parallel-for-interface">Example 1: forall macro / parallel_for interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/parallel.html#example-2-reduceall-macro-parallel-reduce-interface">Example 2: reduceall macro / parallel_reduce interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/tutorial/topologies.html">Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/tutorial/standalone.html">Standalone</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/standalone.html#build-system">Build System</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/standalone.html#control-model">Control Model</a></li>
@@ -298,6 +334,7 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#branch-types">Branch Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#tags">Tags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#branch-tag-creation">Branch &amp; Tag Creation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#container-images">Container Images</a><ul>
@@ -319,7 +356,6 @@ structure representations.</p>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#spack-cheat-sheet">Spack Cheat Sheet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#git-cheat-sheet">Git Cheat Sheet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#building-for-darwin">Building for Darwin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#graphviz-notes">Graphviz Notes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/developer-guide.html#sphinx">Sphinx</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="src/developer-guide.html#links">Links</a></li>
@@ -334,19 +370,55 @@ structure representations.</p>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="src/summary.html">Internal Summary</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src/summary.html#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#hierarchy">Hierarchy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#compound-clients">Compound clients</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/summary.html#data">Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#task-separation">Task separation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#storage">Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#layouts">Layouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#definition">Definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#access">Access</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/summary.html#execution">Execution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#levels">Levels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#task-launches">Task launches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#explicit-parallelism">Explicit parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/summary.html#topologies">Topologies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#interfaces">Interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#subcomponents">Subcomponents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/summary.html#predefined">Predefined</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/summary.html#utilities">Utilities</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="src/team.html">Contributors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#ben-bergen">Ben Bergen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#christoph-junghans">Christoph Junghans</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#david-daniel">David Daniel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#irina-demeshko">Irina Demeshko</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/team.html#jonas-lippuner">Jonas Lippuner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#davis-herring">Davis Herring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#andrew-reisner">Andrew Reisner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#navamita-ray">Navamita Ray</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#julien-loiseau">Julien Loiseau</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#charles-ferenbaugh">Charles Ferenbaugh</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#jonathan-graham">Jonathan Graham</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/team.html#nick-moss">Nick Moss</a></li>
-<li class="toctree-l2"><a class="reference internal" href="src/team.html#oleg-korobkin">Oleg Korobkin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#li-ta-ollie-lo">Li-Ta (Ollie) Lo</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src/team.html#alumni">Alumni</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#nick-moss">Nick Moss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#karen-tsai">Karen Tsai</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#wei-wu">Wei Wu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/team.html#jonas-lippuner">Jonas Lippuner</a></li>
 </ul>
 </li>
 </ul>
@@ -380,11 +452,19 @@ structure representations.</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -395,7 +475,6 @@ structure representations.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

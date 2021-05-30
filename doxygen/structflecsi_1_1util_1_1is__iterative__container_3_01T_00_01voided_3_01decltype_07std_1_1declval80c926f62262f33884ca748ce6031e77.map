@@ -1,2 +1,4 @@
 <map id="flecsi::util::is_iterative_container&lt; T, voided&lt; decltype(std::declval&lt; T &gt;().begin()), decltype(std::declval&lt; T &gt;().end())&gt; &gt;" name="flecsi::util::is_iterative_container&lt; T, voided&lt; decltype(std::declval&lt; T &gt;().begin()), decltype(std::declval&lt; T &gt;().end())&gt; &gt;">
+<area shape="rect" id="node1" title="A Helper to identify if this is a container." alt="" coords="5,80,212,165"/>
+<area shape="rect" id="node2" title=" " alt="" coords="71,5,147,32"/>
 </map>

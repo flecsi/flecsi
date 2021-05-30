@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['is_5fcontainer_5fv',['is_container_v',['../type__traits_8hh.html#a860e37ffbb6912974a95b24744aabfb4',1,'flecsi::util']]],
-  ['is_5fiterative_5fcontainer_5fv',['is_iterative_container_v',['../type__traits_8hh.html#ad6f39dfaa2b6cc8374f7bce345a844db',1,'flecsi::util']]],
-  ['is_5fminimal_5fcontainer_5fv',['is_minimal_container_v',['../type__traits_8hh.html#a690e80577f6bdc65671bcfab3686eae1',1,'flecsi::util']]]
+  ['ghost_1448',['ghost',['../structflecsi_1_1topo_1_1structured__impl_1_1box__coloring.html#ad0b4d7182e34089a288cbe8fad0047ab',1,'flecsi::topo::structured_impl::box_coloring::ghost()'],['../structflecsi_1_1topo_1_1structured__impl_1_1box__aggregate__info.html#a2305cf2f3d594c22c2f7243893e302ec',1,'flecsi::topo::structured_impl::box_aggregate_info::ghost()']]],
+  ['ghost_5foverlays_1449',['ghost_overlays',['../structflecsi_1_1topo_1_1structured__impl_1_1box__aggregate__info.html#ada6a424732179e36def6a16467ff2f1f',1,'flecsi::topo::structured_impl::box_aggregate_info']]],
+  ['ghost_5fowners_1450',['ghost_owners',['../structflecsi_1_1topo_1_1structured__impl_1_1box__aggregate__info.html#ab44254298f0070fa389b7713cb22aab1',1,'flecsi::topo::structured_impl::box_aggregate_info']]]
 ];

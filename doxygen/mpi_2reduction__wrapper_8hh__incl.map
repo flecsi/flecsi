@@ -1,27 +1,52 @@
-<map id="/home/bergen/devel/tuxfan/flecsi/flecsi/exec/mpi/reduction_wrapper.hh" name="/home/bergen/devel/tuxfan/flecsi/flecsi/exec/mpi/reduction_wrapper.hh">
-<area shape="rect" id="node2" href="$run_2backend_8hh.html" title="flecsi/run/backend.hh" alt="" coords="2655,109,2801,136"/>
-<area shape="rect" id="node32" href="$flog_8hh.html" title="flecsi/flog.hh" alt="" coords="2800,333,2896,360"/>
-<area shape="rect" id="node49" href="$demangle_8hh.html" title="flecsi/util/demangle.hh" alt="" coords="5,483,157,509"/>
-<area shape="rect" id="node50" href="$mpi__type__traits_8hh.html" title="flecsi/util/mpi_type\l_traits.hh" alt="" coords="3488,647,3619,688"/>
-<area shape="rect" id="node4" href="$leg_2context_8hh.html" title="flecsi/run/leg/context.hh" alt="" coords="2019,184,2181,211"/>
-<area shape="rect" id="node5" href="$context_8hh.html" title="flecsi/run/context.hh" alt="" coords="1139,259,1279,285"/>
-<area shape="rect" id="node12" href="$run_2types_8hh.html" title="flecsi/run/types.hh" alt="" coords="1493,408,1622,435"/>
-<area shape="rect" id="node15" href="$common_8hh.html" title="flecsi/util/common.hh" alt="" coords="1536,483,1683,509"/>
-<area shape="rect" id="node6" href="$layout_8hh.html" title="flecsi/data/layout.hh" alt="" coords="1329,408,1468,435"/>
-<area shape="rect" id="node8" href="$task__attributes_8hh.html" title="flecsi/exec/task_attributes.hh" alt="" coords="2105,483,2298,509"/>
-<area shape="rect" id="node24" href="$core_8hh_source.html" title="flecsi/topo/core.hh" alt="" coords="885,483,1014,509"/>
-<area shape="rect" id="node30" href="$field__info_8hh.html" title="flecsi/data/field_info.hh" alt="" coords="1131,333,1287,360"/>
-<area shape="rect" id="node9" href="$debruijn_8hh.html" title="flecsi/util/debruijn.hh" alt="" coords="2027,565,2168,591"/>
-<area shape="rect" id="node19" href="$id_8hh.html" title="flecsi/util/id.hh" alt="" coords="1792,565,1899,591"/>
-<area shape="rect" id="node22" href="$offset_8hh.html" title="flecsi/util/offset.hh" alt="" coords="1537,565,1666,591"/>
-<area shape="rect" id="node25" href="$privilege_8hh.html" title="flecsi/data/privilege.hh" alt="" coords="629,565,781,591"/>
-<area shape="rect" id="node26" href="$topology__accessor_8hh.html" title="flecsi/data/topology\l_accessor.hh" alt="" coords="1198,557,1333,599"/>
-<area shape="rect" id="node27" href="$topology__slot_8hh.html" title="flecsi/data/topology\l_slot.hh" alt="" coords="857,557,991,599"/>
-<area shape="rect" id="node28" href="$type__traits_8hh.html" title="flecsi/util/type_traits.hh" alt="" coords="1016,565,1173,591"/>
-<area shape="rect" id="node33" href="$log_2utils_8hh_source.html" title="flecsi/log/utils.hh" alt="" coords="2576,654,2696,681"/>
-<area shape="rect" id="node35" href="$message_8hh.html" title="flecsi/log/message.hh" alt="" coords="2859,408,3008,435"/>
-<area shape="rect" id="node42" href="$tag__scope_8hh.html" title="flecsi/log/tag_scope.hh" alt="" coords="2459,408,2615,435"/>
-<area shape="rect" id="node36" href="$state_8hh.html" title="flecsi/log/state.hh" alt="" coords="2509,483,2635,509"/>
-<area shape="rect" id="node40" href="$log_2types_8hh.html" title="flecsi/log/types.hh" alt="" coords="2728,565,2856,591"/>
-<area shape="rect" id="node37" href="$packet_8hh_source.html" title="flecsi/log/packet.hh" alt="" coords="2958,654,3093,681"/>
+<map id="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/exec/mpi/reduction_wrapper.hh" name="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/exec/mpi/reduction_wrapper.hh">
+<area shape="rect" id="node1" title=" " alt="" coords="1198,5,1405,61"/>
+<area shape="rect" id="node2" href="$fold_8hh.html" title=" " alt="" coords="54,109,181,136"/>
+<area shape="rect" id="node5" href="$run_2backend_8hh.html" title=" " alt="" coords="1683,109,1829,136"/>
+<area shape="rect" id="node9" href="$flog_8hh.html" title=" " alt="" coords="1347,333,1443,360"/>
+<area shape="rect" id="node34" href="$demangle_8hh.html" title=" " alt="" coords="2076,109,2228,136"/>
+<area shape="rect" id="node36" href="$mpi_8hh.html" title=" " alt="" coords="487,184,604,211"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,184,80,211"/>
+<area shape="rect" id="node4" title=" " alt="" coords="116,408,169,435"/>
+<area shape="rect" id="node6" title=" " alt="" coords="1266,707,1369,733"/>
+<area shape="rect" id="node7" href="$leg_2context_8hh.html" title=" " alt="" coords="1676,184,1836,211"/>
+<area shape="rect" id="node8" href="$context_8hh.html" title=" " alt="" coords="1419,259,1557,285"/>
+<area shape="rect" id="node17" title=" " alt="" coords="1523,632,1634,659"/>
+<area shape="rect" id="node22" title=" " alt="" coords="1659,408,1706,435"/>
+<area shape="rect" id="node28" title=" " alt="" coords="1782,408,1861,435"/>
+<area shape="rect" id="node31" title=" " alt="" coords="1581,259,1648,285"/>
+<area shape="rect" id="node32" title=" " alt="" coords="1339,259,1394,285"/>
+<area shape="rect" id="node33" title=" " alt="" coords="1672,259,1760,285"/>
+<area shape="rect" id="node12" title=" " alt="" coords="2049,707,2103,733"/>
+<area shape="rect" id="node24" title=" " alt="" coords="530,408,587,435"/>
+<area shape="rect" id="node27" title=" " alt="" coords="918,333,983,360"/>
+<area shape="rect" id="node29" title=" " alt="" coords="1568,333,1608,360"/>
+<area shape="rect" id="node30" title=" " alt="" coords="1008,333,1061,360"/>
+<area shape="rect" id="node10" href="$utils_8hh_source.html" title=" " alt="" coords="1107,632,1227,659"/>
+<area shape="rect" id="node13" href="$message_8hh.html" title=" " alt="" coords="1333,408,1483,435"/>
+<area shape="rect" id="node18" title=" " alt="" coords="1005,557,1075,584"/>
+<area shape="rect" id="node19" title=" " alt="" coords="1461,483,1533,509"/>
+<area shape="rect" id="node20" href="$severity_8hh.html" title=" " alt="" coords="873,483,1013,509"/>
+<area shape="rect" id="node21" href="$tag__scope_8hh.html" title=" " alt="" coords="611,408,767,435"/>
+<area shape="rect" id="node23" title=" " alt="" coords="893,408,997,435"/>
+<area shape="rect" id="node25" title=" " alt="" coords="1022,408,1090,435"/>
+<area shape="rect" id="node26" title=" " alt="" coords="1115,408,1259,435"/>
+<area shape="rect" id="node11" title=" " alt="" coords="1139,707,1194,733"/>
+<area shape="rect" id="node14" href="$state_8hh.html" title=" " alt="" coords="1201,483,1327,509"/>
+<area shape="rect" id="node15" href="$log_2types_8hh.html" title=" " alt="" coords="1301,557,1429,584"/>
+<area shape="rect" id="node16" title=" " alt="" coords="985,632,1052,659"/>
+<area shape="rect" id="node35" title=" " alt="" coords="2190,184,2258,211"/>
+<area shape="rect" id="node37" href="$array__ref_8hh.html" title=" " alt="" coords="472,259,619,285"/>
+<area shape="rect" id="node40" title=" " alt="" coords="287,408,369,435"/>
+<area shape="rect" id="node42" title=" " alt="" coords="444,408,505,435"/>
+<area shape="rect" id="node44" href="$serialize_8hh_source.html" title=" " alt="" coords="1083,259,1226,285"/>
+<area shape="rect" id="node48" title=" " alt="" coords="155,259,226,285"/>
+<area shape="rect" id="node49" title=" " alt="" coords="250,259,318,285"/>
+<area shape="rect" id="node50" title=" " alt="" coords="342,259,397,285"/>
+<area shape="rect" id="node38" title=" " alt="" coords="256,333,307,360"/>
+<area shape="rect" id="node39" title=" " alt="" coords="331,333,394,360"/>
+<area shape="rect" id="node41" href="$common_8hh.html" title=" " alt="" coords="645,333,792,360"/>
+<area shape="rect" id="node43" href="$target_8hh.html" title=" " alt="" coords="79,557,207,584"/>
+<area shape="rect" id="node45" title=" " alt="" coords="1085,333,1147,360"/>
+<area shape="rect" id="node46" title=" " alt="" coords="1171,333,1221,360"/>
+<area shape="rect" id="node47" href="$type__traits_8hh.html" title=" " alt="" coords="520,333,621,360"/>
 </map>

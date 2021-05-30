@@ -1,6 +1,11 @@
-<map id="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/types.hh" name="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/types.hh">
-<area shape="rect" id="node2" href="$run_2types_8hh.html" title="flecsi/run/types.hh" alt="" coords="278,109,407,136"/>
-<area shape="rect" id="node6" href="$common_8hh.html" title="flecsi/util/common.hh" alt="" coords="195,184,341,211"/>
-<area shape="rect" id="node11" href="$id_8hh.html" title="flecsi/util/id.hh" alt="" coords="577,259,684,285"/>
-<area shape="rect" id="node15" href="$offset_8hh.html" title="flecsi/util/offset.hh" alt="" coords="373,259,502,285"/>
+<map id="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/types.hh" name="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/types.hh">
+<area shape="rect" id="node1" title=" " alt="" coords="195,5,362,61"/>
+<area shape="rect" id="node2" href="$box__types_8hh.html" title=" " alt="" coords="207,109,351,151"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,199,56,225"/>
+<area shape="rect" id="node4" title=" " alt="" coords="81,199,135,225"/>
+<area shape="rect" id="node5" title=" " alt="" coords="160,199,219,225"/>
+<area shape="rect" id="node6" title=" " alt="" coords="243,199,315,225"/>
+<area shape="rect" id="node7" title=" " alt="" coords="339,199,379,225"/>
+<area shape="rect" id="node8" title=" " alt="" coords="403,199,514,225"/>
+<area shape="rect" id="node9" title=" " alt="" coords="538,199,595,225"/>
 </map>

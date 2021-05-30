@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Developer Guide &mdash; FleCSI invalid documentation</title>
+  <title>Developer Guide &mdash; FleCSI 2.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,25 +24,23 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Contributors" href="team.html" />
+    <link rel="next" title="Internal Summary" href="summary.html" />
     <link rel="prev" title="Logging Utility" href="user-guide/flog.html" /> 
 </head>
 
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: invalid
+                Version: 2.1
               </div>
             
           
@@ -84,6 +85,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -108,6 +110,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#branch-types">Branch Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tags">Tags</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#branch-tag-creation">Branch &amp; Tag Creation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#container-images">Container Images</a><ul>
@@ -129,7 +132,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#spack-cheat-sheet">Spack Cheat Sheet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#git-cheat-sheet">Git Cheat Sheet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-for-darwin">Building for Darwin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphviz-notes">Graphviz Notes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sphinx">Sphinx</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#links">Links</a></li>
@@ -144,13 +146,16 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -189,7 +194,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Developer Guide</li>
     
@@ -310,15 +315,21 @@ it is intended to reference:</p>
 <ul class="simple">
 <li><p><strong>devel branch</strong> <br />
 In general, a commit on the devel branch should only be tagged if it
-is the first commit <em>after</em> a new feature branch has been created, and
-should be named with <em>d</em> and the major version of the feature branch,
-e.g., when feature branch <em>2</em> is created, a new devel tag <em>d2</em> should
-be created on the next devel commit.</p></li>
+is the first commit <em>after</em> a new feature branch has been created, or
+if a <em>down-stream</em> branch has been merged into it. The tag should be
+named with <em>d</em> and the major version of the feature branch, and the
+number of down-stream merges, e.g., when feature branch <em>2</em> is created,
+a new devel tag <em>d2.0</em> should be created on the next devel commit.
+Everytime down-stream commits are merged, the second digit should be
+incremented, e.g., <em>d2.0</em> -&gt; <em>d2.1</em>.</p></li>
 <li><p><strong>feature branch</strong> <br />
 Feature tags should be created on the next commit after a new release
 branch is created, with <em>f</em> and the major.minor version of the release
 branch, e.g., when release branch <em>1.5</em> is created, a new feature tag
-<em>f1.5</em> should be created on the next feature commit.</p></li>
+<em>f1.5.0</em> should be created on the next feature commit, where the third
+digit is the number of down-stream merges (0 in this case). Feature
+tags should also be created whenever down-stream commits are merged,
+e.g., <em>f1.5.0</em> -&gt; <em>f1.5.1</em>.</p></li>
 <li><p><strong>release branch</strong> <br />
 Release tags should be created for each new release, with <em>v</em> and the
 release version, e.g., <em>v1.4.1</em>.</p></li>
@@ -329,18 +340,108 @@ release version, e.g., <em>v1.4.1</em>.</p></li>
 <em>whither</em> or <em>completion</em>. The first letter of the tag is important,
 i.e., <em>d</em>, <em>f</em>, or <em>v</em>, as it is used by FleCSI to determine the
 branch type of the tag during CMake configuration.</p>
+<ul class="simple">
+<li><p>devel tags are of the form: <em>d</em> + <em>whence.merge</em>, e.g., <em>d2.4</em></p></li>
+<li><p>feature tags are of the form: <em>f</em> + <em>major.minor.merge</em>, e.g.,
+<em>f3.0.2</em></p></li>
+<li><p>version tags are of the form: <em>v</em> + <em>major.minor.patch</em>, e.g.,
+<em>v3.1.10</em></p></li>
+</ul>
 </div>
 </div>
 <div class="section" id="workflow">
 <h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
 <p>FleCSI development uses a <em>devel -&gt; feature -&gt; release</em> forking workflow
-that can be visualized as in <a class="reference internal" href="#branch"><span class="std std-numref">Fig. 9</span></a>. Bugfixes and features can
+that can be visualized as in <a class="reference internal" href="#branch"><span class="std std-numref">Fig. 10</span></a>. Bugfixes and features can
 be back-merged into <em>feature</em> or <em>devel</em>, as appropriate.</p>
 <div class="figure align-default" id="id15">
 <span id="branch"></span><img alt="../_images/branch.png" src="../_images/branch.png" />
-<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
+<p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
 types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
 </div>
+</div>
+<div class="section" id="branch-tag-creation">
+<h3>Branch &amp; Tag Creation<a class="headerlink" href="#branch-tag-creation" title="Permalink to this headline">¶</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Only project maintainers are allowed to create new branches and tags.</p>
+</div>
+<p>Creating a FleCSI release, or feature means creating a new branch and
+potentially tagging it at a particular commit. The process for doing
+this is described in the following steps.</p>
+<ol class="arabic simple">
+<li><p>Create a local branch from the appropriate <em>upstream</em> commit.
+This will either be from <em>devel</em> (feature, or release), or an
+existing feature branch (release only). It is important to follow
+the correct naming conventions for the branch, e.g., the branch name
+will be the <em>major</em> revision number for a <strong>feature</strong> branch, and the
+<em>major.minor</em> revision number for a <strong>realease</strong> branch. If the
+branch you need already exists, you will only need to create a new
+tag, and you can skip this step.</p></li>
+</ol>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git checkout COMMIT_HASH -b BRANCH_NAME
+</pre></div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>To create the new feature branch from the current commit on the
+<em>devel</em> branch, where devel is tagged at <em>d2.x</em>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git checkout origin/devel -b <span class="m">3</span>
+<span class="gp">$</span> git push origin
+</pre></div>
+</div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Update the <em>.version</em> file with the correct version string:</p>
+<ul class="simple">
+<li><p>devel: <em>d</em> followed by <em>whence.merge</em>, e.g., <em>d1.0-0-0</em></p></li>
+<li><p>feature: <em>f</em> followed by <em>whither.minor.merge</em>, e.g., <em>f2.0.1-0-0</em></p></li>
+<li><p>release: <em>v</em> followed by <em>major.minor.patch</em>, e.g., <em>f2.1.3-0-0</em></p></li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<div><p>The <cite>0-0</cite> on the end of each version is there to mimic the output of
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">describe</span></code>. The <em>.version</em> file itself is only used by FleCSI if
+the source tree is not a git repository, e.g., if the source was
+obtained by the user as an archive.</p>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Version information for <em>devel</em> and <em>feature</em> branches differ, in
+that devel branches indicate <em>whence</em> the branch originated, e.g.,
+development for version <em>3.0</em> would originate with interface
+compatibility with major version <em>2</em>, so the devel branch would be
+tagged <em>d2.x</em>, where <em>x</em> is the number of down-stream merges that have
+been applied, and feature branches indicate <em>whither</em> the branch is
+targeted, e.g., feature updates on <em>2</em> that will be part of a <em>2.x</em>
+release would be named <em>f2.x.y</em>, where <em>x</em> is the <em>minor</em> version,
+and <em>y</em> is the number of down-stream merges that have been applied.</p>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>To update the <em>.version</em> file for a new down-stream merge to devel at
+<em>d2.2</em>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cat <span class="s2">&quot;d2.3-0-0&quot;</span> &gt; .version
+</pre></div>
+</div>
+<p>This increments the down-stream merge count by one.</p>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Create the appropriate annotated tag from your commit:</p></li>
+</ol>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git tag -a -m <span class="s2">&quot;FleCSI Major.Minor (Development, or Feature, or Release)&quot;</span> tagname <span class="sb">`</span>git rev-list -n <span class="m">1</span> HEAD<span class="sb">`</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Push your tag to gitlab:</p></li>
+</ol>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git push --tags gitlab.lanl.gov:flecsi/flecsi.git
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Push your commit and create a merge request for the version-update commit.</p></li>
+</ol>
 </div>
 </div>
 <hr class="docutils" />
@@ -355,8 +456,7 @@ instructions and links for installation and basic usage below.</p>
 </div>
 <div class="section" id="installing-a-container-engine">
 <h3>Installing a Container Engine<a class="headerlink" href="#installing-a-container-engine" title="Permalink to this headline">¶</a></h3>
-<p>Some FleCSI developer tasks require a container engine, e.g., <em>Docker</em>.
-This section provides links to installation and usage documentation for
+<p>This section provides links to installation and usage documentation for
 <em>Docker</em>, and <em>Podman</em>.</p>
 <div class="section" id="docker">
 <h4>Docker<a class="headerlink" href="#docker" title="Permalink to this headline">¶</a></h4>
@@ -373,7 +473,7 @@ This section provides links to installation and usage documentation for
 <h4>Podman<a class="headerlink" href="#podman" title="Permalink to this headline">¶</a></h4>
 <p>An alternative, drop-in replacement for Docker is <a class="reference external" href="https://podman.io">Podman</a>. Podman has
 the advantage that it is daemonless, and does not require root
-privileges to run.</p>
+privileges to run (mostly).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://podman.io/getting-started/installation">Install Podman</a></p></li>
 </ul>
@@ -464,7 +564,7 @@ capabilities:</p>
 <li><p><strong>OS Images</strong> <br />
 Located in the <em>os</em> directory, these are designed to provide a
 standard base of functionality, i.e., a standard set of system
-packages, which can be used interchangeably with downstream
+packages, which can be used interchangeably with down-stream
 environment images.</p></li>
 <li><p><strong>Environment</strong> <br />
 Located in a directory named for the corresponding branch, e.g., the
@@ -578,6 +678,10 @@ base image from the registry, and ignoring cached stages.</p>
 <hr class="docutils" />
 <div class="section" id="git-cheat-sheet">
 <h2>Git Cheat Sheet<a class="headerlink" href="#git-cheat-sheet" title="Permalink to this headline">¶</a></h2>
+<p>To list remote tags, where <em>origin</em> is the remote name:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git ls-remote --tags origin
+</pre></div>
+</div>
 <p>To lookup the hash referenced by a tag:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git rev-list -n <span class="m">1</span> <span class="nv">$TAG</span>
 </pre></div>
@@ -590,56 +694,8 @@ base image from the registry, and ignoring cached stages.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git fetch --prune --prune-tags
 </pre></div>
 </div>
-</div>
-<hr class="docutils" />
-<div class="section" id="building-for-darwin">
-<h2>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Permalink to this headline">¶</a></h2>
-<p>This is a recipe for building the current development version of FleCSI
-on the LANL Darwin cluster.</p>
-<p>Checkout spack and flecsi:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone --branch devel git@gitlab.lanl.gov:laristra/flecsi.git
-<span class="gp">$</span> git clone --single-branch --branch develop git@github.com:spack/spack.git
-</pre></div>
-</div>
-<p>Source the spack environment script:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">source</span> spack/share/spack/setup-env.sh
-</pre></div>
-</div>
-<p>Add the flecsi spack repo:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack repo add flecsi/spack-repo
-</pre></div>
-</div>
-<p>Load gcc module and update spack compilers:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> module load gcc/9.3.0
-<span class="gp">$</span> spack compilers
-</pre></div>
-</div>
-<p>Install the flecsi dependencies:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install --only dependencies flecsi@devel <span class="nv">backend</span><span class="o">=</span>legion +hdf5 +graphviz +flog ^mpich
-</pre></div>
-</div>
-<p>Create a spack environment and install the flecsi dependencies. This is
-not redundant, spack will not rebuild anything, but it needs to install
-the dependencies in the environment:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack env create legion
-<span class="gp">$</span> spack env activate legion
-<span class="gp">$</span> spack install --only dependencies flecsi@devel <span class="nv">backend</span><span class="o">=</span>legion +hdf5 +graphviz +flog ^mpich
-<span class="gp">$</span> spack install cmake
-</pre></div>
-</div>
-<p>Load clang and doxygen, install sphinx, and update your path:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> module load clang/8.0.1
-<span class="gp">$</span> module load doxygen
-<span class="gp">$</span> pip3 install --user Sphinx
-<span class="gp">$</span> pip3 install --user recommonmark
-<span class="gp">$</span> pip3 install --user sphinx_rtd_theme
-<span class="gp">$</span> <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$HOME</span>/.local/bin:<span class="nv">$PATH</span>
-</pre></div>
-</div>
-<p>Configure and build flecsi:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> flecsi <span class="o">&amp;&amp;</span> mkdir -p build/legion <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build/legion
-<span class="gp">$</span> ../../tools/configure clang legion
-<span class="gp">$</span> make -j <span class="m">16</span>
+<p>To prune local tags that are not on the remote:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git tag -l <span class="p">|</span> xargs git tag -d <span class="o">&amp;&amp;</span> git fetch -t
 </pre></div>
 </div>
 </div>
@@ -687,14 +743,14 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 <p>This will be rendered like:</p>
 <div class="figure align-center" id="id16">
 <span id="undersea"></span><a class="reference internal image-reference" href="../_images/undersea.png"><img alt="../_images/undersea.png" src="../_images/undersea.png" style="width: 70%;" /></a>
-<p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
 </div>
 <p>You can reference the figure using its label <em>undersea</em> like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>As can be seen in :numref:`undersea`...
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<p>As can be seen in <a class="reference internal" href="#undersea"><span class="std std-numref">Fig. 10</span></a>…</p>
+<p>As can be seen in <a class="reference internal" href="#undersea"><span class="std std-numref">Fig. 11</span></a>…</p>
 </div>
 <div class="section" id="code-blocks">
 <h3>Code Blocks<a class="headerlink" href="#code-blocks" title="Permalink to this headline">¶</a></h3>
@@ -740,31 +796,6 @@ documentation.</p>
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
-
-  <span class="k">if</span><span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">status</span> <span class="o">==</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">status</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="n">status</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">check_options</span><span class="p">();</span>
-
-  <span class="k">if</span><span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">status</span> <span class="o">==</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">control</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">status</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// if</span>
-
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">log</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
-
-  <span class="n">status</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span>
-
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-  <span class="k">return</span> <span class="n">status</span><span class="p">;</span>
-<span class="p">}</span> <span class="c1">// main</span>
-</pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -777,7 +808,7 @@ documentation.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="team.html" class="btn btn-neutral float-right" title="Contributors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="summary.html" class="btn btn-neutral float-right" title="Internal Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="user-guide/flog.html" class="btn btn-neutral float-left" title="Logging Utility" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -789,11 +820,19 @@ documentation.</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -804,7 +843,6 @@ documentation.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

@@ -1,4 +1,25 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structflecsi_1_1util_1_1crs.html" title="flecsi::util::crs" alt="" coords="5,5,109,32"/>
-<area shape="rect" id="node2" href="$structflecsi_1_1util_1_1dcrs.html" title="flecsi::util::dcrs" alt="" coords="157,5,268,32"/>
+<area shape="rect" id="node1" href="$structflecsi_1_1topo_1_1specialization__base.html" title=" " alt="" coords="5,371,213,397"/>
+<area shape="rect" id="node2" href="$structflecsi_1_1topo_1_1help.html" title="Convenience base class for specialization class templates." alt="" coords="317,5,436,32"/>
+<area shape="rect" id="node3" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="290,57,463,98"/>
+<area shape="rect" id="node4" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="275,122,478,163"/>
+<area shape="rect" id="node6" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="290,187,463,229"/>
+<area shape="rect" id="node8" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="290,253,463,294"/>
+<area shape="rect" id="node10" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="289,319,464,375"/>
+<area shape="rect" id="node12" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="287,399,466,441"/>
+<area shape="rect" id="node14" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="290,465,463,506"/>
+<area shape="rect" id="node16" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="275,530,479,571"/>
+<area shape="rect" id="node18" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="261,595,492,637"/>
+<area shape="rect" id="node20" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="265,661,488,702"/>
+<area shape="rect" id="node22" href="$structflecsi_1_1topo_1_1specialization.html" title=" " alt="" coords="290,726,463,767"/>
+<area shape="rect" id="node5" href="$structflecsi_1_1topo_1_1array.html" title=" " alt="" coords="540,129,696,156"/>
+<area shape="rect" id="node7" href="$structflecsi_1_1topo_1_1resize.html" title=" " alt="" coords="554,195,682,221"/>
+<area shape="rect" id="node9" href="$structflecsi_1_1topo_1_1topology.html" title=" " alt="" coords="547,260,689,287"/>
+<area shape="rect" id="node11" href="$structflecsi_1_1data_1_1buffers.html" title=" " alt="" coords="551,333,685,360"/>
+<area shape="rect" id="node13" href="$structflecsi_1_1topo_1_1global.html" title=" " alt="" coords="554,407,682,433"/>
+<area shape="rect" id="node15" href="$structflecsi_1_1topo_1_1index.html" title=" " alt="" coords="555,472,681,499"/>
+<area shape="rect" id="node17" href="$structflecsi_1_1topo_1_1meta.html" title=" " alt="" coords="540,537,696,564"/>
+<area shape="rect" id="node19" href="$structflecsi_1_1topo_1_1meta.html" title=" " alt="" coords="557,595,679,637"/>
+<area shape="rect" id="node21" href="$structflecsi_1_1data_1_1detail_1_1intervals.html" title=" " alt="" coords="555,661,681,702"/>
+<area shape="rect" id="node23" href="$structflecsi_1_1data_1_1leg_1_1halves.html" title=" " alt="" coords="559,726,677,767"/>
 </map>

@@ -1,11 +1,8 @@
-<map id="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/types.hh" name="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/types.hh">
-<area shape="rect" id="node2" href="$structured_2interface_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/topo/structured/interface.hh" alt="" coords="5,109,191,165"/>
-<area shape="rect" id="node3" href="$data_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/data.hh" alt="" coords="46,733,182,789"/>
-<area shape="rect" id="node4" href="$task__prologue_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/leg/task_prologue.hh" alt="" coords="107,213,286,269"/>
-<area shape="rect" id="node5" href="$exec_2leg_2policy_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/leg/policy.hh" alt="" coords="198,317,334,373"/>
-<area shape="rect" id="node6" href="$exec_2backend_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/backend.hh" alt="" coords="206,421,342,477"/>
-<area shape="rect" id="node7" href="$execution_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/execution.hh" alt="" coords="223,525,359,581"/>
-<area shape="rect" id="node8" href="$control_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/control.hh" alt="" coords="233,629,369,685"/>
-<area shape="rect" id="node9" href="$unit_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/util/unit.hh" alt="" coords="258,733,394,789"/>
-<area shape="rect" id="node10" href="$data_2coloring_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/data/coloring.hh" alt="" coords="73,629,209,685"/>
+<map id="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/types.hh" name="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/types.hh">
+<area shape="rect" id="node1" title=" " alt="" coords="17,5,183,61"/>
+<area shape="rect" id="node2" href="$structured_2interface_8hh.html" title=" " alt="" coords="7,109,193,165"/>
+<area shape="rect" id="node3" href="$data_8hh.html" title=" " alt="" coords="21,213,179,269"/>
+<area shape="rect" id="node4" href="$io_2leg_2policy_8hh.html" title=" " alt="" coords="21,317,179,373"/>
+<area shape="rect" id="node5" href="$io_2backend_8hh.html" title=" " alt="" coords="21,421,179,477"/>
+<area shape="rect" id="node6" href="$io_8hh.html" title=" " alt="" coords="5,525,195,567"/>
 </map>

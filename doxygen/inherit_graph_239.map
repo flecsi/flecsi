@@ -1,3 +1,10 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structflecsi_1_1util_1_1mpi__typetraits_3_01int_01_4.html" title="flecsi::util::mpi_typetraits\l\&lt; int \&gt;" alt="" coords="5,5,173,47"/>
+<area shape="rect" id="node1" href="$structflecsi_1_1data_1_1mpi_1_1partition.html" title=" " alt="" coords="31,115,154,156"/>
+<area shape="rect" id="node2" href="$structflecsi_1_1data_1_1mpi_1_1prefixes.html" title=" " alt="" coords="242,5,365,47"/>
+<area shape="rect" id="node3" href="$structflecsi_1_1data_1_1mpi_1_1rows.html" title=" " alt="" coords="228,223,379,250"/>
+<area shape="rect" id="node4" href="$structflecsi_1_1data_1_1prefixes.html" title=" " alt="" coords="234,71,373,98"/>
+<area shape="rect" id="node6" href="$structflecsi_1_1data_1_1rows.html" title=" " alt="" coords="242,173,365,199"/>
+<area shape="rect" id="node5" href="$structflecsi_1_1topo_1_1repartition.html" title=" " alt="" coords="427,97,579,123"/>
+<area shape="rect" id="node7" href="$structflecsi_1_1data_1_1prefixes__base.html" title=" " alt="" coords="5,42,180,69"/>
+<area shape="rect" id="node8" href="$structflecsi_1_1topo_1_1with__size.html" title=" " alt="" coords="229,122,377,149"/>
 </map>

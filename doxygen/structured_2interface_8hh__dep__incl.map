@@ -1,10 +1,7 @@
-<map id="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/interface.hh" name="/home/bergen/devel/tuxfan/flecsi/flecsi/topo/structured/interface.hh">
-<area shape="rect" id="node2" href="$data_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/data.hh" alt="" coords="46,629,182,685"/>
-<area shape="rect" id="node3" href="$task__prologue_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/leg/task_prologue.hh" alt="" coords="107,109,286,165"/>
-<area shape="rect" id="node4" href="$exec_2leg_2policy_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/leg/policy.hh" alt="" coords="198,213,334,269"/>
-<area shape="rect" id="node5" href="$exec_2backend_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/exec/backend.hh" alt="" coords="206,317,342,373"/>
-<area shape="rect" id="node6" href="$execution_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/execution.hh" alt="" coords="223,421,359,477"/>
-<area shape="rect" id="node7" href="$control_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/control.hh" alt="" coords="233,525,369,581"/>
-<area shape="rect" id="node8" href="$unit_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/util/unit.hh" alt="" coords="258,629,394,685"/>
-<area shape="rect" id="node9" href="$data_2coloring_8hh.html" title="/home/bergen/devel\l/tuxfan/flecsi/flecsi\l/data/coloring.hh" alt="" coords="73,525,209,581"/>
+<map id="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/interface.hh" name="/home/bergen/devel/tuxfan/flecsi/doc/flecsi/topo/structured/interface.hh">
+<area shape="rect" id="node1" title=" " alt="" coords="7,5,193,61"/>
+<area shape="rect" id="node2" href="$data_8hh.html" title=" " alt="" coords="21,109,179,165"/>
+<area shape="rect" id="node3" href="$io_2leg_2policy_8hh.html" title=" " alt="" coords="21,213,179,269"/>
+<area shape="rect" id="node4" href="$io_2backend_8hh.html" title=" " alt="" coords="21,317,179,373"/>
+<area shape="rect" id="node5" href="$io_8hh.html" title=" " alt="" coords="5,421,195,463"/>
 </map>

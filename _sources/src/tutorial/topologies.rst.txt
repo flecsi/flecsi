@@ -1,15 +1,12 @@
-FleCSI Topologies
-=================
+.. |br| raw:: html
 
-FleCSI defines several topology types that can be specialized to provide
-support for a broad variety of applied methods.
+   <br />
 
-.. toctree::
-   :caption: Topology Types:
+.. _TUT-CM:
 
-   topologies/unstructured
-   topologies/structured
-   topologies/octree
-   topologies/set
+Topologies
+**********
+
+----
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
