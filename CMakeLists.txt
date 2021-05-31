@@ -28,6 +28,8 @@ project(FleCSI LANGUAGES CXX C)
 
 set(CXX_STANDARD_REQUIRED ON)
 if(MSVC)
+  # MSVC requires to be in C++20 mode in order to compiler FleCSI,
+  # using /permissive- is not sufficient
   set(CMAKE_CXX_STANDARD 20)
 else()
   set(CMAKE_CXX_STANDARD 17)

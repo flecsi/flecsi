@@ -129,12 +129,26 @@ function(add_unit name)
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
     set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
-    set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
+    set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH} ${HPX_INCLUDE_DIRS})
     set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES} HPX::hpx HPX::wrap_main)
     set(unit_policy_exec ${MPIEXEC})
     set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
+    set(unit_policy_defines ENABLE_HPX)
+
+    if(MSVC)
+      set(unit_policy_defines ${unit_policy_defines}
+        _SCL_SECURE_NO_WARNINGS
+        _CRT_SECURE_NO_WARNINGS
+        _SCL_SECURE_NO_DEPRECATE
+        _CRT_SECURE_NO_DEPRECATE
+        _CRT_NONSTDC_NO_WARNINGS
+        _HAS_AUTO_PTR_ETC=1
+        _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+        _SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
+        NOMINMAX)
+    endif()
 
   else()
 

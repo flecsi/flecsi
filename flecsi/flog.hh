@@ -31,10 +31,6 @@
 #include <unordered_set>
 #include <vector>
 
-#if !defined(_WIN32)
-#include <unistd.h>
-#endif
-
 #if defined(FLECSI_ENABLE_FLOG)
 
 namespace flecsi {

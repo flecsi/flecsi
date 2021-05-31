@@ -30,6 +30,14 @@ function(std::size_t) {
 inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
+namespace detail {
+template<class F>
+void
+fill(resize::Field::accessor<wo> a, const F & f) {
+  a = f(run::context::instance().color());
+}
+} // namespace detail
+
 // A partition with a field for dynamically resizing it.
 struct repartition : with_size, data::prefixes {
   // Construct a partition with an initial size.
@@ -39,7 +47,7 @@ struct repartition : with_size, data::prefixes {
   repartition(data::region & r, F f = zero::partial)
     : with_size(r.size().first), prefixes(r, [&] {
         const auto r = sizes();
-        execute<fill<F>>(r, f);
+        execute<detail::fill<F>>(r, f);
         return r;
       }()) {}
 
@@ -52,12 +60,6 @@ struct repartition : with_size, data::prefixes {
     const auto r = this->sizes();
     flecsi::execute<repartition::fill<F>>(r, f);
     this->resize();
-  }
-
-private:
-  template<class F>
-  static void fill(resize::Field::accessor<wo> a, const F & f) {
-    a = f(run::context::instance().color());
   }
 };
 

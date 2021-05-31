@@ -56,7 +56,9 @@ template<typename R>
 struct future<R, exec::launch_type_t::index> {
 
   explicit future(R result)
-    : results(hpx::all_gather("hpx_comm_world", std::move(result), size())) {}
+    : results(hpx::collectives::all_gather("hpx_comm_world",
+        std::move(result),
+        size())) {}
 
   void wait(bool = false) {
       results.wait();

@@ -94,11 +94,8 @@ context_t::start(std::function<int()> const & action) {
   return hpx::init(
     [=](int, char*[]) -> int {
       // guard destroyed after action call
-      int result = 0;
-      {
-        auto g = detail::data_guard();
-        result = action();
-      }
+      int result = (detail::data_guard(), action());
+
       // tell the runtime it's ok to exit
       hpx::finalize();
       return result;

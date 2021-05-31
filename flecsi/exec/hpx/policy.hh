@@ -125,11 +125,11 @@ reduce_internal(Args &&... args) {
     // return future<R, launch_type::single> where clients on every rank
     // will get the same value when calling .get().
     if(root) {
-      return hpx::broadcast_to(
+      return hpx::collectives::broadcast_to(
         "hpx_comm_world", std::apply(F, std::move(params)));
     }
     else {
-      return hpx::broadcast_from("hpx_comm_world");
+      return hpx::collectives::broadcast_from("hpx_comm_world");
     }
   }
   else {
@@ -146,7 +146,7 @@ reduce_internal(Args &&... args) {
       // 2. Reduce the local return values with the Reduction
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
-      return hpx::all_reduce("hpx_comm_world",
+      return hpx::collectives::all_reduce("hpx_comm_world",
         std::apply(F, std::move(params)),
         detail::reduction_helper<Reduction>{});
     }

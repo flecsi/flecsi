@@ -18,6 +18,9 @@
 #include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/interface.hh"
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 using namespace flecsi;
 
 struct mesh_helper : topo::specialization<topo::narray, mesh_helper> {};
@@ -99,7 +102,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface_ : B {
+  struct interface : B {
 
     template<axis A, range SE = logical>
     std::size_t size() {

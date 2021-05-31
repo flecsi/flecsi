@@ -24,9 +24,9 @@
 #if defined(FLECSI_ENABLE_FLOG)
 
 #if !defined(_WIN32)
-#include "sys/times.h"
+#include <sys/times.h>
 #else
-#include "sys/timeb.h"
+#include <sys/timeb.h>
 int
 gettimeofday(struct timeval * t, void * timezone) {
   struct _timeb timebuffer;

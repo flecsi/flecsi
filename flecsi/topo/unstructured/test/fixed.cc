@@ -22,6 +22,9 @@
 
 #include <algorithm>
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 using namespace flecsi;
 
 namespace global {
@@ -52,7 +55,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface_ : B {
+  struct interface : B {
 
     auto cells() {
       return B::template entities<index_space::cells>();

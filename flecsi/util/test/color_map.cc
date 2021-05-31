@@ -16,6 +16,9 @@
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 using namespace flecsi;
 
 namespace {
@@ -36,7 +39,7 @@ struct single {
 } // namespace
 
 int
-interface_() {
+interface() {
   UNIT {
     // Assumed that the test is run with 3 threads and 8 colors
     ASSERT_EQ(processes(), 3lu);
@@ -105,7 +108,7 @@ interface_() {
 
 int
 color_map() {
-  UNIT { execute<interface_, mpi>(); };
+  UNIT { execute<interface, mpi>(); };
 } // color_map
 
 unit::driver<color_map> color_map_driver;

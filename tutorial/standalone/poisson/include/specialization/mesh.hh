@@ -12,6 +12,9 @@
 
 #include "types.hh"
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 namespace poisson {
 
 struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
@@ -47,7 +50,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
    *--------------------------------------------------------------------------*/
 
   template<class B>
-  struct interface_ : B {
+  struct interface : B {
 
     template<axis A, range SE = interior>
     std::size_t size() {
