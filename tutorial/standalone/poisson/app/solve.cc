@@ -3,6 +3,7 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
+#include "poisson.hh"
 #include "solve.hh"
 #include "state.hh"
 #include "tasks/norm.hh"
@@ -13,8 +14,13 @@
 
 using namespace flecsi;
 
+struct solve_region : annotation::region<user_execution> {
+  inline static const std::string name{"solve"};
+};
+
 int
 poisson::action::solve() {
+  annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{500};
