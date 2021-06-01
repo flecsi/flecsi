@@ -62,7 +62,6 @@ using partition = mpi::partition;
 
 namespace topo {
 struct global_base;
-struct structured_base;
 } // namespace topo
 
 inline log::devel_tag context_tag("context");
@@ -521,24 +520,6 @@ struct context {
     Index space interface.
    *--------------------------------------------------------------------------*/
 
-  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  index_space_data_t make_index_space_data(typename Topo::slot & slot) {
-    auto & fs = get_field_info_store<Topo, Index>();
-
-    return index_space_data_t{&(slot->template get_region<Index>()),
-      &(slot->template get_partition<Index>(field_id_t())),
-      &fs,
-      util::type<Topo>() + '[' + std::to_string(Index) + ']'};
-  }
-
-  template<class Topo, typename Topo::index_space... Index>
-  void add_index_spaces(typename Topo::slot & slot,
-    util::constants<Index...> /* to deduce pack */) {
-    (index_space_data_vector_.push_back(
-       make_index_space_data<Topo, Index>(slot)),
-      ...);
-  }
-
   template<class Topo>
   void add_topology(typename Topo::slot & slot) {
     // global topology doesn't define get_partitions, so skip for now
@@ -594,6 +575,26 @@ protected:
   void clear();
 #endif
 
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
+  index_space_data_t make_index_space_data(typename Topo::slot & slot) {
+    auto & fs = get_field_info_store<Topo, Index>();
+
+    return index_space_data_t{&(slot->template get_region<Index>()),
+      // TODO:  deal with ragged case, where different fields have
+      // different partitions
+      &(slot->template get_partition<Index>(field_id_t())),
+      &fs,
+      util::type<Topo>() + '[' + std::to_string(Index) + ']'};
+  }
+
+  template<class Topo, typename Topo::index_space... Index>
+  void add_index_spaces(typename Topo::slot & slot,
+    util::constants<Index...> /* to deduce pack */) {
+    (index_space_data_vector_.push_back(
+       make_index_space_data<Topo, Index>(slot)),
+      ...);
+  }
+
   /*--------------------------------------------------------------------------*
     Program options data members.
    *--------------------------------------------------------------------------*/
@@ -646,6 +647,12 @@ protected:
     topology_field_info_map_;
 
   /*--------------------------------------------------------------------------*
+    Index space data members.
+   *--------------------------------------------------------------------------*/
+
+  std::vector<index_space_data_t> index_space_data_vector_;
+
+  /*--------------------------------------------------------------------------*
     Task count.
    *--------------------------------------------------------------------------*/
 
@@ -653,8 +660,6 @@ protected:
 
 private:
   std::vector<void (*)()> init_registry;
-
-  std::vector<index_space_data_t> index_space_data_vector_;
 
 }; // struct context
 
