@@ -49,8 +49,6 @@ format:check:
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-defaults:
@@ -68,8 +66,6 @@ mpich-defaults:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-gnu:
@@ -113,8 +109,6 @@ mpich-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-gnu:
@@ -158,8 +152,6 @@ mpich-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 tutorial:legion:
@@ -181,8 +173,6 @@ tutorial:legion:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-legion-gnu:
@@ -226,8 +216,6 @@ openmpi-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-gnu:
@@ -271,8 +259,6 @@ openmpi-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-clang:
@@ -297,8 +283,6 @@ mpich-legion-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-clang:
@@ -323,8 +307,6 @@ mpich-mpi-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-clang:
