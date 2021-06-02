@@ -16,18 +16,34 @@
 /*! @file */
 
 #include "flecsi/exec/launch.hh"
+#include "flecsi/util/function_traits.hh"
 #include "flecsi/util/mpi.hh"
+
+#include <future>
 
 namespace flecsi {
 
 template<typename R>
 struct future<R> {
-  void wait() {}
-  R get(bool = false) {
-    return result_;
+  void wait() {
+    fut.wait();
   }
 
-  R result_{};
+  R get(bool = false) {
+    return fut.get();
+  }
+
+  ~future() {
+    // 'fut' might not have a valid shared state due to the "default"
+    // construction used for converting future<R, index> to future<R, single>
+    // in the generic code.
+    if(fut.valid())
+      fut.wait();
+  }
+
+  // Note: flecsi::future needs to be copyable and passed by value to user tasks
+  // and .wait()/.get() called. See future.cc unit test for such a use case.
+  std::shared_future<R> fut;
 };
 
 template<>
@@ -36,9 +52,23 @@ struct future<void> {
   void get(bool = false) {}
 };
 
+template<typename F>
+auto
+async(F && f) {
+  using R = typename util::function_traits<F>::return_type;
+  return future<R>{std::async(std::forward<F>(f)).share()};
+}
+
+template<typename T>
+auto
+make_ready_future(T t) {
+  std::promise<T> promise;
+  promise.set_value(t);
+  return promise.get_future();
+}
+
 template<typename R>
 struct future<R, exec::launch_type_t::index> {
-  // FIXME: what does copying mean?
   explicit future(R result) : result(result) {
     results.resize(size());
 
