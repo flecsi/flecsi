@@ -29,7 +29,7 @@ int
 task_assert_fail() {
   UNIT {
     flog(info) << "this test fails an assertion" << std::endl;
-    ASSERT_EQ(0, 1);
+    ASSERT_EQ(+0, 1); // + should not appear in output
   }; // UNIT
 }
 
@@ -37,7 +37,7 @@ int
 task_expect_fail() {
   UNIT {
     flog(info) << "this test fails an expectation" << std::endl;
-    EXPECT_EQ(0, 1);
+    EXPECT_EQ(+0, 1);
   }; // UNIT
 }
 

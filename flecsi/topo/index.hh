@@ -150,33 +150,9 @@ struct ragged : specialization<ragged_category, ragged<T>> {
     T::template privilege_count<S>;
 };
 
-struct with_ragged_base {
-  template<class F, PrivilegeCount N>
-  static void extend(
-    field<std::size_t, data::raw>::accessor1<privilege_repeat<rw, N>> a,
-    F old) {
-    const auto s = a.span();
-    const std::size_t i = old(run::context::instance().color());
-    // The accessor (chosen to support a resized field) constructs nothing:
-    std::uninitialized_fill(s.begin() + i, s.end(), i ? s.back() : 0);
-  }
-};
 template<class P>
-struct with_ragged : private with_ragged_base {
+struct with_ragged {
   with_ragged(Color n) : ragged(n) {}
-
-  // Extend an offsets field to define empty rows for the suffix.
-  template<typename P::index_space S, class F = decltype(zero::partial)>
-  void extend_offsets(
-    F old = zero::partial) // serializable function from color to old size
-  {
-    for(auto f :
-      run::context::instance().get_field_info_store<topo::ragged<P>, S>())
-      execute<extend<F, P::template privilege_count<S>>>(
-        data::field_reference<std::size_t, data::raw, P, S>(
-          *f, static_cast<typename P::core &>(*this)),
-        old);
-  }
 
   typename topo::ragged<P>::core ragged;
 };
@@ -194,9 +170,7 @@ struct index_base {
 template<class P>
 struct index_category : index_base, color<P>, with_ragged<P> {
   using index_base::coloring; // override color_base::coloring
-  explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {
-    this->template extend_offsets<elements>();
-  }
+  explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {}
 };
 template<>
 struct detail::base<index_category> {

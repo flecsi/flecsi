@@ -58,7 +58,6 @@ struct unstructured : unstructured_base,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       special_(c.at(0).colors) {
-    init_ragged(index_spaces());
     allocate_connectivities(c, connect_);
 #if 0
     make_subspaces(c, std::make_index_sequence<index_spaces::size>());
@@ -198,11 +197,6 @@ private:
   //  execute<idx_subspaces>(c[Index], owned_.get<Index>
   }
 #endif
-
-  template<index_space... SS>
-  void init_ragged(util::constants<SS...>) {
-    (this->template extend_offsets<SS>(), ...);
-  }
 
   util::key_array<std::map<std::size_t, std::size_t>, index_spaces>
     reverse_map_;

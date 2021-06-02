@@ -17,6 +17,7 @@
 
 #include <flecsi-config.h>
 
+#include "flecsi/util/array_ref.hh" // span
 #include "flecsi/util/serialize.hh"
 
 #if !defined(FLECSI_ENABLE_MPI)
@@ -27,6 +28,7 @@
 #include <cstddef> // byte
 #include <cstdint>
 #include <numeric>
+#include <stack>
 #include <type_traits>
 
 #include <mpi.h>
@@ -267,6 +269,152 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
   return f(0, size);
 } // one_to_allv
+
+namespace detail {
+// We allocate each message separately to control memory usage.
+// These two class templates serialize or not with the same interface.
+template<class T>
+struct bit_message {
+  bit_message(int, int, MPI_Comm) : p(new T) {}
+  template<class F> // deferred to support prvalues
+  bit_message(F & f, int r, int n) : p(new T(f(r, n))) {}
+
+  void * data() {
+    return p.get();
+  }
+  const void * data() const {
+    return p.get();
+  }
+  int count() const {
+    return 1;
+  }
+  std::size_t bytes() const {
+    return sizeof(T);
+  }
+  T get() && {
+    return std::move(*p);
+  }
+  void reset() {
+    p.reset();
+  }
+
+  static MPI_Datatype type() {
+    return mpi::type<T>();
+  }
+
+private:
+  std::unique_ptr<T> p;
+};
+
+template<class T>
+struct serial_message {
+  serial_message(int s, int t, MPI_Comm comm)
+    : v([&] {
+        MPI_Status st;
+        test(MPI_Probe(s, t, comm, &st));
+        int ret;
+        test(MPI_Get_count(&st, type(), &ret));
+        return ret;
+      }()) {}
+  template<class F>
+  serial_message(F & f, int r, int n) : v(util::serial_put_tuple<T>(f(r, n))) {}
+
+  void * data() {
+    return v.data();
+  }
+  const void * data() const {
+    return v.data();
+  }
+  int count() const {
+    return v.size();
+  }
+  std::size_t bytes() const {
+    return v.size();
+  }
+  T get() const {
+    return serial_get1<T>(v.data());
+  }
+  void reset() {
+    decltype(v)().swap(v);
+  }
+
+  static MPI_Datatype type() {
+    return MPI_BYTE;
+  }
+
+private:
+  std::vector<std::byte> v;
+};
+} // namespace detail
+
+/// Send data from rank 0 to all others, controlling memory usage.
+/// \a mem counts only data being transmitted; one more value may exist.
+/// \param f function object
+/// \param mem bytes of memory to use for communication
+template<class F>
+auto
+one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
+  using R = std::decay_t<decltype(f(1, 1))>;
+  using M = std::conditional_t<bit_copyable_v<R>,
+    detail::bit_message<R>,
+    detail::serial_message<R>>;
+
+  const auto [rank, size] = info(comm);
+  if(!rank) {
+    {
+      const auto n = size - 1;
+      std::vector<MPI_Request> req;
+      std::vector<MPI_Status> stat(n);
+      {
+        std::vector<M> val; // parallel to req
+        std::vector<int> done(n);
+        std::stack<int> free; // inactive requests
+        std::size_t used = 0;
+        for(int r = 1; r < size; ++r) {
+          const int i = [&] {
+            if(free.empty()) {
+              // Capturing a structured binding requires C++20:
+              val.emplace_back(f, r, n + 1);
+              return int(req.size()); // created below
+            }
+            else {
+              const auto ret = free.top();
+              free.pop();
+              val[ret] = {f, r, n + 1};
+              return ret;
+            }
+          }();
+          const auto & v = val[i];
+          if(used && used + v.bytes() > mem) {
+            int count;
+            test(MPI_Waitsome(
+              req.size(), req.data(), &count, done.data(), stat.data()));
+            // Clear data for completed sends:
+            for(auto j : util::span(done).first(count)) {
+              auto & w = val[j];
+              used -= w.bytes();
+              w.reset();
+              free.push(j);
+            }
+          }
+          if(i == int(req.size()))
+            req.emplace_back();
+          // Discourage buffering (at the cost of needless synchronization):
+          test(MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+          used += v.bytes();
+        }
+      }
+      test(MPI_Waitall(req.size(), req.data(), stat.data()));
+    }
+    return f(0, size);
+  }
+  else {
+    M ret(0, 0, comm);
+    test(MPI_Recv(
+      ret.data(), ret.count(), M::type(), 0, 0, comm, MPI_STATUS_IGNORE));
+    return std::move(ret).get();
+  }
+}
 
 /*!
   All-to-All (variable) communication pattern.

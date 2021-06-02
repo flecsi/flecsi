@@ -43,9 +43,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
-  using coord = narray_impl::coord;
-  using hypercube = narray_impl::hypercube;
-  using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
@@ -61,12 +58,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())) {
-    init_ragged(index_spaces());
     init_meta(c);
     init_policy_meta(c);
   }
-
-  enum point { low, high };
 
   struct meta_data {
     std::uint32_t faces;
@@ -183,19 +177,18 @@ private:
     copy2(ic.extended, md.extended);
   }
 
-  template<auto... Value, std::size_t... Index>
+  template<auto... Value>
   static void visit_meta_is(util::key_array<meta_data, index_spaces> & m,
     narray_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    (set_meta_idx(m.template get<Value>(), c.idx_colorings[Index]), ...);
+    util::constants<Value...> /* index spaces to deduce pack */) {
+    std::size_t index{0};
+    (set_meta_idx(m.template get<Value>(), c.idx_colorings[index++]), ...);
   }
 
   static void set_meta(typename field<util::key_array<meta_data, index_spaces>,
                          data::single>::template accessor<wo> m,
     narray_base::coloring const & c) {
-    visit_meta_is(
-      m, c, index_spaces(), std::make_index_sequence<index_spaces::size>());
+    visit_meta_is(m, c, index_spaces());
   }
 
   void init_meta(narray_base::coloring const & c) {
@@ -208,11 +201,6 @@ private:
 
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
-  }
-
-  template<index_space... SS>
-  void init_ragged(util::constants<SS...>) {
-    (this->template extend_offsets<SS>(), ...);
   }
 }; // struct narray
 
@@ -275,12 +263,12 @@ struct narray<Policy>::access {
     return meta_->template get<S>().extents;
   }
 
-  template<index_space S, point P, axis A>
+  template<index_space S, std::size_t P, axis A>
   std::size_t logical() {
     return meta_->template get<S>().logical[P].template get<A>();
   }
 
-  template<index_space S, point P, axis A>
+  template<index_space S, std::size_t P, axis A>
   std::size_t extended() {
     return meta_->template get<S>().extended[P].template get<A>();
   }
@@ -305,29 +293,29 @@ struct narray<Policy>::access {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
-      return logical<S, high, A>() - logical<S, low, A>();
+      return logical<S, 1, A>() - logical<S, 0, A>();
     }
     else if constexpr(SE == range::extended) {
-      return extended<S, high, A>() - extended<S, low, A>();
+      return extended<S, 1, A>() - extended<S, 0, A>();
     }
     else if constexpr(SE == range::all) {
       return extents<S, A>();
     }
     else if constexpr(SE == range::boundary_low) {
-      return logical<S, low, A>() - extended<S, low, A>();
+      return logical<S, 0, A>() - extended<S, 0, A>();
     }
     else if constexpr(SE == range::boundary_high) {
-      return extended<S, high, A>() - logical<S, high, A>();
+      return extended<S, 1, A>() - logical<S, 1, A>();
     }
     else if constexpr(SE == range::ghost_low) {
       if(!is_low<S, A>())
-        return logical<S, low, A>();
+        return logical<S, 0, A>();
       else
         return 0;
     }
     else if constexpr(SE == range::ghost_high) {
       if(!is_high<S, A>())
-        return extents<S, A>() - logical<S, high, A>();
+        return extents<S, A>() - logical<S, 1, A>();
       else
         return 0;
     }
@@ -343,11 +331,11 @@ struct narray<Policy>::access {
 
     if constexpr(SE == range::logical) {
       return make_ids<S>(
-        util::iota_view<util::id>(logical<S, low, A>(), logical<S, high, A>()));
+        util::iota_view<util::id>(logical<S, 0, A>(), logical<S, 1, A>()));
     }
     else if constexpr(SE == range::extended) {
-      return make_ids<S>(util::iota_view<util::id>(
-        extended<S, low, A>(), extended<S, high, A>()));
+      return make_ids<S>(
+        util::iota_view<util::id>(extended<S, 0, A>(), extended<S, 1, A>()));
     }
     else if constexpr(SE == range::all) {
       return make_ids<S>(util::iota_view<util::id>(0, extents<S, A>()));
@@ -357,14 +345,14 @@ struct narray<Policy>::access {
     }
     else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        logical<S, high, A>(), logical<S, high, A>() + size<S, A, SE>()));
+        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_low) {
       return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        logical<S, high, A>(), logical<S, high, A>() + size<S, A, SE>()));
+        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
     }
     else {
       flog_error("invalid range");
@@ -376,25 +364,25 @@ struct narray<Policy>::access {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
-      return logical<S, low, A>();
+      return logical<S, 0, A>();
     }
     else if constexpr(SE == range::extended) {
-      return extended<S, low, A>();
+      return extended<S, 0, A>();
     }
     else if constexpr(SE == range::all) {
       return 0;
     }
     else if constexpr(SE == range::boundary_low) {
-      return extended<S, low, A>();
+      return extended<S, 0, A>();
     }
     else if constexpr(SE == range::boundary_high) {
-      return logical<S, high, A>();
+      return logical<S, 1, A>();
     }
     else if constexpr(SE == range::ghost_low) {
       return 0;
     }
     else if constexpr(SE == range::ghost_high) {
-      return logical<S, high, A>();
+      return logical<S, 1, A>();
     }
     else if constexpr(SE == range::global) {
       return offset<S, A>();
@@ -405,7 +393,13 @@ struct narray<Policy>::access {
   auto mdspan(data::accessor<data::dense, T, P> const & a) {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), extents<S>().data());
+      s.data(), extents<S>());
+  }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), extents<S>());
   }
 
   template<class F>

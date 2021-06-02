@@ -35,7 +35,7 @@ struct intervals {
   // Derives intervals from the field values (which should be of type Value)
   // in each row of the argument partition, which must have the same number of
   // rows as the region_base and must outlive this value.
-  intervals(const region_base &,
+  intervals(region_base &,
     const partition &,
     field_id_t,
     completeness = incomplete);
@@ -50,7 +50,7 @@ struct points {
   // in each row of the intervals argument, which must have the same number of
   // rows as the region_base and must outlive this value.
   // The points need not be unique.
-  points(const region_base &,
+  points(region_base &,
     const intervals &,
     field_id_t,
     completeness = incomplete);

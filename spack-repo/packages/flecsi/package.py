@@ -3,10 +3,8 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-
 from spack import *
 import os
-
 
 class Flecsi(CMakePackage):
     '''FleCSI is a compile-time configurable framework designed to support
@@ -47,9 +45,6 @@ class Flecsi(CMakePackage):
     variant('kokkos', default=False,
             description='Enable Kokkos Support')
 
-    variant('cuda', default=False,
-             description='Enable CUDA Support')
-
     variant('openmp', default=False,
             description='Enable OpenMP Support')
 
@@ -67,7 +62,7 @@ class Flecsi(CMakePackage):
 
     # Boost
 
-    depends_on('boost@1.70.0 cxxstd=17 +program_options +atomic '
+    depends_on('boost@1.70.0: cxxstd=17 +program_options +atomic '
         '+filesystem +regex +system')
 
     # Caliper
@@ -77,7 +72,7 @@ class Flecsi(CMakePackage):
 
     # CMake
 
-    depends_on('cmake@3.12:3.18.4')
+    depends_on('cmake@3.12:')
 
     # Graphviz
 
@@ -85,32 +80,30 @@ class Flecsi(CMakePackage):
 
     # HDF5
 
-    depends_on('hdf5+mpi', when='+hdf5')
+    depends_on('hdf5+mpi+hl', when='+hdf5')
 
     # Kokkos
 
-    depends_on('kokkos@3.2.00:', when='+kokkos')
+    depends_on('kokkos', when='+kokkos')
 
     # Legion
 
     depends_on('legion@ctrl-rep-10:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
-    depends_on('hdf5@1.10.7:',when='backend=legion +hdf5')
+    depends_on('legion+shared',when='backend=legion +shared')
 
     # Metis
 
-    depends_on('metis@5.1.0:')
-    depends_on('parmetis@4.0.3:')
+    depends_on('metis')
+    depends_on('parmetis')
 
     # MPI
 
-    depends_on('mpi', when='backend=mpi')
-    depends_on('mpich@3.4.1', when='^mpich')
-    depends_on('openmpi@4.1.0', when='^openmpi')
+    depends_on('mpi')
 
     # HPX
 
-    depends_on('hpx@1.3.0 cxxstd=17 malloc=system',when='backend=hpx')
+    depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
 
     #--------------------------------------------------------------------------#
     # Conflicts

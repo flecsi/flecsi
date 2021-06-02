@@ -49,8 +49,6 @@ format:check:
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-defaults:
@@ -68,14 +66,12 @@ mpich-defaults:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-gnu:
   extends: .build_template
   needs:
-    ["mpich"]
+    ["mpich-debug"]
   only:
     - merge_requests
   variables:
@@ -113,14 +109,12 @@ mpich-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-gnu:
   extends: .build_template
   needs:
-    ["mpich"]
+    ["mpich-debug"]
   only:
     - merge_requests
   variables:
@@ -158,8 +152,6 @@ mpich-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 tutorial:legion:
@@ -181,14 +173,12 @@ tutorial:legion:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-legion-gnu:
   extends: .build_template
   needs:
-    ["openmpi"]
+    ["openmpi-debug"]
   only:
     - merge_requests
   variables:
@@ -226,14 +216,12 @@ openmpi-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-gnu:
   extends: .build_template
   needs:
-    ["openmpi"]
+    ["openmpi-debug"]
   only:
     - merge_requests
   variables:
@@ -271,14 +259,12 @@ openmpi-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-clang:
   extends: .build_template
   needs:
-    ["mpich-clang"]
+    ["mpich-clang-debug"]
   only:
     - merge_requests
   variables:
@@ -297,14 +283,12 @@ mpich-legion-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-clang:
   extends: .build_template
   needs:
-    ["mpich-clang"]
+    ["mpich-clang-debug"]
   only:
     - merge_requests
   variables:
@@ -323,14 +307,12 @@ mpich-mpi-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-clang:
   extends: .build_template
   needs:
-    ["openmpi-clang"]
+    ["openmpi-clang-debug"]
   only:
     - merge_requests
   variables:

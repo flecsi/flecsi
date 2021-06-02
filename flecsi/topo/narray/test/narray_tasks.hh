@@ -122,7 +122,7 @@ set_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh2d::index_space::entities>(ca);
   for(auto j : m.extents<mesh2d::axis::y_axis>()) {
     for(auto i : m.extents<mesh2d::axis::x_axis>()) {
-      c[i][j] = color();
+      c[j][i] = color();
     } // for
   } // for
 }
@@ -135,7 +135,7 @@ print_field_2d(mesh2d::accessor<ro> m,
   for(int j = m.size<mesh2d::axis::y_axis, mesh2d::range::all>() - 1; j >= 0;
       --j) {
     for(auto i : m.extents<mesh2d::axis::x_axis, mesh2d::range::all>()) {
-      ss << c[i][j] << " ";
+      ss << c[j][i] << " ";
     } // for
     ss << std::endl;
   } // for
@@ -287,7 +287,7 @@ set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   for(auto k : m.extents<mesh3d::axis::z_axis>()) {
     for(auto j : m.extents<mesh3d::axis::y_axis>()) {
       for(auto i : m.extents<mesh3d::axis::x_axis>()) {
-        c[i][j][k] = color();
+        c[k][j][i] = color();
       } // for
     } // for
   } // for
@@ -303,7 +303,7 @@ print_field_3d(mesh3d::accessor<ro> m,
     for(int j = m.size<mesh3d::axis::y_axis, mesh3d::range::all>() - 1; j >= 0;
         --j) {
       for(auto i : m.extents<mesh3d::axis::x_axis, mesh3d::range::all>()) {
-        ss << c[i][j][k] << " ";
+        ss << c[k][j][i] << " ";
       } // for
       ss << std::endl;
     } // for
