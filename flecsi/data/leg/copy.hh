@@ -48,12 +48,11 @@ private:
 struct prefixes : private leg::mirror, leg::partition<>, prefixes_base {
   template<class F>
   prefixes(region & reg, F f)
-    : mirror(reg.size()), partition(reg, convert(std::move(f)), fid, complete) {
-  }
+    : mirror(reg.size()), partition(reg, convert(std::move(f)), fid) {}
 
   template<class F>
   void update(F f) {
-    partition::update(convert(std::move(f)), fid, complete);
+    partition::update(convert(std::move(f)), fid);
   }
 };
 

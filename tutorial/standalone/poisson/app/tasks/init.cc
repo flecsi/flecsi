@@ -23,7 +23,7 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
   auto s = m.mdspan<mesh::vertices>(sa);
   const double sq_klpi = pow(PI, 2) * (pow(K, 2) + pow(L, 2));
 
-  flog(info) << "delta^2: " << pow(m.delta(), 2) << std::endl;
+  flog(info) << "dxdy: " << m.dxdy() << std::endl;
 
   for(auto j : m.vertices<mesh::y_axis, mesh::logical>()) {
     const double y = m.value<mesh::y_axis>(j);

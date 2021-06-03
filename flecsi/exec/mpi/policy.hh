@@ -29,6 +29,7 @@
 
 #include <mpi.h>
 
+#include <future>
 #include <type_traits>
 #include <utility> // forward
 
@@ -77,7 +78,8 @@ reduce_internal(Args &&... args) {
 
   // Now we have accessors, we need to bind the accessor to real memory
   // for the data field. We also need to patch up default conversion
-  // from args to params, especially for the future<>.
+  // from args to params, especially for the future<>. Ghost copy for
+  // the fields is also done in the prolog.
   prolog(params, args...);
 
   // Different kinds of task invocation with flecsi::execute():
@@ -112,21 +114,31 @@ reduce_internal(Args &&... args) {
       return future<void>{};
     }
     else {
-      // TODO: consider non-blocking Bcast, issue Bcast here and wait for
-      //  completion at .wait()/.get().
-      // TODO: wrap this in std::async and use std::future for async execution
-      //  and communication.
-      R ret{};
+      auto ret = std::make_unique<R>();
       if(root) {
-        ret = std::apply(F, std::move(params));
+        *ret = std::apply(F, std::move(params));
       }
 
-      // Broadcast the result from root to the rest of ranks
-      test(MPI_Bcast(&ret, 1, flecsi::util::mpi::type<R>(), 0, MPI_COMM_WORLD));
+      auto request = std::make_unique<MPI_Request>();
+
+      // Initiate Ibroadcast to broadcast the result from root to the rest of
+      // ranks
+      test(MPI_Ibcast(ret.get(),
+        1,
+        flecsi::util::mpi::type<R>(),
+        0,
+        MPI_COMM_WORLD,
+        request.get()));
 
       // return future<R, launch_type::single> where clients on every rank
       // will get the same value when calling .get().
-      return future<R>{std::move(ret)};
+      return async(
+        // We will wait for the completion of the non-blocking Bcast in the
+        // async task.
+        [ret = std::move(ret), request = std::move(request)]() {
+          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
+          return *ret;
+        });
     }
   }
   else {
@@ -139,20 +151,28 @@ reduce_internal(Args &&... args) {
       // A real reduce operation, every rank needs to be able to access the
       // same result through future<R>::get().
       // 1. Call the F, get the local return value
-      R ret = std::apply(F, std::move(params));
+      auto ret = std::make_unique<R>(std::apply(F, std::move(params)));
+
       // 2. Reduce the local return values with the Reduction (using its
       // corresponding MPI_Op created by register_reduction<>()).
-      // TODO: consider non-blocking Allreduce, issue Iallreduce here and wait
-      //  for completion at .wait()/.get().
-      test(MPI_Allreduce(MPI_IN_PLACE,
-        &ret,
+      auto request = std::make_unique<MPI_Request>();
+      test(MPI_Iallreduce(MPI_IN_PLACE,
+        ret.get(),
         1,
         flecsi::util::mpi::type<R>(),
         flecsi::exec::fold::wrap<Reduction, R>::op,
-        MPI_COMM_WORLD));
+        MPI_COMM_WORLD,
+        request.get()));
+
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
-      return future<R>{std::move(ret)};
+      return async(
+        // We will wait for the completion of the non-blocking Allreduce in the
+        // async task.
+        [ret = std::move(ret), request = std::move(request)]() {
+          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
+          return *ret;
+        });
     }
     else if constexpr(!std::is_void_v<R>)
       // There is an Allgather happening in the constructor of future<R, index>

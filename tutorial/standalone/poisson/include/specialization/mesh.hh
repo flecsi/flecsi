@@ -33,7 +33,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using coloring_definition = base::coloring_definition;
 
   struct meta_data {
-    double delta;
+    double xdelta;
+    double ydelta;
   };
 
   static constexpr std::size_t dimension = 2;
@@ -82,13 +83,21 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       }
     }
 
-    double delta() {
-      return (*(this->policy_meta_)).delta;
+    double xdelta() {
+      return (*(this->policy_meta_)).xdelta;
+    }
+
+    double ydelta() {
+      return (*(this->policy_meta_)).ydelta;
+    }
+
+    double dxdy() {
+      return xdelta() * ydelta();
     }
 
     template<axis A>
     double value(std::size_t i) {
-      return delta() *
+      return (A == x_axis ? xdelta() : ydelta()) *
              (B::template offset<index_space::vertices, A, B::range::global>() +
                i);
     }
@@ -157,9 +166,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1);
     double ydelta =
       std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1);
-    flog_assert(xdelta == ydelta, "invalid extents: deltas must be equal");
 
-    md.delta = xdelta;
+    md.xdelta = xdelta;
+    md.ydelta = ydelta;
   }
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,
