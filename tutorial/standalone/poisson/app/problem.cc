@@ -3,8 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#include "poisson.hh"
 #include "problem.hh"
+#include "poisson.hh"
 #include "state.hh"
 #include "tasks/init.hh"
 

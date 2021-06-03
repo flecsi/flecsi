@@ -16,7 +16,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-
 int
 main(int argc, char ** argv) {
   annotation::rguard<main_region> main_guard;
