@@ -11,9 +11,6 @@
 #include <flecsi/execution.hh>
 
 using namespace flecsi;
-struct problem_region : annotation::region<user_execution> {
-  inline static const std::string name{"problem"};
-};
 
 int
 poisson::action::problem() {

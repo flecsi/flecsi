@@ -4,6 +4,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "analyze.hh"
+#include "poisson.hh"
 #include "state.hh"
 #include "tasks/norm.hh"
 
@@ -16,6 +17,7 @@ using namespace flecsi;
 
 int
 poisson::action::analyze() {
+  annotation::rguard<analyze_region> guard;
   double sum = reduce<task::diff, exec::fold::sum>(m, ud(m), sd(m)).get();
   sum = execute<task::scale>(m, sum).get();
   const double l2 = sqrt(sum);

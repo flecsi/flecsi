@@ -3,8 +3,9 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#include "poisson.hh"
 #include "solve.hh"
+#include "options.hh"
+#include "poisson.hh"
 #include "state.hh"
 #include "tasks/norm.hh"
 #include "tasks/smooth.hh"
@@ -13,10 +14,6 @@
 #include <flecsi/flog.hh>
 
 using namespace flecsi;
-
-struct solve_region : annotation::region<user_execution> {
-  inline static const std::string name{"solve"};
-};
 
 int
 poisson::action::solve() {
@@ -37,6 +34,6 @@ poisson::action::solve() {
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
     log::flush();
-  } while(err > 10e-05);
+  } while(err > 10e-05 && ita < max_iterations.value());
   return 0;
 } // solve

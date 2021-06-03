@@ -3,11 +3,11 @@
    All rights reserved.
                                                                               */
 
+#include "poisson.hh"
 #include "analyze.hh"
 #include "finalize.hh"
 #include "initialize.hh"
 #include "options.hh"
-#include "poisson.hh"
 #include "problem.hh"
 #include "solve.hh"
 #include "specialization/control.hh"
@@ -16,9 +16,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-struct main_region : annotation::region<annotation::execution> {
-  inline static const std::string name{"main"};
-};
 
 int
 main(int argc, char ** argv) {
