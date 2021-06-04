@@ -365,10 +365,12 @@ struct context {
       parsed.options, boost::program_options::include_positional);
 
 #if defined(FLECSI_ENABLE_FLOG)
+#if FLECSI_RUNTIME_MODEL != FLECSI_RUNTIME_MODEL_hpx
     if(log::state::instance().initialize(
          flog_tags_, flog_verbose_, flog_output_process_)) {
       return status::error;
     } // if
+#endif
 #endif
 
     initialized_ = true;
@@ -550,6 +552,16 @@ protected:
   // Invoke initialization callbacks.
   // Call from hiding function in derived classses.
   void start() {
+#if defined(FLECSI_ENABLE_FLOG)
+#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+    // for HPX logging must be enabled only after the runtime has been
+    // started
+    if(log::state::instance().initialize(
+         flog_tags_, flog_verbose_, flog_output_process_)) {
+      return;
+    } // if
+#endif
+#endif
     for(auto ro : init_registry)
       ro();
   }

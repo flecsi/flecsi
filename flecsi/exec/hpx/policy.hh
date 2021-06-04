@@ -67,7 +67,6 @@ struct reduction_helper {
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
-  using util::mpi::test;
   using Traits = util::function_traits<decltype(F)>;
   using R = typename Traits::return_type;
 
@@ -120,16 +119,19 @@ reduce_internal(Args &&... args) {
       }
       return future<void>{};
     }
-
-    // Broadcast the result from root to the rest of ranks
-    // return future<R, launch_type::single> where clients on every rank
-    // will get the same value when calling .get().
-    if(root) {
-      return hpx::collectives::broadcast_to(
-        "hpx_comm_world", std::apply(F, std::move(params)));
-    }
     else {
-      return hpx::collectives::broadcast_from("hpx_comm_world");
+      // Broadcast the result from root to the rest of ranks
+      // return future<R, launch_type::single> where clients on every rank
+      // will get the same value when calling .get().
+      if(root) {
+        return ::hpx::collectives::broadcast_to(
+          flecsi::run::context::instance().world_comm(),
+          std::apply(F, std::move(params)));
+      }
+      else {
+        return ::hpx::collectives::broadcast_from<R>(
+          flecsi::run::context::instance().world_comm());
+      }
     }
   }
   else {
@@ -146,7 +148,8 @@ reduce_internal(Args &&... args) {
       // 2. Reduce the local return values with the Reduction
       // 3. Put the reduced value in a future<R, single> (since there is only
       // one final value) and return it.
-      return hpx::collectives::all_reduce("hpx_comm_world",
+      return hpx::collectives::all_reduce(
+        flecsi::run::context::instance().world_comm(),
         std::apply(F, std::move(params)),
         detail::reduction_helper<Reduction>{});
     }

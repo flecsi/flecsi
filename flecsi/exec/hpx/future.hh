@@ -43,7 +43,7 @@ struct future<R> {
     return future_.get();
   }
 
-  hpx::shared_future<R> future_;
+  ::hpx::shared_future<R> future_;
 };
 
 template<>
@@ -56,12 +56,12 @@ template<typename R>
 struct future<R, exec::launch_type_t::index> {
 
   explicit future(R result)
-    : results(hpx::collectives::all_gather("hpx_comm_world",
-        std::move(result),
-        size())) {}
+    : results(hpx::collectives::all_gather(
+        flecsi::run::context::instance().world_comm(),
+        std::move(result))) {}
 
   void wait(bool = false) {
-      results.wait();
+    results.wait();
   }
 
   R get(Color index = 0, bool = false) {
@@ -73,7 +73,7 @@ struct future<R, exec::launch_type_t::index> {
   }
 
 private:
-  hpx::shared_future<std::vector<R>> results;
+  ::hpx::shared_future<std::vector<R>> results;
 };
 
 template<>

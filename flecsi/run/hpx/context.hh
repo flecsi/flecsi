@@ -16,16 +16,15 @@
 /*! @file */
 
 #include <flecsi-config.h>
+#include "flecsi/util/export_definitions.hh"
 
 #if !defined(FLECSI_ENABLE_HPX)
 #error FLECSI_ENABLE_HPX not defined! This file depends on HPX!
 #endif
 
+#include <hpx/modules/collectives.hpp>
+
 #include "flecsi/run/context.hh"
-
-#include <boost/program_options.hpp>
-
-#include <map>
 
 namespace flecsi::run {
 
@@ -39,19 +38,19 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  int initialize(int argc, char ** argv, bool dependent);
+  FLECSI_EXPORT int initialize(int argc, char ** argv, bool dependent);
 
   /*!
     Documentation for this interface is in the top-level context type.
    */
 
-  void finalize();
+  FLECSI_EXPORT void finalize();
 
   /*!
     Documentation for this interface is in the top-level context type.
    */
 
-  int start(const std::function<int()> &);
+  FLECSI_EXPORT int start(const std::function<int()> &);
 
   /*!
     Documentation for this interface is in the top-level context type.
@@ -96,6 +95,18 @@ struct context_t : context {
   Color colors() const {
     return processes_;
   }
+
+  ::hpx::collectives::communicator world_comm() const {
+    return world_comm_;
+  }
+
+  ::hpx::collectives::channel_communicator world_channel_comm() const {
+    return world_channel_comm_;
+  }
+
+private:
+  ::hpx::collectives::communicator world_comm_;
+  ::hpx::collectives::channel_communicator world_channel_comm_;
 };
 
 } // namespace flecsi::run

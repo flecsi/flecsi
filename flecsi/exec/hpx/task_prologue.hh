@@ -21,6 +21,9 @@
 #error FLECSI_ENABLE_HPX not defined! This file depends on HPX!
 #endif
 
+#include <hpx/modules/collectives.hpp>
+#include <hpx/modules/serialization.hpp>
+
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/hpx/future.hh"
@@ -71,12 +74,20 @@ protected:
     }
     ().template get_storage<T>(f);
     if constexpr(glob) {
+      using data_type = ::hpx::serialization::serialize_buffer<T>;
+      auto comm = flecsi::run::context::instance().world_comm();
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
-        //        util::mpi::test(MPI_Bcast(storage.data(),
-        //          storage.size(),
-        //          flecsi::util::mpi::type<T>(),
-        //          0,
-        //          MPI_COMM_WORLD));
+        if(comm.is_root()) {
+          auto f = hpx::collectives::broadcast_to(comm,
+            data_type(storage.data(), storage.size(), data_type::reference));
+          f.get();
+        }
+        else {
+          auto f = hpx::collectives::broadcast_from<T>(comm);
+          auto && data = f.get();
+          assert(data.size() == storage.size());
+          std::move(data.begin(), data.size(), storage.data());
+        }
       }
     }
     else {

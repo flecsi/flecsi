@@ -19,11 +19,16 @@
 #error FLECSI_ENABLE_HPX not defined! This file depends on HPX!
 #endif
 
+#include <hpx/modules/collectives.hpp>
+#include <hpx/modules/futures.hpp>
+#include <hpx/modules/serialization.hpp>
+
 #include "flecsi/data/field_info.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/array_ref.hh"
-#include "flecsi/util/mpi.hh"
+#include "flecsi/util/hpx.hh"
 
+#include <algorithm>
 #include <cstddef>
 #include <numeric>
 #include <unordered_map>
@@ -171,9 +176,9 @@ struct prefixes : partition, prefixes_base {
 } // namespace hpx
 
 // For backend-agnostic interface:
-using region_base = hpx::region;
-using hpx::partition;
-using hpx::rows, hpx::prefixes;
+using region_base = flecsi::data::hpx::region;
+using flecsi::data::hpx::partition;
+using flecsi::data::hpx::rows, flecsi::data::hpx::prefixes;
 
 struct intervals {
   using Value = subrow; // [begin, end)
@@ -225,7 +230,7 @@ private:
 
   // We use a reference to region instead of pointer since it is not nullable
   // nor needs to be redirected after initialization.
-  hpx::region_impl * r;
+  flecsi::data::hpx::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
@@ -279,14 +284,19 @@ struct copy_engine {
     // Create the inverse mapping of
     // group_shared_entities. This creates a map from remote destination rank to
     // a vector of *local* source indices. This information is later used by
-    // MPI_Send().
+    // hpx::collectives::set().
     {
+      auto comm = flecsi::run::context::instance().world_comm();
+      auto f = util::hpx::all_to_allv(
+        [&](int r, int) -> auto & {
+          static const std::vector<std::size_t> empty;
+          const auto i = grouped_shared_entities.find(r);
+          return i == grouped_shared_entities.end() ? empty : i->second;
+        },
+        comm);
+
       std::size_t r = 0;
-      for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
-            static const std::vector<std::size_t> empty;
-            const auto i = grouped_shared_entities.find(r);
-            return i == grouped_shared_entities.end() ? empty : i->second;
-          })) {
+      for(auto & v : f.get()) {
         if(!v.empty())
           remote_ghost_entities.try_emplace(r, std::move(v));
         ++r;
@@ -320,7 +330,6 @@ struct copy_engine {
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) const {
-    using util::mpi::test;
 
     auto source_storage =
       source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
@@ -329,41 +338,41 @@ struct copy_engine {
     // FIXME: should we assert(source_type_size == dest_type_size)?
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
-    std::vector<MPI_Request> requests;
-    requests.reserve(nreqs);
-
     auto remote_sources =
       destination.get_storage<const points::Value>(meta_fid);
+
+    auto comm = flecsi::run::context::instance().world_channel_comm();
+
+    using data_type = ::hpx::serialization::serialize_buffer<std::byte>;
+    std::vector<::hpx::future<void>> requests;
+    requests.reserve(nreqs);
 
     for(const auto & [begin, end] : destination.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         auto source_rank = remote_sources[ghost_idx].first;
-        requests.resize(requests.size() + 1);
-        test(MPI_Irecv(destination_storage.data() + ghost_idx * type_size,
-          type_size,
-          MPI_BYTE,
-          source_rank,
-          0,
-          MPI_COMM_WORLD,
-          &requests.back()));
+        requests.push_back(
+          ::hpx::collectives::get<data_type>(
+            comm, ::hpx::collectives::that_site_arg(source_rank))
+            .then([&](auto && f) {
+              auto && data = f.get();
+              std::copy(data.data(),
+                data.data() + data.size(),
+                destination_storage.data() + ghost_idx * type_size);
+            }));
       }
     }
 
     for(const auto & [dest_rank, local_indices] : remote_ghost_entities) {
       for(auto shared_idx : local_indices) {
-        requests.resize(requests.size() + 1);
-        test(MPI_Isend(source_storage.data() + shared_idx * type_size,
-          type_size,
-          MPI_BYTE,
-          int(dest_rank),
-          0,
-          MPI_COMM_WORLD,
-          &requests.back()));
+        requests.push_back(::hpx::collectives::set(comm,
+          ::hpx::collectives::that_site_arg(dest_rank),
+          data_type(source_storage.data() + shared_idx * type_size,
+            type_size,
+            data_type::reference)));
       }
     }
 
-    std::vector<MPI_Status> status(requests.size());
-    test(MPI_Waitall(requests.size(), requests.data(), status.data()));
+    ::hpx::wait_all(requests);
   }
 
 private:
