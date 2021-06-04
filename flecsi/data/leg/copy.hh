@@ -90,7 +90,7 @@ private:
     Legion::LogicalRegion lreg,
     Legion::LogicalPartition dest,
     field_id_t ptr_fid)
-    : cl_(src.colors_used),
+    : cl_(src.get_color_space()),
       src(src.logical_partition, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg),
       dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
     Legion::RegionRequirement rr_pos(

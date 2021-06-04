@@ -22,11 +22,7 @@ namespace flecsi {
 namespace data::leg {
 mirror::mirror(size2 s)
   : rects({s.first, 2}), order({2 * s.first, 1}),
-    part(rects,
-      order,
-      (execute<fill>(halves::field(order)), fid),
-      complete,
-      rects.color_space),
+    part(rects, order, (execute<fill>(halves::field(order)), fid), complete),
     width(s.second) {}
 void
 mirror::fill(halves::Field::accessor<wo> a) {

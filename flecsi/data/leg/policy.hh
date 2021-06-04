@@ -183,12 +183,14 @@ struct region {
 struct partition_base {
   unique_index_partition index_partition;
   unique_logical_partition logical_partition;
-  // A smaller index space when some colors exist purely for completeness.
-  Legion::IndexSpace colors_used;
+
+  Legion::IndexSpace get_color_space() const {
+    return run().get_index_partition_color_space_name(index_partition);
+  }
 
   // NB: intervals and points are not advertised as deriving from this class.
   Color colors() const {
-    return leg::run().get_index_space_domain(colors_used).get_volume();
+    return run().get_index_space_domain(get_color_space()).get_volume();
   }
   template<topo::single_space>
   const partition_base & get_partition(field_id_t) const {
@@ -197,16 +199,8 @@ struct partition_base {
 
 protected:
   partition_base(const region & r, unique_index_partition ip)
-    : partition_base(r,
-        std::move(ip),
-        run().get_index_partition_color_space_name(ip)) {}
-  // The rvalue reference defers the move in the two-argument constructor.
-  partition_base(const region & r,
-    unique_index_partition && ip,
-    Legion::IndexSpace c)
     : index_partition(std::move(ip)),
-      logical_partition(log(r.logical_region, index_partition)),
-      colors_used(c) {}
+      logical_partition(log(r.logical_region, index_partition)) {}
 
   static unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
@@ -248,13 +242,7 @@ struct partition : partition_base {
     const partition_base & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition(reg, src, fid, cpt, src.colors_used) {}
-  partition(region & reg,
-    const partition_base & src,
-    field_id_t fid,
-    completeness cpt,
-    Legion::IndexSpace used)
-    : partition_base(reg, part(reg.index_space, src, fid, cpt), used) {}
+    : partition_base(reg, part(reg.index_space, src, fid, cpt)) {}
 
 protected:
   void update(const partition_base & src,
@@ -291,7 +279,7 @@ private:
         src.logical_partition,
         r.get_parent_logical_region(src.logical_partition),
         fid,
-        src.colors_used,
+        src.get_color_space(),
         partitionKind(R ? disjoint : compute, cpt),
         LEGION_AUTO_GENERATE_ID,
         0,
