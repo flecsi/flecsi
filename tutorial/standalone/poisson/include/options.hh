@@ -21,6 +21,6 @@ inline flecsi::program_option<std::size_t> max_iterations("max-iterations",
   {{flecsi::option_default, std::numeric_limits<std::size_t>::max()}});
 inline flecsi::program_option<double> error_tol("error-tolerance",
   "tolerance,t",
-  "The maximum absolute error tolerance.",
+  "The maximum absolute residual tolerance.",
   {{flecsi::option_default, 0.0}});
 } // namespace poisson
