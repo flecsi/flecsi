@@ -103,6 +103,10 @@ private:
   std::unique_ptr<region_impl> p; // to preserve an address on move
 };
 
+} // namespace mpi
+
+// Work in "namespace data" temporarily, so that this struct will be
+// a real struct and not just an alias
 struct partition {
   Color colors() const {
     // number of rows, essentially the number of MPI ranks.
@@ -120,13 +124,17 @@ struct partition {
   }
 
 private:
-  region_impl * r;
+  mpi::region_impl * r;
 
 protected:
-  partition(region & r) : r(&*r) {}
+  partition(mpi::region & r) : r(&*r) {}
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
+
+namespace mpi {
+
+using data::partition;
 
 struct rows : partition {
   explicit rows(region & r) : partition(r) {
@@ -166,7 +174,6 @@ struct prefixes : partition, prefixes_base {
 
 // For backend-agnostic interface:
 using region_base = mpi::region;
-using mpi::partition;
 using mpi::rows, mpi::prefixes;
 
 struct intervals {

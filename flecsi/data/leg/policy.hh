@@ -179,9 +179,13 @@ struct region {
   unique_logical_region logical_region;
 };
 
-struct partition_base {
-  unique_index_partition index_partition;
-  unique_logical_partition logical_partition;
+} // namespace leg
+
+// Work in "namespace data" temporarily, so that this struct will be
+// a real struct and not just an alias
+struct partition {
+  leg::unique_index_partition index_partition;
+  leg::unique_logical_partition logical_partition;
   // A smaller index space when some colors exist purely for completeness.
   Legion::IndexSpace colors_used;
 
@@ -190,29 +194,34 @@ struct partition_base {
     return leg::run().get_index_space_domain(colors_used).get_volume();
   }
   template<topo::single_space>
-  const partition_base & get_partition(field_id_t) const {
+  const partition & get_partition(field_id_t) const {
     return *this;
   }
 
 protected:
-  partition_base(const region & r, unique_index_partition ip)
-    : partition_base(r,
+  partition(const leg::region & r, leg::unique_index_partition ip)
+    : partition(r,
         std::move(ip),
-        run().get_index_partition_color_space_name(ip)) {}
+        leg::run().get_index_partition_color_space_name(ip)) {}
   // The rvalue reference defers the move in the two-argument constructor.
-  partition_base(const region & r,
-    unique_index_partition && ip,
+  partition(const leg::region & r,
+    leg::unique_index_partition && ip,
     Legion::IndexSpace c)
     : index_partition(std::move(ip)),
       logical_partition(log(r.logical_region, index_partition)),
       colors_used(c) {}
 
-  static unique_logical_partition log(const Legion::LogicalRegion & r,
+  static leg::unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
-    return named(run().get_logical_partition(r, p),
-      (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
+    return leg::named(leg::run().get_logical_partition(r, p),
+      (std::string(1, '{') + leg::name(r, "?") + '/' + leg::name(p, "?") + '}')
+        .c_str());
   }
 };
+
+namespace leg {
+
+using partition_base = data::partition;
 
 struct with_color { // for initialization order
   unique_index_space color_space;
@@ -302,7 +311,6 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-using partition = leg::partition_base;
 using leg::rows;
 
 template<typename T>

@@ -44,20 +44,7 @@ namespace flecsi {
 // forward declarations
 namespace data {
 struct region;
-// TODO:  find a less ugly way to do this
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
-namespace leg {
-struct partition_base;
-}
-using partition = leg::partition_base;
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
-namespace mpi {
 struct partition;
-}
-using partition = mpi::partition;
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
-// TODO:  figure out what goes here
-#endif
 } // namespace data
 
 namespace topo {
