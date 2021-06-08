@@ -34,6 +34,6 @@ poisson::action::solve() {
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
     log::flush();
-  } while(err > 10e-05 && ita < max_iterations.value());
+  } while(err > error_tol.value() && ita < max_iterations.value());
   return 0;
 } // solve
