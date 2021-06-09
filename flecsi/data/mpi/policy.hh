@@ -134,8 +134,6 @@ protected:
 
 namespace mpi {
 
-using data::partition;
-
 struct rows : partition {
   explicit rows(region & r) : partition(r) {
     // This constructor is usually (almost always) called when r.s.second != a
