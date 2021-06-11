@@ -48,7 +48,7 @@ protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     future<R, exec::launch_type_t::index> & index) {
-    single.result_ = index.result;
+    single = index.get(flecsi::run::context::instance().color());
   }
 
   template<typename T,
@@ -78,15 +78,15 @@ protected:
       auto comm = flecsi::run::context::instance().world_comm();
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
         if(comm.is_root()) {
-          auto f = hpx::collectives::broadcast_to(comm,
+          auto f = ::hpx::collectives::broadcast_to(comm,
             data_type(storage.data(), storage.size(), data_type::reference));
           f.get();
         }
         else {
-          auto f = hpx::collectives::broadcast_from<T>(comm);
+          auto f = ::hpx::collectives::broadcast_from<data_type>(comm);
           auto && data = f.get();
           assert(data.size() == storage.size());
-          std::move(data.begin(), data.size(), storage.data());
+          std::move(data.begin(), data.begin() + data.size(), storage.data());
         }
       }
     }

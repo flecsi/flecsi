@@ -33,8 +33,21 @@ namespace flecsi {
 template<typename R>
 struct future<R> {
 
+  future() = default;
+
   explicit future(R result)
-    : future_(hpx::make_ready_future(std::move(result))) {}
+    : future_(::hpx::make_ready_future(std::move(result))) {}
+
+  explicit future(::hpx::future<R> && result) : future_(std::move(result)) {}
+
+  future & operator=(R result) {
+    future_ = ::hpx::make_ready_future(std::move(result));
+    return *this;
+  }
+  future & operator=(::hpx::future<R> && result) {
+    future_ = std::move(result);
+    return *this;
+  }
 
   void wait() {
     future_.wait();
@@ -43,6 +56,7 @@ struct future<R> {
     return future_.get();
   }
 
+private:
   ::hpx::shared_future<R> future_;
 };
 
@@ -56,7 +70,7 @@ template<typename R>
 struct future<R, exec::launch_type_t::index> {
 
   explicit future(R result)
-    : results(hpx::collectives::all_gather(
+    : results(::hpx::collectives::all_gather(
         flecsi::run::context::instance().world_comm(),
         std::move(result))) {}
 

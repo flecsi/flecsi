@@ -16,7 +16,9 @@
 
 #include "flecsi/data.hh"
 #include "flecsi/run/hpx/context.hh"
+#if defined(FLECSI_ENABLE_MPI)
 #include "flecsi/util/mpi.hh"
+#endif
 
 #include <cstring>
 #include <string>
@@ -24,6 +26,7 @@
 
 namespace flecsi::run {
 
+#if defined(FLECSI_ENABLE_MPI)
 namespace detail {
 
 bool
@@ -48,6 +51,7 @@ detect_mpi_environment() {
 #endif
 }
 } // namespace detail
+#endif
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::initialize.
@@ -56,16 +60,20 @@ detect_mpi_environment() {
 int
 context_t::initialize(int argc, char ** argv, bool dependent) {
 
+#if defined(FLECSI_ENABLE_MPI)
   bool has_mpi = detail::detect_mpi_environment();
   if(dependent && has_mpi) {
     util::mpi::test(MPI_Init(&argc, &argv));
   }
+#endif
 
   auto status = context::initialize_generic(argc, argv, dependent);
 
+#if defined(FLECSI_ENABLE_MPI)
   if(status != success && dependent && has_mpi) {
     util::mpi::test(MPI_Finalize());
   } // if
+#endif
 
 #if defined(FLECSI_ENABLE_KOKKOS)
   if(dependent) {
@@ -85,9 +93,11 @@ context_t::finalize() {
 
   context::finalize_generic();
 
+#if defined(FLECSI_ENABLE_MPI)
   if(context::initialize_dependent_ && detail::detect_mpi_environment()) {
     util::mpi::test(MPI_Finalize());
   } // if
+#endif
 
 #if defined(FLECSI_ENABLE_KOKKOS)
   if(context::initialize_dependent_) {

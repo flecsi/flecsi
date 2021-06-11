@@ -96,18 +96,8 @@ add_executable(cycle
   test/package_c.hh)
 target_link_libraries(cycle FleCSI)
 target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
-
 if(MSVC)
-  target_compile_definitions(cycle PRIVATE
-    _SCL_SECURE_NO_WARNINGS
-    _CRT_SECURE_NO_WARNINGS
-    _SCL_SECURE_NO_DEPRECATE
-    _CRT_SECURE_NO_DEPRECATE
-    _CRT_NONSTDC_NO_WARNINGS
-    _HAS_AUTO_PTR_ETC=1
-    _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
-    _SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
-    NOMINMAX)
+  target_compile_definitions(cycle PRIVATE NOMINMAX)
 endif()
 
 add_unit(flog
