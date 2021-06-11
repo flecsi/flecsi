@@ -45,16 +45,6 @@ namespace flecsi {
 namespace io {
 using FieldNames = std::map<Legion::FieldID, std::string>;
 
-/*----------------------------------------------------------------------------*
-  HDF5 descriptor of one logical region, not called by users.
- *----------------------------------------------------------------------------*/
-struct legion_hdf5_region_t {
-  Legion::LogicalRegion logical_region;
-  Legion::LogicalPartition logical_partition;
-  std::string logical_region_name;
-  FieldNames field_string_map;
-};
-
 // This one task handles all I/O variations: read or Write, Attach or not.
 template<bool W, bool A>
 inline void
@@ -204,11 +194,12 @@ struct io_interface {
     auto & context = run::context::instance();
     auto & isd_vector = context.get_index_space_data();
 
+    std::vector<FieldNames> field_string_map_vector;
+    for(auto & isd : isd_vector) {
+      field_string_map_vector.emplace_back(make_field_string_map(*(isd.fields)));
+    }
     const auto task_args = util::serial_buffer([&](auto & p) {
-      util::serial_put(p, isd_vector.size());
-      for(auto & isd : isd_vector) {
-        util::serial_put(p, make_field_string_map(*(isd.fields)));
-      }
+      util::serial_put(p, field_string_map_vector);
       util::serial_put(p, file_name);
     });
 
@@ -230,10 +221,8 @@ struct io_interface {
           EXCLUSIVE,
           isd.region->logical_region));
 
-      for(auto & fi : *(isd.fields)) {
-        if(fi->name != "double")
-          continue;
-        checkpoint_launcher.region_requirements[idx].add_field(fi->fid);
+      for(auto & it : field_string_map_vector[idx]) {
+        checkpoint_launcher.region_requirements[idx].add_field(it.first);
       }
       idx++;
     }

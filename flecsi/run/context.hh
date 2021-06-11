@@ -45,6 +45,8 @@ namespace flecsi {
 namespace data {
 struct region;
 struct partition;
+template<class Topo>
+struct topology_slot;
 } // namespace data
 
 namespace topo {
@@ -508,7 +510,7 @@ struct context {
    *--------------------------------------------------------------------------*/
 
   template<class Topo>
-  void add_topology(typename Topo::slot & slot) {
+  void add_topology(typename data::topology_slot<Topo> & slot) {
     // global topology doesn't define get_partitions, so skip for now
     constexpr bool is_global =
       std::is_same_v<typename Topo::base, topo::global_base>;
@@ -562,6 +564,7 @@ protected:
   void clear();
 #endif
 
+private:
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   index_space_data_t make_index_space_data(typename Topo::slot & slot) {
     auto & fs = get_field_info_store<Topo, Index>();
@@ -586,6 +589,7 @@ protected:
     Program options data members.
    *--------------------------------------------------------------------------*/
 
+protected:
   std::string program_;
   std::vector<char *> argv_;
   std::string backend_;
@@ -647,7 +651,6 @@ protected:
 
 private:
   std::vector<void (*)()> init_registry;
-
 }; // struct context
 
 } // namespace run
