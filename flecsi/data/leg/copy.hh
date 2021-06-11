@@ -31,28 +31,44 @@ struct mirror {
   static constexpr const field_id_t & fid = halves::field.fid;
 
 private:
-  // Used to fill in mirror::order with its completely predetermined pattern.
-  static void fill(halves::Field::accessor<wo>);
+  // Used to fill in mirror::columns with its completely predetermined pattern.
+  static void fill(halves::Field::accessor<wo>, size_t c);
   static void extend(prefixes_base::Field::accessor<ro>,
     halves::Field::accessor<wo>,
     std::size_t width);
 
   halves::core rects, // n rows, each with its left and right rectangles
-    order; // 2n degenerate rectangles pointing to each half-row
+    columns; // 2x1 rectangles pointing to each column of rect
   partition<> part;
   std::size_t width;
 };
+
+struct with_partition {
+  partition<> prt;
+}; // for initialization order
+
 } // namespace leg
 
 // Use inheritance to initialize mirror early:
-struct prefixes : private leg::mirror, leg::partition<>, prefixes_base {
+struct prefixes : private leg::mirror,
+                  private leg::with_partition,
+                  leg::rows,
+                  prefixes_base {
   template<class F>
   prefixes(region & reg, F f)
-    : mirror(reg.size()), partition(reg, convert(std::move(f)), fid) {}
+    : mirror(reg.size()),
+      with_partition{{reg, convert(std::move(f)), fid, complete}},
+      rows(get_first_subregion(), reg.size()) {}
 
   template<class F>
   void update(F f) {
-    partition::update(convert(std::move(f)), fid);
+    prt.update(convert(std::move(f)), fid, complete);
+    rows::update(get_first_subregion());
+  }
+
+private:
+  Legion::LogicalRegion get_first_subregion() const {
+    return leg::run().get_logical_subregion_by_color(prt.logical_partition, 0);
   }
 };
 

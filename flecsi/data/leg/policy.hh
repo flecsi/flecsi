@@ -198,9 +198,9 @@ struct partition_base {
   }
 
 protected:
-  partition_base(const region & r, unique_index_partition ip)
+  partition_base(const Legion::LogicalRegion & r, unique_index_partition ip)
     : index_partition(std::move(ip)),
-      logical_partition(log(r.logical_region, index_partition)) {}
+      logical_partition(log(r, index_partition)) {}
 
   static unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
@@ -213,27 +213,43 @@ struct with_color { // for initialization order
   unique_index_space color_space;
 };
 struct rows : with_color, partition_base {
-  explicit rows(const region & reg)
-    : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
+  explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
+
+  // this constructor will create partition by rows with s.first being number
+  // of colors and s.second the max size of the rows
+  rows(const Legion::LogicalRegion & reg, size2 s)
+    : with_color{run().create_index_space(ctx(),
+        Legion::Rect<1>(0, upper(s.first)))},
+      partition_base(reg, partition_rows(reg, upper(s.second))) {}
 
 private:
-  // The type-erased version assumes a square transformation matrix.
-  rows(const region & reg, Legion::DomainPoint hi)
-    : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
-      partition_base(reg,
-        named(run().create_partition_by_restriction(
-                ctx(),
-                Legion::IndexSpaceT<2>(reg.index_space),
-                Legion::IndexSpaceT<1>(color_space),
-                [&] {
-                  Legion::Transform<2, 1> ret;
-                  ret.rows[0].x = 1;
-                  ret.rows[1].x = 0;
-                  return ret;
-                }(),
-                {{0, 0}, {0, hi[1]}},
-                DISJOINT_COMPLETE_KIND),
-          (name(reg.index_space, "?") + std::string(1, '=')).c_str())) {}
+  unique_index_partition partition_rows(const Legion::LogicalRegion & reg,
+    Legion::coord_t hi) {
+    // The type-erased version assumes a square transformation matrix
+    return named(run().create_partition_by_restriction(
+                   ctx(),
+                   Legion::IndexSpaceT<2>(reg.get_index_space()),
+                   Legion::IndexSpaceT<1>(color_space),
+                   [&] {
+                     Legion::Transform<2, 1> ret;
+                     ret.rows[0].x = 1;
+                     ret.rows[1].x = 0;
+                     return ret;
+                   }(),
+                   {{0, 0}, {0, hi}},
+                   DISJOINT_COMPLETE_KIND),
+      (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
+  }
+
+public:
+  void update(const Legion::LogicalRegion & reg) {
+    Legion::DomainPoint hi =
+      run().get_index_space_domain(reg.get_index_space()).hi();
+    auto ip = partition_rows(reg, hi[1]);
+
+    logical_partition = log(reg, ip);
+    index_partition = std::move(ip);
+  }
 };
 
 template<bool R = true>
@@ -242,9 +258,9 @@ struct partition : partition_base {
     const partition_base & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition_base(reg, part(reg.index_space, src, fid, cpt)) {}
+    : partition_base(reg.logical_region, part(reg.index_space, src, fid, cpt)) {
+  }
 
-protected:
   void update(const partition_base & src,
     field_id_t fid,
     completeness cpt = incomplete) {
