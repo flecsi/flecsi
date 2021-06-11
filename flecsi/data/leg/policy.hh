@@ -179,44 +179,47 @@ struct region {
   unique_logical_region logical_region;
 };
 
-} // namespace leg
-
-// Work in "namespace data" temporarily, so that this struct will be
-// a real struct and not just an alias
-struct partition {
-  leg::unique_index_partition index_partition;
-  leg::unique_logical_partition logical_partition;
+struct partition_base {
+  unique_index_partition index_partition;
+  unique_logical_partition logical_partition;
   // A smaller index space when some colors exist purely for completeness.
   Legion::IndexSpace colors_used;
 
   // NB: intervals and points are not advertised as deriving from this class.
   Color colors() const {
-    return leg::run().get_index_space_domain(colors_used).get_volume();
+    return run().get_index_space_domain(colors_used).get_volume();
   }
   template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
+  const partition_base & get_partition(field_id_t) const {
     return *this;
   }
 
 protected:
-  partition(const leg::region & r, leg::unique_index_partition ip)
-    : partition(r,
+  partition_base(const region & r, unique_index_partition ip)
+    : partition_base(r,
         std::move(ip),
-        leg::run().get_index_partition_color_space_name(ip)) {}
+        run().get_index_partition_color_space_name(ip)) {}
   // The rvalue reference defers the move in the two-argument constructor.
-  partition(const leg::region & r,
-    leg::unique_index_partition && ip,
+  partition_base(const region & r,
+    unique_index_partition && ip,
     Legion::IndexSpace c)
     : index_partition(std::move(ip)),
       logical_partition(log(r.logical_region, index_partition)),
       colors_used(c) {}
 
-  static leg::unique_logical_partition log(const Legion::LogicalRegion & r,
+  static unique_logical_partition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
-    return leg::named(leg::run().get_logical_partition(r, p),
-      (std::string(1, '{') + leg::name(r, "?") + '/' + leg::name(p, "?") + '}')
-        .c_str());
+    return named(run().get_logical_partition(r, p),
+      (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
   }
+};
+
+} // namespace leg
+
+// This type must be defined outside of namespace leg to support
+// forward declarations
+struct partition : leg::partition_base { // instead of "using partition ="
+  using leg::partition_base::partition_base;
 };
 
 namespace leg {
@@ -224,7 +227,7 @@ namespace leg {
 struct with_color { // for initialization order
   unique_index_space color_space;
 };
-struct rows : with_color, data::partition {
+struct rows : with_color, partition {
   explicit rows(const region & reg)
     : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
 
@@ -232,7 +235,7 @@ private:
   // The type-erased version assumes a square transformation matrix.
   rows(const region & reg, Legion::DomainPoint hi)
     : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
-      data::partition(reg,
+      partition(reg,
         named(run().create_partition_by_restriction(
                 ctx(),
                 Legion::IndexSpaceT<2>(reg.index_space),
