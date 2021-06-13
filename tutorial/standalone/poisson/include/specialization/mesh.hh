@@ -12,9 +12,6 @@
 
 #include "types.hh"
 
-// 'interface' is defined as a macro on some platforms
-#undef interface
-
 namespace poisson {
 
 struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {

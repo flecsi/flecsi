@@ -149,7 +149,6 @@ public:
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 
-#if FLECSI_RUNTIME_MODEL != FLECSI_RUNTIME_MODEL_hpx
     {
       int p, np;
       MPI_Comm_rank(MPI_COMM_WORLD, &p);
@@ -157,12 +156,6 @@ public:
       process_ = p;
       processes_ = np;
     }
-#else
-    {
-      process_ = ::hpx::get_locality_id();
-      processes_ = ::hpx::get_num_localities(::hpx::launch::sync);
-    }
-#endif
 
     if(one_process + 1 && one_process >= processes_) {
       if(process_ == 0) {

@@ -18,9 +18,6 @@
 #include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/interface.hh"
 
-// 'interface' is defined as a macro on some platforms
-#undef interface
-
 using namespace flecsi;
 
 struct mesh_helper : topo::specialization<topo::narray, mesh_helper> {};

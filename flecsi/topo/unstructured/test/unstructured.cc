@@ -20,9 +20,6 @@
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
 
-// 'interface' is defined as a macro on some platforms
-#undef interface
-
 using namespace flecsi;
 
 struct unstructured : topo::specialization<topo::unstructured, unstructured> {

@@ -20,7 +20,6 @@
   data model.
  */
 
-#include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/interface.hh"
@@ -31,6 +30,7 @@
 #include <flecsi/data/accessor.hh>
 #include <flecsi/data/coloring.hh>
 #include <flecsi/data/privilege.hh>
+#include "flecsi/data/topology_accessor.hh"
 
 namespace flecsi {
 

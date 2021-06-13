@@ -36,14 +36,14 @@ detect_mpi_environment() {
   // MPI environment
   return true;
 #else
-  static std::vector<std::string> const envvars = {"MV2_COMM_WORLD_RANK",
+  static char const* const envvars[] = {"MV2_COMM_WORLD_RANK",
     "PMI_RANK",
     "OMPI_COMM_WORLD_SIZE",
     "ALPS_APP_PE",
     "PMIX_RANK"};
 
   for(auto const & envvar : envvars) {
-    char * env = std::getenv(envvar.c_str());
+    char * env = std::getenv(envvar);
     if(env)
       return true;
   }

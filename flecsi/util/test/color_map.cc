@@ -16,9 +16,6 @@
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"
 
-// 'interface' is defined as a macro on some platforms
-#undef interface
-
 using namespace flecsi;
 
 namespace {

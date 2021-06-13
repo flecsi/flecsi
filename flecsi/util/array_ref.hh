@@ -115,9 +115,9 @@ private:
 };
 
 template<class C>
-span(C &) -> span<typename C::value_type>;
+span(C &)->span<typename C::value_type>;
 template<class C>
-span(const C &) -> span<const typename C::value_type>;
+span(const C &)->span<const typename C::value_type>;
 
 /// Copy a span into a std::vector.
 template<class T>
