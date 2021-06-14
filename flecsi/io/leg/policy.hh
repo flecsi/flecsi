@@ -196,7 +196,8 @@ struct io_interface {
 
     std::vector<FieldNames> field_string_map_vector;
     for(auto & isd : isd_vector) {
-      field_string_map_vector.emplace_back(make_field_string_map(*(isd.fields)));
+      field_string_map_vector.emplace_back(
+        make_field_string_map(*(isd.fields)));
     }
     const auto task_args = util::serial_buffer([&](auto & p) {
       util::serial_put(p, field_string_map_vector);
