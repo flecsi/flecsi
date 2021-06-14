@@ -26,6 +26,7 @@
 
 #include "flecsi/exec/launch.hh"
 
+#include <cassert>
 #include <utility>
 
 namespace flecsi {
@@ -50,9 +51,11 @@ struct future<R> {
   }
 
   void wait() {
+    assert(future_.valid());
     future_.wait();
   }
   R get(bool = false) {
+    assert(future_.valid());
     return future_.get();
   }
 
@@ -62,8 +65,26 @@ private:
 
 template<>
 struct future<void> {
-  void wait() {}
-  void get(bool = false) {}
+  future() = default;
+
+  explicit future(::hpx::future<void> && result) : future_(std::move(result)) {}
+
+  future & operator=(::hpx::future<void> && result) {
+    future_ = std::move(result);
+    return *this;
+  }
+
+  void wait() {
+    assert(future_.valid());
+    future_.wait();
+  }
+  void get(bool = false) {
+    assert(future_.valid());
+    future_.get();
+  }
+
+private:
+  ::hpx::shared_future<void> future_;
 };
 
 template<typename R>
@@ -73,6 +94,15 @@ struct future<R, exec::launch_type_t::index> {
     : results(::hpx::collectives::all_gather(
         flecsi::run::context::instance().world_comm(),
         std::move(result))) {}
+
+  explicit future(::hpx::future<R> && result)
+    : results(result.then(::hpx::launch::sync, [](auto && f) {
+        return ::hpx::collectives::all_gather(
+          flecsi::run::context::instance().world_comm(), f.get());
+      })) {}
+
+  explicit future(::hpx::future<std::vector<R>> && result)
+    : results(std::move(result)) {}
 
   void wait(bool = false) {
     results.wait();
@@ -92,10 +122,26 @@ private:
 
 template<>
 struct future<void, exec::launch_type_t::index> {
-  void wait(bool = false) {}
-  void get(Color = 0, bool = false) {}
+
+  future() = default;
+
+  explicit future(::hpx::future<void> && result) : future_(std::move(result)) {
+    result.get();
+  }
+
+  void wait(bool = false) {
+    assert(future_.valid());
+    future_.wait();
+  }
+  void get(Color = 0, bool = false) {
+    assert(future_.valid());
+    future_.get();
+  }
   Color size() const {
     return run::context::instance().processes();
   }
+
+private:
+  ::hpx::shared_future<void> future_;
 };
 } // namespace flecsi

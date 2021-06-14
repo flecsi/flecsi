@@ -24,6 +24,7 @@
 #include <hpx/modules/serialization.hpp>
 
 #include "flecsi/data/field_info.hh"
+#include "flecsi/exec/hpx/future.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/hpx.hh"
@@ -90,12 +91,17 @@ struct region_impl {
     throw std::runtime_error("can not find field");
   }
 
+  ::hpx::shared_future<void> & get_future(field_id_t fid) {
+    return futures.at(fid);
+  }
+
 private:
   size2 s; // (nranks, nelems)
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
   std::unordered_map<field_id_t, std::vector<std::byte>> storages;
+  std::unordered_map<field_id_t, ::hpx::shared_future<void>> futures;
 };
 
 struct region {
@@ -123,6 +129,10 @@ struct partition {
   template<typename T>
   auto get_storage(field_id_t fid) const {
     return r->get_storage<T>(fid, nelems);
+  }
+
+  auto & get_future(field_id_t fid) const {
+    return r->get_future(fid);
   }
 
   template<topo::single_space>
@@ -255,7 +265,7 @@ private:
   // direct access to the region.
   friend struct copy_engine;
 
-  hpx::region_impl * r;
+  flecsi::data::hpx::region_impl * r;
 };
 
 struct copy_engine {

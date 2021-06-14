@@ -75,14 +75,7 @@ reduce_internal(Args &&... args) {
     static_cast<typename Traits::arguments_type *>(nullptr),
     std::forward<Args>(args)...);
 
-  // TIP: param_buffers is an RAII type. We create an instance and give
-  // the object a reference to the parameters and name of the task. We then
-  // assign it to the `finalize` variable so it is not destroyed immediately.
-  // The object will be destroyed when reduce_internal() returns. The
-  // ~param_buffers() will then perform the necessary clean up on the
-  // parameters (mostly calling mutator.commit()).
   auto task_name = util::symbol<F>();
-  auto finalize = param_buffers{params, task_name};
 
   // Now we have accessors, we need to bind the accessor to real memory
   // for the data field. We also need to patch up default conversion
@@ -111,27 +104,50 @@ reduce_internal(Args &&... args) {
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = flecsi::run::context::instance().process() == 0;
+
     // single launch, only invoke the user task on the Root.
     if constexpr(std::is_void_v<R>) {
-      // void return type, just invoke, no return value to broadcast
       if(root) {
-        std::apply(F, std::move(params));
-      }
-      return future<void>{};
-    }
-    else {
-      // Broadcast the result from root to the rest of ranks
-      // return future<R, launch_type::single> where clients on every rank
-      // will get the same value when calling .get().
-      if(root) {
-        return future<R>(::hpx::collectives::broadcast_to(
-          flecsi::run::context::instance().world_comm(),
-          std::apply(F, std::move(params))));
+        auto result = _.delay_execution(
+          std::move(params), std::move(task_name), [&](auto && params) {
+            // void return type, just invoke, no return value to broadcast
+            std::apply(F, std::move(params));
+          });
+
+        // make sure the future that is associated with the result of this
+        // task is made ready once the task finishes executing
+        _.attach_result(result);
+
+        return future<void>{std::move(result)};
       }
       else {
-        return future<R>(::hpx::collectives::broadcast_from<R>(
-          flecsi::run::context::instance().world_comm()));
+        // see comment about param_buffers above
+        auto finalize = param_buffers{params, task_name};
+        return future<void>{};
       }
+    }
+    else {
+      auto result = _.delay_execution(
+        std::move(params), std::move(task_name), [&](auto && params) {
+          // Broadcast the result from root to the rest of ranks return
+          // future<R, launch_type::single> where clients on every rank
+          // will get the same value when calling .get().
+          if(root) {
+            return ::hpx::collectives::broadcast_to(
+              flecsi::run::context::instance().world_comm(),
+              std::apply(F, std::move(params)));
+          }
+          else {
+            return ::hpx::collectives::broadcast_from<R>(
+              flecsi::run::context::instance().world_comm());
+          }
+        });
+
+      // make sure the future that is associated with the result of this
+      // task is made ready once the task finishes executing
+      _.attach_result(result);
+
+      return future<R>{std::move(result)};
     }
   }
   else {
@@ -142,30 +158,54 @@ reduce_internal(Args &&... args) {
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      // A real reduce operation, every rank needs to be able to access the
-      // same result through future<R>::get().
-      // 1. Call the F, get the local return value
-      // 2. Reduce the local return values with the Reduction
-      // 3. Put the reduced value in a future<R, single> (since there is only
-      // one final value) and return it.
-      return future<R>(::hpx::collectives::all_reduce(
-        flecsi::run::context::instance().world_comm(),
-        std::apply(F, std::move(params)),
-        detail::reduction_helper<Reduction>{}));
+      auto result = _.delay_execution(
+        std::move(params), std::move(task_name), [&](auto && params) {
+          // A real reduce operation, every rank needs to be able to access
+          // the same result through future<R>::get().
+          // 1. Call the F, get the local return value
+          // 2. Reduce the local return values with the Reduction
+          // 3. Put the reduced value in a future<R, single> (since there is
+          // only one final value) and return it.
+          return ::hpx::collectives::all_reduce(
+            flecsi::run::context::instance().world_comm(),
+            std::apply(F, std::move(params)),
+            detail::reduction_helper<Reduction>{});
+        });
+
+      // make sure the future that is associated with the result of this
+      // task is made ready once the task finishes executing
+      _.attach_result(result);
+
+      return future<R>{std::move(result)};
     }
-    else if constexpr(!std::is_void_v<R>)
-      // There is an Allgather happening in the constructor of future<R, index>
-      // where the results from ranks are redistributed such that clients on
-      // every rank i can get the return value of rank j by calling get(j).
-      return future<R, exec::launch_type_t::index>{
-        std::apply(F, std::move(params))};
+    else if constexpr(!std::is_void_v<R>) {
+      // There is an Allgather happening in the constructor of future<R,
+      // index> where the results from ranks are redistributed such that
+      // clients on every rank i can get the return value of rank j by calling
+      // get(j).
+      auto result = _.delay_execution(std::move(params),
+        std::move(task_name),
+        [&](auto && params) { return std::apply(F, std::move(params)); });
+
+      // make sure the future that is associated with the result of this
+      // task is made ready once the task finishes executing
+      _.attach_result(result);
+
+      return future<R, exec::launch_type_t::index>{std::move(result)};
+    }
     else {
       // index launch of void functions, e.g. printf("hello world");
-      std::apply(F, std::move(params));
-      return future<void, exec::launch_type_t::index>{};
+      auto result = _.delay_execution(std::move(params),
+        std::move(task_name),
+        [&](auto && params) { std::apply(F, std::move(params)); });
+
+      // make sure the future that is associated with the result of this
+      // task is made ready once the task finishes executing
+      _.attach_result(result);
+
+      return future<void, exec::launch_type_t::index>{std::move(result)};
     }
   }
 }
-
 } // namespace exec
 } // namespace flecsi
