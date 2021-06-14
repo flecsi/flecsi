@@ -33,6 +33,7 @@ set(data_HEADERS
 )
 
 set(data_SOURCES
+  data.cc
 )
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")

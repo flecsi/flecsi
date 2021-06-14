@@ -31,18 +31,19 @@
 #include <flecsi/data/coloring.hh>
 #include <flecsi/data/privilege.hh>
 #include "flecsi/data/topology_accessor.hh"
+#include "flecsi/util/export_definitions.hh"
 
 namespace flecsi {
 
 /*
   Default global topology instance.
  */
-inline topo::global::slot global_topology;
+FLECSI_EXPORT extern topo::global::slot global_topology;
 
 /*
   Per-process topology instance.
  */
-inline topo::index::slot process_topology;
+FLECSI_EXPORT extern topo::index::slot process_topology;
 
 namespace detail {
 /// An RAII type to manage the global coloring and topologies.
