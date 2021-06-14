@@ -103,8 +103,6 @@ private:
   std::unique_ptr<region_impl> p; // to preserve an address on move
 };
 
-//} // namespace mpi
-
 struct partition {
   Color colors() const {
     // number of rows, essentially the number of MPI ranks.
