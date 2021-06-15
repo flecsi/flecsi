@@ -14,7 +14,6 @@
 #pragma once
 
 #include <flecsi-config.h>
-#include "flecsi/util/export_definitions.hh"
 
 #if defined(FLECSI_ENABLE_FLOG)
 
@@ -28,7 +27,7 @@
 #else
 #include <winsock2.h>
 
-FLECSI_EXPORT int gettimeofday(struct timeval * t, void * timezone);
+int gettimeofday(struct timeval * t, void * timezone);
 typedef long long suseconds_t;
 #endif
 

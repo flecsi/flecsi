@@ -14,7 +14,6 @@
 #pragma once
 
 #include <flecsi-config.h>
-#include "flecsi/util/export_definitions.hh"
 
 #include <ctime>
 #include <string>
@@ -140,13 +139,13 @@ rstrip(const char * file) {
   Returnt the current number of buffered packets.
  */
 
-FLECSI_EXPORT std::size_t log_size();
+std::size_t log_size();
 
 /*!
   Serialize output to a single process.
  */
 
-FLECSI_EXPORT void send_to_one();
+void send_to_one();
 
 } // namespace log
 } // namespace flecsi

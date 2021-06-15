@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <numeric>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -43,7 +44,7 @@ namespace hpx {
 struct region_impl {
   // The constructor is collectively called on all ranks with the same s,
   // and fs. s.first is number of rows while s.second is number of columns.
-  // MPI may assume "number of rows" == number of ranks. The number of columns
+  // HPX may assume "number of rows" == number of ranks. The number of columns
   // is a placeholder for the number of data points to be stored in a
   // particular row (aka rank), it could be exact or in the case when we don't
   // know the exact number yet, a large number (flecsi::data::logical_size) is
@@ -59,6 +60,7 @@ struct region_impl {
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(auto f : fs) {
       storages.emplace(f->fid, 0);
+      futures.emplace(f->fid, ::hpx::shared_future<void>{});
     }
   }
 
@@ -296,7 +298,8 @@ struct copy_engine {
     // a vector of *local* source indices. This information is later used by
     // hpx::collectives::set().
     {
-      auto comm = flecsi::run::context::instance().world_comm();
+      auto comm = flecsi::run::context::instance().world_comm(
+        "copy_engine" + std::to_string(meta_fid));
       auto f = util::hpx::all_to_allv(
         [&](int r, int) -> auto & {
           static const std::vector<std::size_t> empty;

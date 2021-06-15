@@ -28,7 +28,9 @@ function(add_library_target target directory)
   # Setup argument options
   #----------------------------------------------------------------------------#
 
-  set(options)
+  set(options
+    STATIC
+  )
   set(one_value_args
     VERSION
     SOVERSION
@@ -135,12 +137,16 @@ function(add_library_target target directory)
 
   endforeach(_SUBDIR)
 
+  if(lib_STATIC)
+    set(lib_static STATIC)
+  endif()
+
   #----------------------------------------------------------------------------#
   # Add the actual build target
   #----------------------------------------------------------------------------#
 
   if(_SOURCES)
-    add_library(${target} ${_SOURCES} ${_HEADERS})
+    add_library(${target} ${lib_static} ${_SOURCES} ${_HEADERS})
   else()
     add_library(${target} INTERFACE)
   endif()

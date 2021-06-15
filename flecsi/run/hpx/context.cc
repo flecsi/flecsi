@@ -36,7 +36,7 @@ detect_mpi_environment() {
   // MPI environment
   return true;
 #else
-  static char const* const envvars[] = {"MV2_COMM_WORLD_RANK",
+  static char const * const envvars[] = {"MV2_COMM_WORLD_RANK",
     "PMI_RANK",
     "OMPI_COMM_WORLD_SIZE",
     "ALPS_APP_PE",
@@ -146,20 +146,22 @@ context_t::start(std::function<int()> const & action) {
       context::threads_per_process_ = ::hpx::get_num_worker_threads();
       context::threads_ = context::processes_;
 
-      // initialize communicators
-      detail::free_on_exit on_exit1(world_comm_,
-        ::hpx::collectives::create_communicator("/flecsi/world_comm",
-          ::hpx::collectives::num_sites_arg(context::processes_),
-          ::hpx::collectives::this_site_arg(context::process_)));
+      int result = 0;
 
-      detail::free_on_exit on_exit2(world_channel_comm_,
-        ::hpx::collectives::create_channel_communicator(::hpx::launch::sync,
-          "/flecsi/world_channel_comm",
-          ::hpx::collectives::num_sites_arg(context::processes_),
-          ::hpx::collectives::this_site_arg(context::process_)));
+      {
+        // initialize communicator
+        detail::free_on_exit on_exit2(world_channel_comm_,
+          ::hpx::collectives::create_channel_communicator(::hpx::launch::sync,
+            "/flecsi/world_channel_comm",
+            ::hpx::collectives::num_sites_arg(context::processes_),
+            ::hpx::collectives::this_site_arg(context::process_)));
 
-      // guard destroyed after action call
-      int result = (flecsi::detail::data_guard(), action());
+        // guard destroyed after action call
+        result = (flecsi::detail::data_guard(), action());
+
+        // free communicators
+        world_comms_.clear();
+      }
 
       // tell the runtime it's ok to exit
       ::hpx::finalize();
@@ -168,6 +170,34 @@ context_t::start(std::function<int()> const & action) {
     argv_.size(),
     argv_.data(),
     params);
+}
+
+::hpx::collectives::communicator
+context_t::world_comm(std::string name) {
+
+  name = "/flecsi/world_comm/" + name;
+  {
+    std::unique_lock<::hpx::lcos::local::spinlock> l(mtx);
+
+    auto it = world_comms_.find(name);
+    if(it != world_comms_.end())
+      return it->second;
+  }
+
+  auto comm = ::hpx::collectives::create_communicator(name.c_str(),
+    ::hpx::collectives::num_sites_arg(context::processes_),
+    ::hpx::collectives::this_site_arg(context::process_));
+
+  {
+    std::unique_lock<::hpx::lcos::local::spinlock> l(mtx);
+
+    auto p = world_comms_.insert(std::make_pair(std::move(name), comm));
+    if(!p.second) {
+      return p.first->second;
+    }
+  }
+
+  return comm;
 }
 
 } // namespace flecsi::run

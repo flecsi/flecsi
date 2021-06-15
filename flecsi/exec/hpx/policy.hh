@@ -30,6 +30,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
 
+#include <string>
 #include <type_traits>
 #include <utility> // forward
 
@@ -80,7 +81,7 @@ reduce_internal(Args &&... args) {
   // Now we have accessors, we need to bind the accessor to real memory
   // for the data field. We also need to patch up default conversion
   // from args to params, especially for the future<>.
-  prolog _(params, args...);
+  prolog bound_params(params, args...);
 
   // Different kinds of task invocation with flecsi::execute():
   // 1. domain_size is a std::monostate: a single task launch. On a single
@@ -108,44 +109,51 @@ reduce_internal(Args &&... args) {
     // single launch, only invoke the user task on the Root.
     if constexpr(std::is_void_v<R>) {
       if(root) {
-        auto result = _.delay_execution(
-          std::move(params), std::move(task_name), [&](auto && params) {
+        auto result = bound_params.delay_execution(std::move(params),
+          std::move(task_name),
+          [&](auto && params, std::string &&) {
             // void return type, just invoke, no return value to broadcast
             std::apply(F, std::move(params));
           });
 
         // make sure the future that is associated with the result of this
         // task is made ready once the task finishes executing
-        _.attach_result(result);
+        bound_params.attach_dependencies(result);
 
         return future<void>{std::move(result)};
       }
       else {
-        // see comment about param_buffers above
+        // TIP: param_buffers is an RAII type. We create an instance and give
+        // the object a reference to the parameters and name of the task. We
+        // then assign it to the `finalize` variable so it is not destroyed
+        // immediately. The object will be destroyed when reduce_internal()
+        // returns. The ~param_buffers() will then perform the necessary clean
+        // up on the parameters (mostly calling mutator.commit()).
         auto finalize = param_buffers{params, task_name};
         return future<void>{};
       }
     }
     else {
-      auto result = _.delay_execution(
-        std::move(params), std::move(task_name), [&](auto && params) {
+      auto result = bound_params.delay_execution(std::move(params),
+        std::move(task_name),
+        [&](auto && params, std::string && task_name) {
           // Broadcast the result from root to the rest of ranks return
           // future<R, launch_type::single> where clients on every rank
           // will get the same value when calling .get().
+          auto comm =
+            flecsi::run::context::instance().world_comm(std::move(task_name));
           if(root) {
             return ::hpx::collectives::broadcast_to(
-              flecsi::run::context::instance().world_comm(),
-              std::apply(F, std::move(params)));
+              comm, std::apply(F, std::move(params)));
           }
           else {
-            return ::hpx::collectives::broadcast_from<R>(
-              flecsi::run::context::instance().world_comm());
+            return ::hpx::collectives::broadcast_from<R>(comm);
           }
         });
 
       // make sure the future that is associated with the result of this
       // task is made ready once the task finishes executing
-      _.attach_result(result);
+      bound_params.attach_dependencies(result);
 
       return future<R>{std::move(result)};
     }
@@ -158,8 +166,9 @@ reduce_internal(Args &&... args) {
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      auto result = _.delay_execution(
-        std::move(params), std::move(task_name), [&](auto && params) {
+      auto result = bound_params.delay_execution(std::move(params),
+        std::move(task_name),
+        [&](auto && params, std::string && task_name) {
           // A real reduce operation, every rank needs to be able to access
           // the same result through future<R>::get().
           // 1. Call the F, get the local return value
@@ -167,14 +176,14 @@ reduce_internal(Args &&... args) {
           // 3. Put the reduced value in a future<R, single> (since there is
           // only one final value) and return it.
           return ::hpx::collectives::all_reduce(
-            flecsi::run::context::instance().world_comm(),
+            flecsi::run::context::instance().world_comm(std::move(task_name)),
             std::apply(F, std::move(params)),
             detail::reduction_helper<Reduction>{});
         });
 
       // make sure the future that is associated with the result of this
       // task is made ready once the task finishes executing
-      _.attach_result(result);
+      bound_params.attach_dependencies(result);
 
       return future<R>{std::move(result)};
     }
@@ -183,25 +192,29 @@ reduce_internal(Args &&... args) {
       // index> where the results from ranks are redistributed such that
       // clients on every rank i can get the return value of rank j by calling
       // get(j).
-      auto result = _.delay_execution(std::move(params),
-        std::move(task_name),
-        [&](auto && params) { return std::apply(F, std::move(params)); });
+      auto result = bound_params.delay_execution(
+        std::move(params), task_name, [&](auto && params, std::string &&) {
+          return std::apply(F, std::move(params));
+        });
 
       // make sure the future that is associated with the result of this
       // task is made ready once the task finishes executing
-      _.attach_result(result);
+      bound_params.attach_dependencies(result);
 
-      return future<R, exec::launch_type_t::index>{std::move(result)};
+      return future<R, exec::launch_type_t::index>{
+        std::move(result), std::move(task_name)};
     }
     else {
       // index launch of void functions, e.g. printf("hello world");
-      auto result = _.delay_execution(std::move(params),
+      auto result = bound_params.delay_execution(std::move(params),
         std::move(task_name),
-        [&](auto && params) { std::apply(F, std::move(params)); });
+        [&](auto && params, std::string &&) {
+          std::apply(F, std::move(params));
+        });
 
       // make sure the future that is associated with the result of this
       // task is made ready once the task finishes executing
-      _.attach_result(result);
+      bound_params.attach_dependencies(result);
 
       return future<void, exec::launch_type_t::index>{std::move(result)};
     }

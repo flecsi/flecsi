@@ -58,7 +58,7 @@ struct repartition : with_size, data::prefixes {
   template<class F>
   void resize(F f) {
     const auto r = this->sizes();
-    flecsi::execute<repartition::fill<F>>(r, f);
+    flecsi::execute<detail::fill<F>>(r, f);
     this->resize();
   }
 };

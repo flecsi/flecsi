@@ -27,7 +27,6 @@ set(util_HEADERS
   dag.hh
   demangle.hh
   dimensioned_array.hh
-  export_definitions.hh
   function_traits.hh
   geometry/filling_curve.hh
   geometry/point.hh

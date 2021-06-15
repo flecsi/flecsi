@@ -72,7 +72,9 @@ set(exec_HEADERS
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-if(NOT FLECSI_RUNTIME_MODEL STREQUAL "mpi") # this test uses oversubscription
+# this test uses oversubscription
+if(NOT FLECSI_RUNTIME_MODEL STREQUAL "mpi" AND
+   NOT FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
 add_unit(interface
   SOURCES

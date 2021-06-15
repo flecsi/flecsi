@@ -21,11 +21,6 @@
 
 #define __FLECSI_PRIVATE__
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
-#include <hpx/runtime_local/get_locality_id.hpp>
-#include <hpx/runtime_local/get_num_all_localities.hpp>
-#endif
-
 #include "flecsi/data/field_info.hh"
 #include "flecsi/log/packet.hh"
 #include "flecsi/log/types.hh"

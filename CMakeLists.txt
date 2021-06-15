@@ -231,6 +231,10 @@ if(NOT FORMAT_ONLY)
 
   include(library)
 
+  if(MSVC)
+    set(TPL_OPTIONS STATIC)
+  endif()
+
   add_library_target(FleCSI flecsi
     EXPORT_TARGET
       FleCSITargets
@@ -246,6 +250,7 @@ if(NOT FORMAT_ONLY)
       ${CMAKE_BINARY_DIR}
     LINK_PUBLIC
       ${TPL_LIBRARIES}
+    ${TPL_OPTIONS}
   )
 
   #----------------------------------------------------------------------------#

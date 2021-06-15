@@ -17,7 +17,6 @@
 
 #include <string>
 #include <typeinfo> // typeid()
-#include "flecsi/util/export_definitions.hh"
 
 namespace flecsi {
 namespace util {
@@ -30,7 +29,7 @@ namespace util {
   @ingroup utils
  */
 
-FLECSI_EXPORT std::string demangle(const char * const name);
+std::string demangle(const char * const name);
 
 /*!
   Return the demangled name of the type T.

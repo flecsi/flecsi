@@ -28,9 +28,12 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/hpx/future.hh"
+#include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
 
 #include <memory>
+#include <mutex>
+#include <string>
 
 namespace flecsi {
 namespace topo {
@@ -47,8 +50,7 @@ private:
   using spinlock_pool = ::hpx::util::spinlock_pool<::hpx::shared_future<void>>;
 
 public:
-  task_prologue()
-    : promise(), future(promise.get_future()), has_dependencies(false) {}
+  task_prologue() : has_dependencies(false) {}
 
 protected:
   // Those methods are "protected" because they are *only* called by
@@ -90,15 +92,15 @@ protected:
     auto & field_future = r.get_future(f);
     if(field_future.valid()) {
       std::lock_guard<::hpx::util::detail::spinlock> l(
-        spinlock_pool::spinlock_for(
-          ::hpx::traits::detail::get_shared_state(future).get()));
+        spinlock_pool::spinlock_for(&field_future));
       dependencies.push_back(field_future);
     }
 
     const auto storage = r.template get_storage<T>(f);
     if constexpr(glob) {
       using data_type = ::hpx::serialization::serialize_buffer<T>;
-      auto comm = flecsi::run::context::instance().world_comm();
+      auto comm = flecsi::run::context::instance().world_comm(
+        "prolog_visit" + std::to_string(f));
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
         if(comm.is_root()) {
           auto f = ::hpx::collectives::broadcast_to(comm,
@@ -118,11 +120,14 @@ protected:
     }
 
     if(privilege_write(P)) {
+      // request future from promise only if required
+      if(!future.valid()) {
+        future = promise.get_future();
+      }
       // if the task writes to the current argument then we must associate
       // the future that represents the result of the task with the argument
       std::lock_guard<::hpx::util::detail::spinlock> l(
-        spinlock_pool::spinlock_for(
-          ::hpx::traits::detail::get_shared_state(future).get()));
+        spinlock_pool::spinlock_for(&field_future));
       field_future = future;
       has_dependencies = true;
     }
@@ -136,8 +141,7 @@ public:
     satisfied.
    */
   template<typename Params, typename Task>
-  auto
-  delay_execution(Params && params, std::string && task_name, Task && task) {
+  auto delay_execution(Params && params, std::string task_name, Task && task) {
     return ::hpx::dataflow(
       ::hpx::launch::sync,
       [&, params = std::move(params), task_name = std::move(task_name)](
@@ -155,7 +159,7 @@ public:
           f.get();
 
         // invoke actual task
-        return task(std::move(params));
+        return task(std::move(params), std::move(task_name));
       },
       dependencies);
   }
@@ -165,8 +169,9 @@ public:
     task is made ready once the task finishes executing.
    */
   template<typename T>
-  void attach_result(::hpx::future<T> const & f) {
+  void attach_dependencies(::hpx::future<T> const & f) {
     if(has_dependencies) {
+      flog_assert(future.valid(), "future must be valid");
       hpx::traits::detail::get_shared_state(f)->set_on_completed(
         [p = std::move(promise)]() mutable { p.set_value(); });
     }
