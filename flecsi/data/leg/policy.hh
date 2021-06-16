@@ -29,6 +29,8 @@
 namespace flecsi {
 namespace data {
 
+struct prefixes;
+
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
 constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
@@ -260,6 +262,11 @@ struct partition : partition_base {
     completeness cpt = incomplete)
     : partition_base(reg.logical_region, part(reg.index_space, src, fid, cpt)) {
   }
+
+  partition(prefixes & reg,
+    const partition_base & src,
+    field_id_t fid,
+    completeness cpt = {});
 
   void update(const partition_base & src,
     field_id_t fid,

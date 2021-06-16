@@ -66,11 +66,20 @@ struct prefixes : private leg::mirror,
     rows::update(get_first_subregion());
   }
 
-private:
   Legion::LogicalRegion get_first_subregion() const {
     return leg::run().get_logical_subregion_by_color(prt.logical_partition, 0);
   }
 };
+
+// specialization of the partition constructor for prefixes being passed as a
+// first argument
+template<bool R>
+leg::partition<R>::partition(prefixes & reg,
+  const data::partition & src,
+  field_id_t fid,
+  completeness cpt)
+  : data::partition(reg.get_first_subregion(),
+      part(reg.get_first_subregion().get_index_space(), src, fid, cpt)) {}
 
 struct intervals : leg::partition<> {
   using Value = leg::rect;
