@@ -69,7 +69,7 @@ enum status : int {
   error, // add specific error modes
 }; // initialization_codes
 
-struct index_space_data_t {
+struct index_space_info_t {
   const data::region * region;
   const data::partition * partition;
   const data::fields * fields;
@@ -519,8 +519,8 @@ struct context {
     }
   }
 
-  const std::vector<index_space_data_t> & get_index_space_data() const {
-    return index_space_data_vector_;
+  const std::vector<index_space_info_t> & get_index_space_info() const {
+    return index_space_info_vector_;
   }
 
   /*--------------------------------------------------------------------------*
@@ -566,10 +566,10 @@ protected:
 
 private:
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  index_space_data_t make_index_space_data(typename Topo::slot & slot) {
+  index_space_info_t make_index_space_info(typename Topo::slot & slot) {
     auto & fs = get_field_info_store<Topo, Index>();
 
-    return index_space_data_t{&(slot->template get_region<Index>()),
+    return index_space_info_t{&(slot->template get_region<Index>()),
       // TODO:  deal with ragged case, where different fields have
       // different partitions
       &(slot->template get_partition<Index>(field_id_t())),
@@ -580,8 +580,8 @@ private:
   template<class Topo, typename Topo::index_space... Index>
   void add_index_spaces(typename Topo::slot & slot,
     util::constants<Index...> /* to deduce pack */) {
-    (index_space_data_vector_.push_back(
-       make_index_space_data<Topo, Index>(slot)),
+    (index_space_info_vector_.push_back(
+       make_index_space_info<Topo, Index>(slot)),
       ...);
   }
 
@@ -641,7 +641,7 @@ protected:
     Index space data members.
    *--------------------------------------------------------------------------*/
 
-  std::vector<index_space_data_t> index_space_data_vector_;
+  std::vector<index_space_info_t> index_space_info_vector_;
 
   /*--------------------------------------------------------------------------*
     Task count.

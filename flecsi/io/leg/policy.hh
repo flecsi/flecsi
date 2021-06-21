@@ -192,7 +192,7 @@ struct io_interface {
     Legion::Runtime * runtime = Legion::Runtime::get_runtime();
     Legion::Context ctx = Legion::Runtime::get_context();
     auto & context = run::context::instance();
-    auto & isd_vector = context.get_index_space_data();
+    auto & isd_vector = context.get_index_space_info();
 
     std::vector<FieldNames> field_string_map_vector;
     for(auto & isd : isd_vector) {
