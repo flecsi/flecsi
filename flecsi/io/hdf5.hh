@@ -3,6 +3,9 @@
 #ifndef FLECSI_IO_HDF5_HH
 #define FLECSI_IO_HDF5_HH
 
+#include <cmath>
+#include <string>
+
 #include "flecsi/flog.hh"
 
 #include <hdf5.h>
@@ -70,6 +73,12 @@ private:
   hid_t id;
 };
 } // namespace detail
+
+hid_t
+get_hdf5_type(int item_size) {
+  hsize_t type_size = {(hsize_t)std::ceil((double)item_size / 4)};
+  return H5Tarray_create2(H5T_NATIVE_B32, 1, &type_size);
+}
 
 struct hdf5 {
   static hdf5 create(const std::string & file_name) {
@@ -176,16 +185,24 @@ struct hdf5 {
     return true;
   }
 
-  bool create_dataset(const std::string & field_name, hsize_t size) {
-    const hsize_t nsize = (size + (sizeof(double) - 1)) / sizeof(double);
-
-    const hsize_t dims[2] = {nsize, 1};
+  bool create_dataset(const std::string & field_name,
+    hsize_t nitems,
+    hsize_t item_size) {
+    const hsize_t dims[2] = {nitems, 1};
     const hid_t dataspace_id = H5Screate_simple(2, dims, NULL);
     if(dataspace_id < 0) {
       flog(error) << "H5Screate_simple failed: " << dataspace_id << std::endl;
       close();
       return false;
     }
+
+    hid_t datatype_id = get_hdf5_type(item_size);
+    if(datatype_id < 0) {
+      flog(error) << "H5Tarray_create2 failed: " << datatype_id << std::endl;
+      close();
+      return false;
+    }
+
 #if 0
     hid_t group_id = H5Gcreate2(file_id, (*lr_it).logical_region_name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     if (group_id < 0) {
@@ -197,7 +214,7 @@ struct hdf5 {
 #endif
     hid_t dataset = H5Dcreate2(hdf5_file_id,
       field_name.c_str(),
-      H5T_IEEE_F64LE,
+      datatype_id,
       dataspace_id,
       H5P_DEFAULT,
       H5P_DEFAULT,
@@ -212,6 +229,7 @@ struct hdf5 {
     H5Dclose(dataset);
     //   H5Gclose(group_id);
     H5Sclose(dataspace_id);
+    H5Tclose(datatype_id);
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
     return true;
   }
