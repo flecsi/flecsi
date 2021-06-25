@@ -20,6 +20,30 @@
 
 using namespace flecsi;
 
+struct mesh_helper : topo::specialization<topo::narray, mesh_helper> 
+{}; 
+
+template<std::size_t D>
+struct axes_helper{ };
+
+template<>
+struct axes_helper<1> {
+  enum axis {x_axis}; 
+  using axes = typename mesh_helper::template has<x_axis>;
+};
+
+template<>
+struct axes_helper<2> {
+  enum axis {x_axis, y_axis}; 
+  using axes = typename mesh_helper::template has<x_axis, y_axis>;
+};
+
+template<>
+struct axes_helper<3> {
+  enum axis {x_axis, y_axis, z_axis}; 
+  using axes = typename mesh_helper::template has<x_axis, y_axis, z_axis>;
+};
+
 template<std::size_t D>
 struct mesh : topo::specialization<topo::narray, mesh<D>> {
   static_assert((D >= 1 && D <= 6), "Invalid dimension for testing !");
@@ -35,7 +59,10 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
     ghost_high,
     global
   };
-  enum axis { x_axis, y_axis, z_axis };
+  //enum axis { x_axis, y_axis, z_axis };
+  
+  using axis = typename axes_helper<D>::axis; 
+  using axes = typename axes_helper<D>::axes; 
 
   struct meta_data {
     double delta;
@@ -47,7 +74,6 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
   static constexpr std::size_t privilege_count = 2; 
 
   using index_spaces = typename mesh::template has<entities>;
-  using axes = typename mesh::template has<x_axis, y_axis, z_axis>;
   using coord = typename mesh::base::coord;
   using coloring_definition = typename mesh::base::coloring_definition;
   using coloring = typename mesh::base::coloring;
