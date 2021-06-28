@@ -36,12 +36,6 @@ mesh3d::slot m3;
 mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 
-/*
-//4D Mesh
-mesh4d::slot m4;
-mesh4d::cslot coloring4;
-*/
-
 int
 narray_driver() {
   UNIT {
@@ -117,73 +111,6 @@ narray_driver() {
       execute<print_field<3>>(m3, f3(m3));
       execute<check_mesh_field<3>>(m3, f3(m3));
     } // scope
-
-    /*
-     {
-       mesh4d::coord indices{4, 4, 4, 4};
-       auto colors = topo::narray_utils::distribute(processes(), indices);
-       flog(warn) << log::container{colors} << std::endl;
-
-       mesh4d::coord hdepths{0, 0, 0, 0};
-       mesh4d::coord bdepths{0, 0, 0, 0};
-       std::vector<bool> periodic{false, false, false, false};
-       std::vector<mesh4d::coloring_definition> index_definitions = {
-         {colors, indices, hdepths, bdepths, periodic, true}};
-       coloring4.allocate(index_definitions);
-
-       auto [colors_out, index_colorings] =
-     topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
-
-       mesh4d::coloring c;
-       c.comm = MPI_COMM_WORLD;
-       c.colors = colors_out;
-       for(auto idx : index_colorings) {
-         for(auto ic : idx) {
-           c.idx_colorings.emplace_back(ic.second);
-         }
-       }
-
-      auto idc = c.idx_colorings[0];
-
-      int dim = indices.size();
-      int owner = process();
-      std::string fname1 = "narray_" + std::to_string(dim) + "d_" +
-     std::to_string(owner) + ".current";
-
-       UNIT_CAPTURE() << "index_coloring ---->\n";
-       UNIT_CAPTURE() << " extents = [ ";
-       for (auto i = 0; i < dim; i++) {
-         UNIT_CAPTURE()<<idc.extents[i]<<"   ";
-       }
-       UNIT_CAPTURE()<<" ]\n";
-
-       UNIT_CAPTURE() << " logical_min = [ ";
-       for (auto i = 0; i < dim; i++) {
-         UNIT_CAPTURE()<<idc.logical[0][i]<<"   ";
-       }
-       UNIT_CAPTURE()<<" ]\n";
-
-       UNIT_CAPTURE() << " logical_max = [ ";
-       for (auto i = 0; i < dim; i++) {
-         UNIT_CAPTURE()<<idc.logical[1][i]<<"   ";
-       }
-       UNIT_CAPTURE()<<" ]\n";
-
-       UNIT_CAPTURE() << " extended_min = [ ";
-       for (auto i = 0; i < dim; i++) {
-         UNIT_CAPTURE()<<idc.extended[0][i]<<"   ";
-       }
-       UNIT_CAPTURE()<<" ]\n";
-
-       UNIT_CAPTURE() << " extended_max = [ ";
-       for (auto i = 0; i < dim; i++) {
-         UNIT_CAPTURE()<<idc.extended[1][i]<<"   ";
-       }
-       UNIT_CAPTURE()<<" ]\n";
-
-       UNIT_EQUAL_BLESSED(fname1.c_str());
-     }
-   */
 
   }; // UNIT
 } // coloring_driver
