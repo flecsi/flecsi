@@ -348,9 +348,10 @@ private:
 } // namespace detail
 
 /// Send data from rank 0 to all others, controlling memory usage.
-/// \a mem counts only data being transmitted; one more value may exist.
+/// No messages are constructed while data in transit exceeds \a mem
+/// (transmission occurs, at least serially, even if it is 0).
 /// \param f function object
-/// \param mem bytes of memory to use for communication
+/// \param mem bytes of memory to use before waiting
 template<class F>
 auto
 one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
@@ -384,8 +385,16 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
               return ret;
             }
           }();
-          const auto & v = val[i];
-          if(used && used + v.bytes() > mem) {
+          {
+            const auto & v = val[i];
+            if(i == int(req.size()))
+              req.emplace_back();
+            // Discourage buffering (at the cost of needless synchronization):
+            test(
+              MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+            used += v.bytes();
+          }
+          while(used > mem) {
             int count;
             test(MPI_Waitsome(
               req.size(), req.data(), &count, done.data(), stat.data()));
@@ -397,11 +406,6 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
               free.push(j);
             }
           }
-          if(i == int(req.size()))
-            req.emplace_back();
-          // Discourage buffering (at the cost of needless synchronization):
-          test(MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
-          used += v.bytes();
         }
       }
       test(MPI_Waitall(req.size(), req.data(), stat.data()));
