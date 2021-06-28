@@ -35,6 +35,7 @@ const field<std::size_t>::definition<mesh2d, mesh2d::index_space::entities> f2;
 mesh3d::slot m3;
 mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
+
 /*
 //4D Mesh
 mesh4d::slot m4; 
@@ -44,12 +45,14 @@ mesh4d::cslot coloring4;
 int
 narray_driver() {
   UNIT {
+    
     {
       using topo::narray_utils::factor;
       using V = std::vector<std::size_t>;
       EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
       EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
     }
+
 
     {
       // 1D Mesh
@@ -66,14 +69,14 @@ narray_driver() {
 
       coloring1.allocate(index_definitions);
       m1.allocate(coloring1.get());
-      execute<init_field_1d>(m1, f1(m1));
-      execute<print_field_1d>(m1, f1(m1));
-      execute<update_field_1d>(m1, f1(m1));
-      execute<print_field_1d>(m1, f1(m1));
-      execute<check_mesh_1d>(m1, f1(m1));
+      execute<init_field<1>>(m1, f1(m1));
+      execute<print_field<1>>(m1, f1(m1));
+      execute<update_field<1>>(m1, f1(m1));
+      execute<print_field<1>>(m1, f1(m1));
+      execute<check_mesh_field<1>>(m1, f1(m1));
     } // scope
 
-  
+    
   
     {
       // 2D Mesh
@@ -89,14 +92,14 @@ narray_driver() {
         {colors, indices, hdepths, bdepths, periodic, diagonals}};
       coloring2.allocate(index_definitions);
       m2.allocate(coloring2.get());
-      execute<init_field_2d>(m2, f2(m2));
-      execute<print_field_2d>(m2, f2(m2));
-      execute<check_mesh_2d>(m2);
-      execute<update_field_2d>(m2, f2(m2));
-      execute<print_field_2d>(m2, f2(m2));
+      execute<init_field<2>>(m2, f2(m2));
+      execute<print_field<2>>(m2, f2(m2));
+      execute<update_field<2>>(m2, f2(m2));
+      execute<print_field<2>>(m2, f2(m2));
+      execute<check_mesh_field<2>>(m2, f2(m2));
   
     } // scope
- 
+    
     
     
     {
@@ -113,16 +116,16 @@ narray_driver() {
         {colors, indices, hdepths, bdepths, periodic, diagonals}};
       coloring3.allocate(index_definitions);
       m3.allocate(coloring3.get());
-      execute<init_field_3d>(m3, f3(m3));
-      execute<print_field_3d>(m3, f3(m3));
-      execute<check_mesh_3d>(m3);
-      execute<update_field_3d>(m3, f3(m3));
-      execute<print_field_3d>(m3, f3(m3));
+      execute<init_field<3>>(m3, f3(m3));
+      execute<print_field<3>>(m3, f3(m3));
+      execute<update_field<3>>(m3, f3(m3));
+      execute<print_field<3>>(m3, f3(m3));
+      execute<check_mesh_field<3>>(m3, f3(m3));
     } // scope
 
     
-   /*
-    
+   
+   /* 
     {
       mesh4d::coord indices{4, 4, 4, 4};
       auto colors = topo::narray_utils::distribute(processes(), indices);
