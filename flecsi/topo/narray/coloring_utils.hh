@@ -375,28 +375,30 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
                      &expand](Dimension dim, Dimension top) {
             std::vector<std::pair<colors, hypercube>> sregs;
 
-            //DBG
+            // DBG
             /*std::stringstream out;
-            out<<"Color indices Info --> "<<std::endl; 
+            out<<"Color indices Info --> "<<std::endl;
             for (Dimension axis = 0; axis < dim; ++axis) {
-                out<<color_indices[axis]<<std::endl; 
+                out<<color_indices[axis]<<std::endl;
             }
-            out<<"Logical Info --> "<<std::endl; 
+            out<<"Logical Info --> "<<std::endl;
             for (Dimension axis = 0; axis < dim; ++axis) {
-                out<<idx_coloring.logical[0][axis]<<"   "<<idx_coloring.logical[1][axis]<<std::endl; 
+                out<<idx_coloring.logical[0][axis]<<"
+            "<<idx_coloring.logical[1][axis]<<std::endl;
             }
-            out<<"Ghost Interval Info --> "<<std::endl; 
-            out<<"dim = "<<dim<<", top = "<<top<<std::endl; 
+            out<<"Ghost Interval Info --> "<<std::endl;
+            out<<"dim = "<<dim<<", top = "<<top<<std::endl;
             for (Dimension axis = 0; axis < dim; ++axis) {
-              out<<"axis "<<axis<<std::endl; 
+              out<<"axis "<<axis<<std::endl;
               out<<"gsize = "<<ghost_intervals[axis].size()<<std::endl;
               for(auto i : ghost_intervals[axis]) {
-                out<<i.first<<"   "<<i.second.first<<"   "<<i.second.second<<std::endl; 
+                out<<i.first<<"   "<<i.second.first<<"
+            "<<i.second.second<<std::endl;
               }
             }
             flog(warn) << out.str() << std::endl;
             */
-           //DBG
+            // DBG
 
             for(Dimension axis = 0; axis < dim; ++axis) {
               if(sregs.size() && dim == top) {
@@ -437,15 +439,15 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
                 end[axis] = i.second.second;
                 sregs.push_back({co, hypercube{start, end}});
 
-                //DBG
+                // DBG
                 /*
                 std::stringstream outp;
-                outp<<"For axis = "<<axis<<std::endl; 
+                outp<<"For axis = "<<axis<<std::endl;
                 for (Dimension d = 0; d <top; ++d)
                   outp<<"d =  "<<d<<"   "<<start[d]<<"   "<<end[d]<<std::endl;
-		flog(warn) << outp.str()<<std::endl;
+    flog(warn) << outp.str()<<std::endl;
                 */
-                //DBG
+                // DBG
 
                 if(diagonals && axis > 0) {
                   /*
@@ -472,19 +474,19 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           };
 
         auto subregions = expand(dimension, dimension);
-        
-        //DBG
+
+        // DBG
         /*std::stringstream outp;
         outp<<"Subregions --->"<<std::endl;
         for (auto i: subregions) {
            auto sr = i.second;
-           outp<<"hcube "<<std::endl;  
+           outp<<"hcube "<<std::endl;
            outp<<sr[0][0]<<"   "<<sr[0][1]<<"   "<<sr[0][2]<<std::endl;
            outp<<sr[1][0]<<"   "<<sr[1][1]<<"   "<<sr[1][2]<<std::endl;
          }
         flog(warn) << outp.str()<<std::endl;
         */
-        //DBG
+        // DBG
 
         // FIXME: The expand recursion is greedy for reasons that I don't
         // understand.

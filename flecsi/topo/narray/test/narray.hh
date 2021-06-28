@@ -20,27 +20,26 @@
 
 using namespace flecsi;
 
-struct mesh_helper : topo::specialization<topo::narray, mesh_helper> 
-{}; 
+struct mesh_helper : topo::specialization<topo::narray, mesh_helper> {};
 
 template<std::size_t D>
-struct axes_helper{ };
+struct axes_helper {};
 
 template<>
 struct axes_helper<1> {
-  enum axis {x_axis}; 
+  enum axis { x_axis };
   using axes = typename mesh_helper::template has<x_axis>;
 };
 
 template<>
 struct axes_helper<2> {
-  enum axis {x_axis, y_axis}; 
+  enum axis { x_axis, y_axis };
   using axes = typename mesh_helper::template has<x_axis, y_axis>;
 };
 
 template<>
 struct axes_helper<3> {
-  enum axis {x_axis, y_axis, z_axis}; 
+  enum axis { x_axis, y_axis, z_axis };
   using axes = typename mesh_helper::template has<x_axis, y_axis, z_axis>;
 };
 
@@ -59,19 +58,19 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
     ghost_high,
     global
   };
-  //enum axis { x_axis, y_axis, z_axis };
-  
-  using axis = typename axes_helper<D>::axis; 
-  using axes = typename axes_helper<D>::axes; 
+  // enum axis { x_axis, y_axis, z_axis };
+
+  using axis = typename axes_helper<D>::axis;
+  using axes = typename axes_helper<D>::axes;
 
   struct meta_data {
     double delta;
   };
 
   static constexpr std::size_t dimension = D;
- 
+
   template<auto>
-  static constexpr std::size_t privilege_count = 2; 
+  static constexpr std::size_t privilege_count = 2;
 
   using index_spaces = typename mesh::template has<entities>;
   using coord = typename mesh::base::coord;
@@ -213,4 +212,3 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
     }
   };
 }; // mesh
-
