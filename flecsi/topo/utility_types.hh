@@ -27,8 +27,20 @@ namespace topo {
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
+
 template<class, class>
 struct connect;
+
+/*!
+  Connectivity information for the given specialization policy \emph{P} for the
+  given key_types in \emph{VT}. This data structure adds ragged fields to the
+  specialized user type to store connectivity informaiton for each
+  user-specified connectivity.
+
+  @tparam P  A core topology specialization policy.
+  @tparam VT A parameter pack of types defining a key value and a type.
+ */
+
 template<class P, class... VT>
 struct connect<P, util::types<VT...>> {
   using type = util::key_tuple<util::key_type<VT::value,

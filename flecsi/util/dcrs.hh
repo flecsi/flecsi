@@ -31,9 +31,9 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
-template<typename ForwardIt, typename T>
+template<typename FI, typename T>
 auto
-distribution_offset(ForwardIt const & distribution, T index) {
+distribution_offset(FI const & distribution, T index) {
   auto it = std::upper_bound(distribution.begin(), distribution.end(), index);
   flog_assert(it != distribution.end(), "index out of range");
   return std::distance(distribution.begin(), it) - 1;

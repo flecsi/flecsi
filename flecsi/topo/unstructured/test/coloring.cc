@@ -32,7 +32,7 @@ naive_coloring() {
     ASSERT_EQ(sd.num_entities(0), 289lu);
     ASSERT_EQ(sd.num_entities(2), 256lu);
 
-    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
 
     std::vector<size_t> distribution = {0, 52, 103, 154, 205, 256};
 
@@ -185,11 +185,11 @@ parmetis_colorer() {
     using util::mpi::test;
     topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 
+    const Color colors = 5;
+
     // Coloring with 5 colors with MPI_COMM_WORLD
     {
-      const Color colors = 5;
-      auto [naive, ge, c2v, v2c, c2c] =
-        topo::unstructured_impl::make_dcrs(sd, 1);
+      auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
       auto raw = util::parmetis::color(naive, colors);
       {
         std::stringstream ss;
@@ -201,21 +201,49 @@ parmetis_colorer() {
         flog_devel(warn) << ss.str();
       } // scope
 
-      auto coloring = topo::unstructured_impl::distribute(naive, colors, raw);
+      auto [primaries, p2m, m2p] =
+        topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
-      {
+      flog(info) << "PRIMARIES" << std::endl;
+      for(auto co : primaries) {
         std::stringstream ss;
-        Color color = 0;
-        for(auto c : coloring) {
-          ss << "color " << color++ << ":" << std::endl;
-          for(auto i : c) {
-            ss << i << " ";
-          }
-          ss << std::endl;
-        }
-        ss << std::endl;
-        flog_devel(warn) << ss.str();
-      } // scope
+        ss << "Color: " << co.first << ": ";
+        for(auto c : co.second) {
+          ss << c << " ";
+        } // for
+        flog(warn) << ss.str() << std::endl;
+      } // for
+
+      flog(info) << "V2C CONNECTIVITIES" << std::endl;
+      for(auto const & v : v2c) {
+        std::stringstream ss;
+        ss << "vertex " << v.first << ": ";
+        for(auto const & c : v.second) {
+          ss << c << " ";
+        } // for
+        flog(warn) << ss.str() << std::endl;
+      } // for
+
+      flog(info) << "C2C CONNECTIVITIES" << std::endl;
+      for(auto const & c : c2c) {
+        std::stringstream ss;
+        ss << "cell " << c.first << ": ";
+        for(auto const & cc : c.second) {
+          ss << cc << " ";
+        } // for
+        flog(warn) << ss.str() << std::endl;
+      } // for
+
+      flog(info) << "CELL DEFINITIONS" << std::endl;
+      std::size_t lid{0};
+      for(auto const & c : c2v) {
+        std::stringstream ss;
+        ss << "cell " << p2m[lid++] << ": ";
+        for(auto const & v : c) {
+          ss << v << " ";
+        } // for
+        flog(warn) << ss.str() << std::endl;
+      } // for
     } // scope
 
     // Coloring with 5 colors with custom communicator with 2 processes
@@ -225,9 +253,9 @@ parmetis_colorer() {
         MPI_COMM_WORLD, process() < 2 ? 0 : MPI_UNDEFINED, 0, &group_comm));
 
       if(process() < 2) {
-        auto [naive, ge, c2v, v2c, c2c] =
+        auto [naive, c2v, v2c, c2c] =
           topo::unstructured_impl::make_dcrs(sd, 1, group_comm);
-        auto raw = util::parmetis::color(naive, 5, group_comm);
+        auto raw = util::parmetis::color(naive, colors, group_comm);
 
         {
           std::stringstream ss;
@@ -239,74 +267,55 @@ parmetis_colorer() {
           flog_devel(warn) << ss.str();
         } // scope
 
-        auto coloring =
-          topo::unstructured_impl::distribute(naive, 5, raw, group_comm);
+        auto [primaries, p2m, m2p] = topo::unstructured_impl::migrate(
+          naive, colors, raw, c2v, v2c, c2c, group_comm);
 
-        {
+        flog(info) << "PRIMARIES" << std::endl;
+        for(auto co : primaries) {
           std::stringstream ss;
-          Color color = 0;
-          for(auto c : coloring) {
-            ss << "color " << color++ << ":" << std::endl;
-            for(auto i : c) {
-              ss << i << " ";
-            }
-            ss << std::endl;
-          }
-          ss << std::endl;
-          flog_devel(warn) << ss.str();
-        } // scope
+          ss << "Color: " << co.first << ": ";
+          for(auto c : co.second) {
+            ss << c << " ";
+          } // for
+          flog(warn) << ss.str() << std::endl;
+        } // for
+
+        flog(info) << "V2C CONNECTIVITIES" << std::endl;
+        for(auto const & v : v2c) {
+          std::stringstream ss;
+          ss << "vertex " << v.first << ": ";
+          for(auto const & c : v.second) {
+            ss << c << " ";
+          } // for
+          flog(warn) << ss.str() << std::endl;
+        } // for
+
+        flog(info) << "C2C CONNECTIVITIES" << std::endl;
+        for(auto const & c : c2c) {
+          std::stringstream ss;
+          ss << "cell " << c.first << ": ";
+          for(auto const & cc : c.second) {
+            ss << cc << " ";
+          } // for
+          flog(warn) << ss.str() << std::endl;
+        } // for
+
+        flog(info) << "CELL DEFINITIONS" << std::endl;
+        std::size_t lid{0};
+        for(auto const & c : c2v) {
+          std::stringstream ss;
+          ss << "cell " << p2m[lid++] << ": ";
+          for(auto const & v : c) {
+            ss << v << " ";
+          } // for
+          flog(warn) << ss.str() << std::endl;
+        } // for
 
         test(MPI_Comm_free(&group_comm));
       } // if
     } // scope
   };
 } // parmetis_colorer
-
-#if 0
-struct closure_policy {
-  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
-
-  using auxiliary =
-    std::tuple<topo::unstructured_impl::auxiliary_independent<1, 0, 2>>;
-
-  static constexpr size_t auxiliary_colorings =
-    std::tuple_size<auxiliary>::value;
-
-  using definition = topo::unstructured_impl::simple_definition;
-};
-
-struct coloring_policy {
-
-  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
-
-  using auxiliary =
-    std::tuple<topo::unstructured_impl::auxiliary_independent<1, 0, 2>>;
-
-  static constexpr size_t auxiliary_colorings =
-    std::tuple_size<auxiliary>::value;
-
-  using definition = topo::unstructured_impl::simple_definition;
-}; // coloring_policy
-
-int
-dependency_closure() {
-  UNIT {
-    topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
-    // Coloring with 5 colors with MPI_COMM_WORLD
-    {
-      const Color colors=processes();
-      auto [naive, ge, c2v, v2c, c2c] =
-        topo::unstructured_impl::make_dcrs(sd, 1);
-      auto raw = util::parmetis::color(naive, colors);
-      auto coloring = topo::unstructured_impl::distribute(naive, colors, raw);
-      auto closure = topo::unstructured_impl::closure<coloring_policy>(
-        sd, coloring[0], MPI_COMM_WORLD);
-
-      supplemental::write_closure<coloring_policy>(closure, MPI_COMM_WORLD);
-    } // UNIT
-  };
-} // dependency_closure
-#endif
 
 int
 coloring_driver() {

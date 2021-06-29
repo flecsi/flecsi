@@ -45,6 +45,7 @@ set(util_HEADERS
   tuple_visitor.hh
   tuple_walker.hh
   type_traits.hh
+  types.hh
   unit.hh
   unit/output.hh
   unit/types.hh

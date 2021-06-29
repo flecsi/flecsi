@@ -81,11 +81,11 @@ struct vertex_referencers {
     std::map<std::size_t, std::vector<std::size_t>> const & vertex2cell,
     std::vector<std::size_t> const & dist,
     int rank)
-    : size_(dist.size() - 1), rank_(rank) {
+    : size_(dist.size() - 1) {
     references_.resize(size_);
     for(auto v : vertex2cell) {
       auto r = util::distribution_offset(dist, v.first);
-      if(r != rank_) {
+      if(r != rank) {
         for(auto c : v.second) {
           references_[r][v.first].emplace_back(c);
         } // for
@@ -100,7 +100,6 @@ struct vertex_referencers {
 
 private:
   const int size_;
-  const int rank_;
   std::vector<std::map<std::size_t, std::vector<std::size_t>>> references_;
 }; // struct vertex_referencers
 
@@ -114,16 +113,16 @@ struct cell_connectivity {
     std::map<std::size_t, std::vector<std::size_t>> const & connectivity,
     std::vector<std::size_t> const & dist,
     int rank)
-    : size_(dist.size() - 1), rank_(rank), connectivity_(size_) {
+    : size_(dist.size() - 1), connectivity_(size_) {
 
-    int offset{0};
+    int ro{0};
     for(auto r : vertices) {
-      if(offset != rank_) {
+      if(ro != rank) {
         for(auto v : r) {
-          connectivity_[offset][v] = connectivity.at(v);
+          connectivity_[ro][v] = connectivity.at(v);
         } // for
       } // for
-      ++offset;
+      ++ro;
     } // for
   } // cell_connectivity
 
@@ -134,7 +133,6 @@ struct cell_connectivity {
 
 private:
   const int size_;
-  const int rank_;
   std::vector<std::map<std::size_t, std::vector<std::size_t>>> connectivity_;
 }; // struct cell_connectivity
 
@@ -145,7 +143,7 @@ private:
 struct distribute_cells {
   distribute_cells(util::dcrs const & naive,
     Color colors,
-    std::vector<std::size_t> const & index_colors,
+    std::vector<Color> const & index_colors,
     int rank)
     : size_(naive.distribution.size() - 1) {
     util::color_map cm(size_, colors, naive.distribution.back());
@@ -175,6 +173,7 @@ private:
 }; // struct distribute_cells
 
 /*
+  Move cells to the colors that own them.
  */
 
 struct migrate_cells {
@@ -200,7 +199,7 @@ struct migrate_cells {
 
   migrate_cells(util::dcrs const & naive,
     Color colors,
-    std::vector<std::size_t> const & index_colors,
+    std::vector<Color> const & index_colors,
     std::vector<std::vector<std::size_t>> & c2v,
     std::map<std::size_t, std::vector<std::size_t>> & v2c,
     std::map<std::size_t, std::vector<std::size_t>> & c2c,
@@ -323,6 +322,92 @@ private:
   const int size_;
   std::vector<return_type> packs_;
 }; // struct communicate_entities
+
+#if 0
+template<typename Definition>
+struct communicate_coordinates {
+  using return_type = 
+
+private:
+  std::vector<return_type> packs_;
+}; // struct communicate_coordinates
+#endif
+
+struct vertex_coloring {
+
+  vertex_coloring(std::vector<std::size_t> const & pdist,
+    util::color_map const & cm,
+    std::unordered_map<std::size_t, Color> const & v2co,
+    int rank)
+    : size_(pdist.size() - 1), vertices_(size_) {
+
+    for(auto const & v : v2co) {
+      std::size_t r{std::numeric_limits<std::size_t>::max()};
+      for(std::size_t i{0}; i < std::size_t(size_); ++i) {
+        if(v.first < pdist[i + 1]) {
+          r = i;
+          break;
+        } // if
+      } // for
+
+      bool match = false;
+      for(std::size_t c{0}; c < cm.colors(rank); ++c) {
+        match = match || v.second == cm.color_id(rank, c);
+      } // for
+
+      vertices_[r].emplace_back(std::array<std::size_t, 2>{v.first, v.second});
+    } // for
+  } // vertex_coloring
+
+  auto operator()(int rank, int) const {
+    flog_assert(rank < size_, "invalid rank");
+    return vertices_[rank];
+  }
+
+private:
+  const int size_;
+  std::vector<std::vector<std::array<std::size_t, 2>>> vertices_;
+}; // struct vertex_coloring
+
+template<typename Definition>
+struct migrate_vertices {
+
+  using return_type = std::vector</* over vertices */
+    std::tuple<std::array<std::size_t, 2> /* color, mesh id */,
+      typename Definition::point /* coordinates */
+      >>;
+
+  migrate_vertices(std::vector<std::size_t> dist,
+    Color colors,
+    std::vector<Color> const & index_colors,
+    std::vector<typename Definition::point> & vertices,
+    int rank)
+    : size_(dist.size() - 1) {
+    util::color_map cm(size_, colors, dist.back());
+
+    for(std::size_t r{0}; r < std::size_t(size_); ++r) {
+      return_type vertex_pack;
+      for(std::size_t i{0}; i < dist[rank + 1] - dist[rank]; ++i) {
+        if(cm.process(index_colors[i]) == r) {
+          const std::array<std::size_t, 2> info{
+            index_colors[i], dist[rank] + i};
+          vertex_pack.push_back(std::make_tuple(info, vertices[i]));
+        } // if
+      } // for
+
+      packs_.emplace_back(vertex_pack);
+    } // for
+  } // migrate_vertices
+
+  return_type operator()(int rank, int) const {
+    flog_assert(std::size_t(rank) < size_, "invalid rank");
+    return packs_[rank];
+  }
+
+private:
+  std::size_t size_;
+  std::vector<return_type> packs_;
+}; // struct migrate_vertices
 
 } // namespace unstructured_impl
 } // namespace topo

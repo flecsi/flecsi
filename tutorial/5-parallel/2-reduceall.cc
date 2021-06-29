@@ -45,7 +45,7 @@ reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
     up = p[c];
   }; // forall
 
-  assert(res == 2.0);
+  flog_assert(res == 6.0, res << " != 6.0");
 
 } // reduce1
 
@@ -56,7 +56,7 @@ reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
     KOKKOS_LAMBDA(auto c, double & up) { up = p[c]; },
     std::string("reduce2"));
 
-  assert(res == 2.0);
+  flog_assert(res == 6.0, res << " != 6.0");
 
 } // reduce2
 

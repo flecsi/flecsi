@@ -28,12 +28,23 @@ struct canon : topo::specialization<topo::unstructured, canon> {
 
   static coloring color(std::string const &) {
     flog(info) << "invoking coloring" << std::endl;
-    return {{0,
-      {MPI_COMM_WORLD,
-        1,
-        {4, 2},
-        {{{0, 1}, {0, 1}, {}, {}}, {{0, 1, 2, 3}, {0, 1, 2, 3}, {}, {}}},
-        {{}},
-        {{}}}}};
+    return {{MPI_COMM_WORLD,
+      0, /* color */
+      1, /* colors */
+      {4, 2}, /* index allocs */
+      {{/* cells */
+         {0, 1, 2, 3},
+         {0, 1, 2, 3},
+         {0, 1, 2, 3},
+         {},
+         {}},
+        {/* vertices */
+          {0, 1},
+          {0, 1},
+          {0, 1},
+          {},
+          {}}},
+      {{}},
+      {{}}}};
   }
 };
