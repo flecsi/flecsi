@@ -106,11 +106,9 @@ struct points : leg::partition<false> {
 
 struct copy_engine {
   copy_engine(const points & src, const intervals & dest, field_id_t f)
-    : copy_engine(src, dest.logical_partition, f) {}
+    : copy_engine(src, dest.root(), dest.logical_partition, f) {}
 
 private:
-  copy_engine(const points & src, Legion::LogicalPartition dest, field_id_t f)
-    : copy_engine(src, leg::run().get_parent_logical_region(dest), dest, f) {}
   copy_engine(const points & src,
     Legion::LogicalRegion lreg,
     Legion::LogicalPartition dest,

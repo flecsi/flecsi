@@ -189,6 +189,16 @@ struct partition_base {
   Legion::IndexSpace get_color_space() const {
     return run().get_index_partition_color_space_name(index_partition);
   }
+  Legion::LogicalRegion root() const { // required for using privileges
+    auto & r = run();
+    Legion::LogicalPartition lp = logical_partition;
+    while(true) {
+      auto lr = r.get_parent_logical_region(lp);
+      if(!r.has_parent_logical_partition(lr))
+        return lr;
+      lp = r.get_parent_logical_partition(lr);
+    }
+  }
 
   // NB: intervals and points are not advertised as deriving from this class.
   Color colors() const {
@@ -300,7 +310,7 @@ private:
       }(ctx(),
         is,
         src.logical_partition,
-        r.get_parent_logical_region(src.logical_partition),
+        src.root(),
         fid,
         src.get_color_space(),
         partitionKind(R ? disjoint : compute, cpt),
