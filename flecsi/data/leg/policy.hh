@@ -187,7 +187,7 @@ struct partition_base {
 
   // NB: intervals and points are not advertised as deriving from this class.
   Color colors() const {
-    return leg::run().get_index_space_domain(colors_used).get_volume();
+    return run().get_index_space_domain(colors_used).get_volume();
   }
   template<topo::single_space>
   const partition_base & get_partition(field_id_t) const {
@@ -214,10 +214,20 @@ protected:
   }
 };
 
+} // namespace leg
+
+// This type must be defined outside of namespace leg to support
+// forward declarations
+struct partition : leg::partition_base { // instead of "using partition ="
+  using leg::partition_base::partition_base;
+};
+
+namespace leg {
+
 struct with_color { // for initialization order
   unique_index_space color_space;
 };
-struct rows : with_color, partition_base {
+struct rows : with_color, partition {
   explicit rows(const region & reg)
     : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
 
@@ -225,7 +235,7 @@ private:
   // The type-erased version assumes a square transformation matrix.
   rows(const region & reg, Legion::DomainPoint hi)
     : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
-      partition_base(reg,
+      partition(reg,
         named(run().create_partition_by_restriction(
                 ctx(),
                 Legion::IndexSpaceT<2>(reg.index_space),
@@ -242,21 +252,21 @@ private:
 };
 
 template<bool R = true>
-struct partition : partition_base {
+struct partition : data::partition {
   partition(region & reg,
-    const partition_base & src,
+    const data::partition & src,
     field_id_t fid,
     completeness cpt = incomplete)
     : partition(reg, src, fid, cpt, src.colors_used) {}
   partition(region & reg,
-    const partition_base & src,
+    const data::partition & src,
     field_id_t fid,
     completeness cpt,
     Legion::IndexSpace used)
-    : partition_base(reg, part(reg.index_space, src, fid, cpt), used) {}
+    : data::partition(reg, part(reg.index_space, src, fid, cpt), used) {}
 
 protected:
-  void update(const partition_base & src,
+  void update(const data::partition & src,
     field_id_t fid,
     completeness cpt = incomplete) {
     auto & r = run();
@@ -269,7 +279,7 @@ private:
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
   static unique_index_partition part(const Legion::IndexSpace & is,
-    const partition_base & src,
+    const data::partition & src,
     field_id_t fid,
     completeness cpt) {
     auto & r = run();
@@ -302,7 +312,6 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-using partition = leg::partition_base;
 using leg::rows;
 
 template<typename T>

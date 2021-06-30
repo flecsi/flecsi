@@ -128,7 +128,17 @@ protected:
   size_t nelems = 0;
 };
 
-struct rows : partition {
+} // namespace mpi
+
+// This type must be defined outside of namespace mpi to support
+// forward declarations
+struct partition : mpi::partition { // instead of "using partition ="
+  using mpi::partition::partition;
+};
+
+namespace mpi {
+
+struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
     // This constructor is usually (almost always) called when r.s.second != a
     // large number, meaning it has the actual value. In this case, r.s.second
@@ -138,7 +148,7 @@ struct rows : partition {
   }
 };
 
-struct prefixes : partition, prefixes_base {
+struct prefixes : data::partition, prefixes_base {
   template<class F>
   prefixes(region & r, F f) : partition(r) {
     // Constructor for the case when how the data is partitioned is stored
@@ -166,7 +176,6 @@ struct prefixes : partition, prefixes_base {
 
 // For backend-agnostic interface:
 using region_base = mpi::region;
-using mpi::partition;
 using mpi::rows, mpi::prefixes;
 
 struct intervals {

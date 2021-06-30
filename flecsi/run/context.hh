@@ -19,6 +19,8 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/util/constant.hh"
+#include "flecsi/util/demangle.hh"
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -39,6 +41,18 @@
 
 namespace flecsi {
 
+// forward declarations
+namespace data {
+struct region;
+struct partition;
+template<class Topo>
+struct topology_slot;
+} // namespace data
+
+namespace topo {
+struct global_base;
+} // namespace topo
+
 inline log::devel_tag context_tag("context");
 
 namespace run {
@@ -54,6 +68,13 @@ enum status : int {
   command_line_error,
   error, // add specific error modes
 }; // initialization_codes
+
+struct index_space_info_t {
+  const data::region * region;
+  const data::partition * partition;
+  const data::fields * fields;
+  std::string index_type;
+};
 
 /*!
   The context type provides a high-level execution context interface that
@@ -485,6 +506,24 @@ struct context {
   } // get_field_info_store
 
   /*--------------------------------------------------------------------------*
+    Index space interface.
+   *--------------------------------------------------------------------------*/
+
+  template<class Topo>
+  void add_topology(typename data::topology_slot<Topo> & slot) {
+    // global topology doesn't define get_partitions, so skip for now
+    constexpr bool is_global =
+      std::is_same_v<typename Topo::base, topo::global_base>;
+    if constexpr(!is_global) {
+      add_index_spaces<Topo>(slot, typename Topo::index_spaces());
+    }
+  }
+
+  const std::vector<index_space_info_t> & get_index_space_info() const {
+    return index_space_info_vector_;
+  }
+
+  /*--------------------------------------------------------------------------*
     Task Launch interface.
    *--------------------------------------------------------------------------*/
 
@@ -525,10 +564,32 @@ protected:
   void clear();
 #endif
 
+private:
+  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
+  index_space_info_t make_index_space_info(typename Topo::slot & slot) {
+    auto & fs = get_field_info_store<Topo, Index>();
+
+    return index_space_info_t{&(slot->template get_region<Index>()),
+      // TODO:  deal with ragged case, where different fields have
+      // different partitions
+      &(slot->template get_partition<Index>(field_id_t())),
+      &fs,
+      util::type<Topo>() + '[' + std::to_string(Index) + ']'};
+  }
+
+  template<class Topo, typename Topo::index_space... Index>
+  void add_index_spaces(typename Topo::slot & slot,
+    util::constants<Index...> /* to deduce pack */) {
+    (index_space_info_vector_.push_back(
+       make_index_space_info<Topo, Index>(slot)),
+      ...);
+  }
+
   /*--------------------------------------------------------------------------*
     Program options data members.
    *--------------------------------------------------------------------------*/
 
+protected:
   std::string program_;
   std::vector<char *> argv_;
   std::string backend_;
@@ -575,6 +636,12 @@ protected:
 
   std::unordered_map<TopologyType, std::vector<field_info_store_t>>
     topology_field_info_map_;
+
+  /*--------------------------------------------------------------------------*
+    Index space data members.
+   *--------------------------------------------------------------------------*/
+
+  std::vector<index_space_info_t> index_space_info_vector_;
 
   /*--------------------------------------------------------------------------*
     Task count.

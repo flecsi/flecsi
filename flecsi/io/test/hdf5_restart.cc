@@ -15,6 +15,7 @@
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/io.hh"
+#include "flecsi/run/context.hh"
 #include "flecsi/topo/narray/test/narray.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/unit.hh"
@@ -100,7 +101,7 @@ restart_driver() {
 
     int num_files = 4;
     io::io_interface iif{num_files};
-    iif.add_topology(m);
+    run::context::instance().add_topology<mesh2d>(m);
     iif.checkpoint_all_fields("hdf5_restart.dat");
 
     execute<clear>(m, mf1, mf2);

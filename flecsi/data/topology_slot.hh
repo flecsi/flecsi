@@ -16,6 +16,8 @@
 /*! @file */
 
 #include "flecsi/flog.hh"
+#include "flecsi/run/backend.hh"
+#include "flecsi/run/context.hh"
 
 #include <optional>
 
@@ -36,6 +38,9 @@ struct topology_slot : convert_tag {
   core & allocate(coloring const & coloring_reference, AA &&... aa) {
     data.emplace(coloring_reference);
     Topo::initialize(*this, coloring_reference, std::forward<AA>(aa)...);
+    // TODO:  fix issues with automatic register
+    // run::context::instance().add_topology<Topo>(*this);
+
     return get();
   }
 
