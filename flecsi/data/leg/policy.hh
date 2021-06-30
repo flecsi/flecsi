@@ -239,7 +239,7 @@ private:
                 }(),
                 {{0, 0}, {0, hi[1]}},
                 DISJOINT_COMPLETE_KIND),
-          name(reg.index_space))) {}
+          (name(reg.index_space, "?") + std::string(1, '=')).c_str())) {}
 };
 
 template<bool R = true>
@@ -296,7 +296,7 @@ private:
         LEGION_AUTO_GENERATE_ID,
         0,
         tag),
-      name(src.index_partition));
+      (name(src.logical_partition, "?") + std::string("->")).c_str());
   }
 };
 
