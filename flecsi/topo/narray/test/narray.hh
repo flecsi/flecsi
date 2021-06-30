@@ -44,7 +44,7 @@ struct axes_helper<3> {
 };
 
 template<std::size_t D>
-struct mesh : topo::specialization<topo::narray, mesh<D>> {
+struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   static_assert((D >= 1 && D <= 6), "Invalid dimension for testing !");
 
   enum index_space { entities };
@@ -58,7 +58,6 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
     ghost_high,
     global
   };
-  // enum axis { x_axis, y_axis, z_axis };
 
   using axis = typename axes_helper<D>::axis;
   using axes = typename axes_helper<D>::axes;
@@ -67,17 +66,17 @@ struct mesh : topo::specialization<topo::narray, mesh<D>> {
     double delta;
   };
 
-  static constexpr std::size_t dimension = D;
+  static constexpr Dimension dimension = D;
 
   template<auto>
-  static constexpr std::size_t privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 2;
 
   using index_spaces = typename mesh::template has<entities>;
   using coord = typename mesh::base::coord;
   using coloring_definition = typename mesh::base::coloring_definition;
   using coloring = typename mesh::base::coloring;
 
-  static coloring color(std::vector<coloring_definition> index_definitions) {
+  static coloring color(std::vector<coloring_definition> & index_definitions) {
     auto [colors, index_colorings] =
       topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
 

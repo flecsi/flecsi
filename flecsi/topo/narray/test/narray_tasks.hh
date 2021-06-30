@@ -67,9 +67,8 @@ print_field(typename mesh<D>::template accessor<ro> m,
     flog(warn) << ss.str() << std::endl;
   }
   else if constexpr(D == 2) {
-    for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::range::all>() - 1;
-        j >= 0;
-        --j) {
+    for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::range::all>();
+        j--;) {
       for(auto i :
         m.template extents<mesh2d::axis::x_axis, mesh2d::range::all>()) {
         ss << c[j][i] << "   ";
@@ -79,13 +78,10 @@ print_field(typename mesh<D>::template accessor<ro> m,
     flog(warn) << ss.str() << std::endl;
   }
   else {
-    for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::range::all>() - 1;
-        k >= 0;
-        --k) {
-      for(int j =
-            m.template size<mesh3d::axis::y_axis, mesh3d::range::all>() - 1;
-          j >= 0;
-          --j) {
+    for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::range::all>();
+        k--;) {
+      for(int j = m.template size<mesh3d::axis::y_axis, mesh3d::range::all>();
+          j--;) {
         for(auto i :
           m.template extents<mesh3d::axis::x_axis, mesh3d::range::all>()) {
           ss << c[k][j][i] << "   ";
@@ -211,15 +207,14 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
       auto c = m.template mdspan<mesh1d::index_space::entities>(ca);
 
       if(ngb_ranks[rank][0] != -1) {
-        for(auto i = ghost_low[rank].begin(); i != ghost_low[rank].end(); ++i) {
-          EXPECT_EQ(c[*i], std::pow(10, ngb_ranks[rank][0]));
+        for(auto i : ghost_low[rank]) {
+          EXPECT_EQ(c[i], std::pow(10, ngb_ranks[rank][0]));
         }
       }
 
       if(ngb_ranks[rank][1] != -1) {
-        for(auto i = ghost_high[rank].begin(); i != ghost_high[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*i], std::pow(10, ngb_ranks[rank][1]));
+        for(auto i : ghost_high[rank]) {
+          EXPECT_EQ(c[i], std::pow(10, ngb_ranks[rank][1]));
         }
       }
     };
@@ -378,68 +373,34 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       auto c = m.template mdspan<mesh2d::index_space::entities>(ca);
 
-      // left
-      for(auto j = ylogical[rank].begin(); j != ylogical[rank].end(); ++j) {
-        for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][3]));
-        }
-      }
+      auto chk =
+        [&c](std::set<util::id> & ybnd, std::set<util::id> & xbnd, int r) {
+          bool iseq = true;
+          for(auto j : ybnd) {
+            for(auto i : xbnd) {
+              iseq = iseq && (c[j][i] == std::pow(10, r));
+            }
+          }
+          return iseq;
+        };
 
-      // right
-      for(auto j = ylogical[rank].begin(); j != ylogical[rank].end(); ++j) {
-        for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][5]));
-        }
-      }
+      EXPECT_EQ(
+        chk(ylogical[rank], xghost_low[rank], ngb_ranks[rank][3]), true);
+      EXPECT_EQ(
+        chk(ylogical[rank], xghost_high[rank], ngb_ranks[rank][5]), true);
+      EXPECT_EQ(
+        chk(yghost_low[rank], xlogical[rank], ngb_ranks[rank][1]), true);
+      EXPECT_EQ(
+        chk(yghost_high[rank], xlogical[rank], ngb_ranks[rank][7]), true);
 
-      // down
-      for(auto i = xlogical[rank].begin(); i != xlogical[rank].end(); ++i) {
-        for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end();
-            ++j) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][1]));
-        }
-      }
-
-      // up
-      for(auto i = xlogical[rank].begin(); i != xlogical[rank].end(); ++i) {
-        for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-            ++j) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][7]));
-        }
-      }
-
-      // corners
-      for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end(); ++j) {
-        for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][0]));
-        }
-      }
-
-      for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end(); ++j) {
-        for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][2]));
-        }
-      }
-
-      for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-          ++j) {
-        for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][6]));
-        }
-      }
-
-      for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-          ++j) {
-        for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-            ++i) {
-          EXPECT_EQ(c[*j][*i], std::pow(10, ngb_ranks[rank][8]));
-        }
-      }
+      EXPECT_EQ(
+        chk(yghost_low[rank], xghost_low[rank], ngb_ranks[rank][0]), true);
+      EXPECT_EQ(
+        chk(yghost_low[rank], xghost_high[rank], ngb_ranks[rank][2]), true);
+      EXPECT_EQ(
+        chk(yghost_high[rank], xghost_low[rank], ngb_ranks[rank][6]), true);
+      EXPECT_EQ(
+        chk(yghost_high[rank], xghost_high[rank], ngb_ranks[rank][8]), true);
     };
   } // d=2
   else {
@@ -652,86 +613,60 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       auto c = m.template mdspan<mesh3d::index_space::entities>(ca);
 
-      // left
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = ylogical[rank].begin(); j != ylogical[rank].end(); ++j) {
-          for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][3]));
+      auto chk = [&c](std::set<util::id> & zbnd,
+                   std::set<util::id> & ybnd,
+                   std::set<util::id> & xbnd,
+                   int r) {
+        bool iseq = true;
+        for(auto k : zbnd) {
+          for(auto j : ybnd) {
+            for(auto i : xbnd) {
+              iseq = iseq && (c[k][j][i] == std::pow(10, r));
+            }
           }
         }
-      }
+        return iseq;
+      };
 
-      // right
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = ylogical[rank].begin(); j != ylogical[rank].end(); ++j) {
-          for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][5]));
-          }
-        }
-      }
+      EXPECT_EQ(
+        chk(
+          zlogical[rank], ylogical[rank], xghost_low[rank], ngb_ranks[rank][3]),
+        true);
+      EXPECT_EQ(chk(zlogical[rank],
+                  ylogical[rank],
+                  xghost_high[rank],
+                  ngb_ranks[rank][5]),
+        true);
+      EXPECT_EQ(
+        chk(
+          zlogical[rank], yghost_low[rank], xlogical[rank], ngb_ranks[rank][1]),
+        true);
+      EXPECT_EQ(chk(zlogical[rank],
+                  yghost_high[rank],
+                  xlogical[rank],
+                  ngb_ranks[rank][7]),
+        true);
 
-      // down
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto i = xlogical[rank].begin(); i != xlogical[rank].end(); ++i) {
-          for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end();
-              ++j) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][1]));
-          }
-        }
-      }
-
-      // up
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto i = xlogical[rank].begin(); i != xlogical[rank].end(); ++i) {
-          for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-              ++j) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][7]));
-          }
-        }
-      }
-
-      // corners
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end();
-            ++j) {
-          for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][0]));
-          }
-        }
-      }
-
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = yghost_low[rank].begin(); j != yghost_low[rank].end();
-            ++j) {
-          for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][2]));
-          }
-        }
-      }
-
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-            ++j) {
-          for(auto i = xghost_low[rank].begin(); i != xghost_low[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][6]));
-          }
-        }
-      }
-
-      for(auto k = zlogical[rank].begin(); k != zlogical[rank].end(); ++k) {
-        for(auto j = yghost_high[rank].begin(); j != yghost_high[rank].end();
-            ++j) {
-          for(auto i = xghost_high[rank].begin(); i != xghost_high[rank].end();
-              ++i) {
-            EXPECT_EQ(c[*k][*j][*i], std::pow(10, ngb_ranks[rank][8]));
-          }
-        }
-      }
+      EXPECT_EQ(chk(zlogical[rank],
+                  yghost_low[rank],
+                  xghost_low[rank],
+                  ngb_ranks[rank][0]),
+        true);
+      EXPECT_EQ(chk(zlogical[rank],
+                  yghost_low[rank],
+                  xghost_high[rank],
+                  ngb_ranks[rank][2]),
+        true);
+      EXPECT_EQ(chk(zlogical[rank],
+                  yghost_high[rank],
+                  xghost_low[rank],
+                  ngb_ranks[rank][6]),
+        true);
+      EXPECT_EQ(chk(zlogical[rank],
+                  yghost_high[rank],
+                  xghost_high[rank],
+                  ngb_ranks[rank][8]),
+        true);
     };
   } // d=3
 } // check_mesh_field

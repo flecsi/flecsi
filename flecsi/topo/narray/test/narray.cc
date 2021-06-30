@@ -113,6 +113,6 @@ narray_driver() {
     } // scope
 
   }; // UNIT
-} // coloring_driver
+} // narray_driver
 
 flecsi::unit::driver<narray_driver> driver;
