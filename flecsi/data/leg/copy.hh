@@ -58,7 +58,16 @@ struct prefixes : private leg::mirror,
   prefixes(region & reg, F f)
     : mirror(reg.size()),
       with_partition{{reg, convert(std::move(f)), fid, complete}},
-      rows(get_first_subregion(), reg.size()) {}
+      rows(
+        [&] {
+          auto r = get_first_subregion();
+          const auto n =
+            leg::name(reg.logical_region, "?") + std::string(1, '!');
+          leg::run().attach_name(r, n.c_str());
+          leg::run().attach_name(r.get_index_space(), n.c_str());
+          return r;
+        }(),
+        reg.size()) {}
 
   template<class F>
   void update(F f) {
