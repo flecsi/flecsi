@@ -79,6 +79,7 @@ struct index_coloring {
   /*
     The global coordinate offset of the local hypercube.
     Local to global id translation can be computed with this.
+    The local hypercube includes boundary padding.
    */
 
   coord offset;
@@ -122,7 +123,26 @@ struct index_coloring {
    */
 
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
-};
+}; // struct index_coloring
+
+inline std::ostream &
+operator<<(std::ostream & stream, index_coloring const & ic) {
+  stream << "global" << std::endl
+         << log::container{ic.global} << std::endl
+         << "extents" << std::endl
+         << log::container{ic.extents} << std::endl
+         << "offset" << std::endl
+         << log::container{ic.offset} << std::endl
+         << "logical (low)" << std::endl
+         << log::container{ic.logical[0]} << std::endl
+         << "logical (high)" << std::endl
+         << log::container{ic.logical[1]} << std::endl
+         << "extended (low)" << std::endl
+         << log::container{ic.extended[0]} << std::endl
+         << "extended (high)" << std::endl
+         << log::container{ic.extended[1]} << std::endl;
+  return stream;
+}
 
 } // namespace narray_impl
 
@@ -136,6 +156,12 @@ struct narray_base {
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
+
+  /*
+    This data structure will need to change to process_coloring with
+    coloring = std::vector<process_coloring> when we add support for
+    M != N (colors to processes).
+   */
 
   struct coloring {
     MPI_Comm comm;
