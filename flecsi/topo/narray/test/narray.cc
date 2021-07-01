@@ -21,6 +21,44 @@
 
 using namespace flecsi;
 
+int
+coloring_driver() {
+  UNIT {
+    mesh3d::coord indices{8, 8, 8};
+    std::vector<Color> colors = {2, 2, 1};
+
+    flog(warn) << "colors: " << std::endl
+               << log::container{colors} << std::endl;
+
+    mesh3d::coord hdepths{1, 1, 1};
+    mesh3d::coord bdepths{0, 0, 0};
+    std::vector<bool> periodic{false, false, false};
+
+    std::vector<mesh3d::coloring_definition> index_definitions = {
+      {colors, indices, hdepths, bdepths, periodic, false}};
+
+    auto [cos, idx_cos] =
+      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
+
+    std::size_t is{0};
+    for(auto v : idx_cos) {
+      std::stringstream ss;
+      std::stringstream ssa;
+      ss << "index space: " << is << std::endl;
+      ssa << "index space: " << is++ << std::endl;
+      for(auto c : v) {
+        ss << "color: " << c.first << std::endl << c.second << std::endl;
+        auto aidx = topo::narray_utils::color_auxiliary(c.second, false, false);
+        ssa << "color: " << c.first << std::endl << aidx << std::endl;
+      }
+      flog(warn) << ss.str();
+      flog(trace) << ssa.str();
+    }
+  };
+}
+
+flecsi::unit::driver<coloring_driver> cd;
+
 // 1D Mesh
 mesh1d::slot m1;
 mesh1d::cslot coloring1;
@@ -103,4 +141,4 @@ narray_driver() {
   };
 } // coloring_driver
 
-flecsi::unit::driver<narray_driver> driver;
+flecsi::unit::driver<narray_driver> nd;

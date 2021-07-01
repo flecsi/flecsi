@@ -592,6 +592,87 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
   return std::make_pair(nc, colorings);
 } // color
 
+/*!
+  Generate an auxiliary coloring from the given primary coloring. This is
+  similar to the strategy used by topo::unstructured.
+
+  @param idx         The primary coloring.
+  @param create_plan Create a copy plan so that distributed-memory dependencies
+                     are can be updated.
+  @full_ghosts       Populate all ghost dependencies of the given dimension to
+                     match the behavior of topo::unstructured.
+ */
+
+inline auto
+color_auxiliary(narray_impl::index_coloring const & idx,
+  bool create_plan = false,
+  bool full_ghosts = false) {
+  using namespace narray_impl;
+
+  flog_assert(create_plan == false, "memory consistency is not yet supported");
+
+  const std::size_t axes = idx.extents.size();
+  index_coloring aidx;
+  aidx.faces = idx.faces;
+  aidx.global.resize(axes);
+  aidx.extents.resize(axes);
+  aidx.logical[0].resize(axes);
+  aidx.logical[1].resize(axes);
+  aidx.extended[0].resize(axes);
+  aidx.extended[1].resize(axes);
+
+  for(std::size_t axis{0}; axis < axes; ++axis) {
+    // Use the primary offset to initialize the auxiliary offset,
+    // which will be corrected below.
+    aidx.offset.emplace_back(idx.offset[axis]);
+
+    // Calculate some values
+    const std::size_t lc = idx.logical[1][axis] - idx.logical[0][axis];
+    const std::size_t ec = idx.extended[1][axis] - idx.extended[0][axis];
+    const std::size_t bd = idx.logical[0][axis] - idx.extended[0][axis];
+    const std::size_t hd = idx.logical[0][axis];
+
+    // We can set these explicitly without reference to the orientation.
+    aidx.global[axis] = idx.global[axis] + 1;
+    aidx.extents[axis] = ec + 1;
+
+    const std::uint32_t bits = idx.faces >> axis * 2;
+
+    if(bits & low && bits & high) {
+      aidx.logical[0][axis] = 0;
+      aidx.logical[0][axis] = bd;
+      aidx.logical[1][axis] = aidx.logical[0][axis] + lc + 1;
+      aidx.extended[0][axis] = 0;
+      aidx.extended[1][axis] = ec + 1;
+    }
+    else if(bits & low) {
+      aidx.extents[axis] += full_ghosts ? hd : 0;
+      aidx.logical[0][axis] = bd;
+      aidx.logical[1][axis] = aidx.logical[0][axis] + lc + 1;
+      aidx.extended[0][axis] = 0;
+      aidx.extended[1][axis] = ec + 1;
+    }
+    else if(bits & high) {
+      aidx.extents[axis] += full_ghosts ? hd : 0;
+      aidx.offset[axis] += full_ghosts ? 0 : hd;
+      aidx.logical[0][axis] = full_ghosts ? hd + 1 : 1;
+      aidx.logical[1][axis] = aidx.logical[0][axis] + lc;
+      aidx.extended[0][axis] = full_ghosts ? hd + 1 : 1;
+      aidx.extended[1][axis] = aidx.extended[0][axis] + ec;
+    }
+    else {
+      aidx.extents[axis] += full_ghosts ? 2 * hd : 0;
+      aidx.offset[axis] += full_ghosts ? 0 : hd;
+      aidx.logical[0][axis] = full_ghosts ? hd + 1 : 1;
+      aidx.logical[1][axis] = aidx.logical[0][axis] + lc;
+      aidx.extended[0][axis] = full_ghosts ? hd + 1 : 1;
+      aidx.extended[1][axis] = aidx.extended[0][axis] + ec;
+    } // if
+  } // for
+
+  return aidx;
+} // color_auxiliary
+
 } // namespace narray_utils
 } // namespace topo
 } // namespace flecsi
