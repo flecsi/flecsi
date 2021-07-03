@@ -295,12 +295,6 @@ private:
     field_id_t fid,
     completeness cpt) {
     auto & r = run();
-
-    Legion::Color part_color =
-      r.get_index_partition_color(ctx(), src.index_partition);
-
-    auto tag = flecsi::run::tag_index_partition(part_color);
-
     return named(
       [&r](auto &&... aa) {
         return R ? r.create_partition_by_image_range(
@@ -313,10 +307,7 @@ private:
         src.root(),
         fid,
         src.get_color_space(),
-        partitionKind(R ? disjoint : compute, cpt),
-        LEGION_AUTO_GENERATE_ID,
-        0,
-        tag),
+        partitionKind(R ? disjoint : compute, cpt)),
       (name(src.logical_partition, "?") + std::string("->")).c_str());
   }
 };
