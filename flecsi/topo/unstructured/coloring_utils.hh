@@ -285,7 +285,7 @@ migrate(util::dcrs const & naive,
   @param comm     The MPI communicator to use for communication.
  */
 
-auto
+inline auto
 request_owners(std::vector<std::size_t> const & request,
   std::size_t ne,
   Color colors,
@@ -843,6 +843,73 @@ color(MD const & md,
 
   return coloring;
 } // color
+
+/*!
+  Build intermediary entities locally from cell to vertex graph.
+
+  @tparam MD mesh definition (provides function to build intermediary from list
+  of vertices).
+  @param dim index of dimension for intermediary.
+  @param c2v cell to vertex graph.
+*/
+template<class MD>
+inline auto
+build_intermediary(Dimension dim,
+  const std::vector<std::vector<std::size_t>> & c2v) {
+  flog_assert((dim > 0 and dim < MD::dimension()),
+    "Invalid dimension for intermediary entity: " << dim);
+
+  crs c2e, e2v;
+  std::map<std::vector<std::size_t>, std::size_t> v2e;
+
+  // temporary storage
+  crs new_edges;
+  std::vector<typename MD::index> sorted_vs;
+  std::vector<typename MD::index> these_edges;
+
+  // iterate over cells, adding all of their edges to the table
+  for(const auto & these_verts : c2v) {
+    // clear this cells edges
+    these_edges.clear();
+
+    // build the edges for the cell
+    new_edges.offsets.clear();
+    new_edges.indices.clear();
+    MD::build_intermediary_from_vertices(dim, these_verts, new_edges);
+
+    /*
+      look for existing vertex pairs in the edge-to-vertex master list
+      or add a new edge to the list.  Add the matched edge id to the
+      cell-to-edge list
+    */
+    for(std::size_t row = 0; row < new_edges.offsets.size() - 1; row++) {
+      // sort the vertices
+      auto beg = new_edges.indices.begin() + new_edges.offsets[row];
+      auto end = new_edges.indices.begin() + new_edges.offsets[row + 1];
+      sorted_vs.assign(beg, end);
+      std::sort(sorted_vs.begin(), sorted_vs.end());
+      // if we don't find the edge
+      auto it = v2e.find(sorted_vs);
+      if(it == v2e.end()) {
+        // add to the local reverse map
+        auto edgeid = v2e.size();
+        v2e.emplace(sorted_vs, edgeid);
+        // add to the original sorted and unsorted mpas
+        e2v.add_row(beg, end);
+        // add to the list of edges
+        these_edges.push_back(edgeid);
+      }
+      else {
+        // if we find the edge, add the id to the list of edges
+        these_edges.push_back(it->second);
+      }
+    }
+    // add this cells edges
+    c2e.add_row(these_edges.begin(), these_edges.end());
+  }
+
+  return std::make_tuple(c2e, e2v, v2e);
+} // build_intermediary
 
 } // namespace unstructured_impl
 } // namespace topo
