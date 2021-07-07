@@ -24,6 +24,7 @@
 
 using namespace flecsi;
 
+using mesh2d = mesh<2>;
 using is = mesh2d::index_space;
 using rg = mesh2d::range;
 using ax = mesh2d::axis;

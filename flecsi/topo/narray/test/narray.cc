@@ -85,6 +85,7 @@ const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 int
 narray_driver() {
   UNIT {
+
     {
       using topo::narray_utils::factor;
       using V = std::vector<std::size_t>;
@@ -101,14 +102,17 @@ narray_driver() {
       mesh1d::coord hdepths{1};
       mesh1d::coord bdepths{2};
       std::vector<bool> periodic{false};
+      bool diagonals = true;
       std::vector<mesh1d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, true}};
+        {colors, indices, hdepths, bdepths, periodic, diagonals}};
 
       coloring1.allocate(index_definitions);
       m1.allocate(coloring1.get());
-      execute<set_field_1d>(m1, f1(m1));
-      execute<print_field_1d>(m1, f1(m1));
-      execute<check_1d>(m1);
+      execute<init_field<1>>(m1, f1(m1));
+      execute<print_field<1>>(m1, f1(m1));
+      execute<update_field<1>>(m1, f1(m1));
+      execute<print_field<1>>(m1, f1(m1));
+      execute<check_mesh_field<1>>(m1, f1(m1));
     } // scope
 
     {
@@ -120,34 +124,42 @@ narray_driver() {
       mesh2d::coord hdepths{1, 2};
       mesh2d::coord bdepths{2, 1};
       std::vector<bool> periodic{false, false};
+      bool diagonals = true;
       std::vector<mesh2d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, true}};
+        {colors, indices, hdepths, bdepths, periodic, diagonals}};
       coloring2.allocate(index_definitions);
       m2.allocate(coloring2.get());
-      execute<set_field_2d>(m2, f2(m2));
-      execute<print_field_2d>(m2, f2(m2));
-      execute<check_2d>(m2);
+      execute<init_field<2>>(m2, f2(m2));
+      execute<print_field<2>>(m2, f2(m2));
+      execute<update_field<2>>(m2, f2(m2));
+      execute<print_field<2>>(m2, f2(m2));
+      execute<check_mesh_field<2>>(m2, f2(m2));
+
     } // scope
 
     {
       // 3D Mesh
-      mesh3d::coord indices{3, 3, 4};
+      mesh3d::coord indices{4, 4, 4};
       auto colors = topo::narray_utils::distribute(processes(), indices);
       flog(warn) << log::container{colors} << std::endl;
 
-      mesh3d::coord hdepths{2, 1, 1};
-      mesh3d::coord bdepths{1, 2, 1};
+      mesh3d::coord hdepths{1, 1, 1};
+      mesh3d::coord bdepths{1, 1, 1};
       std::vector<bool> periodic{false, false, false};
+      bool diagonals = true;
       std::vector<mesh3d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, true}};
+        {colors, indices, hdepths, bdepths, periodic, diagonals}};
       coloring3.allocate(index_definitions);
       m3.allocate(coloring3.get());
-      execute<set_field_3d>(m3, f3(m3));
-      execute<print_field_3d>(m3, f3(m3));
-      execute<check_3d>(m3);
+      execute<init_field<3>>(m3, f3(m3));
+      execute<print_field<3>>(m3, f3(m3));
+      execute<update_field<3>>(m3, f3(m3));
+      execute<print_field<3>>(m3, f3(m3));
+      execute<check_mesh_field<3>>(m3, f3(m3));
     } // scope
-  };
-} // coloring_driver
+
+  }; // UNIT
+} // narray_driver
 
 flecsi::unit::driver<narray_driver> nd;
 #endif
