@@ -103,6 +103,19 @@ struct index_coloring {
 struct crs {
   std::vector<std::size_t> offsets;
   std::vector<std::size_t> indices;
+
+  template<class InputIt>
+  void add_row(InputIt first, InputIt last) {
+    if(offsets.empty())
+      offsets.emplace_back(0);
+    offsets.emplace_back(offsets.back() + std::distance(first, last));
+    indices.insert(indices.end(), first, last);
+  }
+
+  template<class U>
+  void add_row(std::initializer_list<U> init) {
+    add_row(init.begin(), init.end());
+  }
 };
 
 /*
