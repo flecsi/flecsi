@@ -362,21 +362,29 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
         auto & ghost_intervals = ghstitvls;
 
         /*
-          Here we compose the intervals from each sub-dimension to form
+          Here, we compose the intervals from each sub-dimension to form
           the actual full-dimensional subregions. These define the coloring.
          */
 
         std::function<std::vector<std::pair<colors, hypercube>>(
           Dimension, Dimension)>
-          expand = [&idx_coloring,
-                     &color_indices,
-                     &ghost_intervals,
-                     diagonals,
-                     &expand](Dimension dim, Dimension top) {
+          expand = [&idx_coloring, &color_indices, &ghost_intervals, diagonals](
+                     Dimension dim, Dimension top) {
             std::vector<std::pair<colors, hypercube>> sregs;
 
             for(Dimension axis = 0; axis < dim; ++axis) {
-              if(sregs.size() && dim == top) {
+              std::optional<std::vector<std::pair<colors, hypercube>>> ssubs;
+
+              if(sregs.size()) {
+                /*
+                  Save a copy of the lower-dimensional subregions to
+                  create diagonal entries.
+                 */
+
+                if(diagonals) {
+                  ssubs.emplace(sregs);
+                } // if
+
                 /*
                   Expand the subregions from the lower dimensions.
                  */
@@ -403,29 +411,36 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
                 colors co(top, 0);
                 coord start(top, 0);
                 coord end(top, 0);
+
+                /*
+                  For dimensions lower than the current axis, just populate
+                  the axes with the logical start and end because they are
+                  not the ghost part of the subregion, but they should
+                  cover the local axis extents. These use the local color
+                  indices.
+                 */
+
                 for(Dimension a = 0; a < axis; ++a) {
                   co[a] = color_indices[a];
                   start[a] = idx_coloring.logical[0][a];
                   end[a] = idx_coloring.logical[1][a];
                 } // for
 
+                /*
+                  Add the ghost part that comes from the current axis.
+                 */
+
                 co[axis] = i.first;
                 start[axis] = i.second.first;
                 end[axis] = i.second.second;
                 sregs.push_back({co, hypercube{start, end}});
 
-                if(diagonals && axis > 0) {
-                  /*
-                    Recurse to pull up lower dimensions.
-                   */
-
-                  auto ssubs = expand(dim - 1, top);
-
+                if(ssubs.has_value()) {
                   /*
                     Add axis information from this dimension to new diagonals.
                    */
 
-                  for(auto ss : ssubs) {
+                  for(auto ss : *ssubs) {
                     ss.first[axis] = i.first;
                     ss.second[0][axis] = i.second.first;
                     ss.second[1][axis] = i.second.second;
@@ -440,8 +455,7 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 
         auto subregions = expand(dimension, dimension);
 
-        // FIXME: The expand recursion is greedy for reasons that I don't
-        // understand.
+        // Remove duplicate subregions
         util::force_unique(subregions);
 
         /*
