@@ -23,21 +23,22 @@ using mesh1d = mesh<1>;
 using mesh2d = mesh<2>;
 using mesh3d = mesh<3>;
 
-template<std::size_t D>
+template<std::size_t D, typename F>
 void
-init_field(typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<wo, na> ca) {
+field_helper(typename mesh<D>::template accessor<ro> m,
+  field<std::size_t>::accessor<wo, na> ca,
+  F && fvalue) {
   auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
 
   if constexpr(D == 1) {
     for(auto i : m.template extents<mesh1d::axis::x_axis>()) {
-      c[i] = color();
+      fvalue(c[i]);
     } // for
   }
   else if constexpr(D == 2) {
     for(auto j : m.template extents<mesh2d::axis::y_axis>()) {
       for(auto i : m.template extents<mesh2d::axis::x_axis>()) {
-        c[j][i] = color();
+        fvalue(c[j][i]);
       } // for
     } // for
   }
@@ -45,12 +46,26 @@ init_field(typename mesh<D>::template accessor<ro> m,
     for(auto k : m.template extents<mesh3d::axis::z_axis>()) {
       for(auto j : m.template extents<mesh3d::axis::y_axis>()) {
         for(auto i : m.template extents<mesh3d::axis::x_axis>()) {
-          c[k][j][i] = color();
+          fvalue(c[k][j][i]);
         } // for
       } // for
     } // for
   }
+} // field_helper
+
+template<std::size_t D>
+void
+init_field(typename mesh<D>::template accessor<ro> m,
+  field<std::size_t>::accessor<wo, na> ca) {
+  return field_helper<D>(m, ca, [](auto & x) { x = color(); });
 } // init_field
+
+template<std::size_t D>
+void
+update_field(typename mesh<D>::template accessor<ro> m,
+  field<std::size_t>::accessor<wo, na> ca) {
+  return field_helper<D>(m, ca, [](auto & x) { x = std::pow(10, color()); });
+} // update_field
 
 template<std::size_t D>
 void
@@ -95,36 +110,6 @@ print_field(typename mesh<D>::template accessor<ro> m,
   }
 
 } // print_field
-
-template<std::size_t D>
-void
-update_field(typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<wo, na> ca) {
-  auto r = color();
-  auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
-
-  if constexpr(D == 1) {
-    for(auto i : m.template extents<mesh1d::axis::x_axis>()) {
-      c[i] = std::pow(10, r);
-    } // for
-  }
-  else if constexpr(D == 2) {
-    for(auto j : m.template extents<mesh2d::axis::y_axis>()) {
-      for(auto i : m.template extents<mesh2d::axis::x_axis>()) {
-        c[j][i] = std::pow(10, r);
-      } // for
-    } // for
-  }
-  else {
-    for(auto k : m.template extents<mesh3d::axis::z_axis>()) {
-      for(auto j : m.template extents<mesh3d::axis::y_axis>()) {
-        for(auto i : m.template extents<mesh3d::axis::x_axis>()) {
-          c[k][j][i] = std::pow(10, r);
-        } // for
-      } // for
-    } // for
-  }
-} // update_field
 
 template<std::size_t D>
 int
