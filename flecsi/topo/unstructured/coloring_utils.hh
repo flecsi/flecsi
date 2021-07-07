@@ -54,7 +54,7 @@ namespace unstructured_impl {
  */
 
 template<typename MD>
-inline auto
+auto
 make_dcrs(MD const & md,
   Dimension through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
@@ -371,7 +371,7 @@ request_owners(std::vector<std::size_t> const & request,
  */
 
 template<typename MD>
-inline auto
+auto
 color(MD const & md,
   coloring_definition const & cd,
   std::vector<Color> const & idx_cos,
@@ -853,7 +853,7 @@ color(MD const & md,
   @param c2v cell to vertex graph.
 */
 template<class MD>
-inline auto
+auto
 build_intermediary(Dimension dim,
   const std::vector<std::vector<std::size_t>> & c2v) {
   flog_assert((dim > 0 and dim < MD::dimension()),

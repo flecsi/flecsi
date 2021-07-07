@@ -106,8 +106,6 @@ struct crs {
 
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
-    if(first == last)
-      return;
     if(offsets.empty())
       offsets.emplace_back(0);
     offsets.emplace_back(offsets.back() + std::distance(first, last));
