@@ -3,7 +3,6 @@
 #ifndef FLECSI_IO_HDF5_HH
 #define FLECSI_IO_HDF5_HH
 
-#include <cmath>
 #include <string>
 
 #include "flecsi/flog.hh"
@@ -76,7 +75,7 @@ private:
 
 hid_t
 get_hdf5_type(int item_size) {
-  hsize_t type_size = {(hsize_t)std::ceil((double)item_size / 4)};
+  hsize_t type_size = (item_size + 3) / 4;
   return H5Tarray_create2(H5T_NATIVE_B32, 1, &type_size);
 }
 

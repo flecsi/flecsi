@@ -93,14 +93,10 @@ check(mesh2d::accessor<ro> m,
     for(auto i : m.extents<ax::x_axis, rg::all>()) {
       for(auto j : m.extents<ax::y_axis, rg::all>()) {
         double val = 16. * color() + 8. * (int)i + (int)j;
-        auto s1exp = val;
-        auto s2exp = val + 1000.;
-        auto siexp = val + 2000;
-        auto ssexp = val + 3000;
-        ASSERT_EQ(ms1[j][i], s1exp);
-        ASSERT_EQ(ms2[j][i], s2exp);
-        ASSERT_EQ(msi[j][i], siexp);
-        ASSERT_EQ(mss[j][i], ssexp);
+        ASSERT_EQ(ms1[j][i], val);
+        ASSERT_EQ(ms2[j][i], val + 1000.);
+        ASSERT_EQ(msi[j][i], val + 2000);
+        ASSERT_EQ(mss[j][i], val + 3000);
       } // for
     } // for
   };

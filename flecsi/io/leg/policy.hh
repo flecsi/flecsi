@@ -75,8 +75,8 @@ checkpoint_task(const Legion::Task * task,
         auto & m = field_size_map_vector[rid];
 
         for(Legion::FieldID fid : rr.privilege_fields) {
-          std::string name = "fid #" + std::to_string(fid);
-          checkpoint_file.create_dataset(name, domain_size, m.at(fid));
+          checkpoint_file.create_dataset(
+            "field " + std::to_string(fid), domain_size, m.at(fid));
         }
       }
       checkpoint_file.close();
@@ -121,8 +121,8 @@ checkpoint_task(const Legion::Task * task,
       std::vector<std::string> field_names;
       field_names.reserve(rr.privilege_fields.size());
       f([&field_map, &field_names](
-          Legion::FieldID fid, [[maybe_unused]] std::size_t s) {
-        field_names.emplace_back("fid #" + std::to_string(fid));
+          Legion::FieldID fid, [[maybe_unused]] std::size_t) {
+        field_names.emplace_back("field " + std::to_string(fid));
         field_map.emplace(fid, field_names.back().c_str());
       });
 
@@ -261,7 +261,7 @@ struct io_interface {
   } // recover_data
 
 private:
-  FieldSizes make_field_size_map(const data::fields & fs) {
+  static FieldSizes make_field_size_map(const data::fields & fs) {
     FieldSizes fsm;
     for(const auto p : fs) {
       fsm.emplace(p->fid, p->type_size);
