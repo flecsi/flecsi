@@ -81,8 +81,9 @@ struct unique_handle {
   template<class U>
   unique_handle(unique_handle<U> &&) = delete;
   ~unique_handle() {
-    if(*this) // empty LogicalRegions, at least, cannot be deleted
-      destroy(h);
+    if(ctx()) // does the Legion Context still exist?
+      if(*this) // empty LogicalRegions, at least, cannot be deleted
+        destroy(h);
   }
   unique_handle & operator=(unique_handle u) noexcept {
     std::swap(h, u.h);
