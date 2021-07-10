@@ -170,15 +170,18 @@ checkpoint_task(const Legion::Task * task,
           H5Fclose(checkpoint_file.hdf5_file_id);
           assert(0);
         }
-        hid_t datatype_id = get_hdf5_type(item_size);
         [] {
           if constexpr(W)
             return H5Dwrite;
           else
             return H5Dread;
-        }()(dataset_id, datatype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset_data);
+        }()(dataset_id,
+          hdf5_type(item_size),
+          H5S_ALL,
+          H5S_ALL,
+          H5P_DEFAULT,
+          dset_data);
         H5Dclose(dataset_id);
-        H5Tclose(datatype_id);
       });
     }
   }

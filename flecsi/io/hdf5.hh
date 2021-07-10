@@ -73,11 +73,41 @@ private:
 };
 } // namespace detail
 
-hid_t
-get_hdf5_type(int item_size) {
-  hsize_t type_size = (item_size + 3) / 4;
-  return H5Tarray_create2(H5T_NATIVE_B32, 1, &type_size);
-}
+struct hdf5_type {
+  explicit hdf5_type(int item_size)
+    : id([](const hsize_t type_size) {
+        return H5Tarray_create2(H5T_NATIVE_B32, 1, &type_size);
+      }((item_size + 3) / 4)) {
+    if(!*this)
+      flog(error) << "H5Tarray_create2 failed: " << id << std::endl;
+  }
+  hdf5_type(hdf5_type && t) noexcept : id(std::exchange(t.id, -1)) {}
+  ~hdf5_type() {
+    if(*this)
+      if(const err_t e = H5Tclose(id); e < 0)
+        flog(error) << "H5Tclose failed: " << e << std::endl;
+  }
+
+  hdf5_type & operator=(hdf5_type && t) noexcept {
+    hdf5_type(std::move(t)).swap(*this);
+    return *this;
+  }
+
+  void swap(hdf5_type & t) noexcept {
+    std::swap(id, t.id);
+  }
+
+  explicit operator bool() const {
+    return id >= 0;
+  }
+  operator hid_t() const {
+    assert(*this);
+    return id;
+  }
+
+private:
+  hid_t id;
+};
 
 struct hdf5 {
   static hdf5 create(const std::string & file_name) {
@@ -195,9 +225,8 @@ struct hdf5 {
       return false;
     }
 
-    hid_t datatype_id = get_hdf5_type(item_size);
-    if(datatype_id < 0) {
-      flog(error) << "H5Tarray_create2 failed: " << datatype_id << std::endl;
+    const hdf5_type datatype_id(item_size);
+    if(!*datatype_id) {
       close();
       return false;
     }
@@ -228,7 +257,6 @@ struct hdf5 {
     H5Dclose(dataset);
     //   H5Gclose(group_id);
     H5Sclose(dataspace_id);
-    H5Tclose(datatype_id);
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
     return true;
   }
