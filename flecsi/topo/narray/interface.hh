@@ -275,12 +275,12 @@ struct narray<Policy>::access {
 
   template<index_space S, axis A>
   bool is_low() {
-    return (faces<S>() >> A * 2) & narray_impl::low;
+    return (faces<S>() >> to_idx<A>() * 2) & narray_impl::low;
   }
 
   template<index_space S, axis A>
   bool is_high() {
-    return (faces<S>() >> A * 2) & narray_impl::high;
+    return (faces<S>() >> to_idx<A>() * 2) & narray_impl::high;
   }
 
   template<axis A>
@@ -411,6 +411,15 @@ struct narray<Policy>::access {
 
     meta_.topology_send(f, &narray::meta);
     policy_meta_.topology_send(f, &narray::meta);
+  }
+
+private:
+  template<axis A>
+  static constexpr std::uint32_t to_idx() {
+    using axis_t = typename std::underlying_type_t<axis>;
+    static_assert(std::is_convertible_v<axis_t, std::uint32_t>,
+      "invalid axis type: cannot be converted to std::uint32_t");
+    return static_cast<std::uint32_t>(A);
   }
 }; // struct narray<Policy>::access
 
