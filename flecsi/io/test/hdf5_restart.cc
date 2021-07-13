@@ -91,9 +91,9 @@ restart_driver() {
     mesh2d::coord hdepths{0, 0};
     mesh2d::coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};
-    std::vector<mesh2d::coloring_definition> index_definitions = {
-      {colors, indices, hdepths, bdepths, periodic, false}};
-    mc.allocate(index_definitions);
+    mesh2d::coloring_definition cd = {
+      colors, indices, hdepths, bdepths, periodic, false};
+    mc.allocate(cd);
     m.allocate(mc.get());
 
     auto mf1 = m_field_1(m);

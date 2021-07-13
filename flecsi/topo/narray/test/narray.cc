@@ -40,27 +40,23 @@ coloring_driver() {
     std::vector<bool> periodic{false, false, false};
     std::vector<bool> extend{true, false, false};
 
-    std::vector<mesh3d::coloring_definition> index_definitions = {
-      {colors, indices, hdepths, bdepths, periodic, false}};
+    mesh3d::coloring_definition cd = {
+      colors, indices, hdepths, bdepths, periodic, false};
+    auto [nc, coloring, partitions] =
+      topo::narray_utils::color(cd, MPI_COMM_WORLD);
 
-    auto [cos, idx_cos] =
-      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
+    auto avpc = topo::narray_utils::color_auxiliary(coloring, extend);
 
-    std::size_t is{0};
-    for(auto v : idx_cos) {
-      std::stringstream ss;
-      std::stringstream ssa;
-      ss << "index space: " << is << std::endl;
-      ssa << "index space: " << is++ << std::endl;
-      for(auto c : v) {
-        ss << "color: " << c.first << std::endl << c.second << std::endl;
-        auto aidx =
-          topo::narray_utils::color_auxiliary(c.second, extend, false, false);
-        ssa << "color: " << c.first << std::endl << aidx << std::endl;
-      }
-      flog(warn) << ss.str();
-      flog(trace) << ssa.str();
-    }
+    std::stringstream ss;
+    ss << "primary" << std::endl;
+    for(auto p : coloring) {
+      ss << p << std::endl;
+    } // for
+    ss << "auxiliary" << std::endl;
+    for(auto p : avpc) {
+      ss << p << std::endl;
+    } // for
+    flog(warn) << ss.str() << std::endl;
   };
 }
 
@@ -103,10 +99,12 @@ narray_driver() {
       mesh1d::coord bdepths{2};
       std::vector<bool> periodic{false};
       bool diagonals = true;
-      std::vector<mesh1d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, diagonals}};
 
-      coloring1.allocate(index_definitions);
+      mesh1d::coloring_definition cd = {
+        colors, indices, hdepths, bdepths, periodic, diagonals};
+
+      // coloring1.allocate(index_definitions);
+      coloring1.allocate(cd);
       m1.allocate(coloring1.get());
       execute<init_field<1>>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
@@ -125,9 +123,11 @@ narray_driver() {
       mesh2d::coord bdepths{2, 1};
       std::vector<bool> periodic{false, false};
       bool diagonals = true;
-      std::vector<mesh2d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, diagonals}};
-      coloring2.allocate(index_definitions);
+
+      mesh1d::coloring_definition cd = {
+        colors, indices, hdepths, bdepths, periodic, diagonals};
+
+      coloring2.allocate(cd);
       m2.allocate(coloring2.get());
       execute<init_field<2>>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
@@ -147,9 +147,10 @@ narray_driver() {
       mesh3d::coord bdepths{1, 1, 1};
       std::vector<bool> periodic{false, false, false};
       bool diagonals = true;
-      std::vector<mesh3d::coloring_definition> index_definitions = {
-        {colors, indices, hdepths, bdepths, periodic, diagonals}};
-      coloring3.allocate(index_definitions);
+      mesh3d::coloring_definition cd = {
+        colors, indices, hdepths, bdepths, periodic, diagonals};
+
+      coloring3.allocate(cd);
       m3.allocate(coloring3.get());
       execute<init_field<3>>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));

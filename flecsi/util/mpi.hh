@@ -516,7 +516,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename T>
 std::vector<T>
-all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
+all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
   std::vector<T> result;
   if constexpr(bit_copyable_v<T>) {
@@ -559,7 +559,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   }
 
   return result;
-} // all_gather
+} // all_gatherv
 
 } // namespace mpi
 } // namespace util

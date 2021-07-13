@@ -55,12 +55,12 @@ struct coloring_definition {
   bool create_plan = true;
 };
 
-struct index_coloring {
+struct process_color {
   /*
     Store the axis orientations of this color.
    */
 
-  std::uint32_t faces;
+  std::uint32_t orientation;
 
   /*
     The global extents.
@@ -123,10 +123,10 @@ struct index_coloring {
    */
 
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
-}; // struct index_coloring
+}; // struct process_color
 
 inline std::ostream &
-operator<<(std::ostream & stream, index_coloring const & ic) {
+operator<<(std::ostream & stream, process_color const & ic) {
   stream << "global" << std::endl
          << log::container{ic.global} << std::endl
          << "extents" << std::endl
@@ -142,7 +142,7 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
          << "extended (high)" << std::endl
          << log::container{ic.extended[1]} << std::endl;
   return stream;
-}
+} // operator<<
 
 } // namespace narray_impl
 
@@ -151,36 +151,41 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
  *----------------------------------------------------------------------------*/
 
 struct narray_base {
-  using index_coloring = narray_impl::index_coloring;
+  using process_color = narray_impl::process_color;
   using coord = narray_impl::coord;
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
 
   /*
-    This data structure will need to change to process_coloring with
-    coloring = std::vector<process_coloring> when we add support for
+    This data structure will need to change to process_color with
+    coloring = std::vector<process_color> when we add support for
     M != N (colors to processes).
    */
 
   struct coloring {
     MPI_Comm comm;
     Color colors;
-    std::vector<index_coloring> idx_colorings;
-  }; // struct coloring
 
-  static std::size_t idx_size(index_coloring const & ic, std::size_t) {
-    std::size_t allocation{1};
-    for(auto e : ic.extents) {
-      allocation *= e;
-    }
-    return allocation;
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
+
+    std::vector</* over index spaces */
+      std::vector</* over process colors */
+        process_color>>
+      idx_colorings;
+  }; // struct _coloring
+
+  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
+    return vs[c];
   }
 
-  static void idx_itvls(index_coloring const & ic,
+  static void idx_itvls(process_color const & ic,
     std::vector<std::size_t> & num_intervals,
     MPI_Comm const & comm) {
-    num_intervals = util::mpi::all_gather(ic.intervals.size(), comm);
+    num_intervals = util::mpi::all_gatherv(ic.intervals.size(), comm);
   }
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
@@ -217,12 +222,12 @@ struct narray_base {
  *----------------------------------------------------------------------------*/
 
 template<>
-struct util::serial<topo::narray_impl::index_coloring> {
-  using type = topo::narray_impl::index_coloring;
+struct util::serial<topo::narray_impl::process_color> {
+  using type = topo::narray_impl::process_color;
   template<class P>
   static void put(P & p, const type & s) {
     serial_put(p,
-      s.faces,
+      s.orientation,
       s.global,
       s.extents,
       s.offset,

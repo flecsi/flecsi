@@ -118,27 +118,6 @@ struct crs {
   }
 };
 
-/*
-  Closure tokens for specifying the behavior of closure function.
- */
-
-template<size_t IndexSpace,
-  Dimension D,
-  Dimension ThroughDimension,
-  size_t Depth = 1>
-struct primary_independent {
-  static constexpr size_t index_space = IndexSpace;
-  static constexpr Dimension dimension = D, thru_dimension = ThroughDimension;
-  static constexpr size_t depth = Depth;
-}; // struct primary_independent
-
-template<std::size_t IndexSpace, Dimension D, Dimension PrimaryDimension>
-struct auxiliary_independent {
-  static constexpr size_t index_space = IndexSpace;
-  static constexpr Dimension dimension = D,
-                             primary_dimension = PrimaryDimension;
-}; // struct auxiliary_independent
-
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   field<util::id, data::ragged>::mutator<rw, na> output) {
@@ -166,76 +145,67 @@ struct coloring_definition {
   std::vector<auxiliary> aux;
 };
 
+struct process_color {
+
+  /*
+    The global number of entities in this index space.
+   */
+
+  std::size_t entities;
+
+  /*
+    The local coloring information for this index space.
+
+    The coloring information is expressed in the mesh index space,
+    i.e., the ids are global.
+   */
+
+  index_coloring coloring;
+
+  /*
+   The local allocation size for each connectivity. The vector is over
+   connectivities between this entity type and another entity type. The
+   ordering follows that given in the specialization policy.
+   */
+
+  std::vector<std::size_t> cnx_allocs;
+
+  /*
+    The local graph for each connectivity.
+
+    The graph information is expressed in the mesh index space,
+    i.e., the ids are global. The vector is like cnx_alloc.
+   */
+
+  std::vector<crs> cnx_colorings;
+}; // struct process_color
+
 } // namespace unstructured_impl
 
 struct unstructured_base {
 
   using index_coloring = unstructured_impl::index_coloring;
+  using process_color = unstructured_impl::process_color;
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
-  struct process_color {
-    /*
-      The current coloring utilities and topology initialization assume
-      the use of MPI. This could change in the future, e.g., if legion
-      matures to the point of developing its own software stack. However,
-      for the time being, this comm is provided to retain consistency
-      with the coloring utilities for unstructured.
-     */
-
+  struct coloring {
     MPI_Comm comm;
+    Color colors; /* global number of colors */
 
-    /*
-      The global id of this color
-     */
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
 
-    Color color;
+    std::vector</* over index spaces */
+      std::vector</* over process colors */
+        process_color>>
+      idx_spaces;
+  }; // struct coloring
 
-    /*
-      The global number of colors
-     */
-
-    Color colors;
-
-    /*
-      The global number of entities in each index space
-     */
-
-    std::vector<std::size_t> idx_entities;
-
-    /*
-      The local coloring information for each index space.
-
-      The coloring information is expressed in the mesh index space,
-      i.e., the ids are global.
-     */
-
-    std::vector<index_coloring> idx_colorings;
-
-    /*
-     The local allocation size for each connectivity. The outer vector
-     is over index spaces. The inner vector is over connectivities between
-     the outer entity type and another entity type. The ordering follows
-     that given in the specialization policy.
-     */
-
-    std::vector<std::vector<std::size_t>> cnx_allocs;
-
-    /*
-      The local graph for each connectivity.
-
-      The graph information is expressed in the mesh index space,
-      i.e., the ids are global. The outer and inner vectors are like
-      cnx_allocs.
-     */
-
-    std::vector<std::vector<crs>> cnx_colorings;
-  }; // struct process_color
-
-  using coloring = std::vector<process_color>;
-
-  static std::size_t idx_size(index_coloring const & ic, std::size_t) {
-    return ic.owned.size() + ic.ghost.size();
+  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
+    return vs[c];
   }
 
   /*
@@ -399,7 +369,7 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gather(local_itvls, comm);
+    num_intervals = util::mpi::all_gatherv(local_itvls, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
@@ -444,8 +414,13 @@ struct unstructured_base {
     cp(ghost[S], ic.ghost);
   }
 
-  static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = size;
+  // TODO: This will need to be a multiaccessor.
+  static void cnx_size(std::vector<process_color> const & vpc,
+    std::size_t is,
+    resize::Field::accessor<wo> a) {
+    // Hack until multiaccessor. When we have the real thing, this will
+    // iterate over the process colors, and set a size for each.
+    a = vpc[0].cnx_allocs[is];
   }
 
 }; // struct unstructured_base
@@ -483,6 +458,19 @@ struct util::serial<topo::unstructured_impl::ghost_entity> {
 };
 
 template<>
+struct util::serial<topo::unstructured_impl::crs> {
+  using type = topo::unstructured_impl::crs;
+  template<class P>
+  static void put(P & p, const type & c) {
+    serial_put(p, c.offsets, c.indices);
+  }
+  static type get(const std::byte *& p) {
+    const serial_cast r{p};
+    return type{r, r};
+  }
+};
+
+template<>
 struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
@@ -492,6 +480,19 @@ struct util::serial<topo::unstructured_impl::index_coloring> {
   static type get(const std::byte *& p) {
     const serial_cast r{p};
     return type{r, r, r, r, r};
+  }
+};
+
+template<>
+struct util::serial<topo::unstructured_impl::process_color> {
+  using type = topo::unstructured_impl::process_color;
+  template<class P>
+  static void put(P & p, const type & c) {
+    serial_put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
+  }
+  static type get(const std::byte *& p) {
+    const serial_cast r{p};
+    return type{r, r, r, r};
   }
 };
 

@@ -136,14 +136,10 @@ compute_closure() {
 #endif
 
 #if 1
-    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, 1, {{}}};
-    auto colorings = topo::unstructured_impl::color(
+    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, 1, {}};
+    auto coloring = topo::unstructured_impl::color(
       sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
-
-    for(auto pc : colorings) {
-      flog(info) << "color: " << pc.color << std::endl;
-    } // for
 
 #if 0
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
@@ -177,6 +173,8 @@ compute_closure() {
       flog(warn) << ss.str() << std::endl;
     } // for
 #endif
+
+    flog(warn) << log::container{coloring.partitions} << std::endl;
   };
 }
 

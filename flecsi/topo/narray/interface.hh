@@ -27,6 +27,7 @@
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/array_ref.hh"
 
+#include <memory>
 #include <utility>
 
 namespace flecsi {
@@ -55,7 +56,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      plan_(make_plans(c,
+      plans_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())) {
     init_meta(c);
@@ -63,7 +64,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
   struct meta_data {
-    std::uint32_t faces;
+    std::uint32_t orientation;
 
     using scoord = util::key_array<std::size_t, axes>;
     using shypercube = std::array<scoord, 2>;
@@ -84,7 +85,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     policy_meta_field;
 
   util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<data::copy_plan, index_spaces> plan_;
+  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>, index_spaces>
+    plans_;
 
   Color colors() const {
     return part_.front().colors();
@@ -105,7 +107,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
+    for(auto const & p : plans_.template get<Space>()) {
+      p->issue_copy(f.fid());
+    }
   }
 
 private:
@@ -118,34 +122,42 @@ private:
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
     return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_colorings[Index]))...}};
+      c.colors, make_partial<idx_size>(c.partitions[Index]))...}};
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic,
+  std::vector<std::unique_ptr<data::copy_plan>> make_plan(
+    std::vector<process_color> const & vpc,
     repartitioned & p,
     MPI_Comm const & comm) {
-    std::vector<std::size_t> num_intervals;
+    std::vector<std::unique_ptr<data::copy_plan>> plans;
 
-    execute<idx_itvls, mpi>(ic, num_intervals, comm);
+    for(auto pc : vpc) {
+      std::vector<std::size_t> num_intervals;
+      execute<idx_itvls, mpi>(pc, num_intervals, comm);
 
-    // clang-format off
-    auto dest_task = [&ic, &comm](auto f) {
-      execute<set_dests, mpi>(f, ic.intervals, comm);
-    };
+      // clang-format off
+      auto dest_task = [&pc, &comm](auto f) {
+        execute<set_dests, mpi>(f, pc.intervals, comm);
+      };
 
-    auto ptrs_task = [&ic, &comm](auto f) {
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        f, ic.points, comm);
-    };
+      auto ptrs_task = [&pc, &comm](auto f) {
+        execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+          f, pc.points, comm);
+      };
+      // clang-format on
 
-    return {*this, p,  num_intervals, dest_task, ptrs_task, util::constant<S>()};
-    // clang-format on
+      plans.emplace_back(std::make_unique<data::copy_plan>(
+        *this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()));
+    } // for
+
+    return plans;
   }
 
   template<auto... Value, std::size_t... Index>
-  util::key_array<data::copy_plan, util::constants<Value...>> make_plans(
-    narray_base::coloring const & c,
+  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>,
+    util::constants<Value...>>
+  make_plans(narray_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
@@ -155,7 +167,8 @@ private:
       {make_plan<Value>(c.idx_colorings[Index], part_[Index], c.comm)...}};
   }
 
-  static void set_meta_idx(meta_data & md, index_coloring const & ic) {
+  static void set_meta_idx(meta_data & md,
+    std::vector<process_color> const & vpc) {
     // clang-format off
     static constexpr auto copy = [](const coord & c,
       typename meta_data::scoord & s) {
@@ -172,12 +185,12 @@ private:
     };
     // clang-format on
 
-    md.faces = ic.faces;
-    copy(ic.global, md.global);
-    copy(ic.offset, md.offset);
-    copy(ic.extents, md.extents);
-    copy2(ic.logical, md.logical);
-    copy2(ic.extended, md.extended);
+    md.orientation = vpc[0].orientation;
+    copy(vpc[0].global, md.global);
+    copy(vpc[0].offset, md.offset);
+    copy(vpc[0].extents, md.extents);
+    copy2(vpc[0].logical, md.logical);
+    copy2(vpc[0].extended, md.extended);
   }
 
   template<auto... Value>
@@ -243,8 +256,8 @@ struct narray<Policy>::access {
     range::global>;
 
   template<index_space S>
-  std::uint32_t faces() {
-    return meta_->template get<S>().faces;
+  std::uint32_t orientation() {
+    return meta_->template get<S>().orientation;
   }
 
   template<index_space S, axis A>
@@ -279,12 +292,12 @@ struct narray<Policy>::access {
 
   template<index_space S, axis A>
   bool is_low() {
-    return (faces<S>() >> to_idx<A>() * 2) & narray_impl::low;
+    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::low;
   }
 
   template<index_space S, axis A>
   bool is_high() {
-    return (faces<S>() >> to_idx<A>() * 2) & narray_impl::high;
+    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::high;
   }
 
   template<axis A>
