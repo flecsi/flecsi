@@ -968,6 +968,7 @@ private:
   base_type rag;
 };
 
+namespace detail {
 template<auto & F>
 struct scalar_access : bind_tag {
 
@@ -994,6 +995,12 @@ struct scalar_access : bind_tag {
 private:
   value_type scalar_;
 };
+} // namespace detail
+
+template<const auto & F, Privileges P>
+using scalar_access = std::conditional_t<privilege_merge(P) == ro,
+  detail::scalar_access<F>,
+  accessor_member<F, P>>;
 
 } // namespace data
 

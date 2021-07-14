@@ -37,10 +37,6 @@ namespace data {
 template<layout L, typename T, Privileges Priv>
 struct accessor;
 
-/// A specialized accessor used to return scalar values
-template<auto & F>
-struct scalar_access;
-
 /// A specialized accessor for changing the extent of dynamic layouts.
 template<layout, class, Privileges>
 struct mutator;

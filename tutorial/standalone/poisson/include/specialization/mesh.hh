@@ -158,10 +158,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   using grect = std::array<std::array<double, 2>, 2>;
 
-  static void set_geometry(mesh::accessor<flecsi::rw> sm,
-    typename field<meta_data, flecsi::data::single>::template accessor<wo> m,
-    grect const & g) {
-    meta_data & md = m;
+  static void set_geometry(mesh::accessor<flecsi::rw> sm, grect const & g) {
+    meta_data & md = sm.policy_meta_;
     double xdelta =
       std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1);
     double ydelta =
@@ -174,8 +172,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   static void initialize(flecsi::data::topology_slot<mesh> & s,
     coloring const &,
     grect const & geometry) {
-    flecsi::execute<set_geometry, flecsi::mpi>(
-      s, core::policy_meta_field(s->meta), geometry);
+    flecsi::execute<set_geometry, flecsi::mpi>(s, geometry);
   } // initialize
 
 }; // struct mesh
