@@ -87,10 +87,11 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
     return *this;
   } // operator=
 
-  element_type operator->() const {
-    static_assert(
-      std::is_pointer<value_type>::value, "-> called on non-pointer type");
+  element_type & operator*() const {
     return get();
+  }
+  element_type * operator->() const {
+    return &get();
   } // operator->
 
   base_type & get_base() {
