@@ -194,11 +194,10 @@ inline constexpr bool portable_v =
 
 /// Helper type to define and access fields.
 /// \tparam T field value type: a trivially copyable type with no pointers
-///   or references
+///   or references if any non-MPI tasks use it
 /// \tparam L data layout
 template<class T, data::layout L = data::dense>
 struct field : data::detail::field_base<T, L> {
-  static_assert(data::portable_v<T>);
   using value_type = T;
 
   template<Privileges Priv>
