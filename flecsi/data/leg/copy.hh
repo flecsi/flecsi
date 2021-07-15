@@ -71,11 +71,18 @@ struct prefixes : private leg::mirror,
 
   template<class F>
   void update(F f) {
-    prt.update(convert(std::move(f)), fid, complete);
-    rows::update(get_first_subregion());
+    auto p = prt.remake(convert(std::move(f)), fid, complete);
+    rows::update(get_first_subregion(p));
+    prt = std::move(p);
   }
 
   Legion::LogicalRegion get_first_subregion() const {
+    return get_first_subregion(prt);
+  }
+
+private:
+  static Legion::LogicalRegion get_first_subregion(
+    const leg::partition<> & prt) {
     return leg::run().get_logical_subregion_by_color(prt.logical_partition, 0);
   }
 };
@@ -87,8 +94,11 @@ leg::partition<R>::partition(prefixes & reg,
   const data::partition & src,
   field_id_t fid,
   completeness cpt)
-  : data::partition(reg.get_first_subregion(),
-      part(reg.get_first_subregion().get_index_space(), src, fid, cpt)) {}
+  : partition(reg.get_first_subregion(),
+      reg.get_first_subregion().get_index_space(),
+      src,
+      fid,
+      cpt) {}
 
 struct intervals : leg::partition<> {
   using Value = leg::rect;

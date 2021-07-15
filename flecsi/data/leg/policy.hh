@@ -270,46 +270,47 @@ struct partition : partition_base {
     const partition_base & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition_base(reg.logical_region, part(reg.index_space, src, fid, cpt)) {
-  }
+    : partition(reg.logical_region, reg.index_space, src, fid, cpt) {}
 
   partition(prefixes & reg,
     const partition_base & src,
     field_id_t fid,
     completeness cpt = {});
 
-  void update(const partition_base & src,
+  partition remake(const partition_base & src,
     field_id_t fid,
-    completeness cpt = incomplete) {
+    completeness cpt = incomplete) const {
     auto & r = run();
-    auto ip = part(r.get_parent_index_space(index_partition), src, fid, cpt);
-    logical_partition = log(r.get_parent_logical_region(logical_partition), ip);
-    index_partition = std::move(ip); // can't fail
+    return {r.get_parent_logical_region(logical_partition),
+      r.get_parent_index_space(index_partition),
+      src,
+      fid,
+      cpt};
   }
 
 private:
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
-  static unique_index_partition part(const Legion::IndexSpace & is,
+  partition(const Legion::LogicalRegion & reg,
+    const Legion::IndexSpace & is,
     const partition_base & src,
     field_id_t fid,
-    completeness cpt) {
-    auto & r = run();
-    return named(
-      [&r](auto &&... aa) {
-        return R ? r.create_partition_by_image_range(
-                     std::forward<decltype(aa)>(aa)...)
-                 : r.create_partition_by_image(
-                     std::forward<decltype(aa)>(aa)...);
-      }(ctx(),
-        is,
-        src.logical_partition,
-        src.root(),
-        fid,
-        src.get_color_space(),
-        partitionKind(R ? disjoint : compute, cpt)),
-      (name(src.logical_partition, "?") + std::string("->")).c_str());
-  }
+    completeness cpt)
+    : partition_base(reg,
+        named(
+          [& r = run()](auto &&... aa) {
+            return R ? r.create_partition_by_image_range(
+                         std::forward<decltype(aa)>(aa)...)
+                     : r.create_partition_by_image(
+                         std::forward<decltype(aa)>(aa)...);
+          }(ctx(),
+            is,
+            src.logical_partition,
+            src.root(),
+            fid,
+            src.get_color_space(),
+            partitionKind(R ? disjoint : compute, cpt)),
+          (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
 } // namespace leg
