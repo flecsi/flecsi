@@ -117,7 +117,9 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
+  data::copy_plan make_plan(index_coloring const & ic,
+    repartitioned & p,
+    MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
 
     execute<idx_itvls, mpi>(ic, num_intervals, comm);
@@ -132,7 +134,7 @@ private:
         f, ic.points, comm);
     };
 
-    return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    return {*this, p,  num_intervals, dest_task, ptrs_task, util::constant<S>()};
     // clang-format on
   }
 
@@ -144,7 +146,8 @@ private:
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
+    return {
+      {make_plan<Value>(c.idx_colorings[Index], part_[Index], c.comm)...}};
   }
 
   static void set_meta(

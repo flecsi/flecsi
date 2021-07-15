@@ -29,6 +29,8 @@
 namespace flecsi {
 namespace data {
 
+struct prefixes;
+
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
 constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
@@ -56,11 +58,12 @@ ctx() {
 
 inline void
 destroy(Legion::IndexSpace i) {
-  run().destroy_index_space(ctx(), i);
+  run().destroy_index_space(ctx(), i, false, false);
 }
-// Legion seems to be buggy with destroying partitions:
 inline void
-destroy(Legion::IndexPartition) {}
+destroy(Legion::IndexPartition p) {
+  run().destroy_index_partition(ctx(), p, false, false);
+}
 inline void
 destroy(Legion::FieldSpace f) {
   run().destroy_field_space(ctx(), f);
@@ -69,8 +72,6 @@ inline void
 destroy(Legion::LogicalRegion r) {
   run().destroy_logical_region(ctx(), r);
 }
-inline void
-destroy(Legion::LogicalPartition) {}
 
 template<class T>
 struct unique_handle {
@@ -104,7 +105,6 @@ using unique_index_space = unique_handle<Legion::IndexSpace>;
 using unique_index_partition = unique_handle<Legion::IndexPartition>;
 using unique_field_space = unique_handle<Legion::FieldSpace>;
 using unique_logical_region = unique_handle<Legion::LogicalRegion>;
-using unique_logical_partition = unique_handle<Legion::LogicalPartition>;
 
 // NB: n=0 works because Legion interprets inverted ranges as empty.
 inline Legion::coord_t
@@ -146,7 +146,9 @@ named(const Legion::LogicalRegion & r, const char * n) {
 }
 inline auto
 named(const Legion::LogicalPartition & p, const char * n) {
-  return named0(p, n);
+  if(n)
+    run().attach_name(p, n);
+  return p;
 }
 
 struct region {
@@ -182,13 +184,25 @@ struct region {
 
 struct partition_base {
   unique_index_partition index_partition;
-  unique_logical_partition logical_partition;
-  // A smaller index space when some colors exist purely for completeness.
-  Legion::IndexSpace colors_used;
+  Legion::LogicalPartition logical_partition;
+
+  Legion::IndexSpace get_color_space() const {
+    return run().get_index_partition_color_space_name(index_partition);
+  }
+  Legion::LogicalRegion root() const { // required for using privileges
+    auto & r = run();
+    Legion::LogicalPartition lp = logical_partition;
+    while(true) {
+      auto lr = r.get_parent_logical_region(lp);
+      if(!r.has_parent_logical_partition(lr))
+        return lr;
+      lp = r.get_parent_logical_partition(lr);
+    }
+  }
 
   // NB: intervals and points are not advertised as deriving from this class.
   Color colors() const {
-    return leg::run().get_index_space_domain(colors_used).get_volume();
+    return run().get_index_space_domain(get_color_space()).get_volume();
   }
   template<topo::single_space>
   const partition_base & get_partition(field_id_t) const {
@@ -196,19 +210,11 @@ struct partition_base {
   }
 
 protected:
-  partition_base(const region & r, unique_index_partition ip)
-    : partition_base(r,
-        std::move(ip),
-        run().get_index_partition_color_space_name(ip)) {}
-  // The rvalue reference defers the move in the two-argument constructor.
-  partition_base(const region & r,
-    unique_index_partition && ip,
-    Legion::IndexSpace c)
+  partition_base(const Legion::LogicalRegion & r, unique_index_partition ip)
     : index_partition(std::move(ip)),
-      logical_partition(log(r.logical_region, index_partition)),
-      colors_used(c) {}
+      logical_partition(log(r, index_partition)) {}
 
-  static unique_logical_partition log(const Legion::LogicalRegion & r,
+  static Legion::LogicalPartition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
     return named(run().get_logical_partition(r, p),
       (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
@@ -219,27 +225,43 @@ struct with_color { // for initialization order
   unique_index_space color_space;
 };
 struct rows : with_color, partition_base {
-  explicit rows(const region & reg)
-    : rows(reg, run().get_index_space_domain(reg.index_space).hi()) {}
+  explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
+
+  // this constructor will create partition by rows with s.first being number
+  // of colors and s.second the max size of the rows
+  rows(const Legion::LogicalRegion & reg, size2 s)
+    : with_color{run().create_index_space(ctx(),
+        Legion::Rect<1>(0, upper(s.first)))},
+      partition_base(reg, partition_rows(reg, upper(s.second))) {}
 
 private:
-  // The type-erased version assumes a square transformation matrix.
-  rows(const region & reg, Legion::DomainPoint hi)
-    : with_color{run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0]))},
-      partition_base(reg,
-        named(run().create_partition_by_restriction(
-                ctx(),
-                Legion::IndexSpaceT<2>(reg.index_space),
-                Legion::IndexSpaceT<1>(color_space),
-                [&] {
-                  Legion::Transform<2, 1> ret;
-                  ret.rows[0].x = 1;
-                  ret.rows[1].x = 0;
-                  return ret;
-                }(),
-                {{0, 0}, {0, hi[1]}},
-                DISJOINT_COMPLETE_KIND),
-          name(reg.index_space))) {}
+  unique_index_partition partition_rows(const Legion::LogicalRegion & reg,
+    Legion::coord_t hi) {
+    // The type-erased version assumes a square transformation matrix
+    return named(run().create_partition_by_restriction(
+                   ctx(),
+                   Legion::IndexSpaceT<2>(reg.get_index_space()),
+                   Legion::IndexSpaceT<1>(color_space),
+                   [&] {
+                     Legion::Transform<2, 1> ret;
+                     ret.rows[0].x = 1;
+                     ret.rows[1].x = 0;
+                     return ret;
+                   }(),
+                   {{0, 0}, {0, hi}},
+                   DISJOINT_COMPLETE_KIND),
+      (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
+  }
+
+public:
+  void update(const Legion::LogicalRegion & reg) {
+    Legion::DomainPoint hi =
+      run().get_index_space_domain(reg.get_index_space()).hi();
+    auto ip = partition_rows(reg, hi[1]);
+
+    logical_partition = log(reg, ip);
+    index_partition = std::move(ip);
+  }
 };
 
 template<bool R = true>
@@ -248,56 +270,47 @@ struct partition : partition_base {
     const partition_base & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition(reg, src, fid, cpt, src.colors_used) {}
-  partition(region & reg,
+    : partition(reg.logical_region, reg.index_space, src, fid, cpt) {}
+
+  partition(prefixes & reg,
     const partition_base & src,
     field_id_t fid,
-    completeness cpt,
-    Legion::IndexSpace used)
-    : partition_base(reg, part(reg.index_space, src, fid, cpt), used) {}
+    completeness cpt = {});
 
-protected:
-  void update(const partition_base & src,
+  partition remake(const partition_base & src,
     field_id_t fid,
-    completeness cpt = incomplete) {
+    completeness cpt = incomplete) const {
     auto & r = run();
-    auto ip = part(r.get_parent_index_space(index_partition), src, fid, cpt);
-    logical_partition = log(r.get_parent_logical_region(logical_partition), ip);
-    index_partition = std::move(ip); // can't fail
+    return {r.get_parent_logical_region(logical_partition),
+      r.get_parent_index_space(index_partition),
+      src,
+      fid,
+      cpt};
   }
 
 private:
   // We document that src must outlive this partitioning, although Legion is
   // said to support deleting its color space before our partition using it.
-  static unique_index_partition part(const Legion::IndexSpace & is,
+  partition(const Legion::LogicalRegion & reg,
+    const Legion::IndexSpace & is,
     const partition_base & src,
     field_id_t fid,
-    completeness cpt) {
-    auto & r = run();
-
-    Legion::Color part_color =
-      r.get_index_partition_color(ctx(), src.index_partition);
-
-    auto tag = flecsi::run::tag_index_partition(part_color);
-
-    return named(
-      [&r](auto &&... aa) {
-        return R ? r.create_partition_by_image_range(
-                     std::forward<decltype(aa)>(aa)...)
-                 : r.create_partition_by_image(
-                     std::forward<decltype(aa)>(aa)...);
-      }(ctx(),
-        is,
-        src.logical_partition,
-        r.get_parent_logical_region(src.logical_partition),
-        fid,
-        src.colors_used,
-        partitionKind(R ? disjoint : compute, cpt),
-        LEGION_AUTO_GENERATE_ID,
-        0,
-        tag),
-      name(src.index_partition));
-  }
+    completeness cpt)
+    : partition_base(reg,
+        named(
+          [& r = run()](auto &&... aa) {
+            return R ? r.create_partition_by_image_range(
+                         std::forward<decltype(aa)>(aa)...)
+                     : r.create_partition_by_image(
+                         std::forward<decltype(aa)>(aa)...);
+          }(ctx(),
+            is,
+            src.logical_partition,
+            src.root(),
+            fid,
+            src.get_color_space(),
+            partitionKind(R ? disjoint : compute, cpt)),
+          (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
 } // namespace leg
