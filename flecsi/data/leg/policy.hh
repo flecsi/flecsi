@@ -58,11 +58,12 @@ ctx() {
 
 inline void
 destroy(Legion::IndexSpace i) {
-  run().destroy_index_space(ctx(), i);
+  run().destroy_index_space(ctx(), i, false, false);
 }
-// Legion seems to be buggy with destroying partitions:
 inline void
-destroy(Legion::IndexPartition) {}
+destroy(Legion::IndexPartition p) {
+  run().destroy_index_partition(ctx(), p, false, false);
+}
 inline void
 destroy(Legion::FieldSpace f) {
   run().destroy_field_space(ctx(), f);
