@@ -16,7 +16,6 @@
 /*! @file */
 
 #include "flecsi/topo/core.hh" // base
-#include "flecsi/topo/set/types.hh"
 
 namespace flecsi {
 namespace topo {
@@ -28,6 +27,12 @@ namespace topo {
 /*!
   @ingroup topology
  */
+
+struct set_base {
+
+  using coloring = std::vector<std::size_t>;
+
+}; // set_base
 
 template<typename Policy>
 struct set : set_base {};

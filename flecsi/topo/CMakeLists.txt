@@ -31,7 +31,6 @@ set(topo_HEADERS
   ntree/interface.hh
   ntree/types.hh
   set/interface.hh
-  set/types.hh
   structured/box.hh
   structured/box_types.hh
   structured/box_utils.hh
