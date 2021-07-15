@@ -71,8 +71,6 @@ inline void
 destroy(Legion::LogicalRegion r) {
   run().destroy_logical_region(ctx(), r);
 }
-inline void
-destroy(Legion::LogicalPartition) {}
 
 template<class T>
 struct unique_handle {
@@ -106,7 +104,6 @@ using unique_index_space = unique_handle<Legion::IndexSpace>;
 using unique_index_partition = unique_handle<Legion::IndexPartition>;
 using unique_field_space = unique_handle<Legion::FieldSpace>;
 using unique_logical_region = unique_handle<Legion::LogicalRegion>;
-using unique_logical_partition = unique_handle<Legion::LogicalPartition>;
 
 // NB: n=0 works because Legion interprets inverted ranges as empty.
 inline Legion::coord_t
@@ -148,7 +145,9 @@ named(const Legion::LogicalRegion & r, const char * n) {
 }
 inline auto
 named(const Legion::LogicalPartition & p, const char * n) {
-  return named0(p, n);
+  if(n)
+    run().attach_name(p, n);
+  return p;
 }
 
 struct region {
@@ -184,7 +183,7 @@ struct region {
 
 struct partition_base {
   unique_index_partition index_partition;
-  unique_logical_partition logical_partition;
+  Legion::LogicalPartition logical_partition;
 
   Legion::IndexSpace get_color_space() const {
     return run().get_index_partition_color_space_name(index_partition);
@@ -214,7 +213,7 @@ protected:
     : index_partition(std::move(ip)),
       logical_partition(log(r, index_partition)) {}
 
-  static unique_logical_partition log(const Legion::LogicalRegion & r,
+  static Legion::LogicalPartition log(const Legion::LogicalRegion & r,
     const Legion::IndexPartition & p) {
     return named(run().get_logical_partition(r, p),
       (std::string(1, '{') + name(r, "?") + '/' + name(p, "?") + '}').c_str());
