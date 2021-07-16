@@ -74,17 +74,15 @@ private:
 } // namespace detail
 
 struct hdf5_type {
-  explicit hdf5_type(int item_size)
-    : id([](const hsize_t type_size) {
-        return H5Tarray_create2(H5T_NATIVE_B32, 1, &type_size);
-      }((item_size + 3) / 4)) {
+  explicit hdf5_type(hsize_t item_size)
+    : id(H5Tarray_create2(H5T_NATIVE_B8, 1, &item_size)) {
     if(!*this)
       flog(error) << "H5Tarray_create2 failed: " << id << std::endl;
   }
   hdf5_type(hdf5_type && t) noexcept : id(std::exchange(t.id, -1)) {}
   ~hdf5_type() {
     if(*this)
-      if(const err_t e = H5Tclose(id); e < 0)
+      if(const herr_t e = H5Tclose(id); e < 0)
         flog(error) << "H5Tclose failed: " << e << std::endl;
   }
 
@@ -226,7 +224,7 @@ struct hdf5 {
     }
 
     const hdf5_type datatype_id(item_size);
-    if(!*datatype_id) {
+    if(!datatype_id) {
       close();
       return false;
     }

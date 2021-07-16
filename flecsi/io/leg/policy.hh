@@ -120,8 +120,7 @@ checkpoint_task(const Legion::Task * task,
       // to make sure their data persists.
       std::vector<std::string> field_names;
       field_names.reserve(rr.privilege_fields.size());
-      f([&field_map, &field_names](
-          Legion::FieldID fid, [[maybe_unused]] std::size_t) {
+      f([&field_map, &field_names](Legion::FieldID fid, std::size_t) {
         field_names.emplace_back("field " + std::to_string(fid));
         field_map.emplace(fid, field_names.back().c_str());
       });
@@ -152,7 +151,7 @@ checkpoint_task(const Legion::Task * task,
       Legion::Rect<2> rect =
         runtime->get_index_space_domain(ctx, rr.region.get_index_space());
       f([&](Legion::FieldID fid, std::size_t item_size) {
-        std::string name = "fid #" + std::to_string(fid);
+        std::string name = "field " + std::to_string(fid);
         if constexpr(W)
           checkpoint_file.create_dataset(name, rect.volume(), item_size);
 
