@@ -198,9 +198,7 @@ protected:
 template<class P>
 struct array_category : array_base, repartitioned {
   explicit array_category(const coloring & c)
-    : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {
-    resize();
-  }
+    : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {}
 };
 template<>
 struct detail::base<array_category> {
