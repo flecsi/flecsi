@@ -354,7 +354,7 @@ private:
 /// \param mem bytes of memory to use before waiting
 template<class F>
 auto
-one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
+one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   using R = std::decay_t<decltype(f(1, 1))>;
   using M = std::conditional_t<bit_copyable_v<R>,
     detail::bit_message<R>,
