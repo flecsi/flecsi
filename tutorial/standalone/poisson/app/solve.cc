@@ -4,6 +4,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "solve.hh"
+#include "options.hh"
+#include "poisson.hh"
 #include "state.hh"
 #include "tasks/norm.hh"
 #include "tasks/smooth.hh"
@@ -15,6 +17,7 @@ using namespace flecsi;
 
 int
 poisson::action::solve() {
+  annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{500};
@@ -31,6 +34,6 @@ poisson::action::solve() {
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
     log::flush();
-  } while(err > 10e-05);
+  } while(err > error_tol.value() && ita < max_iterations.value());
   return 0;
 } // solve

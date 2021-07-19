@@ -102,10 +102,11 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
     return *this;
   } // operator=
 
-  element_type operator->() const {
-    static_assert(
-      std::is_pointer<value_type>::value, "-> called on non-pointer type");
+  element_type & operator*() const {
     return get();
+  }
+  element_type * operator->() const {
+    return &get();
   } // operator->
 
   base_type & get_base() {
@@ -1245,6 +1246,7 @@ private:
   }
 };
 
+namespace detail {
 template<auto & F>
 struct scalar_access : bind_tag {
 
@@ -1271,6 +1273,12 @@ struct scalar_access : bind_tag {
 private:
   value_type scalar_;
 };
+} // namespace detail
+
+template<const auto & F, Privileges P>
+using scalar_access = std::conditional_t<privilege_merge(P) == ro,
+  detail::scalar_access<F>,
+  accessor_member<F, P>>;
 
 } // namespace data
 

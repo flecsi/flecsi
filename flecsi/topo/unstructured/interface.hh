@@ -137,7 +137,9 @@ private:
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
+  data::copy_plan make_plan(index_coloring const & ic,
+    repartitioned & p,
+    MPI_Comm const & comm) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     std::vector<std::size_t> num_intervals;
@@ -164,7 +166,7 @@ private:
     };
     // clang-format on
 
-    return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
   template<auto... Value, std::size_t... Index>
@@ -175,7 +177,8 @@ private:
     flog_assert(c[0].idx_colorings.size() == sizeof...(Value),
       c[0].idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c[0].idx_colorings[Index], c[0].comm)...}};
+    return {{make_plan<Value>(
+      c[0].idx_colorings[Index], part_[Index], c[0].comm)...}};
   }
 
   /*
@@ -228,7 +231,9 @@ private:
   template<const auto & Field>
   using accessor =
     data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
+  util::key_array<data::scalar_access<topo::resize::field, Privileges>,
+    index_spaces>
+    size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;
 

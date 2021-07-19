@@ -113,6 +113,7 @@ public:
         make_repartitioned<Policy, comms>(c.nparts_,
           make_partial<allocate>(c.comms_offset_))}},
       cp_data_tree(*this,
+        part.template get<tree_data>(),
         // Avoid initializer-list constructor:
         data::copy_plan::Sizes(c.nparts_, 1),
         task<set_dests>,
@@ -316,6 +317,7 @@ public:
 
     ts->cp_top_tree_entities.emplace(
       ts.get(),
+      ts->part.template get<entities>(),
       data::copy_plan::Sizes(processes(), 1),
       [&](auto f) { execute<set_destination>(f, ts->sz.ent, top_tree_nents); },
       [&](auto f) {
@@ -325,6 +327,7 @@ public:
 
     ts->cp_top_tree_nodes.emplace(
       ts.get(),
+      ts->part.template get<nodes>(),
       data::copy_plan::Sizes(processes(), 1),
       [&](
         auto f) { execute<set_destination>(f, ts->sz.node, top_tree_nnodes); },
@@ -510,6 +513,7 @@ public:
     };
 
     ts->cp_entities.emplace(data::copy_plan(ts.get(),
+      ts->part.template get<entities>(),
       data::copy_plan::Sizes(processes(), 1),
       entities_dests_task,
       entities_ptrs_task,
