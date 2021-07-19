@@ -197,12 +197,13 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<Privileges>
+template<Privileges Priv>
 struct narray<Policy>::access {
-  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
+  util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
+    size_;
 
-  data::scalar_access<narray::meta_field> meta_;
-  data::scalar_access<narray::policy_meta_field> policy_meta_;
+  data::scalar_access<narray::meta_field, Priv> meta_;
+  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
 
   access() {}
 
