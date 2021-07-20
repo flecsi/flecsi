@@ -147,9 +147,25 @@ private:
 
 protected:
   partition(region & r) : r(&*r) {}
+
+  region_impl & get_base() const {
+    return *r;
+  }
+
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
+
+} // namespace hpx
+
+// This type must be defined outside of namespace hpx to support
+// forward declarations
+struct partition
+  : flecsi::data::hpx::partition { // instead of "using partition ="
+  using flecsi::data::hpx::partition::partition;
+};
+
+namespace hpx {
 
 struct rows : partition {
   explicit rows(region & r) : partition(r) {
@@ -161,7 +177,7 @@ struct rows : partition {
   }
 };
 
-struct prefixes : partition, prefixes_base {
+struct prefixes : data::partition, prefixes_base {
   template<class F>
   prefixes(region & r, F f) : partition(r) {
     // Constructor for the case when how the data is partitioned is stored
@@ -184,12 +200,13 @@ struct prefixes : partition, prefixes_base {
   size_t size() const {
     return nelems;
   }
+
+  using partition::get_base;
 };
 } // namespace hpx
 
 // For backend-agnostic interface:
 using region_base = flecsi::data::hpx::region;
-using flecsi::data::hpx::partition;
 using flecsi::data::hpx::rows, flecsi::data::hpx::prefixes;
 
 struct intervals {
@@ -198,13 +215,13 @@ struct intervals {
     return r;
   }
 
-  intervals(region_base & r,
+  intervals(prefixes & pre,
     const partition & p,
     field_id_t fid, // The field id for the metadata in the region in p.
     completeness = incomplete)
-    : r(&*r) {
+    : r(&pre.get_base()) {
     // Called by upper layer, supplied with a region and a partition. There are
-    // two regions involved. The region `r` has the storage for real field data
+    // two regions involved. The region for `r` stores real field data
     // (e.g. density, pressure etc.) as the destination of the ghost copy. It
     // also contains the pairs of (rank, index) of shared entities on remote
     // peers. The region and associated storage in the partition `p` contains
@@ -255,11 +272,8 @@ struct points {
     return {r, i};
   }
 
-  points(region_base & r,
-    const intervals &,
-    field_id_t,
-    completeness = incomplete)
-    : r(&*r) {}
+  points(prefixes & p, const intervals &, field_id_t, completeness = incomplete)
+    : r(&p.get_base()) {}
 
 private:
   // The region `r` contains field data of shared entities on this rank as
@@ -275,7 +289,7 @@ struct copy_engine {
   copy_engine(const points & points,
     const intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
-    : source(points), destination(intervals), meta_fid(meta_fid) {
+    : source(points), destination(intervals) {
     // There is no information about the indices of local shared entities,
     // ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
@@ -285,11 +299,14 @@ struct copy_engine {
       destination.get_storage<const points::Value>(meta_fid);
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
-    SendPoints grouped_shared_entities;
+    SendPoints remote_shared_entities;
     for(const auto & [begin, end] : destination.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
-        grouped_shared_entities[shared.first].emplace_back(shared.second);
+        remote_shared_entities[shared.first].emplace_back(shared.second);
+        // We also group local ghost entities into
+        // (src rank, { local ghost ids})
+        ghost_entities[shared.first].emplace_back(ghost_idx);
       }
     }
 
@@ -303,41 +320,26 @@ struct copy_engine {
       auto f = util::hpx::all_to_allv(
         [&](int r, int) -> auto & {
           static const std::vector<std::size_t> empty;
-          const auto i = grouped_shared_entities.find(r);
-          return i == grouped_shared_entities.end() ? empty : i->second;
+          const auto i = remote_shared_entities.find(r);
+          return i == remote_shared_entities.end() ? empty : i->second;
         },
         comm);
 
       std::size_t r = 0;
       for(auto & v : f.get()) {
         if(!v.empty())
-          remote_ghost_entities.try_emplace(r, std::move(v));
+          shared_entities.try_emplace(r, std::move(v));
         ++r;
       }
     }
 
     // We need to figure out the max local source index in order to give correct
     // nelems when calling region::get_storage().
-    for(const auto & [rank, indices] : remote_ghost_entities) {
+    for(const auto & [rank, indices] : shared_entities) {
       max_local_source_idx = (std::max)(max_local_source_idx,
         *std::max_element(indices.begin(), indices.end()));
     }
     max_local_source_idx += 1;
-
-    // We need to reserve enough memory for MPI requests used in operator().
-    // This only need to be calculated once.
-    auto nrecvs = std::transform_reduce(destination.ghost_ranges.begin(),
-      destination.ghost_ranges.end(),
-      0,
-      std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto & p) { return p.second - p.first; });
-    auto nsends = std::transform_reduce(remote_ghost_entities.begin(),
-      remote_ghost_entities.end(),
-      0,
-      std::plus<>(), // this uses C++14 std::plus<void> where T is deduced.
-      [](const auto & p) { return p.second.size(); });
-
-    nreqs = nrecvs + nsends;
   }
 
   // called with each field (and field_id_t) on the entity, for example, one
@@ -347,57 +349,64 @@ struct copy_engine {
     auto source_storage =
       source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
-
-    // FIXME: should we assert(source_type_size == dest_type_size)?
     auto type_size = source.r->get_field_info(data_fid)->type_size;
-
-    auto remote_sources =
-      destination.get_storage<const points::Value>(meta_fid);
 
     auto comm = flecsi::run::context::instance().world_channel_comm();
 
-    using data_type = ::hpx::serialization::serialize_buffer<std::byte>;
-    std::vector<::hpx::future<void>> requests;
-    requests.reserve(nreqs);
+    using buffer_type = ::hpx::serialization::serialize_buffer<std::byte>;
+    using data_type = std::vector<buffer_type>;
 
-    for(const auto & [begin, end] : destination.ghost_ranges) {
-      for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
-        auto source_rank = remote_sources[ghost_idx].first;
-        requests.push_back(
-          ::hpx::collectives::get<data_type>(
-            comm, ::hpx::collectives::that_site_arg(source_rank))
-            .then([&](auto && f) {
-              auto && data = f.get();
-              std::copy(data.data(),
-                data.data() + data.size(),
-                destination_storage.data() + ghost_idx * type_size);
-            }));
-      }
+    std::vector<::hpx::future<void>> requests;
+    requests.reserve(ghost_entities.size() + shared_entities.size());
+
+    for(const auto & [src_rank, ghost_indices] : ghost_entities) {
+      auto f = ::hpx::collectives::get<data_type>(
+        comm, ::hpx::collectives::that_site_arg(src_rank));
+      auto fc = f.then(::hpx::launch::sync,
+        [&, ghost_indices = std::move(ghost_indices)](auto && f) {
+          const auto & data = f.get();
+          std::size_t i = 0;
+          for(auto ghost_idx : ghost_indices) {
+            std::copy_n(data[i].data(),
+              type_size,
+              destination_storage.data() + ghost_idx * type_size);
+            ++i;
+          }
+        });
+      requests.push_back(std::move(fc));
     }
 
-    for(const auto & [dest_rank, local_indices] : remote_ghost_entities) {
-      for(auto shared_idx : local_indices) {
-        requests.push_back(::hpx::collectives::set(comm,
-          ::hpx::collectives::that_site_arg(dest_rank),
-          data_type(source_storage.data() + shared_idx * type_size,
+    for(const auto & [dst_rank, shared_indices] : shared_entities) {
+      data_type send_buffers;
+      send_buffers.reserve(shared_indices.size());
+      for(auto shared_idx : shared_indices) {
+        send_buffers.emplace_back(
+          buffer_type(source_storage.data() + shared_idx * type_size,
             type_size,
-            data_type::reference)));
+            buffer_type::reference));
       }
+      auto f = ::hpx::collectives::set(comm,
+        ::hpx::collectives::that_site_arg(dst_rank),
+        std::move(send_buffers));
+      requests.push_back(std::move(f));
     }
 
     ::hpx::wait_all(requests);
+
+    // rethrow exceptions, if any
+    for(auto && f : requests)
+      f.get();
   }
 
 private:
-  // (rank, { indices })
-  using SendPoints = std::map<std::size_t, std::vector<std::size_t>>;
+  // (remote rank, { local indices })
+  using SendPoints = std::map<Color, std::vector<std::size_t>>;
 
   const points & source;
   const intervals & destination;
-  field_id_t meta_fid;
-  SendPoints remote_ghost_entities;
+  SendPoints ghost_entities; // (src rank,  { local ghost indices})
+  SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0;
-  std::size_t nreqs = 0;
 };
 
 template<typename T>
