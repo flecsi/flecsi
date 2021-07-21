@@ -67,7 +67,10 @@ template<class T>
 struct execute_task : region<execution> {
   /// Set code region name for regions inheriting from execute_task with the
   /// following prefix.
-  inline static const std::string name{"execute_task->" + T::tag};
+  static std::string const & name() {
+    static const std::string name_{"execute_task->" + T::tag};
+    return name_;
+  }
 };
 struct execute_task_bind : execute_task<execute_task_bind> {
   inline static const std::string tag{"bind-accessors"};
@@ -130,7 +133,7 @@ template<class reg>
 std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
   typename reg::outer_context>::value>
 begin() {
-  begin<typename reg::outer_context, reg::detail_level>(reg::name.c_str());
+  begin<typename reg::outer_context, reg::detail_level>(reg::name().c_str());
 }
 
 /**
@@ -150,7 +153,7 @@ std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
 begin(std::string_view task_name) {
 #if !defined(DISABLE_CALIPER)
   if constexpr(reg::detail_level <= detail_level) {
-    std::string atag{reg::name + "->"};
+    std::string atag{reg::name() + "->"};
     atag.append(task_name);
     begin<typename reg::outer_context, reg::detail_level>(atag.c_str());
   }
@@ -235,7 +238,7 @@ public:
 /// Initialize caliper annotation objects from the context name.
 #if !defined(DISABLE_CALIPER)
 template<class T>
-cali::Annotation annotation::context<T>::ann{T::name};
+cali::Annotation annotation::context<T>::ann{T::name()};
 #endif
 
 } // namespace util

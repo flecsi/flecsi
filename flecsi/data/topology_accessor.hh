@@ -18,6 +18,9 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 namespace flecsi {
 namespace data {
 

@@ -61,6 +61,7 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
   set(data_HEADERS ${data_HEADERS}
+    hpx/policy.hh
   )
 
   set(data_SOURCES

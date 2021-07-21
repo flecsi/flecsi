@@ -14,10 +14,10 @@
 
 include(CMakeDependentOption)
 
-cmake_dependent_option(ENABLE_UNIT_TESTS "Enalle unit testing" ON
+cmake_dependent_option(ENABLE_UNIT_TESTS "Enable unit testing" ON
   "ENABLE_FLOG" OFF)
 cmake_dependent_option(ENABLE_EXPENSIVE_TESTS
-  "Enalle unit tests labeled 'expensive'" OFF "ENABLE_FLOG" OFF)
+  "Enable unit tests labeled 'expensive'" OFF "ENABLE_FLOG" OFF)
 
 mark_as_advanced(ENABLE_EXPENSIVE_TESTS)
 
@@ -28,6 +28,9 @@ if(ENABLE_UNIT_TESTS)
   target_include_directories(unit-main PRIVATE ${CMAKE_BINARY_DIR})
   if (ENABLE_KOKKOS)
     target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+  endif()
+  if(MSVC)
+    target_compile_definitions(unit-main PRIVATE NOMINMAX)
   endif()
 endif()
 
@@ -113,6 +116,10 @@ function(add_unit name)
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
+    if(MSVC)
+      set(unit_policy_defines ${unit_policy_defines} NOMINMAX)
+    endif()
+
   elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
     set(unit_policy_flags ${Legion_CXX_FLAGS}
@@ -125,6 +132,21 @@ function(add_unit name)
     set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
+
+  elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+
+    set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
+    set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH} ${HPX_INCLUDE_DIRS})
+    set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES} HPX::hpx HPX::wrap_main)
+    set(unit_policy_exec ${MPIEXEC})
+    set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
+    set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
+    set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
+    set(unit_policy_defines ENABLE_HPX)
+
+    if(MSVC)
+      set(unit_policy_defines ${unit_policy_defines} NOMINMAX)
+    endif()
 
   else()
 
@@ -162,7 +184,7 @@ function(add_unit name)
     ${unit_SOURCES}
     $<TARGET_OBJECTS:unit-main>
   )
-  
+
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${_OUTPUT_DIR})
 
@@ -268,9 +290,9 @@ function(add_unit name)
 
   list(LENGTH unit_THREADS thread_instances)
 
-  #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
+  #we need to add -ll:gpu 1 to arguments if CUDA is enabled
   if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_CUDA)
-   list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
+   list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1")
   endif()
 
   if(${thread_instances} GREATER 1)
@@ -309,7 +331,7 @@ function(add_unit name)
           ${UNIT_FLAGS}
         WORKING_DIRECTORY ${_OUTPUT_DIR}
       )
-  else()
+    else()
       add_test(
         NAME
           "${_TEST_PREFIX}${name}"

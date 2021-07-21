@@ -16,6 +16,8 @@ inline log::devel_tag task_prologue_tag("task_prologue");
 #include "flecsi/exec/leg/task_prologue.hh"
 #elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
 #include "flecsi/exec/mpi/task_prologue.hh"
+#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+#include "flecsi/exec/hpx/task_prologue.hh"
 #endif
 
 namespace flecsi::exec {

@@ -21,6 +21,11 @@
 #include "flecsi/util/unit/output.hh"
 #include <flecsi/flog.hh>
 
+#if defined(_MSC_VER)
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 namespace flecsi {
 
 inline log::devel_tag unit_tag("unit");

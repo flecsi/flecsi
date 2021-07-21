@@ -50,6 +50,13 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
+  set(exec_HEADERS
+    ${exec_HEADERS}
+    hpx/future.hh
+    hpx/policy.hh
+    hpx/task_prologue.hh
+  )
+
 endif()
 
 #------------------------------------------------------------------------------#
@@ -65,7 +72,9 @@ set(exec_HEADERS
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-if(NOT FLECSI_RUNTIME_MODEL STREQUAL "mpi") # this test uses oversubscription
+# this test uses oversubscription
+if(NOT FLECSI_RUNTIME_MODEL STREQUAL "mpi" AND
+   NOT FLECSI_RUNTIME_MODEL STREQUAL "hpx")
 
 add_unit(interface
   SOURCES

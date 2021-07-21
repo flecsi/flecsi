@@ -47,6 +47,18 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
     mpi/context.cc
   )
 
+elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+
+  set(run_HEADERS
+    ${run_HEADERS}
+    hpx/context.hh
+  )
+
+  set(run_SOURCES
+    ${run_SOURCES}
+    hpx/context.cc
+  )
+
 endif()
 
 #------------------------------------------------------------------------------#
@@ -84,6 +96,9 @@ add_executable(cycle
   test/package_c.hh)
 target_link_libraries(cycle FleCSI)
 target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
+if(MSVC)
+  target_compile_definitions(cycle PRIVATE NOMINMAX)
+endif()
 
 add_unit(flog
   SOURCES

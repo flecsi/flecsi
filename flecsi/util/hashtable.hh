@@ -31,6 +31,7 @@ struct hashtable;
 template<class KEY, class TYPE, class HASH>
 class hashtableIterator
 {
+  using key_t = KEY;
   using ht_t = hashtable<KEY, TYPE, HASH>;
   using ht_type_t = typename ht_t::pair_t;
 

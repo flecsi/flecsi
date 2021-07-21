@@ -21,12 +21,15 @@
 #include <mpi.h>
 #endif
 
-#if defined(_MSC_VER)
-#error "Need implementation for Windows"
-#endif
-
+#if !defined(_WIN32)
 #include <sys/time.h>
 #include <unistd.h>
+#else
+#include <winsock2.h>
+
+int gettimeofday(struct timeval * t, void * timezone);
+typedef long long suseconds_t;
+#endif
 
 #include <algorithm>
 #include <array>
