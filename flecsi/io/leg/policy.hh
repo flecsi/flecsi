@@ -156,11 +156,11 @@ checkpoint_task(const Legion::Task * task,
           checkpoint_file.create_dataset(name, rect.volume(), item_size);
 
         const Legion::FieldAccessor<W ? READ_ONLY : WRITE_DISCARD,
-          int,
+          char,
           2,
           Legion::coord_t,
-          Realm::AffineAccessor<int, 2, Legion::coord_t>>
-          acc_fid(pr, fid);
+          Realm::AffineAccessor<char, 2, Legion::coord_t>>
+          acc_fid(pr, fid, item_size);
         auto * const dset_data = acc_fid.ptr(rect.lo);
         hid_t dataset_id =
           H5Dopen2(checkpoint_file.hdf5_file_id, name.c_str(), H5P_DEFAULT);
