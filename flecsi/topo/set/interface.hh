@@ -20,7 +20,12 @@ namespace topo {
 
 struct set_base {
 
-  using coloring = std::vector<std::size_t>;
+  struct coloring {
+
+    void * ptr;
+
+    std::vector<std::size_t> counts;
+  };
 
   static std::size_t allocate(const std::vector<std::size_t> & arr,
     const std::size_t & i) {
@@ -33,6 +38,8 @@ struct set_base {
 template<typename P>
 struct set : set_base {
 
+  using T = typename P::t_type;
+
   template<Privileges Priv>
   struct access {
 
@@ -41,7 +48,8 @@ struct set : set_base {
   };
 
   explicit set(coloring x)
-    : part{make_repartitioned<P>(x.size(), make_partial<allocate>(x))} {}
+    : p{static_cast<T *>(x.ptr)}, part{make_repartitioned<P>(x.counts.size(),
+                                    make_partial<allocate>(x.counts))} {}
 
   Color colors() const {
 
@@ -60,6 +68,7 @@ struct set : set_base {
   }
 
 private:
+  T * p;
   repartitioned part;
 };
 
