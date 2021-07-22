@@ -93,6 +93,8 @@ drows(double_at::mutator<wo> s) {
 using noisy = field<Noisy, single>;
 const noisy::definition<topo::index> noisy_field;
 
+const field<int *>::definition<topo::index> ptr_field;
+
 void
 assign(double_field::accessor<wo> p,
   intN::accessor<rw> r,
@@ -109,6 +111,8 @@ assign(double_field::accessor<wo> p,
 std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
   return Noisy::count;
 }
+void
+use_ptr(field<int *>::accessor<wo>) {} // so too this
 
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
@@ -224,6 +228,7 @@ index_driver() {
     execute<reset>(noise);
     EXPECT_EQ(
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
+    execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
     buffers::core([] {
