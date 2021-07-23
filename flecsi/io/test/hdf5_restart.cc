@@ -102,6 +102,9 @@ check(mesh2d::accessor<ro> m,
   };
 } // check
 
+static bool added_topology = false;
+
+template<bool Attach>
 int
 restart_driver() {
   UNIT {
@@ -115,32 +118,34 @@ restart_driver() {
     mc.allocate(index_definitions);
     m.allocate(mc.get());
 
-    run::context::instance().add_topology<mesh2d>(m);
+    // add topology only on first call
+    if(!added_topology) {
+      run::context::instance().add_topology<mesh2d>(m);
+      added_topology = true;
+    }
 
     auto mf1 = m_field_1(m);
     auto mf2 = m_field_2(m);
     auto mfi = m_field_i(m);
     auto mfs = m_field_s(m);
 
-    // Run test twice, once without and once with attach.
-    for(int i = 0; i < 2; ++i) {
-      bool attach = (bool)i;
-      execute<init>(m, mf1, mf2, mfi, mfs);
+    execute<init>(m, mf1, mf2, mfi, mfs);
 
-      int num_files = 4;
-      io::io_interface iif{num_files};
-      auto filename =
-        std::string{"hdf5_restart"} + (attach ? "_w" : "_wo") + ".dat";
-      iif.checkpoint_all_fields(filename, attach);
+    int num_files = 4;
+    io::io_interface iif{num_files};
+    auto filename =
+      std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
+    iif.checkpoint_all_fields(filename, Attach);
 
-      execute<clear>(m, mf1, mf2, mfi, mfs);
-      iif.recover_all_fields(filename, attach);
+    execute<clear>(m, mf1, mf2, mfi, mfs);
+    iif.recover_all_fields(filename, Attach);
 
-      EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs), 0);
-    } // for i
+    EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs), 0);
   };
 
   return 0;
 }
 
-flecsi::unit::driver<restart_driver> driver;
+// Run test twice, once with and once without attach.
+flecsi::unit::driver<restart_driver<true>> driver_w;
+flecsi::unit::driver<restart_driver<false>> driver_wo;
