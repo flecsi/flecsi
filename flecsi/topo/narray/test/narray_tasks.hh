@@ -22,6 +22,7 @@
 using mesh1d = mesh<1>;
 using mesh2d = mesh<2>;
 using mesh3d = mesh<3>;
+using mesh4d = mesh<4>;
 
 template<std::size_t D, typename F>
 void
