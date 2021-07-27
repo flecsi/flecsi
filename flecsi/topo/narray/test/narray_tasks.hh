@@ -656,3 +656,90 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
     };
   } // d=3
 } // check_mesh_field
+
+int
+check_4dmesh(typename mesh<4>::template accessor<ro> m) {
+  UNIT {
+    using r = mesh4d::range;
+    using ax = mesh4d::axis;
+
+    std::set<util::id> logical[2] = {{1, 2}, {1, 2}};
+    std::set<util::id> extended[2] = {{0, 1, 2}, {1, 2, 3}};
+    std::set<util::id> all[2] = {{0, 1, 2, 3}, {0, 1, 2, 3}};
+    std::set<util::id> ghost_low[2] = {{}, {0}};
+    std::set<util::id> ghost_high[2] = {{3}, {}};
+    std::set<util::id> boundary_low[2] = {{0}, {}};
+    std::set<util::id> boundary_high[2] = {{}, {3}};
+
+    const int rank = process();
+    const int nparts = 2; //#num colors on each axis
+
+    const auto indices = [&](auto && offset) {
+      auto rem = offset;
+      std::vector<int> idx(4);
+      for(auto dim = 0; dim < 4; ++dim) {
+        idx[dim] = rem % nparts;
+        rem = (rem - idx[dim]) / nparts;
+      }
+      return idx;
+    };
+
+    const auto s = [](auto && r) {
+      return std::set<util::id>(r.begin(), r.end());
+    };
+
+    auto idx = indices(rank);
+
+    EXPECT_EQ(s(m.template extents<ax::x_axis>()), logical[idx[0]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::x_axis, r::extended>()), extended[idx[0]]);
+    EXPECT_EQ(s(m.template extents<ax::x_axis, r::all>()), all[idx[0]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::x_axis, r::ghost_low>()), ghost_low[idx[0]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::x_axis, r::ghost_high>()), ghost_high[idx[0]]);
+    EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_low>()),
+      boundary_low[idx[0]]);
+    EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_high>()),
+      boundary_high[idx[0]]);
+
+    EXPECT_EQ(s(m.template extents<ax::y_axis>()), logical[idx[1]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::y_axis, r::extended>()), extended[idx[1]]);
+    EXPECT_EQ(s(m.template extents<ax::y_axis, r::all>()), all[idx[1]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::y_axis, r::ghost_low>()), ghost_low[idx[1]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::y_axis, r::ghost_high>()), ghost_high[idx[1]]);
+    EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_low>()),
+      boundary_low[idx[1]]);
+    EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_high>()),
+      boundary_high[idx[1]]);
+
+    EXPECT_EQ(s(m.template extents<ax::z_axis>()), logical[idx[2]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::z_axis, r::extended>()), extended[idx[2]]);
+    EXPECT_EQ(s(m.template extents<ax::z_axis, r::all>()), all[idx[2]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::z_axis, r::ghost_low>()), ghost_low[idx[2]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::z_axis, r::ghost_high>()), ghost_high[idx[2]]);
+    EXPECT_EQ(s(m.template extents<ax::z_axis, r::boundary_low>()),
+      boundary_low[idx[2]]);
+    EXPECT_EQ(s(m.template extents<ax::z_axis, r::boundary_high>()),
+      boundary_high[idx[2]]);
+
+    EXPECT_EQ(s(m.template extents<ax::t_axis>()), logical[idx[3]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::t_axis, r::extended>()), extended[idx[3]]);
+    EXPECT_EQ(s(m.template extents<ax::t_axis, r::all>()), all[idx[3]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::t_axis, r::ghost_low>()), ghost_low[idx[3]]);
+    EXPECT_EQ(
+      s(m.template extents<ax::t_axis, r::ghost_high>()), ghost_high[idx[3]]);
+    EXPECT_EQ(s(m.template extents<ax::t_axis, r::boundary_low>()),
+      boundary_low[idx[3]]);
+    EXPECT_EQ(s(m.template extents<ax::t_axis, r::boundary_high>()),
+      boundary_high[idx[3]]);
+  };
+} // check_4dmesh

@@ -32,13 +32,6 @@ set(topo_HEADERS
   ntree/types.hh
   set/interface.hh
   set/types.hh
-  structured/box.hh
-  structured/box_types.hh
-  structured/box_utils.hh
-  structured/dependent_entities_colorer.hh
-  structured/interface.hh
-  structured/simple_box_colorer.hh
-  structured/types.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
   unstructured/interface.hh
@@ -78,20 +71,6 @@ add_unit(index
     test/index.cc
   THREADS 2
   )
-
-# structured ------------------------------------------------------------------#
-
-add_unit(structured
-  SOURCES structured/test/structured.cc
-  INPUTS
-     structured/test/smesh_1d_0.blessed
-     structured/test/smesh_1d_1.blessed
-     structured/test/smesh_2d_0.blessed
-     structured/test/smesh_2d_1.blessed
-     structured/test/smesh_3d_0.blessed
-     structured/test/smesh_3d_1.blessed
-  THREADS 2 
-)
 
 # unstructured ---------------------------------------------------------------#
 
@@ -152,6 +131,13 @@ add_unit(narray
   THREADS 4
 )
 
+add_unit(narray4d
+  SOURCES
+    narray/test/narray4d.cc
+    narray/test/narray.hh
+    narray/test/narray_tasks.hh
+  THREADS 16
+)
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
