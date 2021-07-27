@@ -93,6 +93,8 @@ drows(double_at::mutator<wo> s) {
 using noisy = field<Noisy, single>;
 const noisy::definition<topo::index> noisy_field;
 
+const field<int *>::definition<topo::index> ptr_field;
+
 void
 assign(double_field::accessor<wo> p,
   intN::accessor<rw> r,
@@ -109,6 +111,8 @@ assign(double_field::accessor<wo> p,
 std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
   return Noisy::count;
 }
+void
+use_ptr(field<int *>::accessor<wo>) {} // so too this
 
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
@@ -224,6 +228,7 @@ index_driver() {
     execute<reset>(noise);
     EXPECT_EQ(
       (reduce<reset, exec::fold::sum, flecsi::mpi>(noise).get()), processes());
+    execute<use_ptr, flecsi::mpi>(ptr_field(process_topology));
 
     // Rotate the ragged field by one color:
     buffers::core([] {
@@ -245,3 +250,38 @@ index_driver() {
 } // index
 
 flecsi::unit::driver<index_driver> driver;
+
+struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
+
+  static coloring color() {
+
+    return coloring(processes(), 3);
+  }
+};
+
+spec_setopo_t::slot spec_setopo;
+spec_setopo_t::cslot coloring;
+
+const field<double>::definition<spec_setopo_t> pressure;
+
+int
+init_set(field<double>::accessor<wo> p) {
+  UNIT { p[2] = 3; };
+} // init_set
+
+int
+set_driver() {
+
+  UNIT {
+
+    coloring.allocate();
+    spec_setopo.allocate(coloring.get());
+
+    auto d = pressure(spec_setopo);
+
+    EXPECT_EQ(flecsi::test<init_set>(d), 0);
+  };
+
+} // set_driver
+
+flecsi::unit::driver<set_driver> driver1;

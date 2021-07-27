@@ -28,6 +28,7 @@
 #include <cstddef> // byte
 #include <cstdint>
 #include <numeric>
+#include <optional>
 #include <stack>
 #include <type_traits>
 
@@ -201,7 +202,7 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 
   @tparam F The packing functor type with signature \em (rank, size).
 
-  @param f    A callable object.
+  @param f function object, invoked only on rank 0 and in recipient order
   @param comm An MPI communicator.
 
   @return For all ranks besides the root rank (0), the communicated data.
@@ -219,9 +220,10 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     std::vector<return_type> send;
     if(!rank)
       send.reserve(size);
-    send.resize(1);
+    else
+      send.resize(1);
     if(!rank)
-      for(int r = 1; r < size; ++r)
+      for(int r = 0; r < size; ++r)
         send.push_back(f(r, size));
     test(MPI_Scatter(MPI_IN_PLACE,
       0,
@@ -230,13 +232,14 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       1,
       type<return_type>(),
       comm));
-    if(rank)
-      return send.front();
+    return send.front();
   }
   else {
+    std::optional<return_type> mine;
     detail::vector v(size);
     v.skip(); // v.sz used even off-root
     if(rank == 0) {
+      mine.emplace(f(0, size));
       for(int r = 1; r < size; ++r)
         v.put(f(r, size));
     }
@@ -264,10 +267,10 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     if(rank) {
       auto const * p = v.data.data();
       return serial_get<return_type>(p);
-    } // if
+    }
+    else
+      return std::move(*mine);
   }
-
-  return f(0, size);
 } // one_to_allv
 
 namespace detail {
@@ -348,12 +351,13 @@ private:
 } // namespace detail
 
 /// Send data from rank 0 to all others, controlling memory usage.
-/// \a mem counts only data being transmitted; one more value may exist.
-/// \param f function object
-/// \param mem bytes of memory to use for communication
+/// No messages are constructed while data in transit exceeds \a mem
+/// (transmission occurs, at least serially, even if it is 0).
+/// \param f function object, invoked only on rank 0 and in recipient order
+/// \param mem bytes of memory to use before waiting
 template<class F>
 auto
-one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
+one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   using R = std::decay_t<decltype(f(1, 1))>;
   using M = std::conditional_t<bit_copyable_v<R>,
     detail::bit_message<R>,
@@ -361,6 +365,7 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
 
   const auto [rank, size] = info(comm);
   if(!rank) {
+    auto ret = f(0, size);
     {
       const auto n = size - 1;
       std::vector<MPI_Request> req;
@@ -384,8 +389,16 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
               return ret;
             }
           }();
-          const auto & v = val[i];
-          if(used && used + v.bytes() > mem) {
+          {
+            const auto & v = val[i];
+            if(i == int(req.size()))
+              req.emplace_back();
+            // Discourage buffering (at the cost of needless synchronization):
+            test(
+              MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+            used += v.bytes();
+          }
+          while(used > mem) {
             int count;
             test(MPI_Waitsome(
               req.size(), req.data(), &count, done.data(), stat.data()));
@@ -397,16 +410,11 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
               free.push(j);
             }
           }
-          if(i == int(req.size()))
-            req.emplace_back();
-          // Discourage buffering (at the cost of needless synchronization):
-          test(MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
-          used += v.bytes();
         }
       }
       test(MPI_Waitall(req.size(), req.data(), stat.data()));
     }
-    return f(0, size);
+    return ret;
   }
   else {
     M ret(0, 0, comm);
@@ -424,7 +432,7 @@ one_to_alli(F && f, std::size_t mem, MPI_Comm comm = MPI_COMM_WORLD) {
 
   @tparam F The packing type with signature \em (rank, size).
 
-  @param f    A callable object.
+  @param f function object, invoked in recipient order
   @param comm An MPI communicator.
 
   @return A std::vector<return_type>, where \rm return_type is the type
@@ -452,12 +460,15 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   }
   else {
     detail::vector recv(size);
+    std::optional<return_type> mine;
     {
       detail::vector send(size);
 
       for(int r = 0; r < size; ++r) {
-        if(r == rank)
+        if(r == rank) {
+          mine.emplace(f(r, size));
           send.skip();
+        }
         else
           send.put(f(r, size));
       } // for
@@ -489,7 +500,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     const std::byte * const p = recv.data.data();
     for(int r = 0; r < size; ++r) {
       if(r == rank)
-        result.push_back(f(r, size));
+        result.push_back(std::move(*mine));
       else
         result.push_back(serial_get1<return_type>(p + recv.off[r]));
     } // for

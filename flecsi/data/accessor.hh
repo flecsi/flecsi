@@ -60,8 +60,8 @@ template<Privileges P,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>>(
-    r);
+  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>,
+    portable_v<T> ? loc | leaf : flecsi::mpi>(r);
 }
 template<class T>
 inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
