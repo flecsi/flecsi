@@ -31,7 +31,6 @@ set(topo_HEADERS
   ntree/interface.hh
   ntree/types.hh
   set/interface.hh
-  set/types.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
   unstructured/interface.hh
