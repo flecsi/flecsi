@@ -3,6 +3,8 @@
 #ifndef FLECSI_IO_HDF5_HH
 #define FLECSI_IO_HDF5_HH
 
+#include <string>
+
 #include "flecsi/flog.hh"
 
 #include <hdf5.h>
@@ -70,6 +72,40 @@ private:
   hid_t id;
 };
 } // namespace detail
+
+struct hdf5_type {
+  explicit hdf5_type(hsize_t item_size)
+    : id(H5Tarray_create2(H5T_NATIVE_B8, 1, &item_size)) {
+    if(!*this)
+      flog(error) << "H5Tarray_create2 failed: " << id << std::endl;
+  }
+  hdf5_type(hdf5_type && t) noexcept : id(std::exchange(t.id, -1)) {}
+  ~hdf5_type() {
+    if(*this)
+      if(const herr_t e = H5Tclose(id); e < 0)
+        flog(error) << "H5Tclose failed: " << e << std::endl;
+  }
+
+  hdf5_type & operator=(hdf5_type && t) noexcept {
+    hdf5_type(std::move(t)).swap(*this);
+    return *this;
+  }
+
+  void swap(hdf5_type & t) noexcept {
+    std::swap(id, t.id);
+  }
+
+  explicit operator bool() const {
+    return id >= 0;
+  }
+  operator hid_t() const {
+    assert(*this);
+    return id;
+  }
+
+private:
+  hid_t id;
+};
 
 struct hdf5 {
   static hdf5 create(const std::string & file_name) {
@@ -176,16 +212,23 @@ struct hdf5 {
     return true;
   }
 
-  bool create_dataset(const std::string & field_name, hsize_t size) {
-    const hsize_t nsize = (size + (sizeof(double) - 1)) / sizeof(double);
-
-    const hsize_t dims[2] = {nsize, 1};
+  bool create_dataset(const std::string & field_name,
+    hsize_t nitems,
+    hsize_t item_size) {
+    const hsize_t dims[2] = {nitems, 1};
     const hid_t dataspace_id = H5Screate_simple(2, dims, NULL);
     if(dataspace_id < 0) {
       flog(error) << "H5Screate_simple failed: " << dataspace_id << std::endl;
       close();
       return false;
     }
+
+    const hdf5_type datatype_id(item_size);
+    if(!datatype_id) {
+      close();
+      return false;
+    }
+
 #if 0
     hid_t group_id = H5Gcreate2(file_id, (*lr_it).logical_region_name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     if (group_id < 0) {
@@ -197,7 +240,7 @@ struct hdf5 {
 #endif
     hid_t dataset = H5Dcreate2(hdf5_file_id,
       field_name.c_str(),
-      H5T_IEEE_F64LE,
+      datatype_id,
       dataspace_id,
       H5P_DEFAULT,
       H5P_DEFAULT,

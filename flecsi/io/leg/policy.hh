@@ -43,7 +43,7 @@
 
 namespace flecsi {
 namespace io {
-using FieldNames = std::map<Legion::FieldID, std::string>;
+using FieldSizes = std::map<Legion::FieldID, std::size_t>;
 
 // This one task handles all I/O variations: read or Write, Attach or not.
 template<bool W, bool A>
@@ -57,8 +57,8 @@ checkpoint_task(const Legion::Task * task,
 
   const std::byte * task_args = (const std::byte *)task->args;
 
-  const auto field_string_map_vector =
-    util::serial_get<std::vector<FieldNames>>(task_args);
+  const auto field_size_map_vector =
+    util::serial_get<std::vector<FieldSizes>>(task_args);
   const auto fname =
     util::serial_get<std::string>(task_args) + std::to_string(point);
 
@@ -72,11 +72,11 @@ checkpoint_task(const Legion::Task * task,
         Legion::Rect<2> rect =
           runtime->get_index_space_domain(ctx, rr.region.get_index_space());
         size_t domain_size = rect.volume();
-        auto & m = field_string_map_vector[rid];
+        auto & m = field_size_map_vector[rid];
 
         for(Legion::FieldID fid : rr.privilege_fields) {
           checkpoint_file.create_dataset(
-            m.at(fid), domain_size * sizeof(double));
+            "field " + std::to_string(fid), domain_size, m.at(fid));
         }
       }
       checkpoint_file.close();
@@ -88,7 +88,7 @@ checkpoint_task(const Legion::Task * task,
   for(unsigned int rid = 0; rid < regions.size(); rid++) {
     auto & rr = task->regions[rid];
     auto & pr = regions[rid];
-    const auto f = [&, &m = field_string_map_vector[rid]](auto g) {
+    const auto f = [&, &m = field_size_map_vector[rid]](auto g) {
       auto & field_set = rr.privilege_fields;
       for(Legion::FieldID i : field_set)
         g(i, m.at(i));
@@ -99,8 +99,8 @@ checkpoint_task(const Legion::Task * task,
                          << " data to HDF5 file " << (A ? "" : "no ")
                          << "attach " << fname << " region_id " << rid
                          << " (dataset(fid) size= " << field_set.size() << ")"
-                         << " field_string_map_vector(regions) size "
-                         << field_string_map_vector.size() << std::endl;
+                         << " field_size_map_vector(regions) size "
+                         << field_size_map_vector.size() << std::endl;
       }
     };
 
@@ -113,8 +113,16 @@ checkpoint_task(const Legion::Task * task,
       Legion::AttachLauncher hdf5_attach_launcher(
         EXTERNAL_HDF5_FILE, attach_lr, attach_lr);
       std::map<Legion::FieldID, const char *> field_map;
-      f([&field_map](Legion::FieldID it, const std::string & n) {
-        field_map.emplace(it, n.c_str());
+      // We need to create a map with C pointers to field names -
+      // the Legion interface requires this.  But we also need for
+      // the names to persist outside of the lambda below.  So the
+      // names will be stored as strings in the field_names vector
+      // to make sure their data persists.
+      std::vector<std::string> field_names;
+      field_names.reserve(rr.privilege_fields.size());
+      f([&field_map, &field_names](Legion::FieldID fid, std::size_t) {
+        field_names.emplace_back("field " + std::to_string(fid));
+        field_map.emplace(fid, field_names.back().c_str());
       });
 
       hdf5_attach_launcher.attach_hdf5(
@@ -142,19 +150,20 @@ checkpoint_task(const Legion::Task * task,
     else {
       Legion::Rect<2> rect =
         runtime->get_index_space_domain(ctx, rr.region.get_index_space());
-      f([&](Legion::FieldID it, const std::string & n) {
+      f([&](Legion::FieldID fid, std::size_t item_size) {
+        std::string name = "field " + std::to_string(fid);
         if constexpr(W)
-          checkpoint_file.create_dataset(n, rect.volume() * sizeof(double));
+          checkpoint_file.create_dataset(name, rect.volume(), item_size);
 
         const Legion::FieldAccessor<W ? READ_ONLY : WRITE_DISCARD,
-          double,
+          char,
           2,
           Legion::coord_t,
-          Realm::AffineAccessor<double, 2, Legion::coord_t>>
-          acc_fid(pr, it);
+          Realm::AffineAccessor<char, 2, Legion::coord_t>>
+          acc_fid(pr, fid, item_size);
         auto * const dset_data = acc_fid.ptr(rect.lo);
         hid_t dataset_id =
-          H5Dopen2(checkpoint_file.hdf5_file_id, n.c_str(), H5P_DEFAULT);
+          H5Dopen2(checkpoint_file.hdf5_file_id, name.c_str(), H5P_DEFAULT);
         if(dataset_id < 0) {
           flog(error) << "H5Dopen2 failed: " << dataset_id << std::endl;
           H5Fclose(checkpoint_file.hdf5_file_id);
@@ -165,8 +174,12 @@ checkpoint_task(const Legion::Task * task,
             return H5Dwrite;
           else
             return H5Dread;
-        }()(
-          dataset_id, H5T_IEEE_F64LE, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset_data);
+        }()(dataset_id,
+          hdf5_type(item_size),
+          H5S_ALL,
+          H5S_ALL,
+          H5P_DEFAULT,
+          dset_data);
         H5Dclose(dataset_id);
       });
     }
@@ -194,13 +207,12 @@ struct io_interface {
     auto & context = run::context::instance();
     auto & isd_vector = context.get_index_space_info();
 
-    std::vector<FieldNames> field_string_map_vector;
+    std::vector<FieldSizes> field_size_map_vector;
     for(auto & isd : isd_vector) {
-      field_string_map_vector.emplace_back(
-        make_field_string_map(*(isd.fields)));
+      field_size_map_vector.emplace_back(make_field_size_map(*(isd.fields)));
     }
     const auto task_args = util::serial_buffer([&](auto & p) {
-      util::serial_put(p, field_string_map_vector);
+      util::serial_put(p, field_size_map_vector);
       util::serial_put(p, file_name);
     });
 
@@ -222,7 +234,7 @@ struct io_interface {
           EXCLUSIVE,
           isd.region->logical_region));
 
-      for(auto & it : field_string_map_vector[idx]) {
+      for(auto & it : field_size_map_vector[idx]) {
         checkpoint_launcher.region_requirements[idx].add_field(it.first);
       }
       idx++;
@@ -251,17 +263,12 @@ struct io_interface {
   } // recover_data
 
 private:
-  FieldNames make_field_string_map(const data::fields & fs) {
-    std::map<std::string, unsigned> name_count;
-    FieldNames fn;
+  static FieldSizes make_field_size_map(const data::fields & fs) {
+    FieldSizes fsm;
     for(const auto p : fs) {
-      // TODO:  handle types other than double
-      if(p->name != "double")
-        continue;
-      auto & i = name_count[p->name];
-      fn.emplace(p->fid, p->name + " #" + std::to_string(++i));
+      fsm.emplace(p->fid, p->type_size);
     }
-    return fn;
+    return fsm;
   }
 
 private:
