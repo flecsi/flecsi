@@ -203,31 +203,6 @@ make_dcrs(MD const & md,
   return std::make_tuple(dcrs, c2v, v2c, c2c);
 } // make_dcrs
 
-#if 0
-inline std::vector<std::vector<std::size_t>>
-distribute(util::dcrs const & naive,
-  Color colors,
-  std::vector<Color> const & index_colors,
-  MPI_Comm comm = MPI_COMM_WORLD) {
-  auto [rank, size] = util::mpi::info(comm);
-
-  auto color_primaries = util::mpi::all_to_allv<distribute_cells>(
-    {naive, colors, index_colors, rank}, comm);
-
-  util::color_map cm(size, colors, naive.distribution.back());
-  const std::size_t offset = cm.color_offset(rank);
-  std::vector<std::vector<std::size_t>> primaries(cm.colors(rank));
-
-  for(auto cp : color_primaries) {
-    for(auto c : cp) {
-      primaries[std::get<0>(c) - offset].emplace_back(std::get<1>(c));
-    } // for
-  } // for
-
-  return primaries;
-} // distribute
-#endif
-
 inline auto
 migrate(util::dcrs const & naive,
   Color colors,
@@ -537,71 +512,77 @@ color(MD const & md,
     } // for
   } // for
 
-  unstructured_base::coloring coloring(primaries.size());
+  // unstructured_base::coloring coloring(primaries.size());
+
+  unstructured_base::coloring coloring;
 
   /*
-    Populate the primary entity index coloring.
+    Set meta data for what we can at this point.
    */
 
+  coloring.comm = comm;
+  coloring.colors = cd.colors; /* global colors */
+  coloring.partitions.resize(2 + cd.aux.size());
+  coloring.idx_spaces.resize(2 + cd.aux.size());
+
+  /*
+    Primary entities.
+   */
+
+  coloring.idx_spaces[cd.idx].resize(primaries.size());
+  coloring.idx_spaces[cd.vidx].resize(primaries.size());
+
   std::size_t c{0};
+  std::vector<std::size_t> partitions;
   for(auto p : primaries) {
-    auto & pc = coloring[c];
+    auto & pc = coloring.idx_spaces[cd.idx][c];
+    pc.entities = ne;
 
-    /*
-      Set the meta data, since this is the first time we touch these
-     */
-
-    pc.comm = comm;
-    pc.color = p.first;
-    pc.colors = cd.colors;
-    pc.idx_entities.resize(2 + cd.aux.size());
-    pc.idx_entities[cd.dim] = ne;
-    pc.idx_colorings.resize(2 + cd.aux.size());
-    pc.cnx_allocs.resize(2 + cd.aux.size());
-    pc.cnx_colorings.resize(2 + cd.aux.size());
-
-    auto & primary = pc.idx_colorings[cd.idx];
-    primary.owned.reserve(p.second.size());
-    primary.owned.insert(
-      primary.owned.begin(), p.second.begin(), p.second.end());
-    primary.all.insert(primary.all.begin(), p.second.begin(), p.second.end());
+    pc.coloring.all.reserve(p.second.size());
+    pc.coloring.all.insert(
+      pc.coloring.all.begin(), p.second.begin(), p.second.end());
+    pc.coloring.owned.reserve(p.second.size());
+    pc.coloring.owned.insert(
+      pc.coloring.owned.begin(), p.second.begin(), p.second.end());
 
     for(auto e : p.second) {
       if(shared.at(p.first).count(e)) {
         auto d = dependents.at(e);
-        primary.shared.emplace_back(
+        pc.coloring.shared.emplace_back(
           shared_entity{e, {dependents.at(e).begin(), dependents.at(e).end()}});
       }
       else {
-        primary.exclusive.emplace_back(e);
+        pc.coloring.exclusive.emplace_back(e);
       } // if
     } // for
 
     for(auto e : ghost.at(p.first)) {
-      primary.ghost.emplace_back(ghost_entity{e, e2co.at(e)});
-      primary.all.emplace_back(e);
+      pc.coloring.ghost.emplace_back(ghost_entity{e, e2co.at(e)});
+      pc.coloring.all.emplace_back(e);
     } // for
 
-    util::force_unique(primary.all);
-    util::force_unique(primary.owned);
-    util::force_unique(primary.exclusive);
-    util::force_unique(primary.shared);
-    util::force_unique(primary.ghost);
+    util::force_unique(pc.coloring.all);
+    util::force_unique(pc.coloring.owned);
+    util::force_unique(pc.coloring.exclusive);
+    util::force_unique(pc.coloring.shared);
+    util::force_unique(pc.coloring.ghost);
+
+    partitions.emplace_back(pc.coloring.all.size());
 
     // These may not all be used, but we allocate and populate them anyway.
-    pc.cnx_colorings[cd.idx].resize(2 + cd.aux.size());
-    pc.cnx_colorings[cd.vidx].resize(2 + cd.aux.size());
-    pc.cnx_allocs[cd.idx].resize(2 + cd.aux.size());
-    pc.cnx_allocs[cd.vidx].resize(2 + cd.aux.size());
+    pc.cnx_allocs.resize(2 + cd.aux.size());
+    pc.cnx_colorings.resize(2 + cd.aux.size());
+    coloring.idx_spaces[cd.vidx][c].cnx_allocs.resize(2 + cd.aux.size());
+    coloring.idx_spaces[cd.vidx][c].cnx_colorings.resize(2 + cd.aux.size());
 
     /*
       Populate the entity-to-vertex connectivity.
      */
 
-    auto & crs = pc.cnx_colorings[cd.idx][cd.vidx];
+    auto & crs = pc.cnx_colorings[cd.vidx];
     std::size_t o{0};
     crs.offsets.emplace_back(o);
-    for(auto e : primary.all) {
+    for(auto e : pc.coloring.all) {
       auto const & vertices = e2v[m2p[e]];
       crs.indices.insert(crs.indices.end(), vertices.begin(), vertices.end());
       crs.offsets.emplace_back(crs.offsets[++o - 1] + vertices.size());
@@ -612,22 +593,27 @@ color(MD const & md,
       vertices-to-entities (transpose).
      */
 
-    pc.cnx_allocs[cd.idx][cd.vidx] = crs.indices.size();
-    pc.cnx_allocs[cd.vidx][cd.idx] = crs.indices.size();
+    pc.cnx_allocs[cd.vidx] = crs.indices.size();
+    coloring.idx_spaces[cd.vidx][c].cnx_allocs[cd.idx] = crs.indices.size();
 
-#if 0
-    std::stringstream ss;
-    ss << "color " << p.first << std::endl;
-    ss << log::container{primary.owned} << std::endl;
-    ss << log::container{primary.shared} << std::endl;
-    ss << log::container{primary.ghost} << std::endl;
-
-    flog(warn) << ss.str() << std::endl;
-#endif
-
-    // Advance color
     ++c;
   } // for
+
+  {
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    coloring.partitions[cd.idx].resize(cd.colors);
+    util::color_map em(size, cd.colors, ne);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.partitions[cd.idx][em.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
 
   /*
     Assign vertex colors.
@@ -636,7 +622,7 @@ color(MD const & md,
   std::unordered_map<std::size_t, Color> v2co;
   c = 0;
   for(auto p : primaries) {
-    auto const & primary = coloring[c].idx_colorings[cd.idx];
+    auto const & primary = coloring.idx_spaces[cd.idx][c].coloring;
 
     for(auto e : primary.owned) {
       for(auto v : e2v.at(m2p.at(e))) {
@@ -648,6 +634,8 @@ color(MD const & md,
         v2co[v] = co;
       } // for
     } // for
+
+    ++c;
   } // for
 
   /*
@@ -717,8 +705,8 @@ color(MD const & md,
   std::vector<std::size_t> remote;
   c = 0;
   for(auto p : primaries) {
-    auto & primary = coloring[c].idx_colorings[cd.idx];
-    auto & vaux = coloring[c].idx_colorings[cd.vidx];
+    auto primary = coloring.idx_spaces[cd.idx][c].coloring;
+    auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
     for(auto e : primary.exclusive) {
       for(auto v : e2v.at(m2p.at(e))) {
@@ -767,6 +755,8 @@ color(MD const & md,
     util::force_unique(vaux.owned);
     util::force_unique(vaux.exclusive);
     util::force_unique(vaux.shared);
+
+    ++c;
   } // for
 
   util::force_unique(remote);
@@ -831,15 +821,50 @@ color(MD const & md,
    */
 
   c = 0;
+  partitions.clear();
   for(auto p : primaries) {
-    auto & vaux = coloring[c].idx_colorings[cd.vidx];
+    auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
-    for(auto v : ghost.at(p.first)) {
-      vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
+    vaux.all.reserve(vaux.owned.size() + vaux.ghost.size());
+    vaux.all.insert(vaux.all.begin(), vaux.owned.begin(), vaux.owned.end());
+
+    // Add ghosts that were available from the local process.
+    for(auto v : vaux.ghost) {
+      vaux.all.emplace_back(v.id);
     } // for
 
+    // Add requested ghosts.
+    for(auto v : ghost.at(p.first)) {
+      vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
+      vaux.all.emplace_back(v);
+    } // for
+
+    util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
+
+    partitions.emplace_back(vaux.all.size());
+
+    ++c;
   } // for
+
+  {
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    coloring.partitions[cd.vidx].resize(cd.colors);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.partitions[cd.vidx][cm.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  /*
+    Auxiliary entities.
+   */
 
   return coloring;
 } // color

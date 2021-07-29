@@ -28,23 +28,51 @@ struct canon : topo::specialization<topo::unstructured, canon> {
 
   static coloring color(std::string const &) {
     flog(info) << "invoking coloring" << std::endl;
-    return {{MPI_COMM_WORLD,
-      0, /* color */
+
+    // clang-format off
+    return {
+      MPI_COMM_WORLD,
       1, /* colors */
-      {4, 2}, /* index allocs */
-      {{/* cells */
-         {0, 1, 2, 3},
-         {0, 1, 2, 3},
-         {0, 1, 2, 3},
-         {},
-         {}},
-        {/* vertices */
-          {0, 1},
-          {0, 1},
-          {0, 1},
-          {},
-          {}}},
-      {{}},
-      {{}}}};
-  }
+      { /* over index spaces */
+        { /* cells over global number of colors */
+          4 /* partition size */
+        },
+        { /* vertices over global number of colors */
+          2 /* partition size */
+        }
+      },
+      { /* over index spaces */
+        { /* cells over process colors */
+          base::process_color{
+            4,
+            { /* index_coloring */
+              {0, 1, 2, 3}, /* all */
+              {0, 1, 2, 3}, /* owned */
+              {0, 1, 2, 3}, /* exclusive */
+              {}, /* shared */
+              {} /* ghost */
+            },
+            {}, /* cnx_allocs */
+            {} /* cnx_colorings */
+          }
+        },
+        { /* vertices over process colors */
+          base::process_color{
+            2,
+            { /* index_coloring */
+              {0, 1}, /* all */
+              {0, 1}, /* owned */
+              {0, 1}, /* exclusive */
+              {}, /* shared */
+              {} /* ghost */
+            },
+            {}, /* cnx_allocs */
+            {} /* cnx_colorings */
+          }
+        }
+      }
+    };
+    // clang-format on
+    return {};
+  } // color
 };

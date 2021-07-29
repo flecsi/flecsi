@@ -76,21 +76,14 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   using coloring_definition = typename mesh::base::coloring_definition;
   using coloring = typename mesh::base::coloring;
 
-  static coloring color(std::vector<coloring_definition> & index_definitions) {
-    auto [colors, index_colorings] =
-      topo::narray_utils::color(index_definitions, MPI_COMM_WORLD);
-
-    flog_assert(colors == processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
+  static coloring color(coloring_definition const & cd) {
+    auto [colors, pcs, partitions] =
+      topo::narray_utils::color(cd, MPI_COMM_WORLD);
     coloring c;
     c.comm = MPI_COMM_WORLD;
     c.colors = colors;
-    for(auto idx : index_colorings) {
-      for(auto ic : idx) {
-        c.idx_colorings.emplace_back(ic.second);
-      }
-    }
+    c.idx_colorings.emplace_back(std::move(pcs));
+    c.partitions.emplace_back(std::move(partitions));
     return c;
   } // color
 
