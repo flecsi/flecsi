@@ -68,7 +68,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, range SE = interior>
     auto vertices() {
       if constexpr(SE == interior) {
-        auto const & md = *(this->meta_);
         return flecsi::topo::make_ids<index_space::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(
             B::template logical<index_space::vertices, 0, A>() + 1,
@@ -133,22 +132,20 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     coord hdepths{1, 1};
     coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};
-    std::vector<coloring_definition> color_definitions{
-      {axis_colors, axis_extents, hdepths, bdepths, periodic}};
-    auto [ncolors, index_colorings] =
-      flecsi::topo::narray_utils::color(color_definitions, MPI_COMM_WORLD);
+    coloring_definition cd{
+      axis_colors, axis_extents, hdepths, bdepths, periodic};
 
-    flog_assert(ncolors == flecsi::processes(),
+    auto [nc, pcs, partitions] =
+      flecsi::topo::narray_utils::color(cd, MPI_COMM_WORLD);
+
+    flog_assert(nc == flecsi::processes(),
       "current implementation is restricted to 1-to-1 mapping");
 
     coloring c;
     c.comm = MPI_COMM_WORLD;
-    c.colors = ncolors;
-    for(auto idx : index_colorings) {
-      for(auto ic : idx) {
-        c.idx_colorings.emplace_back(ic.second);
-      }
-    }
+    c.colors = nc;
+    c.idx_colorings.emplace_back(std::move(pcs));
+    c.partitions.emplace_back(std::move(partitions));
     return c;
   } // color
 
