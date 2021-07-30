@@ -6,7 +6,7 @@ stages:
   - Canary
   - Environment
   - Build + Unit Tests
-  - Tutorial
+  - Standalone
   - Final
 
 variables:
@@ -40,7 +40,8 @@ format:check:
   needs:
     - job: format:diff
       artifacts: true
-    - job: tutorial:legion # Hack to make this last. Gitlab needs some mechanism to allow this
+    - job: tutorial:legion
+    - job: poisson:legion
   only:
     - merge_requests
   variables:
@@ -155,12 +156,32 @@ mpich-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 
 tutorial:legion:
-  extends: .tutorial_template
+  extends: .standalone_template
   needs:
     ["mpich-legion-gnu"]
   only:
     - merge_requests
   variables:
+    LABEL: tutorial
+    STDIR: tutorial
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: centos-8
+    CXX_COMPILER: g++
+    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    C_COMPILER: gcc
+    C_FLAGS: ${CXX_FLAGS}
+
+poisson:legion:
+  extends: .standalone_template
+  needs:
+    ["mpich-legion-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
