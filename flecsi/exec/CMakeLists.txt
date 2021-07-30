@@ -76,19 +76,6 @@ add_unit(interface
 
 endif()
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-if(ENABLE_KOKKOS)
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-  add_unit(kokkos
-    SOURCES
-      test/kokkos.cc
-    THREADS
-     2 #warning 2 is required when running with CUDA since color topology has 2 colors
-  )
-endif()
-endif()
-endif()
-
 add_unit(task
   SOURCES
     test/task.cc
