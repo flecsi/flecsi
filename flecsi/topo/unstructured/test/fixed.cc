@@ -235,7 +235,7 @@ fixed_mesh::slot mesh;
 fixed_mesh::cslot coloring;
 
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
-const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
+const field<int>::definition<fixed_mesh, fixed_mesh::vertices> density;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
 
@@ -283,7 +283,7 @@ permute(topo::connect_field::mutator<rw, na> m) {
 }
 
 void
-init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, na> p) {
+init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, wo> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
@@ -318,24 +318,31 @@ check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
 
 void
 init_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<wo, na> d) {
+  field<double>::accessor<wo, wo> d) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.vertices()) {
-    d[c] = -1.0;
+    d[c] = -1;
   }
 }
 
 void
 update_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> d) {
+  field<double>::accessor<rw, rw> d) {
   flog(warn) << __func__ << std::endl;
-  for(auto c : m.vertices()) {
-    d[c] = color();
+  auto clr = color();
+#if defined(FLECSI_ENABLE_KOKKOS)
+  forall(v, m.vertices(), "density_c") {
+    d[v] = clr;
+  };
+#else
+  for(auto v : m.vertices()) {
+    d[v] = clr;
   }
+#endif
 }
 
 void
-print_density(fixed_mesh::accessor<ro, ro> m,
+check_density(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<ro, ro> d) {
   flog(warn) << __func__ << std::endl;
   std::stringstream ss;
@@ -394,8 +401,8 @@ fixed_driver() {
 
 #if 0
     execute<init_density>(mesh, density(mesh));
-    execute<update_density>(mesh, density(mesh));
-    execute<print_density>(mesh, density(mesh));
+    execute<update_density, default_accelerator>(mesh, density(mesh));
+    execute<check_density>(mesh, density(mesh));
 #endif
   };
 } // unstructured_driver
