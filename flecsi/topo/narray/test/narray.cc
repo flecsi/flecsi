@@ -60,7 +60,7 @@ narray_driver() {
 
       coloring1.allocate(index_definitions);
       m1.allocate(coloring1.get());
-      execute<set_field_1d>(m1, f1(m1));
+      execute<set_field_1d, default_accelerator>(m1, f1(m1));
       execute<print_field_1d>(m1, f1(m1));
       execute<check_1d>(m1);
     } // scope
@@ -78,7 +78,7 @@ narray_driver() {
         {colors, indices, hdepths, bdepths, periodic, true}};
       coloring2.allocate(index_definitions);
       m2.allocate(coloring2.get());
-      execute<set_field_2d>(m2, f2(m2));
+      execute<set_field_2d, default_accelerator>(m2, f2(m2));
       execute<print_field_2d>(m2, f2(m2));
       execute<check_2d>(m2);
     } // scope
