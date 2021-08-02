@@ -234,7 +234,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 fixed_mesh::slot mesh;
 fixed_mesh::cslot coloring;
 
-const field<double>::definition<fixed_mesh, fixed_mesh::cells> pressure;
+const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
 const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
@@ -283,43 +283,37 @@ permute(topo::connect_field::mutator<rw, na> m) {
 }
 
 void
-init_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<wo, na> p) {
+init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, na> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
-    p[c] = -1.0;
+    p[c] = -1;
   }
 }
 
 void
 update_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> p) {
+  field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
-  for(auto c : m.cells()) {
-    p[c] = color();
-  }
-}
-
+  auto clr = color();
 #if defined(FLECSI_ENABLE_KOKKOS)
-void
-parallel_update_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> p) {
   forall(c, m.cells(), "pressure_c") {
-    p[c] += 0.0;
+    p[c] = clr;
   };
-}
+#else
+  for(auto c : m.cells()) {
+    p[c] = clr;
+  }
 #endif
+}
 
 void
-print_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<ro, ro> p) {
+check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
   flog(warn) << __func__ << std::endl;
-  std::stringstream ss;
   for(auto c : m.cells()) {
-    ss << p[c] << " ";
+    unsigned int v = p[c];
+    flog_assert(v == color(), "invalid pressure");
   }
-  flog(info) << ss.str() << std::endl;
 }
 
 void
@@ -386,20 +380,19 @@ fixed_driver() {
     coloring.allocate();
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
+
     EXPECT_EQ(
       test<permute>(
         mesh->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>()(
           mesh)),
       0);
     execute<print>(mesh, cids(mesh), vids(mesh));
-#if 0
+
     execute<init_pressure>(mesh, pressure(mesh));
-    execute<update_pressure>(mesh, pressure(mesh));
-#if defined(FLECSI_ENABLE_KOKKOS)
-    execute<parallel_update_pressure, default_accelerator>(
-      mesh, pressure(mesh));
-#endif
-    execute<print_pressure>(mesh, pressure(mesh));
+    execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
+    execute<check_pressure>(mesh, pressure(mesh));
+
+#if 0
     execute<init_density>(mesh, density(mesh));
     execute<update_density>(mesh, density(mesh));
     execute<print_density>(mesh, density(mesh));
