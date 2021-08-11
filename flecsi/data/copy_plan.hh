@@ -90,7 +90,7 @@ namespace detail {
 // color-specific accessors by having one ghost index point for every edge in
 // a directed communication graph.
 struct buffers_base {
-  using coloring = std::vector<std::vector<Color>>; // [src][dest]
+  using coloring = std::vector<std::vector<Color>>; // [src][]=dest
   // Each edge gets one buffer which can be used for transferring arbitrary
   // data via serialization.
   struct buffer {
