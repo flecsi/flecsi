@@ -22,6 +22,10 @@
 using namespace flecsi;
 #if 1
 
+// !!!!!FIX
+// This test should be merged into narray.cc
+// once the multi-accessor functionality is available.
+
 // 4D Mesh
 mesh4d::slot m4;
 mesh4d::cslot coloring4;

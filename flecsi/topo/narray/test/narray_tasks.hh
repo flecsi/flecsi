@@ -658,7 +658,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 } // check_mesh_field
 
 int
-check_4dmesh(typename mesh<4>::template accessor<ro> m) {
+check_4dmesh(mesh<4>::accessor<ro> m) {
   UNIT {
     using r = mesh4d::range;
     using ax = mesh4d::axis;
