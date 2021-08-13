@@ -20,7 +20,7 @@ set(exec_HEADERS
   backend.hh
   buffers.hh
   fold.hh
-  kernel_interface.hh
+  kernel.hh
   launch.hh
   prolog.hh
   task_attributes.hh

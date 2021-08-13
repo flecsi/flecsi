@@ -19,7 +19,7 @@
 #include "flecsi/exec/fold.hh"
 
 #if defined(FLECSI_ENABLE_KOKKOS)
-#include "flecsi/exec/kernel_interface.hh"
+#include "flecsi/exec/kernel.hh"
 #endif
 
 #include "flecsi/flog.hh"
