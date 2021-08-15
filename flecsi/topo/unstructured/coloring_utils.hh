@@ -60,10 +60,10 @@ make_dcrs(MD const & md,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  std::size_t nc = md.num_entities(MD::dimension());
+  std::size_t ne = md.num_entities(MD::dimension());
   std::size_t nv = md.num_entities(0);
 
-  util::color_map cm(size, size, nc);
+  util::color_map ecm(size, size, ne);
 
   /*
     Get the initial cells for this rank. The cells will be read by
@@ -72,7 +72,7 @@ make_dcrs(MD const & md,
    */
 
   auto c2v =
-    util::mpi::one_to_allv<pack_cells<MD>>({md, cm.distribution()}, comm);
+    util::mpi::one_to_allv<pack_cells<MD>>({md, ecm.distribution()}, comm);
 
   /*
     Create a map of vertex-to-cell connectivity information from
@@ -80,8 +80,8 @@ make_dcrs(MD const & md,
    */
 
   // Populate local vertex connectivity information
-  std::size_t offset{cm.distribution()[rank]};
-  std::size_t indices{cm.indices(rank, 0)};
+  std::size_t offset{ecm.distribution()[rank]};
+  std::size_t indices{ecm.indices(rank, 0)};
   std::map<std::size_t, std::vector<std::size_t>> v2c;
 
   std::size_t i{0};
@@ -125,7 +125,7 @@ make_dcrs(MD const & md,
 
   for(auto const & v : v2c) {
     for(auto c : v.second) {
-      auto r = util::distribution_offset(cm.distribution(), c);
+      auto r = util::distribution_offset(ecm.distribution(), c);
       if(r != rank) {
         referencer_inverse[r].emplace_back(v.first);
       } // if
@@ -189,7 +189,7 @@ make_dcrs(MD const & md,
    */
 
   util::dcrs dcrs;
-  dcrs.distribution = cm.distribution();
+  dcrs.distribution = ecm.distribution();
 
   dcrs.offsets.emplace_back(0);
   for(std::size_t c{0}; c < indices; ++c) {
@@ -284,11 +284,11 @@ request_owners(std::vector<std::size_t> const & request,
   std::vector<std::vector<std::size_t>> fulfills(size);
   {
     Color r = 0;
-    util::color_map cm(size, colors, ne);
+    util::color_map ecm(size, colors, ne);
     for(auto rv : requested) {
       for(auto e : rv) {
         const std::size_t start = pm.index_offset(rank, 0);
-        fulfills[r].emplace_back(cm.process(idx_cos[e - start]));
+        fulfills[r].emplace_back(ecm.process(idx_cos[e - start]));
       } // for
       ++r;
     } // for
@@ -599,6 +599,10 @@ color(MD const & md,
     ++c;
   } // for
 
+  /*
+    Gather partition sizes for entities.
+   */
+
   {
     auto pgthr = util::mpi::all_gatherv(partitions, comm);
 
@@ -639,15 +643,15 @@ color(MD const & md,
   } // for
 
   /*
-    The first of these color maps, "pm", is the process map, which we need to
+    The first of these color maps, "vpm", is the process map, which we need to
     construct the correct naive partitioning of the vertices. The second map,
-    "cm", is the actual color map, which we need to correctly color the
+    "vcm", is the actual color map, which we need to correctly color the
     vertices into the naive partitioning.
    */
 
   const std::size_t nv = md.num_entities(0);
-  util::color_map pm(size, size, nv);
-  util::color_map cm(size, cd.colors, nv);
+  util::color_map vpm(size, size, nv);
+  util::color_map vcm(size, cd.colors, nv);
 
   /*
     The following several steps create a coloring of the naive partitioning of
@@ -656,10 +660,10 @@ color(MD const & md,
    */
 
   auto rank_colors = util::mpi::all_to_allv<vertex_coloring>(
-    {pm.distribution(), cm, v2co, rank}, comm);
+    {vpm.distribution(), vcm, v2co, rank}, comm);
 
-  const std::size_t voff = pm.distribution()[rank];
-  std::vector<Color> vtx_idx_cos(pm.distribution()[rank + 1] - voff);
+  const std::size_t voff = vpm.distribution()[rank];
+  std::vector<Color> vtx_idx_cos(vpm.distribution()[rank + 1] - voff);
   for(auto r : rank_colors) {
     for(auto v : r) {
       vtx_idx_cos[std::get<0>(v) - voff] = std::get<1>(v);
@@ -673,14 +677,14 @@ color(MD const & md,
    */
 
   auto vertices =
-    util::mpi::one_to_allv<pack_vertices<MD>>({md, pm.distribution()}, comm);
+    util::mpi::one_to_allv<pack_vertices<MD>>({md, vpm.distribution()}, comm);
 
   /*
     Migrate the vertices to their actual owners.
    */
 
   auto migrated = util::mpi::all_to_allv<migrate_vertices<MD>>(
-    {pm.distribution(), cd.colors, vtx_idx_cos, vertices, rank}, comm);
+    {vpm.distribution(), cd.colors, vtx_idx_cos, vertices, rank}, comm);
   std::unordered_map<std::size_t, std::tuple<Color, typename MD::point>> v2info;
 
   /*
@@ -725,7 +729,7 @@ color(MD const & md,
           vaux.owned.emplace_back(v);
         }
         else {
-          if(cm.has_color(vi->second, rank)) {
+          if(vcm.has_color(vi->second, rank)) {
             vaux.ghost.emplace_back(ghost_entity{v, vi->second});
           }
           else {
@@ -855,7 +859,7 @@ color(MD const & md,
     for(auto vp : pgthr) {
       std::size_t c{0};
       for(auto v : vp) {
-        coloring.partitions[cd.vidx][cm.color_id(p, c)] = v;
+        coloring.partitions[cd.vidx][vcm.color_id(p, c)] = v;
         ++c;
       } // for
       ++p;

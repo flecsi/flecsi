@@ -182,18 +182,51 @@ struct narray_base {
     return vs[c];
   }
 
-  static void idx_itvls(process_color const & ic,
+  static void idx_itvls(std::vector<process_color> const & vpc,
     std::vector<std::size_t> & num_intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
     MPI_Comm const & comm) {
-    num_intervals = util::mpi::all_gatherv(ic.intervals.size(), comm);
-  }
+    auto [rank, size] = util::mpi::info(comm);
+
+    std::vector<std::size_t> local_itvls;
+    for(auto pc : vpc) {
+      local_itvls.emplace_back(pc.intervals.size());
+      intervals.emplace_back(std::move(pc.intervals));
+      points.emplace_back(std::move(pc.points));
+    }
+
+    /*
+      Gather global interval sizes.
+     */
+
+    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
+
+    std::size_t entities{1};
+    for(auto a : vpc[0].global) {
+      entities *= a;
+    }
+    util::color_map cm(size, num_intervals.size() /* colors */, entities);
+    std::size_t p{0};
+    for(auto pv : global_itvls) {
+      std::size_t co{0};
+      for(auto i : pv) {
+        num_intervals[cm.color_id(p, co++)] = i;
+      }
+      ++p;
+    }
+  } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
+      intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
+    flog_assert(a.span().size() == intervals[0].size(),
+      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
+                                        << intervals[0].size() << ")");
     std::size_t i{0};
-    for(auto it : intervals) {
+    for(auto it : intervals[0]) {
       a[i++] = data::intervals::make({it.first, it.second}, process());
     } // for
   }
@@ -201,10 +234,10 @@ struct narray_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
-      shared_ptrs,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : shared_ptrs) {
+    for(auto const & si : points[0]) {
       for(auto p : si.second) {
         // si.first: owner
         // p.first: local ghost offset

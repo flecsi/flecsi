@@ -135,7 +135,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     coloring_definition cd{
       axis_colors, axis_extents, hdepths, bdepths, periodic};
 
-    auto [nc, pcs, partitions] =
+    auto [nc, ne, pcs, partitions] =
       flecsi::topo::narray_utils::color(cd, MPI_COMM_WORLD);
 
     flog_assert(nc == flecsi::processes(),

@@ -225,13 +225,11 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       vertex_map[e] = off++;
     }
 
-    auto & c2v =
-      s->connect_.get<fixed_mesh::cells>().get<fixed_mesh::vertices>();
+    auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
     execute<init_c2v, mpi>(
       c2v(s), c.idx_spaces[0][0].cnx_colorings[0], vertex_map);
 
-    auto & v2c =
-      s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();
+    auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 #if 0
     execute<init_v2c, mpi>(v2c(s), c2v(s));
 #endif
@@ -397,7 +395,7 @@ fixed_driver() {
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
     EXPECT_EQ(
       test<permute>(
-        mesh->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>()(
+        mesh->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>()(
           mesh)),
       0);
     execute<print>(mesh, cids(mesh), vids(mesh));

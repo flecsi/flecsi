@@ -11,9 +11,10 @@ namespace poisson {
 namespace task {
 
 void eggcarton(mesh::accessor<ro> m,
-  field<double>::accessor<wo, ro> ua,
-  field<double>::accessor<wo, ro> fa,
-  field<double>::accessor<wo, ro> sa);
+  field<double>::accessor<wo, na> ua,
+  field<double>::accessor<wo, na> fa,
+  field<double>::accessor<wo, na> sa,
+  field<double>::accessor<wo, na> Aua);
 
 } // namespace task
 } // namespace poisson

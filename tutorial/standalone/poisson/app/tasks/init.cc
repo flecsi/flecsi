@@ -15,12 +15,14 @@ constexpr double L = 2.0;
 
 void
 poisson::task::eggcarton(mesh::accessor<ro> m,
-  field<double>::accessor<wo, ro> ua,
-  field<double>::accessor<wo, ro> fa,
-  field<double>::accessor<wo, ro> sa) {
+  field<double>::accessor<wo, na> ua,
+  field<double>::accessor<wo, na> fa,
+  field<double>::accessor<wo, na> sa,
+  field<double>::accessor<wo, na> Aua) {
   auto u = m.mdspan<mesh::vertices>(ua);
   auto f = m.mdspan<mesh::vertices>(fa);
   auto s = m.mdspan<mesh::vertices>(sa);
+  auto Au = m.mdspan<mesh::vertices>(Aua);
   const double sq_klpi = pow(PI, 2) * (pow(K, 2) + pow(L, 2));
 
   flog(info) << "dxdy: " << m.dxdy() << std::endl;
@@ -33,6 +35,7 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
       f[j][i] = sq_klpi * sin(K * PI * x) * sin(L * PI * y);
       const double solution = sin(K * PI * x) * sin(L * PI * y);
       s[j][i] = solution;
+      Au[j][i] = 0.0;
 
       if((m.is_boundary<mesh::x_axis, mesh::low>(i) ||
            m.is_boundary<mesh::x_axis, mesh::high>(i)) ||

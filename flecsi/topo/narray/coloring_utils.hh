@@ -339,6 +339,7 @@ color(narray_impl::coloring_definition const & cd,
     /*
       Save extents information for creating partitions.
      */
+
     partitions.emplace_back(extents);
 
     // This won't be necessary with c++20. In c++17 lambdas can't
@@ -600,7 +601,7 @@ color(narray_impl::coloring_definition const & cd,
     } // for
   }
 
-  return std::make_tuple(nc, coloring, partitions);
+  return std::make_tuple(nc, indices, coloring, partitions);
 } // color
 
 /*!
@@ -617,8 +618,11 @@ color(narray_impl::coloring_definition const & cd,
  */
 
 inline auto
-color_auxiliary(std::vector<narray_impl::process_color> const & vpc,
+color_auxiliary(std::size_t ne,
+  Color nc,
+  std::vector<narray_impl::process_color> const & vpc,
   std::vector<bool> const & extend,
+  MPI_Comm comm = MPI_COMM_WORLD,
   bool create_plan = false,
   bool full_ghosts = false) {
   using namespace narray_impl;
@@ -626,6 +630,7 @@ color_auxiliary(std::vector<narray_impl::process_color> const & vpc,
   flog_assert(create_plan == false, "memory consistency is not yet supported");
 
   std::vector<process_color> avpc;
+  std::vector<std::size_t> partitions;
   for(auto pc : vpc) {
     const std::size_t axes = pc.extents.size();
     process_color apc;
@@ -637,6 +642,7 @@ color_auxiliary(std::vector<narray_impl::process_color> const & vpc,
     apc.extended[0].resize(axes);
     apc.extended[1].resize(axes);
 
+    std::size_t extents{1};
     for(std::size_t axis{0}; axis < axes; ++axis) {
       // Use the primary offset to initialize the auxiliary offset,
       // which will be corrected below.
@@ -685,12 +691,33 @@ color_auxiliary(std::vector<narray_impl::process_color> const & vpc,
         apc.extended[0][axis] = full_ghosts ? hd + ex : ex;
         apc.extended[1][axis] = apc.extended[0][axis] + ee;
       } // if
+
+      extents *= apc.extents[axis];
     } // for
 
     avpc.emplace_back(apc);
+    partitions.emplace_back(extents);
   } // for
 
-  return avpc;
+  {
+    auto [rank, size] = util::mpi::info(comm);
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    partitions.clear();
+    partitions.resize(nc);
+    util::color_map cm(size, nc, ne);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        partitions[cm.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  return std::make_pair(avpc, partitions);
 } // color_auxiliary
 
 } // namespace narray_utils

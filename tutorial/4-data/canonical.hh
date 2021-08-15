@@ -26,6 +26,24 @@ struct canon : topo::specialization<topo::unstructured, canon> {
   enum entity_list {};
   using entity_lists = list<>;
 
+  template<class B>
+  struct interface : B {
+
+    auto cells() {
+      return B::template entities<index_space::cells>();
+    }
+
+    template<index_space From>
+    auto cells(topo::id<From> from) {
+      return B::template entities<index_space::cells>(from);
+    }
+
+    auto vertices() {
+      return B::template entities<index_space::vertices>();
+    }
+
+  }; // struct interface
+
   static coloring color(std::string const &) {
     flog(info) << "invoking coloring" << std::endl;
 

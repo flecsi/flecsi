@@ -44,43 +44,34 @@ template<typename Policy>
 struct unstructured : unstructured_base,
                       with_ragged<Policy>,
                       with_meta<Policy> {
+
+  friend Policy;
+
+  /*--------------------------------------------------------------------------*
+    Public types.
+   *--------------------------------------------------------------------------*/
+
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
 
   template<Privileges>
   struct access;
 
+  /*--------------------------------------------------------------------------*
+    Constrcutor.
+   *--------------------------------------------------------------------------*/
+
   unstructured(coloring const & c)
     : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      plans_(make_plans(c,
+      plan_(make_plan(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       special_(c.colors) {
     allocate_connectivities(c, connect_);
   }
-
-  static inline const connect_t<Policy> connect_;
-  static inline const field<util::id>::definition<array<Policy>> special_field;
-
-  template<typename, typename>
-  struct key_define;
-
-  template<typename T, auto... SS>
-  struct key_define<T, util::constants<SS...>> {
-    using type = util::key_tuple<util::key_type<SS,
-      typename field<T>::template definition<Policy, SS>>...>;
-  };
-
-  static inline const typename key_define<util::id, index_spaces>::type
-    forward_map_;
-
-  util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>, index_spaces>
-    plans_;
-  lists<Policy> special_;
 
   Color colors() const {
     return part_.front().colors();
@@ -90,19 +81,10 @@ struct unstructured : unstructured_base,
   data::region & get_region() {
     return part_.template get<S>();
   }
+
   template<index_space S>
   const data::partition & get_partition(field_id_t) const {
     return part_.template get<S>();
-  }
-
-  template<index_space S>
-  auto const & forward_map() {
-    return forward_map_.template get<S>();
-  }
-
-  template<index_space S>
-  auto reverse_map() && {
-    return std::move(reverse_map_.template get<S>());
   }
 
   template<typename Type,
@@ -110,27 +92,73 @@ struct unstructured : unstructured_base,
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    for(auto const & p : plans_.template get<Space>()) {
-      if constexpr(Layout == data::ragged) {
-        ; // TODO
-      }
-      else {
-        p->issue_copy(f.fid());
-      }
-    }
+    if constexpr(Layout == data::ragged)
+      ; // TODO
+    /*
+      Use ghost information (ids?) to fill buffers to send to receiving colors.
+
+      vector of vector of color
+      vector over source color
+        vector over destination colors
+
+     */
+    else
+      plan_.template get<Space>().issue_copy(f.fid());
+  }
+
+  template<index_space F, index_space T>
+  auto & get_connectivity() {
+    return connect_.template get<F>().template get<T>();
   }
 
 private:
-  void print(std::size_t v, std::size_t i) {
-    flog(info) << "value: " << v << " index: " << i << std::endl;
+  /*
+    Return the forward map (local-to-global) for the given index space.
+   */
+
+  template<index_space S>
+  auto const & forward_map() {
+    return forward_map_.template get<S>();
   }
+
+  /*
+    Constant reference version:
+    Return the reverse maps (global-to-local) for the given index space.
+    The vector is over local process colors.
+
+    Use like:
+      auto const & maps = slot->reverse_maps();
+   */
+
+  template<index_space S>
+  auto reverse_maps() & {
+    return reverse_maps_.template get<S>();
+  }
+
+  /*
+    Move version:
+    Return the reverse maps (global-to-local) for the given index space.
+    The vector is over local process colors.
+
+    Use like:
+      auto maps = std::move(slot)->reverse_maps();
+   */
+
+  template<index_space S>
+  auto reverse_maps() && {
+    return std::move(reverse_maps_.template get<S>());
+  }
+
+  /*
+    Define the partial closures that will be used to construct partitions
+    when an instance of this topology is allocated.
+   */
 
   template<auto... Value, std::size_t... Index>
   util::key_array<repartitioned, util::constants<Value...>> make_partitions(
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    (print(Value, Index), ...);
     flog_assert(c.idx_spaces.size() == sizeof...(Value),
       c.idx_spaces.size() << " sizes for " << sizeof...(Value)
                           << " index spaces");
@@ -138,56 +166,60 @@ private:
       c.colors, make_partial<idx_size>(c.partitions[Index]))...}};
   }
 
+  /*
+    Construct copy plan for the given index space S.
+   */
+
   template<index_space S>
-  std::vector<std::unique_ptr<data::copy_plan>> make_plan(
+  data::copy_plan make_copy_plan(Color colors,
     std::vector<process_color> const & vpc,
     repartitioned & p,
     MPI_Comm const & comm) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
-    std::vector<std::unique_ptr<data::copy_plan>> plans;
 
-    for(auto const & pc : vpc) {
-      std::vector<std::size_t> num_intervals;
-      std::vector<std::pair<std::size_t, std::size_t>> intervals;
-      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> points;
+    std::vector<std::size_t> num_intervals(colors, 0);
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
+    std::vector<
+      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
+      points;
 
-      auto const & fmd = forward_map_.template get<S>();
-      execute<idx_itvls<NP>, mpi>(pc.coloring,
-        num_intervals,
-        intervals,
-        points,
-        fmd(*this),
-        reverse_map_.template get<S>(),
-        comm);
+    auto const & fmd = forward_map_.template get<S>();
 
-      // clang-format off
-      auto dest_task = [&intervals, &comm](auto f) {
-        execute<set_dests, mpi>(f, intervals, comm);
-      };
+    execute<idx_itvls<NP>, mpi>(vpc,
+      num_intervals,
+      intervals,
+      points,
+      fmd(*this),
+      reverse_maps_.template get<S>(),
+      comm);
 
-      auto ptrs_task = [&points, &comm](auto f) {
-        execute<set_ptrs<NP>, mpi>(
-          f, points, comm);
-      };
-      // clang-format on
+    // clang-format off
+    auto dest_task = [&intervals, &comm](auto f) {
+      execute<set_dests, mpi>(f, intervals, comm);
+    };
 
-      plans.emplace_back(std::make_unique<data::copy_plan>(
-        *this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()));
-    } // for
+    auto ptrs_task = [&points, &comm](auto f) {
+      execute<set_ptrs<NP>, mpi>(f, points, comm);
+    };
+    // clang-format on
 
-    return plans;
+    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
+  /*
+    Invoke make_plan for each index space.
+   */
+
   template<auto... Value, std::size_t... Index>
-  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>,
-    util::constants<Value...>>
-  make_plans(unstructured_base::coloring const & c,
+  util::key_array<data::copy_plan, util::constants<Value...>> make_plan(
+    unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
     flog_assert(c.idx_spaces.size() == sizeof...(Value),
       c.idx_spaces.size() << " sizes for " << sizeof...(Value)
                           << " index spaces");
-    return {{make_plan<Value>(c.idx_spaces[Index], part_[Index], c.comm)...}};
+    return {{make_copy_plan<Value>(
+      c.colors, c.idx_spaces[Index], part_[Index], c.comm)...}};
   }
 
   /*
@@ -216,8 +248,31 @@ private:
       ...);
   }
 
-  util::key_array<std::map<std::size_t, std::size_t>, index_spaces>
-    reverse_map_;
+  /*--------------------------------------------------------------------------*
+    Private data members.
+   *--------------------------------------------------------------------------*/
+
+  static inline const connect_t<Policy> connect_;
+  static inline const field<util::id>::definition<array<Policy>> special_field;
+
+  template<typename, typename>
+  struct key_define;
+
+  template<typename T, auto... SS>
+  struct key_define<T, util::constants<SS...>> {
+    using type = util::key_tuple<util::key_type<SS,
+      typename field<T>::template definition<Policy, SS>>...>;
+  };
+
+  static inline const typename key_define<util::id, index_spaces>::type
+    forward_map_;
+
+  util::key_array<repartitioned, index_spaces> part_;
+  util::key_array<data::copy_plan, index_spaces> plan_;
+  lists<Policy> special_;
+  util::key_array<std::vector<std::map<std::size_t, std::size_t>>, index_spaces>
+    reverse_maps_;
+
 }; // struct unstructured
 
 /*----------------------------------------------------------------------------*
@@ -227,29 +282,25 @@ private:
 template<typename Policy>
 template<Privileges Privileges>
 struct unstructured<Policy>::access {
-private:
-  using entity_list = typename Policy::entity_list;
-  template<const auto & Field>
-  using accessor =
-    data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
-  util::key_array<data::scalar_access<topo::resize::field, Privileges>,
-    index_spaces>
-    size_;
-  connect_access<Policy, Privileges> connect_;
-  lists_t<accessor<special_field>, Policy> special_;
 
-  template<index_space From, index_space To>
-  auto & connectivity() {
-    return connect_.template get<From>().template get<To>();
+  /*
+    FIXME: This should be private or protected.
+   */
+
+  template<class F>
+  void send(F && f) {
+    std::size_t i = 0;
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
+
+    connect_send(f, connect_, unstructured::connect_);
+    lists_send(f, special_, special_field, &unstructured::special_);
   }
 
-  template<index_space From, index_space To>
-  auto const & connectivity() const {
-    return connect_.template get<From>().template get<To>();
-  }
-
-public:
+protected:
   using subspace_list = std::size_t;
+  using entity_list = typename Policy::entity_list;
   access() : connect_(unstructured::connect_) {}
 
   /*!
@@ -282,17 +333,34 @@ public:
     return make_ids<I>(special_.template get<I>().template get<L>().span());
   }
 
-  template<class F>
-  void send(F && f) {
-    std::size_t i = 0;
-    for(auto & a : size_)
-      a.topology_send(
-        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
-
-    connect_send(f, connect_, unstructured::connect_);
-    lists_send(f, special_, special_field, &unstructured::special_);
+private:
+  template<index_space From, index_space To>
+  auto & connectivity() {
+    return connect_.template get<From>().template get<To>();
   }
+
+  template<index_space From, index_space To>
+  auto const & connectivity() const {
+    return connect_.template get<From>().template get<To>();
+  }
+
+  /*--------------------------------------------------------------------------*
+    Private data members.
+   *--------------------------------------------------------------------------*/
+
+  template<const auto & Field>
+  using accessor =
+    data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
+  util::key_array<data::scalar_access<topo::resize::field, Privileges>,
+    index_spaces>
+    size_;
+  connect_access<Policy, Privileges> connect_;
+  lists_t<accessor<special_field>, Policy> special_;
+
 }; // struct unstructured<Policy>::access
+
+/*----------------------------------------------------------------------------*
+ *----------------------------------------------------------------------------*/
 
 template<>
 struct detail::base<unstructured> {

@@ -48,7 +48,6 @@ narray_driver() {
       coloring4.allocate(cd);
       m4.allocate(coloring4.get());
       execute<check_4dmesh>(m4);
-
     } // scope
 
   }; // UNIT

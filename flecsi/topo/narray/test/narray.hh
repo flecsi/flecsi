@@ -83,7 +83,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   using coloring = typename mesh::base::coloring;
 
   static coloring color(coloring_definition const & cd) {
-    auto [colors, pcs, partitions] =
+    auto [colors, ne, pcs, partitions] =
       topo::narray_utils::color(cd, MPI_COMM_WORLD);
     coloring c;
     c.comm = MPI_COMM_WORLD;
