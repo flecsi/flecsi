@@ -20,7 +20,6 @@
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
-#if 1
 
 // !!!!!FIX
 // This test should be merged into narray.cc
@@ -56,4 +55,3 @@ narray_driver() {
 } // narray_driver
 
 flecsi::unit::driver<narray_driver> nd;
-#endif
