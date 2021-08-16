@@ -26,15 +26,10 @@ void
 set_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh1d::index_space::entities>(ca);
   auto clr = color();
-#if defined(FLECSI_ENABLE_KOKKOS)
   forall(i, m.extents<mesh1d::axis::x_axis>(), "set_field_1d") {
     c[i] = clr;
+    std::cout << "Irina debug c[" << i << "]=" << c[i] << std::endl;
   };
-#else
-  for(auto i : m.extents<mesh1d::axis::x_axis>()) {
-    c[i] = clr;
-  } // for
-#endif
 }
 
 void
@@ -127,20 +122,12 @@ check_1d(mesh1d::accessor<ro> m) {
 void
 set_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh2d::index_space::entities>(ca);
-#if defined(FLECSI_ENABLE_KOKKOS)
   auto x_ex = m.extents<mesh2d::axis::x_axis>();
   auto clr = color();
   forall(j, m.extents<mesh2d::axis::y_axis>(), "set_field_2d") {
     for(auto i : x_ex)
       c[j][i] = clr;
   };
-#else
-  for(auto j : m.extents<mesh2d::axis::y_axis>()) {
-    for(auto i : m.extents<mesh2d::axis::x_axis>()) {
-      c[j][i] = color();
-    } // for
-  } // for
-#endif
 }
 
 void
@@ -300,7 +287,6 @@ check_2d(mesh2d::accessor<ro> m) {
 void
 set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh3d::index_space::entities>(ca);
-#if defined(FLECSI_ENABLE_KOKKOS)
   auto x_ex = m.extents<mesh3d::axis::x_axis>();
   auto y_ex = m.extents<mesh3d::axis::y_axis>();
   auto clr = color();
@@ -309,15 +295,6 @@ set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
       for(auto i : x_ex)
         c[k][j][i] = clr;
   };
-#else
-  for(auto k : m.extents<mesh3d::axis::z_axis>()) {
-    for(auto j : m.extents<mesh3d::axis::y_axis>()) {
-      for(auto i : m.extents<mesh3d::axis::x_axis>()) {
-        c[k][j][i] = color();
-      } // for
-    } // for
-  } // for
-#endif
 }
 
 void

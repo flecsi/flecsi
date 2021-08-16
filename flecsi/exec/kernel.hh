@@ -15,45 +15,53 @@
 
 /*! @file */
 
-#if !defined(FLECSI_ENABLE_KOKKOS)
-#error FLECSI_ENABLE_KOKKOS not defined! This file depends on Kokkos!
-#endif
+#include <numeric>
 
 #include "flecsi/exec/fold.hh"
 
+#if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>
+#define FLECSI_LAMBDA KOKKOS_LAMBDA
+#else
+#define FLECSI_LAMBDA [=]
+#endif
 
 namespace flecsi {
 namespace exec {
 namespace kok {
+
 template<class R, class T, class = void>
 struct wrap {
   using reducer = wrap;
   using value_type = T;
+#if defined(FLECSI_ENABLE_KOKKOS)
   using result_view_type = Kokkos::View<value_type, Kokkos::HostSpace>;
+#else
+  using result_view_type = value_type;
+#endif
 
-  KOKKOS_INLINE_FUNCTION
+  FLECSI_INLINE_TARGET
   void join(T & a, const T & b) const {
     a = R::combine(a, b);
   }
 
-  KOKKOS_INLINE_FUNCTION
+  FLECSI_INLINE_TARGET
   void join(volatile T & a, const volatile T & b) const {
     a = R::combine(a, b);
   }
 
-  KOKKOS_INLINE_FUNCTION
+  FLECSI_INLINE_TARGET
   void init(T & v) const {
     v = detail::identity_traits<R>::template value<T>;
   }
 
   // Also useful to read the value!
-  KOKKOS_INLINE_FUNCTION
+  FLECSI_INLINE_TARGET
   T & reference() const {
     return t;
   }
 
-  KOKKOS_INLINE_FUNCTION
+  FLECSI_INLINE_TARGET
   result_view_type view() const {
     return &t;
   }
@@ -66,6 +74,7 @@ private:
   mutable T t;
 };
 
+#if defined(FLECSI_ENABLE_KOKKOS)
 // Kokkos's built-in reducers are just as effective as ours for generic
 // types, although we can't provide Kokkos::reduction_identity in terms of
 // our interface in C++17 because it has no extra template parameter via
@@ -107,6 +116,7 @@ public:
     return native;
   }
 };
+#endif
 } // namespace kok
 
 /*!
@@ -120,15 +130,21 @@ template<typename Iterator, typename Lambda>
 void
 parallel_for(Iterator && iterator,
   Lambda && lambda,
+#if defined(FLECSI_ENABLE_KOKKOS)
   const std::string & name = "") {
   const auto n = iterator.size(); // before moving
   Kokkos::parallel_for(name,
     n,
     [it = std::forward<Iterator>(iterator),
-      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i) {
+      f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
       return f(it[i]);
     });
-
+#else
+  const std::string &) {
+  std::for_each(iterator.begin(),
+    iterator.end(),
+    [f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) { return f(i); });
+#endif
 } // parallel_for
 
 /*!
@@ -150,7 +166,7 @@ template<class I>
 forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
 #define forall(it, iterator, name)                                             \
-  ::flecsi::exec::forall_t{iterator, name}->*KOKKOS_LAMBDA(auto && it)
+  ::flecsi::exec::forall_t{iterator, name}->*FLECSI_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
@@ -160,19 +176,32 @@ template<class R, class T, typename Iterator, typename Lambda>
 T
 parallel_reduce(Iterator && iterator,
   Lambda && lambda,
+#if defined(FLECSI_ENABLE_KOKKOS)
   const std::string & name = "") {
+#else
+  const std::string &) {
+#endif
 
   using value_type = T;
-  kok::wrap<R, T> result;
   const auto n = iterator.size(); // before moving
+#if defined(FLECSI_ENABLE_KOKKOS)
+  kok::wrap<R, T> result;
   Kokkos::parallel_reduce(
     name,
     n,
     [it = std::forward<Iterator>(iterator),
-      f = std::forward<Lambda>(lambda)] KOKKOS_FUNCTION(int i,
-      value_type & tmp) { return f(it[i], tmp); },
+      f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, value_type & tmp) {
+      return f(it[i], tmp);
+    },
     result.kokkos());
   return result.reference();
+#else
+  return std::reduce(iterator.begin(),
+    iterator.end(),
+    value_type(0),
+    [f = std::forward<Lambda>(lambda)] FLECSI_TARGET(
+      int i, value_type & tmp) { return f(i, tmp); });
+#endif
 
 } // parallel_reduce
 
@@ -200,7 +229,7 @@ make_reduce(I i, std::string n) {
 
 #define reduceall(it, tmp, iterator, R, T, name)                               \
   ::flecsi::exec::make_reduce<R, T>(iterator, name)                            \
-      ->*KOKKOS_LAMBDA(auto && it, T & tmp)
+      ->*FLECSI_LAMBDA(auto && it, T & tmp)
 
 //----------------------------------------------------------------------------//
 //! Abstraction function for fine-grained, data-parallel interface.

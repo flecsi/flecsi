@@ -295,24 +295,19 @@ void
 update_pressure(fixed_mesh::accessor<ro, ro> m,
   field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
-  auto clr = color();
-#if defined(FLECSI_ENABLE_KOKKOS)
+  int clr = color();
   forall(c, m.cells(), "pressure_c") {
     p[c] = clr;
   };
-#else
-  for(auto c : m.cells()) {
-    p[c] = clr;
-  }
-#endif
 }
 
 void
 check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
   flog(warn) << __func__ << std::endl;
+  unsigned int clr = color();
   for(auto c : m.cells()) {
     unsigned int v = p[c];
-    flog_assert(v == color(), "invalid pressure");
+    flog_assert(v == clr, "invalid pressure");
   }
 }
 
@@ -330,15 +325,9 @@ update_density(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<rw, rw> d) {
   flog(warn) << __func__ << std::endl;
   auto clr = color();
-#if defined(FLECSI_ENABLE_KOKKOS)
   forall(v, m.vertices(), "density_c") {
     d[v] = clr;
   };
-#else
-  for(auto v : m.vertices()) {
-    d[v] = clr;
-  }
-#endif
 }
 
 void
