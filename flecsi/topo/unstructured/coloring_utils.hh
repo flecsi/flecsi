@@ -870,17 +870,56 @@ color(MD const & md,
 } // color
 
 /*!
+  Build connectivity through connectivity intersection.  Given X-to-Y
+  and Y-to-Z connectivities, build X-to-Z connectivity.
+
+  \param c2f X-to-Y connectivity
+  \param f2e Y-to-Z connectivity
+  \return X-to-Z connectivity (c2e)
+*/
+inline crs
+intersect_connectivity(const crs & c2f, const crs & f2e) {
+  crs c2e;
+  c2e.offsets.reserve(c2f.offsets.size());
+  // Note: this is a rough estimate.
+  c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
+
+  for(std::size_t cell = 0; cell < c2f.offsets.size() - 1; cell++) {
+    std::vector<std::size_t> edges;
+
+    // accumulate edges in cell
+    for(std::size_t fi = c2f.offsets[cell]; fi < c2f.offsets[cell + 1]; fi++) {
+      auto face = c2f.indices[fi];
+      for(std::size_t ei = f2e.offsets[face]; ei < f2e.offsets[face + 1];
+          ei++) {
+        edges.push_back(f2e.indices[ei]);
+      }
+    }
+
+    // sort and add unique ones to c2e
+    std::sort(edges.begin(), edges.end());
+    c2e.add_row(edges.begin(), std::unique(edges.begin(), edges.end()));
+  }
+
+  return c2e;
+}
+
+/*!
   Build intermediary entities locally from cell to vertex graph.
 
-  @tparam MD mesh definition (provides function to build intermediary from list
-  of vertices).
+  @tparam from_dim index of the dimension for rows indices in c2v.
   @param dim index of dimension for intermediary.
+  @param md mesh definition (provides function to build intermediary from list
+  of vertices).
   @param c2v cell to vertex graph.
+  @param p2m Process-to-mesh map for the primary entities.
 */
-template<class MD>
+template<Dimension from_dim, class MD>
 auto
 build_intermediary(Dimension dim,
-  const std::vector<std::vector<std::size_t>> & c2v) {
+  const MD & md,
+  const std::vector<std::vector<std::size_t>> & c2v,
+  const std::vector<std::size_t> & p2m) {
   flog_assert((dim > 0 and dim < MD::dimension()),
     "Invalid dimension for intermediary entity: " << dim);
 
@@ -893,14 +932,19 @@ build_intermediary(Dimension dim,
   std::vector<typename MD::index> these_edges;
 
   // iterate over cells, adding all of their edges to the table
-  for(const auto & these_verts : c2v) {
+  for(std::size_t cell{0}; cell < c2v.size(); cell++) {
+    const auto & these_verts = c2v[cell];
     // clear this cells edges
     these_edges.clear();
 
     // build the edges for the cell
     new_edges.offsets.clear();
     new_edges.indices.clear();
-    MD::build_intermediary_from_vertices(dim, these_verts, new_edges);
+    if constexpr(MD::dimension() == from_dim)
+      md.build_intermediary_from_vertices(
+        dim, p2m[cell], these_verts, new_edges);
+    else
+      md.build_intermediary_from_vertices(dim, 0, these_verts, new_edges);
 
     /*
       look for existing vertex pairs in the edge-to-vertex master list
