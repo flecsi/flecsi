@@ -892,13 +892,13 @@ intersect_connectivity(const crs & c2f, const crs & f2e) {
       auto face = c2f.indices[fi];
       for(std::size_t ei = f2e.offsets[face]; ei < f2e.offsets[face + 1];
           ei++) {
-        edges.push_back(f2e.indices[ei]);
+        auto it = std::find(edges.begin(), edges.end(), f2e.indices[ei]);
+        if(it == edges.end()) {
+          edges.push_back(f2e.indices[ei]);
+        }
       }
+      c2e.add_row(edges.begin(), edges.end());
     }
-
-    // sort and add unique ones to c2e
-    std::sort(edges.begin(), edges.end());
-    c2e.add_row(edges.begin(), std::unique(edges.begin(), edges.end()));
   }
 
   return c2e;
