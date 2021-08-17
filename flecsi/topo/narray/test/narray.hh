@@ -28,24 +28,30 @@ struct axes_helper {};
 template<>
 struct axes_helper<1> {
   enum axis { x_axis };
-  using axes = typename mesh_helper::template has<x_axis>;
+  using axes = mesh_helper::has<x_axis>;
 };
 
 template<>
 struct axes_helper<2> {
   enum axis { x_axis, y_axis };
-  using axes = typename mesh_helper::template has<x_axis, y_axis>;
+  using axes = mesh_helper::has<x_axis, y_axis>;
 };
 
 template<>
 struct axes_helper<3> {
   enum axis { x_axis, y_axis, z_axis };
-  using axes = typename mesh_helper::template has<x_axis, y_axis, z_axis>;
+  using axes = mesh_helper::has<x_axis, y_axis, z_axis>;
+};
+
+template<>
+struct axes_helper<4> {
+  enum axis { x_axis, y_axis, z_axis, t_axis };
+  using axes = mesh_helper::has<x_axis, y_axis, z_axis, t_axis>;
 };
 
 template<std::size_t D>
 struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
-  static_assert((D >= 1 && D <= 6), "Invalid dimension for testing !");
+  static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");
 
   enum index_space { entities };
   enum range {
