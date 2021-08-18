@@ -17,7 +17,6 @@
 
 #include "flecsi/exec/backend.hh"
 #include "flecsi/exec/fold.hh"
-
 #include "flecsi/exec/kernel.hh"
 
 #include "flecsi/flog.hh"
