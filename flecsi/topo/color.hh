@@ -1,4 +1,4 @@
-// The most basic topology.
+// The most basic topologies, used to represent per-color metadata.
 
 #ifndef FLECSI_TOPO_COLOR_HH
 #define FLECSI_TOPO_COLOR_HH
@@ -36,6 +36,49 @@ struct column : column_base, color<P> {
 template<>
 struct detail::base<column> {
   using type = column_base;
+};
+
+// A topology that reuses a region from another.
+// NB: No check is made that the field ID corresponds to the partition.
+struct indirect_base : data::borrow {
+  struct coloring {};
+
+  template<class... AA>
+  explicit indirect_base(data::region & r, AA &&... aa)
+    : borrow(r, std::forward<AA>(aa)...), reg(&r) {}
+
+  data::region & get_region() const {
+    return *reg;
+  }
+
+private:
+  data::region * reg;
+};
+// Note that P is not the underlying topology Q, but rather indirect<Q>.
+template<class P>
+struct indirect_category : indirect_base {
+  template<class... AA>
+  explicit indirect_category(typename P::Base::core & t, AA &&... aa)
+    : indirect_base(t.template get_region<P::index_spaces::value>(),
+        std::forward<AA>(aa)...) {}
+
+  template<typename P::index_space>
+  data::region & get_region() const {
+    return indirect_base::get_region();
+  }
+};
+template<>
+struct detail::base<indirect_category> {
+  using type = indirect_base;
+};
+
+template<class Q, typename Q::index_space S = Q::default_space()>
+struct indirect : specialization<indirect_category, indirect<Q>> {
+  using Base = Q;
+  using index_space = typename Q::index_space;
+  using index_spaces = util::constants<S>;
+
+  static TopologyType id() = delete; // prevent ineffectual field registration
 };
 
 } // namespace flecsi::topo
