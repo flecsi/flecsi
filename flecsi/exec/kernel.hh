@@ -23,7 +23,7 @@
 #include <Kokkos_Core.hpp>
 #define FLECSI_LAMBDA KOKKOS_LAMBDA
 #else
-#define FLECSI_LAMBDA [=]
+#define FLECSI_LAMBDA [=] FLECSI_TARGET
 #endif
 
 namespace flecsi {
