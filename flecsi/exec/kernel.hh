@@ -136,8 +136,7 @@ parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
   (void)name;
   std::for_each(range.begin(),
     range.end(),
-    [f = std::forward<Lambda>(lambda)] FLECSI_TARGET(
-      auto && i) { return f(i); });
+    [f = std::forward<Lambda>(lambda)](auto && i) { return f(i); });
 #endif
 } // parallel_for
 

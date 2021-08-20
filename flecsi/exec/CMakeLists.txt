@@ -76,6 +76,17 @@ add_unit(interface
 
 endif()
 
+if (CMAKE_BUILD_TYPE)
+string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
+if("${build_type}" STREQUAL "DEBUG")
+add_unit(kernel
+    SOURCES
+      test/kernel.cc
+    THREADS 1
+  )
+endif()
+endif()
+
 add_unit(task
   SOURCES
     test/task.cc
@@ -88,17 +99,3 @@ add_unit(future
     test/future.cc
   THREADS 2
   )
-
-if (CMAKE_BUILD_TYPE)
-string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
-
-if("${build_type}" STREQUAL "DEBUG")
-
-  add_unit(kernel
-    SOURCES
-      test/kernel.cc
-    THREADS 1
-  )
-
-endif()
-endif()
