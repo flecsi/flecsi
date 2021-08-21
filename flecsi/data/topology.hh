@@ -54,6 +54,21 @@ struct rows : partition {
   explicit rows(region_base &);
 };
 
+// A set of prefixes of some rows in a region_base.
+// Often each is shared with a data::prefixes object (from copy.hh).
+struct borrow : partition {
+  // A prefix is represented by a backend-specific type:
+  static auto make(prefixes_base::row,
+    std::size_t r = color()); // "constructor"
+  using Value = decltype(make({}));
+
+  // Derives row choices from the single Value object (if any) in each row of
+  // the argument partition.
+  borrow(region_base &,
+    const partition &,
+    field_id_t,
+    completeness = incomplete);
+};
 #endif
 
 struct region : region_base {

@@ -105,6 +105,8 @@ using unique_index_partition = unique_handle<Legion::IndexPartition>;
 using unique_field_space = unique_handle<Legion::FieldSpace>;
 using unique_logical_region = unique_handle<Legion::LogicalRegion>;
 
+using rect = Legion::Rect<2>;
+
 // NB: n=0 works because Legion interprets inverted ranges as empty.
 inline Legion::coord_t
 upper(std::size_t n) {
@@ -153,8 +155,7 @@ named(const Legion::LogicalPartition & p, const char * n) {
 struct region {
   region(size2 s, const fields & fs, const char * name = nullptr)
     : index_space(named(run().create_index_space(ctx(),
-                          Legion::Rect<2>({0, 0},
-                            Legion::Point<2>(upper(s.first), upper(s.second)))),
+                          rect({0, 0}, {upper(s.first), upper(s.second)})),
         name)),
       field_space([&fs] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
@@ -274,7 +275,10 @@ public:
   }
 };
 
-template<bool R = true>
+/// \internal Common dependent partitioning facility.
+/// \tparam R use ranges (\c rect instead of \c Point<2>)
+/// \tparam D assume disjoint partitions
+template<bool R = true, bool D = R>
 struct partition : data::partition {
   partition(region & reg,
     const data::partition & src,
@@ -319,14 +323,25 @@ private:
             src.root(),
             fid,
             src.get_color_space(),
-            partitionKind(R ? disjoint : compute, cpt)),
+            partitionKind(D ? disjoint : compute, cpt)),
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
+struct borrow : partition<true, false> {
+  using Value = rect;
+
+  static Value make(prefixes_base::row r,
+    std::size_t c = run::context::instance().color()) {
+    const Legion::coord_t i = c;
+    return {{i, 0}, {i, upper(r)}};
+  }
+
+  using partition::partition;
+};
 } // namespace leg
 
 using region_base = leg::region;
-using leg::rows;
+using leg::rows, leg::borrow;
 
 } // namespace data
 } // namespace flecsi

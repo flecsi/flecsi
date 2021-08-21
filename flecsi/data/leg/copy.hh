@@ -8,8 +8,6 @@
 
 namespace flecsi::data {
 namespace leg {
-using rect = Legion::Rect<2>;
-
 struct halves : topo::specialization<topo::color, halves> {
   using Field = flecsi::field<rect>;
   static const Field::definition<halves> field;
@@ -89,8 +87,8 @@ private:
 
 // specialization of the partition constructor for prefixes being passed as a
 // first argument
-template<bool R>
-leg::partition<R>::partition(prefixes & reg,
+template<bool R, bool D>
+leg::partition<R, D>::partition(prefixes & reg,
   const data::partition & src,
   field_id_t fid,
   completeness cpt)
