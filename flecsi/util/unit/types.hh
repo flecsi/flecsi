@@ -62,6 +62,7 @@ struct state_t {
   state_t(std::string name) {
     name_ = name;
   } // initialize
+  state_t(state_t &&) = delete;
 
   ~state_t() {
     log::devel_guard guard(unit_tag);
