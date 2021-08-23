@@ -76,15 +76,10 @@ add_unit(interface
 
 endif()
 
-if (CMAKE_BUILD_TYPE)
-string(TOUPPER ${CMAKE_BUILD_TYPE} build_type)
-if("${build_type}" STREQUAL "DEBUG")
 add_unit(kernel
     SOURCES
       test/kernel.cc
   )
-endif()
-endif()
 
 add_unit(task
   SOURCES

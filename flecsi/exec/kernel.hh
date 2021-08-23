@@ -134,9 +134,7 @@ parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
     });
 #else
   (void)name;
-  std::for_each(range.begin(),
-    range.end(),
-    [f = std::forward<Lambda>(lambda)](auto && i) { return f(i); });
+  std::for_each(range.begin(), range.end(), lambda);
 #endif
 } // parallel_for
 
@@ -187,8 +185,7 @@ parallel_reduce(Range && range,
   T res = detail::identity_traits<R>::template value<T>;
   std::for_each(range.begin(),
     range.end(),
-    [f = std::forward<Lambda>(lambda), &res] FLECSI_TARGET(
-      auto && i) { return f(i, res); });
+    [f = std::forward<Lambda>(lambda), &res](auto && i) { return f(i, res); });
   return res;
 #endif
 
