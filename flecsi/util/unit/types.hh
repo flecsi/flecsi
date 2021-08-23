@@ -52,7 +52,7 @@ template<class T>
 struct not_fn { // default-constructed std::not_fn
   template<class... AA>
   bool operator()(AA &&... aa) const {
-    return T()(std::forward<AA>(aa)...);
+    return !T()(std::forward<AA>(aa)...);
   }
 };
 } // namespace detail
