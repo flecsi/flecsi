@@ -82,7 +82,6 @@ if("${build_type}" STREQUAL "DEBUG")
 add_unit(kernel
     SOURCES
       test/kernel.cc
-    THREADS 1
   )
 endif()
 endif()
