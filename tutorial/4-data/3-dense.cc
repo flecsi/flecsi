@@ -29,7 +29,7 @@ const field<double>::definition<canon, canon::cells> pressure;
 void
 init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
-  for(const auto c : t.entities<canon::cells>()) {
+  for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
   } // for
 } // init
@@ -37,7 +37,7 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   std::size_t off{0};
-  for(auto c : t.entities<canon::cells>()) {
+  for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
   } // for
 } // print

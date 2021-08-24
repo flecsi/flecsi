@@ -56,37 +56,12 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      plans_(make_plans(c,
+      plan_(make_plan(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())) {
     init_meta(c);
     init_policy_meta(c);
   }
-
-  struct meta_data {
-    std::uint32_t orientation;
-
-    using scoord = util::key_array<std::size_t, axes>;
-    using shypercube = std::array<scoord, 2>;
-
-    scoord global;
-    scoord offset;
-    scoord extents;
-    shypercube logical;
-    shypercube extended;
-  };
-
-  static inline const typename field<util::key_array<meta_data, index_spaces>,
-    data::single>::template definition<meta<Policy>>
-    meta_field;
-
-  static inline const typename field<typename Policy::meta_data,
-    data::single>::template definition<meta<Policy>>
-    policy_meta_field;
-
-  util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>, index_spaces>
-    plans_;
 
   Color colors() const {
     return part_.front().colors();
@@ -107,12 +82,23 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     typename Topo,
     typename Topo::index_space Space>
   void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    for(auto const & p : plans_.template get<Space>()) {
-      p->issue_copy(f.fid());
-    }
+    plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
+  struct meta_data {
+    std::uint32_t orientation;
+
+    using scoord = util::key_array<std::size_t, axes>;
+    using shypercube = std::array<scoord, 2>;
+
+    scoord global;
+    scoord offset;
+    scoord extents;
+    shypercube logical;
+    shypercube extended;
+  };
+
   template<auto... Value, std::size_t... Index>
   util::key_array<repartitioned, util::constants<Value...>> make_partitions(
     narray_base::coloring const & c,
@@ -126,45 +112,43 @@ private:
   }
 
   template<index_space S>
-  std::vector<std::unique_ptr<data::copy_plan>> make_plan(
+  data::copy_plan make_copy_plan(Color colors,
     std::vector<process_color> const & vpc,
     repartitioned & p,
     MPI_Comm const & comm) {
-    std::vector<std::unique_ptr<data::copy_plan>> plans;
 
-    for(auto pc : vpc) {
-      std::vector<std::size_t> num_intervals;
-      execute<idx_itvls, mpi>(pc, num_intervals, comm);
+    std::vector<std::size_t> num_intervals(colors, 0);
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
+    std::vector<
+      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
+      points;
 
-      // clang-format off
-      auto dest_task = [&pc, &comm](auto f) {
-        execute<set_dests, mpi>(f, pc.intervals, comm);
-      };
+    execute<idx_itvls, mpi>(vpc, num_intervals, intervals, points, comm);
 
-      auto ptrs_task = [&pc, &comm](auto f) {
-        execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-          f, pc.points, comm);
-      };
-      // clang-format on
+    // clang-format off
+    auto dest_task = [&intervals, &comm](auto f) {
+      execute<set_dests, mpi>(f, intervals, comm);
+    };
 
-      plans.emplace_back(std::make_unique<data::copy_plan>(
-        *this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()));
-    } // for
+    auto ptrs_task = [&points, &comm](auto f) {
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
+        f, points, comm);
+    };
+    // clang-format on
 
-    return plans;
+    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
   template<auto... Value, std::size_t... Index>
-  util::key_array<std::vector<std::unique_ptr<data::copy_plan>>,
-    util::constants<Value...>>
-  make_plans(narray_base::coloring const & c,
+  util::key_array<data::copy_plan, util::constants<Value...>> make_plan(
+    narray_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
     flog_assert(c.idx_colorings.size() == sizeof...(Value),
       c.idx_colorings.size()
         << " sizes for " << sizeof...(Value) << " index spaces");
-    return {
-      {make_plan<Value>(c.idx_colorings[Index], part_[Index], c.comm)...}};
+    return {{make_copy_plan<Value>(
+      c.colors, c.idx_colorings[Index], part_[Index], c.comm)...}};
   }
 
   static void set_meta_idx(meta_data & md,
@@ -218,6 +202,22 @@ private:
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
   }
+
+  /*--------------------------------------------------------------------------*
+    Private data members.
+   *--------------------------------------------------------------------------*/
+
+  static inline const typename field<util::key_array<meta_data, index_spaces>,
+    data::single>::template definition<meta<Policy>>
+    meta_field;
+
+  static inline const typename field<typename Policy::meta_data,
+    data::single>::template definition<meta<Policy>>
+    policy_meta_field;
+
+  util::key_array<repartitioned, index_spaces> part_;
+  util::key_array<data::copy_plan, index_spaces> plan_;
+
 }; // struct narray
 
 /*----------------------------------------------------------------------------*

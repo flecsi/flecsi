@@ -215,169 +215,202 @@ struct unstructured_base {
     and points, respectively, are filled with this information.
    */
 
+  /* FIXME: This is another place that needs multiaccessor support */
+
   template<PrivilegeCount N>
-  static void idx_itvls(index_coloring const & ic,
+  static void idx_itvls(std::vector<process_color> const & vpc,
     std::vector<std::size_t> & num_intervals,
-    std::vector<std::pair<std::size_t, std::size_t>> & intervals,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> &
-      src_points,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
       privilege_repeat<na, (N > 1)>>> fmap,
-    std::map<std::size_t, std::size_t> & rmap,
+    std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
-    std::vector<std::size_t> entities;
-
-    /*
-      Define the entity ordering from coloring. This version uses the
-      mesh ordering, i.e., the entities are sorted by ascending mesh id.
-     */
-
-    for(auto e : ic.owned) {
-      entities.push_back(e);
-    } // for
 
     auto [rank, size] = util::mpi::info(comm);
 
-    std::vector<std::vector<std::size_t>> requests(size);
-    for(auto e : ic.ghost) {
-      entities.push_back(e.id);
-      requests[e.color].emplace_back(e.id);
-    } // for
+    rmaps.resize(vpc.size());
+    intervals.resize(vpc.size());
+    points.resize(vpc.size());
+    std::vector<std::size_t> local_itvls(vpc.size());
+    std::size_t co{0};
+    for(auto pc : vpc) {
+      std::vector<std::size_t> entities;
+      auto & ic = pc.coloring;
+      auto & itvls = intervals[co];
+      auto & pts = points[co];
 
-    /*
-      This call is what actually establishes the entity ordering by
-      sorting the mesh entity ids.
-     */
+      /*
+        Define the entity ordering from coloring. This version uses the
+        mesh ordering, i.e., the entities are sorted by ascending mesh id.
+       */
 
-    util::force_unique(entities);
+      for(auto e : ic.owned) {
+        entities.push_back(e);
+      } // for
 
-    /*
-      Initialize the forward and reverse maps.
-     */
+      std::vector<std::vector<std::size_t>> requests(size);
+      for(auto e : ic.ghost) {
+        entities.push_back(e.id);
+        requests[e.color].emplace_back(e.id);
+      } // for
 
-    flog_assert(entities.size() == (ic.owned.size() + ic.ghost.size()),
-      "entities size(" << entities.size() << ") doesn't match sum of owned("
-                       << ic.owned.size() << ") and ghost(" << ic.ghost.size()
-                       << ")");
+      /*
+        This call is what actually establishes the entity ordering by
+        sorting the mesh entity ids.
+       */
 
-    std::size_t off{0};
-    rmap.clear();
-    for(auto e : entities) {
-      fmap[off] = e;
-      rmap[e] = off++;
-    }
+      util::force_unique(entities);
 
-    /*
-      After the entity order has been established, we need to create
-      a lookup table for local ghost offsets.
-     */
+      /*
+        Initialize the forward and reverse maps.
+       */
 
-    std::map<std::size_t, std::size_t> ghost_offsets;
-    for(auto e : ic.ghost) {
-      auto it = std::find(entities.begin(), entities.end(), e.id);
-      flog_assert(it != entities.end(), "ghost entity doesn't exist");
-      ghost_offsets[e.id] = std::distance(entities.begin(), it);
-    } // for
+      flog_assert(entities.size() == (ic.owned.size() + ic.ghost.size()),
+        "entities size(" << entities.size() << ") doesn't match sum of owned("
+                         << ic.owned.size() << ") and ghost(" << ic.ghost.size()
+                         << ")");
 
-    /*
-      We also need to create a lookup table so that we can provide
-      local shared offset information to other processes that request it.
-     */
+      std::size_t off{0};
+      auto & rmap = rmaps[co];
+      rmap.clear();
+      for(auto e : entities) {
+        fmap[off] = e;
+        rmap.try_emplace(e, off++);
+      }
 
-    std::map<std::size_t, std::size_t> shared_offsets;
-    for(auto & e : ic.shared) {
-      auto it = std::find(entities.begin(), entities.end(), e.id);
-      flog_assert(it != entities.end(), "shared entity doesn't exist");
-      shared_offsets[e.id] = std::distance(entities.begin(), it);
-    } // for
+      /*
+        After the entity order has been established, we need to create a lookup
+        table for local ghost offsets.
+       */
 
-    /*
-      Send/Receive requests for shared offsets with other processes.
-     */
+      std::map<std::size_t, std::size_t> ghost_offsets;
+      for(auto e : ic.ghost) {
+        auto it = std::find(entities.begin(), entities.end(), e.id);
+        flog_assert(it != entities.end(), "ghost entity doesn't exist");
+        ghost_offsets[e.id] = std::distance(entities.begin(), it);
+      } // for
 
-    auto requested = util::mpi::all_to_allv(
-      [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+      /*
+        We also need to create a lookup table so that we can provide
+        local shared offset information to other processes that request it.
+       */
 
-    /*
-      Fulfill the requests that we received from other processes, i.e.,
-      provide the locaL offset for the requested mesh ids.
-     */
+      std::map<std::size_t, std::size_t> shared_offsets;
+      for(auto & e : ic.shared) {
+        auto it = std::find(entities.begin(), entities.end(), e.id);
+        flog_assert(it != entities.end(), "shared entity doesn't exist");
+        shared_offsets[e.id] = std::distance(entities.begin(), it);
+      } // for
 
-    std::vector<std::vector<std::size_t>> fulfills(size);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(auto c : rv) {
-          fulfills[r].emplace_back(shared_offsets[c]);
+      /*
+        Send/Receive requests for shared offsets with other processes.
+       */
+
+      auto requested = util::mpi::all_to_allv(
+        [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+
+      /*
+        Fulfill the requests that we received from other processes, i.e.,
+        provide the locaL offset for the requested shared mesh ids.
+       */
+
+      std::vector<std::vector<std::size_t>> fulfills(size);
+      {
+        int r = 0;
+        for(const auto & rv : requested) {
+          for(auto c : rv) {
+            fulfills[r].emplace_back(shared_offsets[c]);
+          } // for
+          ++r;
         } // for
+      } // scope
+
+      /*
+        Send/Receive the local offset information with other processes.
+       */
+
+      auto fulfilled = util::mpi::all_to_allv(
+        [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
+        comm);
+      /*
+        Setup source pointers.
+       */
+
+      int r = 0;
+      for(const auto & rv : fulfilled) {
+        if(r == rank) {
+          ++r;
+          continue;
+        } // if
+
+        auto & cp = pts[r];
+        cp.reserve(rv.size());
+        auto & request = requests[r];
+
+        std::size_t i{0};
+        for(auto v : rv) {
+          cp.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
+          ++i;
+        }
         ++r;
       } // for
-    } // scope
 
-    /*
-      Send/Receive the local offset information with other processes.
-     */
+      /*
+        Compute local intervals.
+       */
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
-    /*
-      Setup source pointers.
-     */
-
-    int r = 0;
-    for(const auto & rv : fulfilled) {
-      if(r == rank) {
-        ++r;
-        continue;
-      } // if
-
-      auto & points = src_points[r];
-      points.reserve(rv.size());
-      auto & request = requests[r];
-
-      std::size_t i{0};
-      for(auto v : rv) {
-        points.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
-        ++i;
-      }
-      ++r;
-    } // for
-
-    /*
-      Compute local intervals.
-     */
-
-    auto g = ghost_offsets.begin();
-    std::size_t begin = 0, run = 0;
-    for(; g != ghost_offsets.end(); ++g) {
-      if(!run || g->second != begin + run) {
-        if(run) {
-          intervals.emplace_back(std::make_pair(begin, begin + run));
-          begin = g->second;
+      auto g = ghost_offsets.begin();
+      std::size_t begin = 0, run = 0;
+      for(; g != ghost_offsets.end(); ++g) {
+        if(!run || g->second != begin + run) {
+          if(run) {
+            itvls.emplace_back(std::make_pair(begin, begin + run));
+            begin = g->second;
+          }
+          run = 1;
         }
-        run = 1;
-      }
-      else {
-        ++run;
-      }
-    } // for
+        else {
+          ++run;
+        }
+      } // for
 
-    intervals.emplace_back(std::make_pair(begin, begin + run));
-    std::size_t local_itvls = intervals.size();
+      itvls.emplace_back(std::make_pair(begin, begin + run));
+      local_itvls[co] = itvls.size();
+
+      ++co;
+    } // for
 
     /*
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gatherv(local_itvls, comm);
+    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
+
+    util::color_map cm(size,
+      num_intervals.size() /* colors */,
+      vpc[0].entities /* global entities */);
+    std::size_t p{0};
+    for(auto pv : global_itvls) {
+      std::size_t co{0};
+      for(auto i : pv) {
+        num_intervals[cm.color_id(p, co++)] = i;
+      }
+      ++p;
+    }
   } // idx_itvls
 
+  /* TODO: Need multiaccessor */
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
+      intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
+    flog_assert(a.span().size() == intervals[0].size(),
+      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
+                                        << intervals[0].size() << ")");
     std::size_t i{0};
-    for(auto it : intervals) {
+    for(auto it : intervals[0]) {
       a[i++] = data::intervals::make(it, process());
     } // for
   }
@@ -385,10 +418,10 @@ struct unstructured_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
-      shared_ptrs,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : shared_ptrs) {
+    for(auto const & si : points[0]) {
       for(auto p : si.second) {
         // si.first: owner
         // p.first: local ghost offset

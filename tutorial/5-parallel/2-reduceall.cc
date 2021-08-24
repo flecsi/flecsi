@@ -32,7 +32,7 @@ const field<double>::definition<canon, canon::cells> pressure;
 void
 init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
-  for(const auto c : t.entities<canon::cells>()) {
+  for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
   } // for
 } // init
@@ -40,8 +40,7 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 #if defined(FLECSI_ENABLE_KOKKOS)
 void
 reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
-  auto res = reduceall(
-    c, up, t.entities<canon::cells>(), exec::fold::max, double, "reduce1") {
+  auto res = reduceall(c, up, t.cells(), exec::fold::max, double, "reduce1") {
     up = p[c];
   }; // forall
 
@@ -52,7 +51,7 @@ reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 void
 reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   auto res = flecsi::exec::parallel_reduce<exec::fold::max, double>(
-    t.entities<canon::cells>(),
+    t.cells(),
     KOKKOS_LAMBDA(auto c, double & up) { up = p[c]; },
     std::string("reduce2"));
 
@@ -65,7 +64,7 @@ reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   std::size_t off{0};
-  for(auto c : t.entities<canon::cells>()) {
+  for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
   } // for
 } // print

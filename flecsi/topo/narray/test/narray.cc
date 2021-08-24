@@ -42,10 +42,11 @@ coloring_driver() {
 
     mesh3d::coloring_definition cd = {
       colors, indices, hdepths, bdepths, periodic, false};
-    auto [nc, coloring, partitions] =
+    auto [nc, ne, coloring, partitions] =
       topo::narray_utils::color(cd, MPI_COMM_WORLD);
 
-    auto avpc = topo::narray_utils::color_auxiliary(coloring, extend);
+    auto [avpc, aprts] =
+      topo::narray_utils::color_auxiliary(ne, nc, coloring, extend);
 
     std::stringstream ss;
     ss << "primary" << std::endl;
@@ -57,6 +58,9 @@ coloring_driver() {
       ss << p << std::endl;
     } // for
     flog(warn) << ss.str() << std::endl;
+
+    flog(warn) << log::container{partitions} << std::endl;
+    flog(warn) << log::container{aprts} << std::endl;
   };
 }
 

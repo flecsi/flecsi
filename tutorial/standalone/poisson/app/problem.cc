@@ -15,6 +15,6 @@ using namespace flecsi;
 int
 poisson::action::problem() {
   annotation::rguard<problem_region> guard;
-  execute<task::eggcarton>(m, ud(m), fd(m), sd(m));
+  execute<task::eggcarton>(m, ud(m), fd(m), sd(m), Aud(m));
   return 0;
 } // problem

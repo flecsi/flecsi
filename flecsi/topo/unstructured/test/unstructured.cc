@@ -35,6 +35,9 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
   enum entity_list { special };
   using entity_lists = list<entity<vertices, has<special>>>;
 
+  template<auto>
+  static constexpr PrivilegeCount privilege_count = 3;
+
   /*--------------------------------------------------------------------------*
     Interface
    *--------------------------------------------------------------------------*/
@@ -92,10 +95,26 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     Initialization
    *--------------------------------------------------------------------------*/
 
+  template<std::size_t VI>
+  static void init_c2v(field<util::id, data::ragged>::mutator<rw, rw, na> c2v,
+    std::vector<topo::unstructured_impl::process_color> const & pc,
+    std::vector<std::map<std::size_t, std::size_t>> const & maps) {
+    (void)c2v;
+    (void)pc;
+    (void)maps;
+  }
+
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
-    (void)s;
-    (void)c;
+    flog(warn) << log::container{c.partitions} << std::endl;
+
+    // auto & c2v =
+    // s->connect_.get<unstructured::cells>().get<unstructured::vertices>();
+    auto & c2v =
+      s->get_connectivity<unstructured::cells, unstructured::vertices>();
+    auto maps = std::move(s)->reverse_maps<unstructured::cells>();
+    execute<init_c2v<unstructured::vertices>, mpi>(
+      c2v(s), c.idx_spaces[unstructured::cells], maps);
   } // initialize
 
 }; // struct unstructured

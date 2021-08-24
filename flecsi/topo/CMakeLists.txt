@@ -137,6 +137,7 @@ add_unit(narray4d
     narray/test/narray_tasks.hh
   THREADS 16
 )
+
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
