@@ -1308,7 +1308,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
     return {type::base_type::parameter(r),
-      r.get_partition(r.topology().ragged).growth};
+      r.get_partition(r.topology().ragged).grow()};
   }
 };
 template<class T, Privileges P>

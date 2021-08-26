@@ -55,6 +55,10 @@ struct with_size {
   }
   resize::core sz;
   resize::policy growth;
+  // For compatibility with borrow_category:
+  const resize::policy & grow() const {
+    return growth;
+  }
 };
 
 } // namespace flecsi::topo
