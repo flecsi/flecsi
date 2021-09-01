@@ -901,8 +901,8 @@ intersect_connectivity(const crs & c2f, const crs & f2e) {
           edges.push_back(f2e.indices[ei]);
         }
       }
-      c2e.add_row(edges.begin(), edges.end());
     }
+    c2e.add_row(edges.begin(), edges.end());
   }
 
   return c2e;
