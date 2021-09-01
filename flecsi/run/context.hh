@@ -51,6 +51,9 @@ struct topology_slot;
 
 namespace topo {
 struct global_base;
+template<class Topo>
+struct ragged;
+struct with_ragged_base;
 } // namespace topo
 
 inline log::devel_tag context_tag("context");
@@ -72,7 +75,7 @@ enum status : int {
 struct index_space_info_t {
   const data::region * region;
   const data::partition * partition;
-  const data::fields * fields;
+  const data::fields fields;
   std::string index_type;
 };
 
@@ -511,12 +514,7 @@ struct context {
 
   template<class Topo>
   void add_topology(typename data::topology_slot<Topo> & slot) {
-    // global topology doesn't define get_partitions, so skip for now
-    constexpr bool is_global =
-      std::is_same_v<typename Topo::base, topo::global_base>;
-    if constexpr(!is_global) {
-      add_index_spaces<Topo>(slot, typename Topo::index_spaces());
-    }
+    add_index_spaces<Topo>(slot, typename Topo::index_spaces());
   }
 
   const std::vector<index_space_info_t> & get_index_space_info() const {
@@ -566,23 +564,42 @@ protected:
 
 private:
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  index_space_info_t make_index_space_info(typename Topo::slot & slot) {
+  void add_fields(typename Topo::slot & slot) {
     auto & fs = get_field_info_store<Topo, Index>();
 
-    return index_space_info_t{&(slot->template get_region<Index>()),
-      // TODO:  deal with ragged case, where different fields have
-      // different partitions
+    index_space_info_t isi{&(slot->template get_region<Index>()),
       &(slot->template get_partition<Index>(field_id_t())),
-      &fs,
+      fs,
       util::type<Topo>() + '[' + std::to_string(Index) + ']'};
+    index_space_info_vector_.push_back(isi);
+  }
+
+  template<class Topo, typename Topo::index_space Index>
+  void add_ragged_fields(typename Topo::slot & slot) {
+    auto & fs = get_field_info_store<topo::ragged<Topo>, Index>();
+    // each field has its own partition, so must store them separately
+    for(const auto fip : fs) {
+      index_space_info_t isi{&(slot->ragged.template get_region<Index>()),
+        &(slot->ragged.template get_partition<Index>(fip->fid)),
+        {fip},
+        util::type<Topo>() + '[' + std::to_string(Index) + "]::ragged"};
+      index_space_info_vector_.push_back(isi);
+    }
   }
 
   template<class Topo, typename Topo::index_space... Index>
   void add_index_spaces(typename Topo::slot & slot,
     util::constants<Index...> /* to deduce pack */) {
-    (index_space_info_vector_.push_back(
-       make_index_space_info<Topo, Index>(slot)),
-      ...);
+    constexpr bool is_global =
+      std::is_same_v<topo::global_base, typename Topo::base>;
+    constexpr bool has_ragged =
+      std::is_base_of_v<topo::with_ragged_base, typename Topo::core>;
+    if constexpr(!is_global) {
+      (add_fields<Topo, Index>(slot), ...);
+      if constexpr(has_ragged) {
+        (add_ragged_fields<Topo, Index>(slot), ...);
+      }
+    }
   }
 
   /*--------------------------------------------------------------------------*

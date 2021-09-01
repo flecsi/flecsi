@@ -147,8 +147,10 @@ struct ragged : specialization<ragged_category, ragged<T>> {
     T::template privilege_count<S>;
 };
 
+struct with_ragged_base {};
+
 template<class P>
-struct with_ragged {
+struct with_ragged : with_ragged_base {
   with_ragged(Color n) : ragged(n) {}
 
   typename topo::ragged<P>::core ragged;
