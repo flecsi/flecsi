@@ -20,7 +20,7 @@ set(exec_HEADERS
   backend.hh
   buffers.hh
   fold.hh
-  kernel_interface.hh
+  kernel.hh
   launch.hh
   prolog.hh
   task_attributes.hh
@@ -76,18 +76,10 @@ add_unit(interface
 
 endif()
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-if(ENABLE_KOKKOS)
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-  add_unit(kokkos
+add_unit(kernel
     SOURCES
-      test/kokkos.cc
-    THREADS
-     2 #warning 2 is required when running with CUDA since color topology has 2 colors
+      test/kernel.cc
   )
-endif()
-endif()
-endif()
 
 add_unit(task
   SOURCES

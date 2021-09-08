@@ -17,10 +17,7 @@
 
 #include "flecsi/exec/backend.hh"
 #include "flecsi/exec/fold.hh"
-
-#if defined(FLECSI_ENABLE_KOKKOS)
-#include "flecsi/exec/kernel_interface.hh"
-#endif
+#include "flecsi/exec/kernel.hh"
 
 #include "flecsi/flog.hh"
 #include "flecsi/run/backend.hh"
