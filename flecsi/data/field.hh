@@ -299,8 +299,9 @@ using field_accessor = // for convenience with decltype
 // automatically initialized with its ID rather than having to be serialized.
 template<const auto & F, Privileges Priv>
 struct accessor_member : field_accessor<decltype(F), Priv> {
-  accessor_member() : accessor_member::accessor(F.fid) {}
-  using accessor_member::accessor::operator=; // for single
+  using base_type = typename accessor_member::accessor;
+  accessor_member() : base_type(F.fid) {}
+  using base_type::operator=; // for single
 
   template<class G>
   void topology_send(G && g) {
@@ -314,7 +315,7 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
       [&s](auto & t) { return F(std::invoke(std::forward<S>(s), t.get())); });
   }
 
-  typename accessor_member::accessor & get_base() {
+  base_type & get_base() {
     return *this;
   }
 };
