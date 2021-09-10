@@ -232,7 +232,7 @@ struct io_interface {
     int idx = 0;
     for(auto & isd : isd_vector) {
       checkpoint_launcher.add_region_requirement(
-        Legion::RegionRequirement(isd.partition->logical_partition,
+        Legion::RegionRequirement(isd.get_partition()->logical_partition,
           0 /*projection ID*/,
           W ? READ_ONLY : WRITE_DISCARD,
           EXCLUSIVE,

@@ -74,7 +74,7 @@ enum status : int {
 
 struct index_space_info_t {
   const data::region * region;
-  const data::partition * partition;
+  std::function<const data::partition *()> get_partition;
   const data::fields fields;
   std::string index_type;
 };
@@ -568,7 +568,9 @@ private:
     auto & fs = get_field_info_store<Topo, Index>();
 
     index_space_info_t isi{&(slot->template get_region<Index>()),
-      &(slot->template get_partition<Index>(field_id_t())),
+      [=, &slot]() {
+        return &(slot->template get_partition<Index>(field_id_t()));
+      },
       fs,
       util::type<Topo>() + '[' + std::to_string(Index) + ']'};
     index_space_info_vector_.push_back(isi);
@@ -580,7 +582,9 @@ private:
     // each field has its own partition, so must store them separately
     for(const auto fip : fs) {
       index_space_info_t isi{&(slot->ragged.template get_region<Index>()),
-        &(slot->ragged.template get_partition<Index>(fip->fid)),
+        [=, &slot]() {
+          return &(slot->ragged.template get_partition<Index>(fip->fid));
+        },
         {fip},
         util::type<Topo>() + '[' + std::to_string(Index) + "]::ragged"};
       index_space_info_vector_.push_back(isi);

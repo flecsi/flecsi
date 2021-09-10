@@ -186,7 +186,5 @@ restart_driver() {
 }
 
 // Run test twice, once with and once without attach.
-// TODO:  either of these passes by itself, but if both run,
-//        the second fails - why?
 flecsi::unit::driver<restart_driver<true>> driver_w;
-// flecsi::unit::driver<restart_driver<false>> driver_wo;
+flecsi::unit::driver<restart_driver<false>> driver_wo;
