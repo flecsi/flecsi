@@ -205,8 +205,21 @@ struct detail::base<array_category> {
   using type = array_base;
 };
 
+// Specializations of this template are used for distinguished entity lists.
 template<class P>
 struct array : topo::specialization<array_category, array<P>> {};
+
+// The simplest topology that behaves as expected by application code.
+struct user_base : array_base {};
+template<class P>
+struct user : user_base, array_category<P>, with_ragged<P> {
+  explicit user(const coloring & c)
+    : user::array_category(c), user::with_ragged(c.size()) {}
+};
+template<>
+struct detail::base<user> {
+  using type = user_base;
+};
 
 /*!
   The \c index type allows users to register data on an
