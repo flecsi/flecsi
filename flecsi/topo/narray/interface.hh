@@ -216,22 +216,22 @@ struct narray<Policy>::access {
     range::global>;
 
   template<index_space S, axis A>
-  bool is_low() {
+  bool is_low() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::low;
   }
 
   template<index_space S, axis A>
-  bool is_high() {
+  bool is_high() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::high;
   }
 
   template<axis A>
-  bool is_interior() {
+  bool is_interior() const {
     return !is_low<A>() && !is_high<A>();
   }
 
   template<index_space S, axis A, range SE>
-  std::size_t size() {
+  std::size_t size() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
@@ -267,7 +267,7 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, axis A, range SE>
-  auto extents() {
+  auto extents() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid extents identifier");
     if constexpr(SE == range::logical) {
@@ -301,7 +301,7 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, axis A, range SE>
-  std::size_t offset() {
+  std::size_t offset() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
@@ -331,13 +331,13 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, typename T, Privileges P>
-  auto mdspan(data::accessor<data::dense, T, P> const & a) {
+  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
       s.data(), meta_->extents[S]);
   }
   template<index_space S, typename T, Privileges P>
-  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
     return util::mdcolex<
       typename std::remove_reference_t<decltype(a)>::element_type,
       dimension>(a.span().data(), meta_->extents[S]);
