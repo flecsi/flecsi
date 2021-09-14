@@ -52,7 +52,7 @@ do
 			echo "  -u, --user     Enable user mode."
 			echo "  -t, --tutorial Disable FLOG Developer Mode."
 			echo ""
-			echo "Compilers: clang, gnu, intel."
+			echo "Compilers: clang, gnu, hip, intel."
 			echo "(default compiler is clang)."
 			echo ""
 			echo "Runtimes: legion, mpi."
@@ -90,6 +90,12 @@ do
       SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=5 $warn"
       SCRIPT_CXX_COMPILER=clang++
       SCRIPT_CXX_FLAGS="$SCRIPT_C_FLAGS -Wno-unknown-cuda-version"
+    ;;
+    hip)
+      SCRIPT_C_COMPILER=clang
+      SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=5 $warn"
+      SCRIPT_CXX_COMPILER=hipcc
+      SCRIPT_CXX_FLAGS="$SCRIPT_C_FLAGS"
     ;;
     gnu)
       SCRIPT_C_COMPILER=gcc

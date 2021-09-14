@@ -544,7 +544,8 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
       MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
 
     v.off.resize(size);
-    std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
+    v.off[0] = 0;
+    std::partial_sum(v.sz.begin(), v.sz.end() - 1, v.off.begin() + 1);
 
     v.data.resize(v.off.back() + v.sz.back());
     {
