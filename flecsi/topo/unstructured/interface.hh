@@ -27,7 +27,6 @@
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/dcrs.hh"
 #include "flecsi/util/set_utils.hh"
-#include "flecsi/util/tuple_visitor.hh"
 
 #include <map>
 #include <utility>
