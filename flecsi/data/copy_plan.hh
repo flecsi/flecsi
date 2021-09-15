@@ -60,14 +60,13 @@ struct copy_plan {
       // destination partition which supposed to be contiguous
       dest_(p,
         dest_ptrs_,
-        (std::forward<D>(dests)(detail::intervals::field(dest_ptrs_)),
-          detail::intervals::field.fid),
+        detail::intervals::field(dest_ptrs_).use(std::forward<D>(dests)).fid(),
         incomplete),
       // From the pointers we feed in the destination partition
       // we create the source partition
       src_partition_(p,
         dest_,
-        (std::forward<F>(src)(pointers<P, S>(t)), pointers<P, S>.fid),
+        pointers<P, S>(t).use(std::forward<F>(src)).fid(),
         incomplete),
       engine(src_partition_, dest_, pointers<P, S>.fid) {}
 

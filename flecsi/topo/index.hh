@@ -37,11 +37,9 @@ struct repartition : with_size, data::prefixes {
   // consider using make_partial.
   template<class F = decltype((zero::partial))>
   repartition(data::region & r, F && f = zero::partial)
-    : with_size(r.size().first), prefixes(r, [&] {
-        const auto r = sizes();
-        execute<fill<std::decay_t<F>>>(r, std::forward<F>(f));
-        return r;
-      }()) {}
+    : with_size(r.size().first), prefixes(r, sizes().use([&f](auto ref) {
+        execute<fill<std::decay_t<F>>>(ref, std::forward<F>(f));
+      })) {}
   void resize() { // apply sizes stored in the field
     update(sizes());
   }
