@@ -66,7 +66,7 @@ enum status : int {
   control_model_sorted,
   clean, // greater than this implies an error
   command_line_error,
-  error, // add specific error modes
+  error // add specific error modes
 }; // initialization_codes
 
 struct index_space_info_t {

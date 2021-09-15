@@ -34,7 +34,7 @@ inline const char * operator*(cp control_point) {
   flog_fatal("invalied control point");
 }
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
   struct node_policy {};

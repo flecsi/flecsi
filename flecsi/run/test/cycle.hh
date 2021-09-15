@@ -49,7 +49,7 @@ inline const char * operator*(cp control_point) {
 inline int step{0};
 inline int substep{0};
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
 
