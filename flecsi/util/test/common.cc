@@ -233,7 +233,8 @@ common() {
     // ------------------------
 
 #ifdef __GNUG__
-#ifdef __PPC64__
+
+#if defined(__PPC64__) && !defined(_ARCH_PWR9)
     EXPECT_TRUE(UNIT_EQUAL_BLESSED("common.blessed.ppc"));
 #else
     EXPECT_TRUE(UNIT_EQUAL_BLESSED("common.blessed.gnug"));

@@ -52,7 +52,7 @@ template<class T>
 struct not_fn { // default-constructed std::not_fn
   template<class... AA>
   bool operator()(AA &&... aa) const {
-    return T()(std::forward<AA>(aa)...);
+    return !T()(std::forward<AA>(aa)...);
   }
 };
 } // namespace detail
@@ -62,6 +62,7 @@ struct state_t {
   state_t(std::string name) {
     name_ = name;
   } // initialize
+  state_t(state_t &&) = delete;
 
   ~state_t() {
     log::devel_guard guard(unit_tag);

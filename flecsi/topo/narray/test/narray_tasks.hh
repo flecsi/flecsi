@@ -31,26 +31,30 @@ field_helper(typename mesh<D>::template accessor<ro> m,
   F && fvalue) {
   auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
 
+  // auto x=  m.template extents<mesh1d::axis::x_axis>();
   if constexpr(D == 1) {
-    for(auto i : m.template extents<mesh1d::axis::x_axis>()) {
+    forall(i, m.template extents<mesh1d::axis::x_axis>(), "field_helper 1d") {
       fvalue(c[i]);
-    } // for
+    }; // for
   }
   else if constexpr(D == 2) {
-    for(auto j : m.template extents<mesh2d::axis::y_axis>()) {
-      for(auto i : m.template extents<mesh2d::axis::x_axis>()) {
+    auto x = m.template extents<mesh2d::axis::x_axis>();
+    forall(j, m.template extents<mesh2d::axis::y_axis>(), "field_helper 2d") {
+      for(auto i : x) {
         fvalue(c[j][i]);
       } // for
-    } // for
+    }; // for
   }
   else {
-    for(auto k : m.template extents<mesh3d::axis::z_axis>()) {
-      for(auto j : m.template extents<mesh3d::axis::y_axis>()) {
-        for(auto i : m.template extents<mesh3d::axis::x_axis>()) {
+    auto x = m.template extents<mesh3d::axis::x_axis>();
+    auto y = m.template extents<mesh3d::axis::y_axis>();
+    forall(k, m.template extents<mesh3d::axis::z_axis>(), "field_helper 3d") {
+      for(auto j : y) {
+        for(auto i : x) {
           fvalue(c[k][j][i]);
         } // for
       } // for
-    } // for
+    }; // for
   }
 } // field_helper
 

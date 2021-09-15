@@ -110,9 +110,9 @@ narray_driver() {
       // coloring1.allocate(index_definitions);
       coloring1.allocate(cd);
       m1.allocate(coloring1.get());
-      execute<init_field<1>>(m1, f1(m1));
+      execute<init_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
-      execute<update_field<1>>(m1, f1(m1));
+      execute<update_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<check_mesh_field<1>>(m1, f1(m1));
     } // scope
@@ -133,9 +133,9 @@ narray_driver() {
 
       coloring2.allocate(cd);
       m2.allocate(coloring2.get());
-      execute<init_field<2>>(m2, f2(m2));
+      execute<init_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
-      execute<update_field<2>>(m2, f2(m2));
+      execute<update_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
       execute<check_mesh_field<2>>(m2, f2(m2));
 
@@ -156,9 +156,9 @@ narray_driver() {
 
       coloring3.allocate(cd);
       m3.allocate(coloring3.get());
-      execute<init_field<3>>(m3, f3(m3));
+      execute<init_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
-      execute<update_field<3>>(m3, f3(m3));
+      execute<update_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
       execute<check_mesh_field<3>>(m3, f3(m3));
     } // scope
