@@ -102,7 +102,8 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   }
   template<class F>
   void send(F && f) {
-    f(get_base(), [](const auto & r) { return r.template cast<dense>(); });
+    std::forward<F>(f)(
+      get_base(), [](const auto & r) { return r.template cast<dense>(); });
   }
 
 private:
@@ -169,7 +170,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   }
   template<class F>
   void send(F && f) {
-    f(get_base(), [](const auto & r) {
+    std::forward<F>(f)(get_base(), [](const auto & r) {
       // TODO: use just one task for all fields
       if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
         r.get_region().cleanup(r.fid(), [r] { detail::destroy<P>(r); });
@@ -248,7 +249,7 @@ struct ragged_accessor
         topo::ragged<typename R::Topology>,
         R::space>({i, 0, {}}, t);
     });
-    f(get_offsets(), [](const auto & r) {
+    std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
       r.get_region().template ghost<privilege_pack<wo, wo>>(r.fid());
       return r.template cast<dense, Offset>();
@@ -611,7 +612,7 @@ public:
   template<class F>
   void send(F && f) {
     f(get_base(), util::identity());
-    f(get_size(), [](const auto & r) {
+    std::forward<F>(f)(get_size(), [](const auto & r) {
       return r.get_partition(r.topology().ragged).sizes();
     });
     if(over)
@@ -747,7 +748,7 @@ public:
   }
   template<class F>
   void send(F && f) {
-    f(get_base(),
+    std::forward<F>(f)(get_base(),
       [](const auto & r) { return r.template cast<ragged, value_type>(); });
   }
 };
@@ -952,7 +953,7 @@ public:
   }
   template<class F>
   void send(F && f) {
-    f(get_base(), [](const auto & r) {
+    std::forward<F>(f)(get_base(), [](const auto & r) {
       return r.template cast<ragged, typename base_row::value_type>();
     });
   }

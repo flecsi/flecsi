@@ -35,11 +35,11 @@ struct repartition : with_size, data::prefixes {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
-  template<class F = decltype(zero::partial)>
-  repartition(data::region & r, F f = zero::partial)
+  template<class F = decltype((zero::partial))>
+  repartition(data::region & r, F && f = zero::partial)
     : with_size(r.size().first), prefixes(r, [&] {
         const auto r = sizes();
-        execute<fill<F>>(r, f);
+        execute<fill<std::decay_t<F>>>(r, std::forward<F>(f));
         return r;
       }()) {}
   void resize() { // apply sizes stored in the field
@@ -48,8 +48,8 @@ struct repartition : with_size, data::prefixes {
 
 private:
   template<class F>
-  static void fill(resize::Field::accessor<wo> a, const F & f) {
-    a = f(run::context::instance().color());
+  static void fill(resize::Field::accessor<wo> a, F f) {
+    a = std::move(f)(run::context::instance().color());
   }
 };
 
