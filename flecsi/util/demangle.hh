@@ -34,7 +34,7 @@ std::string demangle(const char * const name);
 /*!
   Return the demangled name of the type T.
 
-  @tparam T The type.
+  @tparam T the type (references and cv-qualification ignored)
 
   @ingroup utils
  */
