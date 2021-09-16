@@ -46,7 +46,15 @@ namespace detail {
 template<class = void>
 struct task_param {};
 template<class P, class A, class = void> // A is a reference type
-struct replace_argument {
+struct replace_argument;
+// Allow specialization as well as use of convert_tag:
+template<class T>
+struct must_convert
+  : std::integral_constant<bool, std::is_base_of_v<data::convert_tag, T>> {};
+template<class P, class A>
+struct replace_argument<P,
+  A,
+  std::enable_if_t<!must_convert<std::decay_t<A>>::value>> {
   static A replace(A a) {
     return static_cast<A>(a);
   }
@@ -226,6 +234,9 @@ struct detail::task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {
     return {};
   }
+};
+template<class R>
+struct detail::must_convert<future<R, launch_type_t::index>> : std::true_type {
 };
 
 template<class P>

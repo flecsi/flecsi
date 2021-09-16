@@ -128,8 +128,8 @@ struct state_t {
   }
 
   template<class F>
-  int operator->*(F f) { // highest binary precedence
-    f();
+  int operator->*(F && f) { // highest binary precedence
+    std::forward<F>(f)();
     return result_;
   }
 

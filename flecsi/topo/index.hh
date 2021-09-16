@@ -35,21 +35,19 @@ struct repartition : with_size, data::prefixes {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
-  template<class F = decltype(zero::partial)>
-  repartition(data::region & r, F f = zero::partial)
-    : with_size(r.size().first), prefixes(r, [&] {
-        const auto r = sizes();
-        execute<fill<F>>(r, f);
-        return r;
-      }()) {}
+  template<class F = decltype((zero::partial))>
+  repartition(data::region & r, F && f = zero::partial)
+    : with_size(r.size().first), prefixes(r, sizes().use([&f](auto ref) {
+        execute<fill<std::decay_t<F>>>(ref, std::forward<F>(f));
+      })) {}
   void resize() { // apply sizes stored in the field
     update(sizes());
   }
 
 private:
   template<class F>
-  static void fill(resize::Field::accessor<wo> a, const F & f) {
-    a = f(run::context::instance().color());
+  static void fill(resize::Field::accessor<wo> a, F f) {
+    a = std::move(f)(run::context::instance().color());
   }
 };
 
@@ -89,7 +87,7 @@ struct ragged_category : ragged_base {
   using index_spaces = typename P::index_spaces;
   using index_space = typename P::index_space;
 
-  ragged_category(coloring c) : part(make_partitions(c, index_spaces())) {}
+  ragged_category(coloring c) : ragged_category(c, index_spaces()) {}
 
   Color colors() const {
     return part.front().size().first;
@@ -124,12 +122,11 @@ struct ragged_category : ragged_base {
 
 private:
   template<auto... VV>
-  static util::key_array<ragged_partitioned, util::constants<VV...>>
-  make_partitions(Color n,
+  ragged_category(Color n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
-  ) {
-    return {{ragged_partitioned(n, util::key_type<VV, P>())...}};
-  }
+    )
+    : part{{ragged_partitioned(n, util::key_type<VV, P>())...}} {}
+
   util::key_array<ragged_partitioned, index_spaces> part;
 };
 template<class T>
