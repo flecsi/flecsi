@@ -34,7 +34,49 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+inline void
+test(int err) {
+  if(err != MPI_SUCCESS) {
+    char msg[MPI_MAX_ERROR_STRING + 1];
+    int len;
+    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
+      len = 0;
+    msg[len] = 0;
+    flog_fatal("MPI error " << err << ": " << msg);
+  }
+}
+
 namespace detail {
+struct guard {
+  void commit(MPI_Datatype & d) {
+    if(!setup) {
+      int keyval;
+      test(MPI_Comm_create_keyval(
+        MPI_COMM_NULL_COPY_FN, destroy, &keyval, nullptr));
+      test(MPI_Comm_set_attr(MPI_COMM_SELF, keyval, this));
+      test(MPI_Comm_free_keyval(&keyval));
+      setup = true;
+    }
+    test(MPI_Type_commit(&d));
+    v.push_back(d);
+  }
+
+private:
+  static int destroy(MPI_Comm, int, void * attr, void *) {
+    int e = MPI_SUCCESS;
+    for(auto & v = static_cast<guard *>(attr)->v;
+        !v.empty() && e == MPI_SUCCESS;) {
+      auto d = v.back();
+      v.pop_back();
+      e = MPI_Type_free(&d);
+    }
+    return e;
+  }
+
+  bool setup = false;
+  std::vector<MPI_Datatype> v;
+} inline datatypes;
+
 struct vector { // for *v functions
   explicit vector(int n) {
     off.reserve(n);
@@ -57,18 +99,6 @@ struct vector { // for *v functions
   }
 };
 } // namespace detail
-
-inline void
-test(int err) {
-  if(err != MPI_SUCCESS) {
-    char msg[MPI_MAX_ERROR_STRING + 1];
-    int len;
-    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
-      len = 0;
-    msg[len] = 0;
-    flog_fatal("MPI error " << err << ": " << msg);
-  }
-}
 
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
@@ -160,11 +190,10 @@ type() {
     return maybe_static<T>();
   else {
     static_assert(bit_assignable_v<T>);
-    // TODO: destroy at MPI_Finalize
     static const MPI_Datatype ret = [] {
       MPI_Datatype data_type;
       test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
-      test(MPI_Type_commit(&data_type));
+      detail::datatypes.commit(data_type);
       return data_type;
     }();
     return ret;
