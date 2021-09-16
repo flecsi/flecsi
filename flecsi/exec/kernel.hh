@@ -119,43 +119,66 @@ public:
   work with random access ranges common in FleCSI topologies.
  */
 
-template<typename Range, typename Lambda>
+template<typename policy, typename Lambda>
 void
-parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
+parallel_for(policy && P, Lambda && lambda, const std::string & name = "") {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  const auto n = range.size(); // before moving
   Kokkos::parallel_for(name,
-    n,
-    [it = std::forward<Range>(range),
-      f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-      return f(it[i]);
-    });
+    P.get_policy(),
+    [it = P.range, f = std::forward<Lambda>(lambda)] FLECSI_TARGET(
+      int i) { return f(it[i]); });
 #else
   (void)name;
-  std::for_each(range.begin(), range.end(), lambda);
+  std::for_each(P.range.begin(), P.range.end(), lambda);
 #endif
 } // parallel_for
+
+template<typename Range>
+struct range_policy {
+  auto get_policy() {
+    return Kokkos::RangePolicy<>(0, range.size());
+  }
+  Range range;
+};
+template<class R>
+range_policy(R)->range_policy<R>; // automatic in C++20
+
+template<typename Range>
+struct range_bound {
+
+  using index = Kokkos::RangePolicy<>::member_type;
+  auto get_policy() {
+    return Kokkos::RangePolicy<>(lb, ub);
+  }
+  Range range;
+  index lb;
+  index ub;
+};
+template<class R>
+range_bound(R,
+  Kokkos::RangePolicy<>::member_type,
+  Kokkos::RangePolicy<>::member_type)
+  ->range_bound<R>;
+
+template<typename P>
+struct forall_t {
+  template<typename Callable>
+  void operator->*(Callable l) && {
+    parallel_for(std::move(policy_), std::move(l), name_);
+  }
+  P policy_;
+  std::string name_;
+}; // struct forall_t
+template<class P>
+forall_t(P, std::string)->forall_t<P>; // automatic in C++20
 
 /*!
   The forall type provides a pretty interface for invoking data-parallel
   execution.
  */
 
-template<typename Range>
-struct forall_t {
-  template<typename Callable>
-  void operator->*(Callable l) && {
-    parallel_for(std::move(range_), std::move(l), name_);
-  }
-
-  Range range_;
-  std::string name_;
-}; // struct forall_t
-template<class I>
-forall_t(I, std::string)->forall_t<I>; // automatic in C++20
-
-#define forall(it, range, name)                                                \
-  ::flecsi::exec::forall_t{range, name}->*FLECSI_LAMBDA(auto && it)
+#define forall(it, P, name)                                                    \
+  ::flecsi::exec::forall_t{P, name}->*KOKKOS_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted

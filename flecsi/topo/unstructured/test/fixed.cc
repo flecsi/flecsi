@@ -15,6 +15,7 @@
 #include "fixed.hh"
 
 #include "flecsi/data.hh"
+#include "flecsi/exec/kernel.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/mpi.hh"
@@ -303,7 +304,7 @@ update_pressure(fixed_mesh::accessor<ro, ro> m,
   field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
   int clr = color();
-  forall(c, m.cells(), "pressure_c") {
+  forall(c, (flecsi::exec::range_bound{m.cells(), 0, 81}), "pressure_c") {
     p[c] = clr;
   };
 }
@@ -332,7 +333,7 @@ update_density(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<rw, rw> d) {
   flog(warn) << __func__ << std::endl;
   auto clr = color();
-  forall(v, m.vertices(), "density_c") {
+  forall(v, flecsi::exec::range_policy{m.vertices()}, "density_c") {
     d[v] = clr;
   };
 }
