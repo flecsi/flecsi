@@ -49,19 +49,15 @@ struct unstructured : unstructured_base,
   struct access;
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_(make_partitions(c,
+    : unstructured(
+        [&c]() -> auto & {
+          flog_assert(c.idx_colorings.size() == index_spaces::size,
+            c.idx_colorings.size()
+              << " sizes for " << index_spaces::size << " index spaces");
+          return c;
+        }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      plan_(make_plans(c,
-        index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      special_(c.colors) {
-    allocate_connectivities(c, connect_);
-#if 0
-    make_subspaces(c, std::make_index_sequence<index_spaces::size>());
-#endif
-  }
+        std::make_index_sequence<index_spaces::size>()) {}
 
   static inline const connect_t<Policy> connect_;
   static inline const field<util::id>::definition<array<Policy>> special_field;
@@ -114,15 +110,18 @@ struct unstructured : unstructured_base,
 
 private:
   template<auto... Value, std::size_t... Index>
-  util::key_array<repartitioned, util::constants<Value...>> make_partitions(
-    unstructured_base::coloring const & c,
+  unstructured(unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_colorings[Index]))...}};
+    std::index_sequence<Index...>)
+    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+      part_{{make_repartitioned<Policy, Value>(c.colors,
+        make_partial<idx_size>(c.idx_colorings[Index]))...}},
+      plan_{
+        {make_plan<Value>(c.idx_colorings[Index], part_[Index], c.comm)...}},
+      special_(c.colors) {
+    allocate_connectivities(c, connect_);
+    // auto & owned = owned_.get<>().get<>();
+    // execute<idx_subspaces>(c[Index], owned_.get<Index>
   }
 
   template<index_space S>
@@ -153,18 +152,6 @@ private:
     return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
-  template<auto... Value, std::size_t... Index>
-  util::key_array<data::copy_plan, util::constants<Value...>> make_plans(
-    unstructured_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {
-      {make_plan<Value>(c.idx_colorings[Index], part_[Index], c.comm)...}};
-  }
-
   template<auto... VV, typename... TT>
   void allocate_connectivities(const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
@@ -180,15 +167,6 @@ private:
       }(connect_.template get<VV>()),
       ...);
   }
-
-#if 0
-  template<std::size_t... Index>
-  void make_subspaces(unstructured_base::coloring const & c,
-    std::index_sequence<Index...>) {
-   // auto & owned = owned_.get<>().get<>();
-  //  execute<idx_subspaces>(c[Index], owned_.get<Index>
-  }
-#endif
 }; // struct unstructured
 
 /*----------------------------------------------------------------------------*

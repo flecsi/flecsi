@@ -87,7 +87,7 @@ struct ragged_category : ragged_base {
   using index_spaces = typename P::index_spaces;
   using index_space = typename P::index_space;
 
-  ragged_category(coloring c) : part(make_partitions(c, index_spaces())) {}
+  ragged_category(coloring c) : ragged_category(c, index_spaces()) {}
 
   Color colors() const {
     return part.front().size().first;
@@ -122,12 +122,11 @@ struct ragged_category : ragged_base {
 
 private:
   template<auto... VV>
-  static util::key_array<ragged_partitioned, util::constants<VV...>>
-  make_partitions(Color n,
+  ragged_category(Color n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
-  ) {
-    return {{ragged_partitioned(n, util::key_type<VV, P>())...}};
-  }
+    )
+    : part{{ragged_partitioned(n, util::key_type<VV, P>())...}} {}
+
   util::key_array<ragged_partitioned, index_spaces> part;
 };
 template<class T>
