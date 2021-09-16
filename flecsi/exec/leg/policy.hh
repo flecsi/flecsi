@@ -121,7 +121,7 @@ reduce_internal(Args &&... args) {
 
   auto params =
     detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
-  prolog pro(params, args...);
+  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
 
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {

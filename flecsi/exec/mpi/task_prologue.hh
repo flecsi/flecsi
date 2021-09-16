@@ -37,6 +37,7 @@ struct global_base;
 
 namespace exec {
 
+template<task_processor_type_t ProcessorType>
 struct task_prologue {
 protected:
   // Those methods are "protected" because they are *only* called by
@@ -69,7 +70,7 @@ protected:
         // The partition controls how much memory is allocated.
         return t.template get_partition<Space>(f);
     }
-    ().template get_storage<T>(f);
+    ().template get_storage<T, ProcessorType>(f);
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f))
         util::mpi::test(MPI_Bcast(storage.data(),

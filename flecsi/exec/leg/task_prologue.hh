@@ -36,7 +36,7 @@ struct global_base;
 
 namespace exec {
 
-struct task_prologue {
+struct task_prologue_impl {
   std::vector<Legion::RegionRequirement> const & region_requirements() const {
     return region_reqs_;
   } // region_requirements
@@ -114,5 +114,6 @@ private:
   std::vector<Legion::FutureMap> future_maps_;
 };
 
+template<task_processor_type_t> using task_prologue = task_prologue_impl;
 } // namespace exec
 } // namespace flecsi

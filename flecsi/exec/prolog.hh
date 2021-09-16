@@ -25,8 +25,8 @@ namespace flecsi::exec {
 
   @ingroup execution
 */
-
-struct prolog : task_prologue {
+template<task_processor_type_t ProcessorType>
+struct prolog : task_prologue<ProcessorType> {
   // Note that accessors here may be empty versions made to be serialized.
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
@@ -41,7 +41,7 @@ private:
       [&](auto & p, auto && f) { visit(p, std::forward<decltype(f)>(f)(a)); };
   }
 
-  using task_prologue::visit; // for raw accessors, futures, etc.
+  using task_prologue<ProcessorType>::visit; // for raw accessors, futures, etc.
 
   template<class P, class A>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p, A && a) {

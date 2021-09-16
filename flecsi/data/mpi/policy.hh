@@ -14,6 +14,7 @@
 #pragma once
 
 #include "flecsi/data/field_info.hh"
+#include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/mpi.hh"
@@ -57,12 +58,12 @@ struct region_impl {
   // The span is safe because it is used only within a user task while the
   // vectors are resized or destroyed only outside user tasks (though perhaps
   // during execute).
-  template<class T>
+  template<class T, exec::task_processor_type_t ProcessorType>
   util::span<T> get_storage(field_id_t fid) {
-    return get_storage<T>(fid, s.second);
+    return get_storage<T, ProcessorType>(fid, s.second);
   }
 
-  template<class T>
+  template<class T, exec::task_processor_type_t ProcessorType>
   util::span<T> get_storage(field_id_t fid, std::size_t nelems) {
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
@@ -109,9 +110,9 @@ struct partition {
     return r->size().first;
   }
 
-  template<typename T>
+  template<typename T, exec::task_processor_type_t ProcessorType>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T>(fid, nelems);
+    return r->get_storage<T, ProcessorType>(fid, nelems);
   }
 
   template<topo::single_space>
@@ -166,8 +167,9 @@ struct prefixes : data::partition, prefixes_base {
   void update(F f) {
     // The number of elements for each ranks is stored as a field of the
     // prefixes::row data type on the `other` partition.
-    const auto s =
-      f.get_partition().template get_storage<row>(f.fid()); // non-owning span
+    const auto s = f.get_partition()
+                     .template get_storage<row, exec::task_processor_type_t::loc>(
+                       f.fid()); // non-owning span
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];
@@ -212,7 +214,7 @@ struct intervals {
     // code might change it after this constructor returns. We can not use a
     // copy assignment directly here since metadata is an util::span while
     // ghost_ranges is a std::vector<>.
-    ghost_ranges = to_vector(p.get_storage<Value>(fid));
+    ghost_ranges = to_vector(p.get_storage<Value, exec::task_processor_type_t::loc>(fid));
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
     // entities.
@@ -230,11 +232,10 @@ private:
 
   template<typename T>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T>(fid, max_end);
+    // FIXME: is this correct? Do we always want it on the host?
+    return r->get_storage<T, exec::task_processor_type_t::loc>(fid, max_end);
   }
 
-  // We use a reference to region instead of pointer since it is not nullable
-  // nor needs to be redirected after initialization.
   mpi::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.
@@ -316,9 +317,13 @@ struct copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
+    // FIXME: I do think we always want the host side version.
     auto source_storage =
-      source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
-    auto destination_storage = destination.get_storage<std::byte>(data_fid);
+      source.r->get_storage<std::byte, exec::task_processor_type_t::loc>(
+        data_fid, max_local_source_idx);
+    auto destination_storage =
+      destination.get_storage<std::byte>(
+        data_fid);
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
