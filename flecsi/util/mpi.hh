@@ -212,7 +212,7 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename F>
 inline auto
-one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
+one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
@@ -441,7 +441,7 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename F>
 inline auto
-all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
+all_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
