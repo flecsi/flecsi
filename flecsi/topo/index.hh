@@ -167,16 +167,6 @@ struct detail::base<index_category> {
   using type = index_base;
 };
 
-// A subtopology for holding topology-specific metadata per color.
-template<class P>
-struct meta : specialization<index_category, meta<P>> {};
-
-template<class P>
-struct with_meta { // for interface consistency
-  with_meta(Color n) : meta(n) {}
-  typename topo::meta<P>::core meta;
-};
-
 struct array_base {
   using coloring = std::vector<std::size_t>;
 
@@ -209,6 +199,16 @@ struct user : user_base, array_category<P>, with_ragged<P> {
 template<>
 struct detail::base<user> {
   using type = user_base;
+};
+
+// A subtopology for holding topology-specific metadata per color.
+template<class P>
+struct meta : specialization<user, meta<P>> {};
+
+template<class P>
+struct with_meta { // for interface consistency
+  with_meta(Color n) : meta(user_base::coloring(n, 1)) {}
+  typename topo::meta<P>::core meta;
 };
 
 /*!
