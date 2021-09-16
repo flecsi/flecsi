@@ -33,13 +33,10 @@ namespace flecsi {
 namespace data {
 
 namespace detail {
-template<bool Span = true, class A>
+template<class A>
 void
 construct(const A & a) {
-  if constexpr(Span)
-    construct<false>(a.span());
-  else
-    std::uninitialized_default_construct(a.begin(), a.end());
+  std::uninitialized_default_construct(a.begin(), a.end());
 }
 template<class T, layout L, Privileges P, bool Span>
 void
@@ -190,7 +187,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
       return r.template cast<raw>();
     });
     if constexpr(privilege_discard(P))
-      detail::construct(*this); // no-op on caller side
+      detail::construct(this->span()); // no-op on caller side
   }
 };
 
@@ -273,7 +270,7 @@ struct ragged_accessor
       std::fill(s.begin(), s.end(), 0);
     }
     else if constexpr(privilege_discard(P))
-      detail::construct(*this);
+      detail::construct(span());
   }
 
   template<class Topo, typename Topo::index_space S>
@@ -1125,7 +1122,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   void send(F && f) {
     accessor::particle_accessor::send(std::forward<F>(f));
     if constexpr(privilege_discard(P))
-      detail::construct<false>(*this); // no-op on caller side
+      detail::construct(*this); // no-op on caller side
   }
 };
 
