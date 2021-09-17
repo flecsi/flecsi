@@ -147,6 +147,7 @@ struct ragged : specialization<ragged_category, ragged<T>> {
     T::template privilege_count<S>;
 };
 
+// shared base, needed for metaprogramming detection of ragged fields
 struct with_ragged_base {};
 
 template<class P>
