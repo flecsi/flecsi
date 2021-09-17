@@ -12,8 +12,9 @@
 namespace flecsi::data {
 
 #ifdef DOXYGEN // implemented per-backend
-// It is not required that any of these types be movable.
+// These types are movable but may not be copyable.
 
+// A prefix of each row in a region_base.
 struct prefixes : partition, prefixes_base {
   // Derives row lengths from the Field values accessed via the field accessor
   // argument.  The partition hosting the field must have the same number of
@@ -29,7 +30,8 @@ struct prefixes : partition, prefixes_base {
 
 // A subset of each row in a prefixes, expressed as a set of intervals.
 struct intervals {
-  static auto make(subrow, std::size_t r = color()); // constructor, as above
+  // The interval type is defined by the backend:
+  static auto make(subrow, std::size_t r = color()); // "constructor"
   using Value = decltype(make({}));
 
   // Derives intervals from the field values (which should be of type Value)
