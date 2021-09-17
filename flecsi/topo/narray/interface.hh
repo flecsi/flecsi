@@ -72,7 +72,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
   template<index_space S>
-  data::partition & get_partition(field_id_t) {
+  repartition & get_partition(field_id_t) {
     return part_.template get<S>();
   }
 
@@ -193,6 +193,10 @@ private:
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
   }
 
+  auto & get_sizes(std::size_t i) {
+    return part_[i].sz;
+  }
+
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
@@ -209,6 +213,15 @@ private:
   util::key_array<data::copy_plan, index_spaces> plan_;
 
 }; // struct narray
+
+template<class P>
+struct borrow_extra<narray<P>> {
+  borrow_extra(narray<P> &, claims::core &) {}
+
+  auto & get_sizes(std::size_t i) {
+    return borrow_base::derived(*this).spc[i].single().sz;
+  }
+};
 
 /*----------------------------------------------------------------------------*
   Narray Access.
@@ -237,10 +250,12 @@ struct narray<Policy>::access {
     std::size_t i{0};
     for(auto & a : size_)
       a.topology_send(
-        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
-
-    meta_.topology_send(f, &narray::meta);
-    policy_meta_.topology_send(f, &narray::meta);
+        f, [&i](auto & n) -> auto & { return n.get_sizes(i++); });
+    const auto meta = [](auto & n) -> auto & {
+      return n.meta;
+    };
+    meta_.topology_send(f, meta);
+    policy_meta_.topology_send(f, meta);
   }
 
 private:
