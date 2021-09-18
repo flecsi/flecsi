@@ -203,7 +203,7 @@ public:
   access() : connect_(unstructured::connect_) {}
 
   /*!
-    Return an iterator to the parameterized index space.
+    Return an index space as a range.
 
     @tparam IndexSpace The index space identifier.
    */
@@ -215,7 +215,7 @@ public:
   }
 
   /*!
-    Return an iterator to the connectivity information for the parameterized
+    Return a range of connectivity information for the parameterized
     index spaces.
 
     @tparam To   The connected index space.
