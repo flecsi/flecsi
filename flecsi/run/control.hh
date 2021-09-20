@@ -54,6 +54,19 @@ template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 
 /*!
+  Base class for providing default implementations for optional interfaces.
+ */
+
+struct control_base {
+  int initialize() {
+    return success;
+  }
+  int finalize(int run) {
+    return run;
+  }
+};
+
+/*!
   The control type provides a control model for specifying a
   set of control points as a coarse-grained control flow graph,
   with each node of the graph specifying a set of actions as a
@@ -68,26 +81,26 @@ using cycle = run_impl::cycle<Predicate, ControlPoints...>;
   @ingroup control
  */
 
-template<typename ControlPolicy>
-struct control : ControlPolicy {
+template<typename Policy>
+struct control : Policy {
 
   using target_type = int (*)();
 
 private:
-  friend ControlPolicy;
+  friend Policy;
 
-  using control_points = typename ControlPolicy::control_points;
-  using control_points_enum = typename ControlPolicy::control_points_enum;
-  using node_policy = typename ControlPolicy::node_policy;
+  using control_points = typename Policy::control_points;
+  using control_points_enum = typename Policy::control_points_enum;
+  using node_policy = typename Policy::node_policy;
 
-  using point_walker = run_impl::point_walker<control<ControlPolicy>>;
+  using point_walker = run_impl::point_walker<control<Policy>>;
   friend point_walker;
 
-  using init_walker = run_impl::init_walker<control<ControlPolicy>>;
+  using init_walker = run_impl::init_walker<control<Policy>>;
   friend init_walker;
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  using point_writer = run_impl::point_writer<control<ControlPolicy>>;
+  using point_writer = run_impl::point_writer<control<Policy>>;
   friend point_writer;
 #endif
 
@@ -199,7 +212,7 @@ public:
             to store control state information.
    */
 
-  static ControlPolicy & policy() {
+  static Policy & policy() {
     return instance();
   }
 
@@ -278,7 +291,13 @@ public:
    */
 
   static int execute() {
-    return instance().run();
+    if constexpr(std::is_base_of_v<control_base, Policy>) {
+      const int r = instance().initialize();
+      return r == success ? instance().finalize(instance().run()) : r;
+    }
+    else {
+      return instance().run();
+    }
   } // execute
 
   /*!

@@ -78,7 +78,7 @@ set(run_SOURCES
 
 add_executable(cycle
   test/cycle.cc
-  test/cycle_control.hh
+  test/cycle.hh
   test/package_a.hh
   test/package_b.hh
   test/package_c.hh)
