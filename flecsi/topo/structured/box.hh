@@ -48,7 +48,7 @@ public:
     for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       size_ *= upperbnds_[i] + 1;
 
-    iterator = util::iota_view<id>(0, size_);
+    range = util::iota_view<id>(0, size_);
   }
 
   box(const id_array & upperbnds) {
@@ -59,7 +59,7 @@ public:
     for(Dimension i = 0; i < MESH_DIMENSION; ++i)
       size_ *= upperbnds_[i] + 1;
 
-    iterator = util::iota_view<id>(0, size_);
+    range = util::iota_view<id>(0, size_);
   }
 
   /*****************************************************************************
@@ -143,14 +143,14 @@ public:
   } // indices_from_offset
 
   /************************************************************************
-   * Iterator
+   * Range
    *************************************************************************/
-  util::iota_view<id> iterator;
+  util::iota_view<id> range;
   auto begin() {
-    return iterator.begin();
+    return range.begin();
   }
   auto end() {
-    return iterator.end();
+    return range.end();
   }
 
 private:

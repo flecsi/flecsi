@@ -116,9 +116,7 @@ public:
 #endif
 /*!
   This function is a wrapper for Kokkos::parallel_for that has been adapted to
-  work with FleCSI's topology iterator types. In particular, this function
-  invokes a map from the normal kernel index space to the FleCSI index space,
-  which may require indirection.
+  work with random access ranges common in FleCSI topologies.
  */
 
 template<typename Range, typename Lambda>
@@ -161,7 +159,7 @@ forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
-  to work with FleCSI's topology iterator types.
+  to work with random access ranges common in FleCSI topologies.
  */
 template<class R, class T, typename Range, typename Lambda>
 T

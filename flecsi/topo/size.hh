@@ -6,7 +6,7 @@
 #include "flecsi/data/copy.hh"
 #include "flecsi/topo/color.hh"
 
-#include <cmath> // ceil
+#include <cmath> // pow
 
 namespace flecsi::topo {
 
