@@ -40,7 +40,7 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 #if defined(FLECSI_ENABLE_KOKKOS)
 void
 modify1(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.cells(), "modify1") {
+  forall(c, exec::range_policy(t.cells()), "modify1") {
     p[c] += 1;
   }; // forall
 } // modify
