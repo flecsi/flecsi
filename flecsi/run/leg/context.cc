@@ -24,7 +24,9 @@ mirror::mirror(size2 s)
   : rects({s.first, 2}), columns({2, 1}),
     part(rects,
       columns,
-      (execute<fill>(halves::field(columns), s.first), fid),
+      halves::field(columns)
+        .use([s](auto f) { execute<fill>(f, s.first); })
+        .fid(),
       complete),
     width(s.second) {}
 void

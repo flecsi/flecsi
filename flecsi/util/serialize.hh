@@ -70,7 +70,7 @@ auto serial_buffer(F && f) { // f should accept a P for serial_put
   f(sz);
   std::vector<std::byte> ret(sz);
   auto *const p0 = ret.data(), *p = p0;
-  f(p);
+  std::forward<F>(f)(p);
   flog_assert(p == p0 + sz, "Wrong serialization size");
   return ret;
 }

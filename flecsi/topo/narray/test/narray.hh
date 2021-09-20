@@ -101,7 +101,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   struct interface : B {
 
     template<axis A, range SE = logical>
-    std::size_t size() {
+    std::size_t size() const {
       switch(SE) {
         case logical:
           return B::
@@ -137,7 +137,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     }
 
     template<axis A, range SE = logical>
-    auto extents() {
+    auto extents() const {
       switch(SE) {
         case logical:
           return B::
@@ -172,7 +172,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     }
 
     template<axis A, range SE = logical>
-    auto offset() {
+    auto offset() const {
       switch(SE) {
         case logical:
           return B::

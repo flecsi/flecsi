@@ -600,7 +600,7 @@ struct ntree<Policy>::access {
     hcells.topology_send(f);
     e_i.topology_send(f);
     n_i.topology_send(f);
-    mf.topology_send(f);
+    mf.topology_send(std::forward<F>(f));
   }
 
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;

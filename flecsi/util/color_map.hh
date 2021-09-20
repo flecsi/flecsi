@@ -15,8 +15,6 @@
 
 /*! @file */
 
-#define __FLECSI_PRIVATE__
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"

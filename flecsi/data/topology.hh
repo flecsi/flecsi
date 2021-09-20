@@ -29,7 +29,7 @@ template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
 
 #ifdef DOXYGEN // implemented per-backend
-// It is not required that any of these types be movable.
+// These types are movable but may not be copyable.
 
 // A rectangular abstract array.
 struct region_base {
@@ -38,8 +38,10 @@ struct region_base {
   size2 size() const;
 };
 
-// A prefix of each row in a region_base.
+// Base class storing a prefix of each row in a region_base.
 struct partition {
+  // no constructor specified
+
   Color colors() const;
   template<topo::single_space> // for convenience for simple topologies
   const partition & get_partition(field_id_t) const {
@@ -51,6 +53,10 @@ struct partition {
 struct rows : partition {
   explicit rows(region_base &);
 };
+
+// Read from what might be a device pointer.
+template<typename T>
+T get_scalar_from_accessor(const T *);
 #endif
 
 struct region : region_base {

@@ -19,7 +19,6 @@
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
 
-#include "flecsi/run/backend.hh"
 #include "flecsi/run/leg/mapper.hh"
 
 #include <legion.h>
