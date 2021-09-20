@@ -135,30 +135,46 @@ parallel_for(policy && P, Lambda && lambda, const std::string & name = "") {
 
 template<typename Range>
 struct range_policy {
+#if defined(FLECSI_ENABLE_KOKKOS)
   auto get_policy() {
     return Kokkos::RangePolicy<>(0, range.size());
   }
+#endif
   Range range;
 };
 template<class R>
 range_policy(R)->range_policy<R>; // automatic in C++20
 
+
 template<typename Range>
 struct range_bound {
-
+#if defined(FLECSI_ENABLE_KOKKOS)
   using index = Kokkos::RangePolicy<>::member_type;
   auto get_policy() {
     return Kokkos::RangePolicy<>(lb, ub);
   }
+#endif
   Range range;
+#if defined(FLECSI_ENABLE_KOKKOS)
   index lb;
   index ub;
+#else 
+  int lb;
+  int ub;
+#endif
 };
+
+#if defined(FLECSI_ENABLE_KOKKOS)
 template<class R>
 range_bound(R,
   Kokkos::RangePolicy<>::member_type,
   Kokkos::RangePolicy<>::member_type)
   ->range_bound<R>;
+#endif
+template<class R>
+range_bound(R, int LB, int UB)
+  ->range_bound<R>;
+
 
 template<typename P>
 struct forall_t {
@@ -178,7 +194,7 @@ forall_t(P, std::string)->forall_t<P>; // automatic in C++20
  */
 
 #define forall(it, P, name)                                                    \
-  ::flecsi::exec::forall_t{P, name}->*KOKKOS_LAMBDA(auto && it)
+  ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
