@@ -145,7 +145,6 @@ struct range_policy {
 template<class R>
 range_policy(R)->range_policy<R>; // automatic in C++20
 
-
 template<typename Range>
 struct range_bound {
 #if defined(FLECSI_ENABLE_KOKKOS)
@@ -158,7 +157,7 @@ struct range_bound {
 #if defined(FLECSI_ENABLE_KOKKOS)
   index lb;
   index ub;
-#else 
+#else
   int lb;
   int ub;
 #endif
@@ -172,9 +171,7 @@ range_bound(R,
   ->range_bound<R>;
 #endif
 template<class R>
-range_bound(R, int LB, int UB)
-  ->range_bound<R>;
-
+range_bound(R, int LB, int UB)->range_bound<R>;
 
 template<typename P>
 struct forall_t {
