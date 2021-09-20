@@ -60,14 +60,13 @@ struct copy_plan {
       // destination partition which supposed to be contiguous
       dest_(p,
         dest_ptrs_,
-        (std::forward<D>(dests)(detail::intervals::field(dest_ptrs_)),
-          detail::intervals::field.fid),
+        detail::intervals::field(dest_ptrs_).use(std::forward<D>(dests)).fid(),
         incomplete),
       // From the pointers we feed in the destination partition
       // we create the source partition
       src_partition_(p,
         dest_,
-        (std::forward<F>(src)(pointers<P, S>(t)), pointers<P, S>.fid),
+        pointers<P, S>(t).use(std::forward<F>(src)).fid(),
         incomplete),
       engine(src_partition_, dest_, pointers<P, S>.fid) {}
 
@@ -91,7 +90,7 @@ namespace detail {
 // color-specific accessors by having one ghost index point for every edge in
 // a directed communication graph.
 struct buffers_base {
-  using coloring = std::vector<std::vector<Color>>; // [src][dest]
+  using coloring = std::vector<std::vector<Color>>; // [src][]=dest
   // Each edge gets one buffer which can be used for transferring arbitrary
   // data via serialization.
   struct buffer {
@@ -277,13 +276,14 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       if(skip < n) {
         // Each row's record is its index, the number of elements remaining to
         // write in it (which might not all fit), and then the elements.
-        if(!w(i) || !w(n - skip))
+        // The first row is prefixed with a flag to indicate resumption.
+        if(!b.len && !w(!!skip) || !w(i) || !w(n - skip))
           return false;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
           if(w(row[s]))
             ++b.off;
           else {
-            flog_assert(b.len > 2, "no data fits");
+            flog_assert(b.len > 3, "no data fits");
             return false;
           }
       }
@@ -300,11 +300,20 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 
     template<class R, class F> // F: remote/shared index -> local/ghost index
     static void read(const R & rag, const Buffer & b, F && f) {
-      for(Buffer::reader r{&b}; r;) {
+      Buffer::reader r{&b};
+      flog_assert(r, "empty message");
+      bool resume = r();
+      while(r) {
         const auto row = rag[f(r.get<std::size_t>())];
         if(!r)
           break; // in case the write stopped mid-record
-        for(std::size_t n = r(); r && n--;)
+        if(resume)
+          resume = false;
+        else
+          row.clear();
+        std::size_t n = r();
+        row.reserve(row.size() + n); // this may overallocate temporarily
+        while(r && n--)
           row.push_back(r());
       }
     }

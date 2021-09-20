@@ -435,7 +435,7 @@ Controlling Output - Tag Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Tag groups provide a mechanism to control the runtime output generated
-by FLOG. The main idea is here is that developers can use FLOG to output
+by FLOG. The main idea here is that developers can use FLOG to output
 information that is useful in developing or debugging a program, and
 leave it in the code. Then, specific groups of messages can be enabled
 or disabled to only output useful information for the current
@@ -540,7 +540,7 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
 ``FLOG_SERIALIZATION_THRESHOLD`` define this behavior:
 
 * *FLOG_SERIALIZATION_INTERVAL* |br|
-  The serialization iterval specifies how often FleCSI should check for
+  The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
   tasks executed, i.e., if the serialization interval is set to 100,
   FleCSI will check how many messages have been injected into the stream

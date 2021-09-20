@@ -42,7 +42,6 @@ set(util_HEADERS
   set_utils.hh
   static_verify.hh
   target.hh
-  tuple_visitor.hh
   tuple_walker.hh
   type_traits.hh
   types.hh

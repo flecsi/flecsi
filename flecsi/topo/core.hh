@@ -72,6 +72,10 @@ struct core : core_base { // with_ragged<P> is often another base class
   // As a special case, the global topology does not define this.
   template<typename P::index_space>
   const data::partition & get_partition(field_id_t) const;
+
+  // If multiple privileges are used:
+  template<class T, data::layout L, class Topo, typename Topo::index_space S>
+  void ghost_copy(data::field_reference<T, L, Topo, S> const &);
 };
 template<>
 struct detail::base<core> {
@@ -96,7 +100,7 @@ struct specialization_base {
   using index_space = single_space;
   using index_spaces = util::constants<elements>;
   template<class B>
-  using interface = B;
+  using interface = B; // otherwise, must inherit from B
 
   specialization_base() = delete;
 };

@@ -27,7 +27,6 @@
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/dcrs.hh"
 #include "flecsi/util/set_utils.hh"
-#include "flecsi/util/tuple_visitor.hh"
 
 #include <map>
 #include <memory>
@@ -62,16 +61,15 @@ struct unstructured : unstructured_base,
    *--------------------------------------------------------------------------*/
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_(make_partitions(c,
+    : unstructured(
+        [&c]() -> auto & {
+          flog_assert(c.idx_spaces.size() == index_spaces::size,
+            c.idx_spaces.size()
+              << " sizes for " << index_spaces::size << " index spaces");
+          return c;
+        }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      plan_(make_plan(c,
-        index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      special_(c.colors) {
-    allocate_connectivities(c, connect_);
-  }
+        std::make_index_sequence<index_spaces::size>()) {}
 
   Color colors() const {
     return part_.front().colors();
@@ -155,15 +153,18 @@ private:
    */
 
   template<auto... Value, std::size_t... Index>
-  util::key_array<repartitioned, util::constants<Value...>> make_partitions(
-    unstructured_base::coloring const & c,
+  unstructured(unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_spaces.size() == sizeof...(Value),
-      c.idx_spaces.size() << " sizes for " << sizeof...(Value)
-                          << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.partitions[Index]))...}};
+    std::index_sequence<Index...>)
+    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+      part_{{make_repartitioned<Policy, Value>(c.colors,
+        make_partial<idx_size>(c.partitions[Index]))...}},
+      plan_{{make_copy_plan<Value>(c.colors,
+        c.idx_spaces[Index],
+        part_[Index],
+        c.comm)...}},
+      special_(c.colors) {
+    allocate_connectivities(c, connect_);
   }
 
   /*
@@ -204,22 +205,6 @@ private:
     // clang-format on
 
     return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
-  }
-
-  /*
-    Invoke make_plan for each index space.
-   */
-
-  template<auto... Value, std::size_t... Index>
-  util::key_array<data::copy_plan, util::constants<Value...>> make_plan(
-    unstructured_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_spaces.size() == sizeof...(Value),
-      c.idx_spaces.size() << " sizes for " << sizeof...(Value)
-                          << " index spaces");
-    return {{make_copy_plan<Value>(
-      c.colors, c.idx_spaces[Index], part_[Index], c.comm)...}};
   }
 
   /*
@@ -304,7 +289,7 @@ protected:
   access() : connect_(unstructured::connect_) {}
 
   /*!
-    Return an iterator to the parameterized index space.
+    Return an index space as a range.
 
     @tparam IndexSpace The index space identifier.
    */
@@ -316,7 +301,7 @@ protected:
   }
 
   /*!
-    Return an iterator to the connectivity information for the parameterized
+    Return a range of connectivity information for the parameterized
     index spaces.
 
     @tparam To   The connected index space.

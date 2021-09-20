@@ -181,6 +181,13 @@ struct field_reference : field_reference_t<Topo> {
   auto cast() const {
     return field_reference<T2, L2, Topo, Space>(*this);
   }
+
+  /// \internal Use this reference and return it.
+  template<class F>
+  const field_reference & use(F && f) const {
+    std::forward<F>(f)(*this);
+    return *this;
+  }
 };
 
 // This is the portion of field validity that can be checked and that

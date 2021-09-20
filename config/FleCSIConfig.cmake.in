@@ -38,6 +38,9 @@ include(mpi)
 set(ENABLE_PARMETIS @ENABLE_PARMETIS@)
 include(parmetis)
 
+set(ENABLE_HDF5 @ENABLE_HDF5@)
+include(hdf5)
+
 set(ENABLE_LEGION @ENABLE_LEGION@)
 include(legion)
 

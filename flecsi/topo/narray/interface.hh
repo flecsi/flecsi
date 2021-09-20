@@ -52,16 +52,15 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct access;
 
   narray(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_(make_partitions(c,
+    : narray(
+        [&c]() -> auto & {
+          flog_assert(c.idx_colorings.size() == index_spaces::size,
+            c.idx_colorings.size()
+              << " sizes for " << index_spaces::size << " index spaces");
+          return c;
+        }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      plan_(make_plan(c,
-        index_spaces(),
-        std::make_index_sequence<index_spaces::size>())) {
-    init_meta(c);
-    init_policy_meta(c);
-  }
+        std::make_index_sequence<index_spaces::size>()) {}
 
   Color colors() const {
     return part_.front().colors();
@@ -100,15 +99,18 @@ private:
   };
 
   template<auto... Value, std::size_t... Index>
-  util::key_array<repartitioned, util::constants<Value...>> make_partitions(
-    narray_base::coloring const & c,
+  narray(const coloring & c,
     util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.partitions[Index]))...}};
+    std::index_sequence<Index...>)
+    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+      part_{{make_repartitioned<Policy, Value>(c.colors,
+        make_partial<idx_size>(c.partitions[Index]))...}},
+      plan_{{make_copy_plan<Value>(c.colors,
+        c.idx_colorings[Index],
+        part_[Index],
+        c.comm)...}} {
+    init_meta(c);
+    init_policy_meta(c);
   }
 
   template<index_space S>
@@ -137,18 +139,6 @@ private:
     // clang-format on
 
     return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
-  }
-
-  template<auto... Value, std::size_t... Index>
-  util::key_array<data::copy_plan, util::constants<Value...>> make_plan(
-    narray_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_copy_plan<Value>(
-      c.colors, c.idx_colorings[Index], part_[Index], c.comm)...}};
   }
 
   static void set_meta_idx(meta_data & md,
@@ -256,57 +246,57 @@ struct narray<Policy>::access {
     range::global>;
 
   template<index_space S>
-  std::uint32_t orientation() {
+  std::uint32_t orientation() const {
     return meta_->template get<S>().orientation;
   }
 
   template<index_space S, axis A>
-  std::size_t global() {
+  std::size_t global() const {
     return meta_->template get<S>().global.template get<A>();
   }
 
   template<index_space S, axis A>
-  std::size_t offset() {
+  std::size_t offset() const {
     return meta_->template get<S>().offset.template get<A>();
   }
 
   template<index_space S, axis A>
-  std::size_t extents() {
+  std::size_t extents() const {
     return meta_->template get<S>().extents.template get<A>();
   }
 
   template<index_space S>
-  auto extents() {
+  auto extents() const {
     return meta_->template get<S>().extents;
   }
 
   template<index_space S, std::size_t P, axis A>
-  std::size_t logical() {
+  std::size_t logical() const {
     return meta_->template get<S>().logical[P].template get<A>();
   }
 
   template<index_space S, std::size_t P, axis A>
-  std::size_t extended() {
+  std::size_t extended() const {
     return meta_->template get<S>().extended[P].template get<A>();
   }
 
   template<index_space S, axis A>
-  bool is_low() {
+  bool is_low() const {
     return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::low;
   }
 
   template<index_space S, axis A>
-  bool is_high() {
+  bool is_high() const {
     return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::high;
   }
 
   template<axis A>
-  bool is_interior() {
+  bool is_interior() const {
     return !is_low<A>() && !is_high<A>();
   }
 
   template<index_space S, axis A, range SE>
-  std::size_t size() {
+  std::size_t size() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
@@ -342,7 +332,7 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, axis A, range SE>
-  auto extents() {
+  auto extents() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid extents identifier");
 
@@ -377,7 +367,7 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, axis A, range SE>
-  std::size_t offset() {
+  std::size_t offset() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
@@ -407,13 +397,13 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, typename T, Privileges P>
-  auto mdspan(data::accessor<data::dense, T, P> const & a) {
+  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
       s.data(), extents<S>());
   }
   template<index_space S, typename T, Privileges P>
-  auto mdcolex(data::accessor<data::dense, T, P> const & a) {
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
     return util::mdcolex<
       typename std::remove_reference_t<decltype(a)>::element_type,
       dimension>(a.span().data(), extents<S>());

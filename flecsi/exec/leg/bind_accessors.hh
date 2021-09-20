@@ -87,11 +87,12 @@ private:
       legion_context_, reg.get_logical_region().get_index_space());
     const auto r = dom.get_rect<2>();
 
-    accessor.bind(util::span(ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
-      r.hi[1] - r.lo[1] + 1));
+    if(!dom.empty())
+      accessor.bind(
+        util::span(ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
+          r.hi[1] - r.lo[1] + 1));
   }
 
-  // need more explanation here
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
     p.send(visitor());

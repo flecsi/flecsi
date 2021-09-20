@@ -166,7 +166,7 @@ struct tuple_get<std::tuple<TT...>> {
  */
 
 template<auto & F, TaskAttributes A = loc | leaf>
-// 'extern' works around GCC bug #90493
+// 'extern' works around GCC bug #96523
 extern const Legion::TaskID
   task_id = (run::context::instance().register_init(detail::register_task<
                typename util::function_traits<decltype(F)>::return_type,
