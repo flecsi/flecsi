@@ -217,11 +217,38 @@ private:
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
+  friend Policy;
+
+  template<index_space S, typename T, Privileges P>
+  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
+    auto const s = a.span();
+    return util::mdspan<typename decltype(s)::element_type, dimension>(
+      s.data(), extents<S>());
+  }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), extents<S>());
+  }
+
+  template<class F>
+  void send(F && f) {
+    std::size_t i{0};
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
+
+    meta_.topology_send(f, &narray::meta);
+    policy_meta_.topology_send(f, &narray::meta);
+  }
+
+private:
+  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
   util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
     size_;
 
   data::scalar_access<narray::meta_field, Priv> meta_;
-  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
 
   access() {}
 
@@ -295,6 +322,11 @@ struct narray<Policy>::access {
     return !is_low<A>() && !is_high<A>();
   }
 
+  template<axis A>
+  bool is_degenerate() const {
+    return is_low<A>() && is_high<A>();
+  }
+
   template<index_space S, axis A, range SE>
   std::size_t size() const {
     static_assert(
@@ -334,7 +366,7 @@ struct narray<Policy>::access {
   template<index_space S, axis A, range SE>
   auto extents() const {
     static_assert(
-      std::size_t(SE) < hypercubes::size, "invalid extents identifier");
+      std::size_t(SE) < hypercubes::size, "invalid range identifier");
 
     if constexpr(SE == range::logical) {
       return make_ids<S>(
@@ -396,31 +428,6 @@ struct narray<Policy>::access {
     }
   }
 
-  template<index_space S, typename T, Privileges P>
-  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
-    auto const s = a.span();
-    return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), extents<S>());
-  }
-  template<index_space S, typename T, Privileges P>
-  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
-    return util::mdcolex<
-      typename std::remove_reference_t<decltype(a)>::element_type,
-      dimension>(a.span().data(), extents<S>());
-  }
-
-  template<class F>
-  void send(F && f) {
-    std::size_t i{0};
-    for(auto & a : size_)
-      a.topology_send(
-        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
-
-    meta_.topology_send(f, &narray::meta);
-    policy_meta_.topology_send(f, &narray::meta);
-  }
-
-private:
   template<axis A>
   static constexpr std::uint32_t to_idx() {
     using axis_t = typename std::underlying_type_t<axis>;

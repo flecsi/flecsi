@@ -32,7 +32,7 @@ namespace flecsi {
 namespace topo {
 namespace narray_impl {
 
-enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
+enum mask : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
 enum axes : Dimension { x_axis, y_axis, z_axis };
 

@@ -10,15 +10,18 @@
 using namespace flecsi;
 
 void
-poisson::task::io(mesh::accessor<ro> m, field<double>::accessor<ro, ro> ua) {
+poisson::task::io(mesh::accessor<ro> m,
+  field<double>::accessor<ro, ro> ua,
+  std::string filebase) {
   auto u = m.mdspan<mesh::vertices>(ua);
 
   std::stringstream ss;
+  ss << filebase;
   if(processes() == 1) {
-    ss << "solution.dat";
+    ss << ".dat";
   }
   else {
-    ss << "solution-" << process() << ".dat";
+    ss << "-" << process() << ".dat";
   } // if
 
   std::ofstream solution(ss.str(), std::ofstream::out);

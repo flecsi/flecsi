@@ -85,19 +85,24 @@ orientation(Dimension dimension,
   const narray_impl::colors & axis_colors) {
   using namespace narray_impl;
 
-#define FACE(e, c, c0, c1, c2)                                                 \
-  ((((e) == 0) && ((e) == ((c)-1)))                                            \
-      ? c1 | c2                                                                \
-      : ((0 < (e) && e < ((c)-1)) ? c0 : ((e) == 0 ? c1 : c2)))
-
-  std::uint32_t o = interior;
-  std::uint32_t shft{low};
+  std::uint32_t o{mask::interior};
+  std::uint32_t shft{mask::low};
+  // clang-format off
   for(Dimension axis = 0; axis < dimension; ++axis) {
-    o |=
-      FACE(color_indices[axis], axis_colors[axis], interior, shft, shft << 1);
+    o |= [ci = color_indices[axis], nc = axis_colors[axis], l = shft,
+      h = shft << 1]() {
+      return
+        (ci == 0 && ci == (nc - 1)) ?
+          l | h :
+        (0 < ci && ci < (nc - 1)) ?
+          mask::interior :
+        (ci == 0) ?
+          l :
+          h;
+    }();
     shft <<= 2;
   } // for
-#undef FACE
+  // clang-format on
 
   return o;
 } // orientation
@@ -145,7 +150,7 @@ make_color(Dimension dimension,
 
     std::uint32_t bits = orient >> axis * 2;
 
-    if(bits & low && bits & high) {
+    if(bits & mask::low && bits & mask::high) {
       /*
         This is a degenerate dimension, i.e., it is flat with a single
         color layer. Therefore, we do not add halo extensions.
@@ -159,7 +164,7 @@ make_color(Dimension dimension,
       idxco.extended[0][axis] = 0;
       idxco.extended[1][axis] = idxco.logical[1][axis] + bdepths[axis];
     }
-    else if(bits & low) {
+    else if(bits & mask::low) {
       /*
         This dimension is a low edge.
        */
@@ -184,7 +189,7 @@ make_color(Dimension dimension,
           {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
       } // if
     }
-    else if(bits & high) {
+    else if(bits & mask::high) {
       /*
         This dimension is a high edge.
        */
@@ -454,7 +459,7 @@ color(narray_impl::coloring_definition const & cd,
       coord result(dimension);
       for(Dimension axis = 0; axis < dimension; ++axis) {
         uint32_t bits = idxco.orientation >> axis * 2;
-        if(bits & low) {
+        if(bits & mask::low) {
           result[axis] = gidx[axis] + axis_bdepths[axis];
         }
         else {
@@ -473,7 +478,7 @@ color(narray_impl::coloring_definition const & cd,
       coord result(dimension);
       for(Dimension axis = 0; axis < dimension; ++axis) {
         uint32_t bits = orient >> axis * 2;
-        if(bits & low) {
+        if(bits & mask::low) {
           if(idx[axis] < idxco.logical[0][axis]) {
             /* periodic low */
             result[axis] = idxco.global[axis] - axis_bdepths[axis] + idx[axis];
@@ -482,7 +487,7 @@ color(narray_impl::coloring_definition const & cd,
             result[axis] = idx[axis] - axis_bdepths[axis];
           }
         }
-        else if(bits & high && idx[axis] >= idxco.logical[1][axis]) {
+        else if(bits & mask::high && idx[axis] >= idxco.logical[1][axis]) {
           /* periodic high */
           result[axis] = idx[axis] - idxco.logical[1][axis];
         }
@@ -662,20 +667,20 @@ color_auxiliary(std::size_t ne,
       const std::uint32_t bits = pc.orientation >> axis * 2;
 
       // Settings and corrections depending on orientation
-      if(bits & low && bits & high) {
+      if(bits & mask::low && bits & mask::high) {
         apc.logical[0][axis] = bd;
         apc.logical[1][axis] = apc.logical[0][axis] + le + ex;
         apc.extended[0][axis] = 0;
         apc.extended[1][axis] = ee + ex;
       }
-      else if(bits & low) {
+      else if(bits & mask::low) {
         apc.extents[axis] += full_ghosts ? hd : 0;
         apc.logical[0][axis] = bd;
         apc.logical[1][axis] = apc.logical[0][axis] + le + ex;
         apc.extended[0][axis] = 0;
         apc.extended[1][axis] = ee + ex;
       }
-      else if(bits & high) {
+      else if(bits & mask::high) {
         apc.extents[axis] += full_ghosts ? hd : 0;
         apc.offset[axis] += full_ghosts ? 0 : hd;
         apc.logical[0][axis] = full_ghosts ? hd + ex : ex;
