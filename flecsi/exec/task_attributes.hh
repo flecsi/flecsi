@@ -79,7 +79,7 @@ as_mask(task_type_t t) {
 constexpr auto
 as_mask(task_processor_type_t t) {
   return static_cast<task_attributes_mask_t>(
-    1 << task_type_bits + static_cast<TaskAttributes>(t));
+    1 << (task_type_bits + static_cast<TaskAttributes>(t)));
 }
 
 inline task_type_t

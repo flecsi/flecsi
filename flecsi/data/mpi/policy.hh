@@ -27,8 +27,158 @@
 
 namespace flecsi {
 namespace data {
-
 namespace mpi {
+namespace detail {
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+struct buffer_state_base {
+  std::byte * data() {
+    return ptr;
+  }
+
+  std::size_t size() const {
+    return s;
+  }
+
+  std::size_t s = 0;
+  std::byte * ptr = nullptr;
+};
+
+template<exec::task_processor_type_t>
+struct buffer_state;
+
+template<>
+struct buffer_state<exec::task_processor_type_t::loc> : buffer_state_base {
+  void resize(std::size_t ns) {
+    // Note: when ptr == nullptr, std::realloc == std::malloc
+    ptr = static_cast<std::byte *>(std::realloc(ptr, ns));
+    flog_assert(ptr != nullptr, "memory allocation failed");
+    s = ns;
+  }
+
+  ~buffer_state() {
+    if(ptr != nullptr)
+      std::free(ptr);
+  }
+};
+
+template<>
+struct buffer_state<exec::task_processor_type_t::toc> : buffer_state_base {
+  void resize(std::size_t ns) {
+    if(ptr == nullptr)
+      // Kokkos does require calling of kokkos_malloc when ptr == nullptr.
+      ptr = static_cast<std::byte *>(
+        Kokkos::kokkos_malloc<Kokkos::DefaultExecutionSpace>(ns));
+    else
+      ptr = static_cast<std::byte *>(
+        Kokkos::kokkos_realloc<Kokkos::DefaultExecutionSpace>(ptr, ns));
+    flog_assert(ptr != nullptr, "memory allocation failed");
+    s = ns;
+  }
+
+  ~buffer_state() {
+    if(ptr != nullptr)
+      Kokkos::kokkos_free<Kokkos::DefaultExecutionSpace>(ptr);
+  }
+};
+
+struct buffer {
+  buffer(std::size_t s) : s(s) {}
+
+  template<exec::task_processor_type_t ProcessorType>
+  std::byte * data() {
+    // HACK to treat mpi processor type as loc
+    if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
+      return data<exec::task_processor_type_t::loc>();
+
+    auto & v = [&]() -> auto & {
+      if constexpr(ProcessorType == exec::task_processor_type_t::loc)
+        return loc_buffer;
+      else
+        return toc_buffer;
+    }
+    ();
+
+    if(v.size() < s) {
+      v.resize(s);
+    }
+
+    if(is_on != ProcessorType) {
+      if(is_on == exec::task_processor_type_t::loc) {
+        Kokkos::View<std::byte *,
+          Kokkos::HostSpace,
+          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+          host_view(loc_buffer.data(), loc_buffer.size());
+        Kokkos::View<std::byte *,
+          Kokkos::DefaultExecutionSpace,
+          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+          device_view(v.data(), v.size());
+        Kokkos::deep_copy(device_view, host_view);
+      }
+      else {
+        Kokkos::View<std::byte *,
+          Kokkos::HostSpace,
+          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+          host_view(v.data(), v.size());
+        Kokkos::View<std::byte *,
+          Kokkos::DefaultExecutionSpace,
+          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+          device_view(toc_buffer.data(), toc_buffer.size());
+        Kokkos::deep_copy(host_view, device_view);
+      }
+      is_on = ProcessorType;
+    }
+
+    return v.data();
+  }
+
+  std::size_t size() const {
+    return this->s;
+  }
+
+  void resize(std::size_t size) {
+    s = size;
+    if(is_on == exec::task_processor_type_t::loc) {
+      loc_buffer.resize(s);
+    }
+    else {
+      toc_buffer.resize(s);
+    }
+  }
+
+private:
+  std::size_t s;
+  exec::task_processor_type_t is_on = exec::task_processor_type_t::loc;
+  // TODO: How to handle the case when ExecutionSpace is actually HostSpace
+  //  (e.g. OpenMP)?
+  // Why don't we use Kokkos_View directly? Ans: our region lives longer than
+  // Kokkos.
+  buffer_state<exec::task_processor_type_t::loc> loc_buffer;
+  buffer_state<exec::task_processor_type_t::toc> toc_buffer;
+};
+#else // !defined(FLECSI_ENABLE_KOKKOS)
+struct buffer {
+  buffer(std::size_t s) : v(s) {}
+
+  template<exec::task_processor_type_t ProcessorType>
+  std::byte * data() {
+    return v.data();
+  }
+
+  std::size_t size() const {
+    return v.size();
+  }
+
+  void resize(std::size_t size) {
+    v.resize(size);
+  }
+
+private:
+  std::vector<std::byte> v;
+};
+#endif // defined(FLECSI_ENABLE_KOKKOS)
+} // namespace detail
+
 struct region_impl {
   // The constructor is collectively called on all ranks with the same s,
   // and fs. s.first is number of rows while s.second is number of columns.
@@ -65,11 +215,12 @@ struct region_impl {
 
   template<class T, exec::task_processor_type_t ProcessorType>
   util::span<T> get_storage(field_id_t fid, std::size_t nelems) {
+    // TODO: most of this have been move to the implementation of buffer.
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
       v.resize(nbytes);
-    return {reinterpret_cast<T *>(v.data()), nelems};
+    return {reinterpret_cast<T *>(v.data<ProcessorType>()), nelems};
   }
 
   auto get_field_info(field_id_t fid) const {
@@ -85,7 +236,7 @@ private:
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
-  std::unordered_map<field_id_t, std::vector<std::byte>> storages;
+  std::unordered_map<field_id_t, detail::buffer> storages;
 };
 
 struct region {
@@ -167,9 +318,10 @@ struct prefixes : data::partition, prefixes_base {
   void update(F f) {
     // The number of elements for each ranks is stored as a field of the
     // prefixes::row data type on the `other` partition.
-    const auto s = f.get_partition()
-                     .template get_storage<row, exec::task_processor_type_t::loc>(
-                       f.fid()); // non-owning span
+    const auto s =
+      f.get_partition()
+        .template get_storage<row, exec::task_processor_type_t::loc>(
+          f.fid()); // non-owning span
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];
@@ -214,7 +366,8 @@ struct intervals {
     // code might change it after this constructor returns. We can not use a
     // copy assignment directly here since metadata is an util::span while
     // ghost_ranges is a std::vector<>.
-    ghost_ranges = to_vector(p.get_storage<Value, exec::task_processor_type_t::loc>(fid));
+    ghost_ranges =
+      to_vector(p.get_storage<Value, exec::task_processor_type_t::loc>(fid));
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
     // entities.
@@ -321,9 +474,7 @@ struct copy_engine {
     auto source_storage =
       source.r->get_storage<std::byte, exec::task_processor_type_t::loc>(
         data_fid, max_local_source_idx);
-    auto destination_storage =
-      destination.get_storage<std::byte>(
-        data_fid);
+    auto destination_storage = destination.get_storage<std::byte>(data_fid);
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
