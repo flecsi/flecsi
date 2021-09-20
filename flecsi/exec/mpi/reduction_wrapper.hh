@@ -86,6 +86,8 @@ template<class T>
 struct ordered<min, std::complex<T>>; // undefined
 template<class T>
 struct ordered<max, std::complex<T>>; // undefined
+template<class R>
+struct ordered<R, bool>; // undefined
 
 template<class R, class T>
 struct wrap<R,

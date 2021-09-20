@@ -51,7 +51,7 @@ struct mesh {
   struct interface : B {
 
     template<axis A, range SE = logical>
-    std::size_t size() {
+    std::size_t size() const {
       switch(SE) {
         case logical:
           return B::
@@ -87,7 +87,7 @@ struct mesh {
     }
 
     template<axis A, range SE = logical>
-    auto extents() {
+    auto extents() const {
       switch(SE) {
         case logical:
           return B::
@@ -122,7 +122,7 @@ struct mesh {
     }
 
     template<axis A, range SE = logical>
-    auto offset() {
+    auto offset() const {
       switch(SE) {
         case logical:
           return B::
