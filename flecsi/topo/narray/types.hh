@@ -216,33 +216,42 @@ struct narray_base {
     }
   } // idx_itvls
 
-  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
+  static void set_dests(
+    data::multi<field<data::intervals::Value>::accessor<wo>> aa,
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
       intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals[0].size(),
-      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
-                                        << intervals[0].size() << ")");
-    std::size_t i{0};
-    for(auto it : intervals[0]) {
-      a[i++] = data::intervals::make({it.first, it.second}, process());
-    } // for
+    std::size_t ci = 0;
+    for(auto [c, a] : aa.components()) {
+      auto & iv = intervals[ci++];
+      flog_assert(a.span().size() == iv.size(),
+        "interval size mismatch a.span ("
+          << a.span().size() << ") != intervals (" << iv.size() << ")");
+      std::size_t i{0};
+      for(auto & it : iv) {
+        a[i++] = data::intervals::make({it.first, it.second}, c);
+      } // for
+    }
   }
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
+    data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
+      aa,
     std::vector<std::map<Color,
       std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : points[0]) {
-      for(auto p : si.second) {
-        // si.first: owner
-        // p.first: local ghost offset
-        // p.second: remote shared offset
-        a[p.first] = data::points::make(si.first, p.second);
+    std::size_t ci = 0;
+    for(auto & a : aa.accessors()) {
+      for(auto const & si : points[ci++]) {
+        for(auto p : si.second) {
+          // si.first: owner
+          // p.first: local ghost offset
+          // p.second: remote shared offset
+          a[p.first] = data::points::make(si.first, p.second);
+        } // for
       } // for
-    } // for
+    }
   }
 }; // struct narray_base
 
