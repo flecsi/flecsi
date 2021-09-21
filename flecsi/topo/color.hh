@@ -81,6 +81,18 @@ struct indirect : specialization<indirect_category, indirect<Q>> {
   static TopologyType id() = delete; // prevent ineffectual field registration
 };
 
+// An optional color to use for a point task.
+struct claims : specialization<column, claims> {
+  using Field = flecsi::field<data::borrow::Value, data::single>;
+  static const Field::definition<claims> field;
+
+  // The color is encoded as a prefix of size 0 or 1.
+  static data::borrow::Value row(std::optional<Color> c) {
+    return data::borrow::make(!!c, c.value_or(0));
+  }
+};
+inline const claims::Field::definition<claims> claims::field;
+
 } // namespace flecsi::topo
 
 #endif

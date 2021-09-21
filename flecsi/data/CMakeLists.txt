@@ -50,6 +50,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
   set(data_HEADERS
+    mpi/copy.hh
     mpi/policy.hh
     ${data_HEADERS}
   )

@@ -26,6 +26,10 @@ struct mirror {
     return part;
   }
 
+  halves::core & get_rects() { // for multi-accessors
+    return rects;
+  }
+
   static constexpr const field_id_t & fid = halves::field.fid;
 
 private:
@@ -77,6 +81,8 @@ struct prefixes : private leg::mirror,
   Legion::LogicalRegion get_first_subregion() const {
     return get_first_subregion(prt);
   }
+
+  using mirror::get_rects;
 
 private:
   static Legion::LogicalRegion get_first_subregion(
@@ -152,6 +158,14 @@ public:
   void operator()(field_id_t f) const {
     copy_engine(*this).go(f);
   }
+};
+
+struct pointers : topo::indirect<leg::halves>::core {
+  static constexpr auto & field = leg::halves::field;
+
+  // Legion doesn't need the advertised permission to modify src.
+  pointers(prefixes & pfx, const topo::claims::core & src)
+    : indirect_category(pfx.get_rects(), src, topo::claims::field.fid) {}
 };
 
 } // namespace flecsi::data

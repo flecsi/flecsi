@@ -160,7 +160,7 @@ struct field_reference : field_reference_t<Topo> {
   using Base::Base;
   explicit field_reference(const Base & b) : Base(b) {}
 
-  // We can't forward-declare partition, so just deduce these:
+  // Some of these types vary across topologies:
   template<class S>
   static auto & get_region(S & topo) {
     return topo.template get_region<Space>();
@@ -238,6 +238,13 @@ struct field : data::detail::field_base<T, L> {
       return (*this)(t.get());
     }
     Reference<Topo, Space> operator()(typename Topo::core & t) const {
+      return {*this, t};
+    }
+    // For indirect and borrow topologies:
+    template<template<class> class C, class P>
+    std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
+      Reference<P, Space>>
+    operator()(C<P> & t) const {
       return {*this, t};
     }
   };

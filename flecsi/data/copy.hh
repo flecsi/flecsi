@@ -7,6 +7,8 @@
 
 #if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
 #include "flecsi/data/leg/copy.hh"
+#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#include "flecsi/data/mpi/copy.hh"
 #endif
 
 namespace flecsi::data {
@@ -61,6 +63,15 @@ struct copy_engine {
   copy_engine(const points & src, const intervals & dest, field_id_t);
 
   void operator()(field_id_t) const;
+};
+
+struct pointers : partition { // up to one source row number in each row
+  static constexpr auto & field; // a flecsi::field<borrow::Value>::definition
+
+  // The claims are not const but are not modified.
+  pointers(prefixes &, topo::claims::core &);
+
+  auto operator*(); // field reference onto this partition
 };
 #endif
 
