@@ -16,7 +16,7 @@ set(run_HEADERS
   backend.hh
   context.hh
   control.hh
-  point_walker.hh
+  types.hh
 )
 
 set(run_SOURCES
