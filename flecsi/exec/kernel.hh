@@ -119,17 +119,18 @@ public:
   work with random access ranges common in FleCSI topologies.
  */
 
-template<typename policy, typename Lambda>
+template<typename Policy, typename Lambda>
 void
-parallel_for(policy && P, Lambda && lambda, const std::string & name = "") {
+parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
+// check for P if it is policy type or just range
 #if defined(FLECSI_ENABLE_KOKKOS)
   Kokkos::parallel_for(name,
-    P.get_policy(),
-    [it = P.range, f = std::forward<Lambda>(lambda)] FLECSI_TARGET(
+    p.get_policy(),
+    [it = p.range, f = std::forward<Lambda>(lambda)] FLECSI_TARGET(
       int i) { return f(it[i]); });
 #else
   (void)name;
-  std::for_each(P.range.begin(), P.range.end(), lambda);
+  std::for_each(p.range.begin(), p.range.end(), lambda);
 #endif
 } // parallel_for
 
@@ -143,35 +144,34 @@ struct range_policy {
   Range range;
 };
 template<class R>
-range_policy(R)->range_policy<R>; // automatic in C++20
+range_policy(R)->range_policy<R>;
+
+struct policy_tag {};
+
+struct range_bound_base {
+#if defined(FLECSI_ENABLE_KOKKOS)
+  typedef Kokkos::RangePolicy<>::member_type index;
+#else
+  typedef util::counter_t index;
+#endif
+};
 
 template<typename Range>
-struct range_bound {
+struct range_bound : range_bound_base, policy_tag {
+  range_bound(Range r, index l, index u) : range(r), lb(l), ub(u){};
 #if defined(FLECSI_ENABLE_KOKKOS)
-  using index = Kokkos::RangePolicy<>::member_type;
   auto get_policy() {
     return Kokkos::RangePolicy<>(lb, ub);
   }
 #endif
   Range range;
-#if defined(FLECSI_ENABLE_KOKKOS)
   index lb;
   index ub;
-#else
-  int lb;
-  int ub;
-#endif
 };
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 template<class R>
-range_bound(R,
-  Kokkos::RangePolicy<>::member_type,
-  Kokkos::RangePolicy<>::member_type)
+range_bound(R, range_bound_base::index, range_bound_base::index)
   ->range_bound<R>;
-#endif
-template<class R>
-range_bound(R, int LB, int UB)->range_bound<R>;
 
 template<typename P>
 struct forall_t {

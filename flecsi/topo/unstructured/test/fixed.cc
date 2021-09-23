@@ -304,7 +304,7 @@ update_pressure(fixed_mesh::accessor<ro, ro> m,
   field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
   int clr = color();
-  forall(c, (flecsi::exec::range_bound{m.cells(), 0, 81}), "pressure_c") {
+  forall(c, (flecsi::exec::range_bound(m.cells(), 0, 81)), "pressure_c") {
     p[c] = clr;
   };
 }
