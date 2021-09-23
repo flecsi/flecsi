@@ -63,20 +63,13 @@ protected:
     constexpr bool glob =
       std::is_same_v<typename Topo::base, topo::global_base>;
 
-    const auto storage = [&]() -> auto & {
-      if constexpr(glob)
-        return *t;
-      else
-        // The partition controls how much memory is allocated.
-        return t.template get_partition<Space>(f);
-    }
-    ().template get_storage<T, ProcessorType>(f);
+    // Perform ghost copy using host side storage. This might copy data
+    // from the device side first.
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
         // This is a special case of ghost_copy thus we need the storage
         // in HostSpace rather than ExecutionSpace.
-        auto host_storage =
-          (*t).template get_storage<T, exec::task_processor_type_t::loc>(f);
+        auto host_storage = (*t).template get_storage<T>(f);
         util::mpi::test(MPI_Bcast(host_storage.data(),
           host_storage.size(),
           flecsi::util::mpi::type<T>(),
@@ -86,6 +79,17 @@ protected:
     }
     else
       reg.ghost_copy<P>(ref);
+
+    // Now bind the ExecutionSpace storage to the accessor. This will also
+    // trigger a host <-> device copy if needed.
+    const auto storage = [&]() -> auto & {
+      if constexpr(glob)
+        return *t;
+      else
+        // The partition controls how much memory is allocated.
+        return t.template get_partition<Space>(f);
+    }
+    ().template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
   } // visit generic topology
 }; // struct task_prologue_t

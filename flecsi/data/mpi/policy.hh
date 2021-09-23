@@ -32,10 +32,6 @@ namespace detail {
 
 struct buffer {
   buffer() = default;
-  buffer(const buffer &) = delete;
-  buffer & operator=(const buffer &) = delete;
-
-  buffer(std::size_t s) : v(s) {}
 
   template<exec::task_processor_type_t ProcessorType =
              exec::task_processor_type_t::loc>
@@ -46,6 +42,14 @@ struct buffer {
   std::size_t size() const {
     return v.size();
   }
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+  auto kokkos_view() {
+    return Kokkos::View<std::byte *,
+      Kokkos::HostSpace,
+      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(v.data(), v.size());
+  }
+#endif
 
   void resize(std::size_t size) {
     v.resize(size);
@@ -72,15 +76,18 @@ struct buffer_impl_toc {
   }
 
   void resize(std::size_t ns) {
-    if(ptr == nullptr)
-      // Kokkos does require calling of kokkos_malloc when ptr == nullptr.
-      ptr = static_cast<std::byte *>(
-        Kokkos::kokkos_malloc<Kokkos::DefaultExecutionSpace>(ns));
-    else
-      ptr = static_cast<std::byte *>(
-        Kokkos::kokkos_realloc<Kokkos::DefaultExecutionSpace>(ptr, ns));
+    // Kokkos does require calling of kokkos_malloc when ptr == nullptr.
+    ptr = static_cast<std::byte *>(
+      ptr ? Kokkos::kokkos_realloc<Kokkos::DefaultExecutionSpace>(ptr, ns)
+          : Kokkos::kokkos_malloc<Kokkos::DefaultExecutionSpace>(ns));
     flog_assert(ptr != nullptr, "memory allocation failed");
     s = ns;
+  }
+
+  auto kokkos_view() {
+    return Kokkos::View<std::byte *,
+      Kokkos::DefaultExecutionSpace,
+      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, s);
   }
 
   ~buffer_impl_toc() {
@@ -94,71 +101,60 @@ private:
 };
 
 struct storage {
-  storage(std::size_t s) : s(s) {}
-
   template<exec::task_processor_type_t ProcessorType>
   std::byte * data() {
     // HACK to treat mpi processor type as loc
     if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
       return data<exec::task_processor_type_t::loc>();
 
-    auto & v = [&]() -> auto & {
-      if constexpr(ProcessorType == exec::task_processor_type_t::loc)
-        return loc_buffer;
-      else
-        return toc_buffer;
-    }
-    ();
-
-    if(v.size() < s) {
-      v.resize(s);
-    }
-
     if(is_on != ProcessorType) {
+      // We need to resize buffer on the destination side such that we don't
+      // attempt deep_copy to cause buffer overrun (Kokkos does check that).
       if(is_on == exec::task_processor_type_t::loc) {
-        Kokkos::View<std::byte *,
-          Kokkos::HostSpace,
-          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          host_view(loc_buffer.data(), loc_buffer.size());
-        Kokkos::View<std::byte *,
-          Kokkos::DefaultExecutionSpace,
-          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          device_view(v.data(), v.size());
-        Kokkos::deep_copy(device_view, host_view);
+        grow(toc_buffer, loc_buffer);
       }
       else {
-        Kokkos::View<std::byte *,
-          Kokkos::HostSpace,
-          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          host_view(v.data(), v.size());
-        Kokkos::View<std::byte *,
-          Kokkos::DefaultExecutionSpace,
-          Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          device_view(toc_buffer.data(), toc_buffer.size());
-        Kokkos::deep_copy(host_view, device_view);
+        grow(loc_buffer, toc_buffer);
       }
-      is_on = ProcessorType;
-    }
 
-    return v.data();
+      if(is_on == exec::task_processor_type_t::loc) {
+        Kokkos::deep_copy(toc_buffer.kokkos_view(), loc_buffer.kokkos_view());
+      }
+      else {
+        Kokkos::deep_copy(loc_buffer.kokkos_view(), toc_buffer.kokkos_view());
+      }
+    }
+    is_on = ProcessorType;
+
+    if constexpr(ProcessorType == exec::task_processor_type_t::loc)
+      return loc_buffer.data();
+    else
+      return toc_buffer.data();
   }
 
   std::size_t size() const {
-    return this->s;
+    if(is_on == exec::task_processor_type_t::loc)
+      return loc_buffer.size();
+    else
+      return toc_buffer.size();
   }
 
   void resize(std::size_t size) {
-    s = size;
     if(is_on == exec::task_processor_type_t::loc) {
-      loc_buffer.resize(s);
+      loc_buffer.resize(size);
     }
     else {
-      toc_buffer.resize(s);
+      toc_buffer.resize(size);
     }
   }
 
 private:
-  std::size_t s;
+  template<typename D, typename S>
+  static void grow(D & dest, const S & src) {
+    if(dest.size() < src.size())
+      dest.resize(src.size());
+  }
+
   exec::task_processor_type_t is_on = exec::task_processor_type_t::loc;
   // TODO: How to handle the case when ExecutionSpace is actually HostSpace
   //  (e.g. OpenMP)?
@@ -190,7 +186,7 @@ struct region_impl {
   // std::vector<>.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(auto f : fs) {
-      storages.emplace(f->fid, 0);
+        storages[f->fid];
     }
   }
 
@@ -212,7 +208,6 @@ struct region_impl {
     exec::task_processor_type_t ProcessorType =
       exec::task_processor_type_t::loc>
   util::span<T> get_storage(field_id_t fid, std::size_t nelems) {
-    // TODO: most of this have been move to the implementation of buffer.
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
@@ -318,9 +313,7 @@ struct prefixes : data::partition, prefixes_base {
     // The number of elements for each ranks is stored as a field of the
     // prefixes::row data type on the `other` partition.
     const auto s =
-      f.get_partition()
-        .template get_storage<row, exec::task_processor_type_t::loc>(
-          f.fid()); // non-owning span
+      f.get_partition().template get_storage<row>(f.fid()); // non-owning span
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];
@@ -365,8 +358,7 @@ struct intervals {
     // code might change it after this constructor returns. We can not use a
     // copy assignment directly here since metadata is an util::span while
     // ghost_ranges is a std::vector<>.
-    ghost_ranges =
-      to_vector(p.get_storage<Value, exec::task_processor_type_t::loc>(fid));
+    ghost_ranges = to_vector(p.get_storage<Value>(fid));
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
     // entities.
@@ -384,7 +376,7 @@ private:
 
   template<typename T>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, exec::task_processor_type_t::loc>(fid, max_end);
+    return r->get_storage<T>(fid, max_end);
   }
 
   mpi::region_impl * r;
@@ -471,8 +463,7 @@ struct copy_engine {
     // Since we are doing ghost copy via MPI, we always want the host side
     // version. Unless we are doing some direct CUDA MPI thing in the future.
     auto source_storage =
-      source.r->get_storage<std::byte, exec::task_processor_type_t::loc>(
-        data_fid, max_local_source_idx);
+      source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
