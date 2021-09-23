@@ -32,12 +32,13 @@ namespace detail {
 
 struct buffer {
   buffer() = default;
-  buffer(const buffer&) = delete;
-  buffer& operator=(const buffer&) = delete;
+  buffer(const buffer &) = delete;
+  buffer & operator=(const buffer &) = delete;
 
   buffer(std::size_t s) : v(s) {}
 
-  template<exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
+  template<exec::task_processor_type_t ProcessorType =
+             exec::task_processor_type_t::loc>
   std::byte * data() {
     return v.data();
   }
@@ -59,8 +60,8 @@ using buffer_impl_loc = buffer;
 
 struct buffer_impl_toc {
   buffer_impl_toc() = default;
-  buffer_impl_toc(const buffer_impl_toc&) = delete;
-  buffer_impl_toc& operator=(const buffer_impl_toc&) = delete;
+  buffer_impl_toc(const buffer_impl_toc &) = delete;
+  buffer_impl_toc & operator=(const buffer_impl_toc &) = delete;
 
   std::byte * data() {
     return ptr;
@@ -200,12 +201,16 @@ struct region_impl {
   // The span is safe because it is used only within a user task while the
   // vectors are resized or destroyed only outside user tasks (though perhaps
   // during execute).
-  template<class T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
+  template<class T,
+    exec::task_processor_type_t ProcessorType =
+      exec::task_processor_type_t::loc>
   util::span<T> get_storage(field_id_t fid) {
     return get_storage<T, ProcessorType>(fid, s.second);
   }
 
-  template<class T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
+  template<class T,
+    exec::task_processor_type_t ProcessorType =
+      exec::task_processor_type_t::loc>
   util::span<T> get_storage(field_id_t fid, std::size_t nelems) {
     // TODO: most of this have been move to the implementation of buffer.
     auto & v = storages.at(fid);
@@ -253,7 +258,9 @@ struct partition {
     return r->size().first;
   }
 
-  template<typename T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
+  template<typename T,
+    exec::task_processor_type_t ProcessorType =
+      exec::task_processor_type_t::loc>
   auto get_storage(field_id_t fid) const {
     return r->get_storage<T, ProcessorType>(fid, nelems);
   }
@@ -461,8 +468,8 @@ struct copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
-    // Since we are doing ghost copy via MPI, we always want the host side version.
-    // Unless we are doing some direct CUDA MPI thing in the future.
+    // Since we are doing ghost copy via MPI, we always want the host side
+    // version. Unless we are doing some direct CUDA MPI thing in the future.
     auto source_storage =
       source.r->get_storage<std::byte, exec::task_processor_type_t::loc>(
         data_fid, max_local_source_idx);

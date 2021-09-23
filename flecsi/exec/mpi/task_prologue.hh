@@ -72,14 +72,17 @@ protected:
     }
     ().template get_storage<T, ProcessorType>(f);
     if constexpr(glob) {
-      if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f))
-        // FIXME: this is a special case of region.ghost_copy but the storage is
-        //  on the wrong side when ProcessType is toc.
-        util::mpi::test(MPI_Bcast(storage.data(),
-          storage.size(),
+      if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
+        // This is a special case of ghost_copy thus we need the storage
+        // in HostSpace rather than ExecutionSpace.
+        auto host_storage =
+          (*t).template get_storage<T, exec::task_processor_type_t::loc>(f);
+        util::mpi::test(MPI_Bcast(host_storage.data(),
+          host_storage.size(),
           flecsi::util::mpi::type<T>(),
           0,
           MPI_COMM_WORLD));
+      }
     }
     else
       reg.ghost_copy<P>(ref);
