@@ -33,16 +33,13 @@ struct hdf5 {
 #ifdef H5_HAVE_PARALLEL
   hdf5(const char * f, MPI_Comm comm, bool create) {
     hid_t file_access_plist_id = H5Pcreate(H5P_FILE_ACCESS);
-    assert(file_access_plist_id);
-    herr_t iret = H5Pset_fapl_mpio(file_access_plist_id, comm, MPI_INFO_NULL);
-    assert(iret != -1);
+    H5Pset_fapl_mpio(file_access_plist_id, comm, MPI_INFO_NULL);
 
     id =
       (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
               : H5Fopen(f, H5F_ACC_RDWR, file_access_plist_id));
 
-    iret = H5Pclose(file_access_plist_id);
-    assert(iret != -1);
+    H5Pclose(file_access_plist_id);
 
     const auto v = create ? "create" : "open";
     if(*this) {

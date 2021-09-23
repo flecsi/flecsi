@@ -66,7 +66,7 @@ struct io_interface {
   }
 
   template<bool W = true> // whether to write or read the file
-  bool checkpoint_field_data(const hid_t & hdf5_file_id,
+  void checkpoint_field_data(const hid_t & hdf5_file_id,
     const std::string & dataset_name,
     void * buffer,
     hsize_t nitems,
@@ -77,7 +77,7 @@ struct io_interface {
     if(dataset_id < 0) {
       flog(error) << " H5Dopen2 failed: " << dataset_id << std::endl;
       H5Fclose(hdf5_file_id);
-      return false;
+      assert(false);
     }
 
     const int ndims = 2;
@@ -88,7 +88,7 @@ struct io_interface {
       flog(error) << " H5Screate_simple failed: " << mem_dataspace_id
                   << std::endl;
       H5Fclose(hdf5_file_id);
-      return false;
+      assert(false);
     }
 
     // Select hyperslab in the file.
@@ -103,25 +103,19 @@ struct io_interface {
     // To write dataset independently use
     //    H5Pset_dxpl_mpio(xfer_plist_id, H5FD_MPIO_INDEPENDENT);
 
-    herr_t status;
-    status =
-      [] {
-        if constexpr(W)
-          return H5Dwrite;
-        else
-          return H5Dread;
-      }()(dataset_id,
-        hdf5_type(item_size),
-        mem_dataspace_id,
-        file_dataspace_id,
-        xfer_plist_id,
-        buffer);
-    assert(status == 0);
-    status = H5Pclose(xfer_plist_id);
-    assert(status == 0);
-    status = H5Dclose(dataset_id);
-    assert(status == 0);
-    return true;
+    [] {
+      if constexpr(W)
+        return H5Dwrite;
+      else
+        return H5Dread;
+    }()(dataset_id,
+      hdf5_type(item_size),
+      mem_dataspace_id,
+      file_dataspace_id,
+      xfer_plist_id,
+      buffer);
+    H5Pclose(xfer_plist_id);
+    H5Dclose(dataset_id);
   }
 
   template<bool W = true> // whether to write or read the file
@@ -143,9 +137,8 @@ struct io_interface {
       displ = 0;
 
     hid_t hdf5_file_id = (hid_t)checkpoint_file.hdf5_file_id;
-    bool return_val = checkpoint_field_data<W>(
+    checkpoint_field_data<W>(
       hdf5_file_id, field_name.data(), buffer, nitems, displ, item_size);
-    assert(return_val);
   } // checkpoint_field
 
   template<bool W = true> // whether to write or read the file
