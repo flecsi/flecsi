@@ -51,6 +51,9 @@ struct topology_slot;
 
 namespace topo {
 struct global_base;
+template<class Topo>
+struct ragged;
+struct with_ragged_base;
 } // namespace topo
 
 inline log::devel_tag context_tag("context");
@@ -71,8 +74,8 @@ enum status : int {
 
 struct index_space_info_t {
   const data::region * region;
-  const data::partition * partition;
-  const data::fields * fields;
+  std::function<const data::partition *()> get_partition;
+  data::fields fields;
   std::string index_type;
 };
 
@@ -511,12 +514,7 @@ struct context {
 
   template<class Topo>
   void add_topology(typename data::topology_slot<Topo> & slot) {
-    // global topology doesn't define get_partitions, so skip for now
-    constexpr bool is_global =
-      std::is_same_v<typename Topo::base, topo::global_base>;
-    if constexpr(!is_global) {
-      add_index_spaces<Topo>(slot, typename Topo::index_spaces());
-    }
+    add_index_spaces<Topo>(slot, typename Topo::index_spaces());
   }
 
   const std::vector<index_space_info_t> & get_index_space_info() const {
@@ -565,24 +563,45 @@ protected:
 #endif
 
 private:
-  template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  index_space_info_t make_index_space_info(typename Topo::slot & slot) {
-    auto & fs = get_field_info_store<Topo, Index>();
-
-    return index_space_info_t{&(slot->template get_region<Index>()),
-      // TODO:  deal with ragged case, where different fields have
-      // different partitions
-      &(slot->template get_partition<Index>(field_id_t())),
-      &fs,
-      util::type<Topo>() + '[' + std::to_string(Index) + ']'};
-  }
+  template<class Topo,
+    typename Topo::index_space Index,
+    typename SubTopo = Topo,
+    typename Instance>
+  void add_fields(Instance & slot) {
+    auto & fs = get_field_info_store<SubTopo, Index>();
+    for(const auto fip : fs) {
+      auto get_partition = [=, &slot]() {
+        return &(slot.template get_partition<Index>(fip->fid));
+      };
+      if(!index_space_info_vector_.empty() &&
+         get_partition() == index_space_info_vector_.back().get_partition()) {
+        // add field to previous info_t entry
+        index_space_info_vector_.back().fields.push_back(fip);
+      }
+      else {
+        // add new entry for this field
+        index_space_info_t isi{&(slot.template get_region<Index>()),
+          get_partition,
+          {fip},
+          util::type<SubTopo>() + '[' + std::to_string(Index) + "]"};
+        index_space_info_vector_.push_back(isi);
+      }
+    } // for fip
+  } // add_fields
 
   template<class Topo, typename Topo::index_space... Index>
   void add_index_spaces(typename Topo::slot & slot,
     util::constants<Index...> /* to deduce pack */) {
-    (index_space_info_vector_.push_back(
-       make_index_space_info<Topo, Index>(slot)),
-      ...);
+    // global topology doesn't define get_partition, so skip it for now
+    if constexpr(!std::is_same_v<topo::global_base, typename Topo::base>) {
+      // register core fields
+      (add_fields<Topo, Index>(slot.get()), ...);
+      // if present, register ragged fields
+      if constexpr(std::is_base_of_v<topo::with_ragged_base,
+                     typename Topo::core>) {
+        (add_fields<Topo, Index, topo::ragged<Topo>>(slot->ragged), ...);
+      }
+    }
   }
 
   /*--------------------------------------------------------------------------*

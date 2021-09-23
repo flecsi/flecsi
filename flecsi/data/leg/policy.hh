@@ -203,10 +203,6 @@ struct partition_base {
   Color colors() const {
     return run().get_index_space_domain(get_color_space()).get_volume();
   }
-  template<topo::single_space>
-  const partition_base & get_partition(field_id_t) const {
-    return *this;
-  }
 
 protected:
   partition_base(const Legion::LogicalRegion & r, unique_index_partition ip)
@@ -226,6 +222,11 @@ protected:
 // forward declarations
 struct partition : leg::partition_base { // instead of "using partition ="
   using leg::partition_base::partition_base;
+
+  template<topo::single_space>
+  const partition & get_partition(field_id_t) const {
+    return *this;
+  }
 };
 
 namespace leg {

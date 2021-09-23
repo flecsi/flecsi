@@ -73,10 +73,10 @@ checkpoint_task(const Legion::Task * task,
           runtime->get_index_space_domain(ctx, rr.region.get_index_space());
         size_t domain_size = rect.volume();
         auto & m = field_size_map_vector[rid];
-
+        std::string pfx = "region " + std::to_string(rid);
         for(Legion::FieldID fid : rr.privilege_fields) {
-          checkpoint_file.create_dataset(
-            "field " + std::to_string(fid), domain_size, m.at(fid));
+          std::string name = pfx + " field " + std::to_string(fid);
+          checkpoint_file.create_dataset(name, domain_size, m.at(fid));
         }
       }
       checkpoint_file.close();
@@ -120,8 +120,10 @@ checkpoint_task(const Legion::Task * task,
       // to make sure their data persists.
       std::vector<std::string> field_names;
       field_names.reserve(rr.privilege_fields.size());
-      f([&field_map, &field_names](Legion::FieldID fid, std::size_t) {
-        field_names.emplace_back("field " + std::to_string(fid));
+      std::string pfx = "region " + std::to_string(rid);
+      f([&field_map, &field_names, &pfx](Legion::FieldID fid, std::size_t) {
+        std::string name = pfx + " field " + std::to_string(fid);
+        field_names.emplace_back(name);
         field_map.emplace(fid, field_names.back().c_str());
       });
 
@@ -150,8 +152,9 @@ checkpoint_task(const Legion::Task * task,
     else {
       Legion::Rect<2> rect =
         runtime->get_index_space_domain(ctx, rr.region.get_index_space());
+      std::string pfx = "region " + std::to_string(rid);
       f([&](Legion::FieldID fid, std::size_t item_size) {
-        std::string name = "field " + std::to_string(fid);
+        std::string name = pfx + " field " + std::to_string(fid);
         if constexpr(W)
           checkpoint_file.create_dataset(name, rect.volume(), item_size);
 
@@ -209,7 +212,7 @@ struct io_interface {
 
     std::vector<FieldSizes> field_size_map_vector;
     for(auto & isd : isd_vector) {
-      field_size_map_vector.emplace_back(make_field_size_map(*(isd.fields)));
+      field_size_map_vector.emplace_back(make_field_size_map(isd.fields));
     }
     const auto task_args = util::serial_buffer([&](auto & p) {
       util::serial_put(p, field_size_map_vector);
@@ -228,7 +231,7 @@ struct io_interface {
     int idx = 0;
     for(auto & isd : isd_vector) {
       checkpoint_launcher.add_region_requirement(
-        Legion::RegionRequirement(isd.partition->logical_partition,
+        Legion::RegionRequirement(isd.get_partition()->logical_partition,
           0 /*projection ID*/,
           W ? READ_ONLY : WRITE_DISCARD,
           EXCLUSIVE,
