@@ -30,8 +30,38 @@ namespace data {
 namespace mpi {
 namespace detail {
 
+struct buffer {
+  buffer() = default;
+  buffer(const buffer&) = delete;
+  buffer& operator=(const buffer&) = delete;
+
+  buffer(std::size_t s) : v(s) {}
+
+  template<exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
+  std::byte * data() {
+    return v.data();
+  }
+
+  std::size_t size() const {
+    return v.size();
+  }
+
+  void resize(std::size_t size) {
+    v.resize(size);
+  }
+
+private:
+  std::vector<std::byte> v;
+};
+
 #if defined(FLECSI_ENABLE_KOKKOS)
-struct buffer_state_base {
+using buffer_impl_loc = buffer;
+
+struct buffer_impl_toc {
+  buffer_impl_toc() = default;
+  buffer_impl_toc(const buffer_impl_toc&) = delete;
+  buffer_impl_toc& operator=(const buffer_impl_toc&) = delete;
+
   std::byte * data() {
     return ptr;
   }
@@ -40,30 +70,6 @@ struct buffer_state_base {
     return s;
   }
 
-  std::size_t s = 0;
-  std::byte * ptr = nullptr;
-};
-
-template<exec::task_processor_type_t>
-struct buffer_state;
-
-template<>
-struct buffer_state<exec::task_processor_type_t::loc> : buffer_state_base {
-  void resize(std::size_t ns) {
-    // Note: when ptr == nullptr, std::realloc == std::malloc
-    ptr = static_cast<std::byte *>(std::realloc(ptr, ns));
-    flog_assert(ptr != nullptr, "memory allocation failed");
-    s = ns;
-  }
-
-  ~buffer_state() {
-    if(ptr != nullptr)
-      std::free(ptr);
-  }
-};
-
-template<>
-struct buffer_state<exec::task_processor_type_t::toc> : buffer_state_base {
   void resize(std::size_t ns) {
     if(ptr == nullptr)
       // Kokkos does require calling of kokkos_malloc when ptr == nullptr.
@@ -76,14 +82,18 @@ struct buffer_state<exec::task_processor_type_t::toc> : buffer_state_base {
     s = ns;
   }
 
-  ~buffer_state() {
+  ~buffer_impl_toc() {
     if(ptr != nullptr)
       Kokkos::kokkos_free<Kokkos::DefaultExecutionSpace>(ptr);
   }
+
+private:
+  std::size_t s = 0;
+  std::byte * ptr = nullptr;
 };
 
-struct buffer {
-  buffer(std::size_t s) : s(s) {}
+struct storage {
+  storage(std::size_t s) : s(s) {}
 
   template<exec::task_processor_type_t ProcessorType>
   std::byte * data() {
@@ -153,29 +163,11 @@ private:
   //  (e.g. OpenMP)?
   // Why don't we use Kokkos_View directly? Ans: our region lives longer than
   // Kokkos.
-  buffer_state<exec::task_processor_type_t::loc> loc_buffer;
-  buffer_state<exec::task_processor_type_t::toc> toc_buffer;
+  buffer_impl_loc loc_buffer;
+  buffer_impl_toc toc_buffer;
 };
 #else // !defined(FLECSI_ENABLE_KOKKOS)
-struct buffer {
-  buffer(std::size_t s) : v(s) {}
-
-  template<exec::task_processor_type_t ProcessorType>
-  std::byte * data() {
-    return v.data();
-  }
-
-  std::size_t size() const {
-    return v.size();
-  }
-
-  void resize(std::size_t size) {
-    v.resize(size);
-  }
-
-private:
-  std::vector<std::byte> v;
-};
+using storage = buffer;
 #endif // defined(FLECSI_ENABLE_KOKKOS)
 } // namespace detail
 
@@ -208,12 +200,12 @@ struct region_impl {
   // The span is safe because it is used only within a user task while the
   // vectors are resized or destroyed only outside user tasks (though perhaps
   // during execute).
-  template<class T, exec::task_processor_type_t ProcessorType>
+  template<class T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
   util::span<T> get_storage(field_id_t fid) {
     return get_storage<T, ProcessorType>(fid, s.second);
   }
 
-  template<class T, exec::task_processor_type_t ProcessorType>
+  template<class T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
   util::span<T> get_storage(field_id_t fid, std::size_t nelems) {
     // TODO: most of this have been move to the implementation of buffer.
     auto & v = storages.at(fid);
@@ -236,7 +228,7 @@ private:
   fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
              // unrelated to r1.fs[].fid even if they have the same value.
 
-  std::unordered_map<field_id_t, detail::buffer> storages;
+  std::unordered_map<field_id_t, detail::storage> storages;
 };
 
 struct region {
@@ -261,7 +253,7 @@ struct partition {
     return r->size().first;
   }
 
-  template<typename T, exec::task_processor_type_t ProcessorType>
+  template<typename T, exec::task_processor_type_t ProcessorType = exec::task_processor_type_t::loc>
   auto get_storage(field_id_t fid) const {
     return r->get_storage<T, ProcessorType>(fid, nelems);
   }
@@ -385,7 +377,6 @@ private:
 
   template<typename T>
   auto get_storage(field_id_t fid) const {
-    // FIXME: is this correct? Do we always want it on the host?
     return r->get_storage<T, exec::task_processor_type_t::loc>(fid, max_end);
   }
 
@@ -470,7 +461,8 @@ struct copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
-    // FIXME: I do think we always want the host side version.
+    // Since we are doing ghost copy via MPI, we always want the host side version.
+    // Unless we are doing some direct CUDA MPI thing in the future.
     auto source_storage =
       source.r->get_storage<std::byte, exec::task_processor_type_t::loc>(
         data_fid, max_local_source_idx);
@@ -542,6 +534,7 @@ private:
 template<typename T>
 T
 get_scalar_from_accessor(const T * ptr) {
+  // FIXME: no way to know what MemorySpace ptr is in.
   return *ptr;
 }
 } // namespace data

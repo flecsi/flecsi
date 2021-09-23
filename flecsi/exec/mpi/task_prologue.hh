@@ -73,6 +73,8 @@ protected:
     ().template get_storage<T, ProcessorType>(f);
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f))
+        // FIXME: this is a special case of region.ghost_copy but the storage is
+        //  on the wrong side when ProcessType is toc.
         util::mpi::test(MPI_Bcast(storage.data(),
           storage.size(),
           flecsi::util::mpi::type<T>(),
