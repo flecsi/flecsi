@@ -25,7 +25,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   enum range { interior, logical, all, global };
   enum axis { x_axis, y_axis };
   using axes = has<x_axis, y_axis>;
-  enum orientation { low, high };
+  enum boundary { low, high };
 
   using coord = base::coord;
   using colors = base::colors;
@@ -52,7 +52,18 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, range SE = interior>
     std::size_t size() {
       if constexpr(SE == interior) {
-        return size<A, logical>() - 2;
+        const bool low = B::template is_low<index_space::vertices, A>();
+        const bool high = B::template is_high<index_space::vertices, A>();
+
+        if(low && high) { /* degenerate */
+          return size<A, logical>() - 2;
+        }
+        else if(low || high) {
+          return size<A, logical>() - 1;
+        }
+        else { /* interior */
+          return size<A, logical>();
+        }
       }
       else if constexpr(SE == logical) {
         return B::template size<index_space::vertices, A, B::range::logical>();
@@ -68,10 +79,15 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, range SE = interior>
     auto vertices() {
       if constexpr(SE == interior) {
+        const bool low = B::template is_low<index_space::vertices, A>();
+        const bool high = B::template is_high<index_space::vertices, A>();
+        const std::size_t start =
+          B::template logical<index_space::vertices, 0, A>();
+        const std::size_t end =
+          B::template logical<index_space::vertices, 1, A>();
+
         return flecsi::topo::make_ids<index_space::vertices>(
-          flecsi::util::iota_view<flecsi::util::id>(
-            B::template logical<index_space::vertices, 0, A>() + 1,
-            B::template logical<index_space::vertices, 1, A>() - 1));
+          flecsi::util::iota_view<flecsi::util::id>(start + low, end - high));
       }
       else if constexpr(SE == logical) {
         return B::
@@ -101,23 +117,44 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
                i);
     }
 
-    template<axis A, orientation E>
+    template<axis A, boundary BD>
     bool is_boundary(std::size_t i) {
+
       auto const loff =
         B::template offset<index_space::vertices, A, B::range::logical>();
+      auto const lsize =
+        B::template size<index_space::vertices, A, B::range::logical>();
+      const bool l = B::template is_low<index_space::vertices, A>();
+      const bool h = B::template is_high<index_space::vertices, A>();
 
-      if(B::template is_low<index_space::vertices, A>()) {
-        return i == loff;
+      if(l && h) { /* degenerate */
+        if constexpr(BD == boundary::low) {
+          return i == loff;
+        }
+        else {
+          return i == (lsize + loff - 1);
+        }
       }
-      else if(B::template is_high<index_space::vertices, A>()) {
-        auto const lsize =
-          B::template size<index_space::vertices, A, B::range::logical>();
-        return i == (lsize - loff);
+      else if(l) {
+        if constexpr(BD == boundary::low) {
+          return i == loff;
+        }
+        else {
+          return false;
+        }
       }
-      else {
+      else if(h) {
+        if constexpr(BD == boundary::low) {
+          return false;
+        }
+        else {
+          return i == (lsize + loff - 1);
+        }
+      }
+      else { /* interior */
         return false;
       }
-    }
+    } // is_boundary
   }; // struct interface
 
   static auto distribute(std::size_t np, std::vector<std::size_t> indices) {

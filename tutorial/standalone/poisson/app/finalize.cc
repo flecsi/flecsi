@@ -11,6 +11,6 @@ using namespace flecsi;
 
 int
 poisson::action::finalize() {
-  execute<task::io, mpi>(m, sd(m));
+  execute<task::io, mpi>(m, ud(m), "solution");
   return 0;
 } // finalize

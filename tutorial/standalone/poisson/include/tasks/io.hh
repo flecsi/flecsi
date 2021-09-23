@@ -7,10 +7,14 @@
 
 #include "specialization/mesh.hh"
 
+#include <string>
+
 namespace poisson {
 namespace task {
 
-void io(mesh::accessor<ro> m, field<double>::accessor<ro, ro> ua);
+void io(mesh::accessor<ro> m,
+  field<double>::accessor<ro, ro> ua,
+  std::string filebase);
 
 } // namespace task
 } // namespace poisson
