@@ -29,6 +29,33 @@ struct hdf5 {
       flog(error) << "H5F" << v << " failed: " << id << std::endl;
     }
   }
+
+#ifdef H5_HAVE_PARALLEL
+  hdf5(const char * f, MPI_Comm comm, bool create) {
+    hid_t file_access_plist_id = H5Pcreate(H5P_FILE_ACCESS);
+    assert(file_access_plist_id);
+    herr_t iret = H5Pset_fapl_mpio(file_access_plist_id, comm, MPI_INFO_NULL);
+    assert(iret != -1);
+
+    id =
+      (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
+              : H5Fopen(f, H5F_ACC_RDWR, file_access_plist_id));
+
+    iret = H5Pclose(file_access_plist_id);
+    assert(iret != -1);
+
+    const auto v = create ? "create" : "open";
+    if(*this) {
+      log::devel_guard guard(io_tag);
+      flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
+                       << std::endl;
+    }
+    else {
+      flog(error) << "H5F" << v << " failed: " << id << std::endl;
+    }
+  }
+#endif
+
   hdf5(hdf5 && h) noexcept {
     id = std::exchange(h.id, -1);
   }
@@ -114,6 +141,15 @@ struct hdf5 {
   static hdf5 open(const std::string & file_name) {
     return {{file_name.c_str(), false}};
   }
+
+#ifdef H5_HAVE_PARALLEL
+  static hdf5 pcreate(const std::string & file_name, MPI_Comm comm) {
+    return {{file_name.c_str(), comm, true}};
+  }
+  static hdf5 popen(const std::string & file_name, MPI_Comm comm) {
+    return {{file_name.c_str(), comm, false}};
+  }
+#endif
 
   /// Must not be called repeatedly.
   /// \return whether the file was successfully closed
