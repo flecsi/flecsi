@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_IO_LEG_POLICY_HH
+#define FLECSI_IO_LEG_POLICY_HH
 
 /*!  @file */
 
@@ -24,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include <flecsi-config.h>
+#include "flecsi-config.h"
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
@@ -282,3 +283,5 @@ private:
 
 } // namespace io
 } // namespace flecsi
+
+#endif

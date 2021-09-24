@@ -127,7 +127,7 @@ check(mesh1d::accessor<ro> m,
 
 static bool added_topology = false;
 
-template<bool Attach = true>
+template<bool Attach>
 int
 restart_driver() {
   UNIT {
@@ -168,13 +168,10 @@ restart_driver() {
 
     execute<init>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
 
-#if defined(FLECSI_ENABLE_LEGION)
-    // Legion backend doesn't support N-to-M yet
-    int ranks_per_file = 1;
-#else
-    // MPI backend is set up for N-to-M restarts
-    int ranks_per_file = 2;
-#endif
+    // Legion backend doesn't support N-to-M yet - use 1 rank/file
+    // MPI backend supports N-to-M restarts - use 2 ranks/file
+    int ranks_per_file =
+      (FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion ? 1 : 2);
     io::io_interface iif{ranks_per_file};
     auto filename =
       std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
@@ -192,11 +189,9 @@ restart_driver() {
   return 0;
 }
 
-#if defined(FLECSI_ENABLE_LEGION)
-// Run test twice, once with and once without attach.
+// for MPI:  run test once, since attach flag is ignored.
+// for Legion:  run test twice, once with and once without attach.
 flecsi::unit::driver<restart_driver<true>> driver_w;
+#if defined(FLECSI_ENABLE_LEGION)
 flecsi::unit::driver<restart_driver<false>> driver_wo;
-#else
-// Run test once, since attach flag is ignored.
-flecsi::unit::driver<restart_driver> driver;
 #endif

@@ -8,6 +8,9 @@
 #include "flecsi/flog.hh"
 
 #include <hdf5.h>
+#ifdef H5_HAVE_PARALLEL
+#include <mpi.h>
+#endif
 
 namespace flecsi {
 inline log::devel_tag io_tag("io");
@@ -16,18 +19,9 @@ namespace io {
 namespace detail {
 struct hdf5 {
   hdf5() noexcept : id(-1) {}
-  hdf5(const char * f, bool create)
-    : id(create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
-                : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
-    const auto v = create ? "create" : "open";
-    if(*this) {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
-                       << std::endl;
-    }
-    else {
-      flog(error) << "H5F" << v << " failed: " << id << std::endl;
-    }
+
+  hdf5(const char * f, bool create) {
+    init(f, H5P_DEFAULT, create);
   }
 
 #ifdef H5_HAVE_PARALLEL
@@ -35,21 +29,9 @@ struct hdf5 {
     hid_t file_access_plist_id = H5Pcreate(H5P_FILE_ACCESS);
     H5Pset_fapl_mpio(file_access_plist_id, comm, MPI_INFO_NULL);
 
-    id =
-      (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
-              : H5Fopen(f, H5F_ACC_RDWR, file_access_plist_id));
+    init(f, file_access_plist_id, create);
 
     H5Pclose(file_access_plist_id);
-
-    const auto v = create ? "create" : "open";
-    if(*this) {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
-                       << std::endl;
-    }
-    else {
-      flog(error) << "H5F" << v << " failed: " << id << std::endl;
-    }
   }
 #endif
 
@@ -58,6 +40,22 @@ struct hdf5 {
   }
   ~hdf5() {
     close();
+  }
+
+  void init(const char * f, hid_t file_access_plist_id, bool create) {
+    id =
+      (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
+              : H5Fopen(f, H5F_ACC_RDWR, file_access_plist_id));
+
+    const auto v = create ? "create" : "open";
+    if(*this) {
+      log::devel_guard guard(io_tag);
+      flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
+                       << std::endl;
+    }
+    else {
+      flog(error) << "H5F" << v << " failed: " << id << std::endl;
+    }
   }
 
   bool close() { // true if successfully closed

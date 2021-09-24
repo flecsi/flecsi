@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_IO_MPI_POLICY_HH
+#define FLECSI_IO_MPI_POLICY_HH
 
 /*!  @file */
 
@@ -19,7 +20,7 @@
 #include <ostream>
 #include <string>
 
-#include <flecsi-config.h>
+#include "flecsi-config.h"
 
 #if !defined(FLECSI_ENABLE_MPI)
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
@@ -46,10 +47,7 @@ struct io_interface {
 
   explicit io_interface(int ranks_per_file_in = 1)
     : ranks_per_file(ranks_per_file_in) {
-    create_hdf5_comm();
-  }
 
-  void create_hdf5_comm() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -65,10 +63,17 @@ struct io_interface {
     MPI_Comm_rank(new_comm, &new_rank);
   }
 
+  ~io_interface() {
+    MPI_Comm_free(&mpi_hdf5_comm);
+  }
+
+  template<bool W>
+  using buffer_ptr = std::conditional_t<W, const void, void> *;
+
   template<bool W = true> // whether to write or read the file
   void checkpoint_field_data(const hid_t & hdf5_file_id,
     const std::string & dataset_name,
-    void * buffer,
+    buffer_ptr<W> buffer,
     hsize_t nitems,
     hsize_t displ,
     hsize_t item_size) {
@@ -100,9 +105,6 @@ struct io_interface {
     hid_t xfer_plist_id = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(xfer_plist_id, H5FD_MPIO_COLLECTIVE);
 
-    // To write dataset independently use
-    //    H5Pset_dxpl_mpio(xfer_plist_id, H5FD_MPIO_INDEPENDENT);
-
     [] {
       if constexpr(W)
         return H5Dwrite;
@@ -121,7 +123,7 @@ struct io_interface {
   template<bool W = true> // whether to write or read the file
   void checkpoint_field(hdf5 & checkpoint_file,
     const std::string & field_name,
-    void * buffer,
+    buffer_ptr<W> buffer,
     const hsize_t nitems,
     const hsize_t item_size) {
     if constexpr(W) {
@@ -166,9 +168,8 @@ struct io_interface {
         int item_size = fp->type_size;
         std::string field_name = region_name + " field " + std::to_string(fid);
 
-        const auto & data =
-          isd.get_partition()->template get_storage<std::byte>(fid);
-        hsize_t size = data.size();
+        const auto data = isd.get_partition()->get_raw_storage(fid, item_size);
+        hsize_t size = data.size() / item_size;
         void * buffer = data.data();
         checkpoint_field<W>(
           checkpoint_file, field_name, buffer, size, item_size);
@@ -198,3 +199,5 @@ private:
 
 } // namespace io
 } // namespace flecsi
+
+#endif
