@@ -19,7 +19,7 @@
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/point_walker.hh"
+#include "flecsi/run/types.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/dag.hh"
 #include "flecsi/util/demangle.hh"
@@ -48,7 +48,10 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
 #endif
 
 template<auto CP>
-using control_point = util::constant<CP>;
+using control_point = run_impl::control_point<CP>;
+
+template<auto CP>
+using meta_point = run_impl::meta_point<CP>;
 
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
@@ -81,26 +84,26 @@ struct control_base {
   @ingroup control
  */
 
-template<typename Policy>
-struct control : Policy {
+template<typename P>
+struct control : P {
 
   using target_type = int (*)();
 
 private:
-  friend Policy;
+  friend P;
 
-  using control_points = typename Policy::control_points;
-  using control_points_enum = typename Policy::control_points_enum;
-  using node_policy = typename Policy::node_policy;
+  using control_points = typename P::control_points;
+  using control_points_enum = typename P::control_points_enum;
+  using node_policy = typename P::node_policy;
 
-  using point_walker = run_impl::point_walker<control<Policy>>;
+  using point_walker = run_impl::point_walker<control<P>>;
   friend point_walker;
 
-  using init_walker = run_impl::init_walker<control<Policy>>;
+  using init_walker = run_impl::init_walker<control<P>>;
   friend init_walker;
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  using point_writer = run_impl::point_writer<control<Policy>>;
+  using point_writer = run_impl::point_writer<control<P>>;
   friend point_writer;
 #endif
 
@@ -212,7 +215,7 @@ public:
             to store control state information.
    */
 
-  static Policy & policy() {
+  static P & policy() {
     return instance();
   }
 
@@ -220,15 +223,15 @@ public:
     The action type provides a mechanism to add execution elements to the
     FleCSI control model.
 
-    @tparam Target       The execution target.
-    @tparam ControlPoint The control point under which this action is
-                         executed.
+    @tparam T  The execution target.
+    @tparam CP The control point under which this action is executed.
+    @tparam M  Boolean indicating whether or not the action is a meta action.
    */
 
-  template<target_type Target, control_points_enum ControlPoint>
+  template<target_type T, control_points_enum CP, bool M = false>
   struct action {
 
-    template<target_type U, control_points_enum V>
+    template<target_type, control_points_enum, bool>
     friend struct action;
 
     /*!
@@ -243,8 +246,10 @@ public:
 
     template<typename... Args>
     action(Args &&... args)
-      : node_(util::symbol<*Target>(), Target, std::forward<Args>(args)...) {
-      instance().control_point_dag(ControlPoint).push_back(&node_);
+      : node_(util::symbol<*T>(), T, std::forward<Args>(args)...) {
+      static_assert(M == run_impl::is_meta<control_points>(CP),
+        "you cannot use this interface for internal control points!");
+      instance().control_point_dag(CP).push_back(&node_);
     }
 
     /*
@@ -265,7 +270,7 @@ public:
 
     template<target_type U, control_points_enum V>
     dependency add(action<U, V> const & from) {
-      static_assert(ControlPoint == V,
+      static_assert(CP == V,
         "you cannot add dependencies between actions under different control "
         "points");
       node_.push_back(&from.node_);
@@ -276,13 +281,16 @@ public:
      */
 
     template<target_type F>
-    void push_back(action<F, ControlPoint> const & from) {
+    void push_back(action<F, CP, M> const & from) {
       node_.push_back(&from.node_);
     }
 
-  private:
+  protected:
     node_type node_;
   }; // struct action
+
+  template<target_type T, control_points_enum CP>
+  using meta = action<T, CP, true>;
 
   /*!
     Execute the control model. This method does a topological sort of the
@@ -291,7 +299,7 @@ public:
    */
 
   static int execute() {
-    if constexpr(std::is_base_of_v<control_base, Policy>) {
+    if constexpr(std::is_base_of_v<control_base, P>) {
       const int r = instance().initialize();
       return r == success ? instance().finalize(instance().run()) : r;
     }
