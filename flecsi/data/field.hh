@@ -312,5 +312,10 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
   }
 };
 
+namespace detail {
+template<class T>
+struct scalar_value;
+} // namespace detail
+
 } // namespace data
 } // namespace flecsi

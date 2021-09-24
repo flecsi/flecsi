@@ -31,8 +31,6 @@ namespace mpi {
 namespace detail {
 
 struct buffer {
-  buffer() = default;
-
   template<exec::task_processor_type_t ProcessorType =
              exec::task_processor_type_t::loc>
   std::byte * data() {
@@ -46,6 +44,12 @@ struct buffer {
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto kokkos_view() {
     return Kokkos::View<std::byte *,
+      Kokkos::HostSpace,
+      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(v.data(), v.size());
+  }
+
+  auto kokkos_view() const {
+    return Kokkos::View<const std::byte *,
       Kokkos::HostSpace,
       Kokkos::MemoryTraits<Kokkos::Unmanaged>>(v.data(), v.size());
   }
@@ -90,6 +94,12 @@ struct buffer_impl_toc {
       Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, s);
   }
 
+  auto kokkos_view() const {
+    return Kokkos::View<const std::byte *,
+      Kokkos::DefaultExecutionSpace,
+      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, s);
+  }
+
   ~buffer_impl_toc() {
     if(ptr != nullptr)
       Kokkos::kokkos_free<Kokkos::DefaultExecutionSpace>(ptr);
@@ -108,20 +118,11 @@ struct storage {
       return data<exec::task_processor_type_t::loc>();
 
     if(is_on != ProcessorType) {
-      // We need to resize buffer on the destination side such that we don't
-      // attempt deep_copy to cause buffer overrun (Kokkos does check that).
       if(is_on == exec::task_processor_type_t::loc) {
-        grow(toc_buffer, loc_buffer);
+        transfer(toc_buffer, loc_buffer);
       }
       else {
-        grow(loc_buffer, toc_buffer);
-      }
-
-      if(is_on == exec::task_processor_type_t::loc) {
-        Kokkos::deep_copy(toc_buffer.kokkos_view(), loc_buffer.kokkos_view());
-      }
-      else {
-        Kokkos::deep_copy(loc_buffer.kokkos_view(), toc_buffer.kokkos_view());
+        transfer(loc_buffer, toc_buffer);
       }
     }
     is_on = ProcessorType;
@@ -150,9 +151,12 @@ struct storage {
 
 private:
   template<typename D, typename S>
-  static void grow(D & dest, const S & src) {
-    if(dest.size() < src.size())
-      dest.resize(src.size());
+  static void transfer(D & dst, const S & src) {
+    // We need to resize buffer on the destination side such that we don't
+    // attempt deep_copy to cause buffer overrun (Kokkos does check that).
+    if(dst.size() < src.size())
+      dst.resize(src.size());
+    Kokkos::deep_copy(dst.kokkos_view(), src.kokkos_view());
   }
 
   exec::task_processor_type_t is_on = exec::task_processor_type_t::loc;
@@ -186,7 +190,7 @@ struct region_impl {
   // std::vector<>.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(auto f : fs) {
-        storages[f->fid];
+      storages[f->fid];
     }
   }
 
@@ -529,11 +533,5 @@ private:
   std::size_t max_local_source_idx = 0;
 };
 
-template<typename T>
-T
-get_scalar_from_accessor(const T * ptr) {
-  // FIXME: no way to know what MemorySpace ptr is in.
-  return *ptr;
-}
 } // namespace data
 } // namespace flecsi

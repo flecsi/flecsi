@@ -51,6 +51,20 @@ protected:
     single.fut = make_ready_future(index.result);
   }
 
+  // Note: due to how visitor() is implemented in prolog.hh the first
+  // parameter can not be 'const &' here, otherwise template/overload
+  // resolution fails (silently).
+  template<typename T>
+  static auto visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
+      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      return;
+    }
+#endif
+    *s.host = *s.device;
+  }
+
   template<typename T,
     Privileges P,
     class Topo,
