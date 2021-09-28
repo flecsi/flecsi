@@ -56,7 +56,8 @@ check_policy(intN::accessor<ro> a) {
 
 void
 modify_bound(intN::accessor<wo> a) {
-  forall(i, (flecsi::exec::range_bound{util::span(*a), 0, 10}), "modify_policy") {
+  forall(
+    i, (flecsi::exec::range_bound{util::span(*a), 0, 10}), "modify_bound") {
     i = 3;
   };
 }
@@ -69,8 +70,6 @@ check_bound(intN::accessor<ro> a) {
     }
   };
 }
-
-
 
 int
 reduce_vec(intN::accessor<ro> a) {
