@@ -126,7 +126,7 @@ struct policy_tag {};
 
 template<typename Range>
 struct range_policy : policy_tag {
-  range_policy(Range r) : range(r){}
+  range_policy(Range r) : range(r) {}
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto get_policy() {
     return Kokkos::RangePolicy<>(0, range.size());
@@ -147,7 +147,7 @@ struct range_bound_base {
 
 template<typename Range>
 struct range_bound : range_bound_base, policy_tag {
-  range_bound(Range r, index l, index u) : range(r), lb(l), ub(u){}
+  range_bound(Range r, index l, index u) : range(r), lb(l), ub(u) {}
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto get_policy() {
     return Kokkos::RangePolicy<>(lb, ub);
@@ -164,8 +164,8 @@ range_bound(R, range_bound_base::index, range_bound_base::index)
 
 /*!
   This function is a wrapper for Kokkos::parallel_for that has been adapted to
-  work with random access ranges common in FleCSI topologies. The parallel_for function takes in
-  policy objects or the range. In particular, this function
+  work with random access ranges common in FleCSI topologies. The parallel_for
+  function takes in policy objects or the range. In particular, this function
   invokes a map from the normal kernel index space to the FleCSI index space,
   which may require indirection.
  */
@@ -187,7 +187,9 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
 #endif
   }
   else {
-    parallel_for(range_policy(std::forward<Policy>(p)), std::forward<Lambda>(lambda), name);
+    parallel_for(range_policy(std::forward<Policy>(p)),
+      std::forward<Lambda>(lambda),
+      name);
   }
 } // parallel_for
 
@@ -242,8 +244,9 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
 #endif
   }
   else {
-    return parallel_reduce<R, T>(
-      range_policy(std::forward<Policy>(p)), std::forward<Lambda>(lambda), name);
+    return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),
+      std::forward<Lambda>(lambda),
+      name);
   }
 } // parallel_reduce
 
