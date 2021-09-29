@@ -101,7 +101,7 @@ struct buffer_impl_toc {
   }
 
   ~buffer_impl_toc() {
-    if(ptr != nullptr)
+    if(ptr != nullptr && Kokkos::is_initialized())
       Kokkos::kokkos_free<Kokkos::DefaultExecutionSpace>(ptr);
   }
 
