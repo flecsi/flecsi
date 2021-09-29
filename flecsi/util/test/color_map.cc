@@ -13,9 +13,27 @@
                                                                               */
 
 #include "flecsi/util/color_map.hh"
+#include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
+
+namespace {
+struct single {
+  single() = default; // no serialization needed
+  single(int r) : r(r) {
+    if(!r && std::exchange(alive, true))
+      flog_fatal("two single objects");
+  }
+  ~single() {
+    alive = false;
+  }
+
+  static inline bool alive;
+
+  Color r;
+};
+} // namespace
 
 int
 interface() {
@@ -79,6 +97,9 @@ interface() {
     ASSERT_EQ(cm.indices(1, 2), 462ul);
     ASSERT_EQ(cm.indices(2, 0), 462ul);
     ASSERT_EQ(cm.indices(2, 1), 462ul);
+
+    EXPECT_EQ(util::mpi::one_to_alli([](int r, int) { return single{r}; }, 0).r,
+      process());
   };
 }
 

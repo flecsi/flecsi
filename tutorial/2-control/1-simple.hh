@@ -52,7 +52,7 @@ inline const char * operator*(cp control_point) {
   defines the order of control point execution using std::tuple.
  */
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
 
   /*
     Capture the control points enumeration type. This type is used in the

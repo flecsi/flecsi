@@ -13,9 +13,22 @@ mpich:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: +hdf5 +kokkos
+    VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos
+
+mpich-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: rockylinux
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 +kokkos ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos
 
 mpich-clang:
   extends: .env_template
@@ -26,9 +39,22 @@ mpich-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: fedora-32
+    IMAGE: fedora-34
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: +hdf5 +kokkos
+    VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos
+
+mpich-clang-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: fedora-34
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 +kokkos ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos
 
 openmpi:
   extends: .env_template
@@ -39,9 +65,22 @@ openmpi:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: +hdf5
+    VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos
+
+openmpi-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: openmpi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: rockylinux
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos
 
 openmpi-clang:
   extends: .env_template
@@ -52,6 +91,19 @@ openmpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: fedora-32
+    IMAGE: fedora-34
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: +hdf5
+    VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos
+
+openmpi-clang-debug:
+  extends: .env_template
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: openmpi
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: fedora-34
+    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    VARIANTS: +hdf5 ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos

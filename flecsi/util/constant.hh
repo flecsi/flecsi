@@ -90,7 +90,14 @@ struct key_type {
   using type = T;
 };
 
-// A std::tuple containing the given types and indexed by the given keys.
+/*!
+  A std::tuple containing the given types and indexed by the given keys.
+
+  \tparam VT A parameter pack of types defining a key value and a type. The
+             underlying storage will use a std::tuple of the given types. These
+             can be referenced using the given keys.
+ */
+
 template<class... VT>
 struct key_tuple : std::tuple<typename VT::type...> {
   using keys = constants<VT::value...>;
@@ -121,7 +128,7 @@ struct key_tuple : std::tuple<typename VT::type...> {
   constexpr const auto & get() const {
     return std::get<keys::template index<V>>(*this);
   }
-};
+}; // struct key_tuple
 
 } // namespace util
 } // namespace flecsi

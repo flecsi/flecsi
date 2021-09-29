@@ -13,7 +13,7 @@
                                                                               */
 #pragma once
 
-#include "cycle_control.hh"
+#include "cycle.hh"
 #include "package_a.hh"
 
 #include "flecsi/flog.hh"

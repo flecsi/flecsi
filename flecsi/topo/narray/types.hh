@@ -32,7 +32,7 @@ namespace flecsi {
 namespace topo {
 namespace narray_impl {
 
-enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
+enum mask : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
 enum axes : Dimension { x_axis, y_axis, z_axis };
 
@@ -55,12 +55,12 @@ struct coloring_definition {
   bool create_plan = true;
 };
 
-struct index_coloring {
+struct process_color {
   /*
     Store the axis orientations of this color.
    */
 
-  std::uint32_t faces;
+  std::uint32_t orientation;
 
   /*
     The global extents.
@@ -79,6 +79,7 @@ struct index_coloring {
   /*
     The global coordinate offset of the local hypercube.
     Local to global id translation can be computed with this.
+    The local hypercube includes boundary padding.
    */
 
   coord offset;
@@ -122,7 +123,26 @@ struct index_coloring {
    */
 
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
-};
+}; // struct process_color
+
+inline std::ostream &
+operator<<(std::ostream & stream, process_color const & ic) {
+  stream << "global" << std::endl
+         << log::container{ic.global} << std::endl
+         << "extents" << std::endl
+         << log::container{ic.extents} << std::endl
+         << "offset" << std::endl
+         << log::container{ic.offset} << std::endl
+         << "logical (low)" << std::endl
+         << log::container{ic.logical[0]} << std::endl
+         << "logical (high)" << std::endl
+         << log::container{ic.logical[1]} << std::endl
+         << "extended (low)" << std::endl
+         << log::container{ic.extended[0]} << std::endl
+         << "extended (high)" << std::endl
+         << log::container{ic.extended[1]} << std::endl;
+  return stream;
+} // operator<<
 
 } // namespace narray_impl
 
@@ -131,38 +151,82 @@ struct index_coloring {
  *----------------------------------------------------------------------------*/
 
 struct narray_base {
-  using index_coloring = narray_impl::index_coloring;
+  using process_color = narray_impl::process_color;
   using coord = narray_impl::coord;
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
 
+  /*
+    This data structure will need to change to process_color with
+    coloring = std::vector<process_color> when we add support for
+    M != N (colors to processes).
+   */
+
   struct coloring {
     MPI_Comm comm;
     Color colors;
-    std::vector<index_coloring> idx_colorings;
-  }; // struct coloring
 
-  static std::size_t idx_size(index_coloring const & ic, std::size_t) {
-    std::size_t allocation{1};
-    for(auto e : ic.extents) {
-      allocation *= e;
-    }
-    return allocation;
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
+
+    std::vector</* over index spaces */
+      std::vector</* over process colors */
+        process_color>>
+      idx_colorings;
+  }; // struct _coloring
+
+  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
+    return vs[c];
   }
 
-  static void idx_itvls(index_coloring const & ic,
+  static void idx_itvls(std::vector<process_color> const & vpc,
     std::vector<std::size_t> & num_intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
     MPI_Comm const & comm) {
-    num_intervals = util::mpi::all_gather(ic.intervals.size(), comm);
-  }
+    auto [rank, size] = util::mpi::info(comm);
+
+    std::vector<std::size_t> local_itvls;
+    for(auto pc : vpc) {
+      local_itvls.emplace_back(pc.intervals.size());
+      intervals.emplace_back(std::move(pc.intervals));
+      points.emplace_back(std::move(pc.points));
+    }
+
+    /*
+      Gather global interval sizes.
+     */
+
+    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
+
+    std::size_t entities{1};
+    for(auto a : vpc[0].global) {
+      entities *= a;
+    }
+    util::color_map cm(size, num_intervals.size() /* colors */, entities);
+    std::size_t p{0};
+    for(auto pv : global_itvls) {
+      std::size_t co{0};
+      for(auto i : pv) {
+        num_intervals[cm.color_id(p, co++)] = i;
+      }
+      ++p;
+    }
+  } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
+      intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
+    flog_assert(a.span().size() == intervals[0].size(),
+      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
+                                        << intervals[0].size() << ")");
     std::size_t i{0};
-    for(auto it : intervals) {
+    for(auto it : intervals[0]) {
       a[i++] = data::intervals::make({it.first, it.second}, process());
     } // for
   }
@@ -170,10 +234,10 @@ struct narray_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
-      shared_ptrs,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : shared_ptrs) {
+    for(auto const & si : points[0]) {
       for(auto p : si.second) {
         // si.first: owner
         // p.first: local ghost offset
@@ -191,12 +255,12 @@ struct narray_base {
  *----------------------------------------------------------------------------*/
 
 template<>
-struct util::serial<topo::narray_impl::index_coloring> {
-  using type = topo::narray_impl::index_coloring;
+struct util::serial<topo::narray_impl::process_color> {
+  using type = topo::narray_impl::process_color;
   template<class P>
   static void put(P & p, const type & s) {
     serial_put(p,
-      s.faces,
+      s.orientation,
       s.global,
       s.extents,
       s.offset,

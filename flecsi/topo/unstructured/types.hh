@@ -38,14 +38,23 @@ struct shared_entity {
   std::size_t id;
   std::vector<std::size_t> dependents;
 
+  /*
+    These operators are designed to be used with util::force_unique, which
+    first applies std::sort (using operator<), and then applies std::unique
+    (using operator==). The implementation of the operators is designed to be
+    greedy, i.e., it favors shared entity variants that have more dependents by
+    placing them first in the sorted order. When std::unique is applied, the
+    variant with the most dependents will be kept.
+   */
+
   bool operator<(const shared_entity & s) const {
-    return id < s.id;
+    return id == s.id ? dependents.size() > s.dependents.size()
+                      : /* greedy dependendents */
+             id < s.id;
   }
 
   bool operator==(const shared_entity & s) const {
-    return id == s.id &&
-           std::equal(
-             dependents.begin(), dependents.end(), s.dependents.begin());
+    return id == s.id; // ignores dependendents
   }
 };
 
@@ -84,37 +93,30 @@ operator<<(std::ostream & stream, ghost_entity const & g) {
 }
 
 struct index_coloring {
+  std::vector<std::size_t> all;
   std::vector<std::size_t> owned;
   std::vector<std::size_t> exclusive;
   std::vector<shared_entity> shared;
-  std::vector<ghost_entity> ghosts;
+  std::vector<ghost_entity> ghost;
 };
 
 struct crs {
   std::vector<std::size_t> offsets;
   std::vector<std::size_t> indices;
+
+  template<class InputIt>
+  void add_row(InputIt first, InputIt last) {
+    if(offsets.empty())
+      offsets.emplace_back(0);
+    offsets.emplace_back(offsets.back() + std::distance(first, last));
+    indices.insert(indices.end(), first, last);
+  }
+
+  template<class U>
+  void add_row(std::initializer_list<U> init) {
+    add_row(init.begin(), init.end());
+  }
 };
-
-/*
-  Closure tokens for specifying the behavior of closure function.
- */
-
-template<size_t IndexSpace,
-  Dimension D,
-  Dimension ThroughDimension,
-  size_t Depth = 1>
-struct primary_independent {
-  static constexpr size_t index_space = IndexSpace;
-  static constexpr Dimension dimension = D, thru_dimension = ThroughDimension;
-  static constexpr size_t depth = Depth;
-}; // struct primary_independent
-
-template<std::size_t IndexSpace, Dimension D, Dimension PrimaryDimension>
-struct auxiliary_independent {
-  static constexpr size_t index_space = IndexSpace;
-  static constexpr Dimension dimension = D,
-                             primary_dimension = PrimaryDimension;
-}; // struct auxiliary_independent
 
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, na> input,
@@ -127,77 +129,83 @@ transpose(field<util::id, data::ragged>::accessor<ro, na> input,
 }
 
 struct coloring_definition {
-  std::size_t colors;
+  Color colors;
   std::size_t idx;
   std::size_t dim;
   std::size_t depth;
 
+  std::size_t vidx;
+
   struct auxiliary {
     std::size_t idx;
     std::size_t dim;
+    bool cnx;
   };
 
   std::vector<auxiliary> aux;
 };
+
+struct process_color {
+
+  /*
+    The global number of entities in this index space.
+   */
+
+  std::size_t entities;
+
+  /*
+    The local coloring information for this index space.
+
+    The coloring information is expressed in the mesh index space,
+    i.e., the ids are global.
+   */
+
+  index_coloring coloring;
+
+  /*
+   The local allocation size for each connectivity. The vector is over
+   connectivities between this entity type and another entity type. The
+   ordering follows that given in the specialization policy.
+   */
+
+  std::vector<std::size_t> cnx_allocs;
+
+  /*
+    The local graph for each connectivity.
+
+    The graph information is expressed in the mesh index space,
+    i.e., the ids are global. The vector is like cnx_alloc.
+   */
+
+  std::vector<crs> cnx_colorings;
+}; // struct process_color
 
 } // namespace unstructured_impl
 
 struct unstructured_base {
 
   using index_coloring = unstructured_impl::index_coloring;
+  using process_color = unstructured_impl::process_color;
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
-  struct process_color {
-    /*
-      The current coloring utilities and topology initialization assume
-      the use of MPI. This could change in the future, e.g., if legion
-      matures to the point of developing its own software stack. However,
-      for the time being, this comm is provided to retain consistency
-      with the coloring utilities for unstructured.
-     */
-
+  struct coloring {
     MPI_Comm comm;
+    Color colors; /* global number of colors */
 
-    /*
-      The global number of colors
-     */
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
 
-    Color colors;
+    std::vector</* over index spaces */
+      std::vector</* over process colors */
+        process_color>>
+      idx_spaces;
+  }; // struct coloring
 
-    /*
-      The global number of entities in each index space
-     */
-
-    std::vector<std::size_t> idx_entities;
-
-    /*
-      The local coloring information for each index space.
-
-      The coloring information is expressed in the mesh index space,
-      i.e., the ids are global.
-     */
-
-    std::vector<index_coloring> idx_colorings;
-
-    /* The local allocation size for each connectivity */
-
-    std::vector<std::vector<std::size_t>> cnx_allocs;
-
-    /*
-      The local graph for each connectivity.
-
-      The graph information is expressed in the mesh index space,
-      i.e., the ids are global.
-     */
-
-    std::vector<std::vector<crs>> cnx_colorings;
-  };
-
-  using coloring = std::map<std::size_t, process_color>;
-
-  static std::size_t idx_size(index_coloring const & ic, std::size_t) {
-    return ic.owned.size() + ic.ghosts.size();
+  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
+    return vs[c];
   }
 
   /*
@@ -207,169 +215,202 @@ struct unstructured_base {
     and points, respectively, are filled with this information.
    */
 
+  /* FIXME: This is another place that needs multiaccessor support */
+
   template<PrivilegeCount N>
-  static void idx_itvls(index_coloring const & ic,
+  static void idx_itvls(std::vector<process_color> const & vpc,
     std::vector<std::size_t> & num_intervals,
-    std::vector<std::pair<std::size_t, std::size_t>> & intervals,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> &
-      src_points,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
       privilege_repeat<na, (N > 1)>>> fmap,
-    std::map<std::size_t, std::size_t> & rmap,
+    std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
-    std::vector<std::size_t> entities;
-
-    /*
-      Define the entity ordering from coloring. This version uses the
-      mesh ordering, i.e., the entities are sorted by ascending mesh id.
-     */
-
-    for(auto e : ic.owned) {
-      entities.push_back(e);
-    } // for
 
     auto [rank, size] = util::mpi::info(comm);
 
-    std::vector<std::vector<std::size_t>> requests(size);
-    for(auto e : ic.ghosts) {
-      entities.push_back(e.id);
-      requests[e.color].emplace_back(e.id);
-    } // for
+    rmaps.resize(vpc.size());
+    intervals.resize(vpc.size());
+    points.resize(vpc.size());
+    std::vector<std::size_t> local_itvls(vpc.size());
+    std::size_t co{0};
+    for(auto pc : vpc) {
+      std::vector<std::size_t> entities;
+      auto & ic = pc.coloring;
+      auto & itvls = intervals[co];
+      auto & pts = points[co];
 
-    /*
-      This call is what actually establishes the entity ordering by
-      sorting the mesh entity ids.
-     */
+      /*
+        Define the entity ordering from coloring. This version uses the
+        mesh ordering, i.e., the entities are sorted by ascending mesh id.
+       */
 
-    util::force_unique(entities);
+      for(auto e : ic.owned) {
+        entities.push_back(e);
+      } // for
 
-    /*
-      Initialize the forward and reverse maps.
-     */
+      std::vector<std::vector<std::size_t>> requests(size);
+      for(auto e : ic.ghost) {
+        entities.push_back(e.id);
+        requests[e.color].emplace_back(e.id);
+      } // for
 
-    flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
-      "entities size(" << entities.size() << ") doesn't match sum of owned("
-                       << ic.owned.size() << ") and ghosts(" << ic.ghosts.size()
-                       << ")");
+      /*
+        This call is what actually establishes the entity ordering by
+        sorting the mesh entity ids.
+       */
 
-    std::size_t off{0};
-    rmap.clear();
-    for(auto e : entities) {
-      fmap[off] = e;
-      rmap[e] = off++;
-    }
+      util::force_unique(entities);
 
-    /*
-      After the entity order has been established, we need to create
-      a lookup table for local ghost offsets.
-     */
+      /*
+        Initialize the forward and reverse maps.
+       */
 
-    std::map<std::size_t, std::size_t> ghost_offsets;
-    for(auto e : ic.ghosts) {
-      auto it = std::find(entities.begin(), entities.end(), e.id);
-      flog_assert(it != entities.end(), "ghost entity doesn't exist");
-      ghost_offsets[e.id] = std::distance(entities.begin(), it);
-    } // for
+      flog_assert(entities.size() == (ic.owned.size() + ic.ghost.size()),
+        "entities size(" << entities.size() << ") doesn't match sum of owned("
+                         << ic.owned.size() << ") and ghost(" << ic.ghost.size()
+                         << ")");
 
-    /*
-      We also need to create a lookup table so that we can provide
-      local shared offset information to other processes that request it.
-     */
+      std::size_t off{0};
+      auto & rmap = rmaps[co];
+      rmap.clear();
+      for(auto e : entities) {
+        fmap[off] = e;
+        rmap.try_emplace(e, off++);
+      }
 
-    std::map<std::size_t, std::size_t> shared_offsets;
-    for(auto & e : ic.shared) {
-      auto it = std::find(entities.begin(), entities.end(), e.id);
-      flog_assert(it != entities.end(), "shared entity doesn't exist");
-      shared_offsets[e.id] = std::distance(entities.begin(), it);
-    } // for
+      /*
+        After the entity order has been established, we need to create a lookup
+        table for local ghost offsets.
+       */
 
-    /*
-      Send/Receive requests for shared offsets with other processes.
-     */
+      std::map<std::size_t, std::size_t> ghost_offsets;
+      for(auto e : ic.ghost) {
+        auto it = std::find(entities.begin(), entities.end(), e.id);
+        flog_assert(it != entities.end(), "ghost entity doesn't exist");
+        ghost_offsets[e.id] = std::distance(entities.begin(), it);
+      } // for
 
-    auto requested = util::mpi::all_to_allv(
-      [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+      /*
+        We also need to create a lookup table so that we can provide
+        local shared offset information to other processes that request it.
+       */
 
-    /*
-      Fulfill the requests that we received from other processes, i.e.,
-      provide the locaL offset for the requested mesh ids.
-     */
+      std::map<std::size_t, std::size_t> shared_offsets;
+      for(auto & e : ic.shared) {
+        auto it = std::find(entities.begin(), entities.end(), e.id);
+        flog_assert(it != entities.end(), "shared entity doesn't exist");
+        shared_offsets[e.id] = std::distance(entities.begin(), it);
+      } // for
 
-    std::vector<std::vector<std::size_t>> fulfills(size);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(auto c : rv) {
-          fulfills[r].emplace_back(shared_offsets[c]);
+      /*
+        Send/Receive requests for shared offsets with other processes.
+       */
+
+      auto requested = util::mpi::all_to_allv(
+        [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+
+      /*
+        Fulfill the requests that we received from other processes, i.e.,
+        provide the locaL offset for the requested shared mesh ids.
+       */
+
+      std::vector<std::vector<std::size_t>> fulfills(size);
+      {
+        int r = 0;
+        for(const auto & rv : requested) {
+          for(auto c : rv) {
+            fulfills[r].emplace_back(shared_offsets[c]);
+          } // for
+          ++r;
         } // for
+      } // scope
+
+      /*
+        Send/Receive the local offset information with other processes.
+       */
+
+      auto fulfilled = util::mpi::all_to_allv(
+        [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
+        comm);
+      /*
+        Setup source pointers.
+       */
+
+      int r = 0;
+      for(const auto & rv : fulfilled) {
+        if(r == rank) {
+          ++r;
+          continue;
+        } // if
+
+        auto & cp = pts[r];
+        cp.reserve(rv.size());
+        auto & request = requests[r];
+
+        std::size_t i{0};
+        for(auto v : rv) {
+          cp.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
+          ++i;
+        }
         ++r;
       } // for
-    } // scope
 
-    /*
-      Send/Receive the local offset information with other processes.
-     */
+      /*
+        Compute local intervals.
+       */
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
-    /*
-      Setup source pointers.
-     */
-
-    int r = 0;
-    for(const auto & rv : fulfilled) {
-      if(r == rank) {
-        ++r;
-        continue;
-      } // if
-
-      auto & points = src_points[r];
-      points.reserve(rv.size());
-      auto & request = requests[r];
-
-      std::size_t i{0};
-      for(auto v : rv) {
-        points.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
-        ++i;
-      }
-      ++r;
-    } // for
-
-    /*
-      Compute local intervals.
-     */
-
-    auto g = ghost_offsets.begin();
-    std::size_t begin = 0, run = 0;
-    for(; g != ghost_offsets.end(); ++g) {
-      if(!run || g->second != begin + run) {
-        if(run) {
-          intervals.emplace_back(std::make_pair(begin, begin + run));
-          begin = g->second;
+      auto g = ghost_offsets.begin();
+      std::size_t begin = 0, run = 0;
+      for(; g != ghost_offsets.end(); ++g) {
+        if(!run || g->second != begin + run) {
+          if(run) {
+            itvls.emplace_back(std::make_pair(begin, begin + run));
+            begin = g->second;
+          }
+          run = 1;
         }
-        run = 1;
-      }
-      else {
-        ++run;
-      }
-    } // for
+        else {
+          ++run;
+        }
+      } // for
 
-    intervals.emplace_back(std::make_pair(begin, begin + run));
-    std::size_t local_itvls = intervals.size();
+      itvls.emplace_back(std::make_pair(begin, begin + run));
+      local_itvls[co] = itvls.size();
+
+      ++co;
+    } // for
 
     /*
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gather(local_itvls, comm);
+    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
+
+    util::color_map cm(size,
+      num_intervals.size() /* colors */,
+      vpc[0].entities /* global entities */);
+    std::size_t p{0};
+    for(auto pv : global_itvls) {
+      std::size_t co{0};
+      for(auto i : pv) {
+        num_intervals[cm.color_id(p, co++)] = i;
+      }
+      ++p;
+    }
   } // idx_itvls
 
+  /* TODO: Need multiaccessor */
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
+      intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
+    flog_assert(a.span().size() == intervals[0].size(),
+      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
+                                        << intervals[0].size() << ")");
     std::size_t i{0};
-    for(auto it : intervals) {
+    for(auto it : intervals[0]) {
       a[i++] = data::intervals::make(it, process());
     } // for
   }
@@ -377,10 +418,10 @@ struct unstructured_base {
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
-    std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> const &
-      shared_ptrs,
+    std::vector<std::map<Color,
+      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : shared_ptrs) {
+    for(auto const & si : points[0]) {
       for(auto p : si.second) {
         // si.first: owner
         // p.first: local ghost offset
@@ -395,7 +436,7 @@ struct unstructured_base {
     field<util::id, data::ragged>::mutator<rw> owned,
     field<util::id, data::ragged>::mutator<rw> exclusive,
     field<util::id, data::ragged>::mutator<rw> shared,
-    field<util::id, data::ragged>::mutator<rw> ghosts) {
+    field<util::id, data::ragged>::mutator<rw> ghost) {
     const auto cp = [](auto r, const std::vector<util::id> & v) {
       r.assign(v.begin(), v.end());
     };
@@ -403,11 +444,16 @@ struct unstructured_base {
     cp(owned[S], ic.owned);
     cp(exclusive[S], ic.exclusive);
     cp(shared[S], ic.shared);
-    cp(ghosts[S], ic.ghosts);
+    cp(ghost[S], ic.ghost);
   }
 
-  static void cnx_size(std::size_t size, resize::Field::accessor<wo> a) {
-    a = size;
+  // TODO: This will need to be a multiaccessor.
+  static void cnx_size(std::vector<process_color> const & vpc,
+    std::size_t is,
+    resize::Field::accessor<wo> a) {
+    // Hack until multiaccessor. When we have the real thing, this will
+    // iterate over the process colors, and set a size for each.
+    a = vpc[0].cnx_allocs[is];
   }
 
 }; // struct unstructured_base
@@ -445,11 +491,37 @@ struct util::serial<topo::unstructured_impl::ghost_entity> {
 };
 
 template<>
+struct util::serial<topo::unstructured_impl::crs> {
+  using type = topo::unstructured_impl::crs;
+  template<class P>
+  static void put(P & p, const type & c) {
+    serial_put(p, c.offsets, c.indices);
+  }
+  static type get(const std::byte *& p) {
+    const serial_cast r{p};
+    return type{r, r};
+  }
+};
+
+template<>
 struct util::serial<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, c.owned, c.exclusive, c.shared, c.ghosts);
+    serial_put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
+  }
+  static type get(const std::byte *& p) {
+    const serial_cast r{p};
+    return type{r, r, r, r, r};
+  }
+};
+
+template<>
+struct util::serial<topo::unstructured_impl::process_color> {
+  using type = topo::unstructured_impl::process_color;
+  template<class P>
+  static void put(P & p, const type & c) {
+    serial_put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};

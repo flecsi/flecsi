@@ -13,12 +13,24 @@
                                                                               */
 #pragma once
 
-#include "cycle_control.hh"
+#include "cycle.hh"
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 
 namespace package_a {
+
+//----------------------------------------------------------------------------//
+// Internal
+//----------------------------------------------------------------------------//
+
+inline int
+internal_init() {
+  flog(info) << "A internal init" << std::endl;
+  return 0;
+}
+
+inline control::meta<internal_init, cp::init_internal> internal_action;
 
 //----------------------------------------------------------------------------//
 // Initialization
@@ -45,6 +57,15 @@ inline void
 task2() {
   flog(trace) << "A task 2" << std::endl;
 }
+
+inline int
+internal_advance() {
+  flog(info) << "A advance internal" << std::endl;
+  return 0;
+}
+
+inline control::meta<internal_advance, cp::advance_internal>
+  advance_internal_action;
 
 inline int
 advance() {

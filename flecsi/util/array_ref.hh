@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "flecsi/util/common.hh"
 #include "flecsi/util/target.hh"
 
 namespace flecsi {
@@ -126,57 +127,100 @@ to_vector(span<T> s) {
   return std::vector<typename span<T>::value_type>(s.begin(), s.end());
 }
 
-/// A small, approximate subset of mdspan as proposed for C++23.
-/// \tparam D dimension
-template<class T, unsigned short D>
-struct mdspan {
+// In these classes, the dimensions of a multidimensional array are labeled
+// with integers starting with 0 for the least-significant index, which
+// chooses among elements that are adjacent in memory.  Note that C arrays are
+// declared and used in the other order:
+//   int x[/* length 2 */][/* length 1 */][/* length 0 */];
+// and that std::extent<decltype(x)/*,0*/> is length #2.
+// (It's undefined to use these views with a truly multidimensional array.)
+
+namespace detail {
+template<class T, Dimension D>
+struct mdbase {
   static_assert(D > 0);
   using size_type = std::size_t;
 
+  /// Construct a view of a one-dimensional array.
+  /// Here, `x` and `y` are analogous:\code
+  /// int x[2][3][4],y0[2*3*4];
+  /// mdbase<int,3> y(y0,{4,3,2});
+  /// \endcode
+  /// \param p pointer to first element of (sub)array
+  /// \param sz sizes, least significant first
+  constexpr mdbase(T * p, std::array<size_type, D> sz) noexcept
+    : mdbase(p, [&sz] {
+        for(int d = 1; d < D; ++d) // premultiply to convert to strides
+          sz[d] *= sz[d - 1];
+        return sz.data();
+      }()) {}
+
+  /// Get one size of the view.
+  /// \param i dimension (0 for least significant)
+  constexpr size_type length(Dimension i) const noexcept {
+    return step(i + 1) / step(i);
+  }
+
+protected:
+  // The plain pointer can copy most data from a higher-dimensional object.
   FLECSI_INLINE_TARGET
-  constexpr mdspan(T * p, const size_type * sz) noexcept : p(p), strides() {
+  constexpr mdbase(T * p, const size_type * s) noexcept : p(p), strides() {
     for(int d = 0; d < D; d++)
-      strides[d] = sz[d];
-
-    for(int d = D - 1; d-- > 0;) // premultiply to convert to strides
-      strides[d] *= strides[d + 1];
+      strides[d] = s[d];
   }
 
-  constexpr mdspan(T * p, const std::array<size_type, D> & sz) noexcept
-    : mdspan(p, sz.data()) {}
-
-  constexpr std::size_t extent(unsigned short i) const noexcept {
-    return step(i) / step(i + 1);
-  }
-
-  template<class... I>
-  constexpr decltype(auto) operator()(I... inds) const noexcept {
-    static_assert(sizeof...(inds) == D);
-    unsigned short d = D;
-    size_type i = 0;
-    ((i += size_type(inds) * step(d--), assert(size_type(inds) < extent(d))),
-      ...); // guarantee evaluation order
-    return p[i];
-  }
-
-  FLECSI_INLINE_TARGET
-  constexpr decltype(auto) operator[](size_type i) const noexcept {
-    assert(i < extent(0));
-    const auto q = p + i * step(1);
-    if constexpr(D > 1)
-      return mdspan<T, D - 1>(q, &strides[1]);
-    else
-      return *q;
-  }
-
-private:
   constexpr size_type step(unsigned short i) const noexcept {
     assert(i <= D);
-    return i == D ? 1 : strides[i];
+    return i == 0 ? 1 : strides[i - 1];
   }
 
   T * p;
-  size_type strides[D];
+  size_type strides[D]; // last element only for bounds checking
+};
+} // namespace detail
+
+/// A variation of \c mdspan with reversed indices (distinguished by `()`).
+template<class T, Dimension D>
+struct mdcolex : detail::mdbase<T, D> {
+  using mdcolex::mdbase::mdbase;
+  using typename mdcolex::mdbase::size_type;
+
+  /// Select an element of the view.
+  /// \param inds indices (each smaller than `length(0)`, `length(1)`,
+  ///   &hellip;)
+  /// \return T&
+  template<class... I>
+  constexpr decltype(auto) operator()(I... inds) const noexcept {
+    static_assert(sizeof...(inds) == D);
+    Dimension d = 0;
+    size_type i = 0;
+    ((assert(size_type(inds) < this->length(d)),
+       i += size_type(inds) * this->step(d++)),
+      ...); // guarantee evaluation order
+    return this->p[i];
+  }
+};
+
+/// A small, approximate subset of mdspan as proposed for C++23.
+/// \tparam D dimension
+template<class T, unsigned short D>
+struct mdspan : detail::mdbase<T, D> {
+  using mdspan::mdbase::mdbase;
+  using typename mdspan::mdbase::size_type;
+  friend struct mdspan<T, D + 1>;
+
+  /// Select a subset of the view.
+  /// \param i index (must be smaller than `length(D-1)`)
+  /// \return `mdspan<T,D-1>` or `T&` if `D` is 1
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) operator[](size_type i) const noexcept {
+    assert(i < this->length(D - 1));
+    const auto q = this->p + i * this->step(D - 1);
+    if constexpr(D > 1)
+      return mdspan<T, D - 1>(q, this->strides);
+    else
+      return *q;
+  }
 };
 
 /// A very simple emulation of std::ranges::iota_view from C++20.

@@ -35,7 +35,8 @@ enum layout : size_t {
   single, ///< Access to the single element of an array.
   dense,
   ragged,
-  sparse
+  sparse, ///< Each element is a map with integer keys.
+  particle ///< Unordered elements are added/removed up to a maximum number.
 };
 
 } // namespace data

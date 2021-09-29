@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <set>
+#include <vector>
 
 namespace flecsi {
 namespace util {

@@ -30,6 +30,7 @@ struct prolog : task_prologue {
   // Note that accessors here may be empty versions made to be serialized.
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
+    util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
   }
 
@@ -52,8 +53,9 @@ private:
    *--------------------------------------------------------------------------*/
 
   // The const prevents being a better match than more specialized overloads.
+  // This is constrained opposite the above because it is more specialized.
   template<class P, class A>
-  static std::enable_if_t<!std::is_base_of_v<data::convert_tag, A>> visit(P &,
+  static std::enable_if_t<!std::is_base_of_v<data::send_tag, P>> visit(P &,
     const A &) {
     log::devel_guard guard(task_prologue_tag);
     flog_devel(info) << "Skipping argument with type " << util::type<A>()

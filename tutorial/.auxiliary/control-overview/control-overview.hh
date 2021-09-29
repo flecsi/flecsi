@@ -1,7 +1,7 @@
 #pragma once
 
-#include "flecsi/control.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/run/control.hh"
 
 namespace example {
 
@@ -25,7 +25,7 @@ struct control_policy {
   using control_points_enum = cp;
   struct node_policy {};
 
-  using control = flecsi::control<control_policy>;
+  using control = flecsi::run::control<control_policy>;
 
   size_t & step() {
     return step_;
@@ -36,9 +36,9 @@ struct control_policy {
   }
 
   template<auto CP>
-  using control_point = flecsi::control_point<CP>;
+  using control_point = flecsi::run::control_point<CP>;
 
-  using cycle = flecsi::
+  using cycle = flecsi::run::
     cycle<step_control, control_point<cp::two>, control_point<cp::three>>;
 
   using control_points =
@@ -48,6 +48,6 @@ private:
   size_t step_{0};
 };
 
-using control = flecsi::control<control_policy>;
+using control = flecsi::run::control<control_policy>;
 
 } // namespace example

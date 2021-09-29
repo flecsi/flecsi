@@ -17,6 +17,7 @@
 
 #include <flecsi-config.h>
 
+#include "flecsi/util/array_ref.hh" // span
 #include "flecsi/util/serialize.hh"
 
 #if !defined(FLECSI_ENABLE_MPI)
@@ -27,6 +28,8 @@
 #include <cstddef> // byte
 #include <cstdint>
 #include <numeric>
+#include <optional>
+#include <stack>
 #include <type_traits>
 
 #include <mpi.h>
@@ -34,7 +37,49 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+inline void
+test(int err) {
+  if(err != MPI_SUCCESS) {
+    char msg[MPI_MAX_ERROR_STRING + 1];
+    int len;
+    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
+      len = 0;
+    msg[len] = 0;
+    flog_fatal("MPI error " << err << ": " << msg);
+  }
+}
+
 namespace detail {
+struct guard {
+  void commit(MPI_Datatype & d) {
+    if(!setup) {
+      int keyval;
+      test(MPI_Comm_create_keyval(
+        MPI_COMM_NULL_COPY_FN, destroy, &keyval, nullptr));
+      test(MPI_Comm_set_attr(MPI_COMM_SELF, keyval, this));
+      test(MPI_Comm_free_keyval(&keyval));
+      setup = true;
+    }
+    test(MPI_Type_commit(&d));
+    v.push_back(d);
+  }
+
+private:
+  static int destroy(MPI_Comm, int, void * attr, void *) {
+    int e = MPI_SUCCESS;
+    for(auto & v = static_cast<guard *>(attr)->v;
+        !v.empty() && e == MPI_SUCCESS;) {
+      auto d = v.back();
+      v.pop_back();
+      e = MPI_Type_free(&d);
+    }
+    return e;
+  }
+
+  bool setup = false;
+  std::vector<MPI_Datatype> v;
+} inline datatypes;
+
 struct vector { // for *v functions
   explicit vector(int n) {
     off.reserve(n);
@@ -57,18 +102,6 @@ struct vector { // for *v functions
   }
 };
 } // namespace detail
-
-inline void
-test(int err) {
-  if(err != MPI_SUCCESS) {
-    char msg[MPI_MAX_ERROR_STRING + 1];
-    int len;
-    if(MPI_Error_string(err, msg, &len) != MPI_SUCCESS)
-      len = 0;
-    msg[len] = 0;
-    flog_fatal("MPI error " << err << ": " << msg);
-  }
-}
 
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
@@ -160,11 +193,10 @@ type() {
     return maybe_static<T>();
   else {
     static_assert(bit_assignable_v<T>);
-    // TODO: destroy at MPI_Finalize
     static const MPI_Datatype ret = [] {
       MPI_Datatype data_type;
       test(MPI_Type_contiguous(sizeof(T), MPI_BYTE, &data_type));
-      test(MPI_Type_commit(&data_type));
+      detail::datatypes.commit(data_type);
       return data_type;
     }();
     return ret;
@@ -199,7 +231,7 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 
   @tparam F The packing functor type with signature \em (rank, size).
 
-  @param f    A callable object.
+  @param f function object, invoked only on rank 0 and in recipient order
   @param comm An MPI communicator.
 
   @return For all ranks besides the root rank (0), the communicated data.
@@ -209,7 +241,7 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename F>
 inline auto
-one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
+one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
@@ -217,9 +249,10 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     std::vector<return_type> send;
     if(!rank)
       send.reserve(size);
-    send.resize(1);
+    else
+      send.resize(1);
     if(!rank)
-      for(int r = 1; r < size; ++r)
+      for(int r = 0; r < size; ++r)
         send.push_back(f(r, size));
     test(MPI_Scatter(MPI_IN_PLACE,
       0,
@@ -228,13 +261,14 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       1,
       type<return_type>(),
       comm));
-    if(rank)
-      return send.front();
+    return send.front();
   }
   else {
+    std::optional<return_type> mine;
     detail::vector v(size);
     v.skip(); // v.sz used even off-root
     if(rank == 0) {
+      mine.emplace(f(0, size));
       for(int r = 1; r < size; ++r)
         v.put(f(r, size));
     }
@@ -262,11 +296,162 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     if(rank) {
       auto const * p = v.data.data();
       return serial_get<return_type>(p);
-    } // if
+    }
+    else
+      return std::move(*mine);
+  }
+} // one_to_allv
+
+namespace detail {
+// We allocate each message separately to control memory usage.
+// These two class templates serialize or not with the same interface.
+template<class T>
+struct bit_message {
+  bit_message(int, int, MPI_Comm) : p(new T) {}
+  template<class F> // deferred to support prvalues
+  bit_message(F & f, int r, int n) : p(new T(f(r, n))) {}
+
+  void * data() {
+    return p.get();
+  }
+  const void * data() const {
+    return p.get();
+  }
+  int count() const {
+    return 1;
+  }
+  std::size_t bytes() const {
+    return sizeof(T);
+  }
+  T get() && {
+    return std::move(*p);
+  }
+  void reset() {
+    p.reset();
   }
 
-  return f(0, size);
-} // one_to_allv
+  static MPI_Datatype type() {
+    return mpi::type<T>();
+  }
+
+private:
+  std::unique_ptr<T> p;
+};
+
+template<class T>
+struct serial_message {
+  serial_message(int s, int t, MPI_Comm comm)
+    : v([&] {
+        MPI_Status st;
+        test(MPI_Probe(s, t, comm, &st));
+        int ret;
+        test(MPI_Get_count(&st, type(), &ret));
+        return ret;
+      }()) {}
+  template<class F>
+  serial_message(F & f, int r, int n) : v(util::serial_put_tuple<T>(f(r, n))) {}
+
+  void * data() {
+    return v.data();
+  }
+  const void * data() const {
+    return v.data();
+  }
+  int count() const {
+    return v.size();
+  }
+  std::size_t bytes() const {
+    return v.size();
+  }
+  T get() const {
+    return serial_get1<T>(v.data());
+  }
+  void reset() {
+    decltype(v)().swap(v);
+  }
+
+  static MPI_Datatype type() {
+    return MPI_BYTE;
+  }
+
+private:
+  std::vector<std::byte> v;
+};
+} // namespace detail
+
+/// Send data from rank 0 to all others, controlling memory usage.
+/// No messages are constructed while data in transit exceeds \a mem
+/// (transmission occurs, at least serially, even if it is 0).
+/// \param f function object, invoked only on rank 0 and in recipient order
+/// \param mem bytes of memory to use before waiting
+template<class F>
+auto
+one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
+  using R = std::decay_t<decltype(f(1, 1))>;
+  using M = std::conditional_t<bit_copyable_v<R>,
+    detail::bit_message<R>,
+    detail::serial_message<R>>;
+
+  const auto [rank, size] = info(comm);
+  if(!rank) {
+    auto ret = f(0, size);
+    {
+      const auto n = size - 1;
+      std::vector<MPI_Request> req;
+      std::vector<MPI_Status> stat(n);
+      {
+        std::vector<M> val; // parallel to req
+        std::vector<int> done(n);
+        std::stack<int> free; // inactive requests
+        std::size_t used = 0;
+        for(int r = 1; r < size; ++r) {
+          const int i = [&] {
+            if(free.empty()) {
+              // Capturing a structured binding requires C++20:
+              val.emplace_back(f, r, n + 1);
+              return int(req.size()); // created below
+            }
+            else {
+              const auto ret = free.top();
+              free.pop();
+              val[ret] = {f, r, n + 1};
+              return ret;
+            }
+          }();
+          {
+            const auto & v = val[i];
+            if(i == int(req.size()))
+              req.emplace_back();
+            // Discourage buffering (at the cost of needless synchronization):
+            test(
+              MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+            used += v.bytes();
+          }
+          while(used > mem) {
+            int count;
+            test(MPI_Waitsome(
+              req.size(), req.data(), &count, done.data(), stat.data()));
+            // Clear data for completed sends:
+            for(auto j : util::span(done).first(count)) {
+              auto & w = val[j];
+              used -= w.bytes();
+              w.reset();
+              free.push(j);
+            }
+          }
+        }
+      }
+      test(MPI_Waitall(req.size(), req.data(), stat.data()));
+    }
+    return ret;
+  }
+  else {
+    M ret(0, 0, comm);
+    test(MPI_Recv(
+      ret.data(), ret.count(), M::type(), 0, 0, comm, MPI_STATUS_IGNORE));
+    return std::move(ret).get();
+  }
+}
 
 /*!
   All-to-All (variable) communication pattern.
@@ -276,7 +461,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
   @tparam F The packing type with signature \em (rank, size).
 
-  @param f    A callable object.
+  @param f function object, invoked in recipient order
   @param comm An MPI communicator.
 
   @return A std::vector<return_type>, where \rm return_type is the type
@@ -285,7 +470,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename F>
 inline auto
-all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
+all_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
   using return_type = std::decay_t<decltype(f(1, 1))>;
 
   auto [rank, size] = info(comm);
@@ -304,12 +489,15 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   }
   else {
     detail::vector recv(size);
+    std::optional<return_type> mine;
     {
       detail::vector send(size);
 
       for(int r = 0; r < size; ++r) {
-        if(r == rank)
+        if(r == rank) {
+          mine.emplace(f(r, size));
           send.skip();
+        }
         else
           send.put(f(r, size));
       } // for
@@ -341,7 +529,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
     const std::byte * const p = recv.data.data();
     for(int r = 0; r < size; ++r) {
       if(r == rank)
-        result.push_back(f(r, size));
+        result.push_back(std::move(*mine));
       else
         result.push_back(serial_get1<return_type>(p + recv.off[r]));
     } // for
@@ -368,7 +556,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
 template<typename T>
 std::vector<T>
-all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
+all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
   std::vector<T> result;
   if constexpr(bit_copyable_v<T>) {
@@ -385,7 +573,8 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
       MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
 
     v.off.resize(size);
-    std::exclusive_scan(v.sz.begin(), v.sz.end(), v.off.begin(), 0);
+    v.off[0] = 0;
+    std::partial_sum(v.sz.begin(), v.sz.end() - 1, v.off.begin() + 1);
 
     v.data.resize(v.off.back() + v.sz.back());
     {
@@ -411,7 +600,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   }
 
   return result;
-} // all_gather
+} // all_gatherv
 
 } // namespace mpi
 } // namespace util

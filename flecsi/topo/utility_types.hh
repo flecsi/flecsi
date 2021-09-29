@@ -27,8 +27,20 @@ namespace topo {
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
+
 template<class, class>
 struct connect;
+
+/*!
+  Connectivity information for the given specialization policy \emph{P} for the
+  given key_types in \emph{VT}. This data structure adds ragged fields to the
+  specialized user type to store connectivity informaiton for each
+  user-specified connectivity.
+
+  @tparam P  A core topology specialization policy.
+  @tparam VT A parameter pack of types defining a key value and a type.
+ */
+
 template<class P, class... VT>
 struct connect<P, util::types<VT...>> {
   using type = util::key_tuple<util::key_type<VT::value,
@@ -98,16 +110,15 @@ struct lists : lists_t<typename array<P>::core, P> {
   using Base = typename lists::key_tuple;
 
   // Initializes each subtopology to zero size on every color.
-  explicit lists(Color nc) : Base(make_base(nc, typename P::entity_lists())) {}
+  explicit lists(Color nc) : lists(nc, typename P::entity_lists()) {}
 
   // TODO: std::vector<std::vector<std::vector<std::size_t>>> for direct
   // coloring-based allocation?
 
 private:
   template<class... VT>
-  Base make_base(Color nc, util::types<VT...> /* to decue a pack */) {
-    return {make_base1(nc, typename VT::type())...};
-  }
+  lists(Color nc, util::types<VT...> /* deduce pack */)
+    : Base{make_base1(nc, typename VT::type())...} {}
   template<auto... VV>
   util::key_array<typename array<P>::core, util::constants<VV...>>
   make_base1(Color nc, util::constants<VV...> /* to deduce a pack */) {

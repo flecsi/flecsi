@@ -73,7 +73,7 @@ distribute(Color np, std::vector<std::size_t> indices) {
 
 /*
   Using the index colors for the given color, this function determines the
-  position of the local partition within the color space. The "faces"
+  position of the local partition within the color space. The "orientation"
   variable is a bit-array that stores (for each axis) boolean values
   for "low", and "high". If an axis is neither low nor high, it is
   interior. The enumeration defining these masks is in types.hh.
@@ -85,21 +85,26 @@ orientation(Dimension dimension,
   const narray_impl::colors & axis_colors) {
   using namespace narray_impl;
 
-#define FACE(e, c, c0, c1, c2)                                                 \
-  ((((e) == 0) && ((e) == ((c)-1)))                                            \
-      ? c1 | c2                                                                \
-      : ((0 < (e) && e < ((c)-1)) ? c0 : ((e) == 0 ? c1 : c2)))
-
-  std::uint32_t faces = interior;
-  std::uint32_t shft{low};
+  std::uint32_t o{mask::interior};
+  std::uint32_t shft{mask::low};
+  // clang-format off
   for(Dimension axis = 0; axis < dimension; ++axis) {
-    faces |=
-      FACE(color_indices[axis], axis_colors[axis], interior, shft, shft << 1);
+    o |= [ci = color_indices[axis], nc = axis_colors[axis], l = shft,
+      h = shft << 1]() {
+      return
+        (ci == 0 && ci == (nc - 1)) ?
+          l | h :
+        (0 < ci && ci < (nc - 1)) ?
+          mask::interior :
+        (ci == 0) ?
+          l :
+          h;
+    }();
     shft <<= 2;
   } // for
-#undef FACE
+  // clang-format on
 
-  return faces;
+  return o;
 } // orientation
 
 /*
@@ -110,14 +115,14 @@ inline auto
 make_color(Dimension dimension,
   const narray_impl::colors & color_indices,
   std::vector<util::color_map> const & axcm,
-  uint32_t faces,
+  uint32_t orient,
   narray_impl::coord const & hdepths,
   narray_impl::coord const & bdepths,
   std::vector<bool> periodic) {
   using namespace narray_impl;
 
-  index_coloring idxco;
-  idxco.faces = faces;
+  process_color idxco;
+  idxco.orientation = orient;
   idxco.global.resize(dimension);
   idxco.extents.resize(dimension);
   idxco.offset.resize(dimension);
@@ -133,6 +138,7 @@ make_color(Dimension dimension,
         >>>
     ghstitvls(dimension);
 
+  std::size_t extents{1};
   for(Dimension axis = 0; axis < dimension; ++axis) {
     auto axis_color = color_indices[axis];
     const Color axis_colors = axcm[axis].colors();
@@ -142,9 +148,9 @@ make_color(Dimension dimension,
     idxco.logical[0][axis] = 0;
     idxco.logical[1][axis] = axcm[axis].indices(axis_color, 0);
 
-    std::uint32_t bits = faces >> axis * 2;
+    std::uint32_t bits = orient >> axis * 2;
 
-    if(bits & low && bits & high) {
+    if(bits & mask::low && bits & mask::high) {
       /*
         This is a degenerate dimension, i.e., it is flat with a single
         color layer. Therefore, we do not add halo extensions.
@@ -158,7 +164,7 @@ make_color(Dimension dimension,
       idxco.extended[0][axis] = 0;
       idxco.extended[1][axis] = idxco.logical[1][axis] + bdepths[axis];
     }
-    else if(bits & low) {
+    else if(bits & mask::low) {
       /*
         This dimension is a low edge.
        */
@@ -183,7 +189,7 @@ make_color(Dimension dimension,
           {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
       } // if
     }
-    else if(bits & high) {
+    else if(bits & mask::high) {
       /*
         This dimension is a high edge.
        */
@@ -229,368 +235,495 @@ make_color(Dimension dimension,
       ghstitvls[axis].push_back({color_indices[axis] - 1,
         {idxco.logical[0][axis] - hdepths[axis], idxco.logical[0][axis]}});
     } // if
+
+    extents *= idxco.extents[axis];
   } // for
 
-  return std::make_pair(idxco, ghstitvls);
+  return std::make_tuple(idxco, ghstitvls, extents);
 } // make_color
 
 /*
-  Generate a coloring for the provided index space definitions.
+  Generate a coloring for the provided coloring definition.
  */
 
 inline auto
-color(std::vector<narray_impl::coloring_definition> const & index_spaces,
+color(narray_impl::coloring_definition const & cd,
   MPI_Comm comm = MPI_COMM_WORLD) {
   using namespace narray_impl;
 
-  flog_assert(index_spaces.size() != 0, "no index spaces defined");
-
-  const Dimension dimension = index_spaces[0].axis_colors.size();
+  const Dimension dimension = cd.axis_colors.size();
 
   flog_assert(dimension < 17,
     "current implementation is limited to 16 dimensions (uint32_t)");
 
-  Color nc = 1;
+  flog_assert(cd.axis_colors.size() == cd.axis_extents.size(),
+    "argument mismatch: sizes(" << cd.axis_colors.size() << "vs. "
+                                << cd.axis_extents.size()
+                                << ") must be consistent");
+  flog_assert(cd.axis_colors.size() == dimension,
+    "size must match the intended dimension(" << dimension << ")");
+
   auto [rank, size] = util::mpi::info(comm);
-  std::vector<std::map<std::size_t, index_coloring>> colorings;
 
-  for(std::size_t is{0}; is < index_spaces.size(); ++is) {
-    auto const & axis_colors = index_spaces[is].axis_colors;
-    auto const & axis_extents = index_spaces[is].axis_extents;
-    auto const & axis_hdepths = index_spaces[is].axis_hdepths;
-    auto const & axis_bdepths = index_spaces[is].axis_bdepths;
-    std::vector<bool> const & axis_periodic = index_spaces[is].axis_periodic;
-    bool const diagonals = index_spaces[is].diagonals;
-    bool const create_plan = index_spaces[is].create_plan;
+  /*
+    Create a color map for each dimension. Because we are using a
+    tensor-product strategy below, we can use each map to define the
+    sub colors and offsets for an individual axis.
+   */
 
-    flog_assert(axis_colors.size() == axis_extents.size(),
-      "argument mismatch: sizes(" << axis_colors.size() << "vs. "
-                                  << axis_extents.size()
-                                  << ") must be consistent");
-    flog_assert(axis_colors.size() == dimension,
-      "size must match the intended dimension(" << dimension << ")");
+  Color nc = 1;
+  std::size_t indices{1};
+  std::vector<util::color_map> axcm;
+  for(Dimension d = 0; d < dimension; ++d) {
+    nc *= cd.axis_colors[d];
+    indices *= cd.axis_extents[d];
+    axcm.emplace_back(cd.axis_colors[d], cd.axis_colors[d], cd.axis_extents[d]);
+  } // for
 
+  /*
+    Create a color map for the total number of colors (product of axis
+    colors) to the number of processes.
+   */
+
+  util::color_map cm(size, nc, indices);
+
+  /*
+    Create a coloring for each color on this process.
+   */
+
+  std::vector<process_color> coloring;
+  std::vector<std::size_t> partitions;
+  for(Color c = 0; c < cm.colors(rank); ++c) {
     /*
-      Create a color map for each dimension. Because we are using a
-      tensor-product strategy below, we can use each map to define the
-      sub colors and offsets for an individual axis.
+      Convenience functions to map between colors and indices.
      */
 
-    Color idx_colors = 1;
-    std::size_t indices{1};
-    std::vector<util::color_map> axcm;
-    for(Dimension d = 0; d < dimension; ++d) {
-      if(is == 0) {
-        nc *= axis_colors[d];
+    const auto co2idx = [](Color co, const colors & szs) {
+      colors indices;
+      for(auto sz : szs) {
+        indices.emplace_back(co % sz);
+        co /= sz;
       }
-      idx_colors *= axis_colors[d];
-      indices *= axis_extents[d];
-      axcm.emplace_back(axis_colors[d], axis_colors[d], axis_extents[d]);
-    } // for
+      return indices;
+    };
 
-    flog_assert(
-      idx_colors == nc, "index spaces must have a consistent number of colors");
-
-    /*
-      Create a color map for the total number of colors (product of axis
-      colors) to the number of processes.
-     */
-
-    util::color_map cm(size, idx_colors, indices);
+    const auto idx2co = [](const auto & idx, const auto & szs) {
+      auto pr = szs[0];
+      decltype(pr) co = 0;
+      for(std::size_t i{0}; i < idx.size() - 1; ++i) {
+        co += idx[i + 1] * pr;
+        pr *= szs[i + 1];
+      }
+      return co + idx[0];
+    };
 
     /*
-      If this index space should do data exchange, populate the
-      intervals and points that define the copy plan. An empty
-      copy plan shouldn't result in too much inefficiency, and it
-      is not straightforward to skip index spaces during narray
-      allocation, i.e., to skip copy plan creation alltogether.
+      Get the indices representation of our color.
      */
 
-    std::map<std::size_t, index_coloring> coloring;
-    if(create_plan) {
-      /*
-        Create a coloring for each color on this process.
-       */
+    auto color_indices = co2idx(cm.color_id(rank, c), cd.axis_colors);
 
-      for(Color c = 0; c < cm.colors(rank); ++c) {
-        /*
-          Convenience functions to map between colors and indices.
-         */
+    /*
+      Find our orientation within the color space.
+     */
 
-        const auto co2idx = [](Color co, const colors & szs) {
-          colors indices;
-          for(auto sz : szs) {
-            indices.emplace_back(co % sz);
-            co /= sz;
-          }
-          return indices;
-        };
+    uint32_t orient = orientation(dimension, color_indices, cd.axis_colors);
 
-        const auto idx2co = [](const auto & idx, const auto & szs) {
-          auto pr = szs[0];
-          decltype(pr) co = 0;
-          for(std::size_t i{0}; i < idx.size() - 1; ++i) {
-            co += idx[i + 1] * pr;
-            pr *= szs[i + 1];
-          }
-          return co + idx[0];
-        };
+    /*
+      Make the coloring information for our color.
+     */
 
-        auto color_indices = co2idx(cm.color_id(rank, c), axis_colors);
+    auto [idxco, ghstitvls, extents] = make_color(dimension,
+      color_indices,
+      axcm,
+      orient,
+      cd.axis_hdepths,
+      cd.axis_bdepths,
+      cd.axis_periodic);
 
-        /*
-          Find our orientation within the color space.
-         */
+    /*
+      Save extents information for creating partitions.
+     */
 
-        uint32_t faces = orientation(dimension, color_indices, axis_colors);
+    partitions.emplace_back(extents);
 
-        /*
-          Make the coloring information for our color.
-         */
+    // This won't be necessary with c++20. In c++17 lambdas can't
+    // capture structured bindings.
+    auto & idx_coloring = idxco;
+    auto & ghost_intervals = ghstitvls;
 
-        auto [idxco, ghstitvls] = make_color(dimension,
-          color_indices,
-          axcm,
-          faces,
-          axis_hdepths,
-          axis_bdepths,
-          axis_periodic);
+    /*
+      Here, we compose the intervals from each sub-dimension to form
+      the actual full-dimensional subregions. These define the coloring.
+     */
 
-        // This won't be necessary with c++20. In c++17 lambdas can't
-        // capture structured bindings.
-        auto & idx_coloring = idxco;
-        auto & ghost_intervals = ghstitvls;
+    bool const diagonals = cd.diagonals;
+    std::function<std::vector<std::pair<colors, hypercube>>(
+      Dimension, Dimension)>
+      expand = [&idx_coloring, &color_indices, &ghost_intervals, diagonals](
+                 Dimension dim, Dimension top) {
+        std::vector<std::pair<colors, hypercube>> sregs;
 
-        /*
-          Here we compose the intervals from each sub-dimension to form
-          the actual full-dimensional subregions. These define the coloring.
-         */
+        for(Dimension axis = 0; axis < dim; ++axis) {
+          std::optional<std::vector<std::pair<colors, hypercube>>> ssubs;
 
-        std::function<std::vector<std::pair<colors, hypercube>>(
-          Dimension, Dimension)>
-          expand = [&idx_coloring,
-                     &color_indices,
-                     &ghost_intervals,
-                     diagonals,
-                     &expand](Dimension dim, Dimension top) {
-            std::vector<std::pair<colors, hypercube>> sregs;
-
-            for(Dimension axis = 0; axis < dim; ++axis) {
-              if(sregs.size() && dim == top) {
-                /*
-                  Expand the subregions from the lower dimensions.
-                 */
-
-                auto subs = std::move(sregs);
-                sregs.clear();
-                for(size_t off{idx_coloring.logical[0][axis]};
-                    off < idx_coloring.logical[1][axis];
-                    ++off) {
-                  for(auto & s : subs) {
-                    s.first[axis] = color_indices[axis];
-                    s.second[0][axis] = off;
-                    s.second[1][axis] = off + 1;
-                    sregs.emplace_back(s);
-                  } // for
-                } // for
-              } // if
-
-              /*
-                Add the subregions for this dimension.
-               */
-
-              for(auto i : ghost_intervals[axis]) {
-                colors co(top, 0);
-                coord start(top, 0);
-                coord end(top, 0);
-                for(Dimension a = 0; a < axis; ++a) {
-                  co[a] = color_indices[a];
-                  start[a] = idx_coloring.logical[0][a];
-                  end[a] = idx_coloring.logical[1][a];
-                } // for
-
-                co[axis] = i.first;
-                start[axis] = i.second.first;
-                end[axis] = i.second.second;
-                sregs.push_back({co, hypercube{start, end}});
-
-                if(diagonals && axis > 0) {
-                  /*
-                    Recurse to pull up lower dimensions.
-                   */
-
-                  auto ssubs = expand(dim - 1, top);
-
-                  /*
-                    Add axis information from this dimension to new diagonals.
-                   */
-
-                  for(auto ss : ssubs) {
-                    ss.first[axis] = i.first;
-                    ss.second[0][axis] = i.second.first;
-                    ss.second[1][axis] = i.second.second;
-                    sregs.emplace_back(ss);
-                  } // for
-                } // if
-              } // for
-            } // for
-
-            return sregs;
-          };
-
-        auto subregions = expand(dimension, dimension);
-
-        // FIXME: The expand recursion is greedy for reasons that I don't
-        // understand.
-        util::force_unique(subregions);
-
-        /*
-          Compute a remote index from a global coordinate.
-         */
-
-        auto rmtidx = [dimension, &axis_bdepths](
-                        index_coloring const & idxco, coord const & gidx) {
-          coord result(dimension);
-          for(Dimension axis = 0; axis < dimension; ++axis) {
-            uint32_t bits = idxco.faces >> axis * 2;
-            if(bits & low) {
-              result[axis] = gidx[axis] + axis_bdepths[axis];
-            }
-            else {
-              result[axis] = gidx[axis] - idxco.offset[axis];
-            }
-          }
-          return result;
-        };
-
-        /*
-          Map a local coordinate to a global one.
-         */
-
-        auto l2g = [dimension, faces, &axis_bdepths](
-                     index_coloring const & idxco, coord const & idx) {
-          coord result(dimension);
-          for(Dimension axis = 0; axis < dimension; ++axis) {
-            uint32_t bits = faces >> axis * 2;
-            if(bits & low) {
-              if(idx[axis] < idxco.logical[0][axis]) {
-                /* periodic low */
-                result[axis] =
-                  idxco.global[axis] - axis_bdepths[axis] + idx[axis];
-              }
-              else {
-                result[axis] = idx[axis] - axis_bdepths[axis];
-              }
-            }
-            else if(bits & high && idx[axis] >= idxco.logical[1][axis]) {
-              /* periodic high */
-              result[axis] = idx[axis] - idxco.logical[1][axis];
-            }
-            else {
-              result[axis] = idxco.offset[axis] + idx[axis];
-            }
-          }
-          return result;
-        };
-
-        /*
-          The intervals computed in the tensor product strategy above are
-          closed on the start of the interval, and open on the end. This
-          function is used below to close the end, so that the interval
-          can be converted into a memory offset interval.
-         */
-
-        auto op2cls = [dimension](coord const & idx) {
-          coord result(dimension);
-          for(Dimension axis = 0; axis < dimension; ++axis) {
-            result[axis] = idx[axis] - 1;
-          }
-          return result;
-        };
-
-        /*
-          Loop through the subregions and create the actual coloring.
-         */
-
-        std::unordered_map<Color, index_coloring> idxmap;
-        for(auto s : subregions) {
-          auto co = idx2co(s.first, axis_colors);
-          if(idxmap.find(co) == idxmap.end()) {
+          if(sregs.size()) {
             /*
-              Create basic coloring information for the owning color, so
-              that we can determine the remote offsets for our points.
-              The coloring informaiton is stored for subsequent use.
+              Save a copy of the lower-dimensional subregions to
+              create diagonal entries.
              */
 
-            auto [ridxco, rghstitvls] = make_color(dimension,
-              s.first,
-              axcm,
-              orientation(dimension, s.first, axis_colors),
-              axis_hdepths,
-              axis_bdepths,
-              axis_periodic);
-            idxmap[co] = ridxco;
+            if(diagonals) {
+              ssubs.emplace(sregs);
+            } // if
+
+            /*
+              Expand the subregions from the lower dimensions.
+             */
+
+            auto subs = std::move(sregs);
+            sregs.clear();
+            for(size_t off{idx_coloring.logical[0][axis]};
+                off < idx_coloring.logical[1][axis];
+                ++off) {
+              for(auto & s : subs) {
+                s.first[axis] = color_indices[axis];
+                s.second[0][axis] = off;
+                s.second[1][axis] = off + 1;
+                sregs.emplace_back(s);
+              } // for
+            } // for
           } // if
 
           /*
-            The subregions are defined by hypercubes. These must be broken
-            up into contiguous intervals. This lambda recurses each subregion
-            to break up the volume into contiguous chunks.
+            Add the subregions for this dimension.
            */
 
-          std::function<void(Color, hypercube, Dimension)> make =
-            [&idx_coloring, &idxmap, &op2cls, &idx2co, &l2g, &rmtidx, &make](
-              Color clr, hypercube const & subregion, Dimension axis) {
-              if(axis == 0) {
-                // Compute the local memory interval.
-                auto const start = idx2co(subregion[0], idx_coloring.extents);
-                auto const end =
-                  idx2co(op2cls(subregion[1]), idx_coloring.extents);
+          for(auto i : ghost_intervals[axis]) {
+            colors co(top, 0);
+            coord start(top, 0);
+            coord end(top, 0);
 
-                // The output intervals are closed on the start
-                // and open on the end, i.e., [start, end)
+            /*
+              For dimensions lower than the current axis, just populate
+              the axes with the logical start and end because they are
+              not the ghost part of the subregion, but they should
+              cover the local axis extents. These use the local color
+              indices.
+             */
 
-                idx_coloring.intervals.push_back({start, end + 1});
+            for(Dimension a = 0; a < axis; ++a) {
+              co[a] = color_indices[a];
+              start[a] = idx_coloring.logical[0][a];
+              end[a] = idx_coloring.logical[1][a];
+            } // for
+            /*
+              Add the ghost part that comes from the current axis.
+             */
 
-                /*
-                  Loop through the local interval sizes, and add the remote
-                  pointer offsets.
-                 */
+            co[axis] = i.first;
+            start[axis] = i.second.first;
+            end[axis] = i.second.second;
+            sregs.push_back({co, hypercube{start, end}});
 
-                auto const gidx = l2g(idx_coloring, subregion[0]);
-                auto const ridx = rmtidx(idxmap.at(clr), gidx);
-                auto rmtoff = idx2co(ridx, idxmap.at(clr).extents);
+            if(ssubs.has_value()) {
+              /*
+                Add axis information from this dimension to new diagonals.
+               */
 
-                for(std::size_t off{0}; off < (end + 1) - start; ++off) {
-                  idx_coloring.points[clr].push_back(
-                    {start + off, rmtoff + off});
-                } // for
-              }
-              else {
-                // Recurse ranges at this axis to create contiguous intervals.
-                for(std::size_t r = subregion[0][axis]; r < subregion[1][axis];
-                    ++r) {
-                  hypercube rct = subregion;
-                  rct[0][axis] = r;
-                  rct[1][axis] = r + 1;
-
-                  make(clr, rct, axis - 1);
-                } // for
-              } // if
-            };
-
-          make(co, s.second, dimension - 1);
+              for(auto ss : *ssubs) {
+                ss.first[axis] = i.first;
+                ss.second[0][axis] = i.second.first;
+                ss.second[1][axis] = i.second.second;
+                sregs.emplace_back(ss);
+              } // for
+            } // if
+          } // for
         } // for
 
-        coloring.emplace(c, std::move(idx_coloring));
-      } // for
-    } // if
+        return sregs;
+      };
 
-    colorings.push_back(std::move(coloring));
+    auto subregions = expand(dimension, dimension);
+
+    // Remove duplicate subregions
+    util::force_unique(subregions);
+
+    /*
+      Compute a remote index from a global coordinate.
+     */
+
+    auto const & axis_bdepths = cd.axis_bdepths;
+    auto rmtidx = [dimension, &axis_bdepths](
+                    process_color const & idxco, coord const & gidx) {
+      coord result(dimension);
+      for(Dimension axis = 0; axis < dimension; ++axis) {
+        uint32_t bits = idxco.orientation >> axis * 2;
+        if(bits & mask::low) {
+          result[axis] = gidx[axis] + axis_bdepths[axis];
+        }
+        else {
+          result[axis] = gidx[axis] - idxco.offset[axis];
+        }
+      }
+      return result;
+    };
+
+    /*
+      Map a local coordinate to a global one.
+     */
+
+    auto l2g = [dimension, orient, &axis_bdepths](
+                 process_color const & idxco, coord const & idx) {
+      coord result(dimension);
+      for(Dimension axis = 0; axis < dimension; ++axis) {
+        uint32_t bits = orient >> axis * 2;
+        if(bits & mask::low) {
+          if(idx[axis] < idxco.logical[0][axis]) {
+            /* periodic low */
+            result[axis] = idxco.global[axis] - axis_bdepths[axis] + idx[axis];
+          }
+          else {
+            result[axis] = idx[axis] - axis_bdepths[axis];
+          }
+        }
+        else if(bits & mask::high && idx[axis] >= idxco.logical[1][axis]) {
+          /* periodic high */
+          result[axis] = idx[axis] - idxco.logical[1][axis];
+        }
+        else {
+          result[axis] = idxco.offset[axis] + idx[axis];
+        }
+      }
+      return result;
+    };
+
+    /*
+      The intervals computed in the tensor product strategy above are
+      closed on the start of the interval, and open on the end. This
+      function is used below to close the end, so that the interval
+      can be converted into a memory offset interval.
+     */
+
+    auto op2cls = [dimension](coord const & idx) {
+      coord result(dimension);
+      for(Dimension axis = 0; axis < dimension; ++axis) {
+        result[axis] = idx[axis] - 1;
+      }
+      return result;
+    };
+
+    /*
+      Loop through the subregions and create the actual coloring.
+     */
+
+    std::unordered_map<Color, process_color> idxmap;
+    for(auto s : subregions) {
+      auto co = idx2co(s.first, cd.axis_colors);
+      if(idxmap.find(co) == idxmap.end()) {
+        /*
+          Create basic coloring information for the owning color, so
+          that we can determine the remote offsets for our points.
+          The coloring informaiton is stored for subsequent use.
+         */
+
+        auto [ridxco, rghstitvls, extents] = make_color(dimension,
+          s.first,
+          axcm,
+          orientation(dimension, s.first, cd.axis_colors),
+          cd.axis_hdepths,
+          cd.axis_bdepths,
+          cd.axis_periodic);
+        idxmap[co] = ridxco;
+      } // if
+
+      /*
+        The subregions are defined by hypercubes. These must be broken
+        up into contiguous intervals. This lambda recurses each subregion
+        to break up the volume into contiguous chunks.
+       */
+
+      std::function<void(Color, hypercube, Dimension)> make =
+        [&idx_coloring, &idxmap, &op2cls, &idx2co, &l2g, &rmtidx, &make](
+          Color clr, hypercube const & subregion, Dimension axis) {
+          if(axis == 0) {
+            // Compute the local memory interval.
+            auto const start = idx2co(subregion[0], idx_coloring.extents);
+            auto const end = idx2co(op2cls(subregion[1]), idx_coloring.extents);
+
+            // The output intervals are closed on the start
+            // and open on the end, i.e., [start, end)
+
+            idx_coloring.intervals.push_back({start, end + 1});
+
+            /*
+              Loop through the local interval sizes, and add the remote
+              pointer offsets.
+             */
+
+            auto const gidx = l2g(idx_coloring, subregion[0]);
+            auto const ridx = rmtidx(idxmap.at(clr), gidx);
+            auto rmtoff = idx2co(ridx, idxmap.at(clr).extents);
+
+            for(std::size_t off{0}; off < (end + 1) - start; ++off) {
+              idx_coloring.points[clr].push_back({start + off, rmtoff + off});
+            } // for
+          }
+          else {
+            // Recurse ranges at this axis to create contiguous intervals.
+            for(std::size_t r = subregion[0][axis]; r < subregion[1][axis];
+                ++r) {
+              hypercube rct = subregion;
+              rct[0][axis] = r;
+              rct[1][axis] = r + 1;
+
+              make(clr, rct, axis - 1);
+            } // for
+          } // if
+        };
+
+      if(cd.create_plan) {
+        make(co, s.second, dimension - 1);
+      } // if
+    } // for
+
+    coloring.emplace_back(std::move(idx_coloring));
   } // for
 
-  return std::make_pair(nc, colorings);
+  {
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    partitions.clear();
+    partitions.resize(nc);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        partitions[cm.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  return std::make_tuple(nc, indices, coloring, partitions);
 } // color
+
+/*!
+  Generate an auxiliary coloring from the given primary coloring. This is
+  similar to the strategy used by topo::unstructured.
+
+  @param idx         The primary coloring.
+  @param extend      Specify which axes should be extended to create storage in
+                     that dimension.
+  @param create_plan Create a copy plan so that distributed-memory dependencies
+                     are can be updated.
+  @full_ghosts       Populate all ghost dependencies of the given dimension to
+                     match the behavior of topo::unstructured.
+ */
+
+inline auto
+color_auxiliary(std::size_t ne,
+  Color nc,
+  std::vector<narray_impl::process_color> const & vpc,
+  std::vector<bool> const & extend,
+  MPI_Comm comm = MPI_COMM_WORLD,
+  bool create_plan = false,
+  bool full_ghosts = false) {
+  using namespace narray_impl;
+
+  flog_assert(create_plan == false, "memory consistency is not yet supported");
+
+  std::vector<process_color> avpc;
+  std::vector<std::size_t> partitions;
+  for(auto pc : vpc) {
+    const std::size_t axes = pc.extents.size();
+    process_color apc;
+    apc.orientation = pc.orientation;
+    apc.global.resize(axes);
+    apc.extents.resize(axes);
+    apc.logical[0].resize(axes);
+    apc.logical[1].resize(axes);
+    apc.extended[0].resize(axes);
+    apc.extended[1].resize(axes);
+
+    std::size_t extents{1};
+    for(std::size_t axis{0}; axis < axes; ++axis) {
+      // Use the primary offset to initialize the auxiliary offset,
+      // which will be corrected below.
+      apc.offset.emplace_back(pc.offset[axis]);
+
+      // Calculate some values
+      const std::size_t le = pc.logical[1][axis] - pc.logical[0][axis];
+      const std::size_t ee = pc.extended[1][axis] - pc.extended[0][axis];
+      const std::size_t bd = pc.logical[0][axis] - pc.extended[0][axis];
+      const std::size_t hd = pc.logical[0][axis];
+      const std::size_t ex = extend[axis] ? 1 : 0;
+
+      // We can set these explicitly without reference to the orientation.
+      apc.global[axis] = pc.global[axis] + ex;
+      apc.extents[axis] = ee + ex;
+
+      const std::uint32_t bits = pc.orientation >> axis * 2;
+
+      // Settings and corrections depending on orientation
+      if(bits & mask::low && bits & mask::high) {
+        apc.logical[0][axis] = bd;
+        apc.logical[1][axis] = apc.logical[0][axis] + le + ex;
+        apc.extended[0][axis] = 0;
+        apc.extended[1][axis] = ee + ex;
+      }
+      else if(bits & mask::low) {
+        apc.extents[axis] += full_ghosts ? hd : 0;
+        apc.logical[0][axis] = bd;
+        apc.logical[1][axis] = apc.logical[0][axis] + le + ex;
+        apc.extended[0][axis] = 0;
+        apc.extended[1][axis] = ee + ex;
+      }
+      else if(bits & mask::high) {
+        apc.extents[axis] += full_ghosts ? hd : 0;
+        apc.offset[axis] += full_ghosts ? 0 : hd;
+        apc.logical[0][axis] = full_ghosts ? hd + ex : ex;
+        apc.logical[1][axis] = apc.logical[0][axis] + le;
+        apc.extended[0][axis] = full_ghosts ? hd + ex : ex;
+        apc.extended[1][axis] = apc.extended[0][axis] + ee;
+      }
+      else {
+        apc.extents[axis] += full_ghosts ? 2 * hd : 0;
+        apc.offset[axis] += full_ghosts ? 0 : hd;
+        apc.logical[0][axis] = full_ghosts ? hd + ex : ex;
+        apc.logical[1][axis] = apc.logical[0][axis] + le;
+        apc.extended[0][axis] = full_ghosts ? hd + ex : ex;
+        apc.extended[1][axis] = apc.extended[0][axis] + ee;
+      } // if
+
+      extents *= apc.extents[axis];
+    } // for
+
+    avpc.emplace_back(apc);
+    partitions.emplace_back(extents);
+  } // for
+
+  {
+    auto [rank, size] = util::mpi::info(comm);
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    partitions.clear();
+    partitions.resize(nc);
+    util::color_map cm(size, nc, ne);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        partitions[cm.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  return std::make_pair(avpc, partitions);
+} // color_auxiliary
 
 } // namespace narray_utils
 } // namespace topo

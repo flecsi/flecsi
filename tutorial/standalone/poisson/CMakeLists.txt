@@ -3,7 +3,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13...3.20)
 
 #------------------------------------------------------------------------------#
 # Set the project name.
@@ -32,6 +32,33 @@ find_package(FleCSI REQUIRED)
 #------------------------------------------------------------------------------#
 
 find_package(Kokkos REQUIRED)
+
+#------------------------------------------------------------------------------#
+# Unit tests
+#------------------------------------------------------------------------------#
+
+option(ENABLE_UNIT_TESTS "Enable unit tests" OFF)
+mark_as_advanced(ENABLE_UNIT_TESTS)
+
+if(ENABLE_UNIT_TESTS)
+  enable_testing()
+endif()
+
+function(add_unit name)
+  set(options)
+  set(one_value_args)
+  set(multi_value_args ARGUMENTS)
+
+  cmake_parse_arguments(unit "${options}" "${one_value_args}"
+    "${multi_value_args}" ${ARGN})
+
+  add_test(NAME ${name}
+    COMMAND
+      $<TARGET_FILE:${name}> ${unit_ARGUMENTS}
+    WORKING_DIRECTORY
+      ${CMAKE_BINARY_DIR}
+  )
+endfunction()
 
 #------------------------------------------------------------------------------#
 # App

@@ -28,22 +28,48 @@ inline log::devel_tag unit_tag("unit");
 namespace util {
 namespace unit {
 
-struct assert_handler_t;
+namespace detail {
+template<class T, class = void>
+struct maybe_value {
+  static const char * get(const T &, const char * what) {
+    return what;
+  }
+};
+template<class T>
+struct maybe_value<T,
+  decltype(void(std::declval<std::ostream &>() << std::declval<const T &>()))> {
+  static const T & get(const T & t, const char *) {
+    return t;
+  }
+};
+template<class T>
+decltype(auto)
+stream(const T & t, const char * what) {
+  return maybe_value<T>::get(t, what);
+}
+
+template<class T>
+struct not_fn { // default-constructed std::not_fn
+  template<class... AA>
+  bool operator()(AA &&... aa) const {
+    return !T()(std::forward<AA>(aa)...);
+  }
+};
+} // namespace detail
 
 struct state_t {
 
   state_t(std::string name) {
     name_ = name;
-    error_stream_.str(std::string());
   } // initialize
+  state_t(state_t &&) = delete;
 
   ~state_t() {
     log::devel_guard guard(unit_tag);
 
-    if(error_stream_.str().size()) {
+    if(result_) {
       std::stringstream stream;
-      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << FLOG_COLOR_PLAIN
-             << std::endl;
+      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << std::endl;
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
@@ -53,10 +79,6 @@ struct state_t {
     } // if
   } // process
 
-  int & result() {
-    return result_;
-  }
-
   const std::string & name() const {
     return name_;
   }
@@ -65,14 +87,56 @@ struct state_t {
     return error_stream_;
   } // stream
 
+  template<bool A, class... CC>
+  void fail(const char * file, int line, const CC &... cc) {
+    result_ = 1;
+    if(A)
+      error_stream_ << FLOG_OUTPUT_LTRED("ASSERT FAILED") << ": '";
+    else
+      error_stream_ << FLOG_OUTPUT_YELLOW("EXPECT FAILED") << ": '";
+    (error_stream_ << ... << cc)
+      << "' at " << FLOG_COLOR_BROWN << file << ':' << line << ' ';
+  }
+  template<bool A>
+  bool test(bool b, const char * what, const char * file, int line) {
+    if(!b)
+      fail<A>(file, line, what);
+    return b;
+  }
+  template<class C, bool A, class T, class U>
+  bool compare(const T & t,
+    const U & u,
+    const char * ts,
+    const char * op,
+    const char * us,
+    const char * sfx,
+    const char * file,
+    int line) {
+    const bool ret = C()(t, u);
+    if(!ret)
+      fail<A>(file,
+        line,
+        '(',
+        detail::stream(t, ts),
+        ')',
+        op,
+        '(',
+        detail::stream(u, us),
+        ')',
+        sfx);
+    return ret;
+  }
+
   template<class F>
-  int operator->*(F f) { // highest binary precedence
-    f();
-    return result();
+  int operator->*(F && f) { // highest binary precedence
+    std::forward<F>(f)();
+    return result_;
   }
 
   // Allows 'return' before <<:
-  void operator>>=(const assert_handler_t &) const {}
+  void operator>>=(const std::ostream &) {
+    error_stream_ << FLOG_COLOR_PLAIN << std::endl;
+  }
 
 private:
   int result_ = 0;
@@ -81,131 +145,60 @@ private:
 
 }; // struct state_t
 
-struct assert_handler_t {
-
-  assert_handler_t(const char * condition,
-    const char * file,
-    int line,
-    state_t & runtime)
-    : runtime_(runtime) {
-    runtime_.result() = 1;
-    runtime_.stringstream()
-      << FLOG_OUTPUT_LTRED("ASSERT FAILED") << ": assertion '" << condition
-      << "' failed in " << FLOG_OUTPUT_BROWN(file << ":" << line)
-      << FLOG_COLOR_BROWN << " ";
-  } // assert_handler_t
-
-  ~assert_handler_t() {
-    runtime_.stringstream() << FLOG_COLOR_PLAIN << std::endl;
-    std::stringstream stream;
-    stream << FLOG_OUTPUT_LTRED("TEST FAILED " << runtime_.name())
-           << FLOG_COLOR_PLAIN << std::endl;
-    stream << runtime_.stringstream().str();
-  } // ~assert_handler_t
-
-  template<typename T>
-  assert_handler_t & operator<<(const T & value) {
-    runtime_.stringstream() << value;
-    return *this;
-  } // operator <<
-
-  assert_handler_t & operator<<(
-    ::std::ostream & (*basic_manipulator)(::std::ostream & stream)) {
-    runtime_.stringstream() << basic_manipulator;
-    return *this;
-  } // operator <<
-
-private:
-  state_t & runtime_;
-
-}; // assert_handler_t
-
-struct expect_handler_t {
-
-  expect_handler_t(const char * condition,
-    const char * file,
-    int line,
-    state_t & runtime)
-    : runtime_(runtime) {
-    runtime_.result() = 1;
-    runtime_.stringstream()
-      << FLOG_OUTPUT_YELLOW("EXPECT FAILED") << ": unexpected '" << condition
-      << "' occurred in " << FLOG_OUTPUT_BROWN(file << ":" << line)
-      << FLOG_COLOR_BROWN << " ";
-  } // expect_handler_t
-
-  ~expect_handler_t() {
-    runtime_.stringstream() << FLOG_COLOR_PLAIN << std::endl;
-  } // ~expect_handler_t
-
-  template<typename T>
-  expect_handler_t & operator<<(const T & value) {
-    runtime_.stringstream() << value;
-    return *this;
-  } // operator <<
-
-  expect_handler_t & operator<<(
-    ::std::ostream & (*basic_manipulator)(::std::ostream & stream)) {
-    runtime_.stringstream() << basic_manipulator;
-    return *this;
-  } // operator <<
-
-private:
-  state_t & runtime_;
-
-}; // expect_handler_t
-
-template<typename T1, typename T2>
-inline bool
-test_equal(const T1 & v1, const T2 & v2) {
-  return v1 == v2;
-}
-
-template<typename T1, typename T2>
-inline bool
-test_less(const T1 & v1, const T2 & v2) {
-  return v1 < v2;
-}
-
-template<typename T1, typename T2>
-inline bool
-test_less_equal(const T1 & v1, const T2 & v2) {
-  return test_less(v1, v2) || test_equal(v1, v2);
-}
-
-template<typename T1, typename T2>
-inline bool
-test_greater(const T1 & v1, const T2 & v2) {
-  return v1 > v2;
-}
-
-template<typename T1, typename T2>
-inline bool
-test_greater_equal(const T1 & v1, const T2 & v2) {
-  return test_greater(v1, v2) || test_equal(v1, v2);
-}
-
-inline bool
-string_compare(const char * lhs, const char * rhs) {
-  if(lhs == nullptr) {
-    return rhs == nullptr;
+struct string_compare {
+  using not_fn = detail::not_fn<string_compare>;
+  bool operator()(const char * lhs, const char * rhs) const {
+    if(lhs == nullptr) {
+      return rhs == nullptr;
+    }
+    if(rhs == nullptr) {
+      return false;
+    }
+    return strcmp(lhs, rhs) == 0;
   }
-  if(rhs == nullptr) {
-    return false;
-  }
-  return strcmp(lhs, rhs) == 0;
-} // string_compare
+};
 
-inline bool
-string_case_compare(const char * lhs, const char * rhs) {
-  if(lhs == nullptr) {
-    return rhs == nullptr;
+struct string_case_compare {
+  using not_fn = detail::not_fn<string_case_compare>;
+  bool operator()(const char * lhs, const char * rhs) const {
+    if(lhs == nullptr) {
+      return rhs == nullptr;
+    }
+    if(rhs == nullptr) {
+      return false;
+    }
+    return strcasecmp(lhs, rhs) == 0;
   }
-  if(rhs == nullptr) {
-    return false;
+};
+
+// Source: https://stackoverflow.com/a/22759544
+template<typename S, typename T>
+class is_streamable
+{
+  template<typename SS, typename TT>
+  static auto test(int)
+    -> decltype(std::declval<SS &>() << std::declval<TT>(), std::true_type());
+
+  template<typename, typename>
+  static auto test(...) -> std::false_type;
+
+public:
+  static const bool value = decltype(test<S, T>(0))::value;
+};
+
+template<class T1, class T2>
+inline std::string
+format_cond(T1 && v1, T2 && v2, const char * cond) {
+  std::ostringstream os;
+  if constexpr(is_streamable<std::ostringstream, T1>::value and
+               is_streamable<std::ostringstream, T2>::value)
+    os << v1 << " " << cond << " " << v2;
+  else {
+    os << demangle(typeid(T1).name()) << " " << cond << " "
+       << demangle(typeid(T2).name());
   }
-  return strcasecmp(lhs, rhs) == 0;
-} // string_case_compare
+  return os.str();
+}
 
 } // namespace unit
 } // namespace util
@@ -221,137 +214,70 @@ string_case_compare(const char * lhs, const char * rhs) {
 
 #define UNIT_TTYPE(type) ::flecsi::util::demangle(typeid(type).name())
 
-#define ASSERT_TRUE(condition)                                                 \
-  if(condition)                                                                \
+#define CHECK(ret, f, ...)                                                     \
+  if(auto_unit_state.f(__VA_ARGS__, __FILE__, __LINE__))                       \
     ;                                                                          \
   else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             #condition, __FILE__, __LINE__, auto_unit_state)
+    ret auto_unit_state >>= auto_unit_state.stringstream()
 
-#define EXPECT_TRUE(condition)                                                 \
-  if(condition)                                                                \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      #condition, __FILE__, __LINE__, auto_unit_state)
+#define ASSERT_TRUE(c) CHECK(return, test<true>, c, #c)
+#define EXPECT_TRUE(c) CHECK(, test<false>, c, #c)
 
-#define ASSERT_FALSE(condition)                                                \
-  if(!(condition))                                                             \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             #condition, __FILE__, __LINE__, auto_unit_state)
+#define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
+#define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
 
-#define EXPECT_FALSE(condition)                                                \
-  if(!(condition))                                                             \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      #condition, __FILE__, __LINE__, auto_unit_state)
+#define COMMA , // relies on CHECK invoking no other macros
+#define CHECK_CMP(ret, cmp, A, x, y, op, sfx)                                  \
+  CHECK(ret, compare<cmp COMMA A>, x, y, #x, #op, #y, sfx)
 
-#define ASSERT_EQ(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
+#define ASSERT_CMP(x, y, cmp, op, sfx)                                         \
+  CHECK_CMP(return, cmp, true, x, y, op, sfx)
+#define EXPECT_CMP(x, y, cmp, op, sfx) CHECK_CMP(, cmp, false, x, y, op, sfx)
 
-#define EXPECT_EQ(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_equal((val1), (val2)))
-
-#define ASSERT_NE(val1, val2)                                                  \
-  ASSERT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
-
-#define EXPECT_NE(val1, val2)                                                  \
-  EXPECT_TRUE(!::flecsi::util::unit::test_equal((val1), (val2)))
-
-#define ASSERT_LT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
-
-#define EXPECT_LT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less((val1), (val2)))
-
-#define ASSERT_LE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
-
-#define EXPECT_LE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_less_equal((val1), (val2)))
-
-#define ASSERT_GT(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
-
-#define EXPECT_GT(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater((val1), (val2)))
-
-#define ASSERT_GE(val1, val2)                                                  \
-  ASSERT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
-
-#define EXPECT_GE(val1, val2)                                                  \
-  EXPECT_TRUE(::flecsi::util::unit::test_greater_equal((val1), (val2)))
-
-#define ASSERT_STREQ(str1, str2)                                               \
-  if(::flecsi::util::unit::string_compare(str1, str2))                         \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             str1 " == " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define EXPECT_STREQ(str1, str2)                                               \
-  if(::flecsi::util::unit::string_compare(str1, str2))                         \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      str1 " == " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define ASSERT_STRNE(str1, str2)                                               \
-  if(!::flecsi::util::unit::string_compare(str1, str2))                        \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(         \
-             str1 " != " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define EXPECT_STRNE(str1, str2)                                               \
-  if(!::flecsi::util::unit::string_compare(str1, str2))                        \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(                                    \
-      str1 " != " str2, __FILE__, __LINE__, auto_unit_state)
-
-#define ASSERT_STRCASEEQ(str1, str2)                                           \
-  if(::flecsi::util::unit::string_case_compare(str1, str2))                    \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(str1     \
-             " == " str2 " (case insensitive)",                                \
-             __FILE__,                                                         \
-             __LINE__,                                                         \
-             auto_unit_state)
-
-#define EXPECT_STRCASEEQ(str1, str2)                                           \
-  if(::flecsi::util::unit::string_case_compare(str1, str2))                    \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(str1 " == " str2                    \
-                                                " (case insensitive)",         \
-      __FILE__,                                                                \
-      __LINE__,                                                                \
-      auto_unit_state)
-
-#define ASSERT_STRCASENE(str1, str2)                                           \
-  if(!::flecsi::util::unit::string_case_compare(str1, str2))                   \
-    ;                                                                          \
-  else                                                                         \
-    return auto_unit_state >>= ::flecsi::util::unit::assert_handler_t(str1     \
-             " == " str2 " (case insensitive)",                                \
-             __FILE__,                                                         \
-             __LINE__,                                                         \
-             auto_unit_state)
-
-#define EXPECT_STRCASENE(str1, str2)                                           \
-  if(!::flecsi::util::unit::string_case_compare(str1, str2))                   \
-    ;                                                                          \
-  else                                                                         \
-    ::flecsi::util::unit::expect_handler_t(str1 " == " str2                    \
-                                                " (case insensitive)",         \
-      __FILE__,                                                                \
-      __LINE__,                                                                \
-      auto_unit_state)
+#define ASSERT_EQ(x, y) ASSERT_CMP(x, y, ::std::equal_to<>, ==, "")
+#define EXPECT_EQ(x, y) EXPECT_CMP(x, y, ::std::equal_to<>, ==, "")
+#define ASSERT_NE(x, y) ASSERT_CMP(x, y, ::std::not_equal_to<>, !=, "")
+#define EXPECT_NE(x, y) EXPECT_CMP(x, y, ::std::not_equal_to<>, !=, "")
+#define ASSERT_LT(x, y) ASSERT_CMP(x, y, ::std::less<>, <, "")
+#define EXPECT_LT(x, y) EXPECT_CMP(x, y, ::std::less<>, <, "")
+#define ASSERT_LE(x, y) ASSERT_CMP(x, y, ::std::less_equal<>, <=, "")
+#define EXPECT_LE(x, y) EXPECT_CMP(x, y, ::std::less_equal<>, <=, "")
+#define ASSERT_GT(x, y) ASSERT_CMP(x, y, ::std::greater<>, >, "")
+#define EXPECT_GT(x, y) EXPECT_CMP(x, y, ::std::greater<>, >, "")
+#define ASSERT_GE(x, y) ASSERT_CMP(x, y, ::std::greater_equal<>, >=, "")
+#define EXPECT_GE(x, y) EXPECT_CMP(x, y, ::std::greater_equal<>, >=, "")
+#define ASSERT_STREQ(x, y)                                                     \
+  ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+#define EXPECT_STREQ(x, y)                                                     \
+  EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+#define ASSERT_STRNE(x, y)                                                     \
+  ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+#define EXPECT_STRNE(x, y)                                                     \
+  EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+#define ASSERT_STRCASEEQ(x, y)                                                 \
+  ASSERT_CMP(x,                                                                \
+    y,                                                                         \
+    ::flecsi::util::unit::string_case_compare,                                 \
+    ==,                                                                        \
+    " (case insensitive)")
+#define EXPECT_STRCASEEQ(x, y)                                                 \
+  EXPECT_CMP(x,                                                                \
+    y,                                                                         \
+    ::flecsi::util::unit::string_case_compare,                                 \
+    ==,                                                                        \
+    " (case insensitive)")
+#define ASSERT_STRCASENE(x, y)                                                 \
+  ASSERT_CMP(x,                                                                \
+    y,                                                                         \
+    ::flecsi::util::unit::string_case_compare::not_fn,                         \
+    !=,                                                                        \
+    " (case insensitive)")
+#define EXPECT_STRCASENE(x, y)                                                 \
+  EXPECT_CMP(x,                                                                \
+    y,                                                                         \
+    ::flecsi::util::unit::string_case_compare::not_fn,                         \
+    !=,                                                                        \
+    " (case insensitive)")
 
 // Provide access to the output stream to allow user to capture output
 #define UNIT_CAPTURE()                                                         \

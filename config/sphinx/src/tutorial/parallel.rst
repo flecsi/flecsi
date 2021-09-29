@@ -21,12 +21,12 @@ parallelism. Currently, it uses Kokkos programing model.
 Shared memory
 *****
 
-Example 1: forall macro
-+++++++++++++++++++++++
+Example 1: forall macro / parallel_for interface
+++++++++++++++++++++++++++++++++++++++++++++++++
 
 This example is an extension to the data-dense tutorial example with the
-only difference of an additional "modify" task that uses *forall* macro
-and is executed on the FleCSI default accelerator.  
+only difference of an additional "modify1" and "modify2" tasks that use
+*forall* macro / *parallel_for* interface. Both "modify" tasks are executed on the FleCSI default accelerator.  
 
 Second template parameter to the execute function is a *processor_type*
 with *loc* (latency optimized core) as a default value.
@@ -36,6 +36,17 @@ Serial, Cuda will be a default execution space or *toc* (throughput
 optimized core) *processor type* in FleCSI. 
 
 .. literalinclude:: ../../../../tutorial/5-parallel/1-forall.cc
+  :language: cpp
+
+Example 2: reduceall macro / parallel_reduce interface
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+This example is an extension to the data-dense tutorial example with the
+only difference of an additional "reduce1" and "reduce2" tasks that use
+*reduceall* macro / *parallel_reduce* interface. Both "modify" tasks are
+executed on the FleCSI default accelerator.
+
+.. literalinclude:: ../../../../tutorial/5-parallel/2-reduceall.cc
   :language: cpp
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
