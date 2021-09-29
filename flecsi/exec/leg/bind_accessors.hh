@@ -44,7 +44,7 @@ namespace exec::leg {
 
   This is the other half of the wire protocol implemented by \c task_prologue.
  */
-
+template<task_processor_type_t ProcessorType>
 struct bind_accessors {
 
   /*!
@@ -104,6 +104,22 @@ private:
   template<typename DATA_TYPE>
   void visit(future<DATA_TYPE> & f) {
     f = {futures_[future_id++]};
+  }
+
+  // Note: due to how visitor() is implemented above the first
+  // parameter can not be 'const &' here, otherwise template/overload
+  // resolution fails (silently).
+  template<typename T>
+  static void visit(data::detail::scalar_value<T> & s) {
+    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      return;
+#else
+      flog_assert(false, "Cuda should be enabled when using toc task");
+#endif
+    }
+    *s.host = *s.device;
   }
 
   /*--------------------------------------------------------------------------*

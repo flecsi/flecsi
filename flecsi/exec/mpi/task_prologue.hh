@@ -55,7 +55,7 @@ protected:
   // parameter can not be 'const &' here, otherwise template/overload
   // resolution fails (silently).
   template<typename T>
-  static auto visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
+  static void visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
 #if defined(__NVCC__) || defined(__CUDACC__)
     if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
       cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
