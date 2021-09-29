@@ -62,7 +62,7 @@ mpich-defaults:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
@@ -79,7 +79,7 @@ mpich-legion-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -98,7 +98,7 @@ mpich-legion-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -122,7 +122,7 @@ mpich-mpi-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -141,7 +141,7 @@ mpich-mpi-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -167,7 +167,7 @@ tutorial:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
@@ -185,7 +185,7 @@ poisson:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
@@ -206,7 +206,7 @@ openmpi-legion-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -225,7 +225,7 @@ openmpi-legion-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -249,7 +249,7 @@ openmpi-mpi-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -268,7 +268,7 @@ openmpi-mpi-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -292,7 +292,7 @@ mpich-legion-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: clang++
@@ -316,7 +316,7 @@ mpich-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
@@ -340,7 +340,7 @@ openmpi-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
