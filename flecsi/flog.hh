@@ -17,13 +17,13 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/log/utils.hh"
-
 #if defined(FLECSI_ENABLE_FLOG)
 #include "flecsi/log/message.hh"
 #include "flecsi/log/severity.hh"
 #include "flecsi/log/tag_scope.hh"
 #endif
+
+#include "flecsi/log/utils.hh"
 
 #include <iostream>
 #include <map>
@@ -42,39 +42,65 @@ template<class, class = void>
 struct stream;
 template<class T>
 std::ostream &
-put(std::ostream & o, const T & t) {
-  stream<T>::put(o, t);
+put(std::ostream & o, const T & t, std::string indt = "") {
+  stream<T>::put(o, t, indt);
   return o;
 }
 
 template<class T>
 struct stream<T,
   decltype(void(std::declval<std::ostream &>() << std::declval<const T &>()))> {
-  static void put(std::ostream & o, const T & t) {
-    o << t;
+  static void put(std::ostream & o, const T & t, std::string indt = "") {
+    o << indt << t;
+  }
+};
+template<class T, std::size_t N>
+struct stream<std::array<T, N>> {
+  static void
+  put(std::ostream & o, std::array<T, N> const & c, std::string indt = "") {
+    std::size_t i{0};
+    o << indt << "<";
+    for(auto & t : c) {
+      o << t;
+      if(++i < c.size())
+        o << ", ";
+    }
+    o << ">";
   }
 };
 template<template<typename, typename> typename C, typename T, typename A>
 struct stream<C<T, A>> {
-  static void put(std::ostream & o, C<T, A> const & c) {
+  static void put(std::ostream & o, C<T, A> const & c, std::string indt = "") {
     std::size_t i{0};
     for(auto & t : c)
-      detail::put(o << i++ << ":\n  ", t) << '\n';
+      detail::put(o << indt << i++ << ":\n", t, indt + "  ") << '\n';
   }
 };
 template<typename K, typename V>
 struct stream<std::map<K, V>> {
-  static void put(std::ostream & o, const std::map<K, V> & m) {
+  static void
+  put(std::ostream & o, const std::map<K, V> & m, std::string indt = "") {
     for(auto & [k, v] : m)
-      detail::put(detail::put(o, k) << ":\n  ", v) << '\n';
+      detail::put(detail::put(o, k) << ":\n", v, indt + "  ") << '\n';
+  }
+};
+template<typename K, typename V>
+struct stream<std::unordered_map<K, V>> {
+  static void put(std::ostream & o,
+    const std::unordered_map<K, V> & m,
+    std::string indt = "") {
+    for(auto & [k, v] : m)
+      detail::put(detail::put(o, k) << ":\n", v, indt + "  ") << '\n';
   }
 };
 template<typename T>
 struct stream<std::unordered_set<T>> {
-  static void put(std::ostream & o, const std::unordered_set<T> & s) {
+  static void put(std::ostream & o,
+    const std::unordered_set<T> & s,
+    std::string indt = "") {
     o << "{";
     for(auto & e : s)
-      detail::put(o << "\n  ", e);
+      detail::put(o << "\n", e, indt + "  ");
     o << "\n}";
   }
 };

@@ -32,24 +32,31 @@ const field<double>::definition<canon, canon::cells> pressure;
 void
 init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
-  for(const auto c : t.entities<canon::cells>()) {
+  for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
   } // for
 } // init
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 void
-modify(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.entities<canon::cells>(), "modify") {
+modify1(canon::accessor<ro> t, field<double>::accessor<rw> p) {
+  forall(c, t.cells(), "modify1") {
     p[c] += 1;
   }; // forall
 } // modify
+
+void
+modify2(canon::accessor<ro> t, field<double>::accessor<rw> p) {
+  flecsi::exec::parallel_for(
+    t.cells(), KOKKOS_LAMBDA(auto c) { p[c] += 1; }, std::string("modify2"));
+} // modifyendif
+
 #endif
 
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   std::size_t off{0};
-  for(auto c : t.entities<canon::cells>()) {
+  for(auto c : t.cells()) {
     flog(info) << "cell " << off++ << " has pressure " << p[c] << std::endl;
   } // for
 } // print
@@ -68,7 +75,8 @@ advance() {
   // In case of Kookos bult with GPU, default execution space will be GPU
   // We rely on Legion moving data between devices for the legion back-end and
   // UVM for the MPI back-end
-  execute<modify, default_accelerator>(canonical, pf);
+  execute<modify1, default_accelerator>(canonical, pf);
+  execute<modify2, default_accelerator>(canonical, pf);
 #endif
   // cpu_task
   execute<print>(canonical, pf);

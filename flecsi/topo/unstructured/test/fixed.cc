@@ -35,15 +35,14 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum index_space { cells, vertices };
+  enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
   using connectivities =
     list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
 
-  enum entity_list { owned, exclusive, shared, ghosts, special_vertices };
-  using entity_lists =
-    list<entity<cells, has<owned, exclusive, shared, ghosts>>,
-      entity<vertices, has<special_vertices>>>;
+  enum entity_list { owned, exclusive, shared, ghost, special_vertices };
+  using entity_lists = list<entity<cells, has<owned, exclusive, shared, ghost>>,
+    entity<vertices, has<special_vertices>>>;
 
   template<auto>
   static constexpr PrivilegeCount privilege_count = 2;
@@ -101,13 +100,54 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    return {{0,
-      {MPI_COMM_WORLD,
-        fixed::colors,
-        {fixed::num_cells, fixed::num_vertices},
-        fixed::idx_colorings[process()],
-        fixed::cnx_allocs[process()],
-        fixed::cnx_colorings[process()]}}};
+    flog_assert(processes() == fixed::colors, "color to process mismatch");
+
+    // clang-format off
+    return {
+      MPI_COMM_WORLD,
+      fixed::colors,
+      {
+        {
+          fixed::cells[0].all.size(),
+          fixed::cells[1].all.size(),
+          fixed::cells[2].all.size(),
+          fixed::cells[3].all.size()
+        },
+        {
+          fixed::vertices[0].all.size(),
+          fixed::vertices[1].all.size(),
+          fixed::vertices[2].all.size(),
+          fixed::vertices[3].all.size()
+        }
+      },
+      { /* over index spaces */
+        { /* over process colors */
+          base::process_color{
+            fixed::num_cells,
+            fixed::cells[process()],
+            {
+              fixed::connectivity[process()][0].indices.size()
+            },
+            {
+              fixed::connectivity[process()]
+            }
+          }
+        },
+        {
+          base::process_color{
+            fixed::num_vertices,
+            fixed::vertices[process()],
+            {
+              fixed::connectivity[process()][0].indices.size(),
+            },
+            {
+              {} /* use cell connectivity transpose */
+            }
+          }
+        }
+      }
+    };
+    // clang-format on
   } // color
 
   /*--------------------------------------------------------------------------*
@@ -150,28 +190,30 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       mesh ordering, i.e., the cells are sorted by ascending mesh id.
      */
 
-    auto cell_coloring = c.at(0).idx_colorings[0];
+    auto cell_coloring = c.idx_spaces[0][0].coloring;
     global::cells.clear();
     for(auto e : cell_coloring.owned) {
       global::cells.push_back(e);
     }
 
-    for(auto e : cell_coloring.ghosts) {
+    for(auto e : cell_coloring.ghost) {
       global::cells.push_back(e.id);
     }
+
+    util::force_unique(global::cells);
 
     /*
       Define the vertex ordering from coloring. This version uses the
       mesh ordering, i.e., the vertices are sorted by ascending mesh id.
      */
 
-    auto vertex_coloring = c.at(0).idx_colorings[1];
+    auto vertex_coloring = c.idx_spaces[1][0].coloring;
     global::vertices.clear();
     for(auto e : vertex_coloring.owned) {
       global::vertices.push_back(e);
     }
 
-    for(auto e : vertex_coloring.ghosts) {
+    for(auto e : vertex_coloring.ghost) {
       global::vertices.push_back(e.id);
     }
 
@@ -183,12 +225,11 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       vertex_map[e] = off++;
     }
 
-    auto & c2v =
-      s->connect_.get<fixed_mesh::cells>().get<fixed_mesh::vertices>();
-    execute<init_c2v, mpi>(c2v(s), c.at(0).cnx_colorings[0][0], vertex_map);
+    auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
+    execute<init_c2v, mpi>(
+      c2v(s), c.idx_spaces[0][0].cnx_colorings[0], vertex_map);
 
-    auto & v2c =
-      s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();
+    auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 #if 0
     execute<init_v2c, mpi>(v2c(s), c2v(s));
 #endif
@@ -200,8 +241,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 fixed_mesh::slot mesh;
 fixed_mesh::cslot coloring;
 
-const field<double>::definition<fixed_mesh, fixed_mesh::cells> pressure;
-const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
+const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
+const field<int>::definition<fixed_mesh, fixed_mesh::vertices> density;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
 
@@ -249,65 +290,55 @@ permute(topo::connect_field::mutator<rw, na> m) {
 }
 
 void
-init_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<wo, na> p) {
+init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, wo> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
-    p[c] = -1.0;
+    p[c] = -1;
   }
 }
 
 void
 update_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> p) {
+  field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
-  for(auto c : m.cells()) {
-    p[c] = color();
-  }
-}
-
-#if defined(FLECSI_ENABLE_KOKKOS)
-void
-parallel_update_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> p) {
+  int clr = color();
   forall(c, m.cells(), "pressure_c") {
-    p[c] += 0.0;
+    p[c] = clr;
   };
 }
-#endif
 
 void
-print_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<ro, ro> p) {
+check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
   flog(warn) << __func__ << std::endl;
-  std::stringstream ss;
+  unsigned int clr = color();
   for(auto c : m.cells()) {
-    ss << p[c] << " ";
+    unsigned int v = p[c];
+    flog_assert(v == clr, "invalid pressure");
   }
-  flog(info) << ss.str() << std::endl;
 }
 
 void
 init_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<wo, na> d) {
+  field<double>::accessor<wo, wo> d) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.vertices()) {
-    d[c] = -1.0;
+    d[c] = -1;
   }
 }
 
 void
 update_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, ro> d) {
+  field<double>::accessor<rw, rw> d) {
   flog(warn) << __func__ << std::endl;
-  for(auto c : m.vertices()) {
-    d[c] = color();
-  }
+  auto clr = color();
+  forall(v, m.vertices(), "density_c") {
+    d[v] = clr;
+  };
 }
 
 void
-print_density(fixed_mesh::accessor<ro, ro> m,
+check_density(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<ro, ro> d) {
   flog(warn) << __func__ << std::endl;
   std::stringstream ss;
@@ -352,23 +383,22 @@ fixed_driver() {
     coloring.allocate();
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));
+
     EXPECT_EQ(
       test<permute>(
-        mesh->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>()(
+        mesh->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>()(
           mesh)),
       0);
     execute<print>(mesh, cids(mesh), vids(mesh));
-#if 0
+
     execute<init_pressure>(mesh, pressure(mesh));
-    execute<update_pressure>(mesh, pressure(mesh));
-#if defined(FLECSI_ENABLE_KOKKOS)
-    execute<parallel_update_pressure, default_accelerator>(
-      mesh, pressure(mesh));
-#endif
-    execute<print_pressure>(mesh, pressure(mesh));
+    execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
+    execute<check_pressure>(mesh, pressure(mesh));
+
+#if 0
     execute<init_density>(mesh, density(mesh));
-    execute<update_density>(mesh, density(mesh));
-    execute<print_density>(mesh, density(mesh));
+    execute<update_density, default_accelerator>(mesh, density(mesh));
+    execute<check_density>(mesh, density(mesh));
 #endif
   };
 } // unstructured_driver

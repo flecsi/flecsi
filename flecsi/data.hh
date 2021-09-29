@@ -26,7 +26,6 @@
 #include "flecsi/topo/narray/interface.hh"
 #include "flecsi/topo/ntree/interface.hh"
 #include "flecsi/topo/set/interface.hh"
-#include "flecsi/topo/structured/interface.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include <flecsi/data/accessor.hh>
 #include <flecsi/data/coloring.hh>

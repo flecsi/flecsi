@@ -5,5 +5,5 @@ export YLEN=$2
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-/usr/bin/gnuplot -p $DIR/solution.gp
-#/usr/bin/gnuplot -p $DIR/error.gp
+export DATFILE=$3
+/usr/bin/gnuplot -p $DIR/plot.gp

@@ -21,17 +21,18 @@
 namespace flecsi {
 namespace data::leg {
 mirror::mirror(size2 s)
-  : rects({s.first, 2}), order({2 * s.first, 1}),
+  : rects({s.first, 2}), columns({2, 1}),
     part(rects,
-      order,
-      (execute<fill>(halves::field(order)), fid),
-      complete,
-      rects.color_space),
+      columns,
+      halves::field(columns)
+        .use([s](auto f) { execute<fill>(f, s.first); })
+        .fid(),
+      complete),
     width(s.second) {}
 void
-mirror::fill(halves::Field::accessor<wo> a) {
-  const auto d = std::div(static_cast<long>(color()), colors() / 2);
-  a[0] = {{d.rem, d.quot}, {d.rem, d.quot}};
+mirror::fill(halves::Field::accessor<wo> a, size_t c) {
+  const Legion::coord_t clr = color();
+  a[0] = {{0, clr}, {upper(c), clr}};
 }
 void
 mirror::extend(field<std::size_t, single>::accessor<ro> r,

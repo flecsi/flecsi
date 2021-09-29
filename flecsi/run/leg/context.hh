@@ -55,8 +55,6 @@ using task = R(const Legion::Task *,
   Legion::Runtime *);
 }
 
-class mpi_mapper_t;
-
 struct context_t : context {
 
   /*
@@ -69,8 +67,6 @@ struct context_t : context {
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
-
-  std::vector<std::pair<mpi_mapper_t *, Legion::Processor>> mappers;
 
   /*
     Documentation for this interface is in the top-level context type.

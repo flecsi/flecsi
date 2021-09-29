@@ -24,10 +24,10 @@ allocate() {
   flog(info) << "allocate" << std::endl;
 
   /*
-    Call a method of the control state to allocate an array of size 10.
+    Call a method of the control policy to allocate an array of size 10.
    */
 
-  control::state().allocate_values(10);
+  control::policy().allocate_values(10);
 
   return 0;
 }
@@ -41,13 +41,13 @@ initialize() {
     Access the array through the 'values()' method, and initialize.
    */
 
-  size_t * const values = control::state().values();
+  size_t * const values = control::policy().values();
 
   for(size_t i{0}; i < 10; ++i) {
     values[i] = 20 - i;
   } // for
 
-  control::state().steps() = 5;
+  control::policy().steps() = 5;
 
   return 0;
 }
@@ -57,13 +57,13 @@ int
 advance() {
   std::stringstream ss;
 
-  ss << "advance " << control::state().step() << std::endl;
+  ss << "advance " << control::policy().step() << std::endl;
 
   /*
     Access the array through the 'values()' method, and modify.
    */
 
-  size_t * const values = control::state().values();
+  size_t * const values = control::policy().values();
 
   for(size_t i{0}; i < 10; ++i) {
     ss << values[i] << " ";
@@ -82,10 +82,10 @@ finalize() {
   flog(info) << "finalize" << std::endl;
 
   /*
-    Deallocate the array using the control state interface.
+    Deallocate the array using the control policy interface.
    */
 
-  control::state().deallocate_values();
+  control::policy().deallocate_values();
 
   return 0;
 }

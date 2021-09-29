@@ -15,8 +15,6 @@
 
 /*! @file */
 
-#define __FLECSI_PRIVATE__
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"
@@ -96,6 +94,15 @@ struct color_map {
   std::size_t color_offset(Color process) const {
     return process * color_quotient_ +
            (process >= color_remainder_ ? color_remainder_ : process);
+  }
+
+  /*!
+    Return true if the process owns the global color id.
+   */
+
+  bool has_color(Color process, Color color) const {
+    return color >= color_offset(process) &&
+           color < color_offset(process) + colors(process);
   }
 
   /*!

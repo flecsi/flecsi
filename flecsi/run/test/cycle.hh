@@ -17,7 +17,9 @@
 #include "flecsi/run/control.hh"
 
 enum cp {
+  init_internal,
   initialization,
+  advance_internal,
   advance,
   advance_subcycle,
   analyze,
@@ -28,8 +30,12 @@ enum cp {
 
 inline const char * operator*(cp control_point) {
   switch(control_point) {
+    case init_internal:
+      return "init internal";
     case initialization:
       return "initialize";
+    case advance_internal:
+      return "advance internal";
     case advance:
       return "advance";
     case advance_subcycle:
@@ -49,7 +55,7 @@ inline const char * operator*(cp control_point) {
 inline int step{0};
 inline int substep{0};
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
 
@@ -57,6 +63,8 @@ struct control_policy {
 
   template<auto CP>
   using control_point = flecsi::run::control_point<CP>;
+  template<auto CP>
+  using meta_point = flecsi::run::meta_point<CP>;
 
   static bool subcycle_control() {
     if(substep % 3 < 2) {
@@ -77,6 +85,7 @@ struct control_policy {
   }
 
   using cycle = flecsi::run::cycle<cycle_control,
+    meta_point<control_points_enum::advance_internal>,
     control_point<control_points_enum::advance>,
     subcycle,
     control_point<control_points_enum::analyze>,
@@ -84,7 +93,8 @@ struct control_policy {
     control_point<control_points_enum::mesh>>;
 
   using control_points =
-    std::tuple<control_point<control_points_enum::initialization>,
+    std::tuple<meta_point<control_points_enum::init_internal>,
+      control_point<control_points_enum::initialization>,
       cycle,
       control_point<control_points_enum::finalization>>;
 };

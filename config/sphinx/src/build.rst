@@ -114,7 +114,7 @@ FleCSI supports several different versions and variants, e.g.:
 
 .. code-block:: console
 
-  $ spack install flecsi@1.0 +legion +graphviz
+  $ spack install flecsi@1.0 +legion +graphviz +kokkos
 
 For a complete list of versions and variants, type:
 

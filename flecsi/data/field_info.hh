@@ -16,30 +16,11 @@
 /*!  @file */
 
 #include "flecsi/util/common.hh"
+#include "flecsi/util/types.hh"
 
 #include <cstddef>
 #include <string>
 #include <vector>
-
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
-#include <legion.h>
-
-namespace flecsi {
-
-using field_id_t = Legion::FieldID;
-using Legion::Color;
-
-} // namespace flecsi
-
-#else
-
-namespace flecsi {
-
-using field_id_t = size_t;
-using Color = unsigned; // MPI uses just int
-
-} // namespace flecsi
-#endif
 
 namespace flecsi {
 namespace data {

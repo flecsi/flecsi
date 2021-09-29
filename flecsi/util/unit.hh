@@ -15,6 +15,12 @@
 
 /*! @file */
 
+#include <flecsi-config.h>
+
+#if !defined(FLECSI_ENABLE_FLOG)
+#error FLOG must be enabled to enable unit tests.
+#endif
+
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
@@ -55,7 +61,7 @@ inline const char * operator*(test_control_points cp) {
   control flow that provides basic control points.
  */
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = test_control_points;
 
@@ -68,7 +74,6 @@ struct control_policy {
     std::tuple<control_point<control_points_enum::initialization>,
       control_point<control_points_enum::driver>,
       control_point<control_points_enum::finalization>>;
-
 }; // struct control_policy
 
 using control = flecsi::run::control<flecsi::unit::control_policy>;

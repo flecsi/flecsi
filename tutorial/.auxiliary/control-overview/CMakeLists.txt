@@ -7,5 +7,4 @@ find_package(FleCSI REQUIRED)
 include_directories(${FleCSI_INCLUDE_DIRS})
 
 add_executable(control-overview control-overview.cc control-overview.hh)
-target_link_libraries(control-overview ${FleCSI_LIBRARIES}
-  ${FleCSI_LIBRARY_DEPENDENCIES})
+target_link_libraries(control-overview FleCSI::FleCSI)

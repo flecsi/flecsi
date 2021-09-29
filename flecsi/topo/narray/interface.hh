@@ -27,6 +27,7 @@
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/array_ref.hh"
 
+#include <memory>
 #include <utility>
 
 namespace flecsi {
@@ -43,9 +44,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
-  using coord = narray_impl::coord;
-  using hypercube = narray_impl::hypercube;
-  using coloring_definition = narray_impl::coloring_definition;
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
@@ -54,36 +52,15 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct access;
 
   narray(coloring const & c)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_(make_partitions(c,
+    : narray(
+        [&c]() -> auto & {
+          flog_assert(c.idx_colorings.size() == index_spaces::size,
+            c.idx_colorings.size()
+              << " sizes for " << index_spaces::size << " index spaces");
+          return c;
+        }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>())),
-      plan_(make_plans(c,
-        index_spaces(),
-        std::make_index_sequence<index_spaces::size>())) {
-    init_ragged(index_spaces());
-    init_meta(c);
-    init_policy_meta(c);
-  }
-
-  struct meta_data {
-    using scoord = std::array<std::size_t, dimension>;
-    using shypercube = std::array<scoord, 2>;
-    std::array<std::uint32_t, index_spaces::size> faces;
-    std::array<scoord, index_spaces::size> global, offset, extents;
-    std::array<shypercube, index_spaces::size> logical, extended;
-  };
-
-  static inline const typename field<meta_data,
-    data::single>::template definition<meta<Policy>>
-    meta_field;
-
-  static inline const typename field<typename Policy::meta_data,
-    data::single>::template definition<meta<Policy>>
-    policy_meta_field;
-
-  util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<data::copy_plan, index_spaces> plan_;
+        std::make_index_sequence<index_spaces::size>()) {}
 
   Color colors() const {
     return part_.front().colors();
@@ -108,77 +85,101 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
 private:
+  struct meta_data {
+    std::uint32_t orientation;
+
+    using scoord = util::key_array<std::size_t, axes>;
+    using shypercube = std::array<scoord, 2>;
+
+    scoord global;
+    scoord offset;
+    scoord extents;
+    shypercube logical;
+    shypercube extended;
+  };
+
   template<auto... Value, std::size_t... Index>
-  util::key_array<repartitioned, util::constants<Value...>> make_partitions(
-    narray_base::coloring const & c,
+  narray(const coloring & c,
     util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_colorings[Index]))...}};
+    std::index_sequence<Index...>)
+    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
+      part_{{make_repartitioned<Policy, Value>(c.colors,
+        make_partial<idx_size>(c.partitions[Index]))...}},
+      plan_{{make_copy_plan<Value>(c.colors,
+        c.idx_colorings[Index],
+        part_[Index],
+        c.comm)...}} {
+    init_meta(c);
+    init_policy_meta(c);
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
-    std::vector<std::size_t> num_intervals;
+  data::copy_plan make_copy_plan(Color colors,
+    std::vector<process_color> const & vpc,
+    repartitioned & p,
+    MPI_Comm const & comm) {
 
-    execute<idx_itvls, mpi>(ic, num_intervals, comm);
+    std::vector<std::size_t> num_intervals(colors, 0);
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
+    std::vector<
+      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
+      points;
+
+    execute<idx_itvls, mpi>(vpc, num_intervals, intervals, points, comm);
 
     // clang-format off
-    auto dest_task = [&ic, &comm](auto f) {
-      execute<set_dests, mpi>(f, ic.intervals, comm);
+    auto dest_task = [&intervals, &comm](auto f) {
+      execute<set_dests, mpi>(f, intervals, comm);
     };
 
-    auto ptrs_task = [&ic, &comm](auto f) {
+    auto ptrs_task = [&points, &comm](auto f) {
       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        f, ic.points, comm);
+        f, points, comm);
+    };
+    // clang-format on
+
+    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+  }
+
+  static void set_meta_idx(meta_data & md,
+    std::vector<process_color> const & vpc) {
+    // clang-format off
+    static constexpr auto copy = [](const coord & c,
+      typename meta_data::scoord & s) {
+      const auto n = s.size();
+      flog_assert(
+        c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
+      std::copy_n(c.begin(), n, s.begin());
     };
 
-    return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    static constexpr auto copy2 = [](const hypercube & h,
+      typename meta_data::shypercube & s) {
+      for(auto i = h.size(); i--;)
+        copy(h[i], s[i]);
+    };
     // clang-format on
+
+    md.orientation = vpc[0].orientation;
+    copy(vpc[0].global, md.global);
+    copy(vpc[0].offset, md.offset);
+    copy(vpc[0].extents, md.extents);
+    copy2(vpc[0].logical, md.logical);
+    copy2(vpc[0].extended, md.extended);
   }
 
-  template<auto... Value, std::size_t... Index>
-  util::key_array<data::copy_plan, util::constants<Value...>> make_plans(
+  template<auto... Value>
+  static void visit_meta_is(util::key_array<meta_data, index_spaces> & m,
     narray_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>) {
-    flog_assert(c.idx_colorings.size() == sizeof...(Value),
-      c.idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c.idx_colorings[Index], c.comm)...}};
+    util::constants<Value...> /* index spaces to deduce pack */) {
+    std::size_t index{0};
+    (set_meta_idx(m.template get<Value>(), c.idx_colorings[index++]), ...);
   }
 
-  static void set_meta(
-    typename field<meta_data, data::single>::template accessor<wo> m,
+  static void set_meta(typename field<util::key_array<meta_data, index_spaces>,
+                         data::single>::template accessor<wo> m,
     narray_base::coloring const & c) {
-    meta_data & md = m;
-
-    for(std::size_t i{0}; i < index_spaces::size; ++i) {
-      static constexpr auto copy = [](const coord & c,
-                                     typename meta_data::scoord & s) {
-        const auto n = s.size();
-        flog_assert(
-          c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
-        std::copy_n(c.begin(), n, s.begin());
-      };
-      static constexpr auto copy2 = [](const hypercube & h,
-                                      typename meta_data::shypercube & s) {
-        for(auto i = h.size(); i--;)
-          copy(h[i], s[i]);
-      };
-
-      const auto & ci = c.idx_colorings[i];
-      md.faces[i] = ci.faces;
-      copy(ci.global, md.global[i]);
-      copy(ci.offset, md.offset[i]);
-      copy(ci.extents, md.extents[i]);
-      copy2(ci.logical, md.logical[i]);
-      copy2(ci.extended, md.extended[i]);
-    } // for
-  } // set_meta
+    visit_meta_is(m, c, index_spaces());
+  }
 
   void init_meta(narray_base::coloring const & c) {
     execute<set_meta, mpi>(meta_field(this->meta), c);
@@ -192,10 +193,21 @@ private:
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
   }
 
-  template<index_space... SS>
-  void init_ragged(util::constants<SS...>) {
-    (this->template extend_offsets<SS>(), ...);
-  }
+  /*--------------------------------------------------------------------------*
+    Private data members.
+   *--------------------------------------------------------------------------*/
+
+  static inline const typename field<util::key_array<meta_data, index_spaces>,
+    data::single>::template definition<meta<Policy>>
+    meta_field;
+
+  static inline const typename field<typename Policy::meta_data,
+    data::single>::template definition<meta<Policy>>
+    policy_meta_field;
+
+  util::key_array<repartitioned, index_spaces> part_;
+  util::key_array<data::copy_plan, index_spaces> plan_;
+
 }; // struct narray
 
 /*----------------------------------------------------------------------------*
@@ -203,12 +215,40 @@ private:
  *----------------------------------------------------------------------------*/
 
 template<typename Policy>
-template<Privileges>
+template<Privileges Priv>
 struct narray<Policy>::access {
-  util::key_array<data::scalar_access<topo::resize::field>, index_spaces> size_;
+  friend Policy;
 
-  data::scalar_access<narray::meta_field> meta_;
-  data::scalar_access<narray::policy_meta_field> policy_meta_;
+  template<index_space S, typename T, Privileges P>
+  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
+    auto const s = a.span();
+    return util::mdspan<typename decltype(s)::element_type, dimension>(
+      s.data(), extents<S>());
+  }
+  template<index_space S, typename T, Privileges P>
+  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
+    return util::mdcolex<
+      typename std::remove_reference_t<decltype(a)>::element_type,
+      dimension>(a.span().data(), extents<S>());
+  }
+
+  template<class F>
+  void send(F && f) {
+    std::size_t i{0};
+    for(auto & a : size_)
+      a.topology_send(
+        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
+
+    meta_.topology_send(f, &narray::meta);
+    policy_meta_.topology_send(f, &narray::meta);
+  }
+
+private:
+  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
+  util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
+    size_;
+
+  data::scalar_access<narray::meta_field, Priv> meta_;
 
   access() {}
 
@@ -232,85 +272,126 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
-  template<index_space S, axis A>
-  bool is_low() {
-    return (meta_->faces[S] >> A * 2) & narray_impl::low;
+  template<index_space S>
+  std::uint32_t orientation() const {
+    return meta_->template get<S>().orientation;
   }
 
   template<index_space S, axis A>
-  bool is_high() {
-    return (meta_->faces[S] >> A * 2) & narray_impl::high;
+  std::size_t global() const {
+    return meta_->template get<S>().global.template get<A>();
+  }
+
+  template<index_space S, axis A>
+  std::size_t offset() const {
+    return meta_->template get<S>().offset.template get<A>();
+  }
+
+  template<index_space S, axis A>
+  std::size_t extents() const {
+    return meta_->template get<S>().extents.template get<A>();
+  }
+
+  template<index_space S>
+  auto extents() const {
+    return meta_->template get<S>().extents;
+  }
+
+  template<index_space S, std::size_t P, axis A>
+  std::size_t logical() const {
+    return meta_->template get<S>().logical[P].template get<A>();
+  }
+
+  template<index_space S, std::size_t P, axis A>
+  std::size_t extended() const {
+    return meta_->template get<S>().extended[P].template get<A>();
+  }
+
+  template<index_space S, axis A>
+  bool is_low() const {
+    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::low;
+  }
+
+  template<index_space S, axis A>
+  bool is_high() const {
+    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::high;
   }
 
   template<axis A>
-  bool is_interior() {
+  bool is_interior() const {
     return !is_low<A>() && !is_high<A>();
   }
 
+  template<axis A>
+  bool is_degenerate() const {
+    return is_low<A>() && is_high<A>();
+  }
+
   template<index_space S, axis A, range SE>
-  std::size_t size() {
+  std::size_t size() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
-      return meta_->logical[S][1][A] - meta_->logical[S][0][A];
+      return logical<S, 1, A>() - logical<S, 0, A>();
     }
     else if constexpr(SE == range::extended) {
-      return meta_->extended[S][1][A] - meta_->extended[S][0][A];
+      return extended<S, 1, A>() - extended<S, 0, A>();
     }
     else if constexpr(SE == range::all) {
-      return meta_->extents[S][A];
+      return extents<S, A>();
     }
     else if constexpr(SE == range::boundary_low) {
-      return meta_->logical[S][0][A] - meta_->extended[S][0][A];
+      return logical<S, 0, A>() - extended<S, 0, A>();
     }
     else if constexpr(SE == range::boundary_high) {
-      return meta_->extended[S][1][A] - meta_->logical[S][1][A];
+      return extended<S, 1, A>() - logical<S, 1, A>();
     }
     else if constexpr(SE == range::ghost_low) {
       if(!is_low<S, A>())
-        return meta_->logical[S][0][A];
+        return logical<S, 0, A>();
       else
         return 0;
     }
     else if constexpr(SE == range::ghost_high) {
       if(!is_high<S, A>())
-        return meta_->extents[S][A] - meta_->logical[S][1][A];
+        return extents<S, A>() - logical<S, 1, A>();
       else
         return 0;
     }
     else if constexpr(SE == range::global) {
-      return meta_->global[S][A];
+      return global<S, A>();
     }
   }
 
   template<index_space S, axis A, range SE>
-  auto extents() {
+  auto extents() const {
     static_assert(
-      std::size_t(SE) < hypercubes::size, "invalid extents identifier");
+      std::size_t(SE) < hypercubes::size, "invalid range identifier");
+
     if constexpr(SE == range::logical) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->logical[S][0][A], meta_->logical[S][1][A]));
+      return make_ids<S>(
+        util::iota_view<util::id>(logical<S, 0, A>(), logical<S, 1, A>()));
     }
     else if constexpr(SE == range::extended) {
-      return make_ids<S>(util::iota_view<util::id>(
-        meta_->extended[S][0][A], meta_->extended[S][1][A]));
+      return make_ids<S>(
+        util::iota_view<util::id>(extended<S, 0, A>(), extended<S, 1, A>()));
     }
     else if constexpr(SE == range::all) {
-      return make_ids<S>(util::iota_view<util::id>(0, meta_->extents[S][A]));
+      return make_ids<S>(util::iota_view<util::id>(0, extents<S, A>()));
     }
     else if constexpr(SE == range::boundary_low) {
       return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        meta_->logical[S][1][A], meta_->logical[S][1][A] + size<S, A, SE>()));
+        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_low) {
       return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
     }
     else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        meta_->logical[S][1][A], meta_->logical[S][1][A] + size<S, A, SE>()));
+        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
     }
     else {
       flog_error("invalid range");
@@ -318,51 +399,41 @@ struct narray<Policy>::access {
   }
 
   template<index_space S, axis A, range SE>
-  std::size_t offset() {
+  std::size_t offset() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
-      return meta_->logical[S][0][A];
+      return logical<S, 0, A>();
     }
     else if constexpr(SE == range::extended) {
-      return meta_->extended[S][0][A];
+      return extended<S, 0, A>();
     }
     else if constexpr(SE == range::all) {
       return 0;
     }
     else if constexpr(SE == range::boundary_low) {
-      return meta_->extended[S][0][A];
+      return extended<S, 0, A>();
     }
     else if constexpr(SE == range::boundary_high) {
-      return meta_->logical[S][1][A];
+      return logical<S, 1, A>();
     }
     else if constexpr(SE == range::ghost_low) {
       return 0;
     }
     else if constexpr(SE == range::ghost_high) {
-      return meta_->logical[S][1][A];
+      return logical<S, 1, A>();
     }
     else if constexpr(SE == range::global) {
-      return meta_->offset[S][A];
+      return offset<S, A>();
     }
   }
 
-  template<index_space S, typename T, Privileges P>
-  auto mdspan(data::accessor<data::dense, T, P> const & a) {
-    auto const s = a.span();
-    return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), meta_->extents[S].data());
-  }
-
-  template<class F>
-  void send(F && f) {
-    std::size_t i{0};
-    for(auto & a : size_)
-      a.topology_send(
-        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
-
-    meta_.topology_send(f, &narray::meta);
-    policy_meta_.topology_send(f, &narray::meta);
+  template<axis A>
+  static constexpr std::uint32_t to_idx() {
+    using axis_t = typename std::underlying_type_t<axis>;
+    static_assert(std::is_convertible_v<axis_t, std::uint32_t>,
+      "invalid axis type: cannot be converted to std::uint32_t");
+    return static_cast<std::uint32_t>(A);
   }
 }; // struct narray<Policy>::access
 

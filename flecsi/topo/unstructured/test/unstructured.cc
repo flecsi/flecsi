@@ -28,13 +28,15 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum index_space { vertices, edges, cells };
-  using index_spaces = has<cells, vertices, edges>;
-  using connectivities = list<from<cells, to<vertices, edges>>>;
+  enum index_space { vertices, cells };
+  using index_spaces = has<cells, vertices>;
+  using connectivities = list<from<cells, to<vertices>>>;
 
-  enum entity_list { dirichlet, neumann, special_vertices };
-  using entity_lists = list<entity<edges, has<dirichlet, neumann>>,
-    entity<vertices, has<special_vertices>>>;
+  enum entity_list { special };
+  using entity_lists = list<entity<vertices, has<special>>>;
+
+  template<auto>
+  static constexpr PrivilegeCount privilege_count = 3;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -56,67 +58,63 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
       return B::template entities<index_space::vertices>();
     }
 
-    auto edges() {
-      return B::template entities<index_space::edges>();
-    }
-
-    template<entity_list List>
-    auto edges() {
-      return B::template special_entities<unstructured::edges, List>();
-    }
-
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
     Coloring
    *--------------------------------------------------------------------------*/
 
-#if 0
-  struct coloring_policy {
-    // primary independent closure token
-    using primary =
-      topo::unstructured_impl::primary_independent<index_space::cells,
-        2 /* dimension */,
-        0 /* through dimension */,
-        1 /* depth */>;
-
-    using auxiliary = std::tuple<
-      topo::unstructured_impl::auxiliary_independent<index_space::vertices,
-        0 /* dimension */,
-        2 /* primary dimension */>,
-      topo::unstructured_impl::auxiliary_independent<index_space::edges,
-        1 /* dimension */,
-        2 /* primary dimension */>>;
-
-    static constexpr size_t auxiliary_colorings =
-      std::tuple_size<auxiliary>::value;
-    using definition = topo::unstructured_impl::simple_definition;
-  }; // struct coloring_policy
-#endif
-
   static coloring color(std::string const & filename) {
-    topo::unstructured_impl::simple_definition sd(filename.c_str());
-    const Color colors = processes();
-    auto [naive, ge, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
-    auto raw = util::parmetis::color(naive, colors);
-    auto coloring = topo::unstructured_impl::distribute(naive, colors, raw);
-#if 0
-    auto closure = topo::unstructured_impl::closure<coloring_policy>(
-      sd, coloring[0], MPI_COMM_WORLD);
 
-    // FIXME: dummy information so that tests pass
-    closure.connectivity_sizes.push_back({10, 10});
-    return closure;
-#endif
-    return {};
+    topo::unstructured_impl::simple_definition sd(filename.c_str());
+
+    const Color colors = processes();
+
+    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+    auto raw = util::parmetis::color(naive, colors);
+
+    auto [primaries, p2m, m2p] =
+      topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
+
+    // clang-format off
+    topo::unstructured_impl::coloring_definition cd{
+      colors /* global colors */,
+      cells /* primary index */,
+      2 /* primary dimension */,
+      1 /* halo depth */,
+      vertices /* vertex index */,
+      {/* auxiliary entities */}
+    };
+    // clang-format on
+
+    return topo::unstructured_impl::color(
+      sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
   } // color
 
   /*--------------------------------------------------------------------------*
     Initialization
    *--------------------------------------------------------------------------*/
 
-  static void initialize(data::topology_slot<unstructured> & s) {
-    (void)s;
+  template<std::size_t VI>
+  static void init_c2v(field<util::id, data::ragged>::mutator<rw, rw, na> c2v,
+    std::vector<topo::unstructured_impl::process_color> const & pc,
+    std::vector<std::map<std::size_t, std::size_t>> const & maps) {
+    (void)c2v;
+    (void)pc;
+    (void)maps;
+  }
+
+  static void initialize(data::topology_slot<unstructured> & s,
+    coloring const & c) {
+    flog(warn) << log::container{c.partitions} << std::endl;
+
+    // auto & c2v =
+    // s->connect_.get<unstructured::cells>().get<unstructured::vertices>();
+    auto & c2v =
+      s->get_connectivity<unstructured::cells, unstructured::vertices>();
+    auto maps = std::move(s)->reverse_maps<unstructured::cells>();
+    execute<init_c2v<unstructured::vertices>, mpi>(
+      c2v(s), c.idx_spaces[unstructured::cells], maps);
   } // initialize
 
 }; // struct unstructured
@@ -124,34 +122,13 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 unstructured::slot mesh;
 unstructured::cslot coloring;
 
-void
-allocate(topo::resize::Field::accessor<wo> a) {
-  a = 2;
-}
-
-void
-init(field<util::id>::accessor<wo> m) {
-  m[0] = m[1] = 47;
-}
-
-int
-check(unstructured::accessor<ro> t) {
-  UNIT {
-    for(auto i :
-      t.special_entities<unstructured::edges, unstructured::neumann>()) {
-      static_assert(std::is_same_v<decltype(i), topo::id<unstructured::edges>>);
-      EXPECT_EQ(i, 47u);
-    }
-  };
-}
-
 int
 unstructured_driver() {
   UNIT {
-#if 0
     coloring.allocate("simple2d-8x8.msh");
     mesh.allocate(coloring.get());
 
+#if 0
     auto & neuf =
       mesh->special_.get<unstructured::edges>().get<unstructured::neumann>();
     execute<allocate>(neuf.sizes());

@@ -58,6 +58,11 @@ struct nonconst_ref<const T &> {
 template<class T>
 using nonconst_ref_t = typename nonconst_ref<T>::type;
 
+template<class T>
+constexpr bool mpi_accessor = false;
+template<data::layout L, class T, Privileges P>
+constexpr bool mpi_accessor<data::accessor<L, T, P>> = !data::portable_v<T>;
+
 // Construct a tuple of converted arguments (or references to existing
 // arguments where possible).  Note that is_constructible_v<const
 // float&,const double&> is true, so we have to check
@@ -70,9 +75,12 @@ std::conditional_t<M,
     const PP &,
     std::decay_t<PP>>...>>
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  static_assert(
-    M || (std::is_const_v<std::remove_reference_t<const PP>> && ...),
-    "only MPI tasks can accept non-const references");
+  if constexpr(!M) {
+    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
+      "only MPI tasks can accept non-const references");
+    static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
+      "only MPI tasks can accept accessors for non-portable fields");
+  }
   return {exec::replace_argument<PP>(std::forward<AA>(aa))...};
 }
 

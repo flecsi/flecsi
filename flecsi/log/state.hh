@@ -19,8 +19,6 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
-#define __FLECSI_PRIVATE__
-
 #include "flecsi/data/field_info.hh"
 #include "flecsi/log/packet.hh"
 #include "flecsi/log/types.hh"
@@ -205,7 +203,7 @@ public:
    */
 
   std::ostream & stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!
@@ -214,7 +212,7 @@ public:
    */
 
   tee_stream_t & config_stream() {
-    return *stream_;
+    return stream_;
   }
 
   /*!

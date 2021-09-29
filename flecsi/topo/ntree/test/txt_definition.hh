@@ -60,8 +60,8 @@ public:
     return nglobal_entities_;
   }
 
-  size_t distribution(const int & i) const {
-    return distribution_[i];
+  size_t distribution() const {
+    return entities_.size();
   }
 
   std::pair<size_t, size_t> offset(const int & i) const {
@@ -81,6 +81,9 @@ private:
     const auto [rank, size] = flecsi::util::mpi::info();
     // For now read all particles?
     std::ifstream myfile(filename);
+    if(myfile.fail()) {
+      std::cerr << "Cannot open file: " << filename << std::endl;
+    }
     nglobal_entities_ = 0;
     myfile >> nglobal_entities_;
 

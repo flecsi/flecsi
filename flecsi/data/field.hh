@@ -37,10 +37,6 @@ namespace data {
 template<layout L, typename T, Privileges Priv>
 struct accessor;
 
-/// A specialized accessor used to return scalar values
-template<auto & F>
-struct scalar_access;
-
 /// A specialized accessor for changing the extent of dynamic layouts.
 template<layout, class, Privileges>
 struct mutator;
@@ -75,6 +71,57 @@ union move_check // movable only if trivially so
 template<class T>
 inline constexpr bool is_trivially_move_constructible_v =
   std::is_move_constructible_v<move_check<T>>;
+
+struct particle_base {
+  using size_type = std::size_t; // full-width since have only the one block
+  struct link {
+    // Only the first element of each run participates in the linked list.
+    size_type prev, // head element has count of used elements instead
+      next; // size of array is sentinel
+  };
+};
+
+template<class T>
+struct particle : particle_base {
+  particle(size_type s, size_type p, size_type n) : free{p, n}, skip(s) {}
+  // This class is indestructible; we run T's destructor when necessary.
+  template<class... AA>
+  link emplace(AA &&... aa) {
+    struct guard {
+      guard(particle & p) : p(p), ret(p.free) {}
+      ~guard() {
+        if(fail)
+          p.free = ret;
+      }
+      particle & p;
+      link ret;
+      bool fail = true;
+    } g(*this);
+    new(&data) T(std::forward<AA>(aa)...);
+    g.fail = false;
+    return g.ret;
+  }
+  void reset() noexcept {
+    data.~T();
+  }
+  void reset(size_type p, size_type n) noexcept {
+    reset();
+    free = {p, n};
+  }
+
+  union
+  {
+    T data; // pointer-interconvertible if standard-layout
+    link free;
+  };
+  // To avoid a separate field allocation, this member has several meanings:
+  // If first element (never part of a run): index of head of free list
+  // Otherwise, if data exists: 0
+  // Otherwise, if first or last of its free run: length of the run
+  // Otherwise: unused
+  // If the first slot is free, it is always the head of the free list.
+  size_type skip;
+};
 } // namespace detail
 
 /// Identifies a field on a particular topology instance.
@@ -134,6 +181,13 @@ struct field_reference : field_reference_t<Topo> {
   auto cast() const {
     return field_reference<T2, L2, Topo, Space>(*this);
   }
+
+  /// \internal Use this reference and return it.
+  template<class F>
+  const field_reference & use(F && f) const {
+    std::forward<F>(f)(*this);
+    return *this;
+  }
 };
 
 // This is the portion of field validity that can be checked and that
@@ -147,11 +201,10 @@ inline constexpr bool portable_v =
 
 /// Helper type to define and access fields.
 /// \tparam T field value type: a trivially copyable type with no pointers
-///   or references
+///   or references if any non-MPI tasks use it
 /// \tparam L data layout
 template<class T, data::layout L = data::dense>
 struct field : data::detail::field_base<T, L> {
-  static_assert(data::portable_v<T>);
   using value_type = T;
 
   template<Privileges Priv>
@@ -212,6 +265,10 @@ struct field_base<T, sparse> {
   using key_type = std::size_t;
   using base_type = field<std::pair<key_type, T>, ragged>;
 };
+template<class T>
+struct field_base<T, data::particle> {
+  using base_type = field<particle<T>, raw>;
+};
 
 // Many compilers incorrectly require the 'template' for a base class.
 template<class T, layout L, class Topo, typename Topo::index_space Space>
@@ -225,11 +282,6 @@ struct field_register<T, ragged, Topo, Space>
   using Offsets = typename field<T, ragged>::Offsets;
   // We use the same field ID for the offsets:
   typename Offsets::template Register<Topo, Space> off{field_register::fid};
-
-  typename Offsets::template Reference<Topo, Space> offsets(
-    topology_slot<Topo> & t) const {
-    return {off, t};
-  }
 };
 } // namespace detail
 

@@ -44,6 +44,8 @@ inline log::devel_tag task_wrapper_tag("task_wrapper");
 namespace data {
 template<class, Privileges, Privileges>
 struct ragged_accessor;
+template<class, Privileges, bool>
+struct particle_accessor;
 
 namespace detail {
 template<class A>
@@ -89,6 +91,9 @@ struct util::serial<data::mutator<L, T, Priv>> {
     return serial_get<typename type::base_type>(b);
   }
 };
+template<class T, Privileges P, bool M>
+struct util::serial_convert<data::particle_accessor<T, P, M>>
+  : data::detail::convert_accessor<data::particle_accessor<T, P, M>> {};
 template<class T, Privileges Priv>
 struct util::serial<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
@@ -161,7 +166,7 @@ struct tuple_get<std::tuple<TT...>> {
  */
 
 template<auto & F, TaskAttributes A = loc | leaf>
-// 'extern' works around GCC bug #90493
+// 'extern' works around GCC bug #96523
 extern const Legion::TaskID
   task_id = (run::context::instance().register_init(detail::register_task<
                typename util::function_traits<decltype(F)>::return_type,

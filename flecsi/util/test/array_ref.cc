@@ -253,11 +253,12 @@ array_ref() {
       static short twelve[12];
       constexpr util::mdspan<short, 3> m(twelve, {2, 3, 2});
       static_assert(&m[1][2][1] == &twelve[11]);
-      static_assert(&m(1, 2, 1) == &twelve[11]);
       static_assert(&m[1][2][0] == &twelve[10]);
-      static_assert(&m(0, 2, 1) == &twelve[10]);
       static_assert(&m[1][1][1] == &twelve[6 + 2 + 1]);
-      static_assert(&m(1, 1, 1) == &twelve[6 + 2 + 1]);
+      constexpr util::mdcolex<short, 3> c(twelve, {2, 3, 2});
+      static_assert(&c(1, 2, 1) == &twelve[11]);
+      static_assert(&c(0, 2, 1) == &twelve[10]);
+      static_assert(&c(1, 1, 1) == &twelve[6 + 2 + 1]);
     }
 
     const flecsi::util::iota_view gap(24, 29); // between primes

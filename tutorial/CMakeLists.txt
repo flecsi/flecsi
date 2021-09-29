@@ -249,3 +249,13 @@ add_executable(parallel-forall
 )
 target_link_libraries(parallel-forall FleCSI::FleCSI)
 add_unit(parallel-forall)
+
+add_executable(parallel-reduceall
+  5-parallel/2-reduceall.cc
+  5-parallel/main.cc
+  5-parallel/control.hh
+  4-data/canonical.hh
+)
+target_link_libraries(parallel-reduceall FleCSI::FleCSI)
+add_unit(parallel-reduceall)
+
