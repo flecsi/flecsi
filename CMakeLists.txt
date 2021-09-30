@@ -39,6 +39,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 endif()
 
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-Wno-parentheses NO_PARENTHESES)
+
+if(NO_PARENTHESES)
+  add_compile_options(-Wno-parentheses)
+endif()
+
 #------------------------------------------------------------------------------#
 # Version.
 #------------------------------------------------------------------------------#

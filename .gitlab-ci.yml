@@ -86,7 +86,7 @@ mpich-legion-gnu:
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -105,7 +105,7 @@ mpich-legion-gnu:release:
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -131,7 +131,7 @@ mpich-mpi-gnu:
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -150,7 +150,7 @@ mpich-mpi-gnu:release:
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -174,7 +174,7 @@ tutorial:legion:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: centos-8
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
 
@@ -199,7 +199,7 @@ openmpi-legion-gnu:
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -218,7 +218,7 @@ openmpi-legion-gnu:release:
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -244,7 +244,7 @@ openmpi-mpi-gnu:
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -263,7 +263,7 @@ openmpi-mpi-gnu:release:
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -289,7 +289,7 @@ mpich-legion-clang:
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -315,7 +315,7 @@ mpich-mpi-clang:
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -341,7 +341,7 @@ openmpi-mpi-clang:
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror -Wno-parentheses
+    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
