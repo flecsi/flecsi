@@ -93,7 +93,7 @@ class Flecsi(CMakePackage):
 
     # Legion
 
-    depends_on('legion@ctrl-rep-9:ctrl-rep-99',when='backend=legion')
+    depends_on('legion@ctrl-rep-11:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('hdf5@1.10.7:',when='backend=legion +hdf5')
 
