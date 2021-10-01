@@ -49,8 +49,6 @@ format:check:
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-defaults:
@@ -63,13 +61,11 @@ mpich-defaults:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-gnu:
@@ -82,7 +78,7 @@ mpich-legion-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -101,7 +97,7 @@ mpich-legion-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -113,8 +109,6 @@ mpich-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-gnu:
@@ -127,7 +121,7 @@ mpich-mpi-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -146,7 +140,7 @@ mpich-mpi-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -158,8 +152,6 @@ mpich-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion runtime with MPICH provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 tutorial:legion:
@@ -172,7 +164,7 @@ tutorial:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
     C_COMPILER: gcc
@@ -181,8 +173,6 @@ tutorial:legion:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-legion-gnu:
@@ -195,7 +185,7 @@ openmpi-legion-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -214,7 +204,7 @@ openmpi-legion-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: legion
     CXX_COMPILER: g++
@@ -226,8 +216,6 @@ openmpi-legion-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and GNU compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-gnu:
@@ -240,7 +228,7 @@ openmpi-mpi-gnu:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -259,7 +247,7 @@ openmpi-mpi-gnu:release:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: centos-8
+    IMAGE: rockylinux
     BUILD_TYPE: Release
     RUNTIME: mpi
     CXX_COMPILER: g++
@@ -271,8 +259,6 @@ openmpi-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-legion-clang:
@@ -285,7 +271,7 @@ mpich-legion-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: legion
     CXX_COMPILER: clang++
@@ -297,8 +283,6 @@ mpich-legion-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with MPICH provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 mpich-mpi-clang:
@@ -311,7 +295,7 @@ mpich-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: mpich
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
@@ -323,8 +307,6 @@ mpich-mpi-clang:
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI runtime with OpenMPI provider,
 # and Clang compiler toolchain.
-#
-# Image: CentOS 7.8
 #------------------------------------------------------------------------------#
 
 openmpi-mpi-clang:
@@ -337,7 +319,7 @@ openmpi-mpi-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     MPI_PROVIDER: openmpi
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: clearlinux
+    IMAGE: fedora-34
     BUILD_TYPE: Debug
     RUNTIME: mpi
     CXX_COMPILER: clang++
