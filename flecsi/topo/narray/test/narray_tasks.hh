@@ -31,24 +31,24 @@ field_helper(typename mesh<D>::template accessor<ro> m,
   F && fvalue) {
   auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
 
-  // auto x=  m.template extents<mesh1d::axis::x_axis>();
+  // auto x=  m.template range<mesh1d::axis::x_axis>();
   if constexpr(D == 1) {
-    forall(i, m.template extents<mesh1d::axis::x_axis>(), "field_helper 1d") {
+    forall(i, m.template range<mesh1d::axis::x_axis>(), "field_helper 1d") {
       fvalue(c[i]);
     }; // for
   }
   else if constexpr(D == 2) {
-    auto x = m.template extents<mesh2d::axis::x_axis>();
-    forall(j, m.template extents<mesh2d::axis::y_axis>(), "field_helper 2d") {
+    auto x = m.template range<mesh2d::axis::x_axis>();
+    forall(j, m.template range<mesh2d::axis::y_axis>(), "field_helper 2d") {
       for(auto i : x) {
         fvalue(c[j][i]);
       } // for
     }; // for
   }
   else {
-    auto x = m.template extents<mesh3d::axis::x_axis>();
-    auto y = m.template extents<mesh3d::axis::y_axis>();
-    forall(k, m.template extents<mesh3d::axis::z_axis>(), "field_helper 3d") {
+    auto x = m.template range<mesh3d::axis::x_axis>();
+    auto y = m.template range<mesh3d::axis::y_axis>();
+    forall(k, m.template range<mesh3d::axis::z_axis>(), "field_helper 3d") {
       for(auto j : y) {
         for(auto i : x) {
           fvalue(c[k][j][i]);
@@ -81,17 +81,17 @@ print_field(typename mesh<D>::template accessor<ro> m,
   std::stringstream ss;
   if constexpr(D == 1) {
     for(auto i :
-      m.template extents<mesh1d::axis::x_axis, mesh1d::range::all>()) {
+      m.template range<mesh1d::axis::x_axis, mesh1d::domain::all>()) {
       ss << c[i] << "   ";
     } // for
     ss << std::endl;
     flog(warn) << ss.str() << std::endl;
   }
   else if constexpr(D == 2) {
-    for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::range::all>();
+    for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::domain::all>();
         j--;) {
       for(auto i :
-        m.template extents<mesh2d::axis::x_axis, mesh2d::range::all>()) {
+        m.template range<mesh2d::axis::x_axis, mesh2d::domain::all>()) {
         ss << c[j][i] << "   ";
       } // for
       ss << std::endl;
@@ -99,12 +99,12 @@ print_field(typename mesh<D>::template accessor<ro> m,
     flog(warn) << ss.str() << std::endl;
   }
   else {
-    for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::range::all>();
+    for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::domain::all>();
         k--;) {
-      for(int j = m.template size<mesh3d::axis::y_axis, mesh3d::range::all>();
+      for(int j = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>();
           j--;) {
         for(auto i :
-          m.template extents<mesh3d::axis::x_axis, mesh3d::range::all>()) {
+          m.template range<mesh3d::axis::x_axis, mesh3d::domain::all>()) {
           ss << c[k][j][i] << "   ";
         } // for
         ss << std::endl;
@@ -123,10 +123,10 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
   if constexpr(D == 1) {
     UNIT {
-      using r = mesh1d::range;
+      using r = mesh1d::domain;
       using ax = mesh1d::axis;
 
-      // check extents
+      // check range
       std::set<util::id> logical[4] = {{2, 3, 4}, {1, 2}, {1, 2}, {1, 2}};
       std::set<util::id> extended[4] = {
         {0, 1, 2, 3, 4}, {1, 2}, {1, 2}, {1, 2, 3, 4}};
@@ -142,18 +142,17 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         return std::set<util::id>(r.begin(), r.end());
       };
 
-      EXPECT_EQ(s(m.template extents<ax::x_axis>()), logical[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis>()), logical[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::extended>()), extended[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::all>()), all[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::extended>()), extended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::all>()), all[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_low>()),
-        boundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_high>()),
+        s(m.template range<ax::x_axis, r::boundary_low>()), boundary_low[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_high>()),
         boundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_low>()), ghost_low[rank]);
+        s(m.template range<ax::x_axis, r::ghost_low>()), ghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_high>()), ghost_high[rank]);
+        s(m.template range<ax::x_axis, r::ghost_high>()), ghost_high[rank]);
 
       // check sizes
       std::size_t xsizes_ex[4][8] = {{3, 5, 6, 2, 0, 0, 1, 9},
@@ -212,10 +211,10 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
   } // d=1
   else if constexpr(D == 2) {
     UNIT {
-      using r = mesh2d::range;
+      using r = mesh2d::domain;
       using ax = mesh2d::axis;
 
-      // check extents
+      // check range
       std::set<util::id> xlogical[4] = {
         {2, 3, 4, 5}, {1, 2, 3, 4}, {2, 3, 4, 5}, {1, 2, 3, 4}};
       std::set<util::id> xextended[4] = {{0, 1, 2, 3, 4, 5},
@@ -249,31 +248,31 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         return std::set<util::id>(r.begin(), r.end());
       };
 
-      EXPECT_EQ(s(m.template extents<ax::x_axis>()), xlogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis>()), xlogical[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::extended>()), xextended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::all>()), xall[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_low>()),
+        s(m.template range<ax::x_axis, r::extended>()), xextended[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::all>()), xall[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_low>()),
         xboundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_high>()),
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_high>()),
         xboundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_low>()), xghost_low[rank]);
+        s(m.template range<ax::x_axis, r::ghost_low>()), xghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_high>()), xghost_high[rank]);
+        s(m.template range<ax::x_axis, r::ghost_high>()), xghost_high[rank]);
 
-      EXPECT_EQ(s(m.template extents<ax::y_axis>()), ylogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis>()), ylogical[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::extended>()), yextended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::all>()), yall[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_low>()),
+        s(m.template range<ax::y_axis, r::extended>()), yextended[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::all>()), yall[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_low>()),
         yboundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_high>()),
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_high>()),
         yboundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::ghost_low>()), yghost_low[rank]);
+        s(m.template range<ax::y_axis, r::ghost_low>()), yghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::ghost_high>()), yghost_high[rank]);
+        s(m.template range<ax::y_axis, r::ghost_high>()), yghost_high[rank]);
 
       // check sizes
       std::size_t xsizes_ex[4][8] = {{4, 6, 7, 2, 0, 0, 1, 8},
@@ -396,7 +395,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
   } // d=2
   else {
     UNIT {
-      using r = mesh3d::range;
+      using r = mesh3d::domain;
       using ax = mesh3d::axis;
 
       std::set<util::id> xlogical[4] = {{1, 2}, {1, 2}, {1, 2}, {1, 2}};
@@ -440,44 +439,44 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         return std::set<util::id>(r.begin(), r.end());
       };
 
-      EXPECT_EQ(s(m.template extents<ax::x_axis>()), xlogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis>()), xlogical[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::extended>()), xextended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::all>()), xall[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_low>()),
+        s(m.template range<ax::x_axis, r::extended>()), xextended[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::all>()), xall[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_low>()),
         xboundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::x_axis, r::boundary_high>()),
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_high>()),
         xboundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_low>()), xghost_low[rank]);
+        s(m.template range<ax::x_axis, r::ghost_low>()), xghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::x_axis, r::ghost_high>()), xghost_high[rank]);
+        s(m.template range<ax::x_axis, r::ghost_high>()), xghost_high[rank]);
 
-      EXPECT_EQ(s(m.template extents<ax::y_axis>()), ylogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis>()), ylogical[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::extended>()), yextended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::all>()), yall[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_low>()),
+        s(m.template range<ax::y_axis, r::extended>()), yextended[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::all>()), yall[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_low>()),
         yboundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::y_axis, r::boundary_high>()),
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_high>()),
         yboundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::ghost_low>()), yghost_low[rank]);
+        s(m.template range<ax::y_axis, r::ghost_low>()), yghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::y_axis, r::ghost_high>()), yghost_high[rank]);
+        s(m.template range<ax::y_axis, r::ghost_high>()), yghost_high[rank]);
 
-      EXPECT_EQ(s(m.template extents<ax::z_axis>()), zlogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::z_axis>()), zlogical[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::z_axis, r::extended>()), zextended[rank]);
-      EXPECT_EQ(s(m.template extents<ax::z_axis, r::all>()), zall[rank]);
-      EXPECT_EQ(s(m.template extents<ax::z_axis, r::boundary_low>()),
+        s(m.template range<ax::z_axis, r::extended>()), zextended[rank]);
+      EXPECT_EQ(s(m.template range<ax::z_axis, r::all>()), zall[rank]);
+      EXPECT_EQ(s(m.template range<ax::z_axis, r::boundary_low>()),
         zboundary_low[rank]);
-      EXPECT_EQ(s(m.template extents<ax::z_axis, r::boundary_high>()),
+      EXPECT_EQ(s(m.template range<ax::z_axis, r::boundary_high>()),
         zboundary_high[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::z_axis, r::ghost_low>()), zghost_low[rank]);
+        s(m.template range<ax::z_axis, r::ghost_low>()), zghost_low[rank]);
       EXPECT_EQ(
-        s(m.template extents<ax::z_axis, r::ghost_high>()), zghost_high[rank]);
+        s(m.template range<ax::z_axis, r::ghost_high>()), zghost_high[rank]);
 
       // check sizes
       std::size_t xsizes_ex[4][8] = {{2, 3, 4, 1, 0, 0, 1, 4},
@@ -665,7 +664,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 int
 check_4dmesh(mesh<4>::accessor<ro> m) {
   UNIT {
-    using r = mesh4d::range;
+    using r = mesh4d::domain;
     using ax = mesh4d::axis;
 
     std::set<util::id> logical[2] = {{1, 2}, {1, 2}};
@@ -695,44 +694,40 @@ check_4dmesh(mesh<4>::accessor<ro> m) {
 
     auto idx = indices(rank);
 
-    EXPECT_EQ(s(m.extents<ax::x_axis>()), logical[idx[0]]);
-    EXPECT_EQ(s(m.extents<ax::x_axis, r::extended>()), extended[idx[0]]);
-    EXPECT_EQ(s(m.extents<ax::x_axis, r::all>()), all[idx[0]]);
-    EXPECT_EQ(s(m.extents<ax::x_axis, r::ghost_low>()), ghost_low[idx[0]]);
-    EXPECT_EQ(s(m.extents<ax::x_axis, r::ghost_high>()), ghost_high[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis>()), logical[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis, r::extended>()), extended[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis, r::all>()), all[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis, r::ghost_low>()), ghost_low[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis, r::ghost_high>()), ghost_high[idx[0]]);
+    EXPECT_EQ(s(m.range<ax::x_axis, r::boundary_low>()), boundary_low[idx[0]]);
     EXPECT_EQ(
-      s(m.extents<ax::x_axis, r::boundary_low>()), boundary_low[idx[0]]);
-    EXPECT_EQ(
-      s(m.extents<ax::x_axis, r::boundary_high>()), boundary_high[idx[0]]);
+      s(m.range<ax::x_axis, r::boundary_high>()), boundary_high[idx[0]]);
 
-    EXPECT_EQ(s(m.extents<ax::y_axis>()), logical[idx[1]]);
-    EXPECT_EQ(s(m.extents<ax::y_axis, r::extended>()), extended[idx[1]]);
-    EXPECT_EQ(s(m.extents<ax::y_axis, r::all>()), all[idx[1]]);
-    EXPECT_EQ(s(m.extents<ax::y_axis, r::ghost_low>()), ghost_low[idx[1]]);
-    EXPECT_EQ(s(m.extents<ax::y_axis, r::ghost_high>()), ghost_high[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis>()), logical[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis, r::extended>()), extended[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis, r::all>()), all[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis, r::ghost_low>()), ghost_low[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis, r::ghost_high>()), ghost_high[idx[1]]);
+    EXPECT_EQ(s(m.range<ax::y_axis, r::boundary_low>()), boundary_low[idx[1]]);
     EXPECT_EQ(
-      s(m.extents<ax::y_axis, r::boundary_low>()), boundary_low[idx[1]]);
-    EXPECT_EQ(
-      s(m.extents<ax::y_axis, r::boundary_high>()), boundary_high[idx[1]]);
+      s(m.range<ax::y_axis, r::boundary_high>()), boundary_high[idx[1]]);
 
-    EXPECT_EQ(s(m.extents<ax::z_axis>()), logical[idx[2]]);
-    EXPECT_EQ(s(m.extents<ax::z_axis, r::extended>()), extended[idx[2]]);
-    EXPECT_EQ(s(m.extents<ax::z_axis, r::all>()), all[idx[2]]);
-    EXPECT_EQ(s(m.extents<ax::z_axis, r::ghost_low>()), ghost_low[idx[2]]);
-    EXPECT_EQ(s(m.extents<ax::z_axis, r::ghost_high>()), ghost_high[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis>()), logical[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis, r::extended>()), extended[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis, r::all>()), all[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis, r::ghost_low>()), ghost_low[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis, r::ghost_high>()), ghost_high[idx[2]]);
+    EXPECT_EQ(s(m.range<ax::z_axis, r::boundary_low>()), boundary_low[idx[2]]);
     EXPECT_EQ(
-      s(m.extents<ax::z_axis, r::boundary_low>()), boundary_low[idx[2]]);
-    EXPECT_EQ(
-      s(m.extents<ax::z_axis, r::boundary_high>()), boundary_high[idx[2]]);
+      s(m.range<ax::z_axis, r::boundary_high>()), boundary_high[idx[2]]);
 
-    EXPECT_EQ(s(m.extents<ax::t_axis>()), logical[idx[3]]);
-    EXPECT_EQ(s(m.extents<ax::t_axis, r::extended>()), extended[idx[3]]);
-    EXPECT_EQ(s(m.extents<ax::t_axis, r::all>()), all[idx[3]]);
-    EXPECT_EQ(s(m.extents<ax::t_axis, r::ghost_low>()), ghost_low[idx[3]]);
-    EXPECT_EQ(s(m.extents<ax::t_axis, r::ghost_high>()), ghost_high[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis>()), logical[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis, r::extended>()), extended[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis, r::all>()), all[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis, r::ghost_low>()), ghost_low[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis, r::ghost_high>()), ghost_high[idx[3]]);
+    EXPECT_EQ(s(m.range<ax::t_axis, r::boundary_low>()), boundary_low[idx[3]]);
     EXPECT_EQ(
-      s(m.extents<ax::t_axis, r::boundary_low>()), boundary_low[idx[3]]);
-    EXPECT_EQ(
-      s(m.extents<ax::t_axis, r::boundary_high>()), boundary_high[idx[3]]);
+      s(m.range<ax::t_axis, r::boundary_high>()), boundary_high[idx[3]]);
   };
 } // check_4dmesh

@@ -19,5 +19,6 @@ poisson::action::problem() {
   execute<task::eggcarton>(m, ud(m), fd(m), sd(m), Aud(m));
   execute<task::io, flecsi::mpi>(m, ud(m), "init");
   execute<task::io, flecsi::mpi>(m, sd(m), "actual");
+  flog::flush();
   return 0;
 } // problem
