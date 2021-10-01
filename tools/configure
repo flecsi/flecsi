@@ -22,7 +22,7 @@ cmake_mode=cmake
 runtime=legion
 cmake_args=""
 
-warn="-Wall -W -Werror -Wno-parentheses"
+warn="-Wall -W -Werror"
 SCRIPT_BUILD_TYPE=Debug
 SCRIPT_C_COMPILER=clang
 SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=4 $warn"
