@@ -19,7 +19,7 @@
 #define FLECSI_SYMBOL_INTERNAL /* empty */
 #define FLECSI_APISYMBOL_EXPORT __declspec(dllexport)
 #define FLECSI_APISYMBOL_IMPORT __declspec(dllimport)
-#elif defined(__NVCC__) || defined(__CUDACC__)
+#elif defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
 #define FLECSI_SYMBOL_EXPORT /* empty */
 #define FLECSI_SYMBOL_IMPORT /* empty */
 #define FLECSI_SYMBOL_INTERNAL /* empty */

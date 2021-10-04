@@ -268,8 +268,8 @@ function(add_unit name)
 
   list(LENGTH unit_THREADS thread_instances)
 
-  #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
-  if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_CUDA)
+  if (ENABLE_KOKKOS AND ENABLE_LEGION AND 
+     (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
    list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
   endif()
 

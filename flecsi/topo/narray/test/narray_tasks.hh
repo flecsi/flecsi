@@ -369,7 +369,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
           bool iseq = true;
           for(auto j : ybnd) {
             for(auto i : xbnd) {
-              iseq = iseq && (c[j][i] == std::pow(10, r));
+              iseq = iseq && (c[j][i] == size_t(std::pow(10, r)));
             }
           }
           return iseq;
@@ -612,7 +612,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         for(auto k : zbnd) {
           for(auto j : ybnd) {
             for(auto i : xbnd) {
-              iseq = iseq && (c[k][j][i] == std::pow(10, r));
+              iseq = iseq && (c[k][j][i] == size_t(std::pow(10, r)));
             }
           }
         }

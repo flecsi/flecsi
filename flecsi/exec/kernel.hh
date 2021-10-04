@@ -26,6 +26,13 @@
 #define FLECSI_LAMBDA [=] FLECSI_TARGET
 #endif
 
+#if defined(__HIPCC__)
+
+#ifdef REALM_USE_HIP
+#include "realm/hip/hiphijack_api.h"
+#endif
+#endif
+
 namespace flecsi {
 namespace exec {
 #if defined(FLECSI_ENABLE_KOKKOS)
