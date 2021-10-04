@@ -40,33 +40,33 @@ check(intN::accessor<ro> a) {
 
 void
 modify_policy(intN::accessor<wo> a) {
-  forall(j, flecsi::exec::range_policy(util::span(*a)), "modify_policy") {
-    j = 3;
+  forall(i, flecsi::exec::range_policy(util::span(*a)), "modify_policy") {
+    i = 3;
   };
 }
 
 int
 check_policy(intN::accessor<ro> a) {
   UNIT {
-    for(auto j : util::span(*a)) {
-      EXPECT_EQ(j, 3);
+    for(auto i : util::span(*a)) {
+      EXPECT_EQ(i, 3);
     }
   };
 }
 
 void
-modify_bound(intN::accessor<wo> a) {
+modify_bound(intN::accessor<wo> b) {
   forall(
-    i, (flecsi::exec::range_bound{util::span(*a), 0, 10}), "modify_bound") {
-    i = 3;
+    j, (flecsi::exec::range_policy{util::span(*b), 0, 5}), "modify_bound") {
+    j = 2;
   };
 }
 
 int
-check_bound(intN::accessor<ro> a) {
+check_bound(intN::accessor<ro> b) {
   UNIT {
-    for(auto i : util::span(*a)) {
-      EXPECT_EQ(i, 3);
+    for(auto j : util::span(*b).first(5)) {
+      EXPECT_EQ(j, 2);
     }
   };
 }
@@ -83,16 +83,33 @@ reduce_vec(intN::accessor<ro> a) {
 }
 
 int
+reduce_vec_bound(intN::accessor<ro> b) {
+  UNIT {
+    size_t res = reduceall(j,
+      up,
+      (flecsi::exec::range_policy{util::span(*b), 0, 5}),
+      exec::fold::sum,
+      size_t,
+      "reduce_bound") {
+      up += j;
+    };
+    EXPECT_EQ(res, 2 * 5);
+  };
+}
+
+int
 kernel_driver() {
   UNIT {
     const auto ar = array_field(process_topology);
+    const auto br = array_field(process_topology);
     execute<modify, default_accelerator>(ar);
     EXPECT_EQ(test<check>(ar), 0);
     execute<modify_policy, default_accelerator>(ar);
     EXPECT_EQ(test<check_policy>(ar), 0);
-    execute<modify_bound, default_accelerator>(ar);
-    EXPECT_EQ(test<check_bound>(ar), 0);
     EXPECT_EQ((test<reduce_vec, default_accelerator>(ar)), 0);
+    execute<modify_bound, default_accelerator>(br);
+    EXPECT_EQ(test<check_bound>(br), 0);
+    EXPECT_EQ((test<reduce_vec_bound, default_accelerator>(br)), 0);
   };
 } // kernel_driver
 

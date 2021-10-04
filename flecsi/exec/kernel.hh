@@ -120,24 +120,14 @@ public:
   execution is done in Kokkos::parallel_for and Kokkos::parallel_reduce. FleCSI
   currently provide support for the following execution policies; 1) range
   policy, 2) range policy with lower and upper bounds defined.
+  To ensure unnecessary copy does not happen, one need to pass a range
+  object that is not already a wrapper over flecsi::util::span through the span
+  like util::span(*a).
  */
 
 struct policy_tag {};
 
-template<typename Range>
-struct range_policy : policy_tag {
-  range_policy(Range r) : range(r) {}
-#if defined(FLECSI_ENABLE_KOKKOS)
-  auto get_policy() {
-    return Kokkos::RangePolicy<>(0, range.size());
-  }
-#endif
-  Range range;
-};
-template<class R>
-range_policy(R)->range_policy<R>;
-
-struct range_bound_base {
+struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
   typedef Kokkos::RangePolicy<>::member_type index;
 #else
@@ -146,21 +136,28 @@ struct range_bound_base {
 };
 
 template<typename Range>
-struct range_bound : range_bound_base, policy_tag {
-  range_bound(Range r, index l, index u) : range(r), lb(l), ub(u) {}
+struct range_policy : range_base, policy_tag {
+  range_policy(Range r, index l, index u) : iv(l, u), range(r), lb(l), ub(u) {}
+  range_policy(Range r) : iv(0, r.size()), range(r), lb(0), ub(r.size()) {}
+  util::iota_view<util::id> iv;
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto get_policy() {
     return Kokkos::RangePolicy<>(lb, ub);
   }
 #endif
+  auto begin() {
+    return iv.begin();
+  }
+  auto end() {
+    return iv.end();
+  }
   Range range;
   index lb;
   index ub;
 };
 
 template<class R>
-range_bound(R, range_bound_base::index, range_bound_base::index)
-  ->range_bound<R>;
+range_policy(R, range_base::index, range_base::index)->range_policy<R>;
 
 /*!
   This function is a wrapper for Kokkos::parallel_for that has been adapted to
@@ -175,15 +172,19 @@ void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
 #if defined(FLECSI_ENABLE_KOKKOS)
+    auto policy_type = p.get_policy(); // before moving
     Kokkos::parallel_for(name,
-      std::move(p.get_policy()),
+      policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-        return f(it[i]);
+        return f(it.begin()[i]);
       });
 #else
     (void)name;
-    std::for_each(p.range.begin(), p.range.end(), lambda);
+    std::for_each(p.begin(),
+      p.end(),
+      [it = std::forward<Policy>(p).range, f = std::forward<Lambda>(lambda)](
+        auto && i) { return f(it.begin()[i]); });
 #endif
   }
   else {
@@ -223,23 +224,25 @@ T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
 #if defined(FLECSI_ENABLE_KOKKOS)
+    auto policy_type = p.get_policy(); // before moving
     kok::wrap<R, T> result;
     Kokkos::parallel_reduce(
       name,
-      std::move(p.get_policy()),
+      policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        return f(it[i], tmp);
+        return f(it.begin()[i], tmp);
       },
       result.kokkos());
     return result.reference();
 #else
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
-    std::for_each(p.range.begin(),
-      p.range.end(),
-      [f = std::forward<Lambda>(lambda), &res](
-        auto && i) { return f(i, res); });
+    std::for_each(p.begin(),
+      p.end(),
+      [it = std::forward<Policy>(p).range,
+        f = std::forward<Lambda>(lambda),
+        &res](auto && i) { return f(it.begin()[i], res); });
     return res;
 #endif
   }
