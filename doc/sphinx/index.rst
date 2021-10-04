@@ -47,10 +47,11 @@ Introduction
   src/overview
   src/build
   src/tutorial
-  src/user-guide
   src/developer-guide
+  src/specialization-guide
+  src/user-guide
+  src/api
   src/summary
-  API Reference <http://laristra.github.io/flecsi/doxygen>
   src/team
 
 .. Not sure exactly why, but this seems to do what I want at the

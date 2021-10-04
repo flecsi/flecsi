@@ -148,9 +148,12 @@ if(NOT FORMAT_ONLY)
   include(openmp)
   include(hdf5)
   include(documentation)
+  include(doxygen)
+  include(sphinx)
   include(graphviz)
   include(kokkos)
 
+  # These must be set before "include(boost)" below.
   list(APPEND
     BOOST_COMPONENTS
       program_options
@@ -160,8 +163,45 @@ if(NOT FORMAT_ONLY)
       system
   )
   include(boost)
-
   include(annotation)
+
+  #----------------------------------------------------------------------------#
+  # Documentation
+  #----------------------------------------------------------------------------#
+
+
+  add_sphinx_target(main
+    CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
+    OUTPUT ${CMAKE_BINARY_DIR}/doc/sphinx
+  )
+
+  # Doxygen output is set by the doxygen configuration file, so we
+  # need to create an output directory.
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/sphinx/doxygen)
+
+  add_doxygen_target(api-core
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-core/doxygen.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
+  )
+  add_doxygen_target(api-user
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-user/doxygen.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
+  )
+
+  # This is for local install of the documentation. To deploy the
+  # documentation to the flecsi website, use the "deploy-documentation" target.
+
+  if(ENABLE_SPHINX)
+    install(
+      DIRECTORY
+        ${CMAKE_BINARY_DIR}/doc/sphinx/
+      DESTINATION
+        ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
+      OPTIONAL
+    )
+  endif()
 
   #----------------------------------------------------------------------------#
   # Caliper.

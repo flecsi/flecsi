@@ -1,0 +1,21 @@
+#------------------------------------------------------------------------------#
+# Values specific to this project.
+#------------------------------------------------------------------------------#
+
+PROJECT_LOGO           = @PROJECT_SOURCE_DIR@/doc/doxygen/medium-flecsi.png
+PROJECT_NUMBER         = "Version: ${${PROJECT_NAME}_DOCUMENTATION_VERSION}"
+HTML_HEADER            = @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-header.html
+HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/doc/doxygen/customdoxygen.css \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/tab_a.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/tab_b.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/tab_h.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/tab_s.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/nav_f.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/nav_g.png \
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/nav_h.png
+HTML_EXTRA_FILES       = @PROJECT_SOURCE_DIR@/doc/doxygen/flecsi-favicon.ico
+IMAGE_PATH             = @PROJECT_SOURCE_DIR@/doc/doxygen/images
+STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/flecsi
+STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/flecsi
+
+@INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-common.conf
