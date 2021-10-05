@@ -359,9 +359,9 @@ reduce(Args &&... args) {
   std::size_t & flog_task_count = flecsi_context.flog_task_count();
   ++flog_task_count;
   if(flog_task_count % FLOG_SERIALIZATION_INTERVAL == 0 &&
-     reduce_internal<log::log_size, fold::max, flecsi::mpi>().get() >
+     reduce_internal<flog::log_size, fold::max, flecsi::mpi>().get() >
        FLOG_SERIALIZATION_THRESHOLD)
-    reduce_internal<log::send_to_one, void, flecsi::mpi>();
+    reduce_internal<flog::send_to_one, void, flecsi::mpi>();
 #endif
 
   return reduce_internal<Task, Reduction, Attributes, Args...>(
@@ -412,7 +412,7 @@ test(ARGS &&... args) {
     .get();
 } // test
 
-namespace log {
+namespace flog {
 
 /*!
   Explicitly flush buffered flog output.
@@ -423,11 +423,11 @@ namespace log {
 inline void
 flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  flecsi::exec::reduce_internal<log::send_to_one, void, flecsi::mpi>();
+  flecsi::exec::reduce_internal<flog::send_to_one, void, flecsi::mpi>();
   flecsi::run::context::instance().flog_task_count() = 0;
 #endif
 } // flush
 
-} // namespace log
+} // namespace flog
 
 } // namespace flecsi

@@ -23,8 +23,8 @@ using namespace flecsi;
   Create some tags to control output.
  */
 
-log::tag tag1("tag1");
-log::tag tag2("tag2");
+flog::tag tag1("tag1");
+flog::tag tag2("tag2");
 
 int
 top_level_action() {
@@ -45,7 +45,7 @@ top_level_action() {
    */
 
   {
-    log::guard guard(tag1);
+    flog::guard guard(tag1);
     flog(trace) << "Trace level output (in tag1 guard)" << std::endl;
     flog(info) << "Info level output (in tag1 guard)" << std::endl;
     flog(warn) << "Warn level output (in tag1 guard)" << std::endl;
@@ -58,7 +58,7 @@ top_level_action() {
    */
 
   {
-    log::guard guard(tag2);
+    flog::guard guard(tag2);
     flog(trace) << "Trace level output (in tag2 guard)" << std::endl;
     flog(info) << "Info level output (in tag2 guard)" << std::endl;
     flog(warn) << "Warn level output (in tag2 guard)" << std::endl;
@@ -84,7 +84,7 @@ main(int argc, char ** argv) {
 
   /*
     In order to see or capture any output from FLOG, the user must add at least
-    one output stream. The function log::add_output_stream provides an
+    one output stream. The function flog::add_output_stream provides an
     interface for adding output streams to FLOG. The FleCSI runtime must have
     been initialized before this function can be invoked.
    */
@@ -93,14 +93,14 @@ main(int argc, char ** argv) {
     Add the standard log descriptor to FLOG's buffers.
    */
 
-  log::add_output_stream("clog", std::clog, true);
+  flog::add_output_stream("clog", std::clog, true);
 
   /*
     Add an output file to FLOG's buffers.
    */
 
   std::ofstream log_file("output.txt");
-  log::add_output_stream("log file", log_file);
+  flog::add_output_stream("log file", log_file);
 
   status = flecsi::start(top_level_action);
 

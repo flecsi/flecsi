@@ -8,7 +8,7 @@
 #include "flecsi/util/demangle.hh"
 
 namespace flecsi {
-inline log::devel_tag task_prologue_tag("task_prologue");
+inline flog::devel_tag task_prologue_tag("task_prologue");
 }
 
 // task_prologue is implemented per backend:
@@ -57,7 +57,7 @@ private:
   template<class P, class A>
   static std::enable_if_t<!std::is_base_of_v<data::send_tag, P>> visit(P &,
     const A &) {
-    log::devel_guard guard(task_prologue_tag);
+    flog::devel_guard guard(task_prologue_tag);
     flog_devel(info) << "Skipping argument with type " << util::type<A>()
                      << std::endl;
   } // visit

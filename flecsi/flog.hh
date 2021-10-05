@@ -36,7 +36,7 @@
 #if defined(FLECSI_ENABLE_FLOG)
 
 namespace flecsi {
-namespace log {
+namespace flog {
 namespace detail {
 template<class, class = void>
 struct stream;
@@ -192,7 +192,7 @@ private:
   const T & t;
 };
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 /*!
@@ -223,7 +223,7 @@ private:
 
 #define flog(severity)                                                         \
   true &&                                                                      \
-    ::flecsi::log::message<flecsi::log::severity>(__FILE__, __LINE__).format()
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__).format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
 
@@ -231,7 +231,7 @@ private:
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
   true &&                                                                      \
-    ::flecsi::log::message<flecsi::log::severity>(__FILE__, __LINE__, true)    \
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)    \
       .format()
 
 #else
@@ -265,7 +265,7 @@ private:
 #define flog_trace(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::trace>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::trace>(__FILE__, __LINE__).format()      \
     << stream
 
 /*!
@@ -289,7 +289,7 @@ private:
 #define flog_info(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::info>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::info>(__FILE__, __LINE__).format()       \
     << stream
 
 /*!
@@ -313,7 +313,7 @@ private:
 #define flog_warn(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::warn>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::warn>(__FILE__, __LINE__).format()       \
     << stream
 
 /*!
@@ -337,7 +337,7 @@ private:
 #define flog_error(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::error>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()      \
     << stream
 
 #define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
@@ -345,7 +345,7 @@ private:
 #else // FLECSI_ENABLE_FLOG
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 struct tag {
   tag(const char *) {}
@@ -371,7 +371,7 @@ struct container {
   }
 };
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #define flog_initialize(active)
@@ -419,7 +419,7 @@ to_string(T const & t) {
 #include <boost/stacktrace.hpp>
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 inline void
 dumpstack() {
@@ -437,7 +437,7 @@ dumpstack() {
 #endif
 } // dumpstack
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 /*!
@@ -468,12 +468,12 @@ dumpstack() {
   {                                                                            \
     std::stringstream _sstream;                                                \
     _sstream << FLOG_OUTPUT_LTRED("FATAL ERROR ")                              \
-             << FLOG_OUTPUT_YELLOW(::flecsi::log::rstrip<'/'>(__FILE__)        \
+             << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)        \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
     __flog_internal_wait_on_flusher();                                         \
     std::cerr << _sstream.str() << std::endl;                                  \
-    ::flecsi::log::dumpstack();                                                \
+    ::flecsi::flog::dumpstack();                                                \
     std::abort();                                                              \
   } /* scope */
 

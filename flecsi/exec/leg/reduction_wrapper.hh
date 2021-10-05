@@ -32,7 +32,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag reduction_wrapper_tag("reduction_wrapper");
+inline flog::devel_tag reduction_wrapper_tag("reduction_wrapper");
 
 namespace exec {
 
@@ -138,7 +138,7 @@ struct wrap {
 private:
   static void init() {
     {
-      log::devel_guard guard(reduction_wrapper_tag);
+      flog::devel_guard guard(reduction_wrapper_tag);
       flog_devel(info) << "registering reduction operation " << util::type<R>()
                        << " for " << util::type<T>() << std::endl;
     }

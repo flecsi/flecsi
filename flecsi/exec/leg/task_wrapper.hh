@@ -39,7 +39,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag task_wrapper_tag("task_wrapper");
+inline flog::devel_tag task_wrapper_tag("task_wrapper");
 
 namespace data {
 template<class, Privileges, Privileges>
@@ -183,7 +183,7 @@ detail::register_task() {
 
   const std::string name = util::symbol<*TASK>();
   {
-    log::devel_guard guard(task_wrapper_tag);
+    flog::devel_guard guard(task_wrapper_tag);
     flog_devel(info) << "registering pure Legion task " << name << std::endl;
   }
 
@@ -250,7 +250,7 @@ struct task_wrapper {
     Legion::Context context,
     Legion::Runtime * runtime) {
     {
-      log::devel_guard guard(task_wrapper_tag);
+      flog::devel_guard guard(task_wrapper_tag);
       flog_devel(info) << "In execute_user_task" << std::endl;
     }
 
@@ -281,7 +281,7 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
     Legion::Context context,
     Legion::Runtime * runtime) {
     {
-      log::devel_guard guard(task_wrapper_tag);
+      flog::devel_guard guard(task_wrapper_tag);
       flog_devel(info) << "In execute_mpi_task" << std::endl;
     }
 

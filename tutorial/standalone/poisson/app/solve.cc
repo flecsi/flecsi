@@ -33,7 +33,7 @@ poisson::action::solve() {
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
-    log::flush();
+    flog::flush();
   } while(err > error_tol.value() && ita < max_iterations.value());
   return 0;
 } // solve

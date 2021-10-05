@@ -10,7 +10,7 @@
 #include <hdf5.h>
 
 namespace flecsi {
-inline log::devel_tag io_tag("io");
+inline flog::devel_tag io_tag("io");
 
 namespace io {
 namespace detail {
@@ -21,7 +21,7 @@ struct hdf5 {
                 : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
     const auto v = create ? "create" : "open";
     if(*this) {
-      log::devel_guard guard(io_tag);
+      flog::devel_guard guard(io_tag);
       flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
                        << std::endl;
     }
@@ -40,7 +40,7 @@ struct hdf5 {
     if(*this) {
       H5Fflush(id, H5F_SCOPE_LOCAL);
       if(const herr_t e = H5Fclose(id); e >= 0) {
-        log::devel_guard guard(io_tag);
+        flog::devel_guard guard(io_tag);
         flog_devel(info) << "Close HDF5 file_id " << id << std::endl;
         id = -1;
         return true;

@@ -106,7 +106,7 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
-    flog(warn) << log::container{c.partitions} << std::endl;
+    flog(warn) << flog::container{c.partitions} << std::endl;
 
     // auto & c2v =
     // s->connect_.get<unstructured::cells>().get<unstructured::vertices>();

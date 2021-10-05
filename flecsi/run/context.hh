@@ -56,7 +56,7 @@ struct ragged;
 struct with_ragged_base;
 } // namespace topo
 
-inline log::devel_tag context_tag("context");
+inline flog::devel_tag context_tag("context");
 
 namespace run {
 
@@ -292,7 +292,7 @@ struct context {
         std::cout << flecsi << std::endl;
 
 #if defined(FLECSI_ENABLE_FLOG)
-        auto const & tm = log::state::instance().tag_map();
+        auto const & tm = flog::state::instance().tag_map();
 
         if(tm.size()) {
           std::cout << "Available FLOG Tags (FleCSI Logging Utility):"
@@ -366,7 +366,7 @@ struct context {
       parsed.options, boost::program_options::include_positional);
 
 #if defined(FLECSI_ENABLE_FLOG)
-    if(log::state::instance().initialize(
+    if(flog::state::instance().initialize(
          flog_tags_, flog_verbose_, flog_output_process_)) {
       return status::error;
     } // if
@@ -379,7 +379,7 @@ struct context {
 
   inline void finalize_generic() {
 #if defined(FLECSI_ENABLE_FLOG)
-    log::state::instance().finalize();
+    flog::state::instance().finalize();
 #endif
 
   } // finalize_generic

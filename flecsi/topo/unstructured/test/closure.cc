@@ -174,7 +174,7 @@ compute_closure() {
     } // for
 #endif
 
-    flog(warn) << log::container{coloring.partitions} << std::endl;
+    flog(warn) << flog::container{coloring.partitions} << std::endl;
   };
 }
 
