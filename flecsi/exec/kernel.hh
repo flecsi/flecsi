@@ -156,9 +156,6 @@ struct range_policy : range_base, policy_tag {
   index ub;
 };
 
-template<class R>
-range_policy(R, range_base::index, range_base::index)->range_policy<R>;
-
 /*!
   This function is a wrapper for Kokkos::parallel_for that has been adapted to
   work with random access ranges common in FleCSI topologies. The parallel_for
@@ -216,7 +213,7 @@ forall_t(P, std::string)->forall_t<P>; // automatic in C++20
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
-  to work with random access ranges common in FleCSI topologies. The 
+  to work with random access ranges common in FleCSI topologies. The
   parallel_reduce function takes in policy objects or the range.
  */
 template<class R, class T, typename Policy, typename Lambda>
