@@ -23,7 +23,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag unit_tag("unit");
+inline flog::devel_tag unit_tag("unit");
 
 namespace util {
 namespace unit {
@@ -65,7 +65,7 @@ struct state_t {
   state_t(state_t &&) = delete;
 
   ~state_t() {
-    log::devel_guard guard(unit_tag);
+    flog::devel_guard guard(unit_tag);
 
     if(result_) {
       std::stringstream stream;
@@ -205,7 +205,7 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 } // namespace flecsi
 
 #define UNIT                                                                   \
-  ::flecsi::log::state::instance().config_stream().add_buffer(                 \
+  ::flecsi::flog::state::instance().config_stream().add_buffer(                \
     "flog", std::clog, true);                                                  \
   ::flecsi::util::unit::state_t auto_unit_state(__func__);                     \
   return auto_unit_state->*[&]() -> void

@@ -39,7 +39,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag execution_tag("execution");
+inline flog::devel_tag execution_tag("execution");
 
 namespace exec {
 namespace detail {
@@ -100,7 +100,7 @@ reduce_internal(Args &&... args) {
   using param_tuple = typename traits_t::arguments_type;
 
   // This will guard the entire method
-  log::devel_guard guard(execution_tag);
+  flog::devel_guard guard(execution_tag);
 
   // Get the FleCSI runtime context
   auto & flecsi_context = run::context::instance();
@@ -121,7 +121,7 @@ reduce_internal(Args &&... args) {
 
   auto params =
     detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
-  prolog pro(params, args...);
+  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
 
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
@@ -150,7 +150,7 @@ reduce_internal(Args &&... args) {
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
     {
-      log::devel_guard guard(execution_tag);
+      flog::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing single task" << std::endl;
     }
 
@@ -162,7 +162,7 @@ reduce_internal(Args &&... args) {
   }
   else {
     {
-      log::devel_guard guard(execution_tag);
+      flog::devel_guard guard(execution_tag);
       flog_devel(info) << "Executing index task" << std::endl;
     }
 

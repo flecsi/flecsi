@@ -99,7 +99,7 @@
 #endif // FLOG_ENABLE_COLOR_OUTPUT
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 /*!
   Create a timestamp.
@@ -147,5 +147,5 @@ std::size_t log_size();
 
 void send_to_one();
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi

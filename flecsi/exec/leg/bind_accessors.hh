@@ -32,7 +32,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag bind_accessors_tag("bind_accessors");
+inline flog::devel_tag bind_accessors_tag("bind_accessors");
 
 namespace exec::leg {
 
@@ -44,7 +44,7 @@ namespace exec::leg {
 
   This is the other half of the wire protocol implemented by \c task_prologue.
  */
-
+template<task_processor_type_t ProcessorType>
 struct bind_accessors {
 
   /*!
@@ -106,6 +106,22 @@ private:
     f = {futures_[future_id++]};
   }
 
+  // Note: due to how visitor() is implemented above the first
+  // parameter can not be 'const &' here, otherwise template/overload
+  // resolution fails (silently).
+  template<typename T>
+  static void visit(data::detail::scalar_value<T> & s) {
+    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      return;
+#else
+      flog_assert(false, "Cuda should be enabled when using toc task");
+#endif
+    }
+    *s.host = *s.device;
+  }
+
   /*--------------------------------------------------------------------------*
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
@@ -115,7 +131,7 @@ private:
     typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
     visit(DATA_TYPE &) {
     {
-      log::devel_guard guard(bind_accessors_tag);
+      flog::devel_guard guard(bind_accessors_tag);
       flog_devel(info) << "No setup for parameter of type "
                        << util::type<DATA_TYPE>() << std::endl;
     }

@@ -26,7 +26,7 @@
 #include <unordered_map>
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 /*!
   The tee_buffer_t type provides a stream buffer that allows output to
@@ -302,7 +302,7 @@ private:
 
 }; // struct tee_stream_t
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #endif // FLECSI_ENABLE_FLOG

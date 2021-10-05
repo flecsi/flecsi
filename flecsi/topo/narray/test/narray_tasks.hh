@@ -62,14 +62,15 @@ template<std::size_t D>
 void
 init_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(m, ca, [](auto & x) { x = color(); });
+  return field_helper<D>(m, ca, [c = color()](auto & x) { x = c; });
 } // init_field
 
 template<std::size_t D>
 void
 update_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(m, ca, [](auto & x) { x = std::pow(10, color()); });
+  return field_helper<D>(
+    m, ca, [c = color()](auto & x) { x = std::pow(10, c); });
 } // update_field
 
 template<std::size_t D>

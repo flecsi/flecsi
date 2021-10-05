@@ -1245,6 +1245,12 @@ private:
 };
 
 namespace detail {
+template<class T>
+struct scalar_value {
+  const T * device;
+  T * host;
+};
+
 template<auto & F>
 struct scalar_access : bind_tag {
 
@@ -1254,10 +1260,11 @@ struct scalar_access : bind_tag {
   template<class Func, class S>
   void topology_send(Func && f, S && s) {
     accessor_member<F, privilege_pack<ro>> acc;
-    acc.topology_send(std::forward<Func>(f), std::forward<S>(s));
+    acc.topology_send(f, std::forward<S>(s));
 
-    if(const auto p = acc.get_base().get_base().span().data())
-      scalar_ = get_scalar_from_accessor(p);
+    scalar_value<value_type> dummy{
+      acc.get_base().get_base().span().data(), &scalar_};
+    std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
   }
 
   const value_type * operator->() const {

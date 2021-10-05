@@ -37,7 +37,7 @@ narray_driver() {
       // 4D Mesh
       mesh4d::coord indices{4, 4, 4, 4};
       auto colors = topo::narray_utils::distribute(processes(), indices);
-      flog(warn) << log::container{colors} << std::endl;
+      flog(warn) << flog::container{colors} << std::endl;
 
       mesh4d::coord hdepths{1, 1, 1, 1};
       mesh4d::coord bdepths{1, 1, 1, 1};

@@ -26,7 +26,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag param_buffers_tag("param_buffers");
+inline flog::devel_tag param_buffers_tag("param_buffers");
 
 namespace exec {
 
@@ -73,7 +73,7 @@ struct param_buffers {
     typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
     visit(DATA_TYPE &) {
     {
-      log::devel_guard guard(param_buffers_tag);
+      flog::devel_guard guard(param_buffers_tag);
       flog_devel(info) << "No cleanup for parameter of type "
                        << util::type<DATA_TYPE>() << std::endl;
     }

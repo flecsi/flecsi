@@ -24,7 +24,7 @@
 #include <iostream>
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 /*!
   The message type provides a basic log message type that is customized
@@ -123,5 +123,5 @@ private:
   std::stringstream ss_;
 }; // message
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi

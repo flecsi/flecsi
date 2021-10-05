@@ -51,7 +51,7 @@
 #endif
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 /*!
   Packet type for serializing output from distributed-memory tasks.
@@ -115,7 +115,7 @@ private:
 
 }; // packet_t
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #endif // FLECSI_ENABLE_FLOG

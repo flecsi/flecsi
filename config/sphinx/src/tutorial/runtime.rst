@@ -441,7 +441,7 @@ leave it in the code. Then, specific groups of messages can be enabled
 or disabled to only output useful information for the current
 development focus.
 
-To create a new tag, we use the log::tag type:
+To create a new tag, we use the flog::tag type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
@@ -568,14 +568,14 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
 
 For many applications, there is a natural serialization interval that
 implicitly starts at the beginning of the simulation time evolution.
-FleCSI provides a function ``flecsi::log::flush()`` that can be used to
+FleCSI provides a function ``flecsi::flog::flush()`` that can be used to
 force FleCSI to serialize, and flush output.
 
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
   for ``FLOG_SERIALIZATION_INTERVAL`` and
-  ``FLOG_SERIALIZATION_THRESHOLD``, and to use ``flecsi::log::flush()``
+  ``FLOG_SERIALIZATION_THRESHOLD``, and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
 FLOG Options (Command-Line)

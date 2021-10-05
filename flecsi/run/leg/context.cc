@@ -216,7 +216,7 @@ context_t::start(const std::function<int()> & action) {
    */
 
   {
-    log::devel_guard("context");
+    flog::devel_guard("context");
 
     std::stringstream stream;
 

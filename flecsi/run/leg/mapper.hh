@@ -29,7 +29,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag legion_mapper_tag("legion_mapper");
+inline flog::devel_tag legion_mapper_tag("legion_mapper");
 
 namespace run {
 
@@ -126,7 +126,7 @@ public:
     }
 
     {
-      log::devel_guard guard(legion_mapper_tag);
+      flog::devel_guard guard(legion_mapper_tag);
       flog_devel(info) << "Mapper constructor" << std::endl
                        << "\tlocal: " << local << std::endl
                        << "\tcpus: " << local_cpus.size() << std::endl
