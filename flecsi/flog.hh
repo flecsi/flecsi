@@ -222,8 +222,8 @@ private:
  */
 
 #define flog(severity)                                                         \
-  true &&                                                                      \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__).format()
+  true && ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)  \
+            .format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
 
@@ -231,7 +231,7 @@ private:
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
   true &&                                                                      \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)    \
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)  \
       .format()
 
 #else
@@ -265,7 +265,7 @@ private:
 #define flog_trace(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::flog::message<flecsi::flog::trace>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::trace>(__FILE__, __LINE__).format()    \
     << stream
 
 /*!
@@ -289,7 +289,7 @@ private:
 #define flog_info(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::flog::message<flecsi::flog::info>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::info>(__FILE__, __LINE__).format()     \
     << stream
 
 /*!
@@ -313,7 +313,7 @@ private:
 #define flog_warn(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::flog::message<flecsi::flog::warn>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::warn>(__FILE__, __LINE__).format()     \
     << stream
 
 /*!
@@ -337,7 +337,7 @@ private:
 #define flog_error(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
 #define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
@@ -468,12 +468,12 @@ dumpstack() {
   {                                                                            \
     std::stringstream _sstream;                                                \
     _sstream << FLOG_OUTPUT_LTRED("FATAL ERROR ")                              \
-             << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)        \
+             << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
     __flog_internal_wait_on_flusher();                                         \
     std::cerr << _sstream.str() << std::endl;                                  \
-    ::flecsi::flog::dumpstack();                                                \
+    ::flecsi::flog::dumpstack();                                               \
     std::abort();                                                              \
   } /* scope */
 

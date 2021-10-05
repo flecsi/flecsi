@@ -205,7 +205,7 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 } // namespace flecsi
 
 #define UNIT                                                                   \
-  ::flecsi::flog::state::instance().config_stream().add_buffer(                 \
+  ::flecsi::flog::state::instance().config_stream().add_buffer(                \
     "flog", std::clog, true);                                                  \
   ::flecsi::util::unit::state_t auto_unit_state(__func__);                     \
   return auto_unit_state->*[&]() -> void
