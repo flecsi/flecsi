@@ -115,6 +115,9 @@ private:
 #if defined(__NVCC__) || defined(__CUDACC__)
       cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
       return;
+#elif defined(__HIPCC__)
+      HIP_ASSERT(hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost));
+      return;
 #else
       flog_assert(false, "Cuda should be enabled when using toc task");
 #endif
