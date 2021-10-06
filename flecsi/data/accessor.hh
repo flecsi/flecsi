@@ -254,11 +254,10 @@ struct ragged_accessor
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
         r.get_partition(r.topology().ragged).resize();
-      // We rely on the fact that field_reference uses only the field ID.
       return field_reference<T,
         raw,
         topo::ragged<typename R::Topology>,
-        R::space>({i, 0, {}}, t);
+        R::space>::from_id(i, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:

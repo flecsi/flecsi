@@ -131,7 +131,7 @@ struct field_reference_t : convert_tag {
   using topology_t = typename Topo::core;
 
   field_reference_t(const field_info_t & info, topology_t & topology)
-    : fid_(info.fid), topology_(&topology) {}
+    : field_reference_t(info.fid, topology) {}
 
   field_id_t fid() const {
     return fid_;
@@ -139,6 +139,10 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
+
+protected:
+  // Several internal components construct references just from field IDs.
+  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
 private:
   field_id_t fid_;
@@ -187,6 +191,10 @@ struct field_reference : field_reference_t<Topo> {
   const field_reference & use(F && f) const {
     std::forward<F>(f)(*this);
     return *this;
+  }
+
+  static field_reference from_id(field_id_t f, typename Base::topology_t & t) {
+    return {f, t};
   }
 };
 
