@@ -168,17 +168,16 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
-    // auto policy_type = p.get_policy(); // before moving
     Kokkos::parallel_for(name,
       policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-        return f(it.begin()[i]);
+        f(it.begin()[i]);
       });
 #else
     (void)name;
     for(auto i : policy_type)
-      std::forward<Lambda>(lambda)(std::forward<Policy>(p).range.begin()[i]);
+      lambda(p.range.begin()[i]);
 #endif
   }
   else {
@@ -217,17 +216,15 @@ template<class R, class T, typename Policy, typename Lambda>
 T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
-    auto policy_type =
-      p.get_policy(); // before moving
+    auto policy_type = p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
-                      // auto policy_type = p.get_policy(); // before moving
     kok::wrap<R, T> result;
     Kokkos::parallel_reduce(
       name,
       policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        return f(it.begin()[i], tmp);
+        f(it.begin()[i], tmp);
       },
       result.kokkos());
     return result.reference();
@@ -235,8 +232,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
     for(auto i : policy_type)
-      std::forward<Lambda>(lambda)(
-        std::forward<Policy>(p).range.begin()[i], res);
+      lambda(p.range.begin()[i], res);
     return res;
 #endif
   }
@@ -264,12 +260,12 @@ struct reduceall_t {
 
 template<class R, class T, class P>
 reduceall_t<P, R, T>
-make_reduce(P p, std::string n) {
-  return {std::move(p), n};
+make_reduce(P policy, std::string n) {
+  return {std::move(policy), n};
 }
 
-#define reduceall(it, tmp, P, R, T, name)                                      \
-  ::flecsi::exec::make_reduce<R, T>(P, name)->*FLECSI_LAMBDA(                  \
+#define reduceall(it, tmp, p, R, T, name)                                      \
+  ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
                                                  auto && it, T & tmp)
 
 //----------------------------------------------------------------------------//
