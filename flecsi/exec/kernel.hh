@@ -137,19 +137,17 @@ struct range_base {
 
 template<typename Range>
 struct range_policy : range_base, policy_tag {
-  range_policy(Range r, index l, index u) : iv(l, u), range(r), lb(l), ub(u) {}
-  range_policy(Range r) : iv(0, r.size()), range(r), lb(0), ub(r.size()) {}
-  util::iota_view<index> iv;
-#if defined(FLECSI_ENABLE_KOKKOS)
+  range_policy(const Range & r, index l, index u) : range(r), lb(l), ub(u) {}
+  range_policy(Range && r, index l, index u)
+    : range(std::move(r)), lb(l), ub(u) {}
+  range_policy(Range r) : range_policy(std::move(r), 0, r.size()) {}
+
   auto get_policy() {
+#if defined(FLECSI_ENABLE_KOKKOS)
     return Kokkos::RangePolicy<>(lb, ub);
-  }
+#else
+    return util::iota_view<index>(lb, ub);
 #endif
-  auto begin() {
-    return iv.begin();
-  }
-  auto end() {
-    return iv.end();
   }
   Range range;
   index lb;
@@ -168,8 +166,9 @@ template<typename Policy, typename Lambda>
 void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
-#if defined(FLECSI_ENABLE_KOKKOS)
     auto policy_type = p.get_policy(); // before moving
+#if defined(FLECSI_ENABLE_KOKKOS)
+    // auto policy_type = p.get_policy(); // before moving
     Kokkos::parallel_for(name,
       policy_type,
       [it = std::forward<Policy>(p).range,
@@ -178,10 +177,8 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
       });
 #else
     (void)name;
-    std::for_each(p.begin(),
-      p.end(),
-      [it = std::forward<Policy>(p).range, f = std::forward<Lambda>(lambda)](
-        auto && i) { return f(it.begin()[i]); });
+    for(auto i : policy_type)
+      std::forward<Lambda>(lambda)(std::forward<Policy>(p).range.begin()[i]);
 #endif
   }
   else {
@@ -220,8 +217,10 @@ template<class R, class T, typename Policy, typename Lambda>
 T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
+    auto policy_type =
+      p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
-    auto policy_type = p.get_policy(); // before moving
+                      // auto policy_type = p.get_policy(); // before moving
     kok::wrap<R, T> result;
     Kokkos::parallel_reduce(
       name,
@@ -235,11 +234,9 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
 #else
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
-    std::for_each(p.begin(),
-      p.end(),
-      [it = std::forward<Policy>(p).range,
-        f = std::forward<Lambda>(lambda),
-        &res](auto && i) { return f(it.begin()[i], res); });
+    for(auto i : policy_type)
+      std::forward<Lambda>(lambda)(
+        std::forward<Policy>(p).range.begin()[i], res);
     return res;
 #endif
   }
