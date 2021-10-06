@@ -139,7 +139,7 @@ template<typename Range>
 struct range_policy : range_base, policy_tag {
   range_policy(Range r, index l, index u) : iv(l, u), range(r), lb(l), ub(u) {}
   range_policy(Range r) : iv(0, r.size()), range(r), lb(0), ub(r.size()) {}
-  util::iota_view<util::id> iv;
+  util::iota_view<index> iv;
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto get_policy() {
     return Kokkos::RangePolicy<>(lb, ub);
