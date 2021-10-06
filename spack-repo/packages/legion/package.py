@@ -1,5 +1,5 @@
 from spack import *
-#Spack's import hook doesn't support "from spack.pkg.builtin import legion":
+# Spack's import hook doesn't support "from spack.pkg.builtin import legion":
 from spack.pkg.builtin.legion import Legion
 
 class Legion(Legion):
