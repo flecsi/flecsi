@@ -345,6 +345,12 @@ struct borrow : partition {
     std::size_t c = run::context::instance().color()) {
     return {c, r};
   }
+  static std::size_t get_row(const Value & v) {
+    return v.first;
+  }
+  static prefixes_base::row get_size(const Value & v) {
+    return v.second;
+  }
 
   borrow(region_base & r,
     const partition & p,

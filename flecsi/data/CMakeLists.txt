@@ -25,6 +25,7 @@ set(data_HEADERS
   field.hh
   field_info.hh
   layout.hh
+  map.hh
   privilege.hh
   topology_accessor.hh
   topology_slot.hh

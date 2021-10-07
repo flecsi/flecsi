@@ -61,6 +61,8 @@ struct borrow : partition {
   static auto make(prefixes_base::row,
     std::size_t r = color()); // "constructor"
   using Value = decltype(make({}));
+  static std::size_t get_row(const Value &); // "accessor"
+  static prefixes_base::row get_size(const Value &);
 
   // Derives row choices from the single Value object (if any) in each row of
   // the argument partition.

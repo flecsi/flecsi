@@ -218,6 +218,7 @@ Because a task's parameters are destroyed as soon as it returns, state accumulat
 
 On both sides, various tag base classes are used to recognize relevant FleCSI types; ``send_tag`` in particular identifies types that can decompose themselves into simpler parameters via a ``send`` member function template.
 This function template accepts a callback that is used to process the subcomponents and which itself accepts a callback that, on the caller side only, is used to transform the task *arguments*.
+Those task arguments may include ``borrow_category`` versions of the underlying topologies and field references to such versions.
 The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).

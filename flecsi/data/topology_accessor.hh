@@ -19,6 +19,11 @@
 #include "flecsi/exec/launch.hh"
 
 namespace flecsi {
+namespace topo {
+template<class>
+struct borrow;
+}
+
 namespace data {
 
 /*!
@@ -49,8 +54,12 @@ struct topology_accessor
 
 template<class T, Privileges P>
 struct exec::detail::task_param<data::topology_accessor<T, P>> {
-  static auto replace(const typename T::slot &) {
-    return data::topology_accessor<T, P>();
+  using type = data::topology_accessor<T, P>;
+  static type replace(typename T::slot &) {
+    return type();
+  }
+  static type replace(data::topology_slot<topo::borrow<T>> &) {
+    return type();
   }
 };
 // Defined here to avoid circularity; it matters only with a

@@ -41,6 +41,11 @@ struct accessor;
 template<layout, class, Privileges>
 struct mutator;
 
+namespace launch {
+template<class P>
+struct mapping;
+}
+
 namespace detail {
 template<class, layout>
 struct field_base {};
@@ -198,6 +203,32 @@ struct field_reference : field_reference_t<Topo> {
   }
 };
 
+template<class T, layout L, class Topo, typename Topo::index_space S>
+struct multi_reference : convert_tag {
+  using Map = launch::mapping<Topo>;
+
+  multi_reference(const field_info_t & f, Map & m)
+    : multi_reference(f.fid, m) {}
+  // Note that no correspondence between f and m is checked.
+  multi_reference(const field_reference<T, L, Topo, S> & f, Map & m)
+    : multi_reference(f.fid(), m) {}
+
+  Map & map() const {
+    return *m;
+  }
+
+  // i indexes into the depth of the map rather than being a color directly.
+  auto data(Color i) const {
+    return field_reference<T, L, typename Map::Borrow, S>::from_id(f, map()[i]);
+  }
+
+private:
+  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
+
+  field_id_t f;
+  Map * m;
+};
+
 // This is the portion of field validity that can be checked and that
 // doesn't exclude things like std::tuple<int>.  It's similar to (the
 // proposed) trivial relocatability, but excludes std::vector.
@@ -238,6 +269,7 @@ struct field : data::detail::field_base<T, L> {
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
   struct definition : Register<Topo, Space> {
+    using Topology = Topo;
     using Field = field;
 
     /// Return a reference to a field instance.
@@ -254,6 +286,10 @@ struct field : data::detail::field_base<T, L> {
       Reference<P, Space>>
     operator()(C<P> & t) const {
       return {*this, t};
+    }
+    data::multi_reference<T, L, Topo, Space> operator()(
+      data::launch::mapping<Topo> & m) const {
+      return {*this, m};
     }
   };
 
@@ -324,6 +360,9 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
   }
 
   base_type & get_base() {
+    return *this;
+  }
+  const base_type & get_base() const {
     return *this;
   }
 };

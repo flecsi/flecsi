@@ -26,6 +26,11 @@
 
 namespace flecsi {
 
+namespace data {
+template<class>
+struct multi;
+}
+
 inline log::devel_tag param_buffers_tag("param_buffers");
 
 namespace exec {
@@ -53,12 +58,23 @@ set_buffer(T & t, B & b) {
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
 struct param_buffers {
+private:
+  auto visitor() {
+    return [&](auto & p, auto &&) { visit(p); };
+  }
+
+public:
   template<data::layout L, typename DATA_TYPE, Privileges PRIVILEGES>
   void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
 
   template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
     m.commit();
+  }
+
+  template<class A>
+  void visit(data::multi<A> & m) {
+    m.send(visitor());
   }
 
   template<class Topo, Privileges P>
