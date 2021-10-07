@@ -38,9 +38,11 @@ const intN::definition<topo::index> verts_field, ghost_field;
 using double_at = field<double, sparse>;
 const double_at::definition<topo::index> vfrac_field;
 
-using trivial_array = topo::array<void>;
+struct trivial_array : topo::specialization<topo::user, trivial_array> {};
+
 using short_part = field<short, particle>;
 const short_part::definition<trivial_array> particles;
+const intN::definition<trivial_array> arag;
 
 constexpr std::size_t column = 42;
 
@@ -191,12 +193,44 @@ part(short_part::mutator<wo> a) {
     EXPECT_EQ(*i3, 3);
     EXPECT_EQ(*i4, 4);
     EXPECT_EQ(i3, a.get_iterator_from_pointer(&*i3));
+    *a.begin() = color();
+  };
+}
+
+// The MPI backend doesn't support non-trivial color mappings:
+constexpr int process_fraction =
+  2 - (FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi);
+
+int
+use_map(data::multi<short_part::accessor<ro>> ma,
+  data::multi<intN::mutator<wo>> mm) {
+  UNIT {
+    const auto p = processes(), nc = p / process_fraction, c = color();
+    EXPECT_EQ(colors(), nc);
+    const auto ac = ma.components();
+    EXPECT_EQ(ac.size(), p / nc + (c < p % nc));
+    for(auto [c, a] : ac)
+      EXPECT_EQ(*a.begin(), c);
+    const auto mc = mm.components();
+    EXPECT_EQ(mc.size(), ac.size());
+    for(auto [c, m] : mc)
+      m[0].resize(c + 1, c);
+  };
+}
+
+int
+check_map(intN::accessor<ro> a) {
+  UNIT {
+    const auto c = color();
+    ASSERT_EQ(a[0].size(), c + 1);
+    EXPECT_EQ(a[0].back(), c);
   };
 }
 
 int
 index_driver() {
   UNIT {
+    const auto np = processes();
     {
       region r({}, {});
       EXPECT_FALSE((r.ghost<privilege_pack<wo, wo, na>>(0)));
@@ -244,8 +278,18 @@ index_driver() {
     EXPECT_EQ(test<check>(pressure, verts, ghost, vfrac, noise), 0);
 
     // Duplicate work to support the MPI backend:
-    trivial_array::core a(trivial_array::coloring(processes(), 12));
+    trivial_array::slot a;
+    a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
+    { // TODO: automatic resizing
+      auto & p = a->ragged.get_partition<topo::elements>(arag.fid);
+      execute<allocate>(p.sizes());
+      p.resize();
+    }
+
+    auto lm = launch::make<launch::robin>(a, np / process_fraction);
+    EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
+    EXPECT_EQ(test<check_map>(arag(a)), 0);
   };
 } // index
 

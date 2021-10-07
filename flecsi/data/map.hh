@@ -12,6 +12,22 @@ namespace data::launch {
 
 using param = topo::claims::Field::Reference<topo::claims, topo::elements>;
 
+inline bool
+block(topo::claims::Field::accessor<wo> a, Color i, Color n) {
+  const auto me = color(), us = colors(), q = n / us, r = n % us,
+             mine = q + (me < r);
+  a = topo::claims::row(
+    i < mine ? std::optional((mine + (me == r)) * me + i) : std::nullopt);
+  return i + 1 < mine;
+}
+inline bool
+robin(topo::claims::Field::accessor<wo> a, Color i, Color n) {
+  const auto f = [me = color(), us = colors()](Color i) { return i * us + me; };
+  const Color c = f(i);
+  a = topo::claims::row(c < n ? std::optional(c) : std::nullopt);
+  return f(i + 1) < n;
+}
+
 template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
@@ -72,6 +88,24 @@ private:
 };
 template<class T, class F>
 mapping(T &, Color, F &&)->mapping<topo::policy_t<T>>;
+
+template<auto & F = block, class T>
+mapping<topo::policy_t<T>>
+make(T & t, Color n = processes()) {
+  return {t, n, [c = t.colors(), i = Color()](param r) mutable {
+            return reduce<F, exec::fold::max>(r, i++, c).get();
+          }};
+}
+// Create a \c mapping from a rule.
+// \tparam F rule task that accepts a \c topo::claims::Field::accessor<wo>, a
+//   round counter, and a count of input colors and returns whether its color
+//   needs more claims
+// \param n number of colors
+template<auto & F = block, class P>
+mapping<P>
+make(topology_slot<P> & t, Color n = processes()) {
+  return make<F>(t.get(), n);
+}
 
 } // namespace data::launch
 
