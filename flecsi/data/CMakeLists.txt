@@ -86,13 +86,3 @@ set(data_SOURCES
   ${data_SOURCES}
   PARENT_SCOPE
 )
-
-#------------------------------------------------------------------------------#
-# Unit tests.
-#------------------------------------------------------------------------------#
-
-add_unit(privilege_pack
-  SOURCES
-    test/privilege_pack.cc
-  THREADS 1
-)
