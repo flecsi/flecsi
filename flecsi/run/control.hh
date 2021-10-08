@@ -125,7 +125,7 @@ private:
    */
 
   control() {
-    init_walker(registry_).template walk_types<control_points>();
+    run_impl::walk<control_points>(init_walker(registry_));
   }
 
   /*
@@ -165,7 +165,7 @@ private:
 
   int run() {
     int status{flecsi::run::status::success};
-    point_walker(sort(), status).template walk_types<control_points>();
+    run_impl::walk<control_points>(point_walker(sort(), status));
     return status;
   } // run
 
@@ -176,7 +176,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() {
     flecsi::util::graphviz gv;
-    point_writer(registry_, gv).template walk_types<control_points>();
+    run_impl::walk<control_points>(point_writer(registry_, gv));
     std::string file = program() + "-control-model.dot";
     gv.write(file);
     return flecsi::run::status::control_model;
