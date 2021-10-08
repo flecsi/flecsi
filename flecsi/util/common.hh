@@ -49,6 +49,12 @@ using id = FLECSI_ID_TYPE;
 
 using counter_t = FLECSI_COUNTER_TYPE;
 
+template<class T>
+inline std::enable_if_t<std::is_unsigned_v<T>, T>
+ceil_div(T a, T b) {
+  return a / b + !!(a % b); // avoids overflow in (a+(b-1))/b
+}
+
 //----------------------------------------------------------------------------//
 // Square
 //----------------------------------------------------------------------------//

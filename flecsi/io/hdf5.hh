@@ -177,7 +177,7 @@ struct hdf5 {
   }
 
   bool create_dataset(const std::string & field_name, hsize_t size) {
-    const hsize_t nsize = (size + (sizeof(double) - 1)) / sizeof(double);
+    const hsize_t nsize = util::ceil_div(size, {sizeof(double)});
 
     const hsize_t dims[2] = {nsize, 1};
     const hid_t dataspace_id = H5Screate_simple(2, dims, NULL);
