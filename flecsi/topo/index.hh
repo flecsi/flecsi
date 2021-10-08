@@ -107,15 +107,6 @@ struct ragged_category : ragged_base {
     return part.template get<S>()[i];
   }
 
-  // These can't just be default template arguments, since they would be
-  // instantiated even if unused.
-  const repartition & get_partition(field_id_t i) const {
-    return const_cast<ragged_category &>(*this).get_partition(i);
-  }
-  repartition & get_partition(field_id_t i) {
-    return get_partition<P::default_space()>(i);
-  }
-
   // Ragged ghost copies must be handled at the level of the host topology.
   template<class R>
   void ghost_copy(const R &) {}
