@@ -1,13 +1,14 @@
-Here, you will find API documentation of the FleCSI runtime abstraction
-layer.
-The abstraction layer provides a portable interface for defining
+This document describes the FleCSI C++ API.
+The [high-level documentation](../../index.html) provides an introduction to the design and usage of the library more suitable to the new reader or developer as well as full examples for context.
+
+The application layer provides a portable interface for defining
 and executing tasks and kernels, defining and accessing field data,
 utilities for creating command-line options, a logging utility (flog),
 an interface for performance analysis using
 [Caliper](http://software.llnl.gov/Caliper), and an I/O interface for
 analysis and checkpoint/restart.
 
-Additionally, this API documentation covers the core FleCSI topology
+The topology layer provides several core FleCSI topology
 types, along with utilities designed to aid in the creation of
 application specialization libraries.
 
