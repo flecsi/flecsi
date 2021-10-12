@@ -100,7 +100,7 @@ Branch Types
 ^^^^^^^^^^^^
 
 * **incompatible** |br|
-  The *devel* branch is where work on the next major release takes
+  The *develop* branch is where work on the next major release takes
   place, potentially with interface and feature changes that are
   *incompatible* with previous versions.
 
@@ -119,9 +119,9 @@ Branch Types
 
   At the time of writing, FleCSI has the following branches:
 
-  **devel** (incompatible) |br|
-  **1** (feature) |br|
-  **1.4** (release)
+  **develop** (incompatible) |br|
+  **2** (feature) |br|
+  **2.1** (release)
 
 Tags
 ^^^^
