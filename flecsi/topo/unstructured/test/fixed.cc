@@ -15,6 +15,7 @@
 #include "fixed.hh"
 
 #include "flecsi/data.hh"
+#include "flecsi/exec/kernel.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/mpi.hh"

@@ -121,105 +121,159 @@ public:
 };
 } // namespace kok
 #endif
+
 /*!
-  This function is a wrapper for Kokkos::parallel_for that has been adapted to
-  work with random access ranges common in FleCSI topologies.
+  Kokkos provides different execution policies that controls how the parallel
+  execution is done in Kokkos::parallel_for and Kokkos::parallel_reduce. FleCSI
+  currently provide support for the following execution policies; 1) range
+  policy, 2) range policy with lower and upper bounds defined.
+  To ensure unnecessary copy does not happen, one need to pass a range
+  object that is not already a wrapper over flecsi::util::span through the span
+  like util::span(*a).
  */
 
-template<typename Range, typename Lambda>
-void
-parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
+struct policy_tag {};
+
+struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  const auto n = range.size(); // before moving
-  Kokkos::parallel_for(name,
-    n,
-    [it = std::forward<Range>(range),
-      f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-      return f(it[i]);
-    });
+  typedef Kokkos::RangePolicy<>::member_type index;
 #else
-  (void)name;
-  std::for_each(range.begin(), range.end(), lambda);
+  typedef util::counter_t index;
 #endif
+};
+
+template<typename Range>
+struct range_policy : range_base, policy_tag {
+  range_policy(const Range & r, index l, index u) : range(r), lb(l), ub(u) {}
+  range_policy(Range && r, index l, index u)
+    : range(std::move(r)), lb(l), ub(u) {}
+  range_policy(Range r) : range_policy(std::move(r), 0, r.size()) {}
+
+  auto get_policy() {
+#if defined(FLECSI_ENABLE_KOKKOS)
+    return Kokkos::RangePolicy<>(lb, ub);
+#else
+    return util::iota_view<index>(lb, ub);
+#endif
+  }
+  Range range;
+  index lb;
+  index ub;
+};
+
+/*!
+  This function is a wrapper for Kokkos::parallel_for that has been adapted to
+  work with random access ranges common in FleCSI topologies. The parallel_for
+  function takes in policy objects or the range. In particular, this function
+  invokes a map from the normal kernel index space to the FleCSI index space,
+  which may require indirection.
+ */
+
+template<typename Policy, typename Lambda>
+void
+parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
+  if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
+    auto policy_type = p.get_policy(); // before moving
+#if defined(FLECSI_ENABLE_KOKKOS)
+    Kokkos::parallel_for(name,
+      policy_type,
+      [it = std::forward<Policy>(p).range,
+        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
+        f(it.begin()[i]);
+      });
+#else
+    (void)name;
+    for(auto i : policy_type)
+      lambda(p.range.begin()[i]);
+#endif
+  }
+  else {
+    parallel_for(range_policy(std::forward<Policy>(p)),
+      std::forward<Lambda>(lambda),
+      name);
+  }
 } // parallel_for
+
+template<typename P>
+struct forall_t {
+  template<typename Callable>
+  void operator->*(Callable l) && {
+    parallel_for(std::move(policy_), std::move(l), name_);
+  }
+  P policy_;
+  std::string name_;
+}; // struct forall_t
+template<class P>
+forall_t(P, std::string)->forall_t<P>; // automatic in C++20
 
 /*!
   The forall type provides a pretty interface for invoking data-parallel
   execution.
  */
 
-template<typename Range>
-struct forall_t {
-  template<typename Callable>
-  void operator->*(Callable l) && {
-    parallel_for(std::move(range_), std::move(l), name_);
-  }
-
-  Range range_;
-  std::string name_;
-}; // struct forall_t
-template<class I>
-forall_t(I, std::string)->forall_t<I>; // automatic in C++20
-
-#define forall(it, range, name)                                                \
-  ::flecsi::exec::forall_t{range, name}->*FLECSI_LAMBDA(auto && it)
+#define forall(it, P, name)                                                    \
+  ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
-  to work with random access ranges common in FleCSI topologies.
+  to work with random access ranges common in FleCSI topologies. The
+  parallel_reduce function takes in policy objects or the range.
  */
-template<class R, class T, typename Range, typename Lambda>
+template<class R, class T, typename Policy, typename Lambda>
 T
-parallel_reduce(Range && range,
-  Lambda && lambda,
-  const std::string & name = "") {
+parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
+  if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
+    auto policy_type = p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
-  const auto n = range.size(); // before moving
-  kok::wrap<R, T> result;
-  Kokkos::parallel_reduce(
-    name,
-    n,
-    [it = std::forward<Range>(range),
-      f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-      return f(it[i], tmp);
-    },
-    result.kokkos());
-  return result.reference();
+    kok::wrap<R, T> result;
+    Kokkos::parallel_reduce(
+      name,
+      policy_type,
+      [it = std::forward<Policy>(p).range,
+        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
+        f(it.begin()[i], tmp);
+      },
+      result.kokkos());
+    return result.reference();
 #else
-  (void)name;
-  T res = detail::identity_traits<R>::template value<T>;
-  std::for_each(range.begin(),
-    range.end(),
-    [f = std::forward<Lambda>(lambda), &res](auto && i) { return f(i, res); });
-  return res;
+    (void)name;
+    T res = detail::identity_traits<R>::template value<T>;
+    for(auto i : policy_type)
+      lambda(p.range.begin()[i], res);
+    return res;
 #endif
-
+  }
+  else {
+    return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),
+      std::forward<Lambda>(lambda),
+      name);
+  }
 } // parallel_reduce
 
 /*!
   The reduce_all type provides a pretty interface for invoking data-parallel
   reductions.
  */
-template<class Range, class R, class T>
+template<class Policy, class R, class T>
 struct reduceall_t {
   template<typename Lambda>
   T operator->*(Lambda lambda) && {
-    return parallel_reduce<R, T>(std::move(range_), std::move(lambda), name_);
+    return parallel_reduce<R, T>(std::move(policy_), std::move(lambda), name_);
   }
 
-  Range range_;
+  Policy policy_;
   std::string name_;
 };
 
-template<class R, class T, class I>
-reduceall_t<I, R, T>
-make_reduce(I i, std::string n) {
-  return {std::move(i), n};
+template<class R, class T, class P>
+reduceall_t<P, R, T>
+make_reduce(P policy, std::string n) {
+  return {std::move(policy), n};
 }
 
-#define reduceall(it, tmp, range, R, T, name)                                  \
-  ::flecsi::exec::make_reduce<R, T>(range, name)                               \
-      ->*FLECSI_LAMBDA(auto && it, T & tmp)
+#define reduceall(it, tmp, p, R, T, name)                                      \
+  ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
+                                                 auto && it, T & tmp)
 
 //----------------------------------------------------------------------------//
 //! Abstraction function for fine-grained, data-parallel interface.
