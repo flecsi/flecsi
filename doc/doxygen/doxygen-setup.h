@@ -47,10 +47,10 @@
  **/
 
 /**
- * This module contains the serial backend implementation of the FleCSI
+ * This module contains the MPI backend implementation of the FleCSI
  * execution model.
  *
- * @defgroup serial-execution Serial Execution Backend
+ * @defgroup mpi-execution MPI Execution Backend
  * @ingroup execution
  **/
 
@@ -88,8 +88,8 @@
  **/
 
 /**
- * Define the Serial Data Backend group.
- * @defgroup serial-data Serial Data Backend
+ * Define the MPI Data Backend group.
+ * @defgroup mpi-data MPI Data Backend
  * @ingroup data
  **/
 
