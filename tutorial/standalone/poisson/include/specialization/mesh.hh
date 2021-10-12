@@ -77,7 +77,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    std::size_t global_id(std::size_t i) {
+    std::size_t global_id(std::size_t i) const {
       return B::template global_id<index_space::vertices, A>(i);
     }
 
