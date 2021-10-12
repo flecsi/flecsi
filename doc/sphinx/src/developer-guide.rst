@@ -91,10 +91,15 @@ subdirectories within the test subdirectory.
 Versioning
 ++++++++++
 
-FleCSI's versioning system uses three branch types (descibed below) that
-define the purpose and provenance of the code at a particular commit,
-with tags that label points of interest in the development cycle, e.g,.
-releases or stable features.
+FleCSI uses the `Semantic Versioning`__ system.
+Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
+We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
+Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+
+__ https://semver.org/
+
+There is one active, shared branch for each of the three types of release, as described below.
+Tags are used to identify releases as well as certain internal reference points for development.
 
 Branch Types
 ^^^^^^^^^^^^
@@ -110,8 +115,8 @@ Branch Types
 
 * **release** |br|
   Release branches (named for their *major.minor* version number, e.g.,
-  1.1, 1.2) are stable versions of the code base. These can only be
-  modified with bug fixes. At appropriate points, tags (named for their
+  1.1, 1.2) are interface-stable versions of the code base.
+  At appropriate points, tags (named for their
   *major.minor.patch* version number, e.g., 1.1.2) are used to identify
   patched versions.
 
@@ -122,6 +127,11 @@ Branch Types
   **develop** (incompatible) |br|
   **2** (feature) |br|
   **2.1** (release)
+
+In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
+The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
+It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 
 Tags
 ^^^^
