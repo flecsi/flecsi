@@ -529,7 +529,7 @@ it. There is not easy to remedy to this problem: attributes that are
 added after initialization will reset all previously added elements to
 whatever the default of the new attribute is. Therefore, if you need to
 add an attribute, the best thing to do is to look at the *graphviz.hh*
-file in 'flecsi/utils', and add it there with a reasonable default.
+file in 'flecsi/util', and add it there with a reasonable default.
 
 __ https://graphviz.gitlab.io/_pages/pdf/libguide.pdf
 __ https://www.graphviz.org
