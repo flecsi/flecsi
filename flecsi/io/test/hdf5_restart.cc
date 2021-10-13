@@ -104,7 +104,7 @@ check(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<ro, na> mfs,
   field<int, ragged>::accessor<ro, na> mfr1,
   field<int, ragged>::accessor<ro, na> mfr2) {
-  UNIT {
+  UNIT("TASK") {
     for(auto i : m.range<ax::x_axis>()) {
       double val = 100. * color() + (int)i;
       ASSERT_EQ(mf1[i], val);
@@ -130,7 +130,7 @@ static bool added_topology = false;
 template<bool Attach>
 int
 restart_driver() {
-  UNIT {
+  UNIT() {
     mesh1d::coord indices{64};
     mesh1d::base::colors colors{4};
     mesh1d::coord hdepths{0};

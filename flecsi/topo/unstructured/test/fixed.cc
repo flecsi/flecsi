@@ -261,7 +261,7 @@ init_ids(fixed_mesh::accessor<ro, ro> m,
 // Exercise the std::vector-like interface:
 int
 permute(topo::connect_field::mutator<rw, na> m) {
-  UNIT {
+  UNIT("TASK") {
     return;
     const auto && r = m[0];
     const auto n = r.size();
@@ -379,7 +379,7 @@ print(fixed_mesh::accessor<ro, ro> m,
 
 int
 fixed_driver() {
-  UNIT {
+  UNIT() {
     coloring.allocate();
     mesh.allocate(coloring.get());
     execute<init_ids>(mesh, cids(mesh), vids(mesh));

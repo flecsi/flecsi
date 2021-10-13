@@ -26,7 +26,7 @@ using namespace flecsi::util;
 
 int
 sanity() {
-  UNIT {
+  UNIT() {
     std::vector<std::byte> data;
 
     {
@@ -86,7 +86,7 @@ private:
 
 int
 user_type() {
-  UNIT {
+  UNIT() {
     std::vector<std::byte> data;
 
     {
@@ -170,7 +170,7 @@ struct flecsi::util::serial_convert<simple_context_t> {
 
 int
 simple_context() {
-  UNIT {
+  UNIT() {
     std::vector<std::byte> data;
 
     simple_context_t & context = simple_context_t::instance();
@@ -265,7 +265,7 @@ flecsi::unit::driver<simple_context> simple_context_driver;
 
 int
 flecsi_context() {
-  UNIT {};
+  UNIT() {};
 } // simple_context
 
 flecsi::unit::driver<flecsi_context> flecsi_context_driver;

@@ -23,7 +23,7 @@ struct thrice : public flecsi::util::tuple_walker<thrice> {
 
 int
 tuple_walker() {
-  UNIT {
+  UNIT() {
     std::tuple<> nothing;
     std::tuple<int, float, double> t(1, float(2), double(3));
 

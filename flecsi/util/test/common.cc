@@ -176,7 +176,7 @@ static_assert(util::is_tuple<std::tuple<int, char>>::value);
 // ---------------
 int
 common() {
-  UNIT {
+  UNIT() {
     // types
     UNIT_CAPTURE() << UNIT_TTYPE(FLECSI_COUNTER_TYPE) << std::endl;
     UNIT_CAPTURE() << UNIT_TTYPE(flecsi::util::counter_t) << std::endl;

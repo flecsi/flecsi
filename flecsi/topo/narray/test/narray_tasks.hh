@@ -122,7 +122,7 @@ int
 check_mesh_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
   if constexpr(D == 1) {
-    UNIT {
+    UNIT("TASK") {
       using r = mesh1d::domain;
       using ax = mesh1d::axis;
 
@@ -210,7 +210,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
     };
   } // d=1
   else if constexpr(D == 2) {
-    UNIT {
+    UNIT("TASK") {
       using r = mesh2d::domain;
       using ax = mesh2d::axis;
 
@@ -394,7 +394,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
     };
   } // d=2
   else {
-    UNIT {
+    UNIT("TASK") {
       using r = mesh3d::domain;
       using ax = mesh3d::axis;
 
@@ -663,7 +663,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
 int
 check_4dmesh(mesh<4>::accessor<ro> m) {
-  UNIT {
+  UNIT("TASK") {
     using r = mesh4d::domain;
     using ax = mesh4d::axis;
 

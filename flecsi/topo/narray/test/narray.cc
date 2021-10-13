@@ -23,7 +23,7 @@ using namespace flecsi;
 
 int
 coloring_driver() {
-  UNIT {
+  UNIT() {
 #if 1
     mesh3d::coord indices{8, 8, 8};
     std::vector<Color> colors = {2, 2, 1};
@@ -84,14 +84,13 @@ const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 
 int
 narray_driver() {
-  UNIT {
-
+  UNIT() {
     {
       using topo::narray_utils::factor;
       using V = std::vector<std::size_t>;
       EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
       EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
-    }
+    } // scope
 
     {
       // 1D Mesh
@@ -162,8 +161,7 @@ narray_driver() {
       execute<print_field<3>>(m3, f3(m3));
       execute<check_mesh_field<3>>(m3, f3(m3));
     } // scope
-
-  }; // UNIT
+  };
 } // narray_driver
 
 flecsi::unit::driver<narray_driver> nd;

@@ -76,7 +76,7 @@ drop(int n, const std::string & s) {
 
 int
 task_driver() {
-  UNIT {
+  UNIT() {
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;

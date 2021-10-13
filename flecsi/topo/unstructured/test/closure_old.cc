@@ -26,7 +26,7 @@ using namespace flecsi::topo::unstructured_impl;
 */
 int
 cell_to_cell_thru_vertices() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
 
 #define neighbor_test(id, blessed)                                             \
@@ -61,7 +61,7 @@ cell_to_cell_thru_vertices() {
 */
 int
 cell_to_cell_thru_edges() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
 
 #define neighbor_test(id, blessed)                                             \
@@ -96,7 +96,7 @@ cell_to_cell_thru_edges() {
 */
 int
 cell_closure_thru_vertices() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
 
     std::set<size_t> primary = {0, 1, 4, 5};
@@ -113,7 +113,7 @@ cell_closure_thru_vertices() {
 */
 int
 cell_closure_thru_edges() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
     std::set<size_t> primary = {0, 1, 4, 5};
     auto closure = entity_neighbors<test_definition, 2, 2, 1>(td, primary);
@@ -129,7 +129,7 @@ cell_closure_thru_edges() {
 */
 int
 vertex_referencers() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
 
 #define referencers_test(id, blessed)                                          \
@@ -173,7 +173,7 @@ vertex_referencers() {
 */
 int
 vertex_closure() {
-  UNIT {
+  UNIT("TASK") {
     test_definition td;
 
     std::set<size_t> primary = {0, 1, 4, 5};
@@ -186,7 +186,7 @@ vertex_closure() {
 
 int
 closure_driver() {
-  UNIT {
+  UNIT() {
     EXPECT_EQ(test<cell_to_cell_thru_vertices>(), 0);
     EXPECT_EQ(test<cell_to_cell_thru_edges>(), 0);
     EXPECT_EQ(test<cell_closure_thru_vertices>(), 0);

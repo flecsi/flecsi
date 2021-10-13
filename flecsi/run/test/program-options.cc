@@ -39,7 +39,7 @@ flecsi::program_option<bool> bpo("Custom Options",
 
 int
 program_options() {
-  UNIT {
+  UNIT() {
     ASSERT_EQ(po.value(), 1);
     ASSERT_FALSE(spo.has_value());
     ASSERT_FALSE(bpo.has_value());

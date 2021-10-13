@@ -124,7 +124,7 @@ unstructured::cslot coloring;
 
 int
 unstructured_driver() {
-  UNIT {
+  UNIT() {
     coloring.allocate("simple2d-8x8.msh");
     mesh.allocate(coloring.get());
 

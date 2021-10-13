@@ -59,8 +59,9 @@ struct not_fn { // default-constructed std::not_fn
 
 struct state_t {
 
-  state_t(std::string name) {
+  state_t(std::string name, std::string label) {
     name_ = name;
+    label_ = label;
   } // initialize
   state_t(state_t &&) = delete;
 
@@ -69,12 +70,12 @@ struct state_t {
 
     if(result_) {
       std::stringstream stream;
-      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << std::endl;
+      stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
     else {
-      flog(utility) << FLOG_OUTPUT_LTGREEN("TEST PASSED " << name_)
+      flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
                     << FLOG_COLOR_PLAIN << std::endl;
     } // if
   } // process
@@ -141,6 +142,7 @@ struct state_t {
 private:
   int result_ = 0;
   std::string name_;
+  std::string label_;
   std::stringstream error_stream_;
 
 }; // struct state_t
@@ -204,10 +206,16 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 } // namespace util
 } // namespace flecsi
 
-#define UNIT                                                                   \
+inline std::string
+label_default(std::string s) {
+  return (s.empty() ? "TEST" : s);
+}
+
+#define UNIT(...)                                                              \
   ::flecsi::flog::state::instance().config_stream().add_buffer(                \
     "flog", std::clog, true);                                                  \
-  ::flecsi::util::unit::state_t auto_unit_state(__func__);                     \
+  ::flecsi::util::unit::state_t auto_unit_state(                               \
+    __func__, label_default({__VA_ARGS__}));                                   \
   return auto_unit_state->*[&]() -> void
 
 #define UNIT_TYPE(name) ::flecsi::util::demangle((name))
@@ -299,7 +307,7 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 #define UNIT_ASSERT(ASSERTION, ...)                                            \
   ASSERT_##ASSERTION(__VA_ARGS__) << UNIT_DUMP()
 #else
-  // MSVC has a brain-dead preprocessor...
+// MSVC has a brain-dead preprocessor...
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
 #endif
 
@@ -308,7 +316,7 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 #define UNIT_EXPECT(EXPECTATION, ...)                                          \
   EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
 #else
-  // MSVC has a brain-dead preprocessor...
+// MSVC has a brain-dead preprocessor...
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 

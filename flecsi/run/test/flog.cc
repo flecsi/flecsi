@@ -18,7 +18,7 @@ using namespace flecsi;
 
 int
 log_driver() {
-  UNIT {
+  UNIT() {
     {
       std::vector<std::size_t> v;
       for(std::size_t i{0}; i < 10; ++i) {
