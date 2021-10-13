@@ -40,12 +40,22 @@ namespace flecsi::run {
 
 inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
+// force_rank_match: mapper tag that will force 1-to-1 MPI-to-Legion mapping;
+// compacted_storage:  mapper tag that is used for creating compacted Regions;
+// subrank_launch: mapper tag that is used for nested tasks, not supported in
+// FleCSI yet;
+// exclusive_lr: mapper tag that is used to mark first region in compacted
+//              instance;
+// prefer_gpu, prefer_omp:  tags, that are used to specify what is apreferred
+//              processor type;
 constexpr Legion::MappingTagID force_rank_match = 0x00001000,
+#if 0
                                compacted_storage = 0x00002000,
                                subrank_launch = 0x00003000,
+#endif
                                exclusive_lr = 0x00004000,
                                prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
-}
+} // namespace mapper
 
 namespace leg {
 template<class R = void>

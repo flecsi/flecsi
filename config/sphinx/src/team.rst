@@ -83,30 +83,6 @@ David Daniel
 
 |clearboth|
 
-Irina Demeshko
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/irina.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Irina is a computational scientist and Co-Design Team lead. Her
-      research interests are focused on new HPC technologies in
-      application and large-scale scientific simulation codes. Her
-      current work is directed at integrating task-based runtime systems
-      into several software projects at LANL, including the FleCSI and
-      CANGA projects.
-
-|clearboth|
-
 Davis Herring
 ++++++++++++++
 
@@ -198,26 +174,6 @@ Julien Loiseau
 
 |clearboth|
 
-Charles Ferenbaugh
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/charles.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Charles is ...
-
-|clearboth|
-
-
 Jonathan Graham
 +++++++++++++++
 
@@ -273,6 +229,35 @@ Li-Ta (Ollie) Lo
 
 |clearboth|
 
+Sumathi Lakshmiranganatha
++++++++++++++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/sumathi.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Sumathi is a computational scientist in the Co-Design team.
+      Her research interests include high-performance computing, machine
+      learning models, real-time simulations and analysis for large
+      scientific applications. She received her PhD in Electrical
+      Engineering from the University of Wyoming in 2021. Her PhD work was
+      focused on HPC and machine learning techniques to reduce the
+      computational burden in analyzing the dynamics of complex systems.
+      She also worked on porting and optimization of MPAS atmosphere weather
+      model on to GPU architectures using OpenACC. She is currently working
+      adding shared memory programming model support to FleCSI using Kokkos
+      and integration of FleCSI to the CANGA project.
+
+|clearboth|
+
 Alumni
 ******
 
@@ -305,6 +290,53 @@ Nick Moss
 
 |clearboth|
 
+Irina Demeshko
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/irina.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Irina is a computational scientist and former Co-Design Team lead. Her
+      research interests are focused on new HPC technologies in
+      application and large-scale scientific simulation codes. Her
+      current work at LANL was directed at integrating task-based runtime systems
+      into several software projects at LANL, including the FleCSI and
+      CANGA projects.
+
+|clearboth|
+
+Charles Ferenbaugh
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/charles.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Charles Ferenbaugh is a computer scientist and software engineer
+      on HPC code projects in LANL's Advanced Simulation and Computing
+      program. He currently contributes to two large multiphysics code
+      projects: the Eulerian Applications Project and the Ristra/Next
+      Generation Code Project. He has also been a part of LANL research
+      efforts in advanced architectures and programming models.
+
+|clearboth|
 
 Karen Tsai
 ++++++++++
