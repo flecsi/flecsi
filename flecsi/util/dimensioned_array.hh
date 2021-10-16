@@ -42,8 +42,7 @@ enum class axis : Dimension { x = 0, y = 1, z = 2 };
 
 //----------------------------------------------------------------------------//
 //! The dimensioned_array type provides a general base for defining
-//! contiguous array types that have a specific dimension.  Please look at
-//! the \ref point and \ref vector types for an example of its use.
+//! contiguous array types that have a specific dimension.
 //!
 //! @tparam TYPE      The type of the array, e.g., P.O.D. type.
 //! @tparam DIMENSION The dimension of the array, i.e., the number of elements

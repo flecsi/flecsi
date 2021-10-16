@@ -148,10 +148,7 @@ public:
    created. This is different from Default mapper which will map Parent region,
    if it exists.
 
-   @param ctx Mapper Context
-   @param target_memory target memory for the instance to be allocated
    @param req Reqion requirement for witch instance is going to be allocated
-   @layout_constraints Layout constraints
   */
   virtual Legion::LogicalRegion default_policy_select_instance_region(
     Legion::Mapping::MapperContext,
@@ -424,7 +421,6 @@ public:
 
     @param ctx Mapper Context
     @param task Legion's task
-    @param input Input information about task mapping
     @param output Output information about task mapping
    */
 

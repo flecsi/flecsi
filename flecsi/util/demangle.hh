@@ -48,8 +48,6 @@ type() {
 /*!
   Return the demangled name of the type identified by type_info.
 
-  @param std::type_info The type.
-
   @ingroup utils
  */
 

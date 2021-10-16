@@ -307,7 +307,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   @param f    A callable object.
   @param comm An MPI communicator.
 
-  @return A std::vector<return_type>, where \rm return_type is the type
+  @return A \c std::vector<return_type>, where \em return_type is the type
           returned by the callable object.
  */
 

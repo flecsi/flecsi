@@ -140,7 +140,8 @@ begin() {
  * task.
  *
  * \tparam reg code region to tag (must inherit from
- * annotation::execute_task). \param std::string task_name name of task to
+ * annotation::execute_task).
+ * \param task_name name of task to
  * tag.
  */
 template<class reg>

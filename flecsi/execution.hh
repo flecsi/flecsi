@@ -109,7 +109,7 @@ option_value(any const & v) {
   The program_option type is a wrapper that implements a useful subset of
   Boost's Program Options utility. Creating an instance of this type at
   namespace scope will add a program option that can be queried after the
-  \ref initialize function is called.
+  \c initialize function is called.
  */
 
 template<typename ValueType>

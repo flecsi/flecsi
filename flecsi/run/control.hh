@@ -224,9 +224,6 @@ public:
     /*!
       Add a function to be executed under the specified control point.
 
-      @param target The target function.
-      @param label  The label for the function. This is used to label the node
-                    when the control model is printed with graphviz.
       @param args   A variadic list of arguments that are forwarded to the
                     user-defined node type, as spcified in the control policy.
      */
