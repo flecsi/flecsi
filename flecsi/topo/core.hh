@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! file */
-
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
