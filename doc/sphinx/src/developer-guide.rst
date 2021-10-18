@@ -403,6 +403,16 @@ This will build the *OS* image defined in *os/centos-8*.
 
 -----
 
+Published Documentation
++++++++++++++++++++++++
+The `project homepage`__ is a GitHub Pages site generated from `the current GitHub repository`__.
+The ``deploy-documentation`` Make target sets up a repository to update it by pushing to the appropriate branch.
+
+  __ http://www.flecsi.org/
+  __ https://github.com/flecsi/flecsi/tree/gh-pages
+
+-----
+
 Spack Cheat Sheet
 +++++++++++++++++
 
