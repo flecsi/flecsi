@@ -24,9 +24,7 @@ const intN::definition<topo::index> array_field;
 
 void
 modify(intN::accessor<wo> a) {
-  forall(i, util::span(*a), "modify") {
-    i = 3;
-  };
+  forall(i, util::span(*a), "modify") { i = 3; };
 }
 
 int

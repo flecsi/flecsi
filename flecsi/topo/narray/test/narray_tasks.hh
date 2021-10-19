@@ -26,9 +26,7 @@ void
 set_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
   auto c = m.mdspan<mesh1d::index_space::entities>(ca);
   auto clr = color();
-  forall(i, m.extents<mesh1d::axis::x_axis>(), "set_field_1d") {
-    c[i] = clr;
-  };
+  forall(i, m.extents<mesh1d::axis::x_axis>(), "set_field_1d") { c[i] = clr; };
 }
 
 void
