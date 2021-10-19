@@ -59,6 +59,8 @@ ForEachMacros:
   - Q_FOREACH
   - BOOST_FOREACH
   - UNIT
+  - forall
+  - reduceall
 IncludeCategories: 
   - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
     Priority:        2

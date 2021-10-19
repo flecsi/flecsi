@@ -137,20 +137,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     } // for
   }
 
-#if 0
-  static void init_csub(topo::connect_field::mutator<rw> own,
-    topo::connect_field::mutator<rw> exc,
-    topo::connect_field::mutator<rw> shr,
-    topo::connect_field::mutator<rw> ghs,
-    topo::unstructured_base::index_coloring const & cell_coloring) {
-    (void)own;
-    exc[flecsi::color()].resize(cell_coloring.exclusive.size());
-    shr[flecsi::color()].resize(cell_coloring.shared.size());
-    ghs[flecsi::color()].resize(cell_coloring.ghosts.size());
-  }
-#endif
-
-  static void init_c2v(topo::connect_field::mutator<rw, na> c2v,
+  static void init_c2v(topo::connect_field::mutator<wo, na> c2v,
     topo::unstructured_impl::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
@@ -168,7 +155,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     }
   }
 
-  static void init_v2c(topo::connect_field::mutator<rw, na> v2c,
+  static void init_v2c(topo::connect_field::mutator<wo, na> v2c,
     topo::connect_field::accessor<ro, na> c2v) {
     for(std::size_t c{0}; c < c2v.size(); ++c) {
       for(std::size_t v{0}; v < c2v[c].size(); ++v) {
@@ -296,9 +283,7 @@ update_pressure(fixed_mesh::accessor<ro, ro> m,
   field<int>::accessor<rw, rw> p) {
   flog(warn) << __func__ << std::endl;
   int clr = color();
-  forall(c, m.cells(), "pressure_c") {
-    p[c] = clr;
-  };
+  forall(c, m.cells(), "pressure_c") { p[c] = clr; };
 }
 
 void
@@ -325,9 +310,7 @@ update_density(fixed_mesh::accessor<ro, ro> m,
   field<double>::accessor<rw, rw> d) {
   flog(warn) << __func__ << std::endl;
   auto clr = color();
-  forall(v, m.vertices(), "density_c") {
-    d[v] = clr;
-  };
+  forall(v, m.vertices(), "density_c") { d[v] = clr; };
 }
 
 void
