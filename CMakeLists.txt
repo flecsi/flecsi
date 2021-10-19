@@ -139,7 +139,11 @@ if(NOT FORMAT_ONLY)
 
   include(legion)
   include(mpi)
+
+  set(METIS_VERSION 5.1)
+  set(PARMETIS_VERSION 4.0)
   include(parmetis)
+
   include(hpx)
   include(openmp)
   include(hdf5)
