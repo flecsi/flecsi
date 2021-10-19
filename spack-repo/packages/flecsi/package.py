@@ -103,7 +103,8 @@ class Flecsi(CMakePackage):
 
     # HPX
 
-    depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
+    depends_on('hpx@1.7.1 cxxstd=17 malloc=system max_cpu_count=128 networking=mpi',
+         when='backend=hpx')
 
     #--------------------------------------------------------------------------#
     # Conflicts
