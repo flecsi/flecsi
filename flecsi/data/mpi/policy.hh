@@ -264,6 +264,10 @@ struct partition {
     return r->get_storage<T, ProcessorType>(fid, nelems);
   }
 
+  auto get_raw_storage(field_id_t fid, std::size_t item_size) const {
+    return r->get_storage<std::byte>(fid, nelems * item_size);
+  }
+
   template<topo::single_space>
   const partition & get_partition(field_id_t) const {
     return *this;

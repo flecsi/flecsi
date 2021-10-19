@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_IO_LEG_POLICY_HH
+#define FLECSI_IO_LEG_POLICY_HH
 
 /*!  @file */
 
@@ -24,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include <flecsi-config.h>
+#include "flecsi-config.h"
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
@@ -191,8 +192,9 @@ checkpoint_task(const Legion::Task * task,
 
 struct io_interface {
 
-  explicit io_interface(int num_files)
+  explicit io_interface(int ranks_per_file)
     : launch_space([&] {
+        int num_files = (processes() + ranks_per_file - 1) / ranks_per_file;
         // TODO:  allow for num_files != # of ranks
         assert(num_files == (int)processes());
         Legion::Rect<1> file_color_bounds(0, num_files - 1);
@@ -281,3 +283,5 @@ private:
 
 } // namespace io
 } // namespace flecsi
+
+#endif

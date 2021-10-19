@@ -32,6 +32,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
   set(io_HEADERS
+    mpi/policy.hh
     ${io_HEADERS}
   )
 
@@ -72,13 +73,13 @@ set(io_SOURCES
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
-
 add_unit(hdf5_restart
   SOURCES
     test/hdf5_restart.cc
   THREADS 4
 )
+
+if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 
 add_unit(io_metadata
   SOURCES
