@@ -31,7 +31,7 @@ modify(intN::accessor<wo> a) {
 
 int
 check(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
     }
@@ -40,7 +40,7 @@ check(intN::accessor<ro> a) {
 
 int
 reduce_vec(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     size_t res =
       reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
       up += i;
@@ -51,7 +51,7 @@ reduce_vec(intN::accessor<ro> a) {
 
 int
 kernel_driver() {
-  UNIT {
+  UNIT() {
     const auto ar = array_field(process_topology);
     execute<modify, default_accelerator>(ar);
     EXPECT_EQ(test<check>(ar), 0);

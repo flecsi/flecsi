@@ -26,7 +26,7 @@ using namespace flecsi;
 
 int
 naive_coloring() {
-  UNIT {
+  UNIT("TASK") {
     topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
     ASSERT_EQ(sd.dimension(), 2lu);
     ASSERT_EQ(sd.num_entities(0), 289lu);
@@ -181,7 +181,7 @@ naive_coloring() {
 
 int
 parmetis_colorer() {
-  UNIT {
+  UNIT("TASK") {
     using util::mpi::test;
     topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 
@@ -319,7 +319,7 @@ parmetis_colorer() {
 
 int
 coloring_driver() {
-  UNIT {
+  UNIT() {
     ASSERT_EQ((test<naive_coloring, mpi>()), 0);
     ASSERT_EQ((test<parmetis_colorer, mpi>()), 0);
     // ASSERT_EQ((test<dependency_closure, mpi>()), 0);

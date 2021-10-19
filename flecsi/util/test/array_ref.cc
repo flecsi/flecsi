@@ -18,7 +18,7 @@ using flecsi::util::span;
 
 int
 array_ref() {
-  UNIT {
+  UNIT() {
     using refd = span<const double>;
     using refc = span<const char>;
     using reff = span<const float>;

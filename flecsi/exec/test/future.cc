@@ -32,7 +32,7 @@ init(double a, double_field::accessor<wo> ga) {
 
 int
 check(future<double> x, double_field::accessor<ro> ga) {
-  UNIT {
+  UNIT("TASK") {
     static_assert(std::is_same_v<decltype(ga.get()), const double &>);
     ASSERT_EQ(x.get(), ga + 1 + color());
   };
@@ -61,7 +61,7 @@ reduction_task(int a, exec::launch_domain) {
 
 int
 future_driver() {
-  UNIT {
+  UNIT() {
     using namespace future_test;
 
     const auto energy = energy_field(global_topology);

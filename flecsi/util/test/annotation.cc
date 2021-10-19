@@ -38,7 +38,7 @@ wait() {
 
 int
 annotation_driver() {
-  UNIT {
+  UNIT() {
     namespace ann = flecsi::util::annotation;
 
     auto & c = run::context::instance();

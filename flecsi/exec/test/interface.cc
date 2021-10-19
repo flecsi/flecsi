@@ -21,7 +21,7 @@ using namespace flecsi::exec;
 
 int
 index_task(launch_domain) {
-  UNIT {
+  UNIT("TASK") {
     flog(info) << "program: " << program() << std::endl;
     flog(info) << "processes: " << processes() << std::endl;
     flog(info) << "process: " << process() << std::endl;
@@ -42,7 +42,7 @@ index_task(launch_domain) {
 
 int
 interface_driver() {
-  UNIT {
+  UNIT() {
     ASSERT_EQ(test<index_task>(launch_domain{processes() + 4}), 0);
     int task_return = test<index_task>(launch_domain{processes() + 4});
     ASSERT_EQ(task_return, 0);

@@ -31,26 +31,21 @@ mesh4d::cslot coloring4;
 
 int
 narray_driver() {
-  UNIT {
+  UNIT() {
+    mesh4d::coord indices{4, 4, 4, 4};
+    auto colors = topo::narray_utils::distribute(processes(), indices);
+    flog(warn) << flog::container{colors} << std::endl;
 
-    {
-      // 4D Mesh
-      mesh4d::coord indices{4, 4, 4, 4};
-      auto colors = topo::narray_utils::distribute(processes(), indices);
-      flog(warn) << flog::container{colors} << std::endl;
-
-      mesh4d::coord hdepths{1, 1, 1, 1};
-      mesh4d::coord bdepths{1, 1, 1, 1};
-      std::vector<bool> periodic{false, false, false, false};
-      bool diagonals = true;
-      mesh4d::coloring_definition cd = {
-        colors, indices, hdepths, bdepths, periodic, diagonals};
-      coloring4.allocate(cd);
-      m4.allocate(coloring4.get());
-      execute<check_4dmesh>(m4);
-    } // scope
-
-  }; // UNIT
+    mesh4d::coord hdepths{1, 1, 1, 1};
+    mesh4d::coord bdepths{1, 1, 1, 1};
+    std::vector<bool> periodic{false, false, false, false};
+    bool diagonals = true;
+    mesh4d::coloring_definition cd = {
+      colors, indices, hdepths, bdepths, periodic, diagonals};
+    coloring4.allocate(cd);
+    m4.allocate(coloring4.get());
+    execute<check_4dmesh>(m4);
+  };
 } // narray_driver
 
 flecsi::unit::driver<narray_driver> nd;

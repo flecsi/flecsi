@@ -29,7 +29,7 @@ using mc_2d = morton_curve<2, uint64_t>;
 
 int
 hilbert_sanity() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
 
     range_t range;
@@ -62,7 +62,7 @@ flecsi::unit::driver<hilbert_sanity> hilbert_driver;
 
 int
 hilbert_2d_rnd() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     // Test the generation 2D
     range_2d rge;
@@ -89,7 +89,7 @@ flecsi::unit::driver<hilbert_2d_rnd> hilbert_2d_rnd_driver;
 
 int
 hilbert_3d_rnd() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     // Test the generation
     range_t range;
@@ -134,7 +134,7 @@ flecsi::unit::driver<hilbert_3d_rnd> hilbert_3d_rnd_driver;
 
 int
 morton_sanity() {
-  UNIT {
+  UNIT() {
     range_t range;
     range[0] = {-1, -1, -1};
     range[1] = {1, 1, 1};
@@ -165,7 +165,7 @@ flecsi::unit::driver<morton_sanity> morton_driver;
 
 int
 morton_2d_rnd() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     // Test the generation 2d
     range_2d rge;
@@ -204,7 +204,7 @@ flecsi::unit::driver<morton_2d_rnd> morton_2d_rnd_driver;
 
 int
 morton_3d_rnd() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     range_t range;
 

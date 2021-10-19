@@ -23,7 +23,7 @@ using point_3d_t = util::point<double, 3>;
 
 int
 point_sanity() {
-  UNIT {
+  UNIT() {
     constexpr point_1d_t a1{-1.0};
     static_assert(-1.0 == a1[util::axis::x]);
 
@@ -42,7 +42,7 @@ flecsi::unit::driver<point_sanity> point_sanity_driver;
 
 int
 point_distance() {
-  UNIT {
+  UNIT() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
     double d = distance(a1, b1);
@@ -64,7 +64,7 @@ flecsi::unit::driver<point_distance> point_distance_driver;
 
 int
 point_midpoint() {
-  UNIT {
+  UNIT() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
     point_1d_t c1 = midpoint(a1, b1);

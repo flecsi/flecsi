@@ -26,7 +26,7 @@ using namespace flecsi;
 
 int
 compute_closure() {
-  UNIT {
+  UNIT("TASK") {
 #if 1
     const Color colors = 4;
     topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
@@ -180,7 +180,7 @@ compute_closure() {
 
 int
 closure_driver() {
-  UNIT { execute<compute_closure, mpi>(); };
+  UNIT() { execute<compute_closure, mpi>(); };
 }
 
 flecsi::unit::driver<closure_driver> driver;

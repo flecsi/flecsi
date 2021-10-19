@@ -42,7 +42,7 @@ void
 modify1(canon::accessor<ro> t, field<double>::accessor<rw> p) {
   forall(c, t.cells(), "modify1") {
     p[c] += 1;
-  }; // forall
+  };
 } // modify
 
 void

@@ -54,7 +54,7 @@ irows(intN::mutator<wo> r) {
 }
 int
 drows(double_at::mutator<wo> s) {
-  UNIT {
+  UNIT("TASK") {
     const auto me = color();
     const auto && m = s[0];
     for(std::size_t c = 0; c <= me; ++c)
@@ -132,7 +132,7 @@ check(double_field::accessor<ro> p,
   intN::accessor<ro> g,
   double_at::accessor<ro> sp,
   noisy::accessor<ro> n) {
-  UNIT {
+  UNIT("TASK") {
     const auto me = color();
     flog(info) << "check on " << me << std::endl;
     ASSERT_EQ(p, me);
@@ -154,7 +154,7 @@ check(double_field::accessor<ro> p,
 
 int
 part(short_part::mutator<wo> a) {
-  UNIT {
+  UNIT("TASK") {
     const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
     short sum = 0, chk = 0;
     unsigned digits = 0;
@@ -196,7 +196,7 @@ part(short_part::mutator<wo> a) {
 
 int
 index_driver() {
-  UNIT {
+  UNIT() {
     {
       region r({}, {});
       EXPECT_FALSE((r.ghost<privilege_pack<wo, wo, na>>(0)));
@@ -266,13 +266,13 @@ const field<double>::definition<spec_setopo_t> pressure;
 
 int
 init_set(field<double>::accessor<wo> p) {
-  UNIT { p[2] = 3; };
+  UNIT() { p[2] = 3; };
 } // init_set
 
 int
 set_driver() {
 
-  UNIT {
+  UNIT() {
 
     coloring.allocate();
     spec_setopo.allocate(coloring.get());
