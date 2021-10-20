@@ -170,8 +170,6 @@ private:
 } // namespace flecsi
 
 /*!
-  @def flog(severity)
-
   This handles all of the different logging modes for the insertion
   style logging interface.
 
@@ -219,8 +217,6 @@ private:
 #endif // FLOG_ENABLE_DEVELOPER_MODE
 
 /*!
-  @def flog_trace(stream)
-
   Method style interface for trace level severity log entries.
 
   @param stream The stream to be printed.
@@ -243,8 +239,6 @@ private:
     << stream
 
 /*!
-  @def flog_info(stream)
-
   Method style interface for info level severity log entries.
 
   @param stream The stream to be printed.
@@ -267,8 +261,6 @@ private:
     << stream
 
 /*!
-  @def flog_warn(stream)
-
   Method style interface for warn level severity log entries.
 
   @param stream The stream to be printed.
@@ -291,8 +283,6 @@ private:
     << stream
 
 /*!
-  @def flog_error(stream)
-
   Method style interface for error level severity log entries.
 
   @param stream The stream to be printed.
@@ -381,8 +371,6 @@ to_string(T const & t) {
 } // namespace flecsi::log
 
 /*!
-  @def fixme
-
   Alias for severity level warn.
 
   @ingroup flog
@@ -415,8 +403,6 @@ dumpstack() {
 } // namespace flecsi
 
 /*!
-  @def flog_fatal(message)
-
   Throw a runtime exception with the provided message.
 
   @param message The stream message to be printed.
@@ -452,8 +438,6 @@ dumpstack() {
   } /* scope */
 
 /*!
-  @def flog_assert(test, message)
-
   Clog assertion interface. Assertions allow the developer to catch
   invalid program state. This call will invoke flog_fatal if the test
   condition is false.
