@@ -42,7 +42,10 @@ endif()
 
 if(@ENABLE_PARMETIS@)
   find_package(METIS @METIS_VERSION@ REQUIRED)
+  set(preserve_PMT ${PARMETIS_TEST_RUNS})
+  set(PARMETIS_TEST_RUNS TRUE)
   find_package(ParMETIS @PARMETIS_VERSION@ REQUIRED)
+  set(PARMETIS_TEST_RUNS ${preserve_PMT})
 endif()
 
 if(@ENABLE_HDF5@)
