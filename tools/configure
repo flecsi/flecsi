@@ -23,6 +23,7 @@ runtime=legion
 cmake_args=""
 
 warn="-Wall -W -Werror"
+SCRIPT_GENERATOR="Unix Makefiles"
 SCRIPT_BUILD_TYPE=Debug
 SCRIPT_C_COMPILER=clang
 SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=4 $warn"
@@ -82,6 +83,9 @@ do
       SCRIPT_ENABLE_UNIT_TESTS="OFF"
       SCRIPT_ENABLE_DOCUMENTATION="OFF"
     ;;
+    ninja)
+      SCRIPT_GENERATOR="Ninja"
+    ;;
     legion|mpi|hpx)
       runtime=$1
     ;;
@@ -121,6 +125,7 @@ done
 
 echo "Executing:"
 echo "$cmake_mode" \
+  "-G$SCRIPT_GENERATOR" \
   "-DCMAKE_BUILD_TYPE=$SCRIPT_BUILD_TYPE" \
   "-DCMAKE_C_COMPILER=$SCRIPT_C_COMPILER" \
   "-DCMAKE_C_FLAGS=\"$SCRIPT_C_FLAGS\"" \
@@ -138,6 +143,7 @@ echo "$cmake_mode" \
 echo ""
 
 $cmake_mode \
+  -G"$SCRIPT_GENERATOR" \
   -DCMAKE_BUILD_TYPE=$SCRIPT_BUILD_TYPE \
   -DCMAKE_C_COMPILER=$SCRIPT_C_COMPILER \
   -DCMAKE_C_FLAGS="$SCRIPT_C_FLAGS" \
