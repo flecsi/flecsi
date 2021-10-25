@@ -96,7 +96,7 @@ struct specialization_base {
 
   // May be overridden by policy:
   using index_space = single_space;
-  using index_spaces = util::constants<elements>;
+  using index_spaces = has<elements>;
   template<class B>
   using interface = B; // otherwise, must inherit from B
 
