@@ -15,8 +15,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include <realm/logging.h>
-
 #include "control.hh"
 
 using namespace flecsi;

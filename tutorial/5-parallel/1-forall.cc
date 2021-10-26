@@ -16,7 +16,7 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include "../4-data/canonical.hh"
+#include "canonical.hh"
 #include "control.hh"
 
 // this tutorial is based on a 04-data/3-dence.cc tutorial example
@@ -39,18 +39,9 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 void
-modify1(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  forall(c, t.cells(), "modify1") {
-    p[c] += 1;
-  };
+modify(canon::accessor<ro> t, field<double>::accessor<rw> p) {
+  forall(c, t.cells(), "modify") { p[c] += 1; };
 } // modify
-
-void
-modify2(canon::accessor<ro> t, field<double>::accessor<rw> p) {
-  flecsi::exec::parallel_for(
-    t.cells(), KOKKOS_LAMBDA(auto c) { p[c] += 1; }, std::string("modify2"));
-} // modifyendif
-
 #endif
 
 void
@@ -75,8 +66,7 @@ advance() {
   // In case of Kookos bult with GPU, default execution space will be GPU
   // We rely on Legion moving data between devices for the legion back-end and
   // UVM for the MPI back-end
-  execute<modify1, default_accelerator>(canonical, pf);
-  execute<modify2, default_accelerator>(canonical, pf);
+  execute<modify, default_accelerator>(canonical, pf);
 #endif
   // cpu_task
   execute<print>(canonical, pf);

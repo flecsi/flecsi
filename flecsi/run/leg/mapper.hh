@@ -50,6 +50,11 @@ public:
    @param _runtime Legion runtime
    @param local processor type: currently supports only
            LOC_PROC and TOC_PROC
+
+   This constructor is different from a constructor in Default Mapper
+   because it sets up some information on which memory to use
+   depending on the Processor type (local_sysmemory,
+   local_zerobuffer, etc)
    */
 
   mpi_mapper_t(Legion::Machine machine,
@@ -62,38 +67,6 @@ public:
       machine(machine) {
     using namespace Legion;
     using namespace Legion::Mapping;
-    using legion_machine = Legion::Machine;
-    using legion_proc = Legion::Processor;
-
-    legion_machine::ProcessorQuery pq =
-      legion_machine::ProcessorQuery(machine).same_address_space_as(local);
-    for(legion_machine::ProcessorQuery::iterator pqi = pq.begin();
-        pqi != pq.end();
-        ++pqi) {
-      legion_proc p = *pqi;
-      if(p.kind() == legion_proc::LOC_PROC)
-        local_cpus.push_back(p);
-      else if(p.kind() == legion_proc::TOC_PROC)
-        local_gpus.push_back(p);
-      else if(p.kind() == legion_proc::OMP_PROC)
-        local_omps.push_back(p);
-      else
-        continue;
-
-      std::map<Realm::Memory::Kind, Realm::Memory> & mem_map = proc_mem_map[p];
-
-      legion_machine::MemoryQuery mq =
-        legion_machine::MemoryQuery(machine).has_affinity_to(p);
-      for(legion_machine::MemoryQuery::iterator mqi = mq.begin();
-          mqi != mq.end();
-          ++mqi) {
-        Realm::Memory m = *mqi;
-        mem_map[m.kind()] = m;
-
-        if(m.kind() == Realm::Memory::SYSTEM_MEM)
-          local_sysmem = m;
-      } // end for
-    } // end for
 
     // Get our local memories
     {
@@ -124,7 +97,6 @@ public:
     else {
       local_framebuffer = Memory::NO_MEMORY;
     }
-
     {
       flog::devel_guard guard(legion_mapper_tag);
       flog_devel(info) << "Mapper constructor" << std::endl
@@ -140,6 +112,10 @@ public:
    */
   virtual ~mpi_mapper_t(){};
 
+  /* This is the method to choose default Layout constraints.
+     FleCSI is currently uses SOA ordering, which is different from
+     the one in Default Mapper
+  */
   Legion::LayoutConstraintID default_policy_select_layout_constraints(
     Legion::Mapping::MapperContext ctx,
     Realm::Memory,
@@ -167,7 +143,10 @@ public:
   }
 
   /*!
-   Specialization of the default_policy_select_instance_region methid for FleCSI
+   Specialization of the default_policy_select_instance_region methid for
+   FleCSI. In case of FleCSI we want exact region that has been requested to be
+   created. This is different from Default mapper which will map Parent region,
+   if it exists.
 
    @param ctx Mapper Context
    @param target_memory target memory for the instance to be allocated
@@ -180,14 +159,8 @@ public:
     const Legion::RegionRequirement & req,
     const Legion::LayoutConstraintSet &,
     bool /* force_new_instances */,
-    bool meets_constraints) {
-    // If it is not something we are making a big region for just
-    // return the region that is actually needed
-    Legion::LogicalRegion result = req.region;
-    if(!meets_constraints || (req.privilege == REDUCE))
-      return result;
-
-    return result;
+    bool) {
+    return req.region;
   } // default_policy_select_instance_region
 
   /*!
@@ -241,7 +214,7 @@ public:
   /*!
    THis function will create PhysicalInstance for Reduction task
   */
-  void creade_reduction_instance(const Legion::Mapping::MapperContext ctx,
+  void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::Memory & target_mem,
@@ -251,17 +224,18 @@ public:
     Legion::TaskLayoutConstraintSet dummy_constraints;
 
     size_t instance_size = 0;
-    flog_assert(default_create_custom_instances(ctx,
-                  task.target_proc,
-                  target_mem,
-                  task.regions[indx],
-                  indx,
-                  dummy_fields,
-                  dummy_constraints,
-                  false /*need check*/,
-                  output.chosen_instances[indx],
-                  &instance_size),
-      " ERROR: FleCSI mapper failed to allocate reduction instance");
+    auto res = default_create_custom_instances(ctx,
+      task.target_proc,
+      target_mem,
+      task.regions[indx],
+      indx,
+      dummy_fields,
+      dummy_constraints,
+      false /*need check*/,
+      output.chosen_instances[indx],
+      &instance_size);
+    flog_assert(
+      res, " ERROR: FleCSI mapper failed to allocate reduction instance");
 
     flog_devel(info) << "task " << task.get_task_name()
                      << " allocates physical instance with size "
@@ -278,9 +252,16 @@ public:
     } // if
   } // create reduction instance
 
+#if 0
   /*!
-   THis function will create PhysicalInstance Unstructured mesh data havdle (
-    compacted Exclusive, SHared and Ghost)
+   This function will create compacted PhysicalInstance.
+
+   For example, it will return 1 instance for the unstructured 
+   topology with compacted+shared+ghost partitions.
+   This is currently unused feature that, potentially,
+   will be used if we have different partitions for
+   owned and not owned entries.
+
   */
   void create_compacted_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
@@ -292,7 +273,7 @@ public:
     using namespace Legion::Mapping;
 
     // check if instance was already created and stored in the
-    // local_instamces_ map
+    // local_instances_ map. If it is, use already created instance.
     const std::pair<Legion::LogicalRegion, Legion::Memory> key1(
       task.regions[indx].region, target_mem);
     auto & key2 = task.regions[indx].privilege_fields;
@@ -314,7 +295,6 @@ public:
     bool created;
 
     // creating physical instance for the compacted storaged
-
     flog_assert((task.regions.size() >= (indx + 2)),
       "ERROR:: wrong number of regions passed to the task wirth \
                the tag = compacted_storage");
@@ -361,9 +341,13 @@ public:
     } // for
     local_instances_[key1][key2] = result;
   } // create_compacted_instance
+#endif
 
   /*!
-   THis function will create PhysicalInstance for a task
+   This function will create regular PhysicalInstance for a task.
+   It will first check already created instances (checking
+   local_instances_) and create a new one only if it wasn't already created in
+   requested memory space
   */
   void create_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
@@ -427,11 +411,16 @@ public:
   } // create_instance
 
   /*!
-   Specialization of the map_task funtion for FLeCSI
-   By default, map_task will execute Legions map_task from DefaultMapper.
-   In the case the launcher has been tagged with the
-   \c compacted_storage tag, mapper will create single physical
-   instance for exclusive, shared and ghost partitions for each data handle
+   Specialization of the map_task funtion for FLeCSI.
+
+   The function has some FleCSI-specific features:
+
+   1) It specifies SOA ordering for new physical instances;
+
+   2) It stores information about already created instances
+      and avoids creating a new instance if possible;
+
+   3) It has logic on how to create compacted instances;
 
     @param ctx Mapper Context
     @param task Legion's task
@@ -503,14 +492,16 @@ public:
 
         // creating physical instance for the reduction task
         if(task.regions[indx].privilege == REDUCE) {
-          creade_reduction_instance(ctx, task, output, target_mem, indx);
+          create_reduction_instance(ctx, task, output, target_mem, indx);
         }
+#if 0 // this block is only used for compacted instances
         else if(task.regions[indx].tag == mapper::exclusive_lr) {
 
           create_compacted_instance(
             ctx, task, output, target_mem, layout_constraints, indx);
           indx = indx + 2;
         }
+#endif
         else {
           create_instance(
             ctx, task, output, target_mem, layout_constraints, indx);
@@ -523,6 +514,13 @@ public:
 
   } // map_task
 
+  /* This is a FleCSI specialization for the slice_task method
+    that specify how resources are choosen for the task.
+    In case of the Index task, it will specify what processes
+    should be used by each index point.
+    In particular, it provides FleCSI specific logic for how to map MPI tasks
+  */
+
   virtual void slice_task(const Legion::Mapping::MapperContext,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::SliceTaskInput & input,
@@ -532,6 +530,9 @@ public:
     using namespace mapper;
 
     switch(task.tag) {
+#if 0 // this is not supported in FleCSI yet
+      // when we launch subtasks
+      // this tag is used to map nested tasks
       case subrank_launch:
         // expect a 1-D index domain
         assert(input.domain.get_dim() == 1);
@@ -540,9 +541,10 @@ public:
         output.slices[0].domain = input.domain;
         output.slices[0].proc = task.target_proc;
         break;
-
-      case force_rank_match:
-      case compacted_storage: {
+#endif
+      case force_rank_match: /* MPI tasks or tasks that need 1-to-1 matching
+                                with MPI ranks*/
+      {
         // expect a 1-D index domain - each point goes to the corresponding node
         assert(input.domain.get_dim() == 1);
         LegionRuntime::Arrays::Rect<1> r = input.domain.get_rect<1>();
@@ -573,6 +575,7 @@ public:
         break;
       }
 
+      // general leaf tasks
       default:
         // We've already been control replicated, so just divide our points
         // over the local processors, depending on which kind we prefer
@@ -621,8 +624,6 @@ public:
   } // slice_task
 
 private:
-  std::map<Legion::Processor, std::map<Realm::Memory::Kind, Realm::Memory>>
-    proc_mem_map;
   Realm::Machine machine;
 
   // the map of the locac intances that have been already created

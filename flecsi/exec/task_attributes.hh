@@ -42,7 +42,7 @@ enum task_attributes_mask_t : TaskAttributes {
 }; // task_attributes_mask_t
 
 constexpr auto default_accelerator =
-#if defined(__NVCC__) || defined(__CUDACC__)
+#if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
 #else
   loc

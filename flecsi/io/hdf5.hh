@@ -1,13 +1,27 @@
-// Low-level HDF5 interface.
+/*
+    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
+   /@@/////  /@@          @@////@@ @@////// /@@
+   /@@       /@@  @@@@@  @@    // /@@       /@@
+   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
+   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
+   /@@       /@@/@@//// //@@    @@       /@@/@@
+   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
+   //       ///  //////   //////  ////////  //
 
-#ifndef FLECSI_IO_HDF5_HH
-#define FLECSI_IO_HDF5_HH
+   Copyright (c) 2016, Triad National Security, LLC
+   All rights reserved.
+                                                                              */
+#pragma once
 
-#include <string>
-
-#include "flecsi/flog.hh"
+/*! @file */
 
 #include <hdf5.h>
+#include <string>
+#ifdef H5_HAVE_PARALLEL
+#include <mpi.h>
+#endif
+
+#include "flecsi/flog.hh"
 
 namespace flecsi {
 inline flog::devel_tag io_tag("io");
@@ -16,9 +30,34 @@ namespace io {
 namespace detail {
 struct hdf5 {
   hdf5() noexcept : id(-1) {}
-  hdf5(const char * f, bool create)
-    : id(create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
-                : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
+
+  hdf5(const char * f, bool create) {
+    init(f, H5P_DEFAULT, create);
+  }
+
+#ifdef H5_HAVE_PARALLEL
+  hdf5(const char * f, MPI_Comm comm, bool create) {
+    hid_t file_access_plist_id = H5Pcreate(H5P_FILE_ACCESS);
+    H5Pset_fapl_mpio(file_access_plist_id, comm, MPI_INFO_NULL);
+
+    init(f, file_access_plist_id, create);
+
+    H5Pclose(file_access_plist_id);
+  }
+#endif
+
+  hdf5(hdf5 && h) noexcept {
+    id = std::exchange(h.id, -1);
+  }
+  ~hdf5() {
+    close();
+  }
+
+  void init(const char * f, hid_t file_access_plist_id, bool create) {
+    id =
+      (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
+              : H5Fopen(f, H5F_ACC_RDWR, file_access_plist_id));
+
     const auto v = create ? "create" : "open";
     if(*this) {
       flog::devel_guard guard(io_tag);
@@ -28,12 +67,6 @@ struct hdf5 {
     else {
       flog(error) << "H5F" << v << " failed: " << id << std::endl;
     }
-  }
-  hdf5(hdf5 && h) noexcept {
-    id = std::exchange(h.id, -1);
-  }
-  ~hdf5() {
-    close();
   }
 
   bool close() { // true if successfully closed
@@ -114,6 +147,15 @@ struct hdf5 {
   static hdf5 open(const std::string & file_name) {
     return {{file_name.c_str(), false}};
   }
+
+#ifdef H5_HAVE_PARALLEL
+  static hdf5 pcreate(const std::string & file_name, MPI_Comm comm) {
+    return {{file_name.c_str(), comm, true}};
+  }
+  static hdf5 popen(const std::string & file_name, MPI_Comm comm) {
+    return {{file_name.c_str(), comm, false}};
+  }
+#endif
 
   /// Must not be called repeatedly.
   /// \return whether the file was successfully closed
@@ -267,5 +309,3 @@ struct hdf5 {
 
 } // namespace io
 } // namespace flecsi
-
-#endif
