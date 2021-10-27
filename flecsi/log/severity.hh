@@ -48,12 +48,7 @@ struct utility {
     return false;
   }
 
-  static bool
-  format(std::stringstream & ss, const char * file, int line, bool devel) {
-    (void)ss;
-    (void)file;
-    (void)line;
-    (void)devel;
+  static bool format(std::stringstream &, const char *, int, bool) {
     return false;
   }
 }; // struct utility
