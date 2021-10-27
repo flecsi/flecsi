@@ -40,7 +40,6 @@ set(util_HEADERS
   serialize.hh
   set_intersection.hh
   set_utils.hh
-  static_verify.hh
   target.hh
   type_traits.hh
   unit.hh
