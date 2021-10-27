@@ -41,9 +41,13 @@ endif()
 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-Wno-parentheses NO_PARENTHESES)
+check_cxx_compiler_flag(-Wno-braced-scalar-init NO_BRACED_SCALAR_INIT)
 
 if(NO_PARENTHESES)
   add_compile_options(-Wno-parentheses)
+endif()
+if(NO_BRACED_SCALAR_INIT)
+  add_compile_options(-Wno-braced-scalar-init)
 endif()
 
 #------------------------------------------------------------------------------#
