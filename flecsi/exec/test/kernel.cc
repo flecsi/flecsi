@@ -41,7 +41,7 @@ reduce_vec(intN::accessor<ro> a) {
   UNIT {
     size_t res =
       reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
-      up += i;
+      up(i);
     };
     EXPECT_EQ(res, 3 * a.get().size());
   };
