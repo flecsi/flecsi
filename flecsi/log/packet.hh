@@ -71,12 +71,8 @@ struct packet_t {
       std::exit(1);
     } // if
 
-    strncpy(
-      bytes_.data(), reinterpret_cast<const char *>(&stamp.tv_sec), sec_bytes);
-
-    strncpy(bytes_.data() + sec_bytes,
-      reinterpret_cast<const char *>(&stamp.tv_usec),
-      usec_bytes);
+    std::memcpy(bytes_.data(), &stamp.tv_sec, sec_bytes);
+    std::memcpy(bytes_.data() + sec_bytes, &stamp.tv_usec, usec_bytes);
 
     std::ostringstream oss;
     if(msg)
@@ -85,12 +81,12 @@ struct packet_t {
     strcpy(bytes_.data() + sec_bytes + usec_bytes, oss.str().c_str());
   } // packet_t
 
-  time_t const & seconds() const {
-    return *reinterpret_cast<time_t const *>(bytes_.data());
+  time_t seconds() const {
+    return get<time_t>(bytes_.data());
   } // seconds
 
-  suseconds_t const & useconds() const {
-    return *reinterpret_cast<suseconds_t const *>(bytes_.data() + sec_bytes);
+  suseconds_t useconds() const {
+    return get<suseconds_t>(bytes_.data() + sec_bytes);
   } // seconds
 
   const char * message() {
@@ -111,6 +107,13 @@ struct packet_t {
   } // operator <
 
 private:
+  template<class T>
+  static T get(const void * p) {
+    T ret;
+    std::memcpy(&ret, p, sizeof ret);
+    return ret;
+  }
+
   std::array<char, packet_bytes> bytes_;
 
 }; // packet_t
