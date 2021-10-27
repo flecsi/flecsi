@@ -214,43 +214,5 @@ make_reduce(I i, std::string n) {
   ::flecsi::exec::make_reduce<R, T>(range, name)                               \
       ->*FLECSI_LAMBDA(auto && it, T & tmp)
 
-//----------------------------------------------------------------------------//
-//! Abstraction function for fine-grained, data-parallel interface.
-//!
-//! @tparam R range type
-//! @tparam FUNCTION    The calleable object type.
-//!
-//! @param r range over which to execute \a function
-//! @param function     The calleable object instance.
-//!
-//! @ingroup execution
-//----------------------------------------------------------------------------//
-
-template<class R, typename Function>
-inline void
-for_each(R && r, Function && function) {
-  std::for_each(r.begin(), r.end(), std::forward<Function>(function));
-} // for_each_u
-
-//----------------------------------------------------------------------------//
-//! Abstraction function for fine-grained, data-parallel interface.
-//!
-//! @tparam R range type
-//! @tparam Function    The calleable object type.
-//! @tparam Reduction   The reduction variabel type.
-//!
-//! @param r range over which to execute \a function
-//! @param function     The calleable object instance.
-//!
-//! @ingroup execution
-//----------------------------------------------------------------------------//
-
-template<class R, typename Function, typename Reduction>
-inline void
-reduce_each(R && r, Reduction & reduction, Function && function) {
-  for(const auto & e : r)
-    function(e, reduction);
-} // reduce_each_u
-
 } // namespace exec
 } // namespace flecsi
