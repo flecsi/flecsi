@@ -282,14 +282,3 @@ struct string_case_compare {
   // MSVC has a brain-dead preprocessor...
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
-
-// compare collections with varying levels of assertions
-#define UNIT_CHECK_EQUAL_COLLECTIONS(...)                                      \
-  ::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__)
-
-#define UNIT_ASSERT_EQUAL_COLLECTIONS(...)                                     \
-  ASSERT_TRUE(::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__) << UNIT_DUMP()
-
-#define UNIT_EXPECT_EQUAL_COLLECTIONS(...)                                     \
-  EXPECT_TRUE(::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__))        \
-    << UNIT_DUMP()
