@@ -97,10 +97,6 @@ struct packet_t {
     return bytes_.data();
   } // data
 
-  static constexpr size_t bytes() {
-    return sec_bytes + usec_bytes + FLOG_MAX_MESSAGE_SIZE;
-  } // bytes
-
   bool operator<(packet_t const & b) const {
     return this->seconds() == b.seconds() ? this->useconds() < b.useconds()
                                           : this->seconds() < b.seconds();
