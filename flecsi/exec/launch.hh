@@ -17,7 +17,6 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include "flecsi/util/type_traits.hh"
 
 #include <cstddef>
 #include <optional>

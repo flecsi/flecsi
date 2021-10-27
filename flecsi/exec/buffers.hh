@@ -23,6 +23,7 @@
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
 
