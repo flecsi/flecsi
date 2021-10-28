@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"

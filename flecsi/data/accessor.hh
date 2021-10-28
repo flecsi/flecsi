@@ -13,12 +13,6 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  This file contains implementations of field accessor types.
- */
-
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"

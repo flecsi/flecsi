@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none

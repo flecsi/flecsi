@@ -13,12 +13,6 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  This file defines data layouts.
- */
-
 #include <cstddef>
 
 namespace flecsi {

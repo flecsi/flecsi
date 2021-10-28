@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/topo/core.hh" // base
 #include "flecsi/topo/set/types.hh"
 

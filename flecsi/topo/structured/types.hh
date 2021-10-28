@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi/topo/structured/box_types.hh>
 
 namespace flecsi {

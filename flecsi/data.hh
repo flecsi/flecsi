@@ -13,13 +13,6 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  User interface to the FleCSI
-  data model.
- */
-
 #include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"

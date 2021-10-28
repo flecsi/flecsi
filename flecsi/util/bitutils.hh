@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <cstddef>
 #include <limits>
 #include <type_traits>

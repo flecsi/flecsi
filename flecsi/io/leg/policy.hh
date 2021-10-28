@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include <cmath>
 #include <cstddef>
 #include <cstdint>

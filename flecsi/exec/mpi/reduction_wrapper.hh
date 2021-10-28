@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <cassert>
 #include <cstdint>
 #include <functional>

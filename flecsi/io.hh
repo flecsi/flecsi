@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "io/backend.hh"
 
 namespace flecsi::io {

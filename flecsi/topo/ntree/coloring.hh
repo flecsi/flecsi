@@ -12,8 +12,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <map>
 #include <vector>
 

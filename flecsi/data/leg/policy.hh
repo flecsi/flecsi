@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <array>
 #include <cstddef>
 #include <tuple>

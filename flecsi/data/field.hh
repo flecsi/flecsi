@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"

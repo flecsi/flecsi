@@ -6,11 +6,6 @@
 #ifndef box_utils_hh
 #define box_utils_hh
 
-//----------------------------------------------------------------------------//
-//! @file
-//! @date Initial file creation: Dec 05, 2017
-//----------------------------------------------------------------------------//
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>

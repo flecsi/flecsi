@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"

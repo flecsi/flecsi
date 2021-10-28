@@ -13,8 +13,6 @@ All rights reserved.
                                                             */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/execution.hh"

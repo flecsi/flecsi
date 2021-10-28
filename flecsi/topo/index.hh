@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/topo/size.hh"

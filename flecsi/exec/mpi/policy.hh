@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"

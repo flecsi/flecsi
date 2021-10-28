@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 namespace flecsi {
 namespace topo {
 

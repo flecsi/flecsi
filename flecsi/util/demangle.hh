@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <string>
 #include <typeinfo> // typeid()
 

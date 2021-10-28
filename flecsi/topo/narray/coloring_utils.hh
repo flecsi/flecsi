@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/types.hh"
 #include "flecsi/util/color_map.hh"

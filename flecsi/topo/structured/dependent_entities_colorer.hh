@@ -6,11 +6,6 @@
 #ifndef dependent_entities_colorer_hh
 #define dependent_entities_colorer_hh
 
-//----------------------------------------------------------------------------//
-//! @file
-//! @date Initial file creation: Dec 05, 2017
-//----------------------------------------------------------------------------//
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>

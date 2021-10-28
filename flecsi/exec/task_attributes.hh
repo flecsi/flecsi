@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/util/bitutils.hh"
 
 namespace flecsi {

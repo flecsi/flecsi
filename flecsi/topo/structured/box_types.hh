@@ -6,10 +6,6 @@
 #ifndef box_types_hh
 #define box_types_hh
 
-//----------------------------------------------------------------------------//
-//! @file
-//! @date Initial file creation: Dec 05, 2017
-//----------------------------------------------------------------------------//
 #include <array>
 #include <bitset>
 #include <cmath>

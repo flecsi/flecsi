@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
 

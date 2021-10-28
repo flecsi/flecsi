@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
 

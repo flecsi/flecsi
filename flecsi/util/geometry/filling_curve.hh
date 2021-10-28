@@ -15,8 +15,6 @@
 
 #include "flecsi/util/geometry/point.hh"
 
-/*! @file */
-
 namespace flecsi {
 
 /*----------------------------------------------------------------------------*

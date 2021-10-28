@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/task_attributes.hh"
 #include <flecsi-config.h>
 

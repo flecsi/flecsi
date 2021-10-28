@@ -230,8 +230,6 @@ This code block shows the implementation of the registration interface:
                                                                                 */
   #pragma once
 
-  /*! @file */
-
   #include <cinch-config.h>
 
   #if defined(CINCH_ENABLE_BOOST)
