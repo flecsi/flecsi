@@ -106,6 +106,7 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
   return Noisy::count;
 }
 
+// The unnamed mutator still allocates according to the growth policy.
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
