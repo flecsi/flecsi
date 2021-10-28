@@ -58,6 +58,7 @@ function(add_doxygen_target name)
     endforeach()
 
     add_custom_target(${name}
+      ${CMAKE_COMMAND} -E remove_directory '${CMAKE_BINARY_DIR}/doc/sphinx/doxygen/${name}' &&
       ${DOXYGEN} ${CMAKE_BINARY_DIR}/.doxygen/${name}/doxygen.conf
       DEPENDS ${dox_CONFIGS})
 
