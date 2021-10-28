@@ -35,7 +35,7 @@ set(data_HEADERS
 set(data_SOURCES
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
   set(data_HEADERS
     leg/copy.hh
@@ -47,7 +47,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     ${data_SOURCES}
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+elseif(FLECSI_BACKEND STREQUAL "mpi")
 
   set(data_HEADERS
     mpi/policy.hh
@@ -58,7 +58,7 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
     ${data_SOURCES}
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+elseif(FLECSI_BACKEND STREQUAL "hpx")
 
   set(data_HEADERS ${data_HEADERS}
   )

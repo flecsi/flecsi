@@ -206,9 +206,9 @@ To build a new docker image, you can execute the following:
 
 .. code-block:: console
 
-  $ docker build -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+  $ docker build -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
-where *TAG* and *RUNTIME* are replaced with a tag and a specific runtime
+where *TAG* and *BACKEND* are replaced with a tag and a specific
 backend, e.g., legion or mpi. The *TAG* argument may be any name that
 you would like to give the image. The default is *latest*.
 
@@ -218,7 +218,7 @@ everything from scratch. To do this, you can pass the *--no-cache* flag:
 
 .. code-block:: console
 
-  $ docker build --no-cache -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+  $ docker build --no-cache -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
 This is particularly useful if a repository has changed.
 
@@ -231,7 +231,7 @@ use a different repository and branch, you can specifiy them like:
 
   $ docker build --build-arg REPO=https://github.com/tuxfan/flecsi.git \
     --build-arg BRANCH=tutorial-update --no-cache \
-    -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+    -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
 where *REPO* is the git repo to use, and *BRANCH* is the branch name to
 use.

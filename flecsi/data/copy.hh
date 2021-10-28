@@ -5,7 +5,7 @@
 
 #include "flecsi/data/topology.hh"
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/data/leg/copy.hh"
 #endif
 

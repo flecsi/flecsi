@@ -37,20 +37,20 @@ struct prefixes_base {
 } // namespace flecsi::data
 
 /*----------------------------------------------------------------------------*
-  This section works with the build system to select the correct runtime
+  This section works with the build system to select the correct backend
   implemenation for the data model.
  *----------------------------------------------------------------------------*/
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 
 #include "flecsi/data/leg/policy.hh"
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 
 #include "flecsi/data/mpi/policy.hh"
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 
 #include "flecsi/data/hpx/policy.hh"
 
-#endif // FLECSI_RUNTIME_MODEL
+#endif // FLECSI_BACKEND

@@ -67,7 +67,7 @@
 #                   or '1.4'.
 #   MPI_PROVIDER:   The MPI provider. Generally this will be mpich, or openmpi.
 #   VERSION:  The version of FleCSI to use for spack build.
-#   VARIANTS: Spack variants not including the runtime.
+#   VARIANTS: Spack variants not including the backend.
 #------------------------------------------------------------------------------#
 
 .aux_print_env_info:
@@ -110,13 +110,13 @@
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
 #   BUILD_TYPE:   CMake build type, e.g., debug.
-#   RUNTIME:      FleCSI backend runtime.
+#   BACKEND:      FleCSI backend.
 #------------------------------------------------------------------------------#
 
 .aux_print_build_info:
   script: &print_build_info
     - >
-      echo -e "${COLOR_MAGENTA}Creating Build Environment\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n\t${COLOR_BLUE}Runtime: ${RUNTIME}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
+      echo -e "${COLOR_MAGENTA}Creating Build Environment\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n\t${COLOR_BLUE}Backend: ${BACKEND}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
 
 .build_template:
   stage: Build + Unit Tests
@@ -138,7 +138,7 @@
         -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" \
         -DCMAKE_C_COMPILER=${C_COMPILER} \
         -DCMAKE_C_FLAGS="${C_FLAGS}" \
-        -DFLECSI_RUNTIME_MODEL=${RUNTIME} \
+        -DFLECSI_BACKEND=${BACKEND} \
         ${CMAKE_OPTIONS} \
         ../..
     - make

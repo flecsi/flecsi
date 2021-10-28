@@ -64,7 +64,7 @@ mpich-defaults:
     IMAGE: rockylinux
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for Legion runtime with MPICH provider,
+# Build and unit tests for Legion backend with MPICH provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -80,7 +80,7 @@ mpich-legion-gnu:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Debug
-    RUNTIME: legion
+    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -99,7 +99,7 @@ mpich-legion-gnu:release:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Release
-    RUNTIME: legion
+    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -107,7 +107,7 @@ mpich-legion-gnu:release:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for MPI runtime with MPICH provider,
+# Build and unit tests for MPI backend with MPICH provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -123,7 +123,7 @@ mpich-mpi-gnu:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Debug
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -142,7 +142,7 @@ mpich-mpi-gnu:release:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Release
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -150,7 +150,7 @@ mpich-mpi-gnu:release:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
-# Tutorial tests for Legion runtime with MPICH provider,
+# Tutorial tests for Legion backend with MPICH provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -171,7 +171,7 @@ tutorial:legion:
     C_FLAGS: ${CXX_FLAGS}
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for Legion runtime with OpenMPI provider,
+# Build and unit tests for Legion backend with OpenMPI provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -187,7 +187,7 @@ openmpi-legion-gnu:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Debug
-    RUNTIME: legion
+    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -206,7 +206,7 @@ openmpi-legion-gnu:release:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Release
-    RUNTIME: legion
+    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -214,7 +214,7 @@ openmpi-legion-gnu:release:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for MPI runtime with OpenMPI provider,
+# Build and unit tests for MPI backend with OpenMPI provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -230,7 +230,7 @@ openmpi-mpi-gnu:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Debug
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -249,7 +249,7 @@ openmpi-mpi-gnu:release:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     BUILD_TYPE: Release
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
@@ -257,7 +257,7 @@ openmpi-mpi-gnu:release:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for Legion runtime with MPICH provider,
+# Build and unit tests for Legion backend with MPICH provider,
 # and Clang compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -273,7 +273,7 @@ mpich-legion-clang:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: fedora-34
     BUILD_TYPE: Debug
-    RUNTIME: legion
+    BACKEND: legion
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
@@ -281,7 +281,7 @@ mpich-legion-clang:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for MPI runtime with MPICH provider,
+# Build and unit tests for MPI backend with MPICH provider,
 # and Clang compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -297,7 +297,7 @@ mpich-mpi-clang:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: fedora-34
     BUILD_TYPE: Debug
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
@@ -305,7 +305,7 @@ mpich-mpi-clang:
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
-# Build and unit tests for MPI runtime with OpenMPI provider,
+# Build and unit tests for MPI backend with OpenMPI provider,
 # and Clang compiler toolchain.
 #------------------------------------------------------------------------------#
 
@@ -321,7 +321,7 @@ openmpi-mpi-clang:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: fedora-34
     BUILD_TYPE: Debug
-    RUNTIME: mpi
+    BACKEND: mpi
     CXX_COMPILER: clang++
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang

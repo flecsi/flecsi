@@ -103,33 +103,33 @@ if(NOT FORMAT_ONLY)
   include(coverage)
 
   #----------------------------------------------------------------------------#
-  # Add options for runtime selection
+  # Add options for backend selection
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_RUNTIME_MODELS legion mpi hpx)
+  set(FLECSI_BACKENDS legion mpi hpx)
 
-  if(NOT FLECSI_RUNTIME_MODEL)
-    list(GET FLECSI_RUNTIME_MODELS 0 FLECSI_RUNTIME_MODEL)
+  if(NOT FLECSI_BACKEND)
+    list(GET FLECSI_BACKENDS 0 FLECSI_BACKEND)
   endif()
 
-  set(FLECSI_RUNTIME_MODEL "${FLECSI_RUNTIME_MODEL}" CACHE STRING
-    "Select the runtime model")
-  set_property(CACHE FLECSI_RUNTIME_MODEL
-    PROPERTY STRINGS ${FLECSI_RUNTIME_MODELS})
+  set(FLECSI_BACKEND "${FLECSI_BACKEND}" CACHE STRING
+    "Select the backend")
+  set_property(CACHE FLECSI_BACKEND
+    PROPERTY STRINGS ${FLECSI_BACKENDS})
 
   #----------------------------------------------------------------------------#
-  # Runtime defaults.
+  # Backend defaults.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+  if(FLECSI_BACKEND STREQUAL "mpi")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+  elseif(FLECSI_BACKEND STREQUAL "legion")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+  elseif(FLECSI_BACKEND STREQUAL "hpx")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
@@ -184,8 +184,8 @@ if(NOT FORMAT_ONLY)
   endforeach()
   mark_as_advanced(DL_LIB)
 
-  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_RUNTIME_LIBRARIES})
-  #set(FLECSI_RUNTIME_LIBRARIES)
+  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_BACKEND_LIBRARIES})
+  #set(FLECSI_BACKEND_LIBRARIES)
 
   #----------------------------------------------------------------------------#
   # FLOG and FTEST
@@ -330,7 +330,7 @@ if(NOT FORMAT_ONLY)
   # HPX extra.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+  if(FLECSI_BACKEND STREQUAL "hpx")
     hpx_setup_target(FleCSI NONAMEPREFIX)
   endif()
 
@@ -356,7 +356,7 @@ if(NOT FORMAT_ONLY)
   if(${PROJECT_NAME}_COMMITS)
     summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
   endif()
-  summary_info("FLECSI_RUNTIME_MODEL" "${FLECSI_RUNTIME_MODEL}" TRUE)
+  summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
   summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
     " (FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL})")
   summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
