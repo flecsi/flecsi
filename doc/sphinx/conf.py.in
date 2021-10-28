@@ -24,10 +24,6 @@ source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser'
 }
 
-# This is required for the Breathe configuration
-#breathe_projects = { "FleCSI": "@CMAKE_BINARY_DIR@/doc/doxygen/xml" }
-#breathe_default_project = "FleCSI"
-
 # Master toctree document
 master_doc = 'index'
 
