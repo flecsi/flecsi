@@ -43,9 +43,8 @@ Topologies
 The primary capability that FleCSI provides is the definition and
 implementation of several distributed-memory topology types. In very
 general terms, a topology is just a C++ type that defines one or more
-index spaces, each of which has one or more user-registered fields. With
-FleCSI, you can *register* instances of a topology type with the
-runtime, which are then available during execution to do work.
+index spaces, each of which has one or more user-registered fields.
+Any number of instances may be created of any topology.
 
 .. admonition:: Definition
 
@@ -69,25 +68,21 @@ the global and index topologies:
 
   using namespace flecsi;
 
-  /* Register a field on the index topology */
-  flecsi_register_global_field("solver", "tolerance", double, 1);
+  using double_field = field<double, data::single>;
 
-  /* Register a field on the index topology */
-  flecsi_register_index_field("hydro", "index_data", double, 2);
+  namespace solver {
+    const double_field::definition<topo::global> tolerance;
+  }
+  namespace hydro {
+    const double_field::definition<topo::index> index_data[2];
+  }
 
-The first macro in this example registers a field called *tolerance* in
-namespace *solver* with type *double*. The last argument (*1*) indicates
-the number of versions of the field that should exist *(Versions are
-a useful mechanism for defining data that logically have multiple states
-under the same variable name, e.g., in a multi-step time evolution
-method.)*
+The first variable declaration in this example registers a field called ``solver::tolerance`` with type ``double``.
+The second registers two fields called ``hydro::index_data`` with type ``double``.
+(An array of fields can be used for data that logically have multiple states, as in a multi-step time evolution method.)
 
-The second macro registers a field called *index_data* in namespace
-*hydro* with type *double*, and two versions *(We will see how to specify
-which version to retrieve later on.)*
-
-In both cases, the user does not need to explicitly specify the topology
-type or index space. As we will see, this is necessary for more complex
+In both cases, the user does not need to explicitly specify index space.
+As we will see, this is necessary for more complex
 topology types that can be customized by a *specialization*.
 
 Logically, registering a field against a topology type, adds that field
@@ -110,14 +105,18 @@ defined for the FleCSI index topology, we would register them like so:
 
 .. code-block:: cpp
 
-  flecsi_register_index_field("radiation", "field_a", double, 1);
-  flecsi_register_index_field("radiation", "field_b", int, 1);
+  namespace radiation {
+    const field<double, data::single>::definition<topo::index> field_a;
+    const field<int, data::single>::definition<topo::index> field_b;
+  }
 
 Optionally, we could also just register the field_data_t struct:
 
 .. code-block:: cpp
 
-  flecsi_register_index_field("radiation", "fields", field_data_t, 1);
+  namespace radiation {
+    const field<field_data_t, data::single>::definition<topo::index> fields;
+  }
 
 Both of these methods of registering fields are valid, and it is left up
 to the user to decide which way makes the most sense. The performance
@@ -147,9 +146,8 @@ As stated above, the index topology has a single implicit index space.
 For the index topology, we can think of the implicit index space as just
 being the indices, with a particular instance being defined by its size.
 
-So far, in our examples we have been using the default *instance* of the
-index topology. This topology instance has an implicit coloring that
-assigns each index of the topology's indices to its own id, i.e.,
+The index topology also has an implicit coloring that
+assigns each index of the topology's indices to its own color, i.e.,
 index 0 is assigned to color 0, etc. This simple example illustrates the
 definition of a coloring:
 
@@ -180,12 +178,10 @@ the global topology.)* Let's see how:
 
   using namespace flecsi;
 
-  // Namespace scope
+  topo::index::slot hydro_indices;
 
-  /* Register a named instance of the index topology. */
-  flecsi_register_topology(index_t, "toplogies", "hydro indices");
-
-  // Top-level action scope
-
+  void initialize() {  // called from the top-level action
+    hydro_indices.allocate(42);
+  }
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
