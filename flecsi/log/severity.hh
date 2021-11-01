@@ -37,10 +37,7 @@ verbose(const char * file, int line) {
 
 #define thread_stamp " t" << std::this_thread::get_id()
 
-//----------------------------------------------------------------------------//
-// utility
-//----------------------------------------------------------------------------//
-
+// Displays messages without decoration.
 struct utility {
   static constexpr bool strip() {
     return false;

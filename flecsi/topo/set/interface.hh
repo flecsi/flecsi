@@ -19,14 +19,6 @@
 namespace flecsi {
 namespace topo {
 
-//----------------------------------------------------------------------------//
-// Mesh topology.
-//----------------------------------------------------------------------------//
-
-/*!
-  @ingroup topology
- */
-
 template<typename Policy>
 struct set : set_base {};
 

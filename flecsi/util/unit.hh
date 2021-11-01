@@ -23,12 +23,6 @@
 namespace flecsi {
 namespace unit {
 
-/*!
-  The test_control_points_enum type is part of the control
-  specialization for FleCSI's unit test fraemwork. It provides indices
-  for the available control points in a unit test.
- */
-
 enum class test_control_points {
   initialization,
   driver,
@@ -46,12 +40,6 @@ inline const char * operator*(test_control_points cp) {
   }
   flog_fatal("invalid unit test control point");
 }
-
-/*!
-  The control_policy type defines the control policy for
-  the FleCSI unit test framework. It is a good example of a non-cycling
-  control flow that provides basic control points.
- */
 
 struct control_policy {
 

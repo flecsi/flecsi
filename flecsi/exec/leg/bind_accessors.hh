@@ -45,13 +45,6 @@ namespace exec::leg {
 
 struct bind_accessors {
 
-  /*!
-    Construct an bind_accessors instance.
-
-    @param legion_runtime The Legion task runtime.
-    @param legion_context The Legion task runtime context.
-   */
-
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
     std::vector<Legion::PhysicalRegion> const & regions,

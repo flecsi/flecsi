@@ -78,26 +78,12 @@ public:
     return dimension == 0 ? num_vertices_ : num_cells_;
   }
 
-  /*!
-    Return the set of vertices that make up all cells
-
-    @param [in] from_dim the entity dimension to query
-    @param [in] to_dim the dimension of entities we wish to return
-   */
-
   const std::vector<std::vector<std::size_t>> & entities(Dimension from_dim,
     Dimension to_dim) const {
     flog_assert(from_dim == 3, "invalid dimension " << from_dim);
     flog_assert(to_dim == 0, "invalid dimension " << to_dim);
     return ids_;
   }
-
-  /*!
-    Return the set of vertices of a particular entity.
-
-    @param [in] dimension  the entity dimension to query.
-    @param [in] entity_id  the id of the entity in question.
-   */
 
   std::vector<size_t>
   entities(Dimension from_dim, Dimension to_dim, std::size_t entity_id) const {

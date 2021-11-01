@@ -134,11 +134,6 @@ parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
 #endif
 } // parallel_for
 
-/*!
-  The forall type provides a pretty interface for invoking data-parallel
-  execution.
- */
-
 template<typename Range>
 struct forall_t {
   template<typename Callable>
@@ -199,10 +194,6 @@ parallel_reduce(Range && range,
 
 } // parallel_reduce
 
-/*!
-  The reduce_all type provides a pretty interface for invoking data-parallel
-  reductions.
- */
 template<class Range, class R, class T>
 struct reduceall_t {
   template<typename Lambda>

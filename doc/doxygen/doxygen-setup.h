@@ -102,24 +102,6 @@
  * @defgroup topology Topology Interface
  **/
 
-/**
- * Define the Mesh Topology group.
- * @defgroup mesh-topology Mesh Toplogy Interface
- * @ingroup topology
- **/
-
-/**
- * Define the Structured Mesh Topology group.
- * @defgroup structured-mesh-topology Structured Mesh Toplogy Interface
- * @ingroup topology
- **/
-
-/**
- * Define the Tree Topology group.
- * @defgroup tree-topology Tree Toplogy Interface
- * @ingroup topology
- **/
-
 //----------------------------------------------------------------------------//
 // Utilities
 //----------------------------------------------------------------------------//
@@ -127,15 +109,6 @@
 /**
  * Define the utilities group.
  * @defgroup utils Utilities Interface
- **/
-
-//----------------------------------------------------------------------------//
-// FleCSI Tutorial
-//----------------------------------------------------------------------------//
-
-/**
- * Define the FleCSI Tutorial group.
- * @defgroup tutorial FleCSI Tutorial Examples
  **/
 
 //----------------------------------------------------------------------------//

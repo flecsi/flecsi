@@ -127,15 +127,6 @@ using run::leg::task;
 namespace detail {
 inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
   run::FLECSI_TOP_LEVEL_TASK_ID);
-/*!
-  Register a task with Legion.
-
-  @tparam RETURN The return type of the task.
-  @tparam TASK   The legion task.
-  \tparam A task attributes
-
-  @ingroup legion-execution
- */
 
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();

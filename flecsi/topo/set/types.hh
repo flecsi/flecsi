@@ -16,14 +16,6 @@
 namespace flecsi {
 namespace topo {
 
-//----------------------------------------------------------------------------//
-// Mesh topology.
-//----------------------------------------------------------------------------//
-
-/*!
-  @ingroup topology
- */
-
 struct set_base {
   using coloring = size_t;
 }; // set_base

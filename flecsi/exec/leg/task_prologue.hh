@@ -48,12 +48,6 @@ struct task_prologue {
   } // future_maps
 
 private:
-  /*!
-    Convert the template privileges to proper Legion privileges.
-
-    @param mode privilege
-   */
-
   static Legion::PrivilegeMode privilege_mode(Privileges mode) {
     // Reduce the read and write permissions for each privilege separately:
     bool r = false, w = false;

@@ -71,7 +71,6 @@ inline constexpr bool is_trivially_move_constructible_v =
   std::is_move_constructible_v<move_check<T>>;
 } // namespace detail
 
-/// Identifies a field on a particular topology instance.
 template<class Topo>
 struct field_reference_t : convert_tag {
   using Topology = Topo;
@@ -93,7 +92,7 @@ private:
 
 }; // struct field_reference
 
-/// A \c field_reference is a \c field_reference_t with more type information.
+/// Identifies a field on a particular topology instance.
 /// Declare a task parameter as an \c accessor to use the field.
 /// \tparam T data type (merely for type safety)
 /// \tparam L data layout (similarly)

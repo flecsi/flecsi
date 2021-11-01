@@ -173,10 +173,6 @@ private:
 
   @param severity The severity level of the log entry.
 
-  @note The form "true && ..." is necessary for tertiary argument
-        evaluation so that the std::ostream & returned by the stream()
-        function can be implicitly converted to an int.
-
   @b Usage
   @code
   int value{20};
@@ -192,7 +188,7 @@ private:
  */
 
 #define flog(severity)                                                         \
-  true &&                                                                      \
+  true && /* implicitly converts remainder to bool */                          \
     ::flecsi::log::message<flecsi::log::severity>(__FILE__, __LINE__).format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
