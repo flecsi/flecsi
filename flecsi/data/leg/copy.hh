@@ -24,7 +24,7 @@ struct mirror {
   explicit mirror(size2 region);
 
   // Convert a prefixes_base::Field into a halves::Field.
-  // Return the partition to use to get each rectangle separately.
+  // Return the resulting two-subspace used/unused partition.
   template<class F>
   const partition<> & convert(F f) {
     execute<extend>(f, halves::field(rects), width);
