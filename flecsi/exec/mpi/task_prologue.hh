@@ -46,7 +46,7 @@ protected:
   // to future<R, single> in the generic code.
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
-    future<R, exec::launch_type_t::index> & index) {
+    const future<R, exec::launch_type_t::index> & index) {
     single.fut = make_ready_future(index.result);
   }
 
