@@ -32,6 +32,8 @@ namespace data {
 
   \tparam T topology type
   \tparam Priv privilege pack
+
+  \note Usually accessed as \c T::accessor.
  */
 template<class T, Privileges Priv>
 struct topology_accessor
