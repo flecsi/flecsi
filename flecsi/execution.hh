@@ -377,17 +377,6 @@ reduce(Args &&... args) {
     std::forward<Args>(args)...);
 } // reduce
 
-/*!
-  Execute a reduction task.
-
-  @tparam TASK                The user task.
-  @tparam REDUCTION_OPERATION The reduction operation type.
-  @tparam ATTRIBUTES          The task attributes mask.
-  @tparam ARGS                The user-specified task arguments.
-
-  \see \c execute about parameter and argument types.
- */
-
 template<auto & TASK, TaskAttributes ATTRIBUTES, typename... ARGS>
 auto
 execute(ARGS &&... args) {
