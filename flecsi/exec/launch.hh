@@ -188,9 +188,9 @@ struct partial : std::tuple<AA...> {
 } // namespace exec
 
 template<auto & F, class... AA>
-constexpr exec::partial<F, AA...>
-make_partial(const AA &... aa) {
-  return {aa...};
+constexpr exec::partial<F, std::decay_t<AA>...>
+make_partial(AA &&... aa) {
+  return {std::forward<AA>(aa)...};
 }
 
 /*!
