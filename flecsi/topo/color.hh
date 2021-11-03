@@ -6,6 +6,8 @@
 #include "flecsi/data/topology.hh"
 
 namespace flecsi::topo {
+/// \addtogroup topology
+/// \{
 
 // A topology with a fixed number of index points per color.
 // Used for defining (and, for Legion, setting) the per-row sizes of other
@@ -23,6 +25,7 @@ struct detail::base<color> {
   using type = color_base;
 };
 
+/// \}
 } // namespace flecsi::topo
 
 #endif

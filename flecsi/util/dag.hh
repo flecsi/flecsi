@@ -31,6 +31,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 namespace dag_impl {
 
@@ -177,5 +179,6 @@ private:
   std::string label_;
 }; // struct dag
 
+/// \}
 } // namespace util
 } // namespace flecsi

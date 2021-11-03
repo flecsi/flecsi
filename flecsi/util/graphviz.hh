@@ -26,6 +26,10 @@
 /// \cond core
 namespace flecsi {
 namespace util {
+/// \defgroup graphviz Graphviz Support
+/// Wrapper for GVC.
+/// \ingroup utils
+/// \{
 
 // attribute strings
 static constexpr const char * gv_graph = "graph";
@@ -322,6 +326,7 @@ private:
 
 }; // class graphviz
 
+/// \}
 } // namespace util
 } // namespace flecsi
 /// \endcond

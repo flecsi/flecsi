@@ -26,6 +26,10 @@
 
 namespace flecsi {
 namespace exec {
+/// \defgroup kernel Kernels
+/// Local concurrent operations.
+/// \ingroup execution
+/// \{
 #if defined(FLECSI_ENABLE_KOKKOS)
 namespace kok {
 
@@ -215,5 +219,6 @@ make_reduce(I i, std::string n) {
   ::flecsi::exec::make_reduce<R, T>(range, name)                               \
       ->*FLECSI_LAMBDA(auto && it, auto ref)
 
+/// \}
 } // namespace exec
 } // namespace flecsi

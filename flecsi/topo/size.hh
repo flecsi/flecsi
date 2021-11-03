@@ -9,6 +9,8 @@
 #include <cmath> // pow
 
 namespace flecsi::topo {
+/// \addtogroup topology
+/// \{
 
 // A subtopology for storing/updating row sizes of a partition.
 struct resize : specialization<color, resize> {
@@ -57,6 +59,7 @@ struct with_size {
   resize::policy growth;
 };
 
+/// \}
 } // namespace flecsi::topo
 
 #endif

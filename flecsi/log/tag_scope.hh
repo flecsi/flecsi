@@ -21,6 +21,8 @@
 
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   This type sets the active tag id to the id passed to the constructor,
@@ -56,6 +58,7 @@ private:
 
 }; // tag_scope_t
 
+/// \}
 } // namespace log
 } // namespace flecsi
 

@@ -19,6 +19,8 @@
 
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 
 namespace zero {
 inline std::size_t
@@ -189,8 +191,6 @@ struct array : topo::specialization<array_category, array<P>> {};
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
-
-  @ingroup topology
  */
 struct index : specialization<index_category, index> {
   static coloring color(Color size) {
@@ -199,5 +199,6 @@ struct index : specialization<index_category, index> {
 
 }; // struct index
 
+/// \}
 } // namespace topo
 } // namespace flecsi

@@ -105,6 +105,9 @@ private:
 } // namespace detail
 
 namespace fold {
+/// \addtogroup legion-execution
+/// \{
+
 inline util::counter<Legion::ReductionOpID(MAX_APPLICATION_REDUCTION_ID)>
   reduction_counter(0);
 
@@ -248,6 +251,7 @@ struct wrap<R, T, decltype(void((redop<R>(), redtype<T>())))> {
     LEGION_REDOP_BASE + redop<R>() * LEGION_TYPE_TOTAL + redtype<T>();
 };
 
+/// \}
 } // namespace fold
 } // namespace exec
 } // namespace flecsi

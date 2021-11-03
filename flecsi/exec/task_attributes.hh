@@ -16,6 +16,8 @@
 #include "flecsi/util/bitutils.hh"
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
 
 using TaskAttributes = unsigned;
 
@@ -47,8 +49,12 @@ constexpr auto default_accelerator =
 #endif
   ;
 
+/// \}
+
 /// \cond core
 namespace exec {
+/// \addtogroup execution
+/// \{
 
 /*!
   Enumeration of task types.
@@ -92,6 +98,7 @@ mask_to_processor_type(TaskAttributes mask) {
     util::bit_width(mask) - task_type_bits - 1);
 } // mask_to_processor_type
 
+/// \}
 } // namespace exec
   /// \endcond
 } // namespace flecsi

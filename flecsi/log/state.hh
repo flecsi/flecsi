@@ -32,6 +32,8 @@
 /// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 // Forward
 void flush_packets();
@@ -46,8 +48,6 @@ void flush_packets();
 
   @note We may want to consider adopting one of these packages
   in the future.
-
-  @ingroup logging
  */
 
 class state
@@ -408,6 +408,7 @@ private:
 
 }; // class state
 
+/// \}
 } // namespace log
 } // namespace flecsi
 /// \endcond

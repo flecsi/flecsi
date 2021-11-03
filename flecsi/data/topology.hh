@@ -24,6 +24,11 @@
 
 /// \cond core
 namespace flecsi::data {
+/// \defgroup topology-data Topology implementation
+/// These types are movable but may not be copyable.
+/// \ingroup data
+/// \{
+
 template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
 
@@ -150,5 +155,6 @@ struct partitioned : region, P {
       P(static_cast<region &>(*this), std::forward<TT>(tt)...) {}
 };
 
+/// \}
 } // namespace flecsi::data
 /// \endcond

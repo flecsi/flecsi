@@ -29,6 +29,8 @@
 #include <memory>
 
 namespace flecsi {
+/// \addtogroup legion-execution
+/// \{
 
 inline log::devel_tag bind_accessors_tag("bind_accessors");
 
@@ -121,5 +123,6 @@ private:
 
 }; // struct bind_accessors
 
+/// \}
 } // namespace exec::leg
 } // namespace flecsi

@@ -33,7 +33,8 @@ struct send_tag {};
 } // namespace data
 
 namespace exec {
-
+/// \addtogroup execution
+/// \{
 namespace detail {
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
@@ -185,7 +186,11 @@ struct partial : std::tuple<AA...> {
 
   static partial param; // not defined; use as "f<decltype(p.param)>"
 };
+/// \}
 } // namespace exec
+
+/// \addtogroup execution
+/// \{
 
 template<auto & F, class... AA>
 constexpr exec::partial<F, std::decay_t<AA>...>
@@ -200,8 +205,6 @@ make_partial(AA &&... aa) {
 
   @tparam Return The return type of the task.
   @tparam Launch FleCSI launch type: single/index.
-
-  @ingroup execution
 */
 template<typename Return,
   exec::launch_type_t Launch = exec::launch_type_t::single>
@@ -252,4 +255,5 @@ struct detail::launch<P, future<T, launch_type_t::index>> {
 };
 } // namespace exec
 
+///\}
 } // namespace flecsi

@@ -18,6 +18,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 //!
 //! Convenience function wrapper around std::set_intersection function. This
@@ -133,5 +135,6 @@ set_difference(std::vector<T> const & v1, std::vector<T> const & v2) {
   return difference;
 } // set_difference
 
+/// \}
 } // namespace util
 } // namespace flecsi

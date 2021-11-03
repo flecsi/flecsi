@@ -18,6 +18,10 @@
 
 namespace flecsi {
 namespace exec::fold {
+/// \defgroup fold Reduction Operations
+/// Predefined types usable with \c reduce and \c reduceall.
+/// \ingroup execution
+/// \{
 
 /*!
   Minimum reduction type.
@@ -81,6 +85,7 @@ struct product {
   static constexpr T identity = T(1);
 }; // struct product
 
+/// \}
 } // namespace exec::fold
 
 namespace exec::detail {

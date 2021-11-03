@@ -30,6 +30,10 @@
 namespace flecsi {
 namespace util {
 namespace serial {
+/// \defgroup serial Serialization
+/// Serialization without default constructibility.
+/// \ingroup utils
+/// \{
 
 // Similar to that in GNU libc.  NB: memcpy has no alignment requirements.
 inline void
@@ -294,6 +298,7 @@ struct traits<T, decltype(void(convert<T>::put))> {
   }
 };
 
+/// \}
 } // namespace serial
 } // namespace util
 } // namespace flecsi

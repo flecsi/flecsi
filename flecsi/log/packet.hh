@@ -53,6 +53,8 @@
 /// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   Packet type for serializing output from distributed-memory tasks.
@@ -115,6 +117,7 @@ private:
 
 }; // packet_t
 
+/// \}
 } // namespace log
 } // namespace flecsi
 /// \endcond

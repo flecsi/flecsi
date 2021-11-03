@@ -20,11 +20,11 @@ inline log::devel_tag task_prologue_tag("task_prologue");
 
 /// \cond core
 namespace flecsi::exec {
+/// \addtogroup execution
+/// \{
 
 /*!
   Analyzes task arguments and updates data objects before launching a task.
-
-  @ingroup execution
 */
 
 struct prolog : task_prologue {
@@ -64,6 +64,7 @@ private:
   } // visit
 };
 
+/// \}
 } // namespace flecsi::exec
 /// \endcond
 

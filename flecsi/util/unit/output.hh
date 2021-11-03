@@ -8,6 +8,8 @@
 namespace flecsi {
 namespace util {
 namespace unit {
+/// \addtogroup unit
+/// \{
 
 class test_output_t
 {
@@ -80,6 +82,7 @@ private:
 
 }; // class test_output_t
 
+/// \}
 } // namespace unit
 } // namespace util
 } // namespace flecsi

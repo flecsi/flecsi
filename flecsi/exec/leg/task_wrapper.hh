@@ -122,6 +122,8 @@ template<class T>
 struct util::serial::traits<future<T>> : util::serial::value<future<T>> {};
 
 namespace exec::leg {
+/// \addtogroup legion-execution
+/// \{
 using run::leg::task;
 
 namespace detail {
@@ -212,8 +214,6 @@ verb(const Legion::Task *,
 
  \tparam F the user task
  \tparam P the target processor type
-
- @ingroup legion-execution
  */
 
 template<auto & F, task_processor_type_t P>
@@ -294,5 +294,6 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
   } // execute
 }; // task_wrapper
 
+/// \}
 } // namespace exec::leg
 } // namespace flecsi

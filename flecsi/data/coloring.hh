@@ -19,6 +19,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 template<class Topo>
 struct coloring_slot {
@@ -54,5 +56,6 @@ private:
   std::optional<color_type> coloring;
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

@@ -24,6 +24,8 @@
 /// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   The message type provides a basic log message type that is customized
@@ -122,6 +124,7 @@ private:
   std::stringstream ss_;
 }; // message
 
+/// \}
 } // namespace log
 } // namespace flecsi
 /// \endcond

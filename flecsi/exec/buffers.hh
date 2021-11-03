@@ -24,6 +24,8 @@
 #include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
 
 inline log::devel_tag param_buffers_tag("param_buffers");
 
@@ -113,5 +115,6 @@ private:
   std::tuple<typename detail::buffer<TT>::type...> buf;
 };
 
+/// \}
 } // namespace exec
 } // namespace flecsi

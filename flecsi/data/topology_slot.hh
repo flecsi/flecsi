@@ -19,6 +19,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 struct convert_tag {}; // must be recognized as a task argument
 
@@ -60,5 +62,6 @@ private:
   std::optional<core> data;
 }; // struct topology_slot
 
+/// \}
 } // namespace data
 } // namespace flecsi

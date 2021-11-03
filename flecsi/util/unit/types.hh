@@ -27,6 +27,8 @@ inline log::devel_tag unit_tag("unit");
 
 namespace util {
 namespace unit {
+/// \addtogroup unit
+/// \{
 
 namespace detail {
 template<class T, class = void>
@@ -171,9 +173,13 @@ struct string_case_compare {
   }
 };
 
+/// \}
 } // namespace unit
 } // namespace util
 } // namespace flecsi
+
+/// \addtogroup unit
+/// \{
 
 #define UNIT                                                                   \
   ::flecsi::log::state::instance().config_stream().add_buffer(                 \
@@ -282,3 +288,5 @@ struct string_case_compare {
   // MSVC has a brain-dead preprocessor...
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
+
+/// \}

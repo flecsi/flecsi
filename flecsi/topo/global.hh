@@ -18,6 +18,8 @@
 
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 
 struct global_base {
   struct coloring {};
@@ -36,11 +38,10 @@ struct detail::base<global_category> {
   The \c global type allows users to register data on a
   topology with a single index, i.e., there is one instance of
   the registered field type that is visible to all colors.
-
-  @ingroup topology
  */
 struct global : specialization<global_category, global> {};
 
+/// \}
 } // namespace topo
 
 // Defined here to avoid circularity via ragged and execute.

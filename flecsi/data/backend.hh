@@ -22,6 +22,9 @@
 #include "flecsi/topo/core.hh" // single_space
 
 namespace flecsi::data {
+/// \addtogroup data
+/// \{
+
 // Use {} if unknown:
 enum completeness { unknown = 0, complete = 1, incomplete = 2 };
 using size2 = std::pair<std::size_t, std::size_t>;
@@ -32,6 +35,7 @@ struct prefixes_base {
   using row = std::size_t;
   using Field = field<row, single>;
 };
+/// \}
 } // namespace flecsi::data
 
 /*----------------------------------------------------------------------------*

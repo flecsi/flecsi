@@ -17,6 +17,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   A FleCSI \c layout provides a specific interface for different
@@ -32,5 +34,6 @@ enum layout : size_t {
   sparse
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

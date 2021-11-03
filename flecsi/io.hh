@@ -17,6 +17,9 @@
 
 /// \cond core
 namespace flecsi::io {
+/// \defgroup io I/O
+/// Checkpointing.
+/// \{
 
 // currently these methods don't do anything unless topologies and
 // index spaces have been registered manually first
@@ -30,5 +33,6 @@ recover_all_fields(const std::string & file_name, int num_files) {
   io_interface(num_files).recover_all_fields(file_name);
 }
 
+/// \}
 } // namespace flecsi::io
 /// \endcond

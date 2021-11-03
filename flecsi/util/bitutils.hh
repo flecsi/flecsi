@@ -20,6 +20,8 @@
 /// \cond core
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 /// Simple emulation of std::bit_width from C++20.
 template<class T>
@@ -40,6 +42,7 @@ bit_width(T x) noexcept {
   return ret;
 }
 
+/// \}
 } // namespace util
 } // namespace flecsi
 /// \endcond

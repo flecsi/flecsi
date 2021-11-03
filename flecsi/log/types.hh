@@ -26,12 +26,12 @@
 /// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   The tee_buffer_t type provides a stream buffer that allows output to
   multiple targets.
-
-  @ingroup logging
  */
 
 class tee_buffer_t : public std::streambuf
@@ -301,6 +301,7 @@ private:
 
 }; // struct tee_stream_t
 
+/// \}
 } // namespace log
 } // namespace flecsi
 /// \endcond

@@ -12,6 +12,8 @@ namespace flecsi {
 inline log::devel_tag io_tag("io");
 
 namespace io {
+/// \addtogroup io
+/// \{
 namespace detail {
 struct hdf5 {
   hdf5() noexcept : id(-1) {}
@@ -222,7 +224,7 @@ struct hdf5 {
   detail::hdf5 hdf5_file_id;
   std::set<std::string> hdf5_groups;
 };
-
+/// \}
 } // namespace io
 } // namespace flecsi
 /// \endcond

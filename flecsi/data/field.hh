@@ -26,6 +26,8 @@ struct ragged; // defined in terms of field
 }
 
 namespace data {
+/// \addtogroup data
+/// \{
 
 /// A data accessor.
 /// Pass a \c field_reference to a task that accepts an accessor.
@@ -145,7 +147,11 @@ template<class T>
 inline constexpr bool portable_v =
   std::is_object_v<T> && !std::is_pointer_v<T> &&
   detail::is_trivially_move_constructible_v<T>;
+/// \}
 } // namespace data
+
+/// \addtogroup data
+/// \{
 
 /// Helper type to define and access fields.
 /// \tparam T field value type: a trivially copyable type with no pointers
@@ -193,8 +199,11 @@ struct field : data::detail::field_base<T, L> {
 
   field() = delete;
 };
+/// \}
 
 namespace data {
+/// \addtogroup data
+/// \{
 namespace detail {
 template<class T>
 struct field_base<T, dense> {
@@ -257,5 +266,6 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
   }
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

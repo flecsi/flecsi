@@ -19,6 +19,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<class KEY, class TYPE, class HASH = std::hash<KEY>>
 struct hashtable;
@@ -181,5 +183,6 @@ public:
 
 }; // class hashtable
 
+/// \}
 } // namespace util
 } // namespace flecsi

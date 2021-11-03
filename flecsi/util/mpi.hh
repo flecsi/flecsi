@@ -32,6 +32,11 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+/// \defgroup mpi-utils MPI
+/// These require MPI tasks, not the MPI backend.
+/// \ingroup utils
+/// \{
+
 inline void
 test(int err) {
   if(err != MPI_SUCCESS) {
@@ -439,6 +444,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   return result;
 } // all_gather
 
+/// \}
 } // namespace mpi
 } // namespace util
 } // namespace flecsi

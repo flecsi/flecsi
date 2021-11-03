@@ -40,6 +40,8 @@ namespace flecsi {
 inline log::devel_tag context_tag("context");
 
 namespace run {
+/// \addtogroup runtime
+/// \{
 
 struct context_t; // supplied by backend
 
@@ -56,8 +58,6 @@ enum status : int {
 /*!
   The context type provides a high-level execution context interface that
   is implemented by a specific backend.
-
-  @ingroup runtime
  */
 
 struct context {
@@ -584,5 +584,6 @@ private:
   std::vector<void (*)()> init_registry;
 }; // struct context
 
+/// \}
 } // namespace run
 } // namespace flecsi

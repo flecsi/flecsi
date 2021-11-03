@@ -8,6 +8,9 @@
 
 namespace flecsi::data {
 namespace leg {
+/// \addtogroup legion-data
+/// \{
+
 using rect = Legion::Rect<2>;
 
 struct halves : topo::specialization<topo::color, halves> {
@@ -46,7 +49,7 @@ private:
 struct with_partition {
   partition<> prt;
 }; // for initialization order
-
+/// \}
 } // namespace leg
 
 // Use inheritance to initialize mirror early:

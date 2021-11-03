@@ -31,6 +31,8 @@ All rights reserved.
 namespace flecsi {
 
 namespace data {
+/// \addtogroup topology-data
+/// \{
 namespace detail {
 struct intervals : topo::specialization<topo::array_category, intervals> {
   static const field<data::intervals::Value>::definition<intervals> field;
@@ -246,12 +248,16 @@ private:
   copy_plan cp;
 };
 } // namespace detail
+  /// \}
 } // namespace data
 template<>
 struct topo::detail::base<data::detail::buffers_category> {
   using type = data::detail::buffers_base;
 };
 namespace data {
+/// \addtogroup topology-data
+/// \{
+
 struct buffers : topo::specialization<detail::buffers_category, buffers> {
   using Buffer = base::buffer;
   using Start = field<Buffer>::accessor<wo, na>;
@@ -323,6 +329,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     Buffer::writer w;
   };
 };
+/// \}
 } // namespace data
 } // namespace flecsi
 /// \endcond

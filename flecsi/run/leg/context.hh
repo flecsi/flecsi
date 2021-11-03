@@ -42,6 +42,9 @@ namespace flecsi::run {
 
 inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
+/// \addtogroup legion-runtime
+/// \{
+
 // force_rank_match: mapper tag that will force 1-to-1 MPI-to-Legion mapping;
 // compacted_storage:  mapper tag that is used for creating compacted Regions;
 // subrank_launch: mapper tag that is used for nested tasks, not supported in
@@ -57,6 +60,7 @@ constexpr Legion::MappingTagID force_rank_match = 0x00001000,
                                exclusive_lr = 0x00004000,
 #endif
                                prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
+/// \}
 } // namespace mapper
 
 namespace leg {

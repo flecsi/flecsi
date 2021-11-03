@@ -19,6 +19,8 @@
 #include <string>
 
 /// \cond core
+/// \addtogroup flog
+/// \{
 #define _flog_util_stringify(s) #s
 #define _flog_stringify(s) _flog_util_stringify(s)
 #define _flog_concat(a, b) a##b
@@ -98,9 +100,12 @@
 #define FLOG_OUTPUT_WHITE(s) FLOG_COLOR_WHITE << s << FLOG_COLOR_PLAIN
 
 #endif // FLOG_ENABLE_COLOR_OUTPUT
+/// \}
 
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   Create a timestamp.
@@ -148,6 +153,7 @@ std::size_t log_size();
 
 void send_to_one();
 
+/// \}
 } // namespace log
 } // namespace flecsi
 /// \endcond

@@ -26,6 +26,11 @@ namespace flecsi {
 namespace util {
 
 namespace annotation {
+/// \defgroup annotation Profiling
+/// Markers for categorizing execution time.
+/// \ingroup utils
+/// \{
+
 /// used for specifying what detail of annotations to collect.
 enum class detail { low, medium, high };
 
@@ -229,6 +234,7 @@ public:
     end<reg>();
   }
 };
+/// \}
 }; // namespace annotation
 
 /// Initialize caliper annotation objects from the context name.

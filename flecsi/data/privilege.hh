@@ -19,6 +19,8 @@
 #include <utility>
 
 namespace flecsi {
+/// \addtogroup data
+/// \{
 
 using Privileges = unsigned;
 using PrivilegeCount = unsigned short;
@@ -163,5 +165,5 @@ privilege_merge(Privileges p) {
 }
 
 /// \endcond
-
+/// \}
 } // namespace flecsi

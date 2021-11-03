@@ -20,6 +20,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<class...>
 struct types {};
@@ -121,5 +123,6 @@ struct key_tuple : std::tuple<typename VT::type...> {
   }
 };
 
+/// \}
 } // namespace util
 } // namespace flecsi

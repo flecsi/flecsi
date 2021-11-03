@@ -11,6 +11,8 @@
 
 /// \cond core
 namespace flecsi::data {
+/// \addtogroup topology-data
+/// \{
 
 #ifdef DOXYGEN // implemented per-backend
 // These types are movable but may not be copyable.
@@ -65,6 +67,7 @@ struct copy_engine {
 };
 #endif
 
+/// \}
 } // namespace flecsi::data
 /// \endcond
 

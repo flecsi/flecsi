@@ -18,6 +18,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   Topology accessor type. Topology accessors are defined by the interface of
@@ -43,6 +45,7 @@ struct topology_accessor
   explicit topology_accessor() = default;
 }; // struct topology_accessor
 
+/// \}
 } // namespace data
 
 template<class T, Privileges P>

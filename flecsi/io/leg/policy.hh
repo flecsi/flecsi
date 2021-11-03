@@ -41,6 +41,10 @@
 
 namespace flecsi {
 namespace io {
+/// \defgroup legion-io Legion I/O
+/// \ingroup io
+/// \{
+
 using FieldNames = std::map<Legion::FieldID, std::string>;
 
 /*----------------------------------------------------------------------------*
@@ -278,5 +282,6 @@ struct io_interface {
   std::map<std::string, unsigned> name_count;
 };
 
+/// \}
 } // namespace io
 } // namespace flecsi

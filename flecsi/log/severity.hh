@@ -21,6 +21,8 @@
 
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 inline std::string
 verbose(const char * file, int line) {
@@ -160,5 +162,6 @@ struct error {
   }
 }; // struct error
 
+/// \}
 } // namespace log
 } // namespace flecsi

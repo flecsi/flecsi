@@ -22,6 +22,10 @@
 
 namespace flecsi {
 namespace unit {
+/// \defgroup unit Unit Testing
+/// Unit test framework much like Google Test but with task support.
+/// \ingroup utils
+/// \{
 
 enum class test_control_points {
   initialization,
@@ -69,5 +73,6 @@ using driver = control::action<Target, test_control_points::driver>;
 template<control::target_type Target>
 using finalization = control::action<Target, test_control_points::finalization>;
 
+/// \}
 } // namespace unit
 } // namespace flecsi

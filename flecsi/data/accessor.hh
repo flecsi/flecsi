@@ -25,6 +25,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 namespace detail {
 template<class A>
@@ -997,6 +999,7 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
+/// \}
 } // namespace data
 
 template<data::layout L, class T, Privileges P>

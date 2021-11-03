@@ -19,6 +19,9 @@
 #include <cstddef>
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
+
 /*!
   Execute a task.
 
@@ -46,6 +49,7 @@ template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 auto execute(ARGS &&...);
+/// \}
 } // namespace flecsi
 
 //----------------------------------------------------------------------------//

@@ -26,6 +26,10 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup ranges Ranges
+/// Range and iterator tools, mostly backported from the standard library.
+/// \ingroup utils
+/// \{
 
 /// A workalike for std::span from C++20 (only dynamic-extent, without ranges
 /// support).
@@ -619,5 +623,6 @@ template<class C, class F>
 transform_view(const C &, F)->transform_view<typename C::const_iterator, F>;
 /// \endcond
 
+/// \}
 } // namespace util
 } // namespace flecsi

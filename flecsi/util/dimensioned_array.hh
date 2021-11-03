@@ -20,6 +20,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<typename... CONDITIONS>
 struct and_ : std::true_type {};
@@ -314,5 +316,6 @@ operator<<(std::ostream & stream,
   return stream;
 } // operator <<
 
+/// \}
 } // namespace util
 } // namespace flecsi

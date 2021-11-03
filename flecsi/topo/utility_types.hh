@@ -23,6 +23,8 @@
 /// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
@@ -241,6 +243,7 @@ FLECSI_INLINE_TARGET auto make_ids(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
 
+/// \}
 } // namespace topo
 } // namespace flecsi
 /// \endcond

@@ -27,6 +27,10 @@
 #include <map>
 
 namespace flecsi::run {
+/// \defgroup mpi-runtime MPI Runtime
+/// Global state.
+/// \ingroup runtime
+/// \{
 
 struct context_t : context {
 
@@ -97,4 +101,5 @@ struct context_t : context {
   }
 };
 
+/// \}
 } // namespace flecsi::run

@@ -29,6 +29,8 @@
 /// \cond core
 namespace flecsi {
 namespace run_impl {
+/// \addtogroup control
+/// \{
 
 /*!
   Allow users to define cyclic control points. Cycles can be nested.
@@ -36,8 +38,6 @@ namespace run_impl {
   @tparam Predicate     A predicate function that determines when
                         the cycle should end.
   @tparam ControlPoints A variadic list of control points within the cycle.
-
-  @ingroup control
  */
 
 template<bool (*Predicate)(), typename... ControlPoints>
@@ -116,8 +116,6 @@ private:
 /*!
   The point_walker class allows execution of statically-defined
   control points.
-
-  @ingroup control
  */
 
 template<typename ControlPolicy>
@@ -278,6 +276,7 @@ private:
 
 #endif // FLECSI_ENABLE_GRAPHVIZ
 
+/// \}
 } // namespace run_impl
 } // namespace flecsi
 /// \endcond

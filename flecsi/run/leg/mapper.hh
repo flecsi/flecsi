@@ -30,12 +30,12 @@ namespace flecsi {
 inline log::devel_tag legion_mapper_tag("legion_mapper");
 
 namespace run {
+/// \addtogroup legion-runtime
+/// \{
 
 /*
  The mpi_mapper_t - is a custom mapper that handles mpi-legion
  interoperability in FLeCSI
-
- @ingroup legion-runtime
 */
 
 class mpi_mapper_t : public Legion::Mapping::DefaultMapper
@@ -643,8 +643,6 @@ protected:
 /*!
  mapper_registration is used to replace DefaultMapper with mpi_mapper_t in
  FLeCSI
-
- @ingroup legion-runtime
  */
 
 inline void
@@ -659,5 +657,6 @@ mapper_registration(Legion::Machine machine,
   }
 } // mapper registration
 
+/// \}
 } // namespace run
 } // namespace flecsi

@@ -166,6 +166,9 @@ private:
 } // namespace log
 } // namespace flecsi
 
+/// \addtogroup flog
+/// \{
+
 /*!
   This handles all of the different logging modes for the insertion
   style logging interface.
@@ -459,3 +462,5 @@ dumpstack() {
     }                                                                          \
   while(0)
 #endif // NDEBUG
+
+/// \}
