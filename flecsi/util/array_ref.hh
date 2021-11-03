@@ -177,6 +177,8 @@ protected:
 };
 } // namespace detail
 
+/// \cond core
+
 /// A variation of \c mdspan with reversed indices (distinguished by `()`).
 template<class T, Dimension D>
 struct mdcolex : detail::mdbase<T, D> {
@@ -198,6 +200,7 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
+/// \endcond
 
 /// A small, approximate subset of mdspan as proposed for C++23.
 /// \tparam D dimension
@@ -220,6 +223,8 @@ struct mdspan : detail::mdbase<T, D> {
       return *q;
   }
 };
+
+/// \cond core
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
 template<class I>
@@ -612,6 +617,7 @@ transform_view(C &&, F)
   ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
 transform_view(const C &, F)->transform_view<typename C::const_iterator, F>;
+/// \endcond
 
 } // namespace util
 } // namespace flecsi

@@ -9,6 +9,7 @@
 #include "flecsi/data/leg/copy.hh"
 #endif
 
+/// \cond core
 namespace flecsi::data {
 
 #ifdef DOXYGEN // implemented per-backend
@@ -65,5 +66,6 @@ struct copy_engine {
 #endif
 
 } // namespace flecsi::data
+/// \endcond
 
 #endif

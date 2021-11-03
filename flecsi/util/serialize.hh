@@ -26,6 +26,7 @@
 #include "type_traits.hh"
 #include <flecsi/flog.hh>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 namespace serial {
@@ -296,3 +297,4 @@ struct traits<T, decltype(void(convert<T>::put))> {
 } // namespace serial
 } // namespace util
 } // namespace flecsi
+/// \endcond

@@ -47,6 +47,7 @@ constexpr auto default_accelerator =
 #endif
   ;
 
+/// \cond core
 namespace exec {
 
 /*!
@@ -92,4 +93,5 @@ mask_to_processor_type(TaskAttributes mask) {
 } // mask_to_processor_type
 
 } // namespace exec
+  /// \endcond
 } // namespace flecsi

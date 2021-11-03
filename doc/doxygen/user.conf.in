@@ -5,7 +5,7 @@
 PROJECT_NAME = "User API"
 
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
-                   */test/*
+                   */leg/* */mpi/* */hpx/* */test/*
 
 PREDEFINED = FLECSI_ENABLE_FLOG \
              FLOG_ENABLE_MPI \

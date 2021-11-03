@@ -27,6 +27,7 @@ All rights reserved.
 // indirect (point), direct
 // indirect (point), indirect => mesh
 
+/// \cond core
 namespace flecsi {
 
 namespace data {
@@ -324,3 +325,4 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 };
 } // namespace data
 } // namespace flecsi
+/// \endcond

@@ -7,6 +7,7 @@
 
 #include <hdf5.h>
 
+/// \cond core
 namespace flecsi {
 inline log::devel_tag io_tag("io");
 
@@ -224,5 +225,6 @@ struct hdf5 {
 
 } // namespace io
 } // namespace flecsi
+/// \endcond
 
 #endif

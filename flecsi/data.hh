@@ -37,6 +37,7 @@ inline topo::global::slot global_topology;
  */
 inline topo::index::slot process_topology;
 
+/// \cond core
 namespace detail {
 /// An RAII type to manage the global coloring and topologies.
 struct data_guard {
@@ -60,5 +61,5 @@ struct data_guard {
   } p;
 };
 } // namespace detail
-
+/// \endcond
 } // namespace flecsi

@@ -47,6 +47,8 @@ using id = FLECSI_ID_TYPE;
 
 using counter_t = FLECSI_COUNTER_TYPE;
 
+/// \cond core
+
 template<class T>
 inline std::enable_if_t<std::is_unsigned_v<T>, T>
 ceil_div(T a, T b) {
@@ -110,5 +112,6 @@ struct identity {
   }
 };
 
+/// \endcond
 } // namespace util
 } // namespace flecsi

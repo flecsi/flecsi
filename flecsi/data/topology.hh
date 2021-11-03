@@ -22,6 +22,7 @@
 #include <map>
 #include <set>
 
+/// \cond core
 namespace flecsi::data {
 template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
@@ -150,3 +151,4 @@ struct partitioned : region, P {
 };
 
 } // namespace flecsi::data
+/// \endcond

@@ -29,6 +29,7 @@
 #include <string>
 #include <unordered_map>
 
+/// \cond core
 namespace flecsi {
 namespace log {
 
@@ -409,5 +410,6 @@ private:
 
 } // namespace log
 } // namespace flecsi
+/// \endcond
 
 #endif // FLECSI_ENABLE_FLOG

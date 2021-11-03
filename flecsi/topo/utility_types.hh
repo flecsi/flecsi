@@ -20,6 +20,7 @@
 
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 using connect_field = field<util::id, data::ragged>;
@@ -242,3 +243,4 @@ FLECSI_INLINE_TARGET auto make_ids(
 
 } // namespace topo
 } // namespace flecsi
+/// \endcond

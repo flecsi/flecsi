@@ -15,6 +15,7 @@
 
 #include "io/backend.hh"
 
+/// \cond core
 namespace flecsi::io {
 
 // currently these methods don't do anything unless topologies and
@@ -30,3 +31,4 @@ recover_all_fields(const std::string & file_name, int num_files) {
 }
 
 } // namespace flecsi::io
+/// \endcond

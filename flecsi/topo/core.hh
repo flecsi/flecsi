@@ -29,6 +29,7 @@ struct topology_accessor; // avoid circularity via launch.hh
 namespace topo {
 enum single_space { elements };
 
+/// \cond core
 namespace detail {
 template<template<class> class>
 struct base;
@@ -80,6 +81,7 @@ struct detail::base<core> {
   using type = core_base;
 };
 #endif
+/// \endcond
 
 struct specialization_base {
   // For connectivity tuples:

@@ -26,6 +26,7 @@
 #include <map>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace run_impl {
 
@@ -279,3 +280,4 @@ private:
 
 } // namespace run_impl
 } // namespace flecsi
+/// \endcond

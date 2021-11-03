@@ -22,6 +22,7 @@
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <legion.h>
 
+/// \cond core
 namespace flecsi {
 
 using field_id_t = Legion::FieldID;
@@ -78,3 +79,4 @@ inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 using TopologyType = std::size_t;
 
 } // namespace flecsi
+/// \endcond

@@ -18,6 +18,7 @@ inline log::devel_tag task_prologue_tag("task_prologue");
 #include "flecsi/exec/mpi/task_prologue.hh"
 #endif
 
+/// \cond core
 namespace flecsi::exec {
 
 /*!
@@ -64,5 +65,6 @@ private:
 };
 
 } // namespace flecsi::exec
+/// \endcond
 
 #endif

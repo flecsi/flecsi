@@ -23,6 +23,7 @@
 
 #include <graphviz/gvc.h>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 
@@ -323,3 +324,4 @@ private:
 
 } // namespace util
 } // namespace flecsi
+/// \endcond

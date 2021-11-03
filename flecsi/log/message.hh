@@ -21,6 +21,7 @@
 
 #include <iostream>
 
+/// \cond core
 namespace flecsi {
 namespace log {
 
@@ -123,3 +124,4 @@ private:
 
 } // namespace log
 } // namespace flecsi
+/// \endcond

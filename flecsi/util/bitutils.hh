@@ -17,6 +17,7 @@
 #include <limits>
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 
@@ -41,3 +42,4 @@ bit_width(T x) noexcept {
 
 } // namespace util
 } // namespace flecsi
+/// \endcond

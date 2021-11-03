@@ -128,7 +128,9 @@ struct field_reference : field_reference_t<Topo> {
     return field_reference<T2, L2, Topo, Space>(*this);
   }
 
-  /// \internal Use this reference and return it.
+  /// \if core
+  /// Use this reference and return it.
+  /// \endif
   template<class F>
   const field_reference & use(F && f) const {
     std::forward<F>(f)(*this);

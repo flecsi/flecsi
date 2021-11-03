@@ -15,6 +15,7 @@
 
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 
@@ -31,3 +32,4 @@ using voided = std::conditional_t<false, detail::hold<TT...>, void>;
 
 } // namespace util
 } // namespace flecsi
+/// \endcond

@@ -43,6 +43,8 @@ enum partition_privilege_t : Privileges {
   rw = 0b11
 }; // enum partition_privilege_t
 
+/// \cond core
+
 inline constexpr short privilege_bits = 2;
 
 // The leading tag bit which indicates the number of privileges in a pack:
@@ -159,5 +161,7 @@ privilege_merge(Privileges p) {
            ? wo
            : privilege_write(p) ? rw : privilege_read(p) ? ro : na;
 }
+
+/// \endcond
 
 } // namespace flecsi

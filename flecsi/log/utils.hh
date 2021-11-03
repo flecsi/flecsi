@@ -18,6 +18,7 @@
 #include <ctime>
 #include <string>
 
+/// \cond core
 #define _flog_util_stringify(s) #s
 #define _flog_stringify(s) _flog_util_stringify(s)
 #define _flog_concat(a, b) a##b
@@ -149,3 +150,4 @@ void send_to_one();
 
 } // namespace log
 } // namespace flecsi
+/// \endcond
