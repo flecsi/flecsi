@@ -30,6 +30,24 @@ test() {
 static_assert(test<loc, exec::task_processor_type_t::loc>());
 static_assert(test<toc, exec::task_processor_type_t::toc>());
 
+template<partition_privilege_t... PP, std::size_t... II>
+constexpr void
+priv(std::index_sequence<II...>) {
+  constexpr auto p = privilege_pack<PP...>;
+  static_assert(((get_privilege(II, p) == PP) && ...));
+}
+template<partition_privilege_t... PP>
+constexpr bool
+priv() {
+  priv<PP...>(std::make_index_sequence<sizeof...(PP)>());
+  return true;
+}
+
+static_assert(priv<rw>());
+static_assert(priv<wo, rw>());
+static_assert(priv<ro, wo, rw>());
+static_assert(priv<na, ro, wo, rw>());
+
 // ---------------
 namespace hydro {
 

@@ -22,7 +22,7 @@ set(run_HEADERS
 set(run_SOURCES
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
   set(run_HEADERS
     ${run_HEADERS}
@@ -35,7 +35,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     leg/context.cc
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+elseif(FLECSI_BACKEND STREQUAL "mpi")
 
   set(run_HEADERS
     ${run_HEADERS}

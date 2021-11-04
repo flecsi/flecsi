@@ -124,7 +124,7 @@ class Flecsi(CMakePackage):
         spec = self.spec
         options = []
 
-        options.append('-DFLECSI_RUNTIME_MODEL=%s' %
+        options.append('-DFLECSI_BACKEND=%s' %
             spec.variants['backend'].value)
 
         options.append('-DCALIPER_DETAIL=%s' %

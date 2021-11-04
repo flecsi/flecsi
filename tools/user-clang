@@ -19,7 +19,7 @@ fi
 #------------------------------------------------------------------------------#
 
 cmake_mode=cmake
-runtime=mpi
+backend=mpi
 cmake_args=""
 
 while [[ $# -gt 0 ]]
@@ -28,19 +28,19 @@ do
 	case $1 in
 		--help|-h)
 			command=`echo $0 | sed 's,.*\/,,g'`
-			echo "Usage: $command [options] runtime"
+			echo "Usage: $command [options] backend"
 			echo "  -h, --help     Show this message and exit."
 			echo "  -c, --ccmake   Enable curses mode."
 			echo ""
-			echo "Runtimes: legion, mpi."
-			echo "(default runtime is mpi)."
+			echo "Backends: legion, mpi."
+			echo "(default backend is mpi)."
 			exit
 		;;
 		--ccmake|-c)
 			cmake_mode=ccmake
 		;;
     legion|hpx)
-      runtime=$1
+      backend=$1
     ;;
     *)
       cmake_args="$cmake_args $1"
@@ -67,7 +67,7 @@ echo "$cmake_mode" \
   "-DCMAKE_CXX_FLAGS=\"$SCRIPT_CXX_FLAGS\"" \
   "-DCMAKE_C_COMPILER=$SCRIPT_C_COMPILER" \
   "-DCMAKE_C_FLAGS=\"$SCRIPT_C_FLAGS\"" \
-  "-DFLECSI_RUNTIME_MODEL=$runtime" \
+  "-DFLECSI_BACKEND=$backend" \
   "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} $cmake_args $cwd"
 echo ""
 
@@ -77,7 +77,7 @@ $cmake_mode \
   -DCMAKE_CXX_FLAGS="$SCRIPT_CXX_FLAGS" \
   -DCMAKE_C_COMPILER=$SCRIPT_C_COMPILER \
   -DCMAKE_C_FLAGS="$SCRIPT_C_FLAGS" \
-  -DFLECSI_RUNTIME_MODEL=$runtime $extra_define \
+  -DFLECSI_BACKEND=$backend $extra_define \
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
   $cmake_args \
   $cwd

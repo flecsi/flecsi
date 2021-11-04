@@ -66,9 +66,8 @@ private:
     int e = MPI_SUCCESS;
     for(auto & v = static_cast<guard *>(attr)->v;
         !v.empty() && e == MPI_SUCCESS;) {
-      auto d = v.back();
+      e = MPI_Type_free(&v.back());
       v.pop_back();
-      e = MPI_Type_free(&d);
     }
     return e;
   }

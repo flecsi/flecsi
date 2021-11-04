@@ -160,19 +160,19 @@ Example configuration: **MPI**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=mpi ..
+  $ cmake -DFLECSI_BACKEND=mpi ..
 
 Example configuration: **MPI + OpenMP**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=mpi -DENABLE_OPENMP ..
+  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP ..
 
 Example configuration: **Legion**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=legion ..
+  $ cmake -DFLECSI_BACKEND=legion ..
 
 After configuration is complete, just use *make* to build:
 

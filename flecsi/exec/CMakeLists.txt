@@ -26,7 +26,7 @@ set(exec_HEADERS
   task_attributes.hh
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
   set(exec_HEADERS
     ${exec_HEADERS}
@@ -38,7 +38,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
     leg/reduction_wrapper.hh
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+elseif(FLECSI_BACKEND STREQUAL "mpi")
 
   set(exec_HEADERS
     ${exec_HEADERS}
@@ -48,7 +48,7 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
     mpi/task_prologue.hh
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+elseif(FLECSI_BACKEND STREQUAL "hpx")
 
 endif()
 
@@ -65,7 +65,7 @@ set(exec_HEADERS
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-if(NOT FLECSI_RUNTIME_MODEL STREQUAL "mpi") # this test uses oversubscription
+if(NOT FLECSI_BACKEND STREQUAL "mpi") # this test uses oversubscription
 
 add_unit(interface
   SOURCES

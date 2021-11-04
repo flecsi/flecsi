@@ -123,7 +123,7 @@ like this:
     --lightspeed                          Travel at the speed of light.
 
   FleCSI Options:
-    --backend-args arg             Pass arguments to the runtime backend. The
+    --backend-args arg             Pass arguments to the backend. The
                                    single argument is a quoted string of
                                    backend-specific options.
     --flog-tags arg (=all)         Enable the specified output tags, e.g.,

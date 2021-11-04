@@ -99,9 +99,9 @@ struct unstructured : unstructured_base,
 
   template<typename Type,
     data::layout Layout,
-    typename Topo,
-    typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+    typename Policy::index_space Space>
+  void ghost_copy(
+    data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged)
       ; // TODO
     else

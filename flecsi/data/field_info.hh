@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <legion.h>
 
 namespace flecsi {
@@ -60,7 +60,7 @@ using fields = std::vector<const field_info_t *>;
 } // namespace data
 
 //----------------------------------------------------------------------------//
-// This value is used by the Legion runtime backend to automatically
+// This value is used by the Legion backend to automatically
 // assign task and field ids. The current maximum value that is allowed
 // in legion_config.h is 1<<20.
 //

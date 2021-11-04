@@ -132,7 +132,7 @@ add_unit(unstructured
   THREADS 2
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
 add_unit(fixed
   SOURCES

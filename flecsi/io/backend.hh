@@ -22,20 +22,20 @@
 #include "flecsi/topo/index.hh"
 
 /*----------------------------------------------------------------------------*
-  This section works with the build system to select the correct runtime
+  This section works with the build system to select the correct backend
   implemenation for the io model.
  *----------------------------------------------------------------------------*/
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 
 #include "flecsi/io/leg/policy.hh"
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 
 #include <flecsi/io/mpi/policy.hh>
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 
 #include <flecsi/io/hpx/policy.hh>
 
-#endif // FLECSI_RUNTIME_MODEL
+#endif // FLECSI_BACKEND

@@ -87,7 +87,7 @@ This will place you into a bash prompt, from which you can build and run
 the tutorial examples. The tutorials are in the *top-level* directory in
 the Docker container.
 
-**Note:** You can also pull a Docker image for a specific runtime, e.g.,
+**Note:** You can also pull a Docker image for a specific backend, e.g.,
 mpi or legion. The default image *latest* is built against the Legion
 backend. To pull the MPI backend image do:
 

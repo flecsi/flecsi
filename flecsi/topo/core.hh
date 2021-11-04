@@ -74,8 +74,8 @@ struct core : core_base { // with_ragged<P> is often another base class
   const data::partition & get_partition(field_id_t) const;
 
   // If multiple privileges are used:
-  template<class T, data::layout L, class Topo, typename Topo::index_space S>
-  void ghost_copy(data::field_reference<T, L, Topo, S> const &);
+  template<class T, data::layout L, typename P::index_space S>
+  void ghost_copy(data::field_reference<T, L, P, S> const &);
 };
 template<>
 struct detail::base<core> {

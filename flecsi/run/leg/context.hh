@@ -52,8 +52,8 @@ constexpr Legion::MappingTagID force_rank_match = 0x00001000,
 #if 0
                                compacted_storage = 0x00002000,
                                subrank_launch = 0x00003000,
-#endif
                                exclusive_lr = 0x00004000,
+#endif
                                prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
 } // namespace mapper
 

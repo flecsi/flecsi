@@ -20,7 +20,6 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/dag.hh"
-#include "flecsi/util/tuple_walker.hh"
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 #include "flecsi/util/graphviz.hh"
@@ -74,12 +73,23 @@ struct cycle {
 
 }; // struct cycle
 
+template<class F, class... TT>
+void
+walk(F && f, std::tuple<TT...> *) {
+  (f.template visit_type<TT>(), ...);
+}
+template<class T, class F>
+void
+walk(F && f) {
+  walk(std::forward<F>(f), static_cast<T *>(nullptr));
+}
+
 /*
   Helper type to initialize dag labels.
  */
 
 template<typename ControlPolicy>
-struct init_walker : public util::tuple_walker<init_walker<ControlPolicy>> {
+struct init_walker {
 
   using control_points_enum = typename ControlPolicy::control_points_enum;
   using dag = util::dag<typename ControlPolicy::control_node>;
@@ -95,7 +105,7 @@ struct init_walker : public util::tuple_walker<init_walker<ControlPolicy>> {
       registry_.try_emplace(ElementType::value, *ElementType::value);
     }
     else {
-      init_walker(registry_).template walk_types<typename ElementType::type>();
+      walk<typename ElementType::type>(*this);
     } // while
   } // visit_type
 
@@ -112,7 +122,7 @@ private:
  */
 
 template<typename ControlPolicy>
-struct point_walker : public util::tuple_walker<point_walker<ControlPolicy>> {
+struct point_walker {
 
   using control_points_enum = typename ControlPolicy::control_points_enum;
   using node_type = typename ControlPolicy::node_type;
@@ -147,7 +157,7 @@ struct point_walker : public util::tuple_walker<point_walker<ControlPolicy>> {
       // the cycle.
       while(ElementType::predicate()) {
         point_walker walker(sorted_, exit_status_);
-        walker.template walk_types<typename ElementType::type>();
+        walk<typename ElementType::type>(walker);
       } // while
     } // if
   } // visit_type
@@ -208,8 +218,8 @@ struct point_writer
       } // for
     }
     else {
-      point_writer(registry_, gv_, depth_ - 1)
-        .template walk_types<typename ElementType::type>();
+      walk<typename ElementType::type>(
+        point_writer(registry_, gv_, depth_ - 1));
 
       auto & begin = registry_[ElementType::begin];
       auto & end = registry_[ElementType::end];
