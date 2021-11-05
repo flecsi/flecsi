@@ -171,8 +171,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 
 template<typename ControlPolicy>
-struct point_writer
-  : public flecsi::util::tuple_walker<point_writer<ControlPolicy>> {
+struct point_writer {
   using control_points_enum = typename ControlPolicy::control_points_enum;
   using node_type = typename ControlPolicy::node_type;
   using dag = util::dag<typename ControlPolicy::control_node>;
