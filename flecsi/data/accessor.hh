@@ -1308,7 +1308,7 @@ namespace detail {
 // If 'device' is in fact a pointer to device data, they copy it into 'host'
 // when this type is processed as a "task parameter".
 template<class T>
-struct scalar_value {
+struct scalar_value : bind_tag {
   const T * device;
   T * host;
 };
@@ -1325,7 +1325,7 @@ struct scalar_access : bind_tag {
     acc.topology_send(f, std::forward<S>(s));
 
     scalar_value<value_type> dummy{
-      acc.get_base().get_base().span().data(), &scalar_};
+      {}, acc.get_base().get_base().span().data(), &scalar_};
     std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
   }
 
