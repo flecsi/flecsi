@@ -190,6 +190,7 @@ private:
 
 /// \}
 } // namespace log
+namespace flog = log;
 } // namespace flecsi
 
 /// \addtogroup flog
