@@ -57,12 +57,6 @@ template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 class dimensioned_array
 {
 public:
-  //! Default constructor.
-  dimensioned_array() = default;
-
-  //! Default copy constructor.
-  dimensioned_array(dimensioned_array const &) = default;
-
   //--------------------------------------------------------------------------//
   //! Initializer list constructor.
   //--------------------------------------------------------------------------//

@@ -177,6 +177,8 @@ struct id {
   FLECSI_INLINE_TARGET
   explicit id(T t) : t(t) {}
 
+  id(const id &) = default;
+
   FLECSI_INLINE_TARGET
   T operator+() const {
     return t;
