@@ -64,12 +64,28 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         index_spaces(),
         std::make_index_sequence<index_spaces::size>()) {}
 
+  /// Structural information about one color.
+  /// \image html narray-layout.png "Layouts for each possible orientation."
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
     std::array<std::uint32_t, index_spaces::size> faces;
-    std::array<scoord, index_spaces::size> global, offset, extents;
-    std::array<shypercube, index_spaces::size> logical, extended;
+    /// Global extents per index space.
+    /// These are necessarily the same on every color.
+    std::array<scoord, index_spaces::size> global,
+      /// The global offsets to the beginning of the color's region per index
+      /// space, excluding any non-physical boundary padding.
+      /// Use to map from local to global ids.
+      offset,
+      /// The size of the color's region per index space, including ghosts and
+      /// boundaries.
+      extents;
+    /// The range of the color's elements that logically exist in each index
+    /// space.  Ghosts and boundaries are not included.
+    std::array<shypercube, index_spaces::size> logical,
+      /// The range of the color's elements in each index space, including
+      /// boundaries but not ghosts.
+      extended;
   };
 
   static inline const typename field<meta_data,
