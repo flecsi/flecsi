@@ -29,8 +29,7 @@ template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /// Create the coloring object.  An MPI task is launched to do so.
-  ///
+  /// Create the coloring object.
   /// \param args arguments to \c Topo::color
   /// \return the created object
   template<typename... ARGS>

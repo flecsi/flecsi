@@ -227,7 +227,10 @@ struct specialization : specialization_base {
 /// No member is needed in all circumstances.
 /// See also the members marked for overriding in \c specialization.
 struct topology : specialization<core, topology> {
-  static coloring color(...); ///< for coloring_slot
+  /// Interpret specialization-specific arguments to construct a coloring.
+  /// Called in an MPI task.
+  /// This is required only for use with a \c coloring_slot.
+  static coloring color(...);
 
   using connectivities = list<>; ///< for connect_t/connect_access
   using entity_lists = list<>; ///< for lists_t/list_access
