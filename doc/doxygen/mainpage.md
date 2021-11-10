@@ -1,5 +1,3 @@
-# User
-
 Here, you will find API documentation of the FleCSI runtime abstraction
 layer.
 The abstraction layer provides a portable interface for defining
@@ -12,5 +10,11 @@ analysis and checkpoint/restart.
 Additionally, this API documentation covers the core FleCSI topology
 types, along with utilities designed to aid in the creation of
 application specialization libraries.
+
+\if core
+\warning This version includes internal interfaces.
+Specialization and application developers should use only the interfaces documented in the [user API reference](../api-user/index.html), as there is no guarantee that those that appear only here will remain stable, _e.g._, a type or interface may simply
+be removed or changed.
+\endif
 
 <!-- vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 : -->

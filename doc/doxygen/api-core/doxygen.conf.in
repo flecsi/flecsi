@@ -6,10 +6,6 @@ PROJECT_NAME = "Core API"
 
 OUTPUT_DIRECTORY = @CMAKE_BINARY_DIR@/doc/sphinx/doxygen/api-core
 
-INPUT = @PROJECT_SOURCE_DIR@/flecsi \
-        @PROJECT_SOURCE_DIR@/doc/doxygen/api-core/mainpage.md \
-        @PROJECT_SOURCE_DIR@/doc/doxygen/api-core/doxygen-setup.h
-
 ENABLED_SECTIONS = core spec
 
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
@@ -20,8 +16,5 @@ PREDEFINED = FLECSI_ENABLE_FLOG \
              DOXYGEN
 
 WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-core.out
-
-USE_MDFILE_AS_MAINPAGE = \
-  @PROJECT_SOURCE_DIR@/doc/doxygen/api-core/mainpage.md
 
 @INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/api-core/project.conf
