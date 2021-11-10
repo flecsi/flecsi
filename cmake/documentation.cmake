@@ -18,59 +18,10 @@ include(colors)
 option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
 mark_as_advanced(ENABLE_DOCUMENTATION)
 
-cmake_dependent_option(ENABLE_DOXYGEN "Enable Doxygen documentation"
-  ON "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_DOXYGEN)
-
-cmake_dependent_option(ENABLE_DOXYGEN_WARN "Enable Doxygen warnings"
-  OFF "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_DOXYGEN_WARN)
-
-cmake_dependent_option(ENABLE_SPHINX "Enable Sphinx documentation"
-  ON "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_SPHINX)
-
 if(ENABLE_DOCUMENTATION)
-
-  if(ENABLE_DOXYGEN)
-    find_package(Doxygen REQUIRED)
-
-    # This is used by configure_file
-    set(DOXYGEN_WARN NO)
-    if(ENABLE_DOXYGEN_WARN)
-      set(DOXYGEN_WARN YES)
-    endif()
-
-    # This is used by configure_file
-    set(${PROJECT_NAME}_DOXYGEN_TARGET doxygen)
-
-    configure_file(${PROJECT_SOURCE_DIR}/config/doxygen.conf.in
-      ${CMAKE_BINARY_DIR}/doc/.doxygen/doxygen.conf)
-
-    add_custom_target(doxygen
-        ${DOXYGEN} ${CMAKE_BINARY_DIR}/doc/.doxygen/doxygen.conf
-        DEPENDS ${PROJECT_SOURCE_DIR}/config/doxygen.conf.in)
-  endif()
-
-  if(ENABLE_SPHINX)
-    find_package(Sphinx REQUIRED)
-
-    file(COPY ${CMAKE_SOURCE_DIR}/config/sphinx/_static
-      DESTINATION ${CMAKE_BINARY_DIR}/doc/.sphinx)
-
-    file(COPY ${CMAKE_SOURCE_DIR}/config/sphinx/_templates
-      DESTINATION ${CMAKE_BINARY_DIR}/doc/.sphinx)
-
-    configure_file(${CMAKE_SOURCE_DIR}/config/sphinx/conf.py.in
-      ${CMAKE_BINARY_DIR}/doc/.sphinx/conf.py)
-
-    add_custom_target(sphinx
-      COMMAND ${SPHINX_EXECUTABLE} -Q -b html -c
-        ${CMAKE_BINARY_DIR}/doc/.sphinx
-        ${CMAKE_SOURCE_DIR}/config/sphinx
-        ${CMAKE_BINARY_DIR}/doc/sphinx
-    )
-  endif()
+  add_custom_target(doc
+    ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.doc-dummy
+  )
 
   if(ENABLE_SPHINX AND ENABLE_DOXYGEN)
 
@@ -80,13 +31,18 @@ if(ENABLE_DOCUMENTATION)
       message(FATAL_ERROR "Git is required for this target")
     endif()
 
+    #--------------------------------------------------------------------------#
+    # This target will work with multiple doxygen targets. However, because
+    # sphinx is used for the main html page content, it will only work with
+    # one sphinx target, i.e., the one named `sphinx`.
+    #--------------------------------------------------------------------------#
+
     add_custom_target(deploy-documentation
       COMMAND
-        echo "Building Sphinx" && make sphinx &&
-        echo "Building Doxygen" && make doxygen &&
+        make doc &&
         echo "Updating gh-pages" &&
           ([ -e gh-pages ] ||
-            ${GIT_EXECUTABLE} clone --branch gh-pages
+            ${GIT_EXECUTABLE} clone --single-branch --branch gh-pages
               git@gitlab.lanl.gov:flecsi/flecsi-pages.git gh-pages &&
             cd gh-pages &&
             ${GIT_EXECUTABLE} remote rm origin &&
@@ -96,7 +52,7 @@ if(ENABLE_DOCUMENTATION)
         echo "Updating Sphinx pages" &&
           cp -rT doc/sphinx gh-pages &&
         echo "Updating Doxygen pages" &&
-          cp -rT doc/doxygen/html gh-pages/doxygen &&
+          cp -rT doc/doxygen gh-pages/doxygen &&
         echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages" &&
         echo "${FLECSI_Red}!!!WARNING WARNING WARNING!!!" &&
         echo "The gh-pages repository points to an EXTERNAL remote on github.com." &&
@@ -104,5 +60,4 @@ if(ENABLE_DOCUMENTATION)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   endif()
-
 endif()
