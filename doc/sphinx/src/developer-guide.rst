@@ -546,6 +546,19 @@ __ https://www.graphviz.org
 
 -----
 
+Doxygen
++++++++
+The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
+See the `manual`__ for details, but note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
+
+__ https://www.doxygen.nl/manual/
+
+The developers' version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
+Use ``\cond core`` and ``\endcond`` to mark material that should appear only there.
+Developers must also check for such markers to identify internal interfaces; the output does not distinguish them, since users should consult only the users' version anyway.
+
+-----
+
 Sphinx
 ++++++
 
