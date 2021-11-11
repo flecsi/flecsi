@@ -20,8 +20,7 @@ IMAGE_PATH             = @PROJECT_SOURCE_DIR@/doc/doxygen/images
 STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/flecsi
 STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/flecsi
 INPUT                  = @PROJECT_SOURCE_DIR@/flecsi \
-                         @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md \
-                         @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-setup.h
+                         @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 
 @INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/common.conf

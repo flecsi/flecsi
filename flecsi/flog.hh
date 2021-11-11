@@ -35,6 +35,10 @@
 
 namespace flecsi {
 namespace log {
+/// \defgroup flog Logging
+/// Configurable, parallel logging.
+/// \{
+
 namespace detail {
 template<class, class = void>
 struct stream;
@@ -84,8 +88,6 @@ struct guard;
   Create a tag group to enable/disable output using guards.
 
   @param label The name of the tag.
-
-  @ingroup flog
  */
 
 struct tag {
@@ -104,8 +106,6 @@ private:
   guard.
 
   @param t The tag group that should enable/disable output.
-
-  @ingroup flog
  */
 
 struct guard {
@@ -137,8 +137,6 @@ struct devel_guard {
   @param colorize Indicates whether the output to this stream should be
                   colorized. It is useful to turn colorization off for
                   non-interactive output (default).
-
-  @ingroup flog
  */
 
 inline void
@@ -164,6 +162,7 @@ private:
   const T & t;
 };
 
+/// \}
 } // namespace log
 } // namespace flecsi
 
@@ -183,8 +182,6 @@ private:
   // Print the value at warn severity level
   flog(warn) << "Value: " << value << std::endl;
   @endcode
-
-  @ingroup flog
  */
 
 #define flog(severity)                                                         \
@@ -222,8 +219,6 @@ private:
   // Print the value at trace severity level
   flog_trace("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_trace(stream)                                                     \
@@ -244,8 +239,6 @@ private:
   // Print the value at info severity level
   flog_info("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_info(stream)                                                      \
@@ -266,8 +259,6 @@ private:
   // Print the value at warn severity level
   flog_warn("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_warn(stream)                                                      \
@@ -288,8 +279,6 @@ private:
   // Print the value at error severity level
   flog_error("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_error(stream)                                                     \
@@ -366,8 +355,6 @@ to_string(T const & t) {
 
 /*!
   Alias for severity level warn.
-
-  @ingroup flog
  */
 
 #define fixme() flog(warn)
@@ -412,8 +399,6 @@ dumpstack() {
   // Print the value and exit
   flog_fatal("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_fatal(message)                                                    \
@@ -450,8 +435,6 @@ dumpstack() {
   // Print the value and exit
   flog_assert(value == 20, "invalid value");
   @endcode
-
-  @ingroup flog
  */
 
 /*

@@ -25,6 +25,10 @@
 
 namespace flecsi {
 namespace data {
+/// \defgroup legion-data Legion Data
+/// Owning wrappers for Legion objects.
+/// \ingroup data
+/// \{
 
 struct prefixes;
 
@@ -332,5 +336,6 @@ get_scalar_from_accessor(const T * ptr) {
   return *ptr;
 }
 
+/// \}
 } // namespace data
 } // namespace flecsi

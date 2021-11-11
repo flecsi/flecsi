@@ -27,6 +27,11 @@
 
 #include <utility>
 
+/// \defgroup narray Multi-dimensional Array
+/// Configurable multi-dimensional array topology.
+/// Can be used for structured meshes.
+/// \ingroup topology
+/// \{
 namespace flecsi {
 namespace topo {
 
@@ -364,3 +369,4 @@ struct detail::base<narray> {
 
 } // namespace topo
 } // namespace flecsi
+/// \}

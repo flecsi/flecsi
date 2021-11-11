@@ -35,6 +35,10 @@
 #include <unordered_map>
 
 namespace flecsi::run {
+/// \defgroup legion-runtime Legion Runtime
+/// State for and control of the Legion runtime.
+/// \ingroup runtime
+/// \{
 
 inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
@@ -244,4 +248,5 @@ private:
   LegionRuntime::Arrays::Rect<1> all_processes_;
 };
 
+/// \}
 } // namespace flecsi::run

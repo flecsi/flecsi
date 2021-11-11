@@ -33,6 +33,10 @@
 
 namespace flecsi {
 namespace exec {
+/// \defgroup mpi-execution MPI Execution
+/// Direct task execution.
+/// \ingroup execution
+/// \{
 namespace detail {
 
 // AA is what the user gives us when calling execute(), PP is what
@@ -186,5 +190,6 @@ reduce_internal(Args &&... args) {
   }
 }
 
+/// \}
 } // namespace exec
 } // namespace flecsi

@@ -25,6 +25,9 @@ namespace flecsi {
 using Dimension = unsigned short;
 
 namespace util {
+/// \defgroup utils Utilities
+/// Non-domain-specific infrastructure.
+/// \{
 
 //----------------------------------------------------------------------------//
 // Entity id type. This type should be used for id types for entities
@@ -113,5 +116,6 @@ struct identity {
 };
 
 /// \endcond
+/// \}
 } // namespace util
 } // namespace flecsi

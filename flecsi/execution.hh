@@ -25,11 +25,11 @@
 #include <boost/program_options.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
-/*----------------------------------------------------------------------------*
-  Basic runtime interface
- *----------------------------------------------------------------------------*/
-
 namespace flecsi {
+
+/// \defgroup runtime Runtime Model
+/// Environmental information and tools for organizing applications.
+/// \{
 
 /*!
   Perform FleCSI runtime initialization. If \em dependent is true, this call
@@ -335,6 +335,14 @@ colors() {
   return run::context::instance().colors();
 }
 
+/// \}
+
+/// \defgroup execution Execution Model
+/// Launching tasks and kernels.  Tasks are coarse-grained and use
+/// distributed-memory with restricted side effects; kernels are fine-grained
+/// and data-parallel, possibly using an accelerator.
+/// \{
+
 /*!
   Execute a reduction task.
 
@@ -385,6 +393,8 @@ auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
 } // execute
+
+/// \}
 
 /*!
   Execute a test task. This interface is provided for FleCSI's unit testing

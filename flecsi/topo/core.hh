@@ -27,6 +27,15 @@ struct topology_accessor; // avoid circularity via launch.hh
 } // namespace data
 
 namespace topo {
+/// \defgroup topology Topologies
+/// Generic topology categories and tools for specializing them.
+/// \warning The material in this section and its subsections is of interest
+///   only to developers of topology specializations.  Application developers
+///   should consult the documentation for the specializations they are using,
+///   which may refer back to this document (occasionally even to small,
+///   specific parts of this section).
+/// \{
+
 enum single_space { elements };
 
 /// \cond core
@@ -158,5 +167,6 @@ struct topology : specialization<core, topology> {
 };
 #endif
 
+/// \}
 } // namespace topo
 } // namespace flecsi

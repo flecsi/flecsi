@@ -26,6 +26,9 @@
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {
+/// \defgroup data Data Model
+/// Defining topology instances and fields.
+/// \{
 
 /*
   Default global topology instance.
@@ -62,4 +65,5 @@ struct data_guard {
 };
 } // namespace detail
 /// \endcond
+/// \}
 } // namespace flecsi

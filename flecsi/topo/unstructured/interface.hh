@@ -29,6 +29,10 @@
 #include <map>
 #include <utility>
 
+/// \defgroup unstructured Unstructured Mesh
+/// Configurable unstructured mesh interface.
+/// \ingroup topology
+/// \{
 namespace flecsi {
 namespace topo {
 
@@ -267,3 +271,4 @@ struct detail::base<unstructured> {
 
 } // namespace topo
 } // namespace flecsi
+/// \}

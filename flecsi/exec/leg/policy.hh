@@ -40,6 +40,10 @@ namespace flecsi {
 inline log::devel_tag execution_tag("execution");
 
 namespace exec {
+/// \defgroup legion-execution Legion Execution
+/// Potentially remote task execution.
+/// \ingroup execution
+/// \{
 namespace detail {
 
 // Remove const from under a reference, if there is one.
@@ -190,5 +194,6 @@ reduce_internal(Args &&... args) {
 
 } // reduce_internal
 
+/// \}
 } // namespace exec
 } // namespace flecsi

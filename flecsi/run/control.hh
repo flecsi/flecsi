@@ -28,6 +28,10 @@
 
 namespace flecsi {
 namespace run {
+/// \defgroup control Control Model
+/// Types for defining, extending, and executinga control-flow graphs.
+/// \ingroup runtime
+/// \{
 
 inline log::devel_tag control_tag("control");
 
@@ -65,8 +69,6 @@ using cycle = run_impl::cycle<Predicate, ControlPoints...>;
   If Graphviz support is enabled, the control flow graph and its DAG nodes
   can be written to a graphviz file that can be compiled and viewed using
   the \em dot program.
-
-  @ingroup control
  */
 
 template<typename ControlPolicy>
@@ -299,5 +301,6 @@ public:
 
 }; // struct control
 
+/// \}
 } // namespace run
 } // namespace flecsi

@@ -26,6 +26,10 @@
 
 namespace flecsi {
 namespace data {
+/// \defgroup mpi-data MPI Data
+/// Direct data storage.
+/// \ingroup data
+/// \{
 
 namespace mpi {
 struct region_impl {
@@ -379,5 +383,6 @@ T
 get_scalar_from_accessor(const T * ptr) {
   return *ptr;
 }
+/// \}
 } // namespace data
 } // namespace flecsi
