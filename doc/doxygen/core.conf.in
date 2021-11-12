@@ -4,7 +4,7 @@
 
 PROJECT_NAME = "Core API"
 
-ENABLED_SECTIONS = core spec
+ENABLED_SECTIONS = core
 
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
                    */test/*
