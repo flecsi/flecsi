@@ -4,6 +4,8 @@
 
 PROJECT_LOGO           = @PROJECT_SOURCE_DIR@/doc/doxygen/medium-flecsi.png
 PROJECT_NUMBER         = "Version: ${${PROJECT_NAME}_DOCUMENTATION_VERSION}"
+OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/doc/api
+HTML_OUTPUT            = @name@
 HTML_HEADER            = @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-header.html
 HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/doc/doxygen/customdoxygen.css \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/tab_a.png \
@@ -22,4 +24,5 @@ INPUT                  = @PROJECT_SOURCE_DIR@/flecsi \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-setup.h
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 
-@INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/doxygen-common.conf
+@INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/common.conf
+@INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/@name@/@name@.conf

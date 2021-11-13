@@ -4,8 +4,6 @@
 
 PROJECT_NAME = "User API"
 
-OUTPUT_DIRECTORY = @CMAKE_BINARY_DIR@/doc/sphinx/doxygen/api-user
-
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
                    */test/*
 
@@ -14,5 +12,3 @@ PREDEFINED = FLECSI_ENABLE_FLOG \
              DOXYGEN
 
 WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-user.out
-
-@INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/api-user/project.conf

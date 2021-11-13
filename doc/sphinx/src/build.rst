@@ -244,10 +244,10 @@ configured FleCSI, you can build the documentation like:
 
 Both of these targets will be built in your build directory under *doc*,
 e.g., the main Doxygen index.html page will be located at
-*'doc/doxygen/html/index.html'*. Similarly, the Sphinx main index.html
-page will be located at *'doc/sphinx/index.html'*. You can open these in
+*'doc/api/index.html'*. Similarly, the Sphinx main index.html
+page will be located at *'doc/index.html'*. You can open these in
 your browser with
-*file:///path/to/your/build/directory/doc/doxygen/html/index.html*, and
-*file:///path/to/your/build/directory/doc/sphinx/index.html*.
+*file:///path/to/your/build/directory/doc/api/index.html*, and
+*file:///path/to/your/build/directory/doc/index.html*.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

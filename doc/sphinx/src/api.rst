@@ -9,7 +9,7 @@ API Reference
 
 FleCSI maintains API documentation targeting different concentrations:
 
-* `User API <../doxygen/api-user/html/index.html>`_ |br|
+* `User API <../api/user/index.html>`_ |br|
   Documentation of the FleCSI runtime abstraction layer, primarily
   geared towards application developers who are using an existing
   specialization.
@@ -20,7 +20,7 @@ FleCSI maintains API documentation targeting different concentrations:
   options, logging (flog), I/O, core topology types, and coloring
   utilties.
 
-* `Core API <../doxygen/api-core/html/index.html>`_ |br|
+* `Core API <../api/core/index.html>`_ |br|
   Documentation for core FleCSI developers. |br|
   **Covers:** low-level core FleCSI types and definitions.
 

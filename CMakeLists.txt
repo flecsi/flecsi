@@ -178,22 +178,21 @@ if(NOT FORMAT_ONLY)
 
   add_sphinx_target(main
     CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
-    OUTPUT ${CMAKE_BINARY_DIR}/doc/sphinx
+    OUTPUT ${CMAKE_BINARY_DIR}/doc
   )
 
-  # Doxygen output is set by the doxygen configuration file, so we
-  # need to create an output directory.
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/sphinx/doxygen)
+  # Create Doxygen output directory eagerly to avoid race condition.
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
 
-  add_doxygen_target(api-core
+  add_doxygen_target(core
     CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-core/doxygen.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
   )
-  add_doxygen_target(api-user
+  add_doxygen_target(user
     CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-user/doxygen.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
   )
 
   # This is for local install of the documentation. To deploy the
@@ -202,7 +201,7 @@ if(NOT FORMAT_ONLY)
   if(ENABLE_SPHINX)
     install(
       DIRECTORY
-        ${CMAKE_BINARY_DIR}/doc/sphinx/
+        ${CMAKE_BINARY_DIR}/doc/
       DESTINATION
         ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
       OPTIONAL
