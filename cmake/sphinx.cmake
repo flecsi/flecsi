@@ -24,9 +24,11 @@ mark_as_advanced(ENABLE_SPHINX)
 # sphinx targets added with `add_sphinx_target`.
 #------------------------------------------------------------------------------#
 
-add_custom_target(sphinx
-  ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
-)
+if(ENABLE_SPHINX)
+  add_custom_target(sphinx
+    ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
+  )
+endif()
 
 #------------------------------------------------------------------------------#
 # Add a sphinx target

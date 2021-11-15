@@ -28,9 +28,11 @@ mark_as_advanced(ENABLE_DOXYGEN_WARN)
 # doxygen targets added with `add_doxygen_target`.
 #------------------------------------------------------------------------------#
 
-add_custom_target(doxygen
-  ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.dox-dummy
-)
+if(ENABLE_DOXYGEN)
+  add_custom_target(doxygen
+    ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.dox-dummy
+  )
+endif()
 
 #------------------------------------------------------------------------------#
 # Add a doxygen target
