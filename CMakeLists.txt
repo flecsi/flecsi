@@ -51,6 +51,12 @@ if(NO_BRACED_SCALAR_INIT)
 endif()
 
 #------------------------------------------------------------------------------#
+# Add extra cmake modules.
+#------------------------------------------------------------------------------#
+
+find_package(LANLCMakeModules)
+
+#------------------------------------------------------------------------------#
 # Version.
 #------------------------------------------------------------------------------#
 
@@ -329,7 +335,7 @@ if(NOT FORMAT_ONLY)
 
   install(
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
 
   install(
@@ -337,12 +343,6 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindBreathe.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/flog.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
