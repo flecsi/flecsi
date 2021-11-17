@@ -82,6 +82,36 @@ mesh3d::slot m3;
 mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 
+bool
+unify(topo::claims::Field::accessor<wo> a, Color i, Color n) {
+  // Put everything on one point task:
+  a = topo::claims::row(i);
+  return i < n - 1;
+}
+int
+check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
+  UNIT {
+    constexpr static auto x = mesh1d::axis::x_axis;
+    using R = mesh1d::range;
+    std::size_t last, total = 0;
+    for(auto [c, m] : mm.components()) { // presumed to be in order
+      auto sz = m.size<x, R::global>(), off = m.offset<x, R::global>(),
+           log = m.offset<x, R::logical>();
+      decltype(sz) boundary = 0;
+      if(total) {
+        EXPECT_EQ(sz, total);
+        EXPECT_EQ(last, off + log);
+      }
+      else {
+        total = sz;
+        boundary = log - m.offset<x, R::extended>();
+      }
+      last = off + m.offset<x, R::ghost_high>() - boundary;
+    }
+    EXPECT_EQ(last, total);
+  };
+}
+
 int
 narray_driver() {
   UNIT {
@@ -115,6 +145,11 @@ narray_driver() {
       execute<update_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<check_mesh_field<1>>(m1, f1(m1));
+
+      if(FLECSI_RUNTIME_MODEL != FLECSI_RUNTIME_MODEL_mpi) {
+        auto lm = data::launch::make<unify>(m1, 1);
+        EXPECT_EQ(test<check_contiguous>(lm), 0);
+      }
     } // scope
 
     {

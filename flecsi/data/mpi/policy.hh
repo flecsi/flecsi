@@ -269,7 +269,7 @@ struct partition {
   }
 
   template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
+  partition & get_partition(field_id_t) {
     return *this;
   }
 
@@ -338,6 +338,41 @@ struct prefixes : data::partition, prefixes_base {
 // For backend-agnostic interface:
 using region_base = mpi::region;
 using mpi::rows, mpi::prefixes;
+
+struct borrow : partition {
+  using Value = std::pair<std::size_t, prefixes::row>; // [row,size]
+  static Value make(prefixes::row r,
+    std::size_t c = run::context::instance().color()) {
+    return {c, r};
+  }
+  static std::size_t get_row(const Value & v) {
+    return v.first;
+  }
+  static prefixes_base::row get_size(const Value & v) {
+    return v.second;
+  }
+
+  borrow(region_base & r,
+    const partition & p,
+    field_id_t f,
+    completeness = incomplete)
+    : partition(r) {
+    const auto s = p.get_storage<const Value>(f);
+    switch(s.size()) {
+      case 0:
+        break;
+      case 1: {
+        auto & v = s[0];
+        flog_assert(!v.second || v.first == run::context::instance().color(),
+          "sorry: MPI backend does not implement cross-color access");
+        nelems = v.second;
+        break;
+      }
+      default:
+        flog_fatal("underlying partition has size " << s.size() << " > 1");
+    }
+  }
+};
 
 struct intervals {
   using Value = subrow; // [begin, end)

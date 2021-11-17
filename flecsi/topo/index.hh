@@ -52,6 +52,11 @@ struct repartition : with_size, data::prefixes {
     this->resize();
   }
 
+  template<auto>
+  repartition & get_partition(field_id_t) {
+    return *this;
+  }
+
 private:
   template<class F>
   static void fill(resize::Field::accessor<wo> a, F f) {
@@ -107,19 +112,12 @@ struct ragged_category : ragged_base {
   }
 
   template<index_space S>
-  const repartition & get_partition(field_id_t i) const {
-    return part.template get<S>()[i];
-  }
-  template<index_space S>
   repartition & get_partition(field_id_t i) {
     return part.template get<S>()[i];
   }
 
-  // These can't just be default template arguments, since they would be
+  // This can't just be a default template argument, since it would be
   // instantiated even if unused.
-  const repartition & get_partition(field_id_t i) const {
-    return const_cast<ragged_category &>(*this).get_partition(i);
-  }
   repartition & get_partition(field_id_t i) {
     return get_partition<P::default_space()>(i);
   }
@@ -163,28 +161,15 @@ struct detail::base<ragged_category> {
 };
 
 // The user-facing variant of the color category supports ragged fields.
-struct index_base {
-  using coloring = Color;
-};
+struct index_base : column_base {};
 
 template<class P>
-struct index_category : index_base, color<P>, with_ragged<P> {
-  using index_base::coloring; // override color_base::coloring
-  explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {}
+struct index_category : index_base, column<P>, with_ragged<P> {
+  explicit index_category(coloring c) : column<P>(c), with_ragged<P>(c) {}
 };
 template<>
 struct detail::base<index_category> {
   using type = index_base;
-};
-
-// A subtopology for holding topology-specific metadata per color.
-template<class P>
-struct meta : specialization<index_category, meta<P>> {};
-
-template<class P>
-struct with_meta { // for interface consistency
-  with_meta(Color n) : meta(n) {}
-  typename topo::meta<P>::core meta;
 };
 
 struct array_base {
@@ -221,6 +206,16 @@ struct detail::base<user> {
   using type = user_base;
 };
 
+// A subtopology for holding topology-specific metadata per color.
+template<class P>
+struct meta : specialization<user, meta<P>> {};
+
+template<class P>
+struct with_meta { // for interface consistency
+  with_meta(Color n) : meta(user_base::coloring(n, 1)) {}
+  typename topo::meta<P>::core meta;
+};
+
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
@@ -233,6 +228,197 @@ struct index : specialization<index_category, index> {
   } // color
 
 }; // struct index
+
+namespace detail {
+// Q is the underlying topology, not to be confused with P which is borrow<Q>.
+template<class Q, bool = std::is_base_of_v<with_ragged<Q>, typename Q::core>>
+struct borrow_ragged {
+  borrow_ragged(typename Q::core &, claims::core &) {}
+};
+template<class Q, bool = std::is_base_of_v<with_meta<Q>, typename Q::core>>
+struct borrow_meta {
+  borrow_meta(typename Q::core &, claims::core &) {}
+};
+} // namespace detail
+template<class T> // core topology
+struct borrow_extra {
+  borrow_extra(T &, claims::core &) {}
+};
+template<class>
+struct borrow_category;
+template<class>
+struct borrow;
+
+struct borrow_base {
+  struct coloring {
+    void * topo;
+    claims::core * clm;
+  };
+
+  template<template<class> class C, class T>
+  static auto & derived(borrow_extra<C<T>> & e) {
+    return static_cast<typename topo::borrow<T>::core &>(e);
+  }
+
+protected:
+  struct borrow {
+  private:
+    // An emulation of topo::repartition with borrowed rows.
+    struct repartition : data::borrow {
+      // A borrowed row can be empty either because the claim was
+      // claims::row({}) or because the claimed row has 0 size.
+      repartition(data::region & r, topo::repartition & p, claims::core & c)
+        : borrow(r, data::pointers(p, c), data::pointers::field.fid),
+          sz(p.sz, c, claims::field.fid, data::completeness()),
+          growth(&p.grow()) {}
+
+      const topo::resize::policy & grow() const {
+        return *growth;
+      }
+      auto sizes() {
+        return topo::resize::field(sz);
+      }
+      // TODO: this shouldn't happen depth() times; note that we'd need to
+      // recreate the data::borrow base if we did resize here.  There's also
+      // the issue of updates to the underlying partition not propagating into
+      // ours.
+      void resize() {}
+
+      indirect<topo::resize>::core sz;
+
+    private:
+      const topo::resize::policy * growth;
+    };
+
+  public:
+    template<class T, typename policy_t<T>::index_space S>
+    borrow(T & t, util::constant<S>, claims::core & c)
+      : reg(&t.template get_region<S>()) {
+      std::map<data::partition *, typename decltype(part)::size_type> seen;
+      for(const auto & fi :
+        run::context::instance().get_field_info_store<policy_t<T>, S>()) {
+        // TODO: change all topologies(!) to provide a more precise
+        // get_partition return type
+        topo::repartition & p = t.template get_partition<S>(fi->fid);
+        auto [it, nu] = seen.try_emplace(&p, part.size());
+        if(nu)
+          part.emplace_back(*reg, p, c);
+        fields.emplace(fi->fid, it->second);
+      }
+    }
+    borrow(borrow &&) = default; // std::vector doesn't propagate copyability
+
+    repartition & operator[](field_id_t f) {
+      return part[fields.at(f)];
+    }
+    repartition & single() {
+      flog_assert(part.size() == 1, "ambiguous repartition");
+      return part.front();
+    }
+    data::region & get_region() {
+      return *reg;
+    }
+
+  private:
+    data::region * reg;
+    std::vector<repartition> part; // one per unique partition
+    std::map<field_id_t, typename decltype(part)::size_type> fields;
+  };
+};
+
+// A selection from an underlying topology.  In general, it may have a
+// different number of colors and be partial or non-injective.  Several may be
+// used in concert for many-to-many mappings.  Certain topologies too simple
+// to use repartition are not supported.
+template<class P>
+struct borrow_category : borrow_base,
+                         detail::borrow_ragged<typename P::Base>,
+                         detail::borrow_meta<typename P::Base>,
+                         borrow_extra<typename P::Base::core> {
+  using index_space = typename P::index_space;
+  using index_spaces = typename P::index_spaces;
+  using Base = typename P::Base::core;
+
+  // The underlying topology's accessor is reused, wrapped in a multiplexer
+  // that corresponds to more than one instance of this class.
+
+  explicit borrow_category(const coloring & c)
+    : borrow_category(*static_cast<Base *>(c.topo), *c.clm) {}
+  borrow_category(Base & t, claims::core & c)
+    : borrow_category(t, c, index_spaces()) {}
+
+  Color colors() const {
+    return clm->colors();
+  }
+
+  auto get_claims() {
+    return claims::field(*clm);
+  }
+
+  template<index_space S>
+  data::region & get_region() {
+    return get<S>().get_region();
+  }
+  template<index_space S>
+  auto & get_partition(field_id_t f) {
+    return get<S>()[f];
+  }
+
+  template<class F>
+  void ghost_copy(const F & f) {
+    base->ghost_copy(f);
+  }
+
+private:
+  // TIP: std::tuple<TT...> can be initialized from const TT&... (which
+  // requires copying) or from UU&&... (which cannot use list-initialization).
+  template<auto... SS>
+  borrow_category(Base & t, claims::core & c, util::constants<SS...>)
+    : borrow_category::borrow_ragged(t, c), borrow_category::borrow_meta(t, c),
+      borrow_category::borrow_extra(t, c),
+      base(&t), spc{{borrow(t, util::constant<SS>(), c)...}}, clm(&c) {}
+
+  template<index_space S>
+  borrow & get() {
+    return spc.template get<S>();
+  }
+
+  friend typename borrow_category::borrow_extra;
+
+  Base * base;
+  util::key_array<borrow, index_spaces> spc;
+  claims::core * clm;
+};
+template<>
+struct detail::base<borrow_category> {
+  using type = borrow_base;
+};
+
+template<class Q>
+struct borrow : specialization<borrow_category, borrow<Q>> {
+  using Base = Q;
+  using index_space = typename Q::index_space;
+  using index_spaces = typename Q::index_spaces;
+
+  template<index_space S>
+  static constexpr PrivilegeCount privilege_count =
+    Q::template privilege_count<S>;
+
+  static TopologyType id() = delete; // prevent ineffectual field registration
+};
+
+namespace detail {
+template<class Q>
+struct borrow_ragged<Q, true> {
+  borrow_ragged(typename Q::core & t, claims::core & c) : ragged(t.ragged, c) {}
+  typename borrow<topo::ragged<Q>>::core ragged;
+};
+template<class Q>
+struct borrow_meta<Q, true> {
+  borrow_meta(typename Q::core & t, claims::core & c) : meta(t.meta, c) {}
+  typename borrow<topo::meta<Q>>::core meta;
+};
+} // namespace detail
 
 } // namespace topo
 } // namespace flecsi

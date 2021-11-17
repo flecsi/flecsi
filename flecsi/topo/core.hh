@@ -34,6 +34,12 @@ enum single_space { elements };
 namespace detail {
 template<template<class> class>
 struct base;
+template<class>
+struct policy;
+template<template<class> class C, class P>
+struct policy<C<P>> {
+  using type = P;
+};
 
 inline TopologyType next_id;
 } // namespace detail
@@ -41,6 +47,9 @@ inline TopologyType next_id;
 // To obtain the base class without instantiating a core topology type:
 template<template<class> class T>
 using base_t = typename detail::base<T>::type;
+// Map P::core to P:
+template<class T>
+using policy_t = typename detail::policy<T>::type;
 
 #ifdef DOXYGEN
 /// An example topology base that is not really implemented.
@@ -71,7 +80,7 @@ struct core : core_base { // with_ragged<P> is often another base class
 
   // As a special case, the global topology does not define this.
   template<typename P::index_space>
-  const data::partition & get_partition(field_id_t) const;
+  data::partition & get_partition(field_id_t);
 
   // If multiple privileges are used:
   template<class T, data::layout L, class Topo, typename Topo::index_space S>

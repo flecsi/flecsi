@@ -32,6 +32,9 @@
 namespace flecsi {
 namespace data {
 
+template<class>
+struct multi;
+
 namespace detail {
 template<class A>
 void
@@ -69,6 +72,21 @@ template<class T, Privileges P, bool M>
 using particle_raw =
   typename field<T, data::particle>::base_type::template accessor1<
     !M && get_privilege(0, P) == wo ? privilege_pack<rw> : P>;
+
+template<class A, class = void>
+struct multi_buffer {};
+template<class A>
+struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
+  using TaskBuffer = std::vector<typename A::TaskBuffer>;
+  void buffer(TaskBuffer & b) {
+    const auto aa = static_cast<multi<A> &>(*this).accessors();
+    // NB: Some of these will be unused because the accessors are discarded.
+    b.resize(aa.size());
+    auto i = b.begin();
+    for(auto & a : aa)
+      a.buffer(*i++);
+  }
+};
 } // namespace detail
 
 // All accessors are ultimately implemented in terms of those for the raw
@@ -254,11 +272,10 @@ struct ragged_accessor
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
         r.get_partition(r.topology().ragged).resize();
-      // We rely on the fact that field_reference uses only the field ID.
       return field_reference<T,
         raw,
-        topo::ragged<typename R::Topology>,
-        R::space>({i, 0, {}}, t);
+        topo::policy_t<std::remove_reference_t<decltype(t)>>,
+        R::space>::from_id(i, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
@@ -1285,6 +1302,66 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
+// This gets the short name since users must declare parameters with it.
+template<class A>
+struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
+  multi(Color n, const A & a)
+    : vp(std::make_shared<std::vector<round>>(n, round{{}, a})) {}
+  multi(const multi &) = default; // implement move as copy
+
+  auto components() const { // for(auto [c,a] : m.components())
+    return util::transform_view(
+      *vp, [](const round & r) -> std::pair<Color, const A &> {
+        return {borrow::get_row(r.row), r.a};
+      });
+  }
+  // Usable on caller side:
+  auto accessors() {
+    return xform(*vp);
+  }
+  auto accessors() const {
+    return xform(std::as_const(*vp));
+  }
+
+  template<class F>
+  void send(F && f) {
+    auto & v = *vp;
+    Color i = 0;
+    for(auto & [c, a] : v) {
+      f(c.get_base(), [&](auto & r) {
+        flog_assert(r.map().depth() == Color(v.size()),
+          "launch map has depth " << r.map().depth() << ", not " << v.size());
+        return r.map()[i].get_claims();
+      });
+      f(a, [&](auto & r) -> decltype(auto) { return r.data(i); });
+      ++i;
+    }
+    // no-op on caller side:
+    v.erase(std::remove_if(v.begin(),
+              v.end(),
+              [](const round & r) {
+                return !r.row.get_base().get_base().span().empty() &&
+                       !borrow::get_size(r.row);
+              }),
+      v.end());
+  }
+
+private:
+  struct round {
+    accessor_member<topo::claims::field, privilege_pack<ro>> row;
+    A a;
+  };
+  template<class V>
+  static auto xform(V & v) {
+    return util::transform_view(
+      v, [](auto & r) -> auto & { return r.a; });
+  }
+
+  // Avoid losing contents when moved into a user parameter.
+  // We could use TaskBuffer for the purpose, but not on the caller side.
+  std::shared_ptr<std::vector<round>> vp;
+};
+
 } // namespace data
 
 template<data::layout L, class T, Privileges P>
@@ -1308,7 +1385,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
     return {type::base_type::parameter(r),
-      r.get_partition(r.topology().ragged).growth};
+      r.get_partition(r.topology().ragged).grow()};
   }
 };
 template<class T, Privileges P>
@@ -1320,6 +1397,24 @@ struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
     return exec::replace_argument<typename type::base_type>(
       r.template cast<data::ragged,
         typename field<T, data::sparse>::base_type::value_type>());
+  }
+};
+template<class A>
+struct exec::detail::task_param<data::multi<A>> {
+  using type = data::multi<A>;
+  template<class T, data::layout L, class Topo, typename Topo::index_space S>
+  static type replace(const data::multi_reference<T, L, Topo, S> & r) {
+    return mk(r);
+  }
+  template<class P>
+  static type replace(data::launch::mapping<P> & m) {
+    return mk(m);
+  }
+
+private:
+  template<class T>
+  static type mk(T & t) {
+    return {t.map().depth(), exec::replace_argument<A>(t.data(0))};
   }
 };
 

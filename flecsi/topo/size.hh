@@ -11,7 +11,7 @@
 namespace flecsi::topo {
 
 // A subtopology for storing/updating row sizes of a partition.
-struct resize : specialization<color, resize> {
+struct resize : specialization<column, resize> {
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
   template<partition_privilege_t P>
@@ -49,12 +49,16 @@ inline const resize::Field::definition<resize> resize::field;
 // To control initialization order:
 struct with_size {
   explicit with_size(Color n, const resize::policy & p = {})
-    : sz({n, 1}), growth(p) {}
+    : sz(n), growth(p) {}
   auto sizes() {
     return resize::field(sz);
   }
   resize::core sz;
   resize::policy growth;
+  // For compatibility with borrow_category:
+  const resize::policy & grow() const {
+    return growth;
+  }
 };
 
 } // namespace flecsi::topo

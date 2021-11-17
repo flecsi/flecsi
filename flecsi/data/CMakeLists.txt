@@ -25,6 +25,7 @@ set(data_HEADERS
   field.hh
   field_info.hh
   layout.hh
+  map.hh
   privilege.hh
   topology_accessor.hh
   topology_slot.hh
@@ -50,6 +51,7 @@ if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
 elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
 
   set(data_HEADERS
+    mpi/copy.hh
     mpi/policy.hh
     ${data_HEADERS}
   )

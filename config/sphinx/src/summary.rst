@@ -218,6 +218,7 @@ Because a task's parameters are destroyed as soon as it returns, state accumulat
 
 On both sides, various tag base classes are used to recognize relevant FleCSI types; ``send_tag`` in particular identifies types that can decompose themselves into simpler parameters via a ``send`` member function template.
 This function template accepts a callback that is used to process the subcomponents and which itself accepts a callback that, on the caller side only, is used to transform the task *arguments*.
+Those task arguments may include ``borrow_category`` versions of the underlying topologies and field references to such versions.
 The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
@@ -276,7 +277,7 @@ Subcomponents
 For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type ``subtopology::core``).
 Some of these are so trivial as to merely inherit from the appropriate specialization of ``specialization`` with an empty class body.
 The most fundamental of these is ``resize``, which holds the sizes needed to construct a non-trivial ``partition``.
-It is defined in ``size.hh`` in terms of the even lower-level ``color`` machinery (from ``color.hh``) that defines fields with a fixed number of values per color.
+It is defined in ``size.hh`` in terms of the even lower-level ``color`` and ``column`` machinery (from ``color.hh``) that define fields with a fixed number (1 for ``column``) of values per color.
 
 The type ``topo::repartition`` augments ``data::partition`` with a ``resize`` and schedules a task to initialize them properly; it too can be combined with a ``region`` with the *ed* suffix.
 It is defined in ``index.hh``, along with higher-level subtopologies that provide the backing store for the ``ragged`` layout as well as the user-level ``index`` topology that supports ``ragged`` fields.

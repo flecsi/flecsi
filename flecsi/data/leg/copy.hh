@@ -8,8 +8,6 @@
 
 namespace flecsi::data {
 namespace leg {
-using rect = Legion::Rect<2>;
-
 struct halves : topo::specialization<topo::color, halves> {
   using Field = flecsi::field<rect>;
   static const Field::definition<halves> field;
@@ -26,6 +24,10 @@ struct mirror {
   const partition<> & convert(F f) {
     execute<extend>(f, halves::field(rects), width);
     return part;
+  }
+
+  halves::core & get_rects() { // for multi-accessors
+    return rects;
   }
 
   static constexpr const field_id_t & fid = halves::field.fid;
@@ -80,6 +82,8 @@ struct prefixes : private leg::mirror,
     return get_first_subregion(prt);
   }
 
+  using mirror::get_rects;
+
 private:
   static Legion::LogicalRegion get_first_subregion(
     const leg::partition<> & prt) {
@@ -89,8 +93,8 @@ private:
 
 // specialization of the partition constructor for prefixes being passed as a
 // first argument
-template<bool R>
-leg::partition<R>::partition(prefixes & reg,
+template<bool R, bool D>
+leg::partition<R, D>::partition(prefixes & reg,
   const data::partition & src,
   field_id_t fid,
   completeness cpt)
@@ -153,6 +157,18 @@ private:
 public:
   void operator()(field_id_t f) const {
     copy_engine(*this).go(f);
+  }
+};
+
+struct pointers : topo::indirect<leg::halves>::core {
+  static constexpr auto & field = leg::halves::field;
+
+  // Legion doesn't need the advertised permission to modify src.
+  pointers(prefixes & pfx, const topo::claims::core & src)
+    : indirect_category(pfx.get_rects(), src, topo::claims::field.fid) {}
+
+  auto operator*() {
+    return field(*this);
   }
 };
 

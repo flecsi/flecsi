@@ -106,6 +106,19 @@ struct util::serial<data::mutator<data::ragged, T, Priv>> {
     return {r, r};
   }
 };
+template<class A>
+struct util::serial<data::multi<A>> {
+  using type = data::multi<A>;
+  template<class P>
+  static void put(P & p, const type & m) {
+    const auto a = m.accessors();
+    serial_put(p, Color(a.size()), a.front());
+  }
+  static type get(const std::byte *& b) {
+    const serial_cast r{b};
+    return {r, r};
+  }
+};
 template<class T, Privileges Priv>
 struct util::serial<data::topology_accessor<T, Priv>,
   std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>

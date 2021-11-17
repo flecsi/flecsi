@@ -88,6 +88,16 @@ struct launch<P, data::field_reference<T, L, Topo, S>> {
     return r.topology().colors();
   }
 };
+template<class P,
+  class T,
+  data::layout L,
+  class Topo,
+  typename Topo::index_space S>
+struct launch<P, data::multi_reference<T, L, Topo, S>> {
+  static Color get(const data::multi_reference<T, L, Topo, S> & r) {
+    return r.map().colors();
+  }
+};
 
 template<class T>
 struct launch_combine {

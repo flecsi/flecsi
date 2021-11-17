@@ -20,6 +20,7 @@
   data model.
  */
 
+#include "flecsi/data/map.hh"
 #include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"

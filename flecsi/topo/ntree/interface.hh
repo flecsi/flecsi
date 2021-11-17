@@ -568,7 +568,7 @@ public:
   }
 
   template<index_space S>
-  const data::partition & get_partition(field_id_t) const {
+  data::partition & get_partition(field_id_t) {
     return part.template get<S>();
   }
 

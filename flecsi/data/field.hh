@@ -41,6 +41,11 @@ struct accessor;
 template<layout, class, Privileges>
 struct mutator;
 
+namespace launch {
+template<class P>
+struct mapping;
+}
+
 namespace detail {
 template<class, layout>
 struct field_base {};
@@ -131,7 +136,7 @@ struct field_reference_t : convert_tag {
   using topology_t = typename Topo::core;
 
   field_reference_t(const field_info_t & info, topology_t & topology)
-    : fid_(info.fid), topology_(&topology) {}
+    : field_reference_t(info.fid, topology) {}
 
   field_id_t fid() const {
     return fid_;
@@ -139,6 +144,10 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
+
+protected:
+  // Several internal components construct references just from field IDs.
+  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
 private:
   field_id_t fid_;
@@ -160,7 +169,7 @@ struct field_reference : field_reference_t<Topo> {
   using Base::Base;
   explicit field_reference(const Base & b) : Base(b) {}
 
-  // We can't forward-declare partition, so just deduce these:
+  // Some of these types vary across topologies:
   template<class S>
   static auto & get_region(S & topo) {
     return topo.template get_region<Space>();
@@ -188,6 +197,36 @@ struct field_reference : field_reference_t<Topo> {
     std::forward<F>(f)(*this);
     return *this;
   }
+
+  static field_reference from_id(field_id_t f, typename Base::topology_t & t) {
+    return {f, t};
+  }
+};
+
+template<class T, layout L, class Topo, typename Topo::index_space S>
+struct multi_reference : convert_tag {
+  using Map = launch::mapping<Topo>;
+
+  multi_reference(const field_info_t & f, Map & m)
+    : multi_reference(f.fid, m) {}
+  // Note that no correspondence between f and m is checked.
+  multi_reference(const field_reference<T, L, Topo, S> & f, Map & m)
+    : multi_reference(f.fid(), m) {}
+
+  Map & map() const {
+    return *m;
+  }
+
+  // i indexes into the depth of the map rather than being a color directly.
+  auto data(Color i) const {
+    return field_reference<T, L, typename Map::Borrow, S>::from_id(f, map()[i]);
+  }
+
+private:
+  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
+
+  field_id_t f;
+  Map * m;
 };
 
 // This is the portion of field validity that can be checked and that
@@ -230,6 +269,7 @@ struct field : data::detail::field_base<T, L> {
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
   struct definition : Register<Topo, Space> {
+    using Topology = Topo;
     using Field = field;
 
     /// Return a reference to a field instance.
@@ -239,6 +279,17 @@ struct field : data::detail::field_base<T, L> {
     }
     Reference<Topo, Space> operator()(typename Topo::core & t) const {
       return {*this, t};
+    }
+    // For indirect and borrow topologies:
+    template<template<class> class C, class P>
+    std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
+      Reference<P, Space>>
+    operator()(C<P> & t) const {
+      return {*this, t};
+    }
+    data::multi_reference<T, L, Topo, Space> operator()(
+      data::launch::mapping<Topo> & m) const {
+      return {*this, m};
     }
   };
 
@@ -292,8 +343,9 @@ using field_accessor = // for convenience with decltype
 // automatically initialized with its ID rather than having to be serialized.
 template<const auto & F, Privileges Priv>
 struct accessor_member : field_accessor<decltype(F), Priv> {
-  accessor_member() : accessor_member::accessor(F.fid) {}
-  using accessor_member::accessor::operator=; // for single
+  using base_type = typename accessor_member::accessor;
+  accessor_member() : base_type(F.fid) {}
+  using base_type::operator=; // for single
 
   template<class G>
   void topology_send(G && g) {
@@ -307,7 +359,10 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
       [&s](auto & t) { return F(std::invoke(std::forward<S>(s), t.get())); });
   }
 
-  typename accessor_member::accessor & get_base() {
+  base_type & get_base() {
+    return *this;
+  }
+  const base_type & get_base() const {
     return *this;
   }
 };
