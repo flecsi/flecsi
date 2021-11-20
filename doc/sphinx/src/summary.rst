@@ -280,7 +280,7 @@ It is defined in ``size.hh`` in terms of the even lower-level ``color`` machiner
 
 The type ``topo::repartition`` augments ``data::partition`` with a ``resize`` and schedules a task to initialize them properly; it too can be combined with a ``region`` with the *ed* suffix.
 It is defined in ``index.hh``, along with higher-level subtopologies that provide the backing store for the ``ragged`` layout as well as the user-level ``index`` topology that supports ``ragged`` fields.
-The topology ``ragged_topology`` is itself a class template, parametrized with the (user) topology type to distinguish ``ragged`` field registrations on each.
+The topology ``ragged`` is itself a class template, parametrized with the (user) topology type to distinguish ``ragged`` field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with ``with_`` to be used as a base class.
 
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
