@@ -65,17 +65,6 @@ set(exec_HEADERS
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-if(NOT FLECSI_BACKEND STREQUAL "mpi") # this test uses oversubscription
-
-add_unit(interface
-  SOURCES
-    test/interface.cc
-  THREADS
-    2
-)
-
-endif()
-
 add_unit(kernel
     SOURCES
       test/kernel.cc
