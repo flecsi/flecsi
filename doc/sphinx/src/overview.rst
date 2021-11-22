@@ -78,6 +78,12 @@ read the *Core Guide*.
   creating/maintaining the FleCSI internal repository, or who are
   directly contributing code to the core library.
 
+The release notes advertise new features and bug fixes, announce deprecations, and warn about possible issues when upgrading.
+
+.. toctree::
+
+   news
+
 Namespaces
 ++++++++++
 
