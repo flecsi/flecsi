@@ -85,7 +85,7 @@ Clone the FleCSI git repository, and create an out-of-source build area
 
 .. code-block:: console
 
-  $ git clone https://github.com/laristra/flecsi.git
+  $ git clone https://github.com/flecsi/flecsi.git
   $ cd flecsi
   $ mkdir build
   $ cd build

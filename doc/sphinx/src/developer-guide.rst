@@ -342,14 +342,14 @@ several important configuration options that you need to be aware of:
   This is the url for the repository where the build system will look
   for the *CI_BRANCH* option that you specified. The default is the main
   FleCSI Gitlab repository
-  *https://gitlab.lanl.gov/laristra/flecsi.git*. However, it is useful
+  *https://gitlab.lanl.gov/flecsi/flecsi.git*. However, it is useful
   to set this to your personal fork for testing new images.
 
 * **REGISTRY** |br|
   This is the container registry that will be used for *push-*, and
   *pull-* targets. In general, this needs to be set to the registry that
   is being used by the CI to pull images, e.g., laristra/flecsi-ci (this
-  is on dockerhub.com), or gitlab.lanl.gov:5050/laristra/flecsi
+  is on dockerhub.com), or gitlab.lanl.gov:5050/flecsi/flecsi
   (internal container registry).
 
 * **CONTAINER_ENGINE** |br|
@@ -363,7 +363,7 @@ As an example configuration, consider the following:
 
   $ mkdir build
   $ cd build
-  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/laristra/flecsi -DENGINE=podman
+  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/flecsi/flecsi -DENGINE=podman
 
 This configuration will use the author's *ci-environment* branch on
 Github with the *podman* engine.
@@ -475,7 +475,7 @@ Checkout spack and flecsi:
 
 .. code-block:: console
 
-  $ git clone --branch devel git@gitlab.lanl.gov:laristra/flecsi.git
+  $ git clone --branch devel git@gitlab.lanl.gov:flecsi/flecsi.git
   $ git clone --single-branch --branch develop https://github.com/spack/spack.git
 
 Source the spack environment script:
