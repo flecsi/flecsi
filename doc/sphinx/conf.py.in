@@ -62,7 +62,7 @@ todo_include_todos = True
 html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-    'canonical_url': 'https://flecsi.org',
+    'canonical_url': 'http://www.flecsi.org/',
     'analytics_id': '',
     'logo_only': True,
     'display_version': True,

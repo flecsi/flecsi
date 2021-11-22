@@ -32,7 +32,7 @@ not locked into particular layouts or data structure representations.
 # Documentation
 
 Documentation for FleCSI is at
-[flecsi.org](http://laristra.github.io/flecsi).
+[flecsi.org](http://www.flecsi.org/).
 
 # Release
 
