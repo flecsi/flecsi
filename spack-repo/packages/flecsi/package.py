@@ -65,6 +65,10 @@ class Flecsi(CMakePackage):
     # Dependencies
     #--------------------------------------------------------------------------#
 
+    # LANL CMake Modules
+
+    depends_on('lanl-cmake-modules')
+
     # Boost
 
     depends_on('boost@1.70.0 cxxstd=17 +program_options +atomic '

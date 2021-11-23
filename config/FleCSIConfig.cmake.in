@@ -25,8 +25,7 @@ endif()
 # Handle TPLs
 #------------------------------------------------------------------------------#
 
-find_package(FleCSICMake REQUIRED)
-list(APPEND CMAKE_MODULE_PATH ${FleCSICMake_PREFIX})
+find_package(LANLCMakeModules REQUIRED)
 
 if(@ENABLE_BOOST@)
   find_package(Boost REQUIRED @BOOST_COMPONENTS@)
