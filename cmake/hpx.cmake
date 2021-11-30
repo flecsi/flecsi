@@ -13,6 +13,7 @@
 #------------------------------------------------------------------------------#
 
 option(ENABLE_HPX "Enable HPX" OFF)
+mark_as_advanced(ENABLE_HPX)
 
 if(ENABLE_HPX)
 
