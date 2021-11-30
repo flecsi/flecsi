@@ -31,7 +31,7 @@ find_package(FleCSI REQUIRED)
 # Find the Kokkos installation.
 #------------------------------------------------------------------------------#
 
-find_package(Kokkos REQUIRED)
+#find_package(Kokkos REQUIRED)
 
 #------------------------------------------------------------------------------#
 # App
