@@ -68,9 +68,9 @@ checkpoint_task(const Legion::Task * task,
   const std::byte * task_args = (const std::byte *)task->args;
 
   const auto field_string_map_vector =
-    util::serial_get<std::vector<FieldNames>>(task_args);
+    util::serial::get<std::vector<FieldNames>>(task_args);
   const auto fname =
-    util::serial_get<std::string>(task_args) + std::to_string(point);
+    util::serial::get<std::string>(task_args) + std::to_string(point);
 
   hdf5 checkpoint_file({});
   if constexpr(A) {
@@ -201,12 +201,13 @@ struct io_interface {
   inline void checkpoint_data(const std::string & file_name, bool attach_flag) {
     Legion::Runtime * runtime = Legion::Runtime::get_runtime();
     Legion::Context ctx = Legion::Runtime::get_context();
+    namespace serial = util::serial;
 
-    const auto task_args = util::serial_buffer([&](auto & p) {
-      util::serial_put(p, hdf5_region_vector.size());
+    const auto task_args = serial::buffer([&](auto & p) {
+      serial::put(p, hdf5_region_vector.size());
       for(auto & h : hdf5_region_vector)
-        util::serial_put(p, h.field_string_map);
-      util::serial_put(p, file_name);
+        serial::put(p, h.field_string_map);
+      serial::put(p, file_name);
     });
 
     const auto task_id =

@@ -116,7 +116,7 @@ struct buffers_base {
       template<class T>
       T get() {
         ++i;
-        return util::serial_get<T>(p);
+        return util::serial::get<T>(p);
       }
       convert operator()() {
         return {this};
@@ -135,10 +135,10 @@ struct buffers_base {
       template<class T>
       bool operator()(const T & t) { // false if full
         std::size_t o = p - b->data.data();
-        util::serial_put(o, t);
+        util::serial::put(o, t);
         const bool ret = o <= size;
         if(ret) {
-          util::serial_put(p, t);
+          util::serial::put(p, t);
           ++b->len;
         }
         return ret;

@@ -92,9 +92,9 @@ struct vector { // for *v functions
   template<class T>
   void put(const T & t) {
     const auto n = off.emplace_back(data.size());
-    data.resize(n + sz.emplace_back(serial_size(t)));
+    data.resize(n + sz.emplace_back(serial::size(t)));
     auto * p = data.data() + n;
-    serial_put(p, t);
+    serial::put(p, t);
   }
 };
 } // namespace detail
@@ -289,7 +289,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
 
     if(rank) {
       auto const * p = v.data.data();
-      return serial_get<return_type>(p);
+      return serial::get<return_type>(p);
     } // if
   }
 
@@ -371,7 +371,7 @@ all_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       if(r == rank)
         result.push_back(f(r, size));
       else
-        result.push_back(serial_get1<return_type>(p + recv.off[r]));
+        result.push_back(serial::get1<return_type>(p + recv.off[r]));
     } // for
   }
 
@@ -407,7 +407,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   else {
     detail::vector v(size); // just a struct here
     v.sz.resize(size);
-    v.sz[rank] = util::serial_size(t);
+    v.sz[rank] = serial::size(t);
 
     test(MPI_Allgather(
       MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
@@ -418,7 +418,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
     v.data.resize(v.off.back() + v.sz.back());
     {
       std::byte * p = v.data.data() + v.off[rank];
-      util::serial_put(p, t);
+      serial::put(p, t);
     }
 
     test(MPI_Allgatherv(MPI_IN_PLACE,
@@ -434,7 +434,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
 
     auto p = std::as_const(v).data.data();
     for(int r = 0; r < size; ++r) {
-      result.push_back(serial_get<T>(p));
+      result.push_back(serial::get<T>(p));
     } // for
   }
 

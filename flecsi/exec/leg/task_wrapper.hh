@@ -62,7 +62,7 @@ struct convert_accessor {
 
 // Send and receive only the field ID:
 template<data::layout L, class T, Privileges Priv>
-struct util::serial_convert<data::accessor<L, T, Priv>> {
+struct util::serial::convert<data::accessor<L, T, Priv>> {
   using type = data::accessor<L, T, Priv>;
   using Rep = field_id_t;
   static Rep put(const type & r) {
@@ -73,55 +73,55 @@ struct util::serial_convert<data::accessor<L, T, Priv>> {
   }
 };
 template<class T, Privileges Priv>
-struct util::serial_convert<data::accessor<data::single, T, Priv>>
+struct util::serial::convert<data::accessor<data::single, T, Priv>>
   : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};
 template<class T, Privileges P, Privileges OP>
-struct util::serial_convert<data::ragged_accessor<T, P, OP>>
+struct util::serial::convert<data::ragged_accessor<T, P, OP>>
   : data::detail::convert_accessor<data::ragged_accessor<T, P, OP>> {};
 template<data::layout L, class T, Privileges Priv>
-struct util::serial<data::mutator<L, T, Priv>> {
+struct util::serial::traits<data::mutator<L, T, Priv>> {
   using type = data::mutator<L, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
-    serial_put(p, m.get_base());
+    serial::put(p, m.get_base());
   }
   static type get(const std::byte *& b) {
-    return serial_get<typename type::base_type>(b);
+    return serial::get<typename type::base_type>(b);
   }
 };
 template<class T, Privileges Priv>
-struct util::serial<data::mutator<data::ragged, T, Priv>> {
+struct util::serial::traits<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
-    serial_put(p, m.get_base(), m.get_grow());
+    serial::put(p, m.get_base(), m.get_grow());
   }
   static type get(const std::byte *& b) {
-    const serial_cast r{b};
+    const serial::cast r{b};
     return {r, r};
   }
 };
 template<class T, Privileges Priv>
-struct util::serial<data::topology_accessor<T, Priv>,
+struct util::serial::traits<data::topology_accessor<T, Priv>,
   std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>
-  : util::serial_value<data::topology_accessor<T, Priv>> {};
+  : util::serial::value<data::topology_accessor<T, Priv>> {};
 
 template<auto & F, class... AA>
-struct util::serial<exec::partial<F, AA...>,
+struct util::serial::traits<exec::partial<F, AA...>,
   std::enable_if_t<!util::bit_copyable_v<exec::partial<F, AA...>>>> {
   using type = exec::partial<F, AA...>;
   using Rep = typename type::Base;
   template<class P>
   static void put(P & p, const type & t) {
-    serial_put(p, static_cast<const Rep &>(t));
+    serial::put(p, static_cast<const Rep &>(t));
   }
   static type get(const std::byte *& b) {
-    return serial_get<Rep>(b);
+    return serial::get<Rep>(b);
   }
 };
 
 template<class T>
-struct util::serial<future<T>> : util::serial_value<future<T>> {};
+struct util::serial::traits<future<T>> : util::serial::value<future<T>> {};
 
 namespace exec::leg {
 using run::leg::task;
@@ -148,7 +148,7 @@ template<class... TT>
 struct tuple_get<std::tuple<TT...>> {
   static auto get(const Legion::Task & t) {
     const auto p = static_cast<const std::byte *>(t.args);
-    return util::serial_get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
+    return util::serial::get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
   }
 };
 } // namespace detail
