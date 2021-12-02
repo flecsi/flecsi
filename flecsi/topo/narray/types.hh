@@ -191,11 +191,11 @@ struct narray_base {
  *----------------------------------------------------------------------------*/
 
 template<>
-struct util::serial<topo::narray_impl::index_coloring> {
+struct util::serial::traits<topo::narray_impl::index_coloring> {
   using type = topo::narray_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p,
+    serial::put(p,
       s.faces,
       s.global,
       s.extents,
@@ -206,7 +206,7 @@ struct util::serial<topo::narray_impl::index_coloring> {
       s.intervals);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r, r, r, r, r, r, r};
   }
 };

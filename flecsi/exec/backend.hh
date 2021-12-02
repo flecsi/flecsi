@@ -38,7 +38,8 @@ namespace flecsi {
     backend; each type involved documents the correspondence.
 
   \note Additional types may be supported by defining appropriate
-    specializations of \c util::serial or \c util::serial_convert.  Avoid
+    specializations of \c util::serial::traits or \c util::serial::convert.
+    Avoid
     passing large objects to tasks repeatedly; use global variables (and,
     perhaps, pass keys to select from them) or fields.
  */

@@ -124,7 +124,8 @@ reduce_internal(Args &&... args) {
   }
   else {
     buf = std::apply(
-      [](const auto &... pp) { return util::serial_put_tuple(pp...); }, params);
+      [](const auto &... pp) { return util::serial::put_tuple(pp...); },
+      params);
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;

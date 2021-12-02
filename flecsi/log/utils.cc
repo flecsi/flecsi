@@ -40,7 +40,7 @@ send_to_one() {
                     ? new int[state::instance().processes()]
                     : nullptr;
 
-    std::vector<std::byte> data = util::serial_put_tuple(
+    std::vector<std::byte> data = util::serial::put_tuple(
                              state::instance().packets()),
                            buffer;
 
@@ -80,7 +80,7 @@ send_to_one() {
 
         if(!state::instance().one_process() ||
            p == state::instance().output_process()) {
-          auto remote_packets = util::serial_get1<std::vector<packet_t>>(
+          auto remote_packets = util::serial::get1<std::vector<packet_t>>(
             buffer.data() + offsets[p]);
 
           std::vector<packet_t> & packets = state::instance().packets();
