@@ -91,16 +91,21 @@ subdirectories within the test subdirectory.
 Versioning
 ++++++++++
 
-FleCSI's versioning system uses three branch types (descibed below) that
-define the purpose and provenance of the code at a particular commit,
-with tags that label points of interest in the development cycle, e.g,.
-releases or stable features.
+FleCSI uses the `Semantic Versioning`__ system.
+Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
+We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
+Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+
+__ https://semver.org/
+
+There is one active, shared branch for each of the three types of release, as described below.
+Tags are used to identify releases as well as certain internal reference points for development.
 
 Branch Types
 ^^^^^^^^^^^^
 
 * **incompatible** |br|
-  The *devel* branch is where work on the next major release takes
+  The *develop* branch is where work on the next major release takes
   place, potentially with interface and feature changes that are
   *incompatible* with previous versions.
 
@@ -110,8 +115,8 @@ Branch Types
 
 * **release** |br|
   Release branches (named for their *major.minor* version number, e.g.,
-  1.1, 1.2) are stable versions of the code base. These can only be
-  modified with bug fixes. At appropriate points, tags (named for their
+  1.1, 1.2) are interface-stable versions of the code base.
+  At appropriate points, tags (named for their
   *major.minor.patch* version number, e.g., 1.1.2) are used to identify
   patched versions.
 
@@ -119,9 +124,14 @@ Branch Types
 
   At the time of writing, FleCSI has the following branches:
 
-  **devel** (incompatible) |br|
-  **1** (feature) |br|
-  **1.4** (release)
+  **develop** (incompatible) |br|
+  **2** (feature) |br|
+  **2.1** (release)
+
+In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
+The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
+It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 
 Tags
 ^^^^
@@ -332,14 +342,14 @@ several important configuration options that you need to be aware of:
   This is the url for the repository where the build system will look
   for the *CI_BRANCH* option that you specified. The default is the main
   FleCSI Gitlab repository
-  *https://gitlab.lanl.gov/laristra/flecsi.git*. However, it is useful
+  *https://gitlab.lanl.gov/flecsi/flecsi.git*. However, it is useful
   to set this to your personal fork for testing new images.
 
 * **REGISTRY** |br|
   This is the container registry that will be used for *push-*, and
   *pull-* targets. In general, this needs to be set to the registry that
   is being used by the CI to pull images, e.g., laristra/flecsi-ci (this
-  is on dockerhub.com), or gitlab.lanl.gov:5050/laristra/flecsi
+  is on dockerhub.com), or gitlab.lanl.gov:5050/flecsi/flecsi
   (internal container registry).
 
 * **CONTAINER_ENGINE** |br|
@@ -353,7 +363,7 @@ As an example configuration, consider the following:
 
   $ mkdir build
   $ cd build
-  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/laristra/flecsi -DENGINE=podman
+  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/flecsi/flecsi -DENGINE=podman
 
 This configuration will use the author's *ci-environment* branch on
 Github with the *podman* engine.
@@ -390,6 +400,16 @@ This will build the *OS* image defined in *os/centos-8*.
 
   This will force the engine to start from scratch, i.e., pulling the
   base image from the registry, and ignoring cached stages.
+
+-----
+
+Published Documentation
++++++++++++++++++++++++
+The `project homepage`__ is a GitHub Pages site generated from `the current GitHub repository`__.
+The ``deploy-documentation`` Make target sets up a repository to update it by pushing to the appropriate branch.
+
+  __ http://www.flecsi.org/
+  __ https://github.com/flecsi/flecsi/tree/gh-pages
 
 -----
 
@@ -455,7 +475,7 @@ Checkout spack and flecsi:
 
 .. code-block:: console
 
-  $ git clone --branch devel git@gitlab.lanl.gov:laristra/flecsi.git
+  $ git clone --branch devel git@gitlab.lanl.gov:flecsi/flecsi.git
   $ git clone --single-branch --branch develop https://github.com/spack/spack.git
 
 Source the spack environment script:
@@ -519,10 +539,23 @@ it. There is not easy to remedy to this problem: attributes that are
 added after initialization will reset all previously added elements to
 whatever the default of the new attribute is. Therefore, if you need to
 add an attribute, the best thing to do is to look at the *graphviz.hh*
-file in 'flecsi/utils', and add it there with a reasonable default.
+file in 'flecsi/util', and add it there with a reasonable default.
 
 __ https://graphviz.gitlab.io/_pages/pdf/libguide.pdf
 __ https://www.graphviz.org
+
+-----
+
+Doxygen
++++++++
+The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
+See the `manual`__ for details, but note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
+
+__ https://www.doxygen.nl/manual/
+
+The developers' version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
+Use ``\cond core`` and ``\endcond`` to mark material that should appear only there.
+Developers must also check for such markers to identify internal interfaces; the output does not distinguish them, since users should consult only the users' version anyway.
 
 -----
 

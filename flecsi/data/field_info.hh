@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "flecsi/util/common.hh"
 
 #include <cstddef>
@@ -24,6 +22,7 @@
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <legion.h>
 
+/// \cond core
 namespace flecsi {
 
 using field_id_t = Legion::FieldID;
@@ -43,6 +42,8 @@ using Color = unsigned; // MPI uses just int
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   The field_info_t type provides a structure for capturing runtime field
@@ -57,7 +58,11 @@ struct field_info_t {
 
 using fields = std::vector<const field_info_t *>;
 
+/// \}
 } // namespace data
+
+/// \addtogroup data
+/// \{
 
 //----------------------------------------------------------------------------//
 // This value is used by the Legion backend to automatically
@@ -77,6 +82,8 @@ using fields = std::vector<const field_info_t *>;
  */
 inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 
-using TopologyType = std::size_t;
+using TopologyType = std::size_t; // for field registration
 
+/// \}
 } // namespace flecsi
+/// \endcond

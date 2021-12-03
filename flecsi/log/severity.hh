@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/log/utils.hh"
@@ -23,6 +21,8 @@
 
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 inline std::string
 verbose(const char * file, int line) {
@@ -39,10 +39,7 @@ verbose(const char * file, int line) {
 
 #define thread_stamp " t" << std::this_thread::get_id()
 
-//----------------------------------------------------------------------------//
-// utility
-//----------------------------------------------------------------------------//
-
+// Displays messages without decoration.
 struct utility {
   static constexpr bool strip() {
     return false;
@@ -165,5 +162,6 @@ struct error {
   }
 }; // struct error
 
+/// \}
 } // namespace log
 } // namespace flecsi

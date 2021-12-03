@@ -21,8 +21,8 @@ using namespace flecsi;
 struct canon : topo::specialization<topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
-  // using connectivities = util::types<entity<cells, has<vertices>>>;
-  using connectivities = util::types<>;
+  // using connectivities = list<entity<cells, has<vertices>>>;
+  using connectivities = list<>;
   enum entity_list {};
   using entity_lists = list<>;
 

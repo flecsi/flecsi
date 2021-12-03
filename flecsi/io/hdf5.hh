@@ -7,11 +7,15 @@
 
 #include <hdf5.h>
 
+/// \cond core
 namespace flecsi {
 inline log::devel_tag io_tag("io");
 
 namespace io {
+/// \addtogroup io
+/// \{
 namespace detail {
+// An RAII HDF5 file handle.
 struct hdf5 {
   hdf5() noexcept : id(-1) {}
   hdf5(const char * f, bool create)
@@ -71,6 +75,7 @@ private:
 };
 } // namespace detail
 
+// Higher-level interface with group support.
 struct hdf5 {
   static hdf5 create(const std::string & file_name) {
     return {{file_name.c_str(), true}};
@@ -221,8 +226,9 @@ struct hdf5 {
   detail::hdf5 hdf5_file_id;
   std::set<std::string> hdf5_groups;
 };
-
+/// \}
 } // namespace io
 } // namespace flecsi
+/// \endcond
 
 #endif

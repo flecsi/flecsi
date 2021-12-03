@@ -57,11 +57,12 @@ function(add_doxygen_target name)
       configure_file(${conf} ${CMAKE_BINARY_DIR}/.doxygen/${name}/${output})
     endforeach()
 
-    add_custom_target(${name}
-      ${DOXYGEN} ${CMAKE_BINARY_DIR}/.doxygen/${name}/doxygen.conf
+    add_custom_target(doxygen-${name}
+      ${CMAKE_COMMAND} -E remove_directory '${CMAKE_BINARY_DIR}/doc/api/${name}' &&
+      ${DOXYGEN} ${CMAKE_BINARY_DIR}/.doxygen/${name}/conf
       DEPENDS ${dox_CONFIGS})
 
-    add_dependencies(doxygen ${name})
+    add_dependencies(doxygen doxygen-${name})
     add_dependencies(doc doxygen)
   endif()
 endfunction()

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/exec/buffers.hh"
@@ -41,6 +39,7 @@ namespace flecsi {
 
 inline log::devel_tag task_wrapper_tag("task_wrapper");
 
+// Task parameter serialization (needed only for Legion):
 namespace data {
 template<class, Privileges, Privileges>
 struct ragged_accessor;
@@ -124,20 +123,13 @@ template<class T>
 struct util::serial::traits<future<T>> : util::serial::value<future<T>> {};
 
 namespace exec::leg {
+/// \addtogroup legion-execution
+/// \{
 using run::leg::task;
 
 namespace detail {
 inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
   run::FLECSI_TOP_LEVEL_TASK_ID);
-/*!
-  Register a task with Legion.
-
-  @tparam RETURN The return type of the task.
-  @tparam TASK   The legion task.
-  \tparam A task attributes
-
-  @ingroup legion-execution
- */
 
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
@@ -223,8 +215,6 @@ verb(const Legion::Task *,
 
  \tparam F the user task
  \tparam P the target processor type
-
- @ingroup legion-execution
  */
 
 template<auto & F, task_processor_type_t P>
@@ -305,5 +295,6 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
   } // execute
 }; // task_wrapper
 
+/// \}
 } // namespace exec::leg
 } // namespace flecsi

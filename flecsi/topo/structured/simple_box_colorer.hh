@@ -6,11 +6,6 @@
 #ifndef simple_box_colorer_h
 #define simple_box_colorer_h
 
-//----------------------------------------------------------------------------//
-//! @file
-//! @date Initial file creation: Dec 05, 2017
-//----------------------------------------------------------------------------//
-
 #include "mpi.h"
 #include <algorithm>
 #include <cassert>

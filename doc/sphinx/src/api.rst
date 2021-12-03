@@ -7,21 +7,8 @@
 API Reference
 *************
 
-FleCSI maintains API documentation targeting different concentrations:
+The `API documentation <../api/user/index.html>`_ describes both the FleCSI runtime abstraction layer, primarily geared towards application developers who are using an existing specialization, and the core topolology types and utilities, which are meant for use by specialization developers.
 
-* `User API <../doxygen/api-user/html/index.html>`_ |br|
-  Documentation of the FleCSI runtime abstraction layer, primarily
-  geared towards application developers who are using an existing
-  specialization.
-  This document also includes documentation of the FleCSI core
-  topolology types and utilities, which is geared towards specialization
-  developers. |br|
-  **Covers:** task and kernel execution, field registration, program
-  options, logging (flog), I/O, core topology types, and coloring
-  utilties.
-
-* `Core API <../doxygen/api-core/html/index.html>`_ |br|
-  Documentation for core FleCSI developers. |br|
-  **Covers:** low-level core FleCSI types and definitions.
+For FleCSI developers, there is a `core version <../api/core/index.html>`_ that inclues low-level core FleCSI types and definitions not for external use.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

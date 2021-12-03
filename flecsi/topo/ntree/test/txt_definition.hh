@@ -13,19 +13,11 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <fstream>
 #include <set>
 #include <vector>
 
 #include "colorer.hh"
-
-/*!
-  The definition type...
-
-  @ingroup ntree-topology
- */
 
 template<typename KEY, int DIM>
 class txt_definition

@@ -13,14 +13,15 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/task_attributes.hh"
 #include <flecsi-config.h>
 
 #include <cstddef>
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
+
 /*!
   Execute a task.
 
@@ -37,8 +38,7 @@ namespace flecsi {
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
 
-  \note Additional types may be supported by defining appropriate
-    specializations of \c util::serial::traits or \c util::serial::convert.
+  \note
     Avoid
     passing large objects to tasks repeatedly; use global variables (and,
     perhaps, pass keys to select from them) or fields.
@@ -48,6 +48,7 @@ template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 auto execute(ARGS &&...);
+/// \}
 } // namespace flecsi
 
 //----------------------------------------------------------------------------//

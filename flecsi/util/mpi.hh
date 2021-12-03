@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/util/serialize.hh"
@@ -34,6 +32,11 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+/// \defgroup mpi-utils MPI
+/// These require MPI tasks, not the MPI backend.
+/// \ingroup utils
+/// \{
+
 inline void
 test(int err) {
   if(err != MPI_SUCCESS) {
@@ -307,7 +310,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
   @param f    A callable object.
   @param comm An MPI communicator.
 
-  @return A std::vector<return_type>, where \rm return_type is the type
+  @return A \c std::vector<return_type>, where \em return_type is the type
           returned by the callable object.
  */
 
@@ -441,6 +444,7 @@ all_gather(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   return result;
 } // all_gather
 
+/// \}
 } // namespace mpi
 } // namespace util
 } // namespace flecsi

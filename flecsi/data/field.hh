@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
@@ -28,6 +26,8 @@ struct ragged; // defined in terms of field
 }
 
 namespace data {
+/// \addtogroup data
+/// \{
 
 /// A data accessor.
 /// Pass a \c field_reference to a task that accepts an accessor.
@@ -73,7 +73,6 @@ inline constexpr bool is_trivially_move_constructible_v =
   std::is_move_constructible_v<move_check<T>>;
 } // namespace detail
 
-/// Identifies a field on a particular topology instance.
 template<class Topo>
 struct field_reference_t : convert_tag {
   using Topology = Topo;
@@ -95,7 +94,7 @@ private:
 
 }; // struct field_reference
 
-/// A \c field_reference is a \c field_reference_t with more type information.
+/// Identifies a field on a particular topology instance.
 /// Declare a task parameter as an \c accessor to use the field.
 /// \tparam T data type (merely for type safety)
 /// \tparam L data layout (similarly)
@@ -131,7 +130,9 @@ struct field_reference : field_reference_t<Topo> {
     return field_reference<T2, L2, Topo, Space>(*this);
   }
 
-  /// \internal Use this reference and return it.
+  /// \if core
+  /// Use this reference and return it.
+  /// \endif
   template<class F>
   const field_reference & use(F && f) const {
     std::forward<F>(f)(*this);
@@ -146,7 +147,11 @@ template<class T>
 inline constexpr bool portable_v =
   std::is_object_v<T> && !std::is_pointer_v<T> &&
   detail::is_trivially_move_constructible_v<T>;
+/// \}
 } // namespace data
+
+/// \addtogroup data
+/// \{
 
 /// Helper type to define and access fields.
 /// \tparam T field value type: a trivially copyable type with no pointers
@@ -165,8 +170,8 @@ struct field : data::detail::field_base<T, L> {
   /// \tparam PP the appropriate number of privilege values
   template<partition_privilege_t... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
-  // The mutator to use as a parameter for this sort of field (usable only for
-  // certain layouts).
+  /// The mutator to use as a parameter for this sort of field (usable only
+  /// for certain layouts).
   template<partition_privilege_t... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 
@@ -192,10 +197,14 @@ struct field : data::detail::field_base<T, L> {
     }
   };
 
+  /// Fields cannot be constructed.  Use \c definition instead.
   field() = delete;
 };
+/// \}
 
 namespace data {
+/// \addtogroup data
+/// \{
 namespace detail {
 template<class T>
 struct field_base<T, dense> {
@@ -258,5 +267,6 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
   }
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

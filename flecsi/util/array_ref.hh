@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -28,6 +26,10 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup ranges Ranges
+/// Range and iterator tools, mostly backported from the standard library.
+/// \ingroup utils
+/// \{
 
 /// A workalike for std::span from C++20 (only dynamic-extent, without ranges
 /// support).
@@ -136,6 +138,7 @@ to_vector(span<T> s) {
 // (It's undefined to use these views with a truly multidimensional array.)
 
 namespace detail {
+/// A multi-dimensional view of an array.
 template<class T, Dimension D>
 struct mdbase {
   static_assert(D > 0);
@@ -179,6 +182,8 @@ protected:
 };
 } // namespace detail
 
+/// \cond core
+
 /// A variation of \c mdspan with reversed indices (distinguished by `()`).
 template<class T, Dimension D>
 struct mdcolex : detail::mdbase<T, D> {
@@ -200,6 +205,7 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
+/// \endcond
 
 /// A small, approximate subset of mdspan as proposed for C++23.
 /// \tparam D dimension
@@ -222,6 +228,8 @@ struct mdspan : detail::mdbase<T, D> {
       return *q;
   }
 };
+
+/// \cond core
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
 template<class I>
@@ -342,6 +350,7 @@ private:
   iterator b, e;
 };
 
+// A generic iterator implementation in terms of subscripting.
 template<class C>
 struct index_iterator {
 private:
@@ -614,6 +623,8 @@ transform_view(C &&, F)
   ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
 transform_view(const C &, F)->transform_view<typename C::const_iterator, F>;
+/// \endcond
 
+/// \}
 } // namespace util
 } // namespace flecsi

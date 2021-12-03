@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <cassert>
 #include <cstdint>
 #include <functional>
@@ -24,9 +22,14 @@
 #include <vector>
 
 namespace flecsi {
+/// Type for spatial dimensions and counts thereof.
+/// \ingroup utils
 using Dimension = unsigned short;
 
 namespace util {
+/// \defgroup utils Utilities
+/// Non-domain-specific infrastructure.
+/// \{
 
 //----------------------------------------------------------------------------//
 // Entity id type. This type should be used for id types for entities
@@ -48,6 +51,8 @@ using id = FLECSI_ID_TYPE;
 #endif
 
 using counter_t = FLECSI_COUNTER_TYPE;
+
+/// \cond core
 
 template<class T>
 inline std::enable_if_t<std::is_unsigned_v<T>, T>
@@ -112,5 +117,7 @@ struct identity {
   }
 };
 
+/// \endcond
+/// \}
 } // namespace util
 } // namespace flecsi

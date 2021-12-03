@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/backend.hh"
 #include "flecsi/exec/fold.hh"
 #include "flecsi/exec/kernel.hh"
@@ -27,11 +25,11 @@
 #include <boost/program_options.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
-/*----------------------------------------------------------------------------*
-  Basic runtime interface
- *----------------------------------------------------------------------------*/
-
 namespace flecsi {
+
+/// \defgroup runtime Runtime Model
+/// Environmental information and tools for organizing applications.
+/// \{
 
 /*!
   Perform FleCSI runtime initialization. If \em dependent is true, this call
@@ -109,7 +107,7 @@ option_value(any const & v) {
   The program_option type is a wrapper that implements a useful subset of
   Boost's Program Options utility. Creating an instance of this type at
   namespace scope will add a program option that can be queried after the
-  \ref initialize function is called.
+  \c initialize function is called.
  */
 
 template<typename ValueType>
@@ -247,14 +245,17 @@ struct program_option {
     c.option_checks().try_emplace(name, true, check);
   } // program_options
 
+  /// Get the value, which must exist.
   ValueType value() const {
     return value_.value();
   }
 
+  /// Get the value, which must exist.
   operator ValueType() const {
     return value();
   }
 
+  /// Return whether the option was set.
   bool has_value() const {
     return value_.has_value();
   }
@@ -337,6 +338,14 @@ colors() {
   return run::context::instance().colors();
 }
 
+/// \}
+
+/// \defgroup execution Execution Model
+/// Launching tasks and kernels.  Tasks are coarse-grained and use
+/// distributed-memory with restricted side effects; kernels are fine-grained
+/// and data-parallel, possibly using an accelerator.
+/// \{
+
 /*!
   Execute a reduction task.
 
@@ -371,22 +380,13 @@ reduce(Args &&... args) {
     std::forward<Args>(args)...);
 } // reduce
 
-/*!
-  Execute a reduction task.
-
-  @tparam TASK                The user task.
-  @tparam REDUCTION_OPERATION The reduction operation type.
-  @tparam ATTRIBUTES          The task attributes mask.
-  @tparam ARGS                The user-specified task arguments.
-
-  \see \c execute about parameter and argument types.
- */
-
 template<auto & TASK, TaskAttributes ATTRIBUTES, typename... ARGS>
 auto
 execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
 } // execute
+
+/// \}
 
 /*!
   Execute a test task. This interface is provided for FleCSI's unit testing

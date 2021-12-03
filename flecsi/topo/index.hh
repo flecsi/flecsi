@@ -13,14 +13,14 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/topo/size.hh"
 
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 
 namespace zero {
 inline std::size_t
@@ -79,6 +79,7 @@ private:
   std::map<field_id_t, repartition> part;
 };
 
+// Element storage (i.e., the concatenated rows) for ragged fields.
 struct ragged_base {
   using coloring = Color;
 };
@@ -130,6 +131,7 @@ struct ragged : specialization<ragged_category, ragged<T>> {
     T::template privilege_count<S>;
 };
 
+// Standardized interface for use by fields and accessors:
 template<class P>
 struct with_ragged {
   with_ragged(Color n) : ragged(n) {}
@@ -167,6 +169,7 @@ struct with_meta { // for interface consistency
   typename topo::meta<P>::core meta;
 };
 
+// A subtopology for holding internal arrays without ragged support.
 struct array_base {
   using coloring = std::vector<std::size_t>;
 
@@ -191,8 +194,7 @@ struct array : topo::specialization<array_category, array<P>> {};
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
-
-  @ingroup topology
+  Its \c coloring type is just the size of that set.
  */
 struct index : specialization<index_category, index> {
   static coloring color(Color size) {
@@ -201,5 +203,6 @@ struct index : specialization<index_category, index> {
 
 }; // struct index
 
+/// \}
 } // namespace topo
 } // namespace flecsi

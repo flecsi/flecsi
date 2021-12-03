@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/flog.hh"
 
 #include <algorithm>
@@ -24,6 +22,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<typename T, typename U>
 std::vector<T>
@@ -85,5 +85,6 @@ operator<<(std::ostream & stream, dcrs const & graph) {
   return stream;
 } // operator<<
 
+/// \}
 } // namespace util
 } // namespace flecsi

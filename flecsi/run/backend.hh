@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 //----------------------------------------------------------------------------//
@@ -37,6 +35,7 @@
 #endif // FLECSI_BACKEND
 
 namespace flecsi::run {
+// Now that the backend's context_t is complete:
 context_t &
 context::instance() {
   static context_t context;

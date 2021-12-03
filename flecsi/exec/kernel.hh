@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"
@@ -28,6 +26,10 @@
 
 namespace flecsi {
 namespace exec {
+/// \defgroup kernel Kernels
+/// Local concurrent operations.
+/// \ingroup execution
+/// \{
 #if defined(FLECSI_ENABLE_KOKKOS)
 namespace kok {
 
@@ -136,11 +138,6 @@ parallel_for(Range && range, Lambda && lambda, const std::string & name = "") {
 #endif
 } // parallel_for
 
-/*!
-  The forall type provides a pretty interface for invoking data-parallel
-  execution.
- */
-
 template<typename Range>
 struct forall_t {
   template<typename Callable>
@@ -154,6 +151,12 @@ struct forall_t {
 template<class I>
 forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
+/// A parallel range-for loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce
+/// \param range sized random-access range
+/// \param name debugging name, convertible to \c std::string
 #define forall(it, range, name)                                                \
   ::flecsi::exec::forall_t{range, name}->*FLECSI_LAMBDA(auto && it)
 
@@ -201,10 +204,6 @@ parallel_reduce(Range && range,
 
 } // parallel_reduce
 
-/*!
-  The reduce_all type provides a pretty interface for invoking data-parallel
-  reductions.
- */
 template<class Range, class R, class T>
 struct reduceall_t {
   template<typename Lambda>
@@ -222,9 +221,21 @@ make_reduce(I i, std::string n) {
   return {std::move(i), n};
 }
 
+/// A parallel reduction loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce for elements
+/// \param ref variable name to introduce for storing results: call it to add
+///   a value to the reduction
+/// \param range sized random-access range
+/// \param R reduction operation type
+/// \param T data type
+/// \param name debugging name, convertible to \c std::string
+/// \return the reduced result
 #define reduceall(it, ref, range, R, T, name)                                  \
   ::flecsi::exec::make_reduce<R, T>(range, name)                               \
       ->*FLECSI_LAMBDA(auto && it, auto ref)
 
+/// \}
 } // namespace exec
 } // namespace flecsi

@@ -11,12 +11,12 @@ With the following CMake options enabled:
 
   $ cmake .. -DENABLE_FLOG=ON -DENABLE_GRAPHVIZ=ON
 
-an executable compiled with FleCSI will have several command-line options available. For example, running the *color* unit test from its location in *test/execution* with the *-h* flag, will produce the following output:
+an executable compiled with FleCSI will have several command-line options available. For example, running the *task* unit test from its location in *test/exec* with the *-h* flag, will produce the following output:
 
 .. code-block:: console
 
-  $ ./color -h
-    color:
+  $ ./task -h
+    task:
     -h [ --help ]            Print this message and exit.
     -t [ --tags ] [=arg(=0)] Enable the specified output tags, e.g.,
                              --tags=tag1,tag2. Passing --tags by itself will
@@ -229,8 +229,6 @@ This code block shows the implementation of the registration interface:
      All rights reserved.
                                                                                 */
   #pragma once
-
-  /*! @file */
 
   #include <cinch-config.h>
 

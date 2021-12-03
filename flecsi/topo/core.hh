@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! file */
-
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
@@ -29,8 +27,21 @@ struct topology_accessor; // avoid circularity via launch.hh
 } // namespace data
 
 namespace topo {
-enum single_space { elements };
+/// \defgroup topology Topologies
+/// Generic topology categories and tools for specializing them.
+/// \warning The material in this section and its subsections is of interest
+///   only to developers of topology specializations.  Application developers
+///   should consult the documentation for the specializations they are using,
+///   which may refer back to this document (occasionally even to small,
+///   specific parts of this section).
+/// \{
 
+/// The default, trivial index-space type used by specializations.
+enum single_space {
+  elements ///< The single index space.
+};
+
+/// \cond core
 namespace detail {
 template<template<class> class>
 struct base;
@@ -62,46 +73,89 @@ struct core : core_base { // with_ragged<P> is often another base class
     void send(F &&);
   };
 
+  /// A topology can be constructed from its \c coloring type.
   explicit core(coloring);
 
+  /// Return the number of colors over which the topology is partitioned.
   Color colors() const;
 
+  /// Find the region for an index space.
   template<typename P::index_space>
   data::region & get_region();
 
-  // As a special case, the global topology does not define this.
+  /// Find the partition for a field.
+  /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
   const data::partition & get_partition(field_id_t) const;
 
-  // If multiple privileges are used:
+  /// Perform a ghost copy.
+  /// Required only if multiple privileges are used.
+  /// \tparam T data type
+  /// \tparam L use to trigger special copies for dynamic fields
+  /// \tparam Topo \c P, generally
+  /// \tparam S use to identify relevant copy plan
+  /// \param f to deduce the above as well as for the field ID
   template<class T, data::layout L, typename P::index_space S>
-  void ghost_copy(data::field_reference<T, L, P, S> const &);
+  void ghost_copy(data::field_reference<T, L, P, S> const & f);
 };
+/// Each core topology type must register its base type.
 template<>
 struct detail::base<core> {
+  /// The base type.
   using type = core_base;
 };
 #endif
+/// \endcond
 
+/// Utilities and defaults for specializations.
 struct specialization_base {
-  // For connectivity tuples:
+  /// \name Utilities
+  /// For specifying policy information.
+  /// \{
+
+  /// A connectivity specification.
+  /// \tparam V input index space
+  /// \tparam T see \c to
   template<auto V, class T>
   using from = util::key_type<V, T>;
+  /// A special-entities specification.
+  /// \tparam V subject index space
+  /// \tparam T see \c has
   template<auto V, class T>
   using entity = util::key_type<V, T>;
+  /// Entity lists.
+  /// \tparam V entity list enumerators
   template<auto... V>
   using has = util::constants<V...>;
+  /// Output index spaces.
+  /// \tparam V index spaces
   template<auto... V>
   using to = util::constants<V...>;
+  /// Container.
+  /// \tparam TT \c from or \c entity constructs
   template<class... TT>
   using list = util::types<TT...>;
+  /// \}
 
-  // May be overridden by policy:
+  /// \name Defaults
+  /// May be overridden by policy.
+  /// \{
+
+  /// The index space type.
   using index_space = single_space;
-  using index_spaces = util::constants<elements>;
+  /// The set of index spaces, wrapped in \c list.
+  using index_spaces = has<elements>;
+  /// The topology interface type.
+  /// It must be \a B or inherit from it without adding any data members.
+  /// Instances of it will be value-initialized and should default-initialize
+  /// \a B.
+  /// \tparam B core topology interface
   template<class B>
-  using interface = B; // otherwise, must inherit from B
+  using interface = B;
+  /// \}
 
+  /// Specializations cannot be constructed.
+  /// Use slots to create topology instances.
   specialization_base() = delete;
 };
 /// Convenience base class for specialization class templates.
@@ -113,12 +167,16 @@ struct help : specialization_base {}; // intervening class avoids warnings
 template<template<class> class C, class D>
 struct specialization : specialization_base {
   using core = C<D>;
+  /// The core topology base type, which can provide specialization utilities.
   using base = base_t<C>;
   // This is just core::coloring, but core is incomplete here.
-  using coloring = typename base::coloring;
+  using coloring = typename base::coloring; ///< The coloring type.
 
   // NB: nested classes would prevent template argument deduction.
+
+  /// The slot type for declaring topology instances.
   using slot = data::topology_slot<D>;
+  /// The slot type for holding a \c coloring object.
   using cslot = data::coloring_slot<D>;
 
   /// The topology accessor to use as a parameter to receive a \c slot.
@@ -132,18 +190,36 @@ struct specialization : specialization_base {
     return ret;
   }
 
-  // May be overridden by policy:
+  /// \name Defaults
+  /// May be overridden by policy.
+  /// \{
+
+  /// The default index space to use when one is optional.
+  /// This implementation is ill-formed if there is more than one defined.
+  /// \return \c index_space
 
   // Most compilers eagerly instantiate a deduced static member type, so we
   // have to use a function.
   static constexpr auto default_space() {
     return D::index_spaces::value;
   }
+  /// The number of privileges to use for an accessor.
+  /// This implementation produces 1.
+  /// \tparam S index space
   template<auto S> // we can't use D::index_space here
   static constexpr PrivilegeCount privilege_count =
     std::is_same_v<decltype(S), typename D::index_space> ? 1 : throw;
 
-  static void initialize(slot &, coloring const &) {}
+  /// Specialization-specific initialization.
+  /// Called by \c topology_slot::allocate; specializations may specify
+  /// additional parameters to be supplied there.
+  ///
+  /// This implementation does nothing.
+  /// \param s the slot in which the core topology has just been constructed
+  static void initialize(slot & s, coloring const &) {
+    (void)s;
+  }
+  /// \}
 };
 
 #ifdef DOXYGEN
@@ -151,12 +227,16 @@ struct specialization : specialization_base {
 /// No member is needed in all circumstances.
 /// See also the members marked for overriding in \c specialization.
 struct topology : specialization<core, topology> {
-  static coloring color(...); ///< for coloring_slot
+  /// Interpret specialization-specific arguments to construct a coloring.
+  /// Called in an MPI task.
+  /// This is required only for use with a \c coloring_slot.
+  static coloring color(...);
 
   using connectivities = list<>; ///< for connect_t/connect_access
   using entity_lists = list<>; ///< for lists_t/list_access
 };
 #endif
 
+/// \}
 } // namespace topo
 } // namespace flecsi

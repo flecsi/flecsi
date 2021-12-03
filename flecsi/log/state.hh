@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #if defined(FLECSI_ENABLE_FLOG)
@@ -31,8 +29,11 @@
 #include <string>
 #include <unordered_map>
 
+/// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 // Forward
 void flush_packets();
@@ -47,8 +48,6 @@ void flush_packets();
 
   @note We may want to consider adopting one of these packages
   in the future.
-
-  @ingroup logging
  */
 
 class state
@@ -409,7 +408,9 @@ private:
 
 }; // class state
 
+/// \}
 } // namespace log
 } // namespace flecsi
+/// \endcond
 
 #endif // FLECSI_ENABLE_FLOG

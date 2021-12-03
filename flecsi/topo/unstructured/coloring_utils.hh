@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_functors.hh"
 #include "flecsi/topo/unstructured/types.hh"

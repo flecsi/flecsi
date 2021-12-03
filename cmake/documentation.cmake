@@ -45,14 +45,13 @@ if(ENABLE_DOCUMENTATION)
             ${GIT_EXECUTABLE} clone --single-branch --branch gh-pages
               git@gitlab.lanl.gov:flecsi/flecsi-pages.git gh-pages &&
             cd gh-pages &&
+            git rm -r . && git reset &&
             ${GIT_EXECUTABLE} remote rm origin &&
             ${GIT_EXECUTABLE} remote add origin
               git@github.com:flecsi/flecsi.git &&
               ${GIT_EXECUTABLE} fetch) &&
-        echo "Updating Sphinx pages" &&
-          cp -rT doc/sphinx gh-pages &&
-        echo "Updating Doxygen pages" &&
-          cp -rT doc/doxygen gh-pages/doxygen &&
+        echo "Updating pages" &&
+          cp -rT doc gh-pages &&
         echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages" &&
         echo "${FLECSI_Red}!!!WARNING WARNING WARNING!!!" &&
         echo "The gh-pages repository points to an EXTERNAL remote on github.com." &&

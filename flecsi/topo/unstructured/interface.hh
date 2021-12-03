@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
@@ -33,6 +31,10 @@
 
 namespace flecsi {
 namespace topo {
+/// \defgroup unstructured Unstructured Mesh
+/// Configurable unstructured mesh interface.
+/// \ingroup topology
+/// \{
 
 /*----------------------------------------------------------------------------*
   Unstructured Topology.
@@ -267,5 +269,6 @@ struct detail::base<unstructured> {
   using type = unstructured_base;
 }; // struct detail::base<unstructured>
 
+/// \}
 } // namespace topo
 } // namespace flecsi

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"
@@ -22,6 +20,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 struct color_map;
 
@@ -222,5 +222,6 @@ operator<<(std::ostream & stream, color_map const & cm) {
   return stream;
 } // operator<<
 
+/// \}
 } // namespace util
 } // namespace flecsi

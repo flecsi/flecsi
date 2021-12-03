@@ -13,12 +13,13 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 namespace detail {
 
@@ -31,5 +32,7 @@ struct hold {};
 template<class... TT>
 using voided = std::conditional_t<false, detail::hold<TT...>, void>;
 
+/// \}
 } // namespace util
 } // namespace flecsi
+/// \endcond

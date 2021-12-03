@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/copy.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"

@@ -50,8 +50,11 @@
 #define FLOG_PACKET_FLUSH_INTERVAL 100000
 #endif
 
+/// \cond core
 namespace flecsi {
 namespace log {
+/// \addtogroup flog
+/// \{
 
 /*!
   Packet type for serializing output from distributed-memory tasks.
@@ -114,7 +117,9 @@ private:
 
 }; // packet_t
 
+/// \}
 } // namespace log
 } // namespace flecsi
+/// \endcond
 
 #endif // FLECSI_ENABLE_FLOG

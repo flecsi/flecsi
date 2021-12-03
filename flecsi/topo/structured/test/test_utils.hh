@@ -6,11 +6,6 @@
 #ifndef test_utils_hh
 #define test_utils_hh
 
-//----------------------------------------------------------------------------//
-//! @file
-//! @date Initial file creation: Dec 05, 2017
-//----------------------------------------------------------------------------//
-
 #include "flecsi/util/unit.hh"
 #include <algorithm>
 #include <cassert>

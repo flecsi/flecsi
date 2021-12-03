@@ -13,16 +13,12 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  This file defines data layouts.
- */
-
 #include <cstddef>
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   A FleCSI \c layout provides a specific interface for different
@@ -33,10 +29,11 @@ namespace data {
 enum layout : size_t {
   raw, ///< Uninitialized memory with no objects constructed or destroyed.
   single, ///< Access to the single element of an array.
-  dense,
-  ragged,
-  sparse
+  dense, ///< Ordinary array of objects.
+  ragged, ///< Array of resizable arrays of objects.
+  sparse ///< Array of mappings from integers to objects.
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

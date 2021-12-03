@@ -13,34 +13,31 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/util/bitutils.hh"
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
 
 using TaskAttributes = unsigned;
 
 /*!
-  The task_attributes_mask_t type allows conversion from an eunumeration
-  to a bit mask.
-
-  @note This enumeration is not scoped so that users can create
-        masks as in:
-        @code
-        task_attributes_mask_t m(inner | idempotent);
-        @endcode
+  Task attribute flags.
  */
 
 enum task_attributes_mask_t : TaskAttributes {
   leaf = 0x01,
   inner = 0x02,
-  idempotent = 0x04,
-  loc = 0x08,
-  toc = 0x10,
+  idempotent = 0x04, ///< Task may be replicated to reduce communication.
+  loc = 0x08, ///< Run on a Latency-Optimized Core (a CPU).
+  toc = 0x10, ///< Run on a Throughput-Optimized Core (a GPU).
+  /// Run simultaneously on all processes with the obvious color mapping;
+  /// allow MPI communication among point tasks, at the cost of significant
+  /// startup overhead.
   mpi = 0x20
 }; // task_attributes_mask_t
 
+/// \c toc if support for it is available, otherwise \c loc.
 constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__)
   toc
@@ -49,7 +46,12 @@ constexpr auto default_accelerator =
 #endif
   ;
 
+/// \}
+
+/// \cond core
 namespace exec {
+/// \addtogroup execution
+/// \{
 
 /*!
   Enumeration of task types.
@@ -93,5 +95,7 @@ mask_to_processor_type(TaskAttributes mask) {
     util::bit_width(mask) - task_type_bits - 1);
 } // mask_to_processor_type
 
+/// \}
 } // namespace exec
+  /// \endcond
 } // namespace flecsi
