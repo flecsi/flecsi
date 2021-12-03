@@ -21,6 +21,15 @@ namespace flecsi::io {
 /// Checkpointing.
 /// \{
 
+#ifdef DOXYGEN // implemented per-backend
+struct io_interface {
+  explicit io_interface(int files);
+
+  void checkpoint_all_fields(const std::string & name);
+  void recover_all_fields(const std::string & name);
+};
+#endif
+
 // currently these methods don't do anything unless topologies and
 // index spaces have been registered manually first
 // TODO:  add automatic registration

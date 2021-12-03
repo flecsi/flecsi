@@ -265,6 +265,8 @@ public:
   }
 };
 
+/// Common dependent partitioning facility.
+/// \tparam R use ranges (\c rect instead of \c Point<2>)
 template<bool R = true>
 struct partition : partition_base {
   partition(region & reg,

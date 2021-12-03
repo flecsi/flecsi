@@ -151,6 +151,12 @@ struct forall_t {
 template<class I>
 forall_t(I, std::string)->forall_t<I>; // automatic in C++20
 
+/// A parallel range-for loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce
+/// \param range sized random-access range
+/// \param name debugging name, convertible to \c std::string
 #define forall(it, range, name)                                                \
   ::flecsi::exec::forall_t{range, name}->*FLECSI_LAMBDA(auto && it)
 
@@ -215,6 +221,17 @@ make_reduce(I i, std::string n) {
   return {std::move(i), n};
 }
 
+/// A parallel reduction loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce for elements
+/// \param ref variable name to introduce for storing results: call it to add
+///   a value to the reduction
+/// \param range sized random-access range
+/// \param R reduction operation type
+/// \param T data type
+/// \param name debugging name, convertible to \c std::string
+/// \return the reduced result
 #define reduceall(it, ref, range, R, T, name)                                  \
   ::flecsi::exec::make_reduce<R, T>(range, name)                               \
       ->*FLECSI_LAMBDA(auto && it, auto ref)

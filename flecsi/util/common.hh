@@ -22,6 +22,8 @@
 #include <vector>
 
 namespace flecsi {
+/// Type for spatial dimensions and counts thereof.
+/// \ingroup utils
 using Dimension = unsigned short;
 
 namespace util {

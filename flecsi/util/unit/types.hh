@@ -181,6 +181,9 @@ struct string_case_compare {
 /// \addtogroup unit
 /// \{
 
+/// Define a unit test function.  Should be followed by a compound statement,
+/// which can use the other unit-testing macros, and a semicolon, and should
+/// generally appear alone in a function that returns \c int.
 #define UNIT                                                                   \
   ::flecsi::log::state::instance().config_stream().add_buffer(                 \
     "flog", std::clog, true);                                                  \
@@ -197,11 +200,16 @@ struct string_case_compare {
   else                                                                         \
     ret auto_unit_state >>= auto_unit_state.stringstream()
 
+/// \name Assertion macros
+/// \{
+
 #define ASSERT_TRUE(c) CHECK(return, test<true>, c, #c)
 #define EXPECT_TRUE(c) CHECK(, test<false>, c, #c)
 
 #define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
 #define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
+
+/// \}
 
 #define COMMA , // relies on CHECK invoking no other macros
 #define CHECK_CMP(ret, cmp, A, x, y, op, sfx)                                  \
@@ -211,6 +219,13 @@ struct string_case_compare {
   CHECK_CMP(return, cmp, true, x, y, op, sfx)
 #define EXPECT_CMP(x, y, cmp, op, sfx) CHECK_CMP(, cmp, false, x, y, op, sfx)
 
+/// \name Assertion macros
+/// Macros that begin with \c ASSERT are identical to their \c EXPECT
+/// counterparts except that they abandon the current \c UNIT on failure
+/// (usually to avoid subsequent undefined behavior).
+/// \{
+
+/// Comparison.
 #define ASSERT_EQ(x, y) ASSERT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define EXPECT_EQ(x, y) EXPECT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define ASSERT_NE(x, y) ASSERT_CMP(x, y, ::std::not_equal_to<>, !=, "")
@@ -223,38 +238,49 @@ struct string_case_compare {
 #define EXPECT_GT(x, y) EXPECT_CMP(x, y, ::std::greater<>, >, "")
 #define ASSERT_GE(x, y) ASSERT_CMP(x, y, ::std::greater_equal<>, >=, "")
 #define EXPECT_GE(x, y) EXPECT_CMP(x, y, ::std::greater_equal<>, >=, "")
+/// Compare null-terminated strings, abandoning test on inequality.
 #define ASSERT_STREQ(x, y)                                                     \
   ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+/// Check equality of null-terminated strings.
 #define EXPECT_STREQ(x, y)                                                     \
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+/// Compare null-terminated strings, abandoning test on equality.
 #define ASSERT_STRNE(x, y)                                                     \
   ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+/// Check inequality of null-terminated strings.
 #define EXPECT_STRNE(x, y)                                                     \
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+/// Compare null-terminated strings, ignoring case and abandoning test on
+/// inequality.
 #define ASSERT_STRCASEEQ(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare,                                 \
     ==,                                                                        \
     " (case insensitive)")
+/// Check equality of null-terminated strings, ignoring case.
 #define EXPECT_STRCASEEQ(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare,                                 \
     ==,                                                                        \
     " (case insensitive)")
+/// Compare null-terminated strings, ignoring case and abandoning test on
+/// equality.
 #define ASSERT_STRCASENE(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare::not_fn,                         \
     !=,                                                                        \
     " (case insensitive)")
+/// Check inequality of null-terminated strings, ignoring case.
 #define EXPECT_STRCASENE(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare::not_fn,                         \
     !=,                                                                        \
     " (case insensitive)")
+/// \}
 
 /// A stream that collects output for comparison.
 #define UNIT_CAPTURE()                                                         \
@@ -291,4 +317,5 @@ struct string_case_compare {
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 
+/// \}
 /// \}

@@ -197,6 +197,7 @@ struct field : data::detail::field_base<T, L> {
     }
   };
 
+  /// Fields cannot be constructed.  Use \c definition instead.
   field() = delete;
 };
 /// \}

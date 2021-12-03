@@ -32,6 +32,13 @@ namespace util {
 namespace serial {
 /// \defgroup serial Serialization
 /// Serialization without default constructibility.
+/// Supported types:
+/// - any default-constructible, trivially-move-assignable, non-pointer type
+/// - any type that supports the Legion return-value serialization interface
+/// - \c std::string
+/// - any type with an appropriate specialization of \c traits or \c convert
+/// - any \c std::pair, \c std::tuple, \c std::array, \c std::vector,
+///   \c std::set, \c std::map, \c std::unordered_map of a supported type
 /// \ingroup utils
 /// \{
 
@@ -47,8 +54,23 @@ mempcpy(std::size_t & x, const void *, std::size_t n) {
   x += n;
 }
 
-template<class, class = void>
-struct traits;
+/// Extension point for serialization.
+/// The primary template is not really a complete type.
+/// \tparam T object type
+/// \tparam E unused SFINAE hook
+template<class T, class E = void>
+struct traits
+#ifdef DOXYGEN
+{
+  /// Serialize an object.
+  /// \tparam P see \c serial::put
+  template<class P>
+  static void put(P & p, const T &);
+  /// Reconstruct an object.
+  static T get(const std::byte *&);
+}
+#endif
+;
 
 /// Store objects and advance past their serialized form.
 /// \tparam P \c std::size_t for calculating sizes, or `std::byte*` for actual
@@ -127,7 +149,9 @@ get_vector(const std::byte *& p) {
   return ret;
 }
 
+/// Aggregate helper that converts to any type via \c get.
 struct cast {
+  /// The pointer from which to \c get.
   const std::byte *& p;
   template<class T>
   operator T() const {

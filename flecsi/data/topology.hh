@@ -71,6 +71,7 @@ template<typename T>
 T get_scalar_from_accessor(const T * p);
 #endif
 
+// Adds backend-independent metadata.
 struct region : region_base {
   using region_base::region_base;
   // key_type is a bit odd here, but we lack a generic single-type wrapper.
@@ -155,6 +156,7 @@ make_region(size2 s) {
   return {s, util::key_type<Index, Topo>()};
 }
 
+// Types ending in "ed" indicate that a region is bundled.
 template<class P>
 struct partitioned : region, P {
   template<class... TT>

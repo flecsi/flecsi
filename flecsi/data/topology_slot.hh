@@ -32,6 +32,9 @@ struct topology_slot : convert_tag {
   using core = typename Topo::core;
   using coloring = typename Topo::coloring;
 
+  /// Create the topology.
+  /// \param coloring_reference coloring (perhaps from a \c coloring_slot)
+  /// \param aa further specialization-specific parameters
   template<typename... AA>
   core & allocate(coloring const & coloring_reference, AA &&... aa) {
     data.emplace(coloring_reference);
@@ -39,6 +42,7 @@ struct topology_slot : convert_tag {
     return get();
   }
 
+  /// Destroy the topology.
   void deallocate() {
     data.reset();
   } // deallocate

@@ -42,10 +42,12 @@ inline const field<data::intervals::Value>::definition<intervals>
   intervals::field;
 } // namespace detail
 
+// Specifies a pattern of data movement among colors in an index space.
+// Copying within a color is permitted but unusual.
 struct copy_plan {
   using Sizes = detail::intervals::coloring;
 
-  template<template<class> class C,
+  template<template<class> class C, // allows deducing P
     class P,
     typename P::index_space S = P::default_space(),
     class D,
@@ -53,8 +55,8 @@ struct copy_plan {
   copy_plan(C<P> & t,
     prefixes & p,
     const Sizes & ndests,
-    D && dests,
-    F && src,
+    D && dests, // function of a field reference for intervals
+    F && src, // similarly for source points
     util::constant<S> = {})
     : dest_ptrs_(ndests),
       // In this first case we use a subtopology to create the
@@ -207,6 +209,9 @@ struct buffers_category : buffers_base, topo::array_category<P> {
   auto operator*() {
     return field(*this);
   }
+  // Transfer data using two tasks: F initializes and loads the buffers, and G
+  // reads from them, refills them if necessary, and returns whether data
+  // remains.  The field reference is given as the last argument.
   template<auto & F, auto & G, class... AA>
   void xfer(AA &&... aa) {
     execute<F>(aa..., **this);
@@ -214,6 +219,7 @@ struct buffers_category : buffers_base, topo::array_category<P> {
       ;
   }
 
+  // Data is actually moved by ordinary ghost copies for buffer accessors:
   template<class R>
   void ghost_copy(const R & f) {
     cp.issue_copy(f.fid());
@@ -258,6 +264,7 @@ namespace data {
 /// \addtogroup topology-data
 /// \{
 
+// This subtopology type also provides conveniences for transfer tasks.
 struct buffers : topo::specialization<detail::buffers_category, buffers> {
   using Buffer = base::buffer;
   using Start = field<Buffer>::accessor<wo, na>;

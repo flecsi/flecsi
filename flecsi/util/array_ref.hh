@@ -138,6 +138,7 @@ to_vector(span<T> s) {
 // (It's undefined to use these views with a truly multidimensional array.)
 
 namespace detail {
+/// A multi-dimensional view of an array.
 template<class T, Dimension D>
 struct mdbase {
   static_assert(D > 0);
@@ -349,6 +350,7 @@ private:
   iterator b, e;
 };
 
+// A generic iterator implementation in terms of subscripting.
 template<class C>
 struct index_iterator {
 private:

@@ -192,6 +192,19 @@ struct partial : std::tuple<AA...> {
 /// \addtogroup execution
 /// \{
 
+/// Partially apply a function.
+/// Lambdas and \c bind objects may not in general be passed to tasks.
+/// \tparam F function to call
+/// \tparam AA serializable types
+/// \return a function object that can be an argument to a task
+/// \note The task will usually be a function template:\code
+///   void func(/*...*/);
+///   template<class F>
+///   void task(F f) {f(/* ... */);}
+///   void client() {
+///     auto p = make_partial<func>(/*...*/);
+///     execute<task<decltype(p)>>(p);  // note explicit template argument
+///   }\endcode
 template<auto & F, class... AA>
 constexpr exec::partial<F, std::decay_t<AA>...>
 make_partial(AA &&... aa) {
@@ -199,7 +212,9 @@ make_partial(AA &&... aa) {
 }
 
 /*!
-  Single or multiple future.
+  \link future<Return> Single\endlink or \link
+  future<Return,exec::launch_type_t::index> multiple\endlink future.
+
   A multi-valued future may be passed to a task expecting a single one
   (which is then executed once with each value).
 
@@ -211,6 +226,7 @@ template<typename Return,
 struct future;
 
 #ifdef DOXYGEN // implemented per-backend
+/// Single-valued future.
 template<typename Return>
 struct future<Return> {
   /// Wait on the task to finish.
@@ -219,6 +235,7 @@ struct future<Return> {
   Return get(bool silence_warnings = false);
 };
 
+/// Multi-valued future from an index launch.
 template<typename Return>
 struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.

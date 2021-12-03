@@ -13,6 +13,9 @@ namespace leg {
 
 using rect = Legion::Rect<2>;
 
+// Legion performs better with regions partitioned (completely) into disjoint
+// subregions.  This internal topology stores two rectangles for each row;
+// memory is allocated only for the first.
 struct halves : topo::specialization<topo::color, halves> {
   using Field = flecsi::field<rect>;
   static const Field::definition<halves> field;

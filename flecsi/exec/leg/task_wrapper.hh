@@ -39,6 +39,7 @@ namespace flecsi {
 
 inline log::devel_tag task_wrapper_tag("task_wrapper");
 
+// Task parameter serialization (needed only for Legion):
 namespace data {
 template<class, Privileges, Privileges>
 struct ragged_accessor;

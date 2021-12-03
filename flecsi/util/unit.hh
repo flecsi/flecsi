@@ -63,13 +63,22 @@ struct control_policy {
 
 using control = flecsi::run::control<flecsi::unit::control_policy>;
 
+/// A test initialization registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the function to call
 template<control::target_type Target>
 using initialization =
   control::action<Target, test_control_points::initialization>;
 
+/// A test registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the test function to call
 template<control::target_type Target>
 using driver = control::action<Target, test_control_points::driver>;
 
+/// A test finalization registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the function to call
 template<control::target_type Target>
 using finalization = control::action<Target, test_control_points::finalization>;
 

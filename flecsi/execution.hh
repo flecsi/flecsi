@@ -245,14 +245,17 @@ struct program_option {
     c.option_checks().try_emplace(name, true, check);
   } // program_options
 
+  /// Get the value, which must exist.
   ValueType value() const {
     return value_.value();
   }
 
+  /// Get the value, which must exist.
   operator ValueType() const {
     return value();
   }
 
+  /// Return whether the option was set.
   bool has_value() const {
     return value_.has_value();
   }

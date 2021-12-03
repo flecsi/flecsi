@@ -19,6 +19,7 @@
 #include "flecsi/run/leg/mapper.hh"
 
 namespace flecsi {
+// These must be defined with the full execution machinery available:
 namespace data::leg {
 mirror::mirror(size2 s)
   : rects({s.first, 2}), columns({2, 1}),

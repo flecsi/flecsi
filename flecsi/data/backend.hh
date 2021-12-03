@@ -27,10 +27,12 @@ namespace flecsi::data {
 
 // Use {} if unknown:
 enum completeness { unknown = 0, complete = 1, incomplete = 2 };
-using size2 = std::pair<std::size_t, std::size_t>;
+using size2 = std::pair<std::size_t, std::size_t>; // rows, columns
 using subrow = std::pair<std::size_t, std::size_t>; // [begin, end)
+// The "infinite" size used for resizable regions.
 constexpr inline std::size_t logical_size = 1ul << 32;
 
+// The size types are independent of backend:
 struct prefixes_base {
   using row = std::size_t;
   using Field = field<row, single>;

@@ -23,6 +23,24 @@ namespace flecsi::exec {
 /// \addtogroup execution
 /// \{
 
+#ifdef DOXYGEN // implemented per-backend
+/// Handling for low-level special task parameters/arguments.
+/// The exact member function signatures may vary between backends.
+struct task_prologue {
+protected:
+  /// Default constructible.
+  task_prologue();
+
+  /// Send a raw field reference to a raw accessor.
+  template<typename T, Privileges P, class Topo, typename Topo::index_space S>
+  void visit(data::accessor<data::raw, T, P> &,
+    const data::field_reference<T, data::raw, Topo, S> &);
+  /// Send an index future to a single future.
+  template<typename R>
+  void visit(future<R> &, const future<R, launch_type_t::index> &);
+};
+#endif
+
 /*!
   Analyzes task arguments and updates data objects before launching a task.
 */

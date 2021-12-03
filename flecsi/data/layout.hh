@@ -29,9 +29,9 @@ namespace data {
 enum layout : size_t {
   raw, ///< Uninitialized memory with no objects constructed or destroyed.
   single, ///< Access to the single element of an array.
-  dense,
-  ragged,
-  sparse
+  dense, ///< Ordinary array of objects.
+  ragged, ///< Array of resizable arrays of objects.
+  sparse ///< Array of mappings from integers to objects.
 };
 
 /// \}

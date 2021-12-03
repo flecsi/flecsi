@@ -82,7 +82,7 @@ using fields = std::vector<const field_info_t *>;
  */
 inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 
-using TopologyType = std::size_t;
+using TopologyType = std::size_t; // for field registration
 
 /// \}
 } // namespace flecsi
