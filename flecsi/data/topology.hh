@@ -33,34 +33,42 @@ template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
 
 #ifdef DOXYGEN // implemented per-backend
-// These types are movable but may not be copyable.
-
-// A rectangular abstract array.
+/// A rectangular abstract array.
 struct region_base {
-  region(size2, const fields &, const char * = nullptr);
+  /// Construct an array of several fields.
+  /// \param s total size (perhaps much larger than what is allocated)
+  /// \param f fields to define (not all of which need be allocated)
+  /// \param n optional name for debugging
+  region(size2 s, const fields & f, const char * n = nullptr);
 
+  /// Get (bounding) size.
   size2 size() const;
 };
 
-// Base class storing a prefix of each row in a region_base.
+/// Base class storing a prefix of each row in a \c region_base.
+/// \note No constructors are specified.
 struct partition {
-  // no constructor specified
-
+  /// Get the number of subsets (also the number of rows).
   Color colors() const;
-  template<topo::single_space> // for convenience for simple topologies
+  /// Convenience function for simple topologies with just one partition.
+  /// \return this object
+  template<topo::single_space>
   const partition & get_partition(field_id_t) const {
     return *this;
   }
 };
 
-// All of each row in a region_base.
+/// All of each row in a region_base.
 struct rows : partition {
+  /// Divide a region into rows.
   explicit rows(region_base &);
 };
 
-// Read from what might be a device pointer.
+/// Read from what might be a device pointer.
+/// The backend knows where field data is stored for the current task.
+/// \param p pointer to field data
 template<typename T>
-T get_scalar_from_accessor(const T *);
+T get_scalar_from_accessor(const T * p);
 #endif
 
 struct region : region_base {

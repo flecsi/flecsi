@@ -512,7 +512,7 @@ protected:
   }
 
 #ifdef DOXYGEN
-  /*
+  /*!
     Clear the runtime state of the context.
 
     Notes:

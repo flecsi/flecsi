@@ -30,12 +30,12 @@ namespace flecsi {
 /// Defining topology instances and fields.
 /// \{
 
-/*
+/*!
   Default global topology instance.
  */
 inline topo::global::slot global_topology;
 
-/*
+/*!
   Per-process topology instance.
  */
 inline topo::index::slot process_topology;

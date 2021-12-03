@@ -89,10 +89,7 @@ static constexpr const char * gv_arrowtail_default = "normal";
 const int ag_create(1);
 const int ag_access(0);
 
-/*----------------------------------------------------------------------------*
- * Class for creating Graphviz trees.
- *----------------------------------------------------------------------------*/
-
+/// Class for creating Graphviz trees.
 class graphviz
 {
 public:
@@ -110,12 +107,9 @@ public:
     gvFreeContext(gvc_);
   } // ~graphviz
 
-  /*-------------------------------------------------------------------------*
-   * Clear the graph.  This call is a little counter-intuitive.  It frees
-   * the currently allocated graph and creates a new empty one in its place.
-   * Therefore, there is always a graph instance available.
-   *-------------------------------------------------------------------------*/
-
+  /// Clear the graph.  This call is a little counter-intuitive.  It frees
+  /// the currently allocated graph and creates a new empty one in its place.
+  /// Therefore, there is always a graph instance available.
   void clear() {
     if(graph_ != nullptr) {
       gvFreeLayout(gvc_, graph_);
@@ -150,12 +144,8 @@ public:
     agattr(graph_, AGEDGE, GV_ARROWTAIL, GV_ARROWTAIL_DEFAULT);
   } // clear
 
-  /*-------------------------------------------------------------------------*
-   * Add a node to the graph.
-   *
-   * If 'label' is non-null, it will be used for the display name of the node.
-   *-------------------------------------------------------------------------*/
-
+  /// Add a node to the graph.
+  /// \param label if non-null, be used for the display name of the node.
   Agnode_t * add_node(const char * name, const char * label = nullptr) {
     char buffer[1024];
     sprintf(buffer, "%s", name);
@@ -177,10 +167,7 @@ public:
     return agnode(graph_, buffer, ag_access);
   } // node
 
-  /*-------------------------------------------------------------------------*
-   * Remove a node from the graph.
-   *-------------------------------------------------------------------------*/
-
+  /// Remove a node from the graph.
   void remove_node(const char * name) {
     char buffer[1024];
     sprintf(buffer, "%s", name);
@@ -191,10 +178,7 @@ public:
     } // if
   } // remove_node
 
-  /*-------------------------------------------------------------------------*
-   * Set a node attribute.
-   *-------------------------------------------------------------------------*/
-
+  /// Set a node attribute.
   void
   set_node_attribute(const char * name, const char * attr, const char * value) {
     char buffer[1024];
@@ -222,10 +206,7 @@ public:
     agset(node, _attr, _value);
   } // set_node_attribute
 
-  /*-------------------------------------------------------------------------*
-   * Append to node label.
-   *-------------------------------------------------------------------------*/
-
+  /// Append to node label.
   void set_label(const char * name, const char * label) {
     char buffer[1024];
     sprintf(buffer, "%s", name);
@@ -239,10 +220,7 @@ public:
     set_node_attribute(name, "label", label);
   } // append_node_label
 
-  /*-------------------------------------------------------------------------*
-   * Get a node attribute.
-   *-------------------------------------------------------------------------*/
-
+  /// Get a node attribute.
   char * get_node_attribute(const char * name, const char * attr) {
     char buffer[1024];
     sprintf(buffer, "%s", name);
@@ -271,10 +249,7 @@ public:
     return agdegree(graph_, node, true, false);
   } // edge_count
 
-  /*-------------------------------------------------------------------------*
-   * Add an edge to the graph.
-   *-------------------------------------------------------------------------*/
-
+  /// Add an edge to the graph.
   Agedge_t * add_edge(Agnode_t * parent, Agnode_t * child) {
     return agedge(graph_, parent, child, nullptr, ag_create);
   } // add_edge
@@ -288,10 +263,7 @@ public:
     agset(edge, _attr, _value);
   } // set_edge_attribute
 
-  /*-------------------------------------------------------------------------*
-   * Compute a layout using the specified engine.
-   *-------------------------------------------------------------------------*/
-
+  /// Compute a layout using the specified engine.
   void layout(const char * engine) {
     char _engine[1024];
     sprintf(_engine, "%s", engine);
@@ -299,9 +271,7 @@ public:
     gvLayout(gvc_, graph_, _engine);
   } // layout
 
-  /*-------------------------------------------------------------------------*
-   * Write the current layout to file.
-   *-------------------------------------------------------------------------*/
+  /// Write the current layout to file.
 
   // FIXME: May need to check that a valid layout exists.
   void write(const std::string & name) {

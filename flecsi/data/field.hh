@@ -170,8 +170,8 @@ struct field : data::detail::field_base<T, L> {
   /// \tparam PP the appropriate number of privilege values
   template<partition_privilege_t... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
-  // The mutator to use as a parameter for this sort of field (usable only for
-  // certain layouts).
+  /// The mutator to use as a parameter for this sort of field (usable only
+  /// for certain layouts).
   template<partition_privilege_t... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 

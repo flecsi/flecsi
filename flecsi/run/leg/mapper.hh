@@ -33,7 +33,7 @@ namespace run {
 /// \addtogroup legion-runtime
 /// \{
 
-/*
+/*!
  The mpi_mapper_t - is a custom mapper that handles mpi-legion
  interoperability in FLeCSI
 */

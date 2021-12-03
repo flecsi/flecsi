@@ -50,27 +50,36 @@ mempcpy(std::size_t & x, const void *, std::size_t n) {
 template<class, class = void>
 struct traits;
 
-// Store tt at p, advancing past the serialized form.
-// For calculating sizes, P should be std::size_t.
-// For actual serialization, P should be std::byte*.
+/// Store objects and advance past their serialized form.
+/// \tparam P \c std::size_t for calculating sizes, or `std::byte*` for actual
+///   serialization
+/// \param p pointer or size
+/// \param tt objects
 template<class... TT, class P>
 void
 put(P & p, const TT &... tt) {
   (traits<std::remove_const_t<TT>>::put(p, tt), ...);
 }
+/// Compute the serialized size of a fixed set of objects.
 template<class... TT>
-std::size_t size(const TT &... tt) { // wrapper to provide an initial size of 0
+std::size_t
+size(const TT &... tt) {
   std::size_t ret = 0;
   put(ret, tt...);
   return ret;
 }
+/// Reconstruct an object, advancing past its serialized form.
 template<class T>
-T get(const std::byte *& p) { // reconstruct and advance past an object
+T
+get(const std::byte *& p) {
   return traits<std::remove_const_t<T>>::get(p);
 }
 
+/// Serialize into a buffer.
+/// \param f a function that accepts an argument for \c put
 template<class F>
-auto buffer(F && f) { // f should accept a P for put
+std::vector<std::byte>
+buffer(F && f) {
   std::size_t sz = 0;
   f(sz);
   std::vector<std::byte> ret(sz);
@@ -80,17 +89,23 @@ auto buffer(F && f) { // f should accept a P for put
   return ret;
 }
 
+/// Get a single object.
+/// \param p may be an rvalue
 template<class T>
-T get1(const std::byte * p) { // for a single object
+T
+get1(const std::byte * p) {
   return get<T>(p);
 }
 
-// Conveniences to allocate memory and to send a tuple without copying.
+/// Serialize a fixed set of objects into a buffer.
+/// Reconstruct with \c get_tuple.
 template<class... TT>
 auto
 put_tuple(const TT &... tt) {
   return buffer([&](auto & p) { put(p, tt...); });
 }
+/// Construct a tuple of objects.
+/// \param e pointer to end of representation, if known
 template<class... TT>
 auto
 get_tuple(const std::byte * p, const std::byte * e = nullptr) {
@@ -98,7 +113,9 @@ get_tuple(const std::byte * p, const std::byte * e = nullptr) {
   flog_assert(!e || p == e, "Wrong deserialization size");
 }
 
-// Unlike get<std::vector<T>>, defined to get a size and then elements.
+/// Construct a \c std::vector from a size and then elements.
+/// \tparam S size type
+/// \warning `get<std::vector<T>>` is not guaranteed to be equivalent.
 template<class T, class S = typename std::vector<T>::size_type>
 auto
 get_vector(const std::byte *& p) {
@@ -242,11 +259,17 @@ struct traits<std::string> {
 
 // Adapters for other protocols:
 
+/// Convenience for stateless types.
+/// Derive their specialization of \c traits from it.
+/// \tparam T default-constructible type with no significant state
 template<class T>
-struct value { // serializes nothing; returns T()
+struct value {
   using type = T;
+  /// Do nothing.
   template<class P>
   static void put(P &, const T &) {}
+  /// Construct an object.
+  /// \return `T()`
   static T get(const std::byte *&) {
     return T();
   }
@@ -271,9 +294,25 @@ struct traits<T,
   }
 };
 
-// Should define put and get and optionally size:
-template<class>
-struct convert;
+/// Defines a serialization in terms of a representation type.
+/// The primary template is not really a complete type.
+/// \tparam T object type
+template<class T>
+struct convert
+#ifdef DOXYGEN
+{
+  /// Convert an object.
+  /// \return a serializable type
+  static R put(const T &);
+  /// Get the serialized size of an object.
+  /// This interface is optional; \c put will be called twice in its absence.
+  static std::size_t size(const T &);
+  /// Reconstruct an object.
+  /// \param r reconstructed object returned from \c put
+  static T get(R && r);
+}
+#endif
+;
 template<class T, class = void>
 struct convert_traits : convert<T> {
   static std::size_t size(const T & t) {

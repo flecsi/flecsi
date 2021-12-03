@@ -256,23 +256,26 @@ struct string_case_compare {
     !=,                                                                        \
     " (case insensitive)")
 
-// Provide access to the output stream to allow user to capture output
+/// A stream that collects output for comparison.
 #define UNIT_CAPTURE()                                                         \
   ::flecsi::util::unit::test_output_t::instance().get_stream()
 
-// Return captured output as a std::string
+/// Return captured output.
+/// \return \c std::string
 #define UNIT_DUMP() ::flecsi::util::unit::test_output_t::instance().get_buffer()
 
-// Compare captured output to a blessed file
+/// Compare captured output to a blessed file.
+/// \return \c bool
 #define UNIT_EQUAL_BLESSED(f)                                                  \
   ::flecsi::util::unit::test_output_t::instance().equal_blessed((f))
 
-// Write captured output to file
+/// Write captured output to file.
 #define UNIT_WRITE(f)                                                          \
   ::flecsi::util::unit::test_output_t::instance().to_file((f))
 
-// Dump captured output on failure
 #if !defined(_MSC_VER)
+/// Run an assertion and include captured output in any error message.
+/// \param ASSERTION macro name (\c TRUE, \c EQ, \e etc.)
 #define UNIT_ASSERT(ASSERTION, ...)                                            \
   ASSERT_##ASSERTION(__VA_ARGS__) << UNIT_DUMP()
 #else
@@ -280,7 +283,6 @@ struct string_case_compare {
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
 #endif
 
-// Dump captured output on failure
 #if !defined(_MSC_VER)
 #define UNIT_EXPECT(EXPECTATION, ...)                                          \
   EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
