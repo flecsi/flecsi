@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/execution.hh"
@@ -40,17 +38,17 @@ class serdez_vector : public std::vector<T>
 {
 public:
   inline size_t legion_buffer_size(void) const {
-    return util::serial_size(static_cast<const std::vector<T> &>(*this));
+    return util::serial::size(static_cast<const std::vector<T> &>(*this));
   }
 
   inline void legion_serialize(void * buffer) const {
     std::byte * p = static_cast<std::byte *>(buffer);
-    util::serial_put(p, static_cast<const std::vector<T> &>(*this));
+    util::serial::put(p, static_cast<const std::vector<T> &>(*this));
   }
 
   inline void legion_deserialize(const void * buffer) {
     const std::byte * p = static_cast<const std::byte *>(buffer);
-    auto v = util::serial_get1<std::vector<T>>(p);
+    auto v = util::serial::get1<std::vector<T>>(p);
     this->swap(v);
   }
 };

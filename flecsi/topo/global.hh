@@ -13,22 +13,21 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
-#include "flecsi/data/privilege.hh"
-#include "flecsi/topo/index.hh"
+#include "flecsi/data/topology.hh"
+#include "flecsi/topo/core.hh"
 
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 
 struct global_base {
   struct coloring {};
 };
 
 template<class P>
-struct global_category : global_base, data::region, with_ragged<P> {
-  global_category(const coloring &)
-    : region(data::make_region<P>({1, 1})), with_ragged<P>(1) {}
+struct global_category : global_base, data::region {
+  global_category(const coloring &) : region(data::make_region<P>({1, 1})) {}
 };
 template<>
 struct detail::base<global_category> {
@@ -39,11 +38,11 @@ struct detail::base<global_category> {
   The \c global type allows users to register data on a
   topology with a single index, i.e., there is one instance of
   the registered field type that is visible to all colors.
-
-  @ingroup topology
+  Its \c coloring type is empty and default-constructible.
  */
 struct global : specialization<global_category, global> {};
 
+/// \}
 } // namespace topo
 
 // Defined here to avoid circularity via ragged and execute.

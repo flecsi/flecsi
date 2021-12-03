@@ -41,7 +41,7 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
 void
 reduce1(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   auto res = reduceall(c, up, t.cells(), exec::fold::max, double, "reduce1") {
-    up = p[c];
+    up(p[c]);
   }; // forall
 
   flog_assert(res == 6.0, res << " != 6.0");
@@ -52,7 +52,7 @@ void
 reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   auto res = flecsi::exec::parallel_reduce<exec::fold::max, double>(
     t.cells(),
-    KOKKOS_LAMBDA(auto c, double & up) { up = p[c]; },
+    KOKKOS_LAMBDA(auto c, auto up) { up(p[c]); },
     std::string("reduce2"));
 
   flog_assert(res == 6.0, res << " != 6.0");

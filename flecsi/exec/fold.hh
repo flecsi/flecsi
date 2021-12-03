@@ -13,13 +13,31 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <algorithm>
 #include <limits>
 
 namespace flecsi {
 namespace exec::fold {
+/// \defgroup fold Reduction Operations
+/// Types to use with \c reduce and \c reduceall.
+/// \ingroup execution
+/// \{
+
+#ifdef DOXYGEN
+/// An example reduction type that is not really implemented.
+/// The data type to use is determined separately (_e.g._, a task return
+/// type); user-defined reduction types that aim to support only one data type
+/// need not define their members as templates.
+struct reduce {
+  /// Apply the reduction to two values.
+  template<class T>
+  static T combine(T, T);
+
+  /// The identity element.
+  template<class T>
+  static const T identity;
+};
+#endif
 
 /*!
   Minimum reduction type.
@@ -83,10 +101,10 @@ struct product {
   static constexpr T identity = T(1);
 }; // struct product
 
+/// \}
 } // namespace exec::fold
 
 namespace exec::detail {
-// So that user reduction types can supply a single value or a template:
 template<class R, class = void>
 struct identity_traits {
   // GCC rejects this if it's a reference (#97340):

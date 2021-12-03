@@ -110,7 +110,7 @@ add_unit(unstructured
   THREADS 2
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
 add_unit(fixed
   SOURCES
@@ -140,7 +140,7 @@ add_unit(narray4d
 
 # ntree -----------------------------------------------------------------------#
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 add_unit(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed

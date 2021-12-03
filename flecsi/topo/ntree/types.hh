@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/geometry/point.hh"
 

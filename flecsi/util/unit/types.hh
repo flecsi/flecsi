@@ -27,6 +27,8 @@ inline log::devel_tag unit_tag("unit");
 
 namespace util {
 namespace unit {
+/// \addtogroup unit
+/// \{
 
 namespace detail {
 template<class T, class = void>
@@ -200,10 +202,17 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
   return os.str();
 }
 
+/// \}
 } // namespace unit
 } // namespace util
 } // namespace flecsi
 
+/// \addtogroup unit
+/// \{
+
+/// Define a unit test function.  Should be followed by a compound statement,
+/// which can use the other unit-testing macros, and a semicolon, and should
+/// generally appear alone in a function that returns \c int.
 #define UNIT                                                                   \
   ::flecsi::log::state::instance().config_stream().add_buffer(                 \
     "flog", std::clog, true);                                                  \
@@ -220,11 +229,16 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
   else                                                                         \
     ret auto_unit_state >>= auto_unit_state.stringstream()
 
+/// \name Assertion macros
+/// \{
+
 #define ASSERT_TRUE(c) CHECK(return, test<true>, c, #c)
 #define EXPECT_TRUE(c) CHECK(, test<false>, c, #c)
 
 #define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
 #define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
+
+/// \}
 
 #define COMMA , // relies on CHECK invoking no other macros
 #define CHECK_CMP(ret, cmp, A, x, y, op, sfx)                                  \
@@ -234,6 +248,13 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
   CHECK_CMP(return, cmp, true, x, y, op, sfx)
 #define EXPECT_CMP(x, y, cmp, op, sfx) CHECK_CMP(, cmp, false, x, y, op, sfx)
 
+/// \name Assertion macros
+/// Macros that begin with \c ASSERT are identical to their \c EXPECT
+/// counterparts except that they abandon the current \c UNIT on failure
+/// (usually to avoid subsequent undefined behavior).
+/// \{
+
+/// Comparison.
 #define ASSERT_EQ(x, y) ASSERT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define EXPECT_EQ(x, y) EXPECT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define ASSERT_NE(x, y) ASSERT_CMP(x, y, ::std::not_equal_to<>, !=, "")
@@ -246,56 +267,70 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 #define EXPECT_GT(x, y) EXPECT_CMP(x, y, ::std::greater<>, >, "")
 #define ASSERT_GE(x, y) ASSERT_CMP(x, y, ::std::greater_equal<>, >=, "")
 #define EXPECT_GE(x, y) EXPECT_CMP(x, y, ::std::greater_equal<>, >=, "")
+/// Compare null-terminated strings, abandoning test on inequality.
 #define ASSERT_STREQ(x, y)                                                     \
   ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+/// Check equality of null-terminated strings.
 #define EXPECT_STREQ(x, y)                                                     \
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare, ==, "")
+/// Compare null-terminated strings, abandoning test on equality.
 #define ASSERT_STRNE(x, y)                                                     \
   ASSERT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+/// Check inequality of null-terminated strings.
 #define EXPECT_STRNE(x, y)                                                     \
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
+/// Compare null-terminated strings, ignoring case and abandoning test on
+/// inequality.
 #define ASSERT_STRCASEEQ(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare,                                 \
     ==,                                                                        \
     " (case insensitive)")
+/// Check equality of null-terminated strings, ignoring case.
 #define EXPECT_STRCASEEQ(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare,                                 \
     ==,                                                                        \
     " (case insensitive)")
+/// Compare null-terminated strings, ignoring case and abandoning test on
+/// equality.
 #define ASSERT_STRCASENE(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare::not_fn,                         \
     !=,                                                                        \
     " (case insensitive)")
+/// Check inequality of null-terminated strings, ignoring case.
 #define EXPECT_STRCASENE(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
     ::flecsi::util::unit::string_case_compare::not_fn,                         \
     !=,                                                                        \
     " (case insensitive)")
+/// \}
 
-// Provide access to the output stream to allow user to capture output
+/// A stream that collects output for comparison.
 #define UNIT_CAPTURE()                                                         \
   ::flecsi::util::unit::test_output_t::instance().get_stream()
 
-// Return captured output as a std::string
+/// Return captured output.
+/// \return \c std::string
 #define UNIT_DUMP() ::flecsi::util::unit::test_output_t::instance().get_buffer()
 
-// Compare captured output to a blessed file
+/// Compare captured output to a blessed file.
+/// \return \c bool
 #define UNIT_EQUAL_BLESSED(f)                                                  \
   ::flecsi::util::unit::test_output_t::instance().equal_blessed((f))
 
-// Write captured output to file
+/// Write captured output to file.
 #define UNIT_WRITE(f)                                                          \
   ::flecsi::util::unit::test_output_t::instance().to_file((f))
 
-// Dump captured output on failure
 #if !defined(_MSC_VER)
+/// Run an assertion and include captured output in any error message.
+/// \param ASSERTION macro name (\c TRUE, \c EQ, \e etc.)
 #define UNIT_ASSERT(ASSERTION, ...)                                            \
   ASSERT_##ASSERTION(__VA_ARGS__) << UNIT_DUMP()
 #else
@@ -303,7 +338,6 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
 #endif
 
-// Dump captured output on failure
 #if !defined(_MSC_VER)
 #define UNIT_EXPECT(EXPECTATION, ...)                                          \
   EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
@@ -312,13 +346,5 @@ format_cond(T1 && v1, T2 && v2, const char * cond) {
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 
-// compare collections with varying levels of assertions
-#define UNIT_CHECK_EQUAL_COLLECTIONS(...)                                      \
-  ::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__)
-
-#define UNIT_ASSERT_EQUAL_COLLECTIONS(...)                                     \
-  ASSERT_TRUE(::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__) << UNIT_DUMP()
-
-#define UNIT_EXPECT_EQUAL_COLLECTIONS(...)                                     \
-  EXPECT_TRUE(::flecsi::util::unit::CheckEqualCollections(__VA_ARGS__))        \
-    << UNIT_DUMP()
+/// \}
+/// \}

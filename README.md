@@ -1,7 +1,4 @@
-![logo](config/flecsi.png)
-
-[![Build Status](https://travis-ci.org/laristra/flecsi.svg?branch=master)](https://travis-ci.org/laristra/flecsi)
-[![codecov.io](https://codecov.io/github/laristra/flecsi/coverage.svg?branch=master)](https://codecov.io/github/laristra/flecsi?branch=master)
+![logo](doc/doxygen/flecsi.png)
 
 # Introduction
 
@@ -35,7 +32,7 @@ not locked into particular layouts or data structure representations.
 # Documentation
 
 Documentation for FleCSI is at
-[flecsi.org](http://laristra.github.io/flecsi).
+[flecsi.org](http://www.flecsi.org/).
 
 # Release
 

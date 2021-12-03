@@ -3,4 +3,12 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-set(FleCSICMake_PREFIX @CMAKE_INSTALL_PREFIX@/share/FleCSI/cmake)
+if(NOT FLECSI_CMAKE)
+  message(STATUS "Found FLeCSICMake (Appending CMAKE_MODULE_PATH): "
+    "@CMAKE_INSTALL_PREFIX@/share/FleCSICMake/cmake")
+  list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/share/FleCSI/cmake)
+  set(FLECSI_UNIT_MAIN
+    @CMAKE_INSTALL_PREFIX@/share/FleCSI/cmake/unit-main.cc
+  )
+  set(FLECSI_CMAKE TRUE)
+endif()

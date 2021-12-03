@@ -146,7 +146,7 @@ narray_driver() {
       execute<print_field<1>>(m1, f1(m1));
       execute<check_mesh_field<1>>(m1, f1(m1));
 
-      if(FLECSI_RUNTIME_MODEL != FLECSI_RUNTIME_MODEL_mpi) {
+      if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
         auto lm = data::launch::make<unify>(m1, 1);
         EXPECT_EQ(test<check_contiguous>(lm), 0);
       }

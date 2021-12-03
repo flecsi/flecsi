@@ -13,14 +13,14 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/topo/size.hh"
 
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 
 namespace zero {
 inline std::size_t
@@ -92,6 +92,7 @@ private:
   std::map<field_id_t, repartition> part;
 };
 
+// Element storage (i.e., the concatenated rows) for ragged fields.
 struct ragged_base {
   using coloring = Color;
 };
@@ -114,12 +115,6 @@ struct ragged_category : ragged_base {
   template<index_space S>
   repartition & get_partition(field_id_t i) {
     return part.template get<S>()[i];
-  }
-
-  // This can't just be a default template argument, since it would be
-  // instantiated even if unused.
-  repartition & get_partition(field_id_t i) {
-    return get_partition<P::default_space()>(i);
   }
 
   // Ragged ghost copies must be handled at the level of the host topology.
@@ -148,6 +143,7 @@ struct ragged : specialization<ragged_category, ragged<T>> {
 // shared base, needed for metaprogramming detection of ragged fields
 struct with_ragged_base {};
 
+// Standardized interface for use by fields and accessors:
 template<class P>
 struct with_ragged : with_ragged_base {
   with_ragged(Color n) : ragged(n) {}
@@ -172,6 +168,7 @@ struct detail::base<index_category> {
   using type = index_base;
 };
 
+// A subtopology for holding internal arrays without ragged support.
 struct array_base {
   using coloring = std::vector<std::size_t>;
 
@@ -219,8 +216,7 @@ struct with_meta { // for interface consistency
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
-
-  @ingroup topology
+  Its \c coloring type is just the size of that set.
  */
 struct index : specialization<index_category, index> {
   static coloring color(Color size) {
@@ -420,5 +416,6 @@ struct borrow_meta<Q, true> {
 };
 } // namespace detail
 
+/// \}
 } // namespace topo
 } // namespace flecsi

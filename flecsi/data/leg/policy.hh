@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
 #endif
@@ -27,6 +25,10 @@
 
 namespace flecsi {
 namespace data {
+/// \defgroup legion-data Legion Data
+/// Owning wrappers for Legion objects.
+/// \ingroup data
+/// \{
 
 struct prefixes;
 
@@ -279,7 +281,7 @@ public:
   }
 };
 
-/// \internal Common dependent partitioning facility.
+/// Common dependent partitioning facility.
 /// \tparam R use ranges (\c rect instead of \c Point<2>)
 /// \tparam D assume disjoint partitions
 template<bool R = true, bool D = R>
@@ -353,5 +355,6 @@ struct borrow : partition<true, false> {
 using region_base = leg::region;
 using leg::rows, leg::borrow;
 
+/// \}
 } // namespace data
 } // namespace flecsi

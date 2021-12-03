@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/util/color_map.hh"
@@ -33,6 +31,8 @@
 namespace flecsi {
 namespace util {
 namespace parmetis {
+/// \addtogroup utils
+/// \{
 
 static std::vector<Color>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
@@ -90,6 +90,7 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
   return {part.begin(), part.end()};
 } // color
 
+/// \}
 } // namespace parmetis
 } // namespace util
 } // namespace flecsi

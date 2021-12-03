@@ -13,12 +13,12 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <algorithm>
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 //!
 //! \brief  Detect intersections of sorted lists.
@@ -60,5 +60,6 @@ bool intersects(
 }
 #endif
 
+/// \}
 } // namespace util
 } // namespace flecsi

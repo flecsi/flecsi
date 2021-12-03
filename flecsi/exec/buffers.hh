@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
@@ -23,8 +21,11 @@
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
 
 namespace data {
 template<class>
@@ -36,6 +37,8 @@ inline log::devel_tag param_buffers_tag("param_buffers");
 namespace exec {
 
 namespace detail {
+// Manage the auxiliary object that survives the user task needed for a T, or
+// a std::nullptr_t if none.
 template<class T, class = void>
 struct buffer {
   using type = decltype(nullptr);
@@ -125,10 +128,9 @@ private:
 
   Tuple & acc;
   const std::string & nm;
-  // The auxiliary object that survives the user task needed for a T,
-  // or std::nullptr_t if none.
   std::tuple<typename detail::buffer<TT>::type...> buf;
 };
 
+/// \}
 } // namespace exec
 } // namespace flecsi

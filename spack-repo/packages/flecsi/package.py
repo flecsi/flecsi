@@ -60,6 +60,10 @@ class Flecsi(CMakePackage):
     # Dependencies
     #--------------------------------------------------------------------------#
 
+    # LANL CMake Modules
+
+    depends_on('lanl-cmake-modules')
+
     # Boost
 
     depends_on('boost@1.70.0: cxxstd=17 +program_options +atomic '
@@ -120,7 +124,7 @@ class Flecsi(CMakePackage):
         spec = self.spec
         options = []
 
-        options.append('-DFLECSI_RUNTIME_MODEL=%s' %
+        options.append('-DFLECSI_BACKEND=%s' %
             spec.variants['backend'].value)
 
         options.append('-DCALIPER_DETAIL=%s' %

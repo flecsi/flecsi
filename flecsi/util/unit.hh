@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #if !defined(FLECSI_ENABLE_FLOG)
@@ -30,12 +28,10 @@
 
 namespace flecsi {
 namespace unit {
-
-/*!
-  The test_control_points_enum type is part of the control
-  specialization for FleCSI's unit test fraemwork. It provides indices
-  for the available control points in a unit test.
- */
+/// \defgroup unit Unit Testing
+/// Unit test framework much like Google Test but with task support.
+/// \ingroup utils
+/// \{
 
 enum class test_control_points {
   initialization,
@@ -55,12 +51,6 @@ inline const char * operator*(test_control_points cp) {
   flog_fatal("invalid unit test control point");
 }
 
-/*!
-  The control_policy type defines the control policy for
-  the FleCSI unit test framework. It is a good example of a non-cycling
-  control flow that provides basic control points.
- */
-
 struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = test_control_points;
@@ -78,15 +68,25 @@ struct control_policy : flecsi::run::control_base {
 
 using control = flecsi::run::control<flecsi::unit::control_policy>;
 
+/// A test initialization registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the function to call
 template<control::target_type Target>
 using initialization =
   control::action<Target, test_control_points::initialization>;
 
+/// A test registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the test function to call
 template<control::target_type Target>
 using driver = control::action<Target, test_control_points::driver>;
 
+/// A test finalization registration.
+/// Declare a non-local variable of this type for each function.
+/// \tparam Target the function to call
 template<control::target_type Target>
 using finalization = control::action<Target, test_control_points::finalization>;
 
+/// \}
 } // namespace unit
 } // namespace flecsi

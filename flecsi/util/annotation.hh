@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
@@ -28,6 +26,11 @@ namespace flecsi {
 namespace util {
 
 namespace annotation {
+/// \defgroup annotation Profiling
+/// Markers for categorizing execution time.
+/// \ingroup utils
+/// \{
+
 /// used for specifying what detail of annotations to collect.
 enum class detail { low, medium, high };
 
@@ -140,7 +143,8 @@ begin() {
  * task.
  *
  * \tparam reg code region to tag (must inherit from
- * annotation::execute_task). \param std::string task_name name of task to
+ * annotation::execute_task).
+ * \param task_name name of task to
  * tag.
  */
 template<class reg>
@@ -230,6 +234,7 @@ public:
     end<reg>();
   }
 };
+/// \}
 }; // namespace annotation
 
 /// Initialize caliper annotation objects from the context name.

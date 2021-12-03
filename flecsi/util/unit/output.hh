@@ -8,7 +8,10 @@
 namespace flecsi {
 namespace util {
 namespace unit {
+/// \addtogroup unit
+/// \{
 
+// Captures unit test output so that it may be compared to a file.
 class test_output_t
 {
 public:
@@ -80,6 +83,7 @@ private:
 
 }; // class test_output_t
 
+/// \}
 } // namespace unit
 } // namespace util
 } // namespace flecsi

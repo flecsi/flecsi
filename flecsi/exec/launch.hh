@@ -13,11 +13,8 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include "flecsi/util/type_traits.hh"
 
 #include <cstddef>
 #include <optional>
@@ -36,7 +33,8 @@ struct send_tag {};
 } // namespace data
 
 namespace exec {
-
+/// \addtogroup execution
+/// \{
 namespace detail {
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
@@ -167,8 +165,10 @@ struct launch_domain {
   Color size_;
 };
 
+/// \if core
 /// A simple version of C++20's \c bind_front that can be an argument to a
 /// task template.
+/// \endif
 template<auto & F, class... AA>
 struct partial : std::tuple<AA...> {
   using Base = typename partial::tuple;
@@ -196,29 +196,47 @@ struct partial : std::tuple<AA...> {
 
   static partial param; // not defined; use as "f<decltype(p.param)>"
 };
+/// \}
 } // namespace exec
 
+/// \addtogroup execution
+/// \{
+
+/// Partially apply a function.
+/// Lambdas and \c bind objects may not in general be passed to tasks.
+/// \tparam F function to call
+/// \tparam AA serializable types
+/// \return a function object that can be an argument to a task
+/// \note The task will usually be a function template:\code
+///   void func(/*...*/);
+///   template<class F>
+///   void task(F f) {f(/* ... */);}
+///   void client() {
+///     auto p = make_partial<func>(/*...*/);
+///     execute<task<decltype(p)>>(p);  // note explicit template argument
+///   }\endcode
 template<auto & F, class... AA>
-constexpr exec::partial<F, AA...>
-make_partial(const AA &... aa) {
-  return {aa...};
+constexpr exec::partial<F, std::decay_t<AA>...>
+make_partial(AA &&... aa) {
+  return {std::forward<AA>(aa)...};
 }
 
 /*!
-  Single or multiple future.
+  \link future<Return> Single\endlink or \link
+  future<Return,exec::launch_type_t::index> multiple\endlink future.
+
   A multi-valued future may be passed to a task expecting a single one
   (which is then executed once with each value).
 
   @tparam Return The return type of the task.
   @tparam Launch FleCSI launch type: single/index.
-
-  @ingroup execution
 */
 template<typename Return,
   exec::launch_type_t Launch = exec::launch_type_t::single>
 struct future;
 
 #ifdef DOXYGEN // implemented per-backend
+/// Single-valued future.
 template<typename Return>
 struct future<Return> {
   /// Wait on the task to finish.
@@ -227,6 +245,7 @@ struct future<Return> {
   Return get(bool silence_warnings = false);
 };
 
+/// Multi-valued future from an index launch.
 template<typename Return>
 struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
@@ -263,4 +282,5 @@ struct detail::launch<P, future<T, launch_type_t::index>> {
 };
 } // namespace exec
 
+///\}
 } // namespace flecsi

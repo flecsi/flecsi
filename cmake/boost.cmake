@@ -23,6 +23,9 @@ if(ENABLE_BOOST)
   # regex, etc.
   #----------------------------------------------------------------------------#
 
+  # Disable warnings about new versions.
+  set(Boost_NO_WARN_NEW_VERSIONS ON)
+
   find_package(Boost REQUIRED ${BOOST_COMPONENTS})
 
   list(APPEND TPL_LIBRARIES Boost::boost)

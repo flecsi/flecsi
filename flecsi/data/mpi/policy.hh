@@ -27,6 +27,10 @@
 
 namespace flecsi {
 namespace data {
+/// \defgroup mpi-data MPI Data
+/// Direct data storage.
+/// \ingroup data
+/// \{
 namespace mpi {
 namespace detail {
 
@@ -572,5 +576,6 @@ private:
   std::size_t max_local_source_idx = 0;
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

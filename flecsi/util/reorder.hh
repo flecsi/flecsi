@@ -13,13 +13,13 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <iterator>
 #include <utility>
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 //!
 //! \brief Reorders an array in place
@@ -83,5 +83,6 @@ reorder_destructive(const order_iterator order_begin,
   }
 }
 
+/// \}
 } // namespace util
 } // namespace flecsi
