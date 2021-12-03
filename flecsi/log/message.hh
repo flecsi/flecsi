@@ -104,7 +104,8 @@ struct message {
    */
 
   message & format() {
-    clean_ = Policy::format(ss_, file_, line_, devel_);
+    clean_ = state::instance().verbose() >= 0 &&
+             Policy::format(ss_, file_, line_, devel_);
     return *this;
   }
 
