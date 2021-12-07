@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index Spaces &mdash; FleCSI 2.1 documentation</title>
+  <title>Index Spaces &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/user-guide/introduction.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/introduction.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -38,6 +33,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Runtime Model" href="runtime.html" />
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -98,6 +96,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Index Spaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#topologies">Topologies</a><ul>
@@ -111,9 +111,8 @@
 <li class="toctree-l2"><a class="reference internal" href="flog.html">Logging Utility</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -121,7 +120,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -160,7 +158,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../user-guide.html">User Guide</a> &raquo;</li>
         
@@ -222,9 +220,8 @@ obfuscate our algorithms.</p>
 <p>The primary capability that FleCSI provides is the definition and
 implementation of several distributed-memory topology types. In very
 general terms, a topology is just a C++ type that defines one or more
-index spaces, each of which has one or more user-registered fields. With
-FleCSI, you can <em>register</em> instances of a topology type with the
-runtime, which are then available during execution to do work.</p>
+index spaces, each of which has one or more user-registered fields.
+Any number of instances may be created of any topology.</p>
 <div class="admonition-definition admonition">
 <p class="admonition-title">Definition</p>
 <p>A topology defines one or more index spaces.</p>
@@ -242,24 +239,21 @@ should be.</p>
 the global and index topologies:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">flecsi</span><span class="p">;</span>
 
-<span class="cm">/* Register a field on the index topology */</span>
-<span class="n">flecsi_register_global_field</span><span class="p">(</span><span class="s">&quot;solver&quot;</span><span class="p">,</span> <span class="s">&quot;tolerance&quot;</span><span class="p">,</span> <span class="kt">double</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="k">using</span> <span class="n">double_field</span> <span class="o">=</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
 
-<span class="cm">/* Register a field on the index topology */</span>
-<span class="n">flecsi_register_index_field</span><span class="p">(</span><span class="s">&quot;hydro&quot;</span><span class="p">,</span> <span class="s">&quot;index_data&quot;</span><span class="p">,</span> <span class="kt">double</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="k">namespace</span> <span class="n">solver</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">double_field</span><span class="o">::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">namespace</span> <span class="n">hydro</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">double_field</span><span class="o">::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">index_data</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>The first macro in this example registers a field called <em>tolerance</em> in
-namespace <em>solver</em> with type <em>double</em>. The last argument (<em>1</em>) indicates
-the number of versions of the field that should exist <em>(Versions are
-a useful mechanism for defining data that logically have multiple states
-under the same variable name, e.g., in a multi-step time evolution
-method.)</em></p>
-<p>The second macro registers a field called <em>index_data</em> in namespace
-<em>hydro</em> with type <em>double</em>, and two versions <em>(We will see how to specify
-which version to retrieve later on.)</em></p>
-<p>In both cases, the user does not need to explicitly specify the topology
-type or index space. As we will see, this is necessary for more complex
+<p>The first variable declaration in this example registers a field called <code class="docutils literal notranslate"><span class="pre">solver::tolerance</span></code> with type <code class="docutils literal notranslate"><span class="pre">double</span></code>.
+The second registers two fields called <code class="docutils literal notranslate"><span class="pre">hydro::index_data</span></code> with type <code class="docutils literal notranslate"><span class="pre">double</span></code>.
+(An array of fields can be used for data that logically have multiple states, as in a multi-step time evolution method.)</p>
+<p>In both cases, the user does not need to explicitly specify index space.
+As we will see, this is necessary for more complex
 topology types that can be customized by a <em>specialization</em>.</p>
 <p>Logically, registering a field against a topology type, adds that field
 to the type itself. This may not be intuitive to everyone, so let’s
@@ -276,12 +270,16 @@ registering fields against a FleCSI topology type is a kind of
 customization that is logically equivalent to our <em>field_data_t</em> example
 type. So, for instance, if we want fields <em>field_a</em>, and <em>field_b</em> to be
 defined for the FleCSI index topology, we would register them like so:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flecsi_register_index_field</span><span class="p">(</span><span class="s">&quot;radiation&quot;</span><span class="p">,</span> <span class="s">&quot;field_a&quot;</span><span class="p">,</span> <span class="kt">double</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
-<span class="n">flecsi_register_index_field</span><span class="p">(</span><span class="s">&quot;radiation&quot;</span><span class="p">,</span> <span class="s">&quot;field_b&quot;</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">radiation</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">field_a</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">field_b</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Optionally, we could also just register the field_data_t struct:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flecsi_register_index_field</span><span class="p">(</span><span class="s">&quot;radiation&quot;</span><span class="p">,</span> <span class="s">&quot;fields&quot;</span><span class="p">,</span> <span class="n">field_data_t</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">radiation</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">field</span><span class="o">&lt;</span><span class="n">field_data_t</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">fields</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Both of these methods of registering fields are valid, and it is left up
@@ -307,9 +305,8 @@ FleCSI.</p>
 <p>As stated above, the index topology has a single implicit index space.
 For the index topology, we can think of the implicit index space as just
 being the indices, with a particular instance being defined by its size.</p>
-<p>So far, in our examples we have been using the default <em>instance</em> of the
-index topology. This topology instance has an implicit coloring that
-assigns each index of the topology’s indices to its own id, i.e.,
+<p>The index topology also has an implicit coloring that
+assigns each index of the topology’s indices to its own color, i.e.,
 index 0 is assigned to color 0, etc. This simple example illustrates the
 definition of a coloring:</p>
 <div class="admonition-definition admonition">
@@ -335,12 +332,11 @@ topology. <em>(For the time being, there is one, and only one instance of
 the global topology.)</em> Let’s see how:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">flecsi</span><span class="p">;</span>
 
-<span class="c1">// Namespace scope</span>
+<span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span> <span class="n">hydro_indices</span><span class="p">;</span>
 
-<span class="cm">/* Register a named instance of the index topology. */</span>
-<span class="n">flecsi_register_topology</span><span class="p">(</span><span class="n">index_t</span><span class="p">,</span> <span class="s">&quot;toplogies&quot;</span><span class="p">,</span> <span class="s">&quot;hydro indices&quot;</span><span class="p">);</span>
-
-<span class="c1">// Top-level action scope</span>
+<span class="kt">void</span> <span class="nf">initialize</span><span class="p">()</span> <span class="p">{</span>  <span class="c1">// called from the top-level action</span>
+  <span class="n">hydro_indices</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -366,19 +362,11 @@ the global topology.)</em> Let’s see how:</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -389,6 +377,7 @@ the global topology.)</em> Let’s see how:</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data Model &mdash; FleCSI 2.1 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/tutorial/data.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/tutorial/data.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -38,6 +33,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Distributed and shared memory parallelism" href="parallel.html" />
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -119,10 +117,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -130,7 +129,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -169,7 +167,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -200,14 +198,14 @@ types with automatic dependency tracking.</p>
 <div class="section" id="example-1-global-data">
 <h2>Example 1: Global data<a class="headerlink" href="#example-1-global-data" title="Permalink to this headline">¶</a></h2>
 <p>Global fields are used to store global variables/objects that can
-be accessed by any task. They are created as a field on the
-<cite>data::single</cite> index space.</p>
+be accessed by any task.
+Since there is only one value for each field, it is natural to use the <code class="docutils literal notranslate"><span class="pre">data::single</span></code> layout.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
 <span class="k">using</span> <span class="n">single</span> <span class="o">=</span> <span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">const</span> <span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">global</span><span class="o">&gt;</span> <span class="n">lue</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Global fields can be initialized only within a task that has size of the launch domain equal to 1 (default for <cite>flecsi::single</cite> topology).</p>
+<p>Writing to a global field requires a single task launch.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
 <span class="nf">init</span><span class="p">(</span><span class="kt">double</span> <span class="n">v</span><span class="p">,</span> <span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">gv</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">gv</span> <span class="o">=</span> <span class="n">v</span><span class="p">;</span>
@@ -335,19 +333,11 @@ topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).</p
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -358,6 +348,7 @@ topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).</p
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

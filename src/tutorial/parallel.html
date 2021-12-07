@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Distributed and shared memory parallelism &mdash; FleCSI 2.1 documentation</title>
+  <title>Distributed and shared memory parallelism &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/tutorial/parallel.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/tutorial/parallel.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -38,6 +33,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Topologies" href="topologies.html" />
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -108,8 +106,7 @@
 <li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Distributed and shared memory parallelism</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#example-1-forall-macro-parallel-for-interface">Example 1: forall macro / parallel_for interface</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#example-2-reduceall-macro-parallel-reduce-interface">Example 2: reduceall macro / parallel_reduce interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-1-forall-macro">Example 1: forall macro</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="topologies.html">Topologies</a></li>
@@ -118,10 +115,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -129,7 +127,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -168,7 +165,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -200,11 +197,11 @@ parallelism and shared memory parallelism.</p>
 distribution of the data between different processes (shards).
 FleCSI provides macros <em>forall</em> and <em>reduceall</em> for shared memory
 parallelism. Currently, it uses Kokkos programing model.</p>
-<div class="section" id="example-1-forall-macro-parallel-for-interface">
-<h2>Example 1: forall macro / parallel_for interface<a class="headerlink" href="#example-1-forall-macro-parallel-for-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="example-1-forall-macro">
+<h2>Example 1: forall macro<a class="headerlink" href="#example-1-forall-macro" title="Permalink to this headline">¶</a></h2>
 <p>This example is an extension to the data-dense tutorial example with the
-only difference of an additional “modify1” and “modify2” tasks that use
-<em>forall</em> macro / <em>parallel_for</em> interface. Both “modify” tasks are executed on the FleCSI default accelerator.</p>
+only difference of an additional “modify” task that uses <em>forall</em> macro
+and is executed on the FleCSI default accelerator.</p>
 <p>Second template parameter to the execute function is a <em>processor_type</em>
 with <em>loc</em> (latency optimized core) as a default value.
 <em>default_accelerator</em> is a processor type that corresponds to Kokkos
@@ -252,20 +249,9 @@ optimized core) <em>processor type</em> in FleCSI.</p>
 
 <span class="cp">#if defined(FLECSI_ENABLE_KOKKOS)</span>
 <span class="kt">void</span>
-<span class="nf">modify1</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">forall</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">(),</span> <span class="s">&quot;modify1&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="p">};</span> <span class="c1">// forall</span>
+<span class="nf">modify</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">forall</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">(),</span> <span class="s">&quot;modify&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span> <span class="p">};</span>
 <span class="p">}</span> <span class="c1">// modify</span>
-
-<span class="kt">void</span>
-<span class="nf">modify2</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">parallel_for</span><span class="p">(</span>
-    <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">(),</span>
-    <span class="n">KOKKOS_LAMBDA</span><span class="p">(</span><span class="k">auto</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span> <span class="p">},</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;modify2&quot;</span><span class="p">));</span>
-<span class="p">}</span> <span class="c1">// modifyendif</span>
-
 <span class="cp">#endif</span>
 
 <span class="kt">void</span>
@@ -290,112 +276,7 @@ optimized core) <em>processor type</em> in FleCSI.</p>
   <span class="c1">// In case of Kookos bult with GPU, default execution space will be GPU</span>
   <span class="c1">// We rely on Legion moving data between devices for the legion back-end and</span>
   <span class="c1">// UVM for the MPI back-end</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">modify1</span><span class="p">,</span> <span class="n">default_accelerator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">modify2</span><span class="p">,</span> <span class="n">default_accelerator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-<span class="cp">#endif</span>
-  <span class="c1">// cpu_task</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span> <span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span> <span class="n">advance_action</span><span class="p">;</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="example-2-reduceall-macro-parallel-reduce-interface">
-<h2>Example 2: reduceall macro / parallel_reduce interface<a class="headerlink" href="#example-2-reduceall-macro-parallel-reduce-interface" title="Permalink to this headline">¶</a></h2>
-<p>This example is an extension to the data-dense tutorial example with the
-only difference of an additional “reduce1” and “reduce2” tasks that use
-<em>reduceall</em> macro / <em>parallel_reduce</em> interface. Both “modify” tasks are
-executed on the FleCSI default accelerator.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
-<span class="cm">    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@</span>
-<span class="cm">   /@@/////  /@@          @@////@@ @@////// /@@</span>
-<span class="cm">   /@@       /@@  @@@@@  @@    // /@@       /@@</span>
-<span class="cm">   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@</span>
-<span class="cm">   /@@////   /@@/@@@@@@@/@@       ////////@@/@@</span>
-<span class="cm">   /@@       /@@/@@//// //@@    @@       /@@/@@</span>
-<span class="cm">   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@</span>
-<span class="cm">   //       ///  //////   //////  ////////  //</span>
-
-<span class="cm">   Copyright (c) 2016, Triad National Security, LLC</span>
-<span class="cm">   All rights reserved.</span>
-<span class="cm">                                                                              */</span>
-
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/data.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/flog.hh&gt;</span><span class="cp"></span>
-
-<span class="cp">#include</span> <span class="cpf">&quot;../4-data/canonical.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;control.hh&quot;</span><span class="cp"></span>
-
-<span class="c1">// this tutorial is based on a 04-data/3-dence.cc tutorial example</span>
-<span class="c1">// here we will add several forall / parallel_for interfaces</span>
-
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">flecsi</span><span class="p">;</span>
-
-<span class="n">canon</span><span class="o">::</span><span class="n">slot</span> <span class="n">canonical</span><span class="p">;</span>
-<span class="n">canon</span><span class="o">::</span><span class="n">cslot</span> <span class="n">coloring</span><span class="p">;</span>
-
-<span class="k">const</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span> <span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span> <span class="n">pressure</span><span class="p">;</span>
-
-<span class="kt">void</span>
-<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">off</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-  <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">off</span><span class="o">++</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// for</span>
-<span class="p">}</span> <span class="c1">// init</span>
-
-<span class="cp">#if defined(FLECSI_ENABLE_KOKKOS)</span>
-<span class="kt">void</span>
-<span class="nf">reduce1</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">res</span> <span class="o">=</span> <span class="n">reduceall</span><span class="p">(</span>
-    <span class="n">c</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">(),</span> <span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">max</span><span class="p">,</span> <span class="kt">double</span><span class="p">,</span> <span class="s">&quot;reduce1&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">up</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">];</span>
-  <span class="p">};</span> <span class="c1">// forall</span>
-
-  <span class="n">assert</span><span class="p">(</span><span class="n">res</span> <span class="o">==</span> <span class="mf">2.0</span><span class="p">);</span>
-
-<span class="p">}</span> <span class="c1">// reduce1</span>
-
-<span class="kt">void</span>
-<span class="nf">reduce2</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">res</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">parallel_reduce</span><span class="o">&lt;</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">max</span><span class="p">,</span> <span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">(),</span>
-    <span class="n">KOKKOS_LAMBDA</span><span class="p">(</span><span class="k">auto</span> <span class="n">c</span><span class="p">,</span> <span class="kt">double</span> <span class="o">&amp;</span> <span class="n">up</span><span class="p">)</span> <span class="p">{</span> <span class="n">up</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">];</span> <span class="p">},</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;reduce2&quot;</span><span class="p">));</span>
-
-  <span class="n">assert</span><span class="p">(</span><span class="n">res</span> <span class="o">==</span> <span class="mf">2.0</span><span class="p">);</span>
-
-<span class="p">}</span> <span class="c1">// reduce2</span>
-
-<span class="cp">#endif</span>
-
-<span class="kt">void</span>
-<span class="nf">print</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">off</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-  <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;cell &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">off</span><span class="o">++</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; has pressure &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// for</span>
-<span class="p">}</span> <span class="c1">// print</span>
-
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">coloring</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
-  <span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-
-  <span class="k">auto</span> <span class="n">pf</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
-
-  <span class="c1">// cpu task, default</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-<span class="cp">#if defined(FLECSI_ENABLE_KOKKOS)</span>
-  <span class="c1">// accelerated task, will be executed on the Kokkos default execution space</span>
-  <span class="c1">// In case of Kookos bult with GPU, default execution space will be GPU</span>
-  <span class="c1">// We rely on Legion moving data between devices for the legion back-end and</span>
-  <span class="c1">// UVM for the MPI back-end</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">reduce1</span><span class="p">,</span> <span class="n">default_accelerator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">reduce2</span><span class="p">,</span> <span class="n">default_accelerator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">modify</span><span class="p">,</span> <span class="n">default_accelerator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
 <span class="cp">#endif</span>
   <span class="c1">// cpu_task</span>
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
@@ -428,19 +309,11 @@ executed on the FleCSI default accelerator.</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -451,6 +324,7 @@ executed on the FleCSI default accelerator.</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

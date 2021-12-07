@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Build &amp; Install &mdash; FleCSI 2.1 documentation</title>
+  <title>Build &amp; Install &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/build.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/build.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -38,10 +33,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="tutorial.html" />
-    <link rel="prev" title="Overview" href="overview.html" /> 
+    <link rel="prev" title="Release Notes" href="news.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -107,10 +105,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -118,7 +117,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -157,7 +155,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
       <li>Build &amp; Install</li>
     
@@ -242,7 +240,7 @@ step and use the instructions for installing FleCSI using Spack.</p>
 </div>
 <p>Clone the FleCSI git repository, and create an out-of-source build area
 (FleCSI prohibits in-source builds):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone https://github.com/laristra/flecsi.git
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone https://github.com/flecsi/flecsi.git
 <span class="gp">$</span> <span class="nb">cd</span> flecsi
 <span class="gp">$</span> mkdir build
 <span class="gp">$</span> <span class="nb">cd</span> build
@@ -264,7 +262,7 @@ to install and configure:</p>
 </pre></div>
 </div>
 <p>FleCSI supports several different versions and variants, e.g.:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install flecsi@1.0 +legion +graphviz +kokkos
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install flecsi@1.0 +legion +graphviz
 </pre></div>
 </div>
 <p>For a complete list of versions and variants, type:</p>
@@ -297,15 +295,15 @@ successful build.</p>
 <div class="section" id="configuration-build">
 <h2>Configuration &amp; Build<a class="headerlink" href="#configuration-build" title="Permalink to this headline">¶</a></h2>
 <p>Example configuration: <strong>MPI</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_RUNTIME_MODEL<span class="o">=</span>mpi ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_BACKEND<span class="o">=</span>mpi ..
 </pre></div>
 </div>
 <p>Example configuration: <strong>MPI + OpenMP</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_RUNTIME_MODEL<span class="o">=</span>mpi -DENABLE_OPENMP ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_BACKEND<span class="o">=</span>mpi -DENABLE_OPENMP ..
 </pre></div>
 </div>
 <p>Example configuration: <strong>Legion</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_RUNTIME_MODEL<span class="o">=</span>legion ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_BACKEND<span class="o">=</span>legion ..
 </pre></div>
 </div>
 <p>After configuration is complete, just use <em>make</em> to build:</p>
@@ -361,11 +359,11 @@ configured FleCSI, you can build the documentation like:</p>
 </div>
 <p>Both of these targets will be built in your build directory under <em>doc</em>,
 e.g., the main Doxygen index.html page will be located at
-<em>‘doc/doxygen/html/index.html’</em>. Similarly, the Sphinx main index.html
-page will be located at <em>‘doc/sphinx/index.html’</em>. You can open these in
+<em>‘doc/api/index.html’</em>. Similarly, the Sphinx main index.html
+page will be located at <em>‘doc/index.html’</em>. You can open these in
 your browser with
-<em>file:///path/to/your/build/directory/doc/doxygen/html/index.html</em>, and
-<em>file:///path/to/your/build/directory/doc/sphinx/index.html</em>.</p>
+<em>file:///path/to/your/build/directory/doc/api/index.html</em>, and
+<em>file:///path/to/your/build/directory/doc/index.html</em>.</p>
 </div>
 </div>
 
@@ -380,7 +378,7 @@ your browser with
         <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="news.html" class="btn btn-neutral float-left" title="Release Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -389,19 +387,11 @@ your browser with
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -412,6 +402,7 @@ your browser with
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

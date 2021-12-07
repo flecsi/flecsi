@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Release Notes &mdash; FleCSI 2.1.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+    <link rel="canonical" href="http://www.flecsi.org/src/news.html"/>
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Build &amp; Install" href="build.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version: 2.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="overview.html">Overview</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="overview.html#documentation">Documentation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Release Notes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-1-1">Changes in v2.1.1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-1-0-april-16-2021">Changes in v2.1.0 (April 16 2021)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-0-0-march-30-2021">Changes in v2.0.0 (March 30 2021)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#namespaces">Namespaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FleCSI</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="overview.html">Overview</a> &raquo;</li>
+        
+      <li>Release Notes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/src/news.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi::</span></code> qualification is omitted throughout.</p>
+<div class="section" id="changes-in-v2-1-1">
+<h2>Changes in v2.1.1<a class="headerlink" href="#changes-in-v2-1-1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="possible-incompatibilities">
+<h3>Possible incompatibilities<a class="headerlink" href="#possible-incompatibilities" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_RUNTIME_MODEL</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">FLECSI_BACKEND</span></code> (it never referred to <span class="xref std std-ref">user-guide/runtime</span>).</p></li>
+</ul>
+</li>
+<li><p>Utilties</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">util::mdspan::operator()</span></code> is removed (it had an inconsistent argument order).</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>HDF5 is supported by the CMake configuration.</p></li>
+<li><p>Caliper is supported by the MPI backend.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Topology accessors that provide metadata for direct access in a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task work properly when writable (although without such direct access in that case).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> topology accessors work properly when declared <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Legion backend</p>
+<ul>
+<li><p>Certain user-level fields are allocated properly.</p></li>
+<li><p>Errors at process termination in certain configurations are avoided.</p></li>
+</ul>
+</li>
+<li><p>MPI backend</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">exec::fold::min</span></code> and <code class="docutils literal notranslate"><span class="pre">exec::fold::max</span></code> work with <code class="docutils literal notranslate"><span class="pre">bool</span></code> (but may be slower than using another type like <code class="docutils literal notranslate"><span class="pre">int</span></code>).</p></li>
+<li><p>Index futures work properly when declared <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p></li>
+</ul>
+</li>
+<li><p>On-node parallelism</p>
+<ul>
+<li><p>Several uses of “iterator” in documentation have been corrected to use “range”.</p></li>
+</ul>
+</li>
+<li><p>Logging</p>
+<ul>
+<li><p>Messages are sorted by timestamp correctly.</p></li>
+</ul>
+</li>
+<li><p>Testing</p>
+<ul>
+<li><p>String-comparison macros (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">ASSERT_STREQ</span></code>) handle runtime values properly.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-in-v2-1-0-april-16-2021">
+<h2>Changes in v2.1.0 (April 16 2021)<a class="headerlink" href="#changes-in-v2-1-0-april-16-2021" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Possible incompatibilities<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> topology accessors provide <code class="docutils literal notranslate"><span class="pre">policy_meta_</span></code> rather than <code class="docutils literal notranslate"><span class="pre">meta()</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">topo::help</span></code> is a convenient base class for specialization class templates that defines the non-dependent names in <code class="docutils literal notranslate"><span class="pre">specialization</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>Fixed<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Topologies</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">narray</span></code> topology accessors handle boundary conditions correctly.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="changes-in-v2-0-0-march-30-2021">
+<h2>Changes in v2.0.0 (March 30 2021)<a class="headerlink" href="#changes-in-v2-0-0-march-30-2021" title="Permalink to this headline">¶</a></h2>
+<p>The changes between versions 1 and 2 are extensive and so are merely summarized here.
+The broadest change is that macros are used only for on-node parallelism constructs and for logging and unit tests.
+Some macro arguments become template arguments.</p>
+<div class="section" id="removed">
+<h3>Removed<a class="headerlink" href="#removed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_client_handle</span></code> — use the topology slot directly</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_handles</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_handles_all</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_is_at</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_has_attribute_at</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_has_attribute</span></code> — will be provided differently by <code class="docutils literal notranslate"><span class="pre">io</span></code></p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_task_simple</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_mpi_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_mpi_task_simple</span></code> — unneeded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">specialization_tlt_init</span></code>, <code class="docutils literal notranslate"><span class="pre">specialization_spmd_init</span></code>, <code class="docutils literal notranslate"><span class="pre">execution::driver</span></code> — the application provides <code class="docutils literal notranslate"><span class="pre">main</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_task_simple</span></code> — namespaces require no special treatment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_program</span></code> — unneeded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_set_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_initialize_global_object</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_global_object</span></code> — use non-local variables directly, with the same restrictions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_reduction_operation</span></code> — unneeded</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Topology element <code class="docutils literal notranslate"><span class="pre">id()</span></code> — iteration produces indices</p></li>
+<li><p>Automatic dependent connectivity — will be provided as a separate utility</p></li>
+</ul>
+</li>
+<li><p>I/O — will be reimplemented</p></li>
+</ul>
+</div>
+<div class="section" id="other-incompatibilities">
+<h3>Other incompatibilities<a class="headerlink" href="#other-incompatibilities" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Data</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_data_client</span></code> — now topology slots</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_field</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_global</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_register_color</span></code> — now <code class="docutils literal notranslate"><span class="pre">field::definition</span></code>, or a container of same to implement multiple versions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_get_handle</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_global</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_color</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_get_mutator</span></code> — now <code class="docutils literal notranslate"><span class="pre">definition::operator()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_client_handle_u&lt;T,P&gt;</span></code> — now <code class="docutils literal notranslate"><span class="pre">T::accessor&lt;P&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dense_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">ragged_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">ragged_mutator</span></code>, <code class="docutils literal notranslate"><span class="pre">sparse_accessor</span></code>, <code class="docutils literal notranslate"><span class="pre">sparse_mutator</span></code> — now <code class="docutils literal notranslate"><span class="pre">definition::accessor</span></code> or <code class="docutils literal notranslate"><span class="pre">definition::mutator</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ragged</span></code> fields have a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>-like interface at each index point</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sparse</span></code> fields have a <code class="docutils literal notranslate"><span class="pre">std::map</span></code>-like interface at each index point</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_task</span></code> — now <code class="docutils literal notranslate"><span class="pre">execute</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_mpi_task</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_execute_mpi_task_simple</span></code> — pass <code class="docutils literal notranslate"><span class="pre">mpi</span></code> to <code class="docutils literal notranslate"><span class="pre">execute</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_execute_reduction_task</span></code> — now <code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_color()</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_colors()</span></code> — now <code class="docutils literal notranslate"><span class="pre">color()</span></code> and <code class="docutils literal notranslate"><span class="pre">colors()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flecsi_register_function</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_execute_function</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_function_handle</span></code>, <code class="docutils literal notranslate"><span class="pre">flecsi_define_function_type</span></code> — now <code class="docutils literal notranslate"><span class="pre">exec::make_partial</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">execution::flecsi_future</span></code> — now <code class="docutils literal notranslate"><span class="pre">future</span></code>, with a simpler interface</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Specializations inherit from <code class="docutils literal notranslate"><span class="pre">topo::specialization</span></code> rather than from a core topology type directly.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>New features<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Runtime</p>
+<ul>
+<li><p>Application command-line options can be specified using the <code class="docutils literal notranslate"><span class="pre">program_option</span></code> class template and associated helper functions.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">control</span></code> class template is used to define an extensible <a class="reference internal" href="user-guide/control.html#control-model"><span class="std std-ref">Control Model</span></a> for an application.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">raw</span></code> and <code class="docutils literal notranslate"><span class="pre">single</span></code> layouts support special cases of field usage.</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>Tasks can be (specializations of) function templates.</p></li>
+<li><p>Tasks can accept parameters of dynamic size (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">std::vector&lt;double&gt;</span></code>), although passing large objects is inefficient.</p></li>
+<li><p>Index launches can be of any number of point tasks (determined by the task’s arguments, including <code class="docutils literal notranslate"><span class="pre">exec::launch_domain</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test</span></code> conveniently executes tasks for unit testing.</p></li>
+</ul>
+</li>
+<li><p>Topologies</p>
+<ul>
+<li><p>Multiple topology categories are supported: <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> and <code class="docutils literal notranslate"><span class="pre">narray</span></code> as well as the special cases of <code class="docutils literal notranslate"><span class="pre">index</span></code> and <code class="docutils literal notranslate"><span class="pre">global</span></code>.</p></li>
+<li><p>Multiple user-defined topology instances may exist sequentially or simultaneously.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="build.html" class="btn btn-neutral float-right" title="Build &amp; Install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

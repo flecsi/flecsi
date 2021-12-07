@@ -1,4 +1,0 @@
-<map id="flecsi::exec::detail::atomic_ref&lt; T, std::enable_if_t&lt; std::is_pointer_v&lt; T &gt;||std::is_integral_v&lt; T &gt; &gt; &gt;" name="flecsi::exec::detail::atomic_ref&lt; T, std::enable_if_t&lt; std::is_pointer_v&lt; T &gt;||std::is_integral_v&lt; T &gt; &gt; &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,161,180"/>
-<area shape="rect" id="node2" href="$structflecsi_1_1exec_1_1detail_1_1atomic__base.html" title=" " alt="" coords="20,5,147,47"/>
-</map>

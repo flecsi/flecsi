@@ -91,16 +91,21 @@ subdirectories within the test subdirectory.
 Versioning
 ++++++++++
 
-FleCSI's versioning system uses three branch types (descibed below) that
-define the purpose and provenance of the code at a particular commit,
-with tags that label points of interest in the development cycle, e.g,.
-releases or stable features.
+FleCSI uses the `Semantic Versioning`__ system.
+Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
+We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
+Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+
+__ https://semver.org/
+
+There is one active, shared branch for each of the three types of release, as described below.
+Tags are used to identify releases as well as certain internal reference points for development.
 
 Branch Types
 ^^^^^^^^^^^^
 
 * **incompatible** |br|
-  The *devel* branch is where work on the next major release takes
+  The *develop* branch is where work on the next major release takes
   place, potentially with interface and feature changes that are
   *incompatible* with previous versions.
 
@@ -110,8 +115,8 @@ Branch Types
 
 * **release** |br|
   Release branches (named for their *major.minor* version number, e.g.,
-  1.1, 1.2) are stable versions of the code base. These can only be
-  modified with bug fixes. At appropriate points, tags (named for their
+  1.1, 1.2) are interface-stable versions of the code base.
+  At appropriate points, tags (named for their
   *major.minor.patch* version number, e.g., 1.1.2) are used to identify
   patched versions.
 
@@ -119,9 +124,14 @@ Branch Types
 
   At the time of writing, FleCSI has the following branches:
 
-  **devel** (incompatible) |br|
-  **1** (feature) |br|
-  **1.4** (release)
+  **develop** (incompatible) |br|
+  **2** (feature) |br|
+  **2.1** (release)
+
+In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
+The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
+It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 
 Tags
 ^^^^
@@ -131,22 +141,16 @@ it is intended to reference:
 
 * **devel branch** |br|
   In general, a commit on the devel branch should only be tagged if it
-  is the first commit *after* a new feature branch has been created, or
-  if a *down-stream* branch has been merged into it. The tag should be
-  named with *d* and the major version of the feature branch, and the
-  number of down-stream merges, e.g., when feature branch *2* is created,
-  a new devel tag *d2.0* should be created on the next devel commit.
-  Everytime down-stream commits are merged, the second digit should be
-  incremented, e.g., *d2.0* -> *d2.1*.
+  is the first commit *after* a new feature branch has been created, and
+  should be named with *d* and the major version of the feature branch,
+  e.g., when feature branch *2* is created, a new devel tag *d2* should
+  be created on the next devel commit.
 
 * **feature branch** |br|
   Feature tags should be created on the next commit after a new release
   branch is created, with *f* and the major.minor version of the release
   branch, e.g., when release branch *1.5* is created, a new feature tag
-  *f1.5.0* should be created on the next feature commit, where the third
-  digit is the number of down-stream merges (0 in this case). Feature
-  tags should also be created whenever down-stream commits are merged,
-  e.g., *f1.5.0* -> *f1.5.1*.
+  *f1.5* should be created on the next feature commit.
 
 * **release branch** |br|
   Release tags should be created for each new release, with *v* and the
@@ -158,12 +162,6 @@ it is intended to reference:
   *whither* or *completion*. The first letter of the tag is important,
   i.e., *d*, *f*, or *v*, as it is used by FleCSI to determine the
   branch type of the tag during CMake configuration.
-  
-  * devel tags are of the form: *d* + *whence.merge*, e.g., *d2.4*
-  * feature tags are of the form: *f* + *major.minor.merge*, e.g.,
-    *f3.0.2*
-  * version tags are of the form: *v* + *major.minor.patch*, e.g.,
-    *v3.1.10*
 
 Workflow
 ^^^^^^^^
@@ -177,88 +175,6 @@ be back-merged into *feature* or *devel*, as appropriate.
 
   Workflow diagram illustrating basic workflow using the three branch
   types described above. (Figure due to Angela Herring.)
-
-Branch & Tag Creation
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. warning::
-
-  Only project maintainers are allowed to create new branches and tags.
-
-Creating a FleCSI release, or feature means creating a new branch and
-potentially tagging it at a particular commit. The process for doing
-this is described in the following steps.
-
-1. Create a local branch from the appropriate *upstream* commit.
-   This will either be from *devel* (feature, or release), or an
-   existing feature branch (release only). It is important to follow
-   the correct naming conventions for the branch, e.g., the branch name
-   will be the *major* revision number for a **feature** branch, and the
-   *major.minor* revision number for a **realease** branch. If the
-   branch you need already exists, you will only need to create a new
-   tag, and you can skip this step.
-
-.. code-block:: console
-
-  $ git checkout COMMIT_HASH -b BRANCH_NAME
-
-.. hint::
-
-  To create the new feature branch from the current commit on the
-  *devel* branch, where devel is tagged at *d2.x*:
-
-  .. code-block:: console
-
-    $ git checkout origin/devel -b 3
-    $ git push origin
-
-2. Update the *.version* file with the correct version string:
-
-   * devel: *d* followed by *whence.merge*, e.g., *d1.0-0-0*
-   * feature: *f* followed by *whither.minor.merge*, e.g., *f2.0.1-0-0*
-   * release: *v* followed by *major.minor.patch*, e.g., *f2.1.3-0-0*
-
-  The `0-0` on the end of each version is there to mimic the output of
-  ``git describe``. The *.version* file itself is only used by FleCSI if
-  the source tree is not a git repository, e.g., if the source was
-  obtained by the user as an archive.
-
-.. warning::
-
-   Version information for *devel* and *feature* branches differ, in
-   that devel branches indicate *whence* the branch originated, e.g.,
-   development for version *3.0* would originate with interface
-   compatibility with major version *2*, so the devel branch would be
-   tagged *d2.x*, where *x* is the number of down-stream merges that have
-   been applied, and feature branches indicate *whither* the branch is
-   targeted, e.g., feature updates on *2* that will be part of a *2.x*
-   release would be named *f2.x.y*, where *x* is the *minor* version,
-   and *y* is the number of down-stream merges that have been applied.
-
-.. hint::
-
-  To update the *.version* file for a new down-stream merge to devel at
-  *d2.2*:
-
-  .. code-block:: console
-    
-    $ cat "d2.3-0-0" > .version
-
-  This increments the down-stream merge count by one.
-
-3. Create the appropriate annotated tag from your commit:
-
-.. code-block:: console
-
-  $ git tag -a -m "FleCSI Major.Minor (Development, or Feature, or Release)" tagname `git rev-list -n 1 HEAD`
-
-4. Push your tag to gitlab:
-
-.. code-block:: console
-
-  $ git push --tags gitlab.lanl.gov:flecsi/flecsi.git
-
-5. Push your commit and create a merge request for the version-update commit.
 
 -----
 
@@ -300,9 +216,9 @@ To build a new docker image, you can execute the following:
 
 .. code-block:: console
 
-  $ docker build -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+  $ docker build -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
-where *TAG* and *RUNTIME* are replaced with a tag and a specific runtime
+where *TAG* and *BACKEND* are replaced with a tag and a specific
 backend, e.g., legion or mpi. The *TAG* argument may be any name that
 you would like to give the image. The default is *latest*.
 
@@ -312,7 +228,7 @@ everything from scratch. To do this, you can pass the *--no-cache* flag:
 
 .. code-block:: console
 
-  $ docker build --no-cache -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+  $ docker build --no-cache -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
 This is particularly useful if a repository has changed.
 
@@ -325,7 +241,7 @@ use a different repository and branch, you can specifiy them like:
 
   $ docker build --build-arg REPO=https://github.com/tuxfan/flecsi.git \
     --build-arg BRANCH=tutorial-update --no-cache \
-    -t laristra/flecsi-tutorial:TAG -f RUNTIME .
+    -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
 where *REPO* is the git repo to use, and *BRANCH* is the branch name to
 use.
@@ -384,7 +300,7 @@ configuration files that are used for Gitlab's continuous integration
   * **OS Images** |br|
     Located in the *os* directory, these are designed to provide a
     standard base of functionality, i.e., a standard set of system
-    packages, which can be used interchangeably with down-stream
+    packages, which can be used interchangeably with downstream
     environment images.
 
   * **Environment** |br|
@@ -426,14 +342,14 @@ several important configuration options that you need to be aware of:
   This is the url for the repository where the build system will look
   for the *CI_BRANCH* option that you specified. The default is the main
   FleCSI Gitlab repository
-  *https://gitlab.lanl.gov/laristra/flecsi.git*. However, it is useful
+  *https://gitlab.lanl.gov/flecsi/flecsi.git*. However, it is useful
   to set this to your personal fork for testing new images.
 
 * **REGISTRY** |br|
   This is the container registry that will be used for *push-*, and
   *pull-* targets. In general, this needs to be set to the registry that
   is being used by the CI to pull images, e.g., laristra/flecsi-ci (this
-  is on dockerhub.com), or gitlab.lanl.gov:5050/laristra/flecsi
+  is on dockerhub.com), or gitlab.lanl.gov:5050/flecsi/flecsi
   (internal container registry).
 
 * **CONTAINER_ENGINE** |br|
@@ -447,7 +363,7 @@ As an example configuration, consider the following:
 
   $ mkdir build
   $ cd build
-  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/laristra/flecsi -DENGINE=podman
+  $ cmake .. -DCI_BRANCH=ci-environment -DREPOSITORY=https://github.com/tuxfan/flecsi.git -DREGISTRY=gitlab.lanl.gov:5050/flecsi/flecsi -DENGINE=podman
 
 This configuration will use the author's *ci-environment* branch on
 Github with the *podman* engine.
@@ -487,6 +403,16 @@ This will build the *OS* image defined in *os/centos-8*.
 
 -----
 
+Published Documentation
++++++++++++++++++++++++
+The `project homepage`__ is a GitHub Pages site generated from `the current GitHub repository`__.
+The ``deploy-documentation`` Make target sets up a repository to update it by pushing to the appropriate branch.
+
+  __ http://www.flecsi.org/
+  __ https://github.com/flecsi/flecsi/tree/gh-pages
+
+-----
+
 Spack Cheat Sheet
 +++++++++++++++++
 
@@ -519,12 +445,6 @@ To keep temporary staging files in /tmp/*$USER*:
 Git Cheat Sheet
 +++++++++++++++
 
-To list remote tags, where *origin* is the remote name:
-
-.. code-block:: console
-
-  $ git ls-remote --tags origin
-
 To lookup the hash referenced by a tag:
 
 .. code-block:: console
@@ -543,11 +463,67 @@ To sync tags:
 
   $ git fetch --prune --prune-tags
 
-To prune local tags that are not on the remote:
+-----
+
+Building for Darwin
++++++++++++++++++++
+
+This is a recipe for building the current development version of FleCSI
+on the LANL Darwin cluster.
+
+Checkout spack and flecsi:
 
 .. code-block:: console
 
-  $ git tag -l | xargs git tag -d && git fetch -t
+  $ git clone --branch devel git@gitlab.lanl.gov:flecsi/flecsi.git
+  $ git clone --single-branch --branch develop https://github.com/spack/spack.git
+
+Source the spack environment script:
+
+.. code-block:: console
+
+  $ source spack/share/spack/setup-env.sh
+
+Add the flecsi spack repo:
+
+.. code-block:: console
+
+  $ spack repo add flecsi/spack-repo
+
+Load compiler modules (both work if loaded in this order) and update spack
+compilers:
+
+.. code-block:: console
+
+  $ module load clang/8.0.1 gcc/9.3.0
+  $ spack compilers
+
+Create a spack environment and install the flecsi dependencies.
+
+.. code-block:: console
+
+  $ spack env create legion
+  $ spack env activate legion
+  $ spack install --only dependencies flecsi@devel backend=legion +hdf5 +graphviz +flog ^mpich
+  $ spack install cmake
+  
+Load doxygen, install sphinx, and update your path:
+
+.. code-block:: console
+
+  $ module load doxygen
+  $ pip3 install --user Sphinx
+  $ pip3 install --user recommonmark
+  $ pip3 install --user sphinx_rtd_theme
+  $ export PATH=$HOME/.local/bin:$PATH
+
+Configure and build flecsi:
+
+.. code-block:: console
+
+  $ cd flecsi && mkdir -p build/legion && cd build/legion
+  $ ../../tools/configure clang legion
+  $ make -j 16
 
 -----
 
@@ -563,10 +539,23 @@ it. There is not easy to remedy to this problem: attributes that are
 added after initialization will reset all previously added elements to
 whatever the default of the new attribute is. Therefore, if you need to
 add an attribute, the best thing to do is to look at the *graphviz.hh*
-file in 'flecsi/utils', and add it there with a reasonable default.
+file in 'flecsi/util', and add it there with a reasonable default.
 
 __ https://graphviz.gitlab.io/_pages/pdf/libguide.pdf
 __ https://www.graphviz.org
+
+-----
+
+Doxygen
++++++++
+The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
+See the `manual`__ for details, but note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
+
+__ https://www.doxygen.nl/manual/
+
+The developers' version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
+Use ``\cond core`` and ``\endcond`` to mark material that should appear only there.
+Developers must also check for such markers to identify internal interfaces; the output does not distinguish them, since users should consult only the users' version anyway.
 
 -----
 

@@ -178,8 +178,8 @@ built.
 * **FLECSI_DBC_REQUIRE [default: ON]** |br|
   Enable DBC pre/post condition assertions.
 
-* **FLECSI_RUNTIME_MODEL [default: mpi]** |br|
-  Specify the low-level runtime model. Currently, *legion* and *mpi* are
+* **FLECSI_BACKEND [default: mpi]** |br|
+  Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
 
 * **VERSION_CREATION [default: git describe]** |br|

@@ -1,5 +1,0 @@
-<map id="flecsi::detail::data_guard" name="flecsi::detail::data_guard">
-<area shape="rect" id="node1" title="An RAII type to manage the global coloring and topologies." alt="" coords="220,39,345,80"/>
-<area shape="rect" id="node2" href="$structflecsi_1_1detail_1_1data__guard_1_1process__guard.html" title=" " alt="" coords="5,5,160,47"/>
-<area shape="rect" id="node3" href="$structflecsi_1_1detail_1_1data__guard_1_1global__guard.html" title=" " alt="" coords="11,71,154,112"/>
-</map>

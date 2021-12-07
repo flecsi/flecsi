@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Runtime Model &mdash; FleCSI 2.1 documentation</title>
+  <title>Runtime Model &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/tutorial/runtime.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/tutorial/runtime.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -38,6 +33,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Control Model" href="control.html" />
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -120,10 +118,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -131,7 +130,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -170,7 +168,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -360,7 +358,7 @@ like this:</p>
 <span class="go">  --lightspeed                          Travel at the speed of light.</span>
 
 <span class="go">FleCSI Options:</span>
-<span class="go">  --backend-args arg             Pass arguments to the runtime backend. The</span>
+<span class="go">  --backend-args arg             Pass arguments to the backend. The</span>
 <span class="go">                                 single argument is a quoted string of</span>
 <span class="go">                                 backend-specific options.</span>
 <span class="go">  --flog-tags arg (=all)         Enable the specified output tags, e.g.,</span>
@@ -991,7 +989,7 @@ than 4.</p></li>
 <div class="section" id="controlling-output-tag-groups">
 <h3>Controlling Output - Tag Groups<a class="headerlink" href="#controlling-output-tag-groups" title="Permalink to this headline">¶</a></h3>
 <p>Tag groups provide a mechanism to control the runtime output generated
-by FLOG. The main idea is here is that developers can use FLOG to output
+by FLOG. The main idea here is that developers can use FLOG to output
 information that is useful in developing or debugging a program, and
 leave it in the code. Then, specific groups of messages can be enabled
 or disabled to only output useful information for the current
@@ -1107,7 +1105,7 @@ The CMake configuration options <code class="docutils literal notranslate"><span
 <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_THRESHOLD</span></code> define this behavior:</p>
 <ul class="simple">
 <li><p><em>FLOG_SERIALIZATION_INTERVAL</em> <br />
-The serialization iterval specifies how often FleCSI should check for
+The serialization interval specifies how often FleCSI should check for
 buffered output (requires reduction) as a number of
 tasks executed, i.e., if the serialization interval is set to 100,
 FleCSI will check how many messages have been injected into the stream
@@ -1342,19 +1340,11 @@ file named <code class="docutils literal notranslate"><span class="pre">report.c
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1365,6 +1355,7 @@ file named <code class="docutils literal notranslate"><span class="pre">report.c
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

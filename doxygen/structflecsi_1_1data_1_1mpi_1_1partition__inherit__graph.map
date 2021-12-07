@@ -1,8 +1,0 @@
-<map id="flecsi::data::mpi::partition" name="flecsi::data::mpi::partition">
-<area shape="rect" id="node1" title=" " alt="" coords="5,89,128,131"/>
-<area shape="rect" id="node2" href="$structflecsi_1_1data_1_1mpi_1_1prefixes.html" title=" " alt="" coords="190,5,313,47"/>
-<area shape="rect" id="node3" href="$structflecsi_1_1data_1_1mpi_1_1rows.html" title=" " alt="" coords="176,71,327,98"/>
-<area shape="rect" id="node4" href="$structflecsi_1_1data_1_1prefixes.html" title=" " alt="" coords="182,122,321,149"/>
-<area shape="rect" id="node6" href="$structflecsi_1_1data_1_1rows.html" title=" " alt="" coords="190,173,313,199"/>
-<area shape="rect" id="node5" href="$structflecsi_1_1topo_1_1repartition.html" title=" " alt="" coords="375,122,527,149"/>
-</map>

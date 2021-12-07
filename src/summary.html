@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Internal Summary &mdash; FleCSI 2.1 documentation</title>
+  <title>Internal Summary &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/summary.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/summary.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -38,10 +33,14 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Contributors" href="team.html" />
-    <link rel="prev" title="Developer Guide" href="developer-guide.html" /> 
+    <link rel="prev" title="API Reference" href="api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -98,8 +96,10 @@
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Internal Summary</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#hierarchy">Hierarchy</a></li>
@@ -129,7 +129,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -137,7 +136,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -176,7 +174,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
       <li>Internal Summary</li>
     
@@ -425,10 +423,10 @@ Its unit tests also provide examples of specializations.</p>
 <p>For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type <code class="docutils literal notranslate"><span class="pre">subtopology::core</span></code>).
 Some of these are so trivial as to merely inherit from the appropriate specialization of <code class="docutils literal notranslate"><span class="pre">specialization</span></code> with an empty class body.
 The most fundamental of these is <code class="docutils literal notranslate"><span class="pre">resize</span></code>, which holds the sizes needed to construct a non-trivial <code class="docutils literal notranslate"><span class="pre">partition</span></code>.
-It is defined in <code class="docutils literal notranslate"><span class="pre">size.hh</span></code>, along with the <code class="docutils literal notranslate"><span class="pre">color_category</span></code> machinery to define fields with a single value per color.</p>
+It is defined in <code class="docutils literal notranslate"><span class="pre">size.hh</span></code> in terms of the even lower-level <code class="docutils literal notranslate"><span class="pre">color</span></code> machinery (from <code class="docutils literal notranslate"><span class="pre">color.hh</span></code>) that defines fields with a fixed number of values per color.</p>
 <p>The type <code class="docutils literal notranslate"><span class="pre">topo::repartition</span></code> augments <code class="docutils literal notranslate"><span class="pre">data::partition</span></code> with a <code class="docutils literal notranslate"><span class="pre">resize</span></code> and schedules a task to initialize them properly; it too can be combined with a <code class="docutils literal notranslate"><span class="pre">region</span></code> with the <em>ed</em> suffix.
 It is defined in <code class="docutils literal notranslate"><span class="pre">index.hh</span></code>, along with higher-level subtopologies that provide the backing store for the <code class="docutils literal notranslate"><span class="pre">ragged</span></code> layout as well as the user-level <code class="docutils literal notranslate"><span class="pre">index</span></code> topology that supports <code class="docutils literal notranslate"><span class="pre">ragged</span></code> fields.
-The topology <code class="docutils literal notranslate"><span class="pre">ragged_topology</span></code> is itself a class template, parametrized with the (user) topology type to distinguish <code class="docutils literal notranslate"><span class="pre">ragged</span></code> field registrations on each.
+The topology <code class="docutils literal notranslate"><span class="pre">ragged</span></code> is itself a class template, parametrized with the (user) topology type to distinguish <code class="docutils literal notranslate"><span class="pre">ragged</span></code> field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with <code class="docutils literal notranslate"><span class="pre">with_</span></code> to be used as a base class.</p>
 <p>Several templates are defined in <code class="docutils literal notranslate"><span class="pre">utility_types.hh</span></code> to assist in defining topologies.
 In particular, <code class="docutils literal notranslate"><span class="pre">topo::id</span></code> serves to distinguish in user-facing interfaces the indices for different index spaces.</p>
@@ -467,7 +465,7 @@ A main program to be linked with each unit test source file is provided.</p>
         <a href="team.html" class="btn btn-neutral float-right" title="Contributors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="developer-guide.html" class="btn btn-neutral float-left" title="Developer Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -476,19 +474,11 @@ A main program to be linked with each unit test source file is provided.</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -499,6 +489,7 @@ A main program to be linked with each unit test source file is provided.</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

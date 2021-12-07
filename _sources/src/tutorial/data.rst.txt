@@ -15,14 +15,14 @@ Example 1: Global data
 ++++++++++++++++++++++
 
 Global fields are used to store global variables/objects that can
-be accessed by any task. They are created as a field on the
-`data::single` index space.
+be accessed by any task.
+Since there is only one value for each field, it is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
   :lines: 24-26
 
-Global fields can be initialized only within a task that has size of the launch domain equal to 1 (default for `flecsi::single` topology). 
+Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp

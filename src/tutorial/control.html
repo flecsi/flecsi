@@ -1,18 +1,15 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Control Model &mdash; FleCSI 2.1 documentation</title>
+  <title>Control Model &mdash; FleCSI 2.1.0 documentation</title>
   
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -20,13 +17,11 @@
   
   
   
-    <link rel="canonical" href="https://flecsi.orgsrc/tutorial/control.html"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/tutorial/control.html"/>
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -38,6 +33,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Execution Model" href="execution.html" />
@@ -68,7 +67,7 @@
             
             
               <div class="version">
-                Version: 2.1
+                Version: 2.1.0
               </div>
             
           
@@ -85,7 +84,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -123,10 +121,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://laristra.github.io/flecsi/doxygen">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -134,7 +133,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -173,7 +171,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -947,10 +945,10 @@ and frees the data. Again, the code is self-explanatory:</p>
   <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;allocate&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
   <span class="cm">/*</span>
-<span class="cm">    Call a method of the control policy to allocate an array of size 10.</span>
+<span class="cm">    Call a method of the control state to allocate an array of size 10.</span>
 <span class="cm">   */</span>
 
-  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">allocate_values</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+  <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">allocate_values</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
 
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
@@ -964,13 +962,13 @@ and frees the data. Again, the code is self-explanatory:</p>
 <span class="cm">    Access the array through the &#39;values()&#39; method, and initialize.</span>
 <span class="cm">   */</span>
 
-  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
 
   <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// for</span>
 
-  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">steps</span><span class="p">()</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">steps</span><span class="p">()</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
 
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
@@ -980,13 +978,13 @@ and frees the data. Again, the code is self-explanatory:</p>
 <span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="n">ss</span><span class="p">;</span>
 
-  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;advance &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">step</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;advance &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">step</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
   <span class="cm">/*</span>
 <span class="cm">    Access the array through the &#39;values()&#39; method, and modify.</span>
 <span class="cm">   */</span>
 
-  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
+  <span class="kt">size_t</span> <span class="o">*</span> <span class="k">const</span> <span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">values</span><span class="p">();</span>
 
   <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
@@ -1005,10 +1003,10 @@ and frees the data. Again, the code is self-explanatory:</p>
   <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;finalize&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
   <span class="cm">/*</span>
-<span class="cm">    Deallocate the array using the control policy interface.</span>
+<span class="cm">    Deallocate the array using the control state interface.</span>
 <span class="cm">   */</span>
 
-  <span class="n">control</span><span class="o">::</span><span class="n">policy</span><span class="p">().</span><span class="n">deallocate_values</span><span class="p">();</span>
+  <span class="n">control</span><span class="o">::</span><span class="n">state</span><span class="p">().</span><span class="n">deallocate_values</span><span class="p">();</span>
 
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1042,19 +1040,11 @@ fine.</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1065,6 +1055,7 @@ fine.</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

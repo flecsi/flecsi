@@ -85,7 +85,7 @@ Clone the FleCSI git repository, and create an out-of-source build area
 
 .. code-block:: console
 
-  $ git clone https://github.com/laristra/flecsi.git
+  $ git clone https://github.com/flecsi/flecsi.git
   $ cd flecsi
   $ mkdir build
   $ cd build
@@ -114,7 +114,7 @@ FleCSI supports several different versions and variants, e.g.:
 
 .. code-block:: console
 
-  $ spack install flecsi@1.0 +legion +graphviz +kokkos
+  $ spack install flecsi@1.0 +legion +graphviz
 
 For a complete list of versions and variants, type:
 
@@ -160,19 +160,19 @@ Example configuration: **MPI**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=mpi ..
+  $ cmake -DFLECSI_BACKEND=mpi ..
 
 Example configuration: **MPI + OpenMP**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=mpi -DENABLE_OPENMP ..
+  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP ..
 
 Example configuration: **Legion**
 
 .. code-block:: console
 
-  $ cmake -DFLECSI_RUNTIME_MODEL=legion ..
+  $ cmake -DFLECSI_BACKEND=legion ..
 
 After configuration is complete, just use *make* to build:
 
@@ -244,10 +244,10 @@ configured FleCSI, you can build the documentation like:
 
 Both of these targets will be built in your build directory under *doc*,
 e.g., the main Doxygen index.html page will be located at
-*'doc/doxygen/html/index.html'*. Similarly, the Sphinx main index.html
-page will be located at *'doc/sphinx/index.html'*. You can open these in
+*'doc/api/index.html'*. Similarly, the Sphinx main index.html
+page will be located at *'doc/index.html'*. You can open these in
 your browser with
-*file:///path/to/your/build/directory/doc/doxygen/html/index.html*, and
-*file:///path/to/your/build/directory/doc/sphinx/index.html*.
+*file:///path/to/your/build/directory/doc/api/index.html*, and
+*file:///path/to/your/build/directory/doc/index.html*.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
