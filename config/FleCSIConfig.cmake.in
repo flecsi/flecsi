@@ -32,6 +32,7 @@ if(@ENABLE_BOOST@)
 endif()
 
 if(@ENABLE_MPI@)
+  find_package(Threads REQUIRED)
   if(@ENABLE_MPI_CXX_BINDINGS@)
     find_package(MPI COMPONENTS C MPICXX REQUIRED)
   else()

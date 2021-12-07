@@ -19,6 +19,8 @@ mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
 mark_as_advanced(ENABLE_MPI_THREAD_MULITPLE)
 
 if(ENABLE_MPI)
+  find_package(Threads REQUIRED)
+  list(APPEND TPL_LIBRARIES Threads::Threads)
   if(ENABLE_MPI_CXX_BINDINGS)
     find_package(MPI COMPONENTS C MPICXX REQUIRED)
     list(APPEND TPL_LIBRARIES MPI::MPI_CXX)
