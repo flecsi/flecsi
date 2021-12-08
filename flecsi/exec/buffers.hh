@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
@@ -23,14 +21,24 @@
 #include "flecsi/run/context.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
+
+namespace data {
+template<class>
+struct multi;
+}
 
 inline flog::devel_tag param_buffers_tag("param_buffers");
 
 namespace exec {
 
 namespace detail {
+// Manage the auxiliary object that survives the user task needed for a T, or
+// a std::nullptr_t if none.
 template<class T, class = void>
 struct buffer {
   using type = decltype(nullptr);
@@ -53,12 +61,23 @@ set_buffer(T & t, B & b) {
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
 struct param_buffers {
+private:
+  auto visitor() {
+    return [&](auto & p, auto &&) { visit(p); };
+  }
+
+public:
   template<data::layout L, typename DATA_TYPE, Privileges PRIVILEGES>
   void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
 
   template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
     m.commit();
+  }
+
+  template<class A>
+  void visit(data::multi<A> & m) {
+    m.send(visitor());
   }
 
   template<class Topo, Privileges P>
@@ -109,10 +128,9 @@ private:
 
   Tuple & acc;
   const std::string & nm;
-  // The auxiliary object that survives the user task needed for a T,
-  // or std::nullptr_t if none.
   std::tuple<typename detail::buffer<TT>::type...> buf;
 };
 
+/// \}
 } // namespace exec
 } // namespace flecsi

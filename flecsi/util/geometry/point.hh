@@ -14,8 +14,6 @@
 
 #pragma once
 
-/*! @file */
-
 #include "flecsi/util/common.hh"
 #include "flecsi/util/dimensioned_array.hh"
 

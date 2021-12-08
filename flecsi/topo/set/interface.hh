@@ -13,20 +13,10 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/topo/core.hh" // base
 
 namespace flecsi {
 namespace topo {
-
-//----------------------------------------------------------------------------//
-// Mesh topology.
-//----------------------------------------------------------------------------//
-
-/*!
-  @ingroup topology
- */
 
 struct set_base {
 

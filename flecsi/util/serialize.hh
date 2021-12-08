@@ -26,8 +26,21 @@
 #include "type_traits.hh"
 #include <flecsi/flog.hh>
 
+/// \cond core
 namespace flecsi {
 namespace util {
+namespace serial {
+/// \defgroup serial Serialization
+/// Serialization without default constructibility.
+/// Supported types:
+/// - any default-constructible, trivially-move-assignable, non-pointer type
+/// - any type that supports the Legion return-value serialization interface
+/// - \c std::string
+/// - any type with an appropriate specialization of \c traits or \c convert
+/// - any \c std::pair, \c std::tuple, \c std::array, \c std::vector,
+///   \c std::set, \c std::map, \c std::unordered_map of a supported type
+/// \ingroup utils
+/// \{
 
 // Similar to that in GNU libc.  NB: memcpy has no alignment requirements.
 inline void
@@ -41,31 +54,54 @@ mempcpy(std::size_t & x, const void *, std::size_t n) {
   x += n;
 }
 
-template<class, class = void>
-struct serial;
+/// Extension point for serialization.
+/// The primary template is not really a complete type.
+/// \tparam T object type
+/// \tparam E unused SFINAE hook
+template<class T, class E = void>
+struct traits
+#ifdef DOXYGEN
+{
+  /// Serialize an object.
+  /// \tparam P see \c serial::put
+  template<class P>
+  static void put(P & p, const T &);
+  /// Reconstruct an object.
+  static T get(const std::byte *&);
+}
+#endif
+;
 
-// Store tt at p, advancing past the serialized form.
-// For calculating sizes, P should be std::size_t.
-// For actual serialization, P should be std::byte*.
+/// Store objects and advance past their serialized form.
+/// \tparam P \c std::size_t for calculating sizes, or `std::byte*` for actual
+///   serialization
+/// \param p pointer or size
+/// \param tt objects
 template<class... TT, class P>
 void
-serial_put(P & p, const TT &... tt) {
-  (serial<std::remove_const_t<TT>>::put(p, tt), ...);
+put(P & p, const TT &... tt) {
+  (traits<std::remove_const_t<TT>>::put(p, tt), ...);
 }
+/// Compute the serialized size of a fixed set of objects.
 template<class... TT>
-std::size_t serial_size(
-  const TT &... tt) { // wrapper to provide an initial size of 0
+std::size_t
+size(const TT &... tt) {
   std::size_t ret = 0;
-  serial_put(ret, tt...);
+  put(ret, tt...);
   return ret;
 }
+/// Reconstruct an object, advancing past its serialized form.
 template<class T>
-T serial_get(const std::byte *& p) { // reconstruct and advance past an object
-  return serial<std::remove_const_t<T>>::get(p);
+T
+get(const std::byte *& p) {
+  return traits<std::remove_const_t<T>>::get(p);
 }
 
+/// Serialize into a buffer.
+/// \param f a function that accepts an argument for \c put
 template<class F>
-auto serial_buffer(F && f) { // f should accept a P for serial_put
+std::vector<std::byte>
+buffer(F && f) {
   std::size_t sz = 0;
   f(sz);
   std::vector<std::byte> ret(sz);
@@ -75,61 +111,72 @@ auto serial_buffer(F && f) { // f should accept a P for serial_put
   return ret;
 }
 
+/// Get a single object.
+/// \param p may be an rvalue
 template<class T>
-T serial_get1(const std::byte * p) { // for a single object
-  return serial_get<T>(p);
+T
+get1(const std::byte * p) {
+  return get<T>(p);
 }
 
-// Conveniences to allocate memory and to send a tuple without copying.
+/// Serialize a fixed set of objects into a buffer.
+/// Reconstruct with \c get_tuple.
 template<class... TT>
 auto
-serial_put_tuple(const TT &... tt) {
-  return serial_buffer([&](auto & p) { serial_put(p, tt...); });
+put_tuple(const TT &... tt) {
+  return buffer([&](auto & p) { put(p, tt...); });
 }
+/// Construct a tuple of objects.
+/// \param e pointer to end of representation, if known
 template<class... TT>
 auto
-serial_get_tuple(const std::byte * p, const std::byte * e = nullptr) {
-  return std::tuple{serial_get<TT>(p)...};
+get_tuple(const std::byte * p, const std::byte * e = nullptr) {
+  return std::tuple{get<TT>(p)...};
   flog_assert(!e || p == e, "Wrong deserialization size");
 }
 
-// Unlike serial_get<std::vector<T>>, defined to get a size and then elements.
+/// Construct a \c std::vector from a size and then elements.
+/// \tparam S size type
+/// \warning `get<std::vector<T>>` is not guaranteed to be equivalent.
 template<class T, class S = typename std::vector<T>::size_type>
 auto
-serial_get_vector(const std::byte *& p) {
-  auto n = serial_get<S>(p);
+get_vector(const std::byte *& p) {
+  auto n = get<S>(p);
   std::vector<T> ret;
   ret.reserve(n);
   while(n--)
-    ret.push_back(serial_get<T>(p));
+    ret.push_back(get<T>(p));
   return ret;
 }
 
-struct serial_cast {
+/// Aggregate helper that converts to any type via \c get.
+struct cast {
+  /// The pointer from which to \c get.
   const std::byte *& p;
   template<class T>
   operator T() const {
-    return serial_get<T>(p);
+    return get<T>(p);
   }
 };
 
 namespace detail {
 template<class T>
-struct serial_container {
+struct container {
   template<class P>
   static void put(P & p, const T & c) {
-    serial_put(p, c.size());
+    serial::put(p, c.size());
     for(auto & t : c)
-      serial_put(p, t);
+      serial::put(p, t);
   }
   static T get(const std::byte *& p) {
     T ret;
-    for(auto n = serial_get<typename T::size_type>(p); n--;)
-      ret.insert(serial_get<typename T::value_type>(p));
+    for(auto n = serial::get<typename T::size_type>(p); n--;)
+      ret.insert(serial::get<typename T::value_type>(p));
     return ret;
   }
 };
 } // namespace detail
+} // namespace serial
 
 // Unfortunately, std::tuple<int> is not trivially copyable, so check more:
 template<class T>
@@ -140,8 +187,9 @@ template<class T>
 constexpr bool bit_copyable_v =
   std::is_default_constructible_v<T> && bit_assignable_v<T>;
 
+namespace serial {
 template<class T>
-struct serial<T, std::enable_if_t<bit_copyable_v<T>>> {
+struct traits<T, std::enable_if_t<bit_copyable_v<T>>> {
   static_assert(!std::is_pointer_v<T>, "Cannot serialize pointers");
   template<class P>
   static void put(P & p, const T & t) {
@@ -156,77 +204,77 @@ struct serial<T, std::enable_if_t<bit_copyable_v<T>>> {
   }
 };
 template<class T, class U>
-struct serial<std::pair<T, U>,
+struct traits<std::pair<T, U>,
   std::enable_if_t<!bit_copyable_v<std::pair<T, U>>>> {
   using type = std::pair<T, U>;
   template<class P>
   static void put(P & p, const type & v) {
-    serial_put<T, U>(p, v.first, v.second); // explicit T/U rejects references
+    serial::put<T, U>(p, v.first, v.second); // explicit T/U rejects references
   }
   static type get(const std::byte *& p) {
-    return {serial_get<T>(p), serial_get<U>(p)};
+    return {serial::get<T>(p), serial::get<U>(p)};
   }
 };
 template<class... TT>
-struct serial<std::tuple<TT...>,
+struct traits<std::tuple<TT...>,
   std::enable_if_t<!bit_copyable_v<std::tuple<TT...>>>> {
   using type = std::tuple<TT...>;
   template<class P>
   static void put(P & p, const type & t) {
-    std::apply([&p](const TT &... xx) { serial_put<TT...>(p, xx...); }, t);
+    std::apply([&p](const TT &... xx) { serial::put<TT...>(p, xx...); }, t);
   }
   static type get(const std::byte *& p) {
-    return type{serial_get<TT>(p)...};
+    return type{serial::get<TT>(p)...};
   }
 };
 template<class T, std::size_t N>
-struct serial<std::array<T, N>,
+struct traits<std::array<T, N>,
   std::enable_if_t<!bit_copyable_v<std::array<T, N>>>> {
   using type = std::array<T, N>;
   template<class P>
   static void put(P & p, const type & a) {
     for(auto e : a) {
-      serial_put(p, e);
+      serial::put(p, e);
     }
   }
   template<std::size_t... I>
   static type make_array(const std::byte *& p, std::index_sequence<I...>) {
-    return {(void(I), serial_get<T>(p))...};
+    return {(void(I), serial::get<T>(p))...};
   }
   static type get(const std::byte *& p) {
     return make_array(p, std::make_index_sequence<N>());
   }
 };
 template<class T>
-struct serial<std::vector<T>> {
+struct traits<std::vector<T>> {
   using type = std::vector<T>;
   template<class P>
   static void put(P & p, const type & v) {
-    serial_put(p, v.size());
+    serial::put(p, v.size());
     for(auto & t : v)
-      serial_put(p, t);
+      serial::put(p, t);
   }
   static type get(const std::byte *& p) {
-    return serial_get_vector<T>(p);
+    return get_vector<T>(p);
   }
 };
 template<class T>
-struct serial<std::set<T>> : detail::serial_container<std::set<T>> {};
+struct traits<std::set<T>> : detail::container<std::set<T>> {};
 template<class K, class V>
-struct serial<std::map<K, V>> : detail::serial_container<std::map<K, V>> {};
+struct traits<std::map<K, V>> : detail::container<std::map<K, V>> {};
 template<class K, class V>
-struct serial<std::unordered_map<K, V>>
-  : detail::serial_container<std::unordered_map<K, V>> {};
+struct traits<std::unordered_map<K, V>>
+  : detail::container<std::unordered_map<K, V>> {};
 template<>
-struct serial<std::string> {
+struct traits<std::string> {
   template<class P>
   static void put(P & p, const std::string & s) {
     const auto n = s.size();
-    serial_put(p, n);
+    serial::put(p, n);
     mempcpy(p, s.data(), n);
   }
   static std::string get(const std::byte *& p) {
-    const auto n = serial_get<std::string::size_type>(p);
+    const auto n = serial::get<std::string::size_type>(p);
     const auto d = p;
     p += n;
     return {reinterpret_cast<const char *>(d), n};
@@ -235,11 +283,17 @@ struct serial<std::string> {
 
 // Adapters for other protocols:
 
+/// Convenience for stateless types.
+/// Derive their specialization of \c traits from it.
+/// \tparam T default-constructible type with no significant state
 template<class T>
-struct serial_value { // serializes nothing; returns T()
+struct value {
   using type = T;
+  /// Do nothing.
   template<class P>
   static void put(P &, const T &) {}
+  /// Construct an object.
+  /// \return `T()`
   static T get(const std::byte *&) {
     return T();
   }
@@ -247,7 +301,7 @@ struct serial_value { // serializes nothing; returns T()
 
 // This works even without Legion:
 template<class T>
-struct serial<T,
+struct traits<T,
   voided<decltype(&T::legion_buffer_size),
     std::enable_if_t<!bit_copyable_v<T>>>> {
   template<class P>
@@ -264,33 +318,51 @@ struct serial<T,
   }
 };
 
-// Should define put and get and optionally size:
-template<class>
-struct serial_convert;
+/// Defines a serialization in terms of a representation type.
+/// The primary template is not really a complete type.
+/// \tparam T object type
+template<class T>
+struct convert
+#ifdef DOXYGEN
+{
+  /// Convert an object.
+  /// \return a serializable type
+  static R put(const T &);
+  /// Get the serialized size of an object.
+  /// This interface is optional; \c put will be called twice in its absence.
+  static std::size_t size(const T &);
+  /// Reconstruct an object.
+  /// \param r reconstructed object returned from \c put
+  static T get(R && r);
+}
+#endif
+;
 template<class T, class = void>
-struct serial_convert_traits : serial_convert<T> {
+struct convert_traits : convert<T> {
   static std::size_t size(const T & t) {
-    return serial_size(serial_convert<T>::put(t));
+    return serial::size(convert<T>::put(t));
   }
 };
 template<class T>
-struct serial_convert_traits<T, decltype(void(serial_convert<T>::size))>
-  : serial_convert<T> {};
+struct convert_traits<T, decltype(void(convert<T>::size))> : convert<T> {};
 template<class T>
-struct serial<T, decltype(void(serial_convert<T>::put))> {
-  using Convert = serial_convert_traits<T>;
+struct traits<T, decltype(void(convert<T>::put))> {
+  using Convert = convert_traits<T>;
   template<class P>
   static void put(P & p, const T & t) {
     if constexpr(std::is_pointer_v<P>)
-      serial_put(p, Convert::put(t));
+      serial::put(p, Convert::put(t));
     else
       p += Convert::size(t);
   }
   static T get(const std::byte *& p) {
     return Convert::get(
-      serial_get<std::decay_t<decltype(Convert::put(std::declval<T>()))>>(p));
+      serial::get<std::decay_t<decltype(Convert::put(std::declval<T>()))>>(p));
   }
 };
 
+/// \}
+} // namespace serial
 } // namespace util
 } // namespace flecsi
+/// \endcond

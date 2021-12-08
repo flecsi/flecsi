@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
@@ -31,6 +29,8 @@
 #include <memory>
 
 namespace flecsi {
+/// \addtogroup legion-execution
+/// \{
 
 inline flog::devel_tag bind_accessors_tag("bind_accessors");
 
@@ -46,13 +46,6 @@ namespace exec::leg {
  */
 template<task_processor_type_t ProcessorType>
 struct bind_accessors {
-
-  /*!
-    Construct an bind_accessors instance.
-
-    @param legion_runtime The Legion task runtime.
-    @param legion_context The Legion task runtime context.
-   */
 
   bind_accessors(Legion::Runtime * legion_runtime,
     Legion::Context & legion_context,
@@ -149,5 +142,6 @@ private:
 
 }; // struct bind_accessors
 
+/// \}
 } // namespace exec::leg
 } // namespace flecsi

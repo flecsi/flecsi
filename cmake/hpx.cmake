@@ -13,11 +13,12 @@
 #------------------------------------------------------------------------------#
 
 option(ENABLE_HPX "Enable HPX" OFF)
+mark_as_advanced(ENABLE_HPX)
 
 if(ENABLE_HPX)
 
   if(NOT ENABLE_BOOST)
-    message(ERROR "Boost is required for the HPX runtime")
+    message(ERROR "Boost is required for the HPX backend")
   endif()
 
   find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/flog.hh"
 #include "flecsi/util/geometry/point.hh"
 
@@ -38,13 +36,10 @@ struct test_definition {
     }
   }
 
-  /// Copy constructor (disabled)
   test_definition(const test_definition &) = delete;
 
-  /// Assignment operator (disabled)
   test_definition & operator=(const test_definition &) = delete;
 
-  /// Destructor
   ~test_definition() {}
 
   std::size_t num_entities(Dimension topological_dimension) const {

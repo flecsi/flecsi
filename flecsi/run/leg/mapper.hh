@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "../backend.hh"
@@ -32,12 +30,12 @@ namespace flecsi {
 inline flog::devel_tag legion_mapper_tag("legion_mapper");
 
 namespace run {
+/// \addtogroup legion-runtime
+/// \{
 
-/*
+/*!
  The mpi_mapper_t - is a custom mapper that handles mpi-legion
  interoperability in FLeCSI
-
- @ingroup legion-runtime
 */
 
 class mpi_mapper_t : public Legion::Mapping::DefaultMapper
@@ -148,10 +146,7 @@ public:
    created. This is different from Default mapper which will map Parent region,
    if it exists.
 
-   @param ctx Mapper Context
-   @param target_memory target memory for the instance to be allocated
    @param req Reqion requirement for witch instance is going to be allocated
-   @layout_constraints Layout constraints
   */
   virtual Legion::LogicalRegion default_policy_select_instance_region(
     Legion::Mapping::MapperContext,
@@ -424,7 +419,6 @@ public:
 
     @param ctx Mapper Context
     @param task Legion's task
-    @param input Input information about task mapping
     @param output Output information about task mapping
    */
 
@@ -649,8 +643,6 @@ protected:
 /*!
  mapper_registration is used to replace DefaultMapper with mpi_mapper_t in
  FLeCSI
-
- @ingroup legion-runtime
  */
 
 inline void
@@ -665,5 +657,6 @@ mapper_registration(Legion::Machine machine,
   }
 } // mapper registration
 
+/// \}
 } // namespace run
 } // namespace flecsi

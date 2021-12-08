@@ -13,14 +13,14 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/util/bitutils.hh"
 
 #include <cstddef>
 #include <utility>
 
 namespace flecsi {
+/// \addtogroup data
+/// \{
 
 using Privileges = unsigned;
 using PrivilegeCount = unsigned short;
@@ -29,21 +29,19 @@ using PrivilegeCount = unsigned short;
   Enumeration for specifying access privleges for data that are passed
   to FleCSI tasks.
 
-  @param na no access: consistency update coalesced with next access
-  @param ro Read-Only access: data are mapped, updates are performed for
-            consistency, but the data are read-only.
-  @param wo Write-Only access: data are mapped, no updates are done to the
-            state, and the data can be written.
-  @param rw Read-Write access: data are mapped, updated are performend for
-            consistency, and the data are read-write.
+  Ghost data is updated only when read access to it is requested.
+  Writes to shared data are never propagated to ghost data for which the same
+  task has write access, as it is assumed to have updated them.
  */
 
 enum partition_privilege_t : Privileges {
-  na = 0b00,
-  ro = 0b01,
-  wo = 0b10,
-  rw = 0b11
+  na = 0b00, ///< no access: defer consistency update
+  ro = 0b01, ///< read-only
+  wo = 0b10, ///< write-only: data uninitialized; consistency updates discarded
+  rw = 0b11 ///< read-write
 }; // enum partition_privilege_t
+
+/// \cond core
 
 inline constexpr short privilege_bits = 2;
 
@@ -162,4 +160,6 @@ privilege_merge(Privileges p) {
            : privilege_write(p) ? rw : privilege_read(p) ? ro : na;
 }
 
+/// \endcond
+/// \}
 } // namespace flecsi

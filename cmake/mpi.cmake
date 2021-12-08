@@ -17,6 +17,8 @@ option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
 mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
 
 if(ENABLE_MPI)
+  find_package(Threads REQUIRED)
+  list(APPEND TPL_LIBRARIES Threads::Threads)
   if(ENABLE_MPI_CXX_BINDINGS)
     find_package(MPI COMPONENTS C MPICXX REQUIRED)
     list(APPEND TPL_LIBRARIES MPI::MPI_CXX)

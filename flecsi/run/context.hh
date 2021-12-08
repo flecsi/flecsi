@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"
@@ -59,6 +57,8 @@ struct with_ragged_base;
 inline flog::devel_tag context_tag("context");
 
 namespace run {
+/// \addtogroup runtime
+/// \{
 
 struct context_t; // supplied by backend
 
@@ -82,8 +82,6 @@ struct index_space_info_t {
 /*!
   The context type provides a high-level execution context interface that
   is implemented by a specific backend.
-
-  @ingroup runtime
  */
 
 struct context {
@@ -189,7 +187,7 @@ struct context {
 
     flecsi_desc.add_options()("backend-args",
       boost::program_options::value(&backend_)->default_value(""),
-      "Pass arguments to the runtime backend. The single argument is a quoted "
+      "Pass arguments to the backend. The single argument is a quoted "
       "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
     // Add FleCSI options
@@ -408,7 +406,7 @@ struct context {
             being failure.
    */
 
-  int start(const std::function<int(int, char **)> action &);
+  int start(const std::function<int(int, char **)> & action);
 
   /*!
     Return the current process id.
@@ -551,7 +549,7 @@ protected:
   }
 
 #ifdef DOXYGEN
-  /*
+  /*!
     Clear the runtime state of the context.
 
     Notes:
@@ -672,5 +670,6 @@ private:
   std::vector<void (*)()> init_registry;
 }; // struct context
 
+/// \}
 } // namespace run
 } // namespace flecsi

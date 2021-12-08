@@ -13,14 +13,13 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <functional>
 #include <tuple>
 
 namespace flecsi {
 namespace util {
 
+#ifndef DOXYGEN // it gets very confused by the specializations
 template<typename T>
 struct function_traits : function_traits<decltype(&T::operator())> {};
 
@@ -64,6 +63,7 @@ template<typename T>
 struct function_traits<volatile T> : function_traits<T> {};
 template<typename T>
 struct function_traits<const volatile T> : function_traits<T> {};
+#endif
 
 } // namespace util
 } // namespace flecsi

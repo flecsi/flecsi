@@ -41,10 +41,20 @@ endif()
 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-Wno-parentheses NO_PARENTHESES)
+check_cxx_compiler_flag(-Wno-braced-scalar-init NO_BRACED_SCALAR_INIT)
 
 if(NO_PARENTHESES)
   add_compile_options(-Wno-parentheses)
 endif()
+if(NO_BRACED_SCALAR_INIT)
+  add_compile_options(-Wno-braced-scalar-init)
+endif()
+
+#------------------------------------------------------------------------------#
+# Add extra cmake modules.
+#------------------------------------------------------------------------------#
+
+find_package(LANLCMakeModules)
 
 #------------------------------------------------------------------------------#
 # Version.
@@ -99,33 +109,33 @@ if(NOT FORMAT_ONLY)
   include(coverage)
 
   #----------------------------------------------------------------------------#
-  # Add options for runtime selection
+  # Add options for backend selection
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_RUNTIME_MODELS legion mpi hpx)
+  set(FLECSI_BACKENDS legion mpi hpx)
 
-  if(NOT FLECSI_RUNTIME_MODEL)
-    list(GET FLECSI_RUNTIME_MODELS 0 FLECSI_RUNTIME_MODEL)
+  if(NOT FLECSI_BACKEND)
+    list(GET FLECSI_BACKENDS 0 FLECSI_BACKEND)
   endif()
 
-  set(FLECSI_RUNTIME_MODEL "${FLECSI_RUNTIME_MODEL}" CACHE STRING
-    "Select the runtime model")
-  set_property(CACHE FLECSI_RUNTIME_MODEL
-    PROPERTY STRINGS ${FLECSI_RUNTIME_MODELS})
+  set(FLECSI_BACKEND "${FLECSI_BACKEND}" CACHE STRING
+    "Select the backend")
+  set_property(CACHE FLECSI_BACKEND
+    PROPERTY STRINGS ${FLECSI_BACKENDS})
 
   #----------------------------------------------------------------------------#
-  # Runtime defaults.
+  # Backend defaults.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+  if(FLECSI_BACKEND STREQUAL "mpi")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+  elseif(FLECSI_BACKEND STREQUAL "legion")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+  elseif(FLECSI_BACKEND STREQUAL "hpx")
     set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_PARMETIS ON CACHE BOOL "Enable ParMETIS" FORCE)
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
@@ -143,10 +153,13 @@ if(NOT FORMAT_ONLY)
   include(hpx)
   include(openmp)
   include(hdf5)
+  include(doxygen)
+  include(sphinx)
   include(documentation)
   include(graphviz)
   include(kokkos)
 
+  # These must be set before "include(boost)" below.
   list(APPEND
     BOOST_COMPONENTS
       atomic
@@ -156,8 +169,44 @@ if(NOT FORMAT_ONLY)
       system
   )
   include(boost)
-
   include(annotation)
+
+  #----------------------------------------------------------------------------#
+  # Documentation
+  #----------------------------------------------------------------------------#
+
+
+  add_sphinx_target(main
+    CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
+    OUTPUT ${CMAKE_BINARY_DIR}/doc
+  )
+
+  # Create Doxygen output directory eagerly to avoid race condition.
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
+
+  add_doxygen_target(core
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+  )
+  add_doxygen_target(user
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+  )
+
+  # This is for local install of the documentation. To deploy the
+  # documentation to the flecsi website, use the "deploy-documentation" target.
+
+  if(ENABLE_SPHINX)
+    install(
+      DIRECTORY
+        ${CMAKE_BINARY_DIR}/doc/
+      DESTINATION
+        ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
+      OPTIONAL
+    )
+  endif()
 
   #----------------------------------------------------------------------------#
   # Caliper.
@@ -180,8 +229,8 @@ if(NOT FORMAT_ONLY)
   endforeach()
   mark_as_advanced(DL_LIB)
 
-  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_RUNTIME_LIBRARIES})
-  #set(FLECSI_RUNTIME_LIBRARIES)
+  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_BACKEND_LIBRARIES})
+  #set(FLECSI_BACKEND_LIBRARIES)
 
   #----------------------------------------------------------------------------#
   # FLOG and FTEST
@@ -285,7 +334,7 @@ if(NOT FORMAT_ONLY)
 
   install(
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
 
   install(
@@ -293,12 +342,6 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindBreathe.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/flog.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
@@ -326,7 +369,7 @@ if(NOT FORMAT_ONLY)
   # HPX extra.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+  if(FLECSI_BACKEND STREQUAL "hpx")
     hpx_setup_target(FleCSI NONAMEPREFIX)
   endif()
 
@@ -352,7 +395,7 @@ if(NOT FORMAT_ONLY)
   if(${PROJECT_NAME}_COMMITS)
     summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
   endif()
-  summary_info("FLECSI_RUNTIME_MODEL" "${FLECSI_RUNTIME_MODEL}" TRUE)
+  summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
   summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
     " (FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL})")
   summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
@@ -27,6 +25,8 @@ inline flog::devel_tag reduction_wrapper_tag("reduction_wrapper");
 
 namespace exec {
 namespace fold {
+/// \addtogroup mpi-execution
+/// \{
 
 template<class R, class T, class = void>
 struct wrap {
@@ -96,6 +96,7 @@ struct wrap<R,
   static inline const MPI_Op & op = redop<R>();
 };
 
+/// \}
 } // namespace fold
 } // namespace exec
 } // namespace flecsi

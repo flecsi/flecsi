@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #if defined(FLECSI_ENABLE_FLOG)
@@ -37,6 +35,10 @@
 
 namespace flecsi {
 namespace flog {
+/// \defgroup flog Logging
+/// Configurable, parallel logging.
+/// \{
+
 namespace detail {
 template<class, class = void>
 struct stream;
@@ -112,8 +114,6 @@ struct guard;
   Create a tag group to enable/disable output using guards.
 
   @param label The name of the tag.
-
-  @ingroup flog
  */
 
 struct tag {
@@ -132,8 +132,6 @@ private:
   guard.
 
   @param t The tag group that should enable/disable output.
-
-  @ingroup flog
  */
 
 struct guard {
@@ -165,8 +163,6 @@ struct devel_guard {
   @param colorize Indicates whether the output to this stream should be
                   colorized. It is useful to turn colorization off for
                   non-interactive output (default).
-
-  @ingroup flog
  */
 
 inline void
@@ -192,20 +188,18 @@ private:
   const T & t;
 };
 
+/// \}
 } // namespace flog
 } // namespace flecsi
 
-/*!
-  @def flog(severity)
+/// \addtogroup flog
+/// \{
 
+/*!
   This handles all of the different logging modes for the insertion
   style logging interface.
 
   @param severity The severity level of the log entry.
-
-  @note The form "true && ..." is necessary for tertiary argument
-        evaluation so that the std::ostream & returned by the stream()
-        function can be implicitly converted to an int.
 
   @b Usage
   @code
@@ -217,13 +211,11 @@ private:
   // Print the value at warn severity level
   flog(warn) << "Value: " << value << std::endl;
   @endcode
-
-  @ingroup flog
  */
 
 #define flog(severity)                                                         \
-  true && ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)  \
-            .format()
+  true && /* implicitly converts remainder to bool */                          \
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__).format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
 
@@ -245,8 +237,6 @@ private:
 #endif // FLOG_ENABLE_DEVELOPER_MODE
 
 /*!
-  @def flog_trace(stream)
-
   Method style interface for trace level severity log entries.
 
   @param stream The stream to be printed.
@@ -258,8 +248,6 @@ private:
   // Print the value at trace severity level
   flog_trace("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_trace(stream)                                                     \
@@ -269,8 +257,6 @@ private:
     << stream
 
 /*!
-  @def flog_info(stream)
-
   Method style interface for info level severity log entries.
 
   @param stream The stream to be printed.
@@ -282,8 +268,6 @@ private:
   // Print the value at info severity level
   flog_info("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_info(stream)                                                      \
@@ -293,8 +277,6 @@ private:
     << stream
 
 /*!
-  @def flog_warn(stream)
-
   Method style interface for warn level severity log entries.
 
   @param stream The stream to be printed.
@@ -306,8 +288,6 @@ private:
   // Print the value at warn severity level
   flog_warn("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_warn(stream)                                                      \
@@ -317,8 +297,6 @@ private:
     << stream
 
 /*!
-  @def flog_error(stream)
-
   Method style interface for error level severity log entries.
 
   @param stream The stream to be printed.
@@ -330,8 +308,6 @@ private:
   // Print the value at error severity level
   flog_error("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_error(stream)                                                     \
@@ -407,11 +383,7 @@ to_string(T const & t) {
 } // namespace flecsi::log
 
 /*!
-  @def fixme
-
   Alias for severity level warn.
-
-  @ingroup flog
  */
 
 #define fixme() flog(warn)
@@ -441,8 +413,6 @@ dumpstack() {
 } // namespace flecsi
 
 /*!
-  @def flog_fatal(message)
-
   Throw a runtime exception with the provided message.
 
   @param message The stream message to be printed.
@@ -458,8 +428,6 @@ dumpstack() {
   // Print the value and exit
   flog_fatal("Value: " << value);
   @endcode
-
-  @ingroup flog
  */
 
 #define flog_fatal(message)                                                    \
@@ -478,8 +446,6 @@ dumpstack() {
   } /* scope */
 
 /*!
-  @def flog_assert(test, message)
-
   Clog assertion interface. Assertions allow the developer to catch
   invalid program state. This call will invoke flog_fatal if the test
   condition is false.
@@ -498,8 +464,6 @@ dumpstack() {
   // Print the value and exit
   flog_assert(value == 20, "invalid value");
   @endcode
-
-  @ingroup flog
  */
 
 /*
@@ -524,3 +488,5 @@ dumpstack() {
     }                                                                          \
   while(0)
 #endif // NDEBUG
+
+/// \}

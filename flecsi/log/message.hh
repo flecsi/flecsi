@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/log/state.hh"
@@ -23,8 +21,11 @@
 
 #include <iostream>
 
+/// \cond core
 namespace flecsi {
 namespace flog {
+/// \addtogroup flog
+/// \{
 
 /*!
   The message type provides a basic log message type that is customized
@@ -103,7 +104,8 @@ struct message {
    */
 
   message & format() {
-    clean_ = Policy::format(ss_, file_, line_, devel_);
+    clean_ = state::instance().verbose() >= 0 &&
+             Policy::format(ss_, file_, line_, devel_);
     return *this;
   }
 
@@ -123,5 +125,7 @@ private:
   std::stringstream ss_;
 }; // message
 
+/// \}
 } // namespace flog
 } // namespace flecsi
+/// \endcond

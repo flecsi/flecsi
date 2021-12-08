@@ -12,7 +12,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-option(ENABLE_OPENMP "Enable OpenMP" OFF)
+option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
 
 if(ENABLE_OPENMP)
 
