@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
@@ -32,6 +30,11 @@
 
 namespace flecsi {
 namespace topo {
+/// \defgroup narray Multi-dimensional Array
+/// Configurable multi-dimensional array topology.
+/// Can be used for structured meshes.
+/// \ingroup topology
+/// \{
 
 /*----------------------------------------------------------------------------*
   Narray Topology.
@@ -72,29 +75,41 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
   template<index_space S>
-  const data::partition & get_partition(field_id_t) const {
+  repartition & get_partition(field_id_t) {
     return part_.template get<S>();
   }
 
   template<typename Type,
     data::layout Layout,
-    typename Topo,
-    typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+    typename Policy::index_space Space>
+  void ghost_copy(
+    data::field_reference<Type, Layout, Policy, Space> const & f) {
     plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
+  /// Structural information about one color.
+  /// \image html narray-layout.png "Layouts for each possible orientation."
   struct meta_data {
     std::uint32_t orientation;
 
     using scoord = util::key_array<std::size_t, axes>;
     using shypercube = std::array<scoord, 2>;
 
+    /// Global extents.
+    /// These are necessarily the same on every color.
     scoord global;
+    /// The global offsets to the beginning of the color's region, excluding
+    /// any non-physical boundary padding.
+    /// Use to map from local to global ids.
     scoord offset;
+    /// The size of the color's region, including ghosts and boundaries.
     scoord extents;
+    /// The range of the color's elements that logically exist.
+    /// Ghosts and boundaries are not included.
     shypercube logical;
+    /// The range of the color's elements, including boundaries but not
+    /// ghosts.
     shypercube extended;
   };
 
@@ -193,6 +208,10 @@ private:
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
   }
 
+  auto & get_sizes(std::size_t i) {
+    return part_[i].sz;
+  }
+
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
@@ -209,6 +228,15 @@ private:
   util::key_array<data::copy_plan, index_spaces> plan_;
 
 }; // struct narray
+
+template<class P>
+struct borrow_extra<narray<P>> {
+  borrow_extra(narray<P> &, claims::core &) {}
+
+  auto & get_sizes(std::size_t i) {
+    return borrow_base::derived(*this).spc[i].single().sz;
+  }
+};
 
 /*----------------------------------------------------------------------------*
   Narray Access.
@@ -237,10 +265,12 @@ struct narray<Policy>::access {
     std::size_t i{0};
     for(auto & a : size_)
       a.topology_send(
-        f, [&i](narray & n) -> auto & { return n.part_[i++].sz; });
-
-    meta_.topology_send(f, &narray::meta);
-    policy_meta_.topology_send(f, &narray::meta);
+        f, [&i](auto & n) -> auto & { return n.get_sizes(i++); });
+    const auto meta = [](auto & n) -> auto & {
+      return n.meta;
+    };
+    meta_.topology_send(f, meta);
+    policy_meta_.topology_send(f, meta);
   }
 
 private:
@@ -451,5 +481,6 @@ struct detail::base<narray> {
   using type = narray_base;
 }; // struct detail::base<narray>
 
+/// \}
 } // namespace topo
 } // namespace flecsi

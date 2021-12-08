@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/util/array_ref.hh" // span
@@ -37,6 +35,11 @@
 namespace flecsi {
 namespace util {
 namespace mpi {
+/// \defgroup mpi-utils MPI
+/// These require MPI tasks, not the MPI backend.
+/// \ingroup utils
+/// \{
+
 inline void
 test(int err) {
   if(err != MPI_SUCCESS) {
@@ -69,9 +72,8 @@ private:
     int e = MPI_SUCCESS;
     for(auto & v = static_cast<guard *>(attr)->v;
         !v.empty() && e == MPI_SUCCESS;) {
-      auto d = v.back();
+      e = MPI_Type_free(&v.back());
       v.pop_back();
-      e = MPI_Type_free(&d);
     }
     return e;
   }
@@ -96,9 +98,9 @@ struct vector { // for *v functions
   template<class T>
   void put(const T & t) {
     const auto n = off.emplace_back(data.size());
-    data.resize(n + sz.emplace_back(serial_size(t)));
+    data.resize(n + sz.emplace_back(serial::size(t)));
     auto * p = data.data() + n;
-    serial_put(p, t);
+    serial::put(p, t);
   }
 };
 } // namespace detail
@@ -295,7 +297,7 @@ one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
 
     if(rank) {
       auto const * p = v.data.data();
-      return serial_get<return_type>(p);
+      return serial::get<return_type>(p);
     }
     else
       return std::move(*mine);
@@ -349,7 +351,7 @@ struct serial_message {
         return ret;
       }()) {}
   template<class F>
-  serial_message(F & f, int r, int n) : v(util::serial_put_tuple<T>(f(r, n))) {}
+  serial_message(F & f, int r, int n) : v(serial::put_tuple<T>(f(r, n))) {}
 
   void * data() {
     return v.data();
@@ -364,7 +366,7 @@ struct serial_message {
     return v.size();
   }
   T get() const {
-    return serial_get1<T>(v.data());
+    return serial::get1<T>(v.data());
   }
   void reset() {
     decltype(v)().swap(v);
@@ -464,7 +466,7 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   @param f function object, invoked in recipient order
   @param comm An MPI communicator.
 
-  @return A std::vector<return_type>, where \rm return_type is the type
+  @return A \c std::vector<return_type>, where \em return_type is the type
           returned by the callable object.
  */
 
@@ -531,7 +533,7 @@ all_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
       if(r == rank)
         result.push_back(std::move(*mine));
       else
-        result.push_back(serial_get1<return_type>(p + recv.off[r]));
+        result.push_back(serial::get1<return_type>(p + recv.off[r]));
     } // for
   }
 
@@ -567,7 +569,7 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
   else {
     detail::vector v(size); // just a struct here
     v.sz.resize(size);
-    v.sz[rank] = util::serial_size(t);
+    v.sz[rank] = serial::size(t);
 
     test(MPI_Allgather(
       MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
@@ -579,7 +581,7 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
     v.data.resize(v.off.back() + v.sz.back());
     {
       std::byte * p = v.data.data() + v.off[rank];
-      util::serial_put(p, t);
+      serial::put(p, t);
     }
 
     test(MPI_Allgatherv(MPI_IN_PLACE,
@@ -595,13 +597,14 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
 
     auto p = std::as_const(v).data.data();
     for(int r = 0; r < size; ++r) {
-      result.push_back(serial_get<T>(p));
+      result.push_back(serial::get<T>(p));
     } // for
   }
 
   return result;
 } // all_gatherv
 
+/// \}
 } // namespace mpi
 } // namespace util
 } // namespace flecsi

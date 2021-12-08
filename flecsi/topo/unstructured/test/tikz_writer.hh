@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/topo/unstructured/types.hh"
 
 #include <mpi.h>

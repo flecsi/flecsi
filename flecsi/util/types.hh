@@ -13,18 +13,16 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include <cstddef>
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <legion.h>
 #endif
 
 namespace flecsi {
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 using field_id_t = Legion::FieldID;
 using Legion::Color;
 #else

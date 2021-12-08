@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
@@ -34,6 +32,10 @@
 
 namespace flecsi {
 namespace topo {
+/// \defgroup unstructured Unstructured Mesh
+/// Configurable unstructured mesh interface.
+/// \ingroup topology
+/// \{
 
 /*----------------------------------------------------------------------------*
   Unstructured Topology.
@@ -81,15 +83,15 @@ struct unstructured : unstructured_base,
   }
 
   template<index_space S>
-  const data::partition & get_partition(field_id_t) const {
+  data::partition & get_partition(field_id_t) {
     return part_.template get<S>();
   }
 
   template<typename Type,
     data::layout Layout,
-    typename Topo,
-    typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+    typename Policy::index_space Space>
+  void ghost_copy(
+    data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged)
       ; // TODO
     /*
@@ -352,5 +354,6 @@ struct detail::base<unstructured> {
   using type = unstructured_base;
 }; // struct detail::base<unstructured>
 
+/// \}
 } // namespace topo
 } // namespace flecsi

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/run/context.hh"
@@ -37,24 +35,31 @@
 #include <unordered_map>
 
 namespace flecsi::run {
+/// \defgroup legion-runtime Legion Runtime
+/// State for and control of the Legion runtime.
+/// \ingroup runtime
+/// \{
 
 inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
-// force_rank_match: mapper tag that will force 1-to-1 MPI-to-Legion mapping;
-// compacted_storage:  mapper tag that is used for creating compacted Regions;
-// subrank_launch: mapper tag that is used for nested tasks, not supported in
-// FleCSI yet;
-// exclusive_lr: mapper tag that is used to mark first region in compacted
-//              instance;
-// prefer_gpu, prefer_omp:  tags, that are used to specify what is apreferred
-//              processor type;
-constexpr Legion::MappingTagID force_rank_match = 0x00001000,
+/// \addtogroup legion-runtime
+/// \{
+
+/// \name Mapper tags
+/// Flags used to request custom mapper features.
+/// \{
+
+constexpr Legion::MappingTagID
+  force_rank_match = 0x00001000, ///< Put colors on corresponding MPI ranks.
 #if 0
-                               compacted_storage = 0x00002000,
-                               subrank_launch = 0x00003000,
+  compacted_storage = 0x00002000, ///< Combine exclusive, shared, and ghosts.
+  subrank_launch = 0x00003000, ///< For nested tasks.
+  exclusive_lr = 0x00004000, ///< Indicate first region in compacted set.
 #endif
-                               exclusive_lr = 0x00004000,
-                               prefer_gpu = 0x11000001, prefer_omp = 0x11000002;
+  prefer_gpu = 0x11000001, ///< Request GPU execution.
+  prefer_omp = 0x11000002; ///< Request OpenMP execution.
+/// \}
+/// \}
 } // namespace mapper
 
 namespace leg {
@@ -246,4 +251,5 @@ private:
   LegionRuntime::Arrays::Rect<1> all_processes_;
 };
 
+/// \}
 } // namespace flecsi::run

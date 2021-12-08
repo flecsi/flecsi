@@ -13,13 +13,18 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
 
 namespace flecsi {
+namespace topo {
+template<class>
+struct borrow;
+}
+
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   Topology accessor type. Topology accessors are defined by the interface of
@@ -32,6 +37,8 @@ namespace data {
 
   \tparam T topology type
   \tparam Priv privilege pack
+
+  \note Usually accessed as \c T::accessor.
  */
 template<class T, Privileges Priv>
 struct topology_accessor
@@ -45,12 +52,17 @@ struct topology_accessor
   explicit topology_accessor() = default;
 }; // struct topology_accessor
 
+/// \}
 } // namespace data
 
 template<class T, Privileges P>
 struct exec::detail::task_param<data::topology_accessor<T, P>> {
-  static auto replace(const typename T::slot &) {
-    return data::topology_accessor<T, P>();
+  using type = data::topology_accessor<T, P>;
+  static type replace(typename T::slot &) {
+    return type();
+  }
+  static type replace(data::topology_slot<topo::borrow<T>> &) {
+    return type();
   }
 };
 // Defined here to avoid circularity; it matters only with a

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "flecsi/util/common.hh"
 #include "flecsi/util/types.hh"
 
@@ -22,8 +20,11 @@
 #include <string>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   The field_info_t type provides a structure for capturing runtime field
@@ -38,10 +39,14 @@ struct field_info_t {
 
 using fields = std::vector<const field_info_t *>;
 
+/// \}
 } // namespace data
 
+/// \addtogroup data
+/// \{
+
 //----------------------------------------------------------------------------//
-// This value is used by the Legion runtime backend to automatically
+// This value is used by the Legion backend to automatically
 // assign task and field ids. The current maximum value that is allowed
 // in legion_config.h is 1<<20.
 //
@@ -58,6 +63,8 @@ using fields = std::vector<const field_info_t *>;
  */
 inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 
-using TopologyType = std::size_t;
+using TopologyType = std::size_t; // for field registration
 
+/// \}
 } // namespace flecsi
+/// \endcond

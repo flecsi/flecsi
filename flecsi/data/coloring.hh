@@ -13,24 +13,25 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi/execution.hh>
 
 #include <optional>
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
+/// A coloring object, constructed on request.
+///
+/// \note Usually accessed as \c Topo::cslot.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /*!
-    @note The MPI task launched by this method is always mapped to the process
-    launch domain.
-  */
-
+  /// Create the coloring object.
+  /// \param args arguments to \c Topo::color
+  /// \return the created object
   template<typename... ARGS>
   color_type & allocate(ARGS &&... args) {
     constexpr auto f = [](coloring_slot & s, ARGS &&... aa) {
@@ -40,14 +41,16 @@ struct coloring_slot {
     return get();
   } // allocate
 
+  /// Destroy the coloring object.
   void deallocate() {
     coloring.reset();
   } // deallocate
 
+  /// Get the coloring object.
   color_type & get() {
     return *coloring;
   }
-
+  /// Get the coloring object.
   const color_type & get() const {
     return *coloring;
   }
@@ -56,5 +59,6 @@ private:
   std::optional<color_type> coloring;
 };
 
+/// \}
 } // namespace data
 } // namespace flecsi

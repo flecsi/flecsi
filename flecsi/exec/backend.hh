@@ -13,14 +13,15 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/exec/task_attributes.hh"
 #include <flecsi-config.h>
 
 #include <cstddef>
 
 namespace flecsi {
+/// \addtogroup execution
+/// \{
+
 /*!
   Execute a task.
 
@@ -37,8 +38,8 @@ namespace flecsi {
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
 
-  \note Additional types may be supported by defining appropriate
-    specializations of \c util::serial or \c util::serial_convert.  Avoid
+  \note
+    Avoid
     passing large objects to tasks repeatedly; use global variables (and,
     perhaps, pass keys to select from them) or fields.
  */
@@ -47,25 +48,24 @@ template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
 auto execute(ARGS &&...);
+/// \}
 } // namespace flecsi
 
 //----------------------------------------------------------------------------//
-// This section works with the build system to select the correct runtime
-// implemenation for the task model. If you add to the possible runtimes,
-// remember to edit config/packages.cmake to include a definition using
-// the same convention, e.g., -DFLECSI_RUNTIME_MODEL_new_runtime.
+// This section works with the build system to select the correct backend
+// implementation for the task model.
 //----------------------------------------------------------------------------//
 
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 
 #include "flecsi/exec/leg/policy.hh"
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 
 #include "flecsi/exec/mpi/policy.hh"
 
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_hpx
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 
 #include "flecsi/exec/hpx/policy.hh"
 
-#endif // FLECSI_RUNTIME_MODEL
+#endif // FLECSI_BACKEND

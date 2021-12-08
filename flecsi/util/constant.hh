@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <array>
 #include <cstddef>
 #include <tuple>
@@ -22,6 +20,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<class...>
 struct types {};
@@ -130,5 +130,6 @@ struct key_tuple : std::tuple<typename VT::type...> {
   }
 }; // struct key_tuple
 
+/// \}
 } // namespace util
 } // namespace flecsi

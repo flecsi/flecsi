@@ -57,7 +57,7 @@ reduce_vec(intN::accessor<ro> a) {
   UNIT() {
     size_t res =
       reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
-      up += i;
+      up(i);
     };
     EXPECT_EQ(res, 3 * a.get().size());
   };
@@ -96,7 +96,7 @@ reduce_vec_bound(intN::accessor<ro> a) {
       exec::fold::sum,
       size_t,
       "reduce_first") {
-      up += j;
+      up(j);
     };
     EXPECT_EQ(res_first, 2 * 5);
 
@@ -106,7 +106,7 @@ reduce_vec_bound(intN::accessor<ro> a) {
       exec::fold::sum,
       size_t,
       "reduce_last") {
-      up += j;
+      up(j);
     };
     EXPECT_EQ(res_last, 5 * 5);
   };

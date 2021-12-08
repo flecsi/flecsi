@@ -1,0 +1,14 @@
+#------------------------------------------------------------------------------#
+# Values specific to this target.
+#------------------------------------------------------------------------------#
+
+PROJECT_NAME = "User API"
+
+EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
+                   */leg/* */mpi/* */hpx/* */test/*
+
+PREDEFINED = FLECSI_ENABLE_FLOG \
+             FLOG_ENABLE_MPI \
+             DOXYGEN
+
+WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-user.out

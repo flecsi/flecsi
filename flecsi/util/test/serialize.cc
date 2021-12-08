@@ -35,28 +35,28 @@ sanity() {
       std::unordered_map<size_t, size_t> um{{2, 1}, {3, 2}};
       std::set<size_t> s{0, 1, 2, 3, 4};
 
-      data = serial_put_tuple(v, m, um, s);
+      data = serial::put_tuple(v, m, um, s);
     } // scope
 
     {
       const auto * p = data.data();
 
-      const auto v = serial_get<std::vector<double>>(p);
+      const auto v = serial::get<std::vector<double>>(p);
       ASSERT_EQ(v[0], 0.0);
       ASSERT_EQ(v[1], 1.0);
       ASSERT_EQ(v[2], 2.0);
       ASSERT_EQ(v[3], 3.0);
       ASSERT_EQ(v[4], 4.0);
 
-      const auto m = serial_get<std::map<size_t, size_t>>(p);
+      const auto m = serial::get<std::map<size_t, size_t>>(p);
       ASSERT_EQ(m.at(0), 1u);
       ASSERT_EQ(m.at(1), 0u);
 
-      const auto um = serial_get<std::unordered_map<size_t, size_t>>(p);
+      const auto um = serial::get<std::unordered_map<size_t, size_t>>(p);
       ASSERT_EQ(um.at(2), 1u);
       ASSERT_EQ(um.at(3), 2u);
 
-      const auto s = serial_get<std::set<size_t>>(p);
+      const auto s = serial::get<std::set<size_t>>(p);
       ASSERT_NE(s.find(0), s.end());
       ASSERT_NE(s.find(1), s.end());
       ASSERT_NE(s.find(2), s.end());
@@ -96,17 +96,17 @@ user_type() {
       type_t t3(3);
       type_t t4(4);
 
-      data = serial_put_tuple(t0, t1, t2, t3, t4);
+      data = serial::put_tuple(t0, t1, t2, t3, t4);
     } // scope
 
     {
       const auto * p = data.data();
 
-      ASSERT_EQ(serial_get<type_t>(p).id(), 0u);
-      ASSERT_EQ(serial_get<type_t>(p).id(), 1u);
-      ASSERT_EQ(serial_get<type_t>(p).id(), 2u);
-      ASSERT_EQ(serial_get<type_t>(p).id(), 3u);
-      ASSERT_EQ(serial_get<type_t>(p).id(), 4u);
+      ASSERT_EQ(serial::get<type_t>(p).id(), 0u);
+      ASSERT_EQ(serial::get<type_t>(p).id(), 1u);
+      ASSERT_EQ(serial::get<type_t>(p).id(), 2u);
+      ASSERT_EQ(serial::get<type_t>(p).id(), 3u);
+      ASSERT_EQ(serial::get<type_t>(p).id(), 4u);
     } // scope
   };
 } // user_type
@@ -149,14 +149,14 @@ struct simple_context_t {
   } // clear
 
 private:
-  friend serial_convert<simple_context_t>;
+  friend serial::convert<simple_context_t>;
 
   std::unordered_map<size_t, map_element_t> element_map_;
 
 }; // struct simple_context_t
 
 template<>
-struct flecsi::util::serial_convert<simple_context_t> {
+struct flecsi::util::serial::convert<simple_context_t> {
   using Rep = decltype(simple_context_t::element_map_);
   static const Rep & put(const simple_context_t & c) {
     return c.element_map_;
@@ -208,13 +208,13 @@ simple_context() {
       info.id = 24;
       context.add_map_element_info(1, 4, info);
 
-      data = serial_put_tuple(context);
+      data = serial::put_tuple(context);
     } // scope
 
     context.clear();
 
     {
-      context = serial_get1<simple_context_t>(data.data());
+      context = serial::get1<simple_context_t>(data.data());
 
       auto & element_map = context.element_map();
 

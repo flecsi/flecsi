@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/privilege.hh"
@@ -24,38 +22,68 @@
 #include <map>
 #include <set>
 
+/// \cond core
 namespace flecsi::data {
+/// \defgroup topology-data Topology implementation
+/// These types are movable but may not be copyable.
+/// \ingroup data
+/// \{
+
 template<class, layout, class Topo, typename Topo::index_space>
 struct field_reference;
 
 #ifdef DOXYGEN // implemented per-backend
-// These types are movable but may not be copyable.
-
-// A rectangular abstract array.
+/// A rectangular abstract array.
 struct region_base {
-  region(size2, const fields &, const char * = nullptr);
+  /// Construct an array of several fields.
+  /// \param s total size (perhaps much larger than what is allocated)
+  /// \param f fields to define (not all of which need be allocated)
+  /// \param n optional name for debugging
+  region(size2 s, const fields & f, const char * n = nullptr);
 
+  /// Get (bounding) size.
   size2 size() const;
 };
 
-// Base class storing a prefix of each row in a region_base.
+/// Base class storing a prefix of each row in a \c region_base.
+/// \note No constructors are specified.
 struct partition {
-  // no constructor specified
-
+  /// Get the number of subsets (also the number of rows).
   Color colors() const;
-  template<topo::single_space> // for convenience for simple topologies
-  const partition & get_partition(field_id_t) const {
+  /// Convenience function for simple topologies with just one partition.
+  /// \return this object
+  template<topo::single_space>
+  partition & get_partition(field_id_t) {
     return *this;
   }
 };
 
-// All of each row in a region_base.
+/// All of each row in a region_base.
 struct rows : partition {
+  /// Divide a region into rows.
   explicit rows(region_base &);
 };
 
+// A set of prefixes of some rows in a region_base.
+// Often each is shared with a data::prefixes object (from copy.hh).
+struct borrow : partition {
+  // A prefix is represented by a backend-specific type:
+  static auto make(prefixes_base::row,
+    std::size_t r = color()); // "constructor"
+  using Value = decltype(make({}));
+  static std::size_t get_row(const Value &); // "accessor"
+  static prefixes_base::row get_size(const Value &);
+
+  // Derives row choices from the single Value object (if any) in each row of
+  // the argument partition.
+  borrow(region_base &,
+    const partition &,
+    field_id_t,
+    completeness = incomplete);
+};
 #endif
 
+// Adds backend-independent metadata.
 struct region : region_base {
   using region_base::region_base;
   // key_type is a bit odd here, but we lack a generic single-type wrapper.
@@ -140,6 +168,7 @@ make_region(size2 s) {
   return {s, util::key_type<Index, Topo>()};
 }
 
+// Types ending in "ed" indicate that a region is bundled.
 template<class P>
 struct partitioned : region, P {
   template<class... TT>
@@ -148,4 +177,6 @@ struct partitioned : region, P {
       P(static_cast<region &>(*this), std::forward<TT>(tt)...) {}
 };
 
+/// \}
 } // namespace flecsi::data
+/// \endcond
