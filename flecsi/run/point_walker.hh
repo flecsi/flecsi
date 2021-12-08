@@ -43,7 +43,7 @@ namespace run_impl {
 template<bool (*Predicate)(), typename... ControlPoints>
 struct cycle {
 
-  using type = std::tuple<ControlPoints...>;
+  using type = util::types<ControlPoints...>;
 
   static bool predicate() {
     return Predicate();
@@ -53,7 +53,7 @@ struct cycle {
 
 template<class F, class... TT>
 void
-walk(F && f, std::tuple<TT...> *) {
+walk(F && f, util::types<TT...> *) {
   (f.template visit_type<TT>(), ...);
 }
 template<class T, class F>
@@ -61,6 +61,17 @@ void
 walk(F && f) {
   walk(std::forward<F>(f), static_cast<T *>(nullptr));
 }
+
+template<class T>
+struct to_types {
+  using type = T;
+};
+template<class... TT>
+struct to_types<std::tuple<TT...>> {
+  using type = util::types<TT...>;
+};
+template<class P>
+using to_types_t = typename to_types<typename P::control_points>::type;
 
 /*
   Helper type to initialize dag labels.
