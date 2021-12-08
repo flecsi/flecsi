@@ -43,13 +43,9 @@ if(ENABLE_DOCUMENTATION)
         echo "Updating gh-pages" &&
           ([ -e gh-pages ] ||
             ${GIT_EXECUTABLE} clone --single-branch --branch gh-pages
-              git@gitlab.lanl.gov:flecsi/flecsi-pages.git gh-pages &&
+              git@github.com:flecsi/flecsi.git gh-pages &&
             cd gh-pages &&
-            git rm -r . && git reset &&
-            ${GIT_EXECUTABLE} remote rm origin &&
-            ${GIT_EXECUTABLE} remote add origin
-              git@github.com:flecsi/flecsi.git &&
-              ${GIT_EXECUTABLE} fetch) &&
+            git rm -r . && git reset) &&
         echo "Updating pages" &&
           cp -rT doc gh-pages &&
         echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages" &&
