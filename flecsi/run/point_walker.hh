@@ -158,7 +158,7 @@ struct point_writer {
     "#4eb2e0",
     "#9dd9f3"};
 
-  point_writer(std::map<control_points_enum, dag> registry,
+  point_writer(const std::map<control_points_enum, dag> & registry,
     graphviz & gv,
     Agnode_t *& b,
     Agnode_t *& l,
@@ -169,7 +169,7 @@ struct point_writer {
   void visit_type() {
     if constexpr(std::is_same<typename ElementType::type,
                    control_points_enum>::value) {
-      auto & dag = registry_[ElementType::value];
+      auto & dag = registry_.at(ElementType::value);
 
       auto * root = gv_.add_node(dag.label().c_str(), dag.label().c_str());
       set_begin(root);
@@ -260,7 +260,7 @@ private:
       begin = b;
   }
 
-  std::map<control_points_enum, dag> registry_;
+  const std::map<control_points_enum, dag> & registry_;
   graphviz & gv_;
   Agnode_t *&begin, *&last;
   int depth_;
