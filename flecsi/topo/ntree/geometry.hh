@@ -12,12 +12,6 @@
  * All rights reserved
  *~--------------------------------------------------------------------------~*/
 
-/*!
-  \file tree_entity.h
-  \authors jloiseau@lanl.gov
-  \date jul. 2018
- */
-
 #pragma once
 
 #include "flecsi/util/geometry/point.hh"

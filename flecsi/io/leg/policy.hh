@@ -14,8 +14,6 @@
 #ifndef FLECSI_IO_LEG_POLICY_HH
 #define FLECSI_IO_LEG_POLICY_HH
 
-/*!  @file */
-
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -44,6 +42,10 @@
 
 namespace flecsi {
 namespace io {
+/// \defgroup legion-io Legion I/O
+/// \ingroup io
+/// \{
+
 using FieldSizes = std::map<Legion::FieldID, std::size_t>;
 
 // This one task handles all I/O variations: read or Write, Attach or not.
@@ -59,9 +61,9 @@ checkpoint_task(const Legion::Task * task,
   const std::byte * task_args = (const std::byte *)task->args;
 
   const auto field_size_map_vector =
-    util::serial_get<std::vector<FieldSizes>>(task_args);
+    util::serial::get<std::vector<FieldSizes>>(task_args);
   const auto fname =
-    util::serial_get<std::string>(task_args) + std::to_string(point);
+    util::serial::get<std::string>(task_args) + std::to_string(point);
 
   hdf5 checkpoint_file({});
   if constexpr(A) {
@@ -211,14 +213,15 @@ struct io_interface {
     Legion::Context ctx = Legion::Runtime::get_context();
     auto & context = run::context::instance();
     auto & isd_vector = context.get_index_space_info();
+    namespace serial = util::serial;
 
     std::vector<FieldSizes> field_size_map_vector;
     for(auto & isd : isd_vector) {
       field_size_map_vector.emplace_back(make_field_size_map(isd.fields));
     }
-    const auto task_args = util::serial_buffer([&](auto & p) {
-      util::serial_put(p, field_size_map_vector);
-      util::serial_put(p, file_name);
+    const auto task_args = serial::buffer([&](auto & p) {
+      serial::put(p, field_size_map_vector);
+      serial::put(p, file_name);
     });
 
     const auto task_id =
@@ -281,6 +284,7 @@ private:
   data::leg::unique_index_partition launch_partition;
 };
 
+/// \}
 } // namespace io
 } // namespace flecsi
 

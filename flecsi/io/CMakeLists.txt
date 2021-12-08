@@ -22,14 +22,14 @@ set(io_HEADERS
 set(io_SOURCES
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
   set(io_HEADERS
     leg/policy.hh
     ${io_HEADERS}
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+elseif(FLECSI_BACKEND STREQUAL "mpi")
 
   set(io_HEADERS
     mpi/policy.hh
@@ -40,7 +40,7 @@ elseif(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
     ${io_SOURCES}
   )
 
-elseif(FLECSI_RUNTIME_MODEL STREQUAL "hpx")
+elseif(FLECSI_BACKEND STREQUAL "hpx")
 
   set(io_HEADERS ${io_HEADERS}
   )
@@ -79,7 +79,7 @@ add_unit(hdf5_restart
   THREADS 4
 )
 
-if(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+if(FLECSI_BACKEND STREQUAL "legion")
 
 add_unit(io_metadata
   SOURCES

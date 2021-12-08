@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"
@@ -22,8 +20,11 @@
 
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup topology
+/// \{
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
@@ -131,6 +132,7 @@ private:
 template<class P, Privileges Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
+// Subroutines for topology accessors:
 template<class F, class... VT, class C, class S = util::identity>
 void connect_send(F && f,
   util::key_tuple<VT...> & ca,
@@ -146,7 +148,6 @@ void connect_send(F && f,
     }(),
     ...);
 }
-
 template<class F, class... VT, class L, class S>
 void
 lists_send(F && f,
@@ -247,12 +248,18 @@ private:
   T t;
 };
 
+/// Specify an iteration over \c id objects.
+/// \tparam S index space
+/// \param c range of integers
+/// \return a range of \c id<S> objects, perhaps lifetime-bound to \a c
 template<auto S, class C>
-FLECSI_INLINE_TARGET auto make_ids(
-  C && c) { // NB: return value may be lifetime-bound to c
+FLECSI_INLINE_TARGET auto
+make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
 
+/// \}
 } // namespace topo
 } // namespace flecsi
+/// \endcond

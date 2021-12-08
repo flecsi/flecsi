@@ -13,12 +13,6 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  This file contains implementations of field accessor types.
- */
-
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"
@@ -31,6 +25,8 @@
 
 namespace flecsi {
 namespace data {
+/// \addtogroup data
+/// \{
 
 template<class>
 struct multi;
@@ -92,6 +88,7 @@ struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
 // All accessors are ultimately implemented in terms of those for the raw
 // layout, minimizing the amount of backend-specific code required.
 
+/// Accessor for a single value.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using value_type = DATA_TYPE;
@@ -102,24 +99,30 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   explicit accessor(std::size_t s) : base(s) {}
   accessor(const base_type & b) : base(b) {}
 
+  /// Get the value.
   element_type & get() const {
     return base(0);
   } // data
+  /// Convert to the value.
   operator element_type &() const {
     return get();
   } // value
 
+  /// Assign to the value.
   const accessor & operator=(const DATA_TYPE & value) const {
     return const_cast<accessor &>(*this) = value;
   } // operator=
+  /// Assign to the value.
   accessor & operator=(const DATA_TYPE & value) {
     get() = value;
     return *this;
   } // operator=
 
+  /// Get the value.
   element_type & operator*() const {
     return get();
   }
+  /// Access a member of the value.
   element_type * operator->() const {
     return &get();
   } // operator->
@@ -140,6 +143,7 @@ private:
   base_type base;
 }; // struct accessor
 
+/// Accessor for potentially uninitialized memory.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
@@ -151,6 +155,8 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
     return f;
   }
 
+  /// Get the allocated memory.
+  /// \return \c util::span
   FLECSI_INLINE_TARGET
   auto span() const {
     return s;
@@ -165,6 +171,8 @@ private:
   util::span<element_type> s;
 }; // struct accessor
 
+/// Accessor for ordinary fields.
+/// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
 template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   using base_type = accessor<raw, T, P>;
@@ -173,12 +181,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 
   accessor(const base_type & b) : base_type(b) {}
 
-  /*!
-    Provide logical array-based access to the data referenced by this
-    accessor.
-
-    @param index The index of the logical array to access.
-   */
+  /// Index with bounds checking (except with \c NDEBUG).
   FLECSI_INLINE_TARGET
   typename accessor::element_type & operator()(size_type index) const {
     const auto s = this->span();
@@ -186,6 +189,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
     return s[index];
   } // operator()
 
+  /// Index without bounds checking (even without \c NDEBUG).
   FLECSI_INLINE_TARGET
   typename accessor::element_type & operator[](size_type index) const {
     return this->span()[index];
@@ -212,6 +216,11 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 
 // The offsets privileges are separate because they are writable for mutators
 // but read-only for even writable accessors.
+
+/// Accessor for ragged fields.
+/// \tparam P if write-only, rows do not change size but their elements are
+///   reinitialized
+/// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
 template<class T, Privileges P, Privileges OP = P>
 struct ragged_accessor
   : accessor<raw, T, P>,
@@ -227,19 +236,24 @@ struct ragged_accessor
   using base_type::base_type;
   ragged_accessor(const base_type & b) : base_type(b) {}
 
+  /// Get the row at an index point.
+  /// \return \c util::span
   row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
-  size_type size() const noexcept { // not total!
+  /// Return the number of rows.
+  size_type size() const noexcept {
     return off.span().size();
   }
+  /// Return the number of elements across all rows.
   Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
 
+  /// Get the elements without any row structure.
   util::span<element_type> span() const {
     return get_base().span().first(total());
   }
@@ -307,6 +321,8 @@ struct accessor<ragged, T, P>
   using accessor::ragged_accessor::ragged_accessor;
 };
 
+/// Mutator for ragged fields.
+/// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
@@ -353,6 +369,7 @@ private:
   };
 
 public:
+  /// A row handle.
   struct row : util::with_index_iterator<const row>, private raw_row {
     using value_type = T;
     using typename raw_row::size_type;
@@ -361,6 +378,8 @@ public:
 
     row(const raw_row & r) : raw_row(r) {}
 
+    /// \name \c std::vector operations
+    /// \{
     void assign(size_type n, const T & t) const {
       clear();
       resize(n, t);
@@ -532,6 +551,8 @@ public:
     void resize(size_type n, const T & t) const {
       extend(n, t);
     }
+    /// \}
+
     // No swap: it would swap the handles, not the contents
 
   private:
@@ -615,9 +636,11 @@ public:
   mutator(const base_type & b, const topo::resize::policy & p)
     : acc(b), grow(p) {}
 
+  /// Get the row at an index point.
   row operator[](size_type i) const {
     return raw_get(i);
   }
+  /// Get the number of rows.
   size_type size() const noexcept {
     return acc.size();
   }
@@ -726,6 +749,10 @@ private:
 };
 
 // Many compilers incorrectly require the 'template' for a base class.
+
+/// Accessor for sparse fields.
+/// \tparam P cannot be write-only
+/// \see \link ragged_accessor the base class\endlink
 template<class T, Privileges P>
 struct accessor<sparse, T, P>
   : field<T, sparse>::base_type::template accessor1<P>,
@@ -747,10 +774,12 @@ private:
   using base_row = typename base_type::row;
 
 public:
-  // Use the ragged interface to obtain the span directly.
+  /// A mapping backed by a row.  Use the \c ragged interface to iterate.
   struct row {
     using key_type = typename Field::key_type;
     row(base_row s) : s(s) {}
+    /// Find an element.
+    /// \param c must exist
     element_type & operator()(key_type c) const {
       return std::partition_point(
         s.begin(), s.end(), [c](const value_type & v) { return v.first < c; })
@@ -764,6 +793,7 @@ public:
   using base_type::base_type;
   accessor(const base_type & b) : base_type(b) {}
 
+  /// Get the row at an index point.
   row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
@@ -781,6 +811,8 @@ public:
   }
 };
 
+/// Mutator for sparse fields.
+/// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
@@ -797,12 +829,15 @@ private:
   using base_iterator = typename base_row::iterator;
 
 public:
+  /// A row handle.
   struct row {
     using key_type = typename Field::key_type;
     using value_type = typename base_row::value_type;
     using size_type = typename base_row::size_type;
 
-    // NB: invalidated by insertions/deletions, unlike std::map::iterator.
+    /// Bidirectional iterator over key-value pairs.
+    /// \warning Unlike \c std::map::iterator, this sort of iterator is
+    ///   invalidated by insertions/deletions.
     struct iterator {
     public:
       using value_type = std::pair<const key_type &, T &>;
@@ -814,6 +849,8 @@ public:
 
       iterator(base_iterator i = {}) : i(i) {}
 
+      /// Get an element.
+      /// \return a pair of references
       value_type operator*() const {
         return {i->first, i->second};
       }
@@ -854,6 +891,8 @@ public:
 
     row(base_row r) : r(r) {}
 
+    /// \name \c std::map operations
+    /// \{
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;
     }
@@ -947,6 +986,7 @@ public:
       const auto [i, hit] = lookup(c);
       return i + hit;
     }
+    /// \}
 
   private:
     base_iterator lower(key_type c) const {
@@ -966,9 +1006,11 @@ public:
 
   mutator(const base_type & b) : rag(b) {}
 
+  /// Get the row at an index point.
   row operator[](size_type i) const {
     return get_base()[i];
   }
+  /// Get the number of rows.
   size_type size() const noexcept {
     return rag.size();
   }
@@ -1262,6 +1304,9 @@ private:
 };
 
 namespace detail {
+// The backend knows where field data is stored for the current task.
+// If 'device' is in fact a pointer to device data, they copy it into 'host'
+// when this type is processed as a "task parameter".
 template<class T>
 struct scalar_value {
   const T * device;
@@ -1297,6 +1342,10 @@ private:
 };
 } // namespace detail
 
+/// Metadata provided with this type is made available on the host if
+/// read-only even if fields are stored on a device.  Use `*sa` or `sa->` to
+/// access it.
+/// \tparam P produces an ordinary accessor if writable
 template<const auto & F, Privileges P>
 using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
@@ -1362,6 +1411,7 @@ private:
   std::shared_ptr<std::vector<round>> vp;
 };
 
+/// \}
 } // namespace data
 
 template<data::layout L, class T, Privileges P>

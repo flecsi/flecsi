@@ -12,18 +12,37 @@ inline log::devel_tag task_prologue_tag("task_prologue");
 }
 
 // task_prologue is implemented per backend:
-#if FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_legion
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/exec/leg/task_prologue.hh"
-#elif FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi
+#elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 #include "flecsi/exec/mpi/task_prologue.hh"
 #endif
 
+/// \cond core
 namespace flecsi::exec {
+/// \addtogroup execution
+/// \{
+
+#ifdef DOXYGEN // implemented per-backend
+/// Handling for low-level special task parameters/arguments.
+/// The exact member function signatures may vary between backends.
+struct task_prologue {
+protected:
+  /// Default constructible.
+  task_prologue();
+
+  /// Send a raw field reference to a raw accessor.
+  template<typename T, Privileges P, class Topo, typename Topo::index_space S>
+  void visit(data::accessor<data::raw, T, P> &,
+    const data::field_reference<T, data::raw, Topo, S> &);
+  /// Send an index future to a single future.
+  template<typename R>
+  void visit(future<R> &, const future<R, launch_type_t::index> &);
+};
+#endif
 
 /*!
   Analyzes task arguments and updates data objects before launching a task.
-
-  @ingroup execution
 */
 template<task_processor_type_t ProcessorType>
 struct prolog : task_prologue<ProcessorType> {
@@ -63,6 +82,8 @@ private:
   } // visit
 };
 
+/// \}
 } // namespace flecsi::exec
+/// \endcond
 
 #endif

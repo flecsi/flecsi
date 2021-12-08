@@ -13,14 +13,11 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/dag.hh"
-#include "flecsi/util/tuple_walker.hh"
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 #include "flecsi/util/graphviz.hh"
@@ -29,8 +26,11 @@
 #include <map>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace run_impl {
+/// \addtogroup control
+/// \{
 
 template<auto P>
 struct control_point : util::constant<P> {};
@@ -43,8 +43,6 @@ struct meta_point : util::constant<P> {};
   @tparam Predicate     A predicate function that determines when
                         the cycle should end.
   @tparam ControlPoints A variadic list of control points within the cycle.
-
-  @ingroup control
  */
 
 template<bool (*Predicate)(), typename... ControlPoints>
@@ -83,6 +81,17 @@ struct cycle {
   } // run
 
 }; // struct cycle
+
+template<class F, class... TT>
+void
+walk(F && f, std::tuple<TT...> *) {
+  (f.template visit_type<TT>(), ...);
+}
+template<class T, class F>
+void
+walk(F && f) {
+  walk(std::forward<F>(f), static_cast<T *>(nullptr));
+}
 
 /*
   Utility type for meta point search.
@@ -141,7 +150,7 @@ is_meta(C cp) {
  */
 
 template<typename P>
-struct init_walker : public util::tuple_walker<init_walker<P>> {
+struct init_walker {
 
   using control_points_enum = typename P::control_points_enum;
   using dag = util::dag<typename P::control_node>;
@@ -157,7 +166,7 @@ struct init_walker : public util::tuple_walker<init_walker<P>> {
       registry_.try_emplace(ElementType::value, *ElementType::value);
     }
     else {
-      init_walker(registry_).template walk_types<typename ElementType::type>();
+      walk<typename ElementType::type>(*this);
     } // while
   } // visit_type
 
@@ -169,12 +178,10 @@ private:
 /*!
   The point_walker class allows execution of statically-defined
   control points.
-
-  @ingroup control
  */
 
 template<typename P>
-struct point_walker : public util::tuple_walker<point_walker<P>> {
+struct point_walker {
 
   using control_points_enum = typename P::control_points_enum;
   using node_type = typename P::node_type;
@@ -209,7 +216,7 @@ struct point_walker : public util::tuple_walker<point_walker<P>> {
       // the cycle.
       while(ElementType::predicate()) {
         point_walker walker(sorted_, exit_status_);
-        walker.template walk_types<typename ElementType::type>();
+        walk<typename ElementType::type>(walker);
       } // while
     } // if
   } // visit_type
@@ -223,7 +230,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 
 template<typename P>
-struct point_writer : public flecsi::util::tuple_walker<point_writer<P>> {
+struct point_writer {
   using control_points_enum = typename P::control_points_enum;
   using control_points = typename P::control_points;
   using node_type = typename P::node_type;
@@ -277,8 +284,8 @@ struct point_writer : public flecsi::util::tuple_walker<point_writer<P>> {
       } // for
     }
     else {
-      point_writer(registry_, gv_, depth_ - 1)
-        .template walk_types<typename ElementType::type>();
+      walk<typename ElementType::type>(
+        point_writer(registry_, gv_, depth_ - 1));
 
       auto & begin = registry_[ElementType::begin];
       auto & end = registry_[ElementType::end];
@@ -339,5 +346,7 @@ private:
 
 #endif // FLECSI_ENABLE_GRAPHVIZ
 
+/// \}
 } // namespace run_impl
 } // namespace flecsi
+/// \endcond

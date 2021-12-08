@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/exec/launch.hh"
@@ -42,6 +40,10 @@ namespace flecsi {
 inline log::devel_tag execution_tag("execution");
 
 namespace exec {
+/// \defgroup legion-execution Legion Execution
+/// Potentially remote task execution.
+/// \ingroup execution
+/// \{
 namespace detail {
 
 // Remove const from under a reference, if there is one.
@@ -132,7 +134,8 @@ reduce_internal(Args &&... args) {
   }
   else {
     buf = std::apply(
-      [](const auto &... pp) { return util::serial_put_tuple(pp...); }, params);
+      [](const auto &... pp) { return util::serial::put_tuple(pp...); },
+      params);
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;
@@ -149,10 +152,7 @@ reduce_internal(Args &&... args) {
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    {
-      log::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing single task" << std::endl;
-    }
+    flog_devel(info) << "Executing single task" << std::endl;
 
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
     add(launcher);
@@ -161,10 +161,7 @@ reduce_internal(Args &&... args) {
       legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
-    {
-      log::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing index task" << std::endl;
-    }
+    flog_devel(info) << "Executing index task" << std::endl;
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),
@@ -205,5 +202,6 @@ reduce_internal(Args &&... args) {
 
 } // reduce_internal
 
+/// \}
 } // namespace exec
 } // namespace flecsi

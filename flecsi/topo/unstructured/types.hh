@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
@@ -465,66 +463,66 @@ struct unstructured_base {
  *----------------------------------------------------------------------------*/
 
 template<>
-struct util::serial<topo::unstructured_impl::shared_entity> {
+struct util::serial::traits<topo::unstructured_impl::shared_entity> {
   using type = topo::unstructured_impl::shared_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, s.id, s.dependents);
+    serial::put(p, s.id, s.dependents);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r};
   }
 };
 
 template<>
-struct util::serial<topo::unstructured_impl::ghost_entity> {
+struct util::serial::traits<topo::unstructured_impl::ghost_entity> {
   using type = topo::unstructured_impl::ghost_entity;
   template<class P>
   static void put(P & p, const type & s) {
-    serial_put(p, s.id, s.color);
+    serial::put(p, s.id, s.color);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r};
   }
 };
 
 template<>
-struct util::serial<topo::unstructured_impl::crs> {
+struct util::serial::traits<topo::unstructured_impl::crs> {
   using type = topo::unstructured_impl::crs;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, c.offsets, c.indices);
+    serial::put(p, c.offsets, c.indices);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r};
   }
 };
 
 template<>
-struct util::serial<topo::unstructured_impl::index_coloring> {
+struct util::serial::traits<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
+    serial::put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r, r, r, r};
   }
 };
 
 template<>
-struct util::serial<topo::unstructured_impl::process_color> {
+struct util::serial::traits<topo::unstructured_impl::process_color> {
   using type = topo::unstructured_impl::process_color;
   template<class P>
   static void put(P & p, const type & c) {
-    serial_put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
+    serial::put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
   }
   static type get(const std::byte *& p) {
-    const serial_cast r{p};
+    const cast r{p};
     return type{r, r, r, r};
   }
 };

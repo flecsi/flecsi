@@ -8,6 +8,12 @@
 
 namespace flecsi::data {
 namespace leg {
+/// \addtogroup legion-data
+/// \{
+
+// Legion performs better with regions partitioned (completely) into disjoint
+// subregions.  This internal topology stores two rectangles for each row;
+// memory is allocated only for the first.
 struct halves : topo::specialization<topo::color, halves> {
   using Field = flecsi::field<rect>;
   static const Field::definition<halves> field;
@@ -19,7 +25,7 @@ struct mirror {
   explicit mirror(size2 region);
 
   // Convert a prefixes_base::Field into a halves::Field.
-  // Return the partition to use to get each rectangle separately.
+  // Return the resulting two-subspace used/unused partition.
   template<class F>
   const partition<> & convert(F f) {
     execute<extend>(f, halves::field(rects), width);
@@ -48,7 +54,7 @@ private:
 struct with_partition {
   partition<> prt;
 }; // for initialization order
-
+/// \}
 } // namespace leg
 
 // Use inheritance to initialize mirror early:

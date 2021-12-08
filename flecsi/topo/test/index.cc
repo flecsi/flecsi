@@ -116,6 +116,7 @@ std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
 void
 use_ptr(field<int *>::accessor<wo>) {} // so too this
 
+// The unnamed mutator still allocates according to the growth policy.
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
@@ -198,8 +199,7 @@ part(short_part::mutator<wo> a) {
 }
 
 // The MPI backend doesn't support non-trivial color mappings:
-constexpr int process_fraction =
-  2 - (FLECSI_RUNTIME_MODEL == FLECSI_RUNTIME_MODEL_mpi);
+constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi);
 
 int
 use_map(data::multi<short_part::accessor<ro>> ma,

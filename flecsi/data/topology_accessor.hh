@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*!  @file */
-
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
 
@@ -25,6 +23,8 @@ struct borrow;
 }
 
 namespace data {
+/// \addtogroup data
+/// \{
 
 /*!
   Topology accessor type. Topology accessors are defined by the interface of
@@ -37,6 +37,8 @@ namespace data {
 
   \tparam T topology type
   \tparam Priv privilege pack
+
+  \note Usually accessed as \c T::accessor.
  */
 template<class T, Privileges Priv>
 struct topology_accessor
@@ -50,6 +52,7 @@ struct topology_accessor
   explicit topology_accessor() = default;
 }; // struct topology_accessor
 
+/// \}
 } // namespace data
 
 template<class T, Privileges P>

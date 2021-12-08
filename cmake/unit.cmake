@@ -100,10 +100,10 @@ function(add_unit name)
   endif()
 
   #----------------------------------------------------------------------------#
-  # Check to see if the user has specified a runtime and process it.
+  # Check to see if the user has specified a backend and process it.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_RUNTIME_MODEL STREQUAL "mpi")
+  if(FLECSI_BACKEND STREQUAL "mpi")
 
     set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
     set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
@@ -113,7 +113,7 @@ function(add_unit name)
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
-  elseif(FLECSI_RUNTIME_MODEL STREQUAL "legion")
+  elseif(FLECSI_BACKEND STREQUAL "legion")
 
     set(unit_policy_flags ${Legion_CXX_FLAGS}
       ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
@@ -128,7 +128,7 @@ function(add_unit name)
 
   else()
 
-    message(WARNING "invalid runtime")
+    message(WARNING "invalid backend")
     return()
 
   endif()

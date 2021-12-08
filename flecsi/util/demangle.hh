@@ -13,20 +13,18 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <string>
 #include <typeinfo> // typeid()
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 /*!
   Return the demangled name.
 
   @param name The string to demangle.
-
-  @ingroup utils
  */
 
 std::string demangle(const char * const name);
@@ -35,8 +33,6 @@ std::string demangle(const char * const name);
   Return the demangled name of the type T.
 
   @tparam T the type (references and cv-qualification ignored)
-
-  @ingroup utils
  */
 
 template<class T>
@@ -47,10 +43,6 @@ type() {
 
 /*!
   Return the demangled name of the type identified by type_info.
-
-  @param std::type_info The type.
-
-  @ingroup utils
  */
 
 inline std::string
@@ -73,5 +65,6 @@ symbol() {
   return s.substr(PFX, s.size() - 1 - PFX);
 }
 
+/// \}
 } // namespace util
 } // namespace flecsi

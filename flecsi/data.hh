@@ -13,13 +13,6 @@
                                                                               */
 #pragma once
 
-/*!
-  @file
-
-  User interface to the FleCSI
-  data model.
- */
-
 #include "flecsi/data/map.hh"
 #include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/global.hh"
@@ -33,17 +26,21 @@
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {
+/// \defgroup data Data Model
+/// Defining topology instances and fields.
+/// \{
 
-/*
+/*!
   Default global topology instance.
  */
 inline topo::global::slot global_topology;
 
-/*
+/*!
   Per-process topology instance.
  */
 inline topo::index::slot process_topology;
 
+/// \cond core
 namespace detail {
 /// An RAII type to manage the global coloring and topologies.
 struct data_guard {
@@ -67,5 +64,6 @@ struct data_guard {
   } p;
 };
 } // namespace detail
-
+/// \endcond
+/// \}
 } // namespace flecsi

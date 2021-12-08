@@ -12,8 +12,6 @@
    All rights reserved.
                                                                               */
 
-/*! @file */
-
 #include "flecsi/util/demangle.hh"
 
 #include <memory>

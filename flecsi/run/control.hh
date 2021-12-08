@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <flecsi-config.h>
 
 #include "flecsi/execution.hh"
@@ -30,6 +28,10 @@
 
 namespace flecsi {
 namespace run {
+/// \defgroup control Control Model
+/// Types for defining, extending, and executinga control-flow graphs.
+/// \ingroup runtime
+/// \{
 
 inline log::devel_tag control_tag("control");
 
@@ -80,8 +82,6 @@ struct control_base {
   If Graphviz support is enabled, the control flow graph and its DAG nodes
   can be written to a graphviz file that can be compiled and viewed using
   the \em dot program.
-
-  @ingroup control
  */
 
 template<typename P>
@@ -138,7 +138,7 @@ private:
    */
 
   control() {
-    init_walker(registry_).template walk_types<control_points>();
+    run_impl::walk<control_points>(init_walker(registry_));
   }
 
   /*
@@ -178,7 +178,7 @@ private:
 
   int run() {
     int status{flecsi::run::status::success};
-    point_walker(sort(), status).template walk_types<control_points>();
+    run_impl::walk<control_points>(point_walker(sort(), status));
     return status;
   } // run
 
@@ -189,7 +189,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() {
     flecsi::util::graphviz gv;
-    point_writer(registry_, gv).template walk_types<control_points>();
+    run_impl::walk<control_points>(point_writer(registry_, gv));
     std::string file = program() + "-control-model.dot";
     gv.write(file);
     return flecsi::run::status::control_model;
@@ -237,9 +237,6 @@ public:
     /*!
       Add a function to be executed under the specified control point.
 
-      @param target The target function.
-      @param label  The label for the function. This is used to label the node
-                    when the control model is printed with graphviz.
       @param args   A variadic list of arguments that are forwarded to the
                     user-defined node type, as spcified in the control policy.
      */
@@ -328,5 +325,6 @@ public:
 
 }; // struct control
 
+/// \}
 } // namespace run
 } // namespace flecsi

@@ -13,8 +13,6 @@
                                                                               */
 #pragma once
 
-/*! @file */
-
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"
@@ -35,6 +33,10 @@
 
 namespace flecsi {
 namespace exec {
+/// \defgroup kernel Kernels
+/// Local concurrent operations.
+/// \ingroup execution
+/// \{
 #if defined(FLECSI_ENABLE_KOKKOS)
 namespace kok {
 
@@ -206,13 +208,24 @@ struct forall_t {
 template<class P>
 forall_t(P, std::string)->forall_t<P>; // automatic in C++20
 
-/*!
-  The forall type provides a pretty interface for invoking data-parallel
-  execution.
- */
-
+/// A parallel range-for loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce
+/// \param P sized random-access range, possibly wrapped in a policy
+/// \param name debugging name, convertible to \c std::string
 #define forall(it, P, name)                                                    \
   ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
+
+namespace detail {
+template<class R, class T>
+struct reduce_ref {
+  void operator()(const T & v) const {
+    t = R::combine(t, v);
+  }
+  T & t;
+};
+} // namespace detail
 
 /*!
   This function is a wrapper for Kokkos::parallel_reduce that has been adapted
@@ -224,6 +237,7 @@ T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
+    using ref = detail::reduce_ref<R, T>;
 #if defined(FLECSI_ENABLE_KOKKOS)
     kok::wrap<R, T> result;
     Kokkos::parallel_reduce(
@@ -231,15 +245,16 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
       policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        f(it.begin()[i], tmp);
+        f(it.begin()[i], ref{tmp});
       },
       result.kokkos());
     return result.reference();
 #else
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
+    ref r{res};
     for(auto i : policy_type)
-      lambda(p.range.begin()[i], res);
+      lambda(p.range.begin()[i], r);
     return res;
 #endif
   }
@@ -250,10 +265,6 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   }
 } // parallel_reduce
 
-/*!
-  The reduce_all type provides a pretty interface for invoking data-parallel
-  reductions.
- */
 template<class Policy, class R, class T>
 struct reduceall_t {
   template<typename Lambda>
@@ -271,47 +282,21 @@ make_reduce(P policy, std::string n) {
   return {std::move(policy), n};
 }
 
-#define reduceall(it, tmp, p, R, T, name)                                      \
+/// A parallel reduction loop.  Follow with a compound statement and `;`.
+/// Often the elements of \a range (and thus the values of \p it) are indices
+/// for other ranges.
+/// \param it variable name to introduce for elements
+/// \param ref variable name to introduce for storing results: call it to add
+///   a value to the reduction
+/// \param p sized random-access range, possibly wrapped in a policy
+/// \param R reduction operation type
+/// \param T data type
+/// \param name debugging name, convertible to \c std::string
+/// \return the reduced result
+#define reduceall(it, ref, p, R, T, name)                                      \
   ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
-                                                 auto && it, T & tmp)
+                                                 auto && it, auto ref)
 
-//----------------------------------------------------------------------------//
-//! Abstraction function for fine-grained, data-parallel interface.
-//!
-//! @tparam R range type
-//! @tparam FUNCTION    The calleable object type.
-//!
-//! @param r range over which to execute \a function
-//! @param function     The calleable object instance.
-//!
-//! @ingroup execution
-//----------------------------------------------------------------------------//
-
-template<class R, typename Function>
-inline void
-for_each(R && r, Function && function) {
-  std::for_each(r.begin(), r.end(), std::forward<Function>(function));
-} // for_each_u
-
-//----------------------------------------------------------------------------//
-//! Abstraction function for fine-grained, data-parallel interface.
-//!
-//! @tparam R range type
-//! @tparam Function    The calleable object type.
-//! @tparam Reduction   The reduction variabel type.
-//!
-//! @param r range over which to execute \a function
-//! @param function     The calleable object instance.
-//!
-//! @ingroup execution
-//----------------------------------------------------------------------------//
-
-template<class R, typename Function, typename Reduction>
-inline void
-reduce_each(R && r, Reduction & reduction, Function && function) {
-  for(const auto & e : r)
-    function(e, reduction);
-} // reduce_each_u
-
+/// \}
 } // namespace exec
 } // namespace flecsi
