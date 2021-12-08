@@ -258,6 +258,7 @@ one_to_allv(F const & f, MPI_Comm comm = MPI_COMM_WORLD) {
       send.data(),
       1,
       type<return_type>(),
+      0,
       comm));
     if(rank)
       return send.front();
