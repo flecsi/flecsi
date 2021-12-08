@@ -34,6 +34,7 @@ Fixed
 
   * HDF5 is supported by the CMake configuration.
   * Caliper is supported by the MPI backend.
+  * Building with the MPI backend properly links to the threading library.
 
 * Data
 
