@@ -17,7 +17,7 @@ the tutorial. As such, this example provides the following components:
 
 We discuss each of these individually. However, in general, to use this
 example as a template for a real application, you should just change all
-occurrances of *standalone* to whatever namespace name you would like to
+occurrances of ``poisson`` to whatever namespace name you would like to
 use for your project.
 
 Build System
@@ -26,12 +26,12 @@ Build System
 The build system uses standard CMake, and is entirely defined in
 CMakeLists.txt:
 
-.. literalinclude:: ../../../../tutorial/standalone/CMakeLists.txt
+.. literalinclude:: ../../../../tutorial/standalone/poisson/CMakeLists.txt
    :language: cmake
 
 To prepare this file for your project, you should do the following:
 
-* Change *standalone* to the name of your project wherever it occurs.
+* Change ``poisson`` to the name of your project wherever it occurs.
 
 * Update and add source files to the project.
 
@@ -59,12 +59,11 @@ examples in :ref:`TUT-CM` Tutorial.
 Main Function
 +++++++++++++
 
-The *main* function for this example is located in *standalone.cc*.
+The *main* function for this example is located in ``poisson.cc``.
 Unless you need to initialize additional runtimes that are not handled
-internally by FleCSI, you can likely use this file as-is (except for
-renaming occurances of *standalone* to something sensible).
+internally by FleCSI, you can likely use this file as-is (with a different namespace name).
 
-.. literalinclude:: ../../../../tutorial/standalone/standalone.cc
+.. literalinclude:: ../../../../tutorial/standalone/poisson/app/poisson.cc
    :language: cpp
 
 Building the Stand-Alone Example
