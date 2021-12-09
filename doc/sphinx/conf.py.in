@@ -77,9 +77,6 @@ html_theme_options = {
     'titles_only': False
 }
 
-# Add any paths that contain custom static files, e.g., css.
-html_static_path = [ '_static' ]
-
 html_logo = '_static/flecsi.png'
 html_favicon = '_static/favicon.ico'
 
