@@ -1,0 +1,4 @@
+/.sphinx
+/.buildinfo
+/.doctrees
+*.md5
