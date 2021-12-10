@@ -44,9 +44,6 @@ advance() {
 
   custom_topology.allocate(4);
 
-  execute<init>(lue(process_topology));
-  execute<print>(lue(process_topology));
-
   execute<init>(lue(custom_topology));
   execute<print>(lue(custom_topology));
 
