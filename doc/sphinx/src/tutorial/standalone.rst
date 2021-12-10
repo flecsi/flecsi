@@ -11,7 +11,7 @@ the tutorial. As such, this example provides the following components:
 
 * A basic CMake build system.
 
-* A simple control model.
+* A simple control policy.
 
 * A standard FleCSI-based *main* function.
 
@@ -43,17 +43,17 @@ will need a working knowledge of CMake. Documentation for CMake is
 
 __ https://cmake.org/documentation
 
-Control Model
-+++++++++++++
+Control Policy
+++++++++++++++
 
-The control  model for this exmample is located in
+The control policy for this example is located in
 *specialization/control.hh*. This implementation is consistent with the
 examples in :ref:`TUT-CM` Tutorial.
 
 .. figure:: images/standalone.png
    :align: center
 
-   Control Model for Stand-Alone Application.
+   Control Policy for Stand-Alone Application.
 
 Main Function
 +++++++++++++
