@@ -356,12 +356,12 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
 
   install(
     FILES ${FLECSI_UNIT_MAIN}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
     RENAME unit-main.cc
   )
 

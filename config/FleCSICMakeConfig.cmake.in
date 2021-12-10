@@ -4,11 +4,11 @@
 #------------------------------------------------------------------------------#
 
 if(NOT FLECSI_CMAKE)
-  message(STATUS "Found FLeCSICMake (Appending CMAKE_MODULE_PATH): "
-    "@CMAKE_INSTALL_PREFIX@/share/FleCSICMake/cmake")
-  list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/share/FleCSI/cmake)
+  message(STATUS "Found FLeCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
+    "@CMAKE_INSTALL_PREFIX@/@LIBDIR@/cmake/FleCSI")
+  list(APPEND CMAKE_MODULE_PATH @CMAKE_INSTALL_PREFIX@/@LIBDIR@/cmake/FleCSI)
   set(FLECSI_UNIT_MAIN
-    @CMAKE_INSTALL_PREFIX@/share/FleCSI/cmake/unit-main.cc
+    @CMAKE_INSTALL_PREFIX@/@LIBDIR@/cmake/FleCSI/unit-main.cc
   )
   set(FLECSI_CMAKE TRUE)
 endif()
