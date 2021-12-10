@@ -50,7 +50,6 @@ The control  model for this exmample is located in
 *specialization/control.hh*. This implementation is consistent with the
 examples in :ref:`TUT-CM` Tutorial.
 
-.. _subcycle:
 .. figure:: images/standalone.png
    :align: center
 

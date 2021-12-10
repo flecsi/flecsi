@@ -12,7 +12,7 @@ Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 * Build
 
-  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`user-guide/runtime`).
+  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`runtime`).
 
 * Utilties
 
