@@ -19,6 +19,7 @@ that can be taken to tailor FleCSI to a given system and architecture.
   :caption: Building:
 
   build/options
+  install_docker
 
 ----
 

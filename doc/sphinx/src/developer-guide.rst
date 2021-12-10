@@ -204,14 +204,10 @@ Container Images
 
 .. important::
 
-  These sections assumes that you are familiar with container management
-  using a container engine like *Docker*. If you are not, there is
-  excellent documentation starting `here`__. Additionally, we include
-  instructions and links for installation and basic usage below.
+  These sections assume that you are familiar with container management using a container engine like `Docker`__.
+  The first step is :ref:`container`.
 
   __ https://docs.docker.com/get-started
-
-.. include:: install_docker.rst
 
 Tutorial Image
 ^^^^^^^^^^^^^^
