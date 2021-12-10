@@ -37,6 +37,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
     message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
   endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
+    message(FATAL_ERROR "Cannot use this GCC version due to a regression <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83258>")
+  endif()
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -356,12 +359,12 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/version.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
 
   install(
     FILES ${FLECSI_UNIT_MAIN}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/FleCSI/cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
     RENAME unit-main.cc
   )
 
