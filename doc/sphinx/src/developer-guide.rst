@@ -90,7 +90,7 @@ While exceptions must occasionally be made to each of the following, ideally eac
 * build and pass tests (partly to support ``git bisect``)
 * not add or change material changed later in the same merge request (partly to help ``git blame``)
 * include the smallest subset of an overall set of changes that follows the above rules
-* add or update any relevant documentation, including the :ref:`Release Notes`
+* add or update any relevant documentation, including the :ref:`news`
 * not be a meaningless merge from the destination branch (as introduced by ``git pull``)
 * have a meaningful message that follows the `50/72 rule`__
 * be properly formatted per ``clang-format``

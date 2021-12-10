@@ -68,7 +68,7 @@ internally by FleCSI, you can likely use this file as-is (with a different names
 Building the Stand-Alone Example
 ++++++++++++++++++++++++++++++++
 
-:ref:`Build & Install` FleCSI somewhere on your system, and make sure
+:ref:`build` FleCSI somewhere on your system, and make sure
 that the location is set in your *CMAKE_PREFIX_PATH* environement
 variable. Then, you can build this example like:
 

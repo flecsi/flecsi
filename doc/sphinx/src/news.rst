@@ -1,5 +1,7 @@
 .. include:: <isopub.txt>
 
+.. _news:
+
 Release Notes
 *************
 
