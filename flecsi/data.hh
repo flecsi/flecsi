@@ -32,11 +32,14 @@ namespace flecsi {
 
 /*!
   Default global topology instance with size 1.
+  \deprecated Create instances as with any other topology.
  */
 inline topo::global::slot global_topology;
 
 /*!
-  Per-process topology instance.
+  Topology instance with one color per process.
+  \warning The values are not bound to processes except with MPI tasks.
+  \deprecated Create instances as with any other topology.
  */
 inline topo::index::slot process_topology;
 
