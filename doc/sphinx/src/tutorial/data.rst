@@ -16,7 +16,7 @@ Example 1: Global data
 
 Global fields are used to store global variables/objects that can
 be accessed by any task.
-Since there is only one value for each field, it is natural to use the ``data::single`` layout.
+For the common case of only one value for each field, it is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp

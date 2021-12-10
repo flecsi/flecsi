@@ -22,12 +22,16 @@ namespace topo {
 /// \{
 
 struct global_base {
-  struct coloring {};
+  struct coloring {
+    coloring(util::id n = 1) : size(n) {}
+    util::id size;
+  };
 };
 
 template<class P>
 struct global_category : global_base, data::region {
-  global_category(const coloring &) : region(data::make_region<P>({1, 1})) {}
+  global_category(const coloring & c)
+    : region(data::make_region<P>({1, c.size})) {}
 };
 template<>
 struct detail::base<global_category> {
@@ -35,12 +39,16 @@ struct detail::base<global_category> {
 };
 
 /*!
-  The \c global type allows users to register data on a
-  topology with a single index, i.e., there is one instance of
-  the registered field type that is visible to all colors.
-  Its \c coloring type is empty and default-constructible.
+  Unpartitioned topology whose fields are readable by all colors.
+  Fields must be written by single tasks.
+  Its \c coloring type is convertible from an integer;
+  default-constructing it produces a size of 1.
  */
-struct global : specialization<global_category, global> {};
+struct global : specialization<global_category, global> {
+  static coloring color(util::id n) {
+    return n;
+  }
+};
 
 /// \}
 } // namespace topo

@@ -31,7 +31,7 @@ namespace flecsi {
 /// \{
 
 /*!
-  Default global topology instance.
+  Default global topology instance with size 1.
  */
 inline topo::global::slot global_topology;
 

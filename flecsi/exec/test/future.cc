@@ -18,7 +18,7 @@
 
 using namespace flecsi;
 
-using double_field = field<double, data::single>;
+using double_field = field<double>;
 
 const double_field::definition<topo::global> energy_field;
 
@@ -26,15 +26,17 @@ namespace future_test {
 
 double
 init(double a, double_field::accessor<wo> ga) {
-  ga = a;
+  ga[0] = a;
+  ga[1] = -a;
   return a + 1;
 }
 
 int
 check(future<double> x, double_field::accessor<ro> ga) {
   UNIT {
-    static_assert(std::is_same_v<decltype(ga.get()), const double &>);
-    ASSERT_EQ(x.get(), ga + 1 + color());
+    static_assert(std::is_same_v<decltype(ga[0]), const double &>);
+    EXPECT_EQ(x.get(), ga[0] + 1 + color());
+    EXPECT_EQ(ga[0], -ga[1]);
   };
 }
 
@@ -64,7 +66,11 @@ future_driver() {
   UNIT {
     using namespace future_test;
 
-    const auto energy = energy_field(global_topology);
+    topo::global::cslot g2c;
+    g2c.allocate(2);
+    topo::global::slot g2;
+    g2.allocate(g2c.get());
+    const auto energy = energy_field(g2);
 
     // single future
     auto f = execute<init>(3.1, energy);
