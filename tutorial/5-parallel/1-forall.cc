@@ -37,12 +37,10 @@ init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
   } // for
 } // init
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 void
 modify(canon::accessor<ro> t, field<double>::accessor<rw> p) {
   forall(c, t.cells(), "modify") { p[c] += 1; };
 } // modify
-#endif
 
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
@@ -61,13 +59,11 @@ advance() {
 
   // cpu task, default
   execute<init>(canonical, pf);
-#if defined(FLECSI_ENABLE_KOKKOS)
   // accelerated task, will be executed on the Kokkos default execution space
   // In case of Kookos bult with GPU, default execution space will be GPU
   // We rely on Legion moving data between devices for the legion back-end and
   // UVM for the MPI back-end
   execute<modify, default_accelerator>(canonical, pf);
-#endif
   // cpu_task
   execute<print>(canonical, pf);
 
