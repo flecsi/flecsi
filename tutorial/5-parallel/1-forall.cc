@@ -61,8 +61,7 @@ advance() {
   execute<init>(canonical, pf);
   // accelerated task, will be executed on the Kokkos default execution space
   // In case of Kookos bult with GPU, default execution space will be GPU
-  // We rely on Legion moving data between devices for the legion back-end and
-  // UVM for the MPI back-end
+  // The runtime moves data between the host and device.
   execute<modify, default_accelerator>(canonical, pf);
   // cpu_task
   execute<print>(canonical, pf);
