@@ -16,27 +16,26 @@ Example 1: Global data
 
 Global fields are used to store global variables/objects that can
 be accessed by any task.
-Since there is only one value for each field, it is natural to use the ``data::single`` layout.
+For the common case of only one value for each field, it is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 24-26
+  :lines: 24-28
 
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 28-46
+  :lines: 30-48
 
 Example 2: Index data 
 +++++++++++++++++++++
 
-Index field is a field that is local to a color or process (MPI rank or
-Legion shard). It is defined as a filed on an `index` topology.
+A field on an ``index`` topology stores one value for each color.
 
 .. literalinclude:: ../../../../tutorial/4-data/2-index.cc
   :language: cpp
-  :lines: 21-54
+  :lines: 23-51
 
 Example 3: Dense data
 +++++++++++++++++++++
