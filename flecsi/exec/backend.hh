@@ -17,10 +17,7 @@ namespace flecsi {
   Execute a task.
 
   @tparam TASK          The user task.
-    Its parameters may be of any default-constructible,
-    trivially-move-assignable, non-pointer type, any type that supports the
-    Legion return-value serialization interface, or any of several standard
-    containers of such types.
+    Its parameters must support \ref serial.
     If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable.
   @tparam ATTRIBUTES    The task attributes mask.
   @tparam ARGS The user-specified task arguments, implicitly converted to the
