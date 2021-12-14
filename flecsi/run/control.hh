@@ -43,6 +43,8 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
 template<auto CP>
 using control_point = run_impl::control_point<CP>;
 
+/// A control point for specialization use.
+/// \tparam CP control point enumerator
 template<auto CP>
 using meta_point = run_impl::meta_point<CP>;
 
@@ -307,6 +309,9 @@ public:
     node_type node_;
   }; // struct action
 
+  /// An action registration on a \c meta_point for a specialization.
+  /// \tparam T function
+  /// \tparam CP control point enumerator
   template<target_type T, control_points_enum CP>
   using meta = action<T, CP, true>;
 
