@@ -25,6 +25,8 @@ template<typename T>
 using single = field<T, data::single>;
 const single<double>::definition<global> lue;
 
+topo::global::slot gtopo;
+
 void
 init(double v, single<double>::accessor<wo> gv) {
   gv = v;
@@ -37,8 +39,8 @@ print(single<double>::accessor<ro> gv) {
 
 int
 advance() {
-
-  const auto v = lue(global_topology);
+  gtopo.allocate(1);
+  const auto v = lue(gtopo);
   execute<init>(42.0, v);
   execute<print>(v);
 

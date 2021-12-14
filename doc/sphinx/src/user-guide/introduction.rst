@@ -51,9 +51,8 @@ Any number of instances may be created of any topology.
   A topology defines one or more index spaces.
 
 The most basic topology provided by FleCSI is called the *global*
-topology. It has a single implicit index space that has a single
-implicit index, i.e., it provides a singleton of data that can be passed
-into a FleCSI task.
+topology.
+It has a single implicit index space which is not partitioned; its field values can be written by a single task or read by every task in a parallel launch.
 
 The next most basic topology type provided by FleCSI is the *index*
 topology. Like the global topology, it has a single implicit index
@@ -170,18 +169,20 @@ nomenclature).
   different from the way that many people think about MPI, where a rank
   is statically mapped to a particular process.
 
-Users are allowed to add addtional named instances of the index
-topology. *(For the time being, there is one, and only one instance of
-the global topology.)* Let's see how:
+Users are allowed to add addtional named instances of the global or index topologies:
 
 .. code-block:: cpp
 
   using namespace flecsi;
 
+  topo::global::slot pair;
   topo::index::slot hydro_indices;
 
   void initialize() {  // called from the top-level action
+    pair.allocate(2);
     hydro_indices.allocate(42);
   }
+
+Note the different interpretations of the sizes: ``pair`` doesn't have colors and holds 2 field values, while ``hydro_indices`` has 42 colors with one field value each.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
