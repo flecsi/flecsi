@@ -317,6 +317,8 @@ private:
 
    These ranges are used in many of the interface methods to provide
    information such as size, extents, offsets about them.
+
+   \deprected Renamed to \c domain.
   */
   enum class range : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
@@ -329,6 +331,7 @@ private:
     global ///< global info about the mesh, the meaning depends on what is being
            ///< queried
   };
+  /// Future name for \c range.
   using domain = range;
 
   using hypercubes = index::has<range::logical,
@@ -355,6 +358,7 @@ private:
     return meta_->template get<S>().offset.template get<A>();
   }
 
+  /// \deprecated Renamed to \c range (currently a type).
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET std::size_t extents() const {
     return meta_->template get<S>().extents.template get<A>();
