@@ -298,8 +298,6 @@ protected:
       std::map<data::partition *, typename decltype(part)::size_type> seen;
       for(const auto & fi :
         run::context::instance().get_field_info_store<policy_t<T>, S>()) {
-        // TODO: change all topologies(!) to provide a more precise
-        // get_partition return type
         topo::repartition & p = t.template get_partition<S>(fi->fid);
         auto [it, nu] = seen.try_emplace(&p, part.size());
         if(nu)

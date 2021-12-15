@@ -85,7 +85,7 @@ struct unstructured : unstructured_base,
   }
 
   template<index_space S>
-  data::partition & get_partition(field_id_t) {
+  repartition & get_partition(field_id_t) {
     return part_.template get<S>();
   }
 
