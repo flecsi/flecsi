@@ -15,6 +15,12 @@ requires both Sphinx and Doxygen. These configuration options are listed
 to convey to the reader that the FleCSI build system has several paths
 that can be taken to tailor FleCSI to a given system and architecture.
 
+.. toctree::
+  :caption: Building:
+
+  build/options
+  install_docker
+
 ----
 
 Requirements & Prerequisites

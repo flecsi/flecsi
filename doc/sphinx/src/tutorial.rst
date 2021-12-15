@@ -64,8 +64,7 @@ Using the Docker Container
 
 The tutorial is also available as a Docker container. This simplifies
 getting and installing FleCSI and its dependencies.
-
-.. include:: install_docker.rst
+You may need to start by :ref:`container`.
 
 Pulling the Image
 ^^^^^^^^^^^^^^^^^

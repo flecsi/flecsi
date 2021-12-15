@@ -29,7 +29,7 @@
 namespace flecsi {
 namespace run {
 /// \defgroup control Control Model
-/// Types for defining, extending, and executinga control-flow graphs.
+/// Types for defining, extending, and executing control-flow graphs.
 /// \ingroup runtime
 /// \{
 
@@ -58,6 +58,19 @@ using control_point = util::constant<CP>;
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 
+#ifdef DOXYGEN
+/// An example control policy that is not really implemented.
+struct control_policy {
+  /// The labels for the control-flow graph.
+  enum control_points_enum {};
+  /// The control-flow graph.
+  /// Each element is a \c control_point or a \c cycle.
+  using control_points = std::tuple<>;
+  /// Base class for control point objects.
+  struct node_policy {};
+};
+#endif
+
 /*!
   The control type provides a control model for specifying a
   set of control points as a coarse-grained control flow graph,
@@ -69,6 +82,8 @@ using cycle = run_impl::cycle<Predicate, ControlPoints...>;
   If Graphviz support is enabled, the control flow graph and its DAG nodes
   can be written to a graphviz file that can be compiled and viewed using
   the \em dot program.
+
+  \tparam ControlPolicy policy type like \c control_policy
  */
 
 template<typename ControlPolicy>
@@ -113,7 +128,7 @@ private:
   }; // struct control_node
 
   /*
-    Use the ndoe type that is defined by the specialized DAG.
+    Use the node type that is defined by the specialized DAG.
    */
 
   using node_type = typename util::dag<control_node>::node_type;

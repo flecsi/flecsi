@@ -315,7 +315,7 @@ Irina Demeshko
 |clearboth|
 
 Charles Ferenbaugh
-++++++++++++++
+++++++++++++++++++
 
 .. container:: twocol
 
