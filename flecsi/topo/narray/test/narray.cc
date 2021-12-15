@@ -62,7 +62,7 @@ narray_driver() {
       m1.allocate(coloring1.get());
       execute<set_field_1d, default_accelerator>(m1, f1(m1));
       execute<print_field_1d>(m1, f1(m1));
-      execute<check_1d>(m1);
+      EXPECT_EQ(test<check_1d>(m1), 0);
     } // scope
 
     {
@@ -80,7 +80,7 @@ narray_driver() {
       m2.allocate(coloring2.get());
       execute<set_field_2d, default_accelerator>(m2, f2(m2));
       execute<print_field_2d>(m2, f2(m2));
-      execute<check_2d>(m2);
+      EXPECT_EQ(test<check_2d>(m2), 0);
     } // scope
 
     {
@@ -98,7 +98,7 @@ narray_driver() {
       m3.allocate(coloring3.get());
       execute<set_field_3d>(m3, f3(m3));
       execute<print_field_3d>(m3, f3(m3));
-      execute<check_3d>(m3);
+      EXPECT_EQ(test<check_3d>(m3), 0);
     } // scope
   };
 } // coloring_driver

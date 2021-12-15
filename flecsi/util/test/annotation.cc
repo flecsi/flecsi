@@ -57,9 +57,9 @@ annotation_driver() {
       auto times = std::get<0>(rp.exclusive_region_times(test_context::name));
 
       auto custom_time = times.find("custom");
-      EXPECT_NE(custom_time, times.end());
+      ASSERT_NE(custom_time, times.end());
       auto combined_time =
-        reduce<check_custom, exec::fold::sum, mpi>(times["custom"]).get();
+        reduce<check_custom, exec::fold::sum, mpi>(*custom_time).get();
       EXPECT_EQ(combined_time, size * (size + 1) / 2);
     }
 
@@ -68,7 +68,7 @@ annotation_driver() {
       auto times = std::get<0>(rp.exclusive_region_times(ann::execution::name));
       auto wait_time =
         times.find(ann::execute_task_user::name + "->" + util::symbol<wait>());
-      EXPECT_NE(wait_time, times.end());
+      ASSERT_NE(wait_time, times.end());
       EXPECT_EQ((static_cast<int>((*wait_time).second * 100)), 4);
     }
   };
