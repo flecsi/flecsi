@@ -29,7 +29,7 @@
 namespace flecsi {
 namespace run {
 /// \defgroup control Control Model
-/// Types for defining, extending, and executinga control-flow graphs.
+/// Types for defining, extending, and executing control-flow graphs.
 /// \ingroup runtime
 /// \{
 
@@ -113,7 +113,7 @@ private:
   }; // struct control_node
 
   /*
-    Use the ndoe type that is defined by the specialized DAG.
+    Use the node type that is defined by the specialized DAG.
    */
 
   using node_type = typename util::dag<control_node>::node_type;
