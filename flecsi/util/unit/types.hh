@@ -173,35 +173,6 @@ struct string_case_compare {
   }
 };
 
-// Source: https://stackoverflow.com/a/22759544
-template<typename S, typename T>
-class is_streamable
-{
-  template<typename SS, typename TT>
-  static auto test(int)
-    -> decltype(std::declval<SS &>() << std::declval<TT>(), std::true_type());
-
-  template<typename, typename>
-  static auto test(...) -> std::false_type;
-
-public:
-  static const bool value = decltype(test<S, T>(0))::value;
-};
-
-template<class T1, class T2>
-inline std::string
-format_cond(T1 && v1, T2 && v2, const char * cond) {
-  std::ostringstream os;
-  if constexpr(is_streamable<std::ostringstream, T1>::value and
-               is_streamable<std::ostringstream, T2>::value)
-    os << v1 << " " << cond << " " << v2;
-  else {
-    os << demangle(typeid(T1).name()) << " " << cond << " "
-       << demangle(typeid(T2).name());
-  }
-  return os.str();
-}
-
 /// \}
 } // namespace unit
 } // namespace util

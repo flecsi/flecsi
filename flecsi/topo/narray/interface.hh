@@ -292,6 +292,7 @@ private:
     ghost_high,
     global
   };
+  using domain = range;
 
   using hypercubes = index::has<range::logical,
     range::extended,
