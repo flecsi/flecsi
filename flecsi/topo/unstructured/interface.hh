@@ -211,7 +211,7 @@ public:
    */
 
   template<index_space IndexSpace>
-  auto entities() {
+  auto entities() const {
     return make_ids<IndexSpace>(
       util::iota_view<util::id>(0, *size_.template get<IndexSpace>()));
   }

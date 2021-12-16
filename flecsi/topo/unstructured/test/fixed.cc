@@ -55,41 +55,41 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
   template<class B>
   struct interface : B {
 
-    auto cells() {
+    auto cells() const {
       return B::template entities<index_space::cells>();
     }
 
     template<typename B::subspace_list L>
-    auto cells() {
+    auto cells() const {
       return B::template subspace_entities<index_space::cells, L>();
     }
 
     template<index_space From>
-    auto cells(topo::id<From> from) {
+    auto cells(topo::id<From> from) const {
       return B::template entities<index_space::cells>(from);
     }
 
-    auto vertices() {
+    auto vertices() const {
       return B::template entities<index_space::vertices>();
     }
 
     template<typename B::subspace_list L>
-    auto vertices() {
+    auto vertices() const {
       return B::template subspace_entities<index_space::vertices, L>();
     }
 
     template<index_space From>
-    auto vertices(topo::id<From> from) {
+    auto vertices(topo::id<From> from) const {
       return B::template entities<index_space::vertices>(from);
     }
 
 #if 0
-    auto edges() {
+    auto edges() const {
       return B::template entities<index_space::edges>();
     }
 
     template<entity_list List>
-    auto edges() {
+    auto edges() const {
       return B::template special_entities<fixed_mesh::edges, List>();
     }
 #endif
