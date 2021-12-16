@@ -161,11 +161,10 @@ private:
     : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
       part_{{make_repartitioned<Policy, Value>(c.colors,
         make_partial<idx_size>(c.partitions[Index]))...}},
-      plan_{{make_copy_plan<Value>(c.colors,
-        c.idx_spaces[Index],
-        part_[Index],
-        c.comm)...}},
-      special_(c.colors) {
+      special_(c.colors), plan_{{make_copy_plan<Value>(c.colors,
+                            c.idx_spaces[Index],
+                            part_[Index],
+                            c.comm)...}} {
     allocate_connectivities(c, connect_);
   }
 
@@ -255,10 +254,11 @@ private:
     forward_map_;
 
   util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
   util::key_array<std::vector<std::map<std::size_t, std::size_t>>, index_spaces>
     reverse_maps_;
+  // Initializing this depends on the above:
+  util::key_array<data::copy_plan, index_spaces> plan_;
 
 }; // struct unstructured
 
