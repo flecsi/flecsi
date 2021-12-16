@@ -27,6 +27,12 @@ robin(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   a = topo::claims::row(c < n ? std::optional(c) : std::nullopt);
   return f(i + 1) < n;
 }
+/// Make all colors available on all point tasks.
+inline bool
+gather(topo::claims::Field::accessor<wo> a, Color i, Color n) {
+  a = topo::claims::row(i);
+  return i < n - 1;
+}
 
 template<class P>
 struct mapping : convert_tag {

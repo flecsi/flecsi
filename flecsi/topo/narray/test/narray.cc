@@ -86,13 +86,6 @@ const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 mesh4d::slot m4;
 mesh4d::cslot coloring4;
 
-bool
-unify(topo::claims::Field::accessor<wo> a, Color i, Color n) {
-  // Put everything on one point task:
-  a = topo::claims::row(i);
-  return i < n - 1;
-}
-
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
   UNIT {
@@ -152,7 +145,7 @@ narray_driver() {
       EXPECT_EQ(test<check_mesh_field<1>>(m1, f1(m1)), 0);
 
       if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
-        auto lm = data::launch::make<unify>(m1, 1);
+        auto lm = data::launch::make<data::launch::gather>(m1, 1);
         EXPECT_EQ(test<check_contiguous>(lm), 0);
       }
     } // scope
