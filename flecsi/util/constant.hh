@@ -74,6 +74,9 @@ template<class T, class C>
 struct key_array : std::array<T, C::size> {
   using keys = C;
 
+  template<template<class> class F>
+  using map_type = key_array<F<T>, C>;
+
   template<auto V>
   constexpr T & get() {
     return (*this)[C::template index<V>];
@@ -88,6 +91,9 @@ template<auto V, class T>
 struct key_type {
   static constexpr const auto & value = V;
   using type = T;
+
+  template<template<class> class F>
+  using map = key_type<V, F<T>>;
 };
 
 /*!
@@ -104,6 +110,9 @@ struct key_tuple : std::tuple<typename VT::type...> {
 
   using Base = typename key_tuple::tuple;
   using Base::Base;
+
+  template<template<class> class F>
+  using map_type = key_tuple<typename VT::template map<F>...>;
 
   // std::apply doesn't natively support classes derived from std::tuple.
   // We could alternatively specialize std::tuple_size for key_tuple.
