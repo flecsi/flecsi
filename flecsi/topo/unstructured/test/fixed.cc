@@ -299,13 +299,18 @@ update_pressure(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-check_pressure(fixed_mesh::accessor<ro, ro, ro> m,
-  field<int>::accessor<ro, ro, ro> p) {
+check_pressure(data::multi<fixed_mesh::accessor<ro, ro, ro>> mm,
+  data::multi<field<int>::accessor<ro, ro, ro>> pp) {
   flog(warn) << __func__ << std::endl;
-  unsigned int clr = color();
-  for(auto c : m.cells()) {
-    unsigned int v = p[c];
-    flog_assert(v == clr, "invalid pressure");
+  const auto pc = pp.components();
+  auto i = pc.begin();
+  for(auto [clr, m] : mm.components()) {
+    auto [clr2, p] = *i++;
+    flog_assert(clr == clr2, "color mismatch");
+    for(auto c : m.cells()) {
+      unsigned int v = p[c];
+      flog_assert(v == clr, "invalid pressure");
+    }
   }
 }
 
@@ -363,6 +368,12 @@ print(fixed_mesh::accessor<ro, ro, ro> m,
   flog(info) << ss.str() << std::endl;
 }
 
+static bool
+rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
+  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n);
+  return false;
+}
+
 int
 fixed_driver() {
   UNIT {
@@ -381,7 +392,10 @@ fixed_driver() {
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    execute<check_pressure>(mesh, pressure(mesh));
+    {
+      auto lm = data::launch::make<rotate>(mesh, mesh->colors());
+      execute<check_pressure>(lm, pressure(lm));
+    }
 
 #if 1
     execute<init_density>(mesh, density(mesh));

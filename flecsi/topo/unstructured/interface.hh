@@ -261,9 +261,14 @@ private:
     (f(util::constant<VV>()), ...);
   }
 
+  auto & get_sizes(std::size_t i) {
+    return part_[i].sz;
+  }
+
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
+  friend borrow_extra<unstructured>;
 
   static inline const connect_t<Policy> connect_;
   static inline const field<util::id>::definition<array<Policy>> special_field;
@@ -296,6 +301,32 @@ private:
 
 }; // struct unstructured
 
+template<class P>
+struct borrow_extra<unstructured<P>> {
+  borrow_extra(unstructured<P> & u, claims::core & c, bool f)
+    : borrow_extra(u, c, f, typename P::entity_lists()) {}
+
+  auto & get_sizes(std::size_t i) {
+    return borrow_base::derived(*this).spc[i].single().sz;
+  }
+
+private:
+  friend unstructured<P>; // for access::send
+
+  typename decltype(unstructured<P>::special_)::Base::template map_type<
+    unstructured_base::borrow_array>
+    special_;
+
+  template<typename P::index_space... VV, class... TT>
+  borrow_extra(unstructured<P> & u,
+    claims::core & c,
+    bool f,
+    util::types<util::key_type<VV, TT>...> /* deduce pack */)
+    : special_(u.special_.template get<VV>().map([&c, f](auto & t) {
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, c, f);
+      })...) {}
+};
+
 /*----------------------------------------------------------------------------*
   Unstructured Access.
  *----------------------------------------------------------------------------*/
@@ -313,10 +344,12 @@ struct unstructured<Policy>::access {
     std::size_t i = 0;
     for(auto & a : size_)
       a.topology_send(
-        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
+        f, [&i](auto & u) -> auto & { return u.get_sizes(i++); });
 
     connect_send(f, connect_, unstructured::connect_);
-    lists_send(f, special_, special_field, &unstructured::special_);
+    lists_send(
+      f, special_, special_field, [
+      ](auto & u) -> auto & { return u.special_; });
   }
 
 protected:

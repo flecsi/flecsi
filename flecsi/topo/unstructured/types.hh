@@ -263,6 +263,9 @@ struct unstructured_base {
       idx_spaces;
   }; // struct coloring
 
+  template<class A>
+  using borrow_array = typename A::template map_type<borrow_base::wrap>;
+
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
     return vs[c];
   }
