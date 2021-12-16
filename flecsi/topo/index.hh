@@ -256,6 +256,9 @@ struct borrow_base {
     claims::core * clm;
   };
 
+  template<class C>
+  using wrap = typename borrow<policy_t<C>>::core; // for subtopologies
+
   template<template<class> class C, class T>
   static auto & derived(borrow_extra<C<T>> & e) {
     return static_cast<typename topo::borrow<T>::core &>(e);
