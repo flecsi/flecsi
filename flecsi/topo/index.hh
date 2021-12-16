@@ -365,9 +365,10 @@ struct borrow_category : borrow_base,
     return get<S>()[f];
   }
 
-  template<class F>
-  void ghost_copy(const F & f) {
-    base->ghost_copy(f);
+  template<class T, data::layout L, index_space S>
+  void ghost_copy(data::field_reference<T, L, P, S> const & f) {
+    base->ghost_copy(data::field_reference<T, L, typename P::Base, S>::from_id(
+      f.fid(), *base));
   }
 
 private:
