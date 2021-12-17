@@ -1388,6 +1388,10 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     : vp(std::make_shared<std::vector<round>>(n, round{{}, a})) {}
   multi(const multi &) = default; // implement move as copy
 
+  Color depth() const {
+    return vp->size();
+  }
+
   auto components() const { // for(auto [c,a] : m.components())
     return util::transform_view(
       *vp, [](const round & r) -> std::pair<Color, const A &> {
