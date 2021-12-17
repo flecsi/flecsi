@@ -91,8 +91,6 @@ struct control : ControlPolicy {
   using target_type = int (*)();
 
 private:
-  friend ControlPolicy;
-
   using control_points = run_impl::to_types_t<ControlPolicy>;
   using control_points_enum = typename ControlPolicy::control_points_enum;
   using node_policy = typename ControlPolicy::node_policy;
