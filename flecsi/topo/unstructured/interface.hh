@@ -13,9 +13,9 @@
                                                                               */
 #pragma once
 
-#include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
+#include "flecsi/data/map.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
@@ -201,23 +201,26 @@ private:
     // auto const & cg = cgraph_.template get<S>();
     auto const & fmd = forward_maps_.template get<S>();
 
+    auto lm = data::launch::make(*this);
     execute<idx_itvls<NP>, mpi>(c.idx_spaces[index<S>],
       c.process_colors,
       num_intervals,
       intervals,
       pointers,
       // cg(ctopo_),
-      fmd(*this),
+      fmd(lm),
       reverse_maps_.template get<S>(),
       comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
-      execute<set_dests, mpi>(f, intervals, comm);
+      // TODO: make this just once for all index spaces
+      auto lm = data::launch::make(f.topology());
+      execute<set_dests, mpi>(lm(f), intervals, comm);
     };
 
     auto ptrs_task = [&](auto f) {
-      execute<set_ptrs<NP>, mpi>(f, pointers, comm);
+                       execute<set_ptrs<NP>, mpi>(lm(f), pointers, comm);
     };
     // clang-format on
 
@@ -242,14 +245,16 @@ private:
   template<auto... VV, typename... TT>
   void allocate_connectivities(const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
+    auto lm = data::launch::make(this->meta);
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<process_coloring> & pc = c.idx_spaces[index<VV>];
         for_each(
           [&](auto v) { // invoked for each to-entity
+            execute<cnx_size, mpi>(pc, index<v.value>, temp_size(lm));
             auto & p = this->ragged.template get_partition<VV>(
               row.template get<v.value>().fid);
-            execute<cnx_size, mpi>(pc, index<v.value>, p.sizes());
+            execute<copy_sizes>(temp_size(this->meta), p.sizes());
           },
           typename TT::keys());
       }(connect_.template get<VV>()),
@@ -291,6 +296,8 @@ private:
       data::ragged>::template definition<ctopo>,
     index_spaces>
     cgraph_;
+
+  static inline const resize::Field::definition<meta<Policy>> temp_size;
 
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
