@@ -11,13 +11,13 @@ the tutorial. As such, this example provides the following components:
 
 * A basic CMake build system.
 
-* A simple control model.
+* A simple control policy.
 
 * A standard FleCSI-based *main* function.
 
 We discuss each of these individually. However, in general, to use this
 example as a template for a real application, you should just change all
-occurrances of *standalone* to whatever namespace name you would like to
+occurrances of ``poisson`` to whatever namespace name you would like to
 use for your project.
 
 Build System
@@ -26,12 +26,12 @@ Build System
 The build system uses standard CMake, and is entirely defined in
 CMakeLists.txt:
 
-.. literalinclude:: ../../../../tutorial/standalone/CMakeLists.txt
+.. literalinclude:: ../../../../tutorial/standalone/poisson/CMakeLists.txt
    :language: cmake
 
 To prepare this file for your project, you should do the following:
 
-* Change *standalone* to the name of your project wherever it occurs.
+* Change ``poisson`` to the name of your project wherever it occurs.
 
 * Update and add source files to the project.
 
@@ -43,34 +43,32 @@ will need a working knowledge of CMake. Documentation for CMake is
 
 __ https://cmake.org/documentation
 
-Control Model
-+++++++++++++
+Control Policy
+++++++++++++++
 
-The control  model for this exmample is located in
+The control policy for this example is located in
 *specialization/control.hh*. This implementation is consistent with the
 examples in :ref:`TUT-CM` Tutorial.
 
-.. _subcycle:
 .. figure:: images/standalone.png
    :align: center
 
-   Control Model for Stand-Alone Application.
+   Control Policy for Stand-Alone Application.
 
 Main Function
 +++++++++++++
 
-The *main* function for this example is located in *standalone.cc*.
+The *main* function for this example is located in ``poisson.cc``.
 Unless you need to initialize additional runtimes that are not handled
-internally by FleCSI, you can likely use this file as-is (except for
-renaming occurances of *standalone* to something sensible).
+internally by FleCSI, you can likely use this file as-is (with a different namespace name).
 
-.. literalinclude:: ../../../../tutorial/standalone/standalone.cc
+.. literalinclude:: ../../../../tutorial/standalone/poisson/app/poisson.cc
    :language: cpp
 
 Building the Stand-Alone Example
 ++++++++++++++++++++++++++++++++
 
-:ref:`Build & Install` FleCSI somewhere on your system, and make sure
+:ref:`build` FleCSI somewhere on your system, and make sure
 that the location is set in your *CMAKE_PREFIX_PATH* environement
 variable. Then, you can build this example like:
 

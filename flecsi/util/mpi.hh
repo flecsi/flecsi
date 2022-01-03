@@ -256,12 +256,13 @@ one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
     if(!rank)
       for(int r = 0; r < size; ++r)
         send.push_back(f(r, size));
-    test(MPI_Scatter(MPI_IN_PLACE,
-      0,
-      MPI_DATATYPE_NULL,
-      send.data(),
+    test(MPI_Scatter(send.data(),
       1,
       type<return_type>(),
+      rank ? send.data() : MPI_IN_PLACE,
+      1,
+      type<return_type>(),
+      0,
       comm));
     return send.front();
   }

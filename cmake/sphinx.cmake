@@ -60,7 +60,7 @@ function(add_sphinx_target name)
       ${sphx_OUTPUT}/.sphinx/conf.py)
 
     add_custom_target(${name}
-      COMMAND ${SPHINX_EXECUTABLE} -Q -b html -c
+      COMMAND ${SPHINX_EXECUTABLE} -nqW -c
         ${sphx_OUTPUT}/.sphinx
         ${sphx_CONFIG}
         ${sphx_OUTPUT}

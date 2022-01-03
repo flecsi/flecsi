@@ -41,7 +41,7 @@ inline const char * operator*(cp control_point) {
     case cp::finalize:
       return "finalize";
   }
-  flog_fatal("invalied control point");
+  flog_fatal("invalid control point");
 }
 
 /*
