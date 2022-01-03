@@ -662,13 +662,13 @@ functions are called.  Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 72-90
+  :lines: 62-79
 
 A scope guard is used to annotation the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 82-84
+  :lines: 72-74
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -677,7 +677,7 @@ specified using structs that inherit from ``annotation::region``:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 25-46
+  :lines: 24-39
 
 This first defines a new annotation context ``user_execution`` by inheriting
 from ``annotation::context`` and specifying a name for the context.  Three code
@@ -687,13 +687,13 @@ then annotated using a scope guard:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 74-74
+  :lines: 64-64
 
 The sleeper function demonstrates the use of calls to begin and end as opposed to using scope guards:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 53-55
+  :lines: 45-47
 
 Generating Reports
 ^^^^^^^^^^^^^^^^^^

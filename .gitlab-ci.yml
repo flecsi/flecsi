@@ -323,7 +323,8 @@ mpich-mpi-clang:
     CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON
+    DOC: doc
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,

@@ -194,9 +194,9 @@ checkpoint_task(const Legion::Task * task,
 
 struct io_interface {
 
-  explicit io_interface(int ranks_per_file)
+  explicit io_interface(Color ranks_per_file)
     : launch_space([&] {
-        int num_files = (processes() + ranks_per_file - 1) / ranks_per_file;
+        int num_files = util::ceil_div(processes(), ranks_per_file);
         // TODO:  allow for num_files != # of ranks
         assert(num_files == (int)processes());
         Legion::Rect<1> file_color_bounds(0, num_files - 1);

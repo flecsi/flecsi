@@ -2,12 +2,10 @@
 
    <br />
 
-.. _TUT-DM:
+.. _TUT-PAR:
 
-Distributed and shared memory parallelism 
-**********
-
-----
+Distributed and shared memory parallelism
+*****************************************
 
 FleCSI provides two different levels of parallelism: distributed memory
 parallelism and shared memory parallelism.
@@ -18,8 +16,9 @@ FleCSI provides macros *forall* and *reduceall* for shared memory
 parallelism. Currently, it uses Kokkos programing model.
 
 ----
+
 Shared memory
-*****
+*************
 
 Example 1: forall macro / parallel_for interface
 ++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,7 +38,7 @@ optimized core) *processor type* in FleCSI.
   :language: cpp
 
 Example 2: reduceall macro / parallel_reduce interface
-++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This example is an extension to the data-dense tutorial example with the
 only difference of an additional "reduce1" and "reduce2" tasks that use

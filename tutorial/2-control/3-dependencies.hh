@@ -27,7 +27,7 @@ inline const char * operator*(cp control_point) {
     case cp::cp2:
       return "Control Point 2";
   }
-  flog_fatal("invalied control point");
+  flog_fatal("invalid control point");
 }
 
 struct control_policy : flecsi::run::control_base {

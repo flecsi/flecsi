@@ -77,7 +77,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
       t.e_i(i).mass = ents[i].mass();
     }
     t.exchange_boundaries();
-  } // init_task
+  } // init_fields
 
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
     coloring,
@@ -289,6 +289,12 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
     t.e_i[a].coordinates[2] += 1;
   }
 }
+
+void
+make_tree(sph_ntree_t::accessor<rw> t) {
+  t.make_tree();
+  t.graphviz_draw(0);
+} // make_tree
 
 int
 ntree_driver() {

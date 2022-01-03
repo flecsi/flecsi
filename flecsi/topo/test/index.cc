@@ -257,7 +257,7 @@ index_driver() {
     const auto noise = noisy_field(process_topology);
     execute<irows>(verts);
     execute<irows>(verts); // to make new size visible
-    execute<drows>(vfrac);
+    EXPECT_EQ(test<drows>(vfrac), 0);
     execute<assign>(pressure, verts, vfrac);
     execute<reset>(noise);
     EXPECT_EQ(
