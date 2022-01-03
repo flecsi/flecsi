@@ -88,6 +88,7 @@ unify(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   a = topo::claims::row(i);
   return i < n - 1;
 }
+
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
   UNIT {
@@ -144,7 +145,7 @@ narray_driver() {
       execute<print_field<1>>(m1, f1(m1));
       execute<update_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
-      execute<check_mesh_field<1>>(m1, f1(m1));
+      EXPECT_EQ(test<check_mesh_field<1>>(m1, f1(m1)), 0);
 
       if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
         auto lm = data::launch::make<unify>(m1, 1);
@@ -172,8 +173,7 @@ narray_driver() {
       execute<print_field<2>>(m2, f2(m2));
       execute<update_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
-      execute<check_mesh_field<2>>(m2, f2(m2));
-
+      EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
     } // scope
 
     {
@@ -195,7 +195,7 @@ narray_driver() {
       execute<print_field<3>>(m3, f3(m3));
       execute<update_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
-      execute<check_mesh_field<3>>(m3, f3(m3));
+      EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
     } // scope
 
   }; // UNIT

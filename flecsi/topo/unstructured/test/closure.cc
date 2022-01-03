@@ -24,21 +24,20 @@
 
 using namespace flecsi;
 
-int
+void
 compute_closure() {
-  UNIT {
 #if 1
-    const Color colors = 4;
-    topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
-    // const Color colors = 6;
-    // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
+  const Color colors = 4;
+  topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
+  // const Color colors = 6;
+  // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
 #else
-    const Color colors = 6;
-    topo::unstructured_impl::ugm_definition sd("bunny.ugm");
+  const Color colors = 6;
+  topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
 
-    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
-    auto raw = util::parmetis::color(naive, colors);
+  auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
+  auto raw = util::parmetis::color(naive, colors);
 
 #if 0
     {
@@ -89,8 +88,8 @@ compute_closure() {
     }
 #endif
 
-    auto [primaries, p2m, m2p] =
-      topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
+  auto [primaries, p2m, m2p] =
+    topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
 #if 0
     flog(info) << "PRIMARIES" << std::endl;
@@ -175,7 +174,6 @@ compute_closure() {
 #endif
 
     flog(warn) << log::container{coloring.partitions} << std::endl;
-  };
 }
 
 int

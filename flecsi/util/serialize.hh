@@ -119,6 +119,25 @@ get1(const std::byte * p) {
   return get<T>(p);
 }
 
+/// Aggregate helper that converts to any type via \c get.
+struct cast {
+  /// The pointer from which to \c get.
+  const std::byte *&p,
+    /// The pointer at which to end deserialization, if known.
+    *e = nullptr;
+  ~cast() {
+    flog_assert(!e || p == e, "Wrong deserialization size");
+  }
+  template<class T>
+  T get() const {
+    return serial::get<T>(p);
+  }
+  template<class T>
+  operator T() const {
+    return get<T>();
+  }
+};
+
 /// Serialize a fixed set of objects into a buffer.
 /// Reconstruct with \c get_tuple.
 template<class... TT>
@@ -131,8 +150,8 @@ put_tuple(const TT &... tt) {
 template<class... TT>
 auto
 get_tuple(const std::byte * p, const std::byte * e = nullptr) {
-  return std::tuple{get<TT>(p)...};
-  flog_assert(!e || p == e, "Wrong deserialization size");
+  cast r{p, e};
+  return std::tuple{r.get<TT>()...};
 }
 
 /// Construct a \c std::vector from a size and then elements.
@@ -148,16 +167,6 @@ get_vector(const std::byte *& p) {
     ret.push_back(get<T>(p));
   return ret;
 }
-
-/// Aggregate helper that converts to any type via \c get.
-struct cast {
-  /// The pointer from which to \c get.
-  const std::byte *& p;
-  template<class T>
-  operator T() const {
-    return get<T>(p);
-  }
-};
 
 namespace detail {
 template<class T>

@@ -136,7 +136,7 @@ Andrew Reisner
 |clearboth|
 
 Navamita Ray
-++++++++++++++
+++++++++++++
 
 .. container:: twocol
 
@@ -190,7 +190,7 @@ Julien Loiseau
 |clearboth|
 
 Charles Ferenbaugh
-++++++++++++++
+++++++++++++++++++
 
 .. container:: twocol
 
@@ -354,7 +354,7 @@ Irina Demeshko
 |clearboth|
 
 Charles Ferenbaugh
-++++++++++++++
+++++++++++++++++++
 
 .. container:: twocol
 

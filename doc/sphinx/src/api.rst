@@ -2,7 +2,7 @@
 
    <br />
 
-.. _build:
+.. _api:
 
 API Reference
 *************

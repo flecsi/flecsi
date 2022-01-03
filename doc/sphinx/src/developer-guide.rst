@@ -61,9 +61,6 @@ Starting from the 2019 version:
 Additional Rules
 ^^^^^^^^^^^^^^^^
 
-* Changes purely for stylistic reasons should be rare and must appear in a
-  separate commit (preferably a separate merge request).
-
 * Class and enumeration names do not get a suffix ``_t``.
 
 * Header names are "absolute" (*i.e.*, begin with ``flecsi/``).
@@ -85,6 +82,30 @@ within a CMakeLists.txt file to identify source in subdirectories.
 Unit test files should be placed in the *test* subdirectory of each
 namespace subdirectory. By convention, developers should not create
 subdirectories within the test subdirectory.
+
+Commits
+^^^^^^^
+While exceptions must occasionally be made to each of the following, ideally each commit should
+
+* build and pass tests (partly to support ``git bisect``)
+* not add or change material changed later in the same merge request (partly to help ``git blame``)
+* include the smallest subset of an overall set of changes that follows the above rules
+* add or update any relevant documentation, including the :ref:`news`
+* not be a meaningless merge from the destination branch (as introduced by ``git pull``)
+* have a meaningful message that follows the `50/72 rule`__
+* be properly formatted per ``clang-format``
+* either make only purely stylistic changes or make no such changes
+
+__ http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+
+Stylistic changes should be rare and are best put in their own merge request (so that they do not complicate any substantive review).
+Improvements to the style of code already being modified are encouraged, so long as they do not materially interfere with review.
+
+Expending a reasonable effort to rewrite the history of a merge request to obtain the above properties is encouraged.
+The usual tool is ``git rebase -i``, although retroactive formatting is much easier with (a script that runs) ``git filter-branch``.
+
+The name of the source branch of a merge request appears in the machine-generated commit that merges it.
+Those names should therefore be meaningful; in particular, to avoid confusion they shouldn't just be that of the destination branch (as from commands like ``git checkout 2.1``).
 
 -----
 
@@ -183,14 +204,10 @@ Container Images
 
 .. important::
 
-  These sections assumes that you are familiar with container management
-  using a container engine like *Docker*. If you are not, there is
-  excellent documentation starting `here`__. Additionally, we include
-  instructions and links for installation and basic usage below.
+  These sections assume that you are familiar with container management using a container engine like `Docker`__.
+  The first step is :ref:`container`.
 
   __ https://docs.docker.com/get-started
-
-.. include:: install_docker.rst
 
 Tutorial Image
 ^^^^^^^^^^^^^^

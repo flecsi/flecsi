@@ -143,7 +143,7 @@
         ../..
     - make
     - CTEST_OUTPUT_ON_FAILURE=1 make test
-    - make install
+    - make ${DOC} install
     - ccache -s
   artifacts:
     expire_in: 2 weeks
