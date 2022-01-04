@@ -13,7 +13,7 @@
 #------------------------------------------------------------------------------#
 
 execute_process(
-  COMMAND ${CMAKE_SOURCE_DIR}/VERSION
+  COMMAND ${CMAKE_SOURCE_DIR}/config/version.sh
   OUTPUT_VARIABLE version
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   OUTPUT_STRIP_TRAILING_WHITESPACE
