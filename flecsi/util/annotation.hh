@@ -27,7 +27,17 @@ namespace util {
 
 namespace annotation {
 /// \defgroup annotation Profiling
-/// Markers for categorizing execution time.
+/// Markers for categorizing performance measurements.
+///
+/// This utility provides an interface to the
+/// [Caliper](http://software.llnl.gov/Caliper/) source-code
+/// annotation API.  Regions of code are marked and annotations are
+/// recorded in Caliper depending on the `CALIPER_DETAIL` CMake
+/// option.  Caliper's [runtime
+/// configuration](http://software.llnl.gov/Caliper/configuration.html)
+/// can then be used to control performance measurement and collection
+/// for the annotations.
+///
 /// \ingroup utils
 /// \{
 
@@ -44,7 +54,15 @@ constexpr detail detail_level{detail::low};
 #define DISABLE_CALIPER
 #endif
 
-/// base for annotation contexts.
+/**
+ * base for annotation contexts.
+ *
+ * Annotation contexts correspond to Caliper context attributes and
+ * are used to group code regions.
+ *
+ * \tparam T type used to label context by including a char[] static
+ * member called name.
+ */
 template<class T>
 struct context {
 #if !defined(DISABLE_CALIPER)
@@ -56,7 +74,10 @@ struct execution : context<execution> {
 };
 
 /**
- *  base for code region annotations.
+ * base for code region annotations.
+ *
+ * Code region annotations are used to specify a detail level and name
+ * for regions of source-code to be considered for performance analysis.
  *
  *   \tparam CTX annotation context for code region (must inherit from
  * annotation::context).
@@ -92,10 +113,10 @@ struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
   static constexpr detail detail_level = detail::high;
 };
 /**
- * Tag beginning of a custom named code region.
+ * Tag beginning of a code region with runtime name.
  *
- * This method can be used for custom code regions that are not
- * registered as region structs.
+ * This is used to mark code regions with a name at runtime in
+ * contrast to using a region type.
  *
  * \tparam ctx annotation context for named code region.
  * \tparam detail severity detail level to use for code region.
@@ -167,10 +188,10 @@ begin(std::string_view task_name) {
 }
 
 /**
- * Tag end of a custom named code region.
+ * Tag end of a named code region.
  *
- * This method can be used for custom code regions that are not
- * registered as region structs.
+ * This is used for runtime named code regions (in contrast
+ * using region types).
  *
  * \tparam ctx annotation context for named code region.
  * \tparam detail severity detail level to use for code region.
@@ -186,7 +207,7 @@ end() {
 }
 
 /**
- * Tag end of code region with caliper annotation.
+ * Tag end of code region using a region type.
  *
  * The region is only tagged if caliper is enabled and reg::detail_level
  * is compatible with the current annotation detail level.
@@ -201,7 +222,11 @@ end() {
 }
 
 /**
- * Scope guard used for timing scoped regions.
+ * Scope guard for marking a code region.
+ *
+ * This type is used to mark a runtime named code region based on the
+ * lifetime of the guard.
+ *
  * \tparam ctx annotation context for named code region.
  * \tparam severity detail level to use for code region.
  */
@@ -219,7 +244,11 @@ public:
 };
 
 /**
- * Scope guard used for timing scoped regions.
+ * Scope guard for marking a code region.
+ *
+ * This type is used to mark a code region identified with a region
+ * type based on the lifetime of the guard.
+ *
  * \tparam reg code region to tag (type inherits from annotation::region)
  */
 template<class reg>

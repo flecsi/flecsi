@@ -42,11 +42,7 @@ index_task(launch_domain) {
 
 int
 interface_driver() {
-  UNIT() {
-    ASSERT_EQ(test<index_task>(launch_domain{processes() + 4}), 0);
-    int task_return = test<index_task>(launch_domain{processes() + 4});
-    ASSERT_EQ(task_return, 0);
-  };
-} // interface_driver
+  UNIT() { EXPECT_EQ(test<index_task>(launch_domain{processes() + 4}), 0); };
+}
 
 unit::driver<interface_driver> driver;

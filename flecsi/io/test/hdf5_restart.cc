@@ -170,8 +170,7 @@ restart_driver() {
 
     // Legion backend doesn't support N-to-M yet - use 1 rank/file
     // MPI backend supports N-to-M restarts - use 2 ranks/file
-    int ranks_per_file = (FLECSI_BACKEND == FLECSI_BACKEND_legion ? 1 : 2);
-    io::io_interface iif{ranks_per_file};
+    io::io_interface iif(FLECSI_BACKEND == FLECSI_BACKEND_legion ? 1 : 2);
     auto filename =
       std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
     iif.checkpoint_all_fields(filename, Attach);

@@ -105,7 +105,7 @@ interface() {
 
 int
 color_map() {
-  UNIT() { execute<interface, mpi>(); };
-} // color_map
+  UNIT() { EXPECT_EQ((test<interface, mpi>()), 0); };
+}
 
 unit::driver<color_map> color_map_driver;

@@ -42,16 +42,14 @@ if(ENABLE_DOCUMENTATION)
         make doc &&
         echo "Updating gh-pages" &&
           ([ -e gh-pages ] ||
-            ${GIT_EXECUTABLE} clone --single-branch --branch gh-pages
-              git@gitlab.lanl.gov:flecsi/flecsi-pages.git gh-pages &&
+            ${GIT_EXECUTABLE} clone -q --single-branch --branch gh-pages
+              git@github.com:flecsi/flecsi.git gh-pages &&
             cd gh-pages &&
-            git rm -r . && git reset &&
-            ${GIT_EXECUTABLE} remote rm origin &&
-            ${GIT_EXECUTABLE} remote add origin
-              git@github.com:flecsi/flecsi.git &&
-              ${GIT_EXECUTABLE} fetch) &&
+            ${GIT_EXECUTABLE} rm -qr . && ${GIT_EXECUTABLE} reset -q &&
+            ${GIT_EXECUTABLE} checkout .gitignore) &&
         echo "Updating pages" &&
           cp -rT doc gh-pages &&
+          (cd gh-pages && ${GIT_EXECUTABLE} add -A .) &&
         echo "Updated gh-pages are in ${CMAKE_BINARY_DIR}/gh-pages" &&
         echo "${FLECSI_Red}!!!WARNING WARNING WARNING!!!" &&
         echo "The gh-pages repository points to an EXTERNAL remote on github.com." &&
