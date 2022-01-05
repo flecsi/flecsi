@@ -142,6 +142,11 @@ built.
   available on the system, and will enable Exodus functionality in the
   FleCSI I/O interface.
 
+* **ENABLE_FLOG [default: OFF]** |br|
+  This option enables support for the FleCSI logging utility (flog).
+  By default, it also activates the flog unit tests in the build
+  system.
+
 * **ENABLE_JENKINS_OUTPUT [default: OFF]** |br|
   If this options is on, extra meta data will be output during unit test
   invocation that may be used by the Jenkins CI system.
@@ -181,6 +186,21 @@ built.
 * **FLECSI_BACKEND [default: mpi]** |br|
   Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
+
+* **FLOG_SERIALIZATION_INTERVAL [default: 100]** |br|
+  The flog serialization interval specifies the number of task
+  executions after which FleCSI should check for buffered output to
+  process.  It should be set to a value that balances output
+  timeliness (lower = more timely output) against performance (higher
+  = less overhead from the requisite global reduction).
+
+* **FLOG_SERIALIZATION_THRESHOLD [default: 1024]** |br|
+  The flog serialization threshold specifies the number of messages
+  that must have accumulated before output will be collected to a
+  single process and written to the output streams.  It should be set
+  to a value that balances output timeliness (lower = more timely
+  output) against performance (higher = less overhead from the
+  requisite global reduction and from writing the output).
 
 * **VERSION_CREATION [default: git describe]** |br|
   This options allows the user to either directly specify a version by
