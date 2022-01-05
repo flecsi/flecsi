@@ -132,15 +132,11 @@ add_unit(unstructured
   THREADS 2
 )
 
-if(FLECSI_BACKEND STREQUAL "legion")
-
 add_unit(fixed
   SOURCES
     unstructured/test/fixed.cc
   THREADS 4
 )
-
-endif()
 
 # narray ----------------------------------------------------------------------#
 

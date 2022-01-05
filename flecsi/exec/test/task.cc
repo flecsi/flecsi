@@ -90,6 +90,27 @@ auto
 drop(int n, const std::string & s) {
   return s.substr(n);
 }
+
+int
+index_task(exec::launch_domain) {
+  UNIT {
+    flog(info) << "program: " << program() << std::endl;
+    flog(info) << "processes: " << processes() << std::endl;
+    flog(info) << "process: " << process() << std::endl;
+    // flog(info) << "threads per process: " << threads_per_process() <<
+    // std::endl; flog(info) << "threads: " << threads() << std::endl;
+    // flog(info)
+    // << "colors: " << colors() << std::endl; flog(info) << "color: " <<
+    // color()
+    // << std::endl;
+
+    ASSERT_LT(process(), processes());
+    ASSERT_GE(process(), 0u);
+    // ASSERT_LT(color(), domain.size());
+    // ASSERT_GE(color(), 0u);
+    // ASSERT_EQ(colors(), domain.size());
+  };
+}
 } // namespace
 
 int
@@ -128,6 +149,10 @@ task_driver() {
     int x = 0;
     ASSERT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
     ASSERT_EQ(x, 1); // NB: MPI calls are synchronous
+
+    EXPECT_EQ(test<index_task>(exec::launch_domain{
+                processes() + 4 * (FLECSI_BACKEND != FLECSI_BACKEND_mpi)}),
+      0);
   };
 } // task_driver
 
