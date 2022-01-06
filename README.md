@@ -1,4 +1,4 @@
-![logo](doc/doxygen/flecsi.png)
+![logo](doc/sphinx/_static/flecsi.png)
 
 # Introduction
 
