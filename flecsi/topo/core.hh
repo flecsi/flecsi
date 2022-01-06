@@ -225,7 +225,8 @@ struct specialization : specialization_base {
 #ifdef DOXYGEN
 /// An example specialization that is not really implemented.
 /// No member is needed in all circumstances.
-/// See also the members marked for overriding in \c specialization.
+/// See also the members marked for overriding in \c specialization_base and
+/// \c specialization.
 struct topology : specialization<core, topology> {
   /// Interpret specialization-specific arguments to construct a coloring.
   /// Called in an MPI task.
