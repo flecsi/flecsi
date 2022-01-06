@@ -191,6 +191,10 @@ struct detail::base<array_category> {
 template<class P>
 struct array : topo::specialization<array_category, array<P>> {};
 
+/// \defgroup spec Predefined specializations
+/// Specializations for topologies so simple that no others are needed.
+/// \{
+
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
@@ -203,6 +207,7 @@ struct index : specialization<index_category, index> {
 
 }; // struct index
 
+/// \}
 /// \}
 } // namespace topo
 } // namespace flecsi

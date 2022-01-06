@@ -29,7 +29,8 @@ struct topology_accessor; // avoid circularity via launch.hh
 namespace topo {
 /// \defgroup topology Topologies
 /// Generic topology categories and tools for specializing them.
-/// \warning The material in this section and its subsections is of interest
+/// \warning The material in this section and its subsections other than
+///   \ref spec is of interest
 ///   only to developers of topology specializations.  Application developers
 ///   should consult the documentation for the specializations they are using,
 ///   which may refer back to this document (occasionally even to small,
