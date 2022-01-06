@@ -25,10 +25,6 @@
 
 namespace flecsi {
 namespace data {
-/// \defgroup legion-data Legion Data
-/// Owning wrappers for Legion objects.
-/// \ingroup data
-/// \{
 
 struct prefixes;
 
@@ -42,6 +38,11 @@ static_assert(static_cast<Legion::coord_t>(logical_size) == logical_size,
   "logical_size too large for Legion");
 
 namespace leg {
+/// \defgroup legion-data Legion Data
+/// Owning wrappers for Legion objects.
+/// \ingroup data
+/// \{
+
 constexpr inline Legion::ProjectionID def_proj = 0;
 
 inline auto &
@@ -315,6 +316,7 @@ private:
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
+/// \}
 } // namespace leg
 
 using region_base = leg::region;
@@ -337,6 +339,5 @@ get_scalar_from_accessor(const T * ptr) {
   return *ptr;
 }
 
-/// \}
 } // namespace data
 } // namespace flecsi

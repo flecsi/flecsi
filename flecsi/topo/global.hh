@@ -34,6 +34,9 @@ struct detail::base<global_category> {
   using type = global_base;
 };
 
+/// \addtogroup spec
+/// \{
+
 /*!
   The \c global type allows users to register data on a
   topology with a single index, i.e., there is one instance of
@@ -42,6 +45,7 @@ struct detail::base<global_category> {
  */
 struct global : specialization<global_category, global> {};
 
+/// \}
 /// \}
 } // namespace topo
 

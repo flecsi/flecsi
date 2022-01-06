@@ -27,6 +27,10 @@ Introduction
       Charm++. The abstraction layer insulates developers from the
       underlying runtime, while allowing support for multiple runtime
       systems including conventional models like asynchronous MPI.
+      The overall design is described further in `a paper`__ presented at the
+      2021 Asynchronous Many-Task systems for Exascale conference.
+
+      __ https://permalink.lanl.gov/object/tr?what=info:lanl-repo/lareport/LA-UR-21-25604
 
       The intent is to provide developers with a concrete set of
       user-friendly programming tools that can be used now, while
@@ -51,7 +55,6 @@ Introduction
   src/specialization-guide
   src/user-guide
   src/api
-  src/summary
   src/team
 
 .. Not sure exactly why, but this seems to do what I want at the
