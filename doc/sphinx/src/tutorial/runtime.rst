@@ -542,10 +542,10 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
 * *FLOG_SERIALIZATION_INTERVAL* |br|
   The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
-  tasks executed, i.e., if the serialization interval is set to 100,
+  tasks executed, i.e., if the serialization interval is set to 300,
   FleCSI will check how many messages have been injected into the stream
-  of each process every multiple of 100 task executions. |br|
-  *(default: 1024)*
+  of each process every multiple of 300 task executions. |br|
+  *(default: 100)*
 
 * *FLOG_SERIALIZATION_THRESHOLD* |br|
   The serialization threshold sets the number of messages that must have
