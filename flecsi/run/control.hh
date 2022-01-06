@@ -191,7 +191,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() {
     flecsi::util::graphviz gv;
-    run_impl::walk<control_points>(point_writer(registry_, gv));
+    point_writer::write(registry_, gv);
     std::string file = program() + "-control-model.dot";
     gv.write(file);
     return flecsi::run::status::control_model;

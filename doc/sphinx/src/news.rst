@@ -27,6 +27,10 @@ Fixed
   * HDF5 is supported by the CMake configuration.
   * Caliper is supported by the MPI backend.
 
+* Runtime
+
+  * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
+
 * Data
 
   * Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).
