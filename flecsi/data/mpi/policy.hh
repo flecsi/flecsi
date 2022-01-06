@@ -26,12 +26,12 @@
 
 namespace flecsi {
 namespace data {
+namespace mpi {
 /// \defgroup mpi-data MPI Data
 /// Direct data storage.
 /// \ingroup data
 /// \{
 
-namespace mpi {
 struct region_impl {
   // The constructor is collectively called on all ranks with the same s,
   // and fs. s.first is number of rows while s.second is number of columns.
@@ -173,6 +173,7 @@ struct prefixes : partition, prefixes_base {
 
   using partition::get_base;
 };
+/// \}
 } // namespace mpi
 
 // For backend-agnostic interface:
@@ -383,6 +384,5 @@ T
 get_scalar_from_accessor(const T * ptr) {
   return *ptr;
 }
-/// \}
 } // namespace data
 } // namespace flecsi
