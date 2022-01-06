@@ -55,7 +55,6 @@ Introduction
   src/specialization-guide
   src/user-guide
   src/api
-  src/summary
   src/team
 
 .. Not sure exactly why, but this seems to do what I want at the
