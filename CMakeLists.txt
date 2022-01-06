@@ -38,7 +38,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
   endif()
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "10.0")
-    message(FATAL_ERROR "Cannot use this GCC version due to a regression <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83258>")
+    message(FATAL_ERROR "Cannot use this GCC version due to a regression:"
+      "<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83258>")
   endif()
 endif()
 

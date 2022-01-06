@@ -122,7 +122,8 @@ using list_access = detail::connect_access<lists<P>, Priv>;
 
 // Subroutines for topology accessors:
 template<class F, class... VT, class C, class S = util::identity>
-void connect_send(F && f,
+void
+connect_send(F && f,
   util::key_tuple<VT...> & ca,
   C & cf,
   S && s = {}) { // s: topology -> subtopology
