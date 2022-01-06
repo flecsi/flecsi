@@ -102,7 +102,8 @@ assign(double_field::accessor<wo> p,
   ++sp[0](column + i);
 } // assign
 
-std::size_t reset(noisy::accessor<wo>) { // must be an MPI task
+std::size_t
+reset(noisy::accessor<wo>) { // must be an MPI task
   return Noisy::count;
 }
 

@@ -300,7 +300,7 @@ private:
     completeness cpt)
     : partition_base(reg,
         named(
-          [& r = run()](auto &&... aa) {
+          [&r = run()](auto &&... aa) {
             return R ? r.create_partition_by_image_range(
                          std::forward<decltype(aa)>(aa)...)
                      : r.create_partition_by_image(

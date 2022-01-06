@@ -20,7 +20,8 @@ namespace dependencies {
 
 enum class cp { cp1, cp2 };
 
-inline const char * operator*(cp control_point) {
+inline const char *
+operator*(cp control_point) {
   switch(control_point) {
     case cp::cp1:
       return "Control Point 1";

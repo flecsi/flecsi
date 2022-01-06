@@ -117,9 +117,9 @@ private:
 };
 
 template<class C>
-span(C &)->span<typename C::value_type>;
+span(C &) -> span<typename C::value_type>;
 template<class C>
-span(const C &)->span<const typename C::value_type>;
+span(const C &) -> span<const typename C::value_type>;
 
 /// Copy a span into a std::vector.
 template<class T>
@@ -371,7 +371,7 @@ public:
   decltype(auto) operator*() const {
     return (*this)[0];
   }
-  auto operator-> () const {
+  auto operator->() const {
     return &**this;
   }
 
@@ -474,8 +474,8 @@ struct transform_view {
   public:
     using difference_type = typename traits::difference_type;
     // TODO: notice a reference return from F and upgrade iterator_category
-    using reference = decltype(
-      std::declval<const F &>()(std::declval<typename traits::reference>()));
+    using reference = decltype(std::declval<const F &>()(
+      std::declval<typename traits::reference>()));
     using value_type = std::decay_t<reference>;
     using pointer = void;
     // We provide all the operators, but we don't assume a real reference:
@@ -620,9 +620,9 @@ private:
 
 template<class C, class F>
 transform_view(C &&, F)
-  ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
+  -> transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
-transform_view(const C &, F)->transform_view<typename C::const_iterator, F>;
+transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 /// \endcond
 
 /// \}
