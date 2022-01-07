@@ -79,8 +79,8 @@ built.
   FleCSI I/O interface.
 
 * **ENABLE_FLOG [default: OFF]** |br|
-  This option enables support for the FleCSI logging utility (flog).
-  By default, it also activates the flog unit tests in the build
+  This option enables support for the FleCSI logging utility (Flog).
+  By default, it also activates the Flog unit tests in the build
   system.
 
 * **ENABLE_JENKINS_OUTPUT [default: OFF]** |br|
@@ -123,23 +123,76 @@ built.
   Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
 
+* **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
+  Produce colorized Flog output instead of using the output device's
+  default colors.
+
+* **FLOG_ENABLE_TAGS [default: ON]** |br|
+  Enable tag groups in Flog.  Tag groups enable the programmer to
+  "guard" sets of messages with a tag and the user to select which
+  tags should be enabled or disabled.  This gives the user the ability
+  to control the types of information a program should output.
+
+* **FLOG_ENABLE_MPI [default: ON]** |br|
+  Include MPI support in Flog.
+
+* **FLOG_ENABLE_DEBUG [default: OFF]** |br|
+  Enable Flog debug mode.  This causes Flog to output ``FLOG: …``
+  messages describing its internal operations.  This is intended for
+  use by developers to debug Flog itself.
+
+* **FLOG_ENABLE_EXTERNAL [default: ON]** |br|
+  Enable support for messages defined at namespace scope.
+
+* **FLOG_ENABLE_DEVELOPER_MODE [default: OFF]** |br|
+  Enable internal FleCSI developer messages in the form of a
+  ``flog_devel(severity)`` output stream.
+
+* **FLOG_TAG_BITS [default: 1024]** |br|
+  Specify the number of bits to use for tag groups.  This corresponds
+  to the maximum number of tag groups a program can define.
+
 * **FLOG_SERIALIZATION_INTERVAL [default: 100]** |br|
-  The flog serialization interval specifies the number of task
+  The Flog serialization interval specifies the number of task
   executions after which FleCSI should check for buffered output to
   process.  It should be set to a value that balances output
   timeliness (lower = more timely output) against performance (higher
   = less overhead from the requisite global reduction).
 
 * **FLOG_SERIALIZATION_THRESHOLD [default: 1024]** |br|
-  The flog serialization threshold specifies the number of messages
+  The Flog serialization threshold specifies the number of messages
   that must have accumulated before output will be collected to a
   single process and written to the output streams.  It should be set
   to a value that balances output timeliness (lower = more timely
   output) against performance (higher = less overhead from the
   requisite global reduction and from writing the output).
 
+* **FLOG_STRIP_LEVEL [default: 0]** |br|
+  Set the Flog strip level, which should an integer from 0 to 4.  Like
+  tag groups, strip levels are a mechanism for the user to control the
+  amount of output that Flog generates: the higher the strip level,
+  the fewer Flog messages will be output.  There are five strip levels
+  in Flog:
+
+  =====  =====
+  Level  Type
+  =====  =====
+  0      trace
+  1      info
+  2      warn
+  3      error
+  4      fatal
+  =====  =====
+
+  Each number represents the largest value of ``FLOG_STRIP_LEVEL``
+  that will produce that type of output.  That is, if the strip level
+  is 0, all message types will be output; if the strip level is 3,
+  only *error* and *fatal* log messages will be output. Regardless of
+  the strip level, Flog messages that are designated *fatal* will
+  generate a runtime error and will invoke ``std::exit``.
+
 * **VERSION_CREATION [default: git describe]** |br|
-  This options allows the user to either directly specify a version by
+  This option enables the user to either directly specify a version by
   entering it here, or to let the build system provide a version using
   git describe.
 
