@@ -51,9 +51,30 @@ using meta_point = run_impl::meta_point<CP>;
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 
+/*!
+  Base class for providing default implementations for optional interfaces.
+ */
+
+struct control_base {
+  /// Called before executing.  If the value returned is not \c success,
+  /// \c run and \c finalize are skipped.
+  /// \return exit status
+  int initialize() {
+    return success;
+  }
+  /// Called after executing.
+  /// \param run exit status from running
+  /// \return exit status
+  int finalize(int run) {
+    return run;
+  }
+};
+
 #ifdef DOXYGEN
 /// An example control policy that is not really implemented.
-struct control_policy {
+/// Inheriting from \c control_base is optional,
+/// but not doing so is \b deprecated.
+struct control_policy : control_base {
   /// The labels for the control-flow graph.
   enum control_points_enum {};
   /// The control-flow graph.
@@ -66,19 +87,6 @@ struct control_policy {
 /// A control policy must provide names for its control points.
 inline const char * operator*(control_policy::control_points_enum);
 #endif
-
-/*!
-  Base class for providing default implementations for optional interfaces.
- */
-
-struct control_base {
-  int initialize() {
-    return success;
-  }
-  int finalize(int run) {
-    return run;
-  }
-};
 
 /*!
   The control type provides a control model for specifying a
