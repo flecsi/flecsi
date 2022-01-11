@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cwd="$( pwd )"
 
 if [ -e $cwd/.git ] ; then
 
