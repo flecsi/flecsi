@@ -43,28 +43,7 @@ namespace run_impl {
 template<bool (*Predicate)(), typename... ControlPoints>
 struct cycle {
 
-  using type = std::tuple<ControlPoints...>;
-  static constexpr size_t last = std::tuple_size<type>::value - 1;
-
-  template<size_t E, typename T>
-  struct recurse;
-
-  template<size_t E, bool (*P)(), typename... CPs>
-  struct recurse<E, cycle<P, CPs...>> {
-    using type = std::tuple<CPs...>;
-    static constexpr const auto & value =
-      recurse<E, typename std::tuple_element<E, type>::type>::value;
-  };
-
-  template<size_t E, auto Value>
-  struct recurse<E, util::constant<Value>> {
-    static constexpr const auto & value = Value;
-  };
-
-  static constexpr auto & begin =
-    recurse<0, typename std::tuple_element<0, type>::type>::value;
-  static constexpr auto & end =
-    recurse<last, typename std::tuple_element<last, type>::type>::value;
+  using type = util::types<ControlPoints...>;
 
   static bool predicate() {
     return Predicate();
@@ -74,7 +53,7 @@ struct cycle {
 
 template<class F, class... TT>
 void
-walk(F && f, std::tuple<TT...> *) {
+walk(F && f, util::types<TT...> *) {
   (f.template visit_type<TT>(), ...);
 }
 template<class T, class F>
@@ -82,6 +61,17 @@ void
 walk(F && f) {
   walk(std::forward<F>(f), static_cast<T *>(nullptr));
 }
+
+template<class T>
+struct to_types {
+  using type = T;
+};
+template<class... TT>
+struct to_types<std::tuple<TT...>> {
+  using type = util::types<TT...>;
+};
+template<class P>
+using to_types_t = typename to_types<typename P::control_points>::type;
 
 /*
   Helper type to initialize dag labels.
@@ -179,30 +169,31 @@ struct point_writer {
     "#4eb2e0",
     "#9dd9f3"};
 
-  point_writer(std::map<control_points_enum, dag> registry,
+  point_writer(const std::map<control_points_enum, dag> & registry,
     graphviz & gv,
+    Agnode_t *& b,
+    Agnode_t *& l,
     int depth = 0)
-    : registry_(registry), gv_(gv), depth_(depth) {}
+    : registry_(registry), gv_(gv), begin(b), last(l), depth_(depth) {}
 
   template<typename ElementType>
   void visit_type() {
     if constexpr(std::is_same<typename ElementType::type,
                    control_points_enum>::value) {
-      auto & dag = registry_[ElementType::value];
+      auto & dag = registry_.at(ElementType::value);
 
       auto * root = gv_.add_node(dag.label().c_str(), dag.label().c_str());
+      set_begin(root);
       gv_.set_node_attribute(root, "shape", "box");
       gv_.set_node_attribute(root, "style", "rounded");
 
-      if(size_t(ElementType::value) > 0) {
-        auto & last = registry_[static_cast<control_points_enum>(
-          static_cast<size_t>(ElementType::value) - 1)];
-        auto * last_node = gv_.node(last.label().c_str());
-        auto * edge = gv_.add_edge(last_node, root);
+      if(last) {
+        auto * edge = gv_.add_edge(last, root);
         gv_.set_edge_attribute(edge, "color", "#1d76db");
         gv_.set_edge_attribute(edge, "fillcolor", "#1d76db");
         gv_.set_edge_attribute(edge, "style", "bold");
       } // if
+      last = root;
 
       dag.add(gv_, colors[static_cast<size_t>(ElementType::value) % 4]);
 
@@ -214,21 +205,21 @@ struct point_writer {
       } // for
     }
     else {
+      Agnode_t * b = nullptr;
       walk<typename ElementType::type>(
-        point_writer(registry_, gv_, depth_ - 1));
+        point_writer(registry_, gv_, b, last, this));
+      if(!b)
+        return;
+      set_begin(b);
 
-      auto & begin = registry_[ElementType::begin];
-      auto & end = registry_[ElementType::end];
-
-      auto * edge = gv_.add_edge(
-        gv_.node(end.label().c_str()), gv_.node(begin.label().c_str()));
+      auto * edge = gv_.add_edge(last, b);
 
       gv_.set_edge_attribute(edge, "label", " cycle");
       gv_.set_edge_attribute(edge, "color", "#1d76db");
       gv_.set_edge_attribute(edge, "fillcolor", "#1d76db");
       gv_.set_edge_attribute(edge, "style", "dashed,bold");
 
-      if constexpr(ElementType::begin == ElementType::end) {
+      if(b == last) {
         gv_.set_edge_attribute(edge, "dir", "back");
       }
       else {
@@ -243,6 +234,13 @@ struct point_writer {
       } // if
     } // if
   } // visit_type
+
+  static void write(const std::map<control_points_enum, dag> & registry,
+    graphviz & gv) {
+    Agnode_t *begin = nullptr, *last = nullptr;
+    walk<typename ControlPolicy::control_points>(
+      point_writer(registry, gv, begin, last));
+  }
 
   static void write_sorted(
     std::map<control_points_enum, std::vector<node_type const *>> sorted,
@@ -268,8 +266,14 @@ struct point_writer {
   } // write_sorted
 
 private:
-  std::map<control_points_enum, dag> registry_;
+  void set_begin(Agnode_t * b) const {
+    if(!begin)
+      begin = b;
+  }
+
+  const std::map<control_points_enum, dag> & registry_;
   graphviz & gv_;
+  Agnode_t *&begin, *&last;
   int depth_;
 
 }; // struct point_writer

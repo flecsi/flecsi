@@ -36,6 +36,10 @@ Fixed
   * Caliper is supported by the MPI backend.
   * Building with the MPI backend properly links to the threading library.
 
+* Runtime
+
+  * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
+
 * Data
 
   * Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).

@@ -94,7 +94,7 @@ struct control : ControlPolicy {
 private:
   friend ControlPolicy;
 
-  using control_points = typename ControlPolicy::control_points;
+  using control_points = run_impl::to_types_t<ControlPolicy>;
   using control_points_enum = typename ControlPolicy::control_points_enum;
   using node_policy = typename ControlPolicy::node_policy;
 
@@ -191,7 +191,7 @@ private:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() {
     flecsi::util::graphviz gv;
-    run_impl::walk<control_points>(point_writer(registry_, gv));
+    point_writer::write(registry_, gv);
     std::string file = program() + "-control-model.dot";
     gv.write(file);
     return flecsi::run::status::control_model;
