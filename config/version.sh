@@ -1,8 +1,6 @@
 #! /usr/bin/env bash
 
-cwd="$( pwd )"
-
-if [ -e $cwd/.git ] ; then
+if [ -e .git ] ; then
 
   # Check for git on the system
   git=`which git`
@@ -15,7 +13,7 @@ if [ -e $cwd/.git ] ; then
   detached=`git status --short --branch`
 
   if [[ $detached =~ "no branch" ]]; then
-    describe=`cat $cwd/.version`
+    describe=`cat .version`
   fi
 
   tags=`git tag`
@@ -26,10 +24,10 @@ if [ -e $cwd/.git ] ; then
       describe="$describe-0-0"
     fi
   else
-    describe=`cat $cwd/.version`
+    describe=`cat .version`
   fi
 else
-  describe=`cat $cwd/.version`
+  describe=`cat .version`
 fi
 
 IFS='-'
