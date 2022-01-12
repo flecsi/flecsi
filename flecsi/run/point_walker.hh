@@ -23,7 +23,6 @@
 #include "flecsi/util/graphviz.hh"
 #endif
 
-#include <map>
 #include <vector>
 
 /// \cond core
@@ -81,13 +80,12 @@ template<typename ControlPolicy>
 struct init_walker {
 
   using control_points_enum = typename ControlPolicy::control_points_enum;
-  using dag = util::dag<typename ControlPolicy::control_node>;
+  using dag_map = typename ControlPolicy::dag_map;
 
-  init_walker(std::map<control_points_enum, dag> & registry)
-    : registry_(registry) {}
+  init_walker(dag_map & registry) : registry_(registry) {}
 
   template<typename ElementType>
-  void visit_type() {
+  void visit_type() const {
 
     if constexpr(std::is_same<typename ElementType::type,
                    control_points_enum>::value) {
@@ -99,7 +97,7 @@ struct init_walker {
   } // visit_type
 
 private:
-  std::map<control_points_enum, dag> & registry_;
+  dag_map & registry_;
 
 }; // struct init_walker
 
@@ -112,11 +110,9 @@ template<typename ControlPolicy>
 struct point_walker {
 
   using control_points_enum = typename ControlPolicy::control_points_enum;
-  using node_type = typename ControlPolicy::node_type;
+  using sorted_type = typename ControlPolicy::sorted_type;
 
-  point_walker(
-    std::map<control_points_enum, std::vector<node_type const *>> sorted,
-    int & exit_status)
+  point_walker(const sorted_type & sorted, int & exit_status)
     : sorted_(sorted), exit_status_(exit_status) {}
 
   /*!
@@ -129,13 +125,13 @@ struct point_walker {
    */
 
   template<typename ElementType>
-  void visit_type() {
+  void visit_type() const {
 
     if constexpr(std::is_same<typename ElementType::type,
                    control_points_enum>::value) {
 
       // This is not a cycle -> execute each action for this control point.
-      for(auto & node : sorted_[ElementType::value]) {
+      for(auto & node : sorted_.at(ElementType::value)) {
         exit_status_ |= node->execute();
       } // for
     }
@@ -150,7 +146,7 @@ struct point_walker {
   } // visit_type
 
 private:
-  std::map<control_points_enum, std::vector<node_type const *>> sorted_;
+  const sorted_type & sorted_;
   int & exit_status_;
 
 }; // struct point_walker
@@ -160,8 +156,7 @@ private:
 template<typename ControlPolicy>
 struct point_writer {
   using control_points_enum = typename ControlPolicy::control_points_enum;
-  using node_type = typename ControlPolicy::node_type;
-  using dag = util::dag<typename ControlPolicy::control_node>;
+  using dag_map = typename ControlPolicy::dag_map;
   using graphviz = flecsi::util::graphviz;
 
   static constexpr const char * colors[4] = {"#77c3ec",
@@ -169,7 +164,7 @@ struct point_writer {
     "#4eb2e0",
     "#9dd9f3"};
 
-  point_writer(const std::map<control_points_enum, dag> & registry,
+  point_writer(const dag_map & registry,
     graphviz & gv,
     Agnode_t *& b,
     Agnode_t *& l,
@@ -177,7 +172,7 @@ struct point_writer {
     : registry_(registry), gv_(gv), begin(b), last(l), depth_(depth) {}
 
   template<typename ElementType>
-  void visit_type() {
+  void visit_type() const {
     if constexpr(std::is_same<typename ElementType::type,
                    control_points_enum>::value) {
       auto & dag = registry_.at(ElementType::value);
@@ -207,7 +202,7 @@ struct point_writer {
     else {
       Agnode_t * b = nullptr;
       walk<typename ElementType::type>(
-        point_writer(registry_, gv_, b, last, this));
+        point_writer(registry_, gv_, b, last, depth_ - 1));
       if(!b)
         return;
       set_begin(b);
@@ -235,15 +230,13 @@ struct point_writer {
     } // if
   } // visit_type
 
-  static void write(const std::map<control_points_enum, dag> & registry,
-    graphviz & gv) {
+  static void write(const dag_map & registry, graphviz & gv) {
     Agnode_t *begin = nullptr, *last = nullptr;
     walk<typename ControlPolicy::control_points>(
       point_writer(registry, gv, begin, last));
   }
 
-  static void write_sorted(
-    std::map<control_points_enum, std::vector<node_type const *>> sorted,
+  static void write_sorted(const typename ControlPolicy::sorted_type & sorted,
     graphviz & gv) {
     std::vector<Agnode_t *> nodes;
 
@@ -271,7 +264,7 @@ private:
       begin = b;
   }
 
-  const std::map<control_points_enum, dag> & registry_;
+  const dag_map & registry_;
   graphviz & gv_;
   Agnode_t *&begin, *&last;
   int depth_;
