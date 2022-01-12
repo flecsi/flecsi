@@ -69,6 +69,9 @@ struct control_policy {
   /// Base class for control point objects.
   struct node_policy {};
 };
+
+/// A control policy must provide names for its control points.
+inline const char * operator*(control_policy::control_points_enum);
 #endif
 
 /*!
