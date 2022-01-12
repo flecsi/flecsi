@@ -202,7 +202,7 @@ struct point_writer {
     else {
       Agnode_t * b = nullptr;
       walk<typename ElementType::type>(
-        point_writer(registry_, gv_, b, last, this));
+        point_writer(registry_, gv_, b, last, depth_ - 1));
       if(!b)
         return;
       set_begin(b);
