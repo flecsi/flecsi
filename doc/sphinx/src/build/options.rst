@@ -16,6 +16,12 @@ built.
   Possible choices are *Debug*, *Release*, *RelWithDebInfo*, and
   *MinSizeRel*.
 
+* **CMAKE_CXX_COMPILER [default: g++]** |br|
+  Specify the C++ compiler to use to build FleCSI.
+
+* **CMAKE_CXX_FLAGS [default: ""]** |br|
+  Specify the flags to pass to the C++ compiler when building FleCSI.
+
 * **CMAKE_INSTALL_PREFIX [default: /usr/local]** |br|
   Specify the installation path to use when *make install* is invoked.
 
@@ -50,15 +56,47 @@ built.
   By default, it also activates the Flog unit tests in the build
   system.
 
+* **ENABLE_GRAPHVIZ [default: OFF]** |br|
+  If enabled, support the use of `Graphviz <https://graphviz.org/>`_
+  to produce graphical visualizations of a FleCSI program's control
+  points and actions.
+
+* **ENABLE_HDF5 [default: OFF]** |br|
+  If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
+  for checkpointing program state.
+
+* **ENABLE_HPX [default: OFF]** |br|
+  If enabled, support the use of `HPX
+  <https://stellar-group.org/libraries/hpx/>`_ run-time system for
+  FleCSI communication.
+
+* **ENABLE_KOKKOS [default: OFF]** |br|
+  If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
+  thread-level parallelism and GPU support.
+
+* **ENABLE_LEGION [default: OFF]** |br|
+  If enabled, support the use of `Legion <https://legion.stanford.edu/>`_
+  for distributing and migrating data and computation.
+
+* **ENABLE_MPI [default: OFF]** |br|
+  If enabled, support the use of `MPI <https://www.mpi-forum.org/>`_
+  for inter-process and inter-node communication and synchronization.
+
 * **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
   This option is a fall-back for codes that actually require the MPI C++
   bindings. **This interface is deprecated and should only be used if it
   is impossible to get rid of the dependency.**
 
 * **ENABLE_OPENMP [default: OFF]** |br|
-  Enable OpenMP support. If enabled, the appropriate flags will be
-  passed to the C++ compiler to enable language support for OpenMP
-  pragmas.
+  Enable `OpenMP <https://www.openmp.org/>`_ pragmas for thread-level
+  parallelism.  The appropriate flags will be passed to the C++
+  compiler to enable language support for OpenMP.
+
+* **ENABLE_PARMETIS [default: OFF]** |br|
+  Use the `ParMETIS
+  <http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview>`_ graph
+  partitioner for distributing mesh data in the `unstructured`
+  topology.
 
 * **ENABLE_UNIT_TESTS [default: OFF]** |br|
   Enable FleCSI unit tests. If enabled, the unit test suite can be run
@@ -68,12 +106,15 @@ built.
 
   $ make test
 
-* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
-  Specify the C++ type to use for the FleCSI counter interface.
-
 * **FLECSI_BACKEND [default: mpi]** |br|
   Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
+
+* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
+  Specify the C++ type for FleCSI to use for loop and iterator values.
+
+* **FLECSI_ID_TYPE [default: std::uint32_t]** |br|
+  Specify the C++ type for FleCSI topologies to use for entity IDs.
 
 * **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
   Produce colorized Flog output instead of using the output device's
