@@ -8,6 +8,9 @@ CMake Configuration Options
 The following set of options are available to control how FleCSI is
 built.
 
+Basic CMake options
+-------------------
+
 * **BUILD_SHARED_LIBS [default: ON]** |br|
   Build shared library objects (as opposed to static).
 
@@ -25,96 +28,13 @@ built.
 * **CMAKE_INSTALL_PREFIX [default: /usr/local]** |br|
   Specify the installation path to use when *make install* is invoked.
 
-* **ENABLE_COVERAGE_BUILD [default: OFF]** |br|
-  Enable build mode to determine the code coverage of the current set of
-  unit tests. This is useful for continuous integration (CI) test analysis.
-
-* **ENABLE_DOCUMENTATION [default: OFF]** |br|
-  This option controls whether or not the FleCSI user- and
-  developer-guide documentation is built. If enabled, CMake will
-  generate these guides as PDFs in the *doc* subdirectory of the
-  build.  To build the documentation, run
-
-.. code-block:: console
-
-  $ make doc
-
-* **ENABLE_DOXYGEN [default: OFF]** |br|
-
-  If enabled, CMake will verify that a suitable *doxygen* binary is
-  available on the system and will add a target for generating
-  Doxygen-style interface documentation from the FleCSI source code
-  (``make doxygen``, which becomes a dependency of ``make doc``).
-
-* **ENABLE_DOXYGEN_WARN [default: OFF]** |br|
-  Normal Doxygen output produces many pages worth of warnings. These are
-  distracting and overly verbose. As such, they are disabled by default.
-  This options allows the user to turn them back on.
+Flog (FleCSI logging utility) options
+-------------------------------------
 
 * **ENABLE_FLOG [default: OFF]** |br|
   This option enables support for the FleCSI logging utility (Flog).
   By default, it also activates the Flog unit tests in the build
   system.
-
-* **ENABLE_GRAPHVIZ [default: OFF]** |br|
-  If enabled, support the use of `Graphviz <https://graphviz.org/>`_
-  to produce graphical visualizations of a FleCSI program's control
-  points and actions.
-
-* **ENABLE_HDF5 [default: OFF]** |br|
-  If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
-  for checkpointing program state.
-
-* **ENABLE_HPX [default: OFF]** |br|
-  If enabled, support the use of `HPX
-  <https://stellar-group.org/libraries/hpx/>`_ run-time system for
-  FleCSI communication.
-
-* **ENABLE_KOKKOS [default: OFF]** |br|
-  If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
-  thread-level parallelism and GPU support.
-
-* **ENABLE_LEGION [default: OFF]** |br|
-  If enabled, support the use of `Legion <https://legion.stanford.edu/>`_
-  for distributing and migrating data and computation.
-
-* **ENABLE_MPI [default: OFF]** |br|
-  If enabled, support the use of `MPI <https://www.mpi-forum.org/>`_
-  for inter-process and inter-node communication and synchronization.
-
-* **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
-  This option is a fall-back for codes that actually require the MPI C++
-  bindings. **This interface is deprecated and should only be used if it
-  is impossible to get rid of the dependency.**
-
-* **ENABLE_OPENMP [default: OFF]** |br|
-  Enable `OpenMP <https://www.openmp.org/>`_ pragmas for thread-level
-  parallelism.  The appropriate flags will be passed to the C++
-  compiler to enable language support for OpenMP.
-
-* **ENABLE_PARMETIS [default: OFF]** |br|
-  Use the `ParMETIS
-  <http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview>`_ graph
-  partitioner for distributing mesh data in the `unstructured`
-  topology.
-
-* **ENABLE_UNIT_TESTS [default: OFF]** |br|
-  Enable FleCSI unit tests. If enabled, the unit test suite can be run
-  by invoking:
-
-.. code-block:: console
-
-  $ make test
-
-* **FLECSI_BACKEND [default: mpi]** |br|
-  Specify the backend to use. Currently, *legion* and *mpi* are
-  the only valid options.
-
-* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
-  Specify the C++ type for FleCSI to use for loop and iterator values.
-
-* **FLECSI_ID_TYPE [default: std::uint32_t]** |br|
-  Specify the C++ type for FleCSI topologies to use for entity IDs.
 
 * **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
   Produce colorized Flog output instead of using the output device's
@@ -183,3 +103,98 @@ built.
 * **FLOG_TAG_BITS [default: 1024]** |br|
   Specify the number of bits to use for tag groups.  This corresponds
   to the maximum number of tag groups a program can define.
+
+Parallelization options
+-----------------------
+
+* **ENABLE_HPX [default: OFF]** |br|
+  If enabled, support the use of `HPX
+  <https://stellar-group.org/libraries/hpx/>`_ run-time system for
+  FleCSI communication.
+
+* **ENABLE_KOKKOS [default: OFF]** |br|
+  If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
+  thread-level parallelism and GPU support.
+
+* **ENABLE_LEGION [default: OFF]** |br|
+  If enabled, support the use of `Legion <https://legion.stanford.edu/>`_
+  for distributing and migrating data and computation.
+
+* **ENABLE_MPI [default: OFF]** |br|
+  If enabled, support the use of `MPI <https://www.mpi-forum.org/>`_
+  for inter-process and inter-node communication and synchronization.
+
+* **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
+  This option is a fall-back for codes that actually require the MPI C++
+  bindings. **This interface is deprecated and should only be used if it
+  is impossible to get rid of the dependency.**
+
+* **ENABLE_OPENMP [default: OFF]** |br|
+  Enable `OpenMP <https://www.openmp.org/>`_ pragmas for thread-level
+  parallelism.  The appropriate flags will be passed to the C++
+  compiler to enable language support for OpenMP.
+
+* **FLECSI_BACKEND [default: mpi]** |br|
+  Specify the backend to use. Currently, *legion* and *mpi* are
+  the only valid options.
+
+Documentation options
+---------------------
+
+* **ENABLE_DOCUMENTATION [default: OFF]** |br|
+  This option controls whether or not the FleCSI user- and
+  developer-guide documentation is built. If enabled, CMake will
+  generate these guides as PDFs in the *doc* subdirectory of the
+  build.  To build the documentation, run
+
+.. code-block:: console
+
+  $ make doc
+
+* **ENABLE_DOXYGEN [default: OFF]** |br|
+
+  If enabled, CMake will verify that a suitable *doxygen* binary is
+  available on the system and will add a target for generating
+  Doxygen-style interface documentation from the FleCSI source code
+  (``make doxygen``, which becomes a dependency of ``make doc``).
+
+* **ENABLE_DOXYGEN_WARN [default: OFF]** |br|
+  Normal Doxygen output produces many pages worth of warnings. These are
+  distracting and overly verbose. As such, they are disabled by default.
+  This options allows the user to turn them back on.
+
+Miscellaneous options
+---------------------
+
+* **ENABLE_COVERAGE_BUILD [default: OFF]** |br|
+  Enable build mode to determine the code coverage of the current set of
+  unit tests. This is useful for continuous integration (CI) test analysis.
+
+* **ENABLE_GRAPHVIZ [default: OFF]** |br|
+  If enabled, support the use of `Graphviz <https://graphviz.org/>`_
+  to produce graphical visualizations of a FleCSI program's control
+  points and actions.
+
+* **ENABLE_HDF5 [default: OFF]** |br|
+  If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
+  for checkpointing program state.
+
+* **ENABLE_PARMETIS [default: OFF]** |br|
+  Use the `ParMETIS
+  <http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview>`_ graph
+  partitioner for distributing mesh data in the `unstructured`
+  topology.
+
+* **ENABLE_UNIT_TESTS [default: OFF]** |br|
+  Enable FleCSI unit tests. If enabled, the unit test suite can be run
+  by invoking:
+
+.. code-block:: console
+
+  $ make test
+
+* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
+  Specify the C++ type for FleCSI to use for loop and iterator values.
+
+* **FLECSI_ID_TYPE [default: std::uint32_t]** |br|
+  Specify the C++ type for FleCSI topologies to use for entity IDs.
