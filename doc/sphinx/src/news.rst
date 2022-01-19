@@ -7,6 +7,14 @@ Release Notes
 
 ``flecsi::`` qualification is omitted throughout.
 
+.. Each release has as sections some subsequence of Removed, Other
+   incompatibilities, Possible incompatibilities, Deprecated, New features,
+   and Fixed.
+
+   Each such section discusses some subsequence of Build, Runtime, Data,
+   Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
+   Utilities, and Logging.
+
 Changes in v2.1.1
 +++++++++++++++++
 
@@ -26,6 +34,11 @@ Fixed
 
   * HDF5 is supported by the CMake configuration.
   * Caliper is supported by the MPI backend.
+  * Building with the MPI backend properly links to the threading library.
+
+* Runtime
+
+  * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
 
 * Data
 

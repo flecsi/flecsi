@@ -38,6 +38,9 @@ struct detail::base<global_category> {
   using type = global_base;
 };
 
+/// \addtogroup spec
+/// \{
+
 /*!
   Unpartitioned topology whose fields are readable by all colors.
   Fields must be written by single tasks.
@@ -50,6 +53,7 @@ struct global : specialization<global_category, global> {
   }
 };
 
+/// \}
 /// \}
 } // namespace topo
 

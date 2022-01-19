@@ -2,7 +2,7 @@
 # Values specific to this target.
 #------------------------------------------------------------------------------#
 
-PROJECT_NAME = "User API"
+PROJECT_NAME = "FleCSI User API"
 
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
                    */leg/* */mpi/* */hpx/* */test/*

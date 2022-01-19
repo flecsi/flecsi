@@ -8,6 +8,10 @@ Developer Guide
 This documentation is intended for developers of the core FleCSI
 library.
 
+.. toctree::
+
+   summary
+
 -----
 
 Style Guide

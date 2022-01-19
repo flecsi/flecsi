@@ -49,8 +49,9 @@ struct resize : specialization<column, resize> {
       };
       return std::max(min,
         std::max(n + extra,
-          n > hi * cap ? div(lo * slow)
-                       : n >= std::size_t(lo * cap) ? cap : div(hi / slow)));
+          n > hi * cap                 ? div(lo * slow)
+          : n >= std::size_t(lo * cap) ? cap
+                                       : div(hi / slow)));
     }
 
   private:

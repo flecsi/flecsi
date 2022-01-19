@@ -213,6 +213,10 @@ struct with_meta { // for interface consistency
   typename topo::meta<P>::core meta;
 };
 
+/// \defgroup spec Predefined specializations
+/// Specializations for topologies so simple that no others are needed.
+/// \{
+
 /*!
   The \c index type allows users to register data on an
   arbitrarily-sized set of indices that have an implicit one-to-one coloring.
@@ -224,6 +228,7 @@ struct index : specialization<index_category, index> {
   } // color
 
 }; // struct index
+/// \}
 
 namespace detail {
 // Q is the underlying topology, not to be confused with P which is borrow<Q>.

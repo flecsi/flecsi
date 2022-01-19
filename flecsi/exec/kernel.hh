@@ -206,7 +206,7 @@ struct forall_t {
   std::string name_;
 }; // struct forall_t
 template<class P>
-forall_t(P, std::string)->forall_t<P>; // automatic in C++20
+forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 
 /// A parallel range-for loop.  Follow with a compound statement and `;`.
 /// Often the elements of \a range (and thus the values of \p it) are indices

@@ -186,7 +186,8 @@ add_unit(hashtable
 #------------------------------------------------------------------------------#
 # annotation
 #------------------------------------------------------------------------------#
-if (NOT CALIPER_DETAIL STREQUAL "none")
+# This test is currently unreliable.
+if(NOT CALIPER_DETAIL STREQUAL "none" AND NOT CALIPER_DETAIL STREQUAL "low")
 add_unit(annotation
   SOURCES
   test/annotation.cc
