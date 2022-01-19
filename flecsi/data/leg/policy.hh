@@ -207,7 +207,7 @@ struct partition_base {
     return run().get_index_space_domain(get_color_space()).get_volume();
   }
   template<topo::single_space>
-  const partition_base & get_partition(field_id_t) const {
+  const partition_base & get_partition() const {
     return *this;
   }
 

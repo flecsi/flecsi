@@ -261,7 +261,7 @@ struct io_interface {
     }
     hdf5_region_vector.emplace_back(
       legion_hdf5_region_t{(slot->template get_region<Index>().logical_region),
-        (slot->template get_partition<Index>(field_id_t()).logical_partition),
+        (slot->template get_partition<Index>().logical_partition),
         util::type<Topo>() + '[' + std::to_string(Index) + ']',
         std::move(fn)});
   }

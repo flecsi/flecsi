@@ -65,7 +65,7 @@ protected:
         return *t;
       else
         // The partition controls how much memory is allocated.
-        return t.template get_partition<Space>(f);
+        return t.template get_partition<Space>();
     }
     ().template get_storage<T>(f);
     if constexpr(glob) {

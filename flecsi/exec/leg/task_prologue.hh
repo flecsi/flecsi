@@ -82,7 +82,7 @@ protected:
       region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);
     else
       region_reqs_.emplace_back(
-        t.template get_partition<Space>(f).logical_partition,
+        t.template get_partition<Space>().logical_partition,
         data::leg::def_proj,
         m,
         EXCLUSIVE,

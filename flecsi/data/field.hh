@@ -114,8 +114,8 @@ struct field_reference : field_reference_t<Topo> {
     return topo.template get_region<Space>();
   }
   template<class S>
-  auto & get_partition(S & topo) const {
-    return topo.template get_partition<Space>(this->fid());
+  static auto & get_partition(S & topo) {
+    return topo.template get_partition<Space>();
   }
 
   auto & get_region() const {

@@ -71,11 +71,11 @@ struct ragged_partition_base : repartition {
   }
 
   template<single_space>
-  const repartition & get_partition(field_id_t) const {
+  const repartition & get_partition() const {
     return *this;
   }
   template<single_space>
-  repartition & get_partition(field_id_t) {
+  repartition & get_partition() {
     return *this;
   }
 
