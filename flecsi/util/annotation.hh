@@ -124,12 +124,11 @@ struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
 template<class ctx, detail severity>
 std::enable_if_t<std::is_base_of<context<ctx>, ctx>::value>
 begin(const char * region_name) {
+  (void)region_name;
 #if !defined(DISABLE_CALIPER)
   if constexpr(severity <= detail_level) {
     ctx::ann.begin(region_name);
   }
-#else
-  (void)region_name;
 #endif
 }
 template<class ctx, detail severity>
@@ -173,17 +172,13 @@ std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
                    typename reg::outer_context>::value &&
                  std::is_base_of<execute_task<reg>, reg>::value>
 begin(std::string_view task_name) {
+  (void)task_name;
 #if !defined(DISABLE_CALIPER)
   if constexpr(reg::detail_level <= detail_level) {
     std::string atag{reg::name + "->"};
     atag.append(task_name);
     begin<typename reg::outer_context, reg::detail_level>(atag.c_str());
   }
-  else {
-    (void)task_name;
-  }
-#else
-  (void)task_name;
 #endif
 }
 

@@ -89,7 +89,7 @@ mpich-legion-gnu:
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
 
 mpich-legion-gnu:release:
   extends: .build_template
