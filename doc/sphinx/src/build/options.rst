@@ -107,22 +107,9 @@ Flog (FleCSI logging utility) options
 Parallelization options
 -----------------------
 
-* **ENABLE_HPX [default: OFF]** |br|
-  If enabled, support the use of `HPX
-  <https://stellar-group.org/libraries/hpx/>`_ run-time system for
-  FleCSI communication.
-
 * **ENABLE_KOKKOS [default: OFF]** |br|
   If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
   thread-level parallelism and GPU support.
-
-* **ENABLE_LEGION [default: OFF]** |br|
-  If enabled, support the use of `Legion <https://legion.stanford.edu/>`_
-  for distributing and migrating data and computation.
-
-* **ENABLE_MPI [default: OFF]** |br|
-  If enabled, support the use of `MPI <https://www.mpi-forum.org/>`_
-  for inter-process and inter-node communication and synchronization.
 
 * **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
   This option is a fall-back for codes that actually require the MPI C++
