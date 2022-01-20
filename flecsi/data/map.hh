@@ -87,7 +87,7 @@ private:
   std::deque<round> rnd;
 };
 template<class T, class F>
-mapping(T &, Color, F &&)->mapping<topo::policy_t<T>>;
+mapping(T &, Color, F &&) -> mapping<topo::policy_t<T>>;
 
 template<auto & F = block, class T>
 mapping<topo::policy_t<T>>

@@ -258,7 +258,9 @@ operator<<(std::ostream & os, const hcell_base_t<D, T, K> & hb) {
 
 template<Dimension, typename T, class KEY>
 class node
-{ node() = default; };
+{
+  node() = default;
+};
 
 } // namespace topo
 } // namespace flecsi

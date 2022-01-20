@@ -24,7 +24,7 @@ template<typename T>
 using single = field<T, data::single>;
 const single<std::size_t>::definition<topo::index> lue;
 
-inline topo::index::slot custom_topology;
+topo::index::slot custom_topology;
 
 void
 init(single<std::size_t>::accessor<wo> iv) {

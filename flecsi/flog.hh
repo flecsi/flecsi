@@ -447,7 +447,7 @@ dumpstack() {
   } /* scope */
 
 /*!
-  Clog assertion interface. Assertions allow the developer to catch
+  Flog assertion interface. Assertions allow the developer to catch
   invalid program state. This call will invoke flog_fatal if the test
   condition is false.
 

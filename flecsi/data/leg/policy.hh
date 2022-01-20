@@ -25,10 +25,6 @@
 
 namespace flecsi {
 namespace data {
-/// \defgroup legion-data Legion Data
-/// Owning wrappers for Legion objects.
-/// \ingroup data
-/// \{
 
 struct prefixes;
 
@@ -42,6 +38,11 @@ static_assert(static_cast<Legion::coord_t>(logical_size) == logical_size,
   "logical_size too large for Legion");
 
 namespace leg {
+/// \defgroup legion-data Legion Data
+/// Owning wrappers for Legion objects.
+/// \ingroup data
+/// \{
+
 constexpr inline Legion::ProjectionID def_proj = 0;
 
 inline auto &
@@ -84,8 +85,7 @@ struct unique_handle {
   unique_handle(unique_handle<U> &&) = delete;
   ~unique_handle() {
     if(ctx()) // does the Legion Context still exist?
-      if(*this) // empty LogicalRegions, at least, cannot be deleted
-        destroy(h);
+      destroy(h);
   }
   unique_handle & operator=(unique_handle u) noexcept {
     std::swap(h, u.h);
@@ -318,7 +318,7 @@ private:
     completeness cpt)
     : data::partition(reg,
         named(
-          [& r = run()](auto &&... aa) {
+          [&r = run()](auto &&... aa) {
             return R ? r.create_partition_by_image_range(
                          std::forward<decltype(aa)>(aa)...)
                      : r.create_partition_by_image(
@@ -350,11 +350,11 @@ struct borrow : partition<true, false> {
 
   using partition::partition;
 };
+/// \}
 } // namespace leg
 
 using region_base = leg::region;
 using leg::rows, leg::borrow;
 
-/// \}
 } // namespace data
 } // namespace flecsi

@@ -135,9 +135,9 @@ compute_closure() {
 #endif
 
 #if 1
-    topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, 1, {}};
-    auto coloring = topo::unstructured_impl::color(
-      sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
+  topo::unstructured_impl::coloring_definition cd{colors, 0, 2, 1, 1, {}};
+  auto coloring = topo::unstructured_impl::color(
+    sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
 #if 0
@@ -173,7 +173,7 @@ compute_closure() {
     } // for
 #endif
 
-    flog(warn) << log::container{coloring.partitions} << std::endl;
+  flog(warn) << log::container{coloring.partitions} << std::endl;
 }
 
 int

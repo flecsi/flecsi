@@ -29,7 +29,8 @@ struct topology_accessor; // avoid circularity via launch.hh
 namespace topo {
 /// \defgroup topology Topologies
 /// Generic topology categories and tools for specializing them.
-/// \warning The material in this section and its subsections is of interest
+/// \warning The material in this section and its subsections other than
+///   \ref spec is of interest
 ///   only to developers of topology specializations.  Application developers
 ///   should consult the documentation for the specializations they are using,
 ///   which may refer back to this document (occasionally even to small,
@@ -234,7 +235,8 @@ struct specialization : specialization_base {
 #ifdef DOXYGEN
 /// An example specialization that is not really implemented.
 /// No member is needed in all circumstances.
-/// See also the members marked for overriding in \c specialization.
+/// See also the members marked for overriding in \c specialization_base and
+/// \c specialization.
 struct topology : specialization<core, topology> {
   /// Interpret specialization-specific arguments to construct a coloring.
   /// Called in an MPI task.

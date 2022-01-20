@@ -2,7 +2,7 @@
 # Values specific to this target.
 #------------------------------------------------------------------------------#
 
-PROJECT_NAME = "Core API"
+PROJECT_NAME = "FleCSI Core API"
 
 ENABLED_SECTIONS = core
 

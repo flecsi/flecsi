@@ -74,6 +74,7 @@ template<typename NodePolicy>
 struct dag : std::vector<dag_impl::node<NodePolicy> *> {
 
   using node_type = dag_impl::node<NodePolicy>;
+  using sorted_type = std::vector<const node_type *>;
 
   dag(const char * label = "empty") : label_(label) {}
 
@@ -91,8 +92,8 @@ struct dag : std::vector<dag_impl::node<NodePolicy> *> {
     @return A valid sequence of the nodes in the DAG.
    */
 
-  std::vector<node_type const *> sort() {
-    std::vector<node_type const *> sorted;
+  sorted_type sort() const {
+    sorted_type sorted;
 
     // Create a temporary list of the nodes.
     std::list<node_type *> nodes;
@@ -151,7 +152,7 @@ struct dag : std::vector<dag_impl::node<NodePolicy> *> {
     Add the DAG to the given graphviz graph.
    */
 
-  void add(graphviz & gv, const char * color = "#c5def5") {
+  void add(graphviz & gv, const char * color = "#c5def5") const {
     std::map<uintptr_t, Agnode_t *> node_map;
 
     for(auto n : *this) {

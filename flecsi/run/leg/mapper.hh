@@ -539,14 +539,14 @@ public:
       case force_rank_match: /* MPI tasks or tasks that need 1-to-1 matching
                                 with MPI ranks*/
       {
-        // expect a 1-D index domain - each point goes to the corresponding node
+        // Control replication has already subdivided the launch domain:
         assert(input.domain.get_dim() == 1);
-        LegionRuntime::Arrays::Rect<1> r = input.domain.get_rect<1>();
+        const Legion::Rect<1> r = input.domain;
+        const auto me = r.lo[0];
+        assert(r.hi[0] == me);
 
-        // go through all the CPU processors and find a representative for each
-        //  node (i.e. address space)
-        std::map<int, Legion::Processor> targets;
-
+        output.slices.clear();
+        // Find the CPU with the desired address space:
         Legion::Machine::ProcessorQuery pq =
           Legion::Machine::ProcessorQuery(machine).only_kind(
             Legion::Processor::LOC_PROC);
@@ -554,18 +554,14 @@ public:
             it != pq.end();
             ++it) {
           Legion::Processor p = *it;
-          int a = p.address_space();
-          if(targets.count(a) == 0)
-            targets[a] = p;
+          if(p.address_space() == me) {
+            auto & out = output.slices.emplace_back();
+            out.domain = r;
+            out.proc = p;
+            break;
+          }
         }
-
-        output.slices.resize(1);
-        for(int a = r.lo[0]; a <= r.hi[0]; a++) {
-          assert(targets.count(a) > 0);
-          output.slices[0].domain = // Legion::Domain::from_rect<1>(
-            Legion::Rect<1>(a, a);
-          output.slices[0].proc = targets[a];
-        }
+        assert(!output.slices.empty());
         break;
       }
 
