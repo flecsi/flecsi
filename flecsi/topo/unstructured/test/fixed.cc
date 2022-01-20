@@ -107,6 +107,26 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     return {
       MPI_COMM_WORLD,
       fixed::colors,
+      /* process_colors */
+      { /* over global processes */
+        std::vector<Color>{ 0 },
+        std::vector<Color>{ 1 },
+        std::vector<Color>{ 2 },
+        std::vector<Color>{ 3 }
+      },
+      /* num_peers */
+      { /* over global colors */
+        3, 3, 3, 3
+      },
+      /* peers */
+      { /* over index spaces */
+        { /* cell peers */
+          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        },
+        { /* vertex peers */
+          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        }
+      },
       {
         {
           fixed::cells[0].all.size(),
@@ -124,11 +144,22 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       { /* over index spaces */
         { /* over process colors */
           base::process_color{
+
+            /* entities */
             fixed::num_cells,
+
+            /* coloring */
             fixed::cells[process()],
+
+            /* peers */
+            fixed::peers[process()],
+
+            /* cnx_allocs */
             {
               fixed::connectivity[process()][0].indices.size()
             },
+
+            /* cnx_colorings */
             {
               fixed::connectivity[process()]
             }
@@ -136,11 +167,22 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
         },
         {
           base::process_color{
+
+            /* entities */
             fixed::num_vertices,
+
+            /* coloring */
             fixed::vertices[process()],
+
+            /* peers */
+            fixed::peers[process()],
+
+            /* cnx_allocs */
             {
               fixed::connectivity[process()][0].indices.size(),
             },
+
+            /* cnx_colorings */
             {
               {} /* use cell connectivity transpose */
             }

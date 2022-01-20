@@ -161,6 +161,12 @@ struct process_color {
   index_coloring coloring;
 
   /*
+    Communication peers (needed for ragged/sparse buffer creation).
+   */
+
+  std::vector<Color> peers;
+
+  /*
    The local allocation size for each connectivity. The vector is over
    connectivities between this entity type and another entity type. The
    ordering follows that given in the specialization policy.
@@ -189,13 +195,35 @@ struct unstructured_base {
 
   struct coloring {
     MPI_Comm comm;
-    Color colors; /* global number of colors */
 
+    /* global number of colors */
+    Color colors;
+
+    /* global colors that belong to this process */
+    std::vector</* over global processes */
+      std::vector</* over local process colors */
+        Color>>
+      process_colors;
+
+    /* superset of communication peers over colors */
+    std::vector</* over global colors */
+      std::size_t>
+      num_peers;
+
+    /* tight information on actual communication peers */
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::vector</* over peers */
+          Color>>>
+      peers;
+
+    /* partition sizes over index spaces and global colors */
     std::vector</* over index spaces */
       std::vector</* over global colors */
         std::size_t>>
       partitions;
 
+    /* process coloring over index spaces and process colors (local) */
     std::vector</* over index spaces */
       std::vector</* over process colors */
         process_color>>
@@ -519,11 +547,12 @@ struct util::serial::traits<topo::unstructured_impl::process_color> {
   using type = topo::unstructured_impl::process_color;
   template<class P>
   static void put(P & p, const type & c) {
-    serial::put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
+    serial::put(
+      p, c.entities, c.coloring, c.peers, c.cnx_allocs, c.cnx_colorings);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
-    return type{r, r, r, r};
+    return type{r, r, r, r, r};
   }
 };
 

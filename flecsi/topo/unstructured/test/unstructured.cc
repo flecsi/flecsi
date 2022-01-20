@@ -12,11 +12,12 @@
    All rights reserved.
                                                                               */
 
+#include "simple_definition.hh"
+
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/interface.hh"
-#include "flecsi/topo/unstructured/test/simple_definition.hh"
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
 
@@ -68,7 +69,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
     topo::unstructured_impl::simple_definition sd(filename.c_str());
 
-    const Color colors = processes();
+    // const Color colors = processes();
+    const Color colors = 4;
 
     auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);

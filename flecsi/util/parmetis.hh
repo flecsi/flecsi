@@ -16,7 +16,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/dcrs.hh"
+#include "flecsi/util/crs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/types.hh"
 

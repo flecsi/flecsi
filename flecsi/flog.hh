@@ -96,6 +96,16 @@ struct stream<std::unordered_map<K, V>> {
   }
 };
 template<typename T>
+struct stream<std::set<T>> {
+  static void
+  put(std::ostream & o, const std::set<T> & s, std::string indt = "") {
+    o << "{";
+    for(auto & e : s)
+      detail::put(o << "\n", e, indt + "  ");
+    o << "\n}";
+  }
+};
+template<typename T>
 struct stream<std::unordered_set<T>> {
   static void put(std::ostream & o,
     const std::unordered_set<T> & s,

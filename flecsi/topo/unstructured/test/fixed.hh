@@ -409,6 +409,21 @@ inline std::vector<std::vector<ftui::crs>> connectivity = {
   }
 };
 
+inline std::vector<std::vector<flecsi::Color>> peers = {
+  { /* color 0 */
+    1, 2, 3
+  },
+  { /* color 1 */
+    0, 2, 3
+  },
+  { /* color 2 */
+    0, 1, 3
+  },
+  { /* color 3 */
+    0, 1, 2
+  }
+};
+
 inline std::vector<ftui::index_coloring> cells = {
   { /* color 0 */
     { /* all */
@@ -1041,7 +1056,7 @@ inline std::vector<ftui::index_coloring> vertices = {
   }
 };
 
-std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
+inline std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
   {/* color 0 */
     cells[0],
     vertices[0]
@@ -1060,7 +1075,7 @@ std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
   }
 };
 
-std::vector<std::vector<std::vector<std::size_t>>> cnx_allocs = {
+inline std::vector<std::vector<std::vector<std::size_t>>> cnx_allocs = {
   {/* color 0 */
     {connectivity[0][0].indices.size(), },
     {connectivity[0][0].indices.size(), }
@@ -1079,7 +1094,7 @@ std::vector<std::vector<std::vector<std::size_t>>> cnx_allocs = {
   }
 };
 
-std::vector<std::vector<std::vector<ftui::crs>>> cnx_colorings = {
+inline std::vector<std::vector<std::vector<ftui::crs>>> cnx_colorings = {
   {/* color 0 */
     connectivity[0]
   },

@@ -107,7 +107,8 @@ cmake_mode=cmake
 backend=legion
 cmake_args=""
 
-warn="-Wall -W -Werror"
+#warn="-Wall -W -Werror"
+warn="-Wall -W"
 SCRIPT_GENERATOR="Unix Makefiles"
 SCRIPT_BUILD_TYPE=RelWithDebInfo
 

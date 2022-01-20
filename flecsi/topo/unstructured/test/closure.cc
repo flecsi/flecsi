@@ -39,99 +39,78 @@ compute_closure() {
   auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
   auto raw = util::parmetis::color(naive, colors);
 
-#if 0
-    {
-      std::stringstream ss;
-      ss << "v2c:" << std::endl;
-      for(auto v : v2c) {
-        ss << "vertex " << v.first << ": ";
-        for(auto c : v.second) {
-          ss << c << " ";
-        } // for
-        ss << std::endl;
+#if 1
+  {
+    std::stringstream ss;
+    ss << "v2c:" << std::endl;
+    for(auto v : v2c) {
+      ss << "vertex " << v.first << ": ";
+      for(auto c : v.second) {
+        ss << c << " ";
       } // for
-      flog(error) << ss.str() << std::endl;
-    } // scope
+      ss << std::endl;
+    } // for
+    flog(error) << ss.str() << std::endl;
+  } // scope
 #endif
 
-#if 0
-    {
-      std::stringstream ss;
-      ss << "raw:" << std::endl;
-      for(auto r : raw) {
-        ss << r << " ";
-      }
-      ss << std::endl;
-      flog(warn) << ss.str();
-    } // scope
-#endif
-
-#if 0
-    auto primaries = topo::unstructured_impl::distribute(naive, colors, raw);
-
-    {
-      std::stringstream ss;
-      Color color=0;
-      for(auto p : primaries) {
-        ss << "color " << color++ << ":" << std::endl;
-        for(auto i : p) {
-          ss << i << " ";
-        }
-        ss << std::endl;
-      }
-      ss << std::endl;
-      flog_devel(warn) << ss.str();
-    } // scope
-
-    for(auto p : primaries) {
-      topo::unstructured_impl::closure<closure_policy>(p);
+#if 1
+  {
+    std::stringstream ss;
+    ss << "raw:" << std::endl;
+    for(auto r : raw) {
+      ss << r << " ";
     }
+    ss << std::endl;
+    flog(warn) << ss.str();
+  } // scope
 #endif
 
   auto [primaries, p2m, m2p] =
     topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
-#if 0
-    flog(info) << "PRIMARIES" << std::endl;
-    for(auto co : primaries) {
-      std::stringstream ss;
-      ss << "Color: " << co.first << ": ";
-      for(auto c : co.second) {
-        ss << c << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+#if 1
+  flog(info) << "PRIMARIES" << std::endl;
+  for(auto co : primaries) {
+    std::stringstream ss;
+    ss << "Color: " << co.first << ": ";
+    for(auto c : co.second) {
+      ss << c << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 
-    flog(info) << "V2C CONNECTIVITIES" << std::endl;
-    for(auto const & v : v2c) {
-      std::stringstream ss;
-      ss << "vertex " << v.first << ": ";
-      for(auto const & c : v.second) {
-        ss << c << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+  flog(info) << "V2C CONNECTIVITIES" << std::endl;
+  for(auto const & v : v2c) {
+    std::stringstream ss;
+    ss << "vertex " << v.first << ": ";
+    for(auto const & c : v.second) {
+      ss << c << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 
-    flog(info) << "C2C CONNECTIVITIES" << std::endl;
-    for(auto const & c : c2c) {
-      std::stringstream ss;
-      ss << "cell " << c.first << ": ";
-      for(auto const & cc : c.second) {
-        ss << cc << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+  flog(info) << "C2C CONNECTIVITIES" << std::endl;
+  for(auto const & c : c2c) {
+    std::stringstream ss;
+    ss << "cell " << c.first << ": ";
+    for(auto const & cc : c.second) {
+      ss << cc << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 
-    flog(info) << "CELL DEFINITIONS" << std::endl;
-    std::size_t lid{0};
-    for(auto const & c : c2v) {
-      std::stringstream ss;
-      ss << "cell " << p2m[lid++] << ": ";
-      for(auto const & v : c) {
-        ss << v << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+  flog(info) << "CELL DEFINITIONS" << std::endl;
+  std::size_t lid{0};
+  util::crspan<util::crs> c2v_v(&c2v);
+  for(auto const & c : c2v_v) {
+    std::stringstream ss;
+    ss << "cell " << p2m[lid++] << ": ";
+    for(auto const & v : c) {
+      ss << v << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 #endif
 
 #if 1
@@ -140,37 +119,41 @@ compute_closure() {
     sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
-#if 0
-    flog(info) << "V2C CONNECTIVITIES" << std::endl;
-    for(auto const & v : v2c) {
-      std::stringstream ss;
-      ss << "vertex " << v.first << ": ";
-      for(auto const & c : v.second) {
-        ss << c << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+#if 1
+  flog(info) << "V2C CONNECTIVITIES" << std::endl;
+  for(auto const & v : v2c) {
+    std::stringstream ss;
+    ss << "vertex " << v.first << ": ";
+    for(auto const & c : v.second) {
+      ss << c << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 
-    flog(info) << "C2C CONNECTIVITIES" << std::endl;
-    for(auto const & c : c2c) {
-      std::stringstream ss;
-      ss << "cell " << c.first << ": ";
-      for(auto const & cc : c.second) {
-        ss << cc << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
-    } // for
+  flog(warn) << std::endl;
 
-    flog(info) << "CELL DEFINITIONS" << std::endl;
-    std::size_t lid{0};
-    for(auto const & c : c2v) {
-      std::stringstream ss;
-      ss << "cell " << p2m[lid++] << ": ";
-      for(auto const & v : c) {
-        ss << v << " ";
-      } // for
-      flog(warn) << ss.str() << std::endl;
+  flog(info) << "C2C CONNECTIVITIES" << std::endl;
+  for(auto const & c : c2c) {
+    std::stringstream ss;
+    ss << "cell " << c.first << ": ";
+    for(auto const & cc : c.second) {
+      ss << cc << " ";
     } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
+
+  flog(warn) << std::endl;
+
+  flog(info) << "CELL DEFINITIONS" << std::endl;
+  lid = 0;
+  for(auto const & c : c2v_v) {
+    std::stringstream ss;
+    ss << "cell " << p2m[lid++] << ": ";
+    for(auto const & v : c) {
+      ss << v << " ";
+    } // for
+    flog(warn) << ss.str() << std::endl;
+  } // for
 #endif
 
   flog(warn) << log::container{coloring.partitions} << std::endl;
