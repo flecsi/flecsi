@@ -535,6 +535,8 @@ color(MD const & md,
   std::vector<std::size_t> partitions;
   std::vector<Color> process_colors;
   std::vector<std::set<Color>> color_peers(primaries.size());
+  std::vector<std::vector<Color>> is_peers(primaries.size());
+  util::color_map em(size, cd.colors, ne);
   for(auto p : primaries) {
     process_colors.emplace_back(p.first);
     auto & pc = coloring.idx_spaces[cd.idx][c];
@@ -560,11 +562,25 @@ color(MD const & md,
 
     std::set<Color> peers;
     for(auto e : ghost.at(p.first)) {
-      pc.coloring.ghost.emplace_back(ghost_entity{e, e2co.at(e)});
+      const auto gco = e2co.at(e);
+
+      if(em.has_color(rank, gco)) {
+        // This rank owns the color: set local color id in std::optional
+        pc.coloring.ghost.emplace_back(
+          ghost_entity{e, Color(rank), gco, em.local_id(rank, gco)});
+      }
+      else {
+        // This rank does not own the color: std::nullopt
+        pc.coloring.ghost.emplace_back(
+          ghost_entity{e, em.process(gco), gco, std::nullopt});
+      }
+
       pc.coloring.all.emplace_back(e);
-      peers.insert(e2co.at(e));
+      peers.insert(gco);
     } // for
     color_peers[c].insert(peers.begin(), peers.end());
+    is_peers[c].resize(peers.size());
+    std::copy(peers.begin(), peers.end(), is_peers[c].begin());
 
     util::force_unique(pc.coloring.all);
     util::force_unique(pc.coloring.owned);
@@ -605,6 +621,27 @@ color(MD const & md,
   } // for
 
   /*
+    Gather the tight peer information for the primary entity type.
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(is_peers, comm);
+    coloring.peers[cd.idx].resize(cd.colors);
+
+    std::size_t p{0};
+    for(auto vp : pgthr) { /* over processes */
+      std::size_t c{0};
+      for(auto pc : vp) { /* over process colors */
+        for(auto pe : pc) { /* over peers */
+          coloring.peers[cd.idx][em.color_id(p, c)].emplace_back(pe);
+        } // for
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  /*
     Gather the process-to-color mapping.
    */
 
@@ -618,7 +655,6 @@ color(MD const & md,
     auto pgthr = util::mpi::all_gatherv(partitions, comm);
 
     coloring.partitions[cd.idx].resize(cd.colors);
-    util::color_map em(size, cd.colors, ne);
     std::size_t p{0};
     for(auto vp : pgthr) {
       std::size_t c{0};
@@ -736,14 +772,19 @@ color(MD const & md,
         flog_assert(vi != v2co.end(), "invalid vertex id");
 
         if(vi->second == p.first) {
+          // This vertex is owned by the current color
           vaux.shared.emplace_back(shared_entity{v, e.dependents});
           vaux.owned.emplace_back(v);
         }
         else {
-          if(vcm.has_color(vi->second, rank)) {
-            vaux.ghost.emplace_back(ghost_entity{v, vi->second});
+          if(vcm.has_color(rank, vi->second)) {
+            // This process owns the current color:
+            //  set local color id in std::optional
+            vaux.ghost.emplace_back(ghost_entity{
+              v, Color(rank), vi->second, vcm.local_id(rank, vi->second)});
           }
           else {
+            // The ghost is remote: add to remote requests.
             remote.emplace_back(v);
             ghost[p.first].insert(v);
           } // if
@@ -756,11 +797,26 @@ color(MD const & md,
         auto vi = v2co.find(v);
 
         if(vi != v2co.end()) {
+          // We have the ghost informaiton locally.
           if(vi->second != p.first) {
-            vaux.ghost.emplace_back(ghost_entity{v, vi->second});
+            // The ghost is not owned by the current color.
+            if(vcm.has_color(rank, vi->second)) {
+              // The ghost is owned by another color on this process.
+              vaux.ghost.emplace_back(ghost_entity{v,
+                vcm.process(vi->second),
+                vi->second,
+                vcm.local_id(rank, vi->second)});
+            }
+            else {
+              // We have the ghost information, but it is not owned
+              // by the current process.
+              vaux.ghost.emplace_back(ghost_entity{
+                v, vcm.process(vi->second), vi->second, std::nullopt});
+            } // if
           } // if
         }
         else {
+          // The ghost is remote: add to remote requests.
           remote.emplace_back(v);
           ghost[p.first].insert(v);
         } // if
@@ -773,8 +829,6 @@ color(MD const & md,
 
     ++c;
   } // for
-
-  flog(error) << flog::container{color_peers} << std::endl;
 
   util::force_unique(remote);
 
@@ -851,10 +905,17 @@ color(MD const & md,
     } // for
 
     // Add requested ghosts.
+    std::set<Color> peers;
     for(auto v : ghost.at(p.first)) {
-      vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
+      const auto gco = v2co.at(v);
+      peers.insert(gco);
+      vaux.ghost.emplace_back(
+        ghost_entity{v, vcm.process(gco), gco, std::nullopt});
       vaux.all.emplace_back(v);
     } // for
+    color_peers[c].insert(peers.begin(), peers.end());
+    is_peers[c].resize(peers.size());
+    std::copy(peers.begin(), peers.end(), is_peers[c].begin());
 
     util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
@@ -863,6 +924,31 @@ color(MD const & md,
 
     ++c;
   } // for
+
+  /*
+    Gather the tight peer information for the primary entity type.
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(is_peers, comm);
+    coloring.peers[cd.vidx].resize(cd.colors);
+
+    std::size_t p{0};
+    for(auto vp : pgthr) { /* over processes */
+      std::size_t c{0};
+      for(auto pc : vp) { /* over process colors */
+        for(auto pe : pc) { /* over peers */
+          coloring.peers[cd.vidx][vcm.color_id(p, c)].emplace_back(pe);
+        } // for
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  /*
+    Gather partition sizes for vertices.
+   */
 
   {
     auto pgthr = util::mpi::all_gatherv(partitions, comm);
@@ -883,6 +969,25 @@ color(MD const & md,
     Auxiliary entities.
    */
 
+  /*
+    Gather color peers (superset of color peers over all index spaces).
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(color_peers, comm);
+
+    coloring.color_peers.resize(cd.colors);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto pc : vp) {
+        coloring.color_peers[em.color_id(p, c)] = pc.size();
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
   return coloring;
 } // color
 
@@ -894,9 +999,9 @@ color(MD const & md,
   \param f2e Y-to-Z connectivity
   \return X-to-Z connectivity (c2e)
 */
-inline crs
-intersect_connectivity(const crs & c2f, const crs & f2e) {
-  crs c2e;
+inline util::crs
+intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
+  util::crs c2e;
   c2e.offsets.reserve(c2f.offsets.size());
   // Note: this is a rough estimate.
   c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
@@ -940,11 +1045,11 @@ build_intermediary(Dimension dim,
   flog_assert((dim > 0 and dim < MD::dimension()),
     "Invalid dimension for intermediary entity: " << dim);
 
-  crs c2e, i2v;
+  util::crs c2e, i2v;
   std::map<std::vector<std::size_t>, std::size_t> v2e;
 
   // temporary storage
-  crs edges;
+  util::crs edges;
   std::vector<typename MD::index> sorted_vs;
   std::vector<typename MD::index> these_edges;
 

@@ -198,7 +198,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
-    topo::unstructured_impl::crs const & cnx,
+    util::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
 

@@ -39,7 +39,7 @@ compute_closure() {
   auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
   auto raw = util::parmetis::color(naive, colors);
 
-#if 1
+#if 0
   {
     std::stringstream ss;
     ss << "v2c:" << std::endl;
@@ -54,7 +54,7 @@ compute_closure() {
   } // scope
 #endif
 
-#if 1
+#if 0
   {
     std::stringstream ss;
     ss << "raw:" << std::endl;
@@ -69,7 +69,7 @@ compute_closure() {
   auto [primaries, p2m, m2p] =
     topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
-#if 1
+#if 0
   flog(info) << "PRIMARIES" << std::endl;
   for(auto co : primaries) {
     std::stringstream ss;
@@ -119,7 +119,16 @@ compute_closure() {
     sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
-#if 1
+  flog(warn) << flog::container{coloring.idx_spaces[0][0].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[0][1].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[1][0].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[1][1].coloring}
+             << std::endl;
+
+#if 0
   flog(info) << "V2C CONNECTIVITIES" << std::endl;
   for(auto const & v : v2c) {
     std::stringstream ss;
@@ -155,8 +164,6 @@ compute_closure() {
     flog(warn) << ss.str() << std::endl;
   } // for
 #endif
-
-  flog(warn) << log::container{coloring.partitions} << std::endl;
 }
 
 int
