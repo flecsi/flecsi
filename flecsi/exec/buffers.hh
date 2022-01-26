@@ -56,8 +56,8 @@ set_buffer(T & t, B & b) {
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
 struct param_buffers {
-  template<data::layout L, typename DATA_TYPE, Privileges PRIVILEGES>
-  void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
+  template<data::layout L, typename D, Privileges P>
+  void visit(data::accessor<L, D, P> &) {} // visit
 
   template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
@@ -71,14 +71,13 @@ struct param_buffers {
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
-  template<typename DATA_TYPE>
-  static
-    typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
-    visit(DATA_TYPE &) {
+  template<typename D>
+  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
+    D &) {
     {
       log::devel_guard guard(param_buffers_tag);
-      flog_devel(info) << "No cleanup for parameter of type "
-                       << util::type<DATA_TYPE>() << std::endl;
+      flog_devel(info) << "No cleanup for parameter of type " << util::type<D>()
+                       << std::endl;
     }
   } // visit
 };

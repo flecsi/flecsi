@@ -16,6 +16,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/data/field.hh"
+#include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
@@ -67,18 +68,18 @@ private:
 
   // All accessors are handled in terms of their underlying raw accessors.
 
-  template<typename DATA_TYPE, Privileges PRIVILEGES>
-  void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> & accessor) {
+  template<typename D, Privileges P>
+  void visit(data::accessor<data::raw, D, P> & accessor) {
     auto & reg = regions_[region++];
 
-    const Legion::UnsafeFieldAccessor<DATA_TYPE,
-      2,
+    const Legion::UnsafeFieldAccessor<D,
+      data::leg::region_dimensions,
       Legion::coord_t,
-      Realm::AffineAccessor<DATA_TYPE, 2, Legion::coord_t>>
-      ac(reg, accessor.field(), sizeof(DATA_TYPE));
+      Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
+      ac(reg, accessor.field(), sizeof(D));
     const auto dom = legion_runtime_->get_index_space_domain(
       legion_context_, reg.get_logical_region().get_index_space());
-    const auto r = dom.get_rect<2>();
+    const auto r = dom.get_rect<data::leg::region_dimensions>();
 
     if(!dom.empty())
       accessor.bind(
@@ -94,8 +95,8 @@ private:
   /*--------------------------------------------------------------------------*
    Futures
    *--------------------------------------------------------------------------*/
-  template<typename DATA_TYPE>
-  void visit(future<DATA_TYPE> & f) {
+  template<typename D>
+  void visit(future<D> & f) {
     f = {futures_[future_id++]};
   }
 
@@ -103,14 +104,13 @@ private:
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
-  template<typename DATA_TYPE>
-  static
-    typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
-    visit(DATA_TYPE &) {
+  template<typename D>
+  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
+    D &) {
     {
       log::devel_guard guard(bind_accessors_tag);
-      flog_devel(info) << "No setup for parameter of type "
-                       << util::type<DATA_TYPE>() << std::endl;
+      flog_devel(info) << "No setup for parameter of type " << util::type<D>()
+                       << std::endl;
     }
   } // visit
 
