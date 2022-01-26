@@ -112,8 +112,9 @@ inline util::counter<Legion::ReductionOpID(MAX_APPLICATION_REDUCTION_ID)>
   reduction_counter(0);
 
 // Adapts our interface to Legion's.
-template<class R, class T, class = void>
-struct wrap {
+template<class R, class T>
+struct custom_wrap {
+
   typedef T LHS, RHS;
 
   template<bool E>
@@ -145,111 +146,58 @@ private:
     }
 
     // Register the operation with the Legion runtime
-    Legion::Runtime::register_reduction_op<wrap>(id);
+    Legion::Runtime::register_reduction_op<custom_wrap>(REDOP_ID);
   }
 
 public:
   // NB: 0 is reserved by Legion.
-  static inline const Legion::ReductionOpID id =
+  static inline const Legion::ReductionOpID REDOP_ID =
     (run::context::instance().register_init(init), reduction_counter());
 };
 
-template<class>
-constexpr legion_redop_kind_t redop() = delete;
-template<>
-constexpr legion_redop_kind_t
-redop<min>() {
-  return LEGION_REDOP_KIND_MIN;
-}
-template<>
-constexpr legion_redop_kind_t
-redop<max>() {
-  return LEGION_REDOP_KIND_MAX;
-}
-template<>
-constexpr legion_redop_kind_t
-redop<sum>() {
-  return LEGION_REDOP_KIND_SUM;
-}
-template<>
-constexpr legion_redop_kind_t
-redop<product>() {
-  return LEGION_REDOP_KIND_PROD;
-}
+namespace detail {
+template<class T>
+struct legion_reduction;
 
-template<class>
-constexpr legion_type_id_t redtype() = delete;
 template<>
-constexpr legion_type_id_t
-redtype<bool>() {
-  return LEGION_TYPE_BOOL;
-}
+struct legion_reduction<sum> {
+  template<class T>
+  using type = Legion::SumReduction<T>;
+};
+
 template<>
-constexpr legion_type_id_t
-redtype<std::int8_t>() {
-  return LEGION_TYPE_INT8;
-}
+struct legion_reduction<product> {
+  template<class T>
+  using type = Legion::ProdReduction<T>;
+};
+
 template<>
-constexpr legion_type_id_t
-redtype<std::int16_t>() {
-  return LEGION_TYPE_INT16;
-}
+struct legion_reduction<max> {
+  template<class T>
+  using type = Legion::MaxReduction<T>;
+};
+
 template<>
-constexpr legion_type_id_t
-redtype<std::int32_t>() {
-  return LEGION_TYPE_INT32;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::int64_t>() {
-  return LEGION_TYPE_INT64;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::uint8_t>() {
-  return LEGION_TYPE_UINT8;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::uint16_t>() {
-  return LEGION_TYPE_UINT16;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::uint32_t>() {
-  return LEGION_TYPE_UINT32;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::uint64_t>() {
-  return LEGION_TYPE_UINT64;
-}
-template<>
-constexpr legion_type_id_t
-redtype<float>() {
-  return LEGION_TYPE_FLOAT32;
-}
-template<>
-constexpr legion_type_id_t
-redtype<double>() {
-  return LEGION_TYPE_FLOAT64;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::complex<float>>() {
-  return LEGION_TYPE_COMPLEX64;
-}
-template<>
-constexpr legion_type_id_t
-redtype<std::complex<double>>() {
-  return LEGION_TYPE_COMPLEX128;
-}
+struct legion_reduction<min> {
+  template<class T>
+  using type = Legion::MinReduction<T>;
+};
+
+template<class R, class T, class = void>
+struct wrap {
+  using type = custom_wrap<R, T>;
+};
 
 template<class R, class T>
-struct wrap<R, T, decltype(void((redop<R>(), redtype<T>())))> {
-  static constexpr Legion::ReductionOpID id =
-    LEGION_REDOP_BASE + redop<R>() * LEGION_TYPE_TOTAL + redtype<T>();
+struct wrap<R,
+  T,
+  decltype(void(legion_reduction<R>::template type<T>::REDOP_ID))> {
+  using type = typename legion_reduction<R>::template type<T>;
 };
+} // namespace detail
+
+template<class R, class T>
+using wrap = typename detail::wrap<R, T>::type;
 
 /// \}
 } // namespace fold

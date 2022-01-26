@@ -159,54 +159,6 @@ public:
   } // default_policy_select_instance_region
 
   /*!
-   THis function will find a CPU variat for the task
-  */
-  Legion::VariantID find_cpu_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
-      cpu_variants.find(task_id);
-    if(finder != cpu_variants.end())
-      return finder->second;
-    std::vector<Legion::VariantID> variants;
-    runtime->find_valid_variants(
-      ctx, task_id, variants, Legion::Processor::LOC_PROC);
-    cpu_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
-   THis function will find a OpenMP variat for the task
-  */
-  Legion::VariantID find_omp_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    using namespace Legion;
-    std::map<TaskID, VariantID>::const_iterator finder =
-      omp_variants.find(task_id);
-    if(finder != omp_variants.end())
-      return finder->second;
-    std::vector<VariantID> variants;
-    runtime->find_valid_variants(ctx, task_id, variants, Processor::OMP_PROC);
-    omp_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
-   THis function will find a GPU variat for the task
-  */
-  Legion::VariantID find_gpu_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    using namespace Legion;
-    std::map<TaskID, VariantID>::const_iterator finder =
-      gpu_variants.find(task_id);
-    if(finder != gpu_variants.end())
-      return finder->second;
-    std::vector<VariantID> variants;
-    runtime->find_valid_variants(ctx, task_id, variants, Processor::TOC_PROC);
-    gpu_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
    THis function will create PhysicalInstance for Reduction task
   */
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
@@ -432,15 +384,15 @@ public:
     using namespace mapper;
 
     if(task.tag & prefer_gpu && !local_gpus.empty()) {
-      output.chosen_variant = find_gpu_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, gpu_variants);
       output.target_procs.push_back(task.target_proc);
     }
     else if(task.tag & prefer_omp && !local_omps.empty()) {
-      output.chosen_variant = find_omp_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, omp_variants);
       output.target_procs = local_omps;
     }
     else {
-      output.chosen_variant = find_cpu_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, cpu_variants);
       output.target_procs = local_cpus;
     }
 
@@ -614,6 +566,23 @@ public:
   } // slice_task
 
 private:
+  /*!
+   This function will find a variant from a VariantID map for the task
+  */
+  Legion::VariantID find_variant(const Legion::Mapping::MapperContext ctx,
+    Legion::TaskID task_id,
+    std::map<Legion::TaskID, Legion::VariantID> & variant) {
+
+    std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
+      variant.find(task_id);
+    if(finder != variant.end())
+      return finder->second;
+    std::vector<Legion::VariantID> variants;
+    runtime->find_valid_variants(
+      ctx, task_id, variants, Legion::Processor::LOC_PROC);
+    return variant[task_id] = variants.at(0);
+  }
+
   Realm::Machine machine;
 
   // the map of the locac intances that have been already created

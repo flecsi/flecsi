@@ -68,17 +68,17 @@ set(exec_HEADERS
 add_unit(kernel
     SOURCES
       test/kernel.cc
-  )
+)
 
 add_unit(task
   SOURCES
     test/task.cc
   THREADS
-    4 # Warning: This number is hard-coded into the the test.
+    4 # Warning: This number is hard-coded into the test.
 )
 
 add_unit(future
   SOURCES
     test/future.cc
   THREADS 2
-  )
+)
