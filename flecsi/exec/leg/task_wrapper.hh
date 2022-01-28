@@ -73,6 +73,17 @@ struct util::serial::convert<data::accessor<L, T, Priv>> {
     return type(r);
   }
 };
+template<class R, typename T>
+struct util::serial::convert<data::reduction_accessor<R, T>> {
+  using type = data::reduction_accessor<R, T>;
+  using Rep = field_id_t;
+  static Rep put(const type & r) {
+    return r.field();
+  }
+  static type get(const Rep & r) {
+    return type(r);
+  }
+};
 template<class T, Privileges Priv>
 struct util::serial::convert<data::accessor<data::single, T, Priv>>
   : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};

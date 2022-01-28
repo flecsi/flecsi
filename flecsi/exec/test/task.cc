@@ -12,12 +12,15 @@
    All rights reserved.
                                                                               */
 
+#include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;
 
 log::devel_tag task_tag("task");
+
+using reduction_type = std::uint64_t;
 
 template<task_attributes_mask_t P, exec::task_processor_type_t T>
 constexpr bool
@@ -113,6 +116,42 @@ index_task(exec::launch_domain) {
 }
 } // namespace
 
+void
+init_array(field<reduction_type>::accessor<wo> v) {
+  for(auto & vv : v.span()) {
+    vv = color();
+  }
+}
+void
+init(field<reduction_type>::accessor<wo> v) {
+  for(auto & vv : v.span()) {
+    vv = 0;
+  }
+}
+int
+check(field<reduction_type>::accessor<ro> v, int total) {
+  UNIT {
+    for(auto & vv : v.span()) {
+      EXPECT_EQ(vv, total);
+    }
+  };
+}
+void
+reduction(field<reduction_type>::accessor<ro> v,
+  flecsi::data::reduction_accessor<flecsi::exec::fold::sum, reduction_type> r) {
+  assert(v.span().size() == r.span().size());
+  for(std::size_t i = 0; i < v.span().size(); ++i) {
+    r[i](v[i]);
+  }
+} // reduce_task
+
+using arr = topo::array<void>;
+arr::slot arr_s;
+const field<reduction_type>::definition<arr> arr_f;
+
+topo::global::slot gl_arr_s;
+const field<reduction_type>::definition<topo::global> gl_arr_f;
+
 int
 task_driver() {
   UNIT {
@@ -153,6 +192,22 @@ task_driver() {
     EXPECT_EQ(test<index_task>(exec::launch_domain{
                 processes() + 4 * (FLECSI_BACKEND != FLECSI_BACKEND_mpi)}),
       0);
+
+    // Test reduction
+    auto np = processes();
+    const int vpp = 5;
+    const int sum = np * (np - 1) / 2;
+    // Array of initial values per color
+    arr_s.allocate(arr::coloring(np, vpp));
+    auto arr_vals = arr_f(arr_s);
+    flecsi::execute<init_array>(arr_vals);
+    // Reduction
+    gl_arr_s.allocate(vpp);
+    auto vals = gl_arr_f(gl_arr_s);
+    // Init reduction array to 0
+    flecsi::execute<init>(vals);
+    flecsi::execute<reduction>(arr_vals, vals);
+    EXPECT_EQ(test<check>(vals, sum), 0);
   };
 } // task_driver
 

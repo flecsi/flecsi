@@ -104,6 +104,42 @@ protected:
     ().template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
   } // visit generic topology
-}; // struct task_prologue_t
+
+  template<class R, typename T, class Topo, typename Topo::index_space Space>
+  void visit(data::reduction_accessor<R, T> & accessor,
+    const data::field_reference<T, data::dense, Topo, Space> & ref) {
+    static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
+    const field_id_t f = ref.fid();
+    const auto storage =
+      ref.topology()->template get_storage<T, ProcessorType>(f);
+    accessor.bind(storage);
+
+    reductions.push_back([storage] {
+      MPI_Request request;
+      util::mpi::test(MPI_Iallreduce(MPI_IN_PLACE,
+        storage.begin(),
+        storage.size(),
+        flecsi::util::mpi::type<T>(),
+        exec::fold::wrap<R, T>::op,
+        MPI_COMM_WORLD,
+        &request));
+      return request;
+    });
+  }
+
+public:
+  ~task_prologue() {
+    std::vector<MPI_Request> requests;
+    for(auto & f : reductions) {
+      requests.push_back(f());
+    }
+    util::mpi::test(
+      MPI_Waitall(requests.size(), requests.data(), MPI_STATUS_IGNORE));
+  }
+
+private:
+  std::vector<std::function<MPI_Request()>> reductions;
+
+}; // struct task_prologue
 } // namespace exec
 } // namespace flecsi

@@ -77,19 +77,35 @@ private:
       Legion::coord_t,
       Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
       ac(reg, accessor.field(), sizeof(D));
-    const auto dom = legion_runtime_->get_index_space_domain(
-      legion_context_, reg.get_logical_region().get_index_space());
-    const auto r = dom.get_rect<data::leg::region_dimensions>();
-
-    if(!dom.empty())
-      accessor.bind(
-        util::span(ac.ptr(Legion::Domain::DomainPointIterator(dom).p),
-          r.hi[1] - r.lo[1] + 1));
+    bind(reg, accessor, ac);
   }
 
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
     p.send(visitor());
+  }
+
+  template<class R, typename D>
+  void visit(data::reduction_accessor<R, D> & reduce) {
+    auto & reg = regions_[region++];
+    const Legion::ReductionAccessor<exec::fold::wrap<R, D>,
+      false,
+      data::leg::region_dimensions,
+      Legion::coord_t,
+      Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
+      ac(reg, reduce.field(), exec::fold::wrap<R, D>::REDOP_ID);
+    bind(reg, reduce, ac);
+  }
+
+  template<typename A, typename LA>
+  void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
+    const auto dom = legion_runtime_->get_index_space_domain(
+      legion_context_, reg.get_logical_region().get_index_space());
+    const auto r = dom.get_rect<data::leg::region_dimensions>();
+
+    if(!dom.empty())
+      acc.bind(util::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
+        r.hi[1] - r.lo[1] + 1));
   }
 
   /*--------------------------------------------------------------------------*

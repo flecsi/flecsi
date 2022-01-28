@@ -82,7 +82,7 @@ reduce_internal(Args &&... args) {
   // for the data field. We also need to patch up default conversion
   // from args to params, especially for the future<>. Ghost copy for
   // the fields is also done in the prolog.
-  prolog<mask_to_processor_type(Attributes)>(params, args...);
+  const prolog<mask_to_processor_type(Attributes)> pr(params, args...);
 
   // Different kinds of task invocation with flecsi::execute():
   // 1. domain_size is a std::monostate: a single task launch. On a single
