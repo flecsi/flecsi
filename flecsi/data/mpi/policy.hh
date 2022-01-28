@@ -248,8 +248,12 @@ struct region {
     return p->size();
   }
 
-  region_impl & operator*() const {
+  region_impl & operator*() {
     return *p;
+  }
+
+  region_impl * operator->() {
+    return p.get();
   }
 
 private:

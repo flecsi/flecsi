@@ -184,7 +184,7 @@ reduce_internal(Args &&... args) {
 
       auto ret = future<return_t, launch_type_t::single>{
         legion_runtime->execute_index_space(
-          legion_context, launcher, fold::wrap<Reduction, return_t>::id)};
+          legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
       if(mpi_task)
         ret.wait();
       return ret;
