@@ -24,6 +24,11 @@
 #include <stack>
 
 namespace flecsi {
+namespace topo {
+template<class Topo, typename Topo::index_space>
+struct ragged_partitioned;
+}
+
 namespace data {
 /// \addtogroup data
 /// \{
@@ -248,20 +253,19 @@ struct ragged_accessor
       using R = std::remove_reference_t<decltype(r)>;
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
-      auto & t = r.topology().ragged;
-      r.get_region(t).cleanup(i, [=] {
+      using Topo = typename topo::ragged_partitioned<typename R::Topology,
+        R::space>::base_type;
+      typename Topo::core & t = r.get_ragged();
+      t.template get_region<topo::elements>().cleanup(i, [=] {
         if constexpr(!std::is_trivially_destructible_v<T>)
           detail::destroy<P>(r);
       });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
-        r.get_partition(r.topology().ragged).resize();
+        t.resize();
       // We rely on the fact that field_reference uses only the field ID.
-      return field_reference<T,
-        raw,
-        topo::ragged<typename R::Topology>,
-        R::space>({i, 0, {}}, t);
+      return field_reference<T, raw, Topo, topo::elements>({i, 0, {}}, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
@@ -635,9 +639,8 @@ public:
   template<class F>
   void send(F && f) {
     f(get_base(), util::identity());
-    std::forward<F>(f)(get_size(), [](const auto & r) {
-      return r.get_partition(r.topology().ragged).sizes();
-    });
+    std::forward<F>(f)(
+      get_size(), [](const auto & r) { return r.get_ragged().sizes(); });
     if(over)
       over->resize(acc.size()); // no-op on caller side
   }
@@ -1065,8 +1068,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {type::base_type::parameter(r),
-      r.get_partition(r.topology().ragged).growth};
+    return {type::base_type::parameter(r), r.get_ragged().growth};
   }
 };
 template<class T, Privileges P>

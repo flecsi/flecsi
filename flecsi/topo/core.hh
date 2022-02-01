@@ -87,7 +87,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   /// Find the partition for a field.
   /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
-  const data::partition & get_partition(field_id_t) const;
+  const data::partition & get_partition() const;
 
   /// Perform a ghost copy.
   /// Required only if multiple privileges are used.

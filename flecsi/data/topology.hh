@@ -53,7 +53,7 @@ struct partition {
   /// Convenience function for simple topologies with just one partition.
   /// \return this object
   template<topo::single_space>
-  const partition & get_partition(field_id_t) const {
+  const partition & get_partition() const {
     return *this;
   }
 };

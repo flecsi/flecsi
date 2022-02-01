@@ -90,7 +90,7 @@ struct unstructured : unstructured_base,
     return part_.template get<S>();
   }
   template<index_space S>
-  const data::partition & get_partition(field_id_t) const {
+  const data::partition & get_partition() const {
     return part_.template get<S>();
   }
 
@@ -163,7 +163,7 @@ private:
         auto & cc = c.cnx_allocs[entity++];
         std::size_t is{0};
         for(auto & fd : row) {
-          auto & p = this->ragged.template get_partition<VV>(fd.fid);
+          auto & p = fd(*this).get_ragged();
           execute<cnx_size>(cc[is++], p.sizes());
         }
       }(connect_.template get<VV>()),
