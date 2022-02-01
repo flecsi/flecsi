@@ -39,86 +39,68 @@ using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
-/*
-  Input type for color method.
+/*!
+  This type is an input to the coloring method, and encapsulates
+  information (such as how many colors per axis the mesh needs to
+  be partitioned into, if boundaries are periodic, etc), that is
+  used by the coloring algorithm to create mesh partitions.
  */
-
 struct coloring_definition {
-  colors axis_colors;
-  coord axis_extents;
-  coord axis_hdepths;
-  coord axis_bdepths;
-  std::vector<bool> axis_periodic;
-  bool diagonals = false;
-  bool create_plan = true;
+  colors axis_colors; ///< number of colors into which each axis will be divided
+  coord axis_extents; ///< extents to be partitioned
+  coord axis_hdepths; ///< halo depth (or number of ghost layers) per axis
+  coord axis_bdepths; ///< number of boundary layers to be added to the domain
+                      ///< per axis
+  std::vector<bool> axis_periodic; ///< specify which axes are periodic
+  bool diagonals = false; ///< whether to include diagonally connected (i.e.,
+                          ///< connected through vertex) as well as face
+                          ///< connected entities during primary partitioning
+  bool create_plan = true; ///< whether to create a copy plan
 };
 
+/*!
+ Type to store the coloring information for one color.
+ */
 struct index_coloring {
-  /*
-    Store the axis orientations of this color.
-   */
 
   std::uint32_t faces;
 
-  /*
-    The global extents.
-   */
-
+  ///  The global extents.
   coord global;
 
-  /*
-    The local extents of this color. This is the full size including
-    boundary depth, and ghosts. The "extents" coordinate implicitly
-    defines a hypercube from {0, 0, ..., 0} to extents{...}.
-   */
-
+  ///  The local extents of this color. This is the full size including
+  ///  boundary depth, and ghosts. The "extents" coordinate implicitly
+  ///  defines a hypercube from {0, 0, ..., 0} to extents{...}.
   coord extents;
 
-  /*
-    The global coordinate offset of the local hypercube.
-    Local to global id translation can be computed with this.
-   */
-
+  ///  The global coordinate offset of the local hypercube.
+  ///  Local to global id translation can be computed with this.
+  ///  The local hypercube includes boundary padding.
   coord offset;
 
-  /*
-    The logical entities, i.e., the entities for this color without
-    boundary padding or ghosts.
-   */
-
+  ///  The logical entities, i.e., the entities for this color without
+  ///  boundary padding or ghosts.
   hypercube logical;
 
-  /*
-    The extended entities, i.e., the logical entities including boundary
-    padding. The boundary depth can be computed like:
-
-      boundary_depth_low[axis] = logical[0][axis] - extended[0][axis];
-      boundary_depth_high[axis] = extended[1][axis] - logical[1][axis];
-
-    The ghost depth can be computed like:
-      shared_depth_low[axis] = logical[0][axis];
-      shared_depth_high[axis] = extents[axis] - logical[1][axis];
-
-    (note: We use logical to compute the ghost depth because an edge
-      cannot have both boundary padding, and ghosts.)
-   */
-
+  ///  The extended entities, i.e., the logical entities including boundary
+  ///  padding. The boundary depth can be computed like:
+  ///    boundary_depth_low[axis] = logical[0][axis] - extended[0][axis];
+  ///    boundary_depth_high[axis] = extended[1][axis] - logical[1][axis];
+  ///  The ghost depth can be computed like:
+  ///    shared_depth_low[axis] = logical[0][axis];
+  ///    shared_depth_high[axis] = extents[axis] - logical[1][axis];
+  ///  (note: We use logical to compute the ghost depth because an edge
+  ///    cannot have both boundary padding, and ghosts.)
   hypercube extended;
 
-  /*
-    Offsets on the remote color.
-   */
-
+  /// Offsets on the remote color.
   std::map<Color,
     std::vector<std::pair</* local ghost offset, remote shared offset */
       std::size_t,
       std::size_t>>>
     points;
 
-  /*
-    Local ghost intervals.
-   */
-
+  /// Local ghost intervals.
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
 };
 
@@ -148,13 +130,26 @@ struct narray_base {
     }
     return allocation;
   }
+  /*!
+   Method to compute the local ghost "intervals" and "points" which store map of
+   local ghost offset to remote/shared offset. This method is called by the
+   "make_copy_plan" method in the derived topology to create the copy plan
+   objects.
 
+   @param vpc vector of process colors
+   @param[out] num_intervals vector of number of ghost intervals, over all
+   colors, this vector is assumed to be sized correctly (all colors)
+   @param[out] intervals  vector of local ghost intervals, over process colors
+   @param[out] points vector of maps storing (local ghost offset, remote shared
+   offset) for a shared color, over process colors
+  */
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
     MPI_Comm const & comm) {
     num_intervals = util::mpi::all_gather(ic.intervals.size(), comm);
   }
 
+  // for make_copy_plan
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
     std::vector<std::pair<std::size_t, std::size_t>> const & intervals,
     MPI_Comm const &) {
@@ -165,6 +160,7 @@ struct narray_base {
     } // for
   }
 
+  // for make_copy_plan
   template<PrivilegeCount N>
   static void set_ptrs(
     field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,

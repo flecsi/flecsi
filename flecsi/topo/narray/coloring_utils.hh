@@ -76,7 +76,6 @@ distribute(Color np, std::vector<std::size_t> indices) {
   for "low", and "high". If an axis is neither low nor high, it is
   interior. The enumeration defining these masks is in types.hh.
  */
-
 inline auto
 orientation(Dimension dimension,
   const narray_impl::colors & color_indices,

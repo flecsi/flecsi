@@ -66,7 +66,10 @@ struct core_base {
 /// \tparam P topology specialization, used here as a policy
 template<class P>
 struct core : core_base { // with_ragged<P> is often another base class
-  /// Default-constructible base for topology accessors.
+  /// Default-constructible base for topology accessors. This struct
+  /// provides the interface to the topology and can be used by a
+  /// specialization developer to implement tailor-made methods
+  /// needed by their applications.
   template<Privileges Priv>
   struct access {
     /// \see send_tag
