@@ -161,18 +161,19 @@ index_driver() {
     }
 
     Noisy::count = 0;
-    for(const auto f : {verts_field.fid, vfrac_field.fid}) {
-      auto & p = process_topology->ragged.get_partition<topo::elements>(f);
+    constexpr static auto alloc = [](auto f) {
+      auto & p = f.get_ragged();
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
-    }
-    process_topology->ragged.get_partition<topo::elements>(ghost_field.fid)
-      .growth = {processes() + 1};
+    };
     const auto pressure = pressure_field(process_topology);
     const auto verts = verts_field(process_topology),
                ghost = ghost_field(process_topology);
     const auto vfrac = vfrac_field(process_topology);
     const auto noise = noisy_field(process_topology);
+    alloc(verts);
+    alloc(vfrac);
+    ghost.get_ragged().growth = {processes() + 1};
     execute<irows>(verts);
     execute<irows>(verts); // to make new size visible
     EXPECT_EQ(test<drows>(vfrac), 0);

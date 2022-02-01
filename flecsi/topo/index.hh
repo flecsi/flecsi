@@ -60,52 +60,23 @@ make_repartitioned(Color r, F f) {
 }
 
 // Stores the flattened elements of the ragged fields on an index space.
-struct ragged_partitioned : data::region {
-  template<class Topo, typename Topo::index_space S>
-  ragged_partitioned(Color r, util::key_type<S, Topo> kt)
-    : region({r, data::logical_size}, kt) {
-    for(const auto & fi :
-      run::context::instance().get_field_info_store<Topo, S>())
-      part.try_emplace(fi->fid, *this);
-  }
-  repartition & operator[](field_id_t i) {
-    return part.at(i);
-  }
-  const repartition & operator[](field_id_t i) const {
-    return part.at(i);
+struct ragged_partition_base : repartition {
+  using coloring = data::region &;
+
+  ragged_partition_base(coloring c) : repartition(c), reg(&c) {}
+
+  template<single_space>
+  data::region & get_region() const {
+    return *reg;
   }
 
-private:
-  std::map<field_id_t, repartition> part;
-};
-
-// Element storage (i.e., the concatenated rows) for ragged fields.
-struct ragged_base {
-  using coloring = Color;
-};
-template<class P>
-struct ragged_category : ragged_base {
-  using index_spaces = typename P::index_spaces;
-  using index_space = typename P::index_space;
-
-  ragged_category(coloring c) : ragged_category(c, index_spaces()) {}
-
-  Color colors() const {
-    return part.front().size().first;
+  template<single_space>
+  const repartition & get_partition(field_id_t) const {
+    return *this;
   }
-
-  template<index_space S>
-  data::region & get_region() {
-    return part.template get<S>();
-  }
-
-  template<index_space S>
-  const repartition & get_partition(field_id_t i) const {
-    return part.template get<S>()[i];
-  }
-  template<index_space S>
-  repartition & get_partition(field_id_t i) {
-    return part.template get<S>()[i];
+  template<single_space>
+  repartition & get_partition(field_id_t) {
+    return *this;
   }
 
   // Ragged ghost copies must be handled at the level of the host topology.
@@ -113,22 +84,92 @@ struct ragged_category : ragged_base {
   void ghost_copy(const R &) {}
 
 private:
+  data::region * reg; // note the address stability assumption
+};
+template<class>
+struct ragged_partition_category : ragged_partition_base {
+  using ragged_partition_base::ragged_partition_base;
+};
+template<>
+struct detail::base<ragged_partition_category> {
+  using type = ragged_partition_base;
+};
+template<PrivilegeCount N>
+struct ragged_partition
+  : specialization<ragged_partition_category, ragged_partition<N>> {
+  template<single_space>
+  static constexpr PrivilegeCount privilege_count = N;
+};
+
+template<class>
+struct ragged;
+
+template<class Topo, typename Topo::index_space S>
+struct ragged_partitioned : data::region {
+  using base_type = ragged_partition<Topo::template privilege_count<S>>;
+  using Partition = typename base_type::core;
+
+  explicit ragged_partitioned(Color r)
+    : region({r, data::logical_size}, util::key_type<S, Topo>()) {
+    for(const auto & fi :
+      run::context::instance().get_field_info_store<ragged<Topo>, S>())
+      part.try_emplace(fi->fid, *this);
+  }
+  ragged_partitioned(ragged_partitioned &&) = delete; // we store 'this'
+  Partition & operator[](field_id_t i) {
+    return part.at(i);
+  }
+  const Partition & operator[](field_id_t i) const {
+    return part.at(i);
+  }
+
+private:
+  std::map<field_id_t, Partition> part;
+};
+
+namespace detail {
+template<class, class>
+struct ragged_tuple;
+template<class T, typename T::index_space... SS>
+struct ragged_tuple<T, util::constants<SS...>> {
+  using type =
+    util::key_tuple<util::key_type<SS, ragged_partitioned<T, SS>>...>;
+};
+} // namespace detail
+
+struct ragged_base {
+  using coloring = std::nullptr_t;
+};
+template<class>
+struct ragged_category : ragged_base {
+  ragged_category() = delete; // used only for registering fields
+};
+
+template<class P>
+struct ragged_elements {
+  using index_spaces = typename P::index_spaces;
+  using index_space = typename P::index_space;
+
+  explicit ragged_elements(Color c) : ragged_elements(c, index_spaces()) {}
+
+  template<index_space S>
+  ragged_partitioned<P, S> & get() {
+    return part.template get<S>();
+  }
+
+private:
   template<auto... VV>
-  ragged_category(Color n,
+  ragged_elements(Color n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
     )
-    : part{{ragged_partitioned(n, util::key_type<VV, P>())...}} {}
+    : part((void(VV), n)...) {}
 
-  util::key_array<ragged_partitioned, index_spaces> part;
+  typename detail::ragged_tuple<P, index_spaces>::type part;
 };
 template<class T>
 struct ragged : specialization<ragged_category, ragged<T>> {
   using index_space = typename T::index_space;
   using index_spaces = typename T::index_spaces;
-
-  template<index_space S>
-  static constexpr PrivilegeCount privilege_count =
-    T::template privilege_count<S>;
 };
 
 // Standardized interface for use by fields and accessors:
@@ -136,7 +177,7 @@ template<class P>
 struct with_ragged {
   with_ragged(Color n) : ragged(n) {}
 
-  typename topo::ragged<P>::core ragged;
+  ragged_elements<P> ragged;
 };
 
 template<>

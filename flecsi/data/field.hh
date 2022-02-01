@@ -125,6 +125,10 @@ struct field_reference : field_reference_t<Topo> {
     return get_partition(this->topology());
   }
 
+  auto & get_ragged() const { // -> ragged_partition<...>::core
+    return this->topology().ragged.template get<Space>()[this->fid()];
+  }
+
   template<layout L2, class T2 = T> // TODO: allow only safe casts
   auto cast() const {
     return field_reference<T2, L2, Topo, Space>(*this);

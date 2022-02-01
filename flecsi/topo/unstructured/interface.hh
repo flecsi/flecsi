@@ -163,7 +163,7 @@ private:
         auto & cc = c.cnx_allocs[entity++];
         std::size_t is{0};
         for(auto & fd : row) {
-          auto & p = this->ragged.template get_partition<VV>(fd.fid);
+          auto & p = fd(*this).get_ragged();
           execute<cnx_size>(cc[is++], p.sizes());
         }
       }(connect_.template get<VV>()),
