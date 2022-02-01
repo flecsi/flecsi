@@ -68,4 +68,13 @@ struct exec::detail::launch<data::accessor<L, T, Priv>,
   }
 };
 
+template<class R, typename T>
+struct exec::detail::launch<data::reduction_accessor<R, T>,
+  data::field_reference<T, data::dense, topo::global, topo::elements>> {
+  static std::nullptr_t get(const data::
+      field_reference<T, data::dense, topo::global, topo::elements> &) {
+    return {};
+  }
+};
+
 } // namespace flecsi

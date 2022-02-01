@@ -70,6 +70,9 @@ public:
   template<data::layout L, typename D, Privileges P>
   void visit(data::accessor<L, D, P> &) {} // visit
 
+  template<class R, typename T>
+  void visit(data::reduction_accessor<R, T> &) {}
+
   template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
     m.commit();

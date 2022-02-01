@@ -44,7 +44,7 @@ namespace leg {
 /// \{
 
 constexpr inline Legion::ProjectionID def_proj = 0;
-constexpr inline int region_dimensions = 2;
+constexpr inline std::size_t region_dimensions = 2;
 
 inline auto &
 run() {

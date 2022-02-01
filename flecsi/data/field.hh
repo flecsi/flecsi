@@ -37,6 +37,9 @@ namespace data {
 template<layout L, typename T, Privileges Priv>
 struct accessor;
 
+template<class R, typename T>
+struct reduction_accessor;
+
 /// A specialized accessor for changing the extent of dynamic layouts.
 template<layout, class, Privileges>
 struct mutator;

@@ -90,6 +90,22 @@ protected:
     region_reqs_.back().add_field(f);
   } // visit
 
+  template<class R, typename T, class Topo, typename Topo::index_space Space>
+  void visit(data::reduction_accessor<R, T> &,
+    const data::field_reference<T, data::dense, Topo, Space> & r) {
+    const Legion::LogicalRegion lr =
+      r.topology().template get_region<Space>().logical_region;
+    static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
+    region_reqs_
+      .emplace_back(lr,
+        // Cast to Legion::ReductionOpID due to missing definition of REDOP_ID
+        // in legion_redop.h
+        Legion::ReductionOpID(fold::wrap<R, T>::REDOP_ID),
+        EXCLUSIVE,
+        lr)
+      .add_field(r.fid());
+  } // visit
+
   /*--------------------------------------------------------------------------*
     Futures
    *--------------------------------------------------------------------------*/

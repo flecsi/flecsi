@@ -143,6 +143,36 @@ private:
   base_type base;
 }; // struct accessor
 
+template<class R, typename T>
+struct reduction_accessor : bind_tag {
+  using element_type = T;
+  using size_type = typename util::span<element_type>::size_type;
+
+  explicit reduction_accessor(field_id_t f) : f(f) {}
+
+  FLECSI_INLINE_TARGET
+  auto operator[](size_type index) const {
+    return [&v = s[index]](const T & r) { v = R::combine(v, r); };
+  }
+
+  field_id_t field() const {
+    return f;
+  }
+
+  void bind(util::span<element_type> x) { // for bind_accessors
+    s = x;
+  }
+
+  FLECSI_INLINE_TARGET
+  auto span() const {
+    return s;
+  }
+
+private:
+  field_id_t f;
+  util::span<element_type> s;
+};
+
 /// Accessor for potentially uninitialized memory.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
@@ -1447,6 +1477,14 @@ struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
     return exec::replace_argument<typename type::base_type>(
       r.template cast<data::ragged,
         typename field<T, data::sparse>::base_type::value_type>());
+  }
+};
+template<class R, typename T>
+struct exec::detail::task_param<data::reduction_accessor<R, T>> {
+  template<class Topo, typename Topo::index_space S>
+  static auto replace(
+    const data::field_reference<T, data::dense, Topo, S> & r) {
+    return data::reduction_accessor<R, T>(r.fid());
   }
 };
 template<class A>
