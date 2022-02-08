@@ -60,16 +60,43 @@ annotation_driver() {
       ASSERT_NE(custom_time, times.end());
       auto combined_time =
         reduce<check_custom, exec::fold::sum, mpi>(custom_time->second).get();
-      EXPECT_EQ(combined_time, size * (size + 1) / 2);
+      EXPECT_GE(combined_time, size * (size + 1) / 2);
     }
 
-    { // test user execution
-      execute<wait, mpi>();
-      auto times = std::get<0>(rp.exclusive_region_times(ann::execution::name));
-      auto wait_time =
-        times.find(ann::execute_task_user::name + "->" + util::symbol<wait>());
+    execute<wait, mpi>();
+
+    auto times = std::get<0>(rp.exclusive_region_times(ann::execution::name));
+    auto wait_time =
+      times.find(ann::execute_task_user::name + "->" + util::symbol<wait>());
+
+    if constexpr(ann::execute_task_user::detail_level <=
+                 ann::detail_level) { // test user execution
       ASSERT_NE(wait_time, times.end());
-      EXPECT_EQ((static_cast<int>((*wait_time).second * 100)), 4);
+      auto elapsed = wait_time->second;
+      EXPECT_GE(elapsed, 0.04);
+    }
+    else {
+      // check user execution is not included
+      ASSERT_EQ(wait_time, times.end());
+    }
+
+    { // test annotation in high detail level
+      {
+        ann::guard<test_context, ann::detail::high> g("high");
+        std::this_thread::sleep_for(std::chrono::milliseconds(10 * (rank + 1)));
+      }
+      auto times = std::get<0>(rp.exclusive_region_times(test_context::name));
+
+      auto custom_time = times.find("high");
+      if constexpr(ann::detail_level == ann::detail::high) {
+        ASSERT_NE(custom_time, times.end());
+        auto combined_time =
+          reduce<check_custom, exec::fold::sum, mpi>(custom_time->second).get();
+        EXPECT_GE(combined_time, size * (size + 1) / 2);
+      }
+      else { // test timer is not included
+        ASSERT_EQ(custom_time, times.end());
+      }
     }
   };
 } // annotation_driver
