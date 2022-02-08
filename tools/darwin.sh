@@ -37,7 +37,9 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 pushd "$HOME"
 git clone https://github.com/spack/spack.git
 cd spack
-git checkout v0.17.0
+#git checkout v0.17.1
+#git checkout origin/releases/v0.17
+git switch -c origin/v0.17.2
 git rev-parse HEAD
 set +v
 source "$HOME/spack/share/spack/setup-env.sh"
@@ -48,10 +50,14 @@ popd
 # Expose these -- and whatever else happense to be sitting around -- as Spack
 # externals.
 module load cmake
-module load mpich/3.4.2-gcc_9.4.0
+module load gcc/9.4.0
 spack external find
 spack config remove packages:python   # Provides only a partial Sphinx
 spack config remove packages:libtool  # Seems incomplete
+
+# Install mpich/3.4.2 instead of relying on system build (no mpirun/mpiexec)
+spack install mpich@3.4.2%gcc@9.4.0+hydra+romio~verbs device=ch4
+spack load mpich
 
 # Install FleCSI's dependencies with Spack.  The various Sphinx packages lead
 # to a mess of dependencies that confuses Spack.  We temporarily specify
@@ -65,7 +71,7 @@ spack add py-sphinx py-sphinx-rtd-theme py-recommonmark
 spack install
 sed -i -e 's/concretization: together/concretization: separately/' "$HOME/spack/var/spack/environments/flecsi-mpich/spack.yaml"
 spack install graphviz +poppler
-spack install --only dependencies flecsi%gcc@9.4.0 backend=legion +hdf5 +kokkos +flog ^legion build_type=Debug
+spack install --only dependencies flecsi%gcc@9.4.0 backend=legion +hdf5 +kokkos +flog ^mpich ^legion network=gasnet conduit=mpi build_type=Debug
 spack load py-sphinx py-sphinx-rtd-theme py-recommonmark
 
 # Build, test, and install FleCSI.
