@@ -37,8 +37,8 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 pushd "$HOME"
 git clone https://github.com/spack/spack.git
 cd spack
-#git checkout v0.17.1
-#git checkout origin/releases/v0.17
+#git checkout v0.17.1   <--- leads to "lanl-cmake-modules not found"
+#                            when building mpich for some reason.
 git switch -c origin/v0.17.2
 git rev-parse HEAD
 set +v
