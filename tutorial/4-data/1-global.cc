@@ -23,7 +23,7 @@ using namespace flecsi::topo;
 
 template<typename T>
 using single = field<T, data::single>;
-const single<double>::definition<global> lue;
+const single<double>::definition<global> gfield;
 
 void
 init(double v, single<double>::accessor<wo> gv) {
@@ -38,7 +38,7 @@ print(single<double>::accessor<ro> gv) {
 int
 advance() {
 
-  const auto v = lue(global_topology);
+  const auto v = gfield(global_topology);
   execute<init>(42.0, v);
   execute<print>(v);
 

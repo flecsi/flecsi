@@ -22,7 +22,7 @@ using namespace flecsi;
 
 template<typename T>
 using single = field<T, data::single>;
-const single<std::size_t>::definition<topo::index> lue;
+const single<std::size_t>::definition<topo::index> ifield;
 
 topo::index::slot custom_topology;
 
@@ -44,11 +44,11 @@ advance() {
 
   custom_topology.allocate(4);
 
-  execute<init>(lue(process_topology));
-  execute<print>(lue(process_topology));
+  execute<init>(ifield(process_topology));
+  execute<print>(ifield(process_topology));
 
-  execute<init>(lue(custom_topology));
-  execute<print>(lue(custom_topology));
+  execute<init>(ifield(custom_topology));
+  execute<print>(ifield(custom_topology));
 
   return 0;
 }
