@@ -29,6 +29,7 @@ struct topology_accessor; // avoid circularity via launch.hh
 namespace topo {
 /// \defgroup topology Topologies
 /// Generic topology categories and tools for specializing them.
+/// \code#include "flecsi/data.hh"\endcode
 /// \warning The material in this section and its subsections other than
 ///   \ref spec is of interest
 ///   only to developers of topology specializations.  Application developers

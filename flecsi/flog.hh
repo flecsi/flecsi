@@ -37,6 +37,7 @@ namespace flecsi {
 namespace log {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
+/// \code#include "flecsi/flog.hh"\endcode
 /// \{
 
 namespace detail {

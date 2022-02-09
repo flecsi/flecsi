@@ -29,6 +29,7 @@ namespace flecsi {
 
 /// \defgroup runtime Runtime Model
 /// Environmental information and tools for organizing applications.
+/// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
 /*!
@@ -344,6 +345,7 @@ colors() {
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
 /// and data-parallel, possibly using an accelerator.
+/// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
 /*!
