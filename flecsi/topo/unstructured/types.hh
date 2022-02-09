@@ -133,7 +133,7 @@ struct unstructured_base {
   using crs = unstructured_impl::crs;
 
   struct coloring {
-    /*
+    /*!
       The current coloring utilities and topology initialization assume
       the use of MPI. This could change in the future, e.g., if legion
       matures to the point of developing its own software stack. However,
@@ -143,19 +143,19 @@ struct unstructured_base {
 
     MPI_Comm comm;
 
-    /*
+    /*!
       The number of colors in this coloring
      */
 
     Color colors;
 
-    /*
+    /*!
       The global number of entities in each index space
      */
 
     std::vector<std::size_t> idx_entities;
 
-    /*
+    /*!
       The local coloring information for each index space.
 
       The coloring information is expressed in the mesh index space,
@@ -164,11 +164,14 @@ struct unstructured_base {
 
     std::vector<index_coloring> idx_colorings;
 
-    /* The local allocation size for each connectivity */
+    /*!
+      The local allocation size for each connectivity, shaped like the
+      specialization's \c connectivities.
+     */
 
     std::vector<std::vector<std::size_t>> cnx_allocs;
 
-    /*
+    /*!
       The local graph for each connectivity.
 
       The graph information is expressed in the mesh index space,
