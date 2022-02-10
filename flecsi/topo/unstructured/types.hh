@@ -434,19 +434,6 @@ struct util::serial::traits<topo::unstructured_impl::shared_entity> {
 };
 
 template<>
-struct util::serial::traits<topo::unstructured_impl::ghost_entity> {
-  using type = topo::unstructured_impl::ghost_entity;
-  template<class P>
-  static void put(P & p, const type & s) {
-    serial::put(p, s.id, s.color);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
 struct util::serial::traits<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
