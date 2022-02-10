@@ -107,20 +107,20 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       extended;
   };
 
-  /// fields for storing topology meta data per index-space
+  // fields for storing topology meta data per index-space
   static inline const typename field<meta_data,
     data::single>::template definition<meta<Policy>>
     meta_field;
 
-  /// field for storing user-defined meta data
+  // field for storing user-defined meta data
   static inline const typename field<typename Policy::meta_data,
     data::single>::template definition<meta<Policy>>
     policy_meta_field;
 
-  /// index-space specific parts
+  // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
 
-  /// index-space specific copy plans
+  // index-space specific copy plans
   util::key_array<data::copy_plan, index_spaces> plan_;
 
   Color colors() const {
