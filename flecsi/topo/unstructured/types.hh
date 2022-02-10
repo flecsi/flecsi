@@ -139,10 +139,11 @@ struct auxiliary_independent {
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   field<util::id, data::ragged>::mutator<rw, na> output) {
-  for(std::size_t e{0}; e < input.size(); ++e) {
-    for(std::size_t v{0}; v < input[e].size(); ++v) {
-      output[input[e][v]].push_back(e);
-    }
+  std::size_t e = 0;
+  for(auto && i : input) {
+    for(auto v : i)
+      output[v].push_back(e);
+    ++e;
   }
 }
 
