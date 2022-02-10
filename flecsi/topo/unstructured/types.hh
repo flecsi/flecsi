@@ -296,30 +296,22 @@ struct unstructured_base {
       Fulfill the requests that we received from other processes, i.e.,
       provide the locaL offset for the requested mesh ids.
      */
-
-    std::vector<std::vector<std::size_t>> fulfills(size);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(auto c : rv) {
-          fulfills[r].emplace_back(shared_offsets[c]);
-        } // for
-        ++r;
-      } // for
-    } // scope
+    for(auto & rv : requested)
+      for(auto & c : rv)
+        c = shared_offsets[c];
 
     /*
       Send/Receive the local offset information with other processes.
      */
+    requested = util::mpi::all_to_allv(
+      [&requested](int r, int) { return std::move(requested[r]); }, comm);
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
     /*
       Setup source pointers.
      */
 
     int r = 0;
-    for(const auto & rv : fulfilled) {
+    for(const auto & rv : requested) {
       if(r == rank) {
         ++r;
         continue;
