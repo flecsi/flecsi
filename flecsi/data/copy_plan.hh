@@ -98,8 +98,8 @@ namespace detail {
 struct buffers_base {
 
   /// The coloring type describes the global directed communication graph
-  /// [src_color][ith_communicating_color] = dest_color, where
-  /// ith_communicating_color is from [0, size of inner vector].
+  /// [src_color][ith_communicating_color] = dest_color, where the outer
+  /// index is over source colors and lists destination colors for each source.
   using coloring = std::vector<std::vector<Color>>;
 
   /// The buffer type stores the data array to be used for communication,
