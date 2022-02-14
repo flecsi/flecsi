@@ -326,8 +326,13 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   struct ragged {
     explicit ragged(Buffer & b) : skip(b.off), w(b) {}
 
-    /// This operator takes as input an accessor or mutator to the
-    /// ragged field that needs to be communicated.
+    /*! Operator to communicate field data
+
+     @param rag input accessor or mutator to the ragged field that needs
+    to be communication.
+     @param i the index i over the topology index-space of the field, e.g.,
+              cell i for an unstructured topology specialization with cells.
+    */
     template<class R> // accessor or mutator
     bool operator()(const R & rag, std::size_t i) {
       const auto row = rag[i];
@@ -352,13 +357,26 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       return true;
     }
 
-    // For the first use in each communication:
+    /*! This method should be invoked for the first use in each (send)
+       communication.
+
+        @param b reference to the input buffer. The passed
+        buffer should point to the correct index in the list of all buffers
+        created for sending and receiving data.
+    */
     static ragged truncate(Buffer & b) {
       b.off = 0;
       return ragged(b);
     }
 
-    template<class R, class F> // F: remote/shared index -> local/ghost index
+    /*! The method to read received data.
+
+       @param rag The mutator to the ragged field
+       @param b The buffer where the data is received
+       @param f The function object encoding "remote/shared index -> local/ghost
+       index map"
+    */
+    template<class R, class F>
     static void read(const R & rag, const Buffer & b, F && f) {
       Buffer::reader r{&b};
       flog_assert(r, "empty message");

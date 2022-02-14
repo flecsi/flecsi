@@ -37,23 +37,18 @@ namespace topo {
 
 /*!----------------------------------------------------------------------------*
   Narray Topology.
+  \tparam Policy the specialization, which must define the following:
 
-  \tparam Policy Policy is the CRTP derived type (narray specialization)
+   - index_space : enum listing the entities in the specialization
+   - index_spaces : created using the utility type "has" to convert the
+ index_space enum to indexed constants
+   - axis : enum listing the axes in the specialization, they should be
+ consistent with the dimension of mesh.
+   - axes : created using the utility type "has" to convert the axis enum to
+ indexed constants
+   - dimension: mesh dimension
 
-   The policy is required to provide the following information:
-   index_space : enum listing the entities in the specialization
-   index_spaces : created using the utility type "has" to convert the
- index_space enum to indexed constants axis : enum listing the axes in the
- specialization, they should be consistent with the dimension of mesh. axes :
- created using the utility type "has" to convert the axis enum to indexed
- constants dimension: mesh dimension
-
-  interface : template<class B> struct interface : B {}. This type is the
- specialization  interface build using the base interface provided by the core
- topology and should have specialization specific methods.
-
-  color : static method returning the narray coloring type, there is no
- requirement for the argument list.
+  \sa core
  *----------------------------------------------------------------------------*/
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
