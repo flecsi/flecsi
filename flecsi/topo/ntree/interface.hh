@@ -29,6 +29,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 
@@ -36,17 +37,26 @@ namespace topo {
 // NTree topology.
 //----------------------------------------------------------------------------//
 
-/*!
-  @ingroup topology
- */
+/// \defgroup ntree N-dimensional Tree
+/// Binary, Quad and Oct Tree topology.
+/// The ntree topology is using a hashing table to store and access the entities
+/// and nodes of the tree.
+/// \addtogroup topology
+/// \{
 
-//-----------------------------------------------------------------//
-//! The tree topology is parameterized on a policy P which defines its nodes
-//! and entity types.
-//-----------------------------------------------------------------//
+/// The ntree topology represents a binary, quad or octree stored/accessed using
+/// a hashtable
+/// \tparam Policy the specialization, which must define the following:
+/// information such as:
+///         - \c dimension : the Dimension of the ntree: 1, 2 or 3 for Binary,
+///         Quad or Oct tree
+///         - \c key_int_t :  Integer type used for the hashing table key
+///         - \c key_t : Key type for the hashing table
+///         - \c node_t : Node type for the ntree
+///         - \c ent_t : Entity type for the ntree
+///         - \c hash_f : Hashing function used in the hashing table
 template<typename Policy>
 struct ntree : ntree_base {
-  // Get types from Policy
   constexpr static unsigned int dimension = Policy::dimension;
   using key_int_t = typename Policy::key_int_t;
   using key_t = typename Policy::key_t;
@@ -91,41 +101,48 @@ struct ntree : ntree_base {
 
   // Ntree mandatory fields ---------------------------------------------------
 
-  // Entities fields
+  // Entities coordinates field
   static inline const typename field<point_t>::template definition<Policy,
     entities>
     e_coordinates;
+  // Entities radius field
   static inline const field<double>::definition<Policy, entities> e_radius;
+  // Entities keys field
   static inline const typename field<key_t>::template definition<Policy,
     entities>
     e_keys;
 
-  // Nodes fields
+  // Nodes coordinates field
   static inline const typename field<point_t>::template definition<Policy,
     nodes>
     n_coordinates;
+  // Nodes radius field
   static inline const field<double>::definition<Policy, nodes> n_radius;
+  // Node keys field
   static inline const typename field<key_t>::template definition<Policy, nodes>
     n_keys;
 
-  // Hmap fields
+  // Hmap fields,  the hashing table are reconstructed based on this field
   static inline const typename field<
     std::pair<key_t, hcell_t>>::template definition<Policy, hashmap>
     hcells;
 
-  // Tdata field
+  // Tree data field
   static inline const typename field<ntree_data>::template definition<Policy,
     tree_data>
     data_field;
 
   // --------------------------------------------------------------------------
 
-  // Use to reference the index spaces by id
+  // Index space index
   util::key_array<repartitioned, index_spaces> part;
 
+  // Copy plan for the tree data field
   data::copy_plan cp_data_tree;
+  // Copy plan to copy entities between colors
   std::optional<data::copy_plan> cp_entities;
 
+  /// Issue the copy of the tree data
   void exch() {
     cp_data_tree.issue_copy(data_field.fid);
   }
@@ -148,18 +165,27 @@ private:
   const static size_t nchildren_ = 1 << dimension;
 };
 
+/// See \ref specialization_base::interface
 template<class Policy>
 template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
+  /// Entities coordinates
   accessor<ntree::e_coordinates> e_coordinates;
+  /// Entities radius
   accessor<ntree::e_radius> e_radius;
+  /// Entities keys
   accessor<ntree::e_keys> e_keys;
+  /// Nodes coordinates
   accessor<ntree::n_coordinates> n_coordinates;
+  /// Nodes radius
   accessor<ntree::n_radius> n_radius;
+  /// Nodes keys
   accessor<ntree::n_keys> n_keys;
+  /// Ntree data
   accessor<ntree::data_field> data_field;
+  /// Hashing table entries
   accessor<ntree::hcells> hcells;
 
   template<class F>
@@ -174,8 +200,10 @@ struct ntree<Policy>::access {
     hcells.topology_send(std::forward<F>(f));
   }
 
+  /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
 
+  /// Compute local information about entities' keys boundaries
   void exchange_boundaries() {
     data_field(0).max_depth = 0;
     data_field(0).nents = e_coordinates.span().size();
@@ -185,6 +213,9 @@ struct ntree<Policy>::access {
                               : e_keys(data_field(0).nents - 1);
   }
 
+  /// Construct the ntree based on the list of entities provided by the user
+  /// This fills the hashing table with the entities and creates the
+  /// intermediates nodes.
   void make_tree() {
     // Cstr htable
     hmap_t hmap(hcells.span());
@@ -340,6 +371,8 @@ struct ntree<Policy>::access {
     } // while
   }
 
+  // The last entity of a node has been added, we can now finish the node
+  // information
   void finish_subtree(const key_t & key, hmap_t & hmap) {
     auto it = hmap.find(key);
     assert(it != hmap.end());
@@ -351,7 +384,9 @@ struct ntree<Policy>::access {
     n_keys(cnode) = key;
   }
 
-  // Draw the tree
+  // Output a representation of the ntree using graphviz.
+  // This will output a gv formatted as: output_graphviz_XXX_YYY.gv
+  // With XXX = rank (color) and YYY = num (parameter).
   void graphviz_draw(int num) {
     int rank = process();
     std::ostringstream fname;
@@ -439,5 +474,8 @@ struct detail::base<ntree> {
   using type = ntree_base;
 };
 
+/// \}
+
 } // namespace topo
 } // namespace flecsi
+/// \endcond

@@ -22,29 +22,18 @@
 
 namespace flecsi {
 namespace util {
+/// \ingroup utils
+/// \defgroup point Point
+/// Spatial representation of a point based on dimensioned_array
+/// \{
 
-//----------------------------------------------------------------------------//
-//! The point type defines an interface for storing and manipulating
-//! coordinate data. The point type is implemented using \ref
-//! dimensioned_array.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
-
+/// The point type defines an interface for storing and manipulating
+/// coordinate data. The point type is implemented using
+/// \c dimensioned_array. Supports +, -, and *.
+/// \tparam TYPE      The type to use to represent coordinate values.
+/// \tparam DIMENSION The dimension of the point.
 template<typename TYPE, Dimension DIMENSION>
 using point = dimensioned_array<TYPE, DIMENSION, 1>;
-
-//----------------------------------------------------------------------------//
-//! Multiplication operator.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
 
 template<typename TYPE, Dimension DIMENSION>
 constexpr point<TYPE, DIMENSION>
@@ -57,18 +46,9 @@ operator*(TYPE const val, point<TYPE, DIMENSION> const & p) {
   return tmp;
 } // operator *
 
-//----------------------------------------------------------------------------//
-//! Return the distance between the given points.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @param a The first point.
-//! @param b The second point.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
-
+/// Return the distance between the given points \p a and \p b.
+/// \tparam TYPE      The type to use to represent coordinate values.
+/// \tparam DIMENSION The dimension of the point.
 template<typename TYPE, Dimension DIMENSION>
 TYPE
 distance(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
@@ -80,35 +60,18 @@ distance(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
   return std::sqrt(sum);
 } // distance
 
-//----------------------------------------------------------------------------//
-//! Return the midpoint between two points.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @param a The first point.
-//! @param b The second point.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
-
+/// Return the midpoint between two points \p a and \p b
+/// \tparam TYPE      The type to use to represent coordinate values.
+/// \tparam DIMENSION The dimension of the point.
 template<typename TYPE, Dimension DIMENSION>
 constexpr point<TYPE, DIMENSION>
 midpoint(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
   return point<TYPE, DIMENSION>((a + b) / 2.0);
 } // midpoint
 
-//----------------------------------------------------------------------------//
-//! Return the centroid of the given set of points.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @param points The points for which to find the centroid.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
-
+/// Return the centroid of the given set of points \p points.
+/// \tparam TYPE      The type to use to represent coordinate values.
+/// \tparam DIMENSION The dimension of the point.
 template<template<typename...> class CONTAINER,
   typename TYPE,
   Dimension DIMENSION>
@@ -125,17 +88,9 @@ centroid(CONTAINER<point<TYPE, DIMENSION>> const & points) {
   return tmp;
 } // centroid
 
-//----------------------------------------------------------------------------//
-//! Return the centroid of the given set of points.
-//!
-//! @tparam TYPE      The type to use to represent coordinate values.
-//! @tparam DIMENSION The dimension of the point.
-//!
-//! @param points The points for which to find the centroid.
-//!
-//! @ingroup geometry
-//----------------------------------------------------------------------------//
-
+/// Return the centroid of the given set of points \p points.
+/// \tparam TYPE      The type to use to represent coordinate values.
+/// \tparam DIMENSION The dimension of the point.
 template<typename TYPE, Dimension DIMENSION>
 constexpr auto
 centroid(std::initializer_list<point<TYPE, DIMENSION>> points) {
@@ -149,6 +104,8 @@ centroid(std::initializer_list<point<TYPE, DIMENSION>> points) {
 
   return tmp;
 } // centroid
+
+/// \}
 
 } // namespace util
 } // namespace flecsi
