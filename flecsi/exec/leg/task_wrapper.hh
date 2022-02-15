@@ -204,9 +204,23 @@ detail::register_task() {
   }
 
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
-  Legion::Processor::Kind kind = processor_type == task_processor_type_t::toc
+  Legion::Processor::Kind kind;
+  if constexpr(processor_type == task_processor_type_t::toc)
+    kind =Legion::Processor::TOC_PROC;
+  else if constexpr (processor_type == task_processor_type_t::omp)
+    {
+    kind =Legion::Processor::OMP_PROC;
+    std::cout<<"Entering the OMP_PROC type"<<std::endl;
+    }
+  else
+  {
+    kind =Legion::Processor::LOC_PROC;
+    std::cout<<"Entering the LOC_PROC type"<<std::endl;
+  }
+ 
+  /*Legion::Processor::Kind kind = processor_type == task_processor_type_t::toc
                                    ? Legion::Processor::TOC_PROC
-                                   : Legion::Processor::LOC_PROC;
+                                   : Legion::Processor::LOC_PROC;*/
   registrar.add_constraint(Legion::ProcessorConstraint(kind));
 
   registrar.set_leaf(A & leaf || ~A & inner);

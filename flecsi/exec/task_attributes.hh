@@ -34,17 +34,21 @@ enum task_attributes_mask_t : TaskAttributes {
   /// Run simultaneously on all processes with the obvious color mapping;
   /// allow MPI communication among point tasks, at the cost of significant
   /// startup overhead.
-  mpi = 0x20
+  mpi = 0x20,
+  omp = 0x40
 }; // task_attributes_mask_t
 
 /// \c toc if support for it is available, otherwise \c loc.
 constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
+#elif defined REALM_USE_OPENMP  
+  omp
 #else
   loc
 #endif
   ;
+
 
 /// \}
 
@@ -66,7 +70,8 @@ enum class task_type_t : size_t { leaf, inner, idempotent }; // task_type_t
 enum class task_processor_type_t : size_t {
   loc,
   toc,
-  mpi
+  mpi,
+  omp
 }; // task_processor_type_t
 
 // Bits for representing task attributes
