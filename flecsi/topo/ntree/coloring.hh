@@ -15,47 +15,48 @@
 #include <map>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup ntree
+/// \{
 
-//----------------------------------------------------------------------------//
-// NTree topology coloring.
-//----------------------------------------------------------------------------//
-
+/// Ntree topology base
 struct ntree_base {
+
+  /// Index spaces used for the ntree topology
   enum index_space { entities, nodes, hashmap, tree_data };
-  // static constexpr std::size_t index_spaces = 1;
   using index_spaces = util::constants<entities, nodes, hashmap, tree_data>;
 
+  /// Ntree coloring
   struct coloring {
 
+    ///  Build a coloring based on the number of colors \p nparts
     coloring(Color nparts)
       : nparts_(nparts), global_hmap_(nparts * local_hmap_),
         hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3) {}
 
-    // Global
+    /// Number of colors
     Color nparts_;
 
-    // Entities
+    /// Number of local entities
     size_t local_entities_;
+    /// Number of global entities
     size_t global_entities_;
+    /// Entities distribution: number of entities per color
     std::vector<std::size_t> entities_distribution_;
     std::vector<std::size_t> entities_offset_;
 
-    // nodes
+    /// Number of local nodes
     size_t local_nodes_;
+    /// Number of global nodes
     size_t global_nodes_;
     std::vector<std::size_t> nodes_offset_;
 
-    // hmap
     static constexpr size_t local_hmap_ = 1 << 15;
     size_t global_hmap_;
     std::vector<std::size_t> hmap_offset_;
-
-    // tdata
     std::vector<std::size_t> tdata_offset_;
-
-    // All global sizes array for make_partition
     std::vector<std::size_t> global_sizes_;
   }; // struct coloring
 
@@ -79,5 +80,8 @@ struct ntree_base {
   static constexpr auto task = [](auto f) { execute<*F>(f); };
 }; // struct ntree_base
 
+/// \}
+
 } // namespace topo
 } // namespace flecsi
+/// \endcond

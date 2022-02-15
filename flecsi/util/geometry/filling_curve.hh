@@ -17,24 +17,24 @@
 
 namespace flecsi {
 
-/*----------------------------------------------------------------------------*
- * class filling_curve
- * @brief Basic functionality for a space filling curve
- *----------------------------------------------------------------------------*/
+// Space filling curve
 template<Dimension DIM, typename T, class DERIVED>
 class filling_curve
 {
+  // Dimension of the curve, 1D, 2D or 3D
   static constexpr Dimension dimension = DIM;
+  // Integer type used to represent the key
   using int_t = T;
+  // Geometric point to represent coordinates
+  // \todo Template double type
   using point_t = util::point<double, dimension>;
 
 protected:
   static constexpr std::size_t bits_ =
-    sizeof(int_t) * 8; //! Maximum number of bits
+    sizeof(int_t) * 8; // Maximum number of bits for representation
   static constexpr std::size_t max_depth_ =
-    (bits_ - 1) /
-    dimension; //! Maximum
-               //! depth reachable regarding the size of the memory word used
+    (bits_ - 1) / dimension; // Maximum depth reachable regarding the size of
+                             // the memory word used
 
   int_t value_;
 
@@ -43,15 +43,15 @@ public:
 
   filling_curve(int_t value) : value_(value) {}
 
+  // Max depth possible for this key
   static std::size_t max_depth() {
     return max_depth_;
   }
-
-  //! Smallest value possible at max_depth considering the root
+  // Smallest value possible at max_depth
   static constexpr DERIVED min() {
     return DERIVED(int_t(1) << max_depth_ * dimension);
   }
-  //! Biggest value possible at max_depth considering the root
+  // Biggest value possible at max_depth
   static constexpr DERIVED max() {
     int_t id = ~static_cast<int_t>(0);
     for(std::size_t i = max_depth_ * dimension + 1; i < bits_; ++i) {
@@ -59,19 +59,19 @@ public:
     } // for
     return DERIVED(id);
   }
-  /*! Get the root id (depth 0) */
+  // Get the root key (depth 0)
   static constexpr DERIVED root() {
     return DERIVED(int_t(1));
   }
-  /*! Get the null id. */
+  // Get the null id = 0 (no root)
   static constexpr DERIVED null() {
     return DERIVED(0);
   }
-  /*! Check if value_ is null. */
+  // Check if value_ is null
   constexpr bool is_null() const {
     return value_ == int_t(0);
   }
-  /*! Find the depth of this key */
+  // Find the depth of the current key
   std::size_t depth() const {
     int_t id = value_;
     std::size_t d = 0;
@@ -79,19 +79,19 @@ public:
       ++d;
     return d;
   }
-  /*! Push bits onto the end of this id. */
+  // Push bits onto the end of this key
   void push(int_t bits) {
     assert(bits < int_t(1) << dimension);
     value_ <<= dimension;
     value_ |= bits;
   }
-  /*! Pop the bits of greatest depth off this id. */
+  // Pop the last bits of the key
   void pop() {
     assert(depth() > 0);
     value_ >>= dimension;
   }
-  //! Search for the depth were two keys are in conflict
-  int conflict_depth(filling_curve key_a, filling_curve key_b) {
+  // Search for the conflicting depth between key_a and key_b
+  static int conflict_depth(filling_curve key_a, filling_curve key_b) {
     int conflict = max_depth_;
     while(key_a != key_b) {
       key_a.pop();
@@ -100,7 +100,7 @@ public:
     } // while
     return conflict;
   }
-  //! Pop and return the digit popped
+  // Pop last bits and return its value
   int pop_value() {
     assert(depth() > 0);
     int poped = 0;
@@ -109,23 +109,21 @@ public:
     value_ >>= dimension;
     return poped;
   }
-  //! Return the last digit of the key
+  // Return the last bits of the key
   int last_value() {
     int poped = 0;
     poped = static_cast<int>(value_ & ((1 << (dimension)) - 1));
     return poped;
   }
-  //! Pop the depth d bits from the end of this key.
+  // Pop the depth d bits from the end of this key
   void pop(std::size_t d) {
     value_ >>= d * dimension;
   }
-
-  //! Return the parent of this key (depth - 1)
+  // Return the parent of this key (depth - 1)
   constexpr filling_curve parent() const {
     return DERIVED(value_ >> dimension);
   }
-
-  //! Truncate (repeatedly pop) this key until it is of depth to_depth.
+  // Truncate this key until it is of depth \p to_depth
   void truncate(std::size_t to_depth) {
     std::size_t d = depth();
     if(d < to_depth) {
@@ -133,7 +131,7 @@ public:
     }
     value_ >>= (d - to_depth) * dimension;
   }
-  //! Output a key using oct in 3d and poping values for 2 and 1D
+  // Output a key using oct in 3d and poping values for 2 and 1D
   void output_(std::ostream & ostr) const {
     if(dimension == 3) {
       ostr << std::oct << value_ << std::dec;
@@ -150,52 +148,41 @@ public:
       ostr << output.c_str();
     } // if else
   }
-  //! Get the value associated to this key
+  // Get the value associated to this key
   int_t value() const {
     return value_;
   }
-  //! Convert this key to coordinates in range.
+  // Convert this key to coordinates in range.
   void coordinates(const std::array<point_t, 2> &, point_t &) {}
-
-  /**
-   * @brief Compute the range of a branch from its key
-   * The space is recursively decomposed regarding the dimension
-   */
+  // Compute the range of a branch from its key
+  // The space is recursively decomposed regarding the dimension
   std::array<point_t, 2> range(const std::array<point_t, 2> &) {
     return std::array<point_t, 2>{};
   }
-
   constexpr bool operator==(const filling_curve & bid) const {
     return value_ == bid.value_;
   }
-
   constexpr bool operator<=(const filling_curve & bid) const {
     return value_ <= bid.value_;
   }
-
   constexpr bool operator>=(const filling_curve & bid) const {
     return value_ >= bid.value_;
   }
-
   constexpr bool operator>(const filling_curve & bid) const {
     return value_ > bid.value_;
   }
-
   constexpr bool operator<(const filling_curve & bid) const {
     return value_ < bid.value_;
   }
-
   constexpr bool operator!=(const filling_curve & bid) const {
     return value_ != bid.value_;
   }
-
   explicit operator int_t() const {
     return value_;
   }
-
 }; // class filling_curve
 
-//! output for filling_curve using output_ function defined in the class
+// output for filling_curve using output_ function defined in the class
 template<Dimension D, typename T, class DER>
 std::ostream &
 operator<<(std::ostream & ostr, const filling_curve<D, T, DER> & k) {
@@ -203,10 +190,7 @@ operator<<(std::ostream & ostr, const filling_curve<D, T, DER> & k) {
   return ostr;
 }
 
-/*----------------------------------------------------------------------------*
- * class hilbert_curve
- * @brief Implementation of the hilbert peano space filling curve
- *----------------------------------------------------------------------------*/
+// Hilbert-Peano space filling curve
 template<Dimension DIM, typename T>
 class hilbert_curve : public filling_curve<DIM, T, hilbert_curve<DIM, T>>
 {
@@ -228,8 +212,8 @@ public:
         filling_curve<DIM, T, hilbert_curve>::max_depth_) {}
   ~hilbert_curve() = default;
 
-  //! Hilbert key is always generated to the max_depth_ and then truncated
-  //! otherwise the key will not be the same
+  // Hilbert key is always generated to the max_depth_ and then truncated
+  // otherwise the key will not be the same
   hilbert_curve(const std::array<point_t, 2> & range,
     const point_t & p,
     const std::size_t depth) {
@@ -271,7 +255,6 @@ public:
     value_ >>= (max_depth_ - depth) * dimension;
   }
 
-  /*! Convert this id to coordinates in range. */
   void coordinates(const std::array<point_t, 2> & range, point_t & p) {
     int_t key = value_;
     std::array<int_t, dimension> coords;
@@ -307,10 +290,6 @@ public:
     } // for
   }
 
-  /**
-   * @brief Compute the range of a branch from its key
-   * The space is recursively decomposed regarding the dimension
-   */
   std::array<point_t, 2> range(const std::array<point_t, 2> &) {
     return std::array<point_t, 2>{};
   } // range
@@ -433,10 +412,7 @@ private:
   }
 }; // class hilbert
 
-/*----------------------------------------------------------------------------*
- * class morton_curve
- * @brief Implementation of the Morton space filling curve (Z ordering)
- *----------------------------------------------------------------------------*/
+// Morton space filling curve (Z ordering)
 template<Dimension DIM, typename T>
 class morton_curve : public filling_curve<DIM, T, morton_curve<DIM, T>>
 {
@@ -457,7 +433,7 @@ public:
     : morton_curve(range, p, filling_curve<DIM, T, morton_curve>::max_depth_) {}
   ~morton_curve() = default;
 
-  //! Morton key can be generated directly up to the right depth
+  // Morton key can be generated directly up to the right depth
   morton_curve(const std::array<point_t, 2> & range,
     const point_t & p,
     const std::size_t depth) {
@@ -483,7 +459,6 @@ public:
     } // for
   } // morton_curve
 
-  /*! Convert this id to coordinates in range. */
   void coordinates(const std::array<point_t, 2> & range, point_t & p) {
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
@@ -505,10 +480,6 @@ public:
     } // for
   } //  coordinates
 
-  /**
-   * @brief Compute the range of a branch from its key
-   * The space is recursively decomposed regarding the dimension
-   */
   std::array<point_t, 2> range(const std::array<point_t, 2> & range) {
     // The result range
     std::array<point_t, 2> result;

@@ -16,58 +16,70 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/geometry/point.hh"
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup ntree
+/// \{
 
-/*
- *
- */
+/// Mandatory information for entity to create the basic structure of the ntree.
 template<Dimension DIM, typename T, class KEY>
 class sort_entity
 {
+  /// Point type to represent coordinates
   using point_t = util::point<T, DIM>;
+  /// Key used in the hashtable, filling curve.
   using key_t = KEY;
   using type_t = T;
 
 public:
+  /// Default entity constructor
   sort_entity() {}
 
+  /// Get coordinates of the entity
   point_t coordinates() const {
     return coordinates_;
   }
+  /// Get key of the entity
   key_t key() const {
     return key_;
   }
+  /// Get id of the entity
   int64_t id() const {
     return id_;
   }
+  /// Get mass of the entity
   type_t mass() const {
     return mass_;
   }
+  /// Get the radius of thee entity
   type_t radius() const {
     return radius_;
   }
-
+  /// Set the coordinates of the entity
   void set_coordinates(const point_t & coordinates) {
     coordinates_ = coordinates;
   }
+  /// Set the key of the entity
   void set_key(const key_t & key) {
     key_ = key;
   }
+  /// Set the id of the entity
   void set_id(const int64_t & id) {
     id_ = id;
   }
+  /// Set the mass of the entity
   void set_mass(const type_t & mass) {
     mass_ = mass;
   }
+  /// Set the radius of the entity
   void set_radius(const type_t & radius) {
     radius_ = radius;
   }
-
+  /// Compare entities using key and id
   bool operator<(const sort_entity & s) const {
     return std::tie(key_, id_) < std::tie(s.key_, s.id_);
   }
-
   template<Dimension D, typename TY, class K>
   friend std::ostream & operator<<(std::ostream & os,
     const sort_entity<D, TY, K> & e);
@@ -88,6 +100,7 @@ operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
   return os;
 }
 
+/// Base type for an entry in the hashtable
 template<Dimension DIM, typename T, class KEY>
 class hcell_base_t
 {
@@ -199,6 +212,8 @@ class node
 {
   node() = default;
 };
+/// \}
 
 } // namespace topo
 } // namespace flecsi
+/// \endcond

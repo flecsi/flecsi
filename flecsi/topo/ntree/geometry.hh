@@ -25,6 +25,7 @@
 #include <math.h>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 
@@ -34,26 +35,24 @@ namespace topo {
 template<typename T, Dimension>
 struct ntree_geometry {};
 
-/*-----------------------------------------------------------------------------*
- * class ntree_geometry 1D specification
- *-----------------------------------------------------------------------------*/
+// class ntree_geometry 1D specification
 template<typename T>
 struct ntree_geometry<T, 1> {
 
   using point_t = util::point<T, 1>;
   using element_t = T;
-  //! Tolerance for the computations
+  // Tolerance for the computations
   static constexpr element_t tol =
     std::numeric_limits<element_t>::epsilon() * 10.;
 
-  //! Return true if point origin lies within the spheroid centered at
-  //! center with radius.
+  // Return true if point origin lies within the spheroid centered at
+  // center with radius.
   static bool
   within(const point_t & origin, const point_t & center, element_t r1) {
     return util::distance(origin, center) - r1 <= tol;
   }
 
-  //! Return true if dist^2 < radius^2
+  // Return true if dist^2 < radius^2
   static bool within_square(const point_t & origin,
     const point_t & center,
     element_t r1,
@@ -61,14 +60,14 @@ struct ntree_geometry<T, 1> {
     return util::distance(origin, center) <= std::max(r1, r2);
   }
 
-  //! Return true if point origin lies within the box specified by
-  //! min/max point.
+  // Return true if point origin lies within the box specified by
+  // min/max point.
   static bool
   within_box(const point_t & min, const point_t & max, const point_t & origin) {
     return origin[0] <= max[0] && origin[0] >= min[0];
   }
 
-  //! Intersection between two boxes defined by there min and max bound
+  // Intersection between two boxes defined by there min and max bound
   static bool intersects_box_box(const point_t & min_b1,
     const point_t & max_b1,
     const point_t & min_b2,
@@ -76,7 +75,7 @@ struct ntree_geometry<T, 1> {
     return !((max_b1[0] < min_b2[0]) || (max_b2[0] < min_b1[0]));
   }
 
-  //! Intersection of two spheres based on center and radius
+  // Intersection of two spheres based on center and radius
   static bool intersects_sphere_sphere(const point_t & c1,
     const element_t r1,
     const point_t & c2,
@@ -84,8 +83,8 @@ struct ntree_geometry<T, 1> {
     return util::distance(c1, c2) - (r1 + r2) <= tol;
   }
 
-  //! Intersection of sphere and box; Compute the closest point from the
-  //! rectangle to the sphere and this distance less than sphere radius
+  // Intersection of sphere and box; Compute the closest point from the
+  // rectangle to the sphere and this distance less than sphere radius
   static bool intersects_sphere_box(const point_t & min,
     const point_t & max,
     const point_t & c,
@@ -95,11 +94,9 @@ struct ntree_geometry<T, 1> {
     return dist - r <= tol;
   }
 
-  /**
-   * Multipole method acceptance based on MAC.
-   * The angle === l/r < MAC (l source box width, r distance sink -> source)
-   * Barnes & Hut 1986
-   */
+  // Multipole method acceptance based on MAC.
+  // The angle === l/r < MAC (l source box width, r distance sink -> source)
+  // Barnes & Hut 1986
   bool box_MAC(const point_t & position_source,
     const point_t & position_sink,
     const point_t & box_source_min,
@@ -111,26 +108,24 @@ struct ntree_geometry<T, 1> {
   }
 }; // class ntree_geometry specification for 1D
 
-/*-----------------------------------------------------------------------------*
- * class ntree_geometry 2D specification
- *-----------------------------------------------------------------------------*/
+// class ntree_geometry 2D specification
 template<typename T>
 struct ntree_geometry<T, 2> {
   using point_t = util::point<T, 2>;
   using element_t = T;
 
-  //! Tolerance for the computations
+  // Tolerance for the computations
   static constexpr element_t tol =
     std::numeric_limits<element_t>::epsilon() * 10.;
 
-  //! Return true if point origin lies within the spheroid centered at
-  //! center with radius.
+  // Return true if point origin lies within the spheroid centered at
+  // center with radius.
   static bool
   within(const point_t & origin, const point_t & center, element_t r1) {
     return util::distance(origin, center) - r1 <= tol;
   }
 
-  //! Return true if dist^2 < radius^2
+  // Return true if dist^2 < radius^2
   static bool within_square(const point_t & origin,
     const point_t & center,
     element_t r1,
@@ -138,15 +133,15 @@ struct ntree_geometry<T, 2> {
     return util::distance(origin, center) <= std::max(r1, r2);
   }
 
-  //! Return true if point origin lies within the box specified by
-  //! min/max point.
+  // Return true if point origin lies within the box specified by
+  // min/max point.
   static bool
   within_box(const point_t & min, const point_t & max, const point_t & origin) {
     return origin[0] <= max[0] && origin[0] > min[0] && origin[1] <= max[1] &&
            origin[1] > min[1];
   }
 
-  //! Intersection between two boxes defined by there min and max bound
+  // Intersection between two boxes defined by there min and max bound
   static bool intersects_box_box(const point_t & min_b1,
     const point_t & max_b1,
     const point_t & min_b2,
@@ -155,7 +150,7 @@ struct ntree_geometry<T, 2> {
              (max_b2[0] < min_b1[0] || max_b2[1] < min_b1[1]));
   }
 
-  //! Intersection of two spheres based on center and radius
+  // Intersection of two spheres based on center and radius
   static bool intersects_sphere_sphere(const point_t & c1,
     const element_t r1,
     const point_t & c2,
@@ -163,8 +158,8 @@ struct ntree_geometry<T, 2> {
     return util::distance(c1, c2) - (r1 + r2) <= tol;
   }
 
-  //! Intersection of sphere and box; Compute the closest point from the
-  //! rectangle to the sphere and this distance less than sphere radius
+  // Intersection of sphere and box; Compute the closest point from the
+  // rectangle to the sphere and this distance less than sphere radius
   static bool intersects_sphere_box(const point_t & min,
     const point_t & max,
     const point_t & c,
@@ -175,11 +170,9 @@ struct ntree_geometry<T, 2> {
     return dist - r <= tol;
   }
 
-  /**
-   * Multipole method acceptance based on MAC.
-   * The angle === l/r < MAC (l source box width, r distance sink -> source)
-   * Barnes & Hut 1986
-   */
+  // Multipole method acceptance based on MAC.
+  // The angle === l/r < MAC (l source box width, r distance sink -> source)
+  // Barnes & Hut 1986
   static bool box_MAC(const point_t & position_source,
     const point_t & position_sink,
     const point_t & box_source_min,
@@ -191,25 +184,23 @@ struct ntree_geometry<T, 2> {
   }
 }; // class tree_geometry specification for 2D
 
-/*-----------------------------------------------------------------------------*
- * class tree_geometry 3D specification
- *-----------------------------------------------------------------------------*/
+// class tree_geometry 3D specification
 template<typename T>
 struct ntree_geometry<T, 3> {
   using point_t = util::point<T, 3>;
   using element_t = T;
-  //! Tolerance for the computations
+  // Tolerance for the computations
   static constexpr element_t tol =
     std::numeric_limits<element_t>::epsilon() * 10.;
 
-  //! Return true if point origin lies within the spheroid centered at
-  //! center with radius.
+  // Return true if point origin lies within the spheroid centered at
+  // center with radius.
   static bool
   within(const point_t & origin, const point_t & center, element_t r1) {
     return util::distance(origin, center) - r1 <= tol;
   }
 
-  //! Return true if dist^2 < radius^2
+  // Return true if dist^2 < radius^2
   inline static bool within_square(const point_t & origin,
     const point_t & center,
     const element_t & r1,
@@ -217,15 +208,15 @@ struct ntree_geometry<T, 3> {
     return util::distance(origin, center) <= std::max(r1, r2);
   }
 
-  //! Return true if point origin lies within the box specified by
-  //! min/max point.
+  // Return true if point origin lies within the box specified by
+  // min/max point.
   static bool
   within_box(const point_t & min, const point_t & max, const point_t & origin) {
     return origin[0] <= max[0] && origin[0] > min[0] && origin[1] <= max[1] &&
            origin[1] > min[1] && origin[2] <= max[2] && origin[2] > min[2];
   }
 
-  //! Intersection between two boxes defined by there min and max bound
+  // Intersection between two boxes defined by there min and max bound
   inline static bool intersects_box_box(const point_t & min_b1,
     const point_t & max_b1,
     const point_t & min_b2,
@@ -236,7 +227,7 @@ struct ntree_geometry<T, 3> {
                max_b2[2] < min_b1[2]));
   }
 
-  //! Intersection of two spheres based on center and radius
+  // Intersection of two spheres based on center and radius
   static bool intersects_sphere_sphere(const point_t & c1,
     const element_t r1,
     const point_t & c2,
@@ -247,8 +238,8 @@ struct ntree_geometry<T, 3> {
            (r1 + r2) * (r1 + r2);
   }
 
-  //! Intersection of sphere and box; Compute the closest point from the
-  //! rectangle to the sphere and this distance less than sphere radius
+  // Intersection of sphere and box; Compute the closest point from the
+  // rectangle to the sphere and this distance less than sphere radius
   static bool intersects_sphere_box(const point_t & min,
     const point_t & max,
     const point_t & c,
@@ -265,11 +256,9 @@ struct ntree_geometry<T, 3> {
     return dist <= r * r;
   }
 
-  /**
-   * Multipole method acceptance based on MAC.
-   * The angle === l/r < MAC (l source box width, r distance sink -> source)
-   * Barnes & Hut 1986
-   */
+  // Multipole method acceptance based on MAC.
+  // The angle === l/r < MAC (l source box width, r distance sink -> source)
+  // Barnes & Hut 1986
   static bool box_MAC(const point_t & position_source,
     const point_t & position_sink,
     const point_t & box_source_min,
@@ -283,8 +272,4 @@ struct ntree_geometry<T, 3> {
 
 } // namespace topo
 } // namespace flecsi
-
-/*~-------------------------------------------------------------------------~-*
- * Formatting options for vim.
- * vim: set tabstop=2 shiftwidth=2 expandtab :
- *~-------------------------------------------------------------------------~-*/
+/// \endcond
