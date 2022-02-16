@@ -23,13 +23,15 @@ namespace data {
 /// \{
 
 /// A coloring object, constructed on request.
-///
+/// \tparam Topo specialization that defines\code
+/// static coloring color(/* ... */);
+/// \endcode
 /// \note Usually accessed as \c Topo::cslot.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /// Create the coloring object.
+  /// Create the coloring object in an MPI task.
   /// \param args arguments to \c Topo::color
   /// \return the created object
   template<typename... ARGS>

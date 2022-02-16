@@ -231,18 +231,6 @@ struct specialization : specialization_base {
   /// \}
 };
 
-#ifdef DOXYGEN
-/// An example specialization that is not really implemented.
-/// See also the members marked for overriding in \c specialization_base and
-/// \c specialization.
-struct topology : specialization<core, topology> {
-  /// Interpret specialization-specific arguments to construct a coloring.
-  /// Called in an MPI task.
-  /// This is required only for use with a \c coloring_slot.
-  static coloring color(...);
-};
-#endif
-
 /// \}
 } // namespace topo
 } // namespace flecsi
