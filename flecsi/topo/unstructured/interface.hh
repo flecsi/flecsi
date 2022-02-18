@@ -328,11 +328,6 @@ private:
 template<typename Policy>
 template<Privileges Privileges>
 struct unstructured<Policy>::access {
-
-  /*
-    FIXME: This should be private or protected.
-   */
-
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
