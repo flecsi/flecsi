@@ -228,7 +228,7 @@ private:
 
 template<class P>
 struct borrow_extra<narray<P>> {
-  borrow_extra(narray<P> &, claims::core &) {}
+  borrow_extra(narray<P> &, claims::core &, bool) {}
 
   auto & get_sizes(std::size_t i) {
     return borrow_base::derived(*this).spc[i].single().sz;

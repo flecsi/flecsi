@@ -47,7 +47,7 @@ struct mapping : convert_tag {
     do {
       topo::claims::core clm(n);
       more = f(topo::claims::field(clm));
-      rnd.emplace_back(t, std::move(clm));
+      rnd.emplace_back(t, std::move(clm), rnd.empty());
     } while(more);
   }
 
@@ -78,8 +78,9 @@ struct mapping : convert_tag {
 private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
   struct round {
-    round(typename P::core & t, topo::claims::core && c) : clm(std::move(c)) {
-      b.allocate({&t, &clm});
+    round(typename P::core & t, topo::claims::core && c, bool first)
+      : clm(std::move(c)) {
+      b.allocate({&t, &clm, first});
     }
     round(round &&) = delete; // address stability
 

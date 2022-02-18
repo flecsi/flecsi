@@ -234,16 +234,16 @@ namespace detail {
 // Q is the underlying topology, not to be confused with P which is borrow<Q>.
 template<class Q, bool = std::is_base_of_v<with_ragged<Q>, typename Q::core>>
 struct borrow_ragged {
-  borrow_ragged(typename Q::core &, claims::core &) {}
+  borrow_ragged(typename Q::core &, claims::core &, bool) {}
 };
 template<class Q, bool = std::is_base_of_v<with_meta<Q>, typename Q::core>>
 struct borrow_meta {
-  borrow_meta(typename Q::core &, claims::core &) {}
+  borrow_meta(typename Q::core &, claims::core &, bool) {}
 };
 } // namespace detail
 template<class T> // core topology
 struct borrow_extra {
-  borrow_extra(T &, claims::core &) {}
+  borrow_extra(T &, claims::core &, bool) {}
 };
 template<class>
 struct borrow_category;
@@ -254,6 +254,7 @@ struct borrow_base {
   struct coloring {
     void * topo;
     claims::core * clm;
+    bool first;
   };
 
   template<class C>
@@ -345,9 +346,9 @@ struct borrow_category : borrow_base,
   // that corresponds to more than one instance of this class.
 
   explicit borrow_category(const coloring & c)
-    : borrow_category(*static_cast<Base *>(c.topo), *c.clm) {}
-  borrow_category(Base & t, claims::core & c)
-    : borrow_category(t, c, index_spaces()) {}
+    : borrow_category(*static_cast<Base *>(c.topo), *c.clm, c.first) {}
+  borrow_category(Base & t, claims::core & c, bool f)
+    : borrow_category(t, c, f, index_spaces()) {}
 
   Color colors() const {
     return clm->colors();
@@ -368,18 +369,23 @@ struct borrow_category : borrow_base,
 
   template<class T, data::layout L, index_space S>
   void ghost_copy(data::field_reference<T, L, P, S> const & f) {
-    base->ghost_copy(data::field_reference<T, L, typename P::Base, S>::from_id(
-      f.fid(), *base));
+    if(first)
+      base->ghost_copy(
+        data::field_reference<T, L, typename P::Base, S>::from_id(
+          f.fid(), *base));
   }
 
 private:
   // TIP: std::tuple<TT...> can be initialized from const TT&... (which
   // requires copying) or from UU&&... (which cannot use list-initialization).
   template<auto... SS>
-  borrow_category(Base & t, claims::core & c, util::constants<SS...>)
-    : borrow_category::borrow_ragged(t, c), borrow_category::borrow_meta(t, c),
-      borrow_category::borrow_extra(t, c),
-      base(&t), spc{{borrow(t, util::constant<SS>(), c)...}}, clm(&c) {}
+  borrow_category(Base & t, claims::core & c, bool f, util::constants<SS...>)
+    : borrow_category::borrow_ragged(t, c, f),
+      borrow_category::borrow_meta(t, c, f), borrow_category::borrow_extra(t,
+                                               c,
+                                               f),
+      base(&t), spc{{borrow(t, util::constant<SS>(), c)...}}, clm(&c),
+      first(f) {}
 
   template<index_space S>
   borrow & get() {
@@ -391,6 +397,7 @@ private:
   Base * base;
   util::key_array<borrow, index_spaces> spc;
   claims::core * clm;
+  bool first;
 };
 template<>
 struct detail::base<borrow_category> {
@@ -413,12 +420,14 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
 namespace detail {
 template<class Q>
 struct borrow_ragged<Q, true> {
-  borrow_ragged(typename Q::core & t, claims::core & c) : ragged(t.ragged, c) {}
+  borrow_ragged(typename Q::core & t, claims::core & c, bool f)
+    : ragged(t.ragged, c, f) {}
   typename borrow<topo::ragged<Q>>::core ragged;
 };
 template<class Q>
 struct borrow_meta<Q, true> {
-  borrow_meta(typename Q::core & t, claims::core & c) : meta(t.meta, c) {}
+  borrow_meta(typename Q::core & t, claims::core & c, bool f)
+    : meta(t.meta, c, f) {}
   typename borrow<topo::meta<Q>>::core meta;
 };
 } // namespace detail
