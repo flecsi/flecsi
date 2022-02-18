@@ -33,7 +33,7 @@ struct coloring_slot {
 
   /// Create the coloring object in an MPI task.
   /// \param args arguments to \c Topo::color
-  /// \return the created object
+  /// \return the created \c Topo::coloring object
   template<typename... ARGS>
   color_type & allocate(ARGS &&... args) {
     constexpr auto f = [](coloring_slot & s, ARGS &&... aa) {
