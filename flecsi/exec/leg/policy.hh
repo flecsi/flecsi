@@ -116,7 +116,8 @@ reduce_internal(Args &&... args) {
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
   static_assert(processor_type == task_processor_type_t::toc ||
-                  processor_type == task_processor_type_t::loc || processor_type == task_processor_type_t::omp || mpi_task,
+                  processor_type == task_processor_type_t::loc ||
+                  processor_type == task_processor_type_t::omp || mpi_task,
     "Unknown launch type");
   const auto domain_size =
     launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
@@ -149,9 +150,8 @@ reduce_internal(Args &&... args) {
     l.futures = std::move(pro).futures();
     if(processor_type == task_processor_type_t::toc)
       l.tag = run::mapper::prefer_gpu;
-    if(processor_type==task_processor_type_t::omp)
+    if(processor_type == task_processor_type_t::omp)
       l.tag = run::mapper::prefer_omp;
-
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
