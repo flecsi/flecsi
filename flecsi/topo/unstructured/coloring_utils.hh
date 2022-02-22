@@ -71,7 +71,6 @@ make_dcrs(MD const & md,
 
   auto e2v =
     util::mpi::one_to_allv<pack_cells<MD>>({md, ecm.distribution()}, comm);
-  util::crspan<util::crs> e2v_v(&e2v);
 
   /*
     Create a map of vertex-to-cell connectivity information from
@@ -84,7 +83,7 @@ make_dcrs(MD const & md,
   std::map<std::size_t, std::vector<std::size_t>> v2c;
 
   std::size_t i{0};
-  for(auto c : e2v_v) {
+  for(auto c : e2v) {
     for(auto v : c) {
       v2c[v].emplace_back(offset + i);
     } // for
@@ -157,7 +156,7 @@ make_dcrs(MD const & md,
 
   std::map<std::size_t, std::vector<std::size_t>> c2c;
   std::size_t c{offset};
-  for(auto cd : e2v_v) {
+  for(auto const & cd : e2v) {
     std::map<std::size_t, std::size_t> through;
 
     for(auto v : cd) {
@@ -224,7 +223,7 @@ migrate(util::dcrs const & naive,
     for(auto const & c : cell_pack) { /* std::vector over cells */
       auto const & info = std::get<0>(c); /* std::array<color, mesh id> */
       e2v.add_row(std::get<1>(c)); /* cell definition (vertex mesh ids) */
-      m2p[std::get<1>(info)] = e2v.rows() - 1; /* offset map */
+      m2p[std::get<1>(info)] = e2v.size() - 1; /* offset map */
       p2m.emplace_back(std::get<1>(info)); /* cell mesh id */
       primaries[std::get<0>(info)].emplace_back(std::get<1>(info));
     } // for
@@ -389,7 +388,6 @@ color(MD const & md,
     previous iterations.
    */
 
-  util::crspan<util::crs> e2v_v(&e2v);
   const std::size_t depth = cd.depth;
   for(std::size_t d{0}; d < depth + 1; ++d) {
     std::vector<std::size_t> layer;
@@ -399,9 +397,9 @@ color(MD const & md,
      */
 
     for(auto const & p : primaries) {
-      for(auto e : wkset.at(p.first)) {
-        for(auto v : e2v_v[m2p.at(e)]) {
-          for(auto en : v2e.at(v)) {
+      for(auto const & e : wkset.at(p.first)) {
+        for(auto const & v : e2v[m2p.at(e)]) {
+          for(auto const & en : v2e.at(v)) {
             if(e2e.find(en) == e2e.end()) {
               // If we don't have the entity, we need to request it.
               layer.emplace_back(en);
@@ -489,7 +487,7 @@ color(MD const & md,
       for(auto const & e : entity_pack) {
         auto const & info = std::get<0>(e);
         e2v.add_row(std::get<1>(e));
-        m2p[std::get<1>(info)] = e2v.rows() - 1;
+        m2p[std::get<1>(info)] = e2v.size() - 1;
         p2m.emplace_back(std::get<1>(info));
         e2co.try_emplace(std::get<1>(info), std::get<0>(info));
 
@@ -540,6 +538,7 @@ color(MD const & md,
   for(auto p : primaries) {
     process_colors.emplace_back(p.first);
     auto & pc = coloring.idx_spaces[cd.idx][c];
+    pc.color = p.first;
     pc.entities = ne;
 
     pc.coloring.all.reserve(p.second.size());
@@ -549,38 +548,30 @@ color(MD const & md,
     pc.coloring.owned.insert(
       pc.coloring.owned.begin(), p.second.begin(), p.second.end());
 
-    for(auto e : p.second) {
-      if(shared.at(p.first).count(e)) {
-        auto d = dependents.at(e);
-        pc.coloring.shared.emplace_back(
-          shared_entity{e, {dependents.at(e).begin(), dependents.at(e).end()}});
-      }
-      else {
-        pc.coloring.exclusive.emplace_back(e);
-      } // if
-    } // for
+    if(cd.colors > 1) {
+      for(auto e : p.second) {
+        if(shared.at(p.first).count(e)) {
+          pc.coloring.shared.emplace_back(shared_entity{
+            e, {dependents.at(e).begin(), dependents.at(e).end()}});
+        }
+        else {
+          pc.coloring.exclusive.emplace_back(e);
+        } // if
+      } // for
 
-    std::set<Color> peers;
-    for(auto e : ghost.at(p.first)) {
-      const auto gco = e2co.at(e);
-
-      if(em.has_color(rank, gco)) {
-        // This rank owns the color: set local color id in std::optional
+      std::set<Color> peers;
+      for(auto e : ghost.at(p.first)) {
+        const auto gco = e2co.at(e);
+        const auto pr = em.process(gco);
         pc.coloring.ghost.emplace_back(
-          ghost_entity{e, Color(rank), gco, em.local_id(rank, gco)});
-      }
-      else {
-        // This rank does not own the color: std::nullopt
-        pc.coloring.ghost.emplace_back(
-          ghost_entity{e, em.process(gco), gco, std::nullopt});
-      }
-
-      pc.coloring.all.emplace_back(e);
-      peers.insert(gco);
-    } // for
-    color_peers[c].insert(peers.begin(), peers.end());
-    is_peers[c].resize(peers.size());
-    std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+          ghost_entity{e, pr, em.local_id(pr, gco), gco});
+        pc.coloring.all.emplace_back(e);
+        peers.insert(gco);
+      } // for
+      color_peers[c].insert(peers.begin(), peers.end());
+      is_peers[c].resize(peers.size());
+      std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+    } // if
 
     util::force_unique(pc.coloring.all);
     util::force_unique(pc.coloring.owned);
@@ -604,7 +595,7 @@ color(MD const & md,
     std::size_t o{0};
     crs.offsets.emplace_back(o);
     for(auto e : pc.coloring.all) {
-      auto const & vertices = e2v_v[m2p[e]];
+      auto const & vertices = e2v[m2p[e]];
       crs.indices.insert(crs.indices.end(), vertices.begin(), vertices.end());
       crs.offsets.emplace_back(crs.offsets[++o - 1] + vertices.size());
     } // for
@@ -676,7 +667,7 @@ color(MD const & md,
     auto const & primary = coloring.idx_spaces[cd.idx][c].coloring;
 
     for(auto e : primary.owned) {
-      for(auto v : e2v_v[m2p.at(e)]) {
+      for(auto v : e2v[m2p.at(e)]) {
         Color co = std::numeric_limits<Color>::max();
         for(auto ev : v2e.at(v)) {
           co = std::min(e2co[ev], co);
@@ -757,71 +748,61 @@ color(MD const & md,
   c = 0;
   for(auto p : primaries) {
     auto primary = coloring.idx_spaces[cd.idx][c].coloring;
+    coloring.idx_spaces[cd.vidx][c].entities = nv;
     auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
     for(auto e : primary.exclusive) {
-      for(auto v : e2v_v[m2p.at(e)]) {
+      for(auto v : e2v[m2p.at(e)]) {
         vaux.exclusive.emplace_back(v);
         vaux.owned.emplace_back(v);
       } // for
     } // for
 
-    for(auto e : primary.shared) {
-      for(auto v : e2v_v[m2p.at(e.id)]) {
-        auto vi = v2co.find(v);
-        flog_assert(vi != v2co.end(), "invalid vertex id");
+    if(cd.colors > 1) {
+      for(auto e : primary.shared) {
+        for(auto v : e2v[m2p.at(e.id)]) {
+          auto vi = v2co.find(v);
+          flog_assert(vi != v2co.end(), "invalid vertex id");
 
-        if(vi->second == p.first) {
-          // This vertex is owned by the current color
-          vaux.shared.emplace_back(shared_entity{v, e.dependents});
-          vaux.owned.emplace_back(v);
-        }
-        else {
-          if(vcm.has_color(rank, vi->second)) {
-            // This process owns the current color:
-            //  set local color id in std::optional
-            vaux.ghost.emplace_back(ghost_entity{
-              v, Color(rank), vi->second, vcm.local_id(rank, vi->second)});
+          if(vi->second == p.first) {
+            // This vertex is owned by the current color
+            vaux.shared.emplace_back(shared_entity{v, e.dependents});
+            vaux.owned.emplace_back(v);
+          }
+          else {
+            if(vcm.has_color(rank, vi->second)) {
+              // This process owns the current color.
+              vaux.ghost.emplace_back(ghost_entity{
+                v, Color(rank), vcm.local_id(rank, vi->second), vi->second});
+            }
+            else {
+              // The ghost is remote: add to remote requests.
+              remote.emplace_back(v);
+              ghost[p.first].insert(v);
+            } // if
+          } // if
+        } // for
+      } // for
+
+      for(auto e : primary.ghost) {
+        for(auto v : e2v[m2p.at(e.id)]) {
+          auto vi = v2co.find(v);
+
+          if(vi != v2co.end()) {
+            if(vi->second != p.first) {
+              const auto pr = vcm.process(vi->second);
+              vaux.ghost.emplace_back(
+                ghost_entity{v, pr, vcm.local_id(pr, vi->second), vi->second});
+            } // if
           }
           else {
             // The ghost is remote: add to remote requests.
             remote.emplace_back(v);
             ghost[p.first].insert(v);
           } // if
-        } // if
+        } // for
       } // for
-    } // for
-
-    for(auto e : primary.ghost) {
-      for(auto v : e2v_v[m2p.at(e.id)]) {
-        auto vi = v2co.find(v);
-
-        if(vi != v2co.end()) {
-          // We have the ghost informaiton locally.
-          if(vi->second != p.first) {
-            // The ghost is not owned by the current color.
-            if(vcm.has_color(rank, vi->second)) {
-              // The ghost is owned by another color on this process.
-              vaux.ghost.emplace_back(ghost_entity{v,
-                vcm.process(vi->second),
-                vi->second,
-                vcm.local_id(rank, vi->second)});
-            }
-            else {
-              // We have the ghost information, but it is not owned
-              // by the current process.
-              vaux.ghost.emplace_back(ghost_entity{
-                v, vcm.process(vi->second), vi->second, std::nullopt});
-            } // if
-          } // if
-        }
-        else {
-          // The ghost is remote: add to remote requests.
-          remote.emplace_back(v);
-          ghost[p.first].insert(v);
-        } // if
-      } // for
-    } // for
+    } // if
 
     util::force_unique(vaux.owned);
     util::force_unique(vaux.exclusive);
@@ -899,23 +880,28 @@ color(MD const & md,
     vaux.all.reserve(vaux.owned.size() + vaux.ghost.size());
     vaux.all.insert(vaux.all.begin(), vaux.owned.begin(), vaux.owned.end());
 
-    // Add ghosts that were available from the local process.
-    for(auto v : vaux.ghost) {
-      vaux.all.emplace_back(v.id);
-    } // for
+    if(cd.colors > 1) {
+      // Add ghosts that were available from the local process.
+      for(auto v : vaux.ghost) {
+        vaux.all.emplace_back(v.id);
+      } // for
 
-    // Add requested ghosts.
-    std::set<Color> peers;
-    for(auto v : ghost.at(p.first)) {
-      const auto gco = v2co.at(v);
-      peers.insert(gco);
-      vaux.ghost.emplace_back(
-        ghost_entity{v, vcm.process(gco), gco, std::nullopt});
-      vaux.all.emplace_back(v);
-    } // for
-    color_peers[c].insert(peers.begin(), peers.end());
-    is_peers[c].resize(peers.size());
-    std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+      if(size > 1) {
+        // Add requested ghosts.
+        std::set<Color> peers;
+        for(auto v : ghost.at(p.first)) {
+          const auto gco = v2co.at(v);
+          peers.insert(gco);
+          const auto pr = vcm.process(gco);
+          vaux.ghost.emplace_back(
+            ghost_entity{v, pr, vcm.local_id(pr, gco), gco});
+          vaux.all.emplace_back(v);
+        } // for
+        color_peers[c].insert(peers.begin(), peers.end());
+        is_peers[c].resize(peers.size());
+        std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+      } // if
+    } // if
 
     util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);

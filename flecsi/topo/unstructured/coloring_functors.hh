@@ -148,7 +148,7 @@ struct distribute_cells {
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<std::array<std::size_t, 2>> indices;
 
-      for(std::size_t i{0}; i < naive.entries(); ++i) {
+      for(std::size_t i{0}; i < naive.size(); ++i) {
         if(cm.process(index_colors[i]) == r) {
           indices.push_back({index_colors[i] /* color of this index */,
             naive.distribution[rank] + i /* index global id */});
@@ -203,7 +203,6 @@ struct migrate_cells {
     int rank)
     : size_(naive.distribution.size() - 1) {
     util::color_map cm(size_, colors, naive.distribution.back());
-    util::crspan<util::crs> e2v_v(&e2v);
 
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<
@@ -212,11 +211,11 @@ struct migrate_cells {
       std::map<std::size_t, std::vector<std::size_t>> v2c_pack;
       std::map<std::size_t, std::vector<std::size_t>> c2c_pack;
 
-      for(std::size_t i{0}; i < naive.entries(); ++i) {
+      for(std::size_t i{0}; i < naive.size(); ++i) {
         if(cm.process(index_colors[i]) == r) {
           const std::array<std::size_t, 2> info{
             index_colors[i], naive.distribution[rank] + i};
-          cell_pack.push_back(std::make_tuple(info, to_vector(e2v_v[i])));
+          cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
 
           /*
             If we have full connectivity information, we pack it up
@@ -225,7 +224,7 @@ struct migrate_cells {
             will be required to resolve it regardless.
            */
 
-          for(auto const & v : e2v_v[i]) {
+          for(auto const & v : e2v[i]) {
             v2c_pack[v] = v2c[v];
           } // for
 
@@ -287,9 +286,6 @@ struct communicate_entities {
     std::map<std::size_t, std::vector<std::size_t>> const & e2e,
     std::map<std::size_t, std::size_t> const & m2p)
     : size_(entities.size()) {
-    // Must be a better solution that preserves constness of e2v.
-    util::crspan<util::crs> e2v_v(const_cast<util::crs *>(&e2v));
-
     for(auto re : entities) {
       std::vector<
         std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
@@ -299,10 +295,9 @@ struct communicate_entities {
 
       for(auto c : re) {
         const std::array<std::size_t, 2> info{colors.at(c), c};
-        entity_pack.push_back(
-          std::make_tuple(info, to_vector(e2v_v[m2p.at(c)])));
+        entity_pack.push_back(std::make_tuple(info, to_vector(e2v[m2p.at(c)])));
 
-        for(auto const & v : e2v_v[m2p.at(c)]) {
+        for(auto const & v : e2v[m2p.at(c)]) {
           v2e_pack[v] = v2e.at(v);
         } // for
 

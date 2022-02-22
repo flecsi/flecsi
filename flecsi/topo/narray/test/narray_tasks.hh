@@ -619,45 +619,64 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         return iseq;
       };
 
+      // clang-format off
       EXPECT_EQ(
-        chk(
-          zlogical[rank], ylogical[rank], xghost_low[rank], ngb_ranks[rank][3]),
-        true);
-      EXPECT_EQ(chk(zlogical[rank],
-                  ylogical[rank],
-                  xghost_high[rank],
-                  ngb_ranks[rank][5]),
-        true);
+        chk(zlogical[rank],
+          ylogical[rank],
+          xghost_low[rank],
+          ngb_ranks[rank][3]),
+        true
+      );
       EXPECT_EQ(
-        chk(
-          zlogical[rank], yghost_low[rank], xlogical[rank], ngb_ranks[rank][1]),
-        true);
-      EXPECT_EQ(chk(zlogical[rank],
-                  yghost_high[rank],
-                  xlogical[rank],
-                  ngb_ranks[rank][7]),
-        true);
-
-      EXPECT_EQ(chk(zlogical[rank],
-                  yghost_low[rank],
-                  xghost_low[rank],
-                  ngb_ranks[rank][0]),
-        true);
-      EXPECT_EQ(chk(zlogical[rank],
-                  yghost_low[rank],
-                  xghost_high[rank],
-                  ngb_ranks[rank][2]),
-        true);
-      EXPECT_EQ(chk(zlogical[rank],
-                  yghost_high[rank],
-                  xghost_low[rank],
-                  ngb_ranks[rank][6]),
-        true);
-      EXPECT_EQ(chk(zlogical[rank],
-                  yghost_high[rank],
-                  xghost_high[rank],
-                  ngb_ranks[rank][8]),
-        true);
+        chk(zlogical[rank],
+          ylogical[rank],
+          xghost_high[rank],
+          ngb_ranks[rank][5]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_low[rank],
+          xlogical[rank],
+          ngb_ranks[rank][1]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_high[rank],
+          xlogical[rank],
+          ngb_ranks[rank][7]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_low[rank],
+          xghost_low[rank],
+          ngb_ranks[rank][0]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_low[rank],
+          xghost_high[rank],
+          ngb_ranks[rank][2]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_high[rank],
+          xghost_low[rank],
+          ngb_ranks[rank][6]),
+        true
+      );
+      EXPECT_EQ(
+        chk(zlogical[rank],
+          yghost_high[rank],
+          xghost_high[rank],
+          ngb_ranks[rank][8]),
+        true
+      );
+      // clang-format on
     };
   } // d=3
 } // check_mesh_field

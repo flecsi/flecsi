@@ -33,10 +33,11 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
-struct crs {
-  using index_type = std::size_t;
-  std::vector<index_type> offsets;
-  std::vector<index_type> indices;
+struct crs : util::with_index_iterator<const crs> {
+  using span = util::span<const std::size_t>;
+
+  std::vector<std::size_t> offsets;
+  std::vector<std::size_t> indices;
 
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
@@ -51,11 +52,12 @@ struct crs {
     add_row(init.begin(), init.end());
   }
 
-  void add_row(std::vector<index_type> const & v) {
+  void add_row(std::vector<std::size_t> const & v) {
     add_row(v.begin(), v.end());
   }
 
-  index_type rows() {
+  std::size_t size() const {
+    flog_assert(!offsets.empty(), "attempted to call entries on empty object");
     return offsets.size() - 1;
   }
 
@@ -63,18 +65,19 @@ struct crs {
     offsets.clear();
     indices.clear();
   }
+
+  span operator[](std::size_t i) const {
+    flog_assert(offsets.size() - 1 > i, "invalid span index");
+    const std::size_t begin = offsets[i];
+    const std::size_t end = offsets[i + 1];
+    return span(&indices[begin], &indices[end]);
+  }
 }; // struct crs
 
 struct dcrs : crs {
-  using index_type = typename crs::index_type;
-  std::vector<index_type> distribution;
+  std::vector<std::size_t> distribution;
 
-  index_type entries() const {
-    flog_assert(!offsets.empty(), "attempted to call entries on empty object");
-    return offsets.size() - 1;
-  }
-
-  index_type colors() {
+  std::size_t colors() {
     return distribution.size() - 1;
   }
 
@@ -83,33 +86,6 @@ struct dcrs : crs {
     distribution.clear();
   }
 }; // struct dcrs
-
-template<typename C>
-struct crspan : util::with_index_iterator<const crspan<C>> {
-
-  crspan(C * data) : data_(data) {}
-
-  using index_type = typename C::index_type;
-  using span = util::span<index_type>;
-
-  span operator[](index_type i) const {
-    flog_assert(data_->offsets.size() - 1 > i, "invalid span index");
-    const index_type begin = data_->offsets[i];
-    const index_type end = data_->offsets[i + 1];
-    return span(&data_->indices[begin], &data_->indices[end]);
-  }
-
-  std::size_t size() const {
-    return data_->offsets.size() - 1;
-  }
-
-  operator C &() {
-    return *data_;
-  }
-
-private:
-  C * data_;
-}; // struct crspan
 
 template<typename FI, typename T>
 auto
@@ -131,9 +107,7 @@ operator<<(std::ostream & stream, crs const & graph) {
   for(auto o : graph.indices) {
     stream << o << " ";
   }
-  stream << std::endl;
-
-  return stream;
+  return stream << std::endl;
 } // operator<<
 
 inline std::ostream &
@@ -142,11 +116,7 @@ operator<<(std::ostream & stream, dcrs const & graph) {
   for(auto o : graph.distribution) {
     stream << o << " ";
   }
-  stream << std::endl;
-
-  stream << static_cast<crs>(graph);
-
-  return stream;
+  return stream << std::endl << static_cast<const crs &>(graph);
 } // operator<<
 
 /// \}
@@ -161,7 +131,7 @@ struct util::serial::traits<util::crs> {
   }
   static type get(const std::byte *& p) {
     const cast r{p};
-    return type{r, r};
+    return type{{}, r, r};
   }
 };
 
@@ -170,8 +140,7 @@ struct util::serial::traits<util::dcrs> {
   using type = util::dcrs;
   template<class P>
   static void put(P & p, const type & d) {
-    serial::put(p, static_cast<util::crs>(d));
-    serial::put(p, d.distribution);
+    serial::put(p, static_cast<util::crs const &>(d), d.distribution);
   }
   static type get(const std::byte *& p) {
     const cast r{p};

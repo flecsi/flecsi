@@ -85,7 +85,8 @@ advance() {
 
   {
     /*
-      A future is a mechanism to access the result of an asynchronous operation.
+      A future is a mechanism to access the result of an asynchronous
+      operation.
      */
 
     auto future = execute<with_return>();
@@ -97,9 +98,9 @@ advance() {
     future.wait();
 
     /*
-      The 'get()' method returns the result. Note that calling 'get()' by itself
-      will wait for the result to become available. The call to 'wait()' in this
-      example are illustrative.
+      The 'get()' method returns the result. Note that calling 'get()' by
+      itself will wait for the result to become available. The call to 'wait()'
+      in this example is illustrative.
      */
 
     flog(info) << "Got value " << future.get() << std::endl;
@@ -109,6 +110,8 @@ advance() {
     Execute a task that takes an argument by-value. FleCSI tasks can take any
     valid C++ type by value. However, because task data must be relocatable,
     you cannot pass pointer arguments, or arguments that contain pointers.
+    Modifications made to by-value data are local to the task and will not be
+    reflected at the call site.
    */
 
   {

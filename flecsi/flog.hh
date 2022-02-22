@@ -23,8 +23,10 @@
 
 #include "flecsi/log/utils.hh"
 
+#include <cstdlib>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <unordered_set>
 #include <vector>
@@ -70,6 +72,28 @@ struct stream<std::array<T, N>> {
     o << ">";
   }
 };
+template<typename T1, typename T2>
+struct stream<std::pair<T1, T2>> {
+  static void
+  put(std::ostream & o, std::pair<T1, T2> const & p, std::string indt = "") {
+    detail::put(detail::put(o << indt << '<', p.first) << ", ", p.second)
+      << ">\n";
+  }
+};
+template<typename... TT>
+struct stream<std::tuple<TT...>> {
+  static void
+  put(std::ostream & o, std::tuple<TT...> const & p, std::string indt = "") {
+    std::apply(
+      [&](TT const &... arg) {
+        o << indt << "<";
+        std::size_t n{0};
+        (detail::put(o << (n++ ? ", " : ""), arg), ...);
+        o << ">\n";
+      },
+      p);
+  }
+};
 template<template<typename, typename> typename C, typename T, typename A>
 struct stream<C<T, A>> {
   static void put(std::ostream & o, C<T, A> const & c, std::string indt = "") {
@@ -99,10 +123,10 @@ template<typename T>
 struct stream<std::set<T>> {
   static void
   put(std::ostream & o, const std::set<T> & s, std::string indt = "") {
-    o << "{";
+    o << indt << "{";
     for(auto & e : s)
       detail::put(o << "\n", e, indt + "  ");
-    o << "\n}";
+    o << "\n" << indt << "}";
   }
 };
 template<typename T>
@@ -110,10 +134,10 @@ struct stream<std::unordered_set<T>> {
   static void put(std::ostream & o,
     const std::unordered_set<T> & s,
     std::string indt = "") {
-    o << "{";
+    o << indt << "{";
     for(auto & e : s)
       detail::put(o << "\n", e, indt + "  ");
-    o << "\n}";
+    o << "\n" << indt << "}";
   }
 };
 } // namespace detail
@@ -451,8 +475,18 @@ dumpstack() {
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
     __flog_internal_wait_on_flusher();                                         \
+    const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
+    if(dump != nullptr) {                                                      \
+      ::flecsi::log::dumpstack();                                              \
+    }                                                                          \
+    else {                                                                     \
+      _sstream << FLOG_OUTPUT_YELLOW(                                          \
+                    "For a full stack trace, set "                             \
+                    "FLECSI_BACKTRACE in your environment, e.g.,\n"            \
+                    "`$ export FLECSI_BACKTRACE=1`.")                          \
+               << std::endl;                                                   \
+    }                                                                          \
     std::cerr << _sstream.str() << std::endl;                                  \
-    ::flecsi::log::dumpstack();                                                \
     std::abort();                                                              \
   } /* scope */
 
