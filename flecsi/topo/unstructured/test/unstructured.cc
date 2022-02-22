@@ -77,9 +77,7 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
     topo::unstructured_impl::simple_definition sd(filename.c_str());
 
-    const Color colors =
-      processes() * (1 + (FLECSI_BACKEND != FLECSI_BACKEND_mpi));
-    // const Color colors = 4;
+    const Color colors = 4;
 
     auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
     auto raw = util::parmetis::color(naive, colors);
@@ -108,27 +106,30 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
   static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<wo, wo, na> c2v,
+  static void init_c2v(
+    data::multi<field<util::id, data::ragged>::mutator<wo, wo, na>> mc2v,
     std::vector<base::process_coloring> const & prc_clrngs,
     std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
 
     auto pcs = prc_clrngs.begin();
     auto vms = vmaps.begin();
-    auto const & pc = *pcs++;
-    auto const & vm = *vms++;
-    std::size_t off{0};
+    for(auto & c2v : mc2v.accessors()) {
+      auto const & pc = *pcs++;
+      auto const & vm = *vms++;
+      std::size_t off{0};
 
-    auto const & cnx = pc.cnx_colorings[core::index<vertices>];
-    for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
-      const std::size_t start = cnx.offsets[off];
-      const std::size_t size = cnx.offsets[off + 1] - start;
-      c2v[c].resize(size);
+      auto const & cnx = pc.cnx_colorings[core::index<vertices>];
+      for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
+        const std::size_t start = cnx.offsets[off];
+        const std::size_t size = cnx.offsets[off + 1] - start;
+        c2v[c].resize(size);
 
-      for(std::size_t i{0}; i < size; ++i) {
-        c2v[c][i] = vm.at(cnx.indices[start + i]);
+        for(std::size_t i{0}; i < size; ++i) {
+          c2v[c][i] = vm.at(cnx.indices[start + i]);
+        } // for
+
+        ++off;
       } // for
-
-      ++off;
     } // for
   } // init_c2v
 
@@ -143,7 +144,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     execute<init_cnx>(c2v(s));
     execute<init_cnx>(v2c(s));
 
-    execute<init_c2v, mpi>(c2v(s), c.idx_spaces[core::index<cells>], vmaps);
+    auto lm = data::launch::make(s);
+    execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[core::index<cells>], vmaps);
     execute<topo::unstructured_impl::transpose>(c2v(s), v2c(s));
   } // initialize
 }; // struct unstructured

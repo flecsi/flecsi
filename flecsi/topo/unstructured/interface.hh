@@ -220,7 +220,8 @@ private:
     };
 
     auto ptrs_task = [&](auto f) {
-                       execute<set_ptrs<NP>, mpi>(lm(f), pointers, comm);
+      auto lm = data::launch::make(f.topology());
+      execute<set_ptrs<NP>, mpi>(lm(f), pointers, comm);
     };
     // clang-format on
 

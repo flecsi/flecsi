@@ -499,7 +499,7 @@ struct unstructured_base {
       for(auto & it : iv) {
         a[i++] = data::intervals::make(it, c);
       } // for
-    }
+    } // for
   }
 
   template<PrivilegeCount N>
@@ -519,7 +519,7 @@ struct unstructured_base {
           a[p.first] = data::points::make(si.first, p.second);
         } // for
       } // for
-    }
+    } // for
   }
 
   template<std::size_t S>
@@ -542,8 +542,9 @@ struct unstructured_base {
     std::size_t is,
     data::multi<resize::Field::accessor<wo>> aa) {
     auto it = vpc.begin();
-    for(auto & a : aa.accessors())
+    for(auto & a : aa.accessors()) {
       a = it++->cnx_allocs[is];
+    }
   }
 
   static void copy_sizes(resize::Field::accessor<ro> src,
