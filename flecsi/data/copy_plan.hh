@@ -229,7 +229,7 @@ struct buffers_category : buffers_base, topo::array_category<P> {
    @tparam G Function object, executing G accesses the receiving buffers, reads
              from them, refills them if necessary, and continues till there is
              no data to be receive. The signature of G should have
-   buffers::Truncate accessor as the last argument. G should have an "int"
+   buffers::Transfer accessor as the last argument. G should have an "int"
    return indicating whether there is still data to be read.
    @tparam AA Variadic list of parameters for arguments to be passed to the
    method. This list of arguments would consist of the field references to the
@@ -324,6 +324,11 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// the data to be sent. It includes setting up buffers for both
   /// send and receive data.
   struct ragged {
+    /*! Explicit constructor 
+        This constructor is invoked multiple times, to first start 
+        the send communication, and then to resume communication after
+        the first send. 
+    */
     explicit ragged(Buffer & b) : skip(b.off), w(b) {}
 
     /*! Operator to communicate field data
@@ -332,6 +337,8 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     to be communication.
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
+
+     \return boolean indicating that row data can be fitted in the buffer.   
     */
     template<class R> // accessor or mutator
     bool operator()(const R & rag, std::size_t i) {

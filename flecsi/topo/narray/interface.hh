@@ -48,7 +48,7 @@ namespace topo {
  indexed constants
    - dimension: mesh dimension
 
-  \sa core
+  \sa topo::specialization, topo::topology
  *----------------------------------------------------------------------------*/
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
@@ -463,6 +463,31 @@ template<>
 struct detail::base<narray> {
   using type = narray_base;
 }; // struct detail::base<narray>
+
+#ifdef DOXYGEN
+/// Example specialization which is not really implemented.
+struct example : specialization<narray, example> {
+  ///Index-spaces information to store. 
+  enum index_space {cells, vertices}; 
+  using index_spaces = has<vertices, cells>; 
+
+  ///Axes information to store. 
+  enum axis {x, y}; 
+  using axes = has<x, y>; 
+
+  ///mesh dimension
+  static constexpr Dimension dimension = 2;
+
+  ///Interface
+  template<class B>
+  struct interface : B {
+
+    template<axis A, index_space I>
+    std::size_t size() const {
+       return B::template size<I, A, B::range::logical>();
+  }
+};
+#endif
 
 /// \}
 } // namespace topo
