@@ -324,10 +324,10 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// the data to be sent. It includes setting up buffers for both
   /// send and receive data.
   struct ragged {
-    /*! Explicit constructor 
-        This constructor is invoked multiple times, to first start 
+    /*! Explicit constructor
+        This constructor is invoked multiple times, to first start
         the send communication, and then to resume communication after
-        the first send. 
+        the first send.
     */
     explicit ragged(Buffer & b) : skip(b.off), w(b) {}
 
@@ -338,7 +338,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
 
-     \return boolean indicating that row data can be fitted in the buffer.   
+     \return boolean indicating that row data can be fitted in the buffer.
     */
     template<class R> // accessor or mutator
     bool operator()(const R & rag, std::size_t i) {

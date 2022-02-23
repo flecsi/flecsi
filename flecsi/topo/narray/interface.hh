@@ -467,28 +467,28 @@ struct detail::base<narray> {
 #ifdef DOXYGEN
 /// Example specialization which is not really implemented.
 struct example : specialization<narray, example> {
-  ///Index-spaces information to store. 
-  enum index_space {cells, vertices}; 
-  using index_spaces = has<vertices, cells>; 
+  /// Index-spaces information to store.
+  enum index_space { cells, vertices };
+  using index_spaces = has<vertices, cells>;
 
-  ///Axes information to store. 
-  enum axis {x, y}; 
-  using axes = has<x, y>; 
+  /// Axes information to store.
+  enum axis { x, y };
+  using axes = has<x, y>;
 
-  ///mesh dimension
+  /// mesh dimension
   static constexpr Dimension dimension = 2;
 
-  ///Interface
+  /// Interface
   template<class B>
   struct interface : B {
 
     template<axis A, index_space I>
     std::size_t size() const {
-       return B::template size<I, A, B::range::logical>();
-  }
-};
+      return B::template size<I, A, B::range::logical>();
+    }
+  };
 #endif
 
-/// \}
+  /// \}
 } // namespace topo
 } // namespace flecsi
