@@ -460,19 +460,14 @@ struct detail::base<narray> {
 #ifdef DOXYGEN
 /// Example specialization which is not really implemented.
 struct narray_specialization : specialization<narray, narray_specialization> {
-  /// Index-spaces information to store.
-  /// index_space : enum listing the entities in the specialization
-  enum index_space { cells, vertices };
-  /// index_spaces : created using the utility type "has" to convert the
-  /// index_space enum to indexed constants
-  using index_spaces = has<vertices, cells>;
 
-  /// Axes information to store.
-  /// axis : enum listing the axes in the specialization, they should be
+  /// Enumeration of the axes, they should be
   /// consistent with the dimension of mesh.
   enum axis { x, y };
-  /// axes : created using the utility type "has" to convert the axis enum to
-  /// indexed constants
+  /// Axes to store wrapped in a \c list.
+  /// The format is\code
+  /// has<x, y, ..>
+  /// \endcode
   using axes = has<x, y>;
 
   /// mesh dimension
@@ -484,4 +479,4 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 } // namespace topo
 } // namespace flecsi
 
-/// \endcond core
+/// \endcond

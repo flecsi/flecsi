@@ -621,4 +621,4 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 } // namespace topo
 } // namespace flecsi
 
-/// \endcond core
+/// \endcond

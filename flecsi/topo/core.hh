@@ -230,7 +230,7 @@ struct specialization : specialization_base {
 /// An example specialization that is not really implemented.
 /// No member is needed in all circumstances. However, each topology
 /// have additional member requirements that is needed to construct
-/// those types. Link to \narray here.
+/// those types.
 ///
 /// See also the members marked for overriding in \c specialization_base and
 /// \c specialization.
