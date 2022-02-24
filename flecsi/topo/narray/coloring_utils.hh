@@ -22,6 +22,7 @@
 #include <optional>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_utils {
@@ -48,8 +49,13 @@ factor(std::size_t np) {
   return facs;
 } // factor
 
-/*
+/*!
   Create an axial color distribution for the given number of processes.
+
+  @param np total number of colors
+  @param indices number of entities per axis
+
+  \return number of colors per axis after decomposition
  */
 
 inline narray_impl::colors
@@ -100,8 +106,19 @@ orientation(Dimension dimension,
   return faces;
 } // orientation
 
-/*
+/*!
   Create an index coloring for the given color (as defined by color_indices).
+
+  @param dimension mesh dimension
+  @param color_indices indices of the given color w.r.t the grid of colors in
+  the decomposition.
+  @param axcm color_map of colors on each axis, \sa color_map
+  @param faces encodes orientation of the given color w.r.t the domain
+  @param hdepths halo depths per axis
+  @param bdepths domain boundary depths per axis
+  @periodic bool indicating is the mesh is to be considered periodic per axis
+
+  \return index coloring and ghost intervals for the given color
  */
 
 inline auto
@@ -232,8 +249,18 @@ make_color(Dimension dimension,
   return std::make_pair(idxco, ghstitvls);
 } // make_color
 
-/*
-  Generate a coloring for the provided index space definitions.
+/*!
+  Generate a coloring for the provided index space definitions. This method
+  can be used to generate coloring information for more colors than the number
+  of processes on which it is being run. It returns two pieces of information,
+  first, the total number of colors for which the decomposition is created.
+  Second, a list of coloring information for each color on the current process
+  for an index-space.
+
+  @param index_spaces coloring_definitions per index space, \sa
+  coloring_definition
+
+  \return [number of colors, vector of map of process colors to index_colorings]
  */
 
 inline auto
@@ -593,3 +620,5 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 } // namespace narray_utils
 } // namespace topo
 } // namespace flecsi
+
+/// \endcond

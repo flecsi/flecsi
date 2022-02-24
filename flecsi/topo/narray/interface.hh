@@ -27,6 +27,7 @@
 
 #include <utility>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 /// \defgroup narray Multi-dimensional Array
@@ -35,10 +36,13 @@ namespace topo {
 /// \ingroup topology
 /// \{
 
-/*----------------------------------------------------------------------------*
+/*!----------------------------------------------------------------------------*
   Narray Topology.
- *----------------------------------------------------------------------------*/
+  \tparam Policy the specialization, following
+   \ref narray_specialization.
 
+  \sa topo::specialization, topo::topology
+ *----------------------------------------------------------------------------*/
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
@@ -50,6 +54,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   static constexpr Dimension dimension = Policy::dimension;
 
+  /// This type is the topology accessor base type "B"
+  /// from which specialization interface type is derived.
+  /// \sa core
   template<Privileges>
   struct access;
 
@@ -88,15 +95,20 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
       extended;
   };
 
+  // fields for storing topology meta data per index-space
   static inline const typename field<meta_data,
     data::single>::template definition<meta<Policy>>
     meta_field;
 
+  // field for storing user-defined meta data
   static inline const typename field<typename Policy::meta_data,
     data::single>::template definition<meta<Policy>>
     policy_meta_field;
 
+  // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
+
+  // index-space specific copy plans
   util::key_array<data::copy_plan, index_spaces> plan_;
 
   Color colors() const {
@@ -135,11 +147,27 @@ private:
     init_policy_meta(c);
   }
 
+  /*!
+   Method to create copy plans for entities of an index-sapce.
+   @param colors  The number of colors
+   @param vpc  Vector of process_colors, where an index into vpc provides
+   coloring information corresponding to a particular color.
+  */
   template<index_space S>
   data::copy_plan make_plan(index_coloring const & ic,
     repartitioned & p,
     MPI_Comm const & comm) {
     std::vector<std::size_t> num_intervals;
+
+    // In this method, a mpi task "idx_itvls" is invoked, which computes couple
+    // of information: intervals and points. The intervals encode local ghost
+    // intervals, whereas points capture the  local offset and corresponding
+    // remote/shared offset on remote/shared color. The intervals and points are
+    // used to create function objects "dest_tasks" and "ptrs_tasks" that is
+    // subsequently used by copy plan to perform the data communication. Note
+    // that after this call the copy plan objects have been created. The actual
+    // communication is invoked as part of task execution depending upon the
+    // privilege requirements of the task.
 
     execute<idx_itvls, mpi>(ic, num_intervals, comm);
 
@@ -186,14 +214,19 @@ private:
     } // for
   } // set_meta
 
+  /// Initialization for topology meta_data.
+  /// Executes a mpi task "set_meta" which essentially
+  /// copies the relevant color info into internal meta fields.
   void init_meta(narray_base::coloring const & c) {
     execute<set_meta, mpi>(meta_field(this->meta), c);
   }
 
-  // Default initilaization for user policy meta data
   static void set_policy_meta(typename field<typename Policy::meta_data,
     data::single>::template accessor<wo>) {}
 
+  /// Initialization for user policy meta_data.
+  /// Executes a mpi task "set_policy_meta" which
+  /// copies the relevant user-define meta data as part of the topology.
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
   }
@@ -214,15 +247,27 @@ struct narray<Policy>::access {
 
   access() {}
 
+  /*!
+   This range enumeration provides a classification of the various
+   types of partition entities that can be requested out of a topology
+   specialization created using this type. The following describes what each
+   of the range enumeration means in a mesh part returned by the coloring
+   algorithm. For the structured mesh partitioning, the partition info is
+   specified per axis.
+
+   These ranges are used in many of the interface methods to provide
+   information such as size, extents, offsets about them.
+  */
   enum class range : std::size_t {
-    logical,
-    extended,
-    all,
-    boundary_low,
-    boundary_high,
-    ghost_low,
-    ghost_high,
-    global
+    logical, ///<  the logical, i.e., the owned part of the axis
+    extended, ///< the boundary padding along with the logical part
+    all, ///< the ghost padding along with the logical part
+    boundary_low, ///< the boundary padding on the lower bound of the axis
+    boundary_high, ///< the boundary padding on the upper bound of the axis
+    ghost_low, ///< the ghost padding on the lower bound of the axis
+    ghost_high, ///< the ghost padding on the upper bound of the axis
+    global ///< global info about the mesh, the meaning depends on what is being
+           ///< queried
   };
 
   using hypercubes = index::has<range::logical,
@@ -234,21 +279,39 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
+  /*!
+   Method to check if an axis of the local mesh is incident on the lower
+   bound of the corresponding axis of the global mesh
+   \sa meta_data, process_color
+  */
   template<index_space S, axis A>
   bool is_low() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::low;
   }
 
+  /*!
+   Method to check if an axis of the local mesh is incident on the upper
+   bound of the corresponding axis of the global mesh
+   \sa meta_data, process_color
+  */
   template<index_space S, axis A>
   bool is_high() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::high;
   }
 
+  /*!
+   Method to check if axis A of index-space S is in between the lower and upper
+   bound along axis A of the global domain. \sa meta_data, process_color
+  */
   template<axis A>
   bool is_interior() const {
     return !is_low<A>() && !is_high<A>();
   }
 
+  /*!
+    Method to return size of the index-space S along axis A for range SE.
+    \sa enum range
+  */
   template<index_space S, axis A, range SE>
   std::size_t size() const {
     static_assert(
@@ -285,6 +348,11 @@ struct narray<Policy>::access {
     }
   }
 
+  /*!
+    Method to return an iterator over the extents of the index-space S along
+    axis A for range SE. \sa enum range, note that this method is not applicable
+    to range::global.
+  */
   template<index_space S, axis A, range SE>
   auto extents() const {
     static_assert(
@@ -319,6 +387,10 @@ struct narray<Policy>::access {
     }
   }
 
+  /*!
+    Method to return an offset of the index-space S along axis A for range SE.
+    \sa enum range
+  */
   template<index_space S, axis A, range SE>
   std::size_t offset() const {
     static_assert(
@@ -349,6 +421,8 @@ struct narray<Policy>::access {
     }
   }
 
+  ///  This method provides a mdspan of the field underlying data.
+  ///  It can be used to create data views with the shape appropriate to S.
   template<index_space S, typename T, Privileges P>
   auto mdspan(data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
@@ -383,6 +457,26 @@ struct detail::base<narray> {
   using type = narray_base;
 }; // struct detail::base<narray>
 
+#ifdef DOXYGEN
+/// Example specialization which is not really implemented.
+struct narray_specialization : specialization<narray, narray_specialization> {
+
+  /// Enumeration of the axes, they should be
+  /// consistent with the dimension of mesh.
+  enum axis { x, y };
+  /// Axes to store wrapped in a \c list.
+  /// The format is\code
+  /// has<x, y, ..>
+  /// \endcode
+  using axes = has<x, y>;
+
+  /// mesh dimension
+  static constexpr Dimension dimension = 2;
+}
+#endif
+
 /// \}
 } // namespace topo
 } // namespace flecsi
+
+/// \endcond

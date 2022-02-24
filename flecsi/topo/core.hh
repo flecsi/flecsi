@@ -66,7 +66,10 @@ struct core_base {
 /// \tparam P topology specialization, used here as a policy
 template<class P>
 struct core : core_base { // with_ragged<P> is often another base class
-  /// Default-constructible base for topology accessors.
+  /// Default-constructible base for topology accessors. This struct
+  /// provides the interface to the topology and can be used by a
+  /// specialization developer to implement tailor-made methods
+  /// needed by their applications.
   template<Privileges Priv>
   struct access {
     /// \see send_tag
@@ -225,7 +228,10 @@ struct specialization : specialization_base {
 
 #ifdef DOXYGEN
 /// An example specialization that is not really implemented.
-/// No member is needed in all circumstances.
+/// No member is needed in all circumstances. However, each topology
+/// have additional member requirements that is needed to construct
+/// those types.
+///
 /// See also the members marked for overriding in \c specialization_base and
 /// \c specialization.
 struct topology : specialization<core, topology> {
