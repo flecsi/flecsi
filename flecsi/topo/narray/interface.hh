@@ -37,16 +37,8 @@ namespace topo {
 
 /*!----------------------------------------------------------------------------*
   Narray Topology.
-  \tparam Policy the specialization, which must define the following:
-
-   - index_space : enum listing the entities in the specialization
-   - index_spaces : created using the utility type "has" to convert the
- index_space enum to indexed constants
-   - axis : enum listing the axes in the specialization, they should be
- consistent with the dimension of mesh.
-   - axes : created using the utility type "has" to convert the axis enum to
- indexed constants
-   - dimension: mesh dimension
+  \tparam Policy the specialization, following
+   \ref narray_specialization.
 
   \sa topo::specialization, topo::topology
  *----------------------------------------------------------------------------*/
@@ -466,29 +458,27 @@ struct detail::base<narray> {
 
 #ifdef DOXYGEN
 /// Example specialization which is not really implemented.
-struct example : specialization<narray, example> {
+struct narray_specialization : specialization<narray, narray_specialization> {
   /// Index-spaces information to store.
+  /// index_space : enum listing the entities in the specialization
   enum index_space { cells, vertices };
+  /// index_spaces : created using the utility type "has" to convert the
+  /// index_space enum to indexed constants
   using index_spaces = has<vertices, cells>;
 
   /// Axes information to store.
+  /// axis : enum listing the axes in the specialization, they should be
+  /// consistent with the dimension of mesh.
   enum axis { x, y };
+  /// axes : created using the utility type "has" to convert the axis enum to
+  /// indexed constants
   using axes = has<x, y>;
 
   /// mesh dimension
   static constexpr Dimension dimension = 2;
-
-  /// Interface
-  template<class B>
-  struct interface : B {
-
-    template<axis A, index_space I>
-    std::size_t size() const {
-      return B::template size<I, A, B::range::logical>();
-    }
-  };
+}
 #endif
 
-  /// \}
+/// \}
 } // namespace topo
 } // namespace flecsi
