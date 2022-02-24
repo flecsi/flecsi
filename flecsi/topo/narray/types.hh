@@ -26,6 +26,7 @@
 #include <set>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_impl {
@@ -206,3 +207,5 @@ struct util::serial::traits<topo::narray_impl::index_coloring> {
 };
 
 } // namespace flecsi
+
+/// \endcond core

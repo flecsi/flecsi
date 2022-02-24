@@ -27,6 +27,7 @@
 
 #include <utility>
 
+/// \cond core 
 namespace flecsi {
 namespace topo {
 /// \defgroup narray Multi-dimensional Array
@@ -482,3 +483,5 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 /// \}
 } // namespace topo
 } // namespace flecsi
+
+/// \endcond core 

@@ -22,6 +22,7 @@
 #include <optional>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_utils {
@@ -619,3 +620,5 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 } // namespace narray_utils
 } // namespace topo
 } // namespace flecsi
+
+/// \endcond core
