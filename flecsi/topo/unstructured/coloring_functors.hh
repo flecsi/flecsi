@@ -91,7 +91,7 @@ struct vertex_referencers {
     } // for
   } // vertex_refernces
 
-  auto operator()(int rank, int) const {
+  auto & operator()(int rank, int) const {
     flog_assert(rank < size_, "invalid rank");
     return references_[rank];
   } // operator(int, int)
@@ -125,7 +125,7 @@ struct cell_connectivity {
     } // for
   } // cell_connectivity
 
-  auto operator()(int rank, int) const {
+  auto & operator()(int rank, int) const {
     flog_assert(rank < size_, "invalid rank");
     return connectivity_[rank];
   } // operator(int, int)
@@ -162,7 +162,7 @@ struct distribute_cells {
     } // for
   } // distribute_cells
 
-  auto operator()(int rank, int) const {
+  auto & operator()(int rank, int) const {
     flog_assert(rank < size_, "invalid rank");
     return cells_[rank];
   }
@@ -251,7 +251,7 @@ struct migrate_cells {
     v2c.clear();
   } // migrate_cells
 
-  return_type operator()(int rank, int) const {
+  const return_type & operator()(int rank, int) const {
     flog_assert(rank < size_, "invalid rank");
     return packs_[rank];
   }
@@ -312,7 +312,7 @@ struct communicate_entities {
     } // for
   } // communicate_entities
 
-  return_type operator()(int rank, int) const {
+  const return_type & operator()(int rank, int) const {
     flog_assert(rank < size_, "invalid rank");
     return packs_[rank];
   }
