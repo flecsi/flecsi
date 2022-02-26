@@ -331,10 +331,11 @@ closure(Definition const & md,
   std::unordered_map<std::size_t, Color> e2co;
   std::map<std::size_t, std::vector<std::size_t>> wkset;
   for(auto const & p : primaries) {
-    wkset[p.first].reserve(p.second.size());
+    auto & wk = wkset[p.first];
+    wk.reserve(p.second.size());
     for(auto e : p.second) {
       e2co.try_emplace(e, p.first);
-      wkset[p.first].emplace_back(e);
+      wk.emplace_back(e);
     } // for
   } // for
 
@@ -350,7 +351,8 @@ closure(Definition const & md,
      */
 
     for(auto const & p : primaries) {
-      for(auto e : wkset.at(p.first)) {
+      auto & wk = wkset.at(p.first);
+      for(auto e : wk) {
         for(auto v : e2v[m2p.at(e)]) {
           for(auto en : v2e.at(v)) {
             if(e2e.find(en) == e2e.end()) {
@@ -383,7 +385,7 @@ closure(Definition const & md,
         } // for
       } // for
 
-      wkset.at(p.first).clear();
+      wk.clear();
     } // for
 
     util::force_unique(layer);
