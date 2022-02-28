@@ -110,7 +110,7 @@ struct ragged_partitioned : data::region {
   using Partition = typename base_type::core;
 
   explicit ragged_partitioned(Color r)
-    : region({r, data::logical_size}, util::key_type<S, Topo>()) {
+    : region({r, data::logical_size}, util::key_type<S, ragged<Topo>>()) {
     for(const auto & fi :
       run::context::instance().get_field_info_store<ragged<Topo>, S>())
       part.try_emplace(fi->fid, *this);
