@@ -281,7 +281,8 @@ struct narray<Policy>::access {
 
   /*!
    Method to check if an axis of the local mesh is incident on the lower
-   bound of the corresponding axis of the global mesh
+   bound of the corresponding axis of the global mesh.
+   This function is \ref topology "host-accessible".
    \sa meta_data, process_color
   */
   template<index_space S, axis A>
@@ -291,7 +292,8 @@ struct narray<Policy>::access {
 
   /*!
    Method to check if an axis of the local mesh is incident on the upper
-   bound of the corresponding axis of the global mesh
+   bound of the corresponding axis of the global mesh.
+   This function is \ref topology "host-accessible".
    \sa meta_data, process_color
   */
   template<index_space S, axis A>
@@ -301,7 +303,9 @@ struct narray<Policy>::access {
 
   /*!
    Method to check if axis A of index-space S is in between the lower and upper
-   bound along axis A of the global domain. \sa meta_data, process_color
+   bound along axis A of the global domain.
+   This function is \ref topology "host-accessible".
+   \sa meta_data, process_color
   */
   template<axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
@@ -310,6 +314,7 @@ struct narray<Policy>::access {
 
   /*!
     Method to return size of the index-space S along axis A for range SE.
+    This function is \ref topology "host-accessible".
     \sa enum range
   */
   template<index_space S, axis A, range SE>
@@ -350,8 +355,9 @@ struct narray<Policy>::access {
 
   /*!
     Method to return an iterator over the extents of the index-space S along
-    axis A for range SE. \sa enum range, note that this method is not applicable
-    to range::global.
+    axis A for range SE.
+    \tparam SE not \c range::global
+    This function is \ref topology "host-accessible".
   */
   template<index_space S, axis A, range SE>
   FLECSI_INLINE_TARGET auto extents() const {
@@ -389,6 +395,7 @@ struct narray<Policy>::access {
 
   /*!
     Method to return an offset of the index-space S along axis A for range SE.
+    This function is \ref topology "host-accessible".
     \sa enum range
   */
   template<index_space S, axis A, range SE>
@@ -423,6 +430,8 @@ struct narray<Policy>::access {
 
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
+  /// This function is \ref topology "host-accessible", although the values in
+  /// \a a are typically not.
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
