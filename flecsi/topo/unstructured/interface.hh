@@ -37,10 +37,8 @@ namespace topo {
 /// \ingroup topology
 /// \{
 
-/*----------------------------------------------------------------------------*
-  Unstructured Topology.
- *----------------------------------------------------------------------------*/
-
+/// Topology type.
+/// \tparam Policy the specialization, following unstructured_specialization
 template<typename Policy>
 struct unstructured : unstructured_base,
                       with_ragged<Policy>,
@@ -172,10 +170,8 @@ private:
   }
 }; // struct unstructured
 
-/*----------------------------------------------------------------------------*
-  Unstructured Access.
- *----------------------------------------------------------------------------*/
-
+/// Topology interface base.
+/// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Privileges>
 struct unstructured<Policy>::access {
@@ -207,8 +203,9 @@ public:
 
   /*!
     Return an index space as a range.
+    This function is \ref topology "host-accessible".
 
-    @tparam IndexSpace The index space identifier.
+    \return range of \c id\<IndexSpace\> values
    */
 
   template<index_space IndexSpace>
@@ -223,6 +220,8 @@ public:
 
     @tparam To   The connected index space.
     @tparam From The index space with connections.
+    \param from query entity
+    \return range of \c id\<To\> values
    */
 
   template<index_space To, index_space From>
@@ -230,6 +229,8 @@ public:
     return make_ids<To>(connectivity<From, To>()[from]);
   }
 
+  /// Get a special-entities list.
+  /// \return range of \c id\<I\> values
   template<index_space I, entity_list L>
   auto special_entities() const {
     return make_ids<I>(special_.template get<I>().template get<L>().span());
@@ -269,6 +270,30 @@ template<>
 struct detail::base<unstructured> {
   using type = unstructured_base;
 }; // struct detail::base<unstructured>
+
+#ifdef DOXYGEN
+/// Example specialization which is not really implemented.
+struct unstructured_specialization : specialization<unstructured, example> {
+  /// Connectivity information to store.
+  /// The format is\code
+  /// list<from<cells, to<vertices, edges>>>,
+  ///      from<...>, ...>
+  /// \endcode
+  /// where each leaf is an \c index_space.
+  using connectivities = list<>;
+
+  /// Enumeration of special entity lists.
+  enum entity_list {};
+  /// Special entity lists to store.
+  /// The format is\code
+  /// list<entity<edges, has<dirichlet, neumann>>,
+  ///      entity<...>, ...>
+  /// \endcode
+  /// where each \c has associates \c entity_list values with an
+  /// \c index_space.
+  using entity_lists = list<>;
+};
+#endif
 
 /// \}
 } // namespace topo

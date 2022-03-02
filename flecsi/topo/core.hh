@@ -233,10 +233,6 @@ struct specialization : specialization_base {
 
 #ifdef DOXYGEN
 /// An example specialization that is not really implemented.
-/// No member is needed in all circumstances. However, each topology
-/// have additional member requirements that is needed to construct
-/// those types.
-///
 /// See also the members marked for overriding in \c specialization_base and
 /// \c specialization.
 struct topology : specialization<core, topology> {
@@ -244,9 +240,6 @@ struct topology : specialization<core, topology> {
   /// Called in an MPI task.
   /// This is required only for use with a \c coloring_slot.
   static coloring color(...);
-
-  using connectivities = list<>; ///< for connect_t/connect_access
-  using entity_lists = list<>; ///< for lists_t/list_access
 };
 #endif
 
