@@ -20,8 +20,12 @@ struct ntree_base {
   enum index_space { entities, nodes, hashmap, tree_data, meta, comms };
   using index_spaces =
     util::constants<entities, nodes, hashmap, tree_data, meta, comms>;
-  // Parallel types for nodes and entities
-  enum ptype_t { exclusive, ghost, all };
+  /// Parallel types for nodes and entities.
+  enum ptype_t {
+    exclusive, ///< Owned data.
+    ghost, ///< Remote data.
+    all ///< Both kinds.
+  };
   // traversal types for DFS
   enum ttype_t { preorder, postorder, reverse_preorder, reverse_postorder };
 

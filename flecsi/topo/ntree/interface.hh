@@ -726,7 +726,7 @@ struct ntree<Policy>::access {
   //                                 ACCESSORS //
   // --------------------------------------------------------------------------//
 
-  // Iterate on all exclusive or ghost entities
+  /// Return a range of all entities of a type.
   template<ptype_t PT = ptype_t::exclusive>
   auto entities() {
     if constexpr(PT == ptype_t::exclusive) {
@@ -745,9 +745,10 @@ struct ntree<Policy>::access {
     }
   }
 
-  // Return entities, exclusive/ghosts from a specific node
+  /// Get entities from a specific node.
   template<ptype_t PT = ptype_t::exclusive>
-  auto entities(const id<index_space::nodes> & node_id) const {
+  std::vector<id<index_space::entities>> entities(
+    const id<index_space::nodes> & node_id) const {
 
     std::vector<id<index_space::entities>> ids;
     // Get the node and find its sub-entities
@@ -767,7 +768,9 @@ struct ntree<Policy>::access {
     return ids;
   }
 
-  auto neighbors(const id<index_space::entities> & ent_id) const {
+  /// Get entities adjacent to an entity.
+  std::vector<id<index_space::entities>> neighbors(
+    const id<index_space::entities> & ent_id) const {
     auto hmap = map();
     std::vector<id<index_space::entities>> ids;
     // Perform tree traversal to find neighbors
@@ -791,7 +794,7 @@ struct ntree<Policy>::access {
     return ids;
   }
 
-  // Iterate on all exclusive or ghost nodes
+  /// Return a range of all nodes of a type.
   template<ptype_t PT = ptype_t::exclusive>
   auto nodes() {
     if constexpr(PT == ptype_t::exclusive) {
@@ -810,8 +813,9 @@ struct ntree<Policy>::access {
     }
   }
 
-  // Return entities, exclusive/ghosts from a specific node
-  auto nodes(const id<index_space::nodes> & node_id) {
+  /// Get nodes from a node.
+  std::vector<id<index_space::nodes>> nodes(
+    const id<index_space::nodes> & node_id) {
     std::vector<id<index_space::nodes>> ids;
     // Get the node and find its sub-entities
     auto nkey = n_keys[node_id];
