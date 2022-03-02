@@ -1,10 +1,6 @@
-*.swp
-*.pyc
-*~
-.DS_Store
+# exclude CMake build folders
 /build
 /tutorial/build
-/build*
-/builds
-*.Linux
-.vscode
+
+# exclude compiled Python files due to Spack repo
+*.pyc
