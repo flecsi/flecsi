@@ -29,6 +29,7 @@
 #include <map>
 #include <utility>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 /// \defgroup unstructured Unstructured Mesh
@@ -272,3 +273,4 @@ struct detail::base<unstructured> {
 /// \}
 } // namespace topo
 } // namespace flecsi
+/// \endcore

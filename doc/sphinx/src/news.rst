@@ -106,7 +106,7 @@ Removed
 * Topologies
 
   * Topology element ``id()`` |mdash| iteration produces indices
-  * Automatic dependent connectivity |mdash| will be provided as a separate utility
+  * Unstructured mesh |mdash| will be reimplemented
 
 * I/O |mdash| will be reimplemented
 
