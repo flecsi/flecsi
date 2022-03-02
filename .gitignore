@@ -6,9 +6,10 @@ cmake_install.cmake
 compile_commands.json
 *~
 .DS_Store
-build
-build*
-builds
+/build
+/tutorial/build
+/build*
+/builds
 *_build
 *.Linux
 *.tex
