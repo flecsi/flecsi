@@ -67,10 +67,6 @@ Fixed
 
   * Messages are sorted by timestamp correctly.
 
-* Testing
-
-  * String-comparison macros (*e.g.*, ``ASSERT_STREQ``) handle runtime values properly.
-
 Changes in v2.1.0 (April 16 2021)
 +++++++++++++++++++++++++++++++++
 
@@ -84,7 +80,7 @@ Changes in v2.0.0 (March 30 2021)
 +++++++++++++++++++++++++++++++++
 
 The changes between versions 1 and 2 are extensive and so are merely summarized here.
-The broadest change is that macros are used only for on-node parallelism constructs and for logging and unit tests.
+The broadest change is that macros are used only for on-node parallelism constructs and for logging.
 Some macro arguments become template arguments.
 
 Removed
