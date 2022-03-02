@@ -47,7 +47,6 @@ Fixed
 * Topologies
 
   * Topology accessors that provide metadata for direct access in a ``toc`` task work properly when writable (although without such direct access in that case).
-  * ``narray`` topology accessors work properly when declared ``const``.
 
 * Legion backend
 
@@ -75,23 +74,11 @@ Fixed
 Changes in v2.1.0 (April 16 2021)
 +++++++++++++++++++++++++++++++++
 
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Topologies
-
-  * ``narray`` topology accessors provide ``policy_meta_`` rather than ``meta()``.
-
 New features
 ^^^^^^^^^^^^
 * Topologies
 
   * ``topo::help`` is a convenient base class for specialization class templates that defines the non-dependent names in ``specialization``.
-
-Fixed
-^^^^^
-* Topologies
-
-  * ``narray`` topology accessors handle boundary conditions correctly.
 
 Changes in v2.0.0 (March 30 2021)
 +++++++++++++++++++++++++++++++++
@@ -169,5 +156,4 @@ New features
 
 * Topologies
 
-  * Multiple topology categories are supported: ``unstructured`` and ``narray`` as well as the special cases of ``index`` and ``global``.
   * Multiple user-defined topology instances may exist sequentially or simultaneously.
