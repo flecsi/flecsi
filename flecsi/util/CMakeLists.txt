@@ -30,7 +30,7 @@ set(util_HEADERS
   function_traits.hh
   geometry/filling_curve.hh
   geometry/point.hh
-  dcrs.hh
+  crs.hh
   parmetis.hh
   graphviz.hh
   hashtable.hh

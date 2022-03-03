@@ -15,7 +15,7 @@
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/dcrs.hh"
+#include "flecsi/util/crs.hh"
 
 #include <algorithm>
 #include <map>
@@ -33,14 +33,13 @@ struct pack_cells {
     : md_(md), dist_(dist) {}
 
   auto operator()(int rank, int) const {
-    std::vector<std::vector<std::size_t>> c2v;
-    c2v.reserve(dist_[rank + 1] - dist_[rank]);
+    util::crs e2v;
 
     for(size_t i{dist_[rank]}; i < dist_[rank + 1]; ++i) {
-      c2v.emplace_back(md_.entities(Definition::dimension(), 0, i));
+      e2v.add_row(md_.entities(Definition::dimension(), 0, i));
     } // for
 
-    return c2v;
+    return e2v;
   } // operator(int, int)
 
 private:
@@ -149,7 +148,7 @@ struct distribute_cells {
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<std::array<std::size_t, 2>> indices;
 
-      for(std::size_t i{0}; i < naive.entries(); ++i) {
+      for(std::size_t i{0}; i < naive.size(); ++i) {
         if(cm.process(index_colors[i]) == r) {
           indices.push_back({index_colors[i] /* color of this index */,
             naive.distribution[rank] + i /* index global id */});
@@ -198,7 +197,7 @@ struct migrate_cells {
   migrate_cells(util::dcrs const & naive,
     Color colors,
     std::vector<Color> const & index_colors,
-    std::vector<std::vector<std::size_t>> & c2v,
+    util::crs & e2v,
     std::map<std::size_t, std::vector<std::size_t>> & v2c,
     std::map<std::size_t, std::vector<std::size_t>> & c2c,
     int rank)
@@ -212,11 +211,11 @@ struct migrate_cells {
       std::map<std::size_t, std::vector<std::size_t>> v2c_pack;
       std::map<std::size_t, std::vector<std::size_t>> c2c_pack;
 
-      for(std::size_t i{0}; i < naive.entries(); ++i) {
+      for(std::size_t i{0}; i < naive.size(); ++i) {
         if(cm.process(index_colors[i]) == r) {
           const std::array<std::size_t, 2> info{
             index_colors[i], naive.distribution[rank] + i};
-          cell_pack.push_back(std::make_tuple(info, c2v[i]));
+          cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
 
           /*
             If we have full connectivity information, we pack it up
@@ -225,7 +224,7 @@ struct migrate_cells {
             will be required to resolve it regardless.
            */
 
-          for(auto const & v : c2v[i]) {
+          for(auto const & v : e2v[i]) {
             v2c_pack[v] = v2c[v];
           } // for
 
@@ -237,7 +236,6 @@ struct migrate_cells {
             vertex-to-cell information until the loop over ranks is done.
            */
 
-          c2v[i].clear();
           c2c.erase(i);
         } // if
       } // for
@@ -245,7 +243,7 @@ struct migrate_cells {
       packs_.emplace_back(std::make_tuple(cell_pack, v2c_pack, c2c_pack));
     } // for
 
-    c2v.clear();
+    e2v.clear();
     c2c.clear();
     v2c.clear();
   } // migrate_cells
@@ -283,12 +281,11 @@ struct communicate_entities {
 
   communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
     std::unordered_map<std::size_t, Color> const & colors,
-    std::vector<std::vector<std::size_t>> const & e2v,
+    util::crs const & e2v,
     std::map<std::size_t, std::vector<std::size_t>> const & v2e,
     std::map<std::size_t, std::vector<std::size_t>> const & e2e,
     std::map<std::size_t, std::size_t> const & m2p)
     : size_(entities.size()) {
-
     for(auto re : entities) {
       std::vector<
         std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
@@ -298,7 +295,7 @@ struct communicate_entities {
 
       for(auto c : re) {
         const std::array<std::size_t, 2> info{colors.at(c), c};
-        entity_pack.push_back(std::make_tuple(info, e2v[m2p.at(c)]));
+        entity_pack.push_back(std::make_tuple(info, to_vector(e2v[m2p.at(c)])));
 
         for(auto const & v : e2v[m2p.at(c)]) {
           v2e_pack[v] = v2e.at(v);
@@ -334,9 +331,7 @@ private:
 struct vertex_coloring {
 
   vertex_coloring(std::vector<std::size_t> const & pdist,
-    util::color_map const & cm,
-    std::unordered_map<std::size_t, Color> const & v2co,
-    int rank)
+    std::unordered_map<std::size_t, Color> const & v2co)
     : size_(pdist.size() - 1), vertices_(size_) {
 
     for(auto const & v : v2co) {
@@ -346,11 +341,6 @@ struct vertex_coloring {
           r = i;
           break;
         } // if
-      } // for
-
-      bool match = false;
-      for(std::size_t c{0}; c < cm.colors(rank); ++c) {
-        match = match || v.second == cm.color_id(rank, c);
       } // for
 
       vertices_[r].emplace_back(std::array<std::size_t, 2>{v.first, v.second});

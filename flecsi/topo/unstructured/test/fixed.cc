@@ -25,18 +25,13 @@
 
 using namespace flecsi;
 
-namespace global {
-std::vector<std::size_t> cells;
-std::vector<std::size_t> vertices;
-} // namespace global
-
 struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   /*--------------------------------------------------------------------------*
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum index_space { vertices, cells };
+  enum index_space { cells, vertices };
   using index_spaces = has<cells, vertices>;
   using connectivities =
     list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
@@ -46,7 +41,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     entity<vertices, has<special_vertices>>>;
 
   template<auto>
-  static constexpr PrivilegeCount privilege_count = 2;
+  static constexpr PrivilegeCount privilege_count = 3;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -107,6 +102,26 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     return {
       MPI_COMM_WORLD,
       fixed::colors,
+      /* process_colors */
+      { /* over global processes */
+        std::vector<Color>{ 0 },
+        std::vector<Color>{ 1 },
+        std::vector<Color>{ 2 },
+        std::vector<Color>{ 3 }
+      },
+      /* num_peers */
+      { /* over global colors */
+        3, 3, 3, 3
+      },
+      /* peers */
+      { /* over index spaces */
+        { /* cell peers */
+          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        },
+        { /* vertex peers */
+          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        }
+      },
       {
         {
           fixed::cells[0].all.size(),
@@ -123,24 +138,55 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       },
       { /* over index spaces */
         { /* over process colors */
-          base::process_color{
+          base::process_coloring{
+
+            /* color */
+            process(),
+
+            /* entities */
             fixed::num_cells,
+
+            /* coloring */
             fixed::cells[process()],
+
+            /* peers */
+            fixed::peers[process()],
+
+            /* cnx_allocs */
             {
+              0,
               fixed::connectivity[process()][0].indices.size()
             },
+
+            /* cnx_colorings */
             {
-              fixed::connectivity[process()]
+              {},
+              fixed::connectivity[process()][0]
             }
           }
         },
         {
-          base::process_color{
+          base::process_coloring{
+
+            /* color */
+            process(),
+
+            /* entities */
             fixed::num_vertices,
+
+            /* coloring */
             fixed::vertices[process()],
+
+            /* peers */
+            fixed::peers[process()],
+
+            /* cnx_allocs */
             {
               fixed::connectivity[process()][0].indices.size(),
+              0
             },
+
+            /* cnx_colorings */
             {
               {} /* use cell connectivity transpose */
             }
@@ -155,10 +201,18 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     Initialization
    *--------------------------------------------------------------------------*/
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
-    topo::unstructured_impl::crs const & cnx,
-    std::map<std::size_t, std::size_t> & map) {
+  static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
+
+  static void init_c2v(field<util::id, data::ragged>::mutator<wo, wo, na> c2v,
+    std::vector<base::process_coloring> const & prc_clrngs,
+    std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
+    auto pcs = prc_clrngs.begin();
+    auto vms = vmaps.begin();
+    auto const & pc = *pcs++;
+    auto const & vm = *vms++;
     std::size_t off{0};
+
+    auto const & cnx = pc.cnx_colorings[core::index<fixed_mesh::vertices>];
 
     for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
       const std::size_t start = cnx.offsets[off];
@@ -167,74 +221,24 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       c2v[c].resize(size);
 
       for(std::size_t i{0}; i < size; ++i) {
-        c2v[c][i] = map[cnx.indices[start + i]];
-      }
-      ++off;
-    }
-  }
+        c2v[c][i] = vm.at(cnx.indices[start + i]);
+      } // for
 
-  static void init_v2c(topo::connect_field::mutator<wo, na> v2c,
-    topo::connect_field::accessor<ro, na> c2v) {
-    for(std::size_t c{0}; c < c2v.size(); ++c) {
-      for(std::size_t v{0}; v < c2v[c].size(); ++v) {
-        flog(trace) << "v: " << c2v[c][v] << " c: " << c << std::endl;
-        v2c[c2v[c][v]].push_back(c);
-      }
-    }
-  }
+      ++off;
+    } // for
+  } // init_c2v
 
   static void initialize(data::topology_slot<fixed_mesh> & s,
     coloring const & c) {
-
-    /*
-      Define the cell ordering from coloring. This version uses the
-      mesh ordering, i.e., the cells are sorted by ascending mesh id.
-     */
-
-    auto cell_coloring = c.idx_spaces[0][0].coloring;
-    global::cells.clear();
-    for(auto e : cell_coloring.owned) {
-      global::cells.push_back(e);
-    }
-
-    for(auto e : cell_coloring.ghost) {
-      global::cells.push_back(e.id);
-    }
-
-    util::force_unique(global::cells);
-
-    /*
-      Define the vertex ordering from coloring. This version uses the
-      mesh ordering, i.e., the vertices are sorted by ascending mesh id.
-     */
-
-    auto vertex_coloring = c.idx_spaces[1][0].coloring;
-    global::vertices.clear();
-    for(auto e : vertex_coloring.owned) {
-      global::vertices.push_back(e);
-    }
-
-    for(auto e : vertex_coloring.ghost) {
-      global::vertices.push_back(e.id);
-    }
-
-    util::force_unique(global::vertices);
-
-    std::map<std::size_t, std::size_t> vertex_map;
-    std::size_t off{0};
-    for(auto e : global::vertices) {
-      vertex_map[e] = off++;
-    }
-
     auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
-    execute<init_c2v, mpi>(
-      c2v(s), c.idx_spaces[0][0].cnx_colorings[0], vertex_map);
-
     auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
-#if 0
-    execute<init_v2c, mpi>(v2c(s), c2v(s));
-#endif
-    execute<topo::unstructured_impl::transpose, mpi>(c2v(s), v2c(s));
+    auto const & vmaps = s->reverse_map<fixed_mesh::vertices>();
+
+    execute<init_cnx>(c2v(s));
+    execute<init_cnx>(v2c(s));
+
+    execute<init_c2v, mpi>(c2v(s), c.idx_spaces[fixed_mesh::cells], vmaps);
+    execute<topo::unstructured_impl::transpose>(c2v(s), v2c(s));
   } // initialize
 
 }; // struct fixed_mesh
@@ -243,25 +247,11 @@ fixed_mesh::slot mesh;
 fixed_mesh::cslot coloring;
 
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
-const field<int>::definition<fixed_mesh, fixed_mesh::vertices> density;
-const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
-const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
-
-void
-init_ids(fixed_mesh::accessor<ro, ro> m,
-  field<std::size_t>::accessor<wo, wo> cids,
-  field<std::size_t>::accessor<wo, wo> vids) {
-  for(auto c : m.cells()) {
-    cids[c] = global::cells[c];
-  }
-  for(auto v : m.vertices()) {
-    vids[v] = global::vertices[v];
-  }
-}
+const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
 // Exercise the std::vector-like interface:
 int
-permute(topo::connect_field::mutator<rw, na> m) {
+permute(topo::connect_field::mutator<rw, rw, na> m) {
   UNIT {
     return;
     const auto && r = m[0];
@@ -291,7 +281,8 @@ permute(topo::connect_field::mutator<rw, na> m) {
 }
 
 void
-init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, wo> p) {
+init_pressure(fixed_mesh::accessor<ro, ro, ro> m,
+  field<int>::accessor<wo, wo, wo> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     static_assert(std::is_same_v<decltype(c), topo::id<fixed_mesh::cells>>);
@@ -300,15 +291,16 @@ init_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<wo, wo> p) {
 }
 
 void
-update_pressure(fixed_mesh::accessor<ro, ro> m,
-  field<int>::accessor<rw, rw> p) {
+update_pressure(fixed_mesh::accessor<ro, ro, ro> m,
+  field<int>::accessor<rw, rw, rw> p) {
   flog(warn) << __func__ << std::endl;
   int clr = color();
   forall(c, m.cells(), "pressure_c") { p[c] = clr; };
 }
 
 void
-check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
+check_pressure(fixed_mesh::accessor<ro, ro, ro> m,
+  field<int>::accessor<ro, ro, ro> p) {
   flog(warn) << __func__ << std::endl;
   unsigned int clr = color();
   for(auto c : m.cells()) {
@@ -318,8 +310,8 @@ check_pressure(fixed_mesh::accessor<ro, ro> m, field<int>::accessor<ro, ro> p) {
 }
 
 void
-init_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<wo, wo> d) {
+init_density(fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<wo, wo, wo> d) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.vertices()) {
     d[c] = -1;
@@ -327,16 +319,16 @@ init_density(fixed_mesh::accessor<ro, ro> m,
 }
 
 void
-update_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<rw, rw> d) {
+update_density(fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<rw, rw, rw> d) {
   flog(warn) << __func__ << std::endl;
   auto clr = color();
   forall(v, m.vertices(), "density_c") { d[v] = clr; };
 }
 
 void
-check_density(fixed_mesh::accessor<ro, ro> m,
-  field<double>::accessor<ro, ro> d) {
+check_density(fixed_mesh::accessor<ro, ro, ro> m,
+  field<double>::accessor<ro, ro, ro> d) {
   flog(warn) << __func__ << std::endl;
   std::stringstream ss;
   for(auto c : m.vertices()) {
@@ -346,32 +338,29 @@ check_density(fixed_mesh::accessor<ro, ro> m,
 }
 
 void
-print(fixed_mesh::accessor<ro, ro> m,
-  field<std::size_t>::accessor<ro, ro> cids,
-  field<std::size_t>::accessor<ro, ro> vids) {
-  (void)cids;
-#if 1
+print(fixed_mesh::accessor<ro, ro, ro> m,
+  field<util::id>::accessor<ro, ro, ro> cids,
+  field<util::id>::accessor<ro, ro, ro> vids) {
+
+  std::stringstream ss;
   for(auto c : m.cells()) {
-    std::stringstream ss;
     ss << "cell(" << cids[c] << "," << c << "): ";
     for(auto v : m.vertices(c)) {
       ss << vids[v] << " ";
     }
-    flog(info) << ss.str() << std::endl;
+    ss << std::endl;
   }
-#endif
+  flog(info) << ss.str() << std::endl;
 
+  ss.str("");
   for(auto v : m.vertices()) {
-    std::stringstream ss;
     ss << "vertex(" << vids[v] << "," << v << "): ";
-    ss << m.cells(v).size();
-#if 0
     for(auto c : m.cells(v)) {
       ss << cids[c] << " ";
     }
-#endif
-    flog(info) << ss.str() << std::endl;
+    ss << std::endl;
   }
+  flog(info) << ss.str() << std::endl;
 }
 
 int
@@ -379,20 +368,22 @@ fixed_driver() {
   UNIT {
     coloring.allocate();
     mesh.allocate(coloring.get());
-    execute<init_ids>(mesh, cids(mesh), vids(mesh));
 
     EXPECT_EQ(
       test<permute>(
         mesh->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>()(
           mesh)),
       0);
+
+    auto const & cids = mesh->forward_map<fixed_mesh::cells>();
+    auto const & vids = mesh->forward_map<fixed_mesh::vertices>();
     execute<print>(mesh, cids(mesh), vids(mesh));
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
     execute<check_pressure>(mesh, pressure(mesh));
 
-#if 0
+#if 1
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
     execute<check_density>(mesh, density(mesh));

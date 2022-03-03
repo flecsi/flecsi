@@ -17,8 +17,8 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
-#include "flecsi/util/color_map.hh"
 #include "flecsi/util/common.hh"
+#include "flecsi/util/crs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 
@@ -73,20 +73,24 @@ operator<<(std::ostream & stream, shared_entity const & s) {
 
 struct ghost_entity {
   std::size_t id;
-  Color color;
+  Color process;
+  Color local;
+  Color global;
 
   bool operator<(const ghost_entity & g) const {
     return id < g.id;
   }
 
   bool operator==(const ghost_entity & g) const {
-    return id == g.id && color == g.color;
+    return id == g.id && process == g.process && local == g.local &&
+           global == g.global;
   }
 };
 
 inline std::ostream &
 operator<<(std::ostream & stream, ghost_entity const & g) {
-  stream << "<" << g.id << ":" << g.color << ">";
+  stream << "<" << g.id << ":" << g.process << ":" << g.local << ":" << g.global
+         << ">";
   return stream;
 }
 
@@ -98,27 +102,19 @@ struct index_coloring {
   std::vector<ghost_entity> ghost;
 };
 
-struct crs {
-  std::vector<std::size_t> offsets;
-  std::vector<std::size_t> indices;
-
-  template<class InputIt>
-  void add_row(InputIt first, InputIt last) {
-    if(offsets.empty())
-      offsets.emplace_back(0);
-    offsets.emplace_back(offsets.back() + std::distance(first, last));
-    indices.insert(indices.end(), first, last);
-  }
-
-  template<class U>
-  void add_row(std::initializer_list<U> init) {
-    add_row(init.begin(), init.end());
-  }
-};
+inline std::ostream &
+operator<<(std::ostream & stream, index_coloring const & ic) {
+  stream << "all\n" << log::container{ic.all};
+  stream << "owned\n" << log::container{ic.owned};
+  stream << "exclusive\n" << log::container{ic.exclusive};
+  stream << "shared\n" << log::container{ic.shared};
+  stream << "ghost\n" << log::container{ic.ghost};
+  return stream;
+}
 
 inline void
-transpose(field<util::id, data::ragged>::accessor<ro, na> input,
-  field<util::id, data::ragged>::mutator<rw, na> output) {
+transpose(field<util::id, data::ragged>::accessor<ro, ro, na> input,
+  field<util::id, data::ragged>::mutator<wo, wo, na> output) {
   for(std::size_t e{0}; e < input.size(); ++e) {
     for(std::size_t v{0}; v < input[e].size(); ++v) {
       output[input[e][v]].push_back(e);
@@ -143,7 +139,13 @@ struct coloring_definition {
   std::vector<auxiliary> aux;
 };
 
-struct process_color {
+struct process_coloring {
+
+  /*
+    Global color.
+   */
+
+  Color color;
 
   /*
     The global number of entities in this index space.
@@ -161,6 +163,12 @@ struct process_color {
   index_coloring coloring;
 
   /*
+    Communication peers (needed for ragged/sparse buffer creation).
+   */
+
+  std::vector<Color> peers;
+
+  /*
    The local allocation size for each connectivity. The vector is over
    connectivities between this entity type and another entity type. The
    ordering follows that given in the specialization policy.
@@ -175,30 +183,83 @@ struct process_color {
     i.e., the ids are global. The vector is like cnx_alloc.
    */
 
-  std::vector<crs> cnx_colorings;
-}; // struct process_color
+  std::vector<util::crs> cnx_colorings;
+}; // struct process_coloring
+
+inline std::ostream &
+operator<<(std::ostream & stream, process_coloring const & pc) {
+  stream << "color: " << pc.color << std::endl;
+  stream << "entities: " << pc.entities << std::endl;
+  stream << "coloring:\n" << pc.coloring << std::endl;
+  stream << "cnx_allocs:\n" << log::container{pc.cnx_allocs} << std::endl;
+  stream << "cnx_colorings:\n" << log::container{pc.cnx_colorings} << std::endl;
+  return stream;
+}
+
+/*
+  Type for mapping ragged ghosts into buffers.
+ */
+
+struct cmap {
+  Color c;
+  std::size_t lid;
+  std::size_t rid;
+};
 
 } // namespace unstructured_impl
 
 struct unstructured_base {
 
   using index_coloring = unstructured_impl::index_coloring;
-  using process_color = unstructured_impl::process_color;
+  using process_coloring = unstructured_impl::process_coloring;
   using ghost_entity = unstructured_impl::ghost_entity;
-  using crs = unstructured_impl::crs;
+  using crs = util::crs;
+  using cmap = unstructured_impl::cmap;
+
+  using source_pointers = std::vector</* over local colors */
+    std::map</* over global source colors */
+      Color,
+      std::vector</* over color source pointers */
+        std::pair<std::size_t /* global id */, std::size_t /* offset */>>>>;
+
+  using destination_intervals = std::vector</* over local colors */
+    std::vector</* over contiguous intervals */
+      data::subrow>>;
 
   struct coloring {
     MPI_Comm comm;
-    Color colors; /* global number of colors */
 
+    /* global number of colors */
+    Color colors;
+
+    /* global colors */
+    std::vector</* over global processes */
+      std::vector</* over local process colors */
+        Color>>
+      process_colors;
+
+    /* superset of communication peers over colors */
+    std::vector</* over global colors */
+      std::size_t>
+      color_peers;
+
+    /* tight information on actual communication peers */
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::vector</* over peers */
+          Color>>>
+      peers;
+
+    /* partition sizes over index spaces and global colors */
     std::vector</* over index spaces */
       std::vector</* over global colors */
         std::size_t>>
       partitions;
 
+    /* process coloring over index spaces and process colors (local) */
     std::vector</* over index spaces */
       std::vector</* over process colors */
-        process_color>>
+        process_coloring>>
       idx_spaces;
   }; // struct coloring
 
@@ -210,48 +271,63 @@ struct unstructured_base {
     Using the Mesh Index Space (MIS) ordering, compute intervals,
     and the number of intervals for each color. Also compute the
     point offsets. The references num_intervals, intervals,
-    and points, respectively, are filled with this information.
+    and pointers, respectively, are filled with this information.
    */
 
   /* FIXME: This is another place that needs multiaccessor support */
 
   template<PrivilegeCount N>
-  static void idx_itvls(std::vector<process_color> const & vpc,
-    std::vector<std::size_t> & num_intervals,
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
-    std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
+  static void idx_itvls(std::vector<process_coloring> const & vpc,
+    std::vector<std::vector<Color>> const & pcs,
+    std::vector<std::size_t> & nis,
+    destination_intervals & intervals,
+    source_pointers & pointers,
+    // field<cmap, data::ragged>::mutator<wo> cgraph,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
       privilege_repeat<na, (N > 1)>>> fmap,
     std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
 
+    // FIXME: This is a place holder for Navamita
+    //(void)cgraph;
+
     auto [rank, size] = util::mpi::info(comm);
 
+    std::vector<std::map<std::size_t, std::size_t>> shared_offsets(vpc.size()),
+      ghost_offsets(vpc.size());
+
+    std::vector</* over processes */
+      std::vector</* over local colors */
+        std::vector<std::tuple<std::size_t /* id */,
+          std::size_t /* local color */,
+          std::size_t /* global color */>>>>
+      sources(size);
+
+    pointers.resize(vpc.size());
     rmaps.resize(vpc.size());
-    intervals.resize(vpc.size());
-    points.resize(vpc.size());
-    std::vector<std::size_t> local_itvls(vpc.size());
-    std::size_t co{0};
+    std::size_t lco{0};
     for(auto pc : vpc) {
       std::vector<std::size_t> entities;
-      auto & ic = pc.coloring;
-      auto & itvls = intervals[co];
-      auto & pts = points[co];
+      auto const & ic = pc.coloring;
 
       /*
         Define the entity ordering from coloring. This version uses the
         mesh ordering, i.e., the entities are sorted by ascending mesh id.
        */
 
-      for(auto e : ic.owned) {
+      for(auto const & e : ic.owned) {
         entities.push_back(e);
       } // for
 
-      std::vector<std::vector<std::size_t>> requests(size);
-      for(auto e : ic.ghost) {
+      for(auto const & e : ic.ghost) {
         entities.push_back(e.id);
-        requests[e.color].emplace_back(e.id);
+
+        if(sources[e.process].size() == 0) {
+          sources[e.process].resize(vpc.size());
+        } // if
+
+        auto const s = std::make_tuple(e.id, e.local, e.global);
+        sources[e.process][lco].emplace_back(s);
       } // for
 
       /*
@@ -271,100 +347,108 @@ struct unstructured_base {
                          << ")");
 
       std::size_t off{0};
-      auto & rmap = rmaps[co];
+      auto & rmap = rmaps[lco];
       rmap.clear();
       for(auto e : entities) {
         fmap[off] = e;
         rmap.try_emplace(e, off++);
-      }
+      } // for
 
       /*
-        After the entity order has been established, we need to create a lookup
-        table for local ghost offsets.
+        After the entity order has been established, we need to create a
+        lookup table for local ghost offsets.
        */
 
-      std::map<std::size_t, std::size_t> ghost_offsets;
       for(auto e : ic.ghost) {
         auto it = std::find(entities.begin(), entities.end(), e.id);
         flog_assert(it != entities.end(), "ghost entity doesn't exist");
-        ghost_offsets[e.id] = std::distance(entities.begin(), it);
+        ghost_offsets[lco][e.id] = std::distance(entities.begin(), it);
       } // for
 
       /*
-        We also need to create a lookup table so that we can provide
-        local shared offset information to other processes that request it.
+        We also need to add shared offsets to the lookup table so that we can
+        provide local shared offset information to other processes that
+        request it.
        */
 
-      std::map<std::size_t, std::size_t> shared_offsets;
       for(auto & e : ic.shared) {
         auto it = std::find(entities.begin(), entities.end(), e.id);
         flog_assert(it != entities.end(), "shared entity doesn't exist");
-        shared_offsets[e.id] = std::distance(entities.begin(), it);
+        shared_offsets[lco][e.id] = std::distance(entities.begin(), it);
       } // for
 
-      /*
-        Send/Receive requests for shared offsets with other processes.
-       */
+      ++lco;
+    } // for
 
-      auto requested = util::mpi::all_to_allv(
-        [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+    /*
+      Send/Receive requests for shared offsets with other processes.
+     */
 
-      /*
-        Fulfill the requests that we received from other processes, i.e.,
-        provide the locaL offset for the requested shared mesh ids.
-       */
+    auto requested = util::mpi::all_to_allv(
+      [&sources](int r, int) -> auto & { return sources[r]; }, comm);
 
-      std::vector<std::vector<std::size_t>> fulfills(size);
-      {
-        int r = 0;
-        for(const auto & rv : requested) {
-          for(auto c : rv) {
-            fulfills[r].emplace_back(shared_offsets[c]);
-          } // for
-          ++r;
-        } // for
-      } // scope
+    /*
+      Fulfill the requests that we received from other processes, i.e.,
+      provide the locaL offset for the requested shared mesh ids.
+     */
 
-      /*
-        Send/Receive the local offset information with other processes.
-       */
-
-      auto fulfilled = util::mpi::all_to_allv(
-        [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
-        comm);
-      /*
-        Setup source pointers.
-       */
-
+    std::vector<std::vector<std::size_t>> fulfills(size);
+    {
       int r = 0;
-      for(const auto & rv : fulfilled) {
-        if(r == rank) {
-          ++r;
-          continue;
-        } // if
+      for(const auto & rv : requested) {
+        for(auto const pc : rv) {
+          for(auto [id, lc, dmmy] : pc) {
+            fulfills[r].emplace_back(shared_offsets[lc][id]);
+          } // for
+        } // for
 
-        auto & cp = pts[r];
-        cp.reserve(rv.size());
-        auto & request = requests[r];
-
-        std::size_t i{0};
-        for(auto v : rv) {
-          cp.emplace_back(std::make_pair(ghost_offsets[request[i]], v));
-          ++i;
-        }
         ++r;
       } // for
+    } // scope
 
-      /*
-        Compute local intervals.
-       */
+    /*
+      Send/Receive the local offset information with other processes.
+     */
 
-      auto g = ghost_offsets.begin();
-      std::size_t begin = 0, run = 0;
-      for(; g != ghost_offsets.end(); ++g) {
+    auto fulfilled = util::mpi::all_to_allv(
+      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
+
+    /*
+      Setup source pointers.
+     */
+
+    int r{0};
+    for(auto const & rv : sources) {
+      (void)rv;
+      std::size_t pc{0};
+      std::size_t cnt{0};
+      for(auto const & cv : sources[r]) {
+        auto & pts = pointers[pc];
+
+        for(auto [id, dmmy, gco] : cv) {
+          pts[gco].emplace_back(
+            std::make_pair(ghost_offsets[pc][id], fulfilled[r][cnt++]));
+        } // for
+
+        ++pc;
+      } // for
+
+      ++r;
+    } // for
+
+    /*
+      Compute local intervals.
+     */
+
+    std::vector<std::size_t> local_itvls(vpc.size());
+    intervals.resize(vpc.size());
+    for(std::size_t lc{0}; lc < vpc.size(); ++lc) {
+      auto g = ghost_offsets[lc].begin();
+      std::size_t begin = g == ghost_offsets[lc].end() ? 0 : g->second, run = 0;
+      for(; g != ghost_offsets[lc].end(); ++g) {
         if(!run || g->second != begin + run) {
           if(run) {
-            itvls.emplace_back(std::make_pair(begin, begin + run));
+            intervals[lc].emplace_back(std::make_pair(begin, begin + run));
             begin = g->second;
           }
           run = 1;
@@ -374,10 +458,8 @@ struct unstructured_base {
         }
       } // for
 
-      itvls.emplace_back(std::make_pair(begin, begin + run));
-      local_itvls[co] = itvls.size();
-
-      ++co;
+      intervals[lc].emplace_back(std::make_pair(begin, begin + run));
+      local_itvls[lc] = intervals[lc].size();
     } // for
 
     /*
@@ -386,23 +468,20 @@ struct unstructured_base {
 
     auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
 
-    util::color_map cm(size,
-      num_intervals.size() /* colors */,
-      vpc[0].entities /* global entities */);
     std::size_t p{0};
-    for(auto pv : global_itvls) {
-      std::size_t co{0};
-      for(auto i : pv) {
-        num_intervals[cm.color_id(p, co++)] = i;
-      }
+    for(auto const & pv : pcs) {
+      std::size_t c{0};
+      for(auto const & pc : pv) {
+        nis[pc] = global_itvls[p][c++];
+      } // for
+
       ++p;
-    }
+    } // for
   } // idx_itvls
 
   /* TODO: Need multiaccessor */
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
-      intervals,
+    std::vector<std::vector<data::subrow>> const & intervals,
     MPI_Comm const &) {
     flog_assert(a.span().size() == intervals[0].size(),
       "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
@@ -446,7 +525,7 @@ struct unstructured_base {
   }
 
   // TODO: This will need to be a multiaccessor.
-  static void cnx_size(std::vector<process_color> const & vpc,
+  static void cnx_size(std::vector<process_coloring> const & vpc,
     std::size_t is,
     resize::Field::accessor<wo> a) {
     // Hack until multiaccessor. When we have the real thing, this will
@@ -456,6 +535,17 @@ struct unstructured_base {
 
 }; // struct unstructured_base
 
+inline std::ostream &
+operator<<(std::ostream & stream,
+  typename unstructured_base::coloring const & c) {
+  stream << "colors: " << c.colors << std::endl;
+  stream << "process_colors\n" << log::container{c.process_colors} << std::endl;
+  stream << "color_peers\n" << log::container{c.color_peers} << std::endl;
+  stream << "peers\n" << log::container{c.peers} << std::endl;
+  stream << "partitions\n" << log::container{c.partitions} << std::endl;
+  stream << "idx_spaces\n" << log::container{c.idx_spaces} << std::endl;
+  return stream;
+}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
@@ -468,32 +558,6 @@ struct util::serial::traits<topo::unstructured_impl::shared_entity> {
   template<class P>
   static void put(P & p, const type & s) {
     serial::put(p, s.id, s.dependents);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::ghost_entity> {
-  using type = topo::unstructured_impl::ghost_entity;
-  template<class P>
-  static void put(P & p, const type & s) {
-    serial::put(p, s.id, s.color);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::crs> {
-  using type = topo::unstructured_impl::crs;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial::put(p, c.offsets, c.indices);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
@@ -515,15 +579,21 @@ struct util::serial::traits<topo::unstructured_impl::index_coloring> {
 };
 
 template<>
-struct util::serial::traits<topo::unstructured_impl::process_color> {
-  using type = topo::unstructured_impl::process_color;
+struct util::serial::traits<topo::unstructured_impl::process_coloring> {
+  using type = topo::unstructured_impl::process_coloring;
   template<class P>
   static void put(P & p, const type & c) {
-    serial::put(p, c.entities, c.coloring, c.cnx_allocs, c.cnx_colorings);
+    serial::put(p,
+      c.color,
+      c.entities,
+      c.coloring,
+      c.peers,
+      c.cnx_allocs,
+      c.cnx_colorings);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
-    return type{r, r, r, r};
+    return type{r, r, r, r, r, r};
   }
 };
 

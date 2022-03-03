@@ -18,7 +18,7 @@
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/common.hh"
-#include "flecsi/util/dcrs.hh"
+#include "flecsi/util/crs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 #include "flecsi/util/set_utils.hh"
@@ -69,7 +69,7 @@ make_dcrs(MD const & md,
     a naive distribution.
    */
 
-  auto c2v =
+  auto e2v =
     util::mpi::one_to_allv<pack_cells<MD>>({md, ecm.distribution()}, comm);
 
   /*
@@ -83,7 +83,7 @@ make_dcrs(MD const & md,
   std::map<std::size_t, std::vector<std::size_t>> v2c;
 
   std::size_t i{0};
-  for(auto c : c2v) {
+  for(auto c : e2v) {
     for(auto v : c) {
       v2c[v].emplace_back(offset + i);
     } // for
@@ -156,7 +156,7 @@ make_dcrs(MD const & md,
 
   std::map<std::size_t, std::vector<std::size_t>> c2c;
   std::size_t c{offset};
-  for(auto & cd /* cell definition */ : c2v) {
+  for(auto const & cd : e2v) {
     std::map<std::size_t, std::size_t> through;
 
     for(auto v : cd) {
@@ -198,21 +198,21 @@ make_dcrs(MD const & md,
     dcrs.offsets.emplace_back(dcrs.offsets[c] + c2c[offset + c].size());
   } // for
 
-  return std::make_tuple(dcrs, c2v, v2c, c2c);
+  return std::make_tuple(dcrs, e2v, v2c, c2c);
 } // make_dcrs
 
 inline auto
 migrate(util::dcrs const & naive,
   Color colors,
   std::vector<Color> const & index_colors,
-  std::vector<std::vector<std::size_t>> & c2v,
+  util::crs & e2v,
   std::map<std::size_t, std::vector<std::size_t>> & v2c,
   std::map<std::size_t, std::vector<std::size_t>> & c2c,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
   auto migrated = util::mpi::all_to_allv<migrate_cells>(
-    {naive, colors, index_colors, c2v, v2c, c2c, rank}, comm);
+    {naive, colors, index_colors, e2v, v2c, c2c, rank}, comm);
 
   std::map<Color, std::vector<std::size_t>> primaries;
   std::vector<std::size_t> p2m; /* process to mesh map */
@@ -222,8 +222,8 @@ migrate(util::dcrs const & naive,
     auto const & cell_pack = std::get<0>(r);
     for(auto const & c : cell_pack) { /* std::vector over cells */
       auto const & info = std::get<0>(c); /* std::array<color, mesh id> */
-      c2v.emplace_back(std::get<1>(c)); /* cell definition (vertex mesh ids) */
-      m2p[std::get<1>(info)] = c2v.size() - 1; /* offset map */
+      e2v.add_row(std::get<1>(c)); /* cell definition (vertex mesh ids) */
+      m2p[std::get<1>(info)] = e2v.size() - 1; /* offset map */
       p2m.emplace_back(std::get<1>(info)); /* cell mesh id */
       primaries[std::get<0>(info)].emplace_back(std::get<1>(info));
     } // for
@@ -349,7 +349,7 @@ color(MD const & md,
   coloring_definition const & cd,
   std::vector<Color> const & idx_cos,
   std::map<Color, std::vector<std::size_t>> const & primaries,
-  std::vector<std::vector<std::size_t>> & e2v,
+  util::crs & e2v,
   std::map<std::size_t, std::vector<std::size_t>> & v2e,
   std::map<std::size_t, std::vector<std::size_t>> & e2e,
   std::map<std::size_t, std::size_t> & m2p,
@@ -397,9 +397,9 @@ color(MD const & md,
      */
 
     for(auto const & p : primaries) {
-      for(auto e : wkset.at(p.first)) {
-        for(auto v : e2v[m2p.at(e)]) {
-          for(auto en : v2e.at(v)) {
+      for(auto const & e : wkset.at(p.first)) {
+        for(auto const & v : e2v[m2p.at(e)]) {
+          for(auto const & en : v2e.at(v)) {
             if(e2e.find(en) == e2e.end()) {
               // If we don't have the entity, we need to request it.
               layer.emplace_back(en);
@@ -486,7 +486,7 @@ color(MD const & md,
       auto const & entity_pack = std::get<0>(r);
       for(auto const & e : entity_pack) {
         auto const & info = std::get<0>(e);
-        e2v.emplace_back(std::get<1>(e));
+        e2v.add_row(std::get<1>(e));
         m2p[std::get<1>(info)] = e2v.size() - 1;
         p2m.emplace_back(std::get<1>(info));
         e2co.try_emplace(std::get<1>(info), std::get<0>(info));
@@ -510,8 +510,6 @@ color(MD const & md,
     } // for
   } // for
 
-  // unstructured_base::coloring coloring(primaries.size());
-
   unstructured_base::coloring coloring;
 
   /*
@@ -520,6 +518,7 @@ color(MD const & md,
 
   coloring.comm = comm;
   coloring.colors = cd.colors; /* global colors */
+  coloring.peers.resize(2 + cd.aux.size());
   coloring.partitions.resize(2 + cd.aux.size());
   coloring.idx_spaces.resize(2 + cd.aux.size());
 
@@ -532,8 +531,14 @@ color(MD const & md,
 
   std::size_t c{0};
   std::vector<std::size_t> partitions;
+  std::vector<Color> process_colors;
+  std::vector<std::set<Color>> color_peers(primaries.size());
+  std::vector<std::vector<Color>> is_peers(primaries.size());
+  util::color_map em(size, cd.colors, ne);
   for(auto p : primaries) {
+    process_colors.emplace_back(p.first);
     auto & pc = coloring.idx_spaces[cd.idx][c];
+    pc.color = p.first;
     pc.entities = ne;
 
     pc.coloring.all.reserve(p.second.size());
@@ -543,21 +548,30 @@ color(MD const & md,
     pc.coloring.owned.insert(
       pc.coloring.owned.begin(), p.second.begin(), p.second.end());
 
-    for(auto e : p.second) {
-      if(shared.at(p.first).count(e)) {
-        auto d = dependents.at(e);
-        pc.coloring.shared.emplace_back(
-          shared_entity{e, {dependents.at(e).begin(), dependents.at(e).end()}});
-      }
-      else {
-        pc.coloring.exclusive.emplace_back(e);
-      } // if
-    } // for
+    if(cd.colors > 1) {
+      for(auto e : p.second) {
+        if(shared.at(p.first).count(e)) {
+          pc.coloring.shared.emplace_back(shared_entity{
+            e, {dependents.at(e).begin(), dependents.at(e).end()}});
+        }
+        else {
+          pc.coloring.exclusive.emplace_back(e);
+        } // if
+      } // for
 
-    for(auto e : ghost.at(p.first)) {
-      pc.coloring.ghost.emplace_back(ghost_entity{e, e2co.at(e)});
-      pc.coloring.all.emplace_back(e);
-    } // for
+      std::set<Color> peers;
+      for(auto e : ghost.at(p.first)) {
+        const auto gco = e2co.at(e);
+        const auto pr = em.process(gco);
+        pc.coloring.ghost.emplace_back(
+          ghost_entity{e, pr, em.local_id(pr, gco), gco});
+        pc.coloring.all.emplace_back(e);
+        peers.insert(gco);
+      } // for
+      color_peers[c].insert(peers.begin(), peers.end());
+      is_peers[c].resize(peers.size());
+      std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+    } // if
 
     util::force_unique(pc.coloring.all);
     util::force_unique(pc.coloring.owned);
@@ -598,6 +612,33 @@ color(MD const & md,
   } // for
 
   /*
+    Gather the tight peer information for the primary entity type.
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(is_peers, comm);
+    coloring.peers[cd.idx].resize(cd.colors);
+
+    std::size_t p{0};
+    for(auto vp : pgthr) { /* over processes */
+      std::size_t c{0};
+      for(auto pc : vp) { /* over process colors */
+        for(auto pe : pc) { /* over peers */
+          coloring.peers[cd.idx][em.color_id(p, c)].emplace_back(pe);
+        } // for
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  /*
+    Gather the process-to-color mapping.
+   */
+
+  coloring.process_colors = util::mpi::all_gatherv(process_colors, comm);
+
+  /*
     Gather partition sizes for entities.
    */
 
@@ -605,7 +646,6 @@ color(MD const & md,
     auto pgthr = util::mpi::all_gatherv(partitions, comm);
 
     coloring.partitions[cd.idx].resize(cd.colors);
-    util::color_map em(size, cd.colors, ne);
     std::size_t p{0};
     for(auto vp : pgthr) {
       std::size_t c{0};
@@ -627,7 +667,7 @@ color(MD const & md,
     auto const & primary = coloring.idx_spaces[cd.idx][c].coloring;
 
     for(auto e : primary.owned) {
-      for(auto v : e2v.at(m2p.at(e))) {
+      for(auto v : e2v[m2p.at(e)]) {
         Color co = std::numeric_limits<Color>::max();
         for(auto ev : v2e.at(v)) {
           co = std::min(e2co[ev], co);
@@ -657,8 +697,8 @@ color(MD const & md,
     computed above. This strategy is employed to enable weak scalability.
    */
 
-  auto rank_colors = util::mpi::all_to_allv<vertex_coloring>(
-    {vpm.distribution(), vcm, v2co, rank}, comm);
+  auto rank_colors =
+    util::mpi::all_to_allv<vertex_coloring>({vpm.distribution(), v2co}, comm);
 
   const std::size_t voff = vpm.distribution()[rank];
   std::vector<Color> vtx_idx_cos(vpm.distribution()[rank + 1] - voff);
@@ -708,51 +748,61 @@ color(MD const & md,
   c = 0;
   for(auto p : primaries) {
     auto primary = coloring.idx_spaces[cd.idx][c].coloring;
+    coloring.idx_spaces[cd.vidx][c].entities = nv;
     auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
     for(auto e : primary.exclusive) {
-      for(auto v : e2v.at(m2p.at(e))) {
+      for(auto v : e2v[m2p.at(e)]) {
         vaux.exclusive.emplace_back(v);
         vaux.owned.emplace_back(v);
       } // for
     } // for
 
-    for(auto e : primary.shared) {
-      for(auto v : e2v.at(m2p.at(e.id))) {
-        auto vi = v2co.find(v);
-        flog_assert(vi != v2co.end(), "invalid vertex id");
+    if(cd.colors > 1) {
+      for(auto e : primary.shared) {
+        for(auto v : e2v[m2p.at(e.id)]) {
+          auto vi = v2co.find(v);
+          flog_assert(vi != v2co.end(), "invalid vertex id");
 
-        if(vi->second == p.first) {
-          vaux.shared.emplace_back(shared_entity{v, e.dependents});
-          vaux.owned.emplace_back(v);
-        }
-        else {
-          if(vcm.has_color(vi->second, rank)) {
-            vaux.ghost.emplace_back(ghost_entity{v, vi->second});
+          if(vi->second == p.first) {
+            // This vertex is owned by the current color
+            vaux.shared.emplace_back(shared_entity{v, e.dependents});
+            vaux.owned.emplace_back(v);
           }
           else {
+            if(vcm.has_color(rank, vi->second)) {
+              // This process owns the current color.
+              vaux.ghost.emplace_back(ghost_entity{
+                v, Color(rank), vcm.local_id(rank, vi->second), vi->second});
+            }
+            else {
+              // The ghost is remote: add to remote requests.
+              remote.emplace_back(v);
+              ghost[p.first].insert(v);
+            } // if
+          } // if
+        } // for
+      } // for
+
+      for(auto e : primary.ghost) {
+        for(auto v : e2v[m2p.at(e.id)]) {
+          auto vi = v2co.find(v);
+
+          if(vi != v2co.end()) {
+            if(vi->second != p.first) {
+              const auto pr = vcm.process(vi->second);
+              vaux.ghost.emplace_back(
+                ghost_entity{v, pr, vcm.local_id(pr, vi->second), vi->second});
+            } // if
+          }
+          else {
+            // The ghost is remote: add to remote requests.
             remote.emplace_back(v);
             ghost[p.first].insert(v);
           } // if
-        } // if
+        } // for
       } // for
-    } // for
-
-    for(auto e : primary.ghost) {
-      for(auto v : e2v.at(m2p.at(e.id))) {
-        auto vi = v2co.find(v);
-
-        if(vi != v2co.end()) {
-          if(vi->second != p.first) {
-            vaux.ghost.emplace_back(ghost_entity{v, vi->second});
-          } // if
-        }
-        else {
-          remote.emplace_back(v);
-          ghost[p.first].insert(v);
-        } // if
-      } // for
-    } // for
+    } // if
 
     util::force_unique(vaux.owned);
     util::force_unique(vaux.exclusive);
@@ -830,16 +880,28 @@ color(MD const & md,
     vaux.all.reserve(vaux.owned.size() + vaux.ghost.size());
     vaux.all.insert(vaux.all.begin(), vaux.owned.begin(), vaux.owned.end());
 
-    // Add ghosts that were available from the local process.
-    for(auto v : vaux.ghost) {
-      vaux.all.emplace_back(v.id);
-    } // for
+    if(cd.colors > 1) {
+      // Add ghosts that were available from the local process.
+      for(auto v : vaux.ghost) {
+        vaux.all.emplace_back(v.id);
+      } // for
 
-    // Add requested ghosts.
-    for(auto v : ghost.at(p.first)) {
-      vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
-      vaux.all.emplace_back(v);
-    } // for
+      if(size > 1) {
+        // Add requested ghosts.
+        std::set<Color> peers;
+        for(auto v : ghost.at(p.first)) {
+          const auto gco = v2co.at(v);
+          peers.insert(gco);
+          const auto pr = vcm.process(gco);
+          vaux.ghost.emplace_back(
+            ghost_entity{v, pr, vcm.local_id(pr, gco), gco});
+          vaux.all.emplace_back(v);
+        } // for
+        color_peers[c].insert(peers.begin(), peers.end());
+        is_peers[c].resize(peers.size());
+        std::copy(peers.begin(), peers.end(), is_peers[c].begin());
+      } // if
+    } // if
 
     util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
@@ -848,6 +910,31 @@ color(MD const & md,
 
     ++c;
   } // for
+
+  /*
+    Gather the tight peer information for the primary entity type.
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(is_peers, comm);
+    coloring.peers[cd.vidx].resize(cd.colors);
+
+    std::size_t p{0};
+    for(auto vp : pgthr) { /* over processes */
+      std::size_t c{0};
+      for(auto pc : vp) { /* over process colors */
+        for(auto pe : pc) { /* over peers */
+          coloring.peers[cd.vidx][vcm.color_id(p, c)].emplace_back(pe);
+        } // for
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  /*
+    Gather partition sizes for vertices.
+   */
 
   {
     auto pgthr = util::mpi::all_gatherv(partitions, comm);
@@ -868,6 +955,25 @@ color(MD const & md,
     Auxiliary entities.
    */
 
+  /*
+    Gather color peers (superset of color peers over all index spaces).
+   */
+
+  {
+    auto pgthr = util::mpi::all_gatherv(color_peers, comm);
+
+    coloring.color_peers.resize(cd.colors);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto pc : vp) {
+        coloring.color_peers[em.color_id(p, c)] = pc.size();
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
   return coloring;
 } // color
 
@@ -879,9 +985,9 @@ color(MD const & md,
   \param f2e Y-to-Z connectivity
   \return X-to-Z connectivity (c2e)
 */
-inline crs
-intersect_connectivity(const crs & c2f, const crs & f2e) {
-  crs c2e;
+inline util::crs
+intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
+  util::crs c2e;
   c2e.offsets.reserve(c2f.offsets.size());
   // Note: this is a rough estimate.
   c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
@@ -909,54 +1015,53 @@ intersect_connectivity(const crs & c2f, const crs & f2e) {
 /*!
   Build intermediary entities locally from cell to vertex graph.
 
-  @tparam from_dim index of the dimension for rows indices in c2v.
+  @tparam from_dim index of the dimension for rows indices in e2v.
   @param dim index of dimension for intermediary.
   @param md mesh definition (provides function to build intermediary from list
   of vertices).
-  @param c2v cell to vertex graph.
+  @param e2v entity to vertex graph.
   @param p2m Process-to-mesh map for the primary entities.
 */
 template<Dimension from_dim, class MD>
 auto
 build_intermediary(Dimension dim,
   const MD & md,
-  const std::vector<std::vector<std::size_t>> & c2v,
+  const std::vector<std::vector<std::size_t>> & e2v,
   const std::vector<std::size_t> & p2m) {
   flog_assert((dim > 0 and dim < MD::dimension()),
     "Invalid dimension for intermediary entity: " << dim);
 
-  crs c2e, e2v;
+  util::crs c2e, i2v;
   std::map<std::vector<std::size_t>, std::size_t> v2e;
 
   // temporary storage
-  crs new_edges;
+  util::crs edges;
   std::vector<typename MD::index> sorted_vs;
   std::vector<typename MD::index> these_edges;
 
   // iterate over cells, adding all of their edges to the table
-  for(std::size_t cell{0}; cell < c2v.size(); cell++) {
-    const auto & these_verts = c2v[cell];
+  for(std::size_t cell{0}; cell < e2v.size(); cell++) {
+    const auto & these_verts = e2v[cell];
     // clear this cells edges
     these_edges.clear();
 
     // build the edges for the cell
-    new_edges.offsets.clear();
-    new_edges.indices.clear();
+    edges.offsets.clear();
+    edges.indices.clear();
     if constexpr(MD::dimension() == from_dim)
-      md.build_intermediary_from_vertices(
-        dim, p2m[cell], these_verts, new_edges);
+      md.build_intermediary_from_vertices(dim, p2m[cell], these_verts, edges);
     else
-      md.build_intermediary_from_vertices(dim, 0, these_verts, new_edges);
+      md.build_intermediary_from_vertices(dim, 0, these_verts, edges);
 
     /*
       look for existing vertex pairs in the edge-to-vertex master list
       or add a new edge to the list.  Add the matched edge id to the
       cell-to-edge list
     */
-    for(std::size_t row = 0; row < new_edges.offsets.size() - 1; row++) {
+    for(std::size_t row = 0; row < edges.offsets.size() - 1; row++) {
       // sort the vertices
-      auto beg = new_edges.indices.begin() + new_edges.offsets[row];
-      auto end = new_edges.indices.begin() + new_edges.offsets[row + 1];
+      auto beg = edges.indices.begin() + edges.offsets[row];
+      auto end = edges.indices.begin() + edges.offsets[row + 1];
       sorted_vs.assign(beg, end);
       std::sort(sorted_vs.begin(), sorted_vs.end());
       // if we don't find the edge
@@ -966,7 +1071,7 @@ build_intermediary(Dimension dim,
         auto edgeid = v2e.size();
         v2e.emplace(sorted_vs, edgeid);
         // add to the original sorted and unsorted mpas
-        e2v.add_row(beg, end);
+        i2v.add_row(beg, end);
         // add to the list of edges
         these_edges.push_back(edgeid);
       }
@@ -979,7 +1084,7 @@ build_intermediary(Dimension dim,
     c2e.add_row(these_edges.begin(), these_edges.end());
   }
 
-  return std::make_tuple(c2e, e2v, v2e);
+  return std::make_tuple(c2e, i2v, v2e);
 } // build_intermediary
 
 } // namespace unstructured_impl

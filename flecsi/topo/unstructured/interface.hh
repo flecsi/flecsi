@@ -23,7 +23,7 @@
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/topo/utility_types.hh"
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/dcrs.hh"
+#include "flecsi/util/crs.hh"
 #include "flecsi/util/set_utils.hh"
 
 #include <map>
@@ -59,7 +59,7 @@ struct unstructured : unstructured_base,
   struct access;
 
   /*--------------------------------------------------------------------------*
-    Constrcutor.
+    Constructor.
    *--------------------------------------------------------------------------*/
 
   unstructured(coloring const & c)
@@ -70,12 +70,14 @@ struct unstructured : unstructured_base,
               << " sizes for " << index_spaces::size << " index spaces");
           return c;
         }(),
-        index_spaces(),
-        std::make_index_sequence<index_spaces::size>()) {}
+        index_spaces()) {}
 
   Color colors() const {
     return part_.front().colors();
   }
+
+  template<index_space S>
+  static constexpr std::size_t index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -87,11 +89,8 @@ struct unstructured : unstructured_base,
     return part_.template get<S>();
   }
 
-  template<typename Type,
-    data::layout Layout,
-    typename Policy::index_space Space>
-  void ghost_copy(
-    data::field_reference<Type, Layout, Policy, Space> const & f) {
+  template<typename Type, data::layout Layout, typename Policy::index_space S>
+  void ghost_copy(data::field_reference<Type, Layout, Policy, S> const & f) {
     if constexpr(Layout == data::ragged)
       ; // TODO
     /*
@@ -103,7 +102,7 @@ struct unstructured : unstructured_base,
 
      */
     else
-      plan_.template get<Space>().issue_copy(f.fid());
+      plan_.template get<S>().issue_copy(f.fid());
   }
 
   template<index_space F, index_space T>
@@ -111,15 +110,21 @@ struct unstructured : unstructured_base,
     return connect_.template get<F>().template get<T>();
   }
 
-private:
   /*
     Return the forward map (local-to-global) for the given index space.
    */
 
   template<index_space S>
   auto const & forward_map() {
-    return forward_map_.template get<S>();
+    return forward_maps_.template get<S>();
   }
+
+private:
+  /*
+    Communication graph topology for ragged ghost updates.
+   */
+
+  struct ctopo : specialization<user, ctopo> {};
 
   /*
     Constant reference version:
@@ -127,11 +132,11 @@ private:
     The vector is over local process colors.
 
     Use like:
-      auto const & maps = slot->reverse_maps();
+      auto const & maps = slot->reverse_map();
    */
 
   template<index_space S>
-  auto reverse_maps() & {
+  auto reverse_map() & {
     return reverse_maps_.template get<S>();
   }
 
@@ -141,12 +146,12 @@ private:
     The vector is over local process colors.
 
     Use like:
-      auto maps = std::move(slot)->reverse_maps();
+      auto maps = std::move(slot)->reverse_map();
    */
 
   template<index_space S>
-  auto reverse_maps() && {
-    return std::move(reverse_maps_.template get<S>());
+  auto reverse_map() && {
+    return std::move(reverse_maps_.template get<index<S>>());
   }
 
   /*
@@ -154,44 +159,54 @@ private:
     when an instance of this topology is allocated.
    */
 
-  template<auto... Value, std::size_t... Index>
+  // clang-format off
+  template<auto... VV>
   unstructured(unstructured_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_{{make_repartitioned<Policy, Value>(c.colors,
-        make_partial<idx_size>(c.partitions[Index]))...}},
-      plan_{{make_copy_plan<Value>(c.colors,
-        c.idx_spaces[Index],
-        part_[Index],
-        c.comm)...}},
-      special_(c.colors) {
+    util::constants<VV...> /* index spaces to deduce pack */)
+    : with_ragged<Policy>(c.colors),
+      with_meta<Policy>(c.colors),
+      ctopo_(c.color_peers),
+      part_{
+        {
+        make_repartitioned<Policy, VV>(
+          c.colors,
+          make_partial<idx_size>(c.partitions[index<VV>]))...
+        }
+      },
+      special_(c.colors),
+      /* all data members need to be initialized before make_copy_plan */
+      plan_{
+        {
+        make_copy_plan<VV>(c, c.comm)...
+        }
+      }
+  {
     allocate_connectivities(c, connect_);
   }
+  // clang-format on
 
   /*
     Construct copy plan for the given index space S.
    */
 
   template<index_space S>
-  data::copy_plan make_copy_plan(Color colors,
-    std::vector<process_color> const & vpc,
-    repartitioned & p,
+  data::copy_plan make_copy_plan(unstructured_base::coloring const & c,
     MPI_Comm const & comm) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
-    std::vector<std::size_t> num_intervals(colors, 0);
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
-    std::vector<
-      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
-      points;
+    std::vector<std::size_t> num_intervals(c.colors, 0);
+    destination_intervals intervals;
+    source_pointers pointers;
 
-    auto const & fmd = forward_map_.template get<S>();
+    // auto const & cg = cgraph_.template get<S>();
+    auto const & fmd = forward_maps_.template get<S>();
 
-    execute<idx_itvls<NP>, mpi>(vpc,
+    execute<idx_itvls<NP>, mpi>(c.idx_spaces[index<S>],
+      c.process_colors,
       num_intervals,
       intervals,
-      points,
+      pointers,
+      // cg(ctopo_),
       fmd(*this),
       reverse_maps_.template get<S>(),
       comm);
@@ -201,12 +216,17 @@ private:
       execute<set_dests, mpi>(f, intervals, comm);
     };
 
-    auto ptrs_task = [&points, &comm](auto f) {
-      execute<set_ptrs<NP>, mpi>(f, points, comm);
+    auto ptrs_task = [&](auto f) {
+      execute<set_ptrs<NP>, mpi>(f, pointers, comm);
     };
     // clang-format on
 
-    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    return {*this,
+      part_.template get<S>(),
+      num_intervals,
+      dest_task,
+      ptrs_task,
+      util::constant<S>()};
   }
 
   /*
@@ -222,17 +242,23 @@ private:
   template<auto... VV, typename... TT>
   void allocate_connectivities(const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
-    std::size_t entity = 0;
     (
       [&](TT const & row) { // invoked for each from-entity
-        auto & pc = c.idx_spaces[entity++]; // std::vector<process_color>
-        std::size_t is{0};
-        for(auto & fd : row) { // invoked for each to-entity
-          auto & p = this->ragged.template get_partition<VV>(fd.fid);
-          execute<cnx_size, mpi>(pc, is++, p.sizes());
-        }
+        const std::vector<process_coloring> & pc = c.idx_spaces[index<VV>];
+        for_each(
+          [&](auto v) { // invoked for each to-entity
+            auto & p = this->ragged.template get_partition<VV>(
+              row.template get<v.value>().fid);
+            execute<cnx_size, mpi>(pc, index<v.value>, p.sizes());
+          },
+          typename TT::keys());
       }(connect_.template get<VV>()),
       ...);
+  }
+
+  template<class F, auto... VV>
+  static void for_each(F && f, util::constants<VV...> /* deduce pack */) {
+    (f(util::constant<VV>()), ...);
   }
 
   /*--------------------------------------------------------------------------*
@@ -252,13 +278,21 @@ private:
   };
 
   static inline const typename key_define<util::id, index_spaces>::type
-    forward_map_;
+    forward_maps_;
+
+  typename ctopo::core ctopo_;
+  static inline const util::key_array<
+    typename field<unstructured_impl::cmap,
+      data::ragged>::template definition<ctopo>,
+    index_spaces>
+    cgraph_;
 
   util::key_array<repartitioned, index_spaces> part_;
-  util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
   util::key_array<std::vector<std::map<std::size_t, std::size_t>>, index_spaces>
     reverse_maps_;
+  // Initializing this depends on the above:
+  util::key_array<data::copy_plan, index_spaces> plan_;
 
 }; // struct unstructured
 
@@ -296,23 +330,22 @@ protected:
     @tparam IndexSpace The index space identifier.
    */
 
-  template<index_space IndexSpace>
+  template<index_space S>
   auto entities() const {
-    return make_ids<IndexSpace>(
-      util::iota_view<util::id>(0, *size_.template get<IndexSpace>()));
+    return make_ids<S>(util::iota_view<util::id>(0, *size_.template get<S>()));
   }
 
   /*!
     Return a range of connectivity information for the parameterized
     index spaces.
 
-    @tparam To   The connected index space.
-    @tparam From The index space with connections.
+    @tparam T The connected index space.
+    @tparam F The index space with connections.
    */
 
-  template<index_space To, index_space From>
-  auto entities(id<From> from) const {
-    return make_ids<To>(connectivity<From, To>()[from]);
+  template<index_space T, index_space F>
+  auto entities(id<F> from) const {
+    return make_ids<T>(connectivity<F, T>()[from]);
   }
 
   template<index_space I, entity_list L>
@@ -321,14 +354,14 @@ protected:
   }
 
 private:
-  template<index_space From, index_space To>
+  template<index_space F, index_space T>
   auto & connectivity() {
-    return connect_.template get<From>().template get<To>();
+    return connect_.template get<F>().template get<T>();
   }
 
-  template<index_space From, index_space To>
+  template<index_space F, index_space T>
   auto const & connectivity() const {
-    return connect_.template get<From>().template get<To>();
+    return connect_.template get<F>().template get<T>();
   }
 
   /*--------------------------------------------------------------------------*
