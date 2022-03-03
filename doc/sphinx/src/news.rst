@@ -104,8 +104,6 @@ Removed
   * Topology element ``id()`` |mdash| iteration produces indices
   * Unstructured mesh |mdash| will be reimplemented
 
-* I/O |mdash| will be reimplemented
-
 Other incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^
 * Data
