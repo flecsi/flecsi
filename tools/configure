@@ -174,10 +174,7 @@ do
     clang)
       ;;
     hip)
-      SCRIPT_C_COMPILER=clang
-      SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=5 $warn"
       SCRIPT_CXX_COMPILER=hipcc
-      SCRIPT_CXX_FLAGS="$SCRIPT_C_FLAGS"
       ;;
     gnu)
       SCRIPT_C_COMPILER=gcc
