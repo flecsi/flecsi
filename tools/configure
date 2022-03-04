@@ -179,8 +179,7 @@ do
       ;;
     gnu)
       SCRIPT_C_COMPILER=gcc
-      SCRIPT_C_FLAGS="-fmax-errors=5 -fdiagnostics-color=always\
-        $warn"
+      SCRIPT_C_FLAGS="-fmax-errors=5 -fdiagnostics-color=always $warn"
       SCRIPT_CXX_COMPILER=g++
       SCRIPT_CXX_FLAGS=$SCRIPT_C_FLAGS
 
