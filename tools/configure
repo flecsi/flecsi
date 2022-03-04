@@ -111,7 +111,7 @@ warn="-Wall -W -Werror"
 SCRIPT_GENERATOR="Unix Makefiles"
 SCRIPT_BUILD_TYPE=RelWithDebInfo
 
-# Default is clang, so there is no case below
+# Default is clang
 SCRIPT_C_COMPILER=clang
 SCRIPT_C_FLAGS="-fcolor-diagnostics -ferror-limit=4 $warn"
 SCRIPT_CXX_COMPILER=clang++
@@ -170,6 +170,8 @@ do
       ;;
     legion|mpi|hpx)
       backend=$1
+      ;;
+    clang)
       ;;
     hip)
       SCRIPT_C_COMPILER=clang
