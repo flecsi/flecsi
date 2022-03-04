@@ -30,6 +30,8 @@
 namespace flecsi {
 namespace topo {
 namespace narray_impl {
+/// \addtogroup narray
+/// \{
 
 enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
@@ -105,7 +107,11 @@ struct index_coloring {
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
 };
 
+/// \}
 } // namespace narray_impl
+
+/// \addtogroup narray
+/// \{
 
 /*----------------------------------------------------------------------------*
   Base.
@@ -179,6 +185,7 @@ struct narray_base {
   }
 }; // struct narray_base
 
+/// \}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
