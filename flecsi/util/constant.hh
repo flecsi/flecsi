@@ -69,6 +69,18 @@ public:
     std::make_index_sequence<size>());
 };
 
+template<class, class>
+struct key_array;
+
+namespace detail {
+template<class A, class F, auto... VV>
+constexpr auto
+map(A && a, F & f, util::constants<VV...> /* A::keys */) {
+  return key_array<std::decay_t<decltype(f(std::forward<A>(a).front()))>,
+    util::constants<VV...>>{{f(std::forward<A>(a).template get<VV>())...}};
+}
+} // namespace detail
+
 // A std::array<T> indexed by the values in a constants<...>.
 template<class T, class C>
 struct key_array : std::array<T, C::size> {
@@ -84,6 +96,16 @@ struct key_array : std::array<T, C::size> {
   template<auto V>
   constexpr const T & get() const {
     return (*this)[C::template index<V>];
+  }
+
+  // Apply a function to each element.
+  template<class F>
+  constexpr auto map(F && f) {
+    return detail::map(*this, f, keys());
+  }
+  template<class F>
+  constexpr auto map(F && f) const {
+    return detail::map(*this, f, keys());
   }
 };
 
