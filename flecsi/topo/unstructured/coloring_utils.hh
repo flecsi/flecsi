@@ -293,9 +293,11 @@ migrate(util::dcrs const & naive,
   @param idx_cos  The naive coloring of the entities.
 
   @param comm     The MPI communicator to use for communication.
+
+  \return the owning process for each entity
  */
 
-inline auto
+inline std::vector<Color>
 request_owners(std::vector<std::size_t> const & request,
   std::size_t ne,
   Color colors,
