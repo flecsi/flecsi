@@ -272,9 +272,9 @@ function(add_unit name)
      (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
    list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
   endif()
-  
-  if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_OPENMP)
-   list(APPEND  UNIT_FLAGS "--backend-args=-ll:ocpu 1 -ll:onuma 0") 
+ 
+  if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_OPENMP AND Legion_USE_OpenMP)
+    list(APPEND  UNIT_FLAGS "--backend-args=-ll:ocpu 1 -ll:onuma 0") 
   endif()
 
   if(${thread_instances} GREATER 1)

@@ -42,7 +42,7 @@ enum task_attributes_mask_t : TaskAttributes {
 constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
-#elif defined REALM_USE_OPENMP
+#elif defined(REALM_USE_OPENMP)
   omp
 #else
   loc
