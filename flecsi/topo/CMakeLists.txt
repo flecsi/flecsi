@@ -120,14 +120,6 @@ add_unit(narray
   THREADS 4
 )
 
-add_unit(narray4d
-  SOURCES
-    narray/test/narray4d.cc
-    narray/test/narray.hh
-    narray/test/narray_tasks.hh
-  THREADS 16
-)
-
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_BACKEND STREQUAL "legion")

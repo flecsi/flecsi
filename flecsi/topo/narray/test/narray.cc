@@ -82,6 +82,10 @@ mesh3d::slot m3;
 mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
 
+// 4D Mesh
+mesh4d::slot m4;
+mesh4d::cslot coloring4;
+
 bool
 unify(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   // Put everything on one point task:
@@ -198,6 +202,22 @@ narray_driver() {
       EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
     } // scope
 
+    if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
+      // 4D Mesh
+      mesh4d::coord indices{4, 4, 4, 4};
+      auto colors = topo::narray_utils::distribute(16, indices);
+      flog(warn) << log::container{colors} << std::endl;
+
+      mesh4d::coord hdepths{1, 1, 1, 1};
+      mesh4d::coord bdepths{1, 1, 1, 1};
+      std::vector<bool> periodic{false, false, false, false};
+      bool diagonals = true;
+      mesh4d::coloring_definition cd = {
+        colors, indices, hdepths, bdepths, periodic, diagonals};
+      coloring4.allocate(cd);
+      m4.allocate(coloring4.get());
+      execute<check_4dmesh>(m4);
+    }
   }; // UNIT
 } // narray_driver
 

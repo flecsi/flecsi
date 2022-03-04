@@ -695,24 +695,21 @@ check_4dmesh(mesh<4>::accessor<ro> m) {
     std::set<util::id> boundary_low[2] = {{0}, {}};
     std::set<util::id> boundary_high[2] = {{}, {3}};
 
-    const int rank = process();
     const int nparts = 2; //#num colors on each axis
 
-    const auto indices = [&](auto && offset) {
-      auto rem = offset;
+    const auto idx = [&] {
+      auto rem = color();
       std::vector<int> idx(4);
       for(auto dim = 0; dim < 4; ++dim) {
         idx[dim] = rem % nparts;
         rem = (rem - idx[dim]) / nparts;
       }
       return idx;
-    };
+    }();
 
     const auto s = [](auto && r) {
       return std::set<util::id>(r.begin(), r.end());
     };
-
-    auto idx = indices(rank);
 
     EXPECT_EQ(s(m.extents<ax::x_axis>()), logical[idx[0]]);
     EXPECT_EQ(s(m.extents<ax::x_axis, r::extended>()), extended[idx[0]]);
