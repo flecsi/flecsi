@@ -134,12 +134,6 @@ struct narray_base {
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
 
-  /*
-    This data structure will need to change to process_color with
-    coloring = std::vector<process_color> when we add support for
-    M != N (colors to processes).
-   */
-
   /// Coloring type.
   /// \ingroup narray
   struct coloring {
