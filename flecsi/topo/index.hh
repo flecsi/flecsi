@@ -191,8 +191,24 @@ struct detail::base<array_category> {
 template<class P>
 struct array : topo::specialization<array_category, array<P>> {};
 
+//---------------------------------------------------------------------------//
+// User topology.
+//---------------------------------------------------------------------------//
+
 // The simplest topology that behaves as expected by application code.
 struct user_base : array_base {};
+
+//-----------------------------------------------------------------//
+//! The User topology is parameterized by a partitioned array type.
+//-----------------------------------------------------------------//
+/**
+ * @brief User topology.
+ * The User topology implements arguably the simplest topology that
+ * provides useful functionality for parallel access.  It represents a
+ * distributed 1-D vector of arbitrary fields.  Although ghost cells
+ * are not supported, there can be a different number of indices per
+ * color.
+ */
 template<class P>
 struct user : user_base, array_category<P>, with_ragged<P> {
   explicit user(const coloring & c)
