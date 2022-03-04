@@ -36,7 +36,7 @@ namespace topo {
 /// \ingroup topology
 /// \{
 
-/*!----------------------------------------------------------------------------*
+/*!
   Narray Topology.
   \tparam Policy the specialization, following
    \ref narray_specialization.
@@ -76,6 +76,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
+    /// Two bits for each axis that give the position of the color along the
+    /// axis (\e low, \e interior, or \e high).
     std::array<std::uint32_t, index_spaces::size> faces;
     /// Global extents per index space.
     /// These are necessarily the same on every color.
