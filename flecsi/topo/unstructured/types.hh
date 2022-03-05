@@ -19,7 +19,6 @@
 #include <set>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \addtogroup unstructured
@@ -625,6 +624,5 @@ struct util::serial::traits<topo::unstructured_impl::process_coloring> {
 };
 
 } // namespace flecsi
-/// \endcond
 
 #endif

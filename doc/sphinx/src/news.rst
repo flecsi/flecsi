@@ -56,6 +56,8 @@ New features
 
 * Topologies
 
+  * ``unstructured`` represents unstructured meshes.
+  * ``narray`` represents hyperrectangular arrays, including structured meshes.
   * ``global`` topology instances may be created with sizes other than 1.
     (All elements are shared together among all point tasks in an index launch.)
 
@@ -70,6 +72,7 @@ New features
 
 * Utilities
 
+  * ``flog.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
   * ``serial`` provides a general-purpose serialization interface.
     It may be extended to allow additional types to be used as task parameters or with MPI communication.
   * ``mpi::one_to_alli`` scatters generated and/or serialized data with bounded memory usage.

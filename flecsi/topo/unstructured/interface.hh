@@ -21,7 +21,6 @@
 #include <memory>
 #include <utility>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \defgroup unstructured Unstructured Mesh
@@ -447,6 +446,5 @@ struct unstructured_specialization : specialization<unstructured, example> {
 /// \}
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif

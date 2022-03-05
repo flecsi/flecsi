@@ -12,7 +12,6 @@
 #include "flecsi/util/unit/output.hh"
 #include <flecsi/flog.hh>
 
-/// \cond core
 namespace flecsi {
 
 inline log::devel_tag unit_tag("unit");
@@ -311,6 +310,5 @@ struct string_case_compare {
 
 /// \}
 /// \}
-/// \endcond
 
 #endif

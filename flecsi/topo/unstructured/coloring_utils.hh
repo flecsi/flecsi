@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
@@ -1131,6 +1130,5 @@ build_intermediary(Dimension dim,
 } // namespace unstructured_impl
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif
