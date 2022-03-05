@@ -173,8 +173,6 @@ protected:
 };
 } // namespace detail
 
-/// \cond core
-
 /// A variation of \c mdspan with reversed indices (distinguished by `()`).
 template<class T, Dimension D>
 struct mdcolex : detail::mdbase<T, D> {
@@ -196,7 +194,6 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
-/// \endcond
 
 /// A small, approximate subset of mdspan as proposed for C++23.
 /// \tparam D dimension

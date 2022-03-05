@@ -75,6 +75,7 @@ New features
   * ``flog.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
   * ``serial`` provides a general-purpose serialization interface.
     It may be extended to allow additional types to be used as task parameters or with MPI communication.
+  * ``mdcolex`` accesses a multi-dimensional array using Fortran-like syntax.
   * ``mpi::one_to_alli`` scatters generated and/or serialized data with bounded memory usage.
   * MPI communication functions compute values to send in rank order and support mutable functors.
 
