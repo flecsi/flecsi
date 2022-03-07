@@ -16,8 +16,6 @@
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
 
-#include <vector>
-
 namespace state {
 
 enum class cp { allocate, initialize, advance, finalize };
