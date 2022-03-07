@@ -96,11 +96,10 @@ Launch Domains
 ^^^^^^^^^^^^^^
 
 Launch domain (`exec::launch_domain`) is used to define how many index
-points should index task have. If no `launch_dmain` is passed to the
-`execute` method, the default will be used. The default is `0` if no
-topology instanced is passed or the one specified in the topology
-instance passed to the task (the number of colors topology instance
-have).
+points should an index task have. If no `launch_domain` is passed to the
+`execute` method, the default will be used. If a topology instance is
+passed the default is the number of colors that instance has.
+Otherwise, the default is `0`.
 
 
 Example 3: MPI Tasks
@@ -110,7 +109,7 @@ MPI task is an index task that has launch domain size equal to number of
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.  
-To execute an MPI task, second template parameter to the `execute`
+To execute an MPI task, the second template parameter to the `execute`
 method should be set to `mpi`.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
