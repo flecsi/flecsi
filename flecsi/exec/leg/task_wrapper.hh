@@ -205,12 +205,17 @@ detail::register_task() {
 
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
   Legion::Processor::Kind kind;
-  if constexpr(processor_type == task_processor_type_t::toc)
-    kind = Legion::Processor::TOC_PROC;
-  else if constexpr(processor_type == task_processor_type_t::omp)
-    kind = Legion::Processor::OMP_PROC;
-  else
-    kind = Legion::Processor::LOC_PROC;
+  switch(processor_type) {
+    case task_processor_type_t::toc:
+      kind = Legion::Processor::TOC_PROC;
+      break;
+    case task_processor_type_t::omp:
+      kind = Legion::Processor::OMP_PROC;
+      break;
+    default:
+      kind = Legion::Processor::LOC_PROC;
+      break;
+  }
 
   registrar.add_constraint(Legion::ProcessorConstraint(kind));
 

@@ -148,10 +148,18 @@ reduce_internal(Args &&... args) {
     for(auto & req : pro.region_requirements())
       l.add_region_requirement(req);
     l.futures = std::move(pro).futures();
-    if(processor_type == task_processor_type_t::toc)
-      l.tag = run::mapper::prefer_gpu;
-    if(processor_type == task_processor_type_t::omp)
-      l.tag = run::mapper::prefer_omp;
+    switch(processor_type) {
+      case task_processor_type_t::toc:
+        l.tag = run::mapper::prefer_gpu;
+        break;
+      case task_processor_type_t::omp:
+        l.tag = run::mapper::prefer_omp;
+        break;
+      // Null default is added to suppress warning for other enumerators that
+      // do nothing
+      default:
+        break;
+    }
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
