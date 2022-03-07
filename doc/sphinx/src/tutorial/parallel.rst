@@ -30,7 +30,7 @@ and is executed on the FleCSI default accelerator.
 Second template parameter to the execute function is a *processor_type*
 with *loc* (latency optimized core) as a default value.
 *default_accelerator* is a processor type that corresponds to Kokkos
-default execution space. For example, if Kokkos is bult with Cuda and
+default execution space. For example, if Kokkos is built with Cuda and
 Serial, Cuda will be a default execution space or *toc* (throughput
 optimized core) *processor type* in FleCSI. 
 
