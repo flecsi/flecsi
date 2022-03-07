@@ -45,18 +45,18 @@ default `launch domain` is used. Therefore, it is a single task
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 28-31
+  :lines: 26-29
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 82-82
+  :lines: 80-80
 
 You can return a value from the task. And A `future` is a mechanism, to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 93-107
+  :lines: 86-106
 
 FleCSI can execute a task that takes an argument by-value.
 FleCSI tasks can take any valid C++ type by value. However, because task
@@ -65,17 +65,17 @@ arguments that contain pointers.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 117-119
+  :lines: 114-118
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 66-73
+  :lines: 64-71
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 127-128
+  :lines: 124-128
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
