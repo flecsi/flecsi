@@ -49,8 +49,9 @@ popd
 # Load a newer CMake and versions of GCC and MPICH known to work with FleCSI.
 # Expose these -- and whatever else happense to be sitting around -- as Spack
 # externals.
-module load cmake
+module load cmake/3.19.2
 module load gcc/9.4.0
+spack compiler find
 spack external find
 spack config remove packages:python   # Provides only a partial Sphinx
 spack config remove packages:libtool  # Seems incomplete
