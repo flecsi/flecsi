@@ -1,7 +1,3 @@
-.. |br| raw:: html
-
-   <br />
-
 .. _TUT-EM:
 
 Execution Model
@@ -9,7 +5,7 @@ Execution Model
 
 FleCSI has two mechanisms for expressing work:
 
-* **Tasks** |br|
+Tasks
   Tasks operate on data distributed to one or more address spaces, and
   use data privileges to maintain memory consistency. FleCSI tasks are
   like a more flexible version of MPI that does not require the user to
@@ -17,7 +13,7 @@ FleCSI has two mechanisms for expressing work:
   not use static process mappings, i.e., relocatable, distributed-memory
   data parallelism.
 
-* **Kernels** |br|
+Kernels
   Kernels operate on data in a single address space, but require
   explicit barriers to ensure consistency. This is generally referred to
   as a relaxed-consistency memory model. The kernel interface in
