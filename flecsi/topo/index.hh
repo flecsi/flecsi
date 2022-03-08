@@ -199,15 +199,29 @@ struct array : topo::specialization<array_category, array<P>> {};
 struct user_base : array_base {};
 
 //-----------------------------------------------------------------//
-//! The User topology is parameterized by a partitioned array type.
+// The User topology is parameterized by a partitioned array type.
 //-----------------------------------------------------------------//
 /**
- * @brief User topology.
+ * \brief User topology.
+ *
  * The User topology implements arguably the simplest topology that
- * provides useful functionality for parallel access.  It represents a
- * distributed 1-D vector of arbitrary fields.  Although ghost cells
- * are not supported, there can be a different number of indices per
- * color.
+ * provides useful functionality for parallel data accesses.  It
+ * represents a single index space whose size can vary by color.
+ * Ghost copies are not supported.
+ *
+ * The User topology's `coloring` type is a vector (specifically, a
+ * ``std::vector<std::size_t>``) indicating the number of indices per
+ * color in the single index space.  The minimum requirement for a
+ * `user` specialization is a `color` method that takes zero or more
+ * arguments and returns a `coloring`:
+ *
+ * \code{.cpp}
+ * struct my_spec : flecsi::topo::specialization<flecsi::topo::user, my_spec> {
+ *   static coloring color() {
+ *      ⋮
+ *   }
+ * }
+ * \endcode
  */
 template<class P>
 struct user : user_base, array_category<P>, with_ragged<P> {
