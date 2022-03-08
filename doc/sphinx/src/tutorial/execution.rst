@@ -37,11 +37,11 @@ Example 1: Single Tasks
 
 Single task is a task that operates on entire data passed to it and is
 executed by a single process. 
-`execute` method will call a single task if no ‘launch domain` (see in
+``execute`` method will call a single task if no *launch domain* (see in
 the next example) or a topology with a launch domain is passed to it.
 
-In the example of `trivial` task, there is no arguments passed and a
-default `launch domain` is used. Therefore, it is a single task
+In the example of ``trivial`` task, there is no arguments passed and a
+default launch domain is used. Therefore, it is a single task
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
@@ -51,7 +51,7 @@ default `launch domain` is used. Therefore, it is a single task
   :language: cpp
   :lines: 80-80
 
-You can return a value from the task. And A `future` is a mechanism, to
+You can return a value from the task. And a *future* is a mechanism, to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
@@ -84,8 +84,8 @@ Index task is a task that is executed by several processes. It is often
 used to operate on different parts of the input data (like partitioned
 mesh) asynchronously. 
 
-In this example we explicitly ask to execute `task` on 4 processes by
-specifying `launch_domain` parameter
+In this example we explicitly ask to execute ``task`` on 4 processes by
+specifying ``launch_domain`` as argument
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
@@ -95,11 +95,11 @@ specifying `launch_domain` parameter
 Launch Domains
 ^^^^^^^^^^^^^^
 
-Launch domain (`exec::launch_domain`) is used to define how many index
-points should an index task have. If no `launch_domain` is passed to the
-`execute` method, the default will be used. If a topology instance is
+Launch domain (``exec::launch_domain``) is used to define how many index
+points an index task should have. If no ``launch_domain`` is passed to the
+``execute`` method, the default will be used. If a topology instance is
 passed the default is the number of colors that instance has.
-Otherwise, the default is `0`.
+Otherwise, the default is ``0``.
 
 
 Example 3: MPI Tasks
@@ -109,8 +109,8 @@ MPI task is an index task that has launch domain size equal to number of
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.  
-To execute an MPI task, the second template parameter to the `execute`
-method should be set to `mpi`.
+To execute an MPI task, the second template argument to the ``execute``
+method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
