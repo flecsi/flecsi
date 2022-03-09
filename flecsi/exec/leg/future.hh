@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_EXEC_LEG_FUTURE_HH
 #define FLECSI_EXEC_LEG_FUTURE_HH
 

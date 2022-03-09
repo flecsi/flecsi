@@ -1,17 +1,6 @@
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_TOPO_NARRAY_TEST_NARRAY_TASKS_HH
 #define FLECSI_TOPO_NARRAY_TEST_NARRAY_TASKS_HH
 

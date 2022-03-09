@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_IO_LEG_POLICY_HH
 #define FLECSI_IO_LEG_POLICY_HH
 

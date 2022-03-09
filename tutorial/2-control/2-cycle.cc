@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #if defined(SUBCYCLE)
 #include "2-subcycle.hh"

@@ -694,12 +694,12 @@ documentation.
 
   .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
     :language: cpp
-    :lines: 32-52
+    :lines: 21-41
 
 This will be rendered like:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
   :language: cpp
-  :lines: 32-52
+  :lines: 21-41
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

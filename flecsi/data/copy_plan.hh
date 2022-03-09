@@ -1,16 +1,6 @@
-/*
-@@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-/@@/////  /@@          @@////@@ @@////// /@@
-/@@       /@@  @@@@@  @@    // /@@       /@@
-/@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-/@@////   /@@/@@@@@@@/@@       ////////@@/@@
-/@@       /@@/@@//// //@@    @@       /@@/@@
-/@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-//       ///  //////   //////  ////////  //
+// Copyright (c) 2020, Triad National Security, LLC
+// All rights reserved.
 
-Copyright (c) 2020, Triad National Security, LLC
-All rights reserved.
-                                                            */
 #ifndef FLECSI_DATA_COPY_PLAN_HH
 #define FLECSI_DATA_COPY_PLAN_HH
 

@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_TIKZ_WRITER_HH
 #define FLECSI_TOPO_UNSTRUCTURED_TEST_TIKZ_WRITER_HH
 

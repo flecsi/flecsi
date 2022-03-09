@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016 Los Alamos National Laboratory, LLC
-   All rights reserved
-                                                                              */
+// Copyright (c) 2016 Los Alamos National Laboratory, LLC
+// All rights reserved
 
 #ifndef FLECSI_UTIL_GEOMETRY_POINT_HH
 #define FLECSI_UTIL_GEOMETRY_POINT_HH

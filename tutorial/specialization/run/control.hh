@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef TUTORIAL_SPECIALIZATION_RUN_CONTROL_HH
 #define TUTORIAL_SPECIALIZATION_RUN_CONTROL_HH
 

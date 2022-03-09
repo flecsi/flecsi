@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_DATA_TOPOLOGY_SLOT_HH
 #define FLECSI_DATA_TOPOLOGY_SLOT_HH
 

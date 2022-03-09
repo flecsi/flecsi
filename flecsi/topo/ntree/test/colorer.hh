@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #ifndef FLECSI_TOPO_NTREE_TEST_COLORER_HH
 #define FLECSI_TOPO_NTREE_TEST_COLORER_HH

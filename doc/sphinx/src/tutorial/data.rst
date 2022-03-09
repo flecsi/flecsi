@@ -20,13 +20,13 @@ is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 24-26
+  :lines: 13-15
 
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 28-46
+  :lines: 17-35
 
 Example 2: Index data 
 +++++++++++++++++++++
@@ -37,7 +37,7 @@ topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/2-index.cc
   :language: cpp
-  :lines: 21-54
+  :lines: 10-43
 
 Example 3: Dense data
 +++++++++++++++++++++
@@ -48,14 +48,14 @@ of the `canonical` topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 27-27
+  :lines: 16-16
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 29-56
+  :lines: 18-45
 
 ----
 
