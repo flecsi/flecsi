@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_LOG_STATE_HH
+#define FLECSI_LOG_STATE_HH
 
 #include <flecsi-config.h>
 
@@ -414,3 +415,5 @@ private:
 /// \endcond
 
 #endif // FLECSI_ENABLE_FLOG
+
+#endif

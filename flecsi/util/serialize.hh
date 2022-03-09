@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_SERIALIZE_HH
+#define FLECSI_UTIL_SERIALIZE_HH
 
 #include <cstddef>
 #include <cstring> // memcpy
@@ -375,3 +376,5 @@ struct traits<T, decltype(void(convert<T>::put))> {
 } // namespace util
 } // namespace flecsi
 /// \endcond
+
+#endif

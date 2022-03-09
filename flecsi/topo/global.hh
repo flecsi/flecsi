@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_GLOBAL_HH
+#define FLECSI_TOPO_GLOBAL_HH
 
 #include "flecsi/data/topology.hh"
 #include "flecsi/topo/core.hh"
@@ -61,3 +62,5 @@ struct exec::detail::launch<data::accessor<L, T, Priv>,
 };
 
 } // namespace flecsi
+
+#endif

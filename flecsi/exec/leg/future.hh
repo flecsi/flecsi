@@ -11,7 +11,8 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_LEG_FUTURE_HH
+#define FLECSI_EXEC_LEG_FUTURE_HH
 
 #include <flecsi-config.h>
 
@@ -63,3 +64,5 @@ struct future<Return, exec::launch_type_t::index> {
 };
 
 } // namespace flecsi
+
+#endif

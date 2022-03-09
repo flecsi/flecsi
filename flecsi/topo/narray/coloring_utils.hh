@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_NARRAY_COLORING_UTILS_HH
+#define FLECSI_TOPO_NARRAY_COLORING_UTILS_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/types.hh"
@@ -622,3 +623,5 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
 } // namespace flecsi
 
 /// \endcond
+
+#endif

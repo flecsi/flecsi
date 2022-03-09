@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_RUN_BACKEND_HH
+#define FLECSI_RUN_BACKEND_HH
 
 #include <flecsi-config.h>
 
@@ -42,3 +43,5 @@ context::instance() {
   return context;
 } // instance
 } // namespace flecsi::run
+
+#endif

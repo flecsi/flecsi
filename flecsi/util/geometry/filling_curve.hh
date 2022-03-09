@@ -11,7 +11,8 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_GEOMETRY_FILLING_CURVE_HH
+#define FLECSI_UTIL_GEOMETRY_FILLING_CURVE_HH
 
 #include "flecsi/util/geometry/point.hh"
 
@@ -516,3 +517,5 @@ public:
 }; // class morton
 
 } // namespace flecsi
+
+#endif

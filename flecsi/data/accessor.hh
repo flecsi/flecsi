@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_ACCESSOR_HH
+#define FLECSI_DATA_ACCESSOR_HH
 
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
@@ -1084,3 +1085,5 @@ struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
 };
 
 } // namespace flecsi
+
+#endif

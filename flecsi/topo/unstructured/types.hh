@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
@@ -441,3 +442,5 @@ struct util::serial::traits<topo::unstructured_impl::index_coloring> {
 
 } // namespace flecsi
 /// \endcond
+
+#endif

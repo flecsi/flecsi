@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_TASK_ATTRIBUTES_HH
+#define FLECSI_EXEC_TASK_ATTRIBUTES_HH
 
 #include "flecsi/util/bitutils.hh"
 
@@ -99,3 +100,5 @@ mask_to_processor_type(TaskAttributes mask) {
 } // namespace exec
   /// \endcond
 } // namespace flecsi
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_PARMETIS_HH
+#define FLECSI_UTIL_PARMETIS_HH
 
 #include <flecsi-config.h>
 
@@ -91,3 +92,5 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 } // namespace parmetis
 } // namespace util
 } // namespace flecsi
+
+#endif

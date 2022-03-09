@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_ARRAY_REF_HH
+#define FLECSI_UTIL_ARRAY_REF_HH
 
 #include <array>
 #include <cassert>
@@ -632,3 +633,5 @@ transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

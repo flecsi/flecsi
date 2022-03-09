@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_SET_INTERSECTION_HH
+#define FLECSI_UTIL_SET_INTERSECTION_HH
 
 #include <algorithm>
 
@@ -63,3 +64,5 @@ bool intersects(
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

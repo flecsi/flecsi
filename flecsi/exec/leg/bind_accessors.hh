@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
+#define FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 
 #include <flecsi-config.h>
 
@@ -126,3 +127,5 @@ private:
 /// \}
 } // namespace exec::leg
 } // namespace flecsi
+
+#endif

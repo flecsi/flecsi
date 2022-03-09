@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_CORE_HH
+#define FLECSI_TOPO_CORE_HH
 
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
@@ -234,3 +235,5 @@ struct specialization : specialization_base {
 /// \}
 } // namespace topo
 } // namespace flecsi
+
+#endif

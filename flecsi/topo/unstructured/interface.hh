@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
+#define FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
@@ -299,3 +300,5 @@ struct unstructured_specialization : specialization<unstructured, example> {
 } // namespace topo
 } // namespace flecsi
 /// \endcond
+
+#endif

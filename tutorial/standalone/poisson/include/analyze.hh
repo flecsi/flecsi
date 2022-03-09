@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_ANALYZE_HH
+#define POISSON_ANALYZE_HH
 
 #include "specialization/control.hh"
 
@@ -15,3 +16,5 @@ inline control::action<analyze, cp::analyze> analyze_action;
 
 } // namespace action
 } // namespace poisson
+
+#endif

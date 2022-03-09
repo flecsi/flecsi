@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXECUTION_HH
+#define FLECSI_EXECUTION_HH
 
 #include "flecsi/exec/backend.hh"
 #include "flecsi/exec/fold.hh"
@@ -437,3 +438,5 @@ flush() {
 } // namespace log
 
 } // namespace flecsi
+
+#endif

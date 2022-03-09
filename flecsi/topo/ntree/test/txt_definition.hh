@@ -11,7 +11,8 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_TEST_TXT_DEFINITION_HH
+#define FLECSI_TOPO_NTREE_TEST_TXT_DEFINITION_HH
 
 #include <fstream>
 #include <set>
@@ -158,3 +159,5 @@ private:
   std::vector<size_t> offset_;
 
 }; // class txt_definition
+
+#endif

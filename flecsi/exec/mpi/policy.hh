@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_MPI_POLICY_HH
+#define FLECSI_EXEC_MPI_POLICY_HH
 
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/launch.hh"
@@ -193,3 +194,5 @@ reduce_internal(Args &&... args) {
 /// \}
 } // namespace exec
 } // namespace flecsi
+
+#endif

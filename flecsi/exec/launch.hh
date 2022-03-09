@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_LAUNCH_HH
+#define FLECSI_EXEC_LAUNCH_HH
 
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/task_attributes.hh"
@@ -274,3 +275,5 @@ struct detail::launch<P, future<T, launch_type_t::index>> {
 
 ///\}
 } // namespace flecsi
+
+#endif

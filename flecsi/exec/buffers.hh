@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_BUFFERS_HH
+#define FLECSI_EXEC_BUFFERS_HH
 
 #include <flecsi-config.h>
 
@@ -117,3 +118,5 @@ private:
 /// \}
 } // namespace exec
 } // namespace flecsi
+
+#endif

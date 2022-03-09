@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_TOPOLOGY_SLOT_HH
+#define FLECSI_DATA_TOPOLOGY_SLOT_HH
 
 #include "flecsi/flog.hh"
 
@@ -69,3 +70,5 @@ private:
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif

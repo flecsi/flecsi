@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_TYPE_TRAITS_HH
+#define FLECSI_UTIL_TYPE_TRAITS_HH
 
 #include <type_traits>
 
@@ -36,3 +37,5 @@ using voided = std::conditional_t<false, detail::hold<TT...>, void>;
 } // namespace util
 } // namespace flecsi
 /// \endcond
+
+#endif

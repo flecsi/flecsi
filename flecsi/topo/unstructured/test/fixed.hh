@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_FIXED_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TEST_FIXED_HH
 
 #include "flecsi/topo/unstructured/types.hh"
 
@@ -1103,4 +1104,6 @@ inline std::vector<flu::index_coloring> vertices = {
     272, 273, 274, 275, 276, 277, 278, 279, 280, 281
   }
 };
+#endif
+
 #endif

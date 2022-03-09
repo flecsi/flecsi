@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_TYPES_HH
+#define FLECSI_TOPO_NTREE_TYPES_HH
 
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/geometry/point.hh"
@@ -214,3 +215,5 @@ class node
 } // namespace topo
 } // namespace flecsi
 /// \endcond
+
+#endif

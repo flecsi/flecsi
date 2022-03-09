@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_COLORING_FUNCTORS_HH
+#define FLECSI_TOPO_UNSTRUCTURED_COLORING_FUNCTORS_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/color_map.hh"
@@ -325,3 +326,5 @@ private:
 } // namespace unstructured_impl
 } // namespace topo
 } // namespace flecsi
+
+#endif

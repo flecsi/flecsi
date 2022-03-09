@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_LAYOUT_HH
+#define FLECSI_DATA_LAYOUT_HH
 
 #include <cstddef>
 
@@ -37,3 +38,5 @@ enum layout : size_t {
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif

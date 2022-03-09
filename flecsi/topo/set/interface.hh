@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_SET_INTERFACE_HH
+#define FLECSI_TOPO_SET_INTERFACE_HH
 
 #include "flecsi/topo/core.hh" // base
 #include "flecsi/topo/set/types.hh"
@@ -29,3 +30,5 @@ struct detail::base<set> {
 
 } // namespace topo
 } // namespace flecsi
+
+#endif

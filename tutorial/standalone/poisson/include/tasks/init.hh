@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_TASKS_INIT_HH
+#define POISSON_TASKS_INIT_HH
 
 #include "specialization/mesh.hh"
 
@@ -17,3 +18,5 @@ void eggcarton(mesh::accessor<ro> m,
 
 } // namespace task
 } // namespace poisson
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_UNIT_HH
+#define FLECSI_UTIL_UNIT_HH
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
@@ -88,3 +89,5 @@ using finalization = control::action<Target, test_control_points::finalization>;
 } // namespace unit
 } // namespace flecsi
 /// \endcond
+
+#endif

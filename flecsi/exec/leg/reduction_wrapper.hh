@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_LEG_REDUCTION_WRAPPER_HH
+#define FLECSI_EXEC_LEG_REDUCTION_WRAPPER_HH
 
 #include "flecsi/exec/fold.hh"
 #include "flecsi/run/backend.hh"
@@ -203,3 +204,5 @@ using wrap = typename detail::wrap<R, T>::type;
 } // namespace fold
 } // namespace exec
 } // namespace flecsi
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef TUTORIAL_2_CONTROL_2_CYCLE_HH
+#define TUTORIAL_2_CONTROL_2_CYCLE_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
@@ -88,3 +89,5 @@ private:
 using control = flecsi::run::control<control_policy>;
 
 } // namespace cycle
+
+#endif

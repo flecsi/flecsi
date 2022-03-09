@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_LOG_TAG_SCOPE_HH
+#define FLECSI_LOG_TAG_SCOPE_HH
 
 #include <flecsi-config.h>
 
@@ -63,3 +64,5 @@ private:
 } // namespace flecsi
 
 #endif // FLECSI_ENABLE_FLOG
+
+#endif

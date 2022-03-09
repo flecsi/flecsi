@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_RUN_TEST_PACKAGE_C_HH
+#define FLECSI_RUN_TEST_PACKAGE_C_HH
 
 #include "cycle_control.hh"
 #include "package_a.hh"
@@ -42,3 +43,5 @@ inline control::action<analyze, cp::analyze> analyze_action;
 inline const auto dep_a = analyze_action.add(package_a::analyze_action);
 
 } // namespace package_c
+
+#endif

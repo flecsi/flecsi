@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_COMMON_HH
+#define FLECSI_UTIL_COMMON_HH
 
 #include <cassert>
 #include <cstdint>
@@ -121,3 +122,5 @@ struct identity {
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_BITUTILS_HH
+#define FLECSI_UTIL_BITUTILS_HH
 
 #include <cstddef>
 #include <limits>
@@ -46,3 +47,5 @@ bit_width(T x) noexcept {
 } // namespace util
 } // namespace flecsi
 /// \endcond
+
+#endif

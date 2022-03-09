@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_BACKEND_HH
+#define FLECSI_EXEC_BACKEND_HH
 
 #include "flecsi/exec/task_attributes.hh"
 #include <flecsi-config.h>
@@ -69,3 +70,5 @@ auto execute(ARGS &&...);
 #include "flecsi/exec/hpx/policy.hh"
 
 #endif // FLECSI_BACKEND
+
+#endif

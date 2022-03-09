@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_RUN_CONTEXT_HH
+#define FLECSI_RUN_CONTEXT_HH
 
 #include <flecsi-config.h>
 
@@ -587,3 +588,5 @@ private:
 /// \}
 } // namespace run
 } // namespace flecsi
+
+#endif

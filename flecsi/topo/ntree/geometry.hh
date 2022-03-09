@@ -12,7 +12,8 @@
  * All rights reserved
  *~--------------------------------------------------------------------------~*/
 
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_GEOMETRY_HH
+#define FLECSI_TOPO_NTREE_GEOMETRY_HH
 
 #include "flecsi/util/geometry/point.hh"
 
@@ -115,3 +116,5 @@ struct ntree_geometry {
 
 } // namespace topo
 } // namespace flecsi
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef TUTORIAL_2_CONTROL_1_SIMPLE_HH
+#define TUTORIAL_2_CONTROL_1_SIMPLE_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
@@ -97,3 +98,5 @@ struct control_policy {
 using control = flecsi::run::control<control_policy>;
 
 } // namespace simple
+
+#endif

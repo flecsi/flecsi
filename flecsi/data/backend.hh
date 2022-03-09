@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_BACKEND_HH
+#define FLECSI_DATA_BACKEND_HH
 
 #include <flecsi-config.h>
 
@@ -58,3 +59,5 @@ struct prefixes_base {
 #include "flecsi/data/hpx/policy.hh"
 
 #endif // FLECSI_BACKEND
+
+#endif

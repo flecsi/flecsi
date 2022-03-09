@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_DEMANGLE_HH
+#define FLECSI_UTIL_DEMANGLE_HH
 
 #include <string>
 #include <typeinfo> // typeid()
@@ -68,3 +69,5 @@ symbol() {
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

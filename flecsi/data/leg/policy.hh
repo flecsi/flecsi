@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_LEG_POLICY_HH
+#define FLECSI_DATA_LEG_POLICY_HH
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
@@ -342,3 +343,5 @@ get_scalar_from_accessor(const T * ptr) {
 
 } // namespace data
 } // namespace flecsi
+
+#endif

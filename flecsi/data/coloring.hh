@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_COLORING_HH
+#define FLECSI_DATA_COLORING_HH
 
 #include <flecsi/execution.hh>
 
@@ -64,3 +65,5 @@ private:
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif

@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_DATA_TOPOLOGY_ACCESSOR_HH
+#define FLECSI_DATA_TOPOLOGY_ACCESSOR_HH
 
 #include "flecsi/data/privilege.hh"
 #include "flecsi/exec/launch.hh"
@@ -66,3 +67,5 @@ struct exec::detail::launch<P, data::topology_slot<T>> {
   }
 };
 } // namespace flecsi
+
+#endif

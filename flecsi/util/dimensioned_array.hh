@@ -11,7 +11,8 @@
    Copyright (c) 2016, Los Alamos National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_DIMENSIONED_ARRAY_HH
+#define FLECSI_UTIL_DIMENSIONED_ARRAY_HH
 
 #include <array>
 #include <cassert>
@@ -317,3 +318,5 @@ operator<<(std::ostream & stream,
 
 } // namespace util
 } // namespace flecsi
+
+#endif

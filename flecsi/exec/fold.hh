@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_EXEC_FOLD_HH
+#define FLECSI_EXEC_FOLD_HH
 
 #include <algorithm>
 #include <limits>
@@ -118,3 +119,5 @@ struct identity_traits<R, decltype(void(&R::identity))> {
 };
 } // namespace exec::detail
 } // namespace flecsi
+
+#endif

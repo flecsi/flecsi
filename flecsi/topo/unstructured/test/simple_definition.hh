@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 
 #include "flecsi/flog.hh"
 
@@ -160,3 +161,5 @@ private:
 } // namespace unstructured_impl
 } // namespace topo
 } // namespace flecsi
+
+#endif

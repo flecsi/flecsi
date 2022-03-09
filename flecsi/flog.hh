@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_FLOG_HH
+#define FLECSI_FLOG_HH
 
 #include <flecsi-config.h>
 
@@ -465,3 +466,5 @@ dumpstack() {
 #endif // NDEBUG
 
 /// \}
+
+#endif

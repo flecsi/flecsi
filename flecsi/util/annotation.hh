@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_UTIL_ANNOTATION_HH
+#define FLECSI_UTIL_ANNOTATION_HH
 
 #include <flecsi-config.h>
 
@@ -269,3 +270,5 @@ cali::Annotation annotation::context<T>::ann{T::name};
 
 } // namespace util
 } // namespace flecsi
+
+#endif

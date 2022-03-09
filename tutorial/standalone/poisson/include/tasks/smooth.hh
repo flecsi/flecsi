@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_TASKS_SMOOTH_HH
+#define POISSON_TASKS_SMOOTH_HH
 
 #include "specialization/mesh.hh"
 
@@ -16,3 +17,5 @@ void smooth(mesh::accessor<ro> m,
 
 } // namespace task
 } // namespace poisson
+
+#endif

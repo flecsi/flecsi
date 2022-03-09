@@ -11,7 +11,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef FLECSI_RUN_TEST_CYCLE_CONTROL_HH
+#define FLECSI_RUN_TEST_CYCLE_CONTROL_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
@@ -91,3 +92,5 @@ struct control_policy {
 };
 
 using control = flecsi::run::control<control_policy>;
+
+#endif
