@@ -116,7 +116,8 @@ reduce_internal(Args &&... args) {
 
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
   static_assert(processor_type == task_processor_type_t::toc ||
-                  processor_type == task_processor_type_t::loc || mpi_task,
+                  processor_type == task_processor_type_t::loc ||
+                  processor_type == task_processor_type_t::omp || mpi_task,
     "Unknown launch type");
   const auto domain_size =
     launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
@@ -147,8 +148,18 @@ reduce_internal(Args &&... args) {
     for(auto & req : pro.region_requirements())
       l.add_region_requirement(req);
     l.futures = std::move(pro).futures();
-    if(processor_type == task_processor_type_t::toc)
-      l.tag = run::mapper::prefer_gpu;
+    switch(processor_type) {
+      case task_processor_type_t::toc:
+        l.tag = run::mapper::prefer_gpu;
+        break;
+      case task_processor_type_t::omp:
+        l.tag = run::mapper::prefer_omp;
+        break;
+      // Null default is added to suppress warning for other enumerators that
+      // do nothing
+      default:
+        break;
+    }
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
