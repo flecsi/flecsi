@@ -263,6 +263,9 @@ struct unstructured_base {
       idx_spaces;
   }; // struct coloring
 
+  template<class A>
+  using borrow_array = typename A::template map_type<borrow_base::wrap>;
+
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
     return vs[c];
   }
@@ -274,8 +277,6 @@ struct unstructured_base {
     and pointers, respectively, are filled with this information.
    */
 
-  /* FIXME: This is another place that needs multiaccessor support */
-
   template<PrivilegeCount N>
   static void idx_itvls(std::vector<process_coloring> const & vpc,
     std::vector<std::vector<Color>> const & pcs,
@@ -283,10 +284,13 @@ struct unstructured_base {
     destination_intervals & intervals,
     source_pointers & pointers,
     // field<cmap, data::ragged>::mutator<wo> cgraph,
-    field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
-      privilege_repeat<na, (N > 1)>>> fmap,
+    data::multi<field<util::id>::accessor1<
+      privilege_cat<privilege_repeat<wo, N - (N > 1)>,
+        privilege_repeat<na, (N > 1)>>>> fmap,
     std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
+    flog_assert(vpc.size() == fmap.depth(),
+      vpc.size() << " colorings for " << fmap.depth() << " colors");
 
     // FIXME: This is a place holder for Navamita
     //(void)cgraph;
@@ -306,7 +310,9 @@ struct unstructured_base {
     pointers.resize(vpc.size());
     rmaps.resize(vpc.size());
     std::size_t lco{0};
-    for(auto pc : vpc) {
+    auto vi = vpc.begin();
+    for(auto & fa : fmap.accessors()) {
+      auto & pc = *vi++;
       std::vector<std::size_t> entities;
       auto const & ic = pc.coloring;
 
@@ -350,7 +356,7 @@ struct unstructured_base {
       auto & rmap = rmaps[lco];
       rmap.clear();
       for(auto e : entities) {
-        fmap[off] = e;
+        fa[off] = e;
         rmap.try_emplace(e, off++);
       } // for
 
@@ -479,31 +485,39 @@ struct unstructured_base {
     } // for
   } // idx_itvls
 
-  /* TODO: Need multiaccessor */
-  static void set_dests(field<data::intervals::Value>::accessor<wo> a,
+  static void set_dests(
+    data::multi<field<data::intervals::Value>::accessor<wo>> aa,
     std::vector<std::vector<data::subrow>> const & intervals,
     MPI_Comm const &) {
-    flog_assert(a.span().size() == intervals[0].size(),
-      "interval size mismatch a.span (" << a.span().size() << ") != intervals ("
-                                        << intervals[0].size() << ")");
-    std::size_t i{0};
-    for(auto it : intervals[0]) {
-      a[i++] = data::intervals::make(it, process());
+    std::size_t ci = 0;
+    for(auto [c, a] : aa.components()) {
+      auto & iv = intervals[ci++];
+      flog_assert(a.span().size() == iv.size(),
+        "interval size mismatch a.span ("
+          << a.span().size() << ") != intervals (" << iv.size() << ")");
+      std::size_t i{0};
+      for(auto & it : iv) {
+        a[i++] = data::intervals::make(it, c);
+      } // for
     } // for
   }
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    field<data::points::Value>::accessor1<privilege_repeat<wo, N>> a,
+    data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
+      aa,
     std::vector<std::map<Color,
       std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
     MPI_Comm const &) {
-    for(auto const & si : points[0]) {
-      for(auto p : si.second) {
-        // si.first: owner
-        // p.first: local ghost offset
-        // p.second: remote shared offset
-        a[p.first] = data::points::make(si.first, p.second);
+    std::size_t ci = 0;
+    for(auto & a : aa.accessors()) {
+      for(auto const & si : points[ci++]) {
+        for(auto p : si.second) {
+          // si.first: owner
+          // p.first: local ghost offset
+          // p.second: remote shared offset
+          a[p.first] = data::points::make(si.first, p.second);
+        } // for
       } // for
     } // for
   }
@@ -524,15 +538,19 @@ struct unstructured_base {
     cp(ghost[S], ic.ghost);
   }
 
-  // TODO: This will need to be a multiaccessor.
   static void cnx_size(std::vector<process_coloring> const & vpc,
     std::size_t is,
-    resize::Field::accessor<wo> a) {
-    // Hack until multiaccessor. When we have the real thing, this will
-    // iterate over the process colors, and set a size for each.
-    a = vpc[0].cnx_allocs[is];
+    data::multi<resize::Field::accessor<wo>> aa) {
+    auto it = vpc.begin();
+    for(auto & a : aa.accessors()) {
+      a = it++->cnx_allocs[is];
+    }
   }
 
+  static void copy_sizes(resize::Field::accessor<ro> src,
+    resize::Field::accessor<wo> dest) {
+    dest = src.get();
+  }
 }; // struct unstructured_base
 
 inline std::ostream &

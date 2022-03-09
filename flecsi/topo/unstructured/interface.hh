@@ -13,9 +13,9 @@
                                                                               */
 #pragma once
 
-#include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
+#include "flecsi/data/map.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
@@ -85,7 +85,7 @@ struct unstructured : unstructured_base,
   }
 
   template<index_space S>
-  data::partition & get_partition(field_id_t) {
+  repartition & get_partition(field_id_t) {
     return part_.template get<S>();
   }
 
@@ -201,23 +201,27 @@ private:
     // auto const & cg = cgraph_.template get<S>();
     auto const & fmd = forward_maps_.template get<S>();
 
+    auto lm = data::launch::make(*this);
     execute<idx_itvls<NP>, mpi>(c.idx_spaces[index<S>],
       c.process_colors,
       num_intervals,
       intervals,
       pointers,
       // cg(ctopo_),
-      fmd(*this),
+      fmd(lm),
       reverse_maps_.template get<S>(),
       comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
-      execute<set_dests, mpi>(f, intervals, comm);
+      // TODO: make this just once for all index spaces
+      auto lm = data::launch::make(f.topology());
+      execute<set_dests, mpi>(lm(f), intervals, comm);
     };
 
     auto ptrs_task = [&](auto f) {
-      execute<set_ptrs<NP>, mpi>(f, pointers, comm);
+      auto lm = data::launch::make(f.topology());
+      execute<set_ptrs<NP>, mpi>(lm(f), pointers, comm);
     };
     // clang-format on
 
@@ -242,14 +246,16 @@ private:
   template<auto... VV, typename... TT>
   void allocate_connectivities(const unstructured_base::coloring & c,
     util::key_tuple<util::key_type<VV, TT>...> const & /* deduce pack */) {
+    auto lm = data::launch::make(this->meta);
     (
       [&](TT const & row) { // invoked for each from-entity
         const std::vector<process_coloring> & pc = c.idx_spaces[index<VV>];
         for_each(
           [&](auto v) { // invoked for each to-entity
+            execute<cnx_size, mpi>(pc, index<v.value>, temp_size(lm));
             auto & p = this->ragged.template get_partition<VV>(
               row.template get<v.value>().fid);
-            execute<cnx_size, mpi>(pc, index<v.value>, p.sizes());
+            execute<copy_sizes>(temp_size(this->meta), p.sizes());
           },
           typename TT::keys());
       }(connect_.template get<VV>()),
@@ -261,9 +267,14 @@ private:
     (f(util::constant<VV>()), ...);
   }
 
+  auto & get_sizes(std::size_t i) {
+    return part_[i].sz;
+  }
+
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
+  friend borrow_extra<unstructured>;
 
   static inline const connect_t<Policy> connect_;
   static inline const field<util::id>::definition<array<Policy>> special_field;
@@ -287,6 +298,8 @@ private:
     index_spaces>
     cgraph_;
 
+  static inline const resize::Field::definition<meta<Policy>> temp_size;
+
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
   util::key_array<std::vector<std::map<std::size_t, std::size_t>>, index_spaces>
@@ -295,6 +308,32 @@ private:
   util::key_array<data::copy_plan, index_spaces> plan_;
 
 }; // struct unstructured
+
+template<class P>
+struct borrow_extra<unstructured<P>> {
+  borrow_extra(unstructured<P> & u, claims::core & c, bool f)
+    : borrow_extra(u, c, f, typename P::entity_lists()) {}
+
+  auto & get_sizes(std::size_t i) {
+    return borrow_base::derived(*this).spc[i].single().sz;
+  }
+
+private:
+  friend unstructured<P>; // for access::send
+
+  typename decltype(unstructured<P>::special_)::Base::template map_type<
+    unstructured_base::borrow_array>
+    special_;
+
+  template<typename P::index_space... VV, class... TT>
+  borrow_extra(unstructured<P> & u,
+    claims::core & c,
+    bool f,
+    util::types<util::key_type<VV, TT>...> /* deduce pack */)
+    : special_(u.special_.template get<VV>().map([&c, f](auto & t) {
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, c, f);
+      })...) {}
+};
 
 /*----------------------------------------------------------------------------*
   Unstructured Access.
@@ -313,10 +352,12 @@ struct unstructured<Policy>::access {
     std::size_t i = 0;
     for(auto & a : size_)
       a.topology_send(
-        f, [&i](unstructured & u) -> auto & { return u.part_[i++].sz; });
+        f, [&i](auto & u) -> auto & { return u.get_sizes(i++); });
 
     connect_send(f, connect_, unstructured::connect_);
-    lists_send(f, special_, special_field, &unstructured::special_);
+    lists_send(
+      f, special_, special_field, [
+      ](auto & u) -> auto & { return u.special_; });
   }
 
 protected:

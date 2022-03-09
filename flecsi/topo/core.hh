@@ -94,6 +94,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   data::region & get_region();
 
   /// Find the partition for a field.
+  /// \return a \c repartition if appropriate
   /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
   data::partition & get_partition(field_id_t);

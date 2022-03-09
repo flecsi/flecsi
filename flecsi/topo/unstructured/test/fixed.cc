@@ -203,28 +203,31 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<wo, wo, na> c2v,
+  static void init_c2v(
+    data::multi<field<util::id, data::ragged>::mutator<wo, wo, na>> mc2v,
     std::vector<base::process_coloring> const & prc_clrngs,
     std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
     auto pcs = prc_clrngs.begin();
     auto vms = vmaps.begin();
-    auto const & pc = *pcs++;
-    auto const & vm = *vms++;
-    std::size_t off{0};
+    for(auto & c2v : mc2v.accessors()) {
+      auto const & pc = *pcs++;
+      auto const & vm = *vms++;
+      std::size_t off{0};
 
-    auto const & cnx = pc.cnx_colorings[core::index<fixed_mesh::vertices>];
+      auto const & cnx = pc.cnx_colorings[core::index<fixed_mesh::vertices>];
 
-    for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
-      const std::size_t start = cnx.offsets[off];
-      const std::size_t size = cnx.offsets[off + 1] - start;
+      for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
+        const std::size_t start = cnx.offsets[off];
+        const std::size_t size = cnx.offsets[off + 1] - start;
 
-      c2v[c].resize(size);
+        c2v[c].resize(size);
 
-      for(std::size_t i{0}; i < size; ++i) {
-        c2v[c][i] = vm.at(cnx.indices[start + i]);
+        for(std::size_t i{0}; i < size; ++i) {
+          c2v[c][i] = vm.at(cnx.indices[start + i]);
+        } // for
+
+        ++off;
       } // for
-
-      ++off;
     } // for
   } // init_c2v
 
@@ -237,7 +240,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     execute<init_cnx>(c2v(s));
     execute<init_cnx>(v2c(s));
 
-    execute<init_c2v, mpi>(c2v(s), c.idx_spaces[fixed_mesh::cells], vmaps);
+    auto lm = data::launch::make(s);
+    execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[fixed_mesh::cells], vmaps);
     execute<topo::unstructured_impl::transpose>(c2v(s), v2c(s));
   } // initialize
 
@@ -299,13 +303,18 @@ update_pressure(fixed_mesh::accessor<ro, ro, ro> m,
 }
 
 void
-check_pressure(fixed_mesh::accessor<ro, ro, ro> m,
-  field<int>::accessor<ro, ro, ro> p) {
+check_pressure(data::multi<fixed_mesh::accessor<ro, ro, ro>> mm,
+  data::multi<field<int>::accessor<ro, ro, ro>> pp) {
   flog(warn) << __func__ << std::endl;
-  unsigned int clr = color();
-  for(auto c : m.cells()) {
-    unsigned int v = p[c];
-    flog_assert(v == clr, "invalid pressure");
+  const auto pc = pp.components();
+  auto i = pc.begin();
+  for(auto [clr, m] : mm.components()) {
+    auto [clr2, p] = *i++;
+    flog_assert(clr == clr2, "color mismatch");
+    for(auto c : m.cells()) {
+      unsigned int v = p[c];
+      flog_assert(v == clr, "invalid pressure");
+    }
   }
 }
 
@@ -363,6 +372,12 @@ print(fixed_mesh::accessor<ro, ro, ro> m,
   flog(info) << ss.str() << std::endl;
 }
 
+static bool
+rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
+  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n);
+  return false;
+}
+
 int
 fixed_driver() {
   UNIT {
@@ -381,7 +396,10 @@ fixed_driver() {
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    execute<check_pressure>(mesh, pressure(mesh));
+    {
+      auto lm = data::launch::make<rotate>(mesh, mesh->colors());
+      execute<check_pressure>(lm, pressure(lm));
+    }
 
 #if 1
     execute<init_density>(mesh, density(mesh));

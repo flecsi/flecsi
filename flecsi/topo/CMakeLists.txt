@@ -95,13 +95,18 @@ add_unit(closure
   THREADS 2
 )
 
+set(UTHREADS 4)
+if(FLECSI_BACKEND STREQUAL "legion")
+  set(UTHREADS 1 2 4 6)
+endif()
+
 add_unit(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
-  THREADS 2
+  THREADS ${UTHREADS}
 )
 
 add_unit(fixed
@@ -118,14 +123,6 @@ add_unit(narray
     narray/test/narray.hh
     narray/test/narray_tasks.hh
   THREADS 4
-)
-
-add_unit(narray4d
-  SOURCES
-    narray/test/narray4d.cc
-    narray/test/narray.hh
-    narray/test/narray_tasks.hh
-  THREADS 16
 )
 
 # ntree -----------------------------------------------------------------------#
