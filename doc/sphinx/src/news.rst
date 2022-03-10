@@ -61,6 +61,7 @@ Fixed
 
 * On-node parallelism
 
+  * More topology accessor functions are available on a device.
   * Several uses of "iterator" in documentation have been corrected to use "range".
 
 * Logging

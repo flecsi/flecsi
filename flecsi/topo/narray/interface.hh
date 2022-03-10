@@ -285,7 +285,7 @@ struct narray<Policy>::access {
    \sa meta_data, process_color
   */
   template<index_space S, axis A>
-  bool is_low() const {
+  FLECSI_INLINE_TARGET bool is_low() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::low;
   }
 
@@ -295,7 +295,7 @@ struct narray<Policy>::access {
    \sa meta_data, process_color
   */
   template<index_space S, axis A>
-  bool is_high() const {
+  FLECSI_INLINE_TARGET bool is_high() const {
     return (meta_->faces[S] >> A * 2) & narray_impl::high;
   }
 
@@ -304,7 +304,7 @@ struct narray<Policy>::access {
    bound along axis A of the global domain. \sa meta_data, process_color
   */
   template<axis A>
-  bool is_interior() const {
+  FLECSI_INLINE_TARGET bool is_interior() const {
     return !is_low<A>() && !is_high<A>();
   }
 
@@ -313,7 +313,7 @@ struct narray<Policy>::access {
     \sa enum range
   */
   template<index_space S, axis A, range SE>
-  std::size_t size() const {
+  FLECSI_INLINE_TARGET std::size_t size() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
@@ -354,7 +354,7 @@ struct narray<Policy>::access {
     to range::global.
   */
   template<index_space S, axis A, range SE>
-  auto extents() const {
+  FLECSI_INLINE_TARGET auto extents() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid extents identifier");
     if constexpr(SE == range::logical) {
@@ -392,7 +392,7 @@ struct narray<Policy>::access {
     \sa enum range
   */
   template<index_space S, axis A, range SE>
-  std::size_t offset() const {
+  FLECSI_INLINE_TARGET std::size_t offset() const {
     static_assert(
       std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
@@ -424,13 +424,15 @@ struct narray<Policy>::access {
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
   template<index_space S, typename T, Privileges P>
-  auto mdspan(data::accessor<data::dense, T, P> const & a) const {
+  FLECSI_INLINE_TARGET auto mdspan(
+    data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
       s.data(), meta_->extents[S]);
   }
   template<index_space S, typename T, Privileges P>
-  auto mdcolex(data::accessor<data::dense, T, P> const & a) const {
+  FLECSI_INLINE_TARGET auto mdcolex(
+    data::accessor<data::dense, T, P> const & a) const {
     return util::mdcolex<
       typename std::remove_reference_t<decltype(a)>::element_type,
       dimension>(a.span().data(), meta_->extents[S]);

@@ -618,9 +618,13 @@ private:
   F f;
 };
 
+// Note: Specifiying FLECSI_TARGET here is incorrect, but appears necessary for
+// LLVM compilers generating GPU code.  Currently, LLVM-based compilers are the
+// only compilers used to generate FleCSI GPU code, so the macro will be empty
+// otherwise.
 template<class C, class F>
-transform_view(C &&, F)
-  -> transform_view<typename std::remove_reference_t<C>::iterator, F>;
+FLECSI_TARGET transform_view(C &&, F)
+  ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
 transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 /// \endcond
