@@ -421,6 +421,7 @@ namespace log {
 
 /*!
   Explicitly flush buffered flog output.
+  \code#include "flecsi/execution.hh"\endcode
 
   @ingroup flog
  */
