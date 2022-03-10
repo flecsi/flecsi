@@ -25,7 +25,9 @@ EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
                    */test/*
 PREDEFINED = FLECSI_ENABLE_FLOG \
              FLOG_ENABLE_MPI \
-             DOXYGEN
+             DOXYGEN \
+             FLECSI_TARGET= \
+             FLECSI_INLINE_TARGET=
 WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-@name@.out
 
 @INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/common.conf
