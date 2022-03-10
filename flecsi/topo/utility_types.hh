@@ -216,7 +216,7 @@ struct id {
   }
   FLECSI_INLINE_TARGET
   void operator+(id) const = delete;
-  friend id operator+(difference_type d, id i) {
+  FLECSI_INLINE_TARGET friend id operator+(difference_type d, id i) {
     return i += d;
   }
   FLECSI_INLINE_TARGET

@@ -75,11 +75,11 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
-  element_type & get() const {
+  FLECSI_INLINE_TARGET element_type & get() const {
     return base(0);
   } // data
   /// Convert to the value.
-  operator element_type &() const {
+  FLECSI_INLINE_TARGET operator element_type &() const {
     return get();
   } // value
 
@@ -1030,7 +1030,7 @@ struct scalar_access : bind_tag {
       scalar_ = get_scalar_from_accessor(p);
   }
 
-  const value_type * operator->() const {
+  FLECSI_INLINE_TARGET const value_type * operator->() const {
     return &scalar_;
   }
 
