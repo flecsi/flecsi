@@ -273,7 +273,7 @@ struct io_interface {
 private:
   static FieldSizes make_field_size_map(const data::fields & fs) {
     FieldSizes fsm;
-    for(const auto p : fs) {
+    for(const auto & p : fs) {
       fsm.emplace(p->fid, p->type_size);
     }
     return fsm;

@@ -162,7 +162,7 @@ struct io_interface {
     int idx = 0;
     for(auto & isd : isd_vector) {
       std::string region_name = "region " + std::to_string(idx);
-      for(auto fp : isd.fields) {
+      for(const auto & fp : isd.fields) {
         field_id_t fid = fp->fid;
         int item_size = fp->type_size;
         std::string field_name = region_name + " field " + std::to_string(fid);
