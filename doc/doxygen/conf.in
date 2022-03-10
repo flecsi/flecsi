@@ -21,5 +21,12 @@ INPUT                  = @PROJECT_SOURCE_DIR@/flecsi \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 
+EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
+                   */test/*
+PREDEFINED = FLECSI_ENABLE_FLOG \
+             FLOG_ENABLE_MPI \
+             DOXYGEN
+WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-@name@.out
+
 @INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/common.conf
 @INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/@name@/@name@.conf
