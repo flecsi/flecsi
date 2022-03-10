@@ -481,11 +481,11 @@ struct context {
     @param field_info               Field information.
    */
   template<class Topo, typename Topo::index_space Index>
-  void add_field_info(const data::field_info_t * field_info) {
+  void add_field_info(data::field_info_t field_info) {
     constexpr std::size_t NIndex = Topo::index_spaces::size;
     topology_field_info_map_.try_emplace(Topo::id(), NIndex)
       .first->second[Topo::index_spaces::template index<Index>]
-      .push_back(field_info);
+      .push_back(std::make_shared<data::field_info_t>(std::move(field_info)));
   } // add_field_information
 
   /*!
