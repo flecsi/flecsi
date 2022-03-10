@@ -195,34 +195,35 @@ struct array : topo::specialization<array_category, array<P>> {};
 // User topology.
 //---------------------------------------------------------------------------//
 
+/// \defgroup user User
+/// "Simplest possible" topology for distributed data.
+
 // The simplest topology that behaves as expected by application code.
 struct user_base : array_base {};
 
-//-----------------------------------------------------------------//
-// The User topology is parameterized by a partitioned array type.
-//-----------------------------------------------------------------//
-/**
- * \brief User topology.
- *
- * The User topology implements arguably the simplest topology that
- * provides useful functionality for parallel data accesses.  It
- * represents a single index space whose size can vary by color.
- * Ghost copies are not supported.
- *
- * The User topology's `coloring` type is a vector (specifically, a
- * ``std::vector<std::size_t>``) indicating the number of indices per
- * color in the single index space.  The minimum requirement for a
- * `user` specialization is a `color` method that takes zero or more
- * arguments and returns a `coloring`:
- *
- * \code{.cpp}
- * struct my_spec : flecsi::topo::specialization<flecsi::topo::user, my_spec> {
- *   static coloring color() {
- *      ⋮
- *   }
- * }
- * \endcode
- */
+/// A bare-bones topology supporting a single index space.  The User
+/// topology implements arguably the simplest topology that provides
+/// useful functionality for parallel data accesses.  It represents a
+/// single index space whose size can vary by color.  Ghost copies are
+/// not supported.
+///
+/// \tparam P the topology category
+///
+/// The User topology is parameterized on a topology category, which
+/// defines a coloring.  The `coloring` type is a vector
+/// (specifically, a ``std::vector<std::size_t>``) indicating the
+/// number of indices per color in the single index space.  The
+/// minimum requirement for a `user` specialization is a `color`
+/// method that takes zero or more arguments and returns a `coloring`:
+///
+/// \code{.cpp}
+/// struct my_spec : flecsi::topo::specialization<flecsi::topo::user, my_spec> {
+///   static coloring color() {
+///      ⋮
+///   }
+/// }
+/// \endcode
+///
 template<class P>
 struct user : user_base, array_category<P>, with_ragged<P> {
   explicit user(const coloring & c)
