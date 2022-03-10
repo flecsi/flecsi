@@ -548,30 +548,29 @@ color(MD const & md,
     pc.coloring.owned.insert(
       pc.coloring.owned.begin(), p.second.begin(), p.second.end());
 
-    if(cd.colors > 1) {
-      for(auto e : p.second) {
-        if(shared.at(p.first).count(e)) {
-          pc.coloring.shared.emplace_back(shared_entity{
-            e, {dependents.at(e).begin(), dependents.at(e).end()}});
-        }
-        else {
-          pc.coloring.exclusive.emplace_back(e);
-        } // if
-      } // for
+    const auto & sh = shared[p.first];
+    for(auto e : p.second) {
+      if(sh.count(e)) {
+        pc.coloring.shared.emplace_back(
+          shared_entity{e, {dependents.at(e).begin(), dependents.at(e).end()}});
+      }
+      else {
+        pc.coloring.exclusive.emplace_back(e);
+      } // if
+    } // for
 
-      std::set<Color> peers;
-      for(auto e : ghost.at(p.first)) {
-        const auto gco = e2co.at(e);
-        const auto pr = em.process(gco);
-        pc.coloring.ghost.emplace_back(
-          ghost_entity{e, pr, em.local_id(pr, gco), gco});
-        pc.coloring.all.emplace_back(e);
-        peers.insert(gco);
-      } // for
-      color_peers[c].insert(peers.begin(), peers.end());
-      is_peers[c].resize(peers.size());
-      std::copy(peers.begin(), peers.end(), is_peers[c].begin());
-    } // if
+    std::set<Color> peers;
+    for(auto e : ghost[p.first]) {
+      const auto gco = e2co.at(e);
+      const auto pr = em.process(gco);
+      pc.coloring.ghost.emplace_back(
+        ghost_entity{e, pr, em.local_id(pr, gco), gco});
+      pc.coloring.all.emplace_back(e);
+      peers.insert(gco);
+    } // for
+    color_peers[c].insert(peers.begin(), peers.end());
+    is_peers[c].resize(peers.size());
+    std::copy(peers.begin(), peers.end(), is_peers[c].begin());
 
     util::force_unique(pc.coloring.all);
     util::force_unique(pc.coloring.owned);
@@ -747,7 +746,7 @@ color(MD const & md,
   std::vector<std::size_t> remote;
   c = 0;
   for(auto p : primaries) {
-    auto primary = coloring.idx_spaces[cd.idx][c].coloring;
+    auto const & primary = coloring.idx_spaces[cd.idx][c].coloring;
     coloring.idx_spaces[cd.vidx][c].entities = nv;
     auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
