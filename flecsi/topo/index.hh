@@ -207,14 +207,13 @@ struct user_base : array_base {};
 /// single index space whose size can vary by color.  Ghost copies are
 /// not supported.
 ///
-/// \tparam P the topology category
+/// \tparam P the specialization
 ///
-/// The User topology is parameterized on a topology category, which
-/// defines a coloring.  The `coloring` type is a vector
-/// (specifically, a ``std::vector<std::size_t>``) indicating the
-/// number of indices per color in the single index space.  The
-/// minimum requirement for a `user` specialization is a `color`
-/// method that takes zero or more arguments and returns a `coloring`:
+/// The User topology's `coloring` type is a vector (specifically, a
+/// ``std::vector<std::size_t>``) indicating the number of indices per
+/// color in the single index space.  The minimum requirement for a
+/// `user` specialization is a `color` method that takes zero or more
+/// arguments and returns a `coloring`:
 ///
 /// \code{.cpp}
 /// struct my_spec : flecsi::topo::specialization<flecsi::topo::user, my_spec> {
@@ -224,6 +223,9 @@ struct user_base : array_base {};
 /// }
 /// \endcode
 ///
+/// Because the User topology is hard-wired for a single index space,
+/// specializations defining their own `index_space` and
+/// `index_spaces` are not supported.
 template<class P>
 struct user : user_base, array_category<P>, with_ragged<P> {
   explicit user(const coloring & c)
