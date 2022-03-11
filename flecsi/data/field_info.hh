@@ -17,6 +17,7 @@
 #include "flecsi/util/types.hh"
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,7 +38,7 @@ struct field_info_t {
   std::string name;
 }; // struct field_info_t
 
-using fields = std::vector<const field_info_t *>;
+using fields = std::vector<std::shared_ptr<field_info_t>>;
 
 /// \}
 } // namespace data

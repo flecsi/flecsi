@@ -57,15 +57,12 @@ struct field_register;
 
 // All field registration is ultimately defined in terms of raw fields.
 template<class T, class Topo, typename Topo::index_space Space>
-struct field_register<T, raw, Topo, Space> : field_info_t {
-  explicit field_register(field_id_t i)
-    : field_info_t{i, sizeof(T), util::type<T>()} {
-    run::context::instance().add_field_info<Topo, Space>(this);
+struct field_register<T, raw, Topo, Space> {
+  explicit field_register(field_id_t i) : fid(i) {
+    run::context::instance().add_field_info<Topo, Space, T>(i);
   }
   field_register() : field_register(fid_counter()) {}
-  // Copying/moving is inadvisable because the context knows the address.
-  field_register(const field_register &) = delete;
-  field_register & operator=(const field_register &) = delete;
+  field_id_t fid;
 };
 
 // Work around the fact that std::is_trivially_move_constructible_v checks
@@ -137,8 +134,8 @@ struct field_reference_t : convert_tag {
   using Topology = Topo;
   using topology_t = typename Topo::core;
 
-  field_reference_t(const field_info_t & info, topology_t & topology)
-    : field_reference_t(info.fid, topology) {}
+  // construct references just from field IDs.
+  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
   field_id_t fid() const {
     return fid_;
@@ -146,10 +143,6 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
-
-protected:
-  // Several internal components construct references just from field IDs.
-  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
 private:
   field_id_t fid_;
@@ -211,8 +204,7 @@ template<class T, layout L, class Topo, typename Topo::index_space S>
 struct multi_reference : convert_tag {
   using Map = launch::mapping<Topo>;
 
-  multi_reference(const field_info_t & f, Map & m)
-    : multi_reference(f.fid, m) {}
+  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
   // Note that no correspondence between f and m is checked.
   multi_reference(const field_reference<T, L, Topo, S> & f, Map & m)
     : multi_reference(f.fid(), m) {}
@@ -227,8 +219,6 @@ struct multi_reference : convert_tag {
   }
 
 private:
-  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
-
   field_id_t f;
   Map * m;
 };
@@ -286,18 +276,18 @@ struct field : data::detail::field_base<T, L> {
       return (*this)(t.get());
     }
     Reference<Topo, Space> operator()(typename Topo::core & t) const {
-      return {*this, t};
+      return {this->fid, t};
     }
     // For indirect and borrow topologies:
     template<template<class> class C, class P>
     std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
       Reference<P, Space>>
     operator()(C<P> & t) const {
-      return {*this, t};
+      return {this->fid, t};
     }
     data::multi_reference<T, L, Topo, Space> operator()(
       data::launch::mapping<Topo> & m) const {
-      return {*this, m};
+      return {this->fid, m};
     }
   };
 

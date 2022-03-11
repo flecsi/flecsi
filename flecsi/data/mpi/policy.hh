@@ -194,7 +194,7 @@ struct region_impl {
   // partitioning of the field. We will then call .resize() on the
   // std::vector<>.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
-    for(auto f : fs) {
+    for(const auto & f : fs) {
       storages[f->fid];
     }
   }
@@ -225,7 +225,7 @@ struct region_impl {
   }
 
   auto get_field_info(field_id_t fid) const {
-    for(auto f : fs) {
+    for(auto & f : fs) {
       if(f->fid == fid)
         return f;
     }
