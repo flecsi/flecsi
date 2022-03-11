@@ -477,7 +477,7 @@ struct narray_specialization : specialization<narray, narray_specialization> {
   /// Enumeration of the axes, they should be
   /// consistent with the dimension of mesh.
   enum axis { x, y };
-  /// Axes to store wrapped in a \c list.
+  /// Axes to store.
   /// The format is\code
   /// has<x, y, ..>
   /// \endcode

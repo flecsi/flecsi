@@ -152,7 +152,7 @@ struct specialization_base {
 
   /// The index space type.
   using index_space = single_space;
-  /// The set of index spaces, wrapped in \c list.
+  /// The set of index spaces, wrapped in \c has.
   using index_spaces = has<elements>;
   /// The topology interface type.
   /// It must be \a B or inherit from it without adding any data members.
