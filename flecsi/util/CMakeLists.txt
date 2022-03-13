@@ -30,7 +30,7 @@ set(util_HEADERS
   function_traits.hh
   geometry/filling_curve.hh
   geometry/point.hh
-  dcrs.hh
+  crs.hh
   parmetis.hh
   graphviz.hh
   hashtable.hh
@@ -181,7 +181,8 @@ add_unit(hashtable
 #------------------------------------------------------------------------------#
 # annotation
 #------------------------------------------------------------------------------#
-if (NOT CALIPER_DETAIL STREQUAL "none")
+# This test is currently unreliable.
+if(NOT CALIPER_DETAIL STREQUAL "none" AND NOT CALIPER_DETAIL STREQUAL "low")
 add_unit(annotation
   SOURCES
   test/annotation.cc

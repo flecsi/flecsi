@@ -116,11 +116,34 @@ public:
   */
   Legion::LayoutConstraintID default_policy_select_layout_constraints(
     Legion::Mapping::MapperContext ctx,
-    Realm::Memory,
-    const Legion::RegionRequirement &,
-    Legion::Mapping::DefaultMapper::MappingKind,
+    Realm::Memory target_memory,
+    const Legion::RegionRequirement & req,
+    Legion::Mapping::DefaultMapper::MappingKind mapping_kind,
     bool /* constraint */,
     bool & force_new_instances) {
+
+    if((req.privilege == LEGION_REDUCE) && (mapping_kind != COPY_MAPPING)) {
+      // Always make new reduction instances
+      force_new_instances = true;
+      std::pair<Legion::Memory::Kind, Legion::ReductionOpID> constraint_key(
+        target_memory.kind(), req.redop);
+      std::map<std::pair<Legion::Memory::Kind, Legion::ReductionOpID>,
+        Legion::LayoutConstraintID>::const_iterator finder =
+        reduction_constraint_cache.find(constraint_key);
+      // No need to worry about field constraint checks here
+      // since we don't actually have any field constraints
+      if(finder != reduction_constraint_cache.end())
+        return finder->second;
+      Legion::LayoutConstraintSet constraints;
+      default_policy_select_constraints(ctx, constraints, target_memory, req);
+
+      Legion::LayoutConstraintID result =
+        runtime->register_layout(ctx, constraints);
+      // Save the result
+      reduction_constraint_cache[constraint_key] = result;
+      return result;
+    }
+
     // We always set force_new_instances to false since we are
     // deciding to optimize for minimizing memory usage instead
     // of avoiding Write-After-Read (WAR) dependences
@@ -157,95 +180,6 @@ public:
     bool) {
     return req.region;
   } // default_policy_select_instance_region
-
-  /*!
-   THis function will find a CPU variat for the task
-  */
-  Legion::VariantID find_cpu_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
-      cpu_variants.find(task_id);
-    if(finder != cpu_variants.end())
-      return finder->second;
-    std::vector<Legion::VariantID> variants;
-    runtime->find_valid_variants(
-      ctx, task_id, variants, Legion::Processor::LOC_PROC);
-    cpu_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
-   THis function will find a OpenMP variat for the task
-  */
-  Legion::VariantID find_omp_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    using namespace Legion;
-    std::map<TaskID, VariantID>::const_iterator finder =
-      omp_variants.find(task_id);
-    if(finder != omp_variants.end())
-      return finder->second;
-    std::vector<VariantID> variants;
-    runtime->find_valid_variants(ctx, task_id, variants, Processor::OMP_PROC);
-    omp_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
-   THis function will find a GPU variat for the task
-  */
-  Legion::VariantID find_gpu_variant(const Legion::Mapping::MapperContext ctx,
-    Legion::TaskID task_id) {
-    using namespace Legion;
-    std::map<TaskID, VariantID>::const_iterator finder =
-      gpu_variants.find(task_id);
-    if(finder != gpu_variants.end())
-      return finder->second;
-    std::vector<VariantID> variants;
-    runtime->find_valid_variants(ctx, task_id, variants, Processor::TOC_PROC);
-    gpu_variants[task_id] = variants[0];
-    return variants[0];
-  }
-
-  /*!
-   THis function will create PhysicalInstance for Reduction task
-  */
-  void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
-    const Legion::Task & task,
-    Legion::Mapping::Mapper::MapTaskOutput & output,
-    const Legion::Memory & target_mem,
-    const size_t & indx) {
-    // using dummy constraints for REDUCTION
-    std::set<Legion::FieldID> dummy_fields;
-    Legion::TaskLayoutConstraintSet dummy_constraints;
-
-    size_t instance_size = 0;
-    auto res = default_create_custom_instances(ctx,
-      task.target_proc,
-      target_mem,
-      task.regions[indx],
-      indx,
-      dummy_fields,
-      dummy_constraints,
-      false /*need check*/,
-      output.chosen_instances[indx],
-      &instance_size);
-    flog_assert(
-      res, " ERROR: FleCSI mapper failed to allocate reduction instance");
-
-    flog_devel(info) << "task " << task.get_task_name()
-                     << " allocates physical instance with size "
-                     << instance_size << " for the region requirement #" << indx
-                     << std::endl;
-
-    if(instance_size > 1000000000) {
-      flog_devel(error) << "task " << task.get_task_name()
-                        << " is trying to allocate physical instance with \
-           the size > than 1 Gb("
-                        << instance_size << " )"
-                        << " for the region requirement # " << indx
-                        << std::endl;
-    } // if
-  } // create reduction instance
 
 #if 0
   /*!
@@ -432,15 +366,15 @@ public:
     using namespace mapper;
 
     if(task.tag & prefer_gpu && !local_gpus.empty()) {
-      output.chosen_variant = find_gpu_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, gpu_variants);
       output.target_procs.push_back(task.target_proc);
     }
     else if(task.tag & prefer_omp && !local_omps.empty()) {
-      output.chosen_variant = find_omp_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, omp_variants);
       output.target_procs = local_omps;
     }
     else {
-      output.chosen_variant = find_cpu_variant(ctx, task.task_id);
+      output.chosen_variant = find_variant(ctx, task.task_id, cpu_variants);
       output.target_procs = local_cpus;
     }
 
@@ -466,6 +400,14 @@ public:
       Legion::OrderingConstraint ordering_constraint(
         ordering, true /*contiguous*/);
 
+      std::vector<std::set<Legion::FieldID>> missing_fields(
+        task.regions.size());
+      runtime->filter_instances(ctx,
+        task,
+        output.chosen_variant,
+        output.chosen_instances,
+        missing_fields);
+
       for(size_t indx = 0; indx < task.regions.size(); indx++) {
 
         // Filling out "layout_constraints" with the defaults
@@ -486,7 +428,8 @@ public:
 
         // creating physical instance for the reduction task
         if(task.regions[indx].privilege == REDUCE) {
-          create_reduction_instance(ctx, task, output, target_mem, indx);
+          create_reduction_instance(
+            ctx, task, output, target_mem, indx, missing_fields);
         }
 #if 0 // this block is only used for compacted instances
         else if(task.regions[indx].tag == mapper::exclusive_lr) {
@@ -539,14 +482,14 @@ public:
       case force_rank_match: /* MPI tasks or tasks that need 1-to-1 matching
                                 with MPI ranks*/
       {
-        // expect a 1-D index domain - each point goes to the corresponding node
+        // Control replication has already subdivided the launch domain:
         assert(input.domain.get_dim() == 1);
-        LegionRuntime::Arrays::Rect<1> r = input.domain.get_rect<1>();
+        const Legion::Rect<1> r = input.domain;
+        const auto me = r.lo[0];
+        assert(r.hi[0] == me);
 
-        // go through all the CPU processors and find a representative for each
-        //  node (i.e. address space)
-        std::map<int, Legion::Processor> targets;
-
+        output.slices.clear();
+        // Find the CPU with the desired address space:
         Legion::Machine::ProcessorQuery pq =
           Legion::Machine::ProcessorQuery(machine).only_kind(
             Legion::Processor::LOC_PROC);
@@ -554,18 +497,14 @@ public:
             it != pq.end();
             ++it) {
           Legion::Processor p = *it;
-          int a = p.address_space();
-          if(targets.count(a) == 0)
-            targets[a] = p;
+          if(p.address_space() == me) {
+            auto & out = output.slices.emplace_back();
+            out.domain = r;
+            out.proc = p;
+            break;
+          }
         }
-
-        output.slices.resize(1);
-        for(int a = r.lo[0]; a <= r.hi[0]; a++) {
-          assert(targets.count(a) > 0);
-          output.slices[0].domain = // Legion::Domain::from_rect<1>(
-            Legion::Rect<1>(a, a);
-          output.slices[0].proc = targets[a];
-        }
+        assert(!output.slices.empty());
         break;
       }
 
@@ -618,6 +557,56 @@ public:
   } // slice_task
 
 private:
+  /*!
+   This function will create PhysicalInstance for Reduction task
+  */
+  void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
+    const Legion::Task & task,
+    Legion::Mapping::Mapper::MapTaskOutput & output,
+    const Legion::Memory & target_mem,
+    const size_t & idx,
+    std::vector<std::set<Legion::FieldID>> & missing_fields) {
+
+    Legion::Processor target_proc = output.target_procs[0];
+    bool needs_field_constraint_check = false;
+
+    const Legion::TaskLayoutConstraintSet & layout_constraints =
+      runtime->find_task_layout_constraints(
+        ctx, task.task_id, output.chosen_variant);
+
+    size_t footprint;
+    if(!default_create_custom_instances(ctx,
+         target_proc,
+         target_mem,
+         task.regions[idx],
+         idx,
+         missing_fields[idx],
+         layout_constraints,
+         needs_field_constraint_check,
+         output.chosen_instances[idx],
+         &footprint)) {
+      default_report_failed_instance_creation(
+        task, idx, target_proc, target_mem, footprint);
+    }
+  } // create reduction instance
+
+  /*!
+   This function will find a variant from a VariantID map for the task
+  */
+  Legion::VariantID find_variant(const Legion::Mapping::MapperContext ctx,
+    Legion::TaskID task_id,
+    std::map<Legion::TaskID, Legion::VariantID> & variant) {
+
+    std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
+      variant.find(task_id);
+    if(finder != variant.end())
+      return finder->second;
+    std::vector<Legion::VariantID> variants;
+    runtime->find_valid_variants(
+      ctx, task_id, variants, Legion::Processor::LOC_PROC);
+    return variant[task_id] = variants.at(0);
+  }
+
   Realm::Machine machine;
 
   // the map of the locac intances that have been already created

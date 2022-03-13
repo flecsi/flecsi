@@ -179,14 +179,13 @@ do
       ;;
     gnu)
       SCRIPT_C_COMPILER=gcc
-      SCRIPT_C_FLAGS="-fmax-errors=5 -fdiagnostics-color=always\
-        $warn"
+      SCRIPT_C_FLAGS="-fmax-errors=5 -fdiagnostics-color=always $warn"
       SCRIPT_CXX_COMPILER=g++
       SCRIPT_CXX_FLAGS=$SCRIPT_C_FLAGS
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -Og -ggdb -gdwarf-5"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -Og -ggdb -gdwarf-5"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -Og -ggdb -gdwarf-5"
       fi
       ;;
     intel)
@@ -197,7 +196,7 @@ do
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -g"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -g"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -g"
       fi
       ;;
     oneapi)
@@ -208,7 +207,7 @@ do
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -g"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -g"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -g"
       fi
       ;;
     kokkos)
@@ -239,7 +238,7 @@ done
 
 echo "Executing:"
 echo "$cmake_mode" \
-  "-G$SCRIPT_GENERATOR" \
+  "-G\"$SCRIPT_GENERATOR\"" \
   "-DCMAKE_BUILD_TYPE=$SCRIPT_BUILD_TYPE" \
   "-DCMAKE_C_COMPILER=$SCRIPT_C_COMPILER" \
   "-DCMAKE_C_FLAGS=\"$SCRIPT_C_FLAGS\"" \

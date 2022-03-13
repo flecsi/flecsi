@@ -31,8 +31,12 @@ format:diff:
     - merge_requests
   variables:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: util-fedora-30
-    FORMAT_VERSION: 8.0.0
+    IMAGE: util-fedora-35
+    FORMAT_VERSION: 13.0.0
+    CXX_COMPILER: clang++
+    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    C_COMPILER: clang
+    C_FLAGS: ${CXX_FLAGS}
   allow_failure: true
 
 format:check:
@@ -46,7 +50,7 @@ format:check:
     - merge_requests
   variables:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
-    IMAGE: util-fedora-30
+    IMAGE: util-fedora-35
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
@@ -86,7 +90,7 @@ mpich-legion-gnu:
     CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
 
 mpich-legion-gnu:release:
   extends: .build_template

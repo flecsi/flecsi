@@ -251,7 +251,7 @@
 .aux_print_diff_format_info:
   script: &print_diff_format_info
     - >
-      echo -e "${COLOR_MAGENTA}Checking Formatting\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}\n"
+      echo -e "${COLOR_MAGENTA}Checking Formatting\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
 
 .diff_format_template:
   stage: Canary
@@ -261,7 +261,14 @@
     - spack env activate format
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - cmake -DFORMAT_ONLY=ON -DClangFormat_VERSION=${FORMAT_VERSION} ../..
+    - |-
+      cmake -DFORMAT_ONLY=ON \
+        -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+        -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" \
+        -DCMAKE_C_COMPILER=${C_COMPILER} \
+        -DCMAKE_C_FLAGS="${C_FLAGS}" \
+        -DClangFormat_VERSION=${FORMAT_VERSION} \
+        ../..
     - *print_diff_format_info
     - set -o errexit
     - make format && git diff --exit-code --compact-summary

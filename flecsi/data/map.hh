@@ -27,6 +27,12 @@ robin(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   a = topo::claims::row(c < n ? std::optional(c) : std::nullopt);
   return f(i + 1) < n;
 }
+/// Make all colors available on all point tasks.
+inline bool
+gather(topo::claims::Field::accessor<wo> a, Color i, Color n) {
+  a = topo::claims::row(i);
+  return i < n - 1;
+}
 
 template<class P>
 struct mapping : convert_tag {
@@ -41,7 +47,7 @@ struct mapping : convert_tag {
     do {
       topo::claims::core clm(n);
       more = f(topo::claims::field(clm));
-      rnd.emplace_back(t, std::move(clm));
+      rnd.emplace_back(t, std::move(clm), rnd.empty());
     } while(more);
   }
 
@@ -72,8 +78,9 @@ struct mapping : convert_tag {
 private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
   struct round {
-    round(typename P::core & t, topo::claims::core && c) : clm(std::move(c)) {
-      b.allocate({&t, &clm});
+    round(typename P::core & t, topo::claims::core && c, bool first)
+      : clm(std::move(c)) {
+      b.allocate({&t, &clm, first});
     }
     round(round &&) = delete; // address stability
 
@@ -87,7 +94,7 @@ private:
   std::deque<round> rnd;
 };
 template<class T, class F>
-mapping(T &, Color, F &&)->mapping<topo::policy_t<T>>;
+mapping(T &, Color, F &&) -> mapping<topo::policy_t<T>>;
 
 template<auto & F = block, class T>
 mapping<topo::policy_t<T>>

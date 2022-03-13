@@ -56,24 +56,27 @@ private:
       r = r || privilege_read(p);
       w = w || privilege_write(p);
     }
-    return r ? w ? READ_WRITE : READ_ONLY
-             : w ? privilege_discard(mode) ? WRITE_DISCARD : WRITE_ONLY
-                 : NO_ACCESS;
+    return r   ? w ? READ_WRITE : READ_ONLY
+           : w ? privilege_discard(mode) ? WRITE_DISCARD : WRITE_ONLY
+               : NO_ACCESS;
   } // privilege_mode
 
 protected:
   // This implementation can be generic because all topologies are expected to
   // provide get_region (and, with one exception, get_partition).
-  template<typename DATA_TYPE, Privileges PRIVILEGES, auto Space, class Topo>
-  void visit(data::accessor<data::raw, DATA_TYPE, PRIVILEGES> &,
-    const data::field_reference<DATA_TYPE, data::raw, Topo, Space> & r) {
+  template<typename D,
+    Privileges P,
+    class Topo,
+    typename Topo::index_space Space>
+  void visit(data::accessor<data::raw, D, P> &,
+    const data::field_reference<D, data::raw, Topo, Space> & r) {
     const field_id_t f = r.fid();
     auto & t = r.topology();
     data::region & reg = t.template get_region<Space>();
 
-    reg.ghost_copy<PRIVILEGES>(r);
+    reg.ghost_copy<P>(r);
 
-    const Legion::PrivilegeMode m = privilege_mode(PRIVILEGES);
+    const Legion::PrivilegeMode m = privilege_mode(P);
     const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);
@@ -85,6 +88,22 @@ protected:
         EXCLUSIVE,
         lr);
     region_reqs_.back().add_field(f);
+  } // visit
+
+  template<class R, typename T, class Topo, typename Topo::index_space Space>
+  void visit(data::reduction_accessor<R, T> &,
+    const data::field_reference<T, data::dense, Topo, Space> & r) {
+    const Legion::LogicalRegion lr =
+      r.topology().template get_region<Space>().logical_region;
+    static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
+    region_reqs_
+      .emplace_back(lr,
+        // Cast to Legion::ReductionOpID due to missing definition of REDOP_ID
+        // in legion_redop.h
+        Legion::ReductionOpID(fold::wrap<R, T>::REDOP_ID),
+        EXCLUSIVE,
+        lr)
+      .add_field(r.fid());
   } // visit
 
   /*--------------------------------------------------------------------------*

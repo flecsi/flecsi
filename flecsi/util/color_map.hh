@@ -88,6 +88,19 @@ struct color_map {
   }
 
   /*!
+    Return the color distribution across processes.
+   */
+
+  std::vector<std::size_t> color_distribution() const {
+    std::vector<std::size_t> d(domain_size_ + 1);
+    d[0] = 0;
+    for(Color p = 0; p < domain_size_; ++p) {
+      d[p + 1] = d[p] + colors(p);
+    }
+    return d;
+  }
+
+  /*!
     The offset of the first color for the given process.
    */
 
@@ -122,7 +135,7 @@ struct color_map {
   }
 
   /*!
-    The global color id for the given process and color index
+    The global color id for the given process and local color index
     (zero to < process colors).
 
     @param process The process (zero to < processes).
@@ -131,6 +144,21 @@ struct color_map {
 
   Color color_id(Color process, Color color) const {
     return color_offset(process) + color;
+  }
+
+  /*!
+    The local color id for the given global color index.
+
+    @param process The process (zero to < processes).
+    @param color The global color index.
+   */
+
+  Color local_id(Color process, Color color) const {
+    const std::size_t offset = color_offset(process);
+    const Color id = color - offset;
+    flog_assert(id < colors(process) && color >= offset,
+      "invalid color(" << color << ")");
+    return id;
   }
 
   /*!
