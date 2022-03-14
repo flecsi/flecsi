@@ -191,8 +191,26 @@ struct detail::base<array_category> {
 template<class P>
 struct array : topo::specialization<array_category, array<P>> {};
 
+//---------------------------------------------------------------------------//
+// User topology.
+//---------------------------------------------------------------------------//
+
 // The simplest topology that behaves as expected by application code.
 struct user_base : array_base {};
+
+/// The User topology is a bare-bones topology supporting a single
+/// index space.  It implements arguably the simplest topology that
+/// provides useful functionality for parallel data accesses.  The
+/// User topology represents a single index space whose size can vary
+/// by color.  Ghost copies are not supported.
+///
+/// \tparam P the specialization
+///
+/// The User topology's `coloring` type is a vector (specifically, a
+/// ``std::vector<std::size_t>``) indicating the number of indices per
+/// color in the single index space.  Because the User topology is
+/// hard-wired for a single index space, specializations defining
+/// their own `index_space` and `index_spaces` are not supported.
 template<class P>
 struct user : user_base, array_category<P>, with_ragged<P> {
   explicit user(const coloring & c)
