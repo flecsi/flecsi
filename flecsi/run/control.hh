@@ -69,6 +69,9 @@ struct control_policy {
   /// Base class for control point objects.
   struct node_policy {};
 };
+
+/// A control policy must provide names for its control points.
+inline const char * operator*(control_policy::control_points_enum);
 #endif
 
 /*!
@@ -107,7 +110,7 @@ struct control : P {
 private:
   friend P;
 
-  using control_points = typename P::control_points;
+  using control_points = run_impl::to_types_t<P>;
   using control_points_enum = typename P::control_points_enum;
   using node_policy = typename P::node_policy;
 
@@ -140,12 +143,19 @@ private:
     target_type target_;
   }; // struct control_node
 
+  using dag = util::dag<control_node>;
+
   /*
     Use the node type that is defined by the specialized DAG.
    */
 
-  using node_type = typename util::dag<control_node>::node_type;
+  using node_type = typename dag::node_type;
 
+public:
+  using sorted_type = std::map<control_points_enum, typename dag::sorted_type>;
+  using dag_map = std::map<control_points_enum, dag>;
+
+private:
   /*
     Initialize the control point dags. This is necessary in order to
     assign labels in the case that no actions are registered at one
@@ -170,7 +180,7 @@ private:
     Return the dag at the given control point.
    */
 
-  util::dag<control_node> & control_point_dag(control_points_enum cp) {
+  dag & control_point_dag(control_points_enum cp) {
     registry_.try_emplace(cp, *cp);
     return registry_[cp];
   }
@@ -179,8 +189,8 @@ private:
     Return a map of the sorted dags under each control point.
    */
 
-  std::map<control_points_enum, std::vector<node_type const *>> sort() {
-    std::map<control_points_enum, std::vector<node_type const *>> sorted;
+  sorted_type sort() const {
+    sorted_type sorted;
     for(auto & d : registry_) {
       sorted.try_emplace(d.first, d.second.sort());
     }
@@ -191,7 +201,7 @@ private:
     Run the control model.
    */
 
-  int run() {
+  int run() const {
     int status{flecsi::run::status::success};
     run_impl::walk<control_points>(point_walker(sort(), status));
     return status;
@@ -202,15 +212,15 @@ private:
    */
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  int write() {
+  int write() const {
     flecsi::util::graphviz gv;
-    run_impl::walk<control_points>(point_writer(registry_, gv));
+    point_writer::write(registry_, gv);
     std::string file = program() + "-control-model.dot";
     gv.write(file);
     return flecsi::run::status::control_model;
   } // write
 
-  int write_sorted() {
+  int write_sorted() const {
     flecsi::util::graphviz gv;
     point_writer::write_sorted(sort(), gv);
     std::string file = program() + "-control-model-sorted.dot";
@@ -219,7 +229,7 @@ private:
   } // write_sorted
 #endif
 
-  std::map<control_points_enum, util::dag<control_node>> registry_;
+  dag_map registry_;
 
 public:
   /*!

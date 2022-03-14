@@ -24,8 +24,9 @@ FleCSI has two mechanisms for expressing work:
   FleCSI is defined by three parallel operations: *forall*, *reduceall*,
   and *scan*. Each of these is a fine-grained, data-parallel operation.
   The use of the *kernel* nomenclature is derived from CUDA, and OpenCL,
-  and is conceptually consistent with those models. Please see example
-  of using *forall* kernels in *parallel* section of the tutorials. 
+  and is conceptually consistent with those models. Please see the
+  example of using *forall* kernels in the *parallel* section of the
+  tutorial. 
 
 ----
 
@@ -35,47 +36,72 @@ Tasks
 Example 1: Single Tasks
 +++++++++++++++++++++++
 
-Single task is a task that operates on entire data passed to it and is
-executed by a single process. 
-`execute` method will call a single task if no ‘launch domain` (see in
-the next example) or a topology with a launch domain is passed to it.
+A `single` task launches on a single process, i.e., only one instance of
+the task is executed.
+This is in contrast to an `index` launch, which executes a task as a
+data-parallel operation, potentially across many processes.
+FleCSI uses information about the arguments passed to a task to decide
+how to launch the task: If no parameter is passed that defines a `launch
+domain`, e.g., an explicit `launch domain`, a `topology` instance, or a
+`future map`, FleCSI will launch the task as `single`.
 
-In the example of `trivial` task, there is no arguments passed and a
-default `launch domain` is used. Therefore, it is a single task
-
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
-  :language: cpp
-  :lines: 28-31
-
-.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
-  :language: cpp
-  :lines: 82-82
-
-You can return a value from the task. And A `future` is a mechanism, to
-access the result of an asynchronous task execution.
+The `trivial` task is an example of a `single` task.
+Consider the following from `tutorial/3-execution/1-single-task.cc`:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 93-107
+  :lines: 22-29
 
-FleCSI can execute a task that takes an argument by-value.
-FleCSI tasks can take any valid C++ type by value. However, because task
-data must be relocatable, you cannot pass pointer arguments, or
-arguments that contain pointers.
+Execution of the task is trivial:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 117-119
+  :lines: 76-80
+
+A single task can return a value:
+
+.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+  :language: cpp
+  :lines: 31-40
+
+The return value can be retrieved with a `future`:
+
+.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+  :language: cpp
+  :lines: 82-107
+
+FleCSI tasks can take any valid C++ type as an argument `by-value`,
+e.g., a ``std::vector``:
+
+.. caution::
+
+    FleCSI tasks can take any valid C++ type by value. However, because
+    task data must be relocatable, you cannot pass pointer arguments, or
+    arguments that contain pointers.  Modifications made to by-value
+    data are local to the task and will not be reflected at the call
+    site.
+
+.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+  :language: cpp
+  :lines: 42-58
+
+Execution of such a task is what you would expect:
+
+.. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
+  :language: cpp
+  :lines: 109-121
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 66-73
+  :lines: 60-71
+
+Again, execution is straightforward:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 127-128
+  :lines: 123-131
 
 Example 2: Index Tasks
 ++++++++++++++++++++++

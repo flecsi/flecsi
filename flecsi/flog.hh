@@ -23,8 +23,10 @@
 
 #include "flecsi/log/utils.hh"
 
+#include <cstdlib>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <unordered_set>
 #include <vector>
@@ -70,6 +72,28 @@ struct stream<std::array<T, N>> {
     o << ">";
   }
 };
+template<typename T1, typename T2>
+struct stream<std::pair<T1, T2>> {
+  static void
+  put(std::ostream & o, std::pair<T1, T2> const & p, std::string indt = "") {
+    detail::put(detail::put(o << indt << '<', p.first) << ", ", p.second)
+      << ">\n";
+  }
+};
+template<typename... TT>
+struct stream<std::tuple<TT...>> {
+  static void
+  put(std::ostream & o, std::tuple<TT...> const & p, std::string indt = "") {
+    std::apply(
+      [&](TT const &... arg) {
+        o << indt << "<";
+        std::size_t n{0};
+        (detail::put(o << (n++ ? ", " : ""), arg), ...);
+        o << ">\n";
+      },
+      p);
+  }
+};
 template<template<typename, typename> typename C, typename T, typename A>
 struct stream<C<T, A>> {
   static void put(std::ostream & o, C<T, A> const & c, std::string indt = "") {
@@ -96,14 +120,24 @@ struct stream<std::unordered_map<K, V>> {
   }
 };
 template<typename T>
+struct stream<std::set<T>> {
+  static void
+  put(std::ostream & o, const std::set<T> & s, std::string indt = "") {
+    o << indt << "{";
+    for(auto & e : s)
+      detail::put(o << "\n", e, indt + "  ");
+    o << "\n" << indt << "}";
+  }
+};
+template<typename T>
 struct stream<std::unordered_set<T>> {
   static void put(std::ostream & o,
     const std::unordered_set<T> & s,
     std::string indt = "") {
-    o << "{";
+    o << indt << "{";
     for(auto & e : s)
       detail::put(o << "\n", e, indt + "  ");
-    o << "\n}";
+    o << "\n" << indt << "}";
   }
 };
 } // namespace detail
@@ -215,7 +249,8 @@ private:
 
 #define flog(severity)                                                         \
   true && /* implicitly converts remainder to bool */                          \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__).format()
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)        \
+      .format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
 
@@ -374,13 +409,13 @@ struct container {
 
 #endif // FLECSI_ENABLE_FLOG
 
-namespace flecsi::log {
+namespace flecsi::flog {
 template<typename T>
 auto
 to_string(T const & t) {
   return std::move(std::stringstream() << container(t)).str();
 }
-} // namespace flecsi::log
+} // namespace flecsi::flog
 
 /*!
   Alias for severity level warn.
@@ -440,13 +475,23 @@ dumpstack() {
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
     __flog_internal_wait_on_flusher();                                         \
+    const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
+    if(dump != nullptr) {                                                      \
+      ::flecsi::flog::dumpstack();                                             \
+    }                                                                          \
+    else {                                                                     \
+      _sstream << FLOG_OUTPUT_YELLOW(                                          \
+                    "For a full stack trace, set "                             \
+                    "FLECSI_BACKTRACE in your environment, e.g.,\n"            \
+                    "`$ export FLECSI_BACKTRACE=1`.")                          \
+               << std::endl;                                                   \
+    }                                                                          \
     std::cerr << _sstream.str() << std::endl;                                  \
-    ::flecsi::flog::dumpstack();                                               \
     std::abort();                                                              \
   } /* scope */
 
 /*!
-  Clog assertion interface. Assertions allow the developer to catch
+  Flog assertion interface. Assertions allow the developer to catch
   invalid program state. This call will invoke flog_fatal if the test
   condition is false.
 

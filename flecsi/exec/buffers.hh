@@ -67,8 +67,11 @@ private:
   }
 
 public:
-  template<data::layout L, typename DATA_TYPE, Privileges PRIVILEGES>
-  void visit(data::accessor<L, DATA_TYPE, PRIVILEGES> &) {} // visit
+  template<data::layout L, typename D, Privileges P>
+  void visit(data::accessor<L, D, P> &) {} // visit
+
+  template<class R, typename T>
+  void visit(data::reduction_accessor<R, T> &) {}
 
   template<data::layout L, class T, Privileges P>
   void visit(data::mutator<L, T, P> & m) {
@@ -87,14 +90,13 @@ public:
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
 
-  template<typename DATA_TYPE>
-  static
-    typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, DATA_TYPE>>
-    visit(DATA_TYPE &) {
+  template<typename D>
+  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
+    D &) {
     {
       flog::devel_guard guard(param_buffers_tag);
-      flog_devel(info) << "No cleanup for parameter of type "
-                       << util::type<DATA_TYPE>() << std::endl;
+      flog_devel(info) << "No cleanup for parameter of type " << util::type<D>()
+                       << std::endl;
     }
   } // visit
 };

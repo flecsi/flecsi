@@ -66,28 +66,6 @@ compute_closure() {
   } // scope
 #endif
 
-#if 0
-  auto primaries = topo::unstructured_impl::distribute(naive, colors, raw);
-
-  {
-    std::stringstream ss;
-    Color color=0;
-    for(auto p : primaries) {
-      ss << "color " << color++ << ":" << std::endl;
-      for(auto i : p) {
-        ss << i << " ";
-      }
-      ss << std::endl;
-    }
-    ss << std::endl;
-    flog_devel(warn) << ss.str();
-  } // scope
-
-  for(auto p : primaries) {
-    topo::unstructured_impl::closure<closure_policy>(p);
-  }
-#endif
-
   auto [primaries, p2m, m2p] =
     topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
@@ -124,7 +102,8 @@ compute_closure() {
 
   flog(info) << "CELL DEFINITIONS" << std::endl;
   std::size_t lid{0};
-  for(auto const & c : c2v) {
+  util::crspan<util::crs> c2v_v(&c2v);
+  for(auto const & c : c2v_v) {
     std::stringstream ss;
     ss << "cell " << p2m[lid++] << ": ";
     for(auto const & v : c) {
@@ -140,6 +119,15 @@ compute_closure() {
     sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
+  flog(warn) << flog::container{coloring.idx_spaces[0][0].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[0][1].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[1][0].coloring}
+             << std::endl;
+  flog(warn) << flog::container{coloring.idx_spaces[1][1].coloring}
+             << std::endl;
+
 #if 0
   flog(info) << "V2C CONNECTIVITIES" << std::endl;
   for(auto const & v : v2c) {
@@ -151,6 +139,8 @@ compute_closure() {
     flog(warn) << ss.str() << std::endl;
   } // for
 
+  flog(warn) << std::endl;
+
   flog(info) << "C2C CONNECTIVITIES" << std::endl;
   for(auto const & c : c2c) {
     std::stringstream ss;
@@ -161,9 +151,11 @@ compute_closure() {
     flog(warn) << ss.str() << std::endl;
   } // for
 
+  flog(warn) << std::endl;
+
   flog(info) << "CELL DEFINITIONS" << std::endl;
-  std::size_t lid{0};
-  for(auto const & c : c2v) {
+  lid = 0;
+  for(auto const & c : c2v_v) {
     std::stringstream ss;
     ss << "cell " << p2m[lid++] << ": ";
     for(auto const & v : c) {
@@ -172,8 +164,6 @@ compute_closure() {
     flog(warn) << ss.str() << std::endl;
   } // for
 #endif
-
-  flog(warn) << flog::container{coloring.partitions} << std::endl;
 }
 
 int

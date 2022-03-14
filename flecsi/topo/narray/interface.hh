@@ -124,7 +124,8 @@ private:
         c.idx_colorings[Index],
         part_[Index],
         c.comm)...}} {
-    init_meta(c);
+    auto lm = data::launch::make(this->meta);
+    execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     init_policy_meta(c);
   }
 
@@ -144,20 +145,21 @@ private:
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
-      execute<set_dests, mpi>(f, intervals, comm);
+      auto lm = data::launch::make(f.topology());
+      execute<set_dests, mpi>(lm(f), intervals, comm);
     };
 
     auto ptrs_task = [&points, &comm](auto f) {
+      auto lm = data::launch::make(f.topology());
       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        f, points, comm);
+        lm(f), points, comm);
     };
     // clang-format on
 
     return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
-  static void set_meta_idx(meta_data & md,
-    std::vector<process_color> const & vpc) {
+  static void set_meta_idx(meta_data & md, const process_color & pc) {
     // clang-format off
     static constexpr auto copy = [](const coord & c,
       typename meta_data::scoord & s) {
@@ -174,38 +176,33 @@ private:
     };
     // clang-format on
 
-    md.orientation = vpc[0].orientation;
-    copy(vpc[0].global, md.global);
-    copy(vpc[0].offset, md.offset);
-    copy(vpc[0].extents, md.extents);
-    copy2(vpc[0].logical, md.logical);
-    copy2(vpc[0].extended, md.extended);
+    md.orientation = pc.orientation;
+    copy(pc.global, md.global);
+    copy(pc.offset, md.offset);
+    copy(pc.extents, md.extents);
+    copy2(pc.logical, md.logical);
+    copy2(pc.extended, md.extended);
   }
 
-  template<auto... Value>
-  static void visit_meta_is(util::key_array<meta_data, index_spaces> & m,
-    narray_base::coloring const & c,
-    util::constants<Value...> /* index spaces to deduce pack */) {
-    std::size_t index{0};
-    (set_meta_idx(m.template get<Value>(), c.idx_colorings[index++]), ...);
-  }
-
-  static void set_meta(typename field<util::key_array<meta_data, index_spaces>,
-                         data::single>::template accessor<wo> m,
+  template<auto... Value> // index_spaces
+  static void set_meta(
+    data::multi<typename field<util::key_array<meta_data, index_spaces>,
+      data::single>::template accessor<wo>> mm,
     narray_base::coloring const & c) {
-    visit_meta_is(m, c, index_spaces());
+    const auto ma = mm.accessors();
+    for(auto i = ma.size(); i--;) {
+      std::size_t index{0};
+      (set_meta_idx(ma[i]->template get<Value>(), c.idx_colorings[index++][i]),
+        ...);
+    }
   }
 
-  void init_meta(narray_base::coloring const & c) {
-    execute<set_meta, mpi>(meta_field(this->meta), c);
-  }
-
-  // Default initilaization for user policy meta data
+  // Default-initialize user policy meta data:
   static void set_policy_meta(typename field<typename Policy::meta_data,
     data::single>::template accessor<wo>) {}
 
   void init_policy_meta(narray_base::coloring const &) {
-    execute<set_policy_meta, mpi>(policy_meta_field(this->meta));
+    execute<set_policy_meta>(policy_meta_field(this->meta));
   }
 
   auto & get_sizes(std::size_t i) {
@@ -231,7 +228,7 @@ private:
 
 template<class P>
 struct borrow_extra<narray<P>> {
-  borrow_extra(narray<P> &, claims::core &) {}
+  borrow_extra(narray<P> &, claims::core &, bool) {}
 
   auto & get_sizes(std::size_t i) {
     return borrow_base::derived(*this).spc[i].single().sz;

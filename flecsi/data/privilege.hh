@@ -155,9 +155,10 @@ inline constexpr Privileges privilege_cat = [] {
 
 constexpr partition_privilege_t
 privilege_merge(Privileges p) {
-  return privilege_discard(p)
-           ? wo
-           : privilege_write(p) ? rw : privilege_read(p) ? ro : na;
+  return privilege_discard(p) ? wo
+         : privilege_write(p) ? rw
+         : privilege_read(p)  ? ro
+                              : na;
 }
 
 /// \endcond

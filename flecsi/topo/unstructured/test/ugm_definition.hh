@@ -14,6 +14,7 @@
 #pragma once
 
 #include "flecsi/flog.hh"
+#include "flecsi/util/crs.hh"
 
 #include <fstream>
 #include <iterator>
@@ -64,7 +65,7 @@ public:
     for(size_t l(0); l < num_cells_; ++l) {
       std::getline(file_, line);
       std::istringstream iss(line);
-      ids_.push_back(std::vector<size_t>(
+      e2v_.add_row(std::vector<size_t>(
         std::istream_iterator<size_t>(iss), std::istream_iterator<size_t>()));
     }
 
@@ -78,11 +79,10 @@ public:
     return dimension == 0 ? num_vertices_ : num_cells_;
   }
 
-  const std::vector<std::vector<std::size_t>> & entities(Dimension from_dim,
-    Dimension to_dim) const {
+  util::crs const & entities(Dimension from_dim, Dimension to_dim) const {
     flog_assert(from_dim == 3, "invalid dimension " << from_dim);
     flog_assert(to_dim == 0, "invalid dimension " << to_dim);
-    return ids_;
+    return e2v_;
   }
 
   std::vector<size_t>
@@ -152,7 +152,7 @@ public:
 
 private:
   mutable std::ifstream file_;
-  std::vector<std::vector<size_t>> ids_;
+  util::crs e2v_;
 
   size_t num_vertices_;
   size_t num_cells_;

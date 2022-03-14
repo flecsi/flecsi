@@ -27,11 +27,12 @@
 
 namespace flecsi {
 namespace data {
+namespace mpi {
 /// \defgroup mpi-data MPI Data
 /// Direct data storage.
 /// \ingroup data
 /// \{
-namespace mpi {
+
 namespace detail {
 
 struct buffer {
@@ -247,8 +248,12 @@ struct region {
     return p->size();
   }
 
-  region_impl & operator*() const {
+  region_impl & operator*() {
     return *p;
+  }
+
+  region_impl * operator->() {
+    return p.get();
   }
 
 private:
@@ -337,6 +342,7 @@ struct prefixes : data::partition, prefixes_base {
 
   using partition::get_base;
 };
+/// \}
 } // namespace mpi
 
 // For backend-agnostic interface:
@@ -576,6 +582,5 @@ private:
   std::size_t max_local_source_idx = 0;
 };
 
-/// \}
 } // namespace data
 } // namespace flecsi

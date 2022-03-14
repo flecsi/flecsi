@@ -91,7 +91,10 @@ struct region : region_base {
   region(size2 s, util::key_type<S, Topo>)
     : region_base(s,
         run::context::instance().get_field_info_store<Topo, S>(),
-        (util::type<Topo>() + '[' + std::to_string(S) + ']').c_str()) {}
+        (util::type<Topo>() + '[' +
+          std::to_string(static_cast<std::underlying_type_t<decltype(S)>>(S)) +
+          ']')
+          .c_str()) {}
 
   template<class D>
   void cleanup(field_id_t f, D d) {

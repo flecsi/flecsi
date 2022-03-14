@@ -38,6 +38,9 @@ struct detail::base<global_category> {
   using type = global_base;
 };
 
+/// \addtogroup spec
+/// \{
+
 /*!
   Unpartitioned topology whose fields are readable by all colors.
   Fields must be written by single tasks.
@@ -51,6 +54,7 @@ struct global : specialization<global_category, global> {
 };
 
 /// \}
+/// \}
 } // namespace topo
 
 // Defined here to avoid circularity via ragged and execute.
@@ -60,6 +64,15 @@ struct exec::detail::launch<data::accessor<L, T, Priv>,
   static std::
     conditional_t<privilege_write(Priv), std::monostate, std::nullptr_t>
     get(const data::field_reference<T, L, topo::global, topo::elements> &) {
+    return {};
+  }
+};
+
+template<class R, typename T>
+struct exec::detail::launch<data::reduction_accessor<R, T>,
+  data::field_reference<T, data::dense, topo::global, topo::elements>> {
+  static std::nullptr_t get(const data::
+      field_reference<T, data::dense, topo::global, topo::elements> &) {
     return {};
   }
 };

@@ -59,7 +59,7 @@ annotation_driver() {
       auto custom_time = times.find("custom");
       ASSERT_NE(custom_time, times.end());
       auto combined_time =
-        reduce<check_custom, exec::fold::sum, mpi>(*custom_time).get();
+        reduce<check_custom, exec::fold::sum, mpi>(custom_time->second).get();
       EXPECT_EQ(combined_time, size * (size + 1) / 2);
     }
 

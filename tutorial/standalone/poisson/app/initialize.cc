@@ -31,5 +31,6 @@ poisson::action::init_mesh() {
   geometry[1] = geometry[0];
 
   m.allocate(coloring.get(), geometry);
+
   return 0;
 } // init_mesh

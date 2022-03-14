@@ -16,7 +16,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/dcrs.hh"
+#include "flecsi/util/crs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/types.hh"
 
@@ -53,7 +53,7 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
   idx_t options[4] = {0, 0, 0, 0};
   idx_t edgecut;
 
-  std::vector<idx_t> part(naive.entries());
+  std::vector<idx_t> part(naive.size());
 
   if(size != colors) {
     options[0] = 1;
@@ -61,12 +61,11 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
     flecsi::util::color_map cm(size, colors, naive.distribution.back());
 
-    for(size_t i{0}; i < naive.entries(); ++i) {
+    for(size_t i{0}; i < naive.size(); ++i) {
       part[i] = cm.index_color(naive.distribution[rank] + i);
     } // for
   } // if
 
-  // FIXME: Remove or guard
   std::stringstream ss;
   ss << "part size: " << part.size() << std::endl;
   for(auto i : part) {

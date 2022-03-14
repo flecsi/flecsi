@@ -54,7 +54,7 @@ struct set : set_base {
   }
 
   template<typename P::index_space>
-  const data::partition & get_partition(field_id_t) const {
+  repartition & get_partition(field_id_t) {
 
     return part;
   }
