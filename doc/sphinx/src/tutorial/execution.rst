@@ -80,8 +80,8 @@ Index task is a task that is executed by several processes. It is often
 used to operate on different parts of the input data (like partitioned
 mesh) asynchronously. 
 
-In this example we explicitly ask to execute ``task`` on 4 processes by
-specifying ``launch_domain`` as argument
+In this example we explicitly ask to execute ``task`` on 4 processes via
+the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
@@ -95,7 +95,7 @@ Launch domain (``exec::launch_domain``) is used to define how many index
 points an index task should have. If no ``launch_domain`` is passed to the
 ``execute`` method, the default will be used. If a topology instance is
 passed the default is the number of colors that instance has.
-Otherwise, the default is ``0``.
+Otherwise, the default is to launch a single task.
 
 
 Example 3: MPI Tasks
