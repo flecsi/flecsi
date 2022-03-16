@@ -292,9 +292,7 @@ struct unstructured_base {
     destination_intervals & intervals,
     source_pointers & pointers,
     // field<cmap, data::ragged>::mutator<wo> cgraph,
-    data::multi<field<util::id>::accessor1<
-      privilege_cat<privilege_repeat<wo, N - (N > 1)>,
-        privilege_repeat<na, (N > 1)>>>> fmap,
+    data::multi<field<util::id>::accessor1<privilege_repeat<wo, N>>> fmap,
     std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
     flog_assert(vpc.size() == fmap.depth(),
