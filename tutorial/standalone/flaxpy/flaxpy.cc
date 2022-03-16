@@ -1,16 +1,7 @@
 /*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-*/
+ * Demonstrate how to compute Y = a*X + Y over a distributed array
+ * using FleCSI.
+ */
 
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
@@ -19,8 +10,10 @@
 #include <flecsi/topo/index.hh>
 
 // Let the user specify the vector length on the command line.
-inline flecsi::program_option<std::size_t> vector_length(
-  "Flaxpy-specific Options",
+//
+// In a larger program in which this definition appeared in a header
+// file, it could be declared inline.
+flecsi::program_option<std::size_t> vector_length("Flaxpy-specific Options",
   "length,l",
   "Specify the length of the vectors to add.",
   {{flecsi::option_default, 1000000}});
@@ -36,19 +29,23 @@ struct dist_vector
   static coloring color() {
     // Specify one color per process, and assign the same number of
     // indices to each color.
-    size_t nproc = flecsi::processes();
-    size_t indexes_per_color = vector_length.value() / nproc;
+    std::size_t nproc = flecsi::processes();
+    std::size_t indexes_per_color = vector_length.value() / nproc;
     coloring * subvectors = new coloring(nproc, indexes_per_color);
 
     // Evenly distribute the leftover indices among the first colors.
-    size_t leftovers = vector_length.value() % nproc;
-    for(size_t i = 0; i < leftovers; ++i)
+    std::size_t leftovers = vector_length.value() % nproc;
+    for(std::size_t i = 0; i < leftovers; ++i)
       (*subvectors)[i]++;
     return *subvectors;
   }
 };
 
 // Add two fields, x_field and y_field, to dist_vector.
+//
+// For clarity we specify flecsi::data::layout::dense as a template
+// parameter, but this is in fact the default and would normally be
+// omitted.
 template<typename T>
 using one_field = flecsi::field<T, flecsi::data::layout::dense>;
 const one_field<double>::definition<dist_vector> x_field;
@@ -62,7 +59,10 @@ dist_vector::cslot dist_vector_cslot;
 enum class cp { initialize, mul_add, finalize };
 
 // Overload "*" to convert a control-point identifier to a string.
-inline const char *
+//
+// In a larger program in which this function appeared in a header
+// file, it could be declared inline.
+const char *
 operator*(cp control_point) {
   switch(control_point) {
     case cp::initialize:
@@ -95,15 +95,15 @@ void
 initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
   one_field<double>::accessor<flecsi::wo> y_acc) {
   // Compute our starting offset into the global vector.
-  size_t base = 0;
+  std::size_t base = 0;
   flecsi::data::coloring_slot<dist_vector>::color_type num_indices_per_color =
     dist_vector_cslot.get();
-  size_t current_color = flecsi::color();
-  for(size_t i = 0; i < current_color; ++i)
+  std::size_t current_color = flecsi::color();
+  for(std::size_t i = 0; i < current_color; ++i)
     base += num_indices_per_color[i];
 
   // Arbitrarily initialize x[i] = i and y[i] = length - i.
-  size_t num_local_elts =
+  std::size_t num_local_elts =
     num_indices_per_color[flecsi::color()]; // Same as x_acc.span().size()
   forall(i, x_acc.span(), "init_x") { x_acc[i] = double(base + i); };
   forall(i, y_acc.span(), "init_y") {
@@ -126,8 +126,8 @@ void
 mul_add_task(double a,
   one_field<double>::accessor<flecsi::ro> x_acc,
   one_field<double>::accessor<flecsi::rw> y_acc) {
-  size_t num_local_elts = x_acc.span().size();
-  for(size_t i = 0; i < num_local_elts; ++i)
+  std::size_t num_local_elts = x_acc.span().size();
+  for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
 }
 
