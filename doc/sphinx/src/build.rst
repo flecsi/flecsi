@@ -86,8 +86,10 @@ Getting The Code
   If you are a user and only want to install FleCSI, you can skip this
   step and use the instructions for installing FleCSI using Spack.
 
-Clone the FleCSI git repository, and create an out-of-source build area
+Clone the `FleCSI git repository`__, and create an out-of-source build area
 (FleCSI prohibits in-source builds):
+
+__ https://github.com/flecsi/flecsi
 
 .. code-block:: console
 
