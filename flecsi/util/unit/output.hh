@@ -5,6 +5,7 @@
 #include <memory>
 #include <regex>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 namespace unit {
@@ -87,3 +88,4 @@ private:
 } // namespace unit
 } // namespace util
 } // namespace flecsi
+/// \endcore

@@ -28,12 +28,18 @@
 #include <set>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup unstructured
+/// \{
 namespace unstructured_impl {
 
+/// Information about an entity that is shared with other colors.
 struct shared_entity {
+  /// Global id.
   std::size_t id;
+  /// The \e colors with which this entity is shared.
   std::vector<std::size_t> dependents;
 
   bool operator<(const shared_entity & s) const {
@@ -62,8 +68,11 @@ operator<<(std::ostream & stream, shared_entity const & s) {
   return stream;
 }
 
+/// Information about an entity owned by another color.
 struct ghost_entity {
+  /// Global id.
   std::size_t id;
+  /// Owning color.
   Color color;
 
   bool operator<(const ghost_entity & g) const {
@@ -81,22 +90,35 @@ operator<<(std::ostream & stream, ghost_entity const & g) {
   return stream;
 }
 
+/// Information for one index space and one color.
 struct index_coloring {
+  /// Global ids owned by this color.
   std::vector<std::size_t> owned;
+  /// The subset of \c owned that are not ghosts on any other color.
   std::vector<std::size_t> exclusive;
+  /// Entities that are ghosts on another color.
   std::vector<shared_entity> shared;
+  /// Entities that are owned by another color.
   std::vector<ghost_entity> ghosts;
 };
 
+/// Efficient storage for a sequence of sequences of integers.
 struct crs {
+  /// The beginning of each row in \c indices, including a trailing value that
+  /// is the end of the last row.
   std::vector<std::size_t> offsets;
+  /// The concatenated rows.
   std::vector<std::size_t> indices;
 };
 
-/*
-  Closure tokens for specifying the behavior of closure function.
- */
-
+/// Tag for specifying attributes for the primary index space.
+/// The ownership of entities in other index spaces is determined by their
+/// association with entities in the primary index space.
+/// \tparam IndexSpace enumerator from \c index_spaces
+/// \tparam D dimensionality of the entities
+/// \tparam ThroughDimension minimum dimensionality of mutual entity to
+///   consider their primary entities to be neighbors
+/// \tparam Depth number of ghost layers
 template<size_t IndexSpace,
   Dimension D,
   Dimension ThroughDimension,
@@ -132,30 +154,28 @@ struct unstructured_base {
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
+  /// Coloring type.
+  /// \ingroup unstructured
   struct coloring {
-    /*
-      The current coloring utilities and topology initialization assume
-      the use of MPI. This could change in the future, e.g., if legion
-      matures to the point of developing its own software stack. However,
-      for the time being, this comm is provided to retain consistency
-      with the coloring utilities for unstructured.
+    /*!
+      Communicator over which the coloring is distributed.
      */
 
     MPI_Comm comm;
 
-    /*
+    /*!
       The number of colors in this coloring
      */
 
     Color colors;
 
-    /*
+    /*!
       The global number of entities in each index space
      */
 
     std::vector<std::size_t> idx_entities;
 
-    /*
+    /*!
       The local coloring information for each index space.
 
       The coloring information is expressed in the mesh index space,
@@ -164,11 +184,14 @@ struct unstructured_base {
 
     std::vector<index_coloring> idx_colorings;
 
-    /* The local allocation size for each connectivity */
+    /*!
+      The local allocation size for each connectivity, shaped like the
+      specialization's \c connectivities.
+     */
 
     std::vector<std::vector<std::size_t>> cnx_allocs;
 
-    /*
+    /*!
       The local graph for each connectivity.
 
       The graph information is expressed in the mesh index space,
@@ -390,6 +413,7 @@ struct unstructured_base {
 
 }; // struct unstructured_base
 
+/// \}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
@@ -436,3 +460,4 @@ struct util::serial::traits<topo::unstructured_impl::index_coloring> {
 };
 
 } // namespace flecsi
+/// \endcore

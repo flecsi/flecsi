@@ -27,6 +27,7 @@
 namespace flecsi {
 /// \defgroup data Data Model
 /// Defining topology instances and fields.
+/// \code#include "flecsi/data.hh"\endcode
 /// \{
 
 /*!

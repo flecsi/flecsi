@@ -63,6 +63,7 @@ private:
   }
 
 public:
+  // Find the index of (the last appearance of) V in the sequence VV.
   // V must be comparable to each of VV.
   template<auto V>
   static constexpr std::size_t index = find<V>(

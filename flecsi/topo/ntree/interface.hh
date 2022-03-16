@@ -41,7 +41,7 @@ namespace topo {
 /// Binary, Quad and Oct Tree topology.
 /// The ntree topology is using a hashing table to store and access the entities
 /// and nodes of the tree.
-/// \addtogroup topology
+/// \ingroup topology
 /// \{
 
 /// The ntree topology represents a binary, quad or octree stored/accessed using

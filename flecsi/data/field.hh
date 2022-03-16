@@ -30,6 +30,7 @@ namespace data {
 /// \{
 
 /// A data accessor.
+/// Name via \c field::accessor.
 /// Pass a \c field_reference to a task that accepts an accessor.
 /// \tparam L data layout
 /// \tparam T data type
@@ -38,6 +39,7 @@ template<layout L, typename T, Privileges Priv>
 struct accessor;
 
 /// A specialized accessor for changing the extent of dynamic layouts.
+/// Name via \c field::mutator.
 template<layout, class, Privileges>
 struct mutator;
 
@@ -171,11 +173,15 @@ struct field : data::detail::field_base<T, L> {
   template<Privileges Priv>
   using mutator1 = data::mutator<L, T, Priv>;
   /// The accessor to use as a parameter to receive this sort of field.
-  /// \tparam PP the appropriate number of privilege values
+  /// \tparam PP the appropriate number of privilege values, interpreted as
+  ///   - exclusive
+  ///   - shared, ghost
+  ///   - exclusive, shared, ghost
   template<partition_privilege_t... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
   /// The mutator to use as a parameter for this sort of field (usable only
   /// for certain layouts).
+  /// \tparam PP as for \c accessor
   template<partition_privilege_t... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 

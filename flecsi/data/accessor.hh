@@ -354,7 +354,7 @@ public:
 
     row(const raw_row & r) : raw_row(r) {}
 
-    /// \name \c std::vector operations
+    /// \name std::vector operations
     /// \{
     void assign(size_type n, const T & t) const {
       clear();
@@ -866,7 +866,7 @@ public:
 
     row(base_row r) : r(r) {}
 
-    /// \name \c std::map operations
+    /// \name std::map operations
     /// \{
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;

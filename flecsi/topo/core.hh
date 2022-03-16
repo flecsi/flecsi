@@ -29,6 +29,11 @@ struct topology_accessor; // avoid circularity via launch.hh
 namespace topo {
 /// \defgroup topology Topologies
 /// Generic topology categories and tools for specializing them.
+/// \note In a \c toc task, certain metadata provided by topology accessors is
+///   \e host-accessible, which means that it is read-only and can be accessed
+///   within or outside of a kernel in the task.
+///
+/// \code#include "flecsi/data.hh"\endcode
 /// \warning The material in this section and its subsections other than
 ///   \ref spec is of interest
 ///   only to developers of topology specializations.  Application developers
@@ -147,7 +152,7 @@ struct specialization_base {
 
   /// The index space type.
   using index_space = single_space;
-  /// The set of index spaces, wrapped in \c list.
+  /// The set of index spaces, wrapped in \c has.
   using index_spaces = has<elements>;
   /// The topology interface type.
   /// It must be \a B or inherit from it without adding any data members.
@@ -225,25 +230,6 @@ struct specialization : specialization_base {
   }
   /// \}
 };
-
-#ifdef DOXYGEN
-/// An example specialization that is not really implemented.
-/// No member is needed in all circumstances. However, each topology
-/// have additional member requirements that is needed to construct
-/// those types.
-///
-/// See also the members marked for overriding in \c specialization_base and
-/// \c specialization.
-struct topology : specialization<core, topology> {
-  /// Interpret specialization-specific arguments to construct a coloring.
-  /// Called in an MPI task.
-  /// This is required only for use with a \c coloring_slot.
-  static coloring color(...);
-
-  using connectivities = list<>; ///< for connect_t/connect_access
-  using entity_lists = list<>; ///< for lists_t/list_access
-};
-#endif
 
 /// \}
 } // namespace topo

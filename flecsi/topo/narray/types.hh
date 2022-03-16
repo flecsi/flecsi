@@ -30,6 +30,8 @@
 namespace flecsi {
 namespace topo {
 namespace narray_impl {
+/// \addtogroup narray
+/// \{
 
 enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
@@ -63,7 +65,9 @@ struct coloring_definition {
  Type to store the coloring information for one color.
  */
 struct index_coloring {
-
+  /// Flags to indicate position within the overall domain.
+  /// Each axis gets two bits starting from the least significant:
+  /// the lower indicates the low edge, and the higher the high edge.
   std::uint32_t faces;
 
   ///  The global extents.
@@ -105,12 +109,15 @@ struct index_coloring {
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
 };
 
+/// \}
 } // namespace narray_impl
 
-/*----------------------------------------------------------------------------*
-  Base.
- *----------------------------------------------------------------------------*/
+/// \addtogroup narray
+/// \{
 
+/// \if core
+/// Specialization-independent definitions.
+/// \endif
 struct narray_base {
   using index_coloring = narray_impl::index_coloring;
   using coord = narray_impl::coord;
@@ -118,6 +125,8 @@ struct narray_base {
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
 
+  /// Coloring type.
+  /// \ingroup narray
   struct coloring {
     MPI_Comm comm;
     Color colors;
@@ -179,6 +188,7 @@ struct narray_base {
   }
 }; // struct narray_base
 
+/// \}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
