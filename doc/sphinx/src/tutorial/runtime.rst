@@ -624,17 +624,17 @@ This enables users to investigate runtime overhead and application performance
 with Caliper.  Users can also use this interface to add additional annotations
 to performance sensitive regions of their applications.
 
-To CMake variable *FLECSI_CALIPER_DETAIL* is used to disable or control the
+To CMake variable *CALIPER_DETAIL* is used to disable or control the
 level of detail in included Caliper annotations.  The currently available
 options are:
 
-* *FLECSI_CALIPER_DETAIL=none* |br|
+* *CALIPER_DETAIL=none* |br|
   Caliper annotations are disabled
-* *FLECSI_CALIPER_DETAIL=low* |br|
+* *CALIPER_DETAIL=low* |br|
   Annotations marked with low severity detail are included
-* *FLECSI_CALIPER_DETAIL=medium* |br|
+* *CALIPER_DETAIL=medium* |br|
   Annotations marked with low and medium severity detail are included
-* *FLECSI_CALIPER_DETAIL=high* |br|
+* *CALIPER_DETAIL=high* |br|
   All annotations are included
 
 .. caution::
@@ -653,7 +653,7 @@ can be used to add annotations to applications.  This allows users to instrument
 their code and use Caliper to collect timing data.  An annotation for a code
 region must specify a detail level, context, and name.  The detail level is used
 to selectively control the inclusion of an annotation using the cmake variable
-*FLECSI_CALIPER_DETAIL*.  The context for an annotation is used as a named
+*CALIPER_DETAIL*.  The context for an annotation is used as a named
 grouping for annotations.  In caliper, this can be used to filter and aggregate
 annotations using the `caliper query language <http://software.llnl.gov/Caliper/calql.html>`_.
 
