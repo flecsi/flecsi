@@ -460,4 +460,4 @@ struct util::serial::traits<topo::unstructured_impl::index_coloring> {
 };
 
 } // namespace flecsi
-/// \endcore
+/// \endcond

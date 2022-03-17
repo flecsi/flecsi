@@ -87,4 +87,4 @@ using finalization = control::action<Target, test_control_points::finalization>;
 /// \}
 } // namespace unit
 } // namespace flecsi
-//// \endcore
+/// \endcond

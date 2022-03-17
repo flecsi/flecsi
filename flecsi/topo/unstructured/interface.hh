@@ -298,4 +298,4 @@ struct unstructured_specialization : specialization<unstructured, example> {
 /// \}
 } // namespace topo
 } // namespace flecsi
-/// \endcore
+/// \endcond

@@ -88,4 +88,4 @@ private:
 } // namespace unit
 } // namespace util
 } // namespace flecsi
-/// \endcore
+/// \endcond
