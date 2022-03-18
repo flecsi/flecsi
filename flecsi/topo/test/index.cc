@@ -298,9 +298,11 @@ flecsi::unit::driver<index_driver> driver;
 
 struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
 
+  typedef int t_type;
+
   static coloring color() {
 
-    return coloring(processes(), 3);
+    return {0, std::vector<std::size_t>(processes(), 3)};
   }
 };
 
