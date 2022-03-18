@@ -31,13 +31,13 @@ struct dist_vector
     // indices to each color.
     std::size_t nproc = flecsi::processes();
     std::size_t indexes_per_color = vector_length.value() / nproc;
-    coloring * subvectors = new coloring(nproc, indexes_per_color);
+    coloring subvectors(nproc, indexes_per_color);
 
     // Evenly distribute the leftover indices among the first colors.
     std::size_t leftovers = vector_length.value() % nproc;
     for(std::size_t i = 0; i < leftovers; ++i)
-      (*subvectors)[i]++;
-    return *subvectors;
+      subvectors[i]++;
+    return subvectors;
   }
 };
 
