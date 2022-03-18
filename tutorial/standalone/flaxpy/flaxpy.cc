@@ -21,23 +21,29 @@ flecsi::program_option<std::size_t> vector_length("Flaxpy-specific Options",
 // Use our own namespace so as not to pollute the global namespace.
 namespace flaxpy {
 
+// Return a vector of the number of indices to assign to each color.
+// Indices are divided as evenly as possible among colors.
+std::vector<std::size_t>
+divide_indices_among_colors(std::size_t ncolors) {
+  // Initially assign the same number of indices to each color.
+  std::size_t min_indexes_per_color = vector_length.value() / ncolors;
+  std::vector<std::size_t> ind_per_col(ncolors, min_indexes_per_color);
+
+  // Evenly distribute the leftover indices among the first colors.
+  std::size_t leftovers = vector_length.value() % ncolors;
+  for(std::size_t i = 0; i < leftovers; ++i)
+    ind_per_col[i]++;
+  return ind_per_col;
+}
+
 // Define a distributed vector type called dist_vector as a specialization
 // of the "user" topology.
 struct dist_vector
   : flecsi::topo::specialization<flecsi::topo::user, dist_vector> {
   // Return the number of indices to assign to each color.
   static coloring color() {
-    // Specify one color per process, and assign the same number of
-    // indices to each color.
-    std::size_t nproc = flecsi::processes();
-    std::size_t indexes_per_color = vector_length.value() / nproc;
-    coloring subvectors(nproc, indexes_per_color);
-
-    // Evenly distribute the leftover indices among the first colors.
-    std::size_t leftovers = vector_length.value() % nproc;
-    for(std::size_t i = 0; i < leftovers; ++i)
-      subvectors[i]++;
-    return subvectors;
+    // Specify one color per process, and distribute indices accordingly.
+    return divide_indices_among_colors(flecsi::processes());
   }
 };
 
@@ -94,10 +100,10 @@ void
 initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
   one_field<double>::accessor<flecsi::wo> y_acc) {
   // Compute our starting offset into the global vector.
-  std::size_t base = 0;
-  flecsi::data::coloring_slot<dist_vector>::color_type num_indices_per_color =
-    dist_vector_cslot.get();
+  std::vector<std::size_t> num_indices_per_color =
+    divide_indices_among_colors(flecsi::colors());
   std::size_t current_color = flecsi::color();
+  std::size_t base = 0;
   for(std::size_t i = 0; i < current_color; ++i)
     base += num_indices_per_color[i];
 
@@ -105,7 +111,7 @@ initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
   // for the latter because it can run in parallel without access to
   // the index variable.
   std::size_t num_local_elts =
-    num_indices_per_color[flecsi::color()]; // Same as x_acc.span().size()
+    num_indices_per_color[current_color]; // Same as x_acc.span().size()
   for(size_t i = 0; i < num_local_elts; ++i)
     x_acc[i] = double(base + i);
   forall(elt, y_acc.span(), "init_y") { elt = 0; };
