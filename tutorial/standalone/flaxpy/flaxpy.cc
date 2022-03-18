@@ -48,8 +48,7 @@ struct dist_vector
 // omitted.
 template<typename T>
 using one_field = flecsi::field<T, flecsi::data::layout::dense>;
-const one_field<double>::definition<dist_vector> x_field;
-const one_field<double>::definition<dist_vector> y_field;
+const one_field<double>::definition<dist_vector> x_field, y_field;
 
 // Declare a coloring of the distributed vector.
 dist_vector::slot dist_vector_slot;
@@ -102,13 +101,14 @@ initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
   for(std::size_t i = 0; i < current_color; ++i)
     base += num_indices_per_color[i];
 
-  // Arbitrarily initialize x[i] = i and y[i] = length - i.
+  // Arbitrarily initialize x[i] = i and y[i] = 0.  We use a forall
+  // for the latter because it can run in parallel without access to
+  // the index variable.
   std::size_t num_local_elts =
     num_indices_per_color[flecsi::color()]; // Same as x_acc.span().size()
-  forall(i, x_acc.span(), "init_x") { x_acc[i] = double(base + i); };
-  forall(i, y_acc.span(), "init_y") {
-    y_acc[i] = double(vector_length.value() - (base + i));
-  };
+  for(size_t i = 0; i < num_local_elts; ++i)
+    x_acc[i] = double(base + i);
+  forall(elt, y_acc.span(), "init_y") { elt = 0; };
 }
 
 // Implement an action for the initialize control point.
@@ -143,9 +143,13 @@ mul_add_action() {
 // Define a task that adds up all values of Y and returns the sum.
 double
 reduce_y_task(one_field<double>::accessor<flecsi::rw> y_acc) {
-  auto local_sum = reduceall(
-    i, accum, y_acc.span(), flecsi::exec::fold::sum, double, "reduce_y_task") {
-    accum(y_acc[i]);
+  auto local_sum = reduceall(elt,
+    accum,
+    y_acc.span(),
+    flecsi::exec::fold::sum,
+    double,
+    "reduce_y_task") {
+    accum(elt);
   };
   return local_sum;
 }
