@@ -52,7 +52,7 @@ package_d() {
 control::action<package_d, cp::cp1> package_d_action;
 
 /*
-  Register several actions under control point one.
+  Register several actions under control point two.
  */
 
 int

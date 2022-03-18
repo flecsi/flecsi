@@ -333,7 +333,7 @@ These options allow the user to output dot files for visualizing the
 control model and resulting sequential ordering of the registered
 actions, ``--control-model``, and ``--control-model-sorted``,
 respectively.
-To enable these options, we must call a the method that checks for them,
+To enable these options, we must call the method that checks for them,
 and exit the program if they have been invoked.
 Although it is not strictly necessary to end execution after invocation
 of the control model outputs, it is generally desirable to do so for a
@@ -581,7 +581,7 @@ methods, and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
-   :lines: 64-95
+   :lines: 63-93
 
 .. important::
 

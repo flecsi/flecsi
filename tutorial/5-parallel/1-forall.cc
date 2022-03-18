@@ -63,7 +63,7 @@ advance() {
   execute<init>(canonical, pf);
 #if defined(FLECSI_ENABLE_KOKKOS)
   // accelerated task, will be executed on the Kokkos default execution space
-  // In case of Kookos bult with GPU, default execution space will be GPU
+  // In case of Kokkos built with GPU, default execution space will be GPU
   // We rely on Legion moving data between devices for the legion back-end and
   // UVM for the MPI back-end
   execute<modify, default_accelerator>(canonical, pf);
