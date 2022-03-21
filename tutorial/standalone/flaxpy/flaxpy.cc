@@ -46,24 +46,6 @@ struct dist_vector
   }
 };
 
-// For this example, it is supposed that the following declarations
-// would not be needed in any further source files so they are given
-// internal linkage.
-namespace {
-
-// Add two fields, x_field and y_field, to dist_vector.
-//
-// For clarity we specify flecsi::data::layout::dense as a template
-// parameter, but this is in fact the default and would normally be
-// omitted.
-template<typename T>
-using one_field = flecsi::field<T, flecsi::data::layout::dense>;
-const one_field<double>::definition<dist_vector> x_field, y_field;
-
-// Declare a coloring of the distributed vector.
-dist_vector::slot dist_vector_slot;
-dist_vector::cslot dist_vector_cslot;
-
 // Define three FleCSI control-point identifiers.
 enum class cp { initialize, mul_add, finalize };
 
@@ -99,12 +81,30 @@ struct control_policy {
 // Define a fully qualified control type that implements our control policy.
 using control = flecsi::run::control<control_policy>;
 
-} // namespace
+} // namespace flaxpy
+
+// For this example, it is supposed that the following declarations
+// would not be needed in any further source files so they are given
+// internal linkage.
+namespace {
+
+// Add two fields, x_field and y_field, to dist_vector.
+//
+// For clarity we specify flecsi::data::layout::dense as a template
+// parameter, but this is in fact the default and would normally be
+// omitted.
+template<typename T>
+using one_field = flecsi::field<T, flecsi::data::layout::dense>;
+const one_field<double>::definition<flaxpy::dist_vector> x_field, y_field;
+
+// Declare a coloring of the distributed vector.
+flaxpy::dist_vector::slot dist_vector_slot;
+flaxpy::dist_vector::cslot dist_vector_cslot;
 
 // Define a task that initializes the elements of the distributed vector.
 void
-initialize_vectors_task(flaxpy::one_field<double>::accessor<flecsi::wo> x_acc,
-  flaxpy::one_field<double>::accessor<flecsi::wo> y_acc) {
+initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
+  one_field<double>::accessor<flecsi::wo> y_acc) {
   // Compute our starting offset into the global vector.
   std::vector<std::size_t> num_indices_per_color =
     flaxpy::divide_indices_among_colors(flecsi::colors());
@@ -126,19 +126,18 @@ initialize_vectors_task(flaxpy::one_field<double>::accessor<flecsi::wo> x_acc,
 // Implement an action for the initialize control point.
 int
 initialize_action() {
-  flaxpy::dist_vector_cslot.allocate();
-  flaxpy::dist_vector_slot.allocate(flaxpy::dist_vector_cslot.get());
+  dist_vector_cslot.allocate();
+  dist_vector_slot.allocate(dist_vector_cslot.get());
   flecsi::execute<initialize_vectors_task>(
-    flaxpy::x_field(flaxpy::dist_vector_slot),
-    flaxpy::y_field(flaxpy::dist_vector_slot));
+    x_field(dist_vector_slot), y_field(dist_vector_slot));
   return 0;
 }
 
 // Define a task that assigns Y <- a*X + Y.
 void
 mul_add_task(double a,
-  flaxpy::one_field<double>::accessor<flecsi::ro> x_acc,
-  flaxpy::one_field<double>::accessor<flecsi::rw> y_acc) {
+  one_field<double>::accessor<flecsi::ro> x_acc,
+  one_field<double>::accessor<flecsi::rw> y_acc) {
   std::size_t num_local_elts = x_acc.span().size();
   for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
@@ -148,15 +147,14 @@ mul_add_task(double a,
 int
 mul_add_action() {
   const double a = 12.34; // Arbitrary scalar value to multiply
-  flecsi::execute<mul_add_task>(a,
-    flaxpy::x_field(flaxpy::dist_vector_slot),
-    flaxpy::y_field(flaxpy::dist_vector_slot));
+  flecsi::execute<mul_add_task>(
+    a, x_field(dist_vector_slot), y_field(dist_vector_slot));
   return 0;
 }
 
 // Define a task that adds up all values of Y and returns the sum.
 double
-reduce_y_task(flaxpy::one_field<double>::accessor<flecsi::rw> y_acc) {
+reduce_y_task(one_field<double>::accessor<flecsi::rw> y_acc) {
   auto local_sum = reduceall(elt,
     accum,
     y_acc.span(),
@@ -172,12 +170,12 @@ reduce_y_task(flaxpy::one_field<double>::accessor<flecsi::rw> y_acc) {
 int
 finalize_action() {
   double sum = flecsi::reduce<reduce_y_task, flecsi::exec::fold::sum>(
-    flaxpy::y_field(flaxpy::dist_vector_slot))
+    y_field(dist_vector_slot))
                  .get();
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;
-  flaxpy::dist_vector_slot.deallocate();
-  flaxpy::dist_vector_cslot.deallocate();
+  dist_vector_slot.deallocate();
+  dist_vector_cslot.deallocate();
   return 0;
 }
 
@@ -188,7 +186,7 @@ flaxpy::control::action<initialize_action, flaxpy::cp::initialize> init;
 flaxpy::control::action<mul_add_action, flaxpy::cp::mul_add> ma;
 flaxpy::control::action<finalize_action, flaxpy::cp::finalize> fin;
 
-} // namespace flaxpy
+} // namespace
 
 int
 main(int argc, char ** argv) {
