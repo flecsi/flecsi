@@ -22,7 +22,7 @@ inline flecsi::program_option<std::size_t> vector_length(
 
 // Return a vector of the number of indices to assign to each color.
 // Indices are divided as evenly as possible among colors.
-std::vector<std::size_t>
+inline std::vector<std::size_t>
 divide_indices_among_colors(std::size_t ncolors) {
   // Initially assign the same number of indices to each color.
   std::size_t min_indexes_per_color = vector_length.value() / ncolors;
