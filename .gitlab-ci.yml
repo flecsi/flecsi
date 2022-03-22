@@ -45,6 +45,7 @@ format:check:
     - job: format:diff
       artifacts: true
     - job: tutorial:legion
+    - job: flaxpy:legion
     - job: poisson:legion
   only:
     - merge_requests
@@ -174,6 +175,24 @@ tutorial:legion:
     IMAGE: rockylinux
     CXX_COMPILER: g++
     CXX_FLAGS: -Wall -W -Werror -Wno-parentheses
+    C_COMPILER: gcc
+    C_FLAGS: ${CXX_FLAGS}
+
+flaxpy:legion:
+  extends: .standalone_template
+  needs:
+    ["mpich-legion-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/flaxpy
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    MPI_PROVIDER: mpich
+    REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
+    IMAGE: rockylinux
+    CXX_COMPILER: g++
+    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
 
