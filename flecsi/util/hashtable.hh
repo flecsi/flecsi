@@ -1,17 +1,8 @@
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_HASHTABLE_HH
+#define FLECSI_UTIL_HASHTABLE_HH
 
 #include "flecsi/flog.hh"
 #include <flecsi/util/array_ref.hh>
@@ -172,3 +163,5 @@ public:
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

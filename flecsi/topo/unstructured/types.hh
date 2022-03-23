@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
@@ -139,10 +130,11 @@ struct auxiliary_independent {
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   field<util::id, data::ragged>::mutator<rw, na> output) {
-  for(std::size_t e{0}; e < input.size(); ++e) {
-    for(std::size_t v{0}; v < input[e].size(); ++v) {
-      output[input[e][v]].push_back(e);
-    }
+  std::size_t e = 0;
+  for(auto && i : input) {
+    for(auto v : i)
+      output[v].push_back(e);
+    ++e;
   }
 }
 
@@ -295,30 +287,22 @@ struct unstructured_base {
       Fulfill the requests that we received from other processes, i.e.,
       provide the locaL offset for the requested mesh ids.
      */
-
-    std::vector<std::vector<std::size_t>> fulfills(size);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(auto c : rv) {
-          fulfills[r].emplace_back(shared_offsets[c]);
-        } // for
-        ++r;
-      } // for
-    } // scope
+    for(auto & rv : requested)
+      for(auto & c : rv)
+        c = shared_offsets[c];
 
     /*
       Send/Receive the local offset information with other processes.
      */
+    requested = util::mpi::all_to_allv(
+      [&requested](int r, int) { return std::move(requested[r]); }, comm);
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
     /*
       Setup source pointers.
      */
 
     int r = 0;
-    for(const auto & rv : fulfilled) {
+    for(const auto & rv : requested) {
       if(r == rank) {
         ++r;
         continue;
@@ -434,19 +418,6 @@ struct util::serial::traits<topo::unstructured_impl::shared_entity> {
 };
 
 template<>
-struct util::serial::traits<topo::unstructured_impl::ghost_entity> {
-  using type = topo::unstructured_impl::ghost_entity;
-  template<class P>
-  static void put(P & p, const type & s) {
-    serial::put(p, s.id, s.color);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
 struct util::serial::traits<topo::unstructured_impl::index_coloring> {
   using type = topo::unstructured_impl::index_coloring;
   template<class P>
@@ -460,4 +431,6 @@ struct util::serial::traits<topo::unstructured_impl::index_coloring> {
 };
 
 } // namespace flecsi
-/// \endcore
+/// \endcond
+
+#endif

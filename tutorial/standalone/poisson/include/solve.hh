@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_SOLVE_HH
+#define POISSON_SOLVE_HH
 
 #include "specialization/control.hh"
 
@@ -15,3 +16,5 @@ inline control::action<solve, cp::solve> solve_action;
 
 } // namespace action
 } // namespace poisson
+
+#endif

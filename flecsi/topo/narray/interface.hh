@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NARRAY_INTERFACE_HH
+#define FLECSI_TOPO_NARRAY_INTERFACE_HH
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
@@ -493,3 +484,5 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 } // namespace flecsi
 
 /// \endcond
+
+#endif

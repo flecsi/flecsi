@@ -1,17 +1,8 @@
-/*
-@@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-/@@/////  /@@          @@////@@ @@////// /@@
-/@@       /@@  @@@@@  @@    // /@@       /@@
-/@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-/@@////   /@@/@@@@@@@/@@       ////////@@/@@
-/@@       /@@/@@//// //@@    @@       /@@/@@
-/@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-//       ///  //////   //////  ////////  //
+// Copyright (c) 2020, Triad National Security, LLC
+// All rights reserved.
 
-Copyright (c) 2020, Triad National Security, LLC
-All rights reserved.
-                                                            */
-#pragma once
+#ifndef FLECSI_DATA_COPY_PLAN_HH
+#define FLECSI_DATA_COPY_PLAN_HH
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
@@ -412,3 +403,5 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 } // namespace data
 } // namespace flecsi
 /// \endcond
+
+#endif

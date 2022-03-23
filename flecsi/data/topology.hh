@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2020, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2020, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_TOPOLOGY_HH
+#define FLECSI_DATA_TOPOLOGY_HH
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
@@ -168,3 +159,5 @@ struct partitioned : region, P {
 /// \}
 } // namespace flecsi::data
 /// \endcond
+
+#endif

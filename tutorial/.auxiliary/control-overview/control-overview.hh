@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TUTORIAL_AUXILIARY_CONTROL_OVERVIEW_CONTROL_OVERVIEW_HH
+#define TUTORIAL_AUXILIARY_CONTROL_OVERVIEW_CONTROL_OVERVIEW_HH
 
 #include "flecsi/control.hh"
 #include "flecsi/flog.hh"
@@ -52,3 +53,5 @@ private:
 using control = flecsi::control<control_policy>;
 
 } // namespace example
+
+#endif

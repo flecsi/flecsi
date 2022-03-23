@@ -1,18 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016 Los Alamos National Laboratory, LLC
+// All rights reserved
 
-   Copyright (c) 2016 Los Alamos National Laboratory, LLC
-   All rights reserved
-                                                                              */
-
-#pragma once
+#ifndef FLECSI_UTIL_GEOMETRY_POINT_HH
+#define FLECSI_UTIL_GEOMETRY_POINT_HH
 
 #include "flecsi/util/common.hh"
 #include "flecsi/util/dimensioned_array.hh"
@@ -109,3 +99,5 @@ centroid(std::initializer_list<point<TYPE, DIMENSION>> points) {
 
 } // namespace util
 } // namespace flecsi
+
+#endif

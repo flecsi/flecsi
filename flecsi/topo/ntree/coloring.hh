@@ -1,16 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
+
+#ifndef FLECSI_TOPO_NTREE_COLORING_HH
+#define FLECSI_TOPO_NTREE_COLORING_HH
 
 #include <map>
 #include <vector>
@@ -85,3 +77,5 @@ struct ntree_base {
 } // namespace topo
 } // namespace flecsi
 /// \endcond
+
+#endif

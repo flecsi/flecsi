@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_TYPES_HH
+#define FLECSI_TOPO_NTREE_TYPES_HH
 
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/geometry/point.hh"
@@ -80,9 +71,6 @@ public:
   bool operator<(const sort_entity & s) const {
     return std::tie(key_, id_) < std::tie(s.key_, s.id_);
   }
-  template<Dimension D, typename TY, class K>
-  friend std::ostream & operator<<(std::ostream & os,
-    const sort_entity<D, TY, K> & e);
 
 private:
   point_t coordinates_;
@@ -217,3 +205,5 @@ class node
 } // namespace topo
 } // namespace flecsi
 /// \endcond
+
+#endif

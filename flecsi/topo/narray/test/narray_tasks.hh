@@ -1,18 +1,8 @@
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NARRAY_TEST_NARRAY_TASKS_HH
+#define FLECSI_TOPO_NARRAY_TEST_NARRAY_TASKS_HH
 
 #include "flecsi/util/unit.hh"
 
@@ -496,3 +486,5 @@ check_3d(mesh3d::accessor<ro> m) {
     }
   };
 } // check_3d
+
+#endif

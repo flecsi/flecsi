@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef TUTORIAL_4_DATA_CANONICAL_HH
+#define TUTORIAL_4_DATA_CANONICAL_HH
 
 #include <flecsi/flog.hh>
 #include <flecsi/topo/unstructured/interface.hh>
@@ -35,3 +26,5 @@ struct canon : topo::specialization<topo::unstructured, canon> {
       {{}}};
   }
 };
+
+#endif

@@ -41,18 +41,18 @@ default launch domain is used. Therefore, it is a single task
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 26-29
+  :lines: 15-18
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 80-80
+  :lines: 69-69
 
 You can return a value from the task. And a *future* is a mechanism, to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 86-106
+  :lines: 75-95
 
 FleCSI can execute a task that takes an argument by-value.
 FleCSI tasks can take any valid C++ type by value. However, because task
@@ -61,17 +61,17 @@ arguments that contain pointers.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 114-118
+  :lines: 103-107
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 64-71
+  :lines: 53-60
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 124-128
+  :lines: 113-117
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
@@ -85,7 +85,7 @@ the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :lines: 26-43
+  :lines: 15-32
 
 
 Launch Domains
@@ -110,6 +110,6 @@ method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :lines: 26-40
+  :lines: 15-29
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

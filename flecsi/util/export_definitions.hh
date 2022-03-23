@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_EXPORT_DEFINITIONS_HH
+#define FLECSI_UTIL_EXPORT_DEFINITIONS_HH
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define FLECSI_SYMBOL_EXPORT __declspec(dllexport)
@@ -60,4 +51,6 @@
 #define FLECSI_EXPORT FLECSI_SYMBOL_IMPORT
 #define FLECSI_EXCEPTION_EXPORT FLECSI_SYMBOL_IMPORT
 #define FLECSI_API_EXPORT FLECSI_APISYMBOL_IMPORT
+#endif
+
 #endif
