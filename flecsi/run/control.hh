@@ -243,6 +243,11 @@ public:
   static P & policy() {
     return instance();
   }
+  /// Return the control policy object.
+  /// \deprecated use #policy
+  static P & state() {
+    return policy();
+  }
 
   /*!
     The action type provides a mechanism to add execution elements to the
