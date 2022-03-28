@@ -135,7 +135,9 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
     auto lm = data::launch::make(s);
     execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[core::index<cells>], vmaps);
-    execute<topo::unstructured_impl::transpose>(c2v(s), v2c(s));
+    constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
+    constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
+    execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
   } // initialize
 }; // struct unstructured
 

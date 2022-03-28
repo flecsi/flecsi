@@ -120,9 +120,24 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
   return stream;
 }
 
-inline void
-transpose(field<util::id, data::ragged>::accessor<ro, ro, na> input,
-  field<util::id, data::ragged>::mutator<wo, wo, na> output) {
+/*!
+  Initialize a connectivity using its transpose connectivity, e.g.,
+  initializing vertex-to-cell connectivity using cell-to-vertex.
+
+  @tparam NI Number of privileges for input connectivity.
+  @tparam NO Number of privileges for output connectivity.
+  @param input Conectivity used to compute the tranpose.
+  @param output Connectivity to initialize from transposition.
+  */
+template<PrivilegeCount NI, PrivilegeCount NO>
+void
+transpose(
+  field<util::id,
+    data::ragged>::accessor1<privilege_cat<privilege_repeat<ro, NI - (NI > 1)>,
+    privilege_repeat<na, (NI > 1)>>> input,
+  field<util::id,
+    data::ragged>::mutator1<privilege_cat<privilege_repeat<wo, NO - (NO > 1)>,
+    privilege_repeat<na, (NO > 1)>>> output) {
   std::size_t e = 0;
   for(auto && i : input) {
     for(auto v : i)
