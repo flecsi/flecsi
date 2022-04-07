@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_POISSON_HH
+#define POISSON_POISSON_HH
 
 #include <flecsi/execution.hh>
 #include <flecsi/util/annotation.hh>
@@ -25,3 +26,5 @@ struct solve_region : annotation::region<user_execution> {
 struct analyze_region : annotation::region<user_execution> {
   inline static const std::string name{"analyze"};
 };
+
+#endif

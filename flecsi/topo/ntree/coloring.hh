@@ -1,30 +1,23 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
+
+#ifndef FLECSI_TOPO_NTREE_COLORING_HH
+#define FLECSI_TOPO_NTREE_COLORING_HH
 
 #include <map>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup ntree
+/// \{
 
-//----------------------------------------------------------------------------//
-// NTree topology coloring.
-//----------------------------------------------------------------------------//
-
+/// Ntree topology base
 struct ntree_base {
+
+  /// Index spaces used for the ntree topology
   enum index_space { entities, nodes, hashmap, tree_data, meta, comms };
-  // static constexpr std::size_t index_spaces = 1;
   using index_spaces =
     util::constants<entities, nodes, hashmap, tree_data, meta, comms>;
   // Parallel types for nodes and entities
@@ -56,40 +49,40 @@ struct ntree_base {
     std::size_t from_color;
   };
 
+  /// Ntree coloring
   struct coloring {
 
+    ///  Build a coloring based on the number of colors \p nparts
     coloring(Color nparts)
       : nparts_(nparts), global_hmap_(nparts * local_hmap_),
         hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3),
         cdata_offset_(nparts, 100), meta_offset_(nparts, 1),
         comms_offset_(nparts, nparts) {}
 
-    // Global
+    /// Number of colors
     Color nparts_;
 
-    // Entities
+    /// Number of local entities
     std::size_t local_entities_;
+    /// Number of global entities
     std::size_t global_entities_;
+    /// Entities distribution: number of entities per color
     std::vector<std::size_t> entities_distribution_;
     std::vector<std::size_t> entities_offset_;
 
-    // nodes
+    /// Number of local nodes
     std::size_t local_nodes_;
+    /// Number of global nodes
     std::size_t global_nodes_;
     std::vector<std::size_t> nodes_offset_;
 
-    // hmap
     static constexpr size_t local_hmap_ = 1 << 15;
     std::size_t global_hmap_;
     std::vector<std::size_t> hmap_offset_;
-
-    // tdata
     std::vector<std::size_t> tdata_offset_;
 
     // cdata
     std::vector<std::size_t> cdata_offset_;
-
-    // All global sizes array for make_partition
     std::vector<std::size_t> global_sizes_;
 
     std::vector<std::size_t> meta_offset_;
@@ -117,5 +110,10 @@ struct ntree_base {
   static constexpr auto task = [](auto f) { execute<*F>(f); };
 }; // struct ntree_base
 
+/// \}
+
 } // namespace topo
 } // namespace flecsi
+/// \endcond
+
+#endif

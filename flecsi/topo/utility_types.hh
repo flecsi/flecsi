@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UTILITY_TYPES_HH
+#define FLECSI_TOPO_UTILITY_TYPES_HH
 
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
@@ -228,7 +219,7 @@ struct id {
   }
   FLECSI_INLINE_TARGET
   void operator+(id) const = delete;
-  friend id operator+(difference_type d, id i) {
+  FLECSI_INLINE_TARGET friend id operator+(difference_type d, id i) {
     return i += d;
   }
   FLECSI_INLINE_TARGET
@@ -264,3 +255,5 @@ make_ids(C && c) {
 } // namespace topo
 } // namespace flecsi
 /// \endcond
+
+#endif

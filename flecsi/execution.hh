@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXECUTION_HH
+#define FLECSI_EXECUTION_HH
 
 #include "flecsi/exec/backend.hh"
 #include "flecsi/exec/fold.hh"
@@ -29,6 +20,7 @@ namespace flecsi {
 
 /// \defgroup runtime Runtime Model
 /// Environmental information and tools for organizing applications.
+/// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
 /*!
@@ -344,6 +336,7 @@ colors() {
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
 /// and data-parallel, possibly using an accelerator.
+/// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
 /*!
@@ -419,6 +412,7 @@ namespace log {
 
 /*!
   Explicitly flush buffered flog output.
+  \code#include "flecsi/execution.hh"\endcode
 
   @ingroup flog
  */
@@ -434,3 +428,5 @@ flush() {
 } // namespace log
 
 } // namespace flecsi
+
+#endif

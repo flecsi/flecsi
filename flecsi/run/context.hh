@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_RUN_CONTEXT_HH
+#define FLECSI_RUN_CONTEXT_HH
 
 #include <flecsi-config.h>
 
@@ -74,7 +65,7 @@ enum status : int {
 
 struct index_space_info_t {
   const data::region * region;
-  std::function<const data::partition *()> get_partition;
+  const data::partition * partition;
   data::fields fields;
   std::string index_type;
 };
@@ -563,30 +554,12 @@ protected:
 #endif
 
 private:
-  template<class Topo,
-    typename Topo::index_space Index,
-    typename SubTopo = Topo,
-    typename Instance>
+  template<class Topo, typename Topo::index_space Index, typename Instance>
   void add_fields(Instance & slot) {
-    auto & fs = get_field_info_store<SubTopo, Index>();
-    for(const auto fip : fs) {
-      auto get_partition = [=, &slot]() {
-        return &(slot.template get_partition<Index>(fip->fid));
-      };
-      if(!index_space_info_vector_.empty() &&
-         get_partition() == index_space_info_vector_.back().get_partition()) {
-        // add field to previous info_t entry
-        index_space_info_vector_.back().fields.push_back(fip);
-      }
-      else {
-        // add new entry for this field
-        index_space_info_t isi{&(slot.template get_region<Index>()),
-          get_partition,
-          {fip},
-          util::type<SubTopo>() + '[' + std::to_string(Index) + "]"};
-        index_space_info_vector_.push_back(isi);
-      }
-    } // for fip
+    index_space_info_vector_.push_back({&slot.template get_region<Index>(),
+      &slot.template get_partition<Index>(),
+      get_field_info_store<Topo, Index>(),
+      util::type<Topo>() + '[' + std::to_string(Index) + ']'});
   } // add_fields
 
   template<class Topo, typename Topo::index_space... Index>
@@ -599,7 +572,19 @@ private:
       // if present, register ragged fields
       if constexpr(std::is_base_of_v<topo::with_ragged_base,
                      typename Topo::core>) {
-        (add_fields<Topo, Index, topo::ragged<Topo>>(slot->ragged), ...);
+        (
+          [&] {
+            for(const auto fip :
+              get_field_info_store<topo::ragged<Topo>, Index>()) {
+              auto & t = slot->ragged.template get<Index>()[fip->fid];
+              index_space_info_vector_.push_back({&t.get_region(),
+                &t.get_partition(),
+                {fip},
+                util::type<Topo>() + "::ragged[" + std::to_string(Index) +
+                  ']'});
+            }
+          }(),
+          ...);
       }
     }
   }
@@ -675,3 +660,5 @@ private:
 /// \}
 } // namespace run
 } // namespace flecsi
+
+#endif

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
@@ -28,12 +19,18 @@
 #include <set>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
+/// \addtogroup unstructured
+/// \{
 namespace unstructured_impl {
 
+/// Information about an entity that is shared with other colors.
 struct shared_entity {
+  /// Global id.
   std::size_t id;
+  /// The \e colors with which this entity is shared.
   std::vector<std::size_t> dependents;
 
   /*
@@ -71,10 +68,15 @@ operator<<(std::ostream & stream, shared_entity const & s) {
   return stream;
 }
 
+/// Information about an entity owned by another color.
 struct ghost_entity {
+  /// Global id.
   std::size_t id;
+  /// Owning process.
   Color process;
+  /// Color within those of \e process.
   Color local;
+  /// Owning color.
   Color global;
 
   bool operator<(const ghost_entity & g) const {
@@ -94,11 +96,17 @@ operator<<(std::ostream & stream, ghost_entity const & g) {
   return stream;
 }
 
+/// Information for one index space and one color.
 struct index_coloring {
+  /// Global ids used by this color.
   std::vector<std::size_t> all;
+  /// Global ids owned by this color.
   std::vector<std::size_t> owned;
+  /// The subset of \c owned that are not ghosts on any other color.
   std::vector<std::size_t> exclusive;
+  /// Entities that are ghosts on another color.
   std::vector<shared_entity> shared;
+  /// Entities that are owned by another color.
   std::vector<ghost_entity> ghost;
 };
 
@@ -115,19 +123,27 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, ro, na> input,
   field<util::id, data::ragged>::mutator<wo, wo, na> output) {
-  for(std::size_t e{0}; e < input.size(); ++e) {
-    for(std::size_t v{0}; v < input[e].size(); ++v) {
-      output[input[e][v]].push_back(e);
-    }
+  std::size_t e = 0;
+  for(auto && i : input) {
+    for(auto v : i)
+      output[v].push_back(e);
+    ++e;
   }
 }
 
+/// Strategy for contructing colorings.
 struct coloring_definition {
+  /// Total number of colors.
   Color colors;
+  /// Index of primary entity in \c index_spaces.
+  /// \warning Not an \c index_space enumerator \b value.
   std::size_t idx;
+  /// Dimensionality of the mesh.
   std::size_t dim;
+  /// Number of layers of ghosts needed.
   std::size_t depth;
 
+  /// Index of vertices in \c index_spaces.
   std::size_t vidx;
 
   struct auxiliary {
@@ -136,24 +152,26 @@ struct coloring_definition {
     bool cnx;
   };
 
+  /// Information for auxiliary entities.
   std::vector<auxiliary> aux;
 };
 
+/// Information specific to a local color.
 struct process_coloring {
 
-  /*
+  /*!
     Global color.
    */
 
   Color color;
 
-  /*
+  /*!
     The global number of entities in this index space.
    */
 
   std::size_t entities;
 
-  /*
+  /*!
     The local coloring information for this index space.
 
     The coloring information is expressed in the mesh index space,
@@ -162,13 +180,13 @@ struct process_coloring {
 
   index_coloring coloring;
 
-  /*
+  /*!
     Communication peers (needed for ragged/sparse buffer creation).
    */
 
   std::vector<Color> peers;
 
-  /*
+  /*!
    The local allocation size for each connectivity. The vector is over
    connectivities between this entity type and another entity type. The
    ordering follows that given in the specialization policy.
@@ -176,7 +194,7 @@ struct process_coloring {
 
   std::vector<std::size_t> cnx_allocs;
 
-  /*
+  /*!
     The local graph for each connectivity.
 
     The graph information is expressed in the mesh index space,
@@ -226,41 +244,31 @@ struct unstructured_base {
     std::vector</* over contiguous intervals */
       data::subrow>>;
 
+  /// Coloring type.
+  /// \ingroup unstructured
   struct coloring {
+    /*!
+      Communicator over which the coloring is distributed.
+     */
     MPI_Comm comm;
 
-    /* global number of colors */
+    /// Global number of colors.
     Color colors;
 
-    /* global colors */
-    std::vector</* over global processes */
-      std::vector</* over local process colors */
-        Color>>
-      process_colors;
+    /// List of colors assigned for each process.
+    std::vector<std::vector<Color>> process_colors;
 
-    /* superset of communication peers over colors */
-    std::vector</* over global colors */
-      std::size_t>
-      color_peers;
+    /// Count of communication peers for each global color.
+    std::vector<std::size_t> color_peers;
 
-    /* tight information on actual communication peers */
-    std::vector</* over index spaces */
-      std::vector</* over global colors */
-        std::vector</* over peers */
-          Color>>>
-      peers;
+    /// Communication peers for each global color for each index space.
+    std::vector<std::vector<std::vector<Color>>> peers;
 
-    /* partition sizes over index spaces and global colors */
-    std::vector</* over index spaces */
-      std::vector</* over global colors */
-        std::size_t>>
-      partitions;
+    /// Number of index points for each global color for each index space.
+    std::vector<std::vector<std::size_t>> partitions;
 
-    /* process coloring over index spaces and process colors (local) */
-    std::vector</* over index spaces */
-      std::vector</* over process colors */
-        process_coloring>>
-      idx_spaces;
+    /// Detailed information for each local color for each index space.
+    std::vector<std::vector<process_coloring>> idx_spaces;
   }; // struct coloring
 
   template<class A>
@@ -564,6 +572,7 @@ operator<<(std::ostream & stream,
   stream << "idx_spaces\n" << log::container{c.idx_spaces} << std::endl;
   return stream;
 }
+/// \}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
@@ -616,3 +625,6 @@ struct util::serial::traits<topo::unstructured_impl::process_coloring> {
 };
 
 } // namespace flecsi
+/// \endcond
+
+#endif

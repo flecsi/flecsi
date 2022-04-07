@@ -47,7 +47,6 @@ Fixed
 * Topologies
 
   * Topology accessors that provide metadata for direct access in a ``toc`` task work properly when writable (although without such direct access in that case).
-  * ``narray`` topology accessors work properly when declared ``const``.
 
 * Legion backend
 
@@ -61,24 +60,15 @@ Fixed
 
 * On-node parallelism
 
+  * More topology accessor functions are available on a device.
   * Several uses of "iterator" in documentation have been corrected to use "range".
 
 * Logging
 
   * Messages are sorted by timestamp correctly.
 
-* Testing
-
-  * String-comparison macros (*e.g.*, ``ASSERT_STREQ``) handle runtime values properly.
-
 Changes in v2.1.0 (April 16 2021)
 +++++++++++++++++++++++++++++++++
-
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Topologies
-
-  * ``narray`` topology accessors provide ``policy_meta_`` rather than ``meta()``.
 
 New features
 ^^^^^^^^^^^^
@@ -86,17 +76,11 @@ New features
 
   * ``topo::help`` is a convenient base class for specialization class templates that defines the non-dependent names in ``specialization``.
 
-Fixed
-^^^^^
-* Topologies
-
-  * ``narray`` topology accessors handle boundary conditions correctly.
-
 Changes in v2.0.0 (March 30 2021)
 +++++++++++++++++++++++++++++++++
 
 The changes between versions 1 and 2 are extensive and so are merely summarized here.
-The broadest change is that macros are used only for on-node parallelism constructs and for logging and unit tests.
+The broadest change is that macros are used only for on-node parallelism constructs and for logging.
 Some macro arguments become template arguments.
 
 Removed
@@ -118,9 +102,7 @@ Removed
 * Topologies
 
   * Topology element ``id()`` |mdash| iteration produces indices
-  * Automatic dependent connectivity |mdash| will be provided as a separate utility
-
-* I/O |mdash| will be reimplemented
+  * Unstructured mesh |mdash| will be reimplemented
 
 Other incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -168,5 +150,4 @@ New features
 
 * Topologies
 
-  * Multiple topology categories are supported: ``unstructured`` and ``narray`` as well as the special cases of ``index`` and ``global``.
   * Multiple user-defined topology instances may exist sequentially or simultaneously.

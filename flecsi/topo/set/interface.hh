@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_SET_INTERFACE_HH
+#define FLECSI_TOPO_SET_INTERFACE_HH
 
 #include "flecsi/topo/core.hh" // base
 
@@ -62,7 +53,7 @@ struct set : set_base {
   }
 
   template<typename P::index_space>
-  repartition & get_partition(field_id_t) {
+  repartition & get_partition() {
 
     return part;
   }
@@ -79,3 +70,5 @@ struct detail::base<set> {
 
 } // namespace topo
 } // namespace flecsi
+
+#endif

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_ACCESSOR_HH
+#define FLECSI_DATA_ACCESSOR_HH
 
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
@@ -24,6 +15,11 @@
 #include <stack>
 
 namespace flecsi {
+namespace topo {
+template<class Topo, typename Topo::index_space>
+struct ragged_partitioned;
+}
+
 namespace data {
 /// \addtogroup data
 /// \{
@@ -100,11 +96,11 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
-  element_type & get() const {
+  FLECSI_INLINE_TARGET element_type & get() const {
     return base(0);
   } // data
   /// Convert to the value.
-  operator element_type &() const {
+  FLECSI_INLINE_TARGET operator element_type &() const {
     return get();
   } // value
 
@@ -304,22 +300,21 @@ struct ragged_accessor
   template<class F>
   void send(F && f) {
     f(get_base(), [](const auto & r) {
-      using R = std::remove_reference_t<decltype(r)>;
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
-      auto & t = r.topology().ragged;
-      r.get_region(t).cleanup(i, [=] {
+      auto & t = r.get_ragged();
+      t.template get_region<topo::elements>().cleanup(i, [=] {
         if constexpr(!std::is_trivially_destructible_v<T>)
           detail::destroy<P>(r);
       });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
-        r.get_partition(r.topology().ragged).resize();
+        t.resize();
       return field_reference<T,
         raw,
         topo::policy_t<std::remove_reference_t<decltype(t)>>,
-        R::space>::from_id(i, t);
+        topo::elements>::from_id(i, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
@@ -408,7 +403,7 @@ public:
 
     row(const raw_row & r) : raw_row(r) {}
 
-    /// \name \c std::vector operations
+    /// \name std::vector operations
     /// \{
     void assign(size_type n, const T & t) const {
       clear();
@@ -693,9 +688,8 @@ public:
   template<class F>
   void send(F && f) {
     f(get_base(), util::identity());
-    std::forward<F>(f)(get_size(), [](const auto & r) {
-      return r.get_partition(r.topology().ragged).sizes();
-    });
+    std::forward<F>(f)(
+      get_size(), [](const auto & r) { return r.get_ragged().sizes(); });
     if(over)
       over->resize(acc.size()); // no-op on caller side
   }
@@ -921,7 +915,7 @@ public:
 
     row(base_row r) : r(r) {}
 
-    /// \name \c std::map operations
+    /// \name std::map operations
     /// \{
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;
@@ -1359,7 +1353,7 @@ struct scalar_access : bind_tag {
     std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
   }
 
-  const value_type * operator->() const {
+  FLECSI_INLINE_TARGET const value_type * operator->() const {
     return &scalar_;
   }
 
@@ -1468,8 +1462,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {type::base_type::parameter(r),
-      r.get_partition(r.topology().ragged).grow()};
+    return {type::base_type::parameter(r), r.get_ragged().grow()};
   }
 };
 template<class T, Privileges P>
@@ -1511,3 +1504,5 @@ private:
 };
 
 } // namespace flecsi
+
+#endif

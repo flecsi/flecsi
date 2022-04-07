@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
@@ -125,36 +114,33 @@ check(mesh1d::accessor<ro> m,
   };
 } // check
 
-static bool added_topology = false;
+namespace {
+int
+setup() {
+  mesh1d::coord indices{64};
+  mesh1d::base::colors colors{4};
+  mesh1d::coord hdepths{0};
+  mesh1d::coord bdepths{0};
+  std::vector<bool> periodic{false};
+  mesh1d::coloring_definition cd = {
+    colors, indices, hdepths, bdepths, periodic, false};
+  mc.allocate(cd);
+  m.allocate(mc.get());
+  run::context::instance().add_topology(m);
+  return 0;
+}
+} // namespace
 
 template<bool Attach>
 int
 restart_driver() {
   UNIT {
-    mesh1d::coord indices{64};
-    mesh1d::base::colors colors{4};
-    mesh1d::coord hdepths{0};
-    mesh1d::coord bdepths{0};
-    std::vector<bool> periodic{false};
-    mesh1d::coloring_definition cd = {
-      colors, indices, hdepths, bdepths, periodic, false};
-    mc.allocate(cd);
-    m.allocate(mc.get());
-
-    // add topology only on first call
-    if(!added_topology) {
-      run::context::instance().add_topology(m);
-      added_topology = true;
-    }
-
-    auto f = m_field_r1.fid;
-    auto & mr = m->ragged.get_partition<is::entities>(f);
+    auto & mr = m_field_r1(m).get_ragged();
     mr.growth = {0, 0, 0.25, 0.5, 1};
     execute<allocate>(mr.sizes());
     // TODO:  figure out how to resize to the right size on a restart
     mr.resize();
-    f = m_field_r2.fid;
-    auto & mr2 = m->ragged.get_partition<is::entities>(f);
+    auto & mr2 = m_field_r2(m).get_ragged();
     mr2.growth = {0, 0, 0.25, 0.5, 1};
     execute<allocate>(mr2.sizes());
     mr2.resize();
@@ -179,14 +165,12 @@ restart_driver() {
     iif.recover_all_fields(filename, Attach);
 
     EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
-
-    m.deallocate();
-    mc.deallocate();
   };
 
   return 0;
 }
 
+unit::initialization<setup> init_mesh;
 // for MPI:  run test once, since attach flag is ignored.
 // for Legion:  run test twice, once with and once without attach.
 flecsi::unit::driver<restart_driver<true>> driver_w;

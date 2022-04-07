@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_COLORING_UTILS_HH
+#define FLECSI_TOPO_UNSTRUCTURED_COLORING_UTILS_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_functors.hh"
@@ -30,25 +21,62 @@
 #include <utility>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
+/// \addtogroup unstructured
+/// \{
+
+#if DOXYGEN
+/// An example mesh definition that is not really implemented.
+struct mesh_definition {
+  /// Get the dimensionality of the mesh.
+  static constexpr Dimension dimension();
+
+  /// The type for global indices, which must be exactly this.
+  using index = std::size_t;
+
+  /// Get the global number of entities of a kind.
+  std::size_t num_entities(Dimension) const;
+
+  /// Get the entities connected to or associated with an entity.
+  /// \param id of entity of dimension \a from
+  /// \return ids of entities of dimension \a to
+  std::vector<std::size_t>
+  entities(Dimension from, Dimension to, std::size_t id) const;
+
+  /// Get entities of a given dimension associated with a set of vertices.
+  /// \param g global ID of primary, or 0 if \a v pertains to a
+  ///   lower-dimensionality entity
+  /// \param v vertex IDs
+  /// \param[out] e entities, initially empty
+  void build_intermediary_from_vertices(Dimension,
+    std::size_t g,
+    const std::vector<std::size_t> & v,
+    util::crs & e);
+
+  /// Return the vertex with the given id.
+  point vertex(std::size_t) const;
+
+  /// Vertex information type, perhaps spatial coordinates.
+  using point = decltype(std::declval<mesh_definition>().vertex(0));
+};
+#endif
 
 /*!
   Create a distributed graph representation of the highest-dimensional
-  entity type in the given mesh definition. This is a cell-to-cell graph
-  through the \emph{through_dimension} provided by the user.
-
-  @tparam MD The mesh definition type.
-
-  @param md                An instance of the mesh definition type.
-  @param through_dimension The dimension through which connections should
-                           be computed, e.g., cell connections through faces.
-  @param comm              The MPI communicator to use for communication.
-
-  @return A std::tuple containing the distributed graph, and the work products
-          of the function, e.g.,  the cell-to-vertex connectivity, the
-          vertex-to-cell connectivity, and the cell-to-cell connectivity.
+  entity type in the given mesh definition.
+  \tparam MD like \c mesh_definition
+  \param md off the \a comm root, only \c num_entities used
+  \param through_dimension minimum dimensionality of common entity to
+    consider their primary entities to be neighbors
+  \return a \c tuple of
+    - a na&iuml;vely distributed graph of owned "cells" (top-level entities)
+    - a \c vector of \c vector objects holding the vertices for each owned
+      cell
+    - a \c map of \c vector objects holding the cells for each owned vertex
+    - a \c map of \c vector objects holding the neighbors for each owned cell
  */
 
 template<typename MD>
@@ -201,6 +229,16 @@ make_dcrs(MD const & md,
   return std::make_tuple(dcrs, e2v, v2c, c2c);
 } // make_dcrs
 
+/// Redistribute connectivity information.
+/// \param naive graph from \c make_dcrs
+/// \param index_colors owning color for each local primary entity
+/// \param c2v "cell" (primary entity) to vertex connectivity
+/// \param v2c vertex to cell connectivity
+/// \param c2c cell to cell connectivity
+/// \return a \c tuple of
+///   - a \c map from each owned \c Color to a \c vector of global cell ids
+///   - a \c vector of global ids for each local primary entity
+///   - a \c map from global to local ids
 inline auto
 migrate(util::dcrs const & naive,
   Color colors,
@@ -311,7 +349,7 @@ request_owners(std::vector<std::size_t> const & request,
   Form the dependency closure for the given coloring definition and independent
   coloring (primaries).
 
-  @tparam MD The mesh definition type.
+  \tparam MD like \c mesh_definition
 
   @param md A mesh definition instance.
 
@@ -344,7 +382,7 @@ request_owners(std::vector<std::size_t> const & request,
  */
 
 template<typename MD>
-auto
+unstructured_base::coloring
 color(MD const & md,
   coloring_definition const & cd,
   std::vector<Color> const & idx_cos,
@@ -367,10 +405,11 @@ color(MD const & md,
   std::unordered_map<std::size_t, Color> e2co;
   std::map<std::size_t, std::vector<std::size_t>> wkset;
   for(auto const & p : primaries) {
-    wkset[p.first].reserve(p.second.size());
+    auto & wk = wkset[p.first];
+    wk.reserve(p.second.size());
     for(auto e : p.second) {
       e2co.try_emplace(e, p.first);
-      wkset[p.first].emplace_back(e);
+      wk.emplace_back(e);
     } // for
   } // for
 
@@ -397,7 +436,8 @@ color(MD const & md,
      */
 
     for(auto const & p : primaries) {
-      for(auto const & e : wkset.at(p.first)) {
+      auto & wk = wkset.at(p.first);
+      for(auto const & e : wk) {
         for(auto const & v : e2v[m2p.at(e)]) {
           for(auto const & en : v2e.at(v)) {
             if(e2e.find(en) == e2e.end()) {
@@ -430,7 +470,7 @@ color(MD const & md,
         } // for
       } // for
 
-      wkset.at(p.first).clear();
+      wk.clear();
     } // for
 
     util::force_unique(layer);
@@ -1015,6 +1055,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   Build intermediary entities locally from cell to vertex graph.
 
   @tparam from_dim index of the dimension for rows indices in e2v.
+  \tparam MD like \c mesh_definition
   @param dim index of dimension for intermediary.
   @param md mesh definition (provides function to build intermediary from list
   of vertices).
@@ -1086,6 +1127,10 @@ build_intermediary(Dimension dim,
   return std::make_tuple(c2e, i2v, v2e);
 } // build_intermediary
 
+/// \}
 } // namespace unstructured_impl
 } // namespace topo
 } // namespace flecsi
+/// \endcond
+
+#endif

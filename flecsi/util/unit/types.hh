@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_UNIT_TYPES_HH
+#define FLECSI_UTIL_UNIT_TYPES_HH
 
 #include <iostream>
 #include <sstream>
@@ -21,6 +12,7 @@
 #include "flecsi/util/unit/output.hh"
 #include <flecsi/flog.hh>
 
+/// \cond core
 namespace flecsi {
 
 inline log::devel_tag unit_tag("unit");
@@ -319,3 +311,6 @@ struct string_case_compare {
 
 /// \}
 /// \}
+/// \endcond
+
+#endif

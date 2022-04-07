@@ -1,10 +1,12 @@
-#pragma once
+#ifndef FLECSI_UTIL_UNIT_OUTPUT_HH
+#define FLECSI_UTIL_UNIT_OUTPUT_HH
 
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <regex>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 namespace unit {
@@ -87,3 +89,6 @@ private:
 } // namespace unit
 } // namespace util
 } // namespace flecsi
+/// \endcond
+
+#endif

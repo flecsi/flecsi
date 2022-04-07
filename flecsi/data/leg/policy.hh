@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_LEG_POLICY_HH
+#define FLECSI_DATA_LEG_POLICY_HH
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
@@ -232,7 +223,7 @@ struct partition : leg::partition_base { // instead of "using partition ="
   using leg::partition_base::partition_base;
 
   template<topo::single_space>
-  partition & get_partition(field_id_t) {
+  partition & get_partition() {
     return *this;
   }
 };
@@ -359,3 +350,5 @@ using leg::rows, leg::borrow;
 
 } // namespace data
 } // namespace flecsi
+
+#endif
