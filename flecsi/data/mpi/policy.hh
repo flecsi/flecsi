@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_MPI_POLICY_HH
+#define FLECSI_DATA_MPI_POLICY_HH
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/exec/task_attributes.hh"
@@ -278,7 +269,7 @@ struct partition {
   }
 
   template<topo::single_space>
-  partition & get_partition(field_id_t) {
+  partition & get_partition() {
     return *this;
   }
 
@@ -584,3 +575,5 @@ private:
 
 } // namespace data
 } // namespace flecsi
+
+#endif

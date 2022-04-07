@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_LEG_TASK_PROLOGUE_HH
+#define FLECSI_EXEC_LEG_TASK_PROLOGUE_HH
 
 #include <flecsi-config.h>
 
@@ -82,7 +73,7 @@ protected:
       region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);
     else
       region_reqs_.emplace_back(
-        t.template get_partition<Space>(f).logical_partition,
+        t.template get_partition<Space>().logical_partition,
         data::leg::def_proj,
         m,
         EXCLUSIVE,
@@ -129,3 +120,5 @@ template<task_processor_type_t>
 using task_prologue = task_prologue_impl;
 } // namespace exec
 } // namespace flecsi
+
+#endif

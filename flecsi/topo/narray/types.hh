@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NARRAY_TYPES_HH
+#define FLECSI_TOPO_NARRAY_TYPES_HH
 
 #include "flecsi/data/copy.hh"
 #include "flecsi/execution.hh"
@@ -26,9 +17,12 @@
 #include <set>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_impl {
+/// \addtogroup narray
+/// \{
 
 enum mask : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
@@ -39,87 +33,70 @@ using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
-/*
-  Input type for color method.
+/*!
+  This type is an input to the coloring method, and encapsulates
+  information (such as how many colors per axis the mesh needs to
+  be partitioned into, if boundaries are periodic, etc), that is
+  used by the coloring algorithm to create mesh partitions.
  */
-
 struct coloring_definition {
-  colors axis_colors;
-  coord axis_extents;
-  coord axis_hdepths;
-  coord axis_bdepths;
-  std::vector<bool> axis_periodic;
-  bool diagonals = false;
-  bool create_plan = true;
+  colors axis_colors; ///< number of colors into which each axis will be divided
+  coord axis_extents; ///< extents to be partitioned
+  coord axis_hdepths; ///< halo depth (or number of ghost layers) per axis
+  coord axis_bdepths; ///< number of boundary layers to be added to the domain
+                      ///< per axis
+  std::vector<bool> axis_periodic; ///< specify which axes are periodic
+  bool diagonals = false; ///< whether to include diagonally connected (i.e.,
+                          ///< connected through vertex) as well as face
+                          ///< connected entities during primary partitioning
+  bool create_plan = true; ///< whether to create a copy plan
 };
 
+/*!
+ Type to store the coloring information for one color.
+ */
 struct process_color {
-  /*
-    Store the axis orientations of this color.
-   */
-
+  /// Flags to indicate position within the overall domain.
+  /// Each axis gets two bits starting from the least significant:
+  /// the lower indicates the low edge, and the higher the high edge.
   std::uint32_t orientation;
 
-  /*
-    The global extents.
-   */
-
+  ///  The global extents.
   coord global;
 
-  /*
-    The local extents of this color. This is the full size including
-    boundary depth, and ghosts. The "extents" coordinate implicitly
-    defines a hypercube from {0, 0, ..., 0} to extents{...}.
-   */
-
+  ///  The local extents of this color. This is the full size including
+  ///  boundary depth, and ghosts. The "extents" coordinate implicitly
+  ///  defines a hypercube from {0, 0, ..., 0} to extents{...}.
   coord extents;
 
-  /*
-    The global coordinate offset of the local hypercube.
-    Local to global id translation can be computed with this.
-    The local hypercube includes boundary padding.
-   */
-
+  ///  The global coordinate offset of the local hypercube.
+  ///  Local to global id translation can be computed with this.
+  ///  The local hypercube includes boundary padding.
   coord offset;
 
-  /*
-    The logical entities, i.e., the entities for this color without
-    boundary padding or ghosts.
-   */
-
+  ///  The logical entities, i.e., the entities for this color without
+  ///  boundary padding or ghosts.
   hypercube logical;
 
-  /*
-    The extended entities, i.e., the logical entities including boundary
-    padding. The boundary depth can be computed like:
-
-      boundary_depth_low[axis] = logical[0][axis] - extended[0][axis];
-      boundary_depth_high[axis] = extended[1][axis] - logical[1][axis];
-
-    The ghost depth can be computed like:
-      shared_depth_low[axis] = logical[0][axis];
-      shared_depth_high[axis] = extents[axis] - logical[1][axis];
-
-    (note: We use logical to compute the ghost depth because an edge
-      cannot have both boundary padding, and ghosts.)
-   */
-
+  ///  The extended entities, i.e., the logical entities including boundary
+  ///  padding. The boundary depth can be computed like:
+  ///    boundary_depth_low[axis] = logical[0][axis] - extended[0][axis];
+  ///    boundary_depth_high[axis] = extended[1][axis] - logical[1][axis];
+  ///  The ghost depth can be computed like:
+  ///    shared_depth_low[axis] = logical[0][axis];
+  ///    shared_depth_high[axis] = extents[axis] - logical[1][axis];
+  ///  (note: We use logical to compute the ghost depth because an edge
+  ///    cannot have both boundary padding, and ghosts.)
   hypercube extended;
 
-  /*
-    Offsets on the remote color.
-   */
-
+  /// Offsets on the remote color.
   std::map<Color,
     std::vector<std::pair</* local ghost offset, remote shared offset */
       std::size_t,
       std::size_t>>>
     points;
 
-  /*
-    Local ghost intervals.
-   */
-
+  /// Local ghost intervals.
   std::vector<std::pair<std::size_t, std::size_t>> intervals;
 }; // struct process_color
 
@@ -142,12 +119,15 @@ operator<<(std::ostream & stream, process_color const & ic) {
   return stream;
 } // operator<<
 
+/// \}
 } // namespace narray_impl
 
-/*----------------------------------------------------------------------------*
-  Base.
- *----------------------------------------------------------------------------*/
+/// \addtogroup narray
+/// \{
 
+/// \if core
+/// Specialization-independent definitions.
+/// \endif
 struct narray_base {
   using process_color = narray_impl::process_color;
   using coord = narray_impl::coord;
@@ -161,6 +141,8 @@ struct narray_base {
     M != N (colors to processes).
    */
 
+  /// Coloring type.
+  /// \ingroup narray
   struct coloring {
     MPI_Comm comm;
     Color colors;
@@ -179,7 +161,19 @@ struct narray_base {
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
     return vs[c];
   }
+  /*!
+   Method to compute the local ghost "intervals" and "points" which store map of
+   local ghost offset to remote/shared offset. This method is called by the
+   "make_copy_plan" method in the derived topology to create the copy plan
+   objects.
 
+   @param vpc vector of process colors
+   @param[out] num_intervals vector of number of ghost intervals, over all
+   colors, this vector is assumed to be sized correctly (all colors)
+   @param[out] intervals  vector of local ghost intervals, over process colors
+   @param[out] points vector of maps storing (local ghost offset, remote shared
+   offset) for a shared color, over process colors
+  */
   static void idx_itvls(std::vector<process_color> const & vpc,
     std::vector<std::size_t> & num_intervals,
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
@@ -216,6 +210,7 @@ struct narray_base {
     }
   } // idx_itvls
 
+  // for make_copy_plan
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
@@ -234,6 +229,7 @@ struct narray_base {
     }
   }
 
+  // for make_copy_plan
   template<PrivilegeCount N>
   static void set_ptrs(
     data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
@@ -255,6 +251,7 @@ struct narray_base {
   }
 }; // struct narray_base
 
+/// \}
 } // namespace topo
 
 /*----------------------------------------------------------------------------*
@@ -283,3 +280,7 @@ struct util::serial::traits<topo::narray_impl::process_color> {
 };
 
 } // namespace flecsi
+
+/// \endcond
+
+#endif

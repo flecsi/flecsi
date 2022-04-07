@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef TUTORIAL_4_DATA_CANONICAL_HH
+#define TUTORIAL_4_DATA_CANONICAL_HH
 
 #include <flecsi/flog.hh>
 #include <flecsi/topo/unstructured/interface.hh>
@@ -21,7 +12,6 @@ using namespace flecsi;
 struct canon : topo::specialization<topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
-  // using connectivities = list<entity<cells, has<vertices>>>;
   using connectivities = list<>;
   enum entity_list {};
   using entity_lists = list<>;
@@ -111,3 +101,5 @@ struct canon : topo::specialization<topo::unstructured, canon> {
     return {};
   } // color
 };
+
+#endif

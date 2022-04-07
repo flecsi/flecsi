@@ -1,16 +1,6 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef FLECSI_IO_MPI_POLICY_HH
 #define FLECSI_IO_MPI_POLICY_HH
 
@@ -167,7 +157,7 @@ struct io_interface {
         int item_size = fp->type_size;
         std::string field_name = region_name + " field " + std::to_string(fid);
 
-        const auto data = isd.get_partition()->get_raw_storage(fid, item_size);
+        const auto data = isd.partition->get_raw_storage(fid, item_size);
         hsize_t size = data.size() / item_size;
         void * buffer = data.data();
         checkpoint_field<W>(

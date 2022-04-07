@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_OPTIONS_HH
+#define POISSON_OPTIONS_HH
 
 #include "flecsi/execution.hh"
 
@@ -24,3 +25,5 @@ inline flecsi::program_option<double> error_tol("error-tolerance",
   "The maximum absolute residual tolerance.",
   {{flecsi::option_default, 1.0e-4}});
 } // namespace poisson
+
+#endif

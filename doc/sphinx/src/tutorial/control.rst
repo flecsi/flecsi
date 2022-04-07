@@ -247,7 +247,7 @@ these, we use an enumeration. Consider the following from
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 21-26
+  :lines: 12-17
 
 The name of the enumeration (*cp*) is arbitrary.
 However, it is useful to make it concise because it will be used in the
@@ -258,7 +258,7 @@ overload of the ``* operator`` (function call operator overloading):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 28-46
+  :lines: 19-37
 
 Perhaps this looks complicated, but really all it does is to return a
 string literal given one of the control point enumeration values defined
@@ -272,7 +272,7 @@ individual parts.):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 48-91
+  :lines: 39-82
 
 The first type definition in the policy captures the control points
 enumeration type.
@@ -280,7 +280,7 @@ This type is used in the control interface for declaring actions:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 58-63
+  :lines: 49-54
 
 The next type is the *node_policy*. Each set of actions under a control
 point forms a DAG.
@@ -290,7 +290,7 @@ In this simple example, the node type is empty:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 65-72
+  :lines: 56-63
 
 The actual control points are defined as a std::tuple of the typeified
 integer-valued control points enumeration.
@@ -299,7 +299,7 @@ typeifying the control points:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 74-90
+  :lines: 65-81
 
 In the above *control_points* tuple definition, the order is important,
 as it is the order in which the control points will be sorted, and thus
@@ -310,7 +310,7 @@ type. This is the control type that we will use in our example application.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 93-97
+  :lines: 84-88
 
 That's the entire control policy for this example.
 Without comments, it is about 20 lines of code. Let's see how we use it!
@@ -338,7 +338,7 @@ otherwise:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 79-88
+   :lines: 68-77
 
 The last part of the main function is not really different from previous
 examples, we just have a better understanding of it now.
@@ -348,7 +348,7 @@ of the cycles and actions registered on the control model:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 92-98
+   :lines: 81-87
 
 Now that we have defined the control model and added it to our runtime
 setup, the only thing that remains is to add some actions under the
@@ -360,14 +360,14 @@ We list only the *initialize* function here:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 22-30
+   :lines: 11-19
 
 To register an action with the control model, we declare a control
 action:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 32-36
+   :lines: 21-25
 
 The template parameters to *control::action* are the function pointer
 *initialize* and the control point *cp::initialize*. (This is why it can
@@ -436,21 +436,21 @@ Starting from the previous example, we add the analyze control point:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 21-36
+   :lines: 12-27
 
 We will use *cp::advance* and *cp::analyze* to define the cycle from the
 core FleCSI cycle type:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 66-73
+   :lines: 57-64
 
 Cycles are similar to the *control_points* tuple, with the addition of a
 predicate function that controls termination of the cycle:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 53-61
+   :lines: 44-52
 
 For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
@@ -480,7 +480,7 @@ The last piece needed to add the cycle is the actual definition of the
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 75-82
+   :lines: 66-73
 
 Other than adding an action under the new analyze control point, the
 main function for this example is the same.
@@ -523,20 +523,20 @@ Several actions are defined for the two control points in
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 22-77
+   :lines: 14-69
 
 Additionally, several dependencies are defined in the same file:
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 79-95
+   :lines: 71-87
 
 Finally, the additional dependencies from c to a, and from d to c, are
 added in the *3-dependencies.cc* file:
 
 .. literalinclude:: ../../../../tutorial/2-control/3-dependencies.cc
    :language: cpp
-   :lines: 23-30
+   :lines: 12-19
 
 The point of defining the dependencies involving c in a different file
 is to demonstrate that dependencies do not need to be collocated,
@@ -578,7 +578,7 @@ methods, and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
-   :lines: 61-92
+   :lines: 51-81
 
 .. important::
 
@@ -599,7 +599,7 @@ and frees the data. Again, the code is self-explanatory:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.cc
    :language: cpp
-   :lines: 22-92
+   :lines: 11-81
 
 The primary take-away from this example should be that users can define
 arbitrary C++ interfaces and data, provided that they are not modified

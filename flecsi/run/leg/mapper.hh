@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_RUN_LEG_MAPPER_HH
+#define FLECSI_RUN_LEG_MAPPER_HH
 
 #include <flecsi-config.h>
 
@@ -366,15 +357,18 @@ public:
     using namespace mapper;
 
     if(task.tag & prefer_gpu && !local_gpus.empty()) {
-      output.chosen_variant = find_variant(ctx, task.task_id, gpu_variants);
+      output.chosen_variant = find_variant(
+        ctx, task.task_id, gpu_variants, Legion::Processor::TOC_PROC);
       output.target_procs.push_back(task.target_proc);
     }
     else if(task.tag & prefer_omp && !local_omps.empty()) {
-      output.chosen_variant = find_variant(ctx, task.task_id, omp_variants);
+      output.chosen_variant = find_variant(
+        ctx, task.task_id, omp_variants, Legion::Processor::OMP_PROC);
       output.target_procs = local_omps;
     }
     else {
-      output.chosen_variant = find_variant(ctx, task.task_id, cpu_variants);
+      output.chosen_variant = find_variant(
+        ctx, task.task_id, cpu_variants, Legion::Processor::LOC_PROC);
       output.target_procs = local_cpus;
     }
 
@@ -595,15 +589,15 @@ private:
   */
   Legion::VariantID find_variant(const Legion::Mapping::MapperContext ctx,
     Legion::TaskID task_id,
-    std::map<Legion::TaskID, Legion::VariantID> & variant) {
+    std::map<Legion::TaskID, Legion::VariantID> & variant,
+    Legion::Processor::Kind processor_kind) {
 
     std::map<Legion::TaskID, Legion::VariantID>::const_iterator finder =
       variant.find(task_id);
     if(finder != variant.end())
       return finder->second;
     std::vector<Legion::VariantID> variants;
-    runtime->find_valid_variants(
-      ctx, task_id, variants, Legion::Processor::LOC_PROC);
+    runtime->find_valid_variants(ctx, task_id, variants, processor_kind);
     return variant[task_id] = variants.at(0);
   }
 
@@ -649,3 +643,5 @@ mapper_registration(Legion::Machine machine,
 /// \}
 } // namespace run
 } // namespace flecsi
+
+#endif

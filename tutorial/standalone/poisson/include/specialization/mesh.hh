@@ -2,7 +2,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef POISSON_SPECIALIZATION_MESH_HH
+#define POISSON_SPECIALIZATION_MESH_HH
 
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
@@ -212,3 +213,5 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 }; // struct mesh
 
 } // namespace poisson
+
+#endif

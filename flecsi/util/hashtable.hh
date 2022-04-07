@@ -1,17 +1,8 @@
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_HASHTABLE_HH
+#define FLECSI_UTIL_HASHTABLE_HH
 
 #include "flecsi/flog.hh"
 #include <flecsi/util/array_ref.hh>
@@ -19,17 +10,10 @@
 
 namespace flecsi {
 namespace util {
-/// \addtogroup utils
-/// \{
 
 template<class KEY, class TYPE, class HASH = std::hash<KEY>>
 struct hashtable;
 
-/**
- * @brief hashtableIterator to iterate on the hashtable.
- * It iterator on the element defined in the hashtable,
- * if an element key is zero.
- */
 template<class KEY, class TYPE, class HASH>
 class hashtableIterator
 {
@@ -68,14 +52,9 @@ public:
   }
 };
 
-/**
- * @brief hashtable implementation.
- * This hashtable is based on span as 1D array and implement the method of
- * displacement when there is a collision, placing the element at a
- * distance of "modulo_".
- * In this current implementation the neutral key is the default constructor
- * of the object :key_t{}, 0 for numeric types.
- */
+// hashtable implementation based on a \c util::span.
+// This hashtable is based on span as 1D array.
+// The hashtable is iterable.
 template<class KEY, class TYPE, class HASH>
 struct hashtable {
 
@@ -109,10 +88,8 @@ public:
     }
   }
 
-  /**
-   * @brief Find a value in the hashtable
-   * While the value or a null key is not found we keep looping
-   */
+  // Find a value in the hashtable
+  // While the value or a null key is not found we keep looping
   iterator find(const key_t & key) {
     std::size_t h = hash_f()(key) % span_.size();
     pointer ptr = span_.data() + h;
@@ -128,11 +105,9 @@ public:
     return iterator(ptr, this);
   }
 
-  /**
-   * @brief Insert an object in the hash map at a defined position
-   * This function tries to find the first available position in case of
-   * conflict using modulo method.
-   */
+  // Insert an object in the hash map at a defined position
+  // This function tries to find the first available position in case of
+  // conflict using modulo method.
   template<typename... ARGS>
   iterator insert(const key_t & key, ARGS &&... args) {
     std::size_t h = hash_f()(key) % span_.size();
@@ -172,7 +147,7 @@ public:
     return const_cast<hashtable &>(*this).at(k);
   }
 
-  // Clear all keys
+  // Clear all keys frrom the table
   void clear() {
     nelements_ = 0;
     for(auto & a : *this) {
@@ -191,10 +166,12 @@ public:
     return iterator(span_.end(), this);
   }
 
+  // Number of elements currently stored in the hashtable
   constexpr std::size_t size() const noexcept {
     return nelements_;
   }
 
+  // Check if the hashtable doesnt hold any non-null elements
   constexpr bool empty() const noexcept {
     return begin() == end();
   }
@@ -204,3 +181,5 @@ public:
 /// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

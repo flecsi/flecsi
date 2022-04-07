@@ -5,12 +5,3 @@
 PROJECT_NAME = "FleCSI Core API"
 
 ENABLED_SECTIONS = core
-
-EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
-                   */test/*
-
-PREDEFINED = FLECSI_ENABLE_FLOG \
-             FLOG_ENABLE_MPI \
-             DOXYGEN
-
-WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-core.out

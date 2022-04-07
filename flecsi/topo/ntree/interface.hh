@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_INTERFACE_HH
+#define FLECSI_TOPO_NTREE_INTERFACE_HH
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
@@ -30,6 +21,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 
@@ -57,24 +49,28 @@ public:
 // NTree topology.
 //---------------------------------------------------------------------------//
 
-/*!
-  @ingroup topology
- */
+/// \defgroup ntree N-dimensional Tree
+/// Binary, Quad and Oct Tree topology.
+/// The ntree topology is using a hashing table to store and access the entities
+/// and nodes of the tree.
+/// \ingroup topology
+/// \{
 
-//-----------------------------------------------------------------//
-//! The tree topology is parameterized on a policy P
-//-----------------------------------------------------------------//
-/**
- * @brief NTree topology.
- * The Ntree topology implements a distributed  binary, quad and octree
- * topology.
- *
- */
+/// The ntree topology represents a binary, quad or octree stored/accessed using
+/// a hashtable
+/// \tparam Policy the specialization, which must define the following:
+/// information such as:
+///         - \c dimension : the Dimension of the ntree: 1, 2 or 3 for Binary,
+///         Quad or Oct tree
+///         - \c key_int_t :  Integer type used for the hashing table key
+///         - \c key_t : Key type for the hashing table
+///         - \c node_t : Node type for the ntree
+///         - \c ent_t : Entity type for the ntree
+///         - \c hash_f : Hashing function used in the hashing table
 template<typename Policy>
 struct ntree : ntree_base, with_meta<Policy> {
 
 private:
-  // Get types from Policy
   constexpr static unsigned int dimension = Policy::dimension;
   using key_int_t = typename Policy::key_int_t;
   using key_t = typename Policy::key_t;
@@ -132,9 +128,11 @@ public:
 
   // Ntree mandatory fields ---------------------------------------------------
 public:
+  // Entities keys field
   static inline const typename field<key_t>::template definition<Policy,
     entities>
     e_keys;
+  // Node keys field
   static inline const typename field<key_t>::template definition<Policy, nodes>
     n_keys;
 
@@ -146,11 +144,11 @@ public:
     n_i;
 
 private:
-  // Hmap fields
+  // Hmap fields,  the hashing table are reconstructed based on this field
   static inline const typename field<
     std::pair<key_t, hcell_t>>::template definition<Policy, hashmap>
     hcells;
-  // Tdata field
+  // Tree data field
   static inline const typename field<ntree_data>::template definition<Policy,
     tree_data>
     data_field;
@@ -165,9 +163,10 @@ private:
 
   // --------------------------------------------------------------------------
 
-  // Use to reference the index spaces by id
+  // Index space index
   util::key_array<repartitioned, index_spaces> part;
 
+  // Copy plan for the tree data field
   data::copy_plan cp_data_tree;
   std::optional<data::copy_plan> cp_top_tree_entities, cp_top_tree_nodes,
     cp_entities;
@@ -566,7 +565,7 @@ public:
   }
 
   template<index_space S>
-  repartition & get_partition(field_id_t) {
+  repartition & get_partition() {
     return part.template get<S>();
   }
 
@@ -574,17 +573,19 @@ private:
   const static size_t nchildren_ = 1 << dimension;
 };
 
-/**
- * Ntree access
- */
+/// See \ref specialization_base::interface
 template<class Policy>
 template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
+  /// Entities keys
   accessor<ntree::e_keys> e_keys;
+  /// Nodes keys
   accessor<ntree::n_keys> n_keys;
+  /// Ntree data
   accessor<ntree::data_field> data_field;
+  /// Hashing table entries
   accessor<ntree::hcells> hcells;
   accessor<ntree::e_i> e_i;
   accessor<ntree::n_i> n_i;
@@ -601,6 +602,7 @@ struct ntree<Policy>::access {
     mf.topology_send(std::forward<F>(f));
   }
 
+  /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, ntree::hash_f>;
 
   hmap_t map() const {
@@ -939,6 +941,7 @@ struct ntree<Policy>::access {
   //                              MAKE TREE //
   //---------------------------------------------------------------------------//
 
+  /// Compute local information about entities' keys boundaries
   void exchange_boundaries() {
     mf(0).max_depth = 0;
     mf(0).local.ents = e_keys.span().size();
@@ -979,6 +982,9 @@ struct ntree<Policy>::access {
     }
   }
 
+  /// Construct the ntree based on the list of entities provided by the user
+  /// This fills the hashing table with the entities and creates the
+  /// intermediates nodes.
   void make_tree() {
     // Cstr htable
     auto hmap = map();
@@ -1157,7 +1163,9 @@ struct ntree<Policy>::access {
     return sdata;
   }
 
-  // Draw the tree
+  // Output a representation of the ntree using graphviz.
+  // This will output a gv formatted as: output_graphviz_XXX_YYY.gv
+  // With XXX = rank (color) and YYY = num (parameter).
   void graphviz_draw(int num) {
     int rank = process();
     std::ostringstream fname;
@@ -1359,5 +1367,10 @@ struct detail::base<ntree> {
   using type = ntree_base;
 };
 
+/// \}
+
 } // namespace topo
 } // namespace flecsi
+/// \endcond
+
+#endif

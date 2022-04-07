@@ -251,7 +251,7 @@ The usual argument replacements still apply, which allows MPI tasks to have acce
 Arguments that are not so interpreted need not have the same value on every shard.
 However, return values must follow the ordinary rules (so as to support futures and reductions).
 
-FleCSI also provides, in ``kernel_interface.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).
+FleCSI also provides, in ``kernel.hh``, a wrapper interface for simple Kokkos parallel loops and reductions, including macros ``forall`` and ``reduceall`` that are followed by a lambda body (and a semicolon, since the lambda is an expression).
 The same reduction types as for index launches are supported.
 
 Topologies

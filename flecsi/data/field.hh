@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_FIELD_HH
+#define FLECSI_DATA_FIELD_HH
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
@@ -30,6 +21,7 @@ namespace data {
 /// \{
 
 /// A data accessor.
+/// Name via \c field::accessor.
 /// Pass a \c field_reference to a task that accepts an accessor.
 /// \tparam L data layout
 /// \tparam T data type
@@ -41,6 +33,7 @@ template<class R, typename T>
 struct reduction_accessor;
 
 /// A specialized accessor for changing the extent of dynamic layouts.
+/// Name via \c field::mutator.
 template<layout, class, Privileges>
 struct mutator;
 
@@ -170,8 +163,8 @@ struct field_reference : field_reference_t<Topo> {
     return topo.template get_region<Space>();
   }
   template<class S>
-  auto & get_partition(S & topo) const {
-    return topo.template get_partition<Space>(this->fid());
+  static auto & get_partition(S & topo) {
+    return topo.template get_partition<Space>();
   }
 
   auto & get_region() const {
@@ -179,6 +172,11 @@ struct field_reference : field_reference_t<Topo> {
   }
   auto & get_partition() const {
     return get_partition(this->topology());
+  }
+
+  auto & get_ragged() const {
+    // A ragged_partition<...>::core, or borrowing of same:
+    return this->topology().ragged.template get<Space>()[this->fid()];
   }
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts
@@ -249,11 +247,15 @@ struct field : data::detail::field_base<T, L> {
   template<Privileges Priv>
   using mutator1 = data::mutator<L, T, Priv>;
   /// The accessor to use as a parameter to receive this sort of field.
-  /// \tparam PP the appropriate number of privilege values
+  /// \tparam PP the appropriate number of privilege values, interpreted as
+  ///   - exclusive
+  ///   - shared, ghost
+  ///   - exclusive, shared, ghost
   template<partition_privilege_t... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
   /// The mutator to use as a parameter for this sort of field (usable only
   /// for certain layouts).
+  /// \tparam PP as for \c accessor
   template<partition_privilege_t... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 
@@ -377,3 +379,5 @@ struct scalar_value;
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif
