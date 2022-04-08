@@ -267,6 +267,8 @@ struct field : data::detail::field_base<T, L> {
   using Reference = data::field_reference<T, L, Topo, S>;
 
   /// A field registration.
+  /// Instances may be freely copied; they must all be created before any
+  /// instance of \a Topo.
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>

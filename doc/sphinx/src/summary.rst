@@ -133,7 +133,9 @@ Definition
 ^^^^^^^^^^
 
 The various types used for working with a field are exposed as members of ``field<T,L>``, where ``T`` is the field data type and ``L`` is the layout (which defaults to ``dense``).
-Application code, topology specializations, and topologies alike register fields by defining non-local, caller-only objects of type ``field<T,L>::definition<P,S>``, where ``P`` is the topology type (specialization, sometimes called a "Policy") and ``S`` is the index space (of the type ``P::index_space``, which is typically an enumeration).
+Application code, topology specializations, and topologies all register fields the same way, by defining caller-only objects of type ``field<T,L>::definition<P,S>``.
+``P`` here is the topology type (specialization, sometimes called a "Policy"), and ``S`` is the index space (of the type ``P::index_space``, which is typically an enumeration).
+These are often non-local variables.
 
 If ``L`` is ``raw``, the field is registered on the global FleCSI *context* with a field ID drawn from a global counter, organized by topology type and index space.
 Otherwise, the ``definition`` recursively registers appropriate underlying fields (via specializations of the helper class templates ``field_base`` and ``field_register``).
