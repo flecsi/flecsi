@@ -112,7 +112,7 @@ Layouts
 ^^^^^^^
 
 The backend is expected merely to provide uninitialized storage arrays for each field and ``memcpy`` it appropriately.
-Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but the type must be self-contained and trivially relocatable.
+Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used with any non-MPI task) the type must be self-contained and trivially relocatable.
 (This is not a formal C++ classification; note that ``std::tuple<int>`` is not trivially copyable.)
 
 This support is called the ``raw`` *layout*.
@@ -290,8 +290,8 @@ In particular, ``topo::id`` serves to distinguish in user-facing interfaces the 
 Predefined
 ^^^^^^^^^^
 
-Because the global and index topologies do not need user-defined specializations and are generally useful for defining job- and color-global variables (respectively), a global instance of each is defined in ``flecsi/data.hh``.
-(Their colorings are trivial, so no coloring slots are used.)
+Because the global and index topologies do not need user-defined specializations, a predefined specialization is provided of each (and the categories are suffixed with ``_category``).
+A deprecated global instance of each is defined in ``flecsi/data.hh``.
 Each backend's initialization code uses the ``data_guard`` type to manage their lifetimes.
 
 .. I/O
