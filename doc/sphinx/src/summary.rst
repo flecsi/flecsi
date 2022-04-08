@@ -80,7 +80,7 @@ Storage
 
 The FleCSI data model is based on `that of Legion <https://legion.stanford.edu/tutorial/logical_regions.html>`_, with certain simplifications.
 Each field has a value at each of several *index points*, each of which is a pair of abstract integers.
-The first indicates the *color* to which the index point pertains, which corresponds (under some permutation) to the process that typically operates on the associated field values.
+The first indicates the *color* to which the index point pertains, which determines the execution agent that typically operates on the associated field values.
 The second is an index within the index points for that color; both are zero-based.
 (This structure, where field values at certain index points are periodically copied to other colors for access by other processes, is known as an "Extended Index Space".)
 
@@ -178,6 +178,11 @@ The topology's ``access`` type is used wrapped in the ``topology_accessor`` clas
 
 To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
 (The field ID is not known until runtime, but the *location* where it will be stored is known at compile time.)
+
+*Multi-color accessors* allow an execution agent to access data outside of its color (beyond that supplied by ghost copies), including the special case of data outside of the data model altogether (*e.g.*, distributed objects created by MPI-based libraries).
+These take the form of a sequence of color-accessor pairs inside a task; the accessor can also be a mutator or a topology accessor.
+They are created from a *launch map* that specifies which colors should be made available where (discussed further below).
+The MPI backend supports only trivial launch maps that specify some subset of the normal arrangement.
 
 Execution
 +++++++++
@@ -283,6 +288,13 @@ The type ``topo::repartition`` augments ``data::partition`` with a ``resize`` an
 It is defined in ``index.hh``, along with higher-level subtopologies that provide the backing store for the ``ragged`` layout as well as the user-level ``index`` topology that supports ``ragged`` fields.
 The topology ``ragged`` is itself a class template, parametrized with the (user) topology type to distinguish ``ragged`` field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with ``with_`` to be used as a base class.
+
+Launch maps are constructed from several auxiliary topology types that create alternate partitions that expose (some of) a region's existing row-prefixes in a different order.
+Using several of these partial permutations allows an arbitrary many-to-many mapping to be expressed while retaining the identity of each row selected.
+Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.
+
+The non-trivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
+This indirection avoids needing to know the sizes of other colors' rows (which vary per index space) to select them as well as needing to reserve a row number for "no row needed".
 
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
 In particular, ``topo::id`` serves to distinguish in user-facing interfaces the indices for different index spaces.

@@ -1375,7 +1375,12 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
-// This gets the short name since users must declare parameters with it.
+/// A sequence of accessors obtained from a \c\ref mapping.
+/// Pass a \c multi_reference or \c mapping to a task that accepts one.
+/// <!-- This gets the short name since users must
+///      declare parameters with it. -->
+/// \tparam A an \c accessor, \c mutator, or \c topology_accessor
+///   specialization
 template<class A>
 struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
   multi(Color n, const A & a)
@@ -1386,7 +1391,10 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     return vp->size();
   }
 
-  auto components() const { // for(auto [c,a] : m.components())
+  /// Get the components for each color.
+  /// \code for(auto [c,a] : m.components()) \endcode
+  /// \return a range of color-accessor pairs
+  auto components() const {
     return util::transform_view(
       *vp, [](const round & r) -> std::pair<Color, const A &> {
         return {borrow::get_row(r.row), r.a};
