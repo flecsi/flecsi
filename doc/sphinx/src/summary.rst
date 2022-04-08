@@ -15,7 +15,7 @@ FleCSI performs only a few fundamental actions, each of which corresponds to one
 * ``topo``: Organize those arrays into *topologies* that represent computational physics domains of several kinds.
 * ``exec``: Call user-specified functions (*tasks*) with pointers to the allocated memory (in the form of *accessors*).
 * ``io``: Save and restore the contents of fields to and from disk.
-* ``log``: Aggregate diagnostic output from multiple processes (``flecsi::log`` is abbreviated ``flog`` in macro names).
+* ``log``: Aggregate diagnostic output from multiple processes (the namespace is ``flog``).
 
 The implementation of these components is divided between the "front end" and one of a number of *backends* that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
