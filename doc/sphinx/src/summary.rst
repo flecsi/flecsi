@@ -124,6 +124,8 @@ Higher-level layouts are implemented in terms of it:
   The elements of the arrays are packed in an underlying ``raw`` field (with slack space to reduce reallocations, as with ``std::vector`` itself); the offsets of the beginning of each array are stored in a separate ``dense`` field.
 * ``sparse`` stores a mapping from integers to ``T`` at each index point, as if the field type were ``std::map<std::size_t,T>``.
   The implementation is simply a ``ragged`` field of ``std::pair<std::size_t,T>``, with each row sorted by the key.
+* ``particle`` stores a set of ``T`` objects bounded by the size of the index space.
+  The implementation augments ``T`` with a "skip field" that allows efficient iteration, insertion, and deletion.
 
 This enumeration is defined in ``layout.hh``.
 

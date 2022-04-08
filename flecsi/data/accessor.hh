@@ -1063,6 +1063,10 @@ private:
   base_type rag;
 };
 
+/// Accessor for particle fields.
+/// Provides bidirectional iterators over the existing particles.
+/// \tparam P if write-only, particles are not created or destroyed but they
+///   are reinitialized
 template<class T, Privileges P, bool M>
 struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   static_assert(privilege_count(P) == 1, "particles cannot be ghosts");
@@ -1145,15 +1149,18 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
 
   // This interface is a subset of that proposed for std::hive.
 
+  /// Get the number of extant particles.
   size_type size() const {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
+  /// Get the maximum number of particles.
   size_type capacity() const {
     return this->span().size();
   }
+  /// Test whether any particles exist.
   bool empty() const {
     return !size();
   }
@@ -1166,6 +1173,8 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     return {this, capacity()};
   }
 
+  /// Get an iterator that refers to a particle.
+  /// \c T must be standard-layout.
   iterator get_iterator_from_pointer(element_type * the_pointer) const {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
@@ -1210,6 +1219,9 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   }
 };
 
+/// Mutator for particle fields.
+/// Iterators are invalidated only if their particle is removed.
+/// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   using base_type = particle_accessor<T, P, true>;
@@ -1225,18 +1237,24 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // tables, accessor could provide it instead of having this class at all.
   // However, the natural wo semantics differ between the two cases.
 
+  /// Remove all particles.
   void clear() const {
     std::destroy(this->begin(), this->end());
     init();
   }
 
+  /// Add a particle.
+  /// \see emplace
   iterator insert(const value_type & v) const {
     return emplace(v);
   }
+  /// Add a particle by moving.
+  /// \see emplace
   iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
   /// Create an element, in constant time.
+  /// It is unspecified where it appears in the sequence.
   /// \return an iterator to the new element
   template<class... AA>
   iterator emplace(AA &&... aa) const {
