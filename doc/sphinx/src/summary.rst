@@ -316,7 +316,7 @@ Utilities
 +++++++++
 
 Since ``util`` is self-contained and has little internal interaction, there is little need for centralized, prose description.
-However, a few utilities have sufficiently wide relevance as to deserve mention.
+However, a few utilities (beyond the serialization already mentioned) have sufficiently wide relevance as to deserve mention.
 
 Simplified backports of several range utilities from C++20 are provided in ``array_ref.hh``.
 The intent is to switch to the ``std`` versions (with only trivial code changes) when compiler support becomes available.
