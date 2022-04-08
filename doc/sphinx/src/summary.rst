@@ -221,7 +221,7 @@ The ``partial`` class template is provided to allow a partial function applicati
 In addition to converting arguments that identify resources, those resources are recruited for the task's use.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
-The *global topology* (described further below) is a special case: it uses a (single-point) ``region`` directly and requires that a task that writes to it be a single launch.
+The *global topology* (described further below) is a special case: it uses a ``region`` directly and requires that a task that writes to it be a single launch.
 On the task side, the recruited resources and the accessors' field IDs are consulted to obtain values for the contained ``span`` objects.
 Because a task's parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate *buffers* that can be processed afterwards.
 
