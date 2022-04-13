@@ -346,6 +346,7 @@ colors() {
   @tparam Reduction  The reduction operation type.
   @tparam Attributes The task attributes mask.
   @tparam Args       The user-specified task arguments.
+  \return a \ref future providing the reduced return value
 
   \see \c execute about parameter and argument types.
  */
