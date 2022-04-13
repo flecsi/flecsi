@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -126,38 +126,15 @@ class Flecsi(CMakePackage, CudaPackage):
 
     def cmake_args(self):
         spec = self.spec
-        options = []
-
-        options.append('-DFLECSI_BACKEND=%s' %
-            spec.variants['backend'].value)
-
-        options.append('-DCALIPER_DETAIL=%s' %
-            spec.variants['caliper_detail'].value)
-
-        if ('+flog' in spec):
-            options.append('-DENABLE_FLOG=ON')
-
-        if '+graphviz' in spec:
-            options.append('-DENABLE_GRAPHVIZ=ON')
-
-        if '+hdf5' in spec and spec.variants['backend'].value != 'hpx':
-            options.append('-DENABLE_HDF5=ON')
-
-        if '+kokkos' in spec:
-            options.append('-DENABLE_KOKKOS=ON')
-
-        if '+openmp' in spec:
-            options.append('-DENABLE_OPENMP=ON')
-
-        if '~shared' in spec:
-            options.append('-DBUILD_SHARED_LIBS=OFF')
-
-        if '~unit' in spec:
-            options.append('-DENABLE_UNIT_TESTS=OFF')
-
-        if '+kokkos' in spec:
-            options.append('-DENABLE_KOKKOS=ON')
-        else:
-            options.append('-DENABLE_KOKKOS=OFF')
-
+        options = [
+            self.define_from_variant('FLECSI_BACKEND', 'backend'),
+            self.define_from_variant('CALIPER_DETAIL', 'caliper_detail'),
+            self.define_from_variant('ENABLE_FLOG', 'flog'),
+            self.define_from_variant('ENABLE_GRAPHVIZ', 'graphviz'),
+            self.define('ENABLE_HDF5', '+hdf5' in spec and spec.variants['backend'].value != 'hpx'),
+            self.define_from_variant('ENABLE_KOKKOS', 'kokkos'),
+            self.define_from_variant('ENABLE_OPENMP', 'openmp'),
+            self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
+            self.define_from_variant('ENABLE_UNIT_TESTS', 'unit')
+        ]
         return options
