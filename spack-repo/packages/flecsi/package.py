@@ -5,7 +5,6 @@
 
 
 from spack import *
-import os
 
 
 class Flecsi(CMakePackage, CudaPackage):
@@ -90,16 +89,16 @@ class Flecsi(CMakePackage, CudaPackage):
 
     # Kokkos
 
-    depends_on('kokkos', when='+kokkos')
-
-    for _flag in list(CudaPackage.cuda_arch_values):
-        depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
+    depends_on('kokkos@3.2.00:', when='+kokkos')
+    depends_on('kokkos +cuda +cuda_constexpr +cuda_lambda', when='+kokkos +cuda')
 
     # Legion
 
     depends_on('legion@ctrl-rep-11:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('legion+shared',when='backend=legion +shared')
+    depends_on('legion network=gasnet', when='backend=legion')
+    depends_on('legion +kokkos +cuda', when='backend=legion +kokkos +cuda')
 
     # Metis
 
@@ -113,6 +112,12 @@ class Flecsi(CMakePackage, CudaPackage):
     # HPX
 
     depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
+
+    # Propagate cuda_arch requirement to dependencies
+    cuda_arch_list = ('60', '70', '75', '80')
+    for _flag in cuda_arch_list:
+        depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
+        depends_on("legion cuda_arch=" + _flag, when="backend=legion +cuda cuda_arch=" + _flag)
 
     #--------------------------------------------------------------------------#
     # Conflicts
