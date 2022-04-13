@@ -107,8 +107,9 @@ index_task(exec::launch_domain) {
 
 void
 init_array(field<reduction_type>::accessor<wo> v) {
+  int i = 0;
   for(auto & vv : v.span()) {
-    vv = color();
+    vv = color() + i++;
   }
 }
 void
@@ -118,10 +119,12 @@ init(field<reduction_type>::accessor<wo> v) {
   }
 }
 int
-check(field<reduction_type>::accessor<ro> v, int total) {
+check(field<reduction_type>::accessor<ro> v, const int np) {
   UNIT {
-    for(auto & vv : v.span()) {
-      EXPECT_EQ(vv, total);
+    for(std::size_t i = 0; i < v.span().size(); ++i) {
+      reduction_type n = np - 1 + i;
+      reduction_type t = n * (n + 1) - (i - 1) * i;
+      EXPECT_EQ(v[i], t);
     }
   };
 }
@@ -185,7 +188,6 @@ task_driver() {
     // Test reduction
     auto np = processes();
     const int vpp = 5;
-    const int sum = np * (np - 1) / 2;
     // Array of initial values per color
     arr_s.allocate(arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
@@ -196,7 +198,8 @@ task_driver() {
     // Init reduction array to 0
     flecsi::execute<init>(vals);
     flecsi::execute<reduction>(arr_vals, vals);
-    EXPECT_EQ(test<check>(vals, sum), 0);
+    flecsi::execute<reduction>(arr_vals, vals);
+    EXPECT_EQ(test<check>(vals, np), 0);
   };
 } // task_driver
 

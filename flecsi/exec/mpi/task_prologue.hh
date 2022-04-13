@@ -105,6 +105,10 @@ protected:
       ref.topology()->template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
 
+    // Reset the storage to identity on all processes except 0
+    if(run::context::instance().process() != 0)
+      std::fill(storage.begin(), storage.end(), R::template identity<T>);
+
     reductions.push_back([storage] {
       MPI_Request request;
       util::mpi::test(MPI_Iallreduce(MPI_IN_PLACE,
