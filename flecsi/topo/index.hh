@@ -437,8 +437,6 @@ private:
   typename detail::ragged_tuple_t<borrow_ragged_partitions, P> part;
 };
 template<class>
-struct borrow_category;
-template<class>
 struct borrow;
 
 struct borrow_base {
@@ -453,7 +451,7 @@ struct borrow_base {
 
   template<template<class> class C, class T>
   static auto & derived(borrow_extra<C<T>> & e) {
-    return static_cast<typename topo::borrow<T>::core &>(e);
+    return static_cast<typename borrow<T>::core &>(e);
   }
 };
 
