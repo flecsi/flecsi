@@ -233,7 +233,6 @@ struct unstructured_base {
   using index_coloring = unstructured_impl::index_coloring;
   using process_coloring = unstructured_impl::process_coloring;
   using ghost_entity = unstructured_impl::ghost_entity;
-  using crs = util::crs;
   using cmap = unstructured_impl::cmap;
   using reverse_maps_t = std::vector<std::map<util::gid, util::id>>;
 
