@@ -188,6 +188,8 @@ These take the form of a sequence of color-accessor pairs inside a task; the acc
 They are created from a *launch map* that specifies which colors should be made available where (discussed further below).
 The MPI backend supports only trivial launch maps that specify some subset of the normal arrangement.
 
+See below about the special case of *reduction accessors*.
+
 Execution
 +++++++++
 
@@ -221,7 +223,8 @@ The ``partial`` class template is provided to allow a partial function applicati
 In addition to converting arguments that identify resources, those resources are recruited for the task's use.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
-The *global topology* (described further below) is a special case: it uses a ``region`` directly and requires that a task that writes to it be a single launch.
+The *global topology* (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
+A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 On the task side, the recruited resources and the accessors' field IDs are consulted to obtain values for the contained ``span`` objects.
 Because a task's parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate *buffers* that can be processed afterwards.
 

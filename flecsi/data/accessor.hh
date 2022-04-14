@@ -139,6 +139,12 @@ private:
   base_type base;
 }; // struct accessor
 
+/// Accessor for computing reductions.
+/// Name via \c field::reduction.
+/// Usable only with the global topology.  Pass a normal \c field_reference.
+/// The previous field value contributes to the result.
+/// \tparam R \ref fold "reduction operation"
+/// \tparam T data type
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
@@ -146,6 +152,8 @@ struct reduction_accessor : bind_tag {
 
   explicit reduction_accessor(field_id_t f) : f(f) {}
 
+  /// Prepare to update en element.
+  /// \return a callable that merges its \p T argument into the field element
   FLECSI_INLINE_TARGET
   auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
@@ -159,8 +167,9 @@ struct reduction_accessor : bind_tag {
     s = x;
   }
 
+  /// Access the underlying elements.
   FLECSI_INLINE_TARGET
-  auto span() const {
+  util::span<element_type> span() const {
     return s;
   }
 

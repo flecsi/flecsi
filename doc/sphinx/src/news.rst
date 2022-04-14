@@ -52,6 +52,7 @@ New features
 * Data
 
   * ``launch::mapping`` allows field data to be accessed from other colors (using ``multi`` task parameters) with the Legion backend.
+  * ``reduction_accessor`` allows ``dense`` fields on a ``global`` topology to be updated collectively.
   * The ``particle`` layout supports efficient creation and destruction of unordered field elements.
   * Field definitions are copyable and may be destroyed after use.
   * Fields may be of non-portable types so long as they are used only by MPI tasks.
