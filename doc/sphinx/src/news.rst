@@ -52,6 +52,7 @@ Fixed
 
   * Certain user-level fields are allocated properly.
   * Errors at process termination in certain configurations are avoided.
+  * Accessors with both ``wo`` and ``na`` privileges are processed correctly.
 
 * MPI backend
 
