@@ -295,6 +295,14 @@ struct field : data::detail::field_base<T, L> {
 
   /// Fields cannot be constructed.  Use \c definition instead.
   field() = delete;
+
+#ifdef DOXYGEN
+  /// Reduction accessor corresponding to this field type.
+  /// This is only implemented for a Dense layout.
+  /// \sa data::reduction_accessor
+  template<class R>
+  using reduction = reduction_accessor<R, T>;
+#endif
 };
 /// \}
 
@@ -305,6 +313,8 @@ namespace detail {
 template<class T>
 struct field_base<T, dense> {
   using base_type = field<T, raw>;
+  template<class R>
+  using reduction = reduction_accessor<R, T>;
 };
 template<class T>
 struct field_base<T, single> {

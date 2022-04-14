@@ -130,7 +130,7 @@ check(field<reduction_type>::accessor<ro> v, const int np) {
 }
 void
 reduction(field<reduction_type>::accessor<ro> v,
-  flecsi::data::reduction_accessor<flecsi::exec::fold::sum, reduction_type> r) {
+  field<reduction_type>::reduction<flecsi::exec::fold::sum> r) {
   assert(v.span().size() == r.span().size());
   for(std::size_t i = 0; i < v.span().size(); ++i) {
     r[i](v[i]);
