@@ -13,7 +13,6 @@
 #include <optional>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_utils {
@@ -744,7 +743,5 @@ color_auxiliary(std::size_t ne,
 } // namespace narray_utils
 } // namespace topo
 } // namespace flecsi
-
-/// \endcond
 
 #endif

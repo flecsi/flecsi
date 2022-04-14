@@ -198,6 +198,8 @@ struct field_reference : field_reference_t<Topo> {
   }
 };
 
+/// Identifies a field on a \c\ref mapping.
+/// Declare a task parameter as a `multi<accessor<...>>` to use the field.
 template<class T, layout L, class Topo, typename Topo::index_space S>
 struct multi_reference : convert_tag {
   using Map = launch::mapping<Topo>;
@@ -265,6 +267,8 @@ struct field : data::detail::field_base<T, L> {
   using Reference = data::field_reference<T, L, Topo, S>;
 
   /// A field registration.
+  /// Instances may be freely copied; they must all be created before any
+  /// instance of \a Topo.
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
@@ -287,6 +291,7 @@ struct field : data::detail::field_base<T, L> {
     operator()(C<P> & t) const {
       return {this->fid, t};
     }
+    /// Return a reference to a mapped field instance.
     data::multi_reference<T, L, Topo, Space> operator()(
       data::launch::mapping<Topo> & m) const {
       return {this->fid, m};

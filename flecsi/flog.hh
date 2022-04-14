@@ -31,6 +31,7 @@ namespace log {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
 /// \code#include "flecsi/flog.hh"\endcode
+/// The \e name \c flecsi::log is \b deprecated: use \c flecsi::flog instead.
 /// \{
 
 namespace detail {

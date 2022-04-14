@@ -26,6 +26,7 @@ namespace flecsi {
 namespace exec {
 /// \defgroup kernel Kernels
 /// Local concurrent operations.
+/// If Kokkos is not available, they simply execute serially.
 /// \ingroup execution
 /// \{
 #if defined(FLECSI_ENABLE_KOKKOS)

@@ -10,7 +10,7 @@
 
 using namespace flecsi;
 
-canon::slot canonical;
+canon::slot canonical, cp;
 canon::cslot coloring;
 
 const field<double>::definition<canon, canon::cells> pressure;
@@ -24,6 +24,12 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
 } // init
 
 void
+copy(field<double>::accessor<ro> src, field<double>::accessor<rw> dest) {
+  auto s = src.span();
+  std::copy(s.begin(), s.end(), dest.span().begin());
+}
+
+void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   std::size_t off{0};
   for(auto c : t.cells()) {
@@ -35,11 +41,13 @@ int
 advance() {
   coloring.allocate("test.txt");
   canonical.allocate(coloring.get());
+  cp.allocate(coloring.get());
 
-  auto pf = pressure(canonical);
+  auto pf = pressure(canonical), pf2 = pressure(cp);
 
   execute<init>(canonical, pf);
-  execute<print>(canonical, pf);
+  execute<copy>(pf, pf2);
+  execute<print>(cp, pf2);
 
   return 0;
 }

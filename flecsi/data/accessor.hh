@@ -139,6 +139,12 @@ private:
   base_type base;
 }; // struct accessor
 
+/// Accessor for computing reductions.
+/// Name via \c field::reduction.
+/// Usable only with the global topology.  Pass a normal \c field_reference.
+/// The previous field value contributes to the result.
+/// \tparam R \ref fold "reduction operation"
+/// \tparam T data type
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
@@ -146,6 +152,8 @@ struct reduction_accessor : bind_tag {
 
   explicit reduction_accessor(field_id_t f) : f(f) {}
 
+  /// Prepare to update en element.
+  /// \return a callable that merges its \p T argument into the field element
   FLECSI_INLINE_TARGET
   auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
@@ -159,8 +167,9 @@ struct reduction_accessor : bind_tag {
     s = x;
   }
 
+  /// Access the underlying elements.
   FLECSI_INLINE_TARGET
-  auto span() const {
+  util::span<element_type> span() const {
     return s;
   }
 
@@ -1063,6 +1072,10 @@ private:
   base_type rag;
 };
 
+/// Accessor for particle fields.
+/// Provides bidirectional iterators over the existing particles.
+/// \tparam P if write-only, particles are not created or destroyed but they
+///   are reinitialized
 template<class T, Privileges P, bool M>
 struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   static_assert(privilege_count(P) == 1, "particles cannot be ghosts");
@@ -1145,15 +1158,18 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
 
   // This interface is a subset of that proposed for std::hive.
 
+  /// Get the number of extant particles.
   size_type size() const {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
+  /// Get the maximum number of particles.
   size_type capacity() const {
     return this->span().size();
   }
+  /// Test whether any particles exist.
   bool empty() const {
     return !size();
   }
@@ -1166,6 +1182,8 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     return {this, capacity()};
   }
 
+  /// Get an iterator that refers to a particle.
+  /// \c T must be standard-layout.
   iterator get_iterator_from_pointer(element_type * the_pointer) const {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
@@ -1210,6 +1228,9 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   }
 };
 
+/// Mutator for particle fields.
+/// Iterators are invalidated only if their particle is removed.
+/// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   using base_type = particle_accessor<T, P, true>;
@@ -1225,18 +1246,24 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // tables, accessor could provide it instead of having this class at all.
   // However, the natural wo semantics differ between the two cases.
 
+  /// Remove all particles.
   void clear() const {
     std::destroy(this->begin(), this->end());
     init();
   }
 
+  /// Add a particle.
+  /// \see emplace
   iterator insert(const value_type & v) const {
     return emplace(v);
   }
+  /// Add a particle by moving.
+  /// \see emplace
   iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
   /// Create an element, in constant time.
+  /// It is unspecified where it appears in the sequence.
   /// \return an iterator to the new element
   template<class... AA>
   iterator emplace(AA &&... aa) const {
@@ -1375,7 +1402,12 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
-// This gets the short name since users must declare parameters with it.
+/// A sequence of accessors obtained from a \c\ref mapping.
+/// Pass a \c multi_reference or \c mapping to a task that accepts one.
+/// <!-- This gets the short name since users must
+///      declare parameters with it. -->
+/// \tparam A an \c accessor, \c mutator, or \c topology_accessor
+///   specialization
 template<class A>
 struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
   multi(Color n, const A & a)
@@ -1386,7 +1418,10 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     return vp->size();
   }
 
-  auto components() const { // for(auto [c,a] : m.components())
+  /// Get the components for each color.
+  /// \code for(auto [c,a] : m.components()) \endcode
+  /// \return a range of color-accessor pairs
+  auto components() const {
     return util::transform_view(
       *vp, [](const round & r) -> std::pair<Color, const A &> {
         return {borrow::get_row(r.row), r.a};

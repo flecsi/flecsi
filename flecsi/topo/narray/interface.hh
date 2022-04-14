@@ -19,7 +19,6 @@
 #include <memory>
 #include <utility>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \defgroup narray Multi-dimensional Array
@@ -278,6 +277,10 @@ struct narray<Policy>::access {
     return util::mdspan<typename decltype(s)::element_type, dimension>(
       s.data(), extents<S>());
   }
+  /// Create a Fortran-like view of a field.
+  /// This function is \ref topology "host-accessible", although the values in
+  /// \a a are typically not.
+  /// \return \c\ref mdcolex
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
@@ -318,6 +321,8 @@ private:
 
    These ranges are used in many of the interface methods to provide
    information such as size, extents, offsets about them.
+
+   \deprected Renamed to \c domain.
   */
   enum class range : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
@@ -330,6 +335,7 @@ private:
     global ///< global info about the mesh, the meaning depends on what is being
            ///< queried
   };
+  /// Future name for \c range.
   using domain = range;
 
   using hypercubes = index::has<range::logical,
@@ -356,6 +362,7 @@ private:
     return meta_->template get<S>().offset.template get<A>();
   }
 
+  /// \deprecated Renamed to \c range (currently a type).
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET std::size_t extents() const {
     return meta_->template get<S>().extents.template get<A>();
@@ -570,7 +577,5 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 /// \}
 } // namespace topo
 } // namespace flecsi
-
-/// \endcond
 
 #endif

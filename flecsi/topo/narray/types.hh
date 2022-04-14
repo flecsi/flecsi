@@ -17,7 +17,6 @@
 #include <set>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 namespace narray_impl {
@@ -134,12 +133,6 @@ struct narray_base {
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
-
-  /*
-    This data structure will need to change to process_color with
-    coloring = std::vector<process_color> when we add support for
-    M != N (colors to processes).
-   */
 
   /// Coloring type.
   /// \ingroup narray
@@ -280,7 +273,5 @@ struct util::serial::traits<topo::narray_impl::process_color> {
 };
 
 } // namespace flecsi
-
-/// \endcond
 
 #endif

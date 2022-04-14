@@ -35,10 +35,11 @@ struct detail::base<global_category> {
 /*!
   Unpartitioned topology whose fields are readable by all colors.
   Fields must be written by single tasks.
-  Its \c coloring type is convertible from an integer;
+  Its \c coloring type is convertible from an integer size;
   default-constructing it produces a size of 1.
  */
 struct global : specialization<global_category, global> {
+  /// A \c cslot can be initialized from an integer size.
   static coloring color(util::id n) {
     return n;
   }

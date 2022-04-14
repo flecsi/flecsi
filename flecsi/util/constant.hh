@@ -9,6 +9,7 @@
 #include <tuple>
 #include <utility>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 /// \addtogroup utils
@@ -156,5 +157,6 @@ struct key_tuple : std::tuple<typename VT::type...> {
 /// \}
 } // namespace util
 } // namespace flecsi
+/// \endcond
 
 #endif

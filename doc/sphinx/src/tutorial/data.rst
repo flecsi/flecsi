@@ -50,10 +50,15 @@ of the `canonical` topology.
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
+The ``canonical`` topology is a very simple specialization of the ``unstructured`` core topology.
+It illustrates the use of a *coloring slot*, which applies a specialization-defined rule for specifying a *coloring*: the run-time information for constructing a topology distributed over colors.
+Here, a file is the source of the mesh (for purposes of illustration).
+The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.
+The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a parameter that provides access to the structure of the mesh via the ``entities`` function.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 18-45
+  :lines: 18-53
 
 ----
 

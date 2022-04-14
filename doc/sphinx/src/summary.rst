@@ -15,7 +15,7 @@ FleCSI performs only a few fundamental actions, each of which corresponds to one
 * ``topo``: Organize those arrays into *topologies* that represent computational physics domains of several kinds.
 * ``exec``: Call user-specified functions (*tasks*) with pointers to the allocated memory (in the form of *accessors*).
 * ``io``: Save and restore the contents of fields to and from disk.
-* ``log``: Aggregate diagnostic output from multiple processes (``flecsi::log`` is abbreviated ``flog`` in macro names).
+* ``log``: Aggregate diagnostic output from multiple processes (the namespace is ``flog``).
 
 The implementation of these components is divided between the "front end" and one of a number of *backends* that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
@@ -80,7 +80,7 @@ Storage
 
 The FleCSI data model is based on `that of Legion <https://legion.stanford.edu/tutorial/logical_regions.html>`_, with certain simplifications.
 Each field has a value at each of several *index points*, each of which is a pair of abstract integers.
-The first indicates the *color* to which the index point pertains, which corresponds (under some permutation) to the process that typically operates on the associated field values.
+The first indicates the *color* to which the index point pertains, which determines the execution agent that typically operates on the associated field values.
 The second is an index within the index points for that color; both are zero-based.
 (This structure, where field values at certain index points are periodically copied to other colors for access by other processes, is known as an "Extended Index Space".)
 
@@ -112,7 +112,7 @@ Layouts
 ^^^^^^^
 
 The backend is expected merely to provide uninitialized storage arrays for each field and ``memcpy`` it appropriately.
-Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but the type must be self-contained and trivially relocatable.
+Therefore, ``sizeof(T)`` and the partition size is sufficient information to allocate it, but (if it is used with any non-MPI task) the type must be self-contained and trivially relocatable.
 (This is not a formal C++ classification; note that ``std::tuple<int>`` is not trivially copyable.)
 
 This support is called the ``raw`` *layout*.
@@ -124,6 +124,8 @@ Higher-level layouts are implemented in terms of it:
   The elements of the arrays are packed in an underlying ``raw`` field (with slack space to reduce reallocations, as with ``std::vector`` itself); the offsets of the beginning of each array are stored in a separate ``dense`` field.
 * ``sparse`` stores a mapping from integers to ``T`` at each index point, as if the field type were ``std::map<std::size_t,T>``.
   The implementation is simply a ``ragged`` field of ``std::pair<std::size_t,T>``, with each row sorted by the key.
+* ``particle`` stores a set of ``T`` objects bounded by the size of the index space.
+  The implementation augments ``T`` with a "skip field" that allows efficient iteration, insertion, and deletion.
 
 This enumeration is defined in ``layout.hh``.
 
@@ -131,7 +133,9 @@ Definition
 ^^^^^^^^^^
 
 The various types used for working with a field are exposed as members of ``field<T,L>``, where ``T`` is the field data type and ``L`` is the layout (which defaults to ``dense``).
-Application code, topology specializations, and topologies alike register fields by defining non-local, caller-only objects of type ``field<T,L>::definition<P,S>``, where ``P`` is the topology type (specialization, sometimes called a "Policy") and ``S`` is the index space (of the type ``P::index_space``, which is typically an enumeration).
+Application code, topology specializations, and topologies all register fields the same way, by defining caller-only objects of type ``field<T,L>::definition<P,S>``.
+``P`` here is the topology type (specialization, sometimes called a "Policy"), and ``S`` is the index space (of the type ``P::index_space``, which is typically an enumeration).
+These are often non-local variables.
 
 If ``L`` is ``raw``, the field is registered on the global FleCSI *context* with a field ID drawn from a global counter, organized by topology type and index space.
 Otherwise, the ``definition`` recursively registers appropriate underlying fields (via specializations of the helper class templates ``field_base`` and ``field_register``).
@@ -179,6 +183,13 @@ The topology's ``access`` type is used wrapped in the ``topology_accessor`` clas
 To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
 (The field ID is not known until runtime, but the *location* where it will be stored is known at compile time.)
 
+*Multi-color accessors* allow an execution agent to access data outside of its color (beyond that supplied by ghost copies), including the special case of data outside of the data model altogether (*e.g.*, distributed objects created by MPI-based libraries).
+These take the form of a sequence of color-accessor pairs inside a task; the accessor can also be a mutator or a topology accessor.
+They are created from a *launch map* that specifies which colors should be made available where (discussed further below).
+The MPI backend supports only trivial launch maps that specify some subset of the normal arrangement.
+
+See below about the special case of *reduction accessors*.
+
 Execution
 +++++++++
 
@@ -212,7 +223,8 @@ The ``partial`` class template is provided to allow a partial function applicati
 In addition to converting arguments that identify resources, those resources are recruited for the task's use.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
-The *global topology* (described further below) is a special case: it uses a (single-point) ``region`` directly and requires that a task that writes to it be a single launch.
+The *global topology* (described further below) is a special case: it uses a ``region`` directly, so all point tasks use the same field values.
+A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 On the task side, the recruited resources and the accessors' field IDs are consulted to obtain values for the contained ``span`` objects.
 Because a task's parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate *buffers* that can be processed afterwards.
 
@@ -284,14 +296,21 @@ It is defined in ``index.hh``, along with higher-level subtopologies that provid
 The topology ``ragged`` is itself a class template, parametrized with the (user) topology type to distinguish ``ragged`` field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with ``with_`` to be used as a base class.
 
+Launch maps are constructed from several auxiliary topology types that create alternate partitions that expose (some of) a region's existing row-prefixes in a different order.
+Using several of these partial permutations allows an arbitrary many-to-many mapping to be expressed while retaining the identity of each row selected.
+Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.
+
+The non-trivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
+This indirection avoids needing to know the sizes of other colors' rows (which vary per index space) to select them as well as needing to reserve a row number for "no row needed".
+
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
 In particular, ``topo::id`` serves to distinguish in user-facing interfaces the indices for different index spaces.
 
 Predefined
 ^^^^^^^^^^
 
-Because the global and index topologies do not need user-defined specializations and are generally useful for defining job- and color-global variables (respectively), a global instance of each is defined in ``flecsi/data.hh``.
-(Their colorings are trivial, so no coloring slots are used.)
+Because the global and index topologies do not need user-defined specializations, a predefined specialization is provided of each (and the categories are suffixed with ``_category``).
+A deprecated global instance of each is defined in ``flecsi/data.hh``.
 Each backend's initialization code uses the ``data_guard`` type to manage their lifetimes.
 
 .. I/O
@@ -300,7 +319,7 @@ Utilities
 +++++++++
 
 Since ``util`` is self-contained and has little internal interaction, there is little need for centralized, prose description.
-However, a few utilities have sufficiently wide relevance as to deserve mention.
+However, a few utilities (beyond the serialization already mentioned) have sufficiently wide relevance as to deserve mention.
 
 Simplified backports of several range utilities from C++20 are provided in ``array_ref.hh``.
 The intent is to switch to the ``std`` versions (with only trivial code changes) when compiler support becomes available.

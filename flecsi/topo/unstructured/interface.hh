@@ -21,7 +21,6 @@
 #include <memory>
 #include <utility>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \defgroup unstructured Unstructured Mesh
@@ -329,11 +328,6 @@ private:
 template<typename Policy>
 template<Privileges Privileges>
 struct unstructured<Policy>::access {
-
-  /*
-    FIXME: This should be private or protected.
-   */
-
   template<class F>
   void send(F && f) {
     std::size_t i = 0;
@@ -447,6 +441,5 @@ struct unstructured_specialization : specialization<unstructured, example> {
 /// \}
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif

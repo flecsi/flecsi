@@ -17,7 +17,6 @@
 
 #include <tuple>
 
-/// \cond core
 namespace flecsi {
 namespace unit {
 /// \defgroup unit Unit Testing
@@ -83,6 +82,5 @@ using finalization = control::action<Target, test_control_points::finalization>;
 /// \}
 } // namespace unit
 } // namespace flecsi
-/// \endcond
 
 #endif
