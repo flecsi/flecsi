@@ -574,7 +574,7 @@ methods and data members, they can be accessed like:
 
 Let's consider a concrete example of this. In
 *tutorial/2-control/4-state.hh*, we define a control policy with several
-methods, and some private data:
+methods and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
