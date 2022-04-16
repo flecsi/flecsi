@@ -246,7 +246,7 @@ const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
 // Exercise the std::vector-like interface:
 int
-permute(topo::connect_field::mutator<rw, rw, na> m) {
+permute(topo::connect_field::mutator<rw, rw, wo> m) {
   UNIT("TASK") {
     return;
     const auto && r = m[0];

@@ -48,7 +48,28 @@ struct repartition : with_size, data::prefixes {
     return *this;
   }
 
+protected:
+  template<Privileges Priv>
+  struct access {
+    template<class F>
+    void send(F && f) {
+      size_.topology_send(
+        f, [](auto & a) -> auto & { return a.get_sizes(); });
+    }
+
+    auto & size() const {
+      return size_;
+    }
+
+  private:
+    data::scalar_access<topo::resize::field, Priv> size_;
+  };
+
 private:
+  auto & get_sizes() {
+    return sz;
+  }
+
   template<class F>
   static void fill(resize::Field::accessor<wo> a, F f) {
     a = std::move(f)(run::context::instance().color());
@@ -89,6 +110,8 @@ private:
 template<class>
 struct ragged_partition_category : ragged_partition_base {
   using ragged_partition_base::ragged_partition_base;
+
+  using repartition::access;
 };
 template<>
 struct detail::base<ragged_partition_category> {
@@ -232,7 +255,10 @@ template<class P>
 struct array_category : array_base, repartitioned {
   explicit array_category(const coloring & c)
     : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {}
+
+  using repartition::access;
 };
+
 template<>
 struct detail::base<array_category> {
   using type = array_base;
@@ -528,6 +554,25 @@ struct borrow_meta<Q, true> {
   typename borrow<topo::meta<Q>>::core meta;
 };
 } // namespace detail
+
+// Specialization of borrow_extra for types defined above
+template<class P>
+struct borrow_extra<ragged_partition_category<P>> {
+  borrow_extra(ragged_partition_category<P> &, claims::core &, bool) {}
+
+  auto & get_sizes() {
+    return borrow_base::derived(*this).spc[0].sz;
+  }
+};
+
+template<class P>
+struct borrow_extra<array_category<P>> {
+  borrow_extra(array_category<P> &, claims::core &, bool) {}
+
+  auto & get_sizes() {
+    return borrow_base::derived(*this).spc[0].sz;
+  }
+};
 
 /// \}
 } // namespace topo

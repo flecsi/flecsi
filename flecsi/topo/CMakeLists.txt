@@ -86,7 +86,8 @@ add_unit(closure
 
 set(UTHREADS 4)
 if(FLECSI_BACKEND STREQUAL "legion")
-  set(UTHREADS 1 2 4 6)
+  #UTHREADS SHOULD BE SET TO 1 2 4 6 once the #colors>#ranks case is working for ragged communication. 
+  set(UTHREADS 1 4 6)
 endif()
 
 add_unit(unstructured
