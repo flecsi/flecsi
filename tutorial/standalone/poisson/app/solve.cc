@@ -12,6 +12,7 @@
 
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
+#include <flecsi/util/annotation.hh>
 
 using namespace flecsi;
 
@@ -36,6 +37,9 @@ poisson::action::solve() {
   t.skip();
   do {
     auto g = t.make_guard();
+    // Annotation to time each cycle of the poisson solve
+    annotation::guard<annotation::execution, annotation::detail::low> aguard(
+      "poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
       execute<task::red>(m, ud(m), fd(m));
       execute<task::black>(m, ud(m), fd(m));
