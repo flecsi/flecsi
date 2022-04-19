@@ -17,8 +17,8 @@ Kernels
   Kernels operate on data in a single address space, but require
   explicit barriers to ensure consistency. This is generally referred to
   as a relaxed-consistency memory model. The kernel interface in
-  FleCSI is defined by three parallel operations: *forall*, *reduceall*,
-  and *scan*. Each of these is a fine-grained, data-parallel operation.
+  FleCSI is defined by two parallel operations: *forall* and *reduceall*.
+  Each of these is a fine-grained, data-parallel operation.
   The use of the *kernel* nomenclature is derived from CUDA, and OpenCL,
   and is conceptually consistent with those models. Please see example
   of using *forall* kernels in *parallel* section of the tutorials. 
