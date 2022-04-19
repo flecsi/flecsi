@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_GLOBAL_HH
+#define FLECSI_TOPO_GLOBAL_HH
 
 #include "flecsi/data/topology.hh"
 #include "flecsi/topo/core.hh"
@@ -44,10 +35,11 @@ struct detail::base<global_category> {
 /*!
   Unpartitioned topology whose fields are readable by all colors.
   Fields must be written by single tasks.
-  Its \c coloring type is convertible from an integer;
+  Its \c coloring type is convertible from an integer size;
   default-constructing it produces a size of 1.
  */
 struct global : specialization<global_category, global> {
+  /// A \c cslot can be initialized from an integer size.
   static coloring color(util::id n) {
     return n;
   }
@@ -78,3 +70,5 @@ struct exec::detail::launch<data::reduction_accessor<R, T>,
 };
 
 } // namespace flecsi
+
+#endif

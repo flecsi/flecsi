@@ -142,11 +142,14 @@ private:
     Legion::LogicalRegion lreg,
     Legion::LogicalPartition dest,
     field_id_t ptr_fid)
-    : cl_(src.get_color_space()),
-      src(src.logical_partition, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg),
-      dest(dest, leg::def_proj, WRITE_ONLY, EXCLUSIVE, lreg) {
+    : cl_(src.get_color_space()), src(src.logical_partition,
+                                    leg::def_proj,
+                                    LEGION_READ_ONLY,
+                                    LEGION_EXCLUSIVE,
+                                    lreg),
+      dest(dest, leg::def_proj, LEGION_WRITE_ONLY, LEGION_EXCLUSIVE, lreg) {
     Legion::RegionRequirement rr_pos(
-      dest, leg::def_proj, READ_ONLY, EXCLUSIVE, lreg);
+      dest, leg::def_proj, LEGION_READ_ONLY, LEGION_EXCLUSIVE, lreg);
     cl_.add_src_indirect_field(ptr_fid, rr_pos);
   }
 

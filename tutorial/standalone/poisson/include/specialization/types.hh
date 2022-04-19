@@ -2,7 +2,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef POISSON_SPECIALIZATION_TYPES_HH
+#define POISSON_SPECIALIZATION_TYPES_HH
 
 #include <flecsi/data.hh>
 
@@ -17,3 +18,5 @@ template<typename T, flecsi::data::layout L = flecsi::data::layout::dense>
 using field = flecsi::field<T, L>;
 
 } // namespace poisson
+
+#endif

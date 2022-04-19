@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_MPI_POLICY_HH
+#define FLECSI_DATA_MPI_POLICY_HH
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/exec/task_attributes.hh"
@@ -194,7 +185,7 @@ struct region_impl {
   // partitioning of the field. We will then call .resize() on the
   // std::vector<>.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
-    for(auto f : fs) {
+    for(const auto & f : fs) {
       storages[f->fid];
     }
   }
@@ -225,7 +216,7 @@ struct region_impl {
   }
 
   auto get_field_info(field_id_t fid) const {
-    for(auto f : fs) {
+    for(auto & f : fs) {
       if(f->fid == fid)
         return f;
     }
@@ -278,7 +269,7 @@ struct partition {
   }
 
   template<topo::single_space>
-  partition & get_partition(field_id_t) {
+  partition & get_partition() {
     return *this;
   }
 
@@ -584,3 +575,5 @@ private:
 
 } // namespace data
 } // namespace flecsi
+
+#endif

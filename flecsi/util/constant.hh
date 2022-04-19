@@ -1,23 +1,15 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_CONSTANT_HH
+#define FLECSI_UTIL_CONSTANT_HH
 
 #include <array>
 #include <cstddef>
 #include <tuple>
 #include <utility>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 /// \addtogroup utils
@@ -63,6 +55,7 @@ private:
   }
 
 public:
+  // Find the index of (the last appearance of) V in the sequence VV.
   // V must be comparable to each of VV.
   template<auto V>
   static constexpr std::size_t index = find<V>(
@@ -164,3 +157,6 @@ struct key_tuple : std::tuple<typename VT::type...> {
 /// \}
 } // namespace util
 } // namespace flecsi
+/// \endcond
+
+#endif

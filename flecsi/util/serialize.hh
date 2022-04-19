@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_SERIALIZE_HH
+#define FLECSI_UTIL_SERIALIZE_HH
 
 #include <cstddef>
 #include <cstring> // memcpy
@@ -26,7 +17,6 @@
 #include "type_traits.hh"
 #include <flecsi/flog.hh>
 
-/// \cond core
 namespace flecsi {
 namespace util {
 namespace serial {
@@ -374,4 +364,5 @@ struct traits<T, decltype(void(convert<T>::put))> {
 } // namespace serial
 } // namespace util
 } // namespace flecsi
-/// \endcond
+
+#endif

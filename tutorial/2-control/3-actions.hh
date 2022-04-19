@@ -1,16 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+#ifndef TUTORIAL_2_CONTROL_3_ACTIONS_HH
+#define TUTORIAL_2_CONTROL_3_ACTIONS_HH
 
 #include "3-dependencies.hh"
 
@@ -52,7 +44,7 @@ package_d() {
 control::action<package_d, cp::cp1> package_d_action;
 
 /*
-  Register several actions under control point one.
+  Register several actions under control point two.
  */
 
 int
@@ -93,3 +85,5 @@ const auto dep_da = package_d_action.add(package_a_action);
 const auto dep_fe = package_f_action.add(package_e_action);
 const auto dep_ge = package_g_action.add(package_e_action);
 const auto dep_gf = package_g_action.add(package_f_action);
+
+#endif

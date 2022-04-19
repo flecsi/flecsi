@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_SET_INTERFACE_HH
+#define FLECSI_TOPO_SET_INTERFACE_HH
 
 #include "flecsi/topo/core.hh" // base
 
@@ -20,7 +11,12 @@ namespace topo {
 
 struct set_base {
 
-  using coloring = std::vector<std::size_t>;
+  struct coloring {
+
+    void * ptr;
+
+    std::vector<std::size_t> counts;
+  };
 
   static std::size_t allocate(const std::vector<std::size_t> & arr,
     const std::size_t & i) {
@@ -33,6 +29,8 @@ struct set_base {
 template<typename P>
 struct set : set_base {
 
+  using T = typename P::t_type;
+
   template<Privileges Priv>
   struct access {
 
@@ -41,7 +39,8 @@ struct set : set_base {
   };
 
   explicit set(coloring x)
-    : part{make_repartitioned<P>(x.size(), make_partial<allocate>(x))} {}
+    : p{static_cast<T *>(x.ptr)}, part{make_repartitioned<P>(x.counts.size(),
+                                    make_partial<allocate>(x.counts))} {}
 
   Color colors() const {
 
@@ -54,12 +53,13 @@ struct set : set_base {
   }
 
   template<typename P::index_space>
-  repartition & get_partition(field_id_t) {
+  repartition & get_partition() {
 
     return part;
   }
 
 private:
+  T * p;
   repartitioned part;
 };
 
@@ -70,3 +70,5 @@ struct detail::base<set> {
 
 } // namespace topo
 } // namespace flecsi
+
+#endif

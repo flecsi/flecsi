@@ -24,7 +24,7 @@ order.
   FleCSI what it should do when the *start* control point is invoked.
 
 * **initialize** |br|
-  This control point spins up the FleCSI runtime, and (optionally) any
+  This control point spins up the FleCSI runtime and (optionally) any
   other runtimes on which FleCSI depends.
 
 * **start** |br|
@@ -33,7 +33,7 @@ order.
   pass a top-level action that FleCSI will execute.
 
 * **finalize** |br|
-  This control point shuts down the FleCSI runtime, and any other
+  This control point shuts down the FleCSI runtime and any other
   runtimes that FleCSI itself initialized.
 
 This example demonstrates a minimal use of FleCSI that just executes an
@@ -152,7 +152,7 @@ Declaring Options
   FleCSI program options must be declared at namespace scope, i.e.,
   outside of any function, class, or enum class. This is not a problem! It
   is often convenient to declare them in a header file (in which case,
-  they must also be declared *inline*), or directly before the *main*
+  they must also be declared *inline*) or directly before the *main*
   function.  We use the latter for this example simply for conciseness.
 
 Let's consider the first *Car Options* option: ``--level``. To declare
@@ -160,7 +160,7 @@ this option, we use the following declaration:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 17-32
+  :lines: 6-21
 
 First, notice that the flecsi::program_option type is templated on the
 underlying option type *int*. In general, this can be any valid C++
@@ -197,12 +197,12 @@ parameters:
   An optional, user-defined predicate to validate the value passed by
   the user.
 
-The next option ``--transmission`` is similar, but uses a std::string
+The next option ``--transmission`` is similar but uses a ``std::string``
 value type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 34-49
+  :lines: 23-38
 
 The only real difference is that (because the underlying type is
 std::string) the default value is also a string.
@@ -212,10 +212,9 @@ demonstrates the use of flecsi::option_implicit:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 51-63
+  :lines: 40-52
 
-Providing an implicit value, defines the behavior for the case that the
-user invokes the program with the given flag, but does not assign a
+Providing an implicit value defines the behavior for the case that the user invokes the program with the given flag but does not assign a
 value, e.g., ``--child-seat`` vs. ``--child-seat=1``. The value is
 *implied* by the flag itself.
 
@@ -225,8 +224,8 @@ value, e.g., ``--child-seat`` vs. ``--child-seat=1``. The value is
   because Boost appears to have a bug when such options are invoked
   directly before a positional option (gets confused about separation).
   We break that convention here for the sake of completeness. If you
-  need an option that simply acts as a switch, i.e., it is either *on*
-  or *off*, consider using the ``--lightspeed`` style option below, as
+  need an option that simply acts as a switch (i.e., it is either *on*
+  or *off*), consider using the ``--lightspeed`` style option below, as
   this type of option is safe to use with positional options.
 
 The first option in the *Ride Options* section ``--purpose`` takes an
@@ -235,7 +234,7 @@ code:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 65-81
+  :lines: 54-70
 
 This option demonstrates how an enumeration can be used to define
 possible values. Although FleCSI does not enforce correctness, the
@@ -249,16 +248,16 @@ whether or not an option was passed in the next section:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 83-91
+  :lines: 72-80
 
-The final option in this example is a positional option, i.e., it is an
-argument to the program itself:
+The final option in this example is a positional option: i.e., it is an
+argument to the program itself.
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 93-107
+  :lines: 82-96
 
-Positional options are required, i.e., the program will error and print
+Positional options are required: i.e., the program will error and print
 the usage message if a value is not passed.
 
 Checking & Using Options
@@ -266,16 +265,16 @@ Checking & Using Options
 
 FleCSI option variables are implemented using an *optional* C++ type.
 The utility of this implementation is that *optional* already captures
-the behavior that we want from an option, i.e., it either has a value,
-or it does not. If the option has a value, the specific value depends on
+the behavior that we want from an option (i.e., it either has a value or does not).
+If the option has a value, the specific value depends on
 whether or not the user explicitly passed the option on the command
-line, and its default and implicit values.
+line and on its default and implicit values.
 
 Options that have a default value defined do not need to be tested:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 118-146
+  :lines: 107-135
 
 Here, we simply need to access the value of the option using the
 *value()* method.
@@ -285,14 +284,14 @@ option has a value using the *has_value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 148-155
+  :lines: 137-144
 
 Our one positional option works like the defaulted options (because it
-is required), and can be accessed using the *value()* method:
+is required) and can be accessed using the *value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 157-168
+  :lines: 146-157
 
 Here is the full source for this tutorial example:
 
@@ -311,7 +310,7 @@ Multiple streams can be used simultaneously, so that information about
 the running state of a program can be captured and displayed at the same
 time.
 In this example, we show how FLOG can be configured to stream output to
-a file buffer, and the std::clog stream buffer.
+a file buffer and the ``std::clog`` stream buffer.
 
 Before attempting this example, you should make sure that you have
 configured and built FleCSI with ENABLE_FLOG=ON.
@@ -339,13 +338,13 @@ Buffer Configuration
 By default, FLOG does not produce any output (even when enabled).
 In order to see or capture output, your application must add at least
 one output stream.
-This should be done after flecsi::initialize has been invoked, and
+This should be done after ``flecsi::initialize`` has been invoked and
 before flecsi::start.
 Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 71-110
+  :lines: 60-99
 
 The first output stream added is `std::clog`__.
 
@@ -353,7 +352,7 @@ __ https://en.cppreference.com/w/cpp/io/clog
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 92-96
+  :lines: 81-85
 
 The arguments to add_output_stream are:
 
@@ -373,7 +372,7 @@ To add an output stream to a file, we can do the following:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 98-103
+  :lines: 87-92
 
 That's it! For this example, FLOG is now configured to write output to
 std::clog, and to *output.txt*. Next, we will see how to actually write
@@ -392,7 +391,7 @@ object:
 This works just like any of the C++ output objects. FLOG provides four
 basic output objects: *trace*, *info*, *warn*, and *error*. These
 provide different color decorations for easy identification in terminal
-output, and can be controlled using *strip levels* (discussed in the next
+output and can be controlled using *strip levels* (discussed in the next
 section).
 
 The following code from this example shows some trivial usage of each of
@@ -400,7 +399,7 @@ the basic output objects:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 32-40
+  :lines: 21-29
 
 Controlling Output - Strip Levels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -408,7 +407,7 @@ Controlling Output - Strip Levels
 .. important::
 
   If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
-  compiled out, i.e., there is no runtime overhead.
+  compiled out: i.e., there is no runtime overhead.
 
 The strip level is a preprocessor option *FLOG_STRIP_LEVEL* that can
 be specified during FleCSI configuration. Valid strip levels are
@@ -436,7 +435,7 @@ Controlling Output - Tag Groups
 
 Tag groups provide a mechanism to control the runtime output generated
 by FLOG. The main idea here is that developers can use FLOG to output
-information that is useful in developing or debugging a program, and
+information that is useful in developing or debugging a program and
 leave it in the code. Then, specific groups of messages can be enabled
 or disabled to only output useful information for the current
 development focus.
@@ -445,7 +444,7 @@ To create a new tag, we use the flog::tag type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 22-27
+  :lines: 11-16
 
 Tags take a single std::string argument that is used in the help message
 to identify available tags.
@@ -461,13 +460,13 @@ the ``--flog-tags`` option:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 42-53
+  :lines: 31-42
 
 Here is another code example that defines a guarded section for *tag2*:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 55-66
+  :lines: 44-55
 
 You should experiment with invoking this example:
 
@@ -508,7 +507,7 @@ which should look something like this:
     tag1
 
 Invoking this example with ``--flog-tags=tag1`` will generate output for
-unguarded sections, and for output guarded with the *tag1* tag:
+unguarded sections and for output guarded with the *tag1* tag:
 
 .. code-block:: console
 
@@ -542,7 +541,7 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
 * *FLOG_SERIALIZATION_INTERVAL* |br|
   The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
-  tasks executed, i.e., if the serialization interval is set to 300,
+  tasks executed: i.e., if the serialization interval is set to 300,
   FleCSI will check how many messages have been injected into the stream
   of each process every multiple of 300 task executions. |br|
   *(default: 100)*
@@ -560,7 +559,7 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
   However, overly aggressive settings, e.g.,
-  ``FLOG_SERIALIZATION_INTERVAL=1``, and
+  ``FLOG_SERIALIZATION_INTERVAL=1`` and
   ``FLOG_SERIALIZATION_THRESHOLD=1``, could force complete serialization
   of your application.
   This can be beneficial for debugging, but should not be used for
@@ -569,13 +568,13 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
 For many applications, there is a natural serialization interval that
 implicitly starts at the beginning of the simulation time evolution.
 FleCSI provides a function ``flecsi::flog::flush()`` that can be used to
-force FleCSI to serialize, and flush output.
+force FleCSI to serialize and flush output.
 
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
   for ``FLOG_SERIALIZATION_INTERVAL`` and
-  ``FLOG_SERIALIZATION_THRESHOLD``, and to use ``flecsi::flog::flush()``
+  ``FLOG_SERIALIZATION_THRESHOLD`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
 FLOG Options (Command-Line)
@@ -608,7 +607,7 @@ There are currently two other options that control FLOG output:
 
   Logging output can sometimes have unexpected behavior.
   Consider the case where you are viewing output only from process
-  ``0``, and the runtime maps a task to process ``1``.
+  ``0`` and the runtime maps a task to process ``1``.
   You will not see the messages from that task in the logging output.
   This is not an error.
   In general, some experimentation is necessary to achieve the desired
@@ -624,17 +623,17 @@ This enables users to investigate runtime overhead and application performance
 with Caliper.  Users can also use this interface to add additional annotations
 to performance sensitive regions of their applications.
 
-To CMake variable *FLECSI_CALIPER_DETAIL* is used to disable or control the
+To CMake variable *CALIPER_DETAIL* is used to disable or control the
 level of detail in included Caliper annotations.  The currently available
 options are:
 
-* *FLECSI_CALIPER_DETAIL=none* |br|
+* *CALIPER_DETAIL=none* |br|
   Caliper annotations are disabled
-* *FLECSI_CALIPER_DETAIL=low* |br|
+* *CALIPER_DETAIL=low* |br|
   Annotations marked with low severity detail are included
-* *FLECSI_CALIPER_DETAIL=medium* |br|
+* *CALIPER_DETAIL=medium* |br|
   Annotations marked with low and medium severity detail are included
-* *FLECSI_CALIPER_DETAIL=high* |br|
+* *CALIPER_DETAIL=high* |br|
   All annotations are included
 
 .. caution::
@@ -653,7 +652,7 @@ can be used to add annotations to applications.  This allows users to instrument
 their code and use Caliper to collect timing data.  An annotation for a code
 region must specify a detail level, context, and name.  The detail level is used
 to selectively control the inclusion of an annotation using the cmake variable
-*FLECSI_CALIPER_DETAIL*.  The context for an annotation is used as a named
+*CALIPER_DETAIL*.  The context for an annotation is used as a named
 grouping for annotations.  In caliper, this can be used to filter and aggregate
 annotations using the `caliper query language <http://software.llnl.gov/Caliper/calql.html>`_.
 
@@ -662,13 +661,13 @@ functions are called.  Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 62-79
+  :lines: 51-68
 
 A scope guard is used to annotation the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 72-74
+  :lines: 61-63
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -677,7 +676,7 @@ specified using structs that inherit from ``annotation::region``:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 24-39
+  :lines: 13-28
 
 This first defines a new annotation context ``user_execution`` by inheriting
 from ``annotation::context`` and specifying a name for the context.  Three code
@@ -687,13 +686,13 @@ then annotated using a scope guard:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 64-64
+  :lines: 53-53
 
 The sleeper function demonstrates the use of calls to begin and end as opposed to using scope guards:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 45-47
+  :lines: 34-36
 
 Generating Reports
 ^^^^^^^^^^^^^^^^^^

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_KERNEL_HH
+#define FLECSI_EXEC_KERNEL_HH
 
 #include <numeric>
 
@@ -35,6 +26,7 @@ namespace flecsi {
 namespace exec {
 /// \defgroup kernel Kernels
 /// Local concurrent operations.
+/// If Kokkos is not available, they simply execute serially.
 /// \ingroup execution
 /// \{
 #if defined(FLECSI_ENABLE_KOKKOS)
@@ -300,3 +292,5 @@ make_reduce(P policy, std::string n) {
 /// \}
 } // namespace exec
 } // namespace flecsi
+
+#endif

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef TUTORIAL_SPECIALIZATION_RUN_CONTROL_HH
+#define TUTORIAL_SPECIALIZATION_RUN_CONTROL_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
@@ -67,3 +58,5 @@ private:
 using control = flecsi::run::control<control_policy>;
 
 } // namespace tutorial
+
+#endif

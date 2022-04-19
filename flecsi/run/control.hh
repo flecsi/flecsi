@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_RUN_CONTROL_HH
+#define FLECSI_RUN_CONTROL_HH
 
 #include <flecsi-config.h>
 
@@ -52,15 +43,43 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
 template<auto CP>
 using control_point = run_impl::control_point<CP>;
 
+/// A control point for specialization use.
+/// \tparam CP control point enumerator
 template<auto CP>
 using meta_point = run_impl::meta_point<CP>;
 
+/*!
+  A control-flow cycle.
+  \tparam P tested before each iteration
+  \tparam CP \c control_point or \c cycle types
+ */
 template<bool (*P)(), typename... CP>
 using cycle = run_impl::cycle<P, CP...>;
 
+/*!
+  Base class for providing default implementations for optional interfaces.
+ */
+
+struct control_base {
+  /// Called before executing.  If the value returned is not \c success,
+  /// \c run and \c finalize are skipped.
+  /// \return exit status
+  int initialize() {
+    return success;
+  }
+  /// Called after executing.
+  /// \param run exit status from running
+  /// \return exit status
+  int finalize(int run) {
+    return run;
+  }
+};
+
 #ifdef DOXYGEN
 /// An example control policy that is not really implemented.
-struct control_policy {
+/// Inheriting from \c control_base is optional,
+/// but not doing so is \b deprecated.
+struct control_policy : control_base {
   /// The labels for the control-flow graph.
   enum control_points_enum {};
   /// The control-flow graph.
@@ -73,19 +92,6 @@ struct control_policy {
 /// A control policy must provide names for its control points.
 inline const char * operator*(control_policy::control_points_enum);
 #endif
-
-/*!
-  Base class for providing default implementations for optional interfaces.
- */
-
-struct control_base {
-  int initialize() {
-    return success;
-  }
-  int finalize(int run) {
-    return run;
-  }
-};
 
 /*!
   The control type provides a control model for specifying a
@@ -243,6 +249,11 @@ public:
   static P & policy() {
     return instance();
   }
+  /// Return the control policy object.
+  /// \deprecated use #policy
+  static P & state() {
+    return policy();
+  }
 
   /*!
     The action type provides a mechanism to add execution elements to the
@@ -311,6 +322,9 @@ public:
     node_type node_;
   }; // struct action
 
+  /// An action registration on a \c meta_point for a specialization.
+  /// \tparam T function
+  /// \tparam CP control point enumerator
   template<target_type T, control_points_enum CP>
   using meta = action<T, CP, true>;
 
@@ -353,3 +367,5 @@ public:
 /// \}
 } // namespace run
 } // namespace flecsi
+
+#endif

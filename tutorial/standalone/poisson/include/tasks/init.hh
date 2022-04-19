@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_TASKS_INIT_HH
+#define POISSON_TASKS_INIT_HH
 
 #include "specialization/mesh.hh"
 
@@ -24,3 +25,5 @@ void redblack(mesh::accessor<ro> m, field<double>::accessor<wo, na> fa);
 
 } // namespace task
 } // namespace poisson
+
+#endif

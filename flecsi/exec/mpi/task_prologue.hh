@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
+#define FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 
 #include <flecsi-config.h>
 
@@ -99,7 +90,7 @@ protected:
         return *t;
       else
         // The partition controls how much memory is allocated.
-        return t.template get_partition<Space>(f);
+        return t.template get_partition<Space>();
     }
     ().template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
@@ -113,6 +104,10 @@ protected:
     const auto storage =
       ref.topology()->template get_storage<T, ProcessorType>(f);
     accessor.bind(storage);
+
+    // Reset the storage to identity on all processes except 0
+    if(run::context::instance().process() != 0)
+      std::fill(storage.begin(), storage.end(), R::template identity<T>);
 
     reductions.push_back([storage] {
       MPI_Request request;
@@ -143,3 +138,5 @@ private:
 }; // struct task_prologue
 } // namespace exec
 } // namespace flecsi
+
+#endif

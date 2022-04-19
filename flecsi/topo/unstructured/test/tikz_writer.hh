@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_TIKZ_WRITER_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TEST_TIKZ_WRITER_HH
 
 #include "flecsi/topo/unstructured/types.hh"
 
@@ -278,3 +269,5 @@ write_closure(topo::unstructured_base::coloring & closure, MPI_Comm comm) {
 
 } // namespace supplemental
 } // namespace flecsi
+
+#endif

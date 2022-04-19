@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_NARRAY_TEST_NARRAY_HH
+#define FLECSI_TOPO_NARRAY_TEST_NARRAY_HH
 
 #include "flecsi/data.hh"
 #include "flecsi/flog.hh"
@@ -211,3 +202,5 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     }
   };
 }; // mesh
+
+#endif

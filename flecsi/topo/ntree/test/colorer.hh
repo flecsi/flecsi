@@ -1,18 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-
-#pragma once
+#ifndef FLECSI_TOPO_NTREE_TEST_COLORER_HH
+#define FLECSI_TOPO_NTREE_TEST_COLORER_HH
 
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/mpi.hh"
@@ -365,3 +355,5 @@ private:
 }; // colorer
 
 } // namespace tree_colorer
+
+#endif

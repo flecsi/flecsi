@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
@@ -244,18 +233,19 @@ index_driver() {
     }
 
     Noisy::count = 0;
-    for(const auto f : {verts_field.fid, vfrac_field.fid}) {
-      auto & p = process_topology->ragged.get_partition<topo::elements>(f);
+    constexpr static auto alloc = [](auto f) {
+      auto & p = f.get_ragged();
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
-    }
-    process_topology->ragged.get_partition<topo::elements>(ghost_field.fid)
-      .growth = {processes() + 1};
+    };
     const auto pressure = pressure_field(process_topology);
     const auto verts = verts_field(process_topology),
                ghost = ghost_field(process_topology);
     const auto vfrac = vfrac_field(process_topology);
     const auto noise = noisy_field(process_topology);
+    alloc(verts);
+    alloc(vfrac);
+    ghost.get_ragged().growth = {processes() + 1};
     execute<irows>(verts);
     execute<irows>(verts); // to make new size visible
     EXPECT_EQ(test<drows>(vfrac), 0);
@@ -283,7 +273,7 @@ index_driver() {
     a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
     { // TODO: automatic resizing
-      auto & p = a->ragged.get_partition<topo::elements>(arag.fid);
+      auto & p = arag(a).get_ragged();
       execute<allocate>(p.sizes());
       p.resize();
     }
@@ -298,9 +288,11 @@ flecsi::unit::driver<index_driver> driver;
 
 struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
 
+  typedef int t_type;
+
   static coloring color() {
 
-    return coloring(processes(), 3);
+    return {0, std::vector<std::size_t>(processes(), 3)};
   }
 };
 

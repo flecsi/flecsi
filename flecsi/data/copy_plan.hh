@@ -1,17 +1,8 @@
-/*
-@@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-/@@/////  /@@          @@////@@ @@////// /@@
-/@@       /@@  @@@@@  @@    // /@@       /@@
-/@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-/@@////   /@@/@@@@@@@/@@       ////////@@/@@
-/@@       /@@/@@//// //@@    @@       /@@/@@
-/@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-//       ///  //////   //////  ////////  //
+// Copyright (c) 2020, Triad National Security, LLC
+// All rights reserved.
 
-Copyright (c) 2020, Triad National Security, LLC
-All rights reserved.
-                                                            */
-#pragma once
+#ifndef FLECSI_DATA_COPY_PLAN_HH
+#define FLECSI_DATA_COPY_PLAN_HH
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
@@ -42,8 +33,8 @@ inline const field<data::intervals::Value>::definition<intervals>
   intervals::field;
 } // namespace detail
 
-// Specifies a pattern of data movement among colors in an index space.
-// Copying within a color is permitted but unusual.
+/// Specifies a pattern of data movement among colors in an index space.
+/// Copying within a color is permitted but unusual.
 struct copy_plan {
   using Sizes = detail::intervals::coloring;
 
@@ -89,15 +80,25 @@ private:
 }; // struct copy_plan
 
 namespace detail {
-// This topology implements pipe-like communication in terms of our
-// color-specific accessors by having one ghost index point for every edge in
-// a directed communication graph.
+
+/*!
+ This topology implements pipe-like communication in terms of our
+ color-specific accessors by having one ghost index point for every edge in
+ a directed communication graph.
+*/
 struct buffers_base {
-  using coloring = std::vector<std::vector<Color>>; // [src][]=dest
-  // Each edge gets one buffer which can be used for transferring arbitrary
-  // data via serialization.
+
+  /// The coloring type describes the global directed communication graph
+  /// [src_color][ith_communicating_color] = dest_color, where the outer
+  /// index is over source colors and lists destination colors for each source.
+  using coloring = std::vector<std::vector<Color>>;
+
+  /// The buffer type stores the data array to be used for communication,
+  /// along with a reader and writer type to read from and write to the data
+  /// array. Each edge in the communication graph gets one buffer which can be
+  /// used for transferring arbitrary data via serialization.
   struct buffer {
-    // An input stream for a buffer.
+    /// An input stream for a buffer.
     struct reader {
       // Use to select a type to read from context.
       struct convert {
@@ -125,7 +126,7 @@ struct buffers_base {
         return {this};
       }
     };
-    // An output stream for a buffer.
+    /// An output stream for a buffer.
     struct writer {
       explicit writer(buffer & b) : b(&b) {
         b.len = 0;
@@ -187,6 +188,7 @@ protected:
     std::copy(v1.begin(), v1.end(), a.span().end() - n);
   }
 };
+
 template<class P>
 struct buffers_category : buffers_base, topo::array_category<P> {
   using buffers_base::coloring; // to override that from array_category
@@ -204,14 +206,29 @@ struct buffers_category : buffers_base, topo::array_category<P> {
         return ret;
       }()) {}
 
-  // Low indices are send buffers, in the order specified in the graph;
-  // higher indices are receive buffers, in order of sending color.
+  /// Low indices are send buffers, in the order specified in the graph;
+  /// higher indices are receive buffers, in order of sending color.
   auto operator*() {
     return field(*this);
   }
-  // Transfer data using two tasks: F initializes and loads the buffers, and G
-  // reads from them, refills them if necessary, and returns whether data
-  // remains.  The field reference is given as the last argument.
+
+  /*!
+   This method is used to invoke the sending and receiving of data.
+   @tparam F Function object, executing F initializes and loads the send
+   buffers. The signature of F should include buffers::Start accessor as the
+             last argument.
+   @tparam G Function object, executing G accesses the receiving buffers, reads
+             from them, refills them if necessary, and continues till there is
+             no data to be receive. The signature of G should have
+   buffers::Transfer accessor as the last argument. G should have an "int"
+   return indicating whether there is still data to be read.
+   @tparam AA Variadic list of parameters for arguments to be passed to the
+   method. This list of arguments would consist of the field references to the
+              data fields to be communicated.
+
+   F and G can have different parameters but are invoked with the same
+   arguments.
+  */
   template<auto & F, auto & G, class... AA>
   void xfer(AA &&... aa) {
     execute<F>(aa..., **this);
@@ -228,6 +245,13 @@ struct buffers_category : buffers_base, topo::array_category<P> {
   static inline const flecsi::field<buffer>::definition<P> field;
 
 private:
+  /*!
+   This constructor takes two different representations of the same
+   communication graph.
+   @param c The global communication graph
+   @param recv It has the actual source coordinates (color and source-local
+   index) for each buffer to be received.
+  */
   buffers_category(const coloring & c, const Points & recv)
     : topo::array_category<P>([&] {
         topo::array_base::coloring ret;
@@ -264,22 +288,48 @@ namespace data {
 /// \addtogroup topology-data
 /// \{
 
-// This subtopology type also provides conveniences for transfer tasks.
+/*!
+ The buffers type provides an interface for dynamic amounts of data.
+ This subtopology type also provides conveniences for transfer tasks.
+*/
 struct buffers : topo::specialization<detail::buffers_category, buffers> {
   using Buffer = base::buffer;
+
+  /// Alias Start is used to provide accessor to the sending buffers. It should
+  /// be part of the signature of the two function objects (F, G) needed by the
+  /// "xfer" method of underlying buffers_category.
   using Start = field<Buffer>::accessor<wo, na>;
-  // Since copy_plan supports only copies between parts of the same logical
-  // region, we can't use WRITE_DISCARD for the send buffer.  We therefore use
-  // rw for it so that transfer functions can use it to resume large jobs.
+  /// Alias Transfer is used to provide accessor to the receiving buffers. It
+  /// should be part of the signature of the two function objects (F, G) needed
+  /// by the "xfer" method of underlying buffers_category. Since copy_plan
+  /// supports only copies between parts of the same logical region, we can't
+  /// use WRITE_DISCARD for the send buffer.  We therefore use rw for it so that
+  /// transfer functions can use it to resume large jobs.
   using Transfer = field<Buffer>::accessor<rw, ro>;
 
   template<index_space>
   static constexpr PrivilegeCount privilege_count = 2;
 
-  // Utility to transfer the contents of ragged rows via buffers.
+  /// Utility to transfer the contents of ragged rows via buffers.
+  /// Type ragged is used to create actual buffers for setting up
+  /// the data to be sent. It includes setting up buffers for both
+  /// send and receive data.
   struct ragged {
+    /*!
+        This constructor is invoked multiple times, in particular
+        to resume communication after the first send.
+    */
     explicit ragged(Buffer & b) : skip(b.off), w(b) {}
 
+    /*! Operator to communicate field data
+
+     @param rag input accessor or mutator to the ragged field that needs
+    to be communication.
+     @param i the index i over the topology index-space of the field, e.g.,
+              cell i for an unstructured topology specialization with cells.
+
+     \return boolean indicating that row data can be fitted in the buffer.
+    */
     template<class R> // accessor or mutator
     bool operator()(const R & rag, std::size_t i) {
       const auto row = rag[i];
@@ -304,13 +354,26 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       return true;
     }
 
-    // For the first use in each communication:
+    /*! This method should be invoked for the first use in each (send)
+       communication.
+
+        @param b reference to the input buffer. The passed
+        buffer should point to the correct index in the list of all buffers
+        created for sending and receiving data.
+    */
     static ragged truncate(Buffer & b) {
       b.off = 0;
       return ragged(b);
     }
 
-    template<class R, class F> // F: remote/shared index -> local/ghost index
+    /*! The method to read received data.
+
+       @param rag The mutator to the ragged field
+       @param b The buffer where the data is received
+       @param f The function object encoding "remote/shared index -> local/ghost
+       index map"
+    */
+    template<class R, class F>
     static void read(const R & rag, const Buffer & b, F && f) {
       Buffer::reader r{&b};
       flog_assert(r, "empty message");
@@ -340,3 +403,5 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 } // namespace data
 } // namespace flecsi
 /// \endcond
+
+#endif

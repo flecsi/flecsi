@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_TASKS_IO_HH
+#define POISSON_TASKS_IO_HH
 
 #include "specialization/mesh.hh"
 
@@ -20,3 +21,5 @@ void print(mesh::accessor<ro> m, field<double>::accessor<ro, ro> fa);
 
 } // namespace task
 } // namespace poisson
+
+#endif

@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
@@ -30,7 +19,7 @@ canon::cslot coloring;
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
-init(canon::accessor<wo> t, field<double>::accessor<wo> p) {
+init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
   std::size_t off{0};
   for(const auto c : t.cells()) {
     p[c] = (off++) * 2.0;
@@ -60,7 +49,7 @@ advance() {
   // cpu task, default
   execute<init>(canonical, pf);
   // accelerated task, will be executed on the Kokkos default execution space
-  // In case of Kookos bult with GPU, default execution space will be GPU
+  // In case of Kokkos built with GPU, default execution space will be GPU
   // The runtime moves data between the host and device.
   execute<modify, default_accelerator>(canonical, pf);
   // cpu_task

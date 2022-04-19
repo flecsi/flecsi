@@ -26,6 +26,8 @@ namespace flecsi::exec {
 #ifdef DOXYGEN // implemented per-backend
 /// Handling for low-level special task parameters/arguments.
 /// The exact member function signatures may vary between backends.
+/// \tparam Proc for the task being executed
+template<task_processor_type_t Proc>
 struct task_prologue {
 protected:
   /// Default constructible.

@@ -9,9 +9,18 @@
 
 namespace flecsi {
 namespace data::launch {
+/// \defgroup launch Launch maps
+/// Selecting topology colors to send to tasks.
+/// \ingroup data
+/// \{
 
+/// \if core
+/// Parameter type for establishing a \c mapping.
+/// \endif
 using param = topo::claims::Field::Reference<topo::claims, topo::elements>;
 
+/// Rule to assign colors in blocks.
+/// For example, 5 colors are assigned to 3 tasks as {0,1}, {2,3}, and {4}.
 inline bool
 block(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   const auto me = color(), us = colors(), q = n / us, r = n % us,
@@ -20,6 +29,8 @@ block(topo::claims::Field::accessor<wo> a, Color i, Color n) {
     i < mine ? std::optional((mine + (me == r)) * me + i) : std::nullopt);
   return i + 1 < mine;
 }
+/// Rule to assign colors in a cycle.
+/// For example, 5 colors are assigned to 3 tasks as {0,3}, {1,4}, and {2}.
 inline bool
 robin(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   const auto f = [me = color(), us = colors()](Color i) { return i * us + me; };
@@ -34,6 +45,9 @@ gather(topo::claims::Field::accessor<wo> a, Color i, Color n) {
   return i < n - 1;
 }
 
+/// A prepared assignment of colors.
+/// Invalidated by resizing the underlying topology (\e e.g., with a mutator).
+/// \tparam P underlying topology
 template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
@@ -103,17 +117,18 @@ make(T & t, Color n = processes()) {
             return reduce<F, exec::fold::max>(r, i++, c).get();
           }};
 }
-// Create a \c mapping from a rule.
-// \tparam F rule task that accepts a \c topo::claims::Field::accessor<wo>, a
-//   round counter, and a count of input colors and returns whether its color
-//   needs more claims
-// \param n number of colors
+/// Create a \c mapping from a rule.
+/// \tparam F rule task that accepts a \c topo::claims::Field::accessor<wo>, a
+///   round counter, and a count of input colors and returns whether its color
+///   needs more claims
+/// \param n number of colors
 template<auto & F = block, class P>
 mapping<P>
 make(topology_slot<P> & t, Color n = processes()) {
   return make<F>(t.get(), n);
 }
 
+/// \}
 } // namespace data::launch
 
 template<class P, class T>

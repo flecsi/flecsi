@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_MPI_FUTURE_HH
+#define FLECSI_EXEC_MPI_FUTURE_HH
 
 #include "flecsi/exec/launch.hh"
 #include "flecsi/util/function_traits.hh"
@@ -67,16 +58,18 @@ make_ready_future(T t) {
 
 template<typename R>
 struct future<R, exec::launch_type_t::index> {
+  using result_type = std::conditional_t<std::is_same_v<R, bool>, char, R>;
+
   explicit future(R result) : result(result) {
     results.resize(size());
 
     // Initiate MPI_Iallgather
     util::mpi::test(MPI_Iallgather(&result,
       1,
-      flecsi::util::mpi::type<R>(),
+      flecsi::util::mpi::type<result_type>(),
       results.data(),
       1,
-      flecsi::util::mpi::type<R>(),
+      flecsi::util::mpi::type<result_type>(),
       MPI_COMM_WORLD,
       &request));
   }
@@ -94,7 +87,7 @@ struct future<R, exec::launch_type_t::index> {
     return run::context::instance().processes();
   }
 
-  R result;
+  result_type result;
 
   // Handling the case that the future<> is destroyed without wait()/get()
   // (thus MPI_Wait()) being called.
@@ -104,7 +97,7 @@ struct future<R, exec::launch_type_t::index> {
 
 private:
   MPI_Request request{};
-  std::vector<R> results;
+  std::vector<result_type> results;
 };
 
 template<>
@@ -116,3 +109,5 @@ struct future<void, exec::launch_type_t::index> {
   }
 };
 } // namespace flecsi
+
+#endif
