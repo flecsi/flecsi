@@ -29,10 +29,7 @@ Ben Bergen
       understanding and developing programming models and tools for
       modern computing architectures.
 
-      Ben is the current Project lead and Co-Design deputy team lead. 
-      He is also a deputy project lead for the Ristra Project, part of 
-      the Advanced Technology Development & Mitigation (ATDM) Program 
-      under the Department of Energy (DOE).
+      Ben was the first project leader for FleCSI and now leads the effort to write specializations for it.
 
 |clearboth|
 
@@ -75,11 +72,7 @@ David Daniel
       *Los Alamos National Laboratory*
 
       David is a computational scientist  with a broad background in
-      parallel computing, and in physics research from QCD to cosmology.
-      Currently, David is the computer science lead for LANL's Ristra
-      project that is developing a suite of next-generation
-      multi-physics codes based on FleCSI targeting exascale-class
-      computers and beyond.
+      parallel computing and in physics research from QCD to cosmology.
 
 |clearboth|
 
@@ -95,10 +88,10 @@ Davis Herring
 
    .. container:: rightside
 
-      **XCP-1: Lagrangian Codes** |br|
+      **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Davis is ...
+      Davis is the current technical lead for FleCSI.
 
 |clearboth|
 
@@ -195,8 +188,7 @@ Jonathan Graham
       has published papers evaluating mesoscale ocean large-eddy
       simulation models by employing spectral transfer analysis,
       determining the limits of fractal extrapolation of the mean solar
-      magnetic flux, investigating the small scale dynamo in convective,
-      radiative magnetohydrodynamics, and several papers on using
+      magnetic flux, and investigating the small scale dynamo in convective, radiative magnetohydrodynamics, as well as several papers on using
       mathematical closures for large eddy simulations.
 
       Jonathan has been involved in using Legion task-based parallelism
@@ -282,9 +274,9 @@ Nick Moss
       and Clang, parallel, concurrent, and task-based programming
       models, and distributed data systems.
 
-      Nick is one of the primary designers of FLeCSI, having designed
-      and implemented various parts of its infrastructure including:
-      mesh and tree topology, data model, distributed task execution,
+      Nick is one of the primary designers of FleCSI, having designed
+      and implemented various parts of its infrastructure including
+      mesh and tree topology, data model, and distributed task execution,
       and more recently has worked on the Kitsune project to produce a
       specialized FleCSI compiler.
 
@@ -385,7 +377,7 @@ Wei Wu
       worked on a variety of task-based runtime systems, such as Legion
       and PaRSEC. He was also a member of the Open MPI team, developing
       CUDA-aware capability for Open MPI. Wei received his Ph.D. in
-      Computer Science from the University of Tennessee at Knoxville,
+      Computer Science from the University of Tennessee at Knoxville
       and joined the Programming Models team in 2017.
 
 

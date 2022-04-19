@@ -6,20 +6,19 @@ Execution Model
 FleCSI has two mechanisms for expressing work:
 
 Tasks
-  Tasks operate on data distributed to one or more address spaces, and
+  Tasks operate on data distributed to one or more address spaces and
   use data privileges to maintain memory consistency. FleCSI tasks are
   like a more flexible version of MPI that does not require the user to
-  explicitly update dependencies between different ranks, and which does
-  not use static process mappings, i.e., relocatable, distributed-memory
+  explicitly update dependencies between different ranks and which does not use static process mappings: i.e., relocatable, distributed-memory
   data parallelism.
 
 Kernels
-  Kernels operate on data in a single address space, but require
+  Kernels operate on data in a single address space but require
   explicit barriers to ensure consistency. This is generally referred to
   as a relaxed-consistency memory model. The kernel interface in
-  FleCSI is defined by three parallel operations: *forall*, *reduceall*,
-  and *scan*. Each of these is a fine-grained, data-parallel operation.
-  The use of the *kernel* nomenclature is derived from CUDA, and OpenCL,
+  FleCSI is defined by two parallel operations: *forall* and *reduceall*.
+  Each of these is a fine-grained, data-parallel operation.
+  The use of the *kernel* nomenclature is derived from CUDA and OpenCL
   and is conceptually consistent with those models. Please see example
   of using *forall* kernels in *parallel* section of the tutorials. 
 
@@ -36,8 +35,8 @@ executed by a single process.
 ``execute`` method will call a single task if no *launch domain* (see in
 the next example) or a topology with a launch domain is passed to it.
 
-In the example of ``trivial`` task, there is no arguments passed and a
-default launch domain is used. Therefore, it is a single task
+In the example of ``trivial`` task, there are no arguments passed and a default launch domain is used.
+Therefore, it is a single task.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
@@ -47,7 +46,7 @@ default launch domain is used. Therefore, it is a single task
   :language: cpp
   :lines: 69-69
 
-You can return a value from the task. And a *future* is a mechanism, to
+You can return a value from the task; a *future* is a mechanism to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
@@ -56,7 +55,7 @@ access the result of an asynchronous task execution.
 
 FleCSI can execute a task that takes an argument by-value.
 FleCSI tasks can take any valid C++ type by value. However, because task
-data must be relocatable, you cannot pass pointer arguments, or
+data must be relocatable, you cannot pass pointer arguments or
 arguments that contain pointers.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc

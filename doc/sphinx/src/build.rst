@@ -8,7 +8,8 @@ Build & Install
 ***************
 
 FleCSI can be configured to run with different distributed-memory
-runtimes, including Legion, and MPI. FleCSI also has support for various
+runtimes, including Legion and MPI.
+FleCSI also has support for various
 fine-grained, node-level runtimes, including OpenMP, Kokkos, and
 the C++17 extensions for parallelism. Full documentation for FleCSI
 requires both Sphinx and Doxygen. These configuration options are listed
@@ -27,7 +28,7 @@ Requirements & Prerequisites
 ++++++++++++++++++++++++++++
 
 The following list of requirements provides a complete set of build
-options, but is not necessary for a particular build:
+options, which might not be necessary for a particular build:
 
 .. note::
 
@@ -51,7 +52,7 @@ options, but is not necessary for a particular build:
   GASNet is only required if Legion support is enabled.
 
 * **MPI** |br|
-  If Legion support is enabled, the MPI implementation must have support
+  The MPI implementation must have support
   for *MPI_THREAD_MULTIPLE*. |br|
   *CI: mpich 3.2.1, openmpi 3.1.3*
 
@@ -86,8 +87,10 @@ Getting The Code
   If you are a user and only want to install FleCSI, you can skip this
   step and use the instructions for installing FleCSI using Spack.
 
-Clone the FleCSI git repository, and create an out-of-source build area
+Clone the `FleCSI git repository`__ and create an out-of-source build area
 (FleCSI prohibits in-source builds):
+
+__ https://github.com/flecsi/flecsi
 
 .. code-block:: console
 
@@ -186,7 +189,7 @@ After configuration is complete, just use *make* to build:
 
   $ make -j 16
 
-Installation uses the normal *make install*, and will install FleCSI in
+Installation uses the normal *make install* and will install FleCSI in
 the directory specified by CMAKE_INSTALL_PREFIX:
 
 .. code-block:: console
@@ -217,13 +220,13 @@ After building FleCSI, you can run the unit tests like:
 Building the Documentation (Developers)
 +++++++++++++++++++++++++++++++++++++++
 
-FleCSI uses Doxygen for its API reference, and Sphinx for user and
+FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.
 
 Doxygen can be installed with most Linux package managers.  To install
-Sphinx, you can install pip3, and use it to install *Sphinx*,
+Sphinx, you can install pip3 and use it to install *Sphinx*,
 *recommonmark*, and *sphinx_rtd_theme*. Your package manager should also
-have pip3, e.g., on Ubuntu, you can install all of these requirements
+have pip3; e.g., on Ubuntu, you can install all of these requirements
 like:
 
 .. code-block:: console
@@ -248,12 +251,12 @@ configured FleCSI, you can build the documentation like:
   $ make doxygen
   $ make sphinx
 
-Both of these targets will be built in your build directory under *doc*,
+Both of these targets will be built in your build directory under *doc*:
 e.g., the main Doxygen index.html page will be located at
 *'doc/api/index.html'*. Similarly, the Sphinx main index.html
 page will be located at *'doc/index.html'*. You can open these in
 your browser with
-*file:///path/to/your/build/directory/doc/api/index.html*, and
+*file:///path/to/your/build/directory/doc/api/index.html* and
 *file:///path/to/your/build/directory/doc/index.html*.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

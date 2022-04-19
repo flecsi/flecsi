@@ -6,7 +6,7 @@ Standalone
 **********
 
 This example is designed to be used as a template for creating
-FleCSI-based application codes, and is intended as the last example in
+FleCSI-based application codes and is intended as the last example in
 the tutorial. As such, this example provides the following components:
 
 * A basic CMake build system.
@@ -23,7 +23,7 @@ use for your project.
 Build System
 ++++++++++++
 
-The build system uses standard CMake, and is entirely defined in
+The build system uses standard CMake and is entirely defined in
 CMakeLists.txt:
 
 .. literalinclude:: ../../../../tutorial/standalone/poisson/CMakeLists.txt
@@ -68,7 +68,7 @@ internally by FleCSI, you can likely use this file as-is (with a different names
 Building the Stand-Alone Example
 ++++++++++++++++++++++++++++++++
 
-:ref:`build` FleCSI somewhere on your system, and make sure
+:ref:`build` FleCSI somewhere on your system and make sure
 that the location is set in your *CMAKE_PREFIX_PATH* environement
 variable. Then, you can build this example like:
 
