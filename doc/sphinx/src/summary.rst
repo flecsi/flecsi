@@ -164,7 +164,8 @@ The actual type of an accessor is ``data::accessor<L,T,P>``, which must be used 
 When the arrays for one or more index points in a ``ragged`` or ``sparse`` field are resized, they must be repacked.
 To do so efficiently, the interface for such resizing is provided by accessor variants called *mutators*, which use temporary storage (from the ordinary heap) to track changes made by a task and then apply those changes when it finishes.
 They automatically resize such fields (according to a policy set by the topology) to maintain slack space for insertions, but the process simply fails if that guess is overrun.
-Mutators also have permissions, used to distinguish those that trigger ghost copies from those that implement them.
+Mutators also have permissions: write-only mutators (re)initialize a field (to all empty structures).
+Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.
 
 Accessors of different layouts form a hierarchy parallel to that of field definitions.
 The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``, along with a field ID used to look up the storage.
