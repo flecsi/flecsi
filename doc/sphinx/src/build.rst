@@ -51,7 +51,7 @@ options, but is not necessary for a particular build:
   GASNet is only required if Legion support is enabled.
 
 * **MPI** |br|
-  If Legion support is enabled, the MPI implementation must have support
+  The MPI implementation must have support
   for *MPI_THREAD_MULTIPLE*. |br|
   *CI: mpich 3.2.1, openmpi 3.1.3*
 
