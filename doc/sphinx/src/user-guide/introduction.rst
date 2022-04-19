@@ -15,7 +15,7 @@ As an example, consider the cells of a mesh. These represent a set that
 can be enumerated to define an index space. If a particular mesh
 instance has 100 cells, these cells define a vector (or index set) in
 the index space of cells. *We often still refer to this as an index
-space, or index space instance.* The vertices and edges of the mesh also
+space or index space instance.* The vertices and edges of the mesh also
 define index spaces. In fact, in FleCSI, index spaces are used to
 represent the logical elements or entities of all of our topology types.
 
@@ -52,7 +52,7 @@ Any number of instances may be created of any topology.
 
 The most basic topology provided by FleCSI is called the *global*
 topology. It has a single implicit index space that has a single
-implicit index, i.e., it provides a singleton of data that can be passed
+implicit index: i.e., it provides a singleton of data that can be passed
 into a FleCSI task.
 
 The next most basic topology type provided by FleCSI is the *index*
@@ -85,7 +85,7 @@ In both cases, the user does not need to explicitly specify index space.
 As we will see, this is necessary for more complex
 topology types that can be customized by a *specialization*.
 
-Logically, registering a field against a topology type, adds that field
+Logically, registering a field against a topology type adds that field
 to the type itself. This may not be intuitive to everyone, so let's
 consider what this means. When we create a C++ type, e.g., a class or
 struct, we add data members to it in the definition of the type:
@@ -147,7 +147,7 @@ For the index topology, we can think of the implicit index space as just
 being the indices, with a particular instance being defined by its size.
 
 The index topology also has an implicit coloring that
-assigns each index of the topology's indices to its own color, i.e.,
+assigns each index of the topology's indices to its own color: i.e.,
 index 0 is assigned to color 0, etc. This simple example illustrates the
 definition of a coloring:
 
