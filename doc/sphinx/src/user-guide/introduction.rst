@@ -170,9 +170,8 @@ nomenclature).
   different from the way that many people think about MPI, where a rank
   is statically mapped to a particular process.
 
-Users are allowed to add addtional named instances of the index
-topology. *(For the time being, there is one, and only one instance of
-the global topology.)* Let's see how:
+Users are allowed to add addtional named instances of the global or index topologies.
+Let's see how:
 
 .. code-block:: cpp
 
