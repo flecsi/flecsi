@@ -5,7 +5,7 @@ Installing a Container Engine
 
 Some FleCSI developer tasks require a container engine, e.g., *Docker*.
 This section provides links to installation and usage documentation for
-*Docker*, and *Podman*.
+*Docker* and *Podman*.
 
 Docker
 ======
@@ -29,7 +29,7 @@ Podman
 ======
 
 An alternative, drop-in replacement for Docker is `Podman`__. Podman has
-the advantage that it is daemonless, and does not require root
+the advantage that it is daemonless and does not require root
 privileges to run.
 
 __ https://podman.io

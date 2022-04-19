@@ -129,8 +129,9 @@ checkpoint_task(const Legion::Task * task,
       const Legion::LogicalRegion &src = W ? field_lr : attach_lr,
                                   &dest = W ? attach_lr : field_lr;
       copy_launcher1.add_copy_requirements(
-        Legion::RegionRequirement(src, READ_ONLY, EXCLUSIVE, src),
-        Legion::RegionRequirement(dest, WRITE_DISCARD, EXCLUSIVE, dest));
+        Legion::RegionRequirement(src, LEGION_READ_ONLY, LEGION_EXCLUSIVE, src),
+        Legion::RegionRequirement(
+          dest, LEGION_WRITE_DISCARD, LEGION_EXCLUSIVE, dest));
       for(const auto & fn : field_map) {
         copy_launcher1.add_src_field(0, fn.first);
         copy_launcher1.add_dst_field(0, fn.first);
@@ -151,7 +152,7 @@ checkpoint_task(const Legion::Task * task,
         if constexpr(W)
           checkpoint_file.create_dataset(name, rect.volume(), item_size);
 
-        const Legion::FieldAccessor<W ? READ_ONLY : WRITE_DISCARD,
+        const Legion::FieldAccessor<W ? LEGION_READ_ONLY : LEGION_WRITE_DISCARD,
           char,
           2,
           Legion::coord_t,
@@ -228,8 +229,8 @@ struct io_interface {
       checkpoint_launcher.add_region_requirement(
         Legion::RegionRequirement(isd.partition->logical_partition,
           0 /*projection ID*/,
-          W ? READ_ONLY : WRITE_DISCARD,
-          EXCLUSIVE,
+          W ? LEGION_READ_ONLY : LEGION_WRITE_DISCARD,
+          LEGION_EXCLUSIVE,
           isd.region->logical_region));
 
       for(auto & it : field_size_map_vector[idx]) {

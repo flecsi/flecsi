@@ -124,11 +124,13 @@ Fixed
 
   * Certain user-level fields are allocated properly.
   * Errors at process termination in certain configurations are avoided.
+  * Accessors with both ``wo`` and ``na`` privileges are processed correctly.
 
 * MPI backend
 
   * ``exec::fold::min`` and ``exec::fold::max`` work with ``bool`` (but may be slower than using another type like ``int``).
   * Index futures work properly when declared ``const``.
+  * Index futures work with ``bool`` return type.
 
 * On-node parallelism
 

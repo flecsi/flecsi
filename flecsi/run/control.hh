@@ -48,6 +48,11 @@ using control_point = run_impl::control_point<CP>;
 template<auto CP>
 using meta_point = run_impl::meta_point<CP>;
 
+/*!
+  A control-flow cycle.
+  \tparam Predicate tested before each iteration
+  \tparam ControlPoints \c control_point or \c cycle types
+ */
 template<bool (*Predicate)(), typename... ControlPoints>
 using cycle = run_impl::cycle<Predicate, ControlPoints...>;
 
