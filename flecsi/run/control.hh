@@ -44,6 +44,9 @@ template<auto CP>
 using control_point = util::constant<CP>;
 
 /*!
+  A control-flow cycle.
+  \tparam Predicate tested before each iteration
+  \tparam ControlPoints \c control_point or \c cycle types
  */
 
 template<bool (*Predicate)(), typename... ControlPoints>
