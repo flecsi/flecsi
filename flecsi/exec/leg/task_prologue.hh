@@ -47,9 +47,10 @@ private:
       r = r || privilege_read(p);
       w = w || privilege_write(p);
     }
-    return r   ? w ? READ_WRITE : READ_ONLY
-           : w ? privilege_discard(mode) ? WRITE_DISCARD : WRITE_ONLY
-               : NO_ACCESS;
+    return r   ? w ? LEGION_READ_WRITE : LEGION_READ_ONLY
+           : w ? privilege_discard(mode) ? LEGION_WRITE_DISCARD
+                                         : LEGION_READ_WRITE
+               : LEGION_NO_ACCESS;
   } // privilege_mode
 
 protected:
@@ -70,13 +71,13 @@ protected:
     const Legion::PrivilegeMode m = privilege_mode(P);
     const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
-      region_reqs_.emplace_back(lr, m, EXCLUSIVE, lr);
+      region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
     else
       region_reqs_.emplace_back(
         t.template get_partition<Space>().logical_partition,
         data::leg::def_proj,
         m,
-        EXCLUSIVE,
+        LEGION_EXCLUSIVE,
         lr);
     region_reqs_.back().add_field(f);
   } // visit

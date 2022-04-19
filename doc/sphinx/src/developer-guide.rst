@@ -79,7 +79,7 @@ The source code for the core FleCSI infrastructure is located in the
 this directory correspond to the different namespaces in the core
 infrastructure. Each of these subdirectories must contain a valid
 CMakeLists.txt file. However, none of their children should have a
-CMakeLists.txt file, i.e., the build system will not recurse beyond the
+CMakeLists.txt file; the build system will not recurse beyond the
 first level of subdirectories. Developers should use relative paths
 within a CMakeLists.txt file to identify source in subdirectories.
 
@@ -167,14 +167,14 @@ it is intended to reference:
 * **devel branch** |br|
   In general, a commit on the devel branch should only be tagged if it
   is the first commit *after* a new feature branch has been created, and
-  should be named with *d* and the major version of the feature branch,
+  should be named with *d* and the major version of the feature branch:
   e.g., when feature branch *2* is created, a new devel tag *d2* should
   be created on the next devel commit.
 
 * **feature branch** |br|
   Feature tags should be created on the next commit after a new release
   branch is created, with *f* and the major.minor version of the release
-  branch, e.g., when release branch *1.5* is created, a new feature tag
+  branch: e.g., when release branch *1.5* is created, a new feature tag
   *f1.5* should be created on the next feature commit.
 
 * **release branch** |br|
@@ -223,7 +223,7 @@ the FleCSI tutorials.
 
   These instructions are only relevant if you want to modify or
   rename the automatically generated tutorial images. The docker files in
-  this directory are automatically built on Docker Hub, whenever they get
+  this directory are automatically built on Docker Hub whenever they get
   modified on GitHub.  These instructions are primarily intended for
   developers who are modifying the image scripts and need to test them.
 
@@ -255,7 +255,7 @@ This is particularly useful if a repository has changed.
 
 The default repository and branch for the container are
 *https://gitlab.lanl.gov/laristra/flecsi.git* and *devel*, respectively.
-If you are in the process of updating the container, and would like to
+If you are in the process of updating the container and would like to
 use a different repository and branch, you can specifiy them like:
 
 .. code-block:: console
@@ -264,7 +264,7 @@ use a different repository and branch, you can specifiy them like:
     --build-arg BRANCH=tutorial-update --no-cache \
     -t laristra/flecsi-tutorial:TAG -f BACKEND .
 
-where *REPO* is the git repo to use, and *BRANCH* is the branch name to
+where *REPO* is the git repo to use and *BRANCH* is the branch name to
 use.
 
 Once you have successfully built the imager, you can test it using the
@@ -311,11 +311,10 @@ configuration files that are used for Gitlab's continuous integration
 
 * **Images** |br|
   Operating system, build environment, and FleCSI images. These use
-  dockerfile syntax, and can be built and run with docker, and podman
-  engines, or potentially, with any engine that is compatible with
+  dockerfile syntax and can be built and run with docker and podman engines or potentially with any engine that is compatible with
   docker-generated images.
 
-  The images are modular, and are intended to be used to build up
+  The images are modular and are intended to be used to build up
   capabilities:
 
   * **OS Images** |br|
@@ -325,9 +324,9 @@ configuration files that are used for Gitlab's continuous integration
     environment images.
 
   * **Environment** |br|
-    Located in a directory named for the corresponding branch, e.g., the
+    Located in a directory named for the corresponding branch (e.g., the
     environment dockerfile file for *devel* is located in the *devel*
-    directory, these are designed to provide a standard spack
+    directory), these are designed to provide a standard spack
     environment for building FleCSI.
 
     It is intended that developers add new directories when necessary to
@@ -335,7 +334,7 @@ configuration files that are used for Gitlab's continuous integration
 
   * **Build** |br|
     Also located in the *branch* directory, the build image provides a
-    pre-built FleCSI installation that can be used for debugging, or as
+    pre-built FleCSI installation that can be used for debugging or as
     a building block for other projects.
 
 * **Spack Configuration Files** |br|
@@ -367,15 +366,15 @@ several important configuration options that you need to be aware of:
   to set this to your personal fork for testing new images.
 
 * **REGISTRY** |br|
-  This is the container registry that will be used for *push-*, and
+  This is the container registry that will be used for *push-* and
   *pull-* targets. In general, this needs to be set to the registry that
   is being used by the CI to pull images, e.g., laristra/flecsi-ci (this
-  is on dockerhub.com), or gitlab.lanl.gov:5050/flecsi/flecsi
+  is on dockerhub.com) or gitlab.lanl.gov:5050/flecsi/flecsi
   (internal container registry).
 
 * **CONTAINER_ENGINE** |br|
   This should be the name of the container engine that is installed on
-  your system. Currently, only *docker*, and *podman* are supported.
+  your system. Currently, only *docker* and *podman* are supported.
   Additional engines may be added in the future.
 
 As an example configuration, consider the following:
@@ -420,7 +419,7 @@ This will build the *OS* image defined in *os/centos-8*.
     $ make BUILD_EXTRA="--pull --no-cache" centos-8
 
   This will force the engine to start from scratch, i.e., pulling the
-  base image from the registry, and ignoring cached stages.
+  base image from the registry and ignoring cached stages.
 
 -----
 
@@ -564,7 +563,7 @@ it. There is not easy to remedy to this problem: attributes that are
 added after initialization will reset all previously added elements to
 whatever the default of the new attribute is. Therefore, if you need to
 add an attribute, the best thing to do is to look at the *graphviz.hh*
-file in 'flecsi/util', and add it there with a reasonable default.
+file in 'flecsi/util' and add it there with a reasonable default.
 
 __ https://graphviz.gitlab.io/_pages/pdf/libguide.pdf
 __ https://www.graphviz.org

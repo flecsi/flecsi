@@ -25,6 +25,7 @@ namespace flecsi {
     Certain FleCSI-defined parameter types accept particular, different
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
+  \return a \ref future providing the value(s) returned from the task
 
   \note
     Avoid

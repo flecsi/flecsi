@@ -6,20 +6,19 @@ Execution Model
 FleCSI has two mechanisms for expressing work:
 
 Tasks
-  Tasks operate on data distributed to one or more address spaces, and
+  Tasks operate on data distributed to one or more address spaces and
   use data privileges to maintain memory consistency. FleCSI tasks are
   like a more flexible version of MPI that does not require the user to
-  explicitly update dependencies between different ranks, and which does
-  not use static process mappings, i.e., relocatable, distributed-memory
+  explicitly update dependencies between different ranks and which does not use static process mappings: i.e., relocatable, distributed-memory
   data parallelism.
 
 Kernels
-  Kernels operate on data in a single address space, but require
+  Kernels operate on data in a single address space but require
   explicit barriers to ensure consistency. This is generally referred to
   as a relaxed-consistency memory model. The kernel interface in
-  FleCSI is defined by three parallel operations: *forall*, *reduceall*,
-  and *scan*. Each of these is a fine-grained, data-parallel operation.
-  The use of the *kernel* nomenclature is derived from CUDA, and OpenCL,
+  FleCSI is defined by two parallel operations: *forall* and *reduceall*.
+  Each of these is a fine-grained, data-parallel operation.
+  The use of the *kernel* nomenclature is derived from CUDA and OpenCL
   and is conceptually consistent with those models. Please see the
   example of using *forall* kernels in the *parallel* section of the
   tutorial. 
@@ -72,7 +71,7 @@ e.g., a ``std::vector``:
 .. caution::
 
     FleCSI tasks can take any valid C++ type by value. However, because
-    task data must be relocatable, you cannot pass pointer arguments, or
+    task data must be relocatable, you cannot pass pointer arguments or
     arguments that contain pointers.  Modifications made to by-value
     data are local to the task and will not be reflected at the call
     site.
