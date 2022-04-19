@@ -29,10 +29,7 @@ Ben Bergen
       understanding and developing programming models and tools for
       modern computing architectures.
 
-      Ben is the current Project lead and Co-Design deputy team lead. 
-      He is also a deputy project lead for the Ristra Project, part of 
-      the Advanced Technology Development & Mitigation (ATDM) Program 
-      under the Department of Energy (DOE).
+      Ben was the first project leader for FleCSI and now leads the effort to write specializations for it.
 
 |clearboth|
 
@@ -76,10 +73,6 @@ David Daniel
 
       David is a computational scientist  with a broad background in
       parallel computing, and in physics research from QCD to cosmology.
-      Currently, David is the computer science lead for LANL's Ristra
-      project that is developing a suite of next-generation
-      multi-physics codes based on FleCSI targeting exascale-class
-      computers and beyond.
 
 |clearboth|
 
@@ -95,10 +88,10 @@ Davis Herring
 
    .. container:: rightside
 
-      **XCP-1: Lagrangian Codes** |br|
+      **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Davis is ...
+      Davis is the current technical lead for FleCSI.
 
 |clearboth|
 
