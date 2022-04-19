@@ -15,6 +15,16 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v3.0.0
++++++++++++++++++
+
+Removed
+^^^^^^^
+* Logging
+
+  * The name ``flecsi::log``
+
+
 Changes in v2.2.0
 +++++++++++++++++
 
