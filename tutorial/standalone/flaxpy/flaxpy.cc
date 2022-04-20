@@ -196,7 +196,7 @@ main(int argc, char ** argv) {
   if(status != flecsi::run::status::success) {
     return status < flecsi::run::status::clean ? 0 : status;
   }
-  flecsi::log::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream("clog", std::clog, true);
 
   // Execute our code control point by control point.
   status = flecsi::start(flaxpy::control::execute);

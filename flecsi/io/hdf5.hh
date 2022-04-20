@@ -1,20 +1,31 @@
-// Low-level HDF5 interface.
+/*
+    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
+   /@@/////  /@@          @@////@@ @@////// /@@
+   /@@       /@@  @@@@@  @@    // /@@       /@@
+   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
+   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
+   /@@       /@@/@@//// //@@    @@       /@@/@@
+   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
+   //       ///  //////   //////  ////////  //
 
-#ifndef FLECSI_IO_HDF5_HH
-#define FLECSI_IO_HDF5_HH
+   Copyright (c) 2016, Triad National Security, LLC
+   All rights reserved.
+                                                                              */
+#pragma once
 
-#include <string>
-
-#include "flecsi/flog.hh"
+/*! @file */
 
 #include <hdf5.h>
+#include <string>
 #ifdef H5_HAVE_PARALLEL
 #include <mpi.h>
 #endif
 
+#include "flecsi/flog.hh"
+
 /// \cond core
 namespace flecsi {
-inline log::devel_tag io_tag("io");
+inline flog::devel_tag io_tag("io");
 
 namespace io {
 /// \addtogroup io
@@ -53,7 +64,7 @@ struct hdf5 {
 
     const auto v = create ? "create" : "open";
     if(*this) {
-      log::devel_guard guard(io_tag);
+      flog::devel_guard guard(io_tag);
       flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
                        << std::endl;
     }
@@ -66,7 +77,7 @@ struct hdf5 {
     if(*this) {
       H5Fflush(id, H5F_SCOPE_LOCAL);
       if(const herr_t e = H5Fclose(id); e >= 0) {
-        log::devel_guard guard(io_tag);
+        flog::devel_guard guard(io_tag);
         flog_devel(info) << "Close HDF5 file_id " << id << std::endl;
         id = -1;
         return true;
@@ -304,5 +315,3 @@ struct hdf5 {
 } // namespace io
 } // namespace flecsi
 /// \endcond
-
-#endif

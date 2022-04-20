@@ -26,7 +26,7 @@ struct single {
 
 int
 interface() {
-  UNIT {
+  UNIT("TASK") {
     // Assumed that the test is run with 3 threads and 8 colors
     ASSERT_EQ(processes(), 3lu);
 
@@ -94,7 +94,7 @@ interface() {
 
 int
 color_map() {
-  UNIT { EXPECT_EQ((test<interface, mpi>()), 0); };
-} // color_map
+  UNIT() { EXPECT_EQ((test<interface, mpi>()), 0); };
+}
 
 unit::driver<color_map> color_map_driver;

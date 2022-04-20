@@ -12,7 +12,7 @@ using namespace flecsi;
 
 int
 coloring_driver() {
-  UNIT {
+  UNIT() {
 #if 1
     mesh3d::coord indices{8, 8, 8};
     std::vector<Color> colors = {2, 2, 1};
@@ -22,7 +22,7 @@ coloring_driver() {
 #endif
 
     flog(warn) << "colors: " << std::endl
-               << log::container{colors} << std::endl;
+               << flog::container{colors} << std::endl;
 
     mesh3d::coord hdepths{1, 1, 1};
     mesh3d::coord bdepths{0, 0, 0};
@@ -48,8 +48,8 @@ coloring_driver() {
     } // for
     flog(warn) << ss.str() << std::endl;
 
-    flog(warn) << log::container{partitions} << std::endl;
-    flog(warn) << log::container{aprts} << std::endl;
+    flog(warn) << flog::container{partitions} << std::endl;
+    flog(warn) << flog::container{aprts} << std::endl;
   };
 }
 
@@ -77,13 +77,13 @@ mesh4d::cslot coloring4;
 
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
-  UNIT {
+  UNIT() {
     constexpr static auto x = mesh1d::axis::x_axis;
-    using R = mesh1d::range;
+    using D = mesh1d::domain;
     std::size_t last, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
-      auto sz = m.size<x, R::global>(), off = m.offset<x, R::global>(),
-           log = m.offset<x, R::logical>();
+      auto sz = m.size<x, D::global>(), off = m.offset<x, D::global>(),
+           log = m.offset<x, D::logical>();
       decltype(sz) boundary = 0;
       if(total) {
         EXPECT_EQ(sz, total);
@@ -91,9 +91,9 @@ check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
       }
       else {
         total = sz;
-        boundary = log - m.offset<x, R::extended>();
+        boundary = log - m.offset<x, D::extended>();
       }
-      last = off + m.offset<x, R::ghost_high>() - boundary;
+      last = off + m.offset<x, D::ghost_high>() - boundary;
     }
     EXPECT_EQ(last, total);
   };
@@ -101,20 +101,19 @@ check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
 
 int
 narray_driver() {
-  UNIT {
-
+  UNIT() {
     {
       using topo::narray_utils::factor;
       using V = std::vector<std::size_t>;
       EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
       EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
-    }
+    } // scope
 
     {
       // 1D Mesh
       mesh1d::coord indices{9};
       auto colors = topo::narray_utils::distribute(processes(), indices);
-      flog(warn) << log::container{colors} << std::endl;
+      flog(warn) << flog::container{colors} << std::endl;
 
       mesh1d::coord hdepths{1};
       mesh1d::coord bdepths{2};
@@ -143,7 +142,7 @@ narray_driver() {
       // 2D Mesh
       mesh2d::coord indices{8, 8};
       auto colors = topo::narray_utils::distribute(processes(), indices);
-      flog(warn) << log::container{colors} << std::endl;
+      flog(warn) << flog::container{colors} << std::endl;
 
       mesh2d::coord hdepths{1, 2};
       mesh2d::coord bdepths{2, 1};
@@ -166,7 +165,7 @@ narray_driver() {
       // 3D Mesh
       mesh3d::coord indices{4, 4, 4};
       auto colors = topo::narray_utils::distribute(processes(), indices);
-      flog(warn) << log::container{colors} << std::endl;
+      flog(warn) << flog::container{colors} << std::endl;
 
       mesh3d::coord hdepths{1, 1, 1};
       mesh3d::coord bdepths{1, 1, 1};
@@ -188,7 +187,7 @@ narray_driver() {
       // 4D Mesh
       mesh4d::coord indices{4, 4, 4, 4};
       auto colors = topo::narray_utils::distribute(16, indices);
-      flog(warn) << log::container{colors} << std::endl;
+      flog(warn) << flog::container{colors} << std::endl;
 
       mesh4d::coord hdepths{1, 1, 1, 1};
       mesh4d::coord bdepths{1, 1, 1, 1};

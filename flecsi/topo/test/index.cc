@@ -45,7 +45,7 @@ irows(intN::mutator<wo> r) {
 }
 int
 drows(double_at::mutator<wo> s) {
-  UNIT {
+  UNIT("TASK") {
     const auto me = color();
     const auto && m = s[0];
     for(std::size_t c = 0; c <= me; ++c)
@@ -125,7 +125,7 @@ check(double_field::accessor<ro> p,
   intN::accessor<ro> g,
   double_at::accessor<ro> sp,
   noisy::accessor<ro> n) {
-  UNIT {
+  UNIT("TASK") {
     const auto me = color();
     flog(info) << "check on " << me << std::endl;
     ASSERT_EQ(p, me);
@@ -147,7 +147,7 @@ check(double_field::accessor<ro> p,
 
 int
 part(short_part::mutator<wo> a) {
-  UNIT {
+  UNIT("TASK") {
     const short pi[] = {3, 0, 1, 4, 0, 0, 0, 1, 0, 0, 5, 0};
     short sum = 0, chk = 0;
     unsigned digits = 0;
@@ -194,7 +194,7 @@ constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi);
 int
 use_map(data::multi<short_part::accessor<ro>> ma,
   data::multi<intN::mutator<wo>> mm) {
-  UNIT {
+  UNIT() {
     const auto p = processes(), nc = p / process_fraction, c = color();
     EXPECT_EQ(colors(), nc);
     const auto ac = ma.components();
@@ -210,7 +210,7 @@ use_map(data::multi<short_part::accessor<ro>> ma,
 
 int
 check_map(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     const auto c = color();
     ASSERT_EQ(a[0].size(), c + 1);
     EXPECT_EQ(a[0].back(), c);
@@ -219,7 +219,7 @@ check_map(intN::accessor<ro> a) {
 
 int
 index_driver() {
-  UNIT {
+  UNIT() {
     const auto np = processes();
     {
       region r({}, {});
@@ -303,13 +303,13 @@ const field<double>::definition<spec_setopo_t> pressure;
 
 int
 init_set(field<double>::accessor<wo> p) {
-  UNIT { p[2] = 3; };
+  UNIT() { p[2] = 3; };
 } // init_set
 
 int
 set_driver() {
 
-  UNIT {
+  UNIT() {
 
     coloring.allocate();
     spec_setopo.allocate(coloring.get());

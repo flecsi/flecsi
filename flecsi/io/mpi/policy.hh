@@ -7,6 +7,8 @@
 /*!  @file */
 
 #include <cstddef>
+#include <hdf5.h>
+#include <mpi.h>
 #include <ostream>
 #include <string>
 
@@ -24,9 +26,6 @@
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/mpi.hh"
-
-#include <hdf5.h>
-#include <mpi.h>
 
 namespace flecsi {
 namespace io {
@@ -143,7 +142,7 @@ struct io_interface {
     auto & isd_vector = context.get_index_space_info();
 
     {
-      log::devel_guard guard(io_tag);
+      flog::devel_guard guard(io_tag);
       flog_devel(info) << (W ? "Checkpoint" : "Recover")
                        << " data to HDF5 file " << file_name << " regions size "
                        << isd_vector.size() << std::endl;

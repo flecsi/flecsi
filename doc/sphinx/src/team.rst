@@ -25,34 +25,11 @@ Ben Bergen
       *Los Alamos National Laboratory*
 
       Ben is a computational scientist working on problems in space
-      physics and weapons science. He is also interested in
-      understanding and developing programming models and tools for
-      modern computing architectures.
+      physics and weapons science.
+      He is also interested in understanding and developing programming
+      models and tools for modern computing architectures.
 
       Ben was the first project leader for FleCSI and now leads the effort to write specializations for it.
-
-|clearboth|
-
-Christoph Junghans
-++++++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/christoph.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Christoph is a computational physicist with a background in
-      molecular dynamics and multi-scale physics applications. He also
-      has experience in software engineering and task-based run-time
-      systems. His interests lie in understanding modern computing
-      architectures and the design of sustainable code.
 
 |clearboth|
 
@@ -76,6 +53,36 @@ David Daniel
 
 |clearboth|
 
+Jonathan Graham
++++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/jonathan.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Jonathan has a multidisciplinary background in observational solar
+      physics, turbulence theory, astrophysical simulation, the oil and
+      gas industry, and programming models for exascale computing.
+      He has published papers evaluating mesoscale ocean large-eddy
+      simulation models by employing spectral transfer analysis,
+      determining the limits of fractal extrapolation of the mean solar
+      magnetic flux, and investigating the small scale dynamo in convective, radiative magnetohydrodynamics, as well as several papers on using
+      mathematical closures for large eddy simulations.
+
+      Jonathan has been involved in using Legion task-based parallelism
+      for exascale computing both in proxy applications and in the
+      development of FleCSI.
+
+|clearboth|
+
 Davis Herring
 ++++++++++++++
 
@@ -92,17 +99,73 @@ Davis Herring
       *Los Alamos National Laboratory*
 
       Davis is a physicist and computer scientist with experience in
-      numerical modeling techniques and software library design.  Before
-      working on FleCSI, he was the lead architect for Ingen, the unified
-      library developed by the SimTools project for creating geometric models,
-      2D meshes, and physical parameter input for computational physics
-      simulations.  He has also published on the subject of molecular dynamics
+      numerical modeling techniques and software library design.
+      Before working on FleCSI, he was the lead architect for Ingen, the
+      unified library developed by the SimTools project for creating
+      geometric models, 2D meshes, and physical parameter input for
+      computational physics simulations.
+      He has also published on the subject of molecular dynamics
       simulations conducted in T-1.
-      Davis and Ollie represent LANL on the ISO C++ committee; in turn, Davis
-      has worked to improve the user-interface and maintainability of FleCSI 2
-      by taking advantage of modern C++ features. 
+      Davis and Ollie represent LANL on the ISO C++ committee; in turn,
+      Davis has worked to improve the user-interface and maintainability
+      of FleCSI 2 by taking advantage of modern C++ features. 
 
       Davis is the current technical lead for FleCSI.
+
+|clearboth|
+
+Christoph Junghans
+++++++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/christoph.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Christoph is a computational physicist with a background in
+      molecular dynamics and multi-scale physics applications.
+      He also has experience in software engineering and task-based
+      run-time systems.
+      His interests lie in understanding modern computing architectures
+      and the design of sustainable code.
+      Christoph is the CCS-7 group leader.
+
+|clearboth|
+
+Navamita Ray
+++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/navamita.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+    Navamita is a staff scientist in the co-design team in CCS-7 with
+    expertise in meshing technologies and numerical methods.
+    At LANL, she has been involved in designing and developing mesh data
+    structures for advanced programming runtimes targeting hetergeneous
+    architectures for exascale computing.
+    She is also working on next generation libraries for conservative
+    data remapping to link LANL applications.
+    She has also worked on projects involving quantum computing for
+    solving linear systems for fluid flows and protein folding problems.
+    Before joining LANL, Navamita Ray was part of the SIGMA project at
+    Argonne National Lab where she implemented new data structures for
+    their MOAB mesh framework library.  
 
 |clearboth|
 
@@ -122,22 +185,23 @@ Andrew Reisner
       *Los Alamos National Laboratory*
 
       Andrew is a computer scientist on the Co-Design Team with a
-      background in parallel and scientific computing.  His research 
-      interests include scalable solvers and performance models as a
-      predictive tool for guiding applications.  His current work is
-      focused on the integration and performance analysis of applying
-      FleCSI to software projects at LANL, including the CANGA project.
+      background in parallel and scientific computing.
+      His research interests include scalable solvers and performance
+      models as a predictive tool for guiding applications.
+      His current work is focused on the integration and performance
+      analysis of applying FleCSI to software projects at LANL,
+      including the CANGA project.
 
 |clearboth|
 
-Navamita Ray
-++++++++++++
+Sumathi Lakshmiranganatha
++++++++++++++++++++++++++
 
 .. container:: twocol
 
    .. container:: leftside
 
-     .. image:: team/navamita.jpg
+     .. image:: team/sumathi.jpg
         :align: left
 
    .. container:: rightside
@@ -145,17 +209,45 @@ Navamita Ray
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-    Navamita is a staff scientist in the co-design team in CCS-7
-    with expertise in meshing technologies and numerical methods. At LANL,
-    she has been involved in designing and developing mesh data structures
-    for advanced programming runtimes targeting hetergeneous architectures
-    for exascale computing. She is also working on next generation libraries
-    for conservative data remapping to link LANL applications. She has also
-    worked on projects involving quantum computing for solving linear
-    systems for fluid flows and protein folding problems. Before joining
-    LANL, Navamita Ray was part of the SIGMA project at Argonne National Lab
-    where she implemented new data structures for their MOAB mesh framework
-    library.  
+      Sumathi is a computational scientist in the Co-Design team.
+      Her research interests include high-performance computing, machine
+      learning models, real-time simulations and analysis for large
+      scientific applications.
+      She received her PhD in Electrical Engineering from the University
+      of Wyoming in 2021.
+      Her PhD work was focused on HPC and machine learning techniques to
+      reduce the computational burden in analyzing the dynamics of
+      complex systems.
+      She also worked on porting to and optimization of MPAS atmosphere
+      weather model on GPU architectures using OpenACC.
+      She is currently working adding shared memory programming model
+      support to FleCSI using Kokkos and integration of FleCSI to the
+      CANGA project.
+
+|clearboth|
+
+Li-Ta (Ollie) Lo
+++++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/ollie.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Li-Ta Lo is currently a computer scientist with the Data Science
+      at Scale team of Los Alamos National Laboratory.
+      His research interests include data science, large-scale
+      visualization and analysis, data-parallel programming and software
+      engineering for scientific computing.
+      His work for FleCSI focuses on providing an efficient and scalable
+      MPI backend.
 
 |clearboth|
 
@@ -184,6 +276,33 @@ Julien Loiseau
 
 |clearboth|
 
+Alumni
+******
+
+Irina Demeshko
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/irina.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Irina is a computational scientist and former Co-Design Team lead.
+      Her research interests are focused on new HPC technologies in
+      application and large-scale scientific simulation codes.
+      Her current work at LANL was directed at integrating task-based
+      runtime systems into several software projects at LANL, including
+      the FleCSI and CANGA projects.
+
+|clearboth|
+
 Charles Ferenbaugh
 ++++++++++++++++++
 
@@ -201,98 +320,44 @@ Charles Ferenbaugh
 
       Charles Ferenbaugh is a computer scientist and software engineer
       on HPC code projects in LANL's Advanced Simulation and Computing
-      program. He currently contributes to two large multiphysics code
-      projects: the Eulerian Applications Project and the Ristra/Next
-      Generation Code Project. He has also been a part of LANL research
-      efforts in advanced architectures and programming models. 
+      program.
+      He currently contributes to two large multiphysics code projects:
+      the Eulerian Applications Project and the Ristra/Next Generation
+      Code Project.
+      He has also been a part of LANL research efforts in advanced
+      architectures and programming models.
 
 |clearboth|
 
-Jonathan Graham
-+++++++++++++++
+Jonas Lippuner
+++++++++++++++
 
 .. container:: twocol
 
    .. container:: leftside
 
-     .. image:: team/jonathan.jpg
+     .. image:: team/jonas.jpg
         :align: left
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CCS-2 Computational Physics & Methods** |br|
       *Los Alamos National Laboratory*
 
-      Jonathan has a multidisciplinary background in observational solar
-      physics, turbulence theory, astrophysical simulation, the oil and
-      gas industry, and programming models for exascale computing.  He
-      has published papers evaluating mesoscale ocean large-eddy
-      simulation models by employing spectral transfer analysis,
-      determining the limits of fractal extrapolation of the mean solar
-      magnetic flux, and investigating the small scale dynamo in convective, radiative magnetohydrodynamics, as well as several papers on using
-      mathematical closures for large eddy simulations.
-
-      Jonathan has been involved in using Legion task-based parallelism
-      for exascale computing both in proxy applications and in the
-      development of FleCSI.
-
-|clearboth|
-
-Li-Ta (Ollie) Lo
-++++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/ollie.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Li-Ta Lo is currently a computer scientist with the Data Science
-      at Scale team of Los Alamos National Laboratory. His research
-      interests include data science, large-scale visualization and
-      analysis, data-parallel programming and software engineering for
-      scientific computing. His work for FleCSI focuses on providing an
-      efficient and scalable MPI backend.
+      Jonas is a computational scientist with a background in
+      computational and nuclear astrophysics.
+      His research has been focused on the origin of heavy elements like
+      silver, gold, and uranium.
+      He has developed a sophisticated nuclear reaction network to
+      simulate how such elements and thousands of other isotopes are
+      created in various astrophysical scenarios, such as the merger of
+      two neutron stars or the explosion of a massive star.
+      Jonas also has extensive experience with developing highly
+      optimized code for GPUs.
+      He is working on implementing physics applications on top of the
+      FleCSI framework.
 
 |clearboth|
-
-Sumathi Lakshmiranganatha
-+++++++++++++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/sumathi.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Sumathi is a computational scientist in the Co-Design team.
-      Her research interests include high-performance computing, machine
-      learning models, real-time simulations and analysis for large
-      scientific applications. She received her PhD in Electrical
-      Engineering from the University of Wyoming in 2021. Her PhD work was
-      focused on HPC and machine learning techniques to reduce the
-      computational burden in analyzing the dynamics of complex systems.
-      She also worked on porting and optimization of MPAS atmosphere weather
-      model on to GPU architectures using OpenACC. She is currently working
-      adding shared memory programming model support to FleCSI using Kokkos
-      and integration of FleCSI to the CANGA project.
-
-|clearboth|
-
-Alumni
-******
 
 Nick Moss
 +++++++++
@@ -323,54 +388,6 @@ Nick Moss
 
 |clearboth|
 
-Irina Demeshko
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/irina.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Irina is a computational scientist and former Co-Design Team lead. Her
-      research interests are focused on new HPC technologies in
-      application and large-scale scientific simulation codes. Her
-      current work at LANL was directed at integrating task-based runtime systems
-      into several software projects at LANL, including the FleCSI and
-      CANGA projects.
-
-|clearboth|
-
-Charles Ferenbaugh
-++++++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/charles.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Charles Ferenbaugh is a computer scientist and software engineer
-      on HPC code projects in LANL's Advanced Simulation and Computing
-      program. He currently contributes to two large multiphysics code
-      projects: the Eulerian Applications Project and the Ristra/Next
-      Generation Code Project. He has also been a part of LANL research
-      efforts in advanced architectures and programming models.
-
-|clearboth|
-
 Karen Tsai
 ++++++++++
 
@@ -388,11 +405,13 @@ Karen Tsai
 
       Karen is a computer and computational scientist who is interested
       in understanding, designing, and developing application code with
-      scientists. She is also interested in learning about and utilizing
-      modern computing tools to optimize algorithms and visualize
-      complex datasets. She has a Master of Science in Computational
-      Science, Engineering and Mathematics and a Bachelor of Science in
-      Computer Science from the University of Texas – Austin.
+      scientists.
+      She is also interested in learning about and utilizing modern
+      computing tools to optimize algorithms and visualize complex
+      datasets.
+      She has a Master of Science in Computational Science, Engineering
+      and Mathematics and a Bachelor of Science in Computer Science from
+      the University of Texas – Austin.
       Karen joined the Co-Design Team in the fall of 2017 to work on the
       Ristra and FleCSI projects.
 
@@ -414,39 +433,14 @@ Wei Wu
       *Los Alamos National Laboratory*
 
       Wei is a computer scientist whose research is focused on runtime
-      systems and programing models for heterogeneous systems. He has
-      worked on a variety of task-based runtime systems, such as Legion
-      and PaRSEC. He was also a member of the Open MPI team, developing
-      CUDA-aware capability for Open MPI. Wei received his Ph.D. in
-      Computer Science from the University of Tennessee at Knoxville
-      and joined the Programming Models team in 2017.
-
-
-Jonas Lippuner
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/jonas.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-2 Computational Physics & Methods** |br|
-      *Los Alamos National Laboratory*
-
-      Jonas is a computational scientist with a background in
-      computational and nuclear astrophysics. His research has been
-      focused on the origin of heavy elements like silver, gold, and
-      uranium. He has developed a sophisticated nuclear reaction network
-      to simulate how such elements and thousands of other isotopes are
-      created in various astrophysical scenarios, such as the merger of
-      two neutron stars or the explosion of a massive star. Jonas also
-      has extensive experience with developing highly optimized code for
-      GPUs. He is working on implementing physics applications on top of
-      the FleCSI framework.
+      systems and programing models for heterogeneous systems.
+      He has worked on a variety of task-based runtime systems, such as
+      Legion and PaRSEC.
+      He was also a member of the Open MPI team, developing CUDA-aware
+      capability for Open MPI.
+      Wei received his Ph.D. in Computer Science from the University of
+      Tennessee at Knoxville and joined the Programming Models team in
+      2017.
 
 |clearboth|
 

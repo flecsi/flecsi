@@ -18,7 +18,7 @@ modify(intN::accessor<wo> a) {
 
 int
 check(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
     }
@@ -34,7 +34,7 @@ modify_policy(intN::accessor<wo> a) {
 
 int
 check_policy(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
     }
@@ -43,7 +43,7 @@ check_policy(intN::accessor<ro> a) {
 
 int
 reduce_vec(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     size_t res =
       reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
       up(i);
@@ -66,7 +66,7 @@ modify_bound(intN::accessor<wo> a) {
 
 int
 check_bound(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     for(auto j : util::span(*a).subspan(0, 5)) {
       EXPECT_EQ(j, 2);
     }
@@ -78,7 +78,7 @@ check_bound(intN::accessor<ro> a) {
 
 int
 reduce_vec_bound(intN::accessor<ro> a) {
-  UNIT {
+  UNIT() {
     size_t res_first = reduceall(j,
       up,
       (flecsi::exec::range_policy{util::span(*a), 0, 5}),
@@ -103,7 +103,7 @@ reduce_vec_bound(intN::accessor<ro> a) {
 
 int
 kernel_driver() {
-  UNIT {
+  UNIT() {
     const auto ar = array_field(process_topology);
     execute<modify, default_accelerator>(ar);
     EXPECT_EQ(test<check>(ar), 0);

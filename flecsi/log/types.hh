@@ -16,7 +16,7 @@
 
 /// \cond core
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -293,7 +293,7 @@ private:
 }; // struct tee_stream_t
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 /// \endcond
 

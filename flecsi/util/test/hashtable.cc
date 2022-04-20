@@ -75,7 +75,7 @@ empty(span<pair_t> & span_ht) {
 
 int
 hashtable_driver() {
-  UNIT {
+  UNIT() {
     const std::size_t ht_size = 1 << 15;
 
     std::vector<pair_t> idx_s;

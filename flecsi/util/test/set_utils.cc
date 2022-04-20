@@ -25,7 +25,7 @@ intersects(const CONTAINER & one, const CONTAINER & two) {
 
 int
 set_utils() {
-  UNIT {
+  UNIT() {
     using namespace flecsi::util;
 
     std::set<std::size_t> a = {1, 3, 5, 7, 10, 11};

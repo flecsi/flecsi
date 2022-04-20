@@ -15,7 +15,7 @@ main(int argc, char ** argv) {
     return status < flecsi::run::status::clean ? 0 : status;
   }
 
-  flecsi::log::add_output_stream("clog", std::clog, true);
+  flecsi::flog::add_output_stream("clog", std::clog, true);
 
   status = flecsi::start(control::execute);
 

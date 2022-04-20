@@ -123,13 +123,8 @@ add_unit(unit
     test/unit.cc
   THREADS
     1 2 4
+  ARGUMENTS "--flog-process=-1"
 )
-
-add_unit(unit_task
-  SOURCES
-    test/unit_task.cc
-  THREADS 2
-  )
 
 #------------------------------------------------------------------------------#
 # serialize

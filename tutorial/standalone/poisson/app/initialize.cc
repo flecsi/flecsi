@@ -16,7 +16,7 @@ int
 poisson::action::init_mesh() {
   flog(info) << "Initializing " << x_extents.value() << "x" << y_extents.value()
              << " mesh" << std::endl;
-  flecsi::log::flush();
+  flecsi::flog::flush();
 
   std::vector<std::size_t> axis_extents{x_extents.value(), y_extents.value()};
 

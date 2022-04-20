@@ -27,11 +27,11 @@
 #if defined(FLECSI_ENABLE_FLOG)
 
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
 /// \code#include "flecsi/flog.hh"\endcode
-/// The \e name \c flecsi::log is \b deprecated: use \c flecsi::flog instead.
+/// The \e name \c flecsi::log may also be used, but is \b deprecated.
 /// \{
 
 namespace detail {
@@ -216,8 +216,8 @@ private:
 };
 
 /// \}
-} // namespace log
-namespace flog = log;
+} // namespace flog
+namespace log = flog;
 } // namespace flecsi
 
 /// \addtogroup flog
@@ -243,7 +243,8 @@ namespace flog = log;
 
 #define flog(severity)                                                         \
   true && /* implicitly converts remainder to bool */                          \
-    ::flecsi::log::message<flecsi::log::severity>(__FILE__, __LINE__).format()
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)        \
+      .format()
 
 #if defined(FLOG_ENABLE_DEVELOPER_MODE)
 
@@ -251,7 +252,7 @@ namespace flog = log;
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
   true &&                                                                      \
-    ::flecsi::log::message<flecsi::log::severity>(__FILE__, __LINE__, true)    \
+    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)  \
       .format()
 
 #else
@@ -281,7 +282,7 @@ namespace flog = log;
 #define flog_trace(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::trace>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::trace>(__FILE__, __LINE__).format()    \
     << stream
 
 /*!
@@ -301,7 +302,7 @@ namespace flog = log;
 #define flog_info(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::info>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::info>(__FILE__, __LINE__).format()     \
     << stream
 
 /*!
@@ -321,7 +322,7 @@ namespace flog = log;
 #define flog_warn(stream)                                                      \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::warn>(__FILE__, __LINE__).format()       \
+  ::flecsi::flog::message<flecsi::flog::warn>(__FILE__, __LINE__).format()     \
     << stream
 
 /*!
@@ -341,7 +342,7 @@ namespace flog = log;
 #define flog_error(stream)                                                     \
   /* MACRO IMPLEMENTATION */                                                   \
                                                                                \
-  ::flecsi::log::message<flecsi::log::error>(__FILE__, __LINE__).format()      \
+  ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
 #define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
@@ -349,7 +350,7 @@ namespace flog = log;
 #else // FLECSI_ENABLE_FLOG
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 struct tag {
   tag(const char *) {}
@@ -375,7 +376,7 @@ struct container {
   }
 };
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #define flog_initialize(active)
@@ -402,13 +403,13 @@ struct container {
 
 #endif // FLECSI_ENABLE_FLOG
 
-namespace flecsi::log {
+namespace flecsi::flog {
 template<typename T>
 auto
 to_string(T const & t) {
   return std::move(std::stringstream() << container(t)).str();
 }
-} // namespace flecsi::log
+} // namespace flecsi::flog
 
 /*!
   Alias for severity level warn.
@@ -419,7 +420,7 @@ to_string(T const & t) {
 #include <boost/stacktrace.hpp>
 
 namespace flecsi {
-namespace log {
+namespace flog {
 
 inline void
 dumpstack() {
@@ -437,7 +438,7 @@ dumpstack() {
 #endif
 } // dumpstack
 
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 /*!
@@ -464,13 +465,13 @@ dumpstack() {
   {                                                                            \
     std::stringstream _sstream;                                                \
     _sstream << FLOG_OUTPUT_LTRED("FATAL ERROR ")                              \
-             << FLOG_OUTPUT_YELLOW(::flecsi::log::rstrip<'/'>(__FILE__)        \
+             << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
     __flog_internal_wait_on_flusher();                                         \
     const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
     if(dump != nullptr) {                                                      \
-      ::flecsi::log::dumpstack();                                              \
+      ::flecsi::flog::dumpstack();                                             \
     }                                                                          \
     else {                                                                     \
       _sstream << FLOG_OUTPUT_YELLOW(                                          \

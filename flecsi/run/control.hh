@@ -24,7 +24,7 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
-inline log::devel_tag control_tag("control");
+inline flog::devel_tag control_tag("control");
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 inline program_option<bool> control_model_option("FleCSI Options",
@@ -50,11 +50,11 @@ using meta_point = run_impl::meta_point<CP>;
 
 /*!
   A control-flow cycle.
-  \tparam Predicate tested before each iteration
-  \tparam ControlPoints \c control_point or \c cycle types
+  \tparam P tested before each iteration
+  \tparam CP \c control_point or \c cycle types
  */
-template<bool (*Predicate)(), typename... ControlPoints>
-using cycle = run_impl::cycle<Predicate, ControlPoints...>;
+template<bool (*P)(), typename... CP>
+using cycle = run_impl::cycle<P, CP...>;
 
 /*!
   Base class for providing default implementations for optional interfaces.

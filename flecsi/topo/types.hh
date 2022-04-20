@@ -251,6 +251,65 @@ make_ids(C && c) {
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
 
+namespace stride_impl {
+template<auto N>
+struct table {
+  using type = decltype(N);
+  table(type left) {
+    static_assert(std::is_integral_v<type>, "N must be an integral type");
+    for(type i{0}; i < N; ++i) {
+      data_[i] = (left + i) % N;
+    }
+  }
+  type operator[](type i) const {
+    flog_assert(i < N, "invalid index");
+    return data_[i];
+  }
+
+private:
+  // replace with gpu-supported std::array
+  type data_[N];
+};
+
+/*!
+  Adaptor for creating strided iterators over contiguous array types.
+ */
+
+template<auto S, auto N>
+struct stride {
+  using type = decltype(N);
+  stride(type o, type c) : t_(o), o_(o), c_(c) {
+    flog_assert(c < N, "invalid color");
+  }
+  auto operator()(const type i) const {
+    return id<S>(o_ + t_[c_] + i * N);
+  }
+
+private:
+  table<N> t_;
+  type o_, c_;
+};
+} // namespace stride_impl
+
+/*!
+  Make a strided array iterator.
+
+  @tparam S The index space.
+  @tparam N The number of stride colors.
+  @tparam V The conainer type.
+
+  @param v A container instance.
+  @param o The offset at which to start.
+  @param c The color.
+ */
+
+template<auto S, auto N, class V>
+FLECSI_INLINE_TARGET auto
+make_stride_ids(V && v, decltype(N) o, decltype(N) c) {
+  return util::transform_view(
+    std::forward<V>(v), stride_impl::stride<S, N>(o, c));
+}
+
 /// \}
 } // namespace topo
 } // namespace flecsi

@@ -247,7 +247,7 @@ const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 // Exercise the std::vector-like interface:
 int
 permute(topo::connect_field::mutator<rw, rw, na> m) {
-  UNIT {
+  UNIT("TASK") {
     return;
     const auto && r = m[0];
     const auto n = r.size();
@@ -371,7 +371,7 @@ rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
 
 int
 fixed_driver() {
-  UNIT {
+  UNIT() {
     coloring.allocate();
     mesh.allocate(coloring.get());
 

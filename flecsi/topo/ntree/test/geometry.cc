@@ -23,7 +23,7 @@ using p1d = util::point<double, 1>;
 
 int
 geometry_1d_sanity() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     const int num_tests = 100;
 
@@ -142,7 +142,7 @@ using p2d = util::point<double, 2>;
 
 int
 geometry_2d_sanity() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     const int num_tests = 100;
 
@@ -246,7 +246,7 @@ using p3d = util::point<double, 3>;
 
 int
 geometry_3d_sanity() {
-  UNIT {
+  UNIT() {
     using namespace flecsi;
     const int num_tests = 100;
 

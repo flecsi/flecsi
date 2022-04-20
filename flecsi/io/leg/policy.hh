@@ -13,6 +13,9 @@
 #include <utility>
 #include <vector>
 
+#include <hdf5.h>
+#include <legion.h>
+
 #include "flecsi-config.h"
 
 #if !defined(FLECSI_ENABLE_LEGION)
@@ -26,9 +29,6 @@
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/serialize.hh"
-
-#include <hdf5.h>
-#include <legion.h>
 
 namespace flecsi {
 namespace io {
@@ -87,7 +87,7 @@ checkpoint_task(const Legion::Task * task,
         g(i, m.at(i));
 
       {
-        log::devel_guard guard(io_tag);
+        flog::devel_guard guard(io_tag);
         flog_devel(info) << (W ? "Checkpoint" : "Recover")
                          << " data to HDF5 file " << (A ? "" : "no ")
                          << "attach " << fname << " region_id " << rid
@@ -240,7 +240,7 @@ struct io_interface {
     }
 
     {
-      log::devel_guard guard(io_tag);
+      flog::devel_guard guard(io_tag);
       flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
                        << file_name << " regions size " << isd_vector.size()
                        << std::endl;

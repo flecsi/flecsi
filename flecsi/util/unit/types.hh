@@ -14,7 +14,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag unit_tag("unit");
+inline flog::devel_tag unit_tag("unit");
 
 namespace util {
 namespace unit {
@@ -52,22 +52,23 @@ struct not_fn { // default-constructed std::not_fn
 
 struct state_t {
 
-  state_t(std::string name) {
+  state_t(std::string name, std::string label) {
     name_ = name;
+    label_ = label;
   } // initialize
   state_t(state_t &&) = delete;
 
   ~state_t() {
-    log::devel_guard guard(unit_tag);
+    flog::devel_guard guard(unit_tag);
 
     if(result_) {
       std::stringstream stream;
-      stream << FLOG_OUTPUT_LTRED("TEST FAILED " << name_) << std::endl;
+      stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
     else {
-      flog(utility) << FLOG_OUTPUT_LTGREEN("TEST PASSED " << name_)
+      flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
                     << FLOG_COLOR_PLAIN << std::endl;
     } // if
   } // process
@@ -134,6 +135,7 @@ struct state_t {
 private:
   int result_ = 0;
   std::string name_;
+  std::string label_;
   std::stringstream error_stream_;
 
 }; // struct state_t
@@ -172,13 +174,19 @@ struct string_case_compare {
 /// \addtogroup unit
 /// \{
 
+inline std::string
+label_default(std::string s) {
+  return (s.empty() ? "TEST" : s);
+}
+
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
-#define UNIT                                                                   \
-  ::flecsi::log::state::instance().config_stream().add_buffer(                 \
+#define UNIT(...)                                                              \
+  ::flecsi::flog::state::instance().config_stream().add_buffer(                \
     "flog", std::clog, true);                                                  \
-  ::flecsi::util::unit::state_t auto_unit_state(__func__);                     \
+  ::flecsi::util::unit::state_t auto_unit_state(                               \
+    __func__, label_default({__VA_ARGS__}));                                   \
   return auto_unit_state->*[&]() -> void
 
 #define UNIT_TYPE(name) ::flecsi::util::demangle((name))
@@ -296,7 +304,7 @@ struct string_case_compare {
 #define UNIT_ASSERT(ASSERTION, ...)                                            \
   ASSERT_##ASSERTION(__VA_ARGS__) << UNIT_DUMP()
 #else
-  // MSVC has a brain-dead preprocessor...
+// MSVC has a brain-dead preprocessor...
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
 #endif
 
@@ -304,7 +312,7 @@ struct string_case_compare {
 #define UNIT_EXPECT(EXPECTATION, ...)                                          \
   EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
 #else
-  // MSVC has a brain-dead preprocessor...
+// MSVC has a brain-dead preprocessor...
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 

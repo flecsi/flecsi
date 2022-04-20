@@ -111,11 +111,11 @@ struct index_coloring {
 
 inline std::ostream &
 operator<<(std::ostream & stream, index_coloring const & ic) {
-  stream << "all\n" << log::container{ic.all};
-  stream << "owned\n" << log::container{ic.owned};
-  stream << "exclusive\n" << log::container{ic.exclusive};
-  stream << "shared\n" << log::container{ic.shared};
-  stream << "ghost\n" << log::container{ic.ghost};
+  stream << "all\n" << flog::container{ic.all};
+  stream << "owned\n" << flog::container{ic.owned};
+  stream << "exclusive\n" << flog::container{ic.exclusive};
+  stream << "shared\n" << flog::container{ic.shared};
+  stream << "ghost\n" << flog::container{ic.ghost};
   return stream;
 }
 
@@ -223,8 +223,9 @@ operator<<(std::ostream & stream, process_coloring const & pc) {
   stream << "color: " << pc.color << std::endl;
   stream << "entities: " << pc.entities << std::endl;
   stream << "coloring:\n" << pc.coloring << std::endl;
-  stream << "cnx_allocs:\n" << log::container{pc.cnx_allocs} << std::endl;
-  stream << "cnx_colorings:\n" << log::container{pc.cnx_colorings} << std::endl;
+  stream << "cnx_allocs:\n" << flog::container{pc.cnx_allocs} << std::endl;
+  stream << "cnx_colorings:\n"
+         << flog::container{pc.cnx_colorings} << std::endl;
   return stream;
 }
 
@@ -577,11 +578,12 @@ inline std::ostream &
 operator<<(std::ostream & stream,
   typename unstructured_base::coloring const & c) {
   stream << "colors: " << c.colors << std::endl;
-  stream << "process_colors\n" << log::container{c.process_colors} << std::endl;
-  stream << "color_peers\n" << log::container{c.color_peers} << std::endl;
-  stream << "peers\n" << log::container{c.peers} << std::endl;
-  stream << "partitions\n" << log::container{c.partitions} << std::endl;
-  stream << "idx_spaces\n" << log::container{c.idx_spaces} << std::endl;
+  stream << "process_colors\n"
+         << flog::container{c.process_colors} << std::endl;
+  stream << "color_peers\n" << flog::container{c.color_peers} << std::endl;
+  stream << "peers\n" << flog::container{c.peers} << std::endl;
+  stream << "partitions\n" << flog::container{c.partitions} << std::endl;
+  stream << "idx_spaces\n" << flog::container{c.idx_spaces} << std::endl;
   return stream;
 }
 /// \}
