@@ -43,7 +43,7 @@
 
 /// \cond core
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -109,7 +109,7 @@ private:
 }; // packet_t
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 /// \endcond
 

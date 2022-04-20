@@ -11,7 +11,7 @@
 #include "flecsi/log/state.hh"
 
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -50,7 +50,7 @@ private:
 }; // tag_scope_t
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #endif // FLECSI_ENABLE_FLOG

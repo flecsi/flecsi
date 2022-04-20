@@ -28,7 +28,7 @@
 
 namespace flecsi {
 
-inline log::devel_tag execution_tag("execution");
+inline flog::devel_tag execution_tag("execution");
 
 namespace exec {
 /// \defgroup legion-execution Legion Execution
@@ -93,7 +93,7 @@ reduce_internal(Args &&... args) {
   using param_tuple = typename traits_t::arguments_type;
 
   // This will guard the entire method
-  log::devel_guard guard(execution_tag);
+  flog::devel_guard guard(execution_tag);
 
   // Get the FleCSI runtime context
   auto & flecsi_context = run::context::instance();
@@ -154,7 +154,10 @@ reduce_internal(Args &&... args) {
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    flog_devel(info) << "Executing single task" << std::endl;
+    {
+      flog::devel_guard guard(execution_tag);
+      flog_devel(info) << "Executing single task" << std::endl;
+    }
 
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
     add(launcher);
@@ -163,7 +166,10 @@ reduce_internal(Args &&... args) {
       legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
-    flog_devel(info) << "Executing index task" << std::endl;
+    {
+      flog::devel_guard guard(execution_tag);
+      flog_devel(info) << "Executing index task" << std::endl;
+    }
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),

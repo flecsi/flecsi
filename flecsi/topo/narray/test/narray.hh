@@ -45,7 +45,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");
 
   enum index_space { entities };
-  enum range {
+  enum domain {
     logical,
     extended,
     all,
@@ -91,111 +91,112 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   template<class B>
   struct interface : B {
 
-    template<axis A, range SE = logical>
+    template<axis A, domain DM = logical>
     std::size_t size() const {
-      switch(SE) {
+      switch(DM) {
         case logical:
           return B::
-            template size<index_space::entities, A, B::range::logical>();
+            template size<index_space::entities, A, B::domain::logical>();
           break;
         case extended:
           return B::
-            template size<index_space::entities, A, B::range::extended>();
+            template size<index_space::entities, A, B::domain::extended>();
           break;
         case all:
-          return B::template size<index_space::entities, A, B::range::all>();
+          return B::template size<index_space::entities, A, B::domain::all>();
           break;
         case boundary_low:
           return B::
-            template size<index_space::entities, A, B::range::boundary_low>();
+            template size<index_space::entities, A, B::domain::boundary_low>();
           break;
         case boundary_high:
           return B::
-            template size<index_space::entities, A, B::range::boundary_high>();
+            template size<index_space::entities, A, B::domain::boundary_high>();
           break;
         case ghost_low:
           return B::
-            template size<index_space::entities, A, B::range::ghost_low>();
+            template size<index_space::entities, A, B::domain::ghost_low>();
           break;
         case ghost_high:
           return B::
-            template size<index_space::entities, A, B::range::ghost_high>();
+            template size<index_space::entities, A, B::domain::ghost_high>();
           break;
         case global:
-          return B::template size<index_space::entities, A, B::range::global>();
+          return B::
+            template size<index_space::entities, A, B::domain::global>();
           break;
       }
     }
 
-    template<axis A, range SE = logical>
-    auto extents() const {
-      switch(SE) {
+    template<axis A, domain DM = logical>
+    auto range() const {
+      switch(DM) {
         case logical:
           return B::
-            template extents<index_space::entities, A, B::range::logical>();
+            template range<index_space::entities, A, B::domain::logical>();
           break;
         case extended:
           return B::
-            template extents<index_space::entities, A, B::range::extended>();
+            template range<index_space::entities, A, B::domain::extended>();
           break;
         case all:
-          return B::template extents<index_space::entities, A, B::range::all>();
+          return B::template range<index_space::entities, A, B::domain::all>();
           break;
         case boundary_low:
-          return B::template extents<index_space::entities,
-            A,
-            B::range::boundary_low>();
+          return B::
+            template range<index_space::entities, A, B::domain::boundary_low>();
           break;
         case boundary_high:
-          return B::template extents<index_space::entities,
+          return B::template range<index_space::entities,
             A,
-            B::range::boundary_high>();
+            B::domain::boundary_high>();
           break;
         case ghost_low:
           return B::
-            template extents<index_space::entities, A, B::range::ghost_low>();
+            template range<index_space::entities, A, B::domain::ghost_low>();
           break;
         case ghost_high:
           return B::
-            template extents<index_space::entities, A, B::range::ghost_high>();
+            template range<index_space::entities, A, B::domain::ghost_high>();
           break;
       }
     }
 
-    template<axis A, range SE = logical>
+    template<axis A, domain DM = logical>
     auto offset() const {
-      switch(SE) {
+      switch(DM) {
         case logical:
           return B::
-            template offset<index_space::entities, A, B::range::logical>();
+            template offset<index_space::entities, A, B::domain::logical>();
           break;
         case extended:
           return B::
-            template offset<index_space::entities, A, B::range::extended>();
+            template offset<index_space::entities, A, B::domain::extended>();
           break;
         case all:
-          return B::template offset<index_space::entities, A, B::range::all>();
+          return B::template offset<index_space::entities, A, B::domain::all>();
           break;
         case boundary_low:
-          return B::
-            template offset<index_space::entities, A, B::range::boundary_low>();
+          return B::template offset<index_space::entities,
+            A,
+            B::domain::boundary_low>();
           break;
         case boundary_high:
           return B::template offset<index_space::entities,
             A,
-            B::range::boundary_high>();
+            B::domain::boundary_high>();
           break;
         case ghost_low:
           return B::
-            template offset<index_space::entities, A, B::range::ghost_low>();
+            template offset<index_space::entities, A, B::domain::ghost_low>();
           break;
         case ghost_high:
           return B::
-            template offset<index_space::entities, A, B::range::ghost_high>();
+            template offset<index_space::entities, A, B::domain::ghost_high>();
           break;
         case global:
           return B::
-            template offset<index_space::entities, A, B::range::global>();
+            template offset<index_space::entities, A, B::domain::global>();
           break;
       }
     }

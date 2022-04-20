@@ -22,7 +22,7 @@ init(double a, double_field::accessor<wo> ga) {
 
 int
 check(future<double> x, double_field::accessor<ro> ga) {
-  UNIT {
+  UNIT("TASK") {
     static_assert(std::is_same_v<decltype(ga[0]), const double &>);
     EXPECT_EQ(x.get(), ga[0] + 1 + color());
     EXPECT_EQ(ga[0], -ga[1]);
@@ -57,7 +57,7 @@ index_bool_task(exec::launch_domain) {
 
 int
 future_driver() {
-  UNIT {
+  UNIT() {
     using namespace future_test;
 
     topo::global::cslot g2c;

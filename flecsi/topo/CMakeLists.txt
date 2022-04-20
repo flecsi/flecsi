@@ -24,7 +24,7 @@ set(topo_HEADERS
   unstructured/coloring_utils.hh
   unstructured/interface.hh
   unstructured/types.hh
-  utility_types.hh
+  types.hh
 )
 
 set(topo_SOURCES

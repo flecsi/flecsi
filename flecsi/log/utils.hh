@@ -94,7 +94,7 @@
 /// \}
 
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -145,7 +145,7 @@ std::size_t log_size();
 void send_to_one();
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 /// \endcond
 

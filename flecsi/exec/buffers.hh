@@ -23,7 +23,7 @@ template<class>
 struct multi;
 }
 
-inline log::devel_tag param_buffers_tag("param_buffers");
+inline flog::devel_tag param_buffers_tag("param_buffers");
 
 namespace exec {
 
@@ -85,7 +85,7 @@ public:
   static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
     D &) {
     {
-      log::devel_guard guard(param_buffers_tag);
+      flog::devel_guard guard(param_buffers_tag);
       flog_devel(info) << "No cleanup for parameter of type " << util::type<D>()
                        << std::endl;
     }

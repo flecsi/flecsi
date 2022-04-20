@@ -7,7 +7,7 @@
 
 using namespace flecsi;
 
-log::devel_tag task_tag("task");
+flog::devel_tag task_tag("task");
 
 using reduction_type = std::uint64_t;
 
@@ -46,14 +46,14 @@ namespace hydro {
 template<typename TYPE>
 void
 simple(TYPE arg) {
-  log::devel_guard guard(task_tag);
+  flog::devel_guard guard(task_tag);
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
 template<class T, class F>
 void
 seq(const T & s, F f) {
-  log::devel_guard guard(task_tag);
+  flog::devel_guard guard(task_tag);
   [&](auto && log) {
     bool first = true;
     for(auto & x : s) {
@@ -75,7 +75,7 @@ mpi(int * p) {
 
 } // namespace hydro
 
-log::devel_tag color_tag("color");
+flog::devel_tag color_tag("color");
 
 namespace {
 auto
@@ -85,7 +85,7 @@ drop(int n, const std::string & s) {
 
 int
 index_task(exec::launch_domain) {
-  UNIT {
+  UNIT("TASK") {
     flog(info) << "program: " << program() << std::endl;
     flog(info) << "processes: " << processes() << std::endl;
     flog(info) << "process: " << process() << std::endl;
@@ -120,7 +120,7 @@ init(field<reduction_type>::accessor<wo> v) {
 }
 int
 check(field<reduction_type>::accessor<ro> v, const int np) {
-  UNIT {
+  UNIT("TASK") {
     for(std::size_t i = 0; i < v.span().size(); ++i) {
       reduction_type n = np - 1 + i;
       reduction_type t = n * (n + 1) - (i - 1) * i;
@@ -146,7 +146,7 @@ const field<reduction_type>::definition<topo::global> gl_arr_f;
 
 int
 task_driver() {
-  UNIT {
+  UNIT() {
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;
@@ -157,7 +157,7 @@ task_driver() {
       auto tpp = c.threads_per_process();
 
       {
-        log::devel_guard guard(color_tag);
+        flog::devel_guard guard(color_tag);
         flog(info) << "(raw)" << std::endl
                    << "\tprocess: " << process << std::endl
                    << "\tprocesses: " << processes << std::endl

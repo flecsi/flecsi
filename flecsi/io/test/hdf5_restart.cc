@@ -1,6 +1,8 @@
 // Copyright (c) 2016, Triad National Security, LLC
 // All rights reserved.
 
+#include <vector>
+
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/io.hh"
@@ -8,8 +10,6 @@
 #include "flecsi/topo/narray/test/narray.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/unit.hh"
-
-#include <vector>
 
 using namespace flecsi;
 using namespace flecsi::data;
@@ -40,7 +40,7 @@ init(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<wo, na> mfs,
   field<int, ragged>::mutator<wo, na> mfr1,
   field<int, ragged>::mutator<wo, na> mfr2) {
-  for(auto i : m.extents<ax::x_axis>()) {
+  for(auto i : m.range<ax::x_axis>()) {
     double val = 100. * color() + (int)i;
     mf1[i] = val;
     mf2[i] = val + 1000.;
@@ -69,7 +69,7 @@ clear(mesh1d::accessor<ro> m,
   //        - why?
   field<int, ragged>::accessor<rw, na> mfr1,
   field<int, ragged>::accessor<rw, na> mfr2) {
-  for(auto i : m.extents<ax::x_axis>()) {
+  for(auto i : m.range<ax::x_axis>()) {
     mf1[i] = 0.;
     mf2[i] = 0.;
     mfi[i] = 0;
@@ -93,8 +93,8 @@ check(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<ro, na> mfs,
   field<int, ragged>::accessor<ro, na> mfr1,
   field<int, ragged>::accessor<ro, na> mfr2) {
-  UNIT {
-    for(auto i : m.extents<ax::x_axis>()) {
+  UNIT("TASK") {
+    for(auto i : m.range<ax::x_axis>()) {
       double val = 100. * color() + (int)i;
       ASSERT_EQ(mf1[i], val);
       ASSERT_EQ(mf2[i], val + 1000.);
@@ -134,7 +134,7 @@ setup() {
 template<bool Attach>
 int
 restart_driver() {
-  UNIT {
+  UNIT() {
     auto & mr = m_field_r1(m).get_ragged();
     mr.growth = {0, 0, 0.25, 0.5, 1};
     execute<allocate>(mr.sizes());

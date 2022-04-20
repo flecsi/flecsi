@@ -124,6 +124,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
+    flog(warn) << flog::container{c.partitions} << std::endl;
+
     auto & c2v =
       s->get_connectivity<index_space::cells, index_space::vertices>();
     auto & v2c =
@@ -173,7 +175,7 @@ unstructured::cslot coloring;
 
 int
 unstructured_driver() {
-  UNIT {
+  UNIT() {
     coloring.allocate("simple2d-16x16.msh");
     mesh.allocate(coloring.get());
 

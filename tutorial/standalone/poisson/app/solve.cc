@@ -20,11 +20,12 @@ poisson::action::solve() {
   annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
-  std::size_t sub{500};
+  std::size_t sub{100};
   std::size_t ita{0};
   do {
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::smooth>(m, ud(m), fd(m));
+      execute<task::red>(m, ud(m), fd(m));
+      execute<task::black>(m, ud(m), fd(m));
     } // for
     ita += sub;
 
@@ -33,7 +34,8 @@ poisson::action::solve() {
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
-    log::flush();
+    flog::flush();
   } while(err > error_tol.value() && ita < max_iterations.value());
+
   return 0;
 } // solve

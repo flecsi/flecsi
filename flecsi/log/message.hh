@@ -14,7 +14,7 @@
 
 /// \cond core
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -117,7 +117,7 @@ private:
 }; // message
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 /// \endcond
 

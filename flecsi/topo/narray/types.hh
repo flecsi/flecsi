@@ -102,19 +102,19 @@ struct process_color {
 inline std::ostream &
 operator<<(std::ostream & stream, process_color const & ic) {
   stream << "global" << std::endl
-         << log::container{ic.global} << std::endl
+         << flog::container{ic.global} << std::endl
          << "extents" << std::endl
-         << log::container{ic.extents} << std::endl
+         << flog::container{ic.extents} << std::endl
          << "offset" << std::endl
-         << log::container{ic.offset} << std::endl
+         << flog::container{ic.offset} << std::endl
          << "logical (low)" << std::endl
-         << log::container{ic.logical[0]} << std::endl
+         << flog::container{ic.logical[0]} << std::endl
          << "logical (high)" << std::endl
-         << log::container{ic.logical[1]} << std::endl
+         << flog::container{ic.logical[1]} << std::endl
          << "extended (low)" << std::endl
-         << log::container{ic.extended[0]} << std::endl
+         << flog::container{ic.extended[0]} << std::endl
          << "extended (high)" << std::endl
-         << log::container{ic.extended[1]} << std::endl;
+         << flog::container{ic.extended[1]} << std::endl;
   return stream;
 } // operator<<
 

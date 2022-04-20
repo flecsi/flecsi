@@ -11,7 +11,7 @@
 #include <sstream>
 
 namespace flecsi {
-namespace log {
+namespace flog {
 /// \addtogroup flog
 /// \{
 
@@ -154,7 +154,7 @@ struct error {
 }; // struct error
 
 /// \}
-} // namespace log
+} // namespace flog
 } // namespace flecsi
 
 #endif

@@ -15,7 +15,7 @@ using namespace flecsi;
 
 int
 index_topology() {
-  UNIT {
+  UNIT() {
     int my_rank = process();
     const std::string file_name{"io_metadata.dat" + std::to_string(my_rank)};
 

@@ -622,8 +622,8 @@ struct ntree<Policy>::access {
   }
 
   // Standard traversal function
-  template<typename FUNC>
-  void traversal(hcell_t * hcell, FUNC && func) const {
+  template<typename F>
+  void traversal(hcell_t * hcell, F && f) const {
     auto hmap = map();
     std::queue<hcell_t *> tqueue;
     tqueue.push(hcell);
@@ -631,7 +631,7 @@ struct ntree<Policy>::access {
       hcell_t * cur = tqueue.front();
       tqueue.pop();
       // Intersection
-      if(func(cur)) {
+      if(f(cur)) {
         if(cur->has_child()) {
           auto nkey = cur->key();
           for(std::size_t j = 0; j < nchildren_; ++j) {

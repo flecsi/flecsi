@@ -21,11 +21,11 @@
 
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 
-#include <flecsi/io/mpi/policy.hh>
+#include "flecsi/io/mpi/policy.hh"
 
 #elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 
-#include <flecsi/io/hpx/policy.hh>
+#include "flecsi/io/hpx/policy.hh"
 
 #endif // FLECSI_BACKEND
 

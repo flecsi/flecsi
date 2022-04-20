@@ -13,7 +13,7 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/types.hh"
-#include "flecsi/topo/utility_types.hh"
+#include "flecsi/topo/types.hh"
 #include "flecsi/util/array_ref.hh"
 
 #include <memory>
@@ -104,10 +104,10 @@ private:
     scoord offset;
     /// The size of the color's region, including ghosts and boundaries.
     scoord extents;
-    /// The range of the color's elements that logically exist.
+    /// The domain of the color's elements that logically exist.
     /// Ghosts and boundaries are not included.
     shypercube logical;
-    /// The range of the color's elements, including boundaries but not
+    /// The domain of the color's elements, including boundaries but not
     /// ghosts.
     shypercube extended;
   };
@@ -312,19 +312,17 @@ private:
   access() {}
 
   /*!
-   This range enumeration provides a classification of the various
+   This domain enumeration provides a classification of the various
    types of partition entities that can be requested out of a topology
    specialization created using this type. The following describes what each
-   of the range enumeration means in a mesh part returned by the coloring
+   of the domain enumeration means in a mesh part returned by the coloring
    algorithm. For the structured mesh partitioning, the partition info is
    specified per axis.
 
-   These ranges are used in many of the interface methods to provide
+   These domains are used in many of the interface methods to provide
    information such as size, extents, offsets about them.
-
-   \deprected Renamed to \c domain.
   */
-  enum class range : std::size_t {
+  enum class domain : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
     extended, ///< the boundary padding along with the logical part
     all, ///< the ghost padding along with the logical part
@@ -335,21 +333,24 @@ private:
     global ///< global info about the mesh, the meaning depends on what is being
            ///< queried
   };
-  /// Future name for \c range.
-  using domain = range;
 
-  using hypercubes = index::has<range::logical,
-    range::extended,
-    range::all,
-    range::boundary_low,
-    range::boundary_high,
-    range::ghost_low,
-    range::ghost_high,
-    range::global>;
+  using hypercubes = index::has<domain::logical,
+    domain::extended,
+    domain::all,
+    domain::boundary_low,
+    domain::boundary_high,
+    domain::ghost_low,
+    domain::ghost_high,
+    domain::global>;
 
-  template<index_space S>
+  template<index_space S, axis A>
+  FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
+    return offset<S, A>() + i;
+  }
+
+  template<index_space S, axis A>
   FLECSI_INLINE_TARGET std::uint32_t orientation() const {
-    return meta_->template get<S>().orientation;
+    return meta_->template get<S>().orientation >> to_idx<A>() * 2;
   }
 
   template<index_space S, axis A>
@@ -373,12 +374,12 @@ private:
     return meta_->template get<S>().extents;
   }
 
-  template<index_space S, std::size_t P, axis A>
+  template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET std::size_t logical() const {
     return meta_->template get<S>().logical[P].template get<A>();
   }
 
-  template<index_space S, std::size_t P, axis A>
+  template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET std::size_t extended() const {
     return meta_->template get<S>().extended[P].template get<A>();
   }
@@ -391,7 +392,7 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
-    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::low;
+    return orientation<S, A>() & narray_impl::low;
   }
 
   /*!
@@ -402,7 +403,7 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
-    return (orientation<S>() >> to_idx<A>() * 2) & narray_impl::high;
+    return orientation<S, A>() & narray_impl::high;
   }
 
   /*!
@@ -411,129 +412,129 @@ private:
    This function is \ref topology "host-accessible".
    \sa meta_data, process_color
   */
-  template<axis A>
+  template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
-    return !is_low<A>() && !is_high<A>();
+    return !is_low<S, A>() && !is_high<S, A>();
   }
 
-  template<axis A>
+  template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
-    return is_low<A>() && is_high<A>();
+    return is_low<S, A>() && is_high<S, A>();
   }
 
   /*!
-    Method to return size of the index-space S along axis A for range SE.
+    Method to return size of the index-space S along axis A for domain SE.
     This function is \ref topology "host-accessible".
-    \sa enum range
+    \sa enum domain
   */
-  template<index_space S, axis A, range SE>
+  template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET std::size_t size() const {
     static_assert(
-      std::size_t(SE) < hypercubes::size, "invalid size identifier");
-    if constexpr(SE == range::logical) {
-      return logical<S, 1, A>() - logical<S, 0, A>();
+      std::size_t(DM) < hypercubes::size, "invalid size identifier");
+    if constexpr(DM == domain::logical) {
+      return logical<S, A, 1>() - logical<S, A, 0>();
     }
-    else if constexpr(SE == range::extended) {
-      return extended<S, 1, A>() - extended<S, 0, A>();
+    else if constexpr(DM == domain::extended) {
+      return extended<S, A, 1>() - extended<S, A, 0>();
     }
-    else if constexpr(SE == range::all) {
+    else if constexpr(DM == domain::all) {
       return extents<S, A>();
     }
-    else if constexpr(SE == range::boundary_low) {
-      return logical<S, 0, A>() - extended<S, 0, A>();
+    else if constexpr(DM == domain::boundary_low) {
+      return logical<S, A, 0>() - extended<S, A, 0>();
     }
-    else if constexpr(SE == range::boundary_high) {
-      return extended<S, 1, A>() - logical<S, 1, A>();
+    else if constexpr(DM == domain::boundary_high) {
+      return extended<S, A, 1>() - logical<S, A, 1>();
     }
-    else if constexpr(SE == range::ghost_low) {
+    else if constexpr(DM == domain::ghost_low) {
       if(!is_low<S, A>())
-        return logical<S, 0, A>();
+        return logical<S, A, 0>();
       else
         return 0;
     }
-    else if constexpr(SE == range::ghost_high) {
+    else if constexpr(DM == domain::ghost_high) {
       if(!is_high<S, A>())
-        return extents<S, A>() - logical<S, 1, A>();
+        return extents<S, A>() - logical<S, A, 1>();
       else
         return 0;
     }
-    else if constexpr(SE == range::global) {
+    else if constexpr(DM == domain::global) {
       return global<S, A>();
     }
   }
 
   /*!
     Method to return an iterator over the extents of the index-space S along
-    axis A for range SE.
-    \tparam SE not \c range::global
+    axis A for domain DM.
+    \tparam DM not \c domain::global
     This function is \ref topology "host-accessible".
   */
-  template<index_space S, axis A, range SE>
-  FLECSI_INLINE_TARGET auto extents() const {
+  template<index_space S, axis A, domain DM>
+  FLECSI_INLINE_TARGET auto range() const {
     static_assert(
-      std::size_t(SE) < hypercubes::size, "invalid range identifier");
+      std::size_t(DM) < hypercubes::size, "invalid domain identifier");
 
-    if constexpr(SE == range::logical) {
+    if constexpr(DM == domain::logical) {
       return make_ids<S>(
-        util::iota_view<util::id>(logical<S, 0, A>(), logical<S, 1, A>()));
+        util::iota_view<util::id>(logical<S, A, 0>(), logical<S, A, 1>()));
     }
-    else if constexpr(SE == range::extended) {
+    else if constexpr(DM == domain::extended) {
       return make_ids<S>(
-        util::iota_view<util::id>(extended<S, 0, A>(), extended<S, 1, A>()));
+        util::iota_view<util::id>(extended<S, A, 0>(), extended<S, A, 1>()));
     }
-    else if constexpr(SE == range::all) {
+    else if constexpr(DM == domain::all) {
       return make_ids<S>(util::iota_view<util::id>(0, extents<S, A>()));
     }
-    else if constexpr(SE == range::boundary_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
+    else if constexpr(DM == domain::boundary_low) {
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
     }
-    else if constexpr(SE == range::boundary_high) {
+    else if constexpr(DM == domain::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
+        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
     }
-    else if constexpr(SE == range::ghost_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, SE>()));
+    else if constexpr(DM == domain::ghost_low) {
+      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
     }
-    else if constexpr(SE == range::ghost_high) {
+    else if constexpr(DM == domain::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
-        logical<S, 1, A>(), logical<S, 1, A>() + size<S, A, SE>()));
+        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
     }
     else {
-      flog_error("invalid range");
+      flog_error("invalid domain");
     }
   }
 
   /*!
-    Method to return an offset of the index-space S along axis A for range SE.
+    Method to return an offset of the index-space S along axis A for domain SE.
     This function is \ref topology "host-accessible".
-    \sa enum range
+    \sa enum domain
   */
-  template<index_space S, axis A, range SE>
+  template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET std::size_t offset() const {
     static_assert(
-      std::size_t(SE) < hypercubes::size, "invalid offset identifier");
-    if constexpr(SE == range::logical) {
-      return logical<S, 0, A>();
+      std::size_t(DM) < hypercubes::size, "invalid offset identifier");
+    if constexpr(DM == domain::logical) {
+      return logical<S, A, 0>();
     }
-    else if constexpr(SE == range::extended) {
-      return extended<S, 0, A>();
+    else if constexpr(DM == domain::extended) {
+      return extended<S, A, 0>();
     }
-    else if constexpr(SE == range::all) {
+    else if constexpr(DM == domain::all) {
       return 0;
     }
-    else if constexpr(SE == range::boundary_low) {
-      return extended<S, 0, A>();
+    else if constexpr(DM == domain::boundary_low) {
+      return extended<S, A, 0>();
     }
-    else if constexpr(SE == range::boundary_high) {
-      return logical<S, 1, A>();
+    else if constexpr(DM == domain::boundary_high) {
+      return logical<S, A, 1>();
     }
-    else if constexpr(SE == range::ghost_low) {
+    else if constexpr(DM == domain::ghost_low) {
       return 0;
     }
-    else if constexpr(SE == range::ghost_high) {
-      return logical<S, 1, A>();
+    else if constexpr(DM == domain::ghost_high) {
+      return logical<S, A, 1>();
     }
-    else if constexpr(SE == range::global) {
+    else if constexpr(DM == domain::global) {
       return offset<S, A>();
     }
   }
