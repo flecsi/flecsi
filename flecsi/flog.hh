@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_FLOG_HH
+#define FLECSI_FLOG_HH
 
 #include <flecsi-config.h>
 
@@ -39,6 +30,7 @@ namespace flecsi {
 namespace flog {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
+/// \code#include "flecsi/flog.hh"\endcode
 /// \{
 
 namespace detail {
@@ -535,3 +527,5 @@ dumpstack() {
 #endif // NDEBUG
 
 /// \}
+
+#endif

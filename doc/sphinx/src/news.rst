@@ -15,6 +15,78 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v2.2.0
++++++++++++++++++
+
+Deprecated
+^^^^^^^^^^
+* Runtime
+
+  * Using a control policy type that does not inherit from ``control_base`` |mdash| derive from it with no other changes
+  * ``control::state`` |mdash| use ``control::policy``
+
+* Data
+
+  * ``global_topology`` and ``process_topology`` |mdash| create instances of ``topo::global`` and ``topo::index`` as needed
+
+* Topologies
+
+  * In ``narray::access``, ``extents`` and ``range`` |mdash| renamed to ``range`` and ``domain`` respectively
+
+* Logging
+
+  * The namespace ``flecsi::log`` |mdash| use ``flecsi::flog`` instead
+
+New features
+^^^^^^^^^^^^
+* Build
+
+  * The HIP compiler is supported.
+
+* Runtime
+
+  * Control policies may inherit from ``control_base`` to enable ``initialize`` and ``finalize`` hooks.
+  * ``control::policy`` replaces ``control::state``.
+  * ``meta_point`` defines special control points for a specialization's use via ``control::meta``.
+
+* Data
+
+  * ``launch::mapping`` allows field data to be accessed from other colors (using ``multi`` task parameters) with the Legion backend.
+  * ``reduction_accessor`` allows ``dense`` fields on a ``global`` topology to be updated collectively.
+  * The ``particle`` layout supports efficient creation and destruction of unordered field elements.
+  * Field definitions are copyable and may be destroyed after use.
+  * Fields may be of non-portable types so long as they are used only by MPI tasks.
+  * ``single`` accessors support ``->`` to access the members of a field value of class type.
+
+* Topologies
+
+  * ``unstructured`` represents unstructured meshes.
+  * ``narray`` represents hyperrectangular arrays, including structured meshes.
+  * ``global`` topology instances may be created with sizes other than 1.
+    (All elements are shared together among all point tasks in an index launch.)
+
+* MPI backend
+
+  * The ``toc`` processor type is supported.
+
+* On-node parallelism
+
+  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be applied to subintervals of a range.
+  * These interfaces may be used without Kokkos enabled, in which case they run serially.
+
+* Utilities
+
+  * ``flog.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
+  * ``serial`` provides a general-purpose serialization interface.
+    It may be extended to allow additional types to be used as task parameters or with MPI communication.
+  * ``mdcolex`` accesses a multi-dimensional array using Fortran-like syntax.
+  * ``mpi::one_to_alli`` scatters generated and/or serialized data with bounded memory usage.
+  * MPI communication functions compute values to send in rank order and support mutable functors.
+
+* Logging
+
+  * ``flog`` is a new name that avoids collisions with ``::log`` in code lacking proper namespace qualifications.
+
 Changes in v2.1.1
 +++++++++++++++++
 
@@ -47,38 +119,30 @@ Fixed
 * Topologies
 
   * Topology accessors that provide metadata for direct access in a ``toc`` task work properly when writable (although without such direct access in that case).
-  * ``narray`` topology accessors work properly when declared ``const``.
 
 * Legion backend
 
   * Certain user-level fields are allocated properly.
   * Errors at process termination in certain configurations are avoided.
+  * Accessors with both ``wo`` and ``na`` privileges are processed correctly.
 
 * MPI backend
 
   * ``exec::fold::min`` and ``exec::fold::max`` work with ``bool`` (but may be slower than using another type like ``int``).
   * Index futures work properly when declared ``const``.
+  * Index futures work with ``bool`` return type.
 
 * On-node parallelism
 
+  * More topology accessor functions are available on a device.
   * Several uses of "iterator" in documentation have been corrected to use "range".
 
 * Logging
 
   * Messages are sorted by timestamp correctly.
 
-* Testing
-
-  * String-comparison macros (*e.g.*, ``ASSERT_STREQ``) handle runtime values properly.
-
 Changes in v2.1.0 (April 16 2021)
 +++++++++++++++++++++++++++++++++
-
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Topologies
-
-  * ``narray`` topology accessors provide ``policy_meta_`` rather than ``meta()``.
 
 New features
 ^^^^^^^^^^^^
@@ -86,17 +150,11 @@ New features
 
   * ``topo::help`` is a convenient base class for specialization class templates that defines the non-dependent names in ``specialization``.
 
-Fixed
-^^^^^
-* Topologies
-
-  * ``narray`` topology accessors handle boundary conditions correctly.
-
 Changes in v2.0.0 (March 30 2021)
 +++++++++++++++++++++++++++++++++
 
 The changes between versions 1 and 2 are extensive and so are merely summarized here.
-The broadest change is that macros are used only for on-node parallelism constructs and for logging and unit tests.
+The broadest change is that macros are used only for on-node parallelism constructs and for logging.
 Some macro arguments become template arguments.
 
 Removed
@@ -118,9 +176,7 @@ Removed
 * Topologies
 
   * Topology element ``id()`` |mdash| iteration produces indices
-  * Automatic dependent connectivity |mdash| will be provided as a separate utility
-
-* I/O |mdash| will be reimplemented
+  * Unstructured mesh |mdash| will be reimplemented
 
 Other incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -168,5 +224,4 @@ New features
 
 * Topologies
 
-  * Multiple topology categories are supported: ``unstructured`` and ``narray`` as well as the special cases of ``index`` and ``global``.
   * Multiple user-defined topology instances may exist sequentially or simultaneously.

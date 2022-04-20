@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_FIELD_HH
+#define FLECSI_DATA_FIELD_HH
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
@@ -30,6 +21,7 @@ namespace data {
 /// \{
 
 /// A data accessor.
+/// Name via \c field::accessor.
 /// Pass a \c field_reference to a task that accepts an accessor.
 /// \tparam L data layout
 /// \tparam T data type
@@ -41,6 +33,7 @@ template<class R, typename T>
 struct reduction_accessor;
 
 /// A specialized accessor for changing the extent of dynamic layouts.
+/// Name via \c field::mutator.
 template<layout, class, Privileges>
 struct mutator;
 
@@ -57,15 +50,12 @@ struct field_register;
 
 // All field registration is ultimately defined in terms of raw fields.
 template<class T, class Topo, typename Topo::index_space Space>
-struct field_register<T, raw, Topo, Space> : field_info_t {
-  explicit field_register(field_id_t i)
-    : field_info_t{i, sizeof(T), util::type<T>()} {
-    run::context::instance().add_field_info<Topo, Space>(this);
+struct field_register<T, raw, Topo, Space> {
+  explicit field_register(field_id_t i) : fid(i) {
+    run::context::instance().add_field_info<Topo, Space, T>(i);
   }
   field_register() : field_register(fid_counter()) {}
-  // Copying/moving is inadvisable because the context knows the address.
-  field_register(const field_register &) = delete;
-  field_register & operator=(const field_register &) = delete;
+  field_id_t fid;
 };
 
 // Work around the fact that std::is_trivially_move_constructible_v checks
@@ -137,8 +127,8 @@ struct field_reference_t : convert_tag {
   using Topology = Topo;
   using topology_t = typename Topo::core;
 
-  field_reference_t(const field_info_t & info, topology_t & topology)
-    : field_reference_t(info.fid, topology) {}
+  // construct references just from field IDs.
+  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
   field_id_t fid() const {
     return fid_;
@@ -146,10 +136,6 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
-
-protected:
-  // Several internal components construct references just from field IDs.
-  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
 private:
   field_id_t fid_;
@@ -177,8 +163,8 @@ struct field_reference : field_reference_t<Topo> {
     return topo.template get_region<Space>();
   }
   template<class S>
-  auto & get_partition(S & topo) const {
-    return topo.template get_partition<Space>(this->fid());
+  static auto & get_partition(S & topo) {
+    return topo.template get_partition<Space>();
   }
 
   auto & get_region() const {
@@ -186,6 +172,11 @@ struct field_reference : field_reference_t<Topo> {
   }
   auto & get_partition() const {
     return get_partition(this->topology());
+  }
+
+  auto & get_ragged() const {
+    // A ragged_partition<...>::core, or borrowing of same:
+    return this->topology().ragged.template get<Space>()[this->fid()];
   }
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts
@@ -207,12 +198,13 @@ struct field_reference : field_reference_t<Topo> {
   }
 };
 
+/// Identifies a field on a \c\ref mapping.
+/// Declare a task parameter as a `multi<accessor<...>>` to use the field.
 template<class T, layout L, class Topo, typename Topo::index_space S>
 struct multi_reference : convert_tag {
   using Map = launch::mapping<Topo>;
 
-  multi_reference(const field_info_t & f, Map & m)
-    : multi_reference(f.fid, m) {}
+  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
   // Note that no correspondence between f and m is checked.
   multi_reference(const field_reference<T, L, Topo, S> & f, Map & m)
     : multi_reference(f.fid(), m) {}
@@ -227,8 +219,6 @@ struct multi_reference : convert_tag {
   }
 
 private:
-  multi_reference(field_id_t f, Map & m) : f(f), m(&m) {}
-
   field_id_t f;
   Map * m;
 };
@@ -259,11 +249,15 @@ struct field : data::detail::field_base<T, L> {
   template<Privileges Priv>
   using mutator1 = data::mutator<L, T, Priv>;
   /// The accessor to use as a parameter to receive this sort of field.
-  /// \tparam PP the appropriate number of privilege values
+  /// \tparam PP the appropriate number of privilege values, interpreted as
+  ///   - exclusive
+  ///   - shared, ghost
+  ///   - exclusive, shared, ghost
   template<partition_privilege_t... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
   /// The mutator to use as a parameter for this sort of field (usable only
   /// for certain layouts).
+  /// \tparam PP as for \c accessor
   template<partition_privilege_t... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 
@@ -273,6 +267,8 @@ struct field : data::detail::field_base<T, L> {
   using Reference = data::field_reference<T, L, Topo, S>;
 
   /// A field registration.
+  /// Instances may be freely copied; they must all be created before any
+  /// instance of \a Topo.
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
@@ -286,23 +282,32 @@ struct field : data::detail::field_base<T, L> {
       return (*this)(t.get());
     }
     Reference<Topo, Space> operator()(typename Topo::core & t) const {
-      return {*this, t};
+      return {this->fid, t};
     }
     // For indirect and borrow topologies:
     template<template<class> class C, class P>
     std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
       Reference<P, Space>>
     operator()(C<P> & t) const {
-      return {*this, t};
+      return {this->fid, t};
     }
+    /// Return a reference to a mapped field instance.
     data::multi_reference<T, L, Topo, Space> operator()(
       data::launch::mapping<Topo> & m) const {
-      return {*this, m};
+      return {this->fid, m};
     }
   };
 
   /// Fields cannot be constructed.  Use \c definition instead.
   field() = delete;
+
+#ifdef DOXYGEN
+  /// Reduction accessor corresponding to this field type.
+  /// This is only implemented for a Dense layout.
+  /// \sa data::reduction_accessor
+  template<class R>
+  using reduction = reduction_accessor<R, T>;
+#endif
 };
 /// \}
 
@@ -313,6 +318,8 @@ namespace detail {
 template<class T>
 struct field_base<T, dense> {
   using base_type = field<T, raw>;
+  template<class R>
+  using reduction = reduction_accessor<R, T>;
 };
 template<class T>
 struct field_base<T, single> {
@@ -387,3 +394,5 @@ struct scalar_value;
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif

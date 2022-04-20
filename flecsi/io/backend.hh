@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_IO_BACKEND_HH
+#define FLECSI_IO_BACKEND_HH
 
 #include <flecsi-config.h>
 
@@ -37,3 +28,5 @@
 #include "flecsi/io/hpx/policy.hh"
 
 #endif // FLECSI_BACKEND
+
+#endif

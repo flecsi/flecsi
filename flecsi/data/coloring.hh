@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_COLORING_HH
+#define FLECSI_DATA_COLORING_HH
 
 #include <flecsi/execution.hh>
 
@@ -23,15 +14,17 @@ namespace data {
 /// \{
 
 /// A coloring object, constructed on request.
-///
+/// \tparam Topo specialization that defines\code
+/// static coloring color(/* ... */);
+/// \endcode
 /// \note Usually accessed as \c Topo::cslot.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /// Create the coloring object.
+  /// Create the coloring object in an MPI task.
   /// \param args arguments to \c Topo::color
-  /// \return the created object
+  /// \return the created \c Topo::coloring object
   template<typename... ARGS>
   color_type & allocate(ARGS &&... args) {
     constexpr auto f = [](coloring_slot & s, ARGS &&... aa) {
@@ -62,3 +55,5 @@ private:
 /// \}
 } // namespace data
 } // namespace flecsi
+
+#endif

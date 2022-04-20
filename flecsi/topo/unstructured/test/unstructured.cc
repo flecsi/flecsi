@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include "simple_definition.hh"
 
@@ -148,7 +137,9 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
     auto lm = data::launch::make(s);
     execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[core::index<cells>], vmaps);
-    execute<topo::unstructured_impl::transpose>(c2v(s), v2c(s));
+    constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
+    constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
+    execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
   } // initialize
 }; // struct unstructured
 

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_FIXED_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TEST_FIXED_HH
 
 #include "flecsi/topo/unstructured/types.hh"
 
@@ -1116,3 +1107,5 @@ inline std::vector<std::vector<std::vector<flecsi::util::crs>>>
 // clang-format on
 
 } // namespace fixed
+
+#endif

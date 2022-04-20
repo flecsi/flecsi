@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_ACCESSOR_HH
+#define FLECSI_DATA_ACCESSOR_HH
 
 #include "flecsi/execution.hh"
 #include "flecsi/topo/size.hh"
@@ -24,6 +15,11 @@
 #include <stack>
 
 namespace flecsi {
+namespace topo {
+template<class Topo, typename Topo::index_space>
+struct ragged_partitioned;
+}
+
 namespace data {
 /// \addtogroup data
 /// \{
@@ -100,11 +96,11 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
-  element_type & get() const {
+  FLECSI_INLINE_TARGET element_type & get() const {
     return base(0);
   } // data
   /// Convert to the value.
-  operator element_type &() const {
+  FLECSI_INLINE_TARGET operator element_type &() const {
     return get();
   } // value
 
@@ -143,6 +139,12 @@ private:
   base_type base;
 }; // struct accessor
 
+/// Accessor for computing reductions.
+/// Name via \c field::reduction.
+/// Usable only with the global topology.  Pass a normal \c field_reference.
+/// The previous field value contributes to the result.
+/// \tparam R \ref fold "reduction operation"
+/// \tparam T data type
 template<class R, typename T>
 struct reduction_accessor : bind_tag {
   using element_type = T;
@@ -150,6 +152,8 @@ struct reduction_accessor : bind_tag {
 
   explicit reduction_accessor(field_id_t f) : f(f) {}
 
+  /// Prepare to update en element.
+  /// \return a callable that merges its \p T argument into the field element
   FLECSI_INLINE_TARGET
   auto operator[](size_type index) const {
     return [&v = s[index]](const T & r) { v = R::combine(v, r); };
@@ -163,8 +167,9 @@ struct reduction_accessor : bind_tag {
     s = x;
   }
 
+  /// Access the underlying elements.
   FLECSI_INLINE_TARGET
-  auto span() const {
+  util::span<element_type> span() const {
     return s;
   }
 
@@ -304,22 +309,21 @@ struct ragged_accessor
   template<class F>
   void send(F && f) {
     f(get_base(), [](const auto & r) {
-      using R = std::remove_reference_t<decltype(r)>;
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
-      auto & t = r.topology().ragged;
-      r.get_region(t).cleanup(i, [=] {
+      auto & t = r.get_ragged();
+      t.template get_region<topo::elements>().cleanup(i, [=] {
         if constexpr(!std::is_trivially_destructible_v<T>)
           detail::destroy<P>(r);
       });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
-        r.get_partition(r.topology().ragged).resize();
+        t.resize();
       return field_reference<T,
         raw,
         topo::policy_t<std::remove_reference_t<decltype(t)>>,
-        R::space>::from_id(i, t);
+        topo::elements>::from_id(i, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:
@@ -408,7 +412,7 @@ public:
 
     row(const raw_row & r) : raw_row(r) {}
 
-    /// \name \c std::vector operations
+    /// \name std::vector operations
     /// \{
     void assign(size_type n, const T & t) const {
       clear();
@@ -693,9 +697,8 @@ public:
   template<class F>
   void send(F && f) {
     f(get_base(), util::identity());
-    std::forward<F>(f)(get_size(), [](const auto & r) {
-      return r.get_partition(r.topology().ragged).sizes();
-    });
+    std::forward<F>(f)(
+      get_size(), [](const auto & r) { return r.get_ragged().sizes(); });
     if(over)
       over->resize(acc.size()); // no-op on caller side
   }
@@ -921,7 +924,7 @@ public:
 
     row(base_row r) : r(r) {}
 
-    /// \name \c std::map operations
+    /// \name std::map operations
     /// \{
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;
@@ -1069,6 +1072,10 @@ private:
   base_type rag;
 };
 
+/// Accessor for particle fields.
+/// Provides bidirectional iterators over the existing particles.
+/// \tparam P if write-only, particles are not created or destroyed but they
+///   are reinitialized
 template<class T, Privileges P, bool M>
 struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   static_assert(privilege_count(P) == 1, "particles cannot be ghosts");
@@ -1151,15 +1158,18 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
 
   // This interface is a subset of that proposed for std::hive.
 
+  /// Get the number of extant particles.
   size_type size() const {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
+  /// Get the maximum number of particles.
   size_type capacity() const {
     return this->span().size();
   }
+  /// Test whether any particles exist.
   bool empty() const {
     return !size();
   }
@@ -1172,6 +1182,8 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     return {this, capacity()};
   }
 
+  /// Get an iterator that refers to a particle.
+  /// \c T must be standard-layout.
   iterator get_iterator_from_pointer(element_type * the_pointer) const {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
@@ -1216,6 +1228,9 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   }
 };
 
+/// Mutator for particle fields.
+/// Iterators are invalidated only if their particle is removed.
+/// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>
 struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   using base_type = particle_accessor<T, P, true>;
@@ -1231,18 +1246,24 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // tables, accessor could provide it instead of having this class at all.
   // However, the natural wo semantics differ between the two cases.
 
+  /// Remove all particles.
   void clear() const {
     std::destroy(this->begin(), this->end());
     init();
   }
 
+  /// Add a particle.
+  /// \see emplace
   iterator insert(const value_type & v) const {
     return emplace(v);
   }
+  /// Add a particle by moving.
+  /// \see emplace
   iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
   /// Create an element, in constant time.
+  /// It is unspecified where it appears in the sequence.
   /// \return an iterator to the new element
   template<class... AA>
   iterator emplace(AA &&... aa) const {
@@ -1359,7 +1380,7 @@ struct scalar_access : bind_tag {
     std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
   }
 
-  const value_type * operator->() const {
+  FLECSI_INLINE_TARGET const value_type * operator->() const {
     return &scalar_;
   }
 
@@ -1381,7 +1402,12 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
-// This gets the short name since users must declare parameters with it.
+/// A sequence of accessors obtained from a \c\ref mapping.
+/// Pass a \c multi_reference or \c mapping to a task that accepts one.
+/// <!-- This gets the short name since users must
+///      declare parameters with it. -->
+/// \tparam A an \c accessor, \c mutator, or \c topology_accessor
+///   specialization
 template<class A>
 struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
   multi(Color n, const A & a)
@@ -1392,7 +1418,10 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     return vp->size();
   }
 
-  auto components() const { // for(auto [c,a] : m.components())
+  /// Get the components for each color.
+  /// \code for(auto [c,a] : m.components()) \endcode
+  /// \return a range of color-accessor pairs
+  auto components() const {
     return util::transform_view(
       *vp, [](const round & r) -> std::pair<Color, const A &> {
         return {borrow::get_row(r.row), r.a};
@@ -1468,8 +1497,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {type::base_type::parameter(r),
-      r.get_partition(r.topology().ragged).grow()};
+    return {type::base_type::parameter(r), r.get_ragged().grow()};
   }
 };
 template<class T, Privileges P>
@@ -1511,3 +1539,5 @@ private:
 };
 
 } // namespace flecsi
+
+#endif

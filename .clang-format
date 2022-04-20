@@ -107,5 +107,9 @@ SpacesInSquareBrackets: false
 Standard:        Cpp11
 TabWidth:        2
 UseTab:          Never
+AttributeMacros: 
+  - FLECSI_TARGET
+  - FLECSI_INLINE_TARGET
+
 ...
 

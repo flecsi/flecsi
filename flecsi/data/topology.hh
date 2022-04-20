@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2020, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2020, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_TOPOLOGY_HH
+#define FLECSI_DATA_TOPOLOGY_HH
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/layout.hh"
@@ -53,7 +44,7 @@ struct partition {
   /// Convenience function for simple topologies with just one partition.
   /// \return this object
   template<topo::single_space>
-  partition & get_partition(field_id_t) {
+  partition & get_partition() {
     return *this;
   }
 };
@@ -183,3 +174,5 @@ struct partitioned : region, P {
 /// \}
 } // namespace flecsi::data
 /// \endcond
+
+#endif

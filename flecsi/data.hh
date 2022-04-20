@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_HH
+#define FLECSI_DATA_HH
 
 #include "flecsi/data/map.hh"
 #include "flecsi/data/topology_accessor.hh"
@@ -28,6 +19,7 @@
 namespace flecsi {
 /// \defgroup data Data Model
 /// Defining topology instances and fields.
+/// \code#include "flecsi/data.hh"\endcode
 /// \{
 
 /*!
@@ -70,3 +62,5 @@ struct data_guard {
 /// \endcond
 /// \}
 } // namespace flecsi
+
+#endif

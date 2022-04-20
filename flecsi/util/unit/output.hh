@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FLECSI_UTIL_UNIT_OUTPUT_HH
+#define FLECSI_UTIL_UNIT_OUTPUT_HH
 
 #include <fstream>
 #include <iostream>
@@ -87,3 +88,5 @@ private:
 } // namespace unit
 } // namespace util
 } // namespace flecsi
+
+#endif

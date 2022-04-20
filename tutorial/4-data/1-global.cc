@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
@@ -23,7 +12,7 @@ using namespace flecsi::topo;
 
 template<typename T>
 using single = field<T, data::single>;
-const single<double>::definition<global> lue;
+const single<double>::definition<global> gfield;
 
 topo::global::slot gtopo;
 
@@ -40,7 +29,7 @@ print(single<double>::accessor<ro> gv) {
 int
 advance() {
   gtopo.allocate(1);
-  const auto v = lue(gtopo);
+  const auto v = gfield(gtopo);
   execute<init>(42.0, v);
   execute<print>(v);
 

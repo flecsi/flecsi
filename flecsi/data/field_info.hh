@@ -1,22 +1,14 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_DATA_FIELD_INFO_HH
+#define FLECSI_DATA_FIELD_INFO_HH
 
 #include "flecsi/util/common.hh"
 #include "flecsi/util/types.hh"
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,7 +29,7 @@ struct field_info_t {
   std::string name;
 }; // struct field_info_t
 
-using fields = std::vector<const field_info_t *>;
+using fields = std::vector<std::shared_ptr<field_info_t>>;
 
 /// \}
 } // namespace data
@@ -68,3 +60,5 @@ using TopologyType = std::size_t; // for field registration
 /// \}
 } // namespace flecsi
 /// \endcond
+
+#endif

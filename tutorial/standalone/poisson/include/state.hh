@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_STATE_HH
+#define POISSON_STATE_HH
 
 #include "specialization/mesh.hh"
 
@@ -20,3 +21,5 @@ inline mesh::slot m;
 inline mesh::cslot coloring;
 
 } // namespace poisson
+
+#endif

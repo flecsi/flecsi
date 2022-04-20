@@ -2,7 +2,8 @@
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
-#pragma once
+#ifndef POISSON_SPECIALIZATION_CONTROL_HH
+#define POISSON_SPECIALIZATION_CONTROL_HH
 
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
@@ -45,3 +46,5 @@ struct control_policy : flecsi::run::control_base {
 using control = flecsi::run::control<control_policy>;
 
 } // namespace poisson
+
+#endif

@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_FOLD_HH
+#define FLECSI_EXEC_FOLD_HH
 
 #include <algorithm>
 #include <limits>
@@ -19,7 +10,7 @@
 namespace flecsi {
 namespace exec::fold {
 /// \defgroup fold Reduction Operations
-/// Types to use with \c reduce and \c reduceall.
+/// Types to use with \c reduce, \c reduceall, and \c reduction_accessor.
 /// \ingroup execution
 /// \{
 
@@ -118,3 +109,5 @@ struct identity_traits<R, decltype(void(&R::identity))> {
 };
 } // namespace exec::detail
 } // namespace flecsi
+
+#endif

@@ -1,16 +1,5 @@
-#------------------------------------------------------------------------------#
-#  @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-# /@@/////  /@@          @@////@@ @@////// /@@
-# /@@       /@@  @@@@@  @@    // /@@       /@@
-# /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-# /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-# /@@       /@@/@@//// //@@    @@       /@@/@@
-# /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-# //       ///  //////   //////  ////////  //
-#
 # Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
-#------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
 # Add header files. Note that these will be "exported" to the parent
@@ -182,7 +171,7 @@ add_unit(hashtable
 # annotation
 #------------------------------------------------------------------------------#
 # This test is currently unreliable.
-if(NOT CALIPER_DETAIL STREQUAL "none" AND NOT CALIPER_DETAIL STREQUAL "low")
+if(NOT CALIPER_DETAIL STREQUAL "none")
 add_unit(annotation
   SOURCES
   test/annotation.cc

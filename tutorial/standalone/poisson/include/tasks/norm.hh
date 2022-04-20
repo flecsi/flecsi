@@ -3,7 +3,8 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef POISSON_TASKS_NORM_HH
+#define POISSON_TASKS_NORM_HH
 
 #include "specialization/mesh.hh"
 
@@ -22,3 +23,5 @@ void discrete_operator(mesh::accessor<ro> m,
 
 } // namespace task
 } // namespace poisson
+
+#endif

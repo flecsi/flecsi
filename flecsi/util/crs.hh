@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_CRS_HH
+#define FLECSI_UTIL_CRS_HH
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"
@@ -33,10 +24,14 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
+/// Efficient storage for a sequence of sequences of integers.
 struct crs : util::with_index_iterator<const crs> {
   using span = util::span<const std::size_t>;
 
+  /// The beginning of each row in \c indices, including a trailing value that
+  /// is the end of the last row.
   std::vector<std::size_t> offsets;
+  /// The concatenated rows.
   std::vector<std::size_t> indices;
 
   template<class InputIt>
@@ -149,3 +144,5 @@ struct util::serial::traits<util::dcrs> {
 };
 
 } // namespace flecsi
+
+#endif

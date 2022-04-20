@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Los Alamos National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_UTIL_DIMENSIONED_ARRAY_HH
+#define FLECSI_UTIL_DIMENSIONED_ARRAY_HH
 
 #include <array>
 #include <cassert>
@@ -20,8 +11,7 @@
 
 namespace flecsi {
 namespace util {
-/// \addtogroup utils
-/// \{
+/// \ingroup utils
 
 template<typename... CONDITIONS>
 struct and_ : std::true_type {};
@@ -297,6 +287,7 @@ operator<<(std::ostream & stream,
   return stream;
 } // operator <<
 
-/// \}
 } // namespace util
 } // namespace flecsi
+
+#endif

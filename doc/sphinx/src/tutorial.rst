@@ -13,7 +13,7 @@ Details on how to build the tutorials are given below.
 .. attention::
 
   The tutorial is primarily designed as an introduction for application
-  developers, i.e., we do not go into the details of designing or
+  developers: i.e., we do not go into the details of designing or
   implementing the specialization layer, and the discussion of core
   FleCSI features is limited to the high-level execution and data
   interfaces.
@@ -22,9 +22,7 @@ Details on how to build the tutorials are given below.
   provided a simple mesh interface as part of the tutorial. Users who
   are interested in the basic structure of a mesh topology
   specialization are encouraged to examine the source code in the
-  *specialization* subdirectory of this tutorial (The complete source
-  code is in the *tutorial/specialization* subdirectory of the main
-  project.)
+  *specialization* subdirectory of this tutorial.
 
 ----
 

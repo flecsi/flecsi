@@ -1,3 +1,6 @@
-#pragma once
+#ifndef TUTORIAL_SPECIALIZATION_DUMMY_DUMMY_HH
+#define TUTORIAL_SPECIALIZATION_DUMMY_DUMMY_HH
 
 void place_holder();
+
+#endif

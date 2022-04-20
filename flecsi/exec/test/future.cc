@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
@@ -61,6 +50,11 @@ reduction_task(int a, exec::launch_domain) {
   return a + color();
 }
 
+bool
+index_bool_task(exec::launch_domain) {
+  return !color();
+}
+
 int
 future_driver() {
   UNIT() {
@@ -95,6 +89,9 @@ future_driver() {
 
     fv2.wait();
     fv2.get();
+
+    auto fb = execute<index_bool_task>(ld);
+    EXPECT_EQ(fb.get(), true);
 
     int a = 7;
     // checking reduction operations

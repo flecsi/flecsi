@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
+#define FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 
 #include <flecsi-config.h>
 
@@ -76,7 +67,7 @@ private:
       data::leg::region_dimensions,
       Legion::coord_t,
       Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
-      ac(reg, accessor.field(), sizeof(D));
+      ac(reg, accessor.field());
     bind(reg, accessor, ac);
   }
 
@@ -161,3 +152,5 @@ private:
 /// \}
 } // namespace exec::leg
 } // namespace flecsi
+
+#endif

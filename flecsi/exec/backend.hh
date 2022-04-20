@@ -1,17 +1,8 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+#ifndef FLECSI_EXEC_BACKEND_HH
+#define FLECSI_EXEC_BACKEND_HH
 
 #include "flecsi/exec/task_attributes.hh"
 #include <flecsi-config.h>
@@ -26,10 +17,7 @@ namespace flecsi {
   Execute a task.
 
   @tparam TASK          The user task.
-    Its parameters may be of any default-constructible,
-    trivially-move-assignable, non-pointer type, any type that supports the
-    Legion return-value serialization interface, or any of several standard
-    containers of such types.
+    Its parameters must support \ref serial.
     If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable.
   @tparam ATTRIBUTES    The task attributes mask.
   @tparam ARGS The user-specified task arguments, implicitly converted to the
@@ -37,6 +25,7 @@ namespace flecsi {
     Certain FleCSI-defined parameter types accept particular, different
     argument types that serve as selectors for information stored by the
     backend; each type involved documents the correspondence.
+  \return a \ref future providing the value(s) returned from the task
 
   \note
     Avoid
@@ -69,3 +58,5 @@ auto execute(ARGS &&...);
 #include "flecsi/exec/hpx/policy.hh"
 
 #endif // FLECSI_BACKEND
+
+#endif

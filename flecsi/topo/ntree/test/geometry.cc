@@ -1,16 +1,5 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
-   Copyright (c) 2016, Triad, LLC
-   All rights reserved.
-                                                                              */
+// Copyright (c) 2016, Triad, LLC
+// All rights reserved.
 
 #include "flecsi/topo/ntree/geometry.hh"
 #include "flecsi/util/unit.hh"
@@ -68,7 +57,7 @@ geometry_1d_sanity() {
         p1d c2(rnd(c1[0], c1[0] + 1 * 4));
         double r2 = rnd(0, c1[0] + r1 * 5);
         bool res = std::max(r1, r2) >= util::distance(c1, c2);
-        ASSERT_EQ(res, geo1d::within_square(c1, c2, r1, r2));
+        ASSERT_EQ(res, geo1d::within_sphere(c1, c2, r1, r2));
       }
     }
 
@@ -180,7 +169,7 @@ geometry_2d_sanity() {
         p2d c2(rnd(c1[0], c1[0] + 1 * 4), rnd(c1[1], c1[1] + 1 * 4));
         double r2 = rnd(0, c1[0] + r1 * 5);
         bool res = std::max(r1, r2) >= util::distance(c1, c2);
-        ASSERT_EQ(res, geo2d::within_square(c1, c2, r1, r2));
+        ASSERT_EQ(res, geo2d::within_sphere(c1, c2, r1, r2));
       }
     }
 
@@ -287,7 +276,7 @@ geometry_3d_sanity() {
           rnd(c1[2], c1[2] + 1 * 4));
         double r2 = rnd(0, c1[0] + r1 * 5);
         bool res = std::max(r1, r2) >= util::distance(c1, c2);
-        ASSERT_EQ(res, geo3d::within_square(c1, c2, r1, r2));
+        ASSERT_EQ(res, geo3d::within_sphere(c1, c2, r1, r2));
       }
     }
 
