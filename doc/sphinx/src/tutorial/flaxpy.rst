@@ -141,9 +141,7 @@ comprises one or more *fields* of values.  FLAXPY adds two fields of
 type ``double``: ``x_field`` and ``y_field``.  These are added outside
 of the ``flaxpy`` namespace.  ``flaxpy.cc`` uses an anonymous
 namespace to indicate that these fields are meaningful only locally
-and not needed by the rest of the application.  Almost all of the
-remaining code presented in this tutorial appears within the same
-anonymous namespace.
+and not needed by the rest of the application.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -168,3 +166,54 @@ distributed vector:
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 101-102
+
+
+Control flow
+++++++++++++
+
+A FleCSI application's control flow is defined with a three-level
+hierarchy.  *Control points* define the sequential skeleton of the
+control flow and can include unbounded iteration (e.g., to repeat a
+sequence of steps until convergence).  Each control point is
+associated with a collection of *action*.  Actions form a directed
+acyclic graph (DAG) and thereby support concurrent execution but no
+iteration of tasks within the DAG.  Actions spawn *tasks*, which
+manipulate distributed data.
+
+FLAXPY defines three control points: ``initialize``, ``mul_add``, and
+``finalize``.  These are introduced via an enumerated type, which
+FLAXPY calls ``cp`` and defines within the ``flaxpy`` namespace:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 50
+
+FleCSI expects to be able to convert a ``cp`` to a string by
+dereferencing it.  This requires overloading the ``*`` operator as
+follows, still within the ``flaxpy`` namespace:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 56-67
+
+Once an application defines its control points it specifies a
+sequential order for them to execute.  FLAXPY indicates with the
+following code that ``initialize`` runs first, then ``mul_add``, and
+lastly ``finalize``:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 71-79
+
+FLAXPY's ``control_policy`` class is used to define a fully qualified
+control type that implements the control policy:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 82
+
+.. _flaxpy_control:
+.. figure:: images/flaxpy-control-model.svg
+   :align: center
+
+   FLAXPY control model
