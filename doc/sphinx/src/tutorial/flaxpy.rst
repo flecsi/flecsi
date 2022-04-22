@@ -180,6 +180,31 @@ acyclic graph (DAG) and thereby support concurrent execution but no
 iteration of tasks within the DAG.  Actions spawn *tasks*, which
 manipulate distributed data.
 
+The bulk of this section is presented in top-down fashion.  That is,
+function invocations are presented before the functions being invoked
+are defined.  With the exception of the code appearing in `Control
+points`_, all of the control-flow code about to be presented appears
+in an anonymous namespace, again to indicate that it is meaningful
+only locally and not needed by the rest of the application.
+
+A roadmap for FLAXPY's control-flow code is presented in
+:numref:`flaxpy_control`.  Control points are drawn as white rounded
+rectangles; actions are drawn as blue ellipses; and tasks are drawn as
+green rectangles.  As indicated by the figure, FLAXPY is a simple
+application and uses a trivial sequence of control points (no
+looping), a trivial DAG of actions (comprising a single node), and
+trivial task launches (exactly one per action).
+
+.. _flaxpy_control:
+.. figure:: images/flaxpy-control-model.svg
+   :align: center
+
+   FLAXPY control model
+
+
+Control points
+--------------
+
 FLAXPY defines three control points: ``initialize``, ``mul_add``, and
 ``finalize``.  These are introduced via an enumerated type, which
 FLAXPY calls ``cp`` and defines within the ``flaxpy`` namespace:
@@ -212,8 +237,49 @@ control type that implements the control policy:
    :language: cpp
    :lines: 82
 
-.. _flaxpy_control:
-.. figure:: images/flaxpy-control-model.svg
-   :align: center
 
-   FLAXPY control model
+Actions
+-------
+
+Actions, implemented as C++ functions, must be associated with control
+points.  The following code associates the ``initialize_action()``
+action with the ``initialize`` control point, ``mul_add_action()``
+with the ``mul_add`` control point, and ``finalize_action()`` with the
+``finalize`` control point:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 185-187
+
+The variables declared by the preceding code (``init``, ``ma``, and
+``fin``) are never used.  They exist only for the side effects induced
+by instantiating a ``flaxpy::control::action``.
+
+The ``initialize_action()`` action uses the slot and coloring slot
+defined above in `Data structures`_ to allocate memory for the
+``dist_vector`` specialization.  It then spawns the
+``initialize_vectors_task()`` task, passing it *X* and *Y* via the
+``x_field`` and ``y_field`` fields.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 127-134
+
+The ``mul_add_action()`` action spawns the ``mul_add_task()`` task,
+also passing it *X* and *Y* via the ``x_field`` and ``y_field`` fields
+as well as a scalar constant, *a*.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 147-153
+
+The third and final action, ``finalize_action()``, sums the elements
+of *Y* by spawning a global-reduction task (of type ``flecsi::reduce``
+instead of the ``flecsi::execute`` used in the preceding two actions).
+It then uses the FleCSI logging facility, FLOG, to output the sum.
+Finally, it deallocates the memory allocated by
+``initialize_action()``.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 170-180
