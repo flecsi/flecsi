@@ -328,3 +328,51 @@ parallelize (e.g., using thread parallelism) the summation.
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 156-167
+
+
+Program initialization
+++++++++++++++++++++++
+
+FLAXPY's ``main()`` function, expressed outside of any namespace, is
+largely boilerplate.  It initializes FleCSI, executes FLAXPY according
+to the control flow defined above in `Control flow`_, and finalizes
+FleCSI.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 191-207
+
+
+Sample execution
+++++++++++++++++
+
+FLAXPY can be built and run as follows:
+
+.. code:: bash
+
+    cd tutorial/standalone/flaxpy
+    mkdir build
+    cd build
+    cmake ..
+    make -j
+    mpiexec -n 8 ./flaxpy
+
+Depending on your installation, you may need to execute ``mpirun``,
+``srun``, or another launcher instead of ``mpiexec``.  The ``-n 8``
+specifies 8-way process parallelism.  The output should look like
+this:
+
+.. code::
+
+    The sum over all elements in the final vector is 6.16999e+12
+
+Try
+
+* passing ``--help`` to ``flaxpy`` to view the supported command-line
+  options,
+
+* passing ``--length=2000000`` to ``flaxpy`` to run DAXPY on a vector
+  that is twice as long as the default, or
+
+* running with a different amount of process parallelism, perhaps
+  across multiple nodes in a cluster.
