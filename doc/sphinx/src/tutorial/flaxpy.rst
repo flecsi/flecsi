@@ -7,3 +7,164 @@ DAXPY
 
 This example presents a simple but complete example of a FleCSI
 program that manipulates a distributed data structure in parallel.
+Specifically, it uses FleCSI to perform a distributed `DAXPY
+<http://www.netlib.org/lapack/explore-html/de/da4/group__double__blas__level1_ga8f99d6a644d3396aa32db472e0cfc91c.html>`_
+(double-precision *aX* + *Y*) vector operation.  The sequential C++
+code looks like this:
+
+.. code:: C++
+
+    for (int i = 0; i < N; ++i)
+      y[i] += a*x[i];
+
+To further demonstrate FleCSI code structure and features we will also
+allocate and initialize the distributed vectors before the DAXPY
+operation and report the sum of all elements in *Y* at the end, as in
+the following sequential code:
+
+.. code:: C++
+
+    // Allocate and initialize the two vectors.
+    std::vector<double> x(N), y(N);
+    for (size_t i = 0; i < N; ++i) {
+      x[i] = static_cast<double>(i);
+      y[i] = 0.0;
+    }
+
+    // Perform the DAXPY operation.
+    const double a = 12.34;
+    for (size_t i = 0; i < N; ++i)
+      y[i] += a*x[i];
+
+    // Report the sum over y.
+    double sum = 0.0;
+    for (size_t i = 0; i < N; ++i)
+      sum += y[i];
+    std::cout << "The sum over all elements in the final vector is " << sum << std::endl;
+
+For pedagogical purposes the FleCSI version of DAXPY, which we'll call
+"FLAXPY", will be expressed slightly differently from how a full
+application would more naturally be implemented:
+
+* FLAXPY is presented as a single file rather than as separate (and
+  typically multiple) source and header files.
+
+* C++ namespaces are referenced explicitly rather than imported with
+  ``use``.
+
+* Some function, method, and variable names are more verbose than they
+  would normally be.
+
+
+Preliminaries
++++++++++++++
+
+Here's a simple ``CMakeLists.txt`` file for building FLAXPY:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/CMakeLists.txt
+   :language: cpp
+   :lines: 6-15
+
+FLAXPY is implemented as a single file, ``flaxpy.cc``.  We begin by
+including the header files needed to access the data model, execution
+model, and other FleCSI components:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 6-10
+
+For user convenience, we define a ``--length`` (abbreviation: ``-l``)
+command-line option for specifying the length of vectors *X* and *Y*,
+with a default of 1,000,000 elements.  To do so we construct a
+variable called ``vector_length`` of type ``flecsi::program_option``
+(templated on the option type, ``std::size_t``) and within a
+``flaxpy`` namespace that other source files—of which there are none
+in this simple example—could import.  ``vector_length`` will be used
+at run time to access the vector length.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 12-21
+
+
+Data structures
++++++++++++++++
+
+FleCSI does not provide ready-to-use, distributed data structures.
+Rather, it provides "proto data structures" called *topologies*.
+These require additional compile-time information, such as the number
+of a dimensions of a multidimensional array, and additional run-time
+information, such as how to distribute their data, to form a concrete
+data structure.  Application-defined *specializations* provide all of
+this information.
+
+FLAXPY is based on the ``user`` topology, so named because it is
+arguably the simplest topology that behaves as a user would expect.
+It is essentially a 1-D vector of user-defined *fields*.  All
+topologies specify the type of a *coloring*, which is additional
+run-time data the topology needs to produce a concrete data structure.
+A specialization must define a ``color`` method that accepts whatever
+parameters make sense for that specialization and returns a
+topology-specific ``coloring``.  The ``user`` topology defines a
+``coloring`` as a ``std::vector<std::size_t>`` that indicates the
+number of vector indices to assign to each *color*.  (One can think of
+a color as being like an MPI rank: a globally unique identifier for a
+unit of computation.)  ``user`` does not require that the
+specialization provide any compile-time information, but most
+topologies do.
+
+For FLAXPY we divide the indices as equally as possible among colors.
+The following helper function, still within the ``flaxpy`` namespace,
+handles mapping ``vector_length`` indices (see `Preliminaries`_ above)
+onto a given number of colors:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 25-36
+
+Given that helper function, constructing a specialization of ``user``
+is trivial.  FLAXPY names its specialization (still within the
+``flaxpy`` namespace) ``dist_vector``:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 40-47
+
+Note that the specialization chooses the number of colors.
+``dist_vector`` queries FleCSI for the number of processes and uses
+that value for the color count.
+
+At this point we have what is effectively a distributed 1-D vector
+data type, templated over the element type.  The next step is to
+indicate the element type required by the application.  Each element
+comprises one or more *fields* of values.  FLAXPY adds two fields of
+type ``double``: ``x_field`` and ``y_field``.  These are added outside
+of the ``flaxpy`` namespace.  ``flaxpy.cc`` uses an anonymous
+namespace to indicate that these fields are meaningful only locally
+and not needed by the rest of the application.  Almost all of the
+remaining code presented in this tutorial appears within the same
+anonymous namespace.
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 96-98
+
+``one_field`` is defined in the above to save typing.
+``flecsi::data::layout::dense`` is in fact the default for a
+``flecsi::field`` and is included to show where layouts are indicated.
+
+Specializations typically require run-time information to produce a
+usable object.  This information may not be available until a number
+of libraries (FleCSI, Legion, MPI, and the like) have initialized and
+perhaps synchronized across a distributed system.  To prevent
+applications from directly constructing an object of a specialization
+type and accessing this object before library initialization and
+synchronization have completed, FleCSI imposes a particular means of
+instantiating a specialization based on *slots*.  The following lines
+of code declare the slot and *coloring slot* that will be used during
+FLAXPY initialization to allocate distributed storage for its
+distributed vector:
+
+.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
+   :language: cpp
+   :lines: 101-102
