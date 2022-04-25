@@ -45,8 +45,8 @@ at the end, as in the following sequential code:
 In the above we arbitrarily initialize *X*\ [*i*] ← *i* and *Y*\ [*i*]
 ← 0.
 
-For pedagogical purposes the FleCSI version of DAXPY, which we'll call
-"FLAXPY", is expressed slightly differently from how a full
+For pedagogical purposes the FleCSI version of the above, which we'll
+call "FLAXPY", is expressed slightly differently from how a full
 application would more naturally be implemented:
 
 * FLAXPY is presented as a single file rather than as separate (and
@@ -78,9 +78,9 @@ model, and other FleCSI components:
 
 For user convenience, we define a ``--length`` (abbreviation: ``-l``)
 command-line option for specifying the length of vectors *X* and *Y*
-with a default of 1,000,000 elements.  To do so we declare a variable
-of type ``flecsi::program_option``, templated on the option type,
-which in this case is ``std::size_t``.  We name the variable
+and with a default of 1,000,000 elements.  To do so we declare a
+variable of type ``flecsi::program_option``, templated on the option
+type, which in this case is ``std::size_t``.  We name the variable
 ``vector_length`` and define it within a ``flaxpy`` namespace, which
 other source files—of which there are none in this simple
 example—could import.  ``vector_length`` will be used at run time to
@@ -97,7 +97,7 @@ Data structures
 FleCSI does not provide ready-to-use, distributed data structures.
 Rather, it provides "proto data structures" called *topologies*.
 These require additional compile-time information, such as the number
-of a dimensions of a multidimensional array, and additional run-time
+of dimensions of a multidimensional array, and additional run-time
 information, such as how to distribute their data, to form a concrete
 data structure.  Applications are expected to define *specializations*
 to provide all of this information.
@@ -140,18 +140,18 @@ number of processes and uses that value for the color count.
 
 At this point we have what is effectively a distributed 1-D vector
 data type that is templated over the element type.  The next step is
-to indicate the desired element type.  In FleCSI, each element
-comprises one or more *fields*.  One can think of fields as named
-columns in a tabular representation of data.  FLAXPY adds two fields
-of type ``double``: ``x_field`` and ``y_field``.  These are added
-outside of the ``flaxpy`` namespace, in an anonymous namespace.
+to specify the element type.  In FleCSI, each element of a data
+structure comprises one or more *fields*.  One can think of fields as
+named columns in a tabular representation of data.  FLAXPY adds two
+fields of type ``double``: ``x_field`` and ``y_field``.  These are
+added outside of the ``flaxpy`` namespace, in an anonymous namespace.
 ``flaxpy.cc`` uses this anonymous namespace to indicate that its
 contents are meaningful only locally and not needed by the rest of the
 application.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 96-98
+   :lines: 89-90,96-98
 
 ``one_field`` is defined in the above to save typing, both here and in
 task definitions (see `Tasks`_ below).
@@ -165,10 +165,11 @@ perhaps synchronized across a distributed system.  To prevent
 applications from directly constructing an object of a specialization
 type and accessing this object before library initialization and
 synchronization have completed, FleCSI imposes a particular means of
-instantiating a specialization based on which it calls *slots*.  The
+instantiating a specialization based on what it calls *slots*.  The
 following lines of code declare the *slot* and *coloring slot* that
-will be used during FLAXPY initialization to allocate distributed
-storage for the application's distributed vector:
+will be used within FLAXPY's initialization action (see `Actions`_
+below) to allocate distributed storage for the application's
+distributed vector:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -182,15 +183,16 @@ A FleCSI application's control flow is defined using a three-level
 hierarchy.  *Control points* define the sequential skeleton of the
 control flow and can include unbounded iteration (e.g., to repeat a
 sequence of steps until convergence).  Each control point is
-associated with a collection of *actions*.  Actions form a directed
-acyclic graph (DAG) and thereby support concurrent execution but no
-iteration of tasks within the DAG.  Actions spawn *tasks*, which
-manipulate distributed data.
+associated with a collection of *actions*.  Actions are functions
+organized as a directed acyclic graph (DAG).  They thereby support
+concurrent execution but no iteration of nodes within the DAG.  They
+also cannot directly access distributed data.  Actions spawn *tasks*,
+which run concurrently and manipulate distributed data.
 
 The bulk of this section is presented in top-down fashion.  That is,
 function invocations are presented in advance of the functions
-themselves.  With the exception of the code appearing in `Control
-points`_, all of the control-flow code list in this section appears in
+themselves.  With the exception of the code appearing in the `Control
+points`_ section, all of the control-flow code listed below appears in
 an anonymous namespace, again, to indicate that it is meaningful only
 locally and not needed by the rest of the application.
 
@@ -265,29 +267,29 @@ by instantiating a ``flaxpy::control::action``.
 The ``initialize_action()`` action uses the slot and coloring slot
 defined above in `Data structures`_ to allocate memory for the
 ``dist_vector`` specialization.  Once this memory is allocated, the
-action spawns the ``initialize_vectors_task()`` task, passing it *X*
-and *Y* via the ``x_field`` and ``y_field`` fields declared in `Data
-structures`_.
+action spawns a set of ``initialize_vectors_task()`` tasks, granting
+each instance access to a subset of *X* and *Y* via the ``x_field``
+and ``y_field`` fields declared in `Data structures`_.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 127-134
 
-The ``mul_add_action()`` action spawns the ``mul_add_task()`` task,
-passing it a scalar constant *a* directly and *X* and *Y* via
-``x_field`` and ``y_field``:
+The ``mul_add_action()`` action spawns ``mul_add_task()`` tasks,
+passing then a scalar constant *a* directly and access to a subset of
+*X* and *Y* via ``x_field`` and ``y_field``:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 147-153
 
 The third and final action, ``finalize_action()``, sums the elements
-of *Y* by spawning a global-reduction task.  Because it represents a
-global reduction, this task is invoked using ``flecsi::reduce``
-instead of ``flecsi::execute`` as in the preceding two actions.
-``finalize_action()`` uses the FleCSI logging facility, FLOG, to
-output the sum.  Finally, the function deallocates the memory
-allocated by ``initialize_action()``.
+of *Y* by initiating a global reduction.  Because they represent a
+global reduction, the ``reduce_y_task()`` tasks are spawned using
+``flecsi::reduce`` instead of ``flecsi::execute`` as in the preceding
+two actions.  ``finalize_action()`` uses the FleCSI logging facility,
+FLOG, to output the sum.  Finally, the function deallocates the memory
+previously allocated by ``initialize_action()``.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -304,8 +306,8 @@ instance is individually responsible for processing a partition of the
 distributed data structure.  Because FleCSI follows `Legion
 <https://legion.stanford.edu/>`_'s data and concurrency model, a task
 is provided access to a data partition via an *accessor* templated on
-the requested access rights: ``ro`` (read only), ``wo`` (write only),
-``rw`` (read/write), or ``na`` (no access).
+an access right: ``ro`` (read only), ``wo`` (write only), ``rw``
+(read/write), or ``na`` (no access).
 
 The ``initialize_vectors_task()`` task requests write-only access to a
 partition of *X* and a partition of *Y*.  It uses
@@ -313,7 +315,7 @@ partition of *X* and a partition of *Y*.  It uses
 to compute the number of vector indices to which this task instance
 has access and the global index corresponding to local index 0.  Once
 these are known, the task initializes *X*\ [*i*] ← *i* and *Y*\ [*i*]
-← 0 for its subset of the distributed *X* and *Y* vectors.  FLAXPY
+← 0 over its partition of the distributed *X* and *Y* vectors.  FLAXPY
 uses FleCSI's ``forall`` macro to locally parallelize (e.g., using
 thread parallelism) the initialization of *Y*.
 
@@ -325,8 +327,8 @@ thread parallelism) the initialization of *Y*.
 the one that performs the core DAXPY computation.  It accepts a scalar
 *a* and requests read-only access to a partition of *X* and read/write
 access to a partition of *Y*.  The task then computes *Y*\ [*i*] ←
-*a*\ ⋅\ *X*\ [*i*] + *Y*\ [*i*] over its subset of the distributed *X*
-and *Y* vectors.
+*a*\ ⋅\ *X*\ [*i*] + *Y*\ [*i*] over its partition of the distributed
+*X* and *Y* vectors.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
