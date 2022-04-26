@@ -32,7 +32,17 @@ with *loc* (latency optimized core) as a default value.
 *default_accelerator* is a processor type that corresponds to Kokkos
 default execution space. For example, if Kokkos is built with Cuda and
 Serial, Cuda will be a default execution space or *toc* (throughput
-optimized core) *processor type* in FleCSI. 
+optimized core) *processor type* in FleCSI.
+
+.. note::
+
+   With the Legion backend, OpenMP task execution can be improved with the ``omp`` processor type.
+   Legion knows to assign an entire node to such a task.
+
+.. warning::
+
+   With the MPI backend, running one process per node with ``toc`` tasks or one
+   process per core with ``omp`` tasks likely leads to poor performance.
 
 .. literalinclude:: ../../../../tutorial/5-parallel/1-forall.cc
   :language: cpp
