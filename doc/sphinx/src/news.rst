@@ -71,8 +71,7 @@ New features
 
 * On-node parallelism
 
-  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be applied to subintervals of a range.
-  * These interfaces may be used without Kokkos enabled, in which case they run serially.
+  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be used without Kokkos enabled, in which case they run serially.
 
 * Utilities
 
