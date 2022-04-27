@@ -48,7 +48,20 @@ function(add_sphinx_target name)
     configure_file(${sphx_CONFIG}/conf.py.in
       ${sphx_OUTPUT}/.sphinx/conf.py)
 
+    # Generate SVG graphics from GraphViz Dot sources.
+    file(GLOB_RECURSE source_dot_files
+      LIST_DIRECTORIES false
+      "${sphx_CONFIG}/*.dot")
+    foreach(image_dot IN LISTS source_dot_files)
+      string(REPLACE .dot .svg image_svg "${image_dot}")
+      add_custom_command(OUTPUT ${image_svg}
+        MAIN_DEPENDENCY ${image_dot}
+        COMMAND dot -Tsvg -o ${image_svg} ${image_dot})
+    endforeach()
+    string(REPLACE .dot .svg generated_svg_files "${source_dot_files}")
+
     add_custom_target(${name}
+      DEPENDS ${generated_svg_files}
       COMMAND ${SPHINX_EXECUTABLE} -nqW -c
         ${sphx_OUTPUT}/.sphinx
         ${sphx_CONFIG}
