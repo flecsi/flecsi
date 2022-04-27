@@ -60,8 +60,7 @@ Main function
 
 The *main* function for this example is located in ``poisson.cc``.
 Unless you need to initialize additional runtimes that are not handled
-internally by FleCSI, you can likely use this file as is (with a
-different namespace name).
+internally by FleCSI, you can likely use this file as is (with a different namespace name).
 
 .. literalinclude:: ../../../../tutorial/standalone/poisson/app/poisson.cc
    :language: cpp
