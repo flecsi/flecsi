@@ -53,7 +53,7 @@ application would more naturally be implemented:
   typically multiple) source and header files.
 
 * C++ namespaces are referenced explicitly rather than imported with
-  ``use``.
+  ``using``.
 
 * Some function, method, and variable names are more verbose than they
   would commonly be.
@@ -94,8 +94,8 @@ access the vector length.
 Data structures
 +++++++++++++++
 
-FleCSI does not provide ready-to-use, distributed data structures.
-Rather, it provides "proto data structures" called *topologies*.
+FleCSI does not provide ready-to-use, distributed data-structure types.
+Rather, it provides "proto data-structure types" called *topologies*.
 These require additional compile-time information, such as the number
 of dimensions of a multidimensional array, and additional run-time
 information, such as how to distribute their data, to form a concrete
@@ -166,7 +166,7 @@ applications from directly constructing an object of a specialization
 type and accessing this object before library initialization and
 synchronization have completed, FleCSI imposes a particular means of
 instantiating a specialization based on what it calls *slots*.  The
-following lines of code declare the *slot* and *coloring slot* that
+following lines of code declare the (topology) *slot* and *coloring slot* that
 will be used within FLAXPY's initialization action (see `Actions`_
 below) to allocate distributed storage for the application's
 distributed vector:
@@ -251,10 +251,10 @@ Actions
 -------
 
 Actions, implemented as C++ functions, are associated with control
-points.  The following code associates the ``initialize_action()``
-action with the ``initialize`` control point, the ``mul_add_action()``
+points.  The following code associates the ``initialize_action``
+action with the ``initialize`` control point, the ``mul_add_action``
 action with the ``mul_add`` control point, and the
-``finalize_action()`` action with the ``finalize`` control point:
+``finalize_action`` action with the ``finalize`` control point:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -264,10 +264,10 @@ The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
 by instantiating a ``flaxpy::control::action``.
 
-The ``initialize_action()`` action uses the slot and coloring slot
+The ``initialize_action`` action uses the slot and coloring slot
 defined above in `Data structures`_ to allocate memory for the
 ``dist_vector`` specialization.  Once this memory is allocated, the
-action spawns a set of ``initialize_vectors_task()`` tasks, granting
+action spawns a set of ``initialize_vectors_task`` tasks, granting
 each instance access to a subset of *X* and *Y* via the ``x_field``
 and ``y_field`` fields declared in `Data structures`_.
 
@@ -275,7 +275,7 @@ and ``y_field`` fields declared in `Data structures`_.
    :language: cpp
    :lines: 127-134
 
-The ``mul_add_action()`` action spawns ``mul_add_task()`` tasks,
+The ``mul_add_action`` action spawns ``mul_add_task`` tasks,
 passing then a scalar constant *a* directly and access to a subset of
 *X* and *Y* via ``x_field`` and ``y_field``:
 
@@ -283,13 +283,13 @@ passing then a scalar constant *a* directly and access to a subset of
    :language: cpp
    :lines: 147-153
 
-The third and final action, ``finalize_action()``, sums the elements
+The third and final action, ``finalize_action``, sums the elements
 of *Y* by initiating a global reduction.  Because they represent a
-global reduction, the ``reduce_y_task()`` tasks are spawned using
+global reduction, the ``reduce_y_task`` tasks are spawned using
 ``flecsi::reduce`` instead of ``flecsi::execute`` as in the preceding
-two actions.  ``finalize_action()`` uses the FleCSI logging facility,
+two actions.  ``finalize_action`` uses the FleCSI logging facility,
 FLOG, to output the sum.  Finally, the function deallocates the memory
-previously allocated by ``initialize_action()``.
+previously allocated by ``initialize_action``.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -309,7 +309,7 @@ is provided access to a data partition via an *accessor* templated on
 an access right: ``ro`` (read only), ``wo`` (write only), ``rw``
 (read/write), or ``na`` (no access).
 
-The ``initialize_vectors_task()`` task requests write-only access to a
+The ``initialize_vectors_task`` task requests write-only access to a
 partition of *X* and a partition of *Y*.  It uses
 ``divide_indices_among_colors``, defined above in `Data structures`_,
 to compute the number of vector indices to which this task instance
@@ -323,7 +323,7 @@ thread parallelism) the initialization of *Y*.
    :language: cpp
    :lines: 105-124
 
-``mul_add_task()`` is the simplest of FLAXPY's three tasks but also
+``mul_add_task`` is the simplest of FLAXPY's three tasks but also
 the one that performs the core DAXPY computation.  It accepts a scalar
 *a* and requests read-only access to a partition of *X* and read/write
 access to a partition of *Y*.  The task then computes *Y*\ [*i*] ←
@@ -334,7 +334,7 @@ access to a partition of *Y*.  The task then computes *Y*\ [*i*] ←
    :language: cpp
    :lines: 137-144
 
-The third and final task, ``reduce_y_task()`` computes and returns the
+The third and final task, ``reduce_y_task`` computes and returns the
 sum of a partition of *Y*.  For this it requests read/write access to
 the partition and uses FleCSI's ``reduceall`` macro to locally
 parallelize (e.g., using thread parallelism) the summation.
@@ -347,7 +347,7 @@ parallelize (e.g., using thread parallelism) the summation.
 Program initialization
 ++++++++++++++++++++++
 
-FLAXPY's ``main()`` function, expressed outside of any namespace, is
+FLAXPY's ``main`` function, expressed outside of any namespace, is
 largely boilerplate.  It initializes FleCSI, executes the FLAXPY code
 according to the control flow defined above in `Control flow`_, and
 finalizes FleCSI.
