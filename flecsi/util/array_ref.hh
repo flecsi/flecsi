@@ -617,6 +617,64 @@ template<class C, class F>
 transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 /// \endcond
 
+/// A view of part of a range.  Analogous to a combination of
+/// \c std::take_view and \c std::drop_view from C++20.
+template<class R>
+struct substring_view {
+  using iterator = decltype(std::begin(std::declval<R>()));
+  using difference_type =
+    typename std::iterator_traits<iterator>::difference_type;
+
+  /// Select a substring of a range.
+  /// \param r input (stored in this object)
+  /// \param i starting index
+  /// \param n number of elements (must be in bounds)
+  constexpr substring_view(R r, difference_type i, difference_type n)
+    : alive(std::move(r)), b(std::next(std::begin(alive), i)), n(n) {}
+
+  FLECSI_INLINE_TARGET
+  constexpr iterator begin() const {
+    return b;
+  }
+  FLECSI_INLINE_TARGET
+  constexpr iterator end() const {
+    return std::next(b, n);
+  }
+
+  FLECSI_INLINE_TARGET
+  constexpr bool empty() const {
+    return !n;
+  }
+  FLECSI_INLINE_TARGET
+  constexpr explicit operator bool() const {
+    return n;
+  }
+
+  FLECSI_INLINE_TARGET
+  constexpr std::make_unsigned_t<difference_type> size() const {
+    return n;
+  }
+
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) front() const {
+    return *b;
+  }
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) back() const {
+    return b[n - 1];
+  }
+
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) operator[](difference_type i) const {
+    return b[i];
+  }
+
+private:
+  R alive;
+  iterator b;
+  difference_type n;
+};
+
 /// \}
 } // namespace util
 } // namespace flecsi
