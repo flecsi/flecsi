@@ -232,10 +232,15 @@ follows, still within the ``flaxpy`` namespace:
    :language: cpp
    :lines: 56-67
 
-Once an application defines its control points it specifies a
-sequential order for them to execute.  FLAXPY indicates with the
-following code that ``initialize`` runs first, then ``mul_add``, and
-lastly ``finalize``:
+Once an application defines its control points
+it specifies a sequential order for them to execute.
+(The equivalent of a ``while`` loop
+can be expressed with ``flecsi::run::cycle``,
+and loops can be nested.)
+FLAXPY indicates with the following code that
+``initialize`` runs first,
+then ``mul_add``,
+and lastly ``finalize``:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
