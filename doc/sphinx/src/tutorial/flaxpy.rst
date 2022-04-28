@@ -267,11 +267,12 @@ The variables declared by the preceding code (``init``, ``ma``, and
 by instantiating a ``flaxpy::control::action``.
 
 The ``initialize_action`` action uses the slot and coloring slot
-defined above in `Data structures`_ to allocate memory for the
-``dist_vector`` specialization.  Once this memory is allocated, the
-action spawns a set of ``initialize_vectors_task`` tasks, granting
-each instance access to a subset of *X* and *Y* via the ``x_field``
-and ``y_field`` fields declared in `Data structures`_.
+defined above in `Data structures`_
+to allocate memory for the ``dist_vector`` specialization.
+Once this memory is allocated,
+the action launches an ``initialize_vectors_task`` task,
+granting each constituent point task access to a subset of *X* and *Y*
+via the ``x_field`` and ``y_field`` fields declared in `Data structures`_.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
@@ -302,44 +303,54 @@ Tasks
 -----
 
 Tasks are functions that collectively and (usually) concurrently
-process a distributed data structure.  ``flecsi::execute``, as seen in
-the preceding section, spawns one task instance per color.  Each
-instance is individually responsible for processing a partition of the
-distributed data structure.  Because FleCSI follows `Legion
-<https://legion.stanford.edu/>`_'s data and concurrency model, a task
-is provided access to a data partition via an *accessor* templated on
-an access right: ``ro`` (read only), ``wo`` (write only), ``rw``
-(read/write), or ``na`` (no access).
+process a distributed data structure.
+``flecsi::execute``, as seen in the preceding section,
+spawns one point task per color.
+Each point task is individually responsible for processing a subspace
+(or "color") of the distributed data structure.
+Because FleCSI follows `Legion <https://legion.stanford.edu/>`_'s data
+and concurrency model,
+a point task is provided access to a subspace
+via an *accessor* templated on an access right:
+``ro`` (read only),
+``wo`` (write only),
+``rw`` (read/write), or
+``na`` (no access).
 
-The ``initialize_vectors_task`` task requests write-only access to a
-partition of *X* and a partition of *Y*.  It uses
-``divide_indices_among_colors``, defined above in `Data structures`_,
-to compute the number of vector indices to which this task instance
-has access and the global index corresponding to local index 0.  Once
-these are known, the task initializes *X*\ [*i*] ← *i* and *Y*\ [*i*]
-← 0 over its partition of the distributed *X* and *Y* vectors.  FLAXPY
-uses FleCSI's ``forall`` macro to locally parallelize (e.g., using
-thread parallelism) the initialization of *Y*.
+The ``initialize_vectors_task`` task requests write-only access
+to subspaces of *X* and *Y*.
+It uses ``divide_indices_among_colors``, defined above in `Data structures`_,
+to compute the number of vector indices to which a point task has access
+and the global index corresponding to local index 0.
+Once these are known, the task initializes
+*X*\ [*i*] ← *i* and *Y*\ [*i*] ← 0
+over its subset of the distributed *X* and *Y* vectors.
+FLAXPY uses FleCSI's ``forall`` macro to locally parallelize
+(e.g., using thread parallelism)
+the initialization of *Y*.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 105-124
 
-``mul_add_task`` is the simplest of FLAXPY's three tasks but also
-the one that performs the core DAXPY computation.  It accepts a scalar
-*a* and requests read-only access to a partition of *X* and read/write
-access to a partition of *Y*.  The task then computes *Y*\ [*i*] ←
-*a*\ ⋅\ *X*\ [*i*] + *Y*\ [*i*] over its partition of the distributed
-*X* and *Y* vectors.
+``mul_add_task`` is the simplest of FLAXPY's three tasks
+but also the one that performs the core DAXPY computation.
+It accepts a scalar *a* and requests read-only access to a subspace of *X*
+and read/write access to a subspace of *Y*.
+The task then computes
+*Y*\ [*i*] ← *a*\ ⋅\ *X*\ [*i*] + *Y*\ [*i*]
+over its subset of the distributed *X* and *Y* vectors.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :lines: 137-144
 
-The third and final task, ``reduce_y_task`` computes and returns the
-sum of a partition of *Y*.  For this it requests read/write access to
-the partition and uses FleCSI's ``reduceall`` macro to locally
-parallelize (e.g., using thread parallelism) the summation.
+The third and final task, ``reduce_y_task``,
+computes and returns the sum of a subspace of *Y*.
+For this it requests read/write access to the subspace
+and uses FleCSI's ``reduceall`` macro to locally parallelize
+(e.g., using thread parallelism)
+the summation.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
