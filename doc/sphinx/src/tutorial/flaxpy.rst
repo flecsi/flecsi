@@ -154,12 +154,11 @@ application.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 89-90,96-98
+   :lines: 89-90,93-98
 
-``one_field`` is defined in the above to save typing, both here and in
-task definitions (see `Tasks`_ below).
-``flecsi::data::layout::dense`` is in fact the default for a
-``flecsi::field`` and is included to show where layouts are indicated.
+``one_field`` is defined in the above to save typing,
+both here and in task definitions
+(see `Tasks`_ below).
 
 Specializations typically require run-time information to produce a
 usable object.  This information may not be available until a number
