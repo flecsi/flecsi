@@ -237,8 +237,13 @@ inline constexpr bool portable_v =
 /// \{
 
 /// Helper type to define and access fields.
-/// \tparam T field value type: a trivially copyable type with no pointers
-///   or references if any non-MPI tasks use it
+/// \tparam T field value type:
+///   - if any non-MPI tasks use the field, \c T must be a trivially copyable
+///     type with no pointers or references
+///   - if any instance of the field is resized, \c T must be trivially
+///     relocatable; this weaker property is not formally recognized by the
+///     language, but common implementations of \c std::vector and \c
+///     std::unique_ptr qualify
 /// \tparam L data layout
 template<class T, data::layout L = data::dense>
 struct field : data::detail::field_base<T, L> {
