@@ -26,6 +26,7 @@ if(FLECSI_BACKEND STREQUAL "legion")
     leg/future.hh
     leg/task_prologue.hh
     leg/reduction_wrapper.hh
+    leg/tracer.hh
   )
 
 elseif(FLECSI_BACKEND STREQUAL "mpi")
@@ -36,6 +37,7 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
     mpi/policy.hh
     mpi/reduction_wrapper.hh
     mpi/task_prologue.hh
+    mpi/tracer.hh
   )
 
 elseif(FLECSI_BACKEND STREQUAL "hpx")

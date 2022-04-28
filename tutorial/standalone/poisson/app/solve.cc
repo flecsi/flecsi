@@ -22,7 +22,20 @@ poisson::action::solve() {
 
   std::size_t sub{100};
   std::size_t ita{0};
+
+  // The tracing utility traces and optimizes loops during a Legion run. In this
+  // case a do-while loop will be analysed at every calls to the solve action.
+  // The trace is created before the loop; note that the object is static so the
+  // identifier of the trace remains the same across the calls to the solver
+  // action. The following call to the skip method ensure that the first loop of
+  // the do-while loop will not be traced which is required for specific Legion
+  // implementation. Inside the loop a guard is created. This creation starts
+  // the tracing and its destruction at the end of the do-while loop stops the
+  // trace.
+  static exec::trace t;
+  t.skip();
   do {
+    auto g = t.make_guard();
     for(std::size_t i{0}; i < sub; ++i) {
       execute<task::red>(m, ud(m), fd(m));
       execute<task::black>(m, ud(m), fd(m));

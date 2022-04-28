@@ -58,6 +58,10 @@ New features
   * Fields may be of non-portable types so long as they are used only by MPI tasks.
   * ``single`` accessors support ``->`` to access the members of a field value of class type.
 
+* Execution
+
+  * ``exec::trace`` improves performance of loops when used with the Legion backend.
+
 * Topologies
 
   * ``unstructured`` represents unstructured meshes.
