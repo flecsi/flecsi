@@ -317,9 +317,11 @@ via an *accessor* templated on an access right:
 ``rw`` (read/write), or
 ``na`` (no access).
 
-The ``initialize_vectors_task`` task requests write-only access
-to subspaces of *X* and *Y*.
-It uses ``divide_indices_among_colors``, defined above in `Data structures`_,
+The ``initialize_vectors_task`` task requests
+write-only access to subspaces of *X* and *Y*
+because write-only access is necessary to initialize a field.
+The task uses ``divide_indices_among_colors``,
+defined above in `Data structures`_,
 to compute the number of vector indices to which a point task has access
 and the global index corresponding to local index 0.
 Once these are known, the task initializes
