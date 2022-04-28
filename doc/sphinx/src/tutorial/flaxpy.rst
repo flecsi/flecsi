@@ -104,18 +104,21 @@ to provide all of this information.
 
 FLAXPY is based on the ``user`` topology, so named because it is
 arguably the simplest topology that behaves as a user would expect.
-It is essentially a 1-D vector of user-defined *fields* with no
-support for ghost cells.  All topologies specify the type of a
-*coloring*, which is additional run-time data the topology needs to
-produce a concrete data structure.  A specialization must define a
-``color`` method that accepts whatever parameters make sense for that
-specialization and returns a topology-specific ``coloring``.  The
-``user`` topology defines its ``coloring`` type as a
-``std::vector<std::size_t>`` that represents the number of vector
-indices to assign to each *color*.  (One can think of a color as being
-like an MPI rank: a globally unique identifier for a unit of
-computation.)  ``user`` does not require that the specialization
-provide any compile-time information, but most other topologies do.
+It is essentially a 1-D vector of user-defined *fields* with
+no support for ghost cells.
+All topologies specify a ``coloring`` type, which represents
+additional run-time data the topology needs
+to produce a concrete data structure.
+A specialization must define a ``color`` member function that
+accepts whatever parameters make sense for that specialization
+and returns a ``coloring``.
+The ``user`` topology defines its ``coloring`` type as
+a ``std::vector<std::size_t>`` that represents
+the number of vector indices to assign to each *color*.
+(A color is a unit of data upon which a point task operates.)
+``user`` does not require that the specialization provide
+any compile-time information,
+but most other topologies do.
 
 For FLAXPY we divide the indices as equally as possible among colors.
 The following helper function, still within the ``flaxpy`` namespace,
