@@ -71,8 +71,7 @@ New features
 
 * On-node parallelism
 
-  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be applied to subintervals of a range.
-  * These interfaces may be used without Kokkos enabled, in which case they run serially.
+  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be used without Kokkos enabled, in which case they run serially.
 
 * Utilities
 
@@ -82,6 +81,7 @@ New features
   * ``mdcolex`` accesses a multi-dimensional array using Fortran-like syntax.
   * ``mpi::one_to_alli`` scatters generated and/or serialized data with bounded memory usage.
   * MPI communication functions compute values to send in rank order and support mutable functors.
+  * ``substring_view`` represents part of another range.
 
 * Logging
 

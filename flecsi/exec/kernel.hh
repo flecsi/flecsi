@@ -130,29 +130,22 @@ struct policy_tag {};
 
 struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  typedef Kokkos::RangePolicy<>::member_type index;
+  using Policy = Kokkos::RangePolicy<>;
+  using index = Policy::member_type;
 #else
   typedef util::counter_t index;
+  using Policy = util::iota_view<index>;
 #endif
 };
 
 template<typename Range>
 struct range_policy : range_base, policy_tag {
-  range_policy(const Range & r, index l, index u) : range(r), lb(l), ub(u) {}
-  range_policy(Range && r, index l, index u)
-    : range(std::move(r)), lb(l), ub(u) {}
-  range_policy(Range r) : range_policy(std::move(r), 0, r.size()) {}
+  range_policy(Range r) : range(std::move(r)) {}
 
   auto get_policy() {
-#if defined(FLECSI_ENABLE_KOKKOS)
-    return Kokkos::RangePolicy<>(lb, ub);
-#else
-    return util::iota_view<index>(lb, ub);
-#endif
+    return Policy(0, range.size());
   }
   Range range;
-  index lb;
-  index ub;
 };
 
 /*!
