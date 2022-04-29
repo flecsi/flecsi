@@ -181,36 +181,31 @@ distributed vector:
 Control flow
 ++++++++++++
 
-A FleCSI application's control flow is defined using a three-level
-hierarchy.  *Control points* define the sequential skeleton of the
-control flow and can include unbounded iteration (e.g., to repeat a
-sequence of steps until convergence).  Each control point is
-associated with a collection of *actions*.  Actions are functions
-organized as a directed acyclic graph (DAG).  They thereby support
-concurrent execution but no iteration of nodes within the DAG.  They
-also cannot directly access distributed data.  Actions spawn *tasks*,
-which run concurrently and manipulate distributed data.
-
-The bulk of this section is presented in top-down fashion.  That is,
-function invocations are presented in advance of the functions
-themselves.  With the exception of the code appearing in the `Control
-points`_ section, all of the control-flow code listed below appears in
-an anonymous namespace, again, to indicate that it is meaningful only
-locally and not needed by the rest of the application.
-
-FLAXPY's overall control flow is illustrated in
-:numref:`flaxpy_control`.  `Control points`_ are drawn as white
-rounded rectangles; `actions <Actions_>`_ are drawn as blue ellipses;
-and `tasks <Tasks_>`_ are drawn as green rectangles.  As indicated by
-the figure, FLAXPY is a simple application and uses a trivial sequence
-of control points (no looping), trivial DAGs of actions (comprising a
-single node apiece), and trivial task launches (only one per action).
+Recall from the :doc:`control` section that
+a FleCSI application's control flow is defined in terms of a
+*control point*—*action*—*task* hierarchy.
+FLAXPY's overall control flow is illustrated in :numref:`flaxpy_control`.
+`Control points`_ are drawn as white rounded rectangles;
+`actions <Actions_>`_ are drawn as blue ellipses;
+and `tasks <Tasks_>`_ are drawn as green rectangles.
+As indicated by the figure, FLAXPY is a simple application
+and uses a trivial sequence of control points (no looping),
+trivial DAGs of actions (comprising a single node apiece),
+and trivial task launches (only one per action).
 
 .. _flaxpy_control:
 .. figure:: images/flaxpy-control-model.svg
    :align: center
 
    FLAXPY control model
+
+The bulk of this section is presented in top-down fashion.
+That is, function invocations are presented
+in advance of the functions themselves.
+With the exception of the code appearing in the `Control points`_ section,
+all of the control-flow code listed below appears in an anonymous namespace,
+again, to indicate that it is meaningful only locally
+and not needed by the rest of the application.
 
 
 Control points
