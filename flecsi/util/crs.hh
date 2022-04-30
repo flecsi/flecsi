@@ -53,8 +53,9 @@ struct crs : util::with_index_iterator<const crs> {
   }
 
   std::size_t size() const {
-    flog_assert(!offsets.empty(), "attempted to call entries on empty object");
-    return offsets.size() - 1;
+    flog_assert(offsets.empty() || offsets.size() > 1,
+      "attempted to call size on invalid crs object");
+    return offsets.empty() ? 0 : offsets.size() - 1;
   }
 
   void clear() {
