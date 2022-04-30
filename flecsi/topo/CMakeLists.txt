@@ -72,18 +72,6 @@ add_unit(coloring
   THREADS 5
 )
 
-add_unit(closure
-  SOURCES
-    unstructured/test/closure.cc
-    unstructured/test/simple_definition.hh
-    unstructured/test/ugm_definition.hh
-  INPUTS
-    unstructured/test/simple2d-16x16.msh
-    unstructured/test/simple2d-8x8.msh
-    unstructured/test/bunny.ugm
-  THREADS 2
-)
-
 set(UTHREADS 4)
 if(FLECSI_BACKEND STREQUAL "legion")
   #UTHREADS SHOULD BE SET TO 1 2 4 6 once the #colors>#ranks case is working for ragged communication. 
