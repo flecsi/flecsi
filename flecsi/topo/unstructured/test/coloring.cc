@@ -10,8 +10,6 @@
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
 
-//#include "tikz_writer.hh"
-
 using namespace flecsi;
 
 int
