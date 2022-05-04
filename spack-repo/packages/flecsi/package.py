@@ -8,7 +8,7 @@ from spack import *
 import os
 
 
-class Flecsi(CMakePackage):
+class Flecsi(CMakePackage, CudaPackage):
     '''FleCSI is a compile-time configurable framework designed to support
        multi-physics application development. As such, FleCSI attempts to
        provide a very general set of infrastructure design patterns that can
@@ -46,9 +46,6 @@ class Flecsi(CMakePackage):
 
     variant('kokkos', default=False,
             description='Enable Kokkos Support')
-
-    variant('cuda', default=False,
-             description='Enable CUDA Support')
 
     variant('openmp', default=False,
             description='Enable OpenMP Support')
@@ -94,6 +91,9 @@ class Flecsi(CMakePackage):
     # Kokkos
 
     depends_on('kokkos', when='+kokkos')
+
+    for _flag in list(CudaPackage.cuda_arch_values):
+        depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
 
     # Legion
 
