@@ -1,14 +1,13 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 
 from spack import *
-import os
 
 
-class Flecsi(CMakePackage):
+class Flecsi(CMakePackage, CudaPackage):
     '''FleCSI is a compile-time configurable framework designed to support
        multi-physics application development. As such, FleCSI attempts to
        provide a very general set of infrastructure design patterns that can
@@ -46,9 +45,6 @@ class Flecsi(CMakePackage):
 
     variant('kokkos', default=False,
             description='Enable Kokkos Support')
-
-    variant('cuda', default=False,
-             description='Enable CUDA Support')
 
     variant('openmp', default=False,
             description='Enable OpenMP Support')
@@ -93,13 +89,16 @@ class Flecsi(CMakePackage):
 
     # Kokkos
 
-    depends_on('kokkos', when='+kokkos')
+    depends_on('kokkos@3.2.00:', when='+kokkos')
+    depends_on('kokkos +cuda +cuda_constexpr +cuda_lambda', when='+kokkos +cuda')
 
     # Legion
 
     depends_on('legion@ctrl-rep-11:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('legion+shared',when='backend=legion +shared')
+    depends_on('legion network=gasnet', when='backend=legion')
+    depends_on('legion +kokkos +cuda', when='backend=legion +kokkos +cuda')
 
     # Metis
 
@@ -114,6 +113,12 @@ class Flecsi(CMakePackage):
 
     depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
 
+    # Propagate cuda_arch requirement to dependencies
+    cuda_arch_list = ('60', '70', '75', '80')
+    for _flag in cuda_arch_list:
+        depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
+        depends_on("legion cuda_arch=" + _flag, when="backend=legion +cuda cuda_arch=" + _flag)
+
     #--------------------------------------------------------------------------#
     # Conflicts
     #--------------------------------------------------------------------------#
@@ -126,38 +131,15 @@ class Flecsi(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
-        options = []
-
-        options.append('-DFLECSI_BACKEND=%s' %
-            spec.variants['backend'].value)
-
-        options.append('-DCALIPER_DETAIL=%s' %
-            spec.variants['caliper_detail'].value)
-
-        if ('+flog' in spec):
-            options.append('-DENABLE_FLOG=ON')
-
-        if '+graphviz' in spec:
-            options.append('-DENABLE_GRAPHVIZ=ON')
-
-        if '+hdf5' in spec and spec.variants['backend'].value != 'hpx':
-            options.append('-DENABLE_HDF5=ON')
-
-        if '+kokkos' in spec:
-            options.append('-DENABLE_KOKKOS=ON')
-
-        if '+openmp' in spec:
-            options.append('-DENABLE_OPENMP=ON')
-
-        if '~shared' in spec:
-            options.append('-DBUILD_SHARED_LIBS=OFF')
-
-        if '~unit' in spec:
-            options.append('-DENABLE_UNIT_TESTS=OFF')
-
-        if '+kokkos' in spec:
-            options.append('-DENABLE_KOKKOS=ON')
-        else:
-            options.append('-DENABLE_KOKKOS=OFF')
-
+        options = [
+            self.define_from_variant('FLECSI_BACKEND', 'backend'),
+            self.define_from_variant('CALIPER_DETAIL', 'caliper_detail'),
+            self.define_from_variant('ENABLE_FLOG', 'flog'),
+            self.define_from_variant('ENABLE_GRAPHVIZ', 'graphviz'),
+            self.define('ENABLE_HDF5', '+hdf5' in spec and spec.variants['backend'].value != 'hpx'),
+            self.define_from_variant('ENABLE_KOKKOS', 'kokkos'),
+            self.define_from_variant('ENABLE_OPENMP', 'openmp'),
+            self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
+            self.define_from_variant('ENABLE_UNIT_TESTS', 'unit')
+        ]
         return options
