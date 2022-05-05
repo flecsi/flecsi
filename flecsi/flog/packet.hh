@@ -28,10 +28,6 @@
 #include <thread>
 #include <vector>
 
-#ifndef FLOG_MAX_MESSAGE_SIZE
-#define FLOG_MAX_MESSAGE_SIZE 4096
-#endif
-
 #ifndef FLOG_MAX_PACKET_BUFFER
 #define FLOG_MAX_PACKET_BUFFER 1024
 #endif

@@ -82,6 +82,7 @@
 #cmakedefine FLOG_ENABLE_MPI
 #define FLOG_SERIALIZATION_INTERVAL @FLOG_SERIALIZATION_INTERVAL@
 #define FLOG_SERIALIZATION_THRESHOLD @FLOG_SERIALIZATION_THRESHOLD@
+#define FLOG_MAX_MESSAGE_SIZE @FLOG_MAX_MESSAGE_SIZE@
 #endif
 
 //----------------------------------------------------------------------------//
