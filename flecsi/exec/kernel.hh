@@ -194,7 +194,7 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 namespace detail {
 template<class R, class T>
 struct reduce_ref {
-  void operator()(const T & v) const {
+  FLECSI_INLINE_TARGET void operator()(const T & v) const {
     t = R::combine(t, v);
   }
   T & t;

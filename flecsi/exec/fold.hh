@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <limits>
 
+#include "flecsi/util/target.hh"
+
 namespace flecsi {
 namespace exec::fold {
 /// \defgroup fold Reduction Operations
@@ -35,7 +37,7 @@ struct reduce {
  */
 struct min {
   template<class T>
-  static T combine(T a, T b) {
+  FLECSI_INLINE_TARGET static T combine(T a, T b) {
     return std::min(a, b);
   }
 
@@ -54,7 +56,7 @@ public:
  */
 struct max {
   template<class T>
-  static T combine(T a, T b) {
+  FLECSI_INLINE_TARGET static T combine(T a, T b) {
     return std::max(a, b);
   }
 
@@ -73,7 +75,7 @@ public:
  */
 struct sum {
   template<class T>
-  static T combine(T a, T b) {
+  FLECSI_INLINE_TARGET static T combine(T a, T b) {
     return a + b;
   }
   template<class T>
@@ -85,7 +87,7 @@ struct sum {
  */
 struct product {
   template<class T>
-  static T combine(T a, T b) {
+  FLECSI_INLINE_TARGET static T combine(T a, T b) {
     return a * b;
   }
   template<class T>
