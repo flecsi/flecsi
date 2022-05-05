@@ -5,16 +5,21 @@
 #define FLECSI_TOPO_SET_INTERFACE_HH
 
 #include "flecsi/topo/core.hh" // base
-
+/// \cond core
 namespace flecsi {
 namespace topo {
-
+/// \defgroup set Particle Set
+/// Supports non-interacting particle methods.
+/// Can be used for coloring and binning particles.
+/// \ingroup topology
+/// \{
 struct set_base {
-
+  /// This struct gives the coloring interface for the Set topology.
+  /// \ingroup set
   struct coloring {
-
+    /// Pointer to the underlying topology slot
     void * ptr;
-
+    /// Counts per color
     std::vector<std::size_t> counts;
   };
 
@@ -25,7 +30,10 @@ struct set_base {
   }
 
 }; // set_base
-
+/// This struct is a Set topology interface.
+/// \tparam P the specialization following \ref set_specialization
+///
+/// The Set topology supports a single index space.
 template<typename P>
 struct set : set_base {
 
@@ -67,8 +75,18 @@ template<>
 struct detail::base<set> {
   using type = set_base;
 };
+#ifdef DOXYGEN
+/// Example specialization which is not really implemented. Specializations
+/// defining their own `index_space` and `index_spaces` are not supported by set
+/// topology.
+struct set_specialization : specialization<set, set_specialization> {
+  /// Underlying topology slot.
+  using t_type = int;
+};
+#endif
 
+/// \}
 } // namespace topo
 } // namespace flecsi
-
+/// \endcond
 #endif
