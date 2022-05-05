@@ -67,6 +67,9 @@ public:
 ///         - \c node_t : Node type for the ntree
 ///         - \c ent_t : Entity type for the ntree
 ///         - \c hash_f : Hashing function used in the hashing table
+///         - \c interaction_entities : Function defining if two entities
+///         interact
+///         - \c interaction_nodes : Function defining if two nodes interact
 template<typename Policy>
 struct ntree : ntree_base, with_meta<Policy> {
 
@@ -178,42 +181,35 @@ private:
 
   ntree_base::en_size rz, sz;
 
+private:
   // ----------------------- Top Tree Construction Tasks -----------------------
-  /**
-   * @brief Build the local tree.
-   * Add the entities in the hashmap and create needed nodes.
-   * After this first step, the top tree entities and nodes are returned. These
-   * will build the top tree, shared by all colors.
-   */
+  // Build the local tree.
+  // Add the entities in the hashmap and create needed nodes.
+  // After this first step, the top tree entities and nodes are returned. These
+  // will build the top tree, shared by all colors.
   static auto make_tree_local_task(
     typename Policy::template accessor<rw, na> t) {
     t.make_tree();
     return t.top_tree_boundaries();
   } // make_tree
 
-  /**
-   *  @brief Add the top tree to the local tree.
-   * First step is to load the top tree entities and nodes.
-   * The new sizes are then returned to create the copy plan for the top tree.
-   */
+  // Add the top tree to the local tree.
+  // First step is to load the top tree entities and nodes.
+  // The new sizes are then returned to create the copy plan for the top tree.
   static auto make_tree_distributed_task(
     typename Policy::template accessor<rw, na> t,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
   }
 
-  /**
-   * @brief Return the number of entities/nodes for local, top tree and ghosts
-   * stores in the respective index spaces.
-   */
+  // Return the number of entities/nodes for local, top tree and ghosts
+  // stores in the respective index spaces.
   static std::array<ent_node, 3> sizes_task(
     typename field<meta_type>::template accessor<ro, na> m) {
     return {{m(0).local, m(0).top_tree, m(0).ghosts}};
   }
 
-  /**
-   * @brief Copy plan: set destination sizes
-   */
+  // Copy plan: set destination sizes
   static void set_destination(field<data::intervals::Value>::accessor<wo> a,
     const std::vector<std::size_t> & base,
     const std::vector<std::size_t> & total) {
@@ -221,9 +217,7 @@ private:
     a(0) = data::intervals::make({base[i], base[i] + total[i]}, i);
   }
 
-  /**
-   * @brief Copy plan: set pointers for top tree
-   */
+  // Copy plan: set pointers for top tree
   template<index_space IS = entities>
   static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo, na> a,
     const std::vector<std::size_t> & base,
@@ -237,9 +231,7 @@ private:
     }
   }
 
-  /**
-   * @brief Copy plan:
-   */
+  // Copy plan: set pointers to entities
   static void set_entities_ptrs(field<data::points::Value>::accessor<wo, na> a,
     const std::vector<std::size_t> & nents_base,
     const std::vector<std::pair<hcell_t, std::size_t>> & ids) {
@@ -253,9 +245,7 @@ private:
 
   // ---------------------------- Top tree construction -----------------------
 public:
-  /**
-   * @brief  Build the local tree and share the top part of the tree
-   */
+  /// Build the local tree and share the top part of the tree
   static void make_tree(typename Policy::slot & ts) {
 
     auto cs = ts->colors();
@@ -425,7 +415,7 @@ private:
 
   // ----------------------------------- Share ghosts -------------------------
 public:
-  // Search neighbors and complete the hmap, create copy plans (or buffer)
+  /// Search neighbors and complete the hmap, create copy plans (or buffer)
   static void share_ghosts(typename Policy::slot & ts) {
     // Find entities that will be used
     auto to_send = flecsi::execute<find_task>(ts);
@@ -527,6 +517,8 @@ private:
   }
 
 public:
+  /// Reset the ntree topology, recompute the local tree and share new and share
+  /// new neighbors
   static void reset(typename Policy::slot & ts) {
     flecsi::execute<reset_task>(ts);
     ts->cp_top_tree_entities.reset();
@@ -535,7 +527,6 @@ public:
   }
 
   //---------------------------------------------------------------------------
-public:
   template<typename Type,
     data::layout Layout,
     typename Topo,
@@ -555,6 +546,7 @@ public:
     }
   }
 
+public:
   Color colors() const {
     return part.front().colors();
   }
@@ -583,14 +575,17 @@ struct ntree<Policy>::access {
   accessor<ntree::e_keys> e_keys;
   /// Nodes keys
   accessor<ntree::n_keys> n_keys;
-  /// Ntree data
-  accessor<ntree::data_field> data_field;
-  /// Hashing table entries
-  accessor<ntree::hcells> hcells;
+  // Entities interaction fields
   accessor<ntree::e_i> e_i;
+  /// Nodes interaction fields
   accessor<ntree::n_i> n_i;
+
+private:
+  accessor<ntree::data_field> data_field;
+  accessor<ntree::hcells> hcells;
   accessor<ntree::meta_field> mf;
 
+public:
   template<class F>
   void send(F && f) {
     e_keys.topology_send(f);
@@ -726,7 +721,7 @@ struct ntree<Policy>::access {
   //                                 ACCESSORS //
   // --------------------------------------------------------------------------//
 
-  /// Return a range of all entities of a type.
+  /// Return a range of all entities of a \c ntree_base::ptype_t
   template<ptype_t PT = ptype_t::exclusive>
   auto entities() {
     if constexpr(PT == ptype_t::exclusive) {
@@ -745,7 +740,7 @@ struct ntree<Policy>::access {
     }
   }
 
-  /// Get entities from a specific node.
+  /// Get entities of a specific type from a node.
   template<ptype_t PT = ptype_t::exclusive>
   std::vector<id<index_space::entities>> entities(
     const id<index_space::nodes> & node_id) const {
@@ -794,7 +789,7 @@ struct ntree<Policy>::access {
     return ids;
   }
 
-  /// Return a range of all nodes of a type.
+  /// Return a range of all nodes of a \c ntree_base::ptype_t
   template<ptype_t PT = ptype_t::exclusive>
   auto nodes() {
     if constexpr(PT == ptype_t::exclusive) {
@@ -813,7 +808,7 @@ struct ntree<Policy>::access {
     }
   }
 
-  /// Get nodes from a node.
+  /// Get nodes belonging to a node.
   std::vector<id<index_space::nodes>> nodes(
     const id<index_space::nodes> & node_id) {
     std::vector<id<index_space::nodes>> ids;
@@ -834,7 +829,7 @@ struct ntree<Policy>::access {
     return ids;
   }
 
-  // BFS traversal, return vector of ids
+  /// BFS traversal, return vector of ids in Breadth First Search order
   auto bfs() {
     auto hmap = map();
 
@@ -863,6 +858,9 @@ struct ntree<Policy>::access {
     return ids;
   } // bfs
 
+  /// DFS traversal, return vector of ids in Depth First Search order
+  /// \tparam complete Retrieve all completed nodes only: ignore non-local node.
+  /// This is only valid while building the ntree.
   template<ttype_t TT = ttype_t::preorder, bool complete = false>
   auto dfs() {
 
@@ -1313,11 +1311,9 @@ private:
     }
   }
 
-  /**
-   * @brief Add missing parent from distant node/entity
-   * This version does add the parents and add an idx
-   * This can only be done before any ghosts are received
-   */
+  // Add missing parent from distant node/entity
+  // This version does add the parents and add an idx
+  // This can only be done before any ghosts are received
   void add_parent(key_t key, int child, const int & color, hmap_t & hmap) {
     auto parent = hmap.end();
     while((parent = hmap.find(key)) == hmap.end()) {
@@ -1335,11 +1331,9 @@ private:
     parent->second.add_child(child);
   }
 
-  /**
-   * @brief Add missing parent from distant node/entity
-   * This version does add the parent but does not provides an idx for it.
-   * This is used when the local tree already received distant entities/nodes.
-   */
+  // Add missing parent from distant node/entity
+  // This version does add the parent but does not provides an idx for it.
+  // This is used when the local tree already received distant entities/nodes.
   void
   add_parent_distant(key_t key, int child, const int & color, hmap_t & hmap) {
     auto parent = hmap.end();
