@@ -51,54 +51,72 @@ struct span {
         std::data(std::declval<C &&>()))> (*)[],
       T (*)[]>>>
   constexpr span(C && c) : span(std::data(c), std::size(c)) {}
-
+  FLECSI_INLINE_TARGET
   constexpr iterator begin() const noexcept {
     return p;
   }
+
+  FLECSI_INLINE_TARGET
   constexpr iterator end() const noexcept {
     return q;
   }
 
+  FLECSI_INLINE_TARGET
   constexpr reverse_iterator rbegin() const noexcept {
     return reverse_iterator(end());
   }
+
+  FLECSI_INLINE_TARGET
   constexpr reverse_iterator rend() const noexcept {
     return reverse_iterator(begin());
   }
 
+  FLECSI_INLINE_TARGET
   constexpr reference front() const {
     return *begin();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr reference back() const {
     return end()[-1];
   }
 
+  FLECSI_INLINE_TARGET
   constexpr reference operator[](size_type i) const {
     return begin()[i];
   }
 
+  FLECSI_INLINE_TARGET
   constexpr pointer data() const noexcept {
     return begin();
   }
 
   // FIXME: Spurious overflow for extremely large ranges
+  FLECSI_INLINE_TARGET
   constexpr size_type size() const noexcept {
     return end() - begin();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr size_type size_bytes() const noexcept {
     return sizeof(element_type) * size();
   }
 
+  FLECSI_INLINE_TARGET
   constexpr bool empty() const noexcept {
     return begin() == end();
   }
 
+  FLECSI_INLINE_TARGET
   constexpr span first(size_type n) const {
     return {begin(), n};
   }
+
+  FLECSI_INLINE_TARGET
   constexpr span last(size_type n) const {
     return {end() - n, n};
   }
+  FLECSI_INLINE_TARGET
   constexpr span subspan(size_type i, size_type n = -1) const {
     return {begin() + i, n == size_type(-1) ? size() - i : n};
   }
@@ -305,31 +323,40 @@ struct iota_view {
 
   iota_view() = default;
   constexpr iota_view(I b, I e) : b(b), e(e) {}
-
+  FLECSI_INLINE_TARGET
   constexpr iterator begin() const noexcept {
     return b;
   }
+  FLECSI_INLINE_TARGET
   constexpr iterator end() const noexcept {
     return e;
   }
-
+  FLECSI_INLINE_TARGET
   constexpr bool empty() const {
     return b == e;
   }
+
+  FLECSI_INLINE_TARGET
   constexpr explicit operator bool() const {
     return !empty();
   }
 
+  FLECSI_INLINE_TARGET
   constexpr auto size() const {
     return e - b;
   }
 
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) front() const {
     return *begin();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) back() const {
     return *--end();
   }
+
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](I i) const {
     return begin()[i];
   }

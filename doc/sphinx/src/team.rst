@@ -276,6 +276,28 @@ Julien Loiseau
 
 |clearboth|
 
+Richard Berger
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/rberger.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Richard is a computational scientist in the Co-Design team with a
+      background in Mechatronics, high-performance computing, and software
+      engineering. He is currently contributing to the core development of FleCSI and
+      working on improving builds on multiple platforms.
+
+|clearboth|
+
 Alumni
 ******
 
