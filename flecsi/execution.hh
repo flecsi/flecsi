@@ -332,6 +332,38 @@ colors() {
 
 /// \}
 
+namespace flog {
+
+/*!
+  Explicitly flush buffered flog output.
+  \code#include "flecsi/execution.hh"\endcode
+
+  @ingroup flog
+ */
+
+inline void
+flush() {
+#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+  flecsi::exec::reduce_internal<flog::send_to_one, void, flecsi::mpi>();
+  flecsi::run::context::instance().flog_task_count() = 0;
+#endif
+} // flush
+
+inline void
+maybe_flush() {
+#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+  auto & flecsi_context = run::context::instance();
+  std::size_t & flog_task_count = flecsi_context.flog_task_count();
+  if(flog_task_count >= FLOG_SERIALIZATION_INTERVAL &&
+     flecsi::exec::
+         reduce_internal<flog::log_size, flecsi::exec::fold::max, flecsi::mpi>()
+           .get() > FLOG_SERIALIZATION_THRESHOLD)
+    flush();
+#endif
+} // maybe_flush
+
+} // namespace flog
+
 /// \defgroup execution Execution Model
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
@@ -360,15 +392,8 @@ auto
 reduce(Args &&... args) {
   using namespace exec;
 
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  auto & flecsi_context = run::context::instance();
-  std::size_t & flog_task_count = flecsi_context.flog_task_count();
-  ++flog_task_count;
-  if(flog_task_count % FLOG_SERIALIZATION_INTERVAL == 0 &&
-     reduce_internal<flog::log_size, fold::max, flecsi::mpi>().get() >
-       FLOG_SERIALIZATION_THRESHOLD)
-    reduce_internal<flog::send_to_one, void, flecsi::mpi>();
-#endif
+  ++run::context::instance().flog_task_count();
+  flog::maybe_flush();
 
   return reduce_internal<Task, Reduction, Attributes, Args...>(
     std::forward<Args>(args)...);
@@ -409,24 +434,86 @@ test(ARGS &&... args) {
     .get();
 } // test
 
-namespace flog {
+/// \cond core
+namespace exec {
+/// \addtogroup execution
+/// \{
 
-/*!
-  Explicitly flush buffered flog output.
-  \code#include "flecsi/execution.hh"\endcode
+#ifdef DOXYGEN // implemented per-backend
+/// Records execution of a loop whose iterations all execute the same sequence
+/// of tasks.  With the Legion backend, subsequent iterations run faster if
+/// traced.  The first iteration should be ignored if it might perform different
+/// ghost copies.
+struct trace {
 
-  @ingroup flog
- */
+  using id_t = int;
 
-inline void
-flush() {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  flecsi::exec::reduce_internal<flog::send_to_one, void, flecsi::mpi>();
-  flecsi::run::context::instance().flog_task_count() = 0;
+  /// Construct a trace with auto generated id
+  /// The first call to start is ignored by default
+  trace();
+  /// Construct a trace with auto generated id
+  /// \param hf Run or ignore the first trace call
+  explicit trace(bool hf);
+  /// Construct a trace with user defined id
+  /// call to start
+  /// \param id User defined id for the trace
+  /// \param hf Run or ignore the first trace call
+  explicit trace(id_t id, bool hf = true);
+
+  /// Default move constructor.
+  trace(trace &&) = default;
+
+  /// RAII guard for the trace
+  struct guard;
+
+  /// Creates a guard that traces during its lifetime, with flog support
+  inline guard make_guard();
+
+  /// Skip the next call to the tracer
+  void skip();
+
+private:
+  void start();
+  void stop();
+};
 #endif
-} // flush
 
-} // namespace flog
+// A RAII guard for the trace utility.
+struct trace::guard {
+
+  guard(guard &&) = delete;
+
+  // Build a guard and start tracing.
+  // This resets the flog counter to 0 before starting the trace.
+  explicit guard(trace & t_) : t(t_) {
+    current_flog_task_count =
+      std::exchange(flecsi::run::context::instance().flog_task_count(), 0);
+    t.start();
+  }
+
+  // Destroy a guard by stopping the tracing.
+  // The flog count is merged and triggered if needed.
+  ~guard() {
+    t.stop();
+    flecsi::run::context::instance().flog_task_count() +=
+      current_flog_task_count;
+    flog::maybe_flush();
+  }
+
+private:
+  trace & t;
+  std::size_t current_flog_task_count;
+
+}; // struct trace::guard
+
+trace::guard
+trace::make_guard() {
+  return guard(*this);
+}
+
+/// \}
+} // namespace exec
+/// \endcond
 
 } // namespace flecsi
 

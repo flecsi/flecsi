@@ -21,8 +21,19 @@ enum task_attributes_mask_t : TaskAttributes {
   inner = 0x02,
   idempotent = 0x04, ///< Task may be replicated to reduce communication.
   loc = 0x08, ///< Run on a Latency-Optimized Core (a CPU).
-  toc = 0x10, ///< Run on a Throughput-Optimized Core (a GPU).
-  omp = 0x20, ///< Run as an OpenMP task
+  /// Run on a Throughput-Optimized Core (a GPU).
+  ///
+  /// \warning MPI backend: Running one process per node likely
+  ///          leads to poor performance.
+  toc = 0x10,
+  /// Run as an OpenMP task
+  ///
+  /// \note Legion backend: Can improve OpenMP task execution, since Legion
+  ///       knows to assign an entire node to such a task
+  ///
+  /// \warning MPI backend: Running one process per core likely
+  ///          leads to poor performance.
+  omp = 0x20,
   /// Run simultaneously on all processes with the obvious color mapping;
   /// allow MPI communication among point tasks, at the cost of significant
   /// startup overhead.

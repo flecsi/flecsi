@@ -54,12 +54,10 @@ reduce_vec(intN::accessor<ro> a) {
 
 void
 modify_bound(intN::accessor<wo> a) {
-  forall(
-    j, (flecsi::exec::range_policy{util::span(*a), 0, 5}), "modify_first") {
+  forall(j, util::substring_view(util::span(*a), 0, 5), "modify_first") {
     j = 2;
   };
-  forall(
-    j, (flecsi::exec::range_policy{util::span(*a), 5, 10}), "modify_last") {
+  forall(j, util::substring_view(util::span(*a), 5, 5), "modify_last") {
     j = 5;
   };
 }
@@ -81,7 +79,7 @@ reduce_vec_bound(intN::accessor<ro> a) {
   UNIT() {
     size_t res_first = reduceall(j,
       up,
-      (flecsi::exec::range_policy{util::span(*a), 0, 5}),
+      util::substring_view(util::span(*a), 0, 5),
       exec::fold::sum,
       size_t,
       "reduce_first") {
@@ -91,7 +89,7 @@ reduce_vec_bound(intN::accessor<ro> a) {
 
     size_t res_last = reduceall(j,
       up,
-      (flecsi::exec::range_policy{util::span(*a), 5, 10}),
+      util::substring_view(util::span(*a), 5, 5),
       exec::fold::sum,
       size_t,
       "reduce_last") {

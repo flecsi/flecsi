@@ -26,8 +26,13 @@ struct ntree_base {
     ghost, ///< Remote data.
     all ///< Both kinds.
   };
-  // traversal types for DFS
-  enum ttype_t { preorder, postorder, reverse_preorder, reverse_postorder };
+  /// Traversal types for DFS
+  enum ttype_t {
+    preorder, ///< Pre-ordered DFS traversal
+    postorder, ///< Post-ordered DFS traversal
+    reverse_preorder, ///< Reverse pre-ordered DFS traversal
+    reverse_postorder ///< Reverse post-ordered DFS traversal
+  };
 
   using ent_id = topo::id<entities>;
   using node_id = topo::id<nodes>;

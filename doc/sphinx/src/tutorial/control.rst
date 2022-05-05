@@ -8,19 +8,25 @@ Control Model
 *************
 
 The FleCSI control model allows users to define the high-level structure
-of an application using a control-flow graph (CFG) of *control points*,
-under each of which a directed acyclic graph (DAG) of *actions* can be
-defined.
+of an application
+using a control-flow graph (CFG) of *control points*,
+under each of which a directed acyclic graph (DAG) of *actions* can be defined.
+An action typically launches at least one *task*,
+which is granted access to a subset (color) of a distributed data structure.
+A task launch produces one *point task* (instance) per color.
+Point tasks run concurrently with respect to each other.
 
-.. sidebar:: Control Points & Actions
+.. sidebar:: Control-model concepts
 
    **Control Points** are the logical steps in a control-flow graph.
    These are not actual execution units. However, they define named
    anchors where actions can be registered that will be executed when
    the control-flow graph reaches that control point.
 
-   **Actions** are the C/C++ functions that are executed under a control
-   point.
+   **Actions** are C++ functions that are executed under a control point.
+
+   **Tasks** are C++ functions launched by an action
+   and that access distributed data.
 
 For FleCSI developers, the control model replaces the normal hard-coded
 execution structure of an application, instead providing a well-defined,
