@@ -5,5 +5,5 @@
 # exclude compiled Python files due to Spack repo
 *.pyc
 
-# exclude generated images in the documentation
-doc/sphinx/src/tutorial/images/flaxpy-control-model.svg
+# exclude generated images appearing in the documentation
+doc/sphinx/src/tutorial/images/*.svg
