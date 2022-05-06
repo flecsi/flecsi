@@ -2,25 +2,25 @@
 
    <br />
 
-Standalone
-**********
+Poisson
+*******
 
 This example is designed to be used as a template for creating
 FleCSI-based application codes and is intended as the last example in
 the tutorial. As such, this example provides the following components:
 
-* A basic CMake build system.
+* a basic CMake build system
 
-* A simple control policy.
+* a simple control policy
 
-* A standard FleCSI-based *main* function.
+* a standard FleCSI-based *main* function
 
 We discuss each of these individually. However, in general, to use this
 example as a template for a real application, you should just change all
 occurrances of ``poisson`` to whatever namespace name you would like to
 use for your project.
 
-Build System
+Build system
 ++++++++++++
 
 The build system uses standard CMake and is entirely defined in
@@ -43,7 +43,7 @@ will need a working knowledge of CMake. Documentation for CMake is
 
 __ https://cmake.org/documentation
 
-Control Policy
+Control policy
 ++++++++++++++
 
 The control policy for this example is located in
@@ -55,17 +55,17 @@ examples in :ref:`TUT-CM` Tutorial.
 
    Control Policy for Stand-Alone Application.
 
-Main Function
+Main function
 +++++++++++++
 
 The *main* function for this example is located in ``poisson.cc``.
 Unless you need to initialize additional runtimes that are not handled
-internally by FleCSI, you can likely use this file as-is (with a different namespace name).
+internally by FleCSI, you can likely use this file as is (with a different namespace name).
 
 .. literalinclude:: ../../../../tutorial/standalone/poisson/app/poisson.cc
    :language: cpp
 
-Building the Stand-Alone Example
+Building the Poisson application
 ++++++++++++++++++++++++++++++++
 
 :ref:`build` FleCSI somewhere on your system and make sure

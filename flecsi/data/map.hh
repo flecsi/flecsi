@@ -11,6 +11,8 @@ namespace flecsi {
 namespace data::launch {
 /// \defgroup launch Launch maps
 /// Selecting topology colors to send to tasks.
+/// \warning Only the Legion backend supports non-trivial mappings that select
+///   any color but their own.
 /// \ingroup data
 /// \{
 

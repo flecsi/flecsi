@@ -27,6 +27,8 @@ namespace exec {
 /// \defgroup kernel Kernels
 /// Local concurrent operations.
 /// If Kokkos is not available, they simply execute serially.
+/// To avoid unnecessary copies, one needs to pass a view since the ranges
+/// provided by the user are copied.
 /// \ingroup execution
 /// \{
 #if defined(FLECSI_ENABLE_KOKKOS)
@@ -116,53 +118,33 @@ public:
 } // namespace kok
 #endif
 
-/*!
-  Kokkos provides different execution policies that controls how the parallel
-  execution is done in Kokkos::parallel_for and Kokkos::parallel_reduce. FleCSI
-  currently provide support for the following execution policies; 1) range
-  policy, 2) range policy with lower and upper bounds defined.
-  To ensure unnecessary copy does not happen, one need to pass a range
-  object that is not already a wrapper over flecsi::util::span through the span
-  like util::span(*a).
- */
-
 struct policy_tag {};
 
 struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  typedef Kokkos::RangePolicy<>::member_type index;
+  using Policy = Kokkos::RangePolicy<>;
+  using index = Policy::member_type;
 #else
   typedef util::counter_t index;
+  using Policy = util::iota_view<index>;
 #endif
 };
 
 template<typename Range>
 struct range_policy : range_base, policy_tag {
-  range_policy(const Range & r, index l, index u) : range(r), lb(l), ub(u) {}
-  range_policy(Range && r, index l, index u)
-    : range(std::move(r)), lb(l), ub(u) {}
-  range_policy(Range r) : range_policy(std::move(r), 0, r.size()) {}
+  range_policy(Range r) : range(std::move(r)) {}
 
   auto get_policy() {
-#if defined(FLECSI_ENABLE_KOKKOS)
-    return Kokkos::RangePolicy<>(lb, ub);
-#else
-    return util::iota_view<index>(lb, ub);
-#endif
+    return Policy(0, range.size());
   }
   Range range;
-  index lb;
-  index ub;
 };
 
-/*!
-  This function is a wrapper for Kokkos::parallel_for that has been adapted to
-  work with random access ranges common in FleCSI topologies. The parallel_for
-  function takes in policy objects or the range. In particular, this function
-  invokes a map from the normal kernel index space to the FleCSI index space,
-  which may require indirection.
- */
-
+/// This function is a wrapper for Kokkos::parallel_for that has been adapted to
+/// work with random access ranges common in FleCSI topologies. In particular,
+/// this function invokes a map from the normal kernel index space to the FleCSI
+/// index space, which may require indirection.
+/// \param p sized random-access range
 template<typename Policy, typename Lambda>
 void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
@@ -204,7 +186,7 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
 /// \param it variable name to introduce
-/// \param P sized random-access range, possibly wrapped in a policy
+/// \param P sized random-access range
 /// \param name debugging name, convertible to \c std::string
 #define forall(it, P, name)                                                    \
   ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
@@ -212,18 +194,17 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 namespace detail {
 template<class R, class T>
 struct reduce_ref {
-  void operator()(const T & v) const {
+  FLECSI_INLINE_TARGET void operator()(const T & v) const {
     t = R::combine(t, v);
   }
   T & t;
 };
 } // namespace detail
 
-/*!
-  This function is a wrapper for Kokkos::parallel_reduce that has been adapted
-  to work with random access ranges common in FleCSI topologies. The
-  parallel_reduce function takes in policy objects or the range.
- */
+/// This function is a wrapper for Kokkos::parallel_reduce that has been adapted
+/// to work with random access ranges common in FleCSI topologies.
+/// \param p sized random-access range
+
 template<class R, class T, typename Policy, typename Lambda>
 T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
@@ -280,7 +261,7 @@ make_reduce(P policy, std::string n) {
 /// \param it variable name to introduce for elements
 /// \param ref variable name to introduce for storing results: call it to add
 ///   a value to the reduction
-/// \param p sized random-access range, possibly wrapped in a policy
+/// \param p sized random-access range
 /// \param R reduction operation type
 /// \param T data type
 /// \param name debugging name, convertible to \c std::string

@@ -268,6 +268,15 @@ array_ref() {
     flecsi::util::transform_view tv(b, [](auto & x) { return &x; });
     EXPECT_EQ(*tv.begin(), &b.front());
     EXPECT_EQ(tv.end()[-1], &b.back());
+
+    {
+      static short four[4];
+      constexpr int i = 1, n = 2;
+      constexpr util::substring_view sv((util::span(four)), i, n);
+      static_assert(&*sv.begin() == four + i);
+      static_assert(sv.size() == n);
+      static_assert(sv.begin() + n == sv.end());
+    }
   };
 } // array_ref
 

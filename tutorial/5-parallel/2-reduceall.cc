@@ -40,7 +40,7 @@ void
 reduce2(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   auto res = flecsi::exec::parallel_reduce<exec::fold::max, double>(
     t.cells(),
-    KOKKOS_LAMBDA(auto c, auto up) { up(p[c]); },
+    FLECSI_LAMBDA(auto c, auto up) { up(p[c]); },
     std::string("reduce2"));
 
   flog_assert(res == 6.0, res << " != 6.0");

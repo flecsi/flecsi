@@ -200,6 +200,28 @@ task_driver() {
     flecsi::execute<reduction>(arr_vals, vals);
     flecsi::execute<reduction>(arr_vals, vals);
     EXPECT_EQ(test<check>(vals, np), 0);
+
+    // Tracing utility test
+    // Auto id + ignore first iteration
+    exec::trace t1;
+    t1.skip();
+    for(int i = 0; i < 5; ++i) {
+      auto g = t1.make_guard();
+      execute<hydro::simple<float>>(6.2);
+    }
+    // User id + ignore first iteration
+    exec::trace t2(10);
+    t2.skip();
+    for(int i = 0; i < 5; ++i) {
+      auto g = t2.make_guard();
+      execute<hydro::simple<float>>(6.2);
+    }
+    // User id + trace first iteration
+    exec::trace t3(11);
+    for(int i = 0; i < 5; ++i) {
+      auto g = t3.make_guard();
+      execute<hydro::simple<float>>(6.2);
+    }
   };
 } // task_driver
 

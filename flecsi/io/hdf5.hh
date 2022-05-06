@@ -1,19 +1,10 @@
-/*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
+// Copyright (c) 2016, Triad National Security, LLC
+// All rights reserved.
 
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-#pragma once
+// Low-level HDF5 interface.
 
-/*! @file */
+#ifndef FLECSI_IO_HDF5_HH
+#define FLECSI_IO_HDF5_HH
 
 #include <hdf5.h>
 #include <string>
@@ -315,3 +306,5 @@ struct hdf5 {
 } // namespace io
 } // namespace flecsi
 /// \endcond
+
+#endif

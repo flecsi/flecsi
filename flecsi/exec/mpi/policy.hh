@@ -8,6 +8,7 @@
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/exec/mpi/reduction_wrapper.hh"
+#include "flecsi/exec/mpi/tracer.hh"
 #include "flecsi/exec/prolog.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
