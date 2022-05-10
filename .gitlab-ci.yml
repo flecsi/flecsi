@@ -86,7 +86,7 @@ mpich-legion-gnu:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
@@ -105,7 +105,7 @@ mpich-legion-gnu:release:
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -129,7 +129,7 @@ mpich-mpi-gnu:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -148,7 +148,7 @@ mpich-mpi-gnu:release:
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -193,7 +193,7 @@ openmpi-legion-gnu:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -212,7 +212,7 @@ openmpi-legion-gnu:release:
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -236,7 +236,7 @@ openmpi-mpi-gnu:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -255,7 +255,7 @@ openmpi-mpi-gnu:release:
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
+    CXX_FLAGS: -Wall -Wundef -W -Werror
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
@@ -279,7 +279,7 @@ mpich-legion-clang:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: -fcolor-diagnostics -Wall -Wundef -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -303,7 +303,7 @@ mpich-mpi-clang:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: -fcolor-diagnostics -Wall -Wundef -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON
@@ -328,7 +328,7 @@ openmpi-mpi-clang:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: -fcolor-diagnostics -Wall -Wundef -W -Werror
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
