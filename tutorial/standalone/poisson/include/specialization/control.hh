@@ -34,13 +34,10 @@ struct control_policy : flecsi::run::control_base {
 
   using control = flecsi::run::control<control_policy>;
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
-  using control_points = std::tuple<control_point<cp::initialize>,
-    control_point<cp::solve>,
-    control_point<cp::analyze>,
-    control_point<cp::finalize>>;
+  using control_points = list<point<cp::initialize>,
+    point<cp::solve>,
+    point<cp::analyze>,
+    point<cp::finalize>>;
 }; // struct control_policy
 
 using control = flecsi::run::control<control_policy>;

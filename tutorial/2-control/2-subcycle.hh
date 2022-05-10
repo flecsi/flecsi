@@ -59,22 +59,17 @@ struct control_policy : flecsi::run::control_base {
     return control::instance().step()++ < 5;
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
   /*
     Define a subcycle type.
    */
 
-  using subcycle = flecsi::run::cycle<subcycle_control,
-    control_point<cp::advance>,
-    control_point<cp::advance2>>;
+  using subcycle = flecsi::run::
+    cycle<subcycle_control, point<cp::advance>, point<cp::advance2>>;
 
-  using cycle =
-    flecsi::run::cycle<cycle_control, subcycle, control_point<cp::analyze>>;
+  using cycle = flecsi::run::cycle<cycle_control, subcycle, point<cp::analyze>>;
 
-  using control_points = std::
-    tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, cycle, point<cp::finalize>>;
 
 private:
   size_t substep_{0};

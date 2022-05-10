@@ -53,11 +53,6 @@ struct control_policy : flecsi::run::control_base {
 
   struct node_policy {};
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-  template<auto CP>
-  using meta_point = flecsi::run::meta_point<CP>;
-
   static bool subcycle_control() {
     if(substep % 3 < 2) {
       flog(info) << "substep: " << substep % 3 << std::endl;
@@ -66,7 +61,7 @@ struct control_policy : flecsi::run::control_base {
   }
 
   using subcycle = flecsi::run::cycle<subcycle_control,
-    control_point<control_points_enum::advance_subcycle>>;
+    point<control_points_enum::advance_subcycle>>;
 
   static bool cycle_control() {
     if(step++ < 2) {
@@ -77,18 +72,17 @@ struct control_policy : flecsi::run::control_base {
   }
 
   using cycle = flecsi::run::cycle<cycle_control,
-    meta_point<control_points_enum::advance_internal>,
-    control_point<control_points_enum::advance>,
+    meta<control_points_enum::advance_internal>,
+    point<control_points_enum::advance>,
     subcycle,
-    control_point<control_points_enum::analyze>,
-    control_point<control_points_enum::io>,
-    control_point<control_points_enum::mesh>>;
+    point<control_points_enum::analyze>,
+    point<control_points_enum::io>,
+    point<control_points_enum::mesh>>;
 
-  using control_points =
-    std::tuple<meta_point<control_points_enum::init_internal>,
-      control_point<control_points_enum::initialization>,
-      cycle,
-      control_point<control_points_enum::finalization>>;
+  using control_points = list<meta<control_points_enum::init_internal>,
+    point<control_points_enum::initialization>,
+    cycle,
+    point<control_points_enum::finalization>>;
 };
 
 using control = flecsi::run::control<control_policy>;

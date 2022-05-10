@@ -49,13 +49,9 @@ struct control_policy : flecsi::run::control_base {
 
   struct node_policy {};
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
-  using control_points =
-    std::tuple<control_point<control_points_enum::initialization>,
-      control_point<control_points_enum::driver>,
-      control_point<control_points_enum::finalization>>;
+  using control_points = list<point<control_points_enum::initialization>,
+    point<control_points_enum::driver>,
+    point<control_points_enum::finalization>>;
 }; // struct control_policy
 
 using control = flecsi::run::control<flecsi::unit::control_policy>;

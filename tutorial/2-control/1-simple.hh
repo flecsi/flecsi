@@ -41,7 +41,7 @@ operator*(cp control_point) {
   that are used by the core control type to define the control-flow model for
   the program. For this simple example, the policy captures the user-defined
   enumeration of control-points identifiers, defines an empty node policy, and
-  defines the order of control point execution using std::tuple.
+  defines the order of control point execution using a list.
  */
 
 struct control_policy : flecsi::run::control_base {
@@ -63,22 +63,13 @@ struct control_policy : flecsi::run::control_base {
   struct node_policy {};
 
   /*
-    This is a convenience type definition that provides typeification of an
-    integer value.
-   */
-
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
-  /*
-    The control_points tuple defines the actual control points as typeified
+    The control_points list defines the actual control points as typeified
     integers derived from the control point identifiers from the user-defined
     enumeration.
    */
 
-  using control_points = std::tuple<control_point<cp::initialize>,
-    control_point<cp::advance>,
-    control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, point<cp::advance>, point<cp::finalize>>;
 };
 
 /*

@@ -51,26 +51,22 @@ struct control_policy : flecsi::run::control_base {
     return control::instance().step()++ < 5;
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
   /*
     The cycle type. Cycles are similar to the control_points tuple, with the
     addition of a predicate function that controls termination of the cycle.
    */
 
-  using cycle = flecsi::run::cycle<cycle_control,
-    control_point<cp::advance>,
-    control_point<cp::analyze>>;
+  using cycle =
+    flecsi::run::cycle<cycle_control, point<cp::advance>, point<cp::analyze>>;
 
   /*
-    The control_points tuple type takes the cycle as one of its
+    The control_points list type takes the cycle as one of its
     elements. Valid types for the control_points tuple are, therefore,
     either typeified enumeration values, or cycles.
    */
 
-  using control_points = std::
-    tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, cycle, point<cp::finalize>>;
 
 private:
   size_t step_{0};

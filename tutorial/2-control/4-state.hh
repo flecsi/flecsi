@@ -37,15 +37,12 @@ struct control_policy : flecsi::run::control_base {
     return control::instance().step()++ < control::instance().steps();
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  using cycle = flecsi::run::cycle<cycle_control, point<cp::advance>>;
 
-  using cycle = flecsi::run::cycle<cycle_control, control_point<cp::advance>>;
-
-  using control_points = std::tuple<control_point<cp::allocate>,
-    control_point<cp::initialize>,
+  using control_points = list<point<cp::allocate>,
+    point<cp::initialize>,
     cycle,
-    control_point<cp::finalize>>;
+    point<cp::finalize>>;
 
   /*--------------------------------------------------------------------------*
     State interface

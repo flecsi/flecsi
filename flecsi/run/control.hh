@@ -40,13 +40,11 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 #endif
 
+/// Type for control points
+/// \tparam CP control point enumerator
+/// \deprecated Use \c control_base::control_point.
 template<auto CP>
 using control_point = run_impl::control_point<CP>;
-
-/// A control point for specialization use.
-/// \tparam CP control point enumerator
-template<auto CP>
-using meta_point = run_impl::meta_point<CP>;
 
 /*!
   A control-flow cycle.
@@ -61,6 +59,21 @@ using cycle = run_impl::cycle<P, CP...>;
  */
 
 struct control_base {
+  /// Type for control points.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using point = run_impl::control_point<CP>;
+
+  /// A control point for specialization use.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using meta = run_impl::meta_point<CP>;
+
+  /// Type for specifying \c control_points
+  /// \tparam TT pack of \c control_point, \c meta_point, or \c cycle
+  template<class... TT>
+  using list = util::types<TT...>;
+
   /// Called before executing.  If the value returned is not \c success,
   /// \c run and \c finalize are skipped.
   /// \return exit status
@@ -84,7 +97,7 @@ struct control_policy : control_base {
   enum control_points_enum {};
   /// The control-flow graph.
   /// Each element is a \c control_point or a \c cycle.
-  using control_points = std::tuple<>;
+  using control_points = list<>;
   /// Base class for control point objects.
   struct node_policy {};
 };
