@@ -3,9 +3,7 @@
 
 option(ENABLE_MPI "Enable MPI" OFF)
 option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
-option(ENABLE_MPI_THREAD_MULITPLE "Enable MPI_THREAD_MULTIPLE" OFF)
 mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
-mark_as_advanced(ENABLE_MPI_THREAD_MULITPLE)
 
 if(ENABLE_MPI)
   find_package(Threads REQUIRED)
