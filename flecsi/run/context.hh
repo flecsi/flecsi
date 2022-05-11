@@ -157,6 +157,9 @@ struct context {
       "Pass arguments to the backend. The single argument is a quoted "
       "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
+    std::string flog_tags_;
+    int flog_verbose_;
+    int64_t flog_output_process_;
     // Add FleCSI options
     flecsi_desc.add_options() // clang-format off
       (
@@ -524,10 +527,6 @@ protected:
   std::string program_;
   std::vector<char *> argv_;
   std::string backend_;
-
-  std::string flog_tags_;
-  int flog_verbose_;
-  int64_t flog_output_process_;
 
   bool initialize_dependent_ = true;
 
