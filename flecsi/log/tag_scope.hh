@@ -10,6 +10,7 @@
 
 #include "flecsi/log/state.hh"
 
+/// \cond core
 namespace flecsi {
 namespace log {
 /// \addtogroup flog
@@ -52,6 +53,7 @@ private:
 /// \}
 } // namespace log
 } // namespace flecsi
+/// \endcond
 
 #endif // FLECSI_ENABLE_FLOG
 
