@@ -111,17 +111,18 @@ The actions are where the actual work of the simulation is executed.
    control-overview program that is located in
    'flecsi/tutorial/.auxiliary/control-overview'.
 .. _cfg:
-.. figure:: images/overview.png
+.. figure:: images/overview.svg
    :align: center
+   :width: 90%
 
    Example FleCSI Control Model.
 
 .. sidebar:: Sequential Ordering
 
    .. _sequential:
-   .. figure:: images/sequential.png
+   .. figure:: images/sequential.svg
       :align: center
-      :width: 70%
+      :width: 50%
 
       A valid ordering of :numref:`cfg`.
 
@@ -184,7 +185,7 @@ However, this is a small cost to allow easy experimentation and
 extension of the application.
 
 .. _extension:
-.. figure:: images/extension.png
+.. figure:: images/extension.svg
    :align: center
 
    Control Model After Extension.
@@ -225,9 +226,9 @@ However, it will serve to introduce the definition of a control model
 from the core FleCSI type.
 
 .. _simple:
-.. figure:: images/simple.png
+.. figure:: images/simple.svg
    :align: center
-   :width: 60%
+   :width: 45%
 
    Control Model for Example 1.
 
@@ -430,9 +431,9 @@ cycles over *advance* and *analyze* control points.
 This example demonstrates how to add a cycle.
 
 .. _cycle:
-.. figure:: images/cycle.png
+.. figure:: images/cycle.svg
    :align: center
-   :width: 60%
+   :width: 55%
 
    Example FleCSI Control Model with Cycle.
 
@@ -500,7 +501,7 @@ main function for this example is the same.
   you can view the source in *tutorial/2-control/2-subcycle.hh*.
 
 .. _subcycle:
-.. figure:: images/subcycle.png
+.. figure:: images/subcycle.svg
    :align: center
    :width: 60%
 
@@ -515,9 +516,9 @@ In particular, it demonstrates adding dependencies after-the-fact.
 The resulting control model is shown in :numref:`dependencies`.
 
 .. _dependencies:
-.. figure:: images/dependencies.png
+.. figure:: images/dependencies.svg
    :align: center
-   :width: 60%
+   :width: 80%
 
    Example Action Dependencies.
 
