@@ -25,6 +25,8 @@ struct trace {
 private:
   void start() {
     if(!skip_) {
+      if(tracing)
+        flog_fatal("Trace already running: traces cannot be overlapping");
       // Call Legion tracing tool
       Legion::Runtime::get_runtime()->begin_trace(
         Legion::Runtime::get_context(),
@@ -33,6 +35,7 @@ private:
         false, // static_trace  = false
         NULL // std::set<RegionTreeID> *managed = NULL
       );
+      tracing = true;
     }
   }
 
@@ -40,15 +43,23 @@ private:
     if(!skip_) {
       Legion::Runtime::get_runtime()->end_trace(
         Legion::Runtime::get_context(), id_);
+      tracing = false;
     }
     else {
       skip_ = false;
     }
   }
 
+public:
+  static bool is_tracing() {
+    return tracing;
+  }
+
+private:
   static inline id_t g_id_ = 0;
   id_t id_;
   bool skip_;
+  static inline bool tracing = false;
 
 }; // struct trace
 
