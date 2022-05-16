@@ -60,8 +60,8 @@ struct control_policy : flecsi::run::control_base {
     return substep++ % 3 < 2;
   }
 
-  using subcycle = flecsi::run::cycle<subcycle_control,
-    point<control_points_enum::advance_subcycle>>;
+  using subcycle =
+    cycle<subcycle_control, point<control_points_enum::advance_subcycle>>;
 
   static bool cycle_control() {
     if(step++ < 2) {
@@ -71,7 +71,7 @@ struct control_policy : flecsi::run::control_base {
     return false;
   }
 
-  using cycle = flecsi::run::cycle<cycle_control,
+  using main_cycle = flecsi::run::cycle<cycle_control,
     meta<control_points_enum::advance_internal>,
     point<control_points_enum::advance>,
     subcycle,
@@ -81,7 +81,7 @@ struct control_policy : flecsi::run::control_base {
 
   using control_points = list<meta<control_points_enum::init_internal>,
     point<control_points_enum::initialization>,
-    cycle,
+    main_cycle,
     point<control_points_enum::finalization>>;
 };
 

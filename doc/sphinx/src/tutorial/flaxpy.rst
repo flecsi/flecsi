@@ -230,7 +230,7 @@ follows, still within the ``flaxpy`` namespace:
 Once an application defines its control points
 it specifies a sequential order for them to execute.
 (The equivalent of a ``while`` loop
-can be expressed with ``flecsi::run::cycle``,
+can be expressed with ``flecsi::control_base::cycle``,
 and loops can be nested.)
 FLAXPY indicates with the following code that
 ``initialize`` runs first,

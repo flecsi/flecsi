@@ -52,12 +52,12 @@ struct control_policy : flecsi::run::control_base {
   }
 
   /*
-    The cycle type. Cycles are similar to the control_points tuple, with the
+    A cycle type. Cycles are similar to the control_points tuple, with the
     addition of a predicate function that controls termination of the cycle.
    */
 
-  using cycle =
-    flecsi::run::cycle<cycle_control, point<cp::advance>, point<cp::analyze>>;
+  using main_cycle =
+    cycle<cycle_control, point<cp::advance>, point<cp::analyze>>;
 
   /*
     The control_points list type takes the cycle as one of its
@@ -66,7 +66,7 @@ struct control_policy : flecsi::run::control_base {
    */
 
   using control_points =
-    list<point<cp::initialize>, cycle, point<cp::finalize>>;
+    list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
 
 private:
   size_t step_{0};

@@ -317,7 +317,7 @@ type. This is the control type that we will use in our example application.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 76-80
+  :lines: 75-80
 
 That's the entire control policy for this example.
 Without comments, it is about 20 lines of code. Let's see how we use it!
@@ -485,7 +485,7 @@ The last piece needed to add the cycle is the actual definition of the
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 63-70
+   :lines: 62-70
 
 Other than adding an action under the new analyze control point, the
 main function for this example is the same.

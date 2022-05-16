@@ -63,13 +63,14 @@ struct control_policy : flecsi::run::control_base {
     Define a subcycle type.
    */
 
-  using subcycle = flecsi::run::
+  using subcycle =
     cycle<subcycle_control, point<cp::advance>, point<cp::advance2>>;
 
-  using cycle = flecsi::run::cycle<cycle_control, subcycle, point<cp::analyze>>;
+  using main_cycle =
+    flecsi::run::cycle<cycle_control, subcycle, point<cp::analyze>>;
 
   using control_points =
-    list<point<cp::initialize>, cycle, point<cp::finalize>>;
+    list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
 
 private:
   size_t substep_{0};
