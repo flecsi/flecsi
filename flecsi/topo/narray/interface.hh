@@ -429,8 +429,6 @@ private:
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET std::size_t size() const {
-    static_assert(
-      std::size_t(DM) < hypercubes::size, "invalid size identifier");
     if constexpr(DM == domain::logical) {
       return logical<S, A, 1>() - logical<S, A, 0>();
     }
@@ -458,7 +456,8 @@ private:
       else
         return 0;
     }
-    else if constexpr(DM == domain::global) {
+    else {
+      static_assert(DM == domain::global, "invalid domain identifier");
       return global<S, A>();
     }
   }
@@ -471,9 +470,6 @@ private:
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
-    static_assert(
-      std::size_t(DM) < hypercubes::size, "invalid domain identifier");
-
     if constexpr(DM == domain::logical) {
       return make_ids<S>(
         util::iota_view<util::id>(logical<S, A, 0>(), logical<S, A, 1>()));
@@ -495,12 +491,10 @@ private:
     else if constexpr(DM == domain::ghost_low) {
       return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
     }
-    else if constexpr(DM == domain::ghost_high) {
+    else {
+      static_assert(DM == domain::ghost_high, "invalid domain identifier");
       return make_ids<S>(util::iota_view<util::id>(
         logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
-    }
-    else {
-      flog_error("invalid domain");
     }
   }
 
@@ -511,8 +505,6 @@ private:
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET std::size_t offset() const {
-    static_assert(
-      std::size_t(DM) < hypercubes::size, "invalid offset identifier");
     if constexpr(DM == domain::logical) {
       return logical<S, A, 0>();
     }
@@ -534,17 +526,15 @@ private:
     else if constexpr(DM == domain::ghost_high) {
       return logical<S, A, 1>();
     }
-    else if constexpr(DM == domain::global) {
+    else {
+      static_assert(DM == domain::global, "invalid domain identifier");
       return offset<S, A>();
     }
   }
 
   template<axis A>
   FLECSI_TARGET static constexpr std::uint32_t to_idx() {
-    using axis_t = typename std::underlying_type_t<axis>;
-    static_assert(std::is_convertible_v<axis_t, std::uint32_t>,
-      "invalid axis type: cannot be converted to std::uint32_t");
-    return static_cast<std::uint32_t>(A);
+    return axes::template index<A>;
   }
 }; // struct narray<Policy>::access
 

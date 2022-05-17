@@ -14,6 +14,10 @@ variables:
   COLOR_GREEN: '\033[0;32m'
   COLOR_MAGENTA: '\033[1;35m'
   COLOR_PLAIN: '\033[0m'
+  # global defaults
+  WARN: -Wall -Wundef -W -Werror
+  CXX_FLAGS: ${WARN}
+  C_FLAGS: ${WARN}
 
 include: .gitlab/environments.yml
 
@@ -34,7 +38,7 @@ format:diff:
     IMAGE: util-fedora-35
     FORMAT_VERSION: 13.0.0
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
   allow_failure: true
@@ -88,9 +92,7 @@ mpich-legion-gnu:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
 
 mpich-legion-gnu:release:
@@ -107,9 +109,7 @@ mpich-legion-gnu:release:
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
@@ -131,9 +131,7 @@ mpich-mpi-gnu:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 mpich-mpi-gnu:release:
@@ -150,9 +148,7 @@ mpich-mpi-gnu:release:
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
@@ -210,9 +206,7 @@ poisson:legion:
     REGISTRY: gitlab.lanl.gov:5050/flecsi/flecsi
     IMAGE: rockylinux
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -233,9 +227,7 @@ openmpi-legion-gnu:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 openmpi-legion-gnu:release:
@@ -252,9 +244,7 @@ openmpi-legion-gnu:release:
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
@@ -276,9 +266,7 @@ openmpi-mpi-gnu:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 openmpi-mpi-gnu:release:
@@ -295,9 +283,7 @@ openmpi-mpi-gnu:release:
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
-    CXX_FLAGS: -Wall -W -Werror
     C_COMPILER: gcc
-    C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
@@ -319,7 +305,7 @@ mpich-legion-clang:
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
@@ -343,7 +329,7 @@ mpich-mpi-clang:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON
@@ -368,7 +354,7 @@ openmpi-mpi-clang:
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
-    CXX_FLAGS: -fcolor-diagnostics -Wall -W -Werror
+    CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON

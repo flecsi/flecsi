@@ -236,7 +236,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
       assert(f != s_id.end());
       f->second = true;
     }
-#if DEBUG
+#ifdef DEBUG
     for(auto a : s_id)
       assert(a.second == true);
 #endif

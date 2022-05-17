@@ -4,6 +4,7 @@
 #ifndef FLECSI_DATA_FIELD_INFO_HH
 #define FLECSI_DATA_FIELD_INFO_HH
 
+#include "flecsi-config.h"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/types.hh"
 
