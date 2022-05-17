@@ -91,7 +91,7 @@ mpich-legion-gnu:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
 
 mpich-legion-gnu:release:
   extends: .build_template
@@ -108,7 +108,7 @@ mpich-legion-gnu:release:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
@@ -130,7 +130,7 @@ mpich-mpi-gnu:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 mpich-mpi-gnu:release:
   extends: .build_template
@@ -147,7 +147,7 @@ mpich-mpi-gnu:release:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion backend with MPICH provider,
@@ -188,7 +188,7 @@ openmpi-legion-gnu:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 openmpi-legion-gnu:release:
   extends: .build_template
@@ -205,7 +205,7 @@ openmpi-legion-gnu:release:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,
@@ -227,7 +227,7 @@ openmpi-mpi-gnu:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 openmpi-mpi-gnu:release:
   extends: .build_template
@@ -244,7 +244,7 @@ openmpi-mpi-gnu:release:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with MPICH provider,
@@ -268,7 +268,7 @@ mpich-legion-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
@@ -292,7 +292,7 @@ mpich-mpi-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON
     DOC: doc
 
 #------------------------------------------------------------------------------#
@@ -317,4 +317,4 @@ openmpi-mpi-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_FLOG=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
