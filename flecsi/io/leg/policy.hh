@@ -242,7 +242,7 @@ struct io_interface {
 
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   void add_region(typename Topo::slot & slot) {
-    auto & fs = run::context::instance().get_field_info_store<Topo, Index>();
+    auto & fs = run::context::instance().field_info_store<Topo, Index>();
     FieldNames fn;
     for(const auto p : fs) {
       // TODO:  handle types other than double

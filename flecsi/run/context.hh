@@ -449,6 +449,8 @@ struct context {
    */
   template<class Topo, typename Topo::index_space Index>
   void add_field_info(const data::field_info_t * field_info) {
+    if(topology_ids_.count(Topo::id()))
+      flog_fatal("Cannot add fields on an allocated topology");
     constexpr std::size_t NIndex = Topo::index_spaces::size;
     topology_field_info_map_.try_emplace(Topo::id(), NIndex)
       .first->second[Topo::index_spaces::template index<Index>]
@@ -463,15 +465,16 @@ struct context {
     \tparam Index topology-relative index space
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  field_info_store_t const & get_field_info_store() const {
+  field_info_store_t const & field_info_store() {
     static const field_info_store_t empty;
+    topology_ids_.insert(Topo::id());
 
     auto const & tita = topology_field_info_map_.find(Topo::id());
     if(tita == topology_field_info_map_.end())
       return empty;
 
     return tita->second[Topo::index_spaces::template index<Index>];
-  } // get_field_info_store
+  } // field_info_store
 
   /*--------------------------------------------------------------------------*
     Task Launch interface.
@@ -564,6 +567,9 @@ protected:
 
   std::unordered_map<TopologyType, std::vector<field_info_store_t>>
     topology_field_info_map_;
+
+  /// Set of topology types for which field definitions have been used
+  std::set<TopologyType> topology_ids_;
 
   /*--------------------------------------------------------------------------*
     Task count.
