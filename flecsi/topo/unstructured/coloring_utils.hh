@@ -27,7 +27,7 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
-#if DOXYGEN
+#ifdef DOXYGEN
 /// An example mesh definition that is not really implemented.
 struct mesh_definition {
   /// Get the dimensionality of the mesh.
