@@ -4,7 +4,8 @@
 #ifndef FLECSI_TOPO_SET_INTERFACE_HH
 #define FLECSI_TOPO_SET_INTERFACE_HH
 
-#include "flecsi/topo/core.hh" // base
+#include "flecsi/topo/index.hh"
+
 /// \cond core
 namespace flecsi {
 namespace topo {
@@ -30,44 +31,57 @@ struct set_base {
   }
 
 }; // set_base
+
 /// This struct is a Set topology interface.
-/// \tparam P the specialization following \ref set_specialization
+/// \tparam Policy the specialization following \ref set_specialization
 ///
 /// The Set topology supports a single index space.
-template<typename P>
+template<typename Policy>
 struct set : set_base {
 
-  using T = typename P::t_type;
+  using index_space = typename Policy::index_space;
+  using mesh_slot = typename Policy::mesh_type::slot;
 
   template<Privileges Priv>
   struct access {
 
+    static_assert(privilege_count(Priv) == 1,
+      "there is only one privilege in set topology");
+    using accessorm = data::topology_accessor<typename Policy::mesh_type,
+      privilege_repeat<get_privilege(0, Priv), 3>>;
+    accessorm mesh;
+
     template<class F>
-    void send(F &&) {}
+    void send(F && f) {
+      f(
+        mesh, [](auto && ts) -> auto & { return *ts->p; });
+    }
   };
 
   explicit set(coloring x)
-    : p{static_cast<T *>(x.ptr)}, part{make_repartitioned<P>(x.counts.size(),
-                                    make_partial<allocate>(x.counts))} {}
+    : p{static_cast<mesh_slot *>(x.ptr)}, part{make_repartitioned<Policy>(
+                                            x.counts.size(),
+                                            make_partial<allocate>(x.counts))} {
+  }
 
   Color colors() const {
 
     return part.colors();
   }
 
-  template<typename P::index_space>
+  template<typename Policy::index_space>
   data::region & get_region() {
     return part;
   }
 
-  template<typename P::index_space>
+  template<typename Policy::index_space>
   repartition & get_partition() {
 
     return part;
   }
 
 private:
-  T * p;
+  mesh_slot * p;
   repartitioned part;
 };
 
@@ -80,8 +94,8 @@ struct detail::base<set> {
 /// defining their own `index_space` and `index_spaces` are not supported by set
 /// topology.
 struct set_specialization : specialization<set, set_specialization> {
-  /// Underlying topology slot.
-  using t_type = int;
+  /// Underlying topology type.
+  using mesh_type = int;
 };
 #endif
 

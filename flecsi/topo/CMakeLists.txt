@@ -95,6 +95,15 @@ add_unit(fixed
   THREADS 4
 )
 
+add_unit(set
+  SOURCES
+    unstructured/test/unstructured.hh
+    set/test/mpm_set.cc
+  INPUTS
+    unstructured/test/simple2d-16x16.msh
+  THREADS 4
+)
+
 # narray ----------------------------------------------------------------------#
 
 add_unit(narray
