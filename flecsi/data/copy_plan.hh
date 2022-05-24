@@ -314,6 +314,8 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// Type ragged is used to create actual buffers for setting up
   /// the data to be sent. It includes setting up buffers for both
   /// send and receive data.
+  /// Each iteration should start sending data from the beginning:
+  /// \c operator() will ignore data that has already been sent.
   struct ragged {
     /*!
         This constructor is invoked multiple times, in particular
@@ -323,8 +325,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 
     /*! Operator to communicate field data
 
-     @param rag input accessor or mutator to the ragged field that needs
-    to be communication.
+     \param rag accessor or mutator for the ragged field to be communicated
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
      \param sent set whenever any data is sent, indicating that another
@@ -332,7 +333,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 
      \return boolean indicating that row data can be fitted in the buffer.
     */
-    template<class R> // accessor or mutator
+    template<class R>
     bool operator()(const R & rag, std::size_t i, bool & sent) {
       const auto full = [&sent] {
         flog_assert(sent, "no data fits");
