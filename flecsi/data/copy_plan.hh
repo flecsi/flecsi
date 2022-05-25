@@ -327,11 +327,13 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     to be communication.
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
+     \param sent set whenever any data is sent, indicating that another
+       iteration of \c buffers_category::xfer is required to receive it
 
      \return boolean indicating that row data can be fitted in the buffer.
     */
     template<class R> // accessor or mutator
-    bool operator()(const R & rag, std::size_t i) {
+    bool operator()(const R & rag, std::size_t i, bool & sent) {
       const auto row = rag[i];
       const auto n = row.size();
       auto & b = w.get_buffer();
@@ -342,8 +344,10 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         if(!b.len && !w(!!skip) || !w(i) || !w(n - skip))
           return false;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
-          if(w(row[s]))
+          if(w(row[s])) {
             ++b.off;
+            sent = true;
+          }
           else {
             flog_assert(b.len > 3, "no data fits");
             return false;
