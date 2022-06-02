@@ -278,14 +278,6 @@ public:
       return {};
     }
 
-    /*!
-     */
-
-    template<target_type F>
-    void push_back(action<F, ControlPoint> const & from) {
-      node_.push_back(&from.node_);
-    }
-
   private:
     node_type node_;
   }; // struct action

@@ -263,15 +263,6 @@ struct narray<Policy>::access {
            ///< queried
   };
 
-  using hypercubes = index::has<range::logical,
-    range::extended,
-    range::all,
-    range::boundary_low,
-    range::boundary_high,
-    range::ghost_low,
-    range::ghost_high,
-    range::global>;
-
   /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
