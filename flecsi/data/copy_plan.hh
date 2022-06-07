@@ -382,7 +382,8 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     template<class R, class F>
     static void read(const R & rag, const Buffer & b, F && f) {
       Buffer::reader r{&b};
-      flog_assert(r, "empty message");
+      if(!r) // the resumption flag exists only if any rows were sent
+        return;
       bool resume = r();
       while(r) {
         const auto row = rag[f(r.get<std::size_t>())];
