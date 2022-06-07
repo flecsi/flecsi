@@ -279,7 +279,7 @@ individual parts.):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 39-82
+  :lines: 39-74
 
 The first type definition in the policy captures the control points
 enumeration type.
@@ -299,16 +299,16 @@ In this simple example, the node type is empty:
   :language: cpp
   :lines: 56-63
 
-The actual control points are defined as a std::tuple of the typeified
+The actual control points are defined as a list of the typeified
 integer-valued control points enumeration.
-The templated *control_point* definition is a convenience interface for
+The templated *point* definition is a convenience interface for
 typeifying the control points:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 65-81
+  :lines: 65-73
 
-In the above *control_points* tuple definition, the order is important,
+In the above *control_points* list definition, the order is important,
 as it is the order in which the control points will be sorted and thus
 executed.
 
@@ -317,7 +317,7 @@ type. This is the control type that we will use in our example application.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 84-88
+  :lines: 75-80
 
 That's the entire control policy for this example.
 Without comments, it is about 20 lines of code. Let's see how we use it!
@@ -448,9 +448,9 @@ core FleCSI cycle type:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 57-64
+   :lines: 54-61
 
-Cycles are similar to the *control_points* tuple, with the addition of a
+Cycles are similar to the *control_points* list, with the addition of a
 predicate function that controls termination of the cycle:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
@@ -481,11 +481,11 @@ Although this example is simple, in general we can use this design
 pattern to access simulation control state variables.
 
 The last piece needed to add the cycle is the actual definition of the
-*control_points* tuple type:
+*control_points* list type:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 66-73
+   :lines: 62-70
 
 Other than adding an action under the new analyze control point, the
 main function for this example is the same.
@@ -583,7 +583,7 @@ methods and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
-   :lines: 29-84
+   :lines: 29-82
 
 .. important::
 

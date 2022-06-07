@@ -40,18 +40,17 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 #endif
 
+/// Type for control points
+/// \tparam CP control point enumerator
+/// \deprecated Use \c control_base::point.
 template<auto CP>
 using control_point = run_impl::control_point<CP>;
-
-/// A control point for specialization use.
-/// \tparam CP control point enumerator
-template<auto CP>
-using meta_point = run_impl::meta_point<CP>;
 
 /*!
   A control-flow cycle.
   \tparam P tested before each iteration
   \tparam CP \c control_point or \c cycle types
+  \deprecated Use \c control_base::cycle.
  */
 template<bool (*P)(), typename... CP>
 using cycle = run_impl::cycle<P, CP...>;
@@ -61,6 +60,27 @@ using cycle = run_impl::cycle<P, CP...>;
  */
 
 struct control_base {
+  /// Type for control points.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using point = run_impl::control_point<CP>;
+
+  /// A control point for specialization use.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using meta = run_impl::meta_point<CP>;
+
+  /// A control-flow cycle.
+  /// \tparam P tested before each iteration
+  /// \tparam CP \c point or \c cycle types
+  template<bool (*P)(), typename... CP>
+  using cycle = run_impl::cycle<P, CP...>;
+
+  /// Type for specifying control points
+  /// \tparam TT pack of \c point, \c meta, or \c cycle
+  template<class... TT>
+  using list = util::types<TT...>;
+
   /// Called before executing.  If the value returned is not \c success,
   /// \c run and \c finalize are skipped.
   /// \return exit status
@@ -83,8 +103,8 @@ struct control_policy : control_base {
   /// The labels for the control-flow graph.
   enum control_points_enum {};
   /// The control-flow graph.
-  /// Each element is a \c control_point or a \c cycle.
-  using control_points = std::tuple<>;
+  /// Each element is a \c control_base::point or a \c control_base::cycle.
+  using control_points = list<>;
   /// Base class for control point objects.
   struct node_policy {};
 };

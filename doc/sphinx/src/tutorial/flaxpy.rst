@@ -154,7 +154,7 @@ application.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 89-90,93-98
+   :lines: 86-87,90-95
 
 ``one_field`` is defined in the above to save typing,
 both here and in task definitions
@@ -175,7 +175,7 @@ distributed vector:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 101-102
+   :lines: 98-99
 
 
 Control flow
@@ -230,7 +230,7 @@ follows, still within the ``flaxpy`` namespace:
 Once an application defines its control points
 it specifies a sequential order for them to execute.
 (The equivalent of a ``while`` loop
-can be expressed with ``flecsi::run::cycle``,
+can be expressed with ``flecsi::control_base::cycle``,
 and loops can be nested.)
 FLAXPY indicates with the following code that
 ``initialize`` runs first,
@@ -239,14 +239,14 @@ and lastly ``finalize``:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 71-79
+   :lines: 71-77
 
 The preceding ``control_policy`` class is used to define a fully
 qualified control type that implements the control policy:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 82
+   :lines: 79
 
 
 Actions
@@ -260,7 +260,7 @@ action with the ``mul_add`` control point, and the
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 185-187
+   :lines: 182-184
 
 The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
@@ -276,7 +276,7 @@ via the ``x_field`` and ``y_field`` fields declared in `Data structures`_.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 127-134
+   :lines: 124-131
 
 The ``mul_add_action`` action spawns ``mul_add_task`` tasks,
 passing then a scalar constant *a* directly and access to a subset of
@@ -284,7 +284,7 @@ passing then a scalar constant *a* directly and access to a subset of
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 147-153
+   :lines: 144-150
 
 The third and final action, ``finalize_action``, sums the elements
 of *Y* by initiating a global reduction.  Because they represent a
@@ -296,7 +296,7 @@ previously allocated by ``initialize_action``.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 170-180
+   :lines: 167-177
 
 
 Tasks
@@ -333,7 +333,7 @@ the initialization of *Y*.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 105-124
+   :lines: 102-121
 
 ``mul_add_task`` is the simplest of FLAXPY's three tasks
 but also the one that performs the core DAXPY computation.
@@ -345,7 +345,7 @@ over its subset of the distributed *X* and *Y* vectors.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 137-144
+   :lines: 134-141
 
 The third and final task, ``reduce_y_task``,
 computes and returns the sum of a subspace of *Y*.
@@ -356,7 +356,7 @@ the summation.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 156-167
+   :lines: 153-164
 
 
 Program initialization
@@ -369,7 +369,7 @@ finalizes FleCSI.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 191-207
+   :lines: 188-204
 
 
 Usage

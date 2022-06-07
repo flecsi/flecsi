@@ -68,14 +68,11 @@ operator*(cp control_point) {
 
 // Define a control policy that specifies that "initialize" should run
 // first, then "mul_add", and finally "finalize".
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
   using control_points_enum = cp;
   struct node_policy {};
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-  using control_points = std::tuple<control_point<cp::initialize>,
-    control_point<cp::mul_add>,
-    control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, point<cp::mul_add>, point<cp::finalize>>;
 };
 
 // Define a fully qualified control type that implements our control policy.

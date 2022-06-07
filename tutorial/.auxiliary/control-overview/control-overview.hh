@@ -23,7 +23,7 @@ operator*(cp control_point) {
   flog_fatal("invalid control point");
 }
 
-struct control_policy {
+struct control_policy : flecsi::run::control_base {
   using control_points_enum = cp;
   struct node_policy {};
 
@@ -37,14 +37,9 @@ struct control_policy {
     return control::instance().step()++ < 5;
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  using main_cycle = cycle<step_control, point<cp::two>, point<cp::three>>;
 
-  using cycle = flecsi::run::
-    cycle<step_control, control_point<cp::two>, control_point<cp::three>>;
-
-  using control_points =
-    std::tuple<control_point<cp::one>, cycle, control_point<cp::four>>;
+  using control_points = list<point<cp::one>, main_cycle, point<cp::four>>;
 
 private:
   size_t step_{0};
