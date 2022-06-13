@@ -74,6 +74,8 @@ class Flecsi(CMakePackage, CudaPackage):
 
     for level in ('low', 'medium', 'high'):
         depends_on('caliper', when='caliper_detail=%s' % level)
+        conflicts('caliper@2.6', when='caliper_detail=%s' % level)
+        conflicts('caliper@2.7', when='caliper_detail=%s' % level)
 
     # CMake
 
