@@ -457,7 +457,6 @@ struct trace {
   /// Default move constructor.
   trace(trace &&) = default;
 
-  /// RAII guard for the trace
   struct guard;
 
   /// Creates a guard that traces during its lifetime, with flog support
@@ -472,13 +471,12 @@ private:
 };
 #endif
 
-// A RAII guard for the trace utility.
+/// RAII guard for executing a trace.
 struct trace::guard {
 
   guard(guard &&) = delete;
 
-  // Build a guard and start tracing.
-  // This resets the flog counter to 0 before starting the trace.
+  /// Start a trace.
   explicit guard(trace & t_) : t(t_) {
     current_flog_task_count =
       std::exchange(flecsi::run::context::instance().flog_task_count(), 0);
