@@ -435,7 +435,6 @@ test(ARGS &&... args) {
     .get();
 } // test
 
-/// \cond core
 namespace exec {
 /// \addtogroup execution
 /// \{
@@ -514,7 +513,6 @@ trace::make_guard() {
 
 /// \}
 } // namespace exec
-/// \endcond
 
 } // namespace flecsi
 
