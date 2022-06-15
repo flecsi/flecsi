@@ -449,16 +449,10 @@ struct trace {
   using id_t = int;
 
   /// Construct a trace with auto generated id
-  /// The first call to start is ignored by default
   trace();
-  /// Construct a trace with auto generated id
-  /// \param hf Run or ignore the first trace call
-  explicit trace(bool hf);
   /// Construct a trace with user defined id
-  /// call to start
   /// \param id User defined id for the trace
-  /// \param hf Run or ignore the first trace call
-  explicit trace(id_t id, bool hf = true);
+  explicit trace(id_t id);
 
   /// Default move constructor.
   trace(trace &&) = default;

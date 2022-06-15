@@ -13,7 +13,7 @@ struct trace {
 
   inline guard make_guard();
 
-  explicit trace() : trace(g_id_++) {}
+  trace() : trace(g_id_++) {}
   explicit trace(id_t id) : id_(id), skip_(false) {}
 
   trace(trace &&) = default;
