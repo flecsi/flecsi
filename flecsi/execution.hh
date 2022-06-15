@@ -435,7 +435,6 @@ test(ARGS &&... args) {
     .get();
 } // test
 
-/// \cond core
 namespace exec {
 /// \addtogroup execution
 /// \{
@@ -450,21 +449,14 @@ struct trace {
   using id_t = int;
 
   /// Construct a trace with auto generated id
-  /// The first call to start is ignored by default
   trace();
-  /// Construct a trace with auto generated id
-  /// \param hf Run or ignore the first trace call
-  explicit trace(bool hf);
   /// Construct a trace with user defined id
-  /// call to start
   /// \param id User defined id for the trace
-  /// \param hf Run or ignore the first trace call
-  explicit trace(id_t id, bool hf = true);
+  explicit trace(id_t id);
 
   /// Default move constructor.
   trace(trace &&) = default;
 
-  /// RAII guard for the trace
   struct guard;
 
   /// Creates a guard that traces during its lifetime, with flog support
@@ -479,13 +471,12 @@ private:
 };
 #endif
 
-// A RAII guard for the trace utility.
+/// RAII guard for executing a trace.
 struct trace::guard {
 
   guard(guard &&) = delete;
 
-  // Build a guard and start tracing.
-  // This resets the flog counter to 0 before starting the trace.
+  /// Start a trace.
   explicit guard(trace & t_) : t(t_) {
     current_flog_task_count =
       std::exchange(flecsi::run::context::instance().flog_task_count(), 0);
@@ -514,7 +505,6 @@ trace::make_guard() {
 
 /// \}
 } // namespace exec
-/// \endcond
 
 } // namespace flecsi
 
