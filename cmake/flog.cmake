@@ -3,7 +3,7 @@
 
 include(CMakeDependentOption)
 
-option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" OFF)
+option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" ON)
 
 cmake_dependent_option(FLOG_ENABLE_COLOR_OUTPUT
   "Enable colorized flog logging" ON "ENABLE_FLOG" OFF)
