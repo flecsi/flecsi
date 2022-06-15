@@ -137,7 +137,7 @@ New features
 * Runtime
 
   * Application command-line options can be specified using the ``program_option`` class template and associated helper functions.
-  * The ``control`` class template is used to define an extensible :ref:`control-model` for an application.
+  * The ``control`` class template is used to define an extensible control model for an application.
 
 * Data
 

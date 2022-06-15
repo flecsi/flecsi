@@ -27,9 +27,9 @@ an executable compiled with FleCSI will have several command-line options availa
 
 The *--tags* option allows users to control logging output, e.g., by
 turning on or off certain *guarded* outputs. This is a feature provided
-by the FleCSI :ref:`flog`.  The *--control-model* option instructs the
+by the FleCSI logging utility.  The *--control-model* option instructs the
 executable to output a *.dot* file of the control-flow graph of the
-control model. The FleCSI :ref:`control-model` allows users to define
+control model. The FleCSI control model allows users to define
 the structure of execution of a program. Additional options may be added
 in the future and will be documented in this guide.  
 
