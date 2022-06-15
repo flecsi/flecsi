@@ -84,18 +84,37 @@ struct dcrs : crs {
   }
 }; // struct dcrs
 
+inline std::string
+expand(crs const & graph) {
+  std::stringstream stream;
+  std::size_t r{0};
+  for(auto & o : graph.offsets) {
+    if(o != graph.offsets.back()) {
+      stream << r++ << ": <";
+      auto n = *(&o + 1);
+      for(std::size_t i{o}; i < n; ++i) {
+        stream << graph.indices[i];
+        if(i < n - 1) {
+          stream << ",";
+        }
+      }
+      stream << ">" << std::endl;
+    }
+  }
+  return stream.str();
+}
+
 inline std::ostream &
 operator<<(std::ostream & stream, crs const & graph) {
-  stream << "offsets: ";
+  stream << "crs offsets: ";
   for(auto o : graph.offsets) {
     stream << o << " ";
   }
-  stream << std::endl;
-
-  stream << "indices: ";
+  stream << "\n\ncrs indices: ";
   for(auto o : graph.indices) {
     stream << o << " ";
   }
+  stream << "\n\ncrs expansion:\n" << expand(graph) << std::endl;
   return stream << std::endl;
 } // operator<<
 
