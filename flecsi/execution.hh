@@ -27,6 +27,35 @@ namespace flecsi {
   Perform FleCSI runtime initialization. If \em dependent is true, this call
   will also initialize any runtime on which FleCSI depends.
 
+  The following options are interpreted in addition to any \c program_option
+  objects:
+  - \c \--backend-args=args
+
+    Provide command-line options to the backend; word splitting is applied.
+  - \c \--flog-tags=tags
+
+    Enable comma-separated output \a tags.
+    \c all enables all and is the default; \c unscoped disables all.
+  - <tt>\--flog-verbose[=level]</tt>
+
+    Enable verbose output if \a level is omitted or positive; suppress
+    decorations if it is negative.  The default is 0.
+  - \c \--flog-process=p
+
+    Select output from process \a p (default 0), or from all if &minus;1.
+  - \c \--control-model
+
+    Write \c <em>program</em>-control-model.dot with the control points and
+    the actions for each.
+  - \c \--control-model-sorted
+
+    Write \c <em>program</em>-control-model-sorted.dot containing linearized
+    actions.
+
+  The Flog options are recognized only when that feature is enabled.
+  The control model options require Graphviz support and take effect via
+  \c control::check_status.
+
   @param argc number of command-line arguments to process
   @param argv command-line arguments to process
   @param dependent A boolean telling FleCSI whether or not to initialize

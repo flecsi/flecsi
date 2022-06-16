@@ -27,10 +27,7 @@ struct coloring_slot {
   /// \return the created \c Topo::coloring object
   template<typename... ARGS>
   color_type & allocate(ARGS &&... args) {
-    constexpr auto f = [](coloring_slot & s, ARGS &&... aa) {
-      s.coloring.emplace(Topo::color(std::forward<ARGS>(aa)...));
-    };
-    execute<*f, flecsi::mpi>(*this, std::forward<ARGS>(args)...);
+    execute<task<ARGS...>, flecsi::mpi>(*this, std::forward<ARGS>(args)...);
     return get();
   } // allocate
 
@@ -49,6 +46,11 @@ struct coloring_slot {
   }
 
 private:
+  template<class... AA>
+  static void task(coloring_slot & s, AA &&... aa) {
+    s.coloring.emplace(Topo::color(std::forward<AA>(aa)...));
+  }
+
   std::optional<color_type> coloring;
 };
 

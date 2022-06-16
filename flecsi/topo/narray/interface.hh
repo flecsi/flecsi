@@ -334,15 +334,6 @@ private:
            ///< queried
   };
 
-  using hypercubes = index::has<domain::logical,
-    domain::extended,
-    domain::all,
-    domain::boundary_low,
-    domain::boundary_high,
-    domain::ghost_low,
-    domain::ghost_high,
-    domain::global>;
-
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
     return offset<S, A>() + i;

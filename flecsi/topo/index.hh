@@ -135,7 +135,7 @@ struct ragged_partitioned
   explicit ragged_partitioned(Color r)
     : region({r, data::logical_size}, util::key_type<S, ragged<Topo>>()) {
     for(const auto & fi :
-      run::context::instance().get_field_info_store<ragged<Topo>, S>())
+      run::context::instance().field_info_store<ragged<Topo>, S>())
       this->part.try_emplace(fi->fid, *this);
   }
   ragged_partitioned(ragged_partitioned &&) = delete; // we store 'this'
@@ -383,7 +383,7 @@ struct borrow_ragged_partitions
       borrow_partition<P::template privilege_count<S>>> {
   borrow_ragged_partitions(ragged_partitioned<P, S> & r, claims::core & c) {
     for(const auto & fi :
-      run::context::instance().get_field_info_store<ragged<P>, S>())
+      run::context::instance().field_info_store<ragged<P>, S>())
       this->part.try_emplace(
         fi->fid, r[fi->fid], util::constant<elements>(), c);
   }

@@ -107,7 +107,6 @@ more advanced FleCSI concepts.
   tutorial/execution
   tutorial/data
   tutorial/parallel
-  tutorial/topologies
   tutorial/flaxpy
   tutorial/poisson
 

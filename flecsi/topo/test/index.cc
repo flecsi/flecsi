@@ -110,13 +110,16 @@ use_ptr(field<int *>::accessor<wo>) {} // so too this
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
-  buffers::ragged::truncate(mv[0])(v, 0);
+  bool sent = false;
+  buffers::ragged::truncate(mv[0])(v, 0, sent);
 }
 
 int
 ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
   buffers::ragged::read(g, mv[1], [](std::size_t) { return 0; });
-  return !buffers::ragged{mv[0]}(v, 0);
+  bool sent = false;
+  buffers::ragged{mv[0]}(v, 0, sent);
+  return sent;
 }
 
 int

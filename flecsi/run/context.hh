@@ -181,6 +181,9 @@ struct context {
       "Pass arguments to the backend. The single argument is a quoted "
       "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
+    std::string flog_tags_;
+    int flog_verbose_;
+    int64_t flog_output_process_;
     // Add FleCSI options
     flecsi_desc.add_options() // clang-format off
       (
@@ -203,7 +206,7 @@ struct context {
         "flog-process",
         boost::program_options::value(&flog_output_process_)->default_value(0),
         "Restrict output to the specified process id. The default is process 0."
-        " Use '--flog_process=-1' to enable all processes."
+        " Use '--flog-process=-1' to enable all processes."
       ); // clang-format on
 #endif
 
@@ -474,6 +477,8 @@ struct context {
    */
   template<class Topo, typename Topo::index_space Index, typename Field>
   void add_field_info(field_id_t id) {
+    if(topology_ids_.count(Topo::id()))
+      flog_fatal("Cannot add fields on an allocated topology");
     constexpr std::size_t NIndex = Topo::index_spaces::size;
     topology_field_info_map_.try_emplace(Topo::id(), NIndex)
       .first->second[Topo::index_spaces::template index<Index>]
@@ -489,15 +494,16 @@ struct context {
     \tparam Index topology-relative index space
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  field_info_store_t const & get_field_info_store() const {
+  field_info_store_t const & field_info_store() {
     static const field_info_store_t empty;
+    topology_ids_.insert(Topo::id());
 
     auto const & tita = topology_field_info_map_.find(Topo::id());
     if(tita == topology_field_info_map_.end())
       return empty;
 
     return tita->second[Topo::index_spaces::template index<Index>];
-  } // get_field_info_store
+  } // field_info_store
 
   /*--------------------------------------------------------------------------*
     Index space interface.
@@ -558,7 +564,7 @@ private:
   void add_fields(Instance & slot) {
     index_space_info_vector_.push_back({&slot.template get_region<Index>(),
       &slot.template get_partition<Index>(),
-      get_field_info_store<Topo, Index>(),
+      field_info_store<Topo, Index>(),
       util::type<Topo>() + '[' + std::to_string(Index) + ']'});
   } // add_fields
 
@@ -575,7 +581,7 @@ private:
         (
           [&] {
             for(const auto fip :
-              get_field_info_store<topo::ragged<Topo>, Index>()) {
+              field_info_store<topo::ragged<Topo>, Index>()) {
               auto & t = slot->ragged.template get<Index>()[fip->fid];
               index_space_info_vector_.push_back({&t.get_region(),
                 &t.get_partition(),
@@ -597,10 +603,6 @@ protected:
   std::string program_;
   std::vector<char *> argv_;
   std::string backend_;
-
-  std::string flog_tags_;
-  int flog_verbose_;
-  int64_t flog_output_process_;
 
   bool initialize_dependent_ = true;
 
@@ -640,6 +642,9 @@ protected:
 
   std::unordered_map<TopologyType, std::vector<field_info_store_t>>
     topology_field_info_map_;
+
+  /// Set of topology types for which field definitions have been used
+  std::set<TopologyType> topology_ids_;
 
   /*--------------------------------------------------------------------------*
     Index space data members.

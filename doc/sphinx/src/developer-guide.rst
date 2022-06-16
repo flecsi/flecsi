@@ -593,6 +593,10 @@ to figure out how something was done.
 
 __ https://www.sphinx-doc.org/en/master
 
+Headings
+^^^^^^^^
+By convention, headings are underlined with characters in the order ``*+^=``.
+
 Links
 ^^^^^
 

@@ -314,6 +314,8 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// Type ragged is used to create actual buffers for setting up
   /// the data to be sent. It includes setting up buffers for both
   /// send and receive data.
+  /// Each iteration should start sending data from the beginning:
+  /// \c operator() will ignore data that has already been sent.
   struct ragged {
     /*!
         This constructor is invoked multiple times, in particular
@@ -323,15 +325,20 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
 
     /*! Operator to communicate field data
 
-     @param rag input accessor or mutator to the ragged field that needs
-    to be communication.
+     \param rag accessor or mutator for the ragged field to be communicated
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
+     \param sent set whenever any data is sent, indicating that another
+       iteration of \c buffers_category::xfer is required to receive it
 
      \return boolean indicating that row data can be fitted in the buffer.
     */
-    template<class R> // accessor or mutator
-    bool operator()(const R & rag, std::size_t i) {
+    template<class R>
+    bool operator()(const R & rag, std::size_t i, bool & sent) {
+      const auto full = [&sent] {
+        flog_assert(sent, "no data fits");
+        return false;
+      };
       const auto row = rag[i];
       const auto n = row.size();
       auto & b = w.get_buffer();
@@ -340,14 +347,14 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         // write in it (which might not all fit), and then the elements.
         // The first row is prefixed with a flag to indicate resumption.
         if(!b.len && !w(!!skip) || !w(i) || !w(n - skip))
-          return false;
+          return full();
         for(auto s = std::exchange(skip, 0); s < n; ++s)
-          if(w(row[s]))
+          if(w(row[s])) {
             ++b.off;
-          else {
-            flog_assert(b.len > 3, "no data fits");
-            return false;
+            sent = true;
           }
+          else
+            return full();
       }
       else
         skip -= n;
@@ -376,7 +383,8 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     template<class R, class F>
     static void read(const R & rag, const Buffer & b, F && f) {
       Buffer::reader r{&b};
-      flog_assert(r, "empty message");
+      if(!r) // the resumption flag exists only if any rows were sent
+        return;
       bool resume = r();
       while(r) {
         const auto row = rag[f(r.get<std::size_t>())];

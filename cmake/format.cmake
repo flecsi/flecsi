@@ -5,7 +5,7 @@ option(FORMAT_ONLY
   "Enable format-only mode: no other targets will be create" OFF)
 mark_as_advanced(FORMAT_ONLY)
 
-set(ClangFormat_VERSION "8" CACHE STRING
+set(ClangFormat_VERSION "13.0.0" CACHE STRING
   "Set the required version (major[.minor[.patch]]) of clang-format")
 mark_as_advanced(ClangFormat_VERSION)
 
