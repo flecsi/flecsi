@@ -28,6 +28,7 @@ namespace flecsi {
 namespace log {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
+/// If disabled at configuration time, no output is produced.
 /// \code#include "flecsi/flog.hh"\endcode
 /// \{
 

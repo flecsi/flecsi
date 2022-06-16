@@ -12,9 +12,8 @@ namespace data {
 /// \{
 
 /*!
-  A FleCSI \c layout provides a specific interface for different
-  logical data layouts, e.g., dense vs. sparse. The actual data layout
-  is implementation-dependent.
+  A type of logical data structure.
+  The interface for each is provided by an \c accessor.
  */
 
 enum layout : size_t {

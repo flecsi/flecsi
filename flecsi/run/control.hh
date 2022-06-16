@@ -40,6 +40,8 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 #endif
 
+/// A control point for application use.
+/// \tparam CP control point enumerator
 template<auto CP>
 using control_point = util::constant<CP>;
 
@@ -262,11 +264,8 @@ public:
     /*!
       Add a dependency on the given action.
 
+      \tparam V must be the same as \a ControlPoint
       @param from The upstream node in the dependency.
-
-      @note It is illegal to add depencdencies between actions under
-            different  control  points. Attempting to do so will result
-            in a compile-time error.
      */
 
     template<target_type U, control_points_enum V>
@@ -294,6 +293,8 @@ public:
 
   /*!
     Process control model command-line options.
+    \param s initialization status
+    \return status of control model output if requested, else \a s
    */
 
   static int check_status(int s) {

@@ -121,7 +121,7 @@ Parallelization options
   parallelism.  The appropriate flags will be passed to the C++
   compiler to enable language support for OpenMP.
 
-* **FLECSI_BACKEND [default: mpi]** |br|
+* **FLECSI_BACKEND [default: legion]** |br|
   Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
 

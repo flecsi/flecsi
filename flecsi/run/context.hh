@@ -182,7 +182,7 @@ struct context {
         "flog-process",
         boost::program_options::value(&flog_output_process_)->default_value(0),
         "Restrict output to the specified process id. The default is process 0."
-        " Use '--flog_process=-1' to enable all processes."
+        " Use '--flog-process=-1' to enable all processes."
       ); // clang-format on
 #endif
 
