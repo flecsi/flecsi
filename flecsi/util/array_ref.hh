@@ -584,12 +584,12 @@ struct transform_view {
     : b(std::move(b)), e(std::move(e)), f(std::move(f)) {}
   /// Wrap a container.
   /// \warning Destroying \a C invalidates this object if it owns its
-  ///   iterators or elements.  This implementation does not copy \a C if it
-  ///   is a view.
+  ///   iterators or elements.  
   template<class C,
     class = std::enable_if_t<
       std::is_convertible_v<decltype(std::begin(std::declval<C &>())), I>>>
-  constexpr transform_view(C && c, F f = {})
+// change below to pass by value, forcing a copy
+  constexpr transform_view(C c, F f = {})
     : transform_view(std::begin(c), std::end(c), std::move(f)) {}
 
   FLECSI_INLINE_TARGET
@@ -641,10 +641,11 @@ private:
 // only compilers used to generate FleCSI GPU code, so the macro will be empty
 // otherwise.
 template<class C, class F>
-FLECSI_TARGET transform_view(C &&, F)
+// pass by value to force a copy
+FLECSI_TARGET transform_view(C, F)
   ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
 template<class C, class F>
-transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
+transform_view(const C, F) -> transform_view<typename C::const_iterator, F>;
 /// \endcond
 
 /// \}
