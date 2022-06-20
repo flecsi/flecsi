@@ -21,6 +21,7 @@ namespace flecsi {
 namespace unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
+/// Output is via \ref flog.
 /// \ingroup utils
 /// \{
 

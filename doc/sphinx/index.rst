@@ -52,7 +52,6 @@ Introduction
   src/build
   src/tutorial
   src/developer-guide
-  src/specialization-guide
   src/user-guide
   src/api
   src/team

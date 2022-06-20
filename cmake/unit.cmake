@@ -1,14 +1,11 @@
 # Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 
-include(CMakeDependentOption)
+option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
 
-cmake_dependent_option(ENABLE_UNIT_TESTS "Enalle unit testing" ON
-  "ENABLE_FLOG" OFF)
-cmake_dependent_option(ENABLE_EXPENSIVE_TESTS
-  "Enalle unit tests labeled 'expensive'" OFF "ENABLE_FLOG" OFF)
-
-mark_as_advanced(ENABLE_EXPENSIVE_TESTS)
+if(NOT ENABLE_FLOG AND ENABLE_UNIT_TESTS)
+    message(FATAL_ERROR "Unit tests require ENABLE_FLOG=ON")
+endif()
 
 if(ENABLE_UNIT_TESTS)
   enable_testing()
@@ -43,17 +40,6 @@ function(add_unit name)
   )
   cmake_parse_arguments(unit "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
-
-  #----------------------------------------------------------------------------#
-  # Is this an expensive test? If so, and if this build does not enable
-  # expensive tests, then skip it
-  #----------------------------------------------------------------------------#
-
-  if("expensive" IN_LIST unit_TESTLABELS)
-    if(NOT "${ENABLE_EXPENSIVE_TESTS}")
-      return()
-    endif()
-  endif()
 
   #----------------------------------------------------------------------------#
   # Set output directory

@@ -201,13 +201,12 @@ the directory specified by CMAKE_INSTALL_PREFIX:
 Building the Unit Tests
 +++++++++++++++++++++++
 
-To build FleCSI unit test suite, enable the option for the FleCSI
-logging utility (flog). **By default, this will also enable the unit
-tests.**
+To build the FleCSI unit test suite, turn on the ``ENABLE_UNIT_TESTS``
+option:
 
 .. code-block:: console
 
-  $ cmake .. -DENABLE_FLOG=ON
+  $ cmake -DENABLE_UNIT_TESTS=ON ..
 
 After building FleCSI, you can run the unit tests like:
 

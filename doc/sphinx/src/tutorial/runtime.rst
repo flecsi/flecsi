@@ -136,7 +136,7 @@ like this:
                                    will only output the user's message.
     --flog-process arg (=0)        Restrict output to the specified process id.
                                    The default is process 0. Use
-                                   '--flog_process=-1' to enable all processes.
+                                   '--flog-process=-1' to enable all processes.
 
 This shows the program usage, the basic options, e.g., ``--help``, the
 command-line and positional options for the example, and some auxiliary
@@ -500,7 +500,7 @@ which should look something like this:
                                    will only output the user's message.
     --flog-process arg (=0)        Restrict output to the specified process id.
                                    The default is process 0. Use
-                                   '--flog_process=-1' to enable all processes.
+                                   '--flog-process=-1' to enable all processes.
 
   Available FLOG Tags (FleCSI Logging Utility):
     tag2

@@ -40,7 +40,7 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 #endif
 
-/// Type for control points
+/// A control point for application use.
 /// \tparam CP control point enumerator
 /// \deprecated Use \c control_base::point.
 template<auto CP>
@@ -60,7 +60,7 @@ using cycle = run_impl::cycle<P, CP...>;
  */
 
 struct control_base {
-  /// Type for control points.
+  /// A control point for application use.
   /// \tparam CP control point enumerator
   template<auto CP>
   using point = run_impl::control_point<CP>;
@@ -314,11 +314,8 @@ public:
     /*!
       Add a dependency on the given action.
 
+      \tparam V must be the same as \a ControlPoint
       @param from The upstream node in the dependency.
-
-      @note It is illegal to add depencdencies between actions under
-            different  control  points. Attempting to do so will result
-            in a compile-time error.
      */
 
     template<target_type U, control_points_enum V>
@@ -328,14 +325,6 @@ public:
         "points");
       node_.push_back(&from.node_);
       return {};
-    }
-
-    /*!
-     */
-
-    template<target_type F>
-    void push_back(action<F, CP, M> const & from) {
-      node_.push_back(&from.node_);
     }
 
   protected:
@@ -366,6 +355,8 @@ public:
 
   /*!
     Process control model command-line options.
+    \param s initialization status
+    \return status of control model output if requested, else \a s
    */
 
   static int check_status(int s) {

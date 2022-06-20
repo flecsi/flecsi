@@ -1,6 +1,11 @@
-Index Spaces
-************
+Topologies
+**********
+A *topology* is a distributed-memory object that stores user-registered fields on one or more *index spaces*.
+It may also store structural information used to interpret those fields in terms appropriate to the *category* of topology (*e.g.*, an unstructured mesh).
+Any number of instances may be created of any topology.
 
+Index Spaces
+++++++++++++
 In FleCSI, index spaces are used to define field arrays that represent
 the user's data. In simple terms, you can think of an index space as
 just an enumeration of an array, with the added notion that an index
@@ -37,19 +42,8 @@ following sections, index spaces also improve our ability to reason about
 parallelism, and free us from many of the computer science details that
 obfuscate our algorithms.
 
-Topologies
-**********
-
-The primary capability that FleCSI provides is the definition and
-implementation of several distributed-memory topology types. In very
-general terms, a topology is just a C++ type that defines one or more
-index spaces, each of which has one or more user-registered fields.
-Any number of instances may be created of any topology.
-
-.. admonition:: Definition
-
-  A topology defines one or more index spaces.
-
+Basic Categories
+++++++++++++++++
 The most basic topology provided by FleCSI is called the *global*
 topology.
 It has a single implicit index space which is not partitioned; its field values can be written by a single task or read by every task in a parallel launch.
@@ -60,6 +54,8 @@ space, which you can think of as the *indices*. The index topology also
 has a runtime-specified size that describes how many indices there
 should be.
 
+Field Registration
+++++++++++++++++++
 Let's look at an example of how to register fields against
 the global and index topologies:
 
@@ -131,8 +127,6 @@ However, we may do so in future versions.
   an instance of every registered field. This is a valid concern! The
   answer is *no!* FleCSI will only allocate memory for a field instance
   if it is actually accessed.
-
-----
 
 Colorings
 +++++++++
