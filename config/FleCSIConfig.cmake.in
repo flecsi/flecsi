@@ -16,9 +16,10 @@
 #------------------------------------------------------------------------------#
 # FleCSI library dependencies (contains definitions for IMPORTED targets)
 #------------------------------------------------------------------------------#
+get_filename_component(FleCSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
-  include(@CMAKE_INSTALL_PREFIX@/@LIBDIR@/cmake/FleCSI/FleCSITargets.cmake)
+  include(${FleCSI_CMAKE_DIR}/FleCSITargets.cmake)
 endif()
 
 #------------------------------------------------------------------------------#
