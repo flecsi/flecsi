@@ -234,8 +234,7 @@ private:
 /// \return a range of \c id<S> objects, perhaps lifetime-bound to \a c
 template<auto S, class C>
 FLECSI_INLINE_TARGET auto
-// Pass by value to force copy
-make_ids(C c) {
+make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
