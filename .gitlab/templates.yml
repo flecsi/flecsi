@@ -3,134 +3,162 @@
 #------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
-# env_permissions
-#
-# Change ownership of the CI_PROJECT_DIR. This is a work-around for
-# Gitlab CI issue 2750:
-#   https://gitlab.com/gitlab-org/gitlab-runner/-/issues/2750
-#
-# This should be updated when the issue is resolved: The fix should allow
-# a user to be specified for an image.
-#------------------------------------------------------------------------------#
-
-.env_permissions:
-  script: &env_permissions
-    - sudo chown -R flecsi.flecsi ${CI_PROJECT_DIR}
-
-#------------------------------------------------------------------------------#
-# env_shell
-#
-# Convenience function to setup shell environment.
-#------------------------------------------------------------------------------#
-
-.env_shell:
-  script: &env_shell
-    - export PATH=$HOME/.local/bin:$PATH
-    - source $HOME/.spack/share/spack/setup-env.sh
-
-.env_spack_environment:
-  script: &env_spack_environment
-    - export SPACK_ENVIRONMENT=`echo -e "${ENVIRONMENT}" | sed 's,\.,-,g'`
-
-#------------------------------------------------------------------------------#
-# env_spack_archive
+# darwin_archive_spack_env
 #
 # Archive the current spack state.
 #------------------------------------------------------------------------------#
 
-.env_spack_archive:
-  script: &env_spack_archive
-    - mkdir -p ${CI_PROJECT_DIR}/state
-    - rsync -apz /home/flecsi/.spack ${CI_PROJECT_DIR}/state
+.darwin_archive_spack_env:
+  script: &darwin_archive_spack_env
+    - if [ -n "$ARCHIVE_SPACK_ENV" ]; then echo -e "${COLOR_MAGENTA}Archiving Spack Environment${COLOR_PLAIN}" && cd $TMPDIR && mksquashfs spack ${CI_PROJECT_DIR}/state/spack.sqfs; fi
 
 #------------------------------------------------------------------------------#
-# env_spack_restore
+# darwin_restore_spack_env
 #
 # Restore an archived spack state.
 #------------------------------------------------------------------------------#
 
-.env_spack_restore:
-  script: &env_spack_restore
-    - rsync -apz ${CI_PROJECT_DIR}/state/.spack /home/flecsi
+.darwin_restore_spack_env:
+  script: &darwin_restore_spack_env
+    - cd $TMPDIR && unsquashfs -d spack ${CI_PROJECT_DIR}/state/spack.sqfs
 
 #------------------------------------------------------------------------------#
-# env_template
+# darwin_env_create
 #
-# This template completes construction of the build environment, overriding
-# spack builtins with the spackage definitions in the target commit.
+# Create a clean spack environment on Darwin
+#------------------------------------------------------------------------------#
+.aux_darwin_print_env_info:
+  stage: Environment
+  script: &darwin_print_env_info
+    - |
+      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Version: ${VERSION}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Variants: ${VARIANTS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Toolchain: ${TOOLCHAIN}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+
+.darwin_python_env_create:
+  script: &darwin_python_env_create
+    - echo -e "\e[0Ksection_start:`date +%s`:python_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Creating Python environment${COLOR_PLAIN}"
+    - python3 -m venv $TMPDIR/python-env
+    - source $TMPDIR/python-env/bin/activate
+    - pip3 install --upgrade pip
+    - pip install pyyaml Sphinx recommonmark sphinx_rtd_theme
+    - deactivate
+    - echo -e "\e[0Ksection_end:`date +%s`:python_env_init\r\e[0K"
+
+.darwin_env_create:
+  script: &darwin_env_create
+    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
+    - export SPACK_COMMIT_HASH=$(cd $DARWIN_SPACK_UPSTREAM; git rev-parse HEAD)
+    - pushd $TMPDIR
+    - git clone https://github.com/spack/spack $TMPDIR/spack
+    - cd $TMPDIR/spack
+    - git checkout ${SPACK_COMMIT_HASH}
+    - cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/*.yaml $TMPDIR/spack/etc/spack/
+    - |-
+      cat > $TMPDIR/spack/etc/spack/upstreams.yaml <<EOF
+      upstreams:
+        default:
+          install_tree: ${DARWIN_SPACK_UPSTREAM}/opt/spack/
+      EOF
+    - popd
+
+#------------------------------------------------------------------------------#
+# darwin_env_shell
+#
+# Convenience function to setup shell environment on Darwin
+#------------------------------------------------------------------------------#
+
+.darwin_env_shell:
+  script: &darwin_env_shell
+    - export SPACK_DISABLE_LOCAL_CONFIG=true
+    - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
+    - if [ -e $TMPDIR/python-env ]; then source $TMPDIR/python-env/bin/activate; fi
+    - source $TMPDIR/spack/share/spack/setup-env.sh
+    - module load gcc/9.4.0
+    - module load cuda/11.7.0
+    - export CC=gcc  # default C compiler
+    - export CXX=g++ # default C++ compiler
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_x86_64_cuda_11.7_sm70}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | cut -d= -f2)
+    - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
+    - echo "PATH=${PATH}"
+
+.darwin_env_spack_environment:
+  script: &darwin_env_spack_environment
+    - export SPACK_ENVIRONMENT=`echo -e "darwin-${ENVIRONMENT}" | sed 's,\.,-,g'`
+
+#------------------------------------------------------------------------------#
+# darwin_env_init
+#
+# Initialize Spack environment on Darwin
+#------------------------------------------------------------------------------#
+.darwin_env_init:
+  script: &darwin_env_init
+    - echo -e "\e[0Ksection_start:`date +%s`:spack_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Creating Spack environment${COLOR_PLAIN}"
+    - *darwin_env_create
+    - *darwin_print_env_info
+    - *darwin_env_shell
+    - *darwin_env_spack_environment
+    - spack env create ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - spack repo add spack-repo
+    # This uses the legion backend by default because it also satisfies the dependencies
+    # for MPI (and potentially HPX)
+    - export SPACK_INSTALL_FLECSI_BACKEND=${SPACK_INSTALL_FLECSI_BACKEND:-legion}
+    - echo -e "spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
+    - spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
+    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_init\r\e[0K"
+
+#------------------------------------------------------------------------------#
+# darwin_build_template
+#
+# This template builds flecsi on the Darwin cluster
 #
 # Variables:
-#   REGISTRY:       The container registry from which to pull images.
-#   IMAGE:          The container image to use, e.g., centos-7.8.
-#   ENVIRONMENT:    The target environment from the flecsi gitlab-ci project,
-#                   e.g., one of the primary branches, such as 'devel',
-#                   or '1.4'.
-#   MPI_PROVIDER:   The MPI provider. Generally this will be mpich, or openmpi.
+#   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
+#                 e.g., one of the primary branches, such as 'devel', or '1.4'.
+#   PARTITIONS:    Darwin cluster partitions
+#   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
+#   BUILD_TYPE:   CMake build type, e.g., debug.
+#   BACKEND:      FleCSI backend.
 #   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants not including the backend.
 #------------------------------------------------------------------------------#
 
-.aux_print_env_info:
-  stage: Environment
-  script: &print_env_info
-    - >
-      echo -e "${COLOR_MAGENTA}Creating Build Environment\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n\t${COLOR_BLUE}Version: ${VERSION}${COLOR_PLAIN}\n\t${COLOR_BLUE}Variants: ${VARIANTS}${COLOR_PLAIN}\n"
+.aux_darwin_print_build_info:
+  script: &darwin_print_build_info
+    - |-
+      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Backend: ${BACKEND}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}"
+      which gcc
+      which cc
+      spack arch
 
-.env_template:
-  stage: Environment
-  image: ${REGISTRY}:${ENVIRONMENT}-${IMAGE}
-  script:
-    - *env_permissions
-    - *print_env_info
-    - *env_shell
-    - *env_spack_environment
-    - spack env create ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
-    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
-    - spack repo add spack-repo
-    # This uses the legion backend because it also satisfies the dependencies
-    # for MPI (and potentially HPX)
-    - spack install --only dependencies ${VERSION}
-        backend=legion ${VARIANTS} ^${MPI_PROVIDER}
-    - *env_spack_archive
-  artifacts:
-    when: on_success
-    expire_in: 2 weeks
-    paths:
-      - ${CI_PROJECT_DIR}/state
-
-#------------------------------------------------------------------------------#
-# build_template
-#
-# This template builds flecsi.
-#
-# Variables:
-#   REGISTRY:     The container registry from which to pull images.
-#   IMAGE:        The container image to use, e.g., centos-7.8.
-#   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
-#                 e.g., one of the primary branches, such as 'devel', or '1.4'.
-#   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
-#   BUILD_TYPE:   CMake build type, e.g., debug.
-#   BACKEND:      FleCSI backend.
-#------------------------------------------------------------------------------#
-
-.aux_print_build_info:
-  script: &print_build_info
-    - >
-      echo -e "${COLOR_MAGENTA}Creating Build Environment\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n\t${COLOR_BLUE}Backend: ${BACKEND}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
-
-.build_template:
+.darwin_build_template:
   stage: Build + Unit Tests
-  image: ${REGISTRY}:${ENVIRONMENT}-${IMAGE}
+  tags:
+    - darwin-slurm-shared
   script:
-    - ccache -z
-    - *env_permissions
-    - *env_spack_restore
-    - *env_shell
-    - *env_spack_environment
+    - *darwin_env_init
+    - if [ -f /usr/bin/nvidia-smi ] ; then nvidia-smi || true; fi
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - *print_build_info
+    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
+    - *darwin_print_build_info
     - |-
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
         -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -141,89 +169,154 @@
         -DFLECSI_BACKEND=${BACKEND} \
         ${CMAKE_OPTIONS} \
         ../..
-    - make
+    - make -j $(nproc)
+    - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
+    - echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
     - CTEST_OUTPUT_ON_FAILURE=1 make test
-    - make ${DOC} install
-    - ccache -s
+    - echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
+    - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
+    - make install
+    - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
+    - *darwin_archive_spack_env
   artifacts:
     expire_in: 2 weeks
     paths:
       - ${CI_PROJECT_DIR}/state
 
 #------------------------------------------------------------------------------#
-# default_build_template
+# darwin_defaults_build_template
 #
-# This template builds flecsi with no options passed to cmake to test
-# the default settings.
+# This template builds flecsi on the Darwin cluster with no options passed to
+# cmake to test the default settings.
 #
 # Variables:
-#   REGISTRY:     The container registry from which to pull images.
-#   IMAGE:        The container image to use, e.g., centos-7.8.
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
+#   PARTITION:    Darwin cluster partition
 #   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
+#   VERSION:  The version of FleCSI to use for spack build.
+#   VARIANTS: Spack variants not including the backend.
 #------------------------------------------------------------------------------#
 
-.aux_print_defaults_build_info:
-  script: &print_defaults_build_info
-    - >
-      echo -e "${COLOR_MAGENTA}Creating Build Environment with Defaults\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n"
+.aux_darwin_print_defaults_build_info:
+  script: &darwin_print_defaults_build_info
+    - |-
+      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}"
+      which gcc
+      which cc
+      spack arch
 
-.defaults_build_template:
-  stage: Build + Unit Tests
-  image: ${REGISTRY}:${ENVIRONMENT}-${IMAGE}
+.darwin_defaults_build_template:
+  tags:
+    - darwin-slurm-shared
   script:
-    - ccache -z
-    - *env_permissions
-    - *env_spack_restore
-    - *env_shell
-    - *env_spack_environment
+    - *darwin_env_init
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - *print_defaults_build_info
+    - *darwin_print_defaults_build_info
+    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
     - |-
+      which gcc
+      which cc
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install ../..
-    - make
+    - make -j $(nproc)
+    - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
+    - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
     - make install
-    - ccache -s
+    - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
   artifacts:
     expire_in: 2 weeks
     paths:
       - ${CI_PROJECT_DIR}/state
 
 #------------------------------------------------------------------------------#
-# tutorial_template
+# darwin_docs_template
+#
+# This template builds the flecsi docs on the Darwin cluster
+#
+# Variables:
+#   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
+#                 e.g., one of the primary branches, such as 'devel', or '1.4'.
+#   PARTITIONS:   Darwin cluster partitions
+#   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
+#   VERSION:  The version of FleCSI to use for spack build.
+#   VARIANTS: Spack variants not including the backend.
+#------------------------------------------------------------------------------#
+
+.darwin_docs_template:
+  tags:
+    - darwin-slurm-shared
+  script:
+    - *darwin_python_env_create
+    - *darwin_env_init
+    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - mkdir -p ${CI_PROJECT_DIR}/state/build
+    - cd ${CI_PROJECT_DIR}/state/build
+    - *darwin_print_build_info
+    - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
+    - |-
+      cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
+        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+        -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+        -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" \
+        -DCMAKE_C_COMPILER=${C_COMPILER} \
+        -DCMAKE_C_FLAGS="${C_FLAGS}" \
+        -DFLECSI_BACKEND=${BACKEND} \
+        -DENABLE_DOCUMENTATION=ON \
+        ${CMAKE_OPTIONS} \
+        ../..
+    - make doc
+    - echo -e "\e[0Ksection_end:`date +%s`:docs\r\e[0K"
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - ${CI_PROJECT_DIR}/state
+
+#------------------------------------------------------------------------------#
+# darwin_standalone_template
 #
 # This template builds the flecsi tutorial examples.
 #
 # Variables:
-#   REGISTRY:     The container registry from which to pull images.
-#   IMAGE:        The container image to use, e.g., centos-7.8.
+#   LABEL:        This will be used to create unique temporary directories.
+#   STDIR:        The source directory (containing CMakeLists.txt file).
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
 #------------------------------------------------------------------------------#
 
-.aux_print_build_tutorial_info:
-  script: &print_build_tutorial_info
-    - >
-      echo -e "${COLOR_MAGENTA}Creating Build Environment\n\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
+.aux_print_build_standalone_info:
+  script: &print_build_standalone_info
+    - |-
+      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}MPI Provider: ${MPI_PROVIDER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Label: ${LABEL}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Source Directory: ${STDIR}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
 
-.tutorial_template:
-  stage: Tutorial
-  image: ${REGISTRY}:${ENVIRONMENT}-${IMAGE}
+.darwin_standalone_template:
+  stage: Standalone
+  tags:
+    - darwin-slurm-shared
   script:
-    - ccache -z
-    - *env_permissions
-    - *env_spack_restore
-    - *env_shell
-    - *env_spack_environment
+    - *darwin_restore_spack_env
+    - *darwin_env_shell
+    - *darwin_env_spack_environment
     - export CMAKE_PREFIX_PATH=${CI_PROJECT_DIR}/state/install
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - spack arch
     - mkdir -p ${CI_PROJECT_DIR}/state/build-tutorial
     - cd ${CI_PROJECT_DIR}/state/build-tutorial
-    - *print_build_tutorial_info
+    - *print_build_standalone_info
     - |-
       cmake -DENABLE_UNIT_TESTS=ON \
         -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
@@ -233,31 +326,42 @@
         ../../tutorial
     - make
     - CTEST_OUTPUT_ON_FAILURE=1 make test
-    - ccache -s
 
 #------------------------------------------------------------------------------#
 # diff_format_template, check_format_template
 #
 # Variables:
-#   REGISTRY:       The container registry from which to pull images.
-#   IMAGE:          The container image to use, e.g., centos-7.8.
 #   FORMAT_VERSION: The required version of clang-format
 #                   (diff_format_template only).
 #------------------------------------------------------------------------------#
 
 .aux_print_diff_format_info:
   script: &print_diff_format_info
-    - >
-      echo -e "${COLOR_MAGENTA}Checking Formatting\n\t${COLOR_BLUE}Registry: ${REGISTRY}${COLOR_PLAIN}\n\t${COLOR_BLUE}Image: ${IMAGE}${COLOR_PLAIN}\n\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}\n\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}\n"
+    - |-
+      echo -e "${COLOR_MAGENTA}Checking Formatting${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}"
 
 .diff_format_template:
   stage: Canary
-  image: ${REGISTRY}:${IMAGE}
+  tags:
+    - darwin-slurm-shared
   script:
-    - *env_shell
+    - date
+    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
+    - export SPACK_DISABLE_LOCAL_CONFIG=true
+    - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
+    - source ${DARWIN_SPACK_UPSTREAM}/share/spack/setup-env.sh
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_x86_64_cuda_11.7_sm70}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | cut -d= -f2)
+    - export PATH=$(dirname $CLANG_CC):${PATH}
     - spack env activate format
-    - mkdir -p ${CI_PROJECT_DIR}/state/build
-    - cd ${CI_PROJECT_DIR}/state/build
+    - mkdir -p ${CI_PROJECT_DIR}/state
+    - mkdir -p ${TMPDIR}/build
+    - cd ${TMPDIR}/build
     - |-
       cmake -DFORMAT_ONLY=ON \
         -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
@@ -265,15 +369,16 @@
         -DCMAKE_C_COMPILER=${C_COMPILER} \
         -DCMAKE_C_FLAGS="${C_FLAGS}" \
         -DClangFormat_VERSION=${FORMAT_VERSION} \
-        ../..
+        ${CI_PROJECT_DIR}
     - *print_diff_format_info
     - set -o errexit
-    - make format && git diff --exit-code --compact-summary
+    - make format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary
     - result=$?
     - >
       if [ $result -eq 0 ]; then
         touch ${CI_PROJECT_DIR}/state/format-passed;
       fi
+    - date
     - exit $result
   artifacts:
     expire_in: 2 weeks
@@ -282,7 +387,6 @@
 
 .check_format_template:
   stage: Final
-  image: ${REGISTRY}:${IMAGE}
   script:
     - if [ -e ${CI_PROJECT_DIR}/state/format-passed ]; then exit 0; fi
     - exit 1
