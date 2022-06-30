@@ -183,7 +183,7 @@ private:
   }
 
   template<index_space From, index_space To>
-  auto const & connectivity() const {
+  FLECSI_INLINE_TARGET auto const & connectivity() const {
     return connect_.template get<From>().template get<To>();
   }
 
@@ -216,7 +216,7 @@ public:
    */
 
   template<index_space To, index_space From>
-  auto entities(id<From> from) const {
+  FLECSI_INLINE_TARGET auto entities(id<From> from) const {
     return make_ids<To>(connectivity<From, To>()[from]);
   }
 
