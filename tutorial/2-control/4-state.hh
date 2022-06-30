@@ -7,6 +7,33 @@
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
 
+namespace placeholder {
+
+// The following class exists solely for pedagogical purposes.  It
+// demonstrates that values of arbitrary type can be manipulated by a
+// FleCSI control model, even if said type is not itself "well-behaved"
+// or FleCSI-aware.  Think of custom as a std::vector or some
+// Trilinos data structure, for example.
+template<typename T>
+class custom
+{
+private:
+  std::unique_ptr<T[]> data;
+
+public:
+  explicit custom(std::size_t sz) : data(std::make_unique<T[]>(sz)) {}
+
+  T & operator[](std::size_t idx) {
+    return data[idx];
+  }
+
+  const T & operator[](std::size_t idx) const {
+    return data[idx];
+  }
+};
+
+} // namespace placeholder
+
 namespace state {
 
 enum class cp { allocate, initialize, advance, finalize };
@@ -51,24 +78,29 @@ struct control_policy {
     State interface
    *--------------------------------------------------------------------------*/
 
-  size_t & step() {
+  using int_custom = placeholder::custom<int>;
+
+  std::size_t & step() {
     return step_;
   }
 
-  size_t & steps() {
+  std::size_t & steps() {
     return steps_;
   }
 
-  void allocate_values(size_t size) {
-    values_ = new size_t[size];
+  void allocate_values(std::size_t size) {
+    // Instead of new we use make_unique to allocate a unique pointer.
+    values_ = std::make_unique<int_custom>(size);
   }
 
   void deallocate_values() {
-    delete[] values_;
+    // Instead of delete[] we reset the unique pointer to nullptr, which
+    // frees the custom object.
+    values_.reset();
   }
 
-  size_t * values() const {
-    return values_;
+  int_custom & values() {
+    return *values_;
   }
 
 private:
@@ -76,9 +108,9 @@ private:
     State members
    *--------------------------------------------------------------------------*/
 
-  size_t step_{0};
-  size_t steps_{0};
-  size_t * values_;
+  std::size_t step_{0};
+  std::size_t steps_{0};
+  std::unique_ptr<int_custom> values_;
 };
 
 using control = flecsi::run::control<control_policy>;

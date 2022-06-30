@@ -30,9 +30,9 @@ initialize() {
     Access the array through the 'values()' method, and initialize.
    */
 
-  size_t * const values = control::state().values();
+  control::int_custom & values = control::state().values();
 
-  for(size_t i{0}; i < 10; ++i) {
+  for(std::size_t i{0}; i < 10; ++i) {
     values[i] = 20 - i;
   } // for
 
@@ -52,9 +52,9 @@ advance() {
     Access the array through the 'values()' method, and modify.
    */
 
-  size_t * const values = control::state().values();
+  control::int_custom & values = control::state().values();
 
-  for(size_t i{0}; i < 10; ++i) {
+  for(std::size_t i{0}; i < 10; ++i) {
     ss << values[i] << " ";
     values[i] = values[i] + 1;
   } // for
