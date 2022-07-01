@@ -234,9 +234,10 @@
       - ${CI_PROJECT_DIR}/state
 
 #------------------------------------------------------------------------------#
-# darwin_docs_template
+# darwin_docs_and_format_template
 #
-# This template builds the flecsi docs on the Darwin cluster
+# This template builds the flecsi docs on the Darwin cluster and checks 
+# formatting
 #
 # Variables:
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
@@ -245,9 +246,16 @@
 #   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
 #   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants not including the backend.
+#   FORMAT_VERSION: The required version of clang-format
 #------------------------------------------------------------------------------#
+#
+.aux_print_diff_format_info:
+  script: &print_diff_format_info
+    - |-
+      echo -e "${COLOR_MAGENTA}Checking Formatting${COLOR_PLAIN}"
+      echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
 
-.darwin_docs_template:
+.darwin_docs_and_format_template:
   tags:
     - darwin-slurm-shared
   script:
@@ -257,6 +265,7 @@
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
     - *darwin_print_build_info
+    - *print_diff_format_info
     - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
     - |-
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
@@ -267,10 +276,22 @@
         -DCMAKE_C_FLAGS="${C_FLAGS}" \
         -DFLECSI_BACKEND=${BACKEND} \
         -DENABLE_DOCUMENTATION=ON \
+        -DClangFormat_VERSION=${FORMAT_VERSION} \
         ${CMAKE_OPTIONS} \
         ../..
     - make doc
     - echo -e "\e[0Ksection_end:`date +%s`:docs\r\e[0K"
+    - echo -e "\e[0Ksection_start:`date +%s`:format\r\e[0K${COLOR_CYAN}Check Formatting${COLOR_PLAIN}"
+    - set -o errexit
+    - make format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary
+    - result=$?
+    - >
+      if [ $result -eq 0 ]; then
+        touch ${CI_PROJECT_DIR}/state/format-passed;
+      fi
+    - date
+    - exit $result
+    - echo -e "\e[0Ksection_end:`date +%s`:format\r\e[0K"
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -328,62 +349,9 @@
     - CTEST_OUTPUT_ON_FAILURE=1 make test
 
 #------------------------------------------------------------------------------#
-# diff_format_template, check_format_template
-#
-# Variables:
-#   FORMAT_VERSION: The required version of clang-format
-#                   (diff_format_template only).
+# check_format_template
 #------------------------------------------------------------------------------#
 
-.aux_print_diff_format_info:
-  script: &print_diff_format_info
-    - |-
-      echo -e "${COLOR_MAGENTA}Checking Formatting${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}C++ Compiler: ${CXX_COMPILER}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}C++ Flags: ${CXX_FLAGS}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}C Compiler: ${C_COMPILER}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}C Flags: ${C_FLAGS}${COLOR_PLAIN}"
-
-.diff_format_template:
-  stage: Canary
-  tags:
-    - darwin-slurm-shared
-  script:
-    - date
-    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
-    - export SPACK_DISABLE_LOCAL_CONFIG=true
-    - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
-    - source ${DARWIN_SPACK_UPSTREAM}/share/spack/setup-env.sh
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_x86_64_cuda_11.7_sm70}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | cut -d= -f2)
-    - export PATH=$(dirname $CLANG_CC):${PATH}
-    - spack env activate format
-    - mkdir -p ${CI_PROJECT_DIR}/state
-    - mkdir -p ${TMPDIR}/build
-    - cd ${TMPDIR}/build
-    - |-
-      cmake -DFORMAT_ONLY=ON \
-        -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
-        -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" \
-        -DCMAKE_C_COMPILER=${C_COMPILER} \
-        -DCMAKE_C_FLAGS="${C_FLAGS}" \
-        -DClangFormat_VERSION=${FORMAT_VERSION} \
-        ${CI_PROJECT_DIR}
-    - *print_diff_format_info
-    - set -o errexit
-    - make format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary
-    - result=$?
-    - >
-      if [ $result -eq 0 ]; then
-        touch ${CI_PROJECT_DIR}/state/format-passed;
-      fi
-    - date
-    - exit $result
-  artifacts:
-    expire_in: 2 weeks
-    paths:
-      - ${CI_PROJECT_DIR}/state
 
 .check_format_template:
   stage: Final
