@@ -7,12 +7,12 @@
 #include <flecsi-config.h>
 
 #if defined(FLECSI_ENABLE_FLOG)
-#include "flecsi/log/message.hh"
-#include "flecsi/log/severity.hh"
-#include "flecsi/log/tag_scope.hh"
+#include "flecsi/flog/message.hh"
+#include "flecsi/flog/severity.hh"
+#include "flecsi/flog/tag_scope.hh"
 #endif
 
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <cstdlib>
 #include <iostream>

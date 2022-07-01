@@ -6,7 +6,7 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <sstream>
 

@@ -8,7 +8,7 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
-#include "flecsi/log/state.hh"
+#include "flecsi/flog/state.hh"
 
 /// \cond core
 namespace flecsi {

@@ -6,9 +6,9 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/log/state.hh"
-#include "flecsi/log/types.hh"
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/state.hh"
+#include "flecsi/flog/types.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <iostream>
 

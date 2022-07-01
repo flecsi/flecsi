@@ -1,7 +1,7 @@
 # Copyright (c) 2016, Triad National Security, LLC
 # All rights reserved
 
-set(log_HEADERS
+set(flog_HEADERS
   message.hh
   packet.hh
   severity.hh
@@ -12,7 +12,7 @@ set(log_HEADERS
   PARENT_SCOPE
 )
 
-set(log_SOURCES
+set(flog_SOURCES
   packet.cc
   utils.cc
   PARENT_SCOPE

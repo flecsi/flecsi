@@ -3,9 +3,9 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/log/packet.hh"
-#include "flecsi/log/state.hh"
-#include "flecsi/log/types.hh"
+#include "flecsi/flog/packet.hh"
+#include "flecsi/flog/state.hh"
+#include "flecsi/flog/types.hh"
 
 #if defined(FLECSI_ENABLE_FLOG)
 

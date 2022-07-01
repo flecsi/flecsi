@@ -9,9 +9,9 @@
 #if defined(FLECSI_ENABLE_FLOG)
 
 #include "flecsi/data/field_info.hh"
-#include "flecsi/log/packet.hh"
-#include "flecsi/log/types.hh"
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/packet.hh"
+#include "flecsi/flog/types.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <atomic>
 #include <bitset>
