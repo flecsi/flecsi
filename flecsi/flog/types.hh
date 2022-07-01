@@ -8,8 +8,8 @@
 
 #if defined(FLECSI_ENABLE_FLOG)
 
-#include "flecsi/log/packet.hh"
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/packet.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <cassert>
 #include <unordered_map>
