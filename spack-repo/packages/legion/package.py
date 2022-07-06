@@ -6,6 +6,7 @@ class Legion(Legion):
     """
     Additional named versions for Legion.
     """
+    version('ctrl-rep-13', commit='36851ec77ea6a317ba72a730e3df2e0bb0a0d586')
     version('ctrl-rep-11', commit='2923ea7808142bc315dbc4d8f2e65b4859410dd2')
     version('ctrl-rep-10', commit='f03d00e7d595885040d5c7491160a22fc1dd5ff5')
     version('ctrl-rep-9', commit='181e63ad4187fbd9a96761ab3a52d93e157ede20')

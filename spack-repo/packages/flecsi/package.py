@@ -96,7 +96,7 @@ class Flecsi(CMakePackage, CudaPackage):
 
     # Legion
 
-    depends_on('legion@ctrl-rep-11:ctrl-rep-99',when='backend=legion')
+    depends_on('legion@ctrl-rep-13:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('legion+shared',when='backend=legion +shared')
     depends_on('legion network=gasnet', when='backend=legion')
