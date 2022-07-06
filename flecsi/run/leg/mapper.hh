@@ -559,6 +559,17 @@ public:
 
   } // slice_task
 
+  virtual void map_copy(const Legion::Mapping::MapperContext ctx,
+    const Legion::Copy & copy,
+    const Legion::Mapping::Mapper::MapCopyInput & input,
+    Legion::Mapping::Mapper::MapCopyOutput & output) {
+    DefaultMapper::map_copy(ctx, copy, input, output);
+
+    // currently our copy_plans are reused which is why we
+    // want the gather copies to be optimized for repeated use.
+    output.compute_preimages = true;
+  } // map_copy
+
 private:
   /*!
    This function will find a variant from a VariantID map for the task
