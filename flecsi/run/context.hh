@@ -376,7 +376,7 @@ struct context {
             being failure.
    */
 
-  int start(const std::function<int(int, char **)> & action);
+  int start(const std::function<int()> & action);
 
   /*!
     Return the current process id.
