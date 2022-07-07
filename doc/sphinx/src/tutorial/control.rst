@@ -583,7 +583,7 @@ methods and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
-   :lines: 29-82
+   :lines: 56-113
 
 .. important::
 
