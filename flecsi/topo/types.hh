@@ -252,24 +252,6 @@ make_ids(C && c) {
 }
 
 namespace stride_impl {
-template<auto N>
-struct table {
-  using type = decltype(N);
-  table(type left) {
-    static_assert(std::is_integral_v<type>, "N must be an integral type");
-    for(type i{0}; i < N; ++i) {
-      data_[i] = (left + i) % N;
-    }
-  }
-  type operator[](type i) const {
-    flog_assert(i < N, "invalid index");
-    return data_[i];
-  }
-
-private:
-  // replace with gpu-supported std::array
-  type data_[N];
-};
 
 /*!
   Adaptor for creating strided iterators over contiguous array types.
@@ -278,15 +260,15 @@ private:
 template<auto S, auto N>
 struct stride {
   using type = decltype(N);
-  stride(type o, type c) : t_(o), o_(o), c_(c) {
+  stride(type o, type c) : o_(o), c_(c) {
     flog_assert(c < N, "invalid color");
   }
   auto operator()(const type i) const {
-    return id<S>(o_ + t_[c_] + i * N);
+    type base = (c_ + o_) % N;
+    return id<S>(o_ + base + i * N);
   }
 
 private:
-  table<N> t_;
   type o_, c_;
 };
 } // namespace stride_impl
