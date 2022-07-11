@@ -335,7 +335,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     */
     template<class R>
     bool operator()(const R & rag, std::size_t i, bool & sent) {
-      const auto full = [&sent] {
+      const auto full = [&] {
         flog_assert(sent, "no data fits");
         return false;
       };
