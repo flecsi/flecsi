@@ -205,7 +205,7 @@ struct ragged_accessor
 
   /// Get the row at an index point.
   /// \return \c util::span
-  row operator[](size_type i) const {
+  FLECSI_INLINE_TARGET row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
@@ -215,20 +215,20 @@ struct ragged_accessor
     return off.span().size();
   }
   /// Return the number of elements across all rows.
-  Offset total() const noexcept {
+  FLECSI_INLINE_TARGET Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
 
   /// Get the elements without any row structure.
-  util::span<element_type> span() const {
+  FLECSI_INLINE_TARGET util::span<element_type> span() const {
     return get_base().span().first(total());
   }
 
   base_type & get_base() {
     return *this;
   }
-  const base_type & get_base() const {
+  FLECSI_INLINE_TARGET const base_type & get_base() const {
     return *this;
   }
 
