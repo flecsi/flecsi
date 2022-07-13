@@ -61,6 +61,7 @@ New features
 
 * Execution
 
+  * Tasks may be executed as ``omp``, allowing efficient use of OpenMP.
   * ``exec::trace`` improves performance of loops when used with the Legion backend.
 
 * Topologies
