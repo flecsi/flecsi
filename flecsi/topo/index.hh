@@ -355,8 +355,6 @@ struct borrow_partition_base : indirect_base {
   }
   template<class T, typename policy_t<T>::index_space S>
   borrow_partition_base(T & t, util::constant<S>, claims::core & c)
-    // TODO: change all topologies(!) to provide a more precise
-    // get_partition return type
     : borrow_partition_base(
         {&t.template get_region<S>(), &t.template get_partition<S>(), &c}) {}
 
