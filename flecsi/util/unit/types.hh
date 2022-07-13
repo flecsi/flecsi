@@ -193,6 +193,8 @@ label_default(std::string s) {
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
+/// Optionally, provide an expression convertible to \c std::string to label
+/// the test results (along with \c __func__); the default is "TEST".
 #define UNIT(...)                                                              \
   ::flecsi::util::unit::state_t auto_unit_state(                               \
     __func__, label_default({__VA_ARGS__}));                                   \
