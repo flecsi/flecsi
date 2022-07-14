@@ -83,7 +83,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A, domain DM = interior>
-    auto vertices() {
+    auto vertices() const {
       if constexpr(DM == interior) {
         const bool low = B::template is_low<mesh::vertices, A>();
         const bool high = B::template is_high<mesh::vertices, A>();
@@ -102,27 +102,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    FLECSI_INLINE_TARGET auto red(std::size_t row) const {
-      const bool low = B::template is_low<mesh::vertices, A>();
-      const bool high = B::template is_high<mesh::vertices, A>();
-      const std::size_t start = B::template logical<mesh::vertices, A, 0>();
-      const std::size_t end = B::template logical<mesh::vertices, A, 1>();
-      const std::size_t rng = (end - high) - (start + low);
-      const bool parity = low == B::template offset<mesh::vertices, A>() % 2;
-
-      // clang-format off
-      const std::size_t pts =
-        (0 == rng % 2) ? // even number of red and black points
-          rng / 2 :
-          parity == (0 == row % 2) ? // more red than black
-            (rng + 1) / 2 :
-            (rng - 1) / 2; // fewer red than black
-      // clang-format on
-
-      return flecsi::topo::make_stride_ids<mesh::vertices, 2>(
-        flecsi::util::iota_view<flecsi::util::id>(0, pts),
-        start + low,
-        (row + parity) % 2);
+    auto red(std::size_t row) const {
+      return flecsi::util::stride_view(vertices<A>(), 2, row % 2);
     }
 
     template<axis A>
