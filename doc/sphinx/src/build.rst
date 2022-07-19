@@ -38,12 +38,12 @@ options, which might not be necessary for a particular build:
 
 * **Boost** |br|
   We require *program_options* and *stacktrace*. |br|
-  *CI: 1.70.0*
+  *CI: 1.79.0*
 
 * **C++17 compliant compiler** |br|
   At the current time, FleCSI has been tested with GNU, Clang, and Intel
   C++ compilers. |br|
-  *CI: gcc 8.3.0, clang 8.0.1, icpc 19.0.2*
+  *CI: gcc 9.4.0, clang 13.0.1*
 
 * **Doxygen** |br|
   Doxygen is only required to build the interface documentation.
@@ -54,7 +54,7 @@ options, which might not be necessary for a particular build:
 * **MPI** |br|
   The MPI implementation must have support
   for *MPI_THREAD_MULTIPLE*. |br|
-  *CI: mpich 3.2.1, openmpi 3.1.3*
+  *CI: mpich 3.4.2, openmpi 4.1.2*
 
 * **Legion** |br|
   We are currently using the most up-to-date version of the control
@@ -65,13 +65,13 @@ options, which might not be necessary for a particular build:
   *CI: 4.0.3 (parMETIS), 5.1.0 (METIS)*
 
 * **CMake** |br|
-  We currently require CMake version 3.12 or greater.
-  *CI: 3.12*
+  We currently require CMake version 3.12 or greater. |br|
+  *CI: 3.20.1*
 
 * **Sphinx** |br|
   Sphinx is only required to build the web-based documentation. We are
-  currently using Sphinx 1.1.0. We also require the Sphinx RTD Theme
-  (using version 0.4.2). These can be installed on most Linux systems
+  currently using Sphinx 5.0.2. We also require the Sphinx RTD Theme
+  (using version 1.0.0). These can be installed on most Linux systems
   using pip.
 
 * **Python** |br|
@@ -123,7 +123,7 @@ FleCSI supports several different versions and variants, e.g.:
 
 .. code-block:: console
 
-  $ spack install flecsi@1.0 +legion +graphviz
+  $ spack install flecsi@2 backend=legion +graphviz
 
 For a complete list of versions and variants, type:
 
@@ -141,7 +141,7 @@ FleCSI Developers
 
 If you are a developer, and would like to install only the dependencies of
 FleCSI (assuming that you will build FleCSI from source), you can use
-spack's *--only* option:
+Spack's ``--only`` option:
 
 .. code-block:: console
 
@@ -183,14 +183,14 @@ Example configuration: **Legion**
 
   $ cmake -DFLECSI_BACKEND=legion ..
 
-After configuration is complete, just use *make* to build:
+After configuration is complete, just use ``make`` to build:
 
 .. code-block:: console
 
   $ make -j 16
 
-Installation uses the normal *make install* and will install FleCSI in
-the directory specified by CMAKE_INSTALL_PREFIX:
+Installation uses the normal ``make install`` and will install FleCSI in
+the directory specified by ``CMAKE_INSTALL_PREFIX``:
 
 .. code-block:: console
 
@@ -223,9 +223,9 @@ FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.
 
 Doxygen can be installed with most Linux package managers.  To install
-Sphinx, you can install pip3 and use it to install *Sphinx*,
-*recommonmark*, and *sphinx_rtd_theme*. Your package manager should also
-have pip3; e.g., on Ubuntu, you can install all of these requirements
+Sphinx, you can install ``pip3`` and use it to install ``Sphinx``,
+``recommonmark``, and ``sphinx_rtd_theme``. Your package manager should also
+have ``pip3``; e.g., on Ubuntu, you can install all of these requirements
 like:
 
 .. code-block:: console
@@ -250,12 +250,12 @@ configured FleCSI, you can build the documentation like:
   $ make doxygen
   $ make sphinx
 
-Both of these targets will be built in your build directory under *doc*:
-e.g., the main Doxygen index.html page will be located at
-*'doc/api/index.html'*. Similarly, the Sphinx main index.html
-page will be located at *'doc/index.html'*. You can open these in
+Both of these targets will be built in your build directory under ``doc/``:
+e.g., the main Doxygen ``index.html`` page will be located at
+``doc/api/index.html``. Similarly, the Sphinx main ``index.html``
+page will be located at ``doc/index.html``. You can open these in
 your browser with
-*file:///path/to/your/build/directory/doc/api/index.html* and
-*file:///path/to/your/build/directory/doc/index.html*.
+``file:///path/to/your/build/directory/doc/api/index.html`` and
+``file:///path/to/your/build/directory/doc/index.html``.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
