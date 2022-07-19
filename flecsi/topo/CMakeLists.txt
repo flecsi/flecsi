@@ -112,7 +112,6 @@ add_unit(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
-    narray/test/narray_tasks.hh
   THREADS 4
 )
 
