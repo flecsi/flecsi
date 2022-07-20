@@ -220,6 +220,8 @@ template<class ctx, detail severity>
 class guard
 {
 public:
+  /// Create a guard.
+  /// \param a as for \c annotation::begin with a context
   template<class Arg>
   guard(Arg && a) {
     begin<ctx, severity>(std::forward<Arg>(a));
@@ -241,6 +243,9 @@ template<class reg>
 class rguard
 {
 public:
+  /// Create a guard.
+  /// \param a as for \c\ref begin with a region
+  ///   (_i.e._, an optional task name)
   template<class... Arg>
   rguard(Arg &&... a) {
     begin<reg>(std::forward<Arg>(a)...);
