@@ -45,6 +45,15 @@ constexpr detail detail_level{detail::low};
 #define DISABLE_CALIPER
 #endif
 
+inline const char *
+c_str(const char * s) {
+  return s;
+}
+inline const char *
+c_str(const std::string & s) {
+  return s.c_str();
+}
+
 /**
  * base for annotation contexts.
  *
@@ -59,6 +68,26 @@ struct context {
 #if !defined(DISABLE_CALIPER)
   static cali::Annotation ann;
 #endif
+  template<detail D, class F>
+  static void begin(F && f) { // f() -> std::string or const char*
+    (void)f;
+#ifndef DISABLE_CALIPER
+    if constexpr(D <= detail_level)
+      ann.begin(c_str(std::forward<F>(f)()));
+#endif
+  }
+  // Convenience for the deprecated interfaces:
+  template<detail D, class N>
+  static void begin_eager(N && n) {
+    begin<D>([&]() -> N && { return std::forward<N>(n); });
+  }
+  template<detail D>
+  static void end() {
+#ifndef DISABLE_CALIPER
+    if constexpr(D <= detail_level)
+      ann.end();
+#endif
+  }
 };
 struct execution : context<execution> {
   static constexpr char name[] = "FleCSI-Execution";
@@ -78,6 +107,28 @@ struct region {
   using outer_context = CTX;
   static constexpr detail detail_level = detail::medium;
 };
+// These exist separately solely to support the deprecated interfaces.
+template<class R, class F>
+void
+region_begin_defer(F && f) {
+  R::outer_context::template begin<R::detail_level>(std::forward<F>(f));
+}
+template<class R>
+void
+region_begin() {
+  region_begin_defer<R>([]() -> auto & { return R::name; });
+}
+template<class R>
+void
+region_begin(std::string_view n) {
+  region_begin_defer<R>([&]() { return (R::name + "->") += n; });
+}
+template<class R>
+void
+region_end() {
+  R::outer_context::template end<R::detail_level>();
+}
+
 template<class T>
 struct execute_task : region<execution> {
   /// Set code region name for regions inheriting from execute_task with the
@@ -111,25 +162,19 @@ struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
  *
  * \tparam ctx annotation context for named code region.
  * \tparam detail severity detail level to use for code region.
+ * \deprecated Use \ref guard.
  */
 template<class ctx, detail severity>
-std::enable_if_t<std::is_base_of<context<ctx>, ctx>::value>
+[[deprecated("use annotation::guard")]] std::enable_if_t<
+  std::is_base_of<context<ctx>, ctx>::value>
 begin(const char * region_name) {
-  (void)region_name;
-#if !defined(DISABLE_CALIPER)
-  if constexpr(severity <= detail_level) {
-    ctx::ann.begin(region_name);
-  }
-#endif
+  ctx::template begin_eager<severity>(region_name);
 }
 template<class ctx, detail severity>
-std::enable_if_t<std::is_base_of<context<ctx>, ctx>::value>
+[[deprecated("use annotation::guard")]] std::enable_if_t<
+  std::is_base_of<context<ctx>, ctx>::value>
 begin(const std::string & region_name) {
-#if !defined(DISABLE_CALIPER)
   begin<ctx, severity>(region_name.c_str());
-#else
-  (void)region_name;
-#endif
 }
 
 /**
@@ -139,12 +184,14 @@ begin(const std::string & region_name) {
  * is compatible with the current annotation detail level.
  *
  * \tparam reg code region to tag (type inherits from annotation::region).
+ * \deprecated Use \ref rguard.
  */
 template<class reg>
-std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
-  typename reg::outer_context>::value>
+[[deprecated("use annotation::rguard")]] std::enable_if_t<
+  std::is_base_of<context<typename reg::outer_context>,
+    typename reg::outer_context>::value>
 begin() {
-  begin<typename reg::outer_context, reg::detail_level>(reg::name.c_str());
+  region_begin<reg>();
 }
 
 /**
@@ -157,20 +204,15 @@ begin() {
  * annotation::execute_task).
  * \param task_name name of task to
  * tag.
+ * \deprecated Use \ref rguard.
  */
 template<class reg>
-std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
-                   typename reg::outer_context>::value &&
-                 std::is_base_of<execute_task<reg>, reg>::value>
+[[deprecated("use annotation::rguard")]] std::enable_if_t<
+  std::is_base_of<context<typename reg::outer_context>,
+    typename reg::outer_context>::value &&
+  std::is_base_of<execute_task<reg>, reg>::value>
 begin(std::string_view task_name) {
-  (void)task_name;
-#if !defined(DISABLE_CALIPER)
-  if constexpr(reg::detail_level <= detail_level) {
-    std::string atag{reg::name + "->"};
-    atag.append(task_name);
-    begin<typename reg::outer_context, reg::detail_level>(atag.c_str());
-  }
-#endif
+  region_begin<reg>(task_name);
 }
 
 /**
@@ -181,15 +223,13 @@ begin(std::string_view task_name) {
  *
  * \tparam ctx annotation context for named code region.
  * \tparam detail severity detail level to use for code region.
+ * \deprecated Use \ref guard.
  */
 template<class ctx, detail severity>
-std::enable_if_t<std::is_base_of<context<ctx>, ctx>::value>
+[[deprecated("use annotation::guard")]] std::enable_if_t<
+  std::is_base_of<context<ctx>, ctx>::value>
 end() {
-#if !defined(DISABLE_CALIPER)
-  if constexpr(severity <= detail_level) {
-    ctx::ann.end();
-  }
-#endif
+  ctx::template end<severity>();
 }
 
 /**
@@ -199,12 +239,14 @@ end() {
  * is compatible with the current annotation detail level.
  *
  * \tparam reg code region to tag (type inherits from annotation::region).
+ * \deprecated Use \ref rguard.
  */
 template<class reg>
-std::enable_if_t<std::is_base_of<context<typename reg::outer_context>,
-  typename reg::outer_context>::value>
+[[deprecated("use annotation::rguard")]] std::enable_if_t<
+  std::is_base_of<context<typename reg::outer_context>,
+    typename reg::outer_context>::value>
 end() {
-  end<typename reg::outer_context, reg::detail_level>();
+  region_end<reg>();
 }
 
 /**
@@ -221,13 +263,13 @@ class guard
 {
 public:
   /// Create a guard.
-  /// \param a as for \c annotation::begin with a context
+  /// \param a region name as a \c std::string or `const char*`
   template<class Arg>
   guard(Arg && a) {
-    begin<ctx, severity>(std::forward<Arg>(a));
+    ctx::template begin_eager<severity>(std::forward<Arg>(a));
   }
   ~guard() {
-    end<ctx, severity>();
+    ctx::template end<severity>();
   }
 };
 
@@ -244,14 +286,13 @@ class rguard
 {
 public:
   /// Create a guard.
-  /// \param a as for \c\ref begin with a region
-  ///   (_i.e._, an optional task name)
+  /// \param a an optional task name as a \c std::string_view
   template<class... Arg>
   rguard(Arg &&... a) {
-    begin<reg>(std::forward<Arg>(a)...);
+    region_begin<reg>(std::forward<Arg>(a)...);
   }
   ~rguard() {
-    end<reg>();
+    region_end<reg>();
   }
 };
 /// \}

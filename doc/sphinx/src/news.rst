@@ -28,6 +28,12 @@ Possible incompatibilities
 
   * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 
+Deprecated
+^^^^^^^^^^
+* Utilities
+
+  * in ``util::annotation``, ``begin`` and ``end`` |mdash| use ``guard`` or ``rguard``
+
 Fixed
 ^^^^^
 * Build
