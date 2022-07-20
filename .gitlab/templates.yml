@@ -82,10 +82,16 @@
     - module load cuda/11.7.0
     - export CC=gcc  # default C compiler
     - export CXX=g++ # default C++ compiler
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_x86_64_cuda_11.7_sm70}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | cut -d= -f2)
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_cuda_11.7_sm70}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2)
     - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
     - echo "PATH=${PATH}"
+    - |-
+      if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
+        echo "Adding linker flags to avoid CUDA linker issue on power9 nodes"
+        export CXX_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${CXX_FLAGS} -Wno-unused-command-line-argument"
+        export C_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${C_FLAGS} -Wno-unused-command-line-argument"
+      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
