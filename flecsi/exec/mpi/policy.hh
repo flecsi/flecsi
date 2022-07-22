@@ -93,8 +93,7 @@ reduce_internal(Args &&... args) {
   //    index>.get(j) to get the return value on any rank j. This implies an
   //    Allgather is needed.
   //
-  const auto ds =
-    launch_size<Attributes, decltype(params)>(std::forward<Args>(args)...);
+  const auto ds = launch_size<Attributes, decltype(params)>(args...);
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();

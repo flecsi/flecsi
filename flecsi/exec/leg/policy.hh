@@ -94,8 +94,7 @@ reduce_internal(Args &&... args) {
   static_assert(processor_type == task_processor_type_t::toc ||
                   processor_type == task_processor_type_t::loc || mpi_task,
     "Unknown launch type");
-  const auto domain_size =
-    launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
+  const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
   // We do not generate a separate task_wrapper specialization for each set of
   // argument types, so they must be erased here (via either serialization or
