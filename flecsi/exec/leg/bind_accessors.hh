@@ -112,22 +112,7 @@ private:
   // resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s) {
-    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      auto status =
-        cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
-      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
-      return;
-#elif defined(__HIPCC__)
-      auto status =
-        hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost);
-      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
-      return;
-#else
-      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
-#endif
-    }
-    *s.host = *s.device;
+    s.template copy<ProcessorType>();
   }
 
   // Capture if the field can be initialized on the device (toc + wo)

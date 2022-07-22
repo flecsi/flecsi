@@ -45,13 +45,7 @@ protected:
   // resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
-      return;
-    }
-#endif
-    *s.host = *s.device;
+    s.template copy<ProcessorType>();
   }
 
   // Capture if the field can be initialized on the device (toc + wo)

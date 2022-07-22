@@ -1362,13 +1362,30 @@ private:
 };
 
 namespace detail {
-// The backend knows where field data is stored for the current task.
-// If 'device' is in fact a pointer to device data, they copy it into 'host'
-// when this type is processed as a "task parameter".
 template<class T>
 struct scalar_value : bind_tag {
   const T * device;
   T * host;
+
+  // The backend knows what value of P to provide when processing this as a
+  // "task parameter" and thus whether 'device' is really a device pointer.
+  template<exec::task_processor_type_t P>
+  void copy() const {
+    if constexpr(P == exec::task_processor_type_t::toc) {
+#if defined(__NVCC__) || defined(__CUDACC__)
+      auto status = cudaMemcpy(host, device, sizeof(T), cudaMemcpyDeviceToHost);
+      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
+      return;
+#elif defined(__HIPCC__)
+      auto status = hipMemcpy(host, device, sizeof(T), hipMemcpyDeviceToHost);
+      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
+      return;
+#else
+      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
+#endif
+    }
+    *host = *device;
+  }
 };
 
 template<auto & F>
