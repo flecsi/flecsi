@@ -585,10 +585,8 @@ methods and some private data:
 
     Although this example demonstrates the ability to allocate heap data
     through the control state interface, this approach must not be used
-    to allocate data that will be modified by a task during the
-    simulation: i.e., control state data should only be used to
-    implement the control logic of the run and should be treated as
-    globally constant in the context of task execution.
+    to allocate data that will be accessed by tasks and modified during the simulation: i.e., control state data should be used only to hold global constants and/or implement the control logic of the run.
+    As a special case, MPI tasks can access and modify such objects.
     The FleCSI data model provides other mechanisms for creating
     and managing state data, which are documented in the :ref:`TUT-DM`
     section of this tutorial.
@@ -603,8 +601,6 @@ and frees the data. Again, the code is self-explanatory:
    :lines: 11-81
 
 The primary take-away from this example should be that users can define
-arbitrary C++ interfaces and data, provided that they are not modified
-by a task. Modifying these data in FleCSI actions (outside of a task) is
-fine.
+arbitrary C++ interfaces and data, given the concurrent access restrictions above.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

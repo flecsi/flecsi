@@ -656,18 +656,18 @@ to selectively control the inclusion of an annotation using the cmake variable
 grouping for annotations.  In caliper, this can be used to filter and aggregate
 annotations using the `caliper query language <http://software.llnl.gov/Caliper/calql.html>`_.
 
-To annotation a code region, either scope guards or explicit begin and end
-functions are called.  Consider the main function for this example:
+Scope guards are used to annotate a code region.
+Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 51-68
+  :lines: 50-67
 
 A scope guard is used to annotation the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 61-63
+  :lines: 60-62
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -681,18 +681,16 @@ specified using structs that inherit from ``annotation::region``:
 This first defines a new annotation context ``user_execution`` by inheriting
 from ``annotation::context`` and specifying a name for the context.  Three code
 regions are then defined using this context.  The first two regions use the
-default detail level of ``annotation::detail::medium``.  The main function is
-then annotated using a scope guard:
+default detail level of ``annotation::detail::medium``.
+The main and sleeper functions are then annotated using region-based scope guards:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 53-53
-
-The sleeper function demonstrates the use of calls to begin and end as opposed to using scope guards:
+  :lines: 52-52
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 34-36
+  :lines: 34-35
 
 Generating Reports
 ^^^^^^^^^^^^^^^^^^
