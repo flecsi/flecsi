@@ -486,14 +486,15 @@ private:
 template<class C, class F>
 struct transform_view {
 private:
-  // create an iterator type from the passed-in container
-  using base_iterator = decltype(std::begin(std::declval<C &>()));
   C c;
   F f;
 
 public:
+  template<bool Const>
   struct iterator {
   private:
+    using base_iterator = decltype(std::begin(
+      std::declval<std::conditional_t<Const, const C, C> &>()));
     using traits = std::iterator_traits<base_iterator>;
 
   public:
@@ -590,11 +591,19 @@ public:
   constexpr transform_view(C c, F f = {}) : c(std::move(c)), f(std::move(f)) {}
 
   FLECSI_INLINE_TARGET
-  constexpr iterator begin() const noexcept {
+  constexpr iterator<false> begin() noexcept {
     return {std::begin(c), &f};
   }
   FLECSI_INLINE_TARGET
-  constexpr iterator end() const noexcept {
+  constexpr iterator<true> begin() const noexcept {
+    return {std::begin(c), &f};
+  }
+  FLECSI_INLINE_TARGET
+  constexpr iterator<false> end() noexcept {
+    return {std::end(c), &f};
+  }
+  FLECSI_INLINE_TARGET
+  constexpr iterator<true> end() const noexcept {
     return {std::end(c), &f};
   }
 
@@ -613,10 +622,18 @@ public:
   }
 
   FLECSI_INLINE_TARGET
+  constexpr decltype(auto) front() {
+    return *begin();
+  }
+  FLECSI_INLINE_TARGET
   constexpr decltype(auto) front() const {
     return *begin();
   }
 
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) back() {
+    return *--end();
+  }
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) back() const {
     return *--end();
@@ -624,7 +641,12 @@ public:
 
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](
-    typename std::iterator_traits<base_iterator>::difference_type i) const {
+    typename iterator<false>::difference_type i) {
+    return begin()[i];
+  }
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) operator[](
+    typename iterator<true>::difference_type i) const {
     return begin()[i];
   }
 
