@@ -51,20 +51,13 @@
 
 .darwin_env_create:
   script: &darwin_env_create
+    - module load git
     - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
+    - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/current/$(uname -i)
     - export SPACK_COMMIT_HASH=$(cd $DARWIN_SPACK_UPSTREAM; git rev-parse HEAD)
-    - pushd $TMPDIR
-    - git clone https://github.com/spack/spack $TMPDIR/spack
-    - cd $TMPDIR/spack
-    - git checkout ${SPACK_COMMIT_HASH}
+    - git clone -c feature.manyFiles=true https://github.com/spack/spack $TMPDIR/spack
+    - git -C $TMPDIR/spack checkout ${SPACK_COMMIT_HASH}
     - cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/*.yaml $TMPDIR/spack/etc/spack/
-    - |-
-      cat > $TMPDIR/spack/etc/spack/upstreams.yaml <<EOF
-      upstreams:
-        default:
-          install_tree: ${DARWIN_SPACK_UPSTREAM}/opt/spack/
-      EOF
-    - popd
 
 #------------------------------------------------------------------------------#
 # darwin_env_shell
@@ -82,10 +75,16 @@
     - module load cuda/11.7.0
     - export CC=gcc  # default C compiler
     - export CXX=g++ # default C++ compiler
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_x86_64_cuda_11.7_sm70}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | cut -d= -f2)
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_cuda_11.7_sm70}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2)
     - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
     - echo "PATH=${PATH}"
+    - |-
+      if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
+        echo "Adding linker flags to avoid CUDA linker issue on power9 nodes"
+        export CXX_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${CXX_FLAGS} -Wno-unused-command-line-argument"
+        export C_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${C_FLAGS} -Wno-unused-command-line-argument"
+      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
@@ -103,8 +102,11 @@
     - *darwin_print_env_info
     - *darwin_env_shell
     - *darwin_env_spack_environment
+    - spack bootstrap add --trust local-sources ${DARWIN_SPACK_BOOTSTRAP_MIRROR}/metadata/sources
+    - spack bootstrap add --trust local-binaries ${DARWIN_SPACK_BOOTSTRAP_MIRROR}/metadata/binaries
     - spack env create ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - spack config add upstreams:default:install_tree:${DARWIN_SPACK_UPSTREAM}/opt/spack/
     - spack repo add spack-repo
     # This uses the legion backend by default because it also satisfies the dependencies
     # for MPI (and potentially HPX)

@@ -271,7 +271,7 @@ openmpi-legion-clang-cuda:
   variables:
     <<: *openmpi-cuda-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -279,8 +279,8 @@ openmpi-legion-clang-cuda:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C gpu1_model:Tesla_V100S-PCIE-32GB"
+    PARTITIONS: volta-x86,power9
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
 
 openmpi-legion-clang-cuda-ibv:
   stage: Legion backend
@@ -292,7 +292,7 @@ openmpi-legion-clang-cuda-ibv:
   variables:
     <<: *openmpi-cuda-ibv-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -300,8 +300,8 @@ openmpi-legion-clang-cuda-ibv:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C gpu1_model:Tesla_V100S-PCIE-32GB"
+    PARTITIONS: volta-x86,power9
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}  --constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
 
 
 #------------------------------------------------------------------------------#
@@ -361,7 +361,7 @@ mpich-legion-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -385,7 +385,7 @@ mpich-mpi-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -409,7 +409,7 @@ docs_and_format:
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     VARIANTS: caliper_detail=low +graphviz +hdf5 +kokkos ^kokkos~cuda
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
@@ -436,7 +436,7 @@ openmpi-mpi-clang:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_x86_64_cuda_11.7_sm70
+    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
