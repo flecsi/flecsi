@@ -9,6 +9,9 @@ stages:
   - Standalone
   - Final
 
+default:
+  interruptible: true
+
 variables:
   COLOR_BLUE: '\033[1;34m'
   COLOR_GREEN: '\033[0;32m'
