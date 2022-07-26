@@ -268,8 +268,8 @@ struct io_interface {
     checkpoint_data<false>(file_name, attach_flag);
   } // recover_data
 
-  data::leg::unique_index_space launch_space;
-  data::leg::unique_index_partition launch_partition;
+  data::leg::shared_index_space launch_space;
+  data::leg::shared_index_partition launch_partition;
   std::vector<legion_hdf5_region_t> hdf5_region_vector;
   std::map<std::string, unsigned> name_count;
 };
