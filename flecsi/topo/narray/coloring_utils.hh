@@ -163,6 +163,13 @@ make_color(Dimension dimension,
 
       idxco.extended[0][axis] = 0;
       idxco.extended[1][axis] = idxco.logical[1][axis] + bdepths[axis];
+
+      if(periodic[axis]) {
+        ghstitvls[axis].push_back({0,
+          {idxco.logical[1][axis], idxco.logical[1][axis] + bdepths[axis]}});
+        ghstitvls[axis].push_back({0,
+          {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
+      }
     }
     else if(bits & low) {
       /*
