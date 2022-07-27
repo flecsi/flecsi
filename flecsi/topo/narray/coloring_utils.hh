@@ -150,6 +150,11 @@ make_color(Dimension dimension,
 
     std::uint32_t bits = faces >> axis * 2;
 
+    if(periodic[axis]) {
+      flog_assert(hdepths[axis] == bdepths[axis],
+        "halo and boundary depth must be identical for periodic axes");
+    }
+
     if(bits & low && bits & high) {
       /*
         This is a degenerate dimension, i.e., it is flat with a single
@@ -189,9 +194,6 @@ make_color(Dimension dimension,
         {idxco.logical[1][axis], idxco.logical[1][axis] + hdepths[axis]}});
 
       if(periodic[axis]) {
-        flog_assert(bdepths[axis] > 0,
-          "periodic boundaries require non-zero boundary depth");
-
         ghstitvls[axis].push_back({axis_colors - 1,
           {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
       } // if
@@ -215,9 +217,6 @@ make_color(Dimension dimension,
         {idxco.logical[0][axis] - hdepths[axis], idxco.logical[0][axis]}});
 
       if(periodic[axis]) {
-        flog_assert(bdepths[axis] > 0,
-          "periodic boundaries require non-zero boundary depth");
-
         ghstitvls[axis].push_back({0,
           {idxco.logical[1][axis], idxco.logical[1][axis] + bdepths[axis]}});
       } // if
