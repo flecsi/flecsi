@@ -11,6 +11,12 @@ FleCSI provides a data model that integrates with the task and kernel
 abstractions to provide easy registration and access to various data
 types with automatic dependency tracking.
 
+.. sidebar:: Field definitions in headers
+
+   Declaring field definitions as ``const`` namespace members gives them
+   internal linkage. When putting them in headers make sure to declare them
+   as ``inline const`` to avoid breaking the One-Definition Rule (ODR).
+
 Example 1: Global data
 ++++++++++++++++++++++
 

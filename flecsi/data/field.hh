@@ -182,6 +182,11 @@ struct field : data::detail::field_base<T, L> {
   using Reference = data::field_reference<T, L, Topo, S>;
 
   /// A field registration.
+  ///
+  /// \warning
+  /// Field definitions are typically declared \c const. If placed in a header
+  /// make sure to declare them as <tt>inline const</tt> to avoid breaking ODR.
+  ///
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
