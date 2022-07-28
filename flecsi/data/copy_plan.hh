@@ -318,10 +318,13 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// \c operator() will ignore data that has already been sent.
   struct ragged {
     /*!
-        This constructor is invoked multiple times, in particular
-        to resume communication after the first send.
+      Prepare an object for writing.
+
+      \param b send buffer (for destination color)
+      \param first whether this is the first round of communication
     */
-    explicit ragged(Buffer & b) : skip(b.off), w(b) {}
+    explicit ragged(Buffer & b, bool first = false)
+      : skip(first ? b.off = 0 : b.off), w(b) {}
 
     /*! Operator to communicate field data
 
@@ -359,18 +362,6 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       else
         skip -= n;
       return true;
-    }
-
-    /*! This method should be invoked for the first use in each (send)
-       communication.
-
-        @param b reference to the input buffer. The passed
-        buffer should point to the correct index in the list of all buffers
-        created for sending and receiving data.
-    */
-    static ragged truncate(Buffer & b) {
-      b.off = 0;
-      return ragged(b);
     }
 
     /*! The method to read received data.
