@@ -641,6 +641,8 @@ public:
     // from each place where the movement switches from rightward to leftward.
     const auto all = acc.get_base().span();
     const size_type n = size();
+    if(!n) // code below caches the current row
+      return;
     // Read and write cursors.  It would be possible, if ugly, to run cursors
     // backwards for the rightward-moving portions and do without the stack.
     size_type is = 0, id = 0;
