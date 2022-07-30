@@ -490,6 +490,14 @@ dumpstack() {
 #endif
 } // dumpstack
 
+inline constexpr bool can_dumpstack =
+#ifdef NDEBUG
+  false
+#else
+  true
+#endif
+  ;
+
 } // namespace flog
 } // namespace flecsi
 
@@ -525,7 +533,7 @@ dumpstack() {
     if(dump != nullptr) {                                                      \
       ::flecsi::flog::dumpstack();                                             \
     }                                                                          \
-    else {                                                                     \
+    else if(::flecsi::flog::can_dumpstack) {                                   \
       _sstream << FLOG_OUTPUT_YELLOW(                                          \
                     "For a full stack trace, set "                             \
                     "FLECSI_BACKTRACE in your environment, e.g.,\n"            \
