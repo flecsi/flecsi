@@ -423,7 +423,7 @@ struct unstructured_base {
     {
       int r = 0;
       for(const auto & rv : requested) {
-        for(auto const pc : rv) {
+        for(const auto & pc : rv) {
           for(auto [id, lc, dmmy] : pc) {
             fulfills[r].emplace_back(shared_offsets[lc][id]);
           } // for
