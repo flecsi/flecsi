@@ -483,27 +483,27 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           Map a local coordinate to a global one.
          */
 
-        auto l2g = [dimension, faces, &axis_bdepths](
+        auto l2g = [dimension, faces](
                      index_coloring const & idxco, coord const & idx) {
+          const auto & [start, end] = idxco.logical;
           coord result(dimension);
           for(Dimension axis = 0; axis < dimension; ++axis) {
             uint32_t bits = faces >> axis * 2;
-            if(bits & low) {
-              if(idx[axis] < idxco.logical[0][axis]) {
+            const std::size_t sa = start[axis], ea = end[axis], i = idx[axis];
+            if(bits & high && i >= ea) // periodic high
+              result[axis] = i - ea;
+            else if(bits & low) {
+              // Here, i=sa is global index 0 and thus the reference.
+              if(i < sa) {
                 /* periodic low */
-                result[axis] =
-                  idxco.global[axis] - axis_bdepths[axis] + idx[axis];
+                result[axis] = idxco.global[axis] - sa + i;
               }
               else {
-                result[axis] = idx[axis] - axis_bdepths[axis];
+                result[axis] = i - sa;
               }
             }
-            else if(bits & high && idx[axis] >= idxco.logical[1][axis]) {
-              /* periodic high */
-              result[axis] = idx[axis] - idxco.logical[1][axis];
-            }
             else {
-              result[axis] = idxco.offset[axis] + idx[axis];
+              result[axis] = idxco.offset[axis] + i;
             }
           }
           return result;
