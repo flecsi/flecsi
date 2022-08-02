@@ -81,18 +81,12 @@ struct control_base {
   template<class... TT>
   using list = util::types<TT...>;
 
-  /// Called before executing.  If the value returned is not \c success,
-  /// \c run and \c finalize are skipped.
-  /// \return exit status
-  int initialize() {
-    return success;
-  }
-  /// Called after executing.
-  /// \param run exit status from running
-  /// \return exit status
-  int finalize(int run) {
-    return run;
-  }
+  /*!
+    Exception class for control points.
+  */
+  struct exception {
+    int code; /// status code
+  };
 };
 
 #ifdef DOXYGEN
@@ -179,82 +173,81 @@ public:
   using sorted_type = std::map<control_points_enum, typename dag::sorted_type>;
   using dag_map = std::map<control_points_enum, dag>;
 
-private:
-  /*
-    Initialize the control point dags. This is necessary in order to
-    assign labels in the case that no actions are registered at one
-    or more control points.
-   */
+  struct registry {
 
-  control() {
-    run_impl::walk<control_points>(init_walker(registry_));
-  }
+    friend control;
 
-  /*
-    The singleton instance is private, and should only be accessed by internal
-    types.
-   */
-
-  static control & instance() {
-    static control c;
-    return c;
-  }
-
-  /*
-    Return the dag at the given control point.
-   */
-
-  dag & control_point_dag(control_points_enum cp) {
-    registry_.try_emplace(cp, *cp);
-    return registry_[cp];
-  }
-
-  /*
-    Return a map of the sorted dags under each control point.
-   */
-
-  sorted_type sort() const {
-    sorted_type sorted;
-    for(auto & d : registry_) {
-      sorted.try_emplace(d.first, d.second.sort());
+    static registry & instance() {
+      static registry r;
+      return r;
     }
-    return sorted;
-  }
 
-  /*
-    Run the control model.
-   */
+  protected:
+    /*
+      Initialize the control point dags. This is necessary in order to
+      assign labels in the case that no actions are registered at one
+      or more control points.
+    */
+    registry() {
+      run_impl::walk<control_points>(init_walker(registry_));
+    }
 
-  int run() const {
-    int status{flecsi::run::status::success};
-    run_impl::walk<control_points>(point_walker(sort(), status));
-    return status;
-  } // run
+    /*
+      Return the dag at the given control point.
+    */
+    dag & control_point_dag(control_points_enum cp) {
+      registry_.try_emplace(cp, *cp);
+      return registry_[cp];
+    }
 
-  /*
-    Output a graph of the control model.
-   */
+    /*
+      Return a map of the sorted dags under each control point.
+    */
+    sorted_type sort() const {
+      sorted_type sorted;
+      for(auto & d : registry_) {
+        sorted.try_emplace(d.first, d.second.sort());
+      }
+      return sorted;
+    }
 
+    /*
+      Run the control model.
+    */
+    int run() const {
+      int status{flecsi::run::status::success};
+      run_impl::walk<control_points>(point_walker(sort(), status));
+      return status;
+    } // run
+
+    /*
+      Output a graph of the control model.
+    */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  int write() const {
-    flecsi::util::graphviz gv;
-    point_writer::write(registry_, gv);
-    std::string file = program() + "-control-model.dot";
-    gv.write(file);
-    return flecsi::run::status::control_model;
-  } // write
+    int write() const {
+      flecsi::util::graphviz gv;
+      point_writer::write(registry_, gv);
+      std::string file = program() + "-control-model.dot";
+      gv.write(file);
+      return flecsi::run::status::control_model;
+    } // write
 
-  int write_sorted() const {
-    flecsi::util::graphviz gv;
-    point_writer::write_sorted(sort(), gv);
-    std::string file = program() + "-control-model-sorted.dot";
-    gv.write(file);
-    return flecsi::run::status::control_model_sorted;
-  } // write_sorted
+    int write_sorted() const {
+      flecsi::util::graphviz gv;
+      point_writer::write_sorted(sort(), gv);
+      std::string file = program() + "-control-model-sorted.dot";
+      gv.write(file);
+      return flecsi::run::status::control_model_sorted;
+    } // write_sorted
 #endif
 
+    dag_map registry_;
+  };
+
+private:
+  // stores location of a policy object created in \c execute.
+  static inline P * policy_loc;
   P policy_;
-  dag_map registry_;
 
 public:
   /*!
@@ -266,7 +259,14 @@ public:
    */
 
   static P & policy() {
-    return instance().policy_;
+    if constexpr(std::is_base_of_v<control_base, P>) {
+      flog_assert(policy_loc, "Could not locate an active policy.");
+      return *policy_loc;
+    }
+    else {
+      static control c;
+      return c.policy_;
+    }
   }
 
   /// Return the control policy object.
@@ -302,7 +302,7 @@ public:
       : node_(util::symbol<*T>(), T, std::forward<Args>(args)...) {
       static_assert(M == run_impl::is_meta<control_points>(CP),
         "you cannot use this interface for internal control points!");
-      instance().control_point_dag(CP).push_back(&node_);
+      registry::instance().control_point_dag(CP).push_back(&node_);
     }
 
     /*
@@ -340,17 +340,30 @@ public:
   /*!
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
-    valid ordering, and executes the actions.
+    valid ordering, and executes the actions.  If the policy `P` inherits from
+    `control_base`, \c control_base::exception can be thrown for early
+    termination. \return code from a thrown \c control_base::exception or the
+    bitwise or of return values of execuded actions.
    */
 
   static int execute() {
+    int ret{status::success};
     if constexpr(std::is_base_of_v<control_base, P>) {
-      const int r = policy().initialize();
-      return r == success ? policy().finalize(instance().run()) : r;
+      try {
+        flog_assert(!policy_loc, "An active policy already exists");
+        P pol;
+        policy_loc = &pol;
+        ret = registry::instance().run();
+      }
+      catch(control_base::exception e) {
+        ret = e.code;
+      }
+      policy_loc = nullptr;
     }
     else {
-      return instance().run();
+      ret = registry::instance().run();
     }
+    return ret;
   } // execute
 
   /*!
@@ -363,9 +376,9 @@ public:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     switch(s) {
       case flecsi::run::status::control_model:
-        return instance().write();
+        return registry::instance().write();
       case flecsi::run::status::control_model_sorted:
-        return instance().write_sorted();
+        return registry::instance().write_sorted();
       default:
         break;
     } // switch

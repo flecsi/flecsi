@@ -350,11 +350,16 @@ The last part of the main function is not really different from previous
 examples; we just have a better understanding of it now.
 Passing the *execute* method of our control model to FleCSI's *start*
 function tells FleCSI to run the control model, which will execute all
-of the cycles and actions registered on the control model:
+of the cycles and actions registered on the control model unless early
+termination is selected by throwing *control_base::exception* from an action:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
    :lines: 81-87
+
+The return value stored in status is the code from *control_base::exception* if
+thrown.  Otherwise it is the bitwise or of return values from the executed
+actions.
 
 Now that we have defined the control model and added it to our runtime
 setup, the only thing that remains is to add some actions under the
