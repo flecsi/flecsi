@@ -410,7 +410,7 @@ docs_and_format:
   variables:
     MPI_PROVIDER: mpich
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: caliper_detail=low +graphviz +hdf5 +kokkos ^kokkos~cuda
+    VARIANTS: +graphviz +hdf5
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
@@ -420,7 +420,7 @@ docs_and_format:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON -DENABLE_GRAPHVIZ=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_GRAPHVIZ=ON
     FORMAT_VERSION: 13.0.1
   allow_failure: true
 
