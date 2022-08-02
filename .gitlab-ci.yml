@@ -23,8 +23,8 @@ variables:
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
-  PARITIONS: general,skylake-gold,skylake-platinum
-  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+  PARTITIONS: general,skylake-gold,skylake-platinum
+  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Common build variants
@@ -130,7 +130,7 @@ mpich-legion-gnu:
     C_COMPILER: gcc
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -217,7 +217,7 @@ tutorial:legion:
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
