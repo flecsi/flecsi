@@ -141,106 +141,36 @@ make_color(Dimension dimension,
 
   for(Dimension axis = 0; axis < dimension; ++axis) {
     auto axis_color = color_indices[axis];
-    const Color axis_colors = axcm[axis].colors();
-    idxco.global[axis] = axcm[axis].indices();
-    idxco.extents[axis] = axcm[axis].indices(axis_color, 0);
-    idxco.offset[axis] = axcm[axis].index_offset(color_indices[axis], 0);
-    idxco.logical[0][axis] = 0;
-    idxco.logical[1][axis] = axcm[axis].indices(axis_color, 0);
+    const util::color_map & cm = axcm[axis];
+    const std::uint32_t bits = faces >> axis * 2;
+    const bool lo = bits & low, hi = bits & high;
+    auto &log0 = idxco.logical[0][axis], &log1 = idxco.logical[1][axis],
+         &ext0 = idxco.extended[0][axis], &tot = idxco.extents[axis];
+    idxco.global[axis] = cm.indices();
+    // Build the layout incrementally from the bottom edge,
+    // adding boundary or halo layers as appropriate:
+    log0 = (lo ? bdepths : hdepths)[axis];
+    ext0 = lo ? 0 : log0; // NB: the number of low-side ghosts
+    log1 = log0 + cm.indices(axis_color, 0);
+    tot = log1 + (hi ? bdepths : hdepths)[axis];
+    idxco.extended[1][axis] = hi ? tot : log1;
+    idxco.offset[axis] = cm.index_offset(axis_color, 0) - ext0;
 
-    std::uint32_t bits = faces >> axis * 2;
+    auto & gi = ghstitvls[axis];
+    if(!lo)
+      gi.push_back({axis_color - 1, {0, log0}});
+    if(!hi)
+      gi.push_back({axis_color + 1, {log1, tot}});
 
     if(periodic[axis]) {
       flog_assert(hdepths[axis] == bdepths[axis],
         "halo and boundary depth must be identical for periodic axes");
+
+      if(lo)
+        gi.push_back({cm.colors() - 1, {0, log0}});
+      if(hi)
+        gi.push_back({0, {log1, tot}});
     }
-
-    if(bits & low && bits & high) {
-      /*
-        This is a degenerate dimension, i.e., it is flat with a single
-        color layer. Therefore, we do not add halo extensions.
-       */
-
-      idxco.extents[axis] += 2 * bdepths[axis];
-
-      idxco.logical[0][axis] += bdepths[axis];
-      idxco.logical[1][axis] += bdepths[axis];
-
-      idxco.extended[0][axis] = 0;
-      idxco.extended[1][axis] = idxco.logical[1][axis] + bdepths[axis];
-
-      if(periodic[axis]) {
-        ghstitvls[axis].push_back({0,
-          {idxco.logical[1][axis], idxco.logical[1][axis] + bdepths[axis]}});
-        ghstitvls[axis].push_back({0,
-          {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
-      }
-    }
-    else if(bits & low) {
-      /*
-        This dimension is a low edge.
-       */
-
-      idxco.extents[axis] += bdepths[axis] + hdepths[axis];
-
-      // Shift the logical hypercube by boundary depth
-      idxco.logical[0][axis] += bdepths[axis];
-      idxco.logical[1][axis] += bdepths[axis];
-
-      idxco.extended[0][axis] = 0;
-      idxco.extended[1][axis] = idxco.logical[1][axis];
-
-      ghstitvls[axis].push_back({color_indices[axis] + 1,
-        {idxco.logical[1][axis], idxco.logical[1][axis] + hdepths[axis]}});
-
-      if(periodic[axis]) {
-        ghstitvls[axis].push_back({axis_colors - 1,
-          {idxco.extended[0][axis], idxco.extended[0][axis] + bdepths[axis]}});
-      } // if
-    }
-    else if(bits & high) {
-      /*
-        This dimension is a high edge.
-       */
-
-      idxco.extents[axis] += hdepths[axis] + bdepths[axis];
-
-      idxco.offset[axis] -= hdepths[axis];
-
-      idxco.logical[0][axis] += hdepths[axis];
-      idxco.logical[1][axis] += hdepths[axis];
-
-      idxco.extended[0][axis] = idxco.logical[0][axis];
-      idxco.extended[1][axis] = idxco.logical[1][axis] + bdepths[axis];
-
-      ghstitvls[axis].push_back({color_indices[axis] - 1,
-        {idxco.logical[0][axis] - hdepths[axis], idxco.logical[0][axis]}});
-
-      if(periodic[axis]) {
-        ghstitvls[axis].push_back({0,
-          {idxco.logical[1][axis], idxco.logical[1][axis] + bdepths[axis]}});
-      } // if
-    }
-    else {
-      /*
-        This dimension is interior.
-       */
-
-      idxco.extents[axis] += 2 * hdepths[axis];
-
-      idxco.offset[axis] -= hdepths[axis];
-
-      idxco.logical[0][axis] += hdepths[axis];
-      idxco.logical[1][axis] += hdepths[axis];
-
-      idxco.extended[0][axis] = idxco.logical[0][axis];
-      idxco.extended[1][axis] = idxco.logical[1][axis];
-
-      ghstitvls[axis].push_back({color_indices[axis] + 1,
-        {idxco.logical[1][axis], idxco.logical[1][axis] + hdepths[axis]}});
-      ghstitvls[axis].push_back({color_indices[axis] - 1,
-        {idxco.logical[0][axis] - hdepths[axis], idxco.logical[0][axis]}});
-    } // if
   } // for
 
   return std::make_pair(idxco, ghstitvls);
