@@ -52,7 +52,7 @@
 .darwin_clang_format_init:
   script: &darwin_clang_format_init
     - export CLANG_COMPILER_SPEC=clang@${FORMAT_VERSION:-13.0.1}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2)
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1)
     - export PATH=$(dirname $CLANG_CC):${PATH}
 
 .darwin_env_create:
@@ -81,8 +81,8 @@
     - module load cuda/11.7.0
     - export CC=gcc  # default C compiler
     - export CXX=g++ # default C++ compiler
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_cuda_11.7_sm70}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2)
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-"clang@${CLANG_VERSION}"}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1)
     - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
     - echo "PATH=${PATH}"
     - |-

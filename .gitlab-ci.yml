@@ -20,6 +20,7 @@ variables:
   COLOR_PLAIN: '\033[0m'
   # global defaults
   GCC_VERSION: 9.4.0
+  CLANG_VERSION: 13.0.1
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
@@ -106,7 +107,7 @@ mpich-defaults:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with MPICH provider,
@@ -123,7 +124,7 @@ mpich-legion-gnu:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
@@ -145,7 +146,7 @@ mpich-legion-gnu:release:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
@@ -167,7 +168,7 @@ mpich-mpi-gnu:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -186,7 +187,7 @@ mpich-mpi-gnu:release:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -209,7 +210,7 @@ tutorial:legion:
     LABEL: tutorial
     STDIR: tutorial
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
@@ -234,7 +235,7 @@ openmpi-legion-gnu:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
@@ -253,7 +254,7 @@ openmpi-legion-gnu:release:
   variables:
     <<: *openmpi
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
@@ -323,7 +324,7 @@ openmpi-mpi-gnu:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -342,7 +343,7 @@ openmpi-mpi-gnu:release:
   variables:
     <<: *openmpi
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -365,7 +366,7 @@ mpich-legion-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -389,7 +390,7 @@ mpich-mpi-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -439,7 +440,7 @@ openmpi-mpi-clang:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
