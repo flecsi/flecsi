@@ -22,7 +22,7 @@ namespace parmetis {
 /// \addtogroup utils
 /// \{
 
-static std::vector<size_t>
+inline std::vector<size_t>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);

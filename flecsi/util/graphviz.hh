@@ -23,32 +23,27 @@ namespace util {
 /// \{
 
 // attribute strings
-static constexpr const char * gv_graph = "graph";
-static constexpr const char * gv_label_default = "";
-static constexpr const char * gv_label = "label";
-static constexpr const char * gv_color = "color";
-static constexpr const char * gv_color_black = "black";
-static constexpr const char * gv_penwidth = "penwidth";
-static constexpr const char * gv_penwidth_default = "";
-static constexpr const char * gv_shape = "shape";
-static constexpr const char * gv_shape_default = "ellipse";
-static constexpr const char * gv_style = "style";
-static constexpr const char * gv_style_default = "";
-static constexpr const char * gv_fill_color = "fillcolor";
-static constexpr const char * gv_color_lightgrey = "lightgrey";
-static constexpr const char * gv_font_color = "fontcolor";
-static constexpr const char * gv_dir = "dir";
-static constexpr const char * gv_dir_default = "forward";
-static constexpr const char * gv_headport = "headport";
-static constexpr const char * gv_headport_default = "c";
-static constexpr const char * gv_tailport = "tailport";
-static constexpr const char * gv_tailport_default = "c";
-static constexpr const char * gv_arrowsize = "arrowsize";
-static constexpr const char * gv_arrowsize_default = "0.75";
-static constexpr const char * gv_arrowhead = "arrowhead";
-static constexpr const char * gv_arrowhead_default = "normal";
-static constexpr const char * gv_arrowtail = "arrowtail";
-static constexpr const char * gv_arrowtail_default = "normal";
+inline constexpr const char *gv_graph = "graph", *gv_label_default = "",
+                            *gv_label = "label", *gv_color = "color",
+                            *gv_color_black = "black",
+                            *gv_penwidth = "penwidth",
+                            *gv_penwidth_default = "", *gv_shape = "shape",
+                            *gv_shape_default = "ellipse", *gv_style = "style",
+                            *gv_style_default = "",
+                            *gv_fill_color = "fillcolor",
+                            *gv_color_lightgrey = "lightgrey",
+                            *gv_font_color = "fontcolor", *gv_dir = "dir",
+                            *gv_dir_default = "forward",
+                            *gv_headport = "headport",
+                            *gv_headport_default = "c",
+                            *gv_tailport = "tailport",
+                            *gv_tailport_default = "c",
+                            *gv_arrowsize = "arrowsize",
+                            *gv_arrowsize_default = "0.75",
+                            *gv_arrowhead = "arrowhead",
+                            *gv_arrowhead_default = "normal",
+                            *gv_arrowtail = "arrowtail",
+                            *gv_arrowtail_default = "normal";
 
 #define GV_GRAPH const_cast<char *>(gv_graph)
 #define GV_LABEL const_cast<char *>(gv_label)
@@ -77,8 +72,7 @@ static constexpr const char * gv_arrowtail_default = "normal";
 #define GV_ARROWTAIL const_cast<char *>(gv_arrowtail)
 #define GV_ARROWTAIL_DEFAULT const_cast<char *>(gv_arrowtail_default)
 
-const int ag_create(1);
-const int ag_access(0);
+inline constexpr int ag_create = 1, ag_access = 0;
 
 /// Class for creating Graphviz trees.
 class graphviz
