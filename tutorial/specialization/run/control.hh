@@ -38,7 +38,7 @@ struct control_policy {
   }
 
   static bool cycle_control() {
-    return control::instance().step()++ < 1;
+    return control::state().step()++ < 1;
   }
 
   template<auto CP>

@@ -468,7 +468,7 @@ complex, e.g., invoking a reduction to compute a variable time step.
   covered in detail in :ref:`TUT-CM-STATE` below.
 
 Notice that the *cycle_control* function is static and uses the
-*instance* method to access the single instance of the control object.
+``state`` method to access the single instance of the control object.
 The singleton instance can access any data members that have been added
 to the policy.
 In this case, we use it to access the *step_* data member that keeps
