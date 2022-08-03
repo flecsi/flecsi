@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_3_DEPENDENCIES_HH
 #define TUTORIAL_2_CONTROL_3_DEPENDENCIES_HH
 

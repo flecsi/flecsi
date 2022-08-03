@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "simple_definition.hh"
 #include "ugm_definition.hh"
 

@@ -1,7 +1,8 @@
-/*
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
+//----------------------------------------------------------------------------//
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved
+//----------------------------------------------------------------------------//
+
 #ifndef FLECSI_CONFIG_H
 #define FLECSI_CONFIG_H
 

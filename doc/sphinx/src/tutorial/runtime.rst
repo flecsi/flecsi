@@ -160,7 +160,7 @@ this option, we use the following declaration:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 6-21
+  :lines: 3-18
 
 First, notice that the flecsi::program_option type is templated on the
 underlying option type *int*. In general, this can be any valid C++
@@ -202,7 +202,7 @@ value type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 23-38
+  :lines: 20-35
 
 The only real difference is that (because the underlying type is
 std::string) the default value is also a string.
@@ -212,7 +212,7 @@ demonstrates the use of flecsi::option_implicit:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 40-52
+  :lines: 37-49
 
 Providing an implicit value defines the behavior for the case that the user invokes the program with the given flag but does not assign a
 value, e.g., ``--child-seat`` vs. ``--child-seat=1``. The value is
@@ -234,7 +234,7 @@ code:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 54-70
+  :lines: 51-67
 
 This option demonstrates how an enumeration can be used to define
 possible values. Although FleCSI does not enforce correctness, the
@@ -248,14 +248,14 @@ whether or not an option was passed in the next section:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 72-80
+  :lines: 69-77
 
 The final option in this example is a positional option: i.e., it is an
 argument to the program itself.
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 82-96
+  :lines: 79-93
 
 Positional options are required: i.e., the program will error and print
 the usage message if a value is not passed.
@@ -274,7 +274,7 @@ Options that have a default value defined do not need to be tested:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 107-135
+  :lines: 104-132
 
 Here, we simply need to access the value of the option using the
 *value()* method.
@@ -284,14 +284,14 @@ option has a value using the *has_value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 137-144
+  :lines: 134-141
 
 Our one positional option works like the defaulted options (because it
 is required) and can be accessed using the *value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 146-157
+  :lines: 143-154
 
 Here is the full source for this tutorial example:
 
@@ -344,7 +344,7 @@ Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 60-99
+  :lines: 57-96
 
 The first output stream added is `std::clog`__.
 
@@ -352,7 +352,7 @@ __ https://en.cppreference.com/w/cpp/io/clog
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 81-85
+  :lines: 78-82
 
 The arguments to add_output_stream are:
 
@@ -372,7 +372,7 @@ To add an output stream to a file, we can do the following:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 87-92
+  :lines: 84-89
 
 That's it! For this example, FLOG is now configured to write output to
 std::clog, and to *output.txt*. Next, we will see how to actually write
@@ -399,7 +399,7 @@ the basic output objects:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 21-29
+  :lines: 18-26
 
 Controlling Output - Strip Levels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -444,7 +444,7 @@ To create a new tag, we use the log::tag type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 11-16
+  :lines: 8-13
 
 Tags take a single std::string argument that is used in the help message
 to identify available tags.
@@ -460,13 +460,13 @@ the ``--flog-tags`` option:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 31-42
+  :lines: 28-39
 
 Here is another code example that defines a guarded section for *tag2*:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 44-55
+  :lines: 41-52
 
 You should experiment with invoking this example:
 
@@ -661,13 +661,13 @@ Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 50-67
+  :lines: 47-64
 
 A scope guard is used to annotation the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 60-62
+  :lines: 57-59
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -676,7 +676,7 @@ specified using structs that inherit from ``annotation::region``:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 13-28
+  :lines: 10-25
 
 This first defines a new annotation context ``user_execution`` by inheriting
 from ``annotation::context`` and specifying a name for the context.  Three code
@@ -686,11 +686,11 @@ The main and sleeper functions are then annotated using region-based scope guard
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 52-52
+  :lines: 49-49
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 34-35
+  :lines: 31-32
 
 Generating Reports
 ^^^^^^^^^^^^^^^^^^

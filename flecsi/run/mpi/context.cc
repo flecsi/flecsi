@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/run/mpi/context.hh"
 #include "flecsi/data.hh"
 

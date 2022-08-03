@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad, LLC
-// All rights reserved.
-
 #include "flecsi/topo/ntree/geometry.hh"
 #include "flecsi/util/unit.hh"
 

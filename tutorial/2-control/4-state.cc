@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "4-state.hh"
 
 #include "flecsi/flog.hh"

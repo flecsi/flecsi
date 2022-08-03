@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 function(make_subfilelist result directory)
 
   file(GLOB _CHILDREN RELATIVE ${directory} ${directory}/*)

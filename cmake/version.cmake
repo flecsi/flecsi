@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 execute_process(
   COMMAND ${CMAKE_SOURCE_DIR}/config/version.sh
   OUTPUT_VARIABLE version

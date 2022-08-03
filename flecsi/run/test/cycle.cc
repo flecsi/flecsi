@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "package_a.hh"
 #include "package_b.hh"
 #include "package_c.hh"

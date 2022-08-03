@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 #define FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 

@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
-// All rights reserved.
-
 #include "flecsi/data.hh"
 #include "flecsi/topo/ntree/interface.hh"
 #include "flecsi/topo/ntree/types.hh"

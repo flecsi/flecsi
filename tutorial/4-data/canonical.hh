@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_4_DATA_CANONICAL_HH
 #define TUTORIAL_4_DATA_CANONICAL_HH
 

@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
 
 if(NOT ENABLE_FLOG AND ENABLE_UNIT_TESTS)

@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_MPI "Enable MPI" OFF)
 option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
 mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)

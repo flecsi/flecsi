@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(FORMAT_ONLY
   "Enable format-only mode: no other targets will be create" OFF)
 mark_as_advanced(FORMAT_ONLY)

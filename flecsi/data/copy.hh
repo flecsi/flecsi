@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // High-level partition types used for copy plans and user-level topologies.
 
 #ifndef FLECSI_DATA_COPY_HH

@@ -1,6 +1,3 @@
-#  Copyright (c) 2016, Los Alamos National Security, LLC
-#  All rights reserved.
-
 include(CMakeDependentOption)
 
 option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" ON)
