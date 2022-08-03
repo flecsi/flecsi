@@ -458,15 +458,6 @@ For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
 complex, e.g., invoking a reduction to compute a variable time step.
 
-.. tip::
-
-  As stated above, the core control type uses a policy design pattern.
-  One important aspect of this pattern is that the *host* type (in this
-  case the core control type) inherits from the *policy* type (the
-  *control_policy* type). This allows the specialization to add data
-  members that will be carried with the control instance. This is
-  covered in detail in :ref:`TUT-CM-STATE` below.
-
 Notice that the *cycle_control* function is static and uses the
 ``state`` method to access the single instance of the control object.
 The singleton instance can access any data members that have been added
@@ -549,24 +540,7 @@ provided that they honor normal C++ declaration rules.
 Example 4: Control State
 ++++++++++++++++++++++++
 
-The design of the core control type ``flecsi::run::control`` allows users
-to add data members that will be carried with the control instance and
-are accessible to the user through the ``state()`` method:
-
-.. code-block:: cpp
-
-   template<typename ControlPolicy>
-   struct control : ControlPolicy {
- 
-     // ...
- 
-     ControlPolicy & state();
- 
-     // ...
-   };
-
-This means that, if you have defined your control policy with interface
-methods and data members, they can be accessed like:
+The control policy object is available via the ``control::state`` function:
 
 .. code-block:: cpp
 

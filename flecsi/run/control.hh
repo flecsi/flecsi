@@ -86,7 +86,7 @@ inline const char * operator*(control_policy::control_points_enum);
  */
 
 template<typename ControlPolicy>
-struct control : ControlPolicy {
+struct control {
 
   using target_type = int (*)();
 
@@ -210,6 +210,7 @@ private:
   } // write_sorted
 #endif
 
+  ControlPolicy policy;
   dag_map registry_;
 
 public:
@@ -222,7 +223,7 @@ public:
    */
 
   static ControlPolicy & state() {
-    return instance();
+    return instance().policy;
   }
 
   /*!
