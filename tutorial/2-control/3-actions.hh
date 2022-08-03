@@ -10,56 +10,56 @@ using namespace dependencies;
 
 // Register several actions under control point one.
 
-int
+inline int
 package_a() {
   flog(info) << "package_a" << std::endl;
   return 0;
 }
-control::action<package_a, cp::cp1> package_a_action;
+inline control::action<package_a, cp::cp1> package_a_action;
 
-int
+inline int
 package_b() {
   flog(info) << "package_b" << std::endl;
   return 0;
 }
-control::action<package_b, cp::cp1> package_b_action;
+inline control::action<package_b, cp::cp1> package_b_action;
 
-int
+inline int
 package_c() {
   flog(info) << "package_c" << std::endl;
   return 0;
 }
-control::action<package_c, cp::cp1> package_c_action;
+inline control::action<package_c, cp::cp1> package_c_action;
 
-int
+inline int
 package_d() {
   flog(info) << "package_d" << std::endl;
   return 0;
 }
-control::action<package_d, cp::cp1> package_d_action;
+inline control::action<package_d, cp::cp1> package_d_action;
 
 // Register several actions under control point two.
 
-int
+inline int
 package_e() {
   flog(info) << "package_e" << std::endl;
   return 0;
 }
-control::action<package_e, cp::cp2> package_e_action;
+inline control::action<package_e, cp::cp2> package_e_action;
 
-int
+inline int
 package_f() {
   flog(info) << "package_f" << std::endl;
   return 0;
 }
-control::action<package_f, cp::cp2> package_f_action;
+inline control::action<package_f, cp::cp2> package_f_action;
 
-int
+inline int
 package_g() {
   flog(info) << "package_g" << std::endl;
   return 0;
 }
-control::action<package_g, cp::cp2> package_g_action;
+inline control::action<package_g, cp::cp2> package_g_action;
 
 // Add dependencies a -> b, b -> d, and a -> d, i.e.,
 // b depends on a, d depends on b, and d depends on a.
