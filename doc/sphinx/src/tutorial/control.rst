@@ -544,7 +544,7 @@ The control policy object is available via the ``control::state`` function:
 
 .. code-block:: cpp
 
-    auto state = control::state();
+    auto &state = control::state();
     state.my_method();
 
 Let's consider a concrete example of this. In
