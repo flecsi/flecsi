@@ -19,11 +19,13 @@ variables:
   COLOR_CYAN: '\033[1;36m'
   COLOR_PLAIN: '\033[0m'
   # global defaults
+  GCC_VERSION: 9.4.0
+  CLANG_VERSION: 13.0.1
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
-  PARITIONS: general,skylake-gold,skylake-platinum
-  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+  PARTITIONS: general,skylake-gold,skylake-platinum
+  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Common build variants
@@ -105,7 +107,7 @@ mpich-defaults:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with MPICH provider,
@@ -122,14 +124,14 @@ mpich-legion-gnu:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -144,7 +146,7 @@ mpich-legion-gnu:release:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
@@ -166,7 +168,7 @@ mpich-mpi-gnu:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -185,7 +187,7 @@ mpich-mpi-gnu:release:
   variables:
     <<: *mpich
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -208,7 +210,7 @@ tutorial:legion:
     LABEL: tutorial
     STDIR: tutorial
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
@@ -216,7 +218,7 @@ tutorial:legion:
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -233,7 +235,7 @@ openmpi-legion-gnu:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: g++
@@ -252,7 +254,7 @@ openmpi-legion-gnu:release:
   variables:
     <<: *openmpi
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: legion
     CXX_COMPILER: g++
@@ -322,7 +324,7 @@ openmpi-mpi-gnu:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -341,7 +343,7 @@ openmpi-mpi-gnu:release:
   variables:
     <<: *openmpi
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: gcc@9.4.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Release
     BACKEND: mpi
     CXX_COMPILER: g++
@@ -364,7 +366,7 @@ mpich-legion-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -388,7 +390,7 @@ mpich-mpi-clang:
   variables:
     <<: *mpich-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++
@@ -410,17 +412,16 @@ docs_and_format:
   variables:
     MPI_PROVIDER: mpich
     VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: caliper_detail=low +graphviz +hdf5 +kokkos ^kokkos~cuda
+    VARIANTS: +graphviz +hdf5 ^graphviz+poppler
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    GCC_VERSION: 11.1.0
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
-    CXX_COMPILER: clang++
-    CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
-    C_COMPILER: clang
-    C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_DOCUMENTATION=ON -DENABLE_GRAPHVIZ=ON
+    CXX_COMPILER: g++
+    C_COMPILER: gcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_GRAPHVIZ=ON
     FORMAT_VERSION: 13.0.1
   allow_failure: true
 
@@ -439,7 +440,7 @@ openmpi-mpi-clang:
   variables:
     <<: *openmpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     CXX_COMPILER: clang++

@@ -39,15 +39,21 @@
       echo -e "\t${COLOR_BLUE}Toolchain: ${TOOLCHAIN}${COLOR_PLAIN}"
       echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
 
-.darwin_python_env_create:
-  script: &darwin_python_env_create
-    - echo -e "\e[0Ksection_start:`date +%s`:python_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Creating Python environment${COLOR_PLAIN}"
-    - python3 -m venv $TMPDIR/python-env
-    - source $TMPDIR/python-env/bin/activate
-    - pip3 install --upgrade pip
-    - pip install pyyaml Sphinx recommonmark sphinx_rtd_theme
-    - deactivate
+.darwin_python_env_init:
+  script: &darwin_python_env_init
+    - echo -e "\e[0Ksection_start:`date +%s`:python_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Adding Python dependencies${COLOR_PLAIN}"
+    - spack config add concretizer:unify:when_possible
+    - spack config add concretizer:reuse:false
+    - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
+    - spack add py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
+    - spack install -j $(nproc)
     - echo -e "\e[0Ksection_end:`date +%s`:python_env_init\r\e[0K"
+
+.darwin_clang_format_init:
+  script: &darwin_clang_format_init
+    - export CLANG_COMPILER_SPEC=clang@${FORMAT_VERSION:-13.0.1}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1)
+    - export PATH=$(dirname $CLANG_CC):${PATH}
 
 .darwin_env_create:
   script: &darwin_env_create
@@ -71,12 +77,12 @@
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
     - if [ -e $TMPDIR/python-env ]; then source $TMPDIR/python-env/bin/activate; fi
     - source $TMPDIR/spack/share/spack/setup-env.sh
-    - module load gcc/9.4.0
+    - module load gcc/${GCC_VERSION}
     - module load cuda/11.7.0
     - export CC=gcc  # default C compiler
     - export CXX=g++ # default C++ compiler
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-clang@13.0.1_cuda_11.7_sm70}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2)
+    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-"clang@${CLANG_VERSION}"}
+    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1)
     - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
     - echo "PATH=${PATH}"
     - |-
@@ -108,6 +114,11 @@
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - spack config add upstreams:default:install_tree:${DARWIN_SPACK_UPSTREAM}/opt/spack/
     - spack repo add spack-repo
+    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_init\r\e[0K"
+
+.darwin_env_spack_install_flecsi_deps:
+  script: &darwin_env_spack_install_flecsi_deps
+    - echo -e "\e[0Ksection_start:`date +%s`:spack_env_install_flecsi_deps[collapsed=true]\r\e[0K${COLOR_CYAN}Installing FleCSI dependencies${COLOR_PLAIN}"
     # This uses the legion backend by default because it also satisfies the dependencies
     # for MPI (and potentially HPX)
     - export SPACK_INSTALL_FLECSI_BACKEND=${SPACK_INSTALL_FLECSI_BACKEND:-legion}
@@ -115,7 +126,7 @@
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
     - spack install --only dependencies ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
-    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_init\r\e[0K"
+    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
 
 #------------------------------------------------------------------------------#
 # darwin_build_template
@@ -155,6 +166,7 @@
     - darwin-slurm-shared
   script:
     - *darwin_env_init
+    - *darwin_env_spack_install_flecsi_deps
     - if [ -f /usr/bin/nvidia-smi ] ; then nvidia-smi || true; fi
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
@@ -216,7 +228,7 @@
     - darwin-slurm-shared
   script:
     - *darwin_env_init
-    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - *darwin_env_spack_install_flecsi_deps
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
     - *darwin_print_defaults_build_info
@@ -261,12 +273,12 @@
   tags:
     - darwin-slurm-shared
   script:
-    - *darwin_python_env_create
     - *darwin_env_init
-    - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - *darwin_python_env_init
+    - *darwin_env_spack_install_flecsi_deps
+    - *darwin_clang_format_init
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - *darwin_print_build_info
     - *print_diff_format_info
     - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
     - |-
