@@ -30,7 +30,7 @@ initialize() {
     Access the array through the 'values()' method, and initialize.
    */
 
-  control::int_custom & values = control::state().values();
+  control_policy::int_custom & values = control::state().values();
 
   for(std::size_t i{0}; i < 10; ++i) {
     values[i] = 20 - i;
@@ -52,7 +52,7 @@ advance() {
     Access the array through the 'values()' method, and modify.
    */
 
-  control::int_custom & values = control::state().values();
+  control_policy::int_custom & values = control::state().values();
 
   for(std::size_t i{0}; i < 10; ++i) {
     ss << values[i] << " ";

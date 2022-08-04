@@ -134,7 +134,7 @@ main(int argc, char ** argv) {
     return status == flecsi::run::status::help ? 0 : status;
   }
 
-  status = control::check_options();
+  status = control::check_status(status);
 
   if(status != flecsi::run::status::success) {
     flecsi::finalize();

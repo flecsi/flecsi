@@ -66,7 +66,7 @@ main(int argc, char ** argv) {
   auto status = flecsi::initialize(argc, argv);
 
   /*
-    The check_options() method checks to see if any control-model options were
+    The check_status() method checks to see if any control-model options were
     specified on the command line, and handles them appropriately.
    */
 

@@ -61,7 +61,7 @@ struct control_policy {
   using control = flecsi::run::control<control_policy>;
 
   static bool cycle_control() {
-    return control::instance().step()++ < control::instance().steps();
+    return control::state().step()++ < control::state().steps();
   }
 
   template<auto CP>
