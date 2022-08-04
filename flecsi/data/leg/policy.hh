@@ -20,6 +20,7 @@ namespace data {
 struct prefixes;
 
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
+
 constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
   return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
@@ -68,19 +69,22 @@ destroy(Legion::LogicalRegion r) {
 }
 
 template<class T>
-struct unique_handle {
-  unique_handle() = default;
-  unique_handle(T t) : h(t) {}
-  unique_handle(unique_handle && u) noexcept : h(std::exchange(u.h, {})) {}
+struct shared_handle {
+  shared_handle() = default;
+  shared_handle(T t) : h(t) {}
+  shared_handle(const shared_handle & s) noexcept : h(s.h) {
+    run().create_shared_ownership(ctx(), h);
+  }
+  shared_handle(shared_handle && s) noexcept : h(std::exchange(s.h, {})) {}
   // Prevent erroneous conversion through T constructor:
   template<class U>
-  unique_handle(unique_handle<U> &&) = delete;
-  ~unique_handle() {
+  shared_handle(const shared_handle<U> &) = delete;
+  ~shared_handle() {
     if(ctx()) // does the Legion Context still exist?
       destroy(h);
   }
-  unique_handle & operator=(unique_handle u) noexcept {
-    std::swap(h, u.h);
+  shared_handle & operator=(shared_handle s) noexcept {
+    std::swap(h, s.h);
     return *this;
   }
   explicit operator bool() {
@@ -89,15 +93,18 @@ struct unique_handle {
   operator T() const {
     return h;
   }
+  const T * operator->() const {
+    return &h;
+  }
 
 private:
   T h;
 };
 
-using unique_index_space = unique_handle<Legion::IndexSpace>;
-using unique_index_partition = unique_handle<Legion::IndexPartition>;
-using unique_field_space = unique_handle<Legion::FieldSpace>;
-using unique_logical_region = unique_handle<Legion::LogicalRegion>;
+using shared_index_space = shared_handle<Legion::IndexSpace>;
+using shared_index_partition = shared_handle<Legion::IndexPartition>;
+using shared_field_space = shared_handle<Legion::FieldSpace>;
+using shared_logical_region = shared_handle<Legion::LogicalRegion>;
 
 using rect = Legion::Rect<2>;
 
@@ -125,12 +132,12 @@ name(const T & t, const char * def = nullptr) {
 template<class T>
 auto
 named0(const T & t, const char * n) {
-  unique_handle ret(t);
+  shared_handle ret(t);
   if(n)
     run().attach_name(t, n);
   return ret;
 }
-// Avoid non-type-erased unique_handle specializations:
+// Avoid non-type-erased shared_handle specializations:
 inline auto
 named(const Legion::IndexSpace & s, const char * n) {
   return named0(s, n);
@@ -158,7 +165,7 @@ struct region {
       field_space([&fs] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
         const auto c = ctx();
-        unique_field_space ret = r.create_field_space(c);
+        shared_field_space ret = r.create_field_space(c);
         Legion::FieldAllocator allocator = r.create_field_allocator(c, ret);
         for(auto const & fi : fs) {
           allocator.allocate_field(fi->type_size, fi->fid);
@@ -175,13 +182,13 @@ struct region {
     return size2(p[0] + 1, p[1] + 1);
   }
 
-  unique_index_space index_space;
-  unique_field_space field_space;
-  unique_logical_region logical_region;
+  shared_index_space index_space;
+  shared_field_space field_space;
+  shared_logical_region logical_region;
 };
 
 struct partition_base {
-  unique_index_partition index_partition;
+  shared_index_partition index_partition;
   Legion::LogicalPartition logical_partition;
 
   Legion::IndexSpace get_color_space() const {
@@ -204,7 +211,7 @@ struct partition_base {
   }
 
 protected:
-  partition_base(const Legion::LogicalRegion & r, unique_index_partition ip)
+  partition_base(const Legion::LogicalRegion & r, shared_index_partition ip)
     : index_partition(std::move(ip)),
       logical_partition(log(r, index_partition)) {}
 
@@ -231,7 +238,7 @@ struct partition : leg::partition_base { // instead of "using partition ="
 namespace leg {
 
 struct with_color { // for initialization order
-  unique_index_space color_space;
+  shared_index_space color_space;
 };
 struct rows : with_color, partition {
   explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
@@ -244,7 +251,7 @@ struct rows : with_color, partition {
       partition(reg, partition_rows(reg, upper(s.second))) {}
 
 private:
-  unique_index_partition partition_rows(const Legion::LogicalRegion & reg,
+  shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
     Legion::coord_t hi) {
     // The type-erased version assumes a square transformation matrix
     return named(run().create_partition_by_restriction(

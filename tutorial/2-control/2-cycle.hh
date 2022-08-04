@@ -48,7 +48,7 @@ struct control_policy : flecsi::run::control_base {
    */
 
   static bool cycle_control() {
-    return control::instance().step()++ < 5;
+    return control::policy().step()++ < 5;
   }
 
   /*

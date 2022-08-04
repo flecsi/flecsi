@@ -111,7 +111,7 @@ void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
   bool sent = false;
-  buffers::ragged::truncate(mv[0])(v, 0, sent);
+  buffers::ragged(mv[0], true)(v, 0, sent);
 }
 
 int

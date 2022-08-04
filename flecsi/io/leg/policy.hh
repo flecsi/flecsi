@@ -271,8 +271,8 @@ private:
   }
 
 private:
-  data::leg::unique_index_space launch_space;
-  data::leg::unique_index_partition launch_partition;
+  data::leg::shared_index_space launch_space;
+  data::leg::shared_index_partition launch_partition;
 };
 
 /// \}

@@ -31,9 +31,8 @@ void
 sleeper() {
   annotation::rguard<sleeper_region> guard;
 
-  annotation::begin<sleeper_subtask>();
-  std::this_thread::sleep_for(std::chrono::milliseconds(400));
-  annotation::end<sleeper_subtask>();
+  annotation::rguard<sleeper_subtask>(),
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 }

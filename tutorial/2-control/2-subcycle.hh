@@ -52,11 +52,11 @@ struct control_policy : flecsi::run::control_base {
    */
 
   static bool subcycle_control() {
-    return control::instance().substep()++ % 3 < 2;
+    return control::policy().substep()++ % 3 < 2;
   }
 
   static bool cycle_control() {
-    return control::instance().step()++ < 5;
+    return control::policy().step()++ < 5;
   }
 
   /*

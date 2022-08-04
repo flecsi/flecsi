@@ -34,7 +34,7 @@ struct control_policy : flecsi::run::control_base {
   }
 
   static bool step_control() {
-    return control::instance().step()++ < 5;
+    return control::policy().step()++ < 5;
   }
 
   using main_cycle = cycle<step_control, point<cp::two>, point<cp::three>>;

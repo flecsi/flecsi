@@ -129,13 +129,11 @@ inline const char * operator*(control_policy::control_points_enum);
  */
 
 template<typename P>
-struct control : P {
+struct control {
 
   using target_type = int (*)();
 
 private:
-  friend P;
-
   using control_points = run_impl::to_types_t<P>;
   using control_points_enum = typename P::control_points_enum;
   using node_policy = typename P::node_policy;
@@ -255,6 +253,7 @@ private:
   } // write_sorted
 #endif
 
+  P policy_;
   dag_map registry_;
 
 public:
@@ -267,8 +266,9 @@ public:
    */
 
   static P & policy() {
-    return instance();
+    return instance().policy_;
   }
+
   /// Return the control policy object.
   /// \deprecated use #policy
   static P & state() {
@@ -345,8 +345,8 @@ public:
 
   static int execute() {
     if constexpr(std::is_base_of_v<control_base, P>) {
-      const int r = instance().initialize();
-      return r == success ? instance().finalize(instance().run()) : r;
+      const int r = policy().initialize();
+      return r == success ? policy().finalize(instance().run()) : r;
     }
     else {
       return instance().run();
