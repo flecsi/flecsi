@@ -30,7 +30,7 @@ struct region_base {
   /// \param s total size (perhaps much larger than what is allocated)
   /// \param f fields to define (not all of which need be allocated)
   /// \param n optional name for debugging
-  region(size2 s, const fields & f, const char * n = nullptr);
+  region_base(size2 s, const fields & f, const char * n = nullptr);
 
   /// Get (bounding) size.
   size2 size() const;

@@ -461,17 +461,8 @@ For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
 complex, e.g., invoking a reduction to compute a variable time step.
 
-.. tip::
-
-  As stated above, the core control type uses a policy design pattern.
-  One important aspect of this pattern is that the *host* type (in this
-  case the core control type) inherits from the *policy* type (the
-  *control_policy* type). This allows the specialization to add data
-  members that will be carried with the control instance. This is
-  covered in detail in :ref:`TUT-CM-STATE` below.
-
 Notice that the *cycle_control* function is static and uses the
-*instance* method to access the single instance of the control object.
+``state`` method to access the single instance of the control object.
 The singleton instance can access any data members that have been added
 to the policy.
 In this case, we use it to access the *step_* data member that keeps
@@ -552,25 +543,7 @@ provided that they honor normal C++ declaration rules.
 Example 4: Control State
 ++++++++++++++++++++++++
 
-The design of the core control type ``flecsi::run::control`` allows users
-to add data members that will be carried with the control instance and
-are accessible to the user through the ``policy()`` method, which
-returns an instance of the user's control policy:
-
-.. code-block:: cpp
-
-   template<typename P>
-   struct control : P {
- 
-     // ...
- 
-     static P & policy();
- 
-     // ...
-   };
-
-This means that, if you have defined your control policy with interface
-methods and data members, they can be accessed like:
+The control policy object is available via the ``control::policy`` function:
 
 .. code-block:: cpp
 
@@ -589,10 +562,8 @@ methods and some private data:
 
     Although this example demonstrates the ability to allocate heap data
     through the control state interface, this approach must not be used
-    to allocate data that will be modified by a task during the
-    simulation: i.e., control state data should only be used to
-    implement the control logic of the run and should be treated as
-    globally constant in the context of task execution.
+    to allocate data that will be accessed by tasks and modified during the simulation: i.e., control state data should be used only to hold global constants and/or implement the control logic of the run.
+    As a special case, MPI tasks can access and modify such objects.
     The FleCSI data model provides other mechanisms for creating
     and managing state data, which are documented in the :ref:`TUT-DM`
     section of this tutorial.
@@ -607,8 +578,6 @@ and frees the data. Again, the code is self-explanatory:
    :lines: 11-81
 
 The primary take-away from this example should be that users can define
-arbitrary C++ interfaces and data, provided that they are not modified
-by a task. Modifying these data in FleCSI actions (outside of a task) is
-fine.
+arbitrary C++ interfaces and data, given the concurrent access restrictions above.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

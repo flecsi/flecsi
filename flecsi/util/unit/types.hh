@@ -202,8 +202,8 @@ label_default(std::string s) {
 /// \name Assertion macros
 /// \{
 
-#define ASSERT_TRUE(c) CHECK(return, test<true>, c, #c)
-#define EXPECT_TRUE(c) CHECK(, test<false>, c, #c)
+#define ASSERT_TRUE(c) CHECK(return, test<true>, !!(c), #c)
+#define EXPECT_TRUE(c) CHECK(, test<false>, !!(c), #c)
 
 #define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
 #define EXPECT_FALSE(c) EXPECT_TRUE(!(c))

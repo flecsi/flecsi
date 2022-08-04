@@ -533,7 +533,7 @@ public:
           }
         }
         else {
-          // Opt for our cpus instead of our openmap processors
+          // Opt for our cpus instead of our OpenMP processors
           unsigned local_cpu_index = 0;
           for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
             TaskSlice slice;

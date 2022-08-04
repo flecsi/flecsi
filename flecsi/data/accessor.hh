@@ -273,7 +273,7 @@ struct ragged_accessor
 
   /// Get the row at an index point.
   /// \return \c util::span
-  row operator[](size_type i) const {
+  FLECSI_INLINE_TARGET row operator[](size_type i) const {
     // Without an extra element, we must store one endpoint implicitly.
     // Storing the end usefully ignores any overallocation.
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
@@ -283,20 +283,20 @@ struct ragged_accessor
     return off.span().size();
   }
   /// Return the number of elements across all rows.
-  Offset total() const noexcept {
+  FLECSI_INLINE_TARGET Offset total() const noexcept {
     const auto s = off.span();
     return s.empty() ? 0 : s.back();
   }
 
   /// Get the elements without any row structure.
-  util::span<element_type> span() const {
+  FLECSI_INLINE_TARGET util::span<element_type> span() const {
     return get_base().span().first(total());
   }
 
   base_type & get_base() {
     return *this;
   }
-  const base_type & get_base() const {
+  FLECSI_INLINE_TARGET const base_type & get_base() const {
     return *this;
   }
 
@@ -708,6 +708,8 @@ public:
     // from each place where the movement switches from rightward to leftward.
     const auto all = acc.get_base().span();
     const size_type n = size();
+    if(!n) // code below caches the current row
+      return;
     // Read and write cursors.  It would be possible, if ugly, to run cursors
     // backwards for the rightward-moving portions and do without the stack.
     size_type is = 0, id = 0;
@@ -1423,7 +1425,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
   /// \return a range of color-accessor pairs
   auto components() const {
     return util::transform_view(
-      *vp, [](const round & r) -> std::pair<Color, const A &> {
+      util::span(*vp), [](const round & r) -> std::pair<Color, const A &> {
         return {borrow::get_row(r.row), r.a};
       });
   }
@@ -1466,7 +1468,7 @@ private:
   template<class V>
   static auto xform(V & v) {
     return util::transform_view(
-      v, [](auto & r) -> auto & { return r.a; });
+      util::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
   // Avoid losing contents when moved into a user parameter.

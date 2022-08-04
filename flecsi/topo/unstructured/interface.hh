@@ -368,9 +368,9 @@ protected:
     \return range of \c id\<To\> values
    */
 
-  template<index_space T, index_space F>
-  auto entities(id<F> from) const {
-    return make_ids<T>(connectivity<F, T>()[from]);
+  template<index_space To, index_space From>
+  FLECSI_INLINE_TARGET auto entities(id<From> from) const {
+    return make_ids<To>(connectivity<From, To>()[from]);
   }
 
   /// Get a special-entities list.
@@ -387,7 +387,7 @@ private:
   }
 
   template<index_space F, index_space T>
-  auto const & connectivity() const {
+  FLECSI_INLINE_TARGET auto const & connectivity() const {
     return connect_.template get<F>().template get<T>();
   }
 

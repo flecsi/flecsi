@@ -274,6 +274,11 @@ struct field : data::detail::field_base<T, L> {
   /// A field registration.
   /// Instances may be freely copied; they must all be created before any
   /// instance of \a Topo.
+  ///
+  /// \warning
+  /// Field definitions are typically declared \c const. If placed in a header
+  /// make sure to declare them as <tt>inline const</tt> to avoid breaking ODR.
+  ///
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>

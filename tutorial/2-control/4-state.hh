@@ -61,7 +61,7 @@ struct control_policy : flecsi::run::control_base {
   using control = flecsi::run::control<control_policy>;
 
   static bool cycle_control() {
-    return control::instance().step()++ < control::instance().steps();
+    return control::policy().step()++ < control::policy().steps();
   }
 
   using main_cycle = cycle<cycle_control, point<cp::advance>>;

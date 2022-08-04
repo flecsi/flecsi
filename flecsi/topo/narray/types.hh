@@ -70,7 +70,7 @@ struct process_color {
 
   ///  The global coordinate offset of the local hypercube.
   ///  Local to global id translation can be computed with this.
-  ///  The local hypercube includes boundary padding.
+  ///  The local hypercube includes ghosts but not boundary padding.
   coord offset;
 
   ///  The logical entities, i.e., the entities for this color without

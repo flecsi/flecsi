@@ -53,14 +53,17 @@ namespace run {
 
 struct context_t; // supplied by backend
 
+/// exit status returned by initialization code
+/// \see flecsi::initialize
+/// \see flecsi::run::control::check_status
 enum status : int {
-  success,
-  help,
-  control_model,
-  control_model_sorted,
-  clean, // greater than this implies an error
-  command_line_error,
-  error // add specific error modes
+  success, /// successful initialization
+  help, /// user requested usage help
+  control_model, /// print out control model graph in dot format
+  control_model_sorted, /// print out sorted control model graph in dot format
+  clean, /// any value greater than this implies an error
+  command_line_error, /// error parsing command line
+  error, // add specific error modes
 }; // initialization_codes
 
 struct index_space_info_t {
@@ -400,7 +403,7 @@ struct context {
             being failure.
    */
 
-  int start(const std::function<int(int, char **)> & action);
+  int start(const std::function<int()> & action);
 
   /*!
     Return the current process id.

@@ -480,11 +480,19 @@ private:
 };
 
 /// A very simple emulation of std::ranges::transform_view from C++20.
-template<class I, class F>
+template<class C, class F>
 struct transform_view {
+private:
+  C c;
+  F f;
+
+public:
+  template<bool Const>
   struct iterator {
   private:
-    using traits = std::iterator_traits<I>;
+    using base_iterator = decltype(std::begin(
+      std::declval<std::conditional_t<Const, const C, C> &>()));
+    using traits = std::iterator_traits<base_iterator>;
 
   public:
     using difference_type = typename traits::difference_type;
@@ -498,7 +506,7 @@ struct transform_view {
 
     constexpr iterator() noexcept
       : iterator({}, nullptr) {} // null F won't be used
-    constexpr iterator(I p, const F * f) noexcept : p(p), f(f) {}
+    constexpr iterator(base_iterator p, const F * f) noexcept : p(p), f(f) {}
 
     constexpr iterator & operator++() {
       ++p;
@@ -572,35 +580,33 @@ struct transform_view {
     }
 
   private:
-    I p;
+    base_iterator p;
     const F * f;
-  };
+  }; // struct iterator
 
-  /// Wrap an iterator pair.
-  constexpr transform_view(I b, I e, F f = {})
-    : b(std::move(b)), e(std::move(e)), f(std::move(f)) {}
   /// Wrap a container.
-  /// \warning Destroying \a C invalidates this object if it owns its
-  ///   iterators or elements.  This implementation does not copy \a C if it
-  ///   is a view.
-  template<class C,
-    class = std::enable_if_t<
-      std::is_convertible_v<decltype(std::begin(std::declval<C &>())), I>>>
-  constexpr transform_view(C && c, F f = {})
-    : transform_view(std::begin(c), std::end(c), std::move(f)) {}
+  constexpr transform_view(C c, F f = {}) : c(std::move(c)), f(std::move(f)) {}
 
   FLECSI_INLINE_TARGET
-  constexpr iterator begin() const noexcept {
-    return {b, &f};
+  constexpr iterator<false> begin() noexcept {
+    return {std::begin(c), &f};
   }
   FLECSI_INLINE_TARGET
-  constexpr iterator end() const noexcept {
-    return {e, &f};
+  constexpr iterator<true> begin() const noexcept {
+    return {std::begin(c), &f};
+  }
+  FLECSI_INLINE_TARGET
+  constexpr iterator<false> end() noexcept {
+    return {std::end(c), &f};
+  }
+  FLECSI_INLINE_TARGET
+  constexpr iterator<true> end() const noexcept {
+    return {std::end(c), &f};
   }
 
   FLECSI_INLINE_TARGET
   constexpr bool empty() const {
-    return b == e;
+    return std::begin(c) == std::end(c);
   }
   FLECSI_INLINE_TARGET
   constexpr explicit operator bool() const {
@@ -609,14 +615,22 @@ struct transform_view {
 
   FLECSI_INLINE_TARGET
   constexpr auto size() const {
-    return std::distance(b, e);
+    return std::distance(std::begin(c), std::end(c));
   }
 
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) front() {
+    return *begin();
+  }
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) front() const {
     return *begin();
   }
 
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) back() {
+    return *--end();
+  }
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) back() const {
     return *--end();
@@ -624,24 +638,17 @@ struct transform_view {
 
   FLECSI_INLINE_TARGET
   constexpr decltype(auto) operator[](
-    typename std::iterator_traits<I>::difference_type i) const {
+    typename iterator<false>::difference_type i) {
+    return begin()[i];
+  }
+  FLECSI_INLINE_TARGET
+  constexpr decltype(auto) operator[](
+    typename iterator<true>::difference_type i) const {
     return begin()[i];
   }
 
-private:
-  I b, e;
-  F f;
-};
+}; // struct transform_view
 
-// Note: Specifiying FLECSI_TARGET here is incorrect, but appears necessary for
-// LLVM compilers generating GPU code.  Currently, LLVM-based compilers are the
-// only compilers used to generate FleCSI GPU code, so the macro will be empty
-// otherwise.
-template<class C, class F>
-FLECSI_TARGET transform_view(C &&, F)
-  ->transform_view<typename std::remove_reference_t<C>::iterator, F>;
-template<class C, class F>
-transform_view(const C &, F) -> transform_view<typename C::const_iterator, F>;
 /// \endcond
 
 /// A view of part of a range.  Analogous to a combination of
