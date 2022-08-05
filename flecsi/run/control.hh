@@ -351,14 +351,18 @@ public:
     if constexpr(std::is_base_of_v<control_base, P>) {
       try {
         flog_assert(!policy_loc, "An active policy already exists");
-        P pol;
-        policy_loc = &pol;
+        P obj;
+        policy_loc = &obj;
+        struct guard {
+          ~guard() {
+            policy_loc = nullptr;
+          }
+        } g;
         ret = registry::instance().run();
       }
       catch(control_base::exception e) {
         ret = e.code;
       }
-      policy_loc = nullptr;
     }
     else {
       ret = registry::instance().run();
