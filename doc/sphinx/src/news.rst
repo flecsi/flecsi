@@ -94,6 +94,7 @@ New features
 
 * Logging
 
+  * ``flog_fatal`` suppresses backtraces (already unavailable if ``NDEBUG`` is defined) unless ``FLECSI_BACKTRACE`` is set in the environment.
   * ``flog`` is a new name that avoids collisions with ``::log`` in code lacking proper namespace qualifications.
 
 Changes in v2.1.1

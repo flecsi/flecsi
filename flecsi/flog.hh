@@ -503,6 +503,8 @@ inline constexpr bool can_dumpstack =
 
 /*!
   Throw a runtime exception with the provided message.
+  If \c FLECSI_BACKTRACE is set in the environment and \c NDEBUG is not
+  defined, produce a backtrace.
 
   @param message The stream message to be printed.
 
