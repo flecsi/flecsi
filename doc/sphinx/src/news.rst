@@ -82,7 +82,7 @@ New features
 
 * Utilities
 
-  * ``flog.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
+  * ``unit.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
   * ``serial`` provides a general-purpose serialization interface.
     It may be extended to allow additional types to be used as task parameters or with MPI communication.
   * ``mdcolex`` accesses a multi-dimensional array using Fortran-like syntax.
