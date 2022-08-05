@@ -351,7 +351,7 @@ examples; we just have a better understanding of it now.
 Passing the *execute* method of our control model to FleCSI's *start*
 function tells FleCSI to run the control model, which will execute all
 of the cycles and actions registered on the control model (unless early
-termination is selected by throwing *control_base::exception* from an action):
+termination is selected by throwing ``control_base::exception`` from an action):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp

@@ -259,20 +259,17 @@ public:
    */
 
   static P & policy() {
-    if constexpr(std::is_base_of_v<control_base, P>) {
-      flog_assert(policy_loc, "Could not locate an active policy.");
-      return *policy_loc;
-    }
-    else {
-      static control c;
-      return c.policy_;
-    }
+    static_assert(std::is_base_of_v<control_base, P>);
+    flog_assert(policy_loc, "Could not locate an active policy.");
+    return *policy_loc;
   }
 
   /// Return the control policy object.
   /// \deprecated use #policy
   static P & state() {
-    return policy();
+    static_assert(!std::is_base_of_v<control_base, P>);
+    static control c;
+    return c.policy_;
   }
 
   /*!
