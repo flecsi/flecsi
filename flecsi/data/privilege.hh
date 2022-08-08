@@ -152,6 +152,10 @@ privilege_merge(Privileges p) {
                               : na;
 }
 
+template<partition_privilege_t O, partition_privilege_t G, PrivilegeCount N>
+inline constexpr auto privilege_ghost_repeat =
+  privilege_cat<privilege_repeat<O, N - (N > 1)>, privilege_repeat<G, (N > 1)>>;
+
 /// \endcond
 /// \}
 } // namespace flecsi

@@ -4,7 +4,6 @@
 #ifndef FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
 #define FLECSI_TOPO_UNSTRUCTURED_INTERFACE_HH
 
-#include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
 #include "flecsi/data/map.hh"
 #include "flecsi/data/topology.hh"
@@ -80,16 +79,14 @@ struct unstructured : unstructured_base,
 
   template<typename Type, data::layout Layout, typename Policy::index_space S>
   void ghost_copy(data::field_reference<Type, Layout, Policy, S> const & f) {
-    if constexpr(Layout == data::ragged)
-      ; // TODO
-    /*
-      Use ghost information (ids?) to fill buffers to send to receiving colors.
-
-      vector of vector of color
-      vector over source color
-        vector over destination colors
-
-     */
+    if constexpr(Layout == data::ragged) {
+      auto const & cg = cgraph_.template get<S>();
+      auto const & cg_sh = cgraph_shared_.template get<S>();
+      constexpr PrivilegeCount N = Policy::template privilege_count<S>;
+      buffers_.template get<S>()
+        .template xfer<ragged_impl<Type, N>::start, ragged_impl<Type, N>::xfer>(
+          f, cg(ctopo_), cg_sh(ctopo_));
+    }
     else
       plan_.template get<S>().issue_copy(f.fid());
   }
@@ -168,7 +165,9 @@ private:
         {
         make_copy_plan<VV>(c, c.comm)...
         }
-      }
+      },
+      buffers_ {{data::buffers::core(c.peers[index<VV>])...}}
+
   {
     allocate_connectivities(c, connect_);
   }
@@ -187,7 +186,27 @@ private:
     destination_intervals intervals;
     source_pointers pointers;
 
-    // auto const & cg = cgraph_.template get<S>();
+    // set the sizes of the cgraph accessor.
+    auto const & cg = cgraph_.template get<S>();
+    auto & cgp = ctopo_.ragged.template get<elements>()[cg.fid];
+
+    // creating a launch map for the underlying ragged partition
+    auto cgplm = data::launch::make(cgp);
+    execute<cgraph_size, mpi>(c.idx_spaces[index<S>], cgplm);
+
+    // the actual resize of the underlying fields
+    cgp.resize();
+
+    // set up cgraph_shared_
+    auto const & sh = cgraph_shared_.template get<S>();
+    auto & shp = ctopo_.ragged.template get<elements>()[sh.fid];
+    auto shplm = data::launch::make(shp);
+    execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>], shplm);
+    shp.resize();
+
+    // compute the launch maps for the fields
+    auto clm = data::launch::make(ctopo_);
+
     auto const & fmd = forward_maps_.template get<S>();
 
     auto lm = data::launch::make(*this);
@@ -196,7 +215,8 @@ private:
       num_intervals,
       intervals,
       pointers,
-      // cg(ctopo_),
+      cg(clm),
+      sh(clm),
       fmd(lm),
       reverse_maps_.template get<S>(),
       comm);
@@ -280,11 +300,14 @@ private:
     forward_maps_;
 
   typename ctopo::core ctopo_;
+
   static inline const util::key_array<
     typename field<unstructured_impl::cmap,
       data::ragged>::template definition<ctopo>,
     index_spaces>
-    cgraph_;
+    cgraph_, cgraph_shared_;
+
+  // static inline const resize::Field::definition<ctopo> temp_cgsize;
 
   static inline const resize::Field::definition<meta<Policy>> temp_size;
 
@@ -294,6 +317,11 @@ private:
     reverse_maps_;
   // Initializing this depends on the above:
   util::key_array<data::copy_plan, index_spaces> plan_;
+
+  // This key_array of buffers core objects are needed to transfer
+  // ragged data. We have a key array over index_spaces because
+  // each index_space possibly may have a different communication graph.
+  util::key_array<data::buffers::core, index_spaces> buffers_;
 
 }; // struct unstructured
 

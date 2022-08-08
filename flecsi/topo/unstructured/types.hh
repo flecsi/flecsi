@@ -4,6 +4,7 @@
 #ifndef FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
 #define FLECSI_TOPO_UNSTRUCTURED_TYPES_HH
 
+#include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
@@ -131,12 +132,9 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
 template<PrivilegeCount NI, PrivilegeCount NO>
 void
 transpose(
-  field<util::id,
-    data::ragged>::accessor1<privilege_cat<privilege_repeat<ro, NI - (NI > 1)>,
-    privilege_repeat<na, (NI > 1)>>> input,
-  field<util::id,
-    data::ragged>::mutator1<privilege_cat<privilege_repeat<wo, NO - (NO > 1)>,
-    privilege_repeat<na, (NO > 1)>>> output) {
+  field<util::id, data::ragged>::accessor1<privilege_ghost_repeat<ro, na, NI>>
+    input,
+  field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>> output) {
   std::size_t e = 0;
   for(auto && i : input) {
     for(auto v : i)
@@ -234,7 +232,6 @@ operator<<(std::ostream & stream, process_coloring const & pc) {
  */
 
 struct cmap {
-  Color c;
   std::size_t lid;
   std::size_t rid;
 };
@@ -300,21 +297,22 @@ struct unstructured_base {
     and pointers, respectively, are filled with this information.
    */
 
+  // privilege_cat<privilege_repeat<wo, N - (N > 1)>,
+  //   privilege_repeat<na, (N > 1)>>>> fmap,
   template<PrivilegeCount N>
   static void idx_itvls(std::vector<process_coloring> const & vpc,
     std::vector<std::vector<Color>> const & pcs,
     std::vector<std::size_t> & nis,
     destination_intervals & intervals,
     source_pointers & pointers,
-    // field<cmap, data::ragged>::mutator<wo> cgraph,
-    data::multi<field<util::id>::accessor1<privilege_repeat<wo, N>>> fmap,
+    data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph,
+    data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph_shared,
+    data::multi<field<util::id>::accessor1<privilege_ghost_repeat<wo, na, N>>>
+      fmap,
     std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
     flog_assert(vpc.size() == fmap.depth(),
       vpc.size() << " colorings for " << fmap.depth() << " colors");
-
-    // FIXME: This is a place holder for Navamita
-    //(void)cgraph;
 
     auto [rank, size] = util::mpi::info(comm);
 
@@ -327,6 +325,13 @@ struct unstructured_base {
           std::size_t /* local color */,
           std::size_t /* global color */>>>>
       sources(size);
+
+    std::vector<std::vector<std::size_t>> sources_lco(size);
+
+    std::vector</* over local colors */
+      std::map<std::size_t /* shared color */,
+        std::vector<std::size_t /* local shared offsets */>>>
+      shared_cg(vpc.size());
 
     pointers.resize(vpc.size());
     rmaps.resize(vpc.size());
@@ -355,6 +360,7 @@ struct unstructured_base {
 
         auto const s = std::make_tuple(e.id, e.local, e.global);
         sources[e.process][lco].emplace_back(s);
+        sources_lco[e.process].emplace_back(lco);
       } // for
 
       /*
@@ -401,7 +407,14 @@ struct unstructured_base {
       for(auto & e : ic.shared) {
         auto it = std::find(entities.begin(), entities.end(), e.id);
         flog_assert(it != entities.end(), "shared entity doesn't exist");
-        shared_offsets[lco][e.id] = std::distance(entities.begin(), it);
+        auto offset = std::distance(entities.begin(), it);
+        shared_offsets[lco][e.id] = offset;
+        // shared_offsets[lco][e.id] = std::distance(entities.begin(), it);
+
+        // fill out the map of dependent color to local offset
+        for(auto & dep : e.dependents) {
+          shared_cg[lco][dep].push_back(offset);
+        }
       } // for
 
       ++lco;
@@ -504,6 +517,113 @@ struct unstructured_base {
 
       ++p;
     } // for
+
+    /*
+      Setup cgraph data
+     */
+
+    using ghost_info = std::tuple<std::size_t, /*ghost id*/
+      std::size_t, /*local color*/
+      std::size_t, /*local offset*/
+      std::size_t /*remote offset*/
+      >;
+
+    std::vector</*local colors*/
+      std::map<std::size_t, /*global color*/
+        std::vector<ghost_info>>>
+      peer_ghosts;
+
+    // lambda
+    auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
+                            std::size_t const & in_id,
+                            std::size_t const & in_lco,
+                            std::size_t & gcolor,
+                            ghost_info & ginfo) {
+      int k{0};
+      for(auto const & rv : sources) { // process
+        std::size_t pc{0}, cnt{0};
+        for(auto const & cv : rv) { // local colors
+          for(auto [id, dmmy, gco] : cv) {
+            if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
+              gcolor = gco;
+              ginfo = std::make_tuple(
+                in_id, in_lco, ghost_offsets[pc][id], fulfilled[k][cnt]);
+              return true;
+            }
+            ++cnt;
+          } // for
+          ++pc;
+        } // for
+        ++k;
+      } // for
+      return false;
+    };
+
+    for(std::size_t i = 0; i < vpc.size(); ++i) {
+      std::map<std::size_t, std::vector<ghost_info>> temp;
+      for(auto const & g : ghost_offsets[i]) {
+        std::size_t gcolor;
+        ghost_info ginfo;
+        if(find_in_source(g.first, i, gcolor, ginfo)) {
+          temp[gcolor].emplace_back(ginfo);
+        }
+      }
+
+      // sort the vectors for each color by the remote id of the ghosts
+      for(auto & c : temp) {
+        std::sort(std::begin(c.second),
+          std::end(c.second),
+          [](const ghost_info & t1, const ghost_info & t2) {
+            return std::get<3>(t1) < std::get<3>(t2);
+          });
+      }
+
+      peer_ghosts.push_back(temp);
+    }
+
+    int k = 0;
+    for(auto & a : cgraph.accessors()) {
+      // peers for local color k
+      std::size_t p{0};
+      for(auto const & pg : peer_ghosts[k]) {
+
+        // resize field
+        a[p].resize(pg.second.size());
+
+        // loop over entries
+        std::size_t cnt{0};
+        for(auto [id, dmmy, lid, rid] : pg.second) {
+          a[p][cnt].lid = lid;
+          a[p][cnt].rid = rid;
+          ++cnt;
+        }
+        ++p;
+      }
+      ++k;
+    }
+
+    // fill out cgraph_shared
+    k = 0;
+    for(auto & a : cgraph_shared.accessors()) {
+      // peers for local color k
+      std::size_t p{0};
+      for(auto const & sh : shared_cg[k]) {
+
+        // resize field
+        a[p].resize(sh.second.size());
+
+        // loop over entries
+        std::size_t cnt{0};
+        for(auto offset : sh.second) {
+          a[p][cnt].lid = offset;
+          a[p][cnt].rid = offset;
+          ++cnt;
+        }
+        ++p;
+      }
+      ++k;
+    }
+
   } // idx_itvls
 
   static void set_dests(
@@ -572,6 +692,82 @@ struct unstructured_base {
     resize::Field::accessor<wo> dest) {
     dest = src.get();
   }
+
+  // resize ragged fields storing communication graph for ghosts
+  static void cgraph_size(std::vector<process_coloring> const & vpc,
+    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    auto it = vpc.begin();
+    for(auto & a : aa.accessors()) {
+      auto & ic = it->coloring;
+      a.size() = ic.ghost.size();
+      ++it;
+    }
+  } // cgraph_size
+
+  // resize ragged fields storing communication graph for shared
+  static void cgraph_shared_size(std::vector<process_coloring> const & vpc,
+    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    auto it = vpc.begin();
+
+    for(auto & a : aa.accessors()) {
+      std::size_t count = 0;
+      for(auto & e : it++->coloring.shared) {
+        count += e.dependents.size();
+      }
+      a.size() = count;
+    }
+
+  } // cgraph_shared_size
+
+  template<typename T, PrivilegeCount N>
+  struct ragged_impl {
+
+    using fa = typename field<T,
+      data::ragged>::template accessor1<privilege_ghost_repeat<ro, na, N>>;
+
+    using fm_rw = typename field<T,
+      data::ragged>::template mutator1<privilege_ghost_repeat<ro, rw, N>>;
+
+    using cga = field<cmap, data::ragged>::accessor<ro>;
+
+    static void start(fa v, cga, cga cgraph_shared, data::buffers::Start mv) {
+      send(v, cgraph_shared, true, mv);
+    } // start
+
+    static int
+    xfer(fm_rw g, cga cgraph, cga cgraph_shared, data::buffers::Transfer mv) {
+      int p = cgraph_shared.size(); // number of send buffers
+      for(auto pg : cgraph) { // over peers
+        data::buffers::ragged::read(g, mv[p], [&pg](std::size_t i) {
+          return std::partition_point(
+            pg.begin(), pg.end(), [i](const cmap & c) { return (i > c.rid); })
+            ->lid;
+        });
+        ++p;
+      }
+
+      // resume transfer if data was not fully packed during start
+      return send(g, cgraph_shared, false, mv);
+    } // xfer
+
+  private:
+    template<typename F, typename B>
+    static bool send(F f, cga cgraph_shared, bool first, B mv) {
+      int p = 0;
+      bool sent = false;
+      for(auto pg : cgraph_shared) { // over peers
+        auto b = data::buffers::ragged{mv[p++], first};
+        for(auto & ent : pg) { // send data on shared entities
+          if(!b(f, ent.lid, sent))
+            return sent; // if no more data can be packed, stop sending, will be
+                         // packed by xfer
+        }
+      }
+      return sent;
+    } // send
+
+  }; // struct ragged_impl
+
 }; // struct unstructured_base
 
 inline std::ostream &

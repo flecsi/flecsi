@@ -1,8 +1,8 @@
 // Copyright (c) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef TUTORIAL_5_DATA_CANONICAL_HH
-#define TUTORIAL_5_DATA_CANONICAL_HH
+#ifndef TUTORIAL_5_PARALLEL_CANONICAL_HH
+#define TUTORIAL_5_PARALLEL_CANONICAL_HH
 
 #include <flecsi/flog.hh>
 #include <flecsi/topo/unstructured/interface.hh>
@@ -12,7 +12,6 @@ using namespace flecsi;
 struct canon : topo::specialization<topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
-  // using connectivities = util::types<entity<cells, has<vertices>>>;
   using connectivities = list<>;
   enum entity_list {};
   using entity_lists = list<>;
@@ -46,14 +45,14 @@ struct canon : topo::specialization<topo::unstructured, canon> {
       { /* over global processes */
         std::vector<Color>{ 0 }
       },
-      /* num_peers */
+      /* color_peers */
       {
         0
       },
       /* peers */
       {
-        {},
-        {}
+        {{}},
+        {{}}
       },
       { /* over index spaces */
         { /* cells over global number of colors */
@@ -77,7 +76,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
             },
             {}, /* peers */
             {}, /* cnx_allocs */
-            {{}} /* cnx_colorings */
+            {} /* cnx_colorings */
           }
         },
         { /* vertices over process colors */
@@ -93,7 +92,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
             },
             {}, /* peers */
             {}, /* cnx_allocs */
-            {{}} /* cnx_colorings */
+            {} /* cnx_colorings */
           }
         }
       }

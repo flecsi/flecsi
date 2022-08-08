@@ -25,8 +25,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
   using connectivities =
     list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
 
-  enum entity_list { special };
-  using entity_lists = list<entity<vertices, has<special>>>;
+  enum entity_list { special, owned };
+  using entity_lists = list<entity<vertices, has<special, owned>>>;
 
   template<auto>
   static constexpr PrivilegeCount privilege_count = 3;
@@ -56,6 +56,10 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
       return B::template entities<index_space::vertices>(from);
     }
 
+    template<typename B::entity_list L>
+    auto vertices() {
+      return B::template special_entities<index_space::vertices, L>();
+    }
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
@@ -122,6 +126,32 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     } // for
   } // init_c2v
 
+  static void allocate_owned(
+    data::multi<topo::array<unstructured>::accessor<wo>> aa,
+    const std::vector<base::process_coloring> & vpc) {
+
+    auto it = vpc.begin();
+    for(auto & a : aa.accessors()) {
+      a.size() = it++->coloring.owned.size();
+    }
+
+    // a = pc.coloring.owned.size();
+  } // allocate_owned
+
+  static void init_owned(data::multi<field<util::id>::accessor<wo>> m,
+    const std::vector<base::process_coloring> & vpc,
+    const std::vector<std::map<std::size_t, std::size_t>> & rmaps) {
+    auto it = vpc.begin();
+    std::size_t c = 0;
+    for(auto & a : m.accessors()) {
+      std::size_t i{0};
+      for(auto e : it++->coloring.owned) {
+        a[i++] = rmaps[c].at(e);
+      }
+      c++;
+    }
+  } // init_owned
+
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
     flog(warn) << flog::container{c.partitions} << std::endl;
@@ -140,6 +170,23 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
+
+    // owned vertices setup
+    auto & owned_vert_f =
+      s->special_.get<index_space::vertices>().get<entity_list::owned>();
+
+    {
+      auto slm = data::launch::make(owned_vert_f);
+      execute<allocate_owned, flecsi::mpi>(
+        slm, c.idx_spaces[core::index<vertices>]);
+      owned_vert_f.resize();
+    }
+
+    // the launch maps need to be resized with the correct allocation
+    auto slm = data::launch::make(owned_vert_f);
+    execute<init_owned>(
+      core::special_field(slm), c.idx_spaces[core::index<vertices>], vmaps);
+
   } // initialize
 }; // struct unstructured
 
@@ -170,18 +217,76 @@ print(unstructured::accessor<ro, ro, ro> m,
   flog(info) << ss.str() << std::endl;
 }
 
+void
+init_field(unstructured::accessor<ro, ro, ro> m,
+  field<util::id>::accessor<ro, ro, ro> vids,
+  field<int, data::ragged>::mutator<wo, wo, na> tf) {
+  for(auto v : m.vertices<unstructured::owned>()) {
+    tf[v].resize(100);
+    for(int i = 0; i < 100; ++i)
+      tf[v][i] = (int)(vids[v] * 10000 + i);
+  }
+} // init_field
+
+void
+print_field(unstructured::accessor<ro, ro, ro> m,
+  field<int, data::ragged>::accessor<ro, ro, ro> tf) {
+
+  std::stringstream ss;
+  ss << " Number of vertices = " << m.vertices().size() << "\n";
+  for(auto v : m.vertices()) {
+    ss << "For vertex " << v << ", field_size = " << tf[v].size()
+       << ", field vals = [ ";
+    for(std::size_t i = 0; i < tf[v].size(); ++i)
+      ss << tf[v][i] << "  ";
+    ss << "]\n\n";
+  }
+  flog(info) << ss.str() << std::endl;
+} // print_field
+
+void
+allocate_field(unstructured::accessor<ro, ro, ro> m,
+  topo::resize::Field::accessor<wo> a) {
+  a = m.vertices().size() * 100;
+}
+
+int
+verify_field(unstructured::accessor<ro, ro, ro> m,
+  field<util::id>::accessor<ro, ro, ro> vids,
+  field<int, data::ragged>::accessor<ro, ro, ro> tf) {
+  UNIT("VERIFY_FIELD") {
+    for(auto v : m.vertices()) {
+      EXPECT_EQ(tf[v].size(), 100);
+      for(int i = 0; i < 100; ++i)
+        EXPECT_EQ(tf[v][i], (int)(vids[v] * 10000 + i));
+    }
+  };
+}
+
 unstructured::slot mesh;
 unstructured::cslot coloring;
+field<int, data::ragged>::definition<unstructured, unstructured::vertices>
+  test_field;
 
 int
 unstructured_driver() {
   UNIT() {
-    coloring.allocate("simple2d-16x16.msh");
+    coloring.allocate("simple2d-8x8.msh");
     mesh.allocate(coloring.get());
 
     auto const & cids = mesh->forward_map<unstructured::cells>();
     auto const & vids = mesh->forward_map<unstructured::vertices>();
     execute<print>(mesh, cids(mesh), vids(mesh));
+
+    auto & tf = test_field(mesh).get_ragged();
+    tf.growth = {0, 0, 0.25, 0.5, 1};
+    execute<allocate_field>(mesh, tf.sizes());
+    tf.resize();
+
+    execute<init_field>(mesh, vids(mesh), test_field(mesh));
+    // execute<print_field>(mesh, test_field(mesh));
+    EXPECT_EQ(test<verify_field>(mesh, vids(mesh), test_field(mesh)), 0);
+
 #if 0
     auto & neuf =
       mesh->special_.get<unstructured::edges>().get<unstructured::neumann>();
