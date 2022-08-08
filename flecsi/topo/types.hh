@@ -261,7 +261,7 @@ template<auto S, auto N>
 struct stride {
   using type = decltype(N);
   FLECSI_INLINE_TARGET stride(type o, type c) : o_(o), c_(c) {
-    flog_assert(c < N, "invalid color");
+    assert(c < N && "invalid color");
   }
   FLECSI_INLINE_TARGET auto operator()(const type i) const {
     type base = (c_ + o_) % N;
