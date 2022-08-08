@@ -5,13 +5,9 @@
 
 if(NOT FLECSI_CMAKE)
   get_filename_component(FleCSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
-  get_filename_component(FleCSI_CMAKE_BASE_DIR "${FleCSI_CMAKE_DIR}" DIRECTORY)
   message(STATUS "Found FLeCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
-    "${FleCSI_CMAKE_BASE_DIR}/FleCSICMake")
-  list(APPEND CMAKE_MODULE_PATH
-    ${FleCSI_CMAKE_BASE_DIR}/FleCSICMake)
-  set(FLECSI_UNIT_MAIN
-    ${FleCSI_CMAKE_BASE_DIR}/unit-main.cc
-  )
+    ${FleCSI_CMAKE_DIR})
+  list(APPEND CMAKE_MODULE_PATH	${FleCSI_CMAKE_DIR})
+  set(FLECSI_UNIT_MAIN ${FleCSI_CMAKE_DIR}/unit-main.cc)
   set(FLECSI_CMAKE TRUE)
 endif()
