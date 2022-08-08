@@ -122,7 +122,7 @@ initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
 
 // Implement an action for the initialize control point.
 int
-initialize_action() {
+initialize_action(flaxpy::control_policy &) {
   dist_vector_cslot.allocate();
   dist_vector_slot.allocate(dist_vector_cslot.get());
   flecsi::execute<initialize_vectors_task>(
@@ -142,7 +142,7 @@ mul_add_task(double a,
 
 // Implement an action for the mul_add control point.
 int
-mul_add_action() {
+mul_add_action(flaxpy::control_policy &) {
   const double a = 12.34; // Arbitrary scalar value to multiply
   flecsi::execute<mul_add_task>(
     a, x_field(dist_vector_slot), y_field(dist_vector_slot));
@@ -165,7 +165,7 @@ reduce_y_task(one_field<double>::accessor<flecsi::rw> y_acc) {
 
 // Implement an action for the finalize control point.
 int
-finalize_action() {
+finalize_action(flaxpy::control_policy &) {
   double sum = flecsi::reduce<reduce_y_task, flecsi::exec::fold::sum>(
     y_field(dist_vector_slot))
                  .get();

@@ -9,50 +9,50 @@
 using namespace state;
 
 int
-allocate() {
+allocate(control_policy & policy) {
   flog(info) << "allocate" << std::endl;
 
   /*
     Call a method of the control policy to allocate an array of size 10.
    */
 
-  control::policy().allocate_values(10);
+  policy.allocate_values(10);
 
   return 0;
 }
 control::action<allocate, cp::allocate> allocate_action;
 
 int
-initialize() {
+initialize(control_policy & policy) {
   flog(info) << "initialize" << std::endl;
 
   /*
     Access the array through the 'values()' method, and initialize.
    */
 
-  control_policy::int_custom & values = control::policy().values();
+  control_policy::int_custom & values = policy.values();
 
   for(std::size_t i{0}; i < 10; ++i) {
     values[i] = 20 - i;
   } // for
 
-  control::policy().steps() = 5;
+  policy.steps() = 5;
 
   return 0;
 }
 control::action<initialize, cp::initialize> initialize_action;
 
 int
-advance() {
+advance(control_policy & policy) {
   std::stringstream ss;
 
-  ss << "advance " << control::policy().step() << std::endl;
+  ss << "advance " << policy.step() << std::endl;
 
   /*
     Access the array through the 'values()' method, and modify.
    */
 
-  control_policy::int_custom & values = control::policy().values();
+  control_policy::int_custom & values = policy.values();
 
   for(std::size_t i{0}; i < 10; ++i) {
     ss << values[i] << " ";
@@ -67,14 +67,14 @@ advance() {
 control::action<advance, cp::advance> advance_action;
 
 int
-finalize() {
+finalize(control_policy & policy) {
   flog(info) << "finalize" << std::endl;
 
   /*
     Deallocate the array using the control policy interface.
    */
 
-  control::policy().deallocate_values();
+  policy.deallocate_values();
 
   return 0;
 }

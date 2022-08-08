@@ -38,7 +38,7 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 } // print
 
 int
-advance() {
+advance(control_policy &) {
   coloring.allocate("test.txt");
   canonical.allocate(coloring.get());
   cp.allocate(coloring.get());

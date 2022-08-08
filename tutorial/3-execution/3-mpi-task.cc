@@ -22,7 +22,7 @@ task() {
  */
 
 int
-advance() {
+advance(control_policy &) {
   execute<task, mpi>();
 
   return 0;

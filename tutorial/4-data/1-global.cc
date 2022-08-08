@@ -27,7 +27,7 @@ print(single<double>::accessor<ro> gv) {
 }
 
 int
-advance() {
+advance(control_policy &) {
   gtopo.allocate(1);
   const auto v = gfield(gtopo);
   execute<init>(42.0, v);

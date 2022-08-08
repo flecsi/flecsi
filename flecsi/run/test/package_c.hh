@@ -13,7 +13,7 @@
 namespace package_c {
 
 inline int
-advance() {
+advance(control_policy &) {
   flog(info) << "C advance" << std::endl;
   return 0;
 } // advance
@@ -24,7 +24,7 @@ inline const auto dep_bc = package_b::advance_action.add(advance_action);
 inline const auto dep_ca = advance_action.add(package_a::advance_action);
 
 inline int
-analyze() {
+analyze(control_policy &) {
   flog(info) << "C analyze" << std::endl;
   return 0;
 } // analyze

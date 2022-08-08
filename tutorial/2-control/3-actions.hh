@@ -16,28 +16,28 @@ using namespace dependencies;
  */
 
 int
-package_a() {
+package_a(control_policy &) {
   flog(info) << "package_a" << std::endl;
   return 0;
 }
 control::action<package_a, cp::cp1> package_a_action;
 
 int
-package_b() {
+package_b(control_policy &) {
   flog(info) << "package_b" << std::endl;
   return 0;
 }
 control::action<package_b, cp::cp1> package_b_action;
 
 int
-package_c() {
+package_c(control_policy &) {
   flog(info) << "package_c" << std::endl;
   return 0;
 }
 control::action<package_c, cp::cp1> package_c_action;
 
 int
-package_d() {
+package_d(control_policy &) {
   flog(info) << "package_d" << std::endl;
   return 0;
 }
@@ -48,21 +48,21 @@ control::action<package_d, cp::cp1> package_d_action;
  */
 
 int
-package_e() {
+package_e(control_policy &) {
   flog(info) << "package_e" << std::endl;
   return 0;
 }
 control::action<package_e, cp::cp2> package_e_action;
 
 int
-package_f() {
+package_f(control_policy &) {
   flog(info) << "package_f" << std::endl;
   return 0;
 }
 control::action<package_f, cp::cp2> package_f_action;
 
 int
-package_g() {
+package_g(control_policy &) {
   flog(info) << "package_g" << std::endl;
   return 0;
 }

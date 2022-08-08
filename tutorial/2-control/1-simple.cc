@@ -13,7 +13,7 @@ using namespace simple;
  */
 
 int
-initialize() {
+initialize(control_policy &) {
   flog(info) << "initialize" << std::endl;
   return 0;
 }
@@ -29,7 +29,7 @@ control::action<initialize, cp::initialize> initialize_action;
  */
 
 int
-advance() {
+advance(control_policy &) {
   flog(info) << "advance" << std::endl;
   return 0;
 }
@@ -45,7 +45,7 @@ control::action<advance, cp::advance> advance_action;
  */
 
 int
-finalize() {
+finalize(control_policy &) {
   flog(info) << "finalize" << std::endl;
   return 0;
 }

@@ -53,7 +53,7 @@ struct control_policy : flecsi::run::control_base {
 
   struct node_policy {};
 
-  static bool subcycle_control() {
+  static bool subcycle_control(control_policy &) {
     if(substep % 3 < 2) {
       flog(info) << "substep: " << substep % 3 << std::endl;
     } // if
@@ -63,7 +63,7 @@ struct control_policy : flecsi::run::control_base {
   using subcycle =
     cycle<subcycle_control, point<control_points_enum::advance_subcycle>>;
 
-  static bool cycle_control() {
+  static bool cycle_control(control_policy &) {
     if(step++ < 2) {
       flog(info) << "step: " << step << std::endl;
       return true;

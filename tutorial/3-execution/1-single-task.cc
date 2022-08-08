@@ -60,7 +60,7 @@ templated_task(Type t) {
 }
 
 int
-advance() {
+advance(control_policy &) {
 
   /*
     Execute a trivial task.

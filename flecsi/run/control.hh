@@ -52,7 +52,7 @@ using control_point = run_impl::control_point<CP>;
   \tparam CP \c control_point or \c cycle types
   \deprecated Use \c control_base::cycle.
  */
-template<bool (*P)(), typename... CP>
+template<auto P, typename... CP>
 using cycle = run_impl::cycle<P, CP...>;
 
 /*!
@@ -73,7 +73,7 @@ struct control_base {
   /// A control-flow cycle.
   /// \tparam P tested before each iteration
   /// \tparam CP \c point or \c cycle types
-  template<bool (*P)(), typename... CP>
+  template<auto P, typename... CP>
   using cycle = run_impl::cycle<P, CP...>;
 
   /// Type for specifying control points
@@ -125,7 +125,13 @@ inline const char * operator*(control_policy::control_points_enum);
 template<typename P>
 struct control {
 
-  using target_type = int (*)();
+  using policy_type = P;
+
+  static constexpr bool is_control_base_policy =
+    std::is_base_of_v<control_base, P>;
+
+  using target_type =
+    std::conditional_t<is_control_base_policy, int (*)(P &), int (*)()>;
 
 private:
   using control_points = run_impl::to_types_t<P>;
@@ -154,7 +160,13 @@ private:
       : node_policy(std::forward<Args>(args)...), target_(target) {}
 
     int execute() const {
+      static_assert(!is_control_base_policy);
       return target_();
+    }
+
+    int execute(P & p) const {
+      static_assert(is_control_base_policy);
+      return target_(p);
     }
 
   private:
@@ -173,101 +185,85 @@ public:
   using sorted_type = std::map<control_points_enum, typename dag::sorted_type>;
   using dag_map = std::map<control_points_enum, dag>;
 
-  struct registry {
+  static control & instance() {
+    static control c;
+    return c;
+  }
 
-    friend control;
+protected:
+  /*
+    Initialize the control point dags. This is necessary in order to
+    assign labels in the case that no actions are registered at one
+    or more control points.
+  */
+  control() {
+    run_impl::walk<control_points>(init_walker(registry_));
+  }
 
-    static registry & instance() {
-      static registry r;
-      return r;
+  /*
+    Return the dag at the given control point.
+  */
+  dag & control_point_dag(control_points_enum cp) {
+    registry_.try_emplace(cp, *cp);
+    return registry_[cp];
+  }
+
+  /*
+    Return a map of the sorted dags under each control point.
+  */
+  sorted_type sort() const {
+    sorted_type sorted;
+    for(auto & d : registry_) {
+      sorted.try_emplace(d.first, d.second.sort());
     }
+    return sorted;
+  }
 
-  protected:
-    /*
-      Initialize the control point dags. This is necessary in order to
-      assign labels in the case that no actions are registered at one
-      or more control points.
-    */
-    registry() {
-      run_impl::walk<control_points>(init_walker(registry_));
+  /*
+    Run the control model.
+  */
+  int run() const {
+    int status{flecsi::run::status::success};
+    if constexpr(is_control_base_policy) {
+      P pol;
+      run_impl::walk<control_points>(point_walker(sort(), status, &pol));
     }
-
-    /*
-      Return the dag at the given control point.
-    */
-    dag & control_point_dag(control_points_enum cp) {
-      registry_.try_emplace(cp, *cp);
-      return registry_[cp];
-    }
-
-    /*
-      Return a map of the sorted dags under each control point.
-    */
-    sorted_type sort() const {
-      sorted_type sorted;
-      for(auto & d : registry_) {
-        sorted.try_emplace(d.first, d.second.sort());
-      }
-      return sorted;
-    }
-
-    /*
-      Run the control model.
-    */
-    int run() const {
-      int status{flecsi::run::status::success};
+    else
       run_impl::walk<control_points>(point_walker(sort(), status));
-      return status;
-    } // run
+    return status;
+  } // run
 
-    /*
-      Output a graph of the control model.
-    */
+  /*
+    Output a graph of the control model.
+  */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-    int write() const {
-      flecsi::util::graphviz gv;
-      point_writer::write(registry_, gv);
-      std::string file = program() + "-control-model.dot";
-      gv.write(file);
-      return flecsi::run::status::control_model;
-    } // write
+  int write() const {
+    flecsi::util::graphviz gv;
+    point_writer::write(registry_, gv);
+    std::string file = program() + "-control-model.dot";
+    gv.write(file);
+    return flecsi::run::status::control_model;
+  } // write
 
-    int write_sorted() const {
-      flecsi::util::graphviz gv;
-      point_writer::write_sorted(sort(), gv);
-      std::string file = program() + "-control-model-sorted.dot";
-      gv.write(file);
-      return flecsi::run::status::control_model_sorted;
-    } // write_sorted
+  int write_sorted() const {
+    flecsi::util::graphviz gv;
+    point_writer::write_sorted(sort(), gv);
+    std::string file = program() + "-control-model-sorted.dot";
+    gv.write(file);
+    return flecsi::run::status::control_model_sorted;
+  } // write_sorted
 #endif
 
-    dag_map registry_;
-  };
+  dag_map registry_;
 
 private:
-  // stores location of a policy object created in \c execute.
-  static inline P * policy_loc;
   P policy_;
 
 public:
-  /*!
-    Return the user's control policy.
-
-    @return The singleton instance of the user's control policy type. Users can
-            add arbitrary data members and interfaces to this type that can be
-            to store control state information.
-   */
-
-  static P & policy() {
-    static_assert(std::is_base_of_v<control_base, P>);
-    flog_assert(policy_loc, "Could not locate an active policy.");
-    return *policy_loc;
-  }
-
   /// Return the control policy object.
   /// \deprecated use #policy
   static P & state() {
-    static_assert(!std::is_base_of_v<control_base, P>);
+    static_assert(!is_control_base_policy);
     static control c;
     return c.policy_;
   }
@@ -299,7 +295,7 @@ public:
       : node_(util::symbol<*T>(), T, std::forward<Args>(args)...) {
       static_assert(M == run_impl::is_meta<control_points>(CP),
         "you cannot use this interface for internal control points!");
-      registry::instance().control_point_dag(CP).push_back(&node_);
+      instance().control_point_dag(CP).push_back(&node_);
     }
 
     /*
@@ -345,24 +341,16 @@ public:
 
   static int execute() {
     int ret{status::success};
-    if constexpr(std::is_base_of_v<control_base, P>) {
+    if constexpr(is_control_base_policy) {
       try {
-        flog_assert(!policy_loc, "An active policy already exists");
-        P obj;
-        policy_loc = &obj;
-        struct guard {
-          ~guard() {
-            policy_loc = nullptr;
-          }
-        } g;
-        ret = registry::instance().run();
+        ret = instance().run();
       }
       catch(control_base::exception e) {
         ret = e.code;
       }
     }
     else {
-      ret = registry::instance().run();
+      ret = instance().run();
     }
     return ret;
   } // execute
@@ -377,9 +365,9 @@ public:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     switch(s) {
       case flecsi::run::status::control_model:
-        return registry::instance().write();
+        return instance().write();
       case flecsi::run::status::control_model_sorted:
-        return registry::instance().write_sorted();
+        return instance().write_sorted();
       default:
         break;
     } // switch

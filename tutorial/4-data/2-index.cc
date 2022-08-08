@@ -29,7 +29,7 @@ print(single<std::size_t>::accessor<ro> iv) {
 }
 
 int
-advance() {
+advance(control_policy &) {
 
   custom_topology.allocate(4);
 

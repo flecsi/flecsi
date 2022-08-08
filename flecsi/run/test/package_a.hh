@@ -16,7 +16,7 @@ namespace package_a {
 //----------------------------------------------------------------------------//
 
 inline int
-internal_init() {
+internal_init(control_policy &) {
   flog(info) << "A internal init" << std::endl;
   return 0;
 }
@@ -28,7 +28,7 @@ inline control::meta<internal_init, cp::init_internal> internal_action;
 //----------------------------------------------------------------------------//
 
 inline int
-init() {
+init(control_policy &) {
   flog(info) << "A init" << std::endl;
   return 0;
 }
@@ -50,7 +50,7 @@ task2() {
 }
 
 inline int
-internal_advance() {
+internal_advance(control_policy &) {
   flog(info) << "A advance internal" << std::endl;
   return 0;
 }
@@ -59,7 +59,7 @@ inline control::meta<internal_advance, cp::advance_internal>
   advance_internal_action;
 
 inline int
-advance() {
+advance(control_policy &) {
   flog(info) << "A advance" << std::endl;
   flecsi::execute<task1>();
   flecsi::execute<task2>();
@@ -78,7 +78,7 @@ subcycle_task() {
 }
 
 inline int
-subcycle() {
+subcycle(control_policy &) {
   flecsi::execute<subcycle_task>();
   return 0;
 }
@@ -100,7 +100,7 @@ task4() {
 }
 
 inline int
-analyze() {
+analyze(control_policy &) {
   flog(info) << "A analyze" << std::endl;
   flecsi::execute<task3>();
   flecsi::execute<task4>();
@@ -114,7 +114,7 @@ inline control::action<analyze, cp::analyze> analyze_action;
 //----------------------------------------------------------------------------//
 
 inline int
-io() {
+io(control_policy &) {
   flog(info) << "A I/0" << std::endl;
   return 0;
 }
@@ -126,7 +126,7 @@ inline control::action<io, cp::io> io_action;
 //----------------------------------------------------------------------------//
 
 inline int
-mesh() {
+mesh(control_policy &) {
   flog(info) << "A mesh" << std::endl;
   return 0;
 }
@@ -138,7 +138,7 @@ inline control::action<mesh, cp::mesh> mesh_action;
 //----------------------------------------------------------------------------//
 
 inline int
-finalize() {
+finalize(control_policy &) {
   flog(info) << "A finalize" << std::endl;
   return 0;
 }

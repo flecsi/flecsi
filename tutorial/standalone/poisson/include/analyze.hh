@@ -11,7 +11,7 @@
 namespace poisson {
 namespace action {
 
-int analyze();
+int analyze(control_policy &);
 inline control::action<analyze, cp::analyze> analyze_action;
 
 } // namespace action

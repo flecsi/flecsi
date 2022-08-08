@@ -17,7 +17,7 @@
 using namespace flecsi;
 
 int
-poisson::action::solve() {
+poisson::action::solve(control_policy &) {
   annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 

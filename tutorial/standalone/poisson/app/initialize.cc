@@ -13,7 +13,7 @@
 using namespace flecsi;
 
 int
-poisson::action::init_mesh() {
+poisson::action::init_mesh(control_policy &) {
   flog(info) << "Initializing " << x_extents.value() << "x" << y_extents.value()
              << " mesh" << std::endl;
   flecsi::flog::flush();

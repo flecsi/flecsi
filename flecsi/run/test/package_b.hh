@@ -16,7 +16,7 @@ namespace package_b {
 //----------------------------------------------------------------------------//
 
 inline int
-advance() {
+advance(control_policy &) {
   flog(info) << "B advance" << std::endl;
   return 0;
 } // advance
@@ -34,7 +34,7 @@ subcycle_task() {
 }
 
 inline int
-subcycle() {
+subcycle(control_policy &) {
   flecsi::execute<subcycle_task>();
   return 0;
 }
@@ -47,7 +47,7 @@ inline const auto dep_a_sub = subcycle_action.add(package_a::subcycle_action);
 //----------------------------------------------------------------------------//
 
 inline int
-analyze() {
+analyze(control_policy &) {
   flog(info) << "B analyze" << std::endl;
   return 0;
 } // analyze

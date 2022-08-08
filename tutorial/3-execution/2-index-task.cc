@@ -23,7 +23,7 @@ task(exec::launch_domain) {
  */
 
 int
-advance() {
+advance(control_policy &) {
   exec::launch_domain ld{4};
 
   execute<task>(ld);
