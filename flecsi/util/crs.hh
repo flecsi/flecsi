@@ -48,8 +48,9 @@ struct crs : util::with_index_iterator<const crs> {
     add_row(init.begin(), init.end());
   }
 
-  void add_row(std::vector<std::size_t> const & v) {
-    add_row(v.begin(), v.end());
+  template<typename Range>
+  void add_row(Range const & it) {
+    add_row(it.begin(), it.end());
   }
 
   std::size_t size() const {
