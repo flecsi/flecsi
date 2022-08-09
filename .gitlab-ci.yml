@@ -73,7 +73,7 @@ variables:
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos ^kokkos +rocm amdgpu_target=gfx906
+  VARIANTS: +hdf5 +kokkos ^kokkos +hwloc +rocm amdgpu_target=gfx906
 
 include: .gitlab/templates.yml
 
@@ -492,3 +492,28 @@ openmpi-mpi-clang:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for MPI backend with OpenMPI provider,
+# and ROCM compiler toolchain.
+#------------------------------------------------------------------------------#
+
+openmpi-mpi-rocm:
+  stage: MPI backend
+  extends: .darwin_build_template
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-rocm
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: rocmcc@5.1.0
+    BUILD_TYPE: Debug
+    BACKEND: mpi
+    SPACK_INSTALL_FLECSI_BACKEND: mpi
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: amd-epyc-gpu
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C gpu1_model:Radeon_Instinct_MI50_32GB"
