@@ -186,7 +186,10 @@
     - make -j $(nproc)
     - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
     - echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
-    - CTEST_OUTPUT_ON_FAILURE=1 make test
+    - export FLECSI_BACKTRACE=1
+    - export LEGION_BACKTRACE=1
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - make test
     - echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
     - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
     - make install
