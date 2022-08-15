@@ -126,6 +126,7 @@
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
     - spack install --only dependencies ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
+    - spack find -v
     - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
 
 #------------------------------------------------------------------------------#
