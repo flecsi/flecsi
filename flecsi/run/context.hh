@@ -583,7 +583,7 @@ private:
                      typename Topo::core>) {
         (
           [&] {
-            for(const auto fip :
+            for(const auto & fip :
               field_info_store<topo::ragged<Topo>, Index>()) {
               auto & t = slot->ragged.template get<Index>()[fip->fid];
               index_space_info_vector_.push_back({&t.get_region(),
