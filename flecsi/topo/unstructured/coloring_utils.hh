@@ -1127,13 +1127,17 @@ coloring_utils<MD>::close_vertices() {
 
         if(size_ > 1) { // only necessary if there are multiple processes.
           // Add requested ghosts.
-          for(auto v : ghost.at(p.first)) {
-            const auto gco = v2co_.at(v);
-            peers.insert(gco);
-            const auto [pr, li] = pmap.invert(gco);
-            pc.coloring.ghost.emplace_back(ghost_entity{v, pr, Color(li), gco});
-            pc.coloring.all.emplace_back(v);
-          } // for
+          auto it = ghost.find(p.first);
+          if(it != ghost.end()) {
+            for(auto v : it->second) {
+              const auto gco = v2co_.at(v);
+              peers.insert(gco);
+              const auto [pr, li] = pmap.invert(gco);
+              pc.coloring.ghost.emplace_back(
+                ghost_entity{v, pr, Color(li), gco});
+              pc.coloring.all.emplace_back(v);
+            } // for
+          } // if
         } // if
 
         color_peers_[lco].insert(peers.begin(), peers.end());
