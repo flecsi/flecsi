@@ -315,23 +315,28 @@ field<int, data::ragged>::definition<unstructured, unstructured::vertices>
 
 int
 unstructured_driver() {
+  std::vector<std::string> files = {
+    "simple2d-16x16.msh", "simple2d-8x8.msh", "disconnected.msh"};
   UNIT() {
-    coloring.allocate("simple2d-16x16.msh");
-    mesh.allocate(coloring.get());
+    for(auto f : files) {
+      flog(info) << "testing mesh: " << f << std::endl;
+      coloring.allocate(f);
+      mesh.allocate(coloring.get());
 
-    auto const & cids = mesh->forward_map<unstructured::cells>();
-    auto const & vids = mesh->forward_map<unstructured::vertices>();
-    auto const & eids = mesh->forward_map<unstructured::edges>();
-    execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
+      auto const & cids = mesh->forward_map<unstructured::cells>();
+      auto const & vids = mesh->forward_map<unstructured::vertices>();
+      auto const & eids = mesh->forward_map<unstructured::edges>();
+      execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
 
-    auto & tf = test_field(mesh).get_ragged();
-    tf.growth = {0, 0, 0.25, 0.5, 1};
-    execute<allocate_field>(mesh, tf.sizes());
-    tf.resize();
+      auto & tf = test_field(mesh).get_ragged();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field>(mesh, tf.sizes());
+      tf.resize();
 
-    execute<init_field>(mesh, vids(mesh), test_field(mesh));
-    // execute<print_field>(mesh, test_field(mesh));
-    EXPECT_EQ(test<verify_field>(mesh, vids(mesh), test_field(mesh)), 0);
+      execute<init_field>(mesh, vids(mesh), test_field(mesh));
+      // execute<print_field>(mesh, test_field(mesh));
+      EXPECT_EQ(test<verify_field>(mesh, vids(mesh), test_field(mesh)), 0);
+    }
   };
 } // unstructured_driver
 

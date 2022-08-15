@@ -69,6 +69,7 @@ add_unit(coloring
   INPUTS
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
+    unstructured/test/disconnected.msh
   THREADS 5
 )
 
