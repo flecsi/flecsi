@@ -1,7 +1,7 @@
 option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
 
-if(NOT ENABLE_FLOG AND ENABLE_UNIT_TESTS)
-    message(FATAL_ERROR "Unit tests require ENABLE_FLOG=ON")
+if(ENABLE_UNIT_TESTS AND NOT (ENABLE_FLOG OR FleCSI_ENABLE_FLOG))
+    message(FATAL_ERROR "Unit tests require FleCSI with ENABLE_FLOG=ON")
 endif()
 
 if(ENABLE_UNIT_TESTS)
