@@ -1,15 +1,11 @@
 option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
 
 if(ENABLE_OPENMP)
-
   find_package(OpenMP)
 
-  if(NOT OPENMP_FOUND)
-      message(WARNING "OpenMP was requested but not found.")
+  if(OpenMP_CXX_FOUND)
+    list(APPEND TPL_LIBRARIES OpenMP::OpenMP_CXX)
   else()
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    message(WARNING "OpenMP was requested but not found.")
   endif()
-
-endif(ENABLE_OPENMP)
+endif()
