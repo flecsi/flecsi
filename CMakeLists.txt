@@ -349,6 +349,7 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/library.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/mpi.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/parmetis.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/sphinx.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
