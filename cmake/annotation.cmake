@@ -13,7 +13,7 @@ set_property(CACHE CALIPER_DETAIL
 if (NOT CALIPER_DETAIL STREQUAL "none")
   find_package(caliper REQUIRED)
 
-  message(STATUS "Found Caliper")
+  message(STATUS "Found Caliper: ${caliper_INCLUDE_DIR}")
 
   list(APPEND TPL_INCLUDES  ${caliper_INCLUDE_DIR})
   list(APPEND TPL_LIBRARIES caliper)

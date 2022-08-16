@@ -15,10 +15,6 @@ if(ENABLE_HDF5)
 
   find_package(HDF5 REQUIRED)
 
-  if(NOT HDF5_FOUND)
-    message(FATAL_ERROR "HDF5 requested, but not found")
-  endif()
-
   list(APPEND TPL_INCLUDES ${HDF5_INCLUDE_DIRS})
   list(APPEND TPL_LIBRARIES ${HDF5_LIBRARIES})
 endif()

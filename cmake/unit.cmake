@@ -219,7 +219,7 @@ function(add_unit name)
 
   if(NOT unit_THREADS)
     set(unit_THREADS 1)
-  endif(NOT unit_THREADS)
+  endif()
 
   #----------------------------------------------------------------------------#
   # Add the test target to CTest

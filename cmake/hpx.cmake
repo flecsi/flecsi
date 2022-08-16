@@ -13,10 +13,6 @@ if(ENABLE_HPX)
   list(APPEND TPL_INCLUDES ${HPX_INCLUDE_DIRS})
   list(APPEND TPL_LIBRARIES ${HPX_LIBRARIES})
 
-  if(HPX_FOUND)
-    message(FATAL_ERROR "HPX is required for this configuration")
-  endif()
-
   if(MSVC)
     list(APPEND TPL_DEFINES -D_SCL_SECURE_NO_WARNINGS)
     list(APPEND TPL_DEFINES -D_CRT_SECURE_NO_WARNINGS)
@@ -29,4 +25,4 @@ if(ENABLE_HPX)
     list(APPEND TPL_DEFINES -DGTEST_LANG_CXX11=1)
   endif()
 
-endif(ENABLE_HPX)
+endif()

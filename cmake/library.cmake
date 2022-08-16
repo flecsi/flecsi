@@ -3,7 +3,7 @@ include(subdirlist)
 if(NOT DEFINED LIBDIR)
   include(GNUInstallDirs)
   set(LIBDIR "${CMAKE_INSTALL_LIBDIR}")
-endif(NOT DEFINED LIBDIR)
+endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 mark_as_advanced(BUILD_SHARED_LIBS)

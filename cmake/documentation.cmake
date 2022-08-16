@@ -10,12 +10,7 @@ if(ENABLE_DOCUMENTATION)
   )
 
   if(ENABLE_SPHINX AND ENABLE_DOXYGEN)
-
-    find_package(Git)
-
-    if(NOT GIT_FOUND)
-      message(FATAL_ERROR "Git is required for this target")
-    endif()
+    find_package(Git REQUIRED)
 
     #--------------------------------------------------------------------------#
     # This target will work with multiple doxygen targets. However, because
