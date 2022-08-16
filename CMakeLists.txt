@@ -353,7 +353,6 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/version.cmake
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
   )
 
