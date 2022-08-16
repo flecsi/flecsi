@@ -176,7 +176,7 @@ struct narray_base {
     auto [rank, size] = util::mpi::info(comm);
 
     std::vector<std::size_t> local_itvls;
-    for(auto pc : vpc) {
+    for(const auto & pc : vpc) {
       local_itvls.emplace_back(pc.intervals.size());
       intervals.emplace_back(std::move(pc.intervals));
       points.emplace_back(std::move(pc.points));
@@ -194,7 +194,7 @@ struct narray_base {
     }
     util::color_map cm(size, num_intervals.size() /* colors */, entities);
     std::size_t p{0};
-    for(auto pv : global_itvls) {
+    for(const auto & pv : global_itvls) {
       std::size_t co{0};
       for(auto i : pv) {
         num_intervals[cm.color_id(p, co++)] = i;
