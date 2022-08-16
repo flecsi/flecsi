@@ -340,7 +340,6 @@ if(NOT FORMAT_ONLY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/flog.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/hdf5.cmake
