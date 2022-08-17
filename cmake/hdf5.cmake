@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_HDF5 "Enable HDF5" OFF)
 
 if(ENABLE_HDF5)

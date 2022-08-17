@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // Topology components used for storing sizes of other topologies.
 
 #ifndef FLECSI_TOPO_SIZE_HH

@@ -41,7 +41,7 @@ options, which might not be necessary for a particular build:
   *CI: 1.79.0*
 
 * **C++17 compliant compiler** |br|
-  At the current time, FleCSI has been tested with GNU, Clang, and Intel
+  At the current time, FleCSI has been tested with GNU and Clang
   C++ compilers. |br|
   *CI: gcc 9.4.0, clang 13.0.1*
 

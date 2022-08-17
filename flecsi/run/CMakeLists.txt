@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 set(run_HEADERS
   backend.hh
   context.hh

@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_HPX "Enable HPX" OFF)
 mark_as_advanced(ENABLE_HPX)
 

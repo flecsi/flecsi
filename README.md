@@ -41,7 +41,7 @@ been assigned **LA-CC-16-022**.
 
 # Copyright
 
-Copyright (c) 2016, Triad National Security, LLC.
+Copyright (C) 2016, Triad National Security, LLC.
 All rights reserved.
 
 This program was produced under U.S. Government contract 89233218CNA000001 for

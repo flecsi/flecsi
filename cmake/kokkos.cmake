@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_KOKKOS "Enable Kokkos" OFF)
 
 if(ENABLE_KOKKOS)

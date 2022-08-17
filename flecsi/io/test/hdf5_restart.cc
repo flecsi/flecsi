@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/io.hh"

@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 function(make_subdirlist result directory recursive)
   if(${recursive})
     file(GLOB_RECURSE _CHILDREN RELATIVE ${directory} ${directory}/*)

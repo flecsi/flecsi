@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 include(subdirlist)
 
 if(NOT DEFINED LIBDIR)

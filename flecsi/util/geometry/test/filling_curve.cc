@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/util/geometry/filling_curve.hh"
 #include "flecsi/util/unit.hh"
 

@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 set(CALIPER_DETAILS none low medium high)
 
 if(NOT CALIPER_DETAIL)

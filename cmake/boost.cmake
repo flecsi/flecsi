@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 set(Boost_NO_BOOST_CMAKE ON)
 set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
 mark_as_advanced(ENABLE_BOOST)

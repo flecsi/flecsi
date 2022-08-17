@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"

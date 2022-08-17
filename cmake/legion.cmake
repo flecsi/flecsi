@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 option(ENABLE_LEGION "Enable Legion" OFF)
 
 if(ENABLE_LEGION)

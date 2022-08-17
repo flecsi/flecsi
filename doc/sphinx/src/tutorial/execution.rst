@@ -40,18 +40,18 @@ Therefore, it is a single task.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 15-18
+  :lines: 8-15
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 69-69
+  :lines: 66-66
 
 You can return a value from the task; a *future* is a mechanism to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 75-95
+  :lines: 72-92
 
 FleCSI can execute a task that takes an argument by-value.
 FleCSI tasks can take any valid C++ type by value. However, because task
@@ -60,17 +60,17 @@ arguments that contain pointers.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 103-107
+  :lines: 100-104
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 53-60
+  :lines: 50-57
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 113-117
+  :lines: 110-114
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
@@ -84,7 +84,7 @@ the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :lines: 15-32
+  :lines: 12-29
 
 
 Launch Domains
@@ -109,6 +109,6 @@ method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :lines: 15-29
+  :lines: 12-26
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
