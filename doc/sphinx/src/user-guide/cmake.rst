@@ -276,6 +276,28 @@ Other files
 ``colors``
   Defines several ASCII color codes for colored console output.
 
+  .. hlist::
+     :columns: 3
+
+     * ``FLECSI_ColorReset``
+     * ``FLECSI_ColorBold``
+     * ``FLECSI_Red``
+     * ``FLECSI_Green``
+     * ``FLECSI_Yellow``
+     * ``FLECSI_Brown``
+     * ``FLECSI_Blue``
+     * ``FLECSI_Magenta``
+     * ``FLECSI_Cyan``
+     * ``FLECSI_White``
+     * ``FLECSI_BoldGrey``
+     * ``FLECSI_BoldRed``
+     * ``FLECSI_BoldGreen``
+     * ``FLECSI_BoldYellow``
+     * ``FLECSI_BoldBlue``
+     * ``FLECSI_BoldMagenta``
+     * ``FLECSI_BoldCyan``
+     * ``FLECSI_BoldWhite``
+
 ``summary``
   Defines multiple macros to generate a (colored) configuration
   summary. Each of these macros appends to the global ``_summary``.
