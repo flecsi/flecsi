@@ -68,6 +68,14 @@ documentation system for your own projects.
    targets. ``make doc`` will build all defined sphinx and doxygen
    targets.
 
+   It also adds the advanced CMake option ``GITHUB_PAGES_REPO``. If
+   ``GITHUB_PAGES_REPO`` is set, this adds the ``deploy-docs``
+   target. This will checkout the ``gh-pages`` branch from the Git
+   repository defined in ``GITHUB_PAGES_REPO``.  The checkout will be
+   cleared and the result of the ``doc`` target is copied into
+   it. Files are only added, but **not** commited or pushed. These are
+   left as manual steps.
+
 ``sphinx``
   Adds the ``ENABLE_SPHINX`` CMake option, which is only shown if
   ``ENABLE_DOCUMENTATION`` is ``ON``. If enabled, it will add a

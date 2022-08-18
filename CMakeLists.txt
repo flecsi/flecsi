@@ -149,6 +149,7 @@ if(NOT FORMAT_ONLY)
   #----------------------------------------------------------------------------#
   # Includes
   #----------------------------------------------------------------------------#
+  set(GITHUB_PAGES_REPO "git@github.com:flecsi/flecsi.git" CACHE STRING "" FORCE)
 
   include(legion)
   include(mpi)

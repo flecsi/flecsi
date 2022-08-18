@@ -4,12 +4,15 @@ include(colors)
 option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
 mark_as_advanced(ENABLE_DOCUMENTATION)
 
+option(GITHUB_PAGES_REPO "GitHub Pages repository for gh-pages branch" "")
+mark_as_advanced(GITHUB_PAGES_REPO)
+
 if(ENABLE_DOCUMENTATION)
   add_custom_target(doc
     ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.doc-dummy
   )
 
-  if(ENABLE_SPHINX AND ENABLE_DOXYGEN)
+  if(GITHUB_PAGES_REPO AND ENABLE_SPHINX AND ENABLE_DOXYGEN)
     find_package(Git REQUIRED)
 
     #--------------------------------------------------------------------------#
@@ -18,13 +21,13 @@ if(ENABLE_DOCUMENTATION)
     # one sphinx target, i.e., the one named `sphinx`.
     #--------------------------------------------------------------------------#
 
-    add_custom_target(deploy-documentation
+    add_custom_target(deploy-docs
       COMMAND
         make doc &&
         echo "Updating gh-pages" &&
           ([ -e gh-pages ] ||
             ${GIT_EXECUTABLE} clone -q --single-branch --branch gh-pages
-              git@github.com:flecsi/flecsi.git gh-pages &&
+              ${GITHUB_PAGES_REPO} gh-pages &&
             cd gh-pages &&
             ${GIT_EXECUTABLE} rm -qr . && ${GIT_EXECUTABLE} reset -q &&
             ${GIT_EXECUTABLE} checkout .gitignore) &&
