@@ -129,6 +129,8 @@ struct range_base {
   using Policy = util::iota_view<index>;
 #endif
 };
+/// The integer type used for multi-dimensional indices.
+using range_index = range_base::index;
 
 template<typename Range>
 struct range_policy : range_base, policy_tag {
@@ -139,6 +141,93 @@ struct range_policy : range_base, policy_tag {
   }
   Range range;
 };
+
+/// This class computes subinterval of a range based on the starting and ending
+/// indices provided.
+struct sub_range {
+  /// starting index which is inclusive
+  range_index beg;
+  /// ending index which is exclusive
+  range_index end;
+  FLECSI_INLINE_TARGET auto size() const {
+    return end - beg;
+  }
+
+  FLECSI_INLINE_TARGET auto start() const {
+    return beg;
+  }
+
+  auto get(range_index) const {
+    return *this;
+  }
+};
+/// This class computes the range based on the prefix specified
+struct prefix_range {
+  /// size of the range
+  range_index size_len;
+  FLECSI_INLINE_TARGET auto size() const {
+    return size_len;
+  }
+  FLECSI_INLINE_TARGET auto start() const {
+    return 0;
+  }
+  auto get(range_index) const {
+    return *this;
+  }
+};
+/// This class computes full range size if prefix or subinterval of the range is
+/// not specified
+struct full_range {
+  auto get(range_index n) const {
+    return prefix_range{n};
+  }
+};
+
+template<std::size_t... II, class... RR>
+FLECSI_INLINE_TARGET auto
+mdiota_view(std::index_sequence<II...>, const RR &... rr) {
+  static constexpr std::size_t N = sizeof...(RR);
+  return util::transform_view(
+    util::iota_view<range_index>(0, (1 * ... * rr.size())),
+    [rr...](range_index i) {
+      std::array<range_index, N> ret;
+      auto p = ret.end();
+      ((*--p =
+           [&] {
+             if constexpr(II < N - 1) {
+               const auto n = rr.size(), ret = i % n;
+               i /= n;
+               return ret;
+             }
+             else
+               return i;
+           }() +
+           rr.start()),
+        ...);
+      return ret;
+    });
+}
+// An extra helper is needed to use II to convert full_range objects.
+template<class M, std::size_t... II, class R>
+FLECSI_INLINE_TARGET auto
+mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
+  return mdiota_view(ii, [m, rt] { // pass ranges least-significant first
+    constexpr auto J = sizeof...(II) - 1 - II;
+    return std::get<J>(rt).get(m.length(J));
+  }()...);
+}
+
+/// This function computes the indices for each dimension for multi-dimensional
+/// ranges provided.
+/// @param m mdspan or mdcolex object
+/// \return sized random-access range of \c std::array objects, each with one
+/// index of type \c range_index for each argument in \a rr
+template<class M, class... RR>
+auto
+mdiota_view(const M & m, RR... rr) {
+  return mdiota_view(
+    m, std::index_sequence_for<RR...>(), std::make_tuple(rr...));
+}
 
 /// This function is a wrapper for Kokkos::parallel_for that has been adapted to
 /// work with random access ranges common in FleCSI topologies. In particular,
