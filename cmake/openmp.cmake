@@ -1,11 +1,7 @@
 option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
 
 if(ENABLE_OPENMP)
-  find_package(OpenMP)
+  find_package(OpenMP REQUIRED COMPONENTS CXX)
 
-  if(OpenMP_CXX_FOUND)
-    list(APPEND TPL_LIBRARIES OpenMP::OpenMP_CXX)
-  else()
-    message(WARNING "OpenMP was requested but not found.")
-  endif()
+  list(APPEND TPL_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
