@@ -74,6 +74,10 @@ include(summary)
 
 include(format)
 
+option(FORMAT_ONLY
+  "Enable format-only mode: no other targets will be create" OFF)
+mark_as_advanced(FORMAT_ONLY)
+
 if(NOT FORMAT_ONLY)
 
   #----------------------------------------------------------------------------#

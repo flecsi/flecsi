@@ -227,17 +227,14 @@ Code Formatting
 ---------------
 
 ``format``
-  Add the ``ClangFormat_VERSION`` and ``FORMAT_ONLY`` CMake
-  options. ``ClangFormat_VERSION`` is used to specify which version of
-  ``clang-format`` should be used for formatting.
+
+  Add the ``ClangFormat_VERSION`` CMake option to specify which
+  version of ``clang-format`` should be used for formatting.
 
   This file adds ``format`` target that depends on both ``git`` and
   ``clang-format`` to be present. Running this target will find all
   ``.hh`` and ``.cc`` files and apply the style defined in the
   project's ``.clang-format``.
-
-  ``FORMAT_ONLY`` is meant to be used to control if other targets are
-  created in your project but has no effect by itself.
 
 
 Dependencies
