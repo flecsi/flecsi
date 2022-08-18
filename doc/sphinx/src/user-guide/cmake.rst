@@ -261,7 +261,7 @@ folders and libraries will be appended to the globals ``TPL_DEFINES``,
 * ``openmp``
 * ``parmetis``
 * ``boost``
-* ``annotation`` (caliper)
+* ``caliper``
 
 .. note::
 

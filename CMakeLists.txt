@@ -167,7 +167,7 @@ if(NOT FORMAT_ONLY)
       system
   )
   include(boost)
-  include(annotation)
+  include(caliper)
 
   #----------------------------------------------------------------------------#
   # Documentation
@@ -336,8 +336,8 @@ if(NOT FORMAT_ONLY)
   )
 
   install(
-    FILES ${PROJECT_SOURCE_DIR}/cmake/annotation.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
+    FILES ${PROJECT_SOURCE_DIR}/cmake/caliper.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
