@@ -124,6 +124,7 @@ if(NOT FORMAT_ONLY)
     "Select the backend")
   set_property(CACHE FLECSI_BACKEND
     PROPERTY STRINGS ${FLECSI_BACKENDS})
+  set(FleCSI_BACKEND "${FLECSI_BACKEND}")
 
   #----------------------------------------------------------------------------#
   # Backend defaults.
@@ -172,6 +173,7 @@ if(NOT FORMAT_ONLY)
   )
   include(boost)
   include(caliper)
+  include(library)
 
   #----------------------------------------------------------------------------#
   # Documentation
@@ -235,13 +237,9 @@ if(NOT FORMAT_ONLY)
   #set(FLECSI_BACKEND_LIBRARIES)
 
   #----------------------------------------------------------------------------#
-  # FLOG and FTEST
+  # FLOG
   #----------------------------------------------------------------------------#
-
   include(flog)
-
-  set(FLECSI_UNIT_MAIN ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
-  include(unit)
 
   #----------------------------------------------------------------------------#
   # Capture enable settings.
@@ -253,7 +251,9 @@ if(NOT FORMAT_ONLY)
 
   foreach(_variableName ${_matchedVars})
     set(FLECSI_${_variableName} ${${_variableName}})
+    set(FleCSI_${_variableName} ${${_variableName}})
   endforeach()
+
 
   #----------------------------------------------------------------------------#
   # Configure header.
@@ -267,34 +267,7 @@ if(NOT FORMAT_ONLY)
     DESTINATION include
   )
 
-  #----------------------------------------------------------------------------#
-  # mesh-gen target
-  #----------------------------------------------------------------------------#
 
-  add_executable(mesh-gen tools/mesh-gen.cc)
-
-  #----------------------------------------------------------------------------#
-  # FleCSI library.
-  #----------------------------------------------------------------------------#
-
-  include(library)
-
-  add_library_target(FleCSI flecsi
-    EXPORT_TARGET
-      FleCSITargets
-    VERSION
-      ${FleCSI_VERSION}
-    NAMESPACE
-      FleCSI
-    DEFINE_PRIVATE
-      ${TPL_DEFINES}
-    INCLUDE_PUBLIC
-      ${TPL_INCLUDES}
-    INCLUDE_PRIVATE
-      ${CMAKE_BINARY_DIR}
-    LINK_PUBLIC
-      ${TPL_LIBRARIES}
-  )
 
   #----------------------------------------------------------------------------#
   # Extract all project options so they can be exported to the
@@ -326,6 +299,39 @@ if(NOT FORMAT_ONLY)
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
+
+  #----------------------------------------------------------------------------#
+  # Unit Tests
+  #----------------------------------------------------------------------------#
+  set(FLECSI_UNIT_MAIN ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
+  include(unit)
+
+  #----------------------------------------------------------------------------#
+  # FleCSI library.
+  #----------------------------------------------------------------------------#
+
+  add_library_target(FleCSI flecsi
+    EXPORT_TARGET
+      FleCSITargets
+    VERSION
+      ${FleCSI_VERSION}
+    NAMESPACE
+      FleCSI
+    DEFINE_PRIVATE
+      ${TPL_DEFINES}
+    INCLUDE_PUBLIC
+      ${TPL_INCLUDES}
+    INCLUDE_PRIVATE
+      ${CMAKE_BINARY_DIR}
+    LINK_PUBLIC
+      ${TPL_LIBRARIES}
+  )
+
+  #----------------------------------------------------------------------------#
+  # mesh-gen target
+  #----------------------------------------------------------------------------#
+
+  add_executable(mesh-gen tools/mesh-gen.cc)
 
   #----------------------------------------------------------------------------#
   # CMake utilities.

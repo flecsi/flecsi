@@ -1,6 +1,6 @@
 option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
 
-if(ENABLE_UNIT_TESTS AND NOT (ENABLE_FLOG OR FleCSI_ENABLE_FLOG))
+if(ENABLE_UNIT_TESTS AND NOT FleCSI_ENABLE_FLOG)
     message(FATAL_ERROR "Unit tests require FleCSI with ENABLE_FLOG=ON")
 endif()
 
@@ -75,7 +75,7 @@ function(add_unit name)
   # Check to see if the user has specified a backend and process it.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_BACKEND STREQUAL "mpi")
+  if(FleCSI_BACKEND STREQUAL "mpi")
 
     set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
     set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
@@ -85,7 +85,7 @@ function(add_unit name)
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
-  elseif(FLECSI_BACKEND STREQUAL "legion")
+  elseif(FleCSI_BACKEND STREQUAL "legion")
 
     set(unit_policy_flags ${Legion_CXX_FLAGS}
       ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
