@@ -159,7 +159,9 @@ CMake files to allow using it in your own applications.
   ``INPUTS``. This ensures they are copied to the execution folder.
 
   Command-line arguments are passed via the ``ARGUMENTS`` option. You
-  can also control the number of colors with ``THREADS``.
+  can also control the number of MPI processes with ``PROCS``. If you
+  provide more than one value in ``PROCS``, this will define one
+  target per value with a name ``<target-name>_<value>``.
 
   .. note::
 

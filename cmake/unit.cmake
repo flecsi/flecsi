@@ -33,7 +33,7 @@ function(add_unit name)
   set(options NOCI NOOPENMPI)
   set(one_value_args POLICY)
   set(multi_value_args
-    SOURCES INPUTS THREADS LIBRARIES DEFINES DRIVER ARGUMENTS TESTLABELS
+    SOURCES INPUTS PROCS LIBRARIES DEFINES DRIVER ARGUMENTS TESTLABELS
   )
   cmake_parse_arguments(unit "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
@@ -81,7 +81,7 @@ function(add_unit name)
     set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
     set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES})
     set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
+    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
@@ -94,7 +94,7 @@ function(add_unit name)
     set(unit_policy_libraries ${Legion_LIBRARIES} ${Legion_LIB_FLAGS}
       ${MPI_${MPI_LANGUAGE}_LIBRARIES})
     set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
+    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
@@ -211,14 +211,14 @@ function(add_unit name)
   endif()
 
   #----------------------------------------------------------------------------#
-  # Check for threads.
+  # Check for procs
   #
   # If found, replace the semi-colons with pipes to avoid list
   # interpretation.
   #----------------------------------------------------------------------------#
 
-  if(NOT unit_THREADS)
-    set(unit_THREADS 1)
+  if(NOT unit_PROCS)
+    set(unit_PROCS 1)
   endif()
 
   #----------------------------------------------------------------------------#
@@ -238,22 +238,22 @@ function(add_unit name)
     return()
   endif()
 
-  list(LENGTH unit_THREADS thread_instances)
+  list(LENGTH unit_PROCS proc_instances)
 
   #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
   if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_CUDA)
    list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
   endif()
 
-  if(${thread_instances} GREATER 1)
-    foreach(instance ${unit_THREADS})
+  if(${proc_instances} GREATER 1)
+    foreach(instance ${unit_PROCS})
       add_test(
         NAME
           "${_TEST_PREFIX}${name}_${instance}"
         COMMAND
           ${unit_policy_exec}
           ${unit_policy_exec_preflags}
-          ${unit_policy_exec_threads} ${instance}
+          ${unit_policy_exec_procs} ${instance}
           $<TARGET_FILE:${name}>
           ${unit_ARGUMENTS}
           ${unit_policy_exec_postflags}
@@ -272,8 +272,8 @@ function(add_unit name)
           "${_TEST_PREFIX}${name}"
         COMMAND
           ${unit_policy_exec}
-          ${unit_policy_exec_threads}
-          ${unit_THREADS}
+          ${unit_policy_exec_procs}
+          ${unit_PROCS}
           ${unit_policy_exec_preflags}
           $<TARGET_FILE:${name}>
           ${unit_ARGUMENTS}

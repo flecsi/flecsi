@@ -60,12 +60,12 @@ add_unit(kernel
 add_unit(task
   SOURCES
     test/task.cc
-  THREADS
+  PROCS
     4 # Warning: This number is hard-coded into the test.
 )
 
 add_unit(future
   SOURCES
     test/future.cc
-  THREADS 2
+  PROCS 2
 )

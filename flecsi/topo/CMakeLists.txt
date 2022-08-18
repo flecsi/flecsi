@@ -55,7 +55,7 @@ set(topo_SOURCES
 add_unit(index
   SOURCES
     test/index.cc
-  THREADS 2
+  PROCS 2
   )
 
 # unstructured ---------------------------------------------------------------#
@@ -67,7 +67,7 @@ add_unit(coloring
   INPUTS
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
-  THREADS 5
+  PROCS 5
 )
 
 add_unit(closure
@@ -79,7 +79,7 @@ add_unit(closure
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
     unstructured/test/bunny.ugm
-  THREADS 2
+  PROCS 2
 )
 
 #add_unit(closure
@@ -94,13 +94,13 @@ add_unit(unstructured
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
-  THREADS 2
+  PROCS 2
 )
 
 add_unit(fixed
   SOURCES
     unstructured/test/fixed.cc
-  THREADS 4
+  PROCS 4
 )
 
 # narray ----------------------------------------------------------------------#
@@ -109,7 +109,7 @@ add_unit(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
-  THREADS 4
+  PROCS 4
 )
 
 # ntree -----------------------------------------------------------------------#
@@ -117,7 +117,7 @@ add_unit(narray
 add_unit(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed
-  THREADS 4
+  PROCS 4
 )
 
 add_unit(ntree_geometry

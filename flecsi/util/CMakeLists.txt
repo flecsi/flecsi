@@ -108,7 +108,7 @@ add_unit(common
 add_unit(color_map
   SOURCES
     test/color_map.cc
-  THREADS 3
+  PROCS 3
 )
 
 #------------------------------------------------------------------------------#
@@ -118,14 +118,14 @@ add_unit(color_map
 add_unit(unit
   SOURCES
     test/unit.cc
-  THREADS
+  PROCS
     1 2 4
 )
 
 add_unit(unit_task
   SOURCES
     test/unit_task.cc
-  THREADS 2
+  PROCS 2
   )
 
 #------------------------------------------------------------------------------#
@@ -177,7 +177,7 @@ if(NOT CALIPER_DETAIL STREQUAL "none")
 add_unit(annotation
   SOURCES
   test/annotation.cc
-  THREADS
+  PROCS
   3 4
 )
 endif()

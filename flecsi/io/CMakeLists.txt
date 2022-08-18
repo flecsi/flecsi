@@ -63,13 +63,13 @@ if(FLECSI_BACKEND STREQUAL "legion")
 add_unit(hdf5_restart
   SOURCES
     test/hdf5_restart.cc
-  THREADS 4
+  PROCS 4
 )
 
 add_unit(io_metadata
   SOURCES
     test/io_metadata.cc
-  THREADS 2
+  PROCS 2
 )
 endif()
                 
