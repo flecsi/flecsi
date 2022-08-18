@@ -29,5 +29,5 @@ advance() {
   execute<print>(v);
 
   return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

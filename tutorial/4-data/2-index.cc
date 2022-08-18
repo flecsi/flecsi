@@ -37,5 +37,5 @@ advance() {
   execute<print>(ifield(custom_topology));
 
   return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

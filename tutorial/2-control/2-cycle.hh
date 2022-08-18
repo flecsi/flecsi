@@ -30,19 +30,15 @@ struct control_policy {
 
   using control = flecsi::run::control<control_policy>;
 
-  /*
-    Define a function to access the step_ data member.
-   */
+  // Define a function to access the step_ data member.
 
   size_t & step() {
     return step_;
   }
 
-  /*
-    The core FleCSI control model inherits from the control policy, so that
-    any data members defined in your policy are carried with the control
-    policy instance, and can be accessed through a static interface.
-   */
+  // The core FleCSI control model inherits from the control policy, so that
+  // any data members defined in your policy are carried with the control
+  // policy instance, and can be accessed through a static interface.
 
   static bool cycle_control() {
     return control::state().step()++ < 5;
@@ -51,20 +47,16 @@ struct control_policy {
   template<auto CP>
   using control_point = flecsi::run::control_point<CP>;
 
-  /*
-    The cycle type. Cycles are similar to the control_points tuple, with the
-    addition of a predicate function that controls termination of the cycle.
-   */
+  // The cycle type. Cycles are similar to the control_points tuple, with the
+  // addition of a predicate function that controls termination of the cycle.
 
   using cycle = flecsi::run::cycle<cycle_control,
     control_point<cp::advance>,
     control_point<cp::analyze>>;
 
-  /*
-    The control_points tuple type takes the cycle as one of its
-    elements. Valid types for the control_points tuple are, therefore,
-    either typeified enumeration values, or cycles.
-   */
+  // The control_points tuple type takes the cycle as one of its
+  // elements. Valid types for the control_points tuple are, therefore,
+  // either typeified enumeration values, or cycles.
 
   using control_points = std::
     tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;

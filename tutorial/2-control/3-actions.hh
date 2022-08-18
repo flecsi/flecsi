@@ -8,9 +8,7 @@
 
 using namespace dependencies;
 
-/*
-  Register several actions under control point one.
- */
+// Register several actions under control point one.
 
 int
 package_a() {
@@ -40,9 +38,7 @@ package_d() {
 }
 control::action<package_d, cp::cp1> package_d_action;
 
-/*
-  Register several actions under control point two.
- */
+// Register several actions under control point two.
 
 int
 package_e() {
@@ -65,19 +61,15 @@ package_g() {
 }
 control::action<package_g, cp::cp2> package_g_action;
 
-/*
-  Add dependencies a -> b, b -> d, and a -> d, i.e.,
-  b depends on a, d depends on b, and d depends on a.
- */
+// Add dependencies a -> b, b -> d, and a -> d, i.e.,
+// b depends on a, d depends on b, and d depends on a.
 
 const auto dep_ba = package_b_action.add(package_a_action);
 const auto dep_db = package_d_action.add(package_b_action);
 const auto dep_da = package_d_action.add(package_a_action);
 
-/*
-  Add dependencies e -> f, e -> g, and f -> g, i.e., f depends on e,
-  g depends on e, and g depends on f.
- */
+// Add dependencies e -> f, e -> g, and f -> g, i.e., f depends on e,
+// g depends on e, and g depends on f.
 
 const auto dep_fe = package_f_action.add(package_e_action);
 const auto dep_ge = package_g_action.add(package_e_action);
