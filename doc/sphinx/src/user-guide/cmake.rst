@@ -31,8 +31,8 @@ FleCSI CMake files
 FleCSI-based applications often need common CMake code to enable
 features and/or add dependencies. The ``FleCSICMake`` package exposes
 utility CMake files that are meant to be included in new projects. It
-does so by adding its installation folder to the CMake's search path
-when you add the package:
+does so by adding its installation parent folder to the CMake's search
+path when you add the package:
 
 .. code-block:: cmake
 
@@ -46,7 +46,7 @@ you can add it as follows:
 
 .. code-block:: cmake
 
-   include(documentation)
+   include(FleCSICMake/documentation)
 
 .. note::
 
