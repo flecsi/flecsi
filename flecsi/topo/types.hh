@@ -260,10 +260,10 @@ namespace stride_impl {
 template<auto S, auto N>
 struct stride {
   using type = decltype(N);
-  stride(type o, type c) : o_(o), c_(c) {
-    flog_assert(c < N, "invalid color");
+  FLECSI_INLINE_TARGET stride(type o, type c) : o_(o), c_(c) {
+    assert(c < N && "invalid color");
   }
-  auto operator()(const type i) const {
+  FLECSI_INLINE_TARGET auto operator()(const type i) const {
     type base = (c_ + o_) % N;
     return id<S>(o_ + base + i * N);
   }

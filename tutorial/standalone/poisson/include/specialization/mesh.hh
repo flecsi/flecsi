@@ -78,7 +78,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    std::size_t global_id(std::size_t i) const {
+    FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
       return B::template global_id<index_space::vertices, A>(i);
     }
 
@@ -105,7 +105,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    auto red(std::size_t row) {
+    FLECSI_INLINE_TARGET auto red(std::size_t row) const {
       const bool low = B::template is_low<index_space::vertices, A>();
       const bool high = B::template is_high<index_space::vertices, A>();
       const std::size_t start =
@@ -131,7 +131,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    auto black(std::size_t row) {
+    FLECSI_INLINE_TARGET auto black(std::size_t row) const {
       return red<A>(row + 1);
     }
 
