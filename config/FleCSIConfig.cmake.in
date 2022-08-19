@@ -41,6 +41,10 @@ if(@ENABLE_MPI@)
   endif()
 endif()
 
+if(@ENABLE_OPENMP@)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+endif()
+
 if(@ENABLE_PARMETIS@)
   find_package(METIS @METIS_VERSION@ REQUIRED)
   set(preserve_PMT ${PARMETIS_TEST_RUNS})
