@@ -43,6 +43,14 @@ using id = FLECSI_ID_TYPE;
 
 using counter_t = FLECSI_COUNTER_TYPE;
 
+/// Interpret a type as itself in functional contexts.
+struct identity {
+  template<class T>
+  T && operator()(T && x) {
+    return std::forward<T>(x);
+  }
+};
+
 /// \cond core
 
 template<class T>
@@ -50,10 +58,6 @@ constexpr std::enable_if_t<std::is_unsigned_v<T>, T>
 ceil_div(T a, T b) {
   return a / b + !!(a % b); // avoids overflow in (a+(b-1))/b
 }
-
-//----------------------------------------------------------------------------//
-// Square
-//----------------------------------------------------------------------------//
 
 //! P.O.D.
 template<typename T>
@@ -78,6 +82,7 @@ private:
   type last;
 };
 
+/// Sort a std::vector and remove duplicates.
 template<typename T>
 void
 force_unique(std::vector<T> & v) {
@@ -87,6 +92,8 @@ force_unique(std::vector<T> & v) {
   v.erase(last, v.end());
 }
 
+/// Apply force_unique to each element of a std::map. Note that force_unique
+/// is currently only implemented for std::vector.
 template<typename K, typename T>
 void
 unique_each(std::map<K, T> & m) {
@@ -94,19 +101,14 @@ unique_each(std::map<K, T> & m) {
     force_unique(v.second);
 }
 
+/// Apply force_unique to each element of a std::vector. Note that force_unique
+/// is currently only implemented for std::vector.
 template<typename T>
 void
 unique_each(std::vector<T> & vv) {
   for(auto & v : vv)
     force_unique(v);
 }
-
-struct identity {
-  template<class T>
-  T && operator()(T && x) {
-    return std::forward<T>(x);
-  }
-};
 
 /// \endcond
 /// \}
