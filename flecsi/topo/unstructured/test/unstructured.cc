@@ -33,7 +33,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     from<vertices, to<cells>>>;
 
   enum entity_list { special, owned };
-  using entity_lists = list<entity<vertices, has<special, owned>>>;
+  using entity_lists =
+    list<entity<vertices, has<special, owned>>, entity<cells, has<owned>>>;
 
   template<auto>
   static constexpr PrivilegeCount privilege_count = 3;
@@ -47,6 +48,11 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
     auto cells() {
       return B::template entities<index_space::cells>();
+    }
+
+    template<typename B::entity_list L>
+    auto cells() {
+      return B::template special_entities<index_space::cells, L>();
     }
 
     template<index_space F>
@@ -167,8 +173,6 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     }
   } // init_owned
 
-  static void touch_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
-
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
     auto & c2v = s->get_connectivity<cells, vertices>();
@@ -178,10 +182,10 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     auto const & cmaps = s->reverse_map<cells>();
     auto const & vmaps = s->reverse_map<vertices>();
 
-    execute<touch_cnx>(c2v(s));
-    execute<touch_cnx>(v2c(s));
-    execute<touch_cnx>(e2c(s));
-    execute<touch_cnx>(e2v(s));
+    c2v(s).get_ragged().resize();
+    v2c(s).get_ragged().resize();
+    e2c(s).get_ragged().resize();
+    e2v(s).get_ragged().resize();
 
     auto lm = data::launch::make(s);
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
@@ -211,6 +215,21 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     execute<init_owned>(
       core::special_field(slm), c.idx_spaces[core::index<vertices>], vmaps);
 
+    // owned cells setup
+    auto & owned_cell_f =
+      s->special_.get<index_space::cells>().get<entity_list::owned>();
+
+    {
+      auto slm = data::launch::make(owned_cell_f);
+      execute<allocate_owned, flecsi::mpi>(
+        slm, c.idx_spaces[core::index<cells>]);
+      owned_cell_f.resize();
+    }
+
+    // the launch maps need to be resized with the correct allocation
+    auto slmc = data::launch::make(owned_cell_f);
+    execute<init_owned>(
+      core::special_field(slmc), c.idx_spaces[core::index<cells>], cmaps);
   } // initialize
 }; // struct unstructured
 
@@ -265,53 +284,96 @@ print(unstructured::accessor<ro, ro, ro> m,
 void
 init_field(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> vids,
-  field<int, data::ragged>::mutator<wo, wo, na> tf) {
-  for(auto v : m.vertices<unstructured::owned>()) {
-    tf[v].resize(100);
-    for(int i = 0; i < 100; ++i)
-      tf[v][i] = (int)(vids[v] * 10000 + i);
+  field<int, data::ragged>::mutator<wo, wo, na> tf,
+  bool is_cell) {
+  int sz = 100;
+  if(is_cell) {
+    for(auto c : m.cells<unstructured::owned>()) {
+      tf[c].resize(sz);
+      for(int i = 0; i < sz; ++i)
+        tf[c][i] = (int)(vids[c] * 10000 + i);
+    }
   }
+  else {
+    for(auto v : m.vertices<unstructured::owned>()) {
+      tf[v].resize(sz);
+      for(int i = 0; i < sz; ++i)
+        tf[v][i] = (int)(vids[v] * 10000 + i);
+    }
+  }
+
 } // init_field
 
 void
 print_field(unstructured::accessor<ro, ro, ro> m,
-  field<int, data::ragged>::accessor<ro, ro, ro> tf) {
+  field<int, data::ragged>::accessor<ro, ro, ro> tf,
+  bool is_cell) {
 
   std::stringstream ss;
-  ss << " Number of vertices = " << m.vertices().size() << "\n";
-  for(auto v : m.vertices()) {
-    ss << "For vertex " << v << ", field_size = " << tf[v].size()
-       << ", field vals = [ ";
-    for(std::size_t i = 0; i < tf[v].size(); ++i)
-      ss << tf[v][i] << "  ";
-    ss << "]\n\n";
+  if(is_cell) {
+    ss << " Number of cells = " << m.cells().size() << "\n";
+    for(auto c : m.cells()) {
+      ss << "For cell " << c << ", field_size = " << tf[c].size()
+         << ", field vals = [ ";
+      for(std::size_t i = 0; i < tf[c].size(); ++i)
+        ss << tf[c][i] << "  ";
+      ss << "]\n\n";
+    }
   }
+  else {
+    ss << " Number of vertices = " << m.vertices().size() << "\n";
+    for(auto v : m.vertices()) {
+      ss << "For vertex " << v << ", field_size = " << tf[v].size()
+         << ", field vals = [ ";
+      for(std::size_t i = 0; i < tf[v].size(); ++i)
+        ss << tf[v][i] << "  ";
+      ss << "]\n\n";
+    }
+  }
+
   flog(info) << ss.str() << std::endl;
 } // print_field
 
 void
 allocate_field(unstructured::accessor<ro, ro, ro> m,
-  topo::resize::Field::accessor<wo> a) {
-  a = m.vertices().size() * 100;
+  topo::resize::Field::accessor<wo> a,
+  bool is_cell) {
+  int sz = 100;
+  if(is_cell)
+    a = m.cells().size() * sz;
+  else
+    a = m.vertices().size() * sz;
 }
 
 int
 verify_field(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> vids,
-  field<int, data::ragged>::accessor<ro, ro, ro> tf) {
+  field<int, data::ragged>::accessor<ro, ro, ro> tf,
+  bool is_cell) {
+
   UNIT("VERIFY_FIELD") {
-    for(auto v : m.vertices()) {
-      EXPECT_EQ(tf[v].size(), 100);
-      for(int i = 0; i < 100; ++i)
-        EXPECT_EQ(tf[v][i], (int)(vids[v] * 10000 + i));
+    int sz = 100;
+    if(is_cell) {
+      for(auto c : m.cells()) {
+        EXPECT_EQ(tf[c].size(), sz);
+        for(int i = 0; i < sz; ++i)
+          EXPECT_EQ(tf[c][i], (int)(vids[c] * 10000 + i));
+      }
+    }
+    else {
+      for(auto v : m.vertices()) {
+        EXPECT_EQ(tf[v].size(), sz);
+        for(int i = 0; i < sz; ++i)
+          EXPECT_EQ(tf[v][i], (int)(vids[v] * 10000 + i));
+      }
     }
   };
 }
 
-unstructured::slot mesh;
-unstructured::cslot coloring;
-field<int, data::ragged>::definition<unstructured, unstructured::vertices>
-  test_field;
+unstructured::slot mesh, m1, m2;
+unstructured::cslot coloring, c1, c2;
+field<int, data::ragged>::definition<unstructured, unstructured::cells>
+  cellfield;
 
 int
 unstructured_driver() {
@@ -323,20 +385,22 @@ unstructured_driver() {
       coloring.allocate(f);
       mesh.allocate(coloring.get());
 
+      auto & tf = cellfield(mesh).get_ragged();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field>(mesh, tf.sizes(), true);
+      tf.resize();
+
       auto const & cids = mesh->forward_map<unstructured::cells>();
+      execute<init_field>(mesh, cids(mesh), cellfield(mesh), true);
+      EXPECT_EQ(test<verify_field>(mesh, cids(mesh), cellfield(mesh), true), 0);
+
+#if 0
       auto const & vids = mesh->forward_map<unstructured::vertices>();
       auto const & eids = mesh->forward_map<unstructured::edges>();
       execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
-
-      auto & tf = test_field(mesh).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field>(mesh, tf.sizes());
-      tf.resize();
-
-      execute<init_field>(mesh, vids(mesh), test_field(mesh));
-      // execute<print_field>(mesh, test_field(mesh));
-      EXPECT_EQ(test<verify_field>(mesh, vids(mesh), test_field(mesh)), 0);
-    }
+      execute<print_field>(mesh, cellfield(mesh), true);
+#endif
+    } // for
   };
 } // unstructured_driver
 
