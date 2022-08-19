@@ -137,8 +137,7 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
 template<PrivilegeCount NI, PrivilegeCount NO>
 void
 transpose(
-  field<util::id, data::ragged>::accessor1<privilege_ghost_repeat<ro, na, NI>>
-    input,
+  field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
   field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>> output) {
   std::size_t e = 0;
   for(auto && i : input) {
@@ -806,9 +805,8 @@ namespace unstructured_impl {
 template<entity_index_space From, entity_index_space To, PrivilegeCount NF>
 void
 init_connectivity(
-  data::multi<field<util::id,
-    data::ragged>::mutator1<privilege_cat<privilege_repeat<wo, NF - (NF > 1)>,
-    privilege_repeat<na, (NF > 1)>>>> mconn,
+  data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
+    mconn,
   unstructured_base::coloring const & c,
   std::vector<std::map<std::size_t, std::size_t>> const & maps) {
 
