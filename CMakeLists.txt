@@ -74,11 +74,54 @@ include(summary)
 
 include(format)
 
-option(FORMAT_ONLY
-  "Enable format-only mode: no other targets will be create" OFF)
-mark_as_advanced(FORMAT_ONLY)
+#------------------------------------------------------------------------------#
+# Add doc target and utility functions
+#------------------------------------------------------------------------------#
+include(doxygen)
+include(sphinx)
+include(documentation)
 
-if(NOT FORMAT_ONLY)
+option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
+mark_as_advanced(ENABLE_LIBRARY)
+
+#----------------------------------------------------------------------------#
+# Documentation
+#----------------------------------------------------------------------------#
+if(ENABLE_DOCUMENTATION)
+  add_sphinx_target(main
+    CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
+    OUTPUT ${CMAKE_BINARY_DIR}/doc
+  )
+
+  # Create Doxygen output directory eagerly to avoid race condition.
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
+
+  add_doxygen_target(core
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+  )
+  add_doxygen_target(user
+    CONFIGS
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+  )
+
+  # This is for local install of the documentation. To deploy the
+  # documentation to the flecsi website, use the "deploy-documentation" target.
+
+  if(ENABLE_SPHINX)
+    install(
+      DIRECTORY
+        ${CMAKE_BINARY_DIR}/doc/
+      DESTINATION
+        ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
+      OPTIONAL
+    )
+  endif()
+endif()
+
+if(ENABLE_LIBRARY)
 
   #----------------------------------------------------------------------------#
   # Add option for setting entity id type 
@@ -149,7 +192,6 @@ if(NOT FORMAT_ONLY)
   #----------------------------------------------------------------------------#
   # Includes
   #----------------------------------------------------------------------------#
-  set(GITHUB_PAGES_REPO "git@github.com:flecsi/flecsi.git" CACHE STRING "" FORCE)
 
   include(legion)
   include(mpi)
@@ -157,9 +199,6 @@ if(NOT FORMAT_ONLY)
   include(hpx)
   include(openmp)
   include(hdf5)
-  include(doxygen)
-  include(sphinx)
-  include(documentation)
   include(graphviz)
   include(kokkos)
 
@@ -176,42 +215,6 @@ if(NOT FORMAT_ONLY)
   include(caliper)
   include(library)
 
-  #----------------------------------------------------------------------------#
-  # Documentation
-  #----------------------------------------------------------------------------#
-
-
-  add_sphinx_target(main
-    CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
-    OUTPUT ${CMAKE_BINARY_DIR}/doc
-  )
-
-  # Create Doxygen output directory eagerly to avoid race condition.
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
-
-  add_doxygen_target(core
-    CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
-  )
-  add_doxygen_target(user
-    CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
-  )
-
-  # This is for local install of the documentation. To deploy the
-  # documentation to the flecsi website, use the "deploy-documentation" target.
-
-  if(ENABLE_SPHINX)
-    install(
-      DIRECTORY
-        ${CMAKE_BINARY_DIR}/doc/
-      DESTINATION
-        ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
-      OPTIONAL
-    )
-  endif()
 
   #----------------------------------------------------------------------------#
   # Caliper.
@@ -380,12 +383,29 @@ if(NOT FORMAT_ONLY)
   if(FLECSI_BACKEND STREQUAL "hpx")
     hpx_setup_target(FleCSI NONAMEPREFIX)
   endif()
+endif()
 
-  #----------------------------------------------------------------------------#
-  # Output configuration summary.
-  #----------------------------------------------------------------------------#
+#----------------------------------------------------------------------------#
+# Output configuration summary.
+#----------------------------------------------------------------------------#
 
-  summary_header()
+summary_header()
+summary_info("FleCSI_VERSION" "${FleCSI_VERSION}" TRUE)
+
+if(ENABLE_DOCUMENTATION)
+  summary_info("FleCSI_DOCUMENTATION_VERSION"
+    "${FleCSI_DOCUMENTATION_VERSION}" FALSE)
+endif()
+
+string(APPEND _summary "\n")
+
+if(${PROJECT_NAME}_COMMITS)
+  summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
+endif()
+
+string(APPEND _summary "\n")
+
+if(ENABLE_LIBRARY)
   summary_info("CMAKE_BUILD_TYPE" "${CMAKE_BUILD_TYPE}" TRUE)
   summary_info("CMAKE_INSTALL_PREFIX" "${CMAKE_INSTALL_PREFIX}" TRUE)
   string(APPEND _summary "\n")
@@ -396,16 +416,8 @@ if(NOT FORMAT_ONLY)
   summary_info("CMAKE_C_COMPILER" "${CMAKE_C_COMPILER}" TRUE)
   summary_info("CMAKE_C_COMPILER_VERSION" "${CMAKE_C_COMPILER_VERSION}" TRUE)
   summary_info("CMAKE_C_FLAGS" "${CMAKE_C_FLAGS}" TRUE)
-  if(ClangFormat_FOUND)
-    summary_info("ClangFormat_EXECUTABLE" "${ClangFormat_EXECUTABLE}" TRUE)
-  endif()
+
   string(APPEND _summary "\n")
-  summary_info("FleCSI_VERSION" "${FleCSI_VERSION}" TRUE)
-  summary_info("FleCSI_DOCUMENTATION_VERSION"
-    "${FleCSI_DOCUMENTATION_VERSION}" FALSE)
-  if(${PROJECT_NAME}_COMMITS)
-    summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
-  endif()
   summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
   summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
     " (FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL})")
@@ -413,22 +425,19 @@ if(NOT FORMAT_ONLY)
   string(APPEND _summary "\n")
   summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}
     " (${Kokkos_DEVICES})")
-  if(ENABLE_DOCUMENTATION)
-    summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
-    summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
-  endif()
   summary_option("ENABLE_GRAPHVIZ" ${ENABLE_GRAPHVIZ} "")
   summary_option("ENABLE_OPENMP" ${ENABLE_OPENMP} "")
   summary_option("ENABLE_HDF5" ${ENABLE_HDF5} "")
   summary_info("CALIPER_DETAIL" "${CALIPER_DETAIL}" TRUE)
-
-  message(STATUS ${_summary})
-
-else()
-
-  summary_header()
-  summary_option("FORMAT_ONLY" ${FORMAT_ONLY} "")
-
-  message(STATUS ${_summary})
-
 endif()
+
+if(ENABLE_DOCUMENTATION)
+  summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
+  summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
+endif()
+
+if(ENABLE_FORMAT AND ClangFormat_FOUND)
+  summary_info("ClangFormat_EXECUTABLE" "${ClangFormat_EXECUTABLE}" TRUE)
+endif()
+
+message(STATUS ${_summary})

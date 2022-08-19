@@ -156,7 +156,7 @@ CMake files to allow using it in your own applications.
 	      ARGUMENTS  arg1 arg2 ... argN       # command arguments
 	      TESTLABELS label1 label2 ... labelN # labels added to test target
 	      PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
-	      )
+	     )
 
   ``add_unit`` will take the sources files in ``SOURCES`` and compile
   them together with a predefined ``main()`` function. It will also
@@ -238,11 +238,14 @@ Code Formatting
 
 ``format``
 
-  Add the ``ClangFormat_VERSION`` CMake option to specify which
-  version of ``clang-format`` should be used for formatting.
+  Add the ``ENABLE_FORMAT`` and ``ClangFormat_VERSION`` CMake options.
+  If ``ENABLE_FORMAT`` is ``ON``, you can use ``ClangFormat_VERSION``
+  to specify which version of ``clang-format`` should be used for
+  formatting.
 
-  This file adds ``format`` target that depends on both ``git`` and
-  ``clang-format`` to be present. Running this target will find all
+  When enabled, it adds a ``format`` target that depends on both
+  ``git`` and ``clang-format`` to be present. It also requires the
+  source tree to be a Git checkout. Running this target will find all
   ``.hh`` and ``.cc`` files and apply the style defined in the
   project's ``.clang-format``.
 
