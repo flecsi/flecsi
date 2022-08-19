@@ -82,6 +82,7 @@ endif()
 add_unit(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
+    unstructured/test/unstructured.hh
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
