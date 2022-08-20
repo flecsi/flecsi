@@ -193,14 +193,19 @@ mdiota_view(std::index_sequence<II...>, const RR &... rr) {
       std::array<range_index, N> ret;
       auto p = ret.end();
       ((*--p =
-           [&] {
+           [&i, &rr = rr] {
+             // capture workaround instead of [&] due to GCC bug
+             // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103876
              if constexpr(II < N - 1) {
                const auto n = rr.size(), ret = i % n;
                i /= n;
                return ret;
              }
-             else
+             else {
+               // avoid unused-lambda-capture error due to workaround
+               (void)rr;
                return i;
+             }
            }() +
            rr.start()),
         ...);
