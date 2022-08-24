@@ -697,7 +697,7 @@ coloring_driver() {
       topo::narray_utils::color(cd, MPI_COMM_WORLD);
 
     auto [avpc, aprts] =
-      topo::narray_utils::color_auxiliary(ne, nc, coloring, extend);
+      topo::narray_utils::color_auxiliary(nc, coloring, extend);
 
     std::stringstream ss;
     ss << "primary" << std::endl;

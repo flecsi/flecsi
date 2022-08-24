@@ -24,7 +24,8 @@ naive_coloring() {
 
     auto [naive, e2v, v2e, e2e] = topo::unstructured_impl::make_dcrs(sd, 1);
 
-    std::vector<size_t> distribution = {0, 52, 103, 154, 205, 256};
+    std::vector<size_t> distribution = {52, 103, 154, 205, 256};
+    ASSERT_EQ(naive.distribution.ends(), distribution);
 
     // clang-format off
     switch(process()) {
@@ -49,7 +50,6 @@ naive_coloring() {
           49, 51, 66, 35, 50, 52, 67
         };
 
-        ASSERT_EQ(naive.distribution, distribution);
         ASSERT_EQ(naive.offsets, offsets);
         ASSERT_EQ(naive.indices, indices);
       } break;
@@ -75,7 +75,6 @@ naive_coloring() {
           98, 100, 115, 84, 99, 101, 116, 85, 100, 102, 117, 86, 101, 103, 118
         };
 
-        ASSERT_EQ(naive.distribution, distribution);
         ASSERT_EQ(naive.offsets, offsets);
         ASSERT_EQ(naive.indices, indices);
       } break;
@@ -104,7 +103,6 @@ naive_coloring() {
           169
         };
 
-        ASSERT_EQ(naive.distribution, distribution);
         ASSERT_EQ(naive.offsets, offsets);
         ASSERT_EQ(naive.indices, indices);
       } break;
@@ -133,7 +131,6 @@ naive_coloring() {
           205, 220
         };
 
-        ASSERT_EQ(naive.distribution, distribution);
         ASSERT_EQ(naive.offsets, offsets);
         ASSERT_EQ(naive.indices, indices);
       } break;
@@ -160,7 +157,6 @@ naive_coloring() {
           250, 252, 236, 251, 253, 237, 252, 254, 238, 253, 255, 239, 254
         };
 
-        ASSERT_EQ(naive.distribution, distribution);
         ASSERT_EQ(naive.offsets, offsets);
         ASSERT_EQ(naive.indices, indices);
       } break;
