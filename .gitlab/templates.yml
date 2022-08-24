@@ -293,19 +293,22 @@
         -DClangFormat_VERSION=${FORMAT_VERSION} \
         ${CMAKE_OPTIONS} \
         ../..
-    - make doc
+    - fail=0
+    - |
+      if make doc; then
+        touch ${CI_PROJECT_DIR}/state/docs-passed;
+      else fail=$?
+      fi
     - echo -e "\e[0Ksection_end:`date +%s`:docs\r\e[0K"
     - echo -e "\e[0Ksection_start:`date +%s`:format\r\e[0K${COLOR_CYAN}Check Formatting${COLOR_PLAIN}"
-    - set -o errexit
-    - make format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary
-    - result=$?
-    - >
-      if [ $result -eq 0 ]; then
+    - |
+      if make format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary; then
         touch ${CI_PROJECT_DIR}/state/format-passed;
+      else fail=$?
       fi
     - date
-    - exit $result
     - echo -e "\e[0Ksection_end:`date +%s`:format\r\e[0K"
+    - exit $fail
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -367,8 +370,7 @@
 #------------------------------------------------------------------------------#
 
 
-.check_format_template:
+.check_docs_and_format_template:
   stage: Final
   script:
-    - if [ -e ${CI_PROJECT_DIR}/state/format-passed ]; then exit 0; fi
-    - exit 1
+    - "[ -e ${CI_PROJECT_DIR}/state/format-passed ] && [ -e ${CI_PROJECT_DIR}/state/docs-passed ]"

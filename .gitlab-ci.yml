@@ -84,8 +84,8 @@ include: .gitlab/templates.yml
 # installed during image creation in the 'gitlab-ci' branch.
 #------------------------------------------------------------------------------#
 
-format:check:
-  extends: .check_format_template
+docs_and_format:check:
+  extends: .check_docs_and_format_template
   needs:
     - job: docs_and_format
       artifacts: true
