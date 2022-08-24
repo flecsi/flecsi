@@ -30,7 +30,7 @@ function(add_unit name)
   # Setup argument options.
   #----------------------------------------------------------------------------#
 
-  set(options NOCI NOOPENMPI)
+  set(options)
   set(one_value_args POLICY)
   set(multi_value_args
     SOURCES INPUTS PROCS LIBRARIES DEFINES DRIVER ARGUMENTS TESTLABELS
@@ -224,20 +224,6 @@ function(add_unit name)
   #----------------------------------------------------------------------------#
   # Add the test target to CTest
   #----------------------------------------------------------------------------#
-
-  if(unit_NOOPENMPI AND ( "$ENV{OPENMPI}" STREQUAL "true" )
-    AND ( NOT "$ENV{IGNORE_NOOPENMPI}" STREQUAL "true" ))
-    message(STATUS "Skipping test ${_TEST_PREFIX}${name} "
-      " due to OPENMPI enabled")
-    return()
-  endif()
-
-  if(unit_NOCI AND ( "$ENV{CI}" STREQUAL "true" )
-    AND ( NOT "$ENV{IGNORE_NOCI}" STREQUAL "true" ))
-    message(STATUS "Skipping test ${_TEST_PREFIX}${name} due to CI enabled")
-    return()
-  endif()
-
   list(LENGTH unit_PROCS proc_instances)
 
   #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
