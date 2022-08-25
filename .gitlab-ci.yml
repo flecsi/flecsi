@@ -19,7 +19,7 @@ variables:
   COLOR_CYAN: '\033[1;36m'
   COLOR_PLAIN: '\033[0m'
   # global defaults
-  GCC_VERSION: 9.4.0
+  GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
