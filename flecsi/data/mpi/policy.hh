@@ -103,6 +103,9 @@ private:
 };
 
 struct partition {
+  partition(partition &&) = default;
+  partition & operator=(partition &&) & = default;
+
   Color colors() const {
     // number of rows, essentially the number of MPI ranks.
     return r->size().first;
