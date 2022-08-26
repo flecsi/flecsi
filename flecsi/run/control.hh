@@ -131,7 +131,7 @@ struct control {
     std::is_base_of_v<control_base, P>;
 
   using target_type =
-    std::conditional_t<is_control_base_policy, int (*)(P &), int (*)()>;
+    std::conditional_t<is_control_base_policy, void (*)(P &), int (*)()>;
 
 private:
   using control_points = run_impl::to_types_t<P>;
@@ -159,14 +159,11 @@ private:
     control_node(target_type target, Args &&... args)
       : node_policy(std::forward<Args>(args)...), target_(target) {}
 
-    int execute() const {
-      static_assert(!is_control_base_policy);
-      return target_();
-    }
-
-    int execute(P & p) const {
-      static_assert(is_control_base_policy);
-      return target_(p);
+    std::conditional_t<is_control_base_policy, void, int> execute(P * p) const {
+      if constexpr(is_control_base_policy)
+        target_(*p);
+      else
+        return target_();
     }
 
   private:
@@ -257,15 +254,14 @@ protected:
   dag_map registry_;
 
 private:
-  P policy_;
+  std::conditional_t<is_control_base_policy, std::nullptr_t, P> policy_;
 
 public:
   /// Return the control policy object.
   /// \deprecated use #policy
   static P & state() {
     static_assert(!is_control_base_policy);
-    static control c;
-    return c.policy_;
+    return instance().policy_;
   }
 
   /*!

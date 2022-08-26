@@ -12,41 +12,36 @@
 
 using namespace cycle;
 
-int
+void
 initialize(control_policy &) {
   flog(info) << "initialize" << std::endl;
-  return 0;
 }
 control::action<initialize, cp::initialize> initialize_action;
 
-int
+void
 advance(control_policy &) {
   flog(info) << "advance" << std::endl;
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;
 
 #if defined(SUBCYCLE)
-int
+void
 advance2(control_policy &) {
   flog(info) << "advance2" << std::endl;
-  return 0;
 }
 control::action<advance2, cp::advance2> advance2_action;
 
 #endif
 
-int
+void
 analyze(control_policy &) {
   flog(info) << "analyze" << std::endl;
-  return 0;
 }
 control::action<analyze, cp::analyze> analyze_action;
 
-int
+void
 finalize(control_policy &) {
   flog(info) << "finalize" << std::endl;
-  return 0;
 }
 control::action<finalize, cp::finalize> finalize_action;
 

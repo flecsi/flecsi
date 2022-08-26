@@ -13,7 +13,7 @@
 
 using namespace flecsi;
 
-int
+void
 poisson::action::problem(control_policy &) {
   annotation::rguard<problem_region> guard;
   execute<task::eggcarton>(m, ud(m), fd(m), sd(m), Aud(m));
@@ -27,5 +27,4 @@ poisson::action::problem(control_policy &) {
 #endif
 
   flog::flush();
-  return 0;
 } // problem

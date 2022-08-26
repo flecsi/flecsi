@@ -40,15 +40,7 @@ struct cycle {
 
   using type = util::types<ControlPoints...>;
 
-  static bool predicate() {
-    return Predicate();
-  }
-
-  template<class T>
-  static bool predicate(T & pol) {
-    return Predicate(pol);
-  }
-
+  static constexpr auto predicate = Predicate;
 }; // struct cycle
 
 template<class F, class... TT>
@@ -188,18 +180,16 @@ struct point_walker {
 
       // This is not a cycle -> execute each action for this control point.
       for(auto & node : sorted_.at(ElementType::value)) {
-        if constexpr(P::is_control_base_policy) {
-          exit_status_ |= node->execute(*policy_);
-        }
-        else {
-          exit_status_ |= node->execute();
-        }
+        if constexpr(P::is_control_base_policy)
+          node->execute(policy_);
+        else
+          exit_status_ |= node->execute(policy_);
       } // for
     }
     else {
       // This is a cycle -> create a new control point walker to recurse
       // the cycle.
-      auto test = [=]() {
+      auto test = [this]() {
         if constexpr(P::is_control_base_policy)
           return ElementType::predicate(*policy_);
         else

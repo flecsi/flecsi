@@ -15,10 +15,9 @@ namespace package_a {
 // Internal
 //----------------------------------------------------------------------------//
 
-inline int
+inline void
 internal_init(control_policy &) {
   flog(info) << "A internal init" << std::endl;
-  return 0;
 }
 
 inline control::meta<internal_init, cp::init_internal> internal_action;
@@ -27,10 +26,9 @@ inline control::meta<internal_init, cp::init_internal> internal_action;
 // Initialization
 //----------------------------------------------------------------------------//
 
-inline int
+inline void
 init(control_policy &) {
   flog(info) << "A init" << std::endl;
-  return 0;
 }
 
 inline control::action<init, cp::initialization> init_action;
@@ -49,21 +47,19 @@ task2() {
   flog(trace) << "A task 2" << std::endl;
 }
 
-inline int
+inline void
 internal_advance(control_policy &) {
   flog(info) << "A advance internal" << std::endl;
-  return 0;
 }
 
 inline control::meta<internal_advance, cp::advance_internal>
   advance_internal_action;
 
-inline int
+inline void
 advance(control_policy &) {
   flog(info) << "A advance" << std::endl;
   flecsi::execute<task1>();
   flecsi::execute<task2>();
-  return 0;
 }
 
 inline control::action<advance, cp::advance> advance_action;
@@ -77,10 +73,9 @@ subcycle_task() {
   flog(trace) << "A subcycle task" << std::endl;
 }
 
-inline int
+inline void
 subcycle(control_policy &) {
   flecsi::execute<subcycle_task>();
-  return 0;
 }
 
 inline control::action<subcycle, cp::advance_subcycle> subcycle_action;
@@ -99,12 +94,11 @@ task4() {
   flog(trace) << "A task 4" << std::endl;
 }
 
-inline int
+inline void
 analyze(control_policy &) {
   flog(info) << "A analyze" << std::endl;
   flecsi::execute<task3>();
   flecsi::execute<task4>();
-  return 0;
 }
 
 inline control::action<analyze, cp::analyze> analyze_action;
@@ -113,10 +107,9 @@ inline control::action<analyze, cp::analyze> analyze_action;
 // I/O
 //----------------------------------------------------------------------------//
 
-inline int
+inline void
 io(control_policy &) {
   flog(info) << "A I/0" << std::endl;
-  return 0;
 }
 
 inline control::action<io, cp::io> io_action;
@@ -125,10 +118,9 @@ inline control::action<io, cp::io> io_action;
 // Mesh
 //----------------------------------------------------------------------------//
 
-inline int
+inline void
 mesh(control_policy &) {
   flog(info) << "A mesh" << std::endl;
-  return 0;
 }
 
 inline control::action<mesh, cp::mesh> mesh_action;
@@ -137,10 +129,9 @@ inline control::action<mesh, cp::mesh> mesh_action;
 // Finalize
 //----------------------------------------------------------------------------//
 
-inline int
+inline void
 finalize(control_policy &) {
   flog(info) << "A finalize" << std::endl;
-  return 0;
 }
 
 inline control::action<finalize, cp::finalization> finalize_action;

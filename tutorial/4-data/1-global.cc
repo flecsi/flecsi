@@ -26,13 +26,11 @@ print(single<double>::accessor<ro> gv) {
   flog(trace) << "global value: " << gv << std::endl;
 }
 
-int
+void
 advance(control_policy &) {
   gtopo.allocate(1);
   const auto v = gfield(gtopo);
   execute<init>(42.0, v);
   execute<print>(v);
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

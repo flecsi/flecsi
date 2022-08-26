@@ -12,10 +12,9 @@
 
 namespace package_c {
 
-inline int
+inline void
 advance(control_policy &) {
   flog(info) << "C advance" << std::endl;
-  return 0;
 } // advance
 
 inline control::action<advance, cp::advance> advance_action;
@@ -23,10 +22,9 @@ inline control::action<advance, cp::advance> advance_action;
 inline const auto dep_bc = package_b::advance_action.add(advance_action);
 inline const auto dep_ca = advance_action.add(package_a::advance_action);
 
-inline int
+inline void
 analyze(control_policy &) {
   flog(info) << "C analyze" << std::endl;
-  return 0;
 } // analyze
 
 inline control::action<analyze, cp::analyze> analyze_action;

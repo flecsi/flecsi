@@ -8,7 +8,7 @@
 
 using namespace state;
 
-int
+void
 allocate(control_policy & policy) {
   flog(info) << "allocate" << std::endl;
 
@@ -17,12 +17,10 @@ allocate(control_policy & policy) {
    */
 
   policy.allocate_values(10);
-
-  return 0;
 }
 control::action<allocate, cp::allocate> allocate_action;
 
-int
+void
 initialize(control_policy & policy) {
   flog(info) << "initialize" << std::endl;
 
@@ -37,12 +35,10 @@ initialize(control_policy & policy) {
   } // for
 
   policy.steps() = 5;
-
-  return 0;
 }
 control::action<initialize, cp::initialize> initialize_action;
 
-int
+void
 advance(control_policy & policy) {
   std::stringstream ss;
 
@@ -62,11 +58,10 @@ advance(control_policy & policy) {
   ss << std::endl;
 
   flog(info) << ss.str();
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;
 
-int
+void
 finalize(control_policy & policy) {
   flog(info) << "finalize" << std::endl;
 
@@ -75,8 +70,6 @@ finalize(control_policy & policy) {
    */
 
   policy.deallocate_values();
-
-  return 0;
 }
 control::action<finalize, cp::finalize> finalize_action;
 

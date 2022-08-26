@@ -12,10 +12,9 @@ using namespace simple;
   Function definition of an initialize action.
  */
 
-int
+void
 initialize(control_policy &) {
   flog(info) << "initialize" << std::endl;
-  return 0;
 }
 
 /*
@@ -28,10 +27,9 @@ control::action<initialize, cp::initialize> initialize_action;
   Function definition of an advance action.
  */
 
-int
+void
 advance(control_policy &) {
   flog(info) << "advance" << std::endl;
-  return 0;
 }
 
 /*
@@ -44,10 +42,9 @@ control::action<advance, cp::advance> advance_action;
   Function definition of a finalize action.
  */
 
-int
+void
 finalize(control_policy &) {
   flog(info) << "finalize" << std::endl;
-  return 0;
 }
 
 /*

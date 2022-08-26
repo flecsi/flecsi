@@ -12,7 +12,7 @@
 
 using namespace flecsi;
 
-int
+void
 poisson::action::init_mesh(control_policy &) {
   flog(info) << "Initializing " << x_extents.value() << "x" << y_extents.value()
              << " mesh" << std::endl;
@@ -31,6 +31,4 @@ poisson::action::init_mesh(control_policy &) {
   geometry[1] = geometry[0];
 
   m.allocate(coloring.get(), geometry);
-
-  return 0;
 } // init_mesh

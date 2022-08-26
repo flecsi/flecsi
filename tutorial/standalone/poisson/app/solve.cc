@@ -16,7 +16,7 @@
 
 using namespace flecsi;
 
-int
+void
 poisson::action::solve(control_policy &) {
   annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
@@ -53,6 +53,4 @@ poisson::action::solve(control_policy &) {
                << std::endl;
     flog::flush();
   } while(err > error_tol.value() && ita < max_iterations.value());
-
-  return 0;
 } // solve
