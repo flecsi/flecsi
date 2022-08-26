@@ -341,14 +341,6 @@ if(ENABLE_LIBRARY)
   # CMake utilities.
   #----------------------------------------------------------------------------#
 
-  configure_file(${PROJECT_SOURCE_DIR}/config/FleCSICMakeConfig.cmake.in
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake @ONLY)
-
-  install(
-    FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSICMakeConfig.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
-  )
-
   install(
     FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/caliper.cmake
@@ -367,12 +359,12 @@ if(ENABLE_LIBRARY)
     FILES ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
     FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
   )
 
   install(
     FILES ${FLECSI_UNIT_MAIN}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSICMake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
     RENAME unit-main.cc
   )
 

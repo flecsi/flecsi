@@ -3,12 +3,12 @@ CMake for FleCSI client applications
 
 The FleCSI installation provides mutliple CMake files to support
 writing new software.  While the ``FleCSI`` CMake package is used to
-build software on top of FleCSI, the ``FleCSICMake`` package files
+build software on top of FleCSI, the additional CMake files
 provide common CMake code and macros for adding dependencies, building
 documentation, unit-testing and other utilities that might be useful
 for clients.
 
-Both CMake packages are installed either when you build and install
+The CMake package is installed either when you build and install
 FleCSI manually via CMake to ``CMAKE_INSTALL_PREFIX`` or when using a
 Spack installation.
 
@@ -29,14 +29,14 @@ FleCSI CMake files
 ==================
 
 FleCSI-based applications often need common CMake code to enable
-features and/or add dependencies. The ``FleCSICMake`` package exposes
+features and/or add dependencies. The ``FleCSI`` package also exposes
 utility CMake files that are meant to be included in new projects. It
 does so by adding its installation parent folder to the CMake's search
 path when you add the package:
 
 .. code-block:: cmake
 
-   find_package(FleCSICMake REQUIRED)
+   find_package(FleCSI REQUIRED)
 
 Once added, you can ``include`` the CMake files provided by this
 package.
@@ -46,7 +46,7 @@ you can add it as follows:
 
 .. code-block:: cmake
 
-   include(FleCSICMake/documentation)
+   include(FleCSI/documentation)
 
 .. note::
 
@@ -95,8 +95,8 @@ documentation system for your own projects.
 
   .. code-block:: cmake
 
-     include(documentation)
-     include(sphinx)
+     include(FleCSI/documentation)
+     include(FleCSI/sphinx)
 
      add_sphinx_target(main                     # custom target name
        CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx    # folder containing conf.py.in
@@ -208,9 +208,8 @@ CMake files to allow using it in your own applications.
      set(CMAKE_CXX_STANDARD 17)
 
      find_package(FleCSI REQUIRED)
-     find_package(FleCSICMake REQUIRED)
 
-     include(unit)
+     include(FleCSI/unit)
 
      add_unit(mytest
               SOURCES mytest.cc)

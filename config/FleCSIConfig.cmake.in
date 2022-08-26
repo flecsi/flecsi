@@ -73,3 +73,12 @@ endif()
 if(@ENABLE_GRAPHVIZ@)
   find_package(Graphviz REQUIRED)
 endif()
+
+if(NOT FLECSI_CMAKE)
+  get_filename_component(FleCSI_CMAKE_BASE_DIR "${FleCSI_CMAKE_DIR}" DIRECTORY)
+  message(STATUS "Found FleCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
+    ${FleCSI_CMAKE_BASE_DIR})
+  list(APPEND CMAKE_MODULE_PATH	${FleCSI_CMAKE_BASE_DIR})
+  set(FLECSI_UNIT_MAIN ${FleCSI_CMAKE_DIR}/unit-main.cc)
+  set(FLECSI_CMAKE TRUE)
+endif()
