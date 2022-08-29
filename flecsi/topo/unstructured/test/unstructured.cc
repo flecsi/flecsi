@@ -10,7 +10,10 @@
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
 
+#include <optional>
+
 using namespace flecsi;
+using namespace flecsi::topo::unstructured_impl;
 
 struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 
@@ -18,12 +21,16 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     Structure
    *--------------------------------------------------------------------------*/
 
-  enum class index_space { vertices = 160, cells = 2718 };
-  static constexpr auto cells = index_space::cells;
-  static constexpr auto vertices = index_space::vertices;
-  using index_spaces = has<cells, vertices>;
-  using connectivities =
-    list<from<cells, to<vertices>>, from<vertices, to<cells>>>;
+  // The ids for the entities depend on the mesh definition ids.
+  // This example uses the topological dimension of the entity type, which
+  // corresponds to the ids understood by the simple definition used below.
+  enum index_space { vertices = 0, cells = 2, edges = 1 };
+
+  using index_spaces = has<cells, vertices, edges>;
+
+  using connectivities = list<from<cells, to<vertices>>,
+    from<edges, to<vertices, cells>>,
+    from<vertices, to<cells>>>;
 
   enum entity_list { special, owned };
   using entity_lists = list<entity<vertices, has<special, owned>>>;
@@ -60,6 +67,16 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     auto vertices() {
       return B::template special_entities<index_space::vertices, L>();
     }
+
+    auto edges() {
+      return B::template entities<index_space::edges>();
+    }
+
+    template<index_space F>
+    auto edges(topo::id<F> from) const {
+      return B::template entities<index_space::edges>(from);
+    }
+
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
@@ -67,64 +84,62 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
    *--------------------------------------------------------------------------*/
 
   static coloring color(std::string const & filename) {
-
-    topo::unstructured_impl::simple_definition sd(filename.c_str());
+    simple_definition sd(filename.c_str());
 
     const Color colors = 4;
 
-    auto [naive, c2v, v2c, c2c] = topo::unstructured_impl::make_dcrs(sd, 1);
-    auto raw = util::parmetis::color(naive, colors);
-
-    auto [primaries, p2m, m2p] =
-      topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
-
     // clang-format off
-    topo::unstructured_impl::coloring_definition cd{
-      colors /* global colors */,
-      core::index<index_space::cells> /* primary index */,
-      2 /* primary dimension */,
-      1 /* halo depth */,
-      core::index<index_space::vertices> /* vertex index */,
-      {/* auxiliary entities */}
-    };
+    coloring_utils cu(&sd,
+      {
+        colors,
+        {
+          cells /* primary id */,
+          core::index<cells> /* primary index */
+        },
+        1 /* halo depth */,
+        {
+          vertices /* vertex id */,
+          core::index<vertices> /* vertex index */
+        },
+        {
+          {
+            edges /* edge id */,
+            core::index<index_space::edges> /* edge index */
+          }
+        }
+      },
+      {
+        { core::index<cells>, core::index<vertices>, false },
+        { core::index<vertices>, core::index<cells>, true },
+        { core::index<edges>, core::index<cells>, false },
+        { core::index<edges>, core::index<vertices>, false }
+      }
+    );
     // clang-format on
 
-    return topo::unstructured_impl::color(
-      sd, cd, raw, primaries, c2v, v2c, c2c, m2p, p2m);
+    // Primaries
+    cu.create_graph<true>(cells, 1);
+    cu.color_primaries(util::parmetis::color);
+    cu.migrate_primaries();
+    cu.close_primaries();
+
+    // Vertices
+    cu.color_vertices();
+    cu.migrate_vertices();
+    cu.close_vertices();
+
+    // Edges
+    cu.build_auxiliary(edges);
+    cu.color_auxiliary(edges);
+    cu.close_auxiliary(edges, core::index<edges>);
+
+    return cu.generate();
+    // return cu.generate();
   } // color
 
   /*--------------------------------------------------------------------------*
     Initialization
    *--------------------------------------------------------------------------*/
-
-  static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
-
-  static void init_c2v(
-    data::multi<field<util::id, data::ragged>::mutator<wo, wo, na>> mc2v,
-    std::vector<base::process_coloring> const & prc_clrngs,
-    std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
-
-    auto pcs = prc_clrngs.begin();
-    auto vms = vmaps.begin();
-    for(auto & c2v : mc2v.accessors()) {
-      auto const & pc = *pcs++;
-      auto const & vm = *vms++;
-      std::size_t off{0};
-
-      auto const & cnx = pc.cnx_colorings[core::index<vertices>];
-      for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
-        const std::size_t start = cnx.offsets[off];
-        const std::size_t size = cnx.offsets[off + 1] - start;
-        c2v[c].resize(size);
-
-        for(std::size_t i{0}; i < size; ++i) {
-          c2v[c][i] = vm.at(cnx.indices[start + i]);
-        } // for
-
-        ++off;
-      } // for
-    } // for
-  } // init_c2v
 
   static void allocate_owned(
     data::multi<topo::array<unstructured>::accessor<wo>> aa,
@@ -152,24 +167,33 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
     }
   } // init_owned
 
+  static void touch_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
+
   static void initialize(data::topology_slot<unstructured> & s,
     coloring const & c) {
-    flog(warn) << flog::container{c.partitions} << std::endl;
+    auto & c2v = s->get_connectivity<cells, vertices>();
+    auto & v2c = s->get_connectivity<vertices, cells>();
+    auto & e2c = s->get_connectivity<edges, cells>();
+    auto & e2v = s->get_connectivity<edges, vertices>();
+    auto const & cmaps = s->reverse_map<cells>();
+    auto const & vmaps = s->reverse_map<vertices>();
 
-    auto & c2v =
-      s->get_connectivity<index_space::cells, index_space::vertices>();
-    auto & v2c =
-      s->get_connectivity<index_space::vertices, index_space::cells>();
-    auto const & vmaps = s->reverse_map<index_space::vertices>();
-
-    execute<init_cnx>(c2v(s));
-    execute<init_cnx>(v2c(s));
+    execute<touch_cnx>(c2v(s));
+    execute<touch_cnx>(v2c(s));
+    execute<touch_cnx>(e2c(s));
+    execute<touch_cnx>(e2v(s));
 
     auto lm = data::launch::make(s);
-    execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[core::index<cells>], vmaps);
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
-    execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
+    constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
+    execute<init_connectivity<core::index<cells>, core::index<vertices>, NPC>,
+      mpi>(c2v(lm), c, vmaps);
+    execute<init_connectivity<core::index<edges>, core::index<cells>, NPE>,
+      mpi>(e2c(lm), c, cmaps);
+    execute<init_connectivity<core::index<edges>, core::index<vertices>, NPE>,
+      mpi>(e2v(lm), c, vmaps);
+    execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
 
     // owned vertices setup
     auto & owned_vert_f =
@@ -193,7 +217,8 @@ struct unstructured : topo::specialization<topo::unstructured, unstructured> {
 void
 print(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> cids,
-  field<util::id>::accessor<ro, ro, ro> vids) {
+  field<util::id>::accessor<ro, ro, ro> vids,
+  field<util::id>::accessor<ro, ro, ro> eids) {
 
   std::stringstream ss;
   ss << "color(" << color() << ")" << std::endl;
@@ -211,6 +236,26 @@ print(unstructured::accessor<ro, ro, ro> m,
     ss << "vertex(" << vids[v] << "," << v << "): ";
     for(auto c : m.cells(v)) {
       ss << cids[c] << " ";
+    }
+    ss << std::endl;
+  }
+  flog(info) << ss.str() << std::endl;
+
+  ss.str("");
+  for(auto e : m.edges()) {
+    ss << "edge(" << eids[e] << "," << e << "): ";
+    for(auto c : m.cells(e)) {
+      ss << cids[c] << " ";
+    }
+    ss << std::endl;
+  }
+  flog(info) << ss.str() << std::endl;
+
+  ss.str("");
+  for(auto e : m.edges()) {
+    ss << "edge(" << eids[e] << "," << e << "): ";
+    for(auto v : m.vertices(e)) {
+      ss << vids[v] << " ";
     }
     ss << std::endl;
   }
@@ -271,12 +316,13 @@ field<int, data::ragged>::definition<unstructured, unstructured::vertices>
 int
 unstructured_driver() {
   UNIT() {
-    coloring.allocate("simple2d-8x8.msh");
+    coloring.allocate("simple2d-16x16.msh");
     mesh.allocate(coloring.get());
 
     auto const & cids = mesh->forward_map<unstructured::cells>();
     auto const & vids = mesh->forward_map<unstructured::vertices>();
-    execute<print>(mesh, cids(mesh), vids(mesh));
+    auto const & eids = mesh->forward_map<unstructured::edges>();
+    execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
 
     auto & tf = test_field(mesh).get_ragged();
     tf.growth = {0, 0, 0.25, 0.5, 1};
@@ -286,15 +332,6 @@ unstructured_driver() {
     execute<init_field>(mesh, vids(mesh), test_field(mesh));
     // execute<print_field>(mesh, test_field(mesh));
     EXPECT_EQ(test<verify_field>(mesh, vids(mesh), test_field(mesh)), 0);
-
-#if 0
-    auto & neuf =
-      mesh->special_.get<unstructured::edges>().get<unstructured::neumann>();
-    execute<allocate>(neuf.sizes());
-    neuf.resize();
-    execute<init>(mesh->special_field(neuf));
-    EXPECT_EQ(test<check>(mesh), 0);
-#endif
   };
 } // unstructured_driver
 

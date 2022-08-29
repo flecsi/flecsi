@@ -10,7 +10,6 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
 #include "flecsi/topo/types.hh"
-#include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/crs.hh"
@@ -210,6 +209,7 @@ private:
     auto const & fmd = forward_maps_.template get<S>();
 
     auto lm = data::launch::make(*this);
+
     execute<idx_itvls<NP>, mpi>(c.idx_spaces[index<S>],
       c.process_colors,
       num_intervals,
