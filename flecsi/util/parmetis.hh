@@ -34,7 +34,7 @@ namespace parmetis {
 ///               of the connectivity graph.
 /// \param colors The number of partitions to create.
 /// \param comm   An MPI_Comm object that defines the number of processes.
-static std::vector<Color>
+inline std::vector<Color>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);
