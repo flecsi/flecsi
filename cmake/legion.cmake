@@ -1,6 +1,4 @@
-option(ENABLE_LEGION "Enable Legion" OFF)
-
-if(ENABLE_LEGION)
+macro(flecsi_enable_legion)
   find_package(Legion REQUIRED)
   list(APPEND TPL_LIBRARIES Legion::Legion)
-endif()
+endmacro()

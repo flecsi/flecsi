@@ -1,20 +1,19 @@
-option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
-
-if(ENABLE_UNIT_TESTS AND NOT FleCSI_ENABLE_FLOG)
-    message(FATAL_ERROR "Unit tests require FleCSI with ENABLE_FLOG=ON")
-endif()
-
-if(ENABLE_UNIT_TESTS)
-  enable_testing()
-  add_library(unit-main OBJECT ${FLECSI_UNIT_MAIN})
-  target_link_libraries(unit-main PRIVATE FleCSI::FleCSI)
-  target_include_directories(unit-main PRIVATE ${CMAKE_BINARY_DIR})
-  if (ENABLE_KOKKOS)
-    target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+macro(flecsi_enable_testing)
+  if(NOT FleCSI_ENABLE_FLOG)
+    message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
   endif()
-endif()
 
-function(add_unit name)
+  enable_testing()
+  add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
+  target_link_libraries(flecsi-unit-main PRIVATE FleCSI::FleCSI)
+  target_include_directories(flecsi-unit-main PRIVATE ${CMAKE_BINARY_DIR})
+  if (ENABLE_KOKKOS)
+    target_compile_options(flecsi-unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+  endif()
+  set(FLECSI_ENABLE_TESTING ON)
+endmacro()
+
+function(flecsi_add_test name)
 
   #----------------------------------------------------------------------------#
   # Enable new behavior for in-list if statements.
@@ -22,7 +21,7 @@ function(add_unit name)
 
   cmake_policy(SET CMP0057 NEW)
 
-  if(NOT ENABLE_UNIT_TESTS)
+  if(NOT FLECSI_ENABLE_TESTING)
     return()
   endif()
 
@@ -132,7 +131,7 @@ function(add_unit name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    $<TARGET_OBJECTS:unit-main>
+    $<TARGET_OBJECTS:flecsi-unit-main>
   )
   
   set_target_properties(${name}

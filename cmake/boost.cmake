@@ -1,8 +1,6 @@
-set(Boost_NO_BOOST_CMAKE ON)
-set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
-mark_as_advanced(ENABLE_BOOST)
-
-if(ENABLE_BOOST)
+macro(flecsi_enable_boost)
+  set(Boost_NO_BOOST_CMAKE ON)
+  set(BOOST_COMPONENTS "${ARGN}")
 
   #----------------------------------------------------------------------------#
   # Set BOOST_COMPONENTS to the desired components, e.g., program_options,
@@ -20,4 +18,5 @@ if(ENABLE_BOOST)
     list(APPEND TPL_LIBRARIES Boost::${_COMP})
   endforeach()
 
-endif()
+  set(FLECSI_CMAKE_ENABLE_BOOST ON)
+endmacro()

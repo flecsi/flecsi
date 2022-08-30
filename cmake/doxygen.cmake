@@ -1,24 +1,14 @@
-include(CMakeDependentOption)
-include(colors)
-
-cmake_dependent_option(ENABLE_DOXYGEN "Enable Doxygen documentation"
-  ON "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_DOXYGEN)
-
-cmake_dependent_option(ENABLE_DOXYGEN_WARN "Enable Doxygen warnings"
-  OFF "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_DOXYGEN_WARN)
-
 #------------------------------------------------------------------------------#
 # This creates a `doxygen` target that can be used to build all of the
 # doxygen targets added with `add_doxygen_target`.
 #------------------------------------------------------------------------------#
 
-if(ENABLE_DOXYGEN)
+macro(flecsi_enable_doxygen)
   add_custom_target(doxygen
     ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.dox-dummy
   )
-endif()
+  set(FLECSI_CMAKE_ENABLE_DOXYGEN ON)
+endmacro()
 
 #------------------------------------------------------------------------------#
 # Add a doxygen target
@@ -27,15 +17,14 @@ endif()
 #         copied to temporaries using `configure_file`.
 #------------------------------------------------------------------------------#
 
-function(add_doxygen_target name)
-
+function(flecsi_add_doxygen_target name)
   set(options)
   set(multi_value_args CONFIGS)
 
   cmake_parse_arguments(dox "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
 
-  if(ENABLE_DOXYGEN)
+  if(FLECSI_CMAKE_ENABLE_DOXYGEN)
     find_package(Doxygen REQUIRED)
 
     foreach(conf ${dox_CONFIGS})
@@ -45,7 +34,7 @@ function(add_doxygen_target name)
 
     add_custom_target(doxygen-${name}
       ${CMAKE_COMMAND} -E remove_directory '${CMAKE_BINARY_DIR}/doc/api/${name}' &&
-      ${DOXYGEN} ${CMAKE_BINARY_DIR}/.doxygen/${name}/conf
+      $<TARGET_FILE:Doxygen::doxygen> ${CMAKE_BINARY_DIR}/.doxygen/${name}/conf
       DEPENDS ${dox_CONFIGS})
 
     add_dependencies(doxygen doxygen-${name})

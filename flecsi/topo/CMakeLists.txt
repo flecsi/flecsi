@@ -52,7 +52,7 @@ set(topo_SOURCES
 
 # index -----------------------------------------------------------------------#
 
-add_unit(index
+flecsi_add_test(index
   SOURCES
     test/index.cc
   PROCS 2
@@ -60,7 +60,7 @@ add_unit(index
 
 # unstructured ---------------------------------------------------------------#
 
-add_unit(coloring
+flecsi_add_test(coloring
   SOURCES
     unstructured/test/coloring.cc
     unstructured/test/simple_definition.hh
@@ -70,7 +70,7 @@ add_unit(coloring
   PROCS 5
 )
 
-add_unit(closure
+flecsi_add_test(closure
   SOURCES
     unstructured/test/closure.cc
     unstructured/test/simple_definition.hh
@@ -82,13 +82,13 @@ add_unit(closure
   PROCS 2
 )
 
-#add_unit(closure
+#flecsi_add_test(closure
 #  SOURCES
 #    unstructured/test/closure.cc
 #    unstructured/test/test_definition.hh
 #)
 
-add_unit(unstructured
+flecsi_add_test(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
     unstructured/test/unstructured.cc
@@ -97,7 +97,7 @@ add_unit(unstructured
   PROCS 2
 )
 
-add_unit(fixed
+flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
   PROCS 4
@@ -105,7 +105,7 @@ add_unit(fixed
 
 # narray ----------------------------------------------------------------------#
 
-add_unit(narray
+flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
@@ -114,12 +114,12 @@ add_unit(narray
 
 # ntree -----------------------------------------------------------------------#
 
-add_unit(ntree_policy
+flecsi_add_test(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed
   PROCS 4
 )
 
-add_unit(ntree_geometry
+flecsi_add_test(ntree_geometry
   SOURCES ntree/test/geometry.cc
 )

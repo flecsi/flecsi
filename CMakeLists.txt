@@ -10,7 +10,7 @@
 #
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12...3.19)
+cmake_minimum_required(VERSION 3.12)
 
 #------------------------------------------------------------------------------#
 # Add local module path.
@@ -51,66 +51,75 @@ endif()
 #------------------------------------------------------------------------------#
 # Add extra cmake modules.
 #------------------------------------------------------------------------------#
-
 find_package(LANLCMakeModules)
 
 #------------------------------------------------------------------------------#
-# Version.
+# FleCSI Version
 #------------------------------------------------------------------------------#
-
 include(version)
 
-set(FleCSI_VERSION ${${PROJECT_NAME}_VERSION})
+#------------------------------------------------------------------------------#
+# Formatting
+#------------------------------------------------------------------------------#
+option(ENABLE_FORMAT "Enable format target" OFF)
+option(ClangFormat_VERSION "Set the required version (major[.minor[.patch]]) of clang-format" "13.0.0")
+mark_as_advanced(ENABLE_FORMAT)
+mark_as_advanced(ClangFormat_VERSION)
+
+if(ENABLE_FORMAT)
+  include(format)
+  flecsi_enable_format(${ClangFormat_VERSION})
+endif()
+
 
 #------------------------------------------------------------------------------#
-# Add summary macros.
-#------------------------------------------------------------------------------#
-
-include(summary)
-
-#------------------------------------------------------------------------------#
-# Add format target.
-#------------------------------------------------------------------------------#
-
-include(format)
-
-#------------------------------------------------------------------------------#
-# Add doc target and utility functions
-#------------------------------------------------------------------------------#
-include(doxygen)
-include(sphinx)
-include(documentation)
-
-option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
-mark_as_advanced(ENABLE_LIBRARY)
-
-#----------------------------------------------------------------------------#
 # Documentation
-#----------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
+option(GITHUB_PAGES_REPO    "GitHub Pages repository for gh-pages branch" "git@github.com:flecsi/flecsi.git")
+mark_as_advanced(ENABLE_DOCUMENTATION)
+mark_as_advanced(GITHUB_PAGES_REPO)
+
 if(ENABLE_DOCUMENTATION)
-  add_sphinx_target(main
-    CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
-    OUTPUT ${CMAKE_BINARY_DIR}/doc
-  )
+  include(documentation)
+  flecsi_enable_documentation()
 
-  # Create Doxygen output directory eagerly to avoid race condition.
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
+  option(ENABLE_DOXYGEN "Enable Doxygen documentation" ON)
+  option(ENABLE_SPHINX  "Enable Sphinx documentation"  ON)
+  mark_as_advanced(ENABLE_DOXYGEN)
+  mark_as_advanced(ENABLE_SPHINX)
 
-  add_doxygen_target(core
-    CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
-  )
-  add_doxygen_target(user
-    CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
-  )
 
-  # This is for local install of the documentation. To deploy the
-  # documentation to the flecsi website, use the "deploy-documentation" target.
+  if(ENABLE_DOXYGEN)
+    include(doxygen)
+    flecsi_enable_doxygen()
+
+    # Create Doxygen output directory eagerly to avoid race condition.
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
+
+    flecsi_add_doxygen_target(core
+      CONFIGS
+        ${CMAKE_SOURCE_DIR}/doc/doxygen/core.conf.in
+        ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+    )
+    flecsi_add_doxygen_target(user
+      CONFIGS
+        ${CMAKE_SOURCE_DIR}/doc/doxygen/user.conf.in
+        ${CMAKE_SOURCE_DIR}/doc/doxygen/conf.in
+    )
+  endif()
 
   if(ENABLE_SPHINX)
+    include(sphinx)
+    flecsi_enable_sphinx()
+
+    flecsi_add_sphinx_target(main
+      CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
+      OUTPUT ${CMAKE_BINARY_DIR}/doc
+    )
+
+    # This is for local install of the documentation. To deploy the
+    # documentation to the flecsi website, use the "deploy-documentation" target.
     install(
       DIRECTORY
         ${CMAKE_BINARY_DIR}/doc/
@@ -119,39 +128,60 @@ if(ENABLE_DOCUMENTATION)
       OPTIONAL
     )
   endif()
+
+  if(GITHUB_PAGES_REPO AND ENABLE_SPHINX AND ENABLE_DOXYGEN)
+    flecsi_enable_docs_deployment(${GITHUB_PAGES_REPO})
+  endif()
 endif()
 
+
+#------------------------------------------------------------------------------#
+# FleCSI Library
+#------------------------------------------------------------------------------#
+option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
+mark_as_advanced(ENABLE_LIBRARY)
+
 if(ENABLE_LIBRARY)
+  include(coverage)
+  include(legion)
+  include(mpi)
+  include(parmetis)
+  include(hpx)
+  include(openmp)
+  include(hdf5)
+  include(graphviz)
+  include(kokkos)
+  include(boost)
+  include(caliper)
+  include(library)
 
   #----------------------------------------------------------------------------#
-  # Add option for setting entity id type 
+  # Add option for setting entity id type
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_ID_TYPE "std::uint32_t" CACHE STRING
-    "Select the type that will be used for entity ids by topologies")
+  option(FLECSI_ID_TYPE
+	 "Select the type that will be used for entity ids by topologies"
+	 "std::uint32_t")
   mark_as_advanced(FLECSI_ID_TYPE)
 
   #----------------------------------------------------------------------------#
   # Add option for counter size
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_COUNTER_TYPE "int32_t" CACHE STRING
-    "Select the type that will be used for loop and iterator values")
+  option(FLECSI_COUNTER_TYPE
+	 "Select the type that will be used for loop and iterator values"
+	 "std::int32_t")
   mark_as_advanced(FLECSI_COUNTER_TYPE)
-
-  #----------------------------------------------------------------------------#
-  # These variables are used to collect library and include dependencies
-  # for the FleCSIConfig file below.
-  #----------------------------------------------------------------------------#
-
-  set(FLECSI_INCLUDE_DEPENDENCIES)
-  set(FLECSI_LIBRARY_DEPENDENCIES)
 
   #----------------------------------------------------------------------------#
   # Coverage.
   #----------------------------------------------------------------------------#
+  option(ENABLE_COVERAGE_BUILD "Do a coverage build" OFF)
+  mark_as_advanced(ENABLE_COVERAGE_BUILD)
 
-  include(coverage)
+  if(ENABLE_COVERAGE_BUILD)
+    flecsi_enable_coverage()
+  endif()
 
   #----------------------------------------------------------------------------#
   # Add options for backend selection
@@ -189,56 +219,89 @@ if(ENABLE_LIBRARY)
 
   mark_as_advanced(ENABLE_MPI ENABLE_LEGION ENABLE_HPX)
 
-  #----------------------------------------------------------------------------#
-  # Includes
-  #----------------------------------------------------------------------------#
+  option(ENABLE_BOOST "Enable Boost" ON)
+  option(ENABLE_MPI "Enable MPI" OFF)
+  option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
+  option(ENABLE_PARMETIS "Enable ParMETIS" OFF)
+  option(ENABLE_HDF5 "Enable HDF5" OFF)
+  option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
+  option(ENABLE_GRAPHVIZ "Enable Graphviz" OFF)
+  option(ENABLE_HPX "Enable HPX" OFF)
+  option(ENABLE_KOKKOS "Enable Kokkos" OFF)
 
-  include(legion)
-  include(mpi)
-  include(parmetis)
-  include(hpx)
-  include(openmp)
-  include(hdf5)
-  include(graphviz)
-  include(kokkos)
+  mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
+  mark_as_advanced(ENABLE_BOOST)
+  mark_as_advanced(ENABLE_HPX)
 
-  # These must be set before "include(boost)" below.
-  list(APPEND
-    BOOST_COMPONENTS
+  #----------------------------------------------------------------------------#
+  # Caliper
+  #----------------------------------------------------------------------------#
+  set(CALIPER_DETAILS none low medium high)
+
+  if(NOT CALIPER_DETAIL)
+    list(GET CALIPER_DETAILS 0 CALIPER_DETAIL)
+  endif()
+
+  set(CALIPER_DETAIL "${CALIPER_DETAIL}" CACHE STRING
+    "Select the Caliper annotation detail (none,low,medium,high)")
+
+  set_property(CACHE CALIPER_DETAIL PROPERTY STRINGS ${CALIPER_DETAILS})
+
+  set(FLECSI_CALIPER_DETAIL ${CALIPER_DETAIL})
+
+  #----------------------------------------------------------------------------#
+  # Apply options
+  #----------------------------------------------------------------------------#
+  if(ENABLE_LEGION)
+    flecsi_enable_legion()
+  endif()
+
+  if(ENABLE_MPI)
+    flecsi_enable_mpi(${ENABLE_MPI_CXX_BINDINGS})
+  endif()
+
+  if(ENABLE_PARMETIS)
+    flecsi_enable_parmetis()
+  endif()
+
+  if(ENABLE_HPX)
+    flecsi_enable_hpx()
+  endif()
+
+  if(ENABLE_OPENMP)
+    flecsi_enable_openmp()
+  endif()
+
+  if(ENABLE_HDF5)
+    flecsi_enable_hdf5()
+  endif()
+
+  if(ENABLE_GRAPHVIZ)
+    flecsi_enable_graphviz()
+  endif()
+
+  if(ENABLE_KOKKOS)
+    flecsi_enable_kokkos()
+  endif()
+
+  if(ENABLE_BOOST)
+    flecsi_enable_boost(
       program_options
       atomic
       filesystem
       regex
       system
-  )
-  include(boost)
-  include(caliper)
-  include(library)
+    )
+  endif()
 
-
-  #----------------------------------------------------------------------------#
-  # Caliper.
-  #----------------------------------------------------------------------------#
-
-  set(FLECSI_CALIPER_DETAIL ${CALIPER_DETAIL})
+  if (NOT CALIPER_DETAIL STREQUAL "none")
+    flecsi_enable_caliper()
+  endif()
 
   #----------------------------------------------------------------------------#
   # Dynamic libraries.
   #----------------------------------------------------------------------------#
-
-  foreach(_DL_LIB ${CMAKE_DL_LIBS})
-    find_library(DL_LIB ${_DL_LIB})
-
-    if(DL_LIB STREQUAL "NOTFOUND")
-      message(FATAL_ERROR "Dynamic library not found")
-    endif()
-
-    list(APPEND TPL_LIBRARIES ${DL_LIB})
-  endforeach()
-  mark_as_advanced(DL_LIB)
-
-  #  list(APPEND FLECSI_LIBRARY_DEPENDENCIES ${FLECSI_BACKEND_LIBRARIES})
-  #set(FLECSI_BACKEND_LIBRARIES)
+  list(APPEND TPL_LIBRARIES ${CMAKE_DL_LIBS})
 
   #----------------------------------------------------------------------------#
   # FLOG
@@ -270,8 +333,6 @@ if(ENABLE_LIBRARY)
     FILES ${CMAKE_BINARY_DIR}/flecsi-config.h
     DESTINATION include
   )
-
-
 
   #----------------------------------------------------------------------------#
   # Extract all project options so they can be exported to the
@@ -310,6 +371,12 @@ if(ENABLE_LIBRARY)
   set(FLECSI_UNIT_MAIN ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
   include(unit)
 
+  option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
+
+  if(ENABLE_UNIT_TESTS)
+    flecsi_enable_testing()
+  endif()
+
   #----------------------------------------------------------------------------#
   # FleCSI library.
   #----------------------------------------------------------------------------#
@@ -332,10 +399,9 @@ if(ENABLE_LIBRARY)
   )
 
   #----------------------------------------------------------------------------#
-  # mesh-gen target
+  # Tools
   #----------------------------------------------------------------------------#
-
-  add_executable(mesh-gen tools/mesh-gen.cc)
+  add_subdirectory(tools)
 
   #----------------------------------------------------------------------------#
   # CMake utilities.
@@ -377,59 +443,60 @@ if(ENABLE_LIBRARY)
   endif()
 endif()
 
-#----------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 # Output configuration summary.
-#----------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+include(summary)
 
-summary_header()
-summary_info("FleCSI_VERSION" "${FleCSI_VERSION}" TRUE)
+flecsi_summary_header()
+flecsi_summary_info("FleCSI_VERSION" "${FleCSI_VERSION}" TRUE)
 
 if(ENABLE_DOCUMENTATION)
-  summary_info("FleCSI_DOCUMENTATION_VERSION"
+  flecsi_summary_info("FleCSI_DOCUMENTATION_VERSION"
     "${FleCSI_DOCUMENTATION_VERSION}" FALSE)
 endif()
 
 string(APPEND _summary "\n")
 
 if(${PROJECT_NAME}_COMMITS)
-  summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
+  flecsi_summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
 endif()
 
 string(APPEND _summary "\n")
 
 if(ENABLE_LIBRARY)
-  summary_info("CMAKE_BUILD_TYPE" "${CMAKE_BUILD_TYPE}" TRUE)
-  summary_info("CMAKE_INSTALL_PREFIX" "${CMAKE_INSTALL_PREFIX}" TRUE)
+  flecsi_summary_info("CMAKE_BUILD_TYPE" "${CMAKE_BUILD_TYPE}" TRUE)
+  flecsi_summary_info("CMAKE_INSTALL_PREFIX" "${CMAKE_INSTALL_PREFIX}" TRUE)
   string(APPEND _summary "\n")
-  summary_info("CMAKE_CXX_COMPILER" "${CMAKE_CXX_COMPILER}" TRUE)
-  summary_info("CMAKE_CXX_COMPILER_VERSION"
+  flecsi_summary_info("CMAKE_CXX_COMPILER" "${CMAKE_CXX_COMPILER}" TRUE)
+  flecsi_summary_info("CMAKE_CXX_COMPILER_VERSION"
     "${CMAKE_CXX_COMPILER_VERSION}" TRUE)
-  summary_info("CMAKE_CXX_FLAGS" "${CMAKE_CXX_FLAGS}" TRUE)
-  summary_info("CMAKE_C_COMPILER" "${CMAKE_C_COMPILER}" TRUE)
-  summary_info("CMAKE_C_COMPILER_VERSION" "${CMAKE_C_COMPILER_VERSION}" TRUE)
-  summary_info("CMAKE_C_FLAGS" "${CMAKE_C_FLAGS}" TRUE)
+  flecsi_summary_info("CMAKE_CXX_FLAGS" "${CMAKE_CXX_FLAGS}" TRUE)
+  flecsi_summary_info("CMAKE_C_COMPILER" "${CMAKE_C_COMPILER}" TRUE)
+  flecsi_summary_info("CMAKE_C_COMPILER_VERSION" "${CMAKE_C_COMPILER_VERSION}" TRUE)
+  flecsi_summary_info("CMAKE_C_FLAGS" "${CMAKE_C_FLAGS}" TRUE)
 
   string(APPEND _summary "\n")
-  summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
-  summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
+  flecsi_summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
+  flecsi_summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
     " (FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL})")
-  summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
+  flecsi_summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
   string(APPEND _summary "\n")
-  summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}
+  flecsi_summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}
     " (${Kokkos_DEVICES})")
-  summary_option("ENABLE_GRAPHVIZ" ${ENABLE_GRAPHVIZ} "")
-  summary_option("ENABLE_OPENMP" ${ENABLE_OPENMP} "")
-  summary_option("ENABLE_HDF5" ${ENABLE_HDF5} "")
-  summary_info("CALIPER_DETAIL" "${CALIPER_DETAIL}" TRUE)
+  flecsi_summary_option("ENABLE_GRAPHVIZ" ${ENABLE_GRAPHVIZ} "")
+  flecsi_summary_option("ENABLE_OPENMP" ${ENABLE_OPENMP} "")
+  flecsi_summary_option("ENABLE_HDF5" ${ENABLE_HDF5} "")
+  flecsi_summary_info("CALIPER_DETAIL" "${CALIPER_DETAIL}" TRUE)
 endif()
 
 if(ENABLE_DOCUMENTATION)
-  summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
-  summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
+  flecsi_summary_option("ENABLE_SPHINX" ${ENABLE_SPHINX} " (ENABLE_DOCUMENTATION)")
+  flecsi_summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
 endif()
 
 if(ENABLE_FORMAT AND ClangFormat_FOUND)
-  summary_info("ClangFormat_EXECUTABLE" "${ClangFormat_EXECUTABLE}" TRUE)
+  flecsi_summary_info("ClangFormat_EXECUTABLE" "${ClangFormat_EXECUTABLE}" TRUE)
 endif()
 
 message(STATUS ${_summary})

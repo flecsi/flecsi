@@ -1,20 +1,14 @@
-include(CMakeDependentOption)
-include(colors)
-
-cmake_dependent_option(ENABLE_SPHINX "Enable Sphinx documentation"
-  ON "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_SPHINX)
-
 #------------------------------------------------------------------------------#
 # This creates a `sphinx` target that can be used to build all of the
-# sphinx targets added with `add_sphinx_target`.
+# sphinx targets added with `flecsi_add_sphinx_target`.
 #------------------------------------------------------------------------------#
 
-if(ENABLE_SPHINX)
+macro(flecsi_enable_sphinx)
   add_custom_target(sphinx
     ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
   )
-endif()
+  set(FLECSI_CMAKE_ENABLE_SPHINX ON)
+endmacro()
 
 #------------------------------------------------------------------------------#
 # Add a sphinx target
@@ -27,7 +21,7 @@ endif()
 #        (.sphinx subdir).
 #------------------------------------------------------------------------------#
 
-function(add_sphinx_target name)
+function(flecsi_add_sphinx_target name)
 
   set(options)
   set(one_value_args CONFIG OUTPUT INSTALL)
@@ -36,7 +30,7 @@ function(add_sphinx_target name)
   cmake_parse_arguments(sphx "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
 
-  if(ENABLE_SPHINX)
+  if(FLECSI_CMAKE_ENABLE_SPHINX)
     find_package(Sphinx REQUIRED)
 
     file(COPY ${sphx_CONFIG}/_static DESTINATION ${sphx_OUTPUT}/.sphinx/)

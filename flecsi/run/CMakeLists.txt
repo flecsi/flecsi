@@ -58,8 +58,8 @@ set(run_SOURCES
 #------------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------#
-# Note: The cycle test does not use the 'add_unit' interface because it is
-# meant to test different low-level control model features.
+# Note: The cycle test does not use the 'flecsi_add_test' interface because it 
+# is meant to test different low-level control model features.
 #------------------------------------------------------------------------------#
 
 add_executable(cycle
@@ -71,12 +71,12 @@ add_executable(cycle
 target_link_libraries(cycle FleCSI)
 target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
 
-add_unit(flog
+flecsi_add_test(flog
   SOURCES
     test/flog.cc
 )
 
-add_unit(program-options
+flecsi_add_test(program-options
   SOURCES
     test/program-options.cc
 )

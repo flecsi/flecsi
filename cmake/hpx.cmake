@@ -1,9 +1,6 @@
-option(ENABLE_HPX "Enable HPX" OFF)
-mark_as_advanced(ENABLE_HPX)
+macro(flecsi_enable_hpx)
 
-if(ENABLE_HPX)
-
-  if(NOT ENABLE_BOOST)
+  if(NOT FLECSI_CMAKE_ENABLE_BOOST)
     message(ERROR "Boost is required for the HPX backend")
   endif()
 
@@ -25,4 +22,4 @@ if(ENABLE_HPX)
     list(APPEND TPL_DEFINES -DGTEST_LANG_CXX11=1)
   endif()
 
-endif()
+endmacro()

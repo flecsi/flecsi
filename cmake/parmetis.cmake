@@ -1,6 +1,4 @@
-option(ENABLE_PARMETIS "Enable ParMETIS" OFF)
-
-if(ENABLE_PARMETIS)
+macro(flecsi_enable_parmetis)
   find_package(METIS REQUIRED)
 
   set(PARMETIS_TEST_RUNS TRUE)
@@ -8,4 +6,4 @@ if(ENABLE_PARMETIS)
 
   list(APPEND TPL_INCLUDES ${PARMETIS_INCLUDE_DIRS} ${METIS_INCLUDE_DIRS})
   list(APPEND TPL_LIBRARIES ${METIS_LIBRARIES} ${PARMETIS_LIBRARIES})
-endif()
+endmacro()
