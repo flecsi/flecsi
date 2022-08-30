@@ -51,8 +51,8 @@ you can add it as follows:
 .. note::
 
    These utilities themselves depend on CMake files provided by the
-   `lanl-cmake-modules <https://github.com/lanl/cmake-modules>`_ project, which
-   is a Spack dependency of FleCSI.
+   `lanl-cmake-modules <https://github.com/lanl/cmake-modules>`_
+   project, which is a Spack dependency of FleCSI.
 
 Documentation
 -------------
@@ -61,28 +61,26 @@ FleCSI uses both Sphinx and Doxygen for its documentation system. The
 following CMake files can be included to utilize the same
 documentation system for your own projects.
 
-``documentation``
-   Adds the ``ENABLE_DOCUMENTATION`` CMake option, which is used to
-   conditionally enable the Sphinx and Doxygen options if included. It
-   also defines a ``doc`` target, which will collect all documentation
+``FleCSI/documentation``
+   Adds the ``flecsi_enable_documentation`` macro, which defines a
+   ``doc`` target.  It collects all later defined documentation
    targets. ``make doc`` will build all defined sphinx and doxygen
    targets.
 
-   It also adds the advanced CMake option ``GITHUB_PAGES_REPO``. If
-   ``GITHUB_PAGES_REPO`` is set, this adds the ``deploy-docs``
-   target. This will checkout the ``gh-pages`` branch from the Git
-   repository defined in ``GITHUB_PAGES_REPO``.  The checkout will be
-   cleared and the result of the ``doc`` target is copied into
-   it. Files are only added, but **not** commited or pushed. These are
-   left as manual steps.
+   It also adds the ``flecsi_enable_docs_deployment()`` macro, which
+   takes a Git repository URL as parameter. Calling this macro adds a
+   ``deploy-docs`` target. It will checkout the ``gh-pages`` branch
+   from the specified Git repository.  The checkout will be cleared
+   and the result of the ``doc`` target is copied into it. Files are
+   only added, but **not** commited or pushed. These are left as
+   manual steps.
 
-``sphinx``
-  Adds the ``ENABLE_SPHINX`` CMake option, which is only shown if
-  ``ENABLE_DOCUMENTATION`` is ``ON``. If enabled, it will add a
-  ``sphinx`` target, which collects all defined sphinx targets. The
-  ``sphinx`` target is added as dependency of the ``doc`` target.
+``FleCSI/sphinx``
+  Adds the ``flecsi_enable_sphinx`` macro, which adds a ``sphinx``
+  target. It collects all later defined sphinx targets. The ``sphinx``
+  target is added as dependency of the ``doc`` target.
 
-  Sphinx builds are then defined with the ``add_sphinx_target``
+  Sphinx builds are then defined with the ``flecsi_add_sphinx_target``
   function. It takes three parameters: the target name, ``CONFIG``
   directory, and ``OUTPUT`` directory. The provided ``CONFIG``
   directory must contain a ``conf.py.in`` file. This template will be
@@ -98,22 +96,22 @@ documentation system for your own projects.
      include(FleCSI/documentation)
      include(FleCSI/sphinx)
 
-     add_sphinx_target(main                     # custom target name
+     flecsi_enable_documentation()
+
+     flecsi_add_sphinx_target(main              # custom target name
        CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx    # folder containing conf.py.in
        OUTPUT ${CMAKE_BINARY_DIR}/doc           # output directory
      )
 
-``doxygen``
-  Adds the ``ENABLE_DOXYGEN`` and ``ENABLE_DOXYGEN_WARN`` CMake
-  options. Both are only shown if ``ENABLE_DOCUMENTATION`` is
-  ``ON``. If enabled, it will add a ``doxygen`` target, which collects
-  all defined doxygen targets. The ``doxygen`` target is added as
-  dependency of the ``doc`` target.
+``FleCSI/doxygen``
+  Adds the ``flecsi_enable_doxygen`` macro, which adds a ``doxygen``
+  target. It collects all later defined doxygen targets. The
+  ``doxygen`` target is added as dependency of the ``doc`` target.
 
-  Doxygen builds are defined with the ``add_doxygen_target`` function.
-  It takes two parameters: the target name, which will be prefixed
-  with ``doxygen-``, and one or more file names in ``CONFIGS``. Each
-  of the configuration files will be processed with
+  Doxygen builds are defined with the ``flecsi_add_doxygen_target``
+  function.  It takes two parameters: the target name, which will be
+  prefixed with ``doxygen-``, and one or more file names in
+  ``CONFIGS``. Each of the configuration files will be processed with
   ``configure_file``. The final output location is controlled by what
   is defined in these configuration files. E.g. by defining
   ``OUTPUT_DIRECTORY`` relative to the ``CMAKE_BINARY_DIR``:
@@ -131,36 +129,36 @@ Coverage and Unit Testing
 FleCSI uses its own unit-testing framework and installs the necessary
 CMake files to allow using it in your own applications.
 
-``coverage``
-  Adds the ``ENABLE_COVERAGE_BUILD`` CMake option. If enabled, this
-  will add compiler and linker flags to enable capturing coverage
-  information.
+``FleCSI/coverage``
+  Adds the ``flecsi_enable_coverage`` macro, which adds compiler and
+  linker flags to enable capturing coverage information.
 
-``unit``
-  Adds the ``ENABLE_UNIT_TESTS`` CMake option. If enabled, it turns on
-  CMake's testing capabilities through ``ctest`` and defines a
-  ``test`` target.
+``FleCSI/unit``
+  Adds the ``flecsi_enable_testing`` macro, which turns on CMake's
+  testing capabilities through ``ctest`` and defines a ``test``
+  target.
 
-  While you can define your own test executables manually with `add_test
+  While you can define your own test executables manually with
+  `add_test
   <https://cmake.org/cmake/help/latest/command/add_test.html>`_, this
-  CMake file also defines its own ``add_unit`` function for
+  CMake file also defines its own ``flecsi_add_test`` function for
   writing tests based on FleCSI Unit Test framework.
 
   .. code-block:: cmake
 
-     add_unit(test-name                           # name of target
-              SOURCES src1 src2 ... srcN          # list of source files
-	      INPUTS in1 in2 ... inN              # list of input files
-	      LIBRARIES lib1 lib2 ... libN        # libraries linked to test target
-	      DEFINES define1 define2 ... defineN # defines added to test target
-	      ARGUMENTS  arg1 arg2 ... argN       # command arguments
-	      TESTLABELS label1 label2 ... labelN # labels added to test target
-	      PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
-	     )
+     flecsi_add_test(test-name                           # name of target
+                     SOURCES src1 src2 ... srcN          # list of source files
+	             INPUTS in1 in2 ... inN              # list of input files
+	             LIBRARIES lib1 lib2 ... libN        # libraries linked to test target
+	             DEFINES define1 define2 ... defineN # defines added to test target
+	             ARGUMENTS  arg1 arg2 ... argN       # command arguments
+	             TESTLABELS label1 label2 ... labelN # labels added to test target
+	             PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
+	            )
 
-  ``add_unit`` will take the sources files in ``SOURCES`` and compile
-  them together with a predefined ``main()`` function. It will also
-  link to any ``LIBRARIES`` and add ``DEFINES`` as compile
+  ``flecsi_add_test`` will take the sources files in ``SOURCES`` and
+  compile them together with a predefined ``main()`` function. It will
+  also link to any ``LIBRARIES`` and add ``DEFINES`` as compile
   definitions.
 
   If the test uses input files, they can be specified as
@@ -173,9 +171,8 @@ CMake files to allow using it in your own applications.
 
   .. note::
 
-     If FleCSI was compiled with Kokkos, Legion and CUDA support,
-     ``add_unit`` will append ``--backend-args="-ll:gpu 1"`` to the
-     arguments passed to your test executable.
+     Targets added with ``flecsi_add_test`` will be run with GPU
+     support if appropriate.
 
 
   ``TESTLABELS`` can be added to your test to allow filtering based on
@@ -210,9 +207,10 @@ CMake files to allow using it in your own applications.
      find_package(FleCSI REQUIRED)
 
      include(FleCSI/unit)
+     flecsi_enable_testing()
 
-     add_unit(mytest
-              SOURCES mytest.cc)
+     flecsi_add_test(mytest
+                     SOURCES mytest.cc)
 
   To configure and compile:
 
@@ -220,7 +218,7 @@ CMake files to allow using it in your own applications.
 
      mkdir build
      cd build
-     cmake -D ENABLE_UNIT_TESTS=on ..
+     cmake ..
      make
 
   Once compiled, you can run the tests with:
@@ -235,55 +233,44 @@ CMake files to allow using it in your own applications.
 Code Formatting
 ---------------
 
-``format``
+``FleCSI/format``
+  Adds the ``flecsi_enable_format`` macro, which takes a required
+  ``clang-format`` version as parameter.
 
-  Add the ``ENABLE_FORMAT`` and ``ClangFormat_VERSION`` CMake options.
-  If ``ENABLE_FORMAT`` is ``ON``, you can use ``ClangFormat_VERSION``
-  to specify which version of ``clang-format`` should be used for
-  formatting.
-
-  When enabled, it adds a ``format`` target that depends on both
-  ``git`` and ``clang-format`` to be present. It also requires the
-  source tree to be a Git checkout. Running this target will find all
-  ``.hh`` and ``.cc`` files and apply the style defined in the
-  project's ``.clang-format``.
+  It defines a ``format`` target that depends on both ``git`` and
+  ``clang-format`` to be present. It also requires the source tree to
+  be a Git checkout. Running this target will find all ``.hh`` and
+  ``.cc`` files and apply the style defined in the project's
+  ``.clang-format``.
 
 
 Dependencies
 ------------
 
 Some projects might want to explicitly link to dependencies that
-FleCSI uses itself. All external libraries used by FleCSI are included
-as their own CMake file.
+FleCSI uses itself. External libraries used by FleCSI are added via
+their own CMake file and the macros they define.
 
 The general structure in these files is that they add a
-``ENABLE_<PACKAGE>`` CMake option and, if necessary, more advanced
-options for customization. If enabled, the package defines, include
-folders and libraries will be appended to the globals ``TPL_DEFINES``,
-``TPL_INCLUDES`` and ``TPL_LIBRARIES``.
+``flecsi_enable_<PACKAGE>`` macro, which adds package defines, include
+folders and libraries to the globals ``TPL_DEFINES``, ``TPL_INCLUDES``
+and ``TPL_LIBRARIES``. Customizations are controlled through macro
+parameters, which can be user defined via CMake options.
 
-* ``hdf5``
-* ``hpx``
-* ``kokkos``
-* ``legion``
-* ``mpi``
-* ``openmp``
-* ``parmetis``
-* ``boost``
-* ``caliper``
-
-.. note::
-
-   ``caliper`` does **not** define a ``ENABLE_CALIPER`` option, but instead a
-   ``CALIPER_DETAIL`` option with possible values of: ``none``, ``low``,
-   ``medium``, ``high``. The library is only added if the value is not
-   ``none``.
-
+* ``FleCSI/hdf5``
+* ``FleCSI/hpx``
+* ``FleCSI/kokkos``
+* ``FleCSI/legion``
+* ``FleCSI/mpi``
+* ``FleCSI/openmp``
+* ``FleCSI/parmetis``
+* ``FleCSI/boost``
+* ``FleCSI/caliper``
 
 Other files
 -----------
 
-``colors``
+``FleCSI/colors``
   Defines several ASCII color codes for colored console output.
 
   .. hlist::
@@ -308,20 +295,21 @@ Other files
      * ``FLECSI_BoldCyan``
      * ``FLECSI_BoldWhite``
 
-``summary``
+``FleCSI/summary``
   Defines multiple macros to generate a (colored) configuration
   summary. Each of these macros appends to the global ``_summary``.
   At the end of your CMake file you can then print this summary using
   ``message(STATUS ${_summary})``.
 
-  ``summary_header`` will add a header.
+  ``flecsi_summary_header`` will add a header.
 
-  ``summary_info(name info allow_split)`` will take a given ``name``
-  and add its value ``info`` next to it. If ``info`` is a
+  ``flecsi_summary_info(name info allow_split)`` will take a given
+  ``name`` and add its value ``info`` next to it. If ``info`` is a
   space-separated list of values, ``allow_split`` controls if each
   value should be in its own line.
 
-  ``summary_option(name state extra)`` is used for adding Boolean
-  values to the summary. If ``state`` evaluates to ``TRUE`` the option
-  state will be shown in a bright green color, followed by what is in
-  ``extra``. Otherwise, the ``state`` will be shown in gray.
+  ``flecsi_summary_option(name state extra)`` is used for adding
+  Boolean values to the summary. If ``state`` evaluates to ``TRUE``
+  the option state will be shown in a bright green color, followed by
+  what is in ``extra``. Otherwise, the ``state`` will be shown in
+  gray.
