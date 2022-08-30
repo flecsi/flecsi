@@ -6,6 +6,7 @@
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"
+#include "flecsi/util/color_map.hh"
 #include "flecsi/util/serialize.hh"
 
 #include <algorithm>
@@ -70,25 +71,17 @@ struct crs : util::with_index_iterator<const crs> {
 }; // struct crs
 
 struct dcrs : crs {
-  std::vector<std::size_t> distribution;
+  util::offsets distribution;
 
   std::size_t colors() {
-    return distribution.size() - 1;
+    return distribution.size();
   }
 
   void clear() {
     crs::clear();
-    distribution.clear();
+    distribution = {};
   }
 }; // struct dcrs
-
-template<typename FI, typename T>
-auto
-distribution_offset(FI const & distribution, T index) {
-  auto it = std::upper_bound(distribution.begin(), distribution.end(), index);
-  flog_assert(it != distribution.end(), "index out of range");
-  return std::distance(distribution.begin(), it) - 1;
-} // distribution_offset
 
 inline std::ostream &
 operator<<(std::ostream & stream, crs const & graph) {
@@ -108,7 +101,7 @@ operator<<(std::ostream & stream, crs const & graph) {
 inline std::ostream &
 operator<<(std::ostream & stream, dcrs const & graph) {
   stream << "distribution: ";
-  for(auto o : graph.distribution) {
+  for(auto o : graph.distribution.ends()) {
     stream << o << " ";
   }
   return stream << std::endl << static_cast<const crs &>(graph);

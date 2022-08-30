@@ -5,6 +5,7 @@
 #define FLECSI_TOPO_UNSTRUCTURED_COLORING_UTILS_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/topo/types.hh"
 #include "flecsi/topo/unstructured/coloring_functors.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
@@ -88,7 +89,7 @@ make_dcrs(MD const & md,
   std::size_t ne = md.num_entities(MD::dimension());
   std::size_t nv = md.num_entities(0);
 
-  util::color_map ecm(size, size, ne);
+  const util::equal_map ecm(ne, size);
 
   /*
     Get the initial cells for this rank. The cells will be read by
@@ -96,8 +97,7 @@ make_dcrs(MD const & md,
     a naive distribution.
    */
 
-  auto e2v =
-    util::mpi::one_to_allv<pack_cells<MD>>({md, ecm.distribution()}, comm);
+  auto e2v = util::mpi::one_to_allv<pack_cells<MD>>({md, ecm}, comm);
 
   /*
     Create a map of vertex-to-cell connectivity information from
@@ -105,8 +105,7 @@ make_dcrs(MD const & md,
    */
 
   // Populate local vertex connectivity information
-  std::size_t offset{ecm.distribution()[rank]};
-  std::size_t indices{ecm.indices(rank, 0)};
+  const std::size_t offset = ecm(rank);
   std::map<std::size_t, std::vector<std::size_t>> v2c;
 
   std::size_t i{0};
@@ -118,9 +117,9 @@ make_dcrs(MD const & md,
   } // for
 
   // Request all referencers of our connected vertices
-  util::color_map vm(size, size, nv);
-  auto referencers = util::mpi::all_to_allv<vertex_referencers>(
-    {v2c, vm.distribution(), rank}, comm);
+  const util::equal_map vm(nv, size);
+  auto referencers =
+    util::mpi::all_to_allv<vertex_referencers>({v2c, vm, rank}, comm);
 
   /*
     Update our local connectivity information. We now have all
@@ -150,7 +149,7 @@ make_dcrs(MD const & md,
 
   for(auto const & v : v2c) {
     for(auto c : v.second) {
-      auto r = util::distribution_offset(ecm.distribution(), c);
+      const int r = ecm.bin(c);
       if(r != rank) {
         referencer_inverse[r].emplace_back(v.first);
       } // if
@@ -163,7 +162,7 @@ make_dcrs(MD const & md,
   // Request vertex-to-cell connectivity for the cells that are
   // on other ranks in the naive cell distribution.
   auto connectivity = util::mpi::all_to_allv<cell_connectivity>(
-    {referencer_inverse, v2c, vm.distribution(), rank}, comm);
+    {referencer_inverse, v2c, vm, rank}, comm);
 
   for(auto & r : connectivity) {
     for(auto & v : r) {
@@ -214,15 +213,15 @@ make_dcrs(MD const & md,
    */
 
   util::dcrs dcrs;
-  dcrs.distribution = ecm.distribution();
+  dcrs.distribution = ecm;
 
   dcrs.offsets.emplace_back(0);
-  for(std::size_t c{0}; c < indices; ++c) {
-    for(auto cr : c2c[offset + c]) {
+  for(const std::size_t c : ecm[rank]) {
+    for(auto cr : c2c[c]) {
       dcrs.indices.emplace_back(cr);
     } // for
 
-    dcrs.offsets.emplace_back(dcrs.offsets[c] + c2c[offset + c].size());
+    dcrs.offsets.emplace_back(dcrs.offsets.back() + c2c[c].size());
   } // for
 
   return std::make_tuple(dcrs, e2v, v2c, c2c);
@@ -306,9 +305,9 @@ request_owners(std::vector<std::size_t> const & request,
   auto [rank, size] = util::mpi::info(comm);
 
   std::vector<std::vector<std::size_t>> requests(size);
-  util::color_map pm(size, size, ne);
+  const util::equal_map pm(ne, size), ecm(colors, size);
   for(auto e : request) {
-    requests[pm.process(pm.index_color(e))].emplace_back(e);
+    requests[pm.bin(e)].emplace_back(e);
   } // for
 
   auto requested = util::mpi::all_to_allv(
@@ -320,12 +319,11 @@ request_owners(std::vector<std::size_t> const & request,
 
   std::vector<std::vector<std::size_t>> fulfills(size);
   {
+    const std::size_t start = pm(rank);
     Color r = 0;
-    util::color_map ecm(size, colors, ne);
     for(auto rv : requested) {
       for(auto e : rv) {
-        const std::size_t start = pm.index_offset(rank, 0);
-        fulfills[r].emplace_back(ecm.process(idx_cos[e - start]));
+        fulfills[r].emplace_back(ecm.bin(idx_cos[e - start]));
       } // for
       ++r;
     } // for
@@ -337,7 +335,7 @@ request_owners(std::vector<std::size_t> const & request,
   std::vector<std::size_t> offs(size, 0ul);
   std::vector<Color> owners;
   for(auto e : request) {
-    auto p = pm.process(pm.index_color(e));
+    auto p = pm.bin(e);
     owners.emplace_back(fulfilled[p][offs[p]++]);
   } // for
 
@@ -571,11 +569,11 @@ color(MD const & md,
   coloring.idx_spaces[cd.vidx].resize(primaries.size());
 
   std::size_t c{0};
-  std::vector<std::size_t> partitions;
+  auto & partitions = coloring.partitions[cd.idx];
   std::vector<Color> process_colors;
   std::vector<std::set<Color>> color_peers(primaries.size());
   std::vector<std::vector<Color>> is_peers(primaries.size());
-  util::color_map em(size, cd.colors, ne);
+  const util::equal_map pmap(cd.colors, size);
   for(auto p : primaries) {
     process_colors.emplace_back(p.first);
     auto & pc = coloring.idx_spaces[cd.idx][c];
@@ -603,9 +601,8 @@ color(MD const & md,
     std::set<Color> peers;
     for(auto e : ghost[p.first]) {
       const auto gco = e2co.at(e);
-      const auto pr = em.process(gco);
-      pc.coloring.ghost.emplace_back(
-        ghost_entity{e, pr, em.local_id(pr, gco), gco});
+      const auto [pr, lco] = pmap.invert(gco);
+      pc.coloring.ghost.emplace_back(ghost_entity{e, pr, Color(lco), gco});
       pc.coloring.all.emplace_back(e);
       peers.insert(gco);
     } // for
@@ -664,7 +661,7 @@ color(MD const & md,
       std::size_t c{0};
       for(auto pc : vp) { /* over process colors */
         for(auto pe : pc) { /* over peers */
-          coloring.peers[cd.idx][em.color_id(p, c)].emplace_back(pe);
+          coloring.peers[cd.idx][pmap(p) + c].emplace_back(pe);
         } // for
         ++c;
       } // for
@@ -681,21 +678,7 @@ color(MD const & md,
   /*
     Gather partition sizes for entities.
    */
-
-  {
-    auto pgthr = util::mpi::all_gatherv(partitions, comm);
-
-    coloring.partitions[cd.idx].resize(cd.colors);
-    std::size_t p{0};
-    for(auto vp : pgthr) {
-      std::size_t c{0};
-      for(auto v : vp) {
-        coloring.partitions[cd.idx][em.color_id(p, c)] = v;
-        ++c;
-      } // for
-      ++p;
-    } // for
-  }
+  concatenate(partitions, cd.colors, comm);
 
   /*
     Assign vertex colors.
@@ -728,8 +711,7 @@ color(MD const & md,
    */
 
   const std::size_t nv = md.num_entities(0);
-  util::color_map vpm(size, size, nv);
-  util::color_map vcm(size, cd.colors, nv);
+  const util::equal_map vpm(nv, size), vcm(nv, cd.colors);
 
   /*
     The following several steps create a coloring of the naive partitioning of
@@ -737,14 +719,13 @@ color(MD const & md,
     computed above. This strategy is employed to enable weak scalability.
    */
 
-  auto rank_colors =
-    util::mpi::all_to_allv<vertex_coloring>({vpm.distribution(), v2co}, comm);
+  auto rank_colors = util::mpi::all_to_allv<vertex_coloring>({vpm, v2co}, comm);
 
-  const std::size_t voff = vpm.distribution()[rank];
-  std::vector<Color> vtx_idx_cos(vpm.distribution()[rank + 1] - voff);
+  const auto vr = vpm[rank];
+  std::vector<Color> vtx_idx_cos(vr.size());
   for(auto r : rank_colors) {
     for(auto v : r) {
-      vtx_idx_cos[std::get<0>(v) - voff] = std::get<1>(v);
+      vtx_idx_cos[std::get<0>(v) - vr.front()] = std::get<1>(v);
     } // for
   } // for
 
@@ -754,15 +735,14 @@ color(MD const & md,
     "vtx_idx_cos".
    */
 
-  auto vertices =
-    util::mpi::one_to_allv<pack_vertices<MD>>({md, vpm.distribution()}, comm);
+  auto vertices = util::mpi::one_to_allv<pack_vertices<MD>>({md, vpm}, comm);
 
   /*
     Migrate the vertices to their actual owners.
    */
 
   auto migrated = util::mpi::all_to_allv<migrate_vertices<MD>>(
-    {vpm.distribution(), cd.colors, vtx_idx_cos, vertices, rank}, comm);
+    {vpm, cd.colors, vtx_idx_cos, vertices, rank}, comm);
   std::unordered_map<std::size_t, std::tuple<Color, typename MD::point>> v2info;
 
   /*
@@ -810,10 +790,11 @@ color(MD const & md,
             vaux.owned.emplace_back(v);
           }
           else {
-            if(vcm.has_color(rank, vi->second)) {
+            if(const auto [pr, li] = pmap.invert(vi->second);
+               pr == Color(rank)) {
               // This process owns the current color.
-              vaux.ghost.emplace_back(ghost_entity{
-                v, Color(rank), vcm.local_id(rank, vi->second), vi->second});
+              vaux.ghost.emplace_back(
+                ghost_entity{v, pr, Color(li), vi->second});
             }
             else {
               // The ghost is remote: add to remote requests.
@@ -830,9 +811,9 @@ color(MD const & md,
 
           if(vi != v2co.end()) {
             if(vi->second != p.first) {
-              const auto pr = vcm.process(vi->second);
+              const auto [pr, li] = pmap.invert(vi->second);
               vaux.ghost.emplace_back(
-                ghost_entity{v, pr, vcm.local_id(pr, vi->second), vi->second});
+                ghost_entity{v, pr, Color(li), vi->second});
             } // if
           }
           else {
@@ -913,7 +894,7 @@ color(MD const & md,
    */
 
   c = 0;
-  partitions.clear();
+  auto & vpart = coloring.partitions[cd.vidx];
   for(auto p : primaries) {
     auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
@@ -932,9 +913,8 @@ color(MD const & md,
         for(auto v : ghost.at(p.first)) {
           const auto gco = v2co.at(v);
           peers.insert(gco);
-          const auto pr = vcm.process(gco);
-          vaux.ghost.emplace_back(
-            ghost_entity{v, pr, vcm.local_id(pr, gco), gco});
+          const auto [pr, lco] = pmap.invert(gco);
+          vaux.ghost.emplace_back(ghost_entity{v, pr, Color(lco), gco});
           vaux.all.emplace_back(v);
         } // for
         color_peers[c].insert(peers.begin(), peers.end());
@@ -946,7 +926,7 @@ color(MD const & md,
     util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
 
-    partitions.emplace_back(vaux.all.size());
+    vpart.push_back(vaux.all.size());
 
     ++c;
   } // for
@@ -957,16 +937,15 @@ color(MD const & md,
 
   {
     auto pgthr = util::mpi::all_gatherv(is_peers, comm);
-    coloring.peers[cd.vidx].resize(cd.colors);
+    auto & vpeers = coloring.peers[cd.vidx];
+    vpeers.resize(cd.colors);
 
     std::size_t p{0};
     for(auto vp : pgthr) { /* over processes */
       std::size_t c{0};
       for(auto pc : vp) { /* over process colors */
-        for(auto pe : pc) { /* over peers */
-          coloring.peers[cd.vidx][vcm.color_id(p, c)].emplace_back(pe);
-        } // for
-        ++c;
+        auto & peers = vpeers[pmap(p) + c++];
+        peers.insert(peers.end(), pc.begin(), pc.end());
       } // for
       ++p;
     } // for
@@ -975,21 +954,7 @@ color(MD const & md,
   /*
     Gather partition sizes for vertices.
    */
-
-  {
-    auto pgthr = util::mpi::all_gatherv(partitions, comm);
-
-    coloring.partitions[cd.vidx].resize(cd.colors);
-    std::size_t p{0};
-    for(auto vp : pgthr) {
-      std::size_t c{0};
-      for(auto v : vp) {
-        coloring.partitions[cd.vidx][vcm.color_id(p, c)] = v;
-        ++c;
-      } // for
-      ++p;
-    } // for
-  }
+  concatenate(vpart, cd.colors, comm);
 
   /*
     Auxiliary entities.
@@ -1000,18 +965,11 @@ color(MD const & md,
    */
 
   {
-    auto pgthr = util::mpi::all_gatherv(color_peers, comm);
-
-    coloring.color_peers.resize(cd.colors);
-    std::size_t p{0};
-    for(auto vp : pgthr) {
-      std::size_t c{0};
-      for(auto pc : vp) {
-        coloring.color_peers[em.color_id(p, c)] = pc.size();
-        ++c;
-      } // for
-      ++p;
-    } // for
+    auto & cp = coloring.color_peers;
+    cp.reserve(color_peers.size());
+    for(const auto & s : color_peers)
+      cp.push_back(s.size());
+    concatenate(cp, cd.colors, comm);
   }
 
   return coloring;

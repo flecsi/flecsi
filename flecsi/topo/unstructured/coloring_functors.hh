@@ -20,13 +20,13 @@ namespace unstructured_impl {
 
 template<typename Definition>
 struct pack_cells {
-  pack_cells(Definition const & md, std::vector<std::size_t> const & dist)
+  pack_cells(Definition const & md, const util::equal_map & dist)
     : md_(md), dist_(dist) {}
 
   auto operator()(int rank, int) const {
     util::crs e2v;
 
-    for(size_t i{dist_[rank]}; i < dist_[rank + 1]; ++i) {
+    for(const std::size_t i : dist_[rank]) {
       e2v.add_row(md_.entities(Definition::dimension(), 0, i));
     } // for
 
@@ -35,19 +35,20 @@ struct pack_cells {
 
 private:
   Definition const & md_;
-  std::vector<std::size_t> const & dist_;
+  const util::equal_map & dist_;
 }; // struct pack_cells
 
 template<typename Definition>
 struct pack_vertices {
-  pack_vertices(Definition const & md, std::vector<std::size_t> const & dist)
+  pack_vertices(Definition const & md, const util::equal_map & dist)
     : md_(md), dist_(dist) {}
 
   auto operator()(int rank, int) const {
     std::vector<typename Definition::point> vertices;
-    vertices.reserve(dist_[rank + 1] - dist_[rank]);
+    const auto dr = dist_[rank];
+    vertices.reserve(dr.size());
 
-    for(size_t i{dist_[rank]}; i < dist_[rank + 1]; ++i) {
+    for(const std::size_t i : dr) {
       vertices.emplace_back(md_.vertex(i));
     } // for
 
@@ -56,7 +57,7 @@ struct pack_vertices {
 
 private:
   Definition const & md_;
-  std::vector<std::size_t> const & dist_;
+  const util::equal_map & dist_;
 }; // struct pack_vertices
 
 /*
@@ -67,13 +68,13 @@ private:
 struct vertex_referencers {
   vertex_referencers(
     std::map<std::size_t, std::vector<std::size_t>> const & vertex2cell,
-    std::vector<std::size_t> const & dist,
+    const util::equal_map & dist,
     int rank)
-    : size_(dist.size() - 1) {
+    : size_(dist.size()) {
     references_.resize(size_);
     for(auto v : vertex2cell) {
-      auto r = util::distribution_offset(dist, v.first);
-      if(r != rank) {
+      auto r = dist.bin(v.first);
+      if(int(r) != rank) {
         for(auto c : v.second) {
           references_[r][v.first].emplace_back(c);
         } // for
@@ -99,9 +100,9 @@ private:
 struct cell_connectivity {
   cell_connectivity(std::vector<std::vector<std::size_t>> const & vertices,
     std::map<std::size_t, std::vector<std::size_t>> const & connectivity,
-    std::vector<std::size_t> const & dist,
+    const util::equal_map & dist,
     int rank)
-    : size_(dist.size() - 1), connectivity_(size_) {
+    : size_(dist.size()), connectivity_(size_) {
 
     int ro{0};
     for(auto r : vertices) {
@@ -133,16 +134,16 @@ struct distribute_cells {
     Color colors,
     std::vector<Color> const & index_colors,
     int rank)
-    : size_(naive.distribution.size() - 1) {
-    util::color_map cm(size_, colors, naive.distribution.back());
+    : size_(naive.distribution.size()) {
+    const util::equal_map em(colors, size_);
 
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<std::array<std::size_t, 2>> indices;
 
       for(std::size_t i{0}; i < naive.size(); ++i) {
-        if(cm.process(index_colors[i]) == r) {
+        if(em.bin(index_colors[i]) == r) {
           indices.push_back({index_colors[i] /* color of this index */,
-            naive.distribution[rank] + i /* index global id */});
+            naive.distribution(rank) + i /* index global id */});
         } // if
       } // for
 
@@ -192,8 +193,8 @@ struct migrate_cells {
     std::map<std::size_t, std::vector<std::size_t>> & v2c,
     std::map<std::size_t, std::vector<std::size_t>> & c2c,
     int rank)
-    : size_(naive.distribution.size() - 1) {
-    util::color_map cm(size_, colors, naive.distribution.back());
+    : size_(naive.distribution.size()) {
+    const util::equal_map em(colors, size_);
 
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<
@@ -203,9 +204,9 @@ struct migrate_cells {
       std::map<std::size_t, std::vector<std::size_t>> c2c_pack;
 
       for(std::size_t i{0}; i < naive.size(); ++i) {
-        if(cm.process(index_colors[i]) == r) {
-          const std::array<std::size_t, 2> info{
-            index_colors[i], naive.distribution[rank] + i};
+        if(em.bin(index_colors[i]) == r) {
+          const auto j = naive.distribution(rank) + i;
+          const std::array<std::size_t, 2> info{index_colors[i], j};
           cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
 
           /*
@@ -219,8 +220,7 @@ struct migrate_cells {
             v2c_pack[v] = v2c[v];
           } // for
 
-          c2c_pack[naive.distribution[rank] + i] =
-            c2c[naive.distribution[rank] + i];
+          c2c_pack[j] = c2c[j];
 
           /*
             Remove information that we are migrating. We can't remove
@@ -321,20 +321,13 @@ private:
 
 struct vertex_coloring {
 
-  vertex_coloring(std::vector<std::size_t> const & pdist,
+  vertex_coloring(const util::equal_map & pdist,
     std::unordered_map<std::size_t, Color> const & v2co)
-    : size_(pdist.size() - 1), vertices_(size_) {
+    : size_(pdist.size()), vertices_(size_) {
 
     for(auto const & v : v2co) {
-      std::size_t r{std::numeric_limits<std::size_t>::max()};
-      for(std::size_t i{0}; i < std::size_t(size_); ++i) {
-        if(v.first < pdist[i + 1]) {
-          r = i;
-          break;
-        } // if
-      } // for
-
-      vertices_[r].emplace_back(std::array<std::size_t, 2>{v.first, v.second});
+      vertices_[pdist.bin(v.first)].emplace_back(
+        std::array<std::size_t, 2>{v.first, v.second});
     } // for
   } // vertex_coloring
 
@@ -356,20 +349,21 @@ struct migrate_vertices {
       typename Definition::point /* coordinates */
       >>;
 
-  migrate_vertices(std::vector<std::size_t> dist,
+  migrate_vertices(const util::equal_map & dist,
     Color colors,
     std::vector<Color> const & index_colors,
     std::vector<typename Definition::point> & vertices,
     int rank)
-    : size_(dist.size() - 1) {
-    util::color_map cm(size_, colors, dist.back());
+    : size_(dist.size()) {
+    const util::equal_map em(colors, size_);
+    const auto v0 = dist(rank);
+    const auto n = index_colors.size();
 
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       return_type vertex_pack;
-      for(std::size_t i{0}; i < dist[rank + 1] - dist[rank]; ++i) {
-        if(cm.process(index_colors[i]) == r) {
-          const std::array<std::size_t, 2> info{
-            index_colors[i], dist[rank] + i};
+      for(std::size_t i{0}; i < n; ++i) {
+        if(em.bin(index_colors[i]) == r) {
+          const std::array<std::size_t, 2> info{index_colors[i], v0 + i};
           vertex_pack.push_back(std::make_tuple(info, vertices[i]));
         } // if
       } // for

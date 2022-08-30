@@ -8,247 +8,105 @@
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/util/array_ref.hh"
+#include "flecsi/util/serialize.hh"
+
+#include <vector>
 
 namespace flecsi {
 namespace util {
 /// \addtogroup utils
 /// \{
 
-struct color_map;
-
-inline std::ostream & operator<<(std::ostream & stream, color_map const & cm);
-
-/*!
-  The color_map type provides information for creating mappings of colors to
-  processes, where the ratio of processes to colors is not one. Additionally,
-  the color_map type provides information for partitioning a set of indices
-  across a set of colors.
- */
-
-struct color_map {
-
-  friend std::ostream & operator<<(std::ostream & stream, color_map const & cm);
-
-  /*!
-    Construct a color map.
-
-    @param processes The number of processes from the runtime.
-    @param colors    The desired number of colors for the mapping (to be
-                     partitioned onto the processes).
-    @param indices   The number of indices that should be partitioned onto the
-                     colors.
-   */
-
-  color_map(Color processes, Color colors, std::size_t indices)
-    : colors_(colors), indices_(indices),
-      domain_size_(std::min(processes, colors)), quotient_(indices / colors),
-      remainder_(indices % colors), color_quotient_(colors / processes),
-      color_remainder_(colors % processes), dist_(colors + 1) {
-    init();
+template<class D>
+struct map_base {
+  constexpr iota_view<std::size_t> operator[](Color c) const {
+    return {d()(c), d()(c + 1)};
   }
 
-  /*
-    Initialization method.
-   */
-
-  void init() {
-    dist_[0] = 0;
-    for(Color p = 0, offset = 0; p < domain_size_; ++p) {
-      for(Color c = 0; c < colors(p); ++c) {
-        dist_[offset + 1] = dist_[offset] + indices(p, c);
-        offset++;
-      }
-    }
+  constexpr std::size_t total() const {
+    return d()(d().size());
   }
 
-  /*!
-    Return the launch domain size for this color map. The launch domain size
-    will be the minimum of the number of processes and colors.
-   */
-
-  Color domain_size() const {
-    return domain_size_;
-  }
-
-  /*!
-    Return the distribution of indices across colors.
-   */
-
-  std::vector<size_t> const & distribution() const {
-    return dist_;
-  }
-
-  /*!
-    Return the color distribution across processes.
-   */
-
-  std::vector<std::size_t> color_distribution() const {
-    std::vector<std::size_t> d(domain_size_ + 1);
-    d[0] = 0;
-    for(Color p = 0; p < domain_size_; ++p) {
-      d[p + 1] = d[p] + colors(p);
-    }
-    return d;
-  }
-
-  /*!
-    The offset of the first color for the given process.
-   */
-
-  std::size_t color_offset(Color process) const {
-    return process * color_quotient_ +
-           (process >= color_remainder_ ? color_remainder_ : process);
-  }
-
-  /*!
-    Return true if the process owns the global color id.
-   */
-
-  bool has_color(Color process, Color color) const {
-    return color >= color_offset(process) &&
-           color < color_offset(process) + colors(process);
-  }
-
-  /*!
-    The total number of colors.
-   */
-
-  Color colors() const {
-    return colors_;
-  }
-
-  /*!
-    The number of colors for the given process.
-   */
-
-  Color colors(Color process) const {
-    return color_quotient_ + (process < color_remainder_ ? 1 : 0);
-  }
-
-  /*!
-    The global color id for the given process and local color index
-    (zero to < process colors).
-
-    @param process The process (zero to < processes).
-    @param color   The color index (zero to < process colors).
-   */
-
-  Color color_id(Color process, Color color) const {
-    return color_offset(process) + color;
-  }
-
-  /*!
-    The local color id for the given global color index.
-
-    @param process The process (zero to < processes).
-    @param color The global color index.
-   */
-
-  Color local_id(Color process, Color color) const {
-    const std::size_t offset = color_offset(process);
-    const Color id = color - offset;
-    flog_assert(id < colors(process) && color >= offset,
-      "invalid color(" << color << ")");
-    return id;
-  }
-
-  /*!
-    The offset of the first index for the given process and color.
-
-    @param process The process (zero to < processes).
-    @param color   The color index (zero to < process colors).
-   */
-
-  std::size_t index_offset(Color process, Color color) const {
-    const Color c = color_offset(process) + color;
-    return c * quotient_ + (c >= remainder_ ? remainder_ : c);
-  }
-
-  /*!
-    The color of the given index.
-
-    @param index An index that is in the range of indices.
-   */
-
-  Color index_color(std::size_t index) const {
-    flog_assert(index < indices(),
-      "index(" << index << " out-of-range(" << indices() << ")");
-
-    const size_t lower = remainder_ * (quotient_ + 1);
-    if(index < lower) {
-      return index / (quotient_ + 1);
-    }
-    else {
-      return remainder_ + (index - lower) / quotient_;
-    }
-  }
-
-  /*!
-    Return the process that owns the given color.
-   */
-
-  Color process(Color color) {
-    flog_assert(
-      color < colors_, "color(" << color << " out-of-range(" << colors_ << ")");
-
-    const Color lower = color_remainder_ * (color_quotient_ + 1);
-    if(color < lower) {
-      return color / (color_quotient_ + 1);
-    }
-    else {
-      return color_remainder_ + (color - lower) / color_quotient_;
-    }
-  }
-
-  /*!
-    The total number of indices.
-   */
-
-  size_t indices() const {
-    return indices_;
-  }
-
-  /*!
-    The number of indices that are assigned to the given process and color.
-
-    @param process The process (zero to < processes).
-    @param color   The color index (zero to < process colors).
-   */
-
-  std::size_t indices(Color process, Color color) const {
-    const Color c = color_offset(process) + color;
-    return quotient_ + (c < remainder_ ? 1 : 0);
+  constexpr std::pair<Color, std::size_t> invert(std::size_t i) const {
+    const Color c = d().bin(i);
+    return {c, i - d()(c)};
   }
 
 private:
-  Color colors_, indices_, domain_size_;
-  size_t quotient_;
-  size_t remainder_;
-  Color color_quotient_, color_remainder_;
+  constexpr const D & d() const {
+    return static_cast<const D &>(*this);
+  }
+};
 
-  std::vector<size_t> dist_;
+// This can be used both for distributing colors over processes and for
+// distributing indices over colors (along one structured axis).
+struct equal_map : map_base<equal_map> {
+  constexpr equal_map(std::size_t size, Color bins)
+    : q(size / bins), r(size % bins), n(bins) {}
 
-}; // struct color_map
+  constexpr Color size() const {
+    return n;
+  }
 
-inline std::ostream &
-operator<<(std::ostream & stream, color_map const & cm) {
+  constexpr std::size_t operator()(Color c) const {
+    return c * q + std::min(c, r);
+  }
 
-  stream << "colors: " << cm.colors_ << std::endl;
-  stream << "indices: " << cm.indices_ << std::endl;
-  stream << "domain_size: " << cm.domain_size_ << std::endl;
-  stream << "quotient: " << cm.quotient_ << std::endl;
-  stream << "remainder: " << cm.remainder_ << std::endl;
-  stream << "color_quotient: " << cm.color_quotient_ << std::endl;
-  stream << "color_remainder: " << cm.color_remainder_ << std::endl;
+  constexpr Color bin(std::size_t i) const {
+    const std::size_t brk = (*this)(r);
+    return i < brk ? i / (q + 1) : r + (i - brk) / q;
+  }
 
-  stream << "distribution: ";
-  for(auto r : cm.dist_) {
-    stream << r << " ";
-  } // for
-  stream << std::endl;
+private:
+  std::size_t q;
+  Color r, n;
+};
 
-  return stream;
-} // operator<<
+struct offsets : map_base<offsets> {
+  using storage = std::vector<std::size_t>;
+
+  offsets() = default;
+  offsets(storage e) : end(std::move(e)) {}
+  offsets(std::size_t size, Color bins) {
+    end.reserve(bins);
+    const equal_map em(size, bins);
+    for(Color c = 1; c <= bins; ++c)
+      end.push_back(em(c));
+  }
+  offsets(const equal_map & em) : offsets(em.total(), em.size()) {}
+
+  Color size() const {
+    return end.size();
+  }
+
+  Color bin(std::size_t i) const {
+    return std::upper_bound(end.begin(), end.end(), i) - end.begin();
+  }
+
+  std::size_t operator()(Color c) const {
+    return c ? end[c - 1] : 0;
+  }
+
+  const storage & ends() const {
+    return end;
+  }
+
+private:
+  storage end;
+};
+
+template<>
+struct serial::traits<offsets> {
+  using type = offsets;
+  template<class P>
+  static void put(P & p, const type & o) {
+    serial::put(p, o.ends());
+  }
+  static type get(const std::byte *& p) {
+    return serial::get<type::storage>(p);
+  }
+};
 
 /// \}
 } // namespace util

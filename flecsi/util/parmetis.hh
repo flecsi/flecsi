@@ -30,7 +30,7 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);
 
-  flog_assert((naive.distribution.size() - 1) == size_t(size),
+  flog_assert(naive.distribution.size() == size_t(size),
     "invalid naive coloring! naive.colors("
       << colors << ") must equal comm size(" << size << ")");
 
@@ -50,10 +50,10 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
     options[0] = 1;
     options[3] = PARMETIS_PSR_UNCOUPLED;
 
-    flecsi::util::color_map cm(size, colors, naive.distribution.back());
+    const equal_map cm(naive.distribution.total(), colors);
 
     for(size_t i{0}; i < naive.size(); ++i) {
-      part[i] = cm.index_color(naive.distribution[rank] + i);
+      part[i] = cm.bin(naive.distribution(rank) + i);
     } // for
   } // if
 
@@ -65,7 +65,11 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
   ss << std::endl;
   flog_devel(info) << ss.str() << std::endl;
 
-  std::vector<idx_t> vtxdist = as<idx_t>(naive.distribution);
+  std::vector<idx_t> vtxdist(1);
+  {
+    auto & v = naive.distribution.ends();
+    vtxdist.insert(vtxdist.end(), v.begin(), v.end());
+  }
   std::vector<idx_t> xadj = as<idx_t>(naive.offsets);
   std::vector<idx_t> adjncy = as<idx_t>(naive.indices);
 

@@ -6,6 +6,7 @@
 
 #include "flecsi/flog.hh"
 #include "flecsi/topo/narray/types.hh"
+#include "flecsi/topo/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/common.hh"
 
@@ -107,7 +108,7 @@ orientation(Dimension dimension,
   @param dimension mesh dimension
   @param color_indices indices of the given color w.r.t the grid of colors in
   the decomposition.
-  @param axcm color_map of colors on each axis, \sa color_map
+  \param axem \c equal_map of entities over colors on each axis
   @param orient encodes orientation of the given color w.r.t the domain
   @param hdepths halo depths per axis
   @param bdepths domain boundary depths per axis
@@ -119,7 +120,7 @@ orientation(Dimension dimension,
 inline auto
 make_color(Dimension dimension,
   const narray_impl::colors & color_indices,
-  std::vector<util::color_map> const & axcm,
+  std::vector<util::equal_map> const & axem,
   uint32_t orient,
   narray_impl::coord const & hdepths,
   narray_impl::coord const & bdepths,
@@ -146,20 +147,20 @@ make_color(Dimension dimension,
   std::size_t extents{1};
   for(Dimension axis = 0; axis < dimension; ++axis) {
     auto axis_color = color_indices[axis];
-    const util::color_map & cm = axcm[axis];
+    const util::equal_map & em = axem[axis];
     const std::uint32_t bits = orient >> axis * 2;
     const bool lo = bits & mask::low, hi = bits & mask::high;
     auto &log0 = idxco.logical[0][axis], &log1 = idxco.logical[1][axis],
          &ext0 = idxco.extended[0][axis], &tot = idxco.extents[axis];
-    idxco.global[axis] = cm.indices();
+    idxco.global[axis] = em.total();
     // Build the layout incrementally from the bottom edge,
     // adding boundary or halo layers as appropriate:
     log0 = (lo ? bdepths : hdepths)[axis];
     ext0 = lo ? 0 : log0; // NB: the number of low-side ghosts
-    log1 = log0 + cm.indices(axis_color, 0);
+    log1 = log0 + em[axis_color].size();
     tot = log1 + (hi ? bdepths : hdepths)[axis];
     idxco.extended[1][axis] = hi ? tot : log1;
-    idxco.offset[axis] = cm.index_offset(axis_color, 0) - ext0;
+    idxco.offset[axis] = em(axis_color) - ext0;
 
     auto & gi = ghstitvls[axis];
     if(!lo)
@@ -172,7 +173,7 @@ make_color(Dimension dimension,
         "halo and boundary depth must be identical for periodic axes");
 
       if(lo)
-        gi.push_back({cm.colors() - 1, {0, log0}});
+        gi.push_back({em.size() - 1, {0, log0}});
       if(hi)
         gi.push_back({0, {log1, tot}});
     }
@@ -224,11 +225,11 @@ color(narray_impl::coloring_definition const & cd,
 
   Color nc = 1;
   std::size_t indices{1};
-  std::vector<util::color_map> axcm;
+  std::vector<util::equal_map> axem;
   for(Dimension d = 0; d < dimension; ++d) {
     nc *= cd.axis_colors[d];
     indices *= cd.axis_extents[d];
-    axcm.emplace_back(cd.axis_colors[d], cd.axis_colors[d], cd.axis_extents[d]);
+    axem.emplace_back(cd.axis_extents[d], cd.axis_colors[d]);
   } // for
 
   /*
@@ -236,7 +237,7 @@ color(narray_impl::coloring_definition const & cd,
     colors) to the number of processes.
    */
 
-  util::color_map cm(size, nc, indices);
+  const util::equal_map cm(nc, size);
 
   /*
     Create a coloring for each color on this process.
@@ -244,7 +245,7 @@ color(narray_impl::coloring_definition const & cd,
 
   std::vector<process_color> coloring;
   std::vector<std::size_t> partitions;
-  for(Color c = 0; c < cm.colors(rank); ++c) {
+  for(const Color c : cm[rank]) {
     /*
       Convenience functions to map between colors and indices.
      */
@@ -272,7 +273,7 @@ color(narray_impl::coloring_definition const & cd,
       Get the indices representation of our color.
      */
 
-    auto color_indices = co2idx(cm.color_id(rank, c), cd.axis_colors);
+    auto color_indices = co2idx(c, cd.axis_colors);
 
     /*
       Find our orientation within the color space.
@@ -286,7 +287,7 @@ color(narray_impl::coloring_definition const & cd,
 
     auto [idxco, ghstitvls, extents] = make_color(dimension,
       color_indices,
-      axcm,
+      axem,
       orient,
       cd.axis_hdepths,
       cd.axis_bdepths,
@@ -481,7 +482,7 @@ color(narray_impl::coloring_definition const & cd,
 
         auto [ridxco, rghstitvls, extents] = make_color(dimension,
           s.first,
-          axcm,
+          axem,
           orientation(dimension, s.first, cd.axis_colors),
           cd.axis_hdepths,
           cd.axis_bdepths,
@@ -542,21 +543,7 @@ color(narray_impl::coloring_definition const & cd,
     coloring.emplace_back(std::move(idx_coloring));
   } // for
 
-  {
-    auto pgthr = util::mpi::all_gatherv(partitions, comm);
-
-    partitions.clear();
-    partitions.resize(nc);
-    std::size_t p{0};
-    for(auto vp : pgthr) {
-      std::size_t c{0};
-      for(auto v : vp) {
-        partitions[cm.color_id(p, c)] = v;
-        ++c;
-      } // for
-      ++p;
-    } // for
-  }
+  concatenate(partitions, nc, comm);
 
   return std::make_tuple(nc, indices, coloring, partitions);
 } // color
@@ -575,8 +562,7 @@ color(narray_impl::coloring_definition const & cd,
  */
 
 inline auto
-color_auxiliary(std::size_t ne,
-  Color nc,
+color_auxiliary(Color nc,
   std::vector<narray_impl::process_color> const & vpc,
   std::vector<bool> const & extend,
   MPI_Comm comm = MPI_COMM_WORLD,
@@ -656,23 +642,7 @@ color_auxiliary(std::size_t ne,
     partitions.emplace_back(extents);
   } // for
 
-  {
-    auto [rank, size] = util::mpi::info(comm);
-    auto pgthr = util::mpi::all_gatherv(partitions, comm);
-
-    partitions.clear();
-    partitions.resize(nc);
-    util::color_map cm(size, nc, ne);
-    std::size_t p{0};
-    for(auto vp : pgthr) {
-      std::size_t c{0};
-      for(auto v : vp) {
-        partitions[cm.color_id(p, c)] = v;
-        ++c;
-      } // for
-      ++p;
-    } // for
-  }
+  concatenate(partitions, nc, comm);
 
   return std::make_pair(avpc, partitions);
 } // color_auxiliary

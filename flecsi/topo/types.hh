@@ -6,8 +6,10 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/topo/index.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <type_traits>
 
@@ -290,6 +292,17 @@ FLECSI_INLINE_TARGET auto
 make_stride_ids(V && v, decltype(N) o, decltype(N) c) {
   return util::transform_view(
     std::forward<V>(v), stride_impl::stride<S, N>(o, c));
+}
+
+template<class T>
+void
+concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
+  const auto g = util::mpi::all_gatherv(v, comm);
+  v.resize(total);
+  auto it = v.begin();
+  for(const auto & g1 : g)
+    for(const auto & t : g1)
+      *it++ = t;
 }
 
 /// \}

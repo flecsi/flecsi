@@ -173,8 +173,6 @@ struct narray_base {
     std::vector<std::map<Color,
       std::vector<std::pair<std::size_t, std::size_t>>>> & points,
     MPI_Comm const & comm) {
-    auto [rank, size] = util::mpi::info(comm);
-
     std::vector<std::size_t> local_itvls;
     for(const auto & pc : vpc) {
       local_itvls.emplace_back(pc.intervals.size());
@@ -188,18 +186,11 @@ struct narray_base {
 
     auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
 
-    std::size_t entities{1};
-    for(auto a : vpc[0].global) {
-      entities *= a;
-    }
-    util::color_map cm(size, num_intervals.size() /* colors */, entities);
-    std::size_t p{0};
+    auto it = num_intervals.begin();
     for(const auto & pv : global_itvls) {
-      std::size_t co{0};
       for(auto i : pv) {
-        num_intervals[cm.color_id(p, co++)] = i;
+        *it++ = i;
       }
-      ++p;
     }
   } // idx_itvls
 
