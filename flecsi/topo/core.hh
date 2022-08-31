@@ -154,8 +154,11 @@ struct specialization_base {
   /// \{
 
   /// The index space type.
+  /// Must be valid as a template parameter type.  Typically an enumeration;
+  /// the enumerator values are unimportant (so long as they are distinct).
   using index_space = single_space;
   /// The set of index spaces, wrapped in \c has.
+  /// \note Other values (_e.g._, enumerators) of \c index_space are unused.
   using index_spaces = has<elements>;
   /// The topology interface type.
   /// It must be \a B or inherit from it without adding any data members.
