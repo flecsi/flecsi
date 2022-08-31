@@ -208,7 +208,7 @@ context_t::start(const std::function<int()> & action) {
     stream << "\targv: ";
 
     for(auto opt : largv) {
-      stream << opt << " ";
+      stream << std::quoted(opt) << " ";
     } // for
 
     stream << std::endl;
