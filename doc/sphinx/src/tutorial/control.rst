@@ -344,7 +344,7 @@ otherwise:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 68-77
+   :lines: 65-74
 
 The last part of the main function is not really different from previous
 examples; we just have a better understanding of it now.
@@ -355,7 +355,7 @@ termination is selected by throwing ``control_base::exception`` from an action):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 81-87
+   :lines: 78-84
 
 The return value stored in status is the code from *control_base::exception* if
 thrown.  Otherwise it is the bitwise or of return values from the executed
@@ -378,7 +378,7 @@ action:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 21-25
+   :lines: 20-24
 
 The template parameters to *control::action* are the function pointer
 *initialize* and the control point *cp::initialize* (which is why it can be expedient to use a concise enumeration type name).
@@ -524,13 +524,13 @@ Several actions are defined for the two control points in
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 14-69
+   :lines: 14-62
 
 Additionally, several dependencies are defined in the same file:
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 71-87
+   :lines: 64-80
 
 Finally, the additional dependencies from c to a and from d to c are
 added in the *3-dependencies.cc* file:
@@ -580,7 +580,7 @@ and frees the data. Again, the code is self-explanatory:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.cc
    :language: cpp
-   :lines: 11-81
+   :lines: 11-74
 
 The primary take-away from this example should be that users can define
 arbitrary C++ interfaces and data, given the concurrent access restrictions above.

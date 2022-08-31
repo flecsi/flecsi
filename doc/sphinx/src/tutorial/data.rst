@@ -32,7 +32,7 @@ Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 19-37
+  :lines: 19-35
 
 Example 2: Index data 
 +++++++++++++++++++++
@@ -41,7 +41,7 @@ A field on an ``index`` topology stores one value for each color.
 
 .. literalinclude:: ../../../../tutorial/4-data/2-index.cc
   :language: cpp
-  :lines: 12-40
+  :lines: 12-38
 
 Example 3: Dense data
 +++++++++++++++++++++
@@ -64,7 +64,7 @@ The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a pa
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 18-53
+  :lines: 18-51
 
 ----
 

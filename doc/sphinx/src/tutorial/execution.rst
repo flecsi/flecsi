@@ -110,7 +110,7 @@ the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :lines: 15-32
+  :lines: 15-30
 
 
 Launch Domains
@@ -135,6 +135,6 @@ method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :lines: 15-29
+  :lines: 15-27
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
