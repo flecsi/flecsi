@@ -492,8 +492,8 @@ template<typename MD>
 template<typename C>
 void
 coloring_utils<MD>::color_primaries(C && c) {
-  primary_raw_ =
-    std::forward<C>(c)(primary_connectivity_state().naive, cd_.colors, comm_);
+  const auto & n = primary_connectivity_state().naive;
+  primary_raw_ = std::forward<C>(c)(n.distribution, n, cd_.colors, comm_);
 } // color_primaries
 
 template<typename MD>

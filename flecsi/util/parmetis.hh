@@ -25,23 +25,24 @@ namespace parmetis {
 /// \addtogroup utils
 /// \{
 
-/// Generate a coloring of the given naive graph partition defined by
-/// \em naive into \em colors colors. This function uses ParMETIS' \em
-/// ParMETIS_V3_PartKway interface to perform a k-way partitioning
-/// of the graph over the number of processes defined in \em comm. Each
+/// Generate a coloring of the given naive graph partition into \em colors
+/// colors.  This function uses \c ParMETIS_V3_PartKway.  Each
 /// process in the comm must participate.
-/// \param naive  A distributed compressed-row-storage representation
-///               of the connectivity graph.
+/// \param dist distribution of entities over ranks
+/// \param graph local connectivity graph
 /// \param colors The number of partitions to create.
 /// \param comm   An MPI_Comm object that defines the number of processes.
 inline std::vector<Color>
-color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
+color(const util::offsets & dist,
+  const crs & graph,
+  idx_t colors,
+  MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);
 
-  flog_assert(naive.distribution.size() == size_t(size),
-    "invalid naive coloring! naive.colors("
-      << colors << ") must equal comm size(" << size << ")");
+  flog_assert(dist.size() == size_t(size),
+    "distribution size (" << colors << ") must equal comm size(" << size
+                          << ")");
 
   idx_t wgtflag = 0;
   idx_t numflag = 0;
@@ -53,15 +54,15 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
   idx_t options[3]{};
   idx_t edgecut;
 
-  std::vector<idx_t> part(naive.size());
+  std::vector<idx_t> part(graph.size());
 
   std::vector<idx_t> vtxdist(1);
   {
-    auto & v = naive.distribution.ends();
+    auto & v = dist.ends();
     vtxdist.insert(vtxdist.end(), v.begin(), v.end());
   }
-  std::vector<idx_t> xadj = as<idx_t>(naive.offsets);
-  std::vector<idx_t> adjncy = as<idx_t>(naive.indices);
+  std::vector<idx_t> xadj = as<idx_t>(graph.offsets);
+  std::vector<idx_t> adjncy = as<idx_t>(graph.indices);
 
   // clang-format off
   int result = ParMETIS_V3_PartKway(&vtxdist[0], &xadj[0], &adjncy[0],
