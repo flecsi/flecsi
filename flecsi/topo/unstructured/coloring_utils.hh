@@ -220,6 +220,10 @@ struct coloring_utils {
     return all_;
   }
 
+  auto & get_naive() const {
+    return naive;
+  }
+
 private:
   void build_intermediary(std::size_t kind,
     util::crs & e2v,
@@ -271,7 +275,6 @@ private:
   }
 
   struct connectivity_state_t {
-    util::dcrs naive;
     util::crs e2v;
     std::map<std::size_t, std::vector<std::size_t>> v2e;
     std::map<std::size_t, std::vector<std::size_t>> e2e;
@@ -309,6 +312,7 @@ private:
   // Connectivity state is associated with an entity's kind (as opposed to
   // its index space).
   std::vector<connectivity_state_t> conns_;
+  util::crs naive;
 
   std::vector<Color> primary_raw_;
   std::vector<Color> vertex_raw_;
@@ -467,20 +471,11 @@ coloring_utils<MD>::color_primaries(std::size_t shared, C && f) {
     Populate the actual distributed crs data structure.
    */
 
-  cnns.naive.distribution = ecm;
-
-  cnns.naive.offsets.emplace_back(0);
   for(const std::size_t c : ecm[rank_]) {
-    for(auto cr : cnns.e2e[c]) {
-      cnns.naive.indices.emplace_back(cr);
-    } // for
-
-    cnns.naive.offsets.emplace_back(
-      cnns.naive.offsets.back() + cnns.e2e[c].size());
+    naive.add_row(cnns.e2e[c]);
   } // for
 
-  const auto & n = cnns.naive;
-  primary_raw_ = std::forward<C>(f)(n.distribution, n, cd_.colors, comm_);
+  primary_raw_ = std::forward<C>(f)(ecm, naive, cd_.colors, comm_);
 } // color_primaries
 
 template<typename MD>
@@ -493,7 +488,7 @@ coloring_utils<MD>::migrate_primaries() {
   auto migrated =
     util::mpi::all_to_allv<move_primaries>(
       {
-        cnns.naive.distribution, cd_.colors, primary_raw_, cnns.e2v,
+          util::equal_map(num_primaries(), size_), cd_.colors, primary_raw_, cnns.e2v,
         cnns.v2e, cnns.e2e, rank_
       },
       comm_

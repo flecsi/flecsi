@@ -43,10 +43,12 @@ parmetis_coloring() {
 
       cu.migrate_primaries();
       auto const & cnns = cu.primary_connectivity_state();
-      auto const & naive = cnns.naive;
+      auto const & naive = cu.get_naive();
 
       std::vector<size_t> distribution = {52, 103, 154, 205, 256};
-      ASSERT_EQ(naive.distribution.ends(), distribution);
+      ASSERT_EQ(
+        util::offsets(util::equal_map(sd.num_entities(2), colors)).ends(),
+        distribution);
 
       EXPECT_EQ(cu.primaries().at(process()), cnns.p2m);
       UNIT_CAPTURE() << flog::container(naive.offsets) << '\n'
