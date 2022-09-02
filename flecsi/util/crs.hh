@@ -72,19 +72,6 @@ struct crs : util::with_index_iterator<const crs> {
   }
 }; // struct crs
 
-struct dcrs : crs {
-  util::offsets distribution;
-
-  std::size_t colors() {
-    return distribution.size();
-  }
-
-  void clear() {
-    crs::clear();
-    distribution = {};
-  }
-}; // struct dcrs
-
 inline std::string
 expand(crs const & graph) {
   std::stringstream stream;
@@ -119,15 +106,6 @@ operator<<(std::ostream & stream, crs const & graph) {
   return stream << std::endl;
 } // operator<<
 
-inline std::ostream &
-operator<<(std::ostream & stream, dcrs const & graph) {
-  stream << "distribution: ";
-  for(auto o : graph.distribution.ends()) {
-    stream << o << " ";
-  }
-  return stream << std::endl << static_cast<const crs &>(graph);
-} // operator<<
-
 /// \}
 } // namespace util
 
@@ -141,19 +119,6 @@ struct util::serial::traits<util::crs> {
   static type get(const std::byte *& p) {
     const cast r{p};
     return type{{}, r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<util::dcrs> {
-  using type = util::dcrs;
-  template<class P>
-  static void put(P & p, const type & d) {
-    serial::put(p, static_cast<util::crs const &>(d), d.distribution);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
   }
 };
 
