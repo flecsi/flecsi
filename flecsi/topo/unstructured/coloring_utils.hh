@@ -175,9 +175,9 @@ struct coloring_utils {
 
   /// Close the local auxiliary distributions with respect to off-color
   /// dependencies, i.e., assemble the local shared and ghost information.
-  /// \param idx  The entity index space of the auxiliary to close.
   /// \param kind The mesh definition entity kind of the auxiliary to close.
-  void close_auxiliary(std::size_t idx, entity_kind kind);
+  /// \param idx  The entity index space of the auxiliary to close.
+  void close_auxiliary(entity_kind kind, std::size_t idx);
 
   /// Return a reference to the coloring object. Note that this method
   /// has side effects: it gathers global peer information for the superset
