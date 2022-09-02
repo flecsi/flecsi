@@ -69,19 +69,8 @@ add_unit(coloring
   INPUTS
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
+    unstructured/test/disconnected.msh
   THREADS 5
-)
-
-add_unit(closure
-  SOURCES
-    unstructured/test/closure.cc
-    unstructured/test/simple_definition.hh
-    unstructured/test/ugm_definition.hh
-  INPUTS
-    unstructured/test/simple2d-16x16.msh
-    unstructured/test/simple2d-8x8.msh
-    unstructured/test/bunny.ugm
-  THREADS 2
 )
 
 set(UTHREADS 4)

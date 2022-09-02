@@ -100,6 +100,15 @@ if [ -n "${CONFIG_INSTALL_PREFIX}" ] ; then
 fi
 
 #------------------------------------------------------------------------------#
+# Generator
+#------------------------------------------------------------------------------#
+
+SCRIPT_GENERATOR="Unix Makefiles"
+if [ -n "${CONFIG_SCRIPT_GENERATOR}" ] ; then
+  SCRIPT_GENERATOR="${CONFIG_SCRIPT_GENERATOR}"
+fi
+
+#------------------------------------------------------------------------------#
 # Check command-line arguments
 #------------------------------------------------------------------------------#
 
@@ -108,7 +117,6 @@ backend=legion
 cmake_args=""
 
 WARN="-Wall -Wundef -W -Werror"
-SCRIPT_GENERATOR="Unix Makefiles"
 SCRIPT_BUILD_TYPE=RelWithDebInfo
 
 # Default is clang

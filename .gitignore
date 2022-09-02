@@ -1,6 +1,8 @@
 # exclude CMake build folders
 /build
 /tutorial/build
+/tutorial/standalone/flaxpy/build
+/tutorial/standalone/poisson/build
 
 # exclude compiled Python files due to Spack repo
 *.pyc

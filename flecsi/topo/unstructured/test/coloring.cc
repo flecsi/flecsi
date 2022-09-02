@@ -10,19 +10,20 @@
 #include "flecsi/util/parmetis.hh"
 #include "flecsi/util/unit.hh"
 
-//#include "tikz_writer.hh"
-
 using namespace flecsi;
+using namespace flecsi::topo::unstructured_impl;
 
 int
 naive_coloring() {
   UNIT("TASK") {
-    topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
+    simple_definition sd("simple2d-16x16.msh");
     ASSERT_EQ(sd.dimension(), 2lu);
     ASSERT_EQ(sd.num_entities(0), 289lu);
     ASSERT_EQ(sd.num_entities(2), 256lu);
 
-    auto [naive, e2v, v2e, e2e] = topo::unstructured_impl::make_dcrs(sd, 1);
+    coloring_utils cu(&sd, {5, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {});
+    cu.create_graph<true>(2, 1);
+    auto const & naive = cu.connectivity_state(2).naive;
 
     std::vector<size_t> distribution = {52, 103, 154, 205, 256};
     ASSERT_EQ(naive.distribution.ends(), distribution);
@@ -166,146 +167,151 @@ naive_coloring() {
 } // naive_coloring
 
 int
-parmetis_colorer() {
+parmetis_coloring() {
   UNIT("TASK") {
     using util::mpi::test;
-    topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
+    simple_definition sd("simple2d-16x16.msh");
 
     const Color colors = 5;
 
     // Coloring with 5 colors with MPI_COMM_WORLD
     {
-      auto [naive, e2v, v2e, e2e] = topo::unstructured_impl::make_dcrs(sd, 1);
-      auto raw = util::parmetis::color(naive, colors);
+      coloring_utils cu(
+        &sd, {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {});
+      cu.create_graph<true>(2, 1);
+      cu.color_primaries(util::parmetis::color);
+
       {
         std::stringstream ss;
         ss << "raw: " << std::endl;
-        for(auto r : raw) {
+        for(auto r : cu.primary_raw()) {
           ss << r << " ";
         }
         ss << std::endl;
         flog_devel(info) << ss.str();
       } // scope
 
-      auto [primaries, p2m, m2p] =
-        topo::unstructured_impl::migrate(naive, colors, raw, e2v, v2e, e2e);
+      cu.migrate_primaries();
+      auto const & cnns = cu.primary_connectivity_state();
+      auto const & primaries = cu.primaries();
 
       // clang-format off
-    switch(process()) {
-      case 0: {
-        std::vector<std::size_t> primaries_blessed = {
-          0, 1, 2, 3, 4, 16, 17, 18, 19, 20, 32, 33, 34, 35, 36, 48, 49, 50,
-          51, 52, 64, 65, 66, 67, 68, 80, 81, 82, 83, 84, 96, 97, 98, 99, 100,
-          112, 113, 114, 115, 116, 128, 129, 130, 131, 132, 144, 145, 146, 147,
-          148, 160, 161
-        };
-        std::map<std::size_t, std::size_t> m2p_blessed = {
-          {0,0}, {1,1}, {2,2}, {3,3}, {4,4}, {16,5}, {17,6}, {18,7}, {19,8},
-          {20,9}, {32,10}, {33,11}, {34,12}, {35,13}, {36,14}, {48,15},
-          {49,16}, {50,17}, {51,18}, {52,19}, {64,20}, {65,21}, {66,22},
-          {67,23}, {68,24}, {80,25}, {81,26}, {82,27}, {83,28}, {84,29},
-          {96,30}, {97,31}, {98,32}, {99,33}, {100,34}, {112,35}, {113,36},
-          {114,37}, {115,38}, {116,39}, {128,40}, {129,41}, {130,42}, {131,43},
-          {132,44}, {144,45}, {145,46}, {146,47}, {147,48}, {148,49}, {160,50},
-          {161,51}
-        };
+      switch(process()) {
+        case 0: {
+          std::vector<std::size_t> primaries_blessed = {
+            0, 1, 2, 3, 4, 16, 17, 18, 19, 20, 32, 33, 34, 35, 36, 48, 49, 50,
+            51, 52, 64, 65, 66, 67, 68, 80, 81, 82, 83, 84, 96, 97, 98, 99,
+            100, 112, 113, 114, 115, 116, 128, 129, 130, 131, 132, 144, 145,
+            146, 147, 148, 160, 161
+          };
+          std::map<std::size_t, std::size_t> m2p_blessed = {
+            {0,0}, {1,1}, {2,2}, {3,3}, {4,4}, {16,5}, {17,6}, {18,7}, {19,8},
+            {20,9}, {32,10}, {33,11}, {34,12}, {35,13}, {36,14}, {48,15},
+            {49,16}, {50,17}, {51,18}, {52,19}, {64,20}, {65,21}, {66,22},
+            {67,23}, {68,24}, {80,25}, {81,26}, {82,27}, {83,28}, {84,29},
+            {96,30}, {97,31}, {98,32}, {99,33}, {100,34}, {112,35}, {113,36},
+            {114,37}, {115,38}, {116,39}, {128,40}, {129,41}, {130,42},
+            {131,43}, {132,44}, {144,45}, {145,46}, {146,47}, {147,48},
+            {148,49}, {160,50}, {161,51}
+          };
 
-        ASSERT_EQ(p2m, primaries_blessed);
-        ASSERT_EQ(m2p, m2p_blessed);
-        ASSERT_EQ(primaries.at(0), primaries_blessed);
-      } break;
-      case 1: {
-        std::vector<std::size_t> primaries_blessed = {
-          10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 30, 31, 42, 43, 44, 45, 46,
-          47, 58, 59, 60, 61, 62, 63, 74, 75, 76, 77, 78, 79, 90, 91, 92, 93,
-          94, 95, 106, 107, 108, 109, 110, 111, 122, 123, 124, 125, 126, 127,
-          138, 139, 140, 141
-        };
-        std::map<std::size_t, std::size_t> m2p_blessed = {
-          {10, 0}, {11, 1}, {12, 2}, {13, 3}, {14, 4}, {15, 5}, {26, 6},
-          {27, 7}, {28, 8}, {29, 9}, {30, 10}, {31, 11}, {42, 12}, {43, 13},
-          {44, 14}, {45, 15}, {46, 16}, {47, 17}, {58, 18}, {59, 19}, {60, 20},
-          {61, 21}, {62, 22}, {63, 23}, {74, 24}, {75, 25}, {76, 26}, {77, 27},
-          {78, 28}, {79, 29}, {90, 30}, {91, 31}, {92, 32}, {93, 33}, {94, 34},
-          {95, 35}, {106, 36}, {107, 37}, {108, 38}, {109, 39}, {110, 40},
-          {111, 41}, {122, 42}, {123, 43}, {124, 44}, {125, 45}, {126, 46},
-          {127, 47}, {138, 48}, {139, 49}, {140, 50}, {141, 51}
-        };
+          ASSERT_EQ(cnns.p2m, primaries_blessed);
+          ASSERT_EQ(cnns.m2p, m2p_blessed);
+          ASSERT_EQ(primaries.at(0), primaries_blessed);
+        } break;
+        case 1: {
+          std::vector<std::size_t> primaries_blessed = {
+            10, 11, 12, 13, 14, 15, 26, 27, 28, 29, 30, 31, 42, 43, 44, 45, 46,
+            47, 58, 59, 60, 61, 62, 63, 74, 75, 76, 77, 78, 79, 90, 91, 92, 93,
+            94, 95, 106, 107, 108, 109, 110, 111, 122, 123, 124, 125, 126, 127,
+            138, 139, 140, 141
+          };
+          std::map<std::size_t, std::size_t> m2p_blessed = {
+            {10, 0}, {11, 1}, {12, 2}, {13, 3}, {14, 4}, {15, 5}, {26, 6},
+            {27, 7}, {28, 8}, {29, 9}, {30, 10}, {31, 11}, {42, 12}, {43, 13},
+            {44, 14}, {45, 15}, {46, 16}, {47, 17}, {58, 18}, {59, 19},
+            {60, 20}, {61, 21}, {62, 22}, {63, 23}, {74, 24}, {75, 25},
+            {76, 26}, {77, 27}, {78, 28}, {79, 29}, {90, 30}, {91, 31},
+            {92, 32}, {93, 33}, {94, 34}, {95, 35}, {106, 36}, {107, 37},
+            {108, 38}, {109, 39}, {110, 40}, {111, 41}, {122, 42}, {123, 43},
+            {124, 44}, {125, 45}, {126, 46}, {127, 47}, {138, 48}, {139, 49},
+            {140, 50}, {141, 51}
+          };
 
-        ASSERT_EQ(p2m, primaries_blessed);
-        ASSERT_EQ(m2p, m2p_blessed);
-        ASSERT_EQ(primaries.at(1), primaries_blessed);
-      } break;
-      case 2: {
-        std::vector<std::size_t> primaries_blessed = {
-          5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 37, 38, 39, 40, 41, 53, 54, 55,
-          56, 57, 69, 70, 71, 72, 73, 85, 86, 87, 88, 89, 101, 102, 103, 104,
-          105, 117, 118, 119, 120, 121, 133, 134, 135, 136, 137, 149, 150, 151,
-          152, 153
-        };
-        std::map<std::size_t, std::size_t> m2p_blessed = {
-          {5, 0}, {6, 1}, {7, 2}, {8, 3}, {9, 4}, {21, 5}, {22, 6}, {23, 7},
-          {24, 8}, {25, 9}, {37, 10}, {38, 11}, {39, 12}, {40, 13}, {41, 14},
-          {53, 15}, {54, 16}, {55, 17}, {56, 18}, {57, 19}, {69, 20}, {70, 21},
-          {71, 22}, {72, 23}, {73, 24}, {85, 25}, {86, 26}, {87, 27}, {88, 28},
-          {89, 29}, {101, 30}, {102, 31}, {103, 32}, {104, 33}, {105, 34},
-          {117, 35}, {118, 36}, {119, 37}, {120, 38}, {121, 39}, {133, 40},
-          {134, 41}, {135, 42}, {136, 43}, {137, 44}, {149, 45}, {150, 46},
-          {151, 47}, {152, 48}, {153, 49}
-        };
+          ASSERT_EQ(cnns.p2m, primaries_blessed);
+          ASSERT_EQ(cnns.m2p, m2p_blessed);
+          ASSERT_EQ(primaries.at(1), primaries_blessed);
+        } break;
+        case 2: {
+          std::vector<std::size_t> primaries_blessed = {
+            5, 6, 7, 8, 9, 21, 22, 23, 24, 25, 37, 38, 39, 40, 41, 53, 54, 55,
+            56, 57, 69, 70, 71, 72, 73, 85, 86, 87, 88, 89, 101, 102, 103, 104,
+            105, 117, 118, 119, 120, 121, 133, 134, 135, 136, 137, 149, 150,
+            151, 152, 153
+          };
+          std::map<std::size_t, std::size_t> m2p_blessed = {
+            {5, 0}, {6, 1}, {7, 2}, {8, 3}, {9, 4}, {21, 5}, {22, 6}, {23, 7},
+            {24, 8}, {25, 9}, {37, 10}, {38, 11}, {39, 12}, {40, 13}, {41, 14},
+            {53, 15}, {54, 16}, {55, 17}, {56, 18}, {57, 19}, {69, 20},
+            {70, 21}, {71, 22}, {72, 23}, {73, 24}, {85, 25}, {86, 26},
+            {87, 27}, {88, 28}, {89, 29}, {101, 30}, {102, 31}, {103, 32},
+            {104, 33}, {105, 34}, {117, 35}, {118, 36}, {119, 37}, {120, 38},
+            {121, 39}, {133, 40}, {134, 41}, {135, 42}, {136, 43}, {137, 44},
+            {149, 45}, {150, 46}, {151, 47}, {152, 48}, {153, 49}
+          };
 
-        ASSERT_EQ(p2m, primaries_blessed);
-        ASSERT_EQ(m2p, m2p_blessed);
-        ASSERT_EQ(primaries.at(2), primaries_blessed);
-      } break;
-      case 3: {
-        std::vector<std::size_t> primaries_blessed = {
-          142, 143, 154, 155, 156, 157, 158, 159, 169, 170, 171, 172, 173, 174,
-          175, 185, 186, 187, 188, 189, 190, 191, 201, 202, 203, 204, 205, 206,
-          207, 217, 218, 219, 220, 221, 222, 223, 233, 234, 235, 236, 237, 238,
-          239, 249, 250, 251, 252, 253, 254, 255
-        };
-        std::map<std::size_t, std::size_t> m2p_blessed = {
-          {142, 0}, {143, 1}, {154, 2}, {155, 3}, {156, 4}, {157, 5}, {158, 6},
-          {159, 7}, {169, 8}, {170, 9}, {171, 10}, {172, 11}, {173, 12},
-          {174, 13}, {175, 14}, {185, 15}, {186, 16}, {187, 17}, {188, 18},
-          {189, 19}, {190, 20}, {191, 21}, {201, 22}, {202, 23}, {203, 24},
-          {204, 25}, {205, 26}, {206, 27}, {207, 28}, {217, 29}, {218, 30},
-          {219, 31}, {220, 32}, {221, 33}, {222, 34}, {223, 35}, {233, 36},
-          {234, 37}, {235, 38}, {236, 39}, {237, 40}, {238, 41}, {239, 42},
-          {249, 43}, {250, 44}, {251, 45}, {252, 46}, {253, 47}, {254, 48},
-          {255, 49}
-        };
+          ASSERT_EQ(cnns.p2m, primaries_blessed);
+          ASSERT_EQ(cnns.m2p, m2p_blessed);
+          ASSERT_EQ(primaries.at(2), primaries_blessed);
+        } break;
+        case 3: {
+          std::vector<std::size_t> primaries_blessed = {
+            142, 143, 154, 155, 156, 157, 158, 159, 169, 170, 171, 172, 173,
+            174, 175, 185, 186, 187, 188, 189, 190, 191, 201, 202, 203, 204,
+            205, 206, 207, 217, 218, 219, 220, 221, 222, 223, 233, 234, 235,
+            236, 237, 238, 239, 249, 250, 251, 252, 253, 254, 255
+          };
+          std::map<std::size_t, std::size_t> m2p_blessed = {
+            {142, 0}, {143, 1}, {154, 2}, {155, 3}, {156, 4}, {157, 5},
+            {158, 6}, {159, 7}, {169, 8}, {170, 9}, {171, 10}, {172, 11},
+            {173, 12}, {174, 13}, {175, 14}, {185, 15}, {186, 16}, {187, 17},
+            {188, 18}, {189, 19}, {190, 20}, {191, 21}, {201, 22}, {202, 23},
+            {203, 24}, {204, 25}, {205, 26}, {206, 27}, {207, 28}, {217, 29},
+            {218, 30}, {219, 31}, {220, 32}, {221, 33}, {222, 34}, {223, 35},
+            {233, 36}, {234, 37}, {235, 38}, {236, 39}, {237, 40}, {238, 41},
+            {239, 42}, {249, 43}, {250, 44}, {251, 45}, {252, 46}, {253, 47},
+            {254, 48}, {255, 49}
+          };
 
-        ASSERT_EQ(p2m, primaries_blessed);
-        ASSERT_EQ(m2p, m2p_blessed);
-        ASSERT_EQ(primaries.at(3), primaries_blessed);
-      } break;
-      case 4: {
-        std::vector<std::size_t> primaries_blessed = {
-          162, 163, 164, 165, 166, 167, 168, 176, 177, 178, 179, 180, 181, 182,
-          183, 184, 192, 193, 194, 195, 196, 197, 198, 199, 200, 208, 209, 210,
-          211, 212, 213, 214, 215, 216, 224, 225, 226, 227, 228, 229, 230, 231,
-          232, 240, 241, 242, 243, 244, 245, 246, 247, 248
-        };
-        std::map<std::size_t, std::size_t> m2p_blessed = {
-          {162, 0}, {163, 1}, {164, 2}, {165, 3}, {166, 4}, {167, 5}, {168, 6},
-          {176, 7}, {177, 8}, {178, 9}, {179, 10}, {180, 11}, {181, 12},
-          {182, 13}, {183, 14}, {184, 15}, {192, 16}, {193, 17}, {194, 18},
-          {195, 19}, {196, 20}, {197, 21}, {198, 22}, {199, 23}, {200, 24},
-          {208, 25}, {209, 26}, {210, 27}, {211, 28}, {212, 29}, {213, 30},
-          {214, 31}, {215, 32}, {216, 33}, {224, 34}, {225, 35}, {226, 36},
-          {227, 37}, {228, 38}, {229, 39}, {230, 40}, {231, 41}, {232, 42},
-          {240, 43}, {241, 44}, {242, 45}, {243, 46}, {244, 47}, {245, 48},
-          {246, 49}, {247, 50}, {248, 51}
-        };
+          ASSERT_EQ(cnns.p2m, primaries_blessed);
+          ASSERT_EQ(cnns.m2p, m2p_blessed);
+          ASSERT_EQ(primaries.at(3), primaries_blessed);
+        } break;
+        case 4: {
+          std::vector<std::size_t> primaries_blessed = {
+            162, 163, 164, 165, 166, 167, 168, 176, 177, 178, 179, 180, 181,
+            182, 183, 184, 192, 193, 194, 195, 196, 197, 198, 199, 200, 208,
+            209, 210, 211, 212, 213, 214, 215, 216, 224, 225, 226, 227, 228,
+            229, 230, 231, 232, 240, 241, 242, 243, 244, 245, 246, 247, 248
+          };
+          std::map<std::size_t, std::size_t> m2p_blessed = {
+            {162, 0}, {163, 1}, {164, 2}, {165, 3}, {166, 4}, {167, 5},
+            {168, 6}, {176, 7}, {177, 8}, {178, 9}, {179, 10}, {180, 11},
+            {181, 12}, {182, 13}, {183, 14}, {184, 15}, {192, 16}, {193, 17},
+            {194, 18}, {195, 19}, {196, 20}, {197, 21}, {198, 22}, {199, 23},
+            {200, 24}, {208, 25}, {209, 26}, {210, 27}, {211, 28}, {212, 29},
+            {213, 30}, {214, 31}, {215, 32}, {216, 33}, {224, 34}, {225, 35},
+            {226, 36}, {227, 37}, {228, 38}, {229, 39}, {230, 40}, {231, 41},
+            {232, 42}, {240, 43}, {241, 44}, {242, 45}, {243, 46}, {244, 47},
+            {245, 48}, {246, 49}, {247, 50}, {248, 51}
+          };
 
-        ASSERT_EQ(p2m, primaries_blessed);
-        ASSERT_EQ(m2p, m2p_blessed);
-        ASSERT_EQ(primaries.at(4), primaries_blessed);
-      } break;
-    } // switch
-        // clang-format on
+          ASSERT_EQ(cnns.p2m, primaries_blessed);
+          ASSERT_EQ(cnns.m2p, m2p_blessed);
+          ASSERT_EQ(primaries.at(4), primaries_blessed);
+        } break;
+      } // switch
+      // clang-format on
     } // scope
 
     // Coloring with 5 colors with custom communicator with 2 processes
@@ -315,22 +321,26 @@ parmetis_colorer() {
         MPI_COMM_WORLD, process() < 2 ? 0 : MPI_UNDEFINED, 0, &group_comm));
 
       if(process() < 2) {
-        auto [naive, e2v, v2e, e2e] =
-          topo::unstructured_impl::make_dcrs(sd, 1, group_comm);
-        auto raw = util::parmetis::color(naive, colors, group_comm);
+        coloring_utils cu(&sd,
+          {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}},
+          {},
+          group_comm);
+        cu.create_graph<true>(2, 1);
+        cu.color_primaries(util::parmetis::color);
 
         {
           std::stringstream ss;
           ss << "raw: " << std::endl;
-          for(auto r : raw) {
+          for(auto r : cu.primary_raw()) {
             ss << r << " ";
           }
           ss << std::endl;
           flog_devel(info) << ss.str();
         } // scope
 
-        auto [primaries, p2m, m2p] = topo::unstructured_impl::migrate(
-          naive, colors, raw, e2v, v2e, e2e, group_comm);
+        cu.migrate_primaries();
+        auto const & cnns = cu.primary_connectivity_state();
+        auto const & primaries = cu.primaries();
 
         // clang-format off
         switch(process()) {
@@ -413,8 +423,8 @@ parmetis_colorer() {
             ASSERT_EQ(primaries.at(0), primaries_blessed.at(0));
             ASSERT_EQ(primaries.at(1), primaries_blessed.at(1));
             ASSERT_EQ(primaries.at(2), primaries_blessed.at(2));
-            ASSERT_EQ(p2m, p2m_blessed);
-            ASSERT_EQ(m2p, m2p_blessed);
+            ASSERT_EQ(cnns.p2m, p2m_blessed);
+            ASSERT_EQ(cnns.m2p, m2p_blessed);
           } break;
           case 1: {
             std::map<std::size_t, std::vector<std::size_t>>
@@ -472,8 +482,8 @@ parmetis_colorer() {
 
             ASSERT_EQ(primaries.at(3), primaries_blessed.at(3));
             ASSERT_EQ(primaries.at(4), primaries_blessed.at(4));
-            ASSERT_EQ(p2m, p2m_blessed);
-            ASSERT_EQ(m2p, m2p_blessed);
+            ASSERT_EQ(cnns.p2m, p2m_blessed);
+            ASSERT_EQ(cnns.m2p, m2p_blessed);
           } break;
         } // switch
         // clang-format on
@@ -482,13 +492,13 @@ parmetis_colorer() {
       } // if
     } // scope
   };
-} // parmetis_colorer
+} // parmetis_coloring
 
 int
 coloring_driver() {
   UNIT() {
     ASSERT_EQ((test<naive_coloring, mpi>()), 0);
-    ASSERT_EQ((test<parmetis_colorer, mpi>()), 0);
+    ASSERT_EQ((test<parmetis_coloring, mpi>()), 0);
   };
 } // simple2d_8x8
 

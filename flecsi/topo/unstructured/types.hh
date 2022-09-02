@@ -18,13 +18,18 @@
 #include <cstddef>
 #include <map>
 #include <set>
+#include <tuple>
 #include <vector>
 
 namespace flecsi {
 namespace topo {
+
 /// \addtogroup unstructured
 /// \{
 namespace unstructured_impl {
+
+using entity_kind = std::size_t;
+using entity_index_space = std::size_t;
 
 /// Information about an entity that is shared with other colors.
 struct shared_entity {
@@ -132,8 +137,7 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
 template<PrivilegeCount NI, PrivilegeCount NO>
 void
 transpose(
-  field<util::id, data::ragged>::accessor1<privilege_ghost_repeat<ro, na, NI>>
-    input,
+  field<util::id, data::ragged>::accessor1<privilege_repeat<ro, NI>> input,
   field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NO>> output) {
   std::size_t e = 0;
   for(auto && i : input) {
@@ -145,74 +149,57 @@ transpose(
 
 /// Strategy for contructing colorings.
 struct coloring_definition {
+  /// Instances of this type are used to map from a mesh definition
+  /// to an index space. In many cases, it is not possible to simply
+  /// use the topological dimension of the entity type, e.g., edges will
+  /// collide with corners. This problem is solved by using explicit
+  /// identifiers for each entity kind in the mesh definition and
+  /// associating it with the entity index space defined by the
+  /// specialization.
+  struct index_map {
+    std::size_t kind; // mesh definition entity kind
+    std::size_t idx; // entity index space id
+  };
+
   /// Total number of colors.
   Color colors;
   /// Index of primary entity in \c index_spaces.
   /// \warning Not an \c index_space enumerator \b value.
-  std::size_t idx;
-  /// Dimensionality of the mesh.
-  std::size_t dim;
+  index_map cid;
   /// Number of layers of ghosts needed.
   std::size_t depth;
-
   /// Index of vertices in \c index_spaces.
-  std::size_t vidx;
-
-  struct auxiliary {
-    std::size_t idx;
-    std::size_t dim;
-    bool cnx;
-  };
-
-  /// Information for auxiliary entities.
-  std::vector<auxiliary> aux;
+  index_map vid;
+  /// Indices of auxiliary entities in \c index_spaces.
+  std::vector<index_map> aidxs;
 };
 
 /// Information specific to a local color.
+/// \ingroup unstructured
 struct process_coloring {
 
-  /*!
-    Global color.
-   */
-
+  /// The global color that this object defines.
   Color color;
 
-  /*!
-    The global number of entities in this index space.
-   */
-
+  /// The global number of entities in this index space.
   std::size_t entities;
 
-  /*!
-    The local coloring information for this index space.
-
-    The coloring information is expressed in the mesh index space,
-    i.e., the ids are global.
-   */
-
+  /// The local coloring information for this index space.
+  /// The coloring information is expressed in the mesh index space,
+  /// i.e., the ids are global.
   index_coloring coloring;
 
-  /*!
-    Communication peers (needed for ragged/sparse buffer creation).
-   */
-
+  /// Communication peers (needed for ragged/sparse buffer creation).
   std::vector<Color> peers;
 
-  /*!
-   The local allocation size for each connectivity. The vector is over
-   connectivities between this entity type and another entity type. The
-   ordering follows that given in the specialization policy.
-   */
-
+  /// The local allocation size for each connectivity. The vector is over
+  /// connectivities between this entity type and another entity type. The
+  /// ordering follows that given in the specialization policy.
   std::vector<std::size_t> cnx_allocs;
 
-  /*!
-    The local graph for each connectivity.
-
-    The graph information is expressed in the mesh index space,
-    i.e., the ids are global. The vector is like cnx_alloc.
-   */
-
+  /// The local graph for each connectivity.
+  /// The graph information is expressed in the mesh index space,
+  /// i.e., the ids are global. The vector is like cnx_alloc.
   std::vector<util::crs> cnx_colorings;
 }; // struct process_coloring
 
@@ -221,6 +208,7 @@ operator<<(std::ostream & stream, process_coloring const & pc) {
   stream << "color: " << pc.color << std::endl;
   stream << "entities: " << pc.entities << std::endl;
   stream << "coloring:\n" << pc.coloring << std::endl;
+  stream << "peers:\n" << flog::container{pc.peers} << std::endl;
   stream << "cnx_allocs:\n" << flog::container{pc.cnx_allocs} << std::endl;
   stream << "cnx_colorings:\n"
          << flog::container{pc.cnx_colorings} << std::endl;
@@ -256,31 +244,54 @@ struct unstructured_base {
     std::vector</* over contiguous intervals */
       data::subrow>>;
 
-  /// Coloring type.
+  /// The coloring data strcuture is how information is passed to the FleCSI
+  /// runtime to construct one or more unstructured mesh specialization types.
+  /// The coloring object is returned by the specailization's `color` method.
   /// \ingroup unstructured
   struct coloring {
-    /*!
-      Communicator over which the coloring is distributed.
-     */
+    /// An MPI communicator that can be used to specify subsets of COMM_WORLD
+    /// ranks on which the coloring should be computed. This variable is used
+    /// internaly in several of the FleCSI coloring utilities methods.
     MPI_Comm comm;
 
-    /// Global number of colors.
+    /// The global number of colors, i.e., the number of partitions into which
+    /// this coloring instance will divide the input mesh.
     Color colors;
 
-    /// List of colors assigned for each process.
-    std::vector<std::vector<Color>> process_colors;
+    /// The local colors that belong to a given process. This varaible stores
+    /// the local color information over all global processes.
+    std::vector</* over global processes */
+      std::vector</* over local process colors */
+        Color>>
+      process_colors;
 
-    /// Count of communication peers for each global color.
-    std::vector<std::size_t> color_peers;
+    /// The superset of communication peers over the global colors, i.e., for
+    /// each color, this stores the number of communication peers over all
+    /// index spaces.
+    std::vector</* over global colors */
+      std::size_t>
+      color_peers;
 
-    /// Communication peers for each global color for each index space.
-    std::vector<std::vector<std::vector<Color>>> peers;
+    /// The communication peers over each index space over all colors, i.e.,
+    /// for each index space and for each color, the communication peers
+    /// (color ids) are stored.
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::vector</* over peers */
+          Color>>>
+      peers;
 
-    /// Number of index points for each global color for each index space.
-    std::vector<std::vector<std::size_t>> partitions;
+    /// The partition sizes over each index space and over all colors.
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
 
-    /// Detailed information for each local color for each index space.
-    std::vector<std::vector<process_coloring>> idx_spaces;
+    /// The index space coloring over each index space and local color.
+    std::vector</* over index spaces */
+      std::vector</* over process colors */
+        process_coloring>>
+      idx_spaces;
   }; // struct coloring
 
   template<class A>
@@ -343,17 +354,19 @@ struct unstructured_base {
       auto const & ic = pc.coloring;
 
       /*
-        Define the entity ordering from coloring. This version uses the
-        mesh ordering, i.e., the entities are sorted by ascending mesh id.
+        Define the entity ordering from the coloring. The ordering is
+        defined by "all".
        */
 
-      for(auto const & e : ic.owned) {
+      for(auto const & e : ic.all) {
         entities.push_back(e);
       } // for
 
-      for(auto const & e : ic.ghost) {
-        entities.push_back(e.id);
+      /*
+        Add ghosts to sources.
+       */
 
+      for(auto const & e : ic.ghost) {
         if(sources[e.process].size() == 0) {
           sources[e.process].resize(vpc.size());
         } // if
@@ -362,13 +375,6 @@ struct unstructured_base {
         sources[e.process][lco].emplace_back(s);
         sources_lco[e.process].emplace_back(lco);
       } // for
-
-      /*
-        This call is what actually establishes the entity ordering by
-        sorting the mesh entity ids.
-       */
-
-      util::force_unique(entities);
 
       /*
         Initialize the forward and reverse maps.
@@ -388,8 +394,7 @@ struct unstructured_base {
       } // for
 
       /*
-        After the entity order has been established, we need to create a
-        lookup table for local ghost offsets.
+        Create a lookup table for local ghost offsets.
        */
 
       for(auto e : ic.ghost) {
@@ -782,6 +787,53 @@ operator<<(std::ostream & stream,
   stream << "idx_spaces\n" << flog::container{c.idx_spaces} << std::endl;
   return stream;
 }
+
+#if 1
+namespace unstructured_impl {
+/*!
+  Initialize a connectivity using the coloring. This method uses
+  from-to nomenclature, e.g., 'from' cells to 'vertices' initializes the
+  cell index space connectivity to the vertices index space.
+
+  @tparam From  The index space for the from entity.
+  @tparam To    The index space for the to entity.
+  @tparam NF    Number of privileges for connectivity field.
+  @param  mconn A multi-accessor to the connectivity field.
+  @param  c     The coloring.
+  @param  map   The local-to-global id map for the to entities.
+ */
+template<entity_index_space From, entity_index_space To, PrivilegeCount NF>
+void
+init_connectivity(
+  data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
+    mconn,
+  unstructured_base::coloring const & c,
+  std::vector<std::map<std::size_t, std::size_t>> const & maps) {
+
+  auto pcs = c.idx_spaces[From].begin();
+  auto mp = maps.begin();
+  for(auto & x2y : mconn.accessors()) {
+    auto const & pc = *pcs++;
+    auto const & vm = *mp++;
+    std::size_t off{0};
+
+    auto const & cnx = pc.cnx_colorings[To];
+    for(std::size_t e{0}; e < cnx.offsets.size() - 1; ++e) {
+      const std::size_t start = cnx.offsets[off];
+      const std::size_t size = cnx.offsets[off + 1] - start;
+      x2y[e].resize(size);
+
+      for(std::size_t i{0}; i < size; ++i) {
+        x2y[e][i] = vm.at(cnx.indices[start + i]);
+      } // for
+
+      ++off;
+    } // for
+  } // for
+}
+} // namespace unstructured_impl
+#endif
+
 /// \}
 } // namespace topo
 

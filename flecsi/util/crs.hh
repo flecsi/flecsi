@@ -48,13 +48,15 @@ struct crs : util::with_index_iterator<const crs> {
     add_row(init.begin(), init.end());
   }
 
-  void add_row(std::vector<std::size_t> const & v) {
-    add_row(v.begin(), v.end());
+  template<typename Range>
+  void add_row(Range const & it) {
+    add_row(it.begin(), it.end());
   }
 
   std::size_t size() const {
-    flog_assert(!offsets.empty(), "attempted to call entries on empty object");
-    return offsets.size() - 1;
+    flog_assert(offsets.empty() || offsets.size() > 1,
+      "attempted to call size on invalid crs object");
+    return offsets.empty() ? 0 : offsets.size() - 1;
   }
 
   void clear() {
@@ -83,18 +85,37 @@ struct dcrs : crs {
   }
 }; // struct dcrs
 
+inline std::string
+expand(crs const & graph) {
+  std::stringstream stream;
+  std::size_t r{0};
+  for(auto & o : graph.offsets) {
+    if(o != graph.offsets.back()) {
+      stream << r++ << ": <";
+      auto n = *(&o + 1);
+      for(std::size_t i{o}; i < n; ++i) {
+        stream << graph.indices[i];
+        if(i < n - 1) {
+          stream << ",";
+        }
+      }
+      stream << ">" << std::endl;
+    }
+  }
+  return stream.str();
+}
+
 inline std::ostream &
 operator<<(std::ostream & stream, crs const & graph) {
-  stream << "offsets: ";
+  stream << "crs offsets: ";
   for(auto o : graph.offsets) {
     stream << o << " ";
   }
-  stream << std::endl;
-
-  stream << "indices: ";
+  stream << "\n\ncrs indices: ";
   for(auto o : graph.indices) {
     stream << o << " ";
   }
+  stream << "\n\ncrs expansion:\n" << expand(graph) << std::endl;
   return stream << std::endl;
 } // operator<<
 

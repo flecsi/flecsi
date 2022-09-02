@@ -25,7 +25,16 @@ namespace parmetis {
 /// \addtogroup utils
 /// \{
 
-static std::vector<Color>
+/// Generate a coloring of the given naive graph partition defined by
+/// \em naive into \em colors colors. This function uses ParMETIS' \em
+/// ParMETIS_V3_PartKway interface to perform a k-way partitioning
+/// of the graph over the number of processes defined in \em comm. Each
+/// process in the comm must participate.
+/// \param naive  A distributed compressed-row-storage representation
+///               of the connectivity graph.
+/// \param colors The number of partitions to create.
+/// \param comm   An MPI_Comm object that defines the number of processes.
+inline std::vector<Color>
 color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   auto [rank, size] = util::mpi::info(comm);

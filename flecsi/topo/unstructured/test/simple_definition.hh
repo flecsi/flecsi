@@ -22,6 +22,7 @@ class simple_definition
 {
 public:
   using point = std::array<double, 2>;
+  using id = std::size_t;
   static constexpr Dimension dimension() {
     return 2;
   }
@@ -107,6 +108,20 @@ public:
 
     return ids;
   } // vertices
+
+  template<typename T>
+  void make_entity(std::size_t dim,
+    std::size_t,
+    std::vector<T> const & vertices,
+    util::crs & entities) const {
+    flog_assert(dim == 1, "invalid entity dimension(" << dim << ")");
+
+    const T * last = &vertices.back();
+    for(auto & v : vertices) {
+      entities.add_row({*last, v});
+      last = &v;
+    }
+  } // make_entity
 
   /*
     Return the vertex with the given id.
