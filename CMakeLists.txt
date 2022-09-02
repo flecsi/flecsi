@@ -70,7 +70,6 @@ if(ENABLE_FORMAT)
   flecsi_add_format_target(${PROJECT_NAME} ${PROJECT_SOURCE_DIR} "${ClangFormat_VERSION}")
 endif()
 
-
 #------------------------------------------------------------------------------#
 # Documentation
 #------------------------------------------------------------------------------#
@@ -454,7 +453,7 @@ endif()
 include(summary)
 
 flecsi_summary_header()
-flecsi_summary_info("FleCSI_VERSION" "${FleCSI_VERSION}" TRUE)
+flecsi_summary_info("FleCSI Version" "${FleCSI_VERSION_BRIEF}" FALSE)
 
 if(ENABLE_DOCUMENTATION)
   flecsi_summary_info("FleCSI_DOCUMENTATION_VERSION"
@@ -463,8 +462,8 @@ endif()
 
 string(APPEND _summary "\n")
 
-if(${PROJECT_NAME}_COMMITS)
-  flecsi_summary_info("Repository state" "${${PROJECT_NAME}_COMMITS}" FALSE)
+if(FleCSI_REPO_STATE)
+  flecsi_summary_info("Repository state" "${FleCSI_REPO_STATE}" FALSE)
 endif()
 
 string(APPEND _summary "\n")
