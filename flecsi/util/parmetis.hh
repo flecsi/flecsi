@@ -50,29 +50,10 @@ color(dcrs const & naive, idx_t colors, MPI_Comm comm = MPI_COMM_WORLD) {
 
   // We may need to expose some of the ParMETIS configuration options.
   std::vector<real_t> ubvec(ncon, 1.05);
-  idx_t options[4] = {0, 0, 0, 0};
+  idx_t options[3]{};
   idx_t edgecut;
 
   std::vector<idx_t> part(naive.size());
-
-  if(size != colors) {
-    options[0] = 1;
-    options[3] = PARMETIS_PSR_UNCOUPLED;
-
-    const equal_map cm(naive.distribution.total(), colors);
-
-    for(size_t i{0}; i < naive.size(); ++i) {
-      part[i] = cm.bin(naive.distribution(rank) + i);
-    } // for
-  } // if
-
-  std::stringstream ss;
-  ss << "part size: " << part.size() << std::endl;
-  for(auto i : part) {
-    ss << i << " ";
-  }
-  ss << std::endl;
-  flog_devel(info) << ss.str() << std::endl;
 
   std::vector<idx_t> vtxdist(1);
   {
