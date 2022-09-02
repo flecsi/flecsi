@@ -111,35 +111,29 @@ struct coloring_utils {
     coloring_.idx_spaces.resize(2 + cd_.aidxs.size());
   } // coloring_utils
 
-  /// Create connectivity graph for the given entity id through the specified
-  /// number of shared vertices.
+  /// Create connectivity graph for the given entity type.
   ///
-  /// \warning This method will fail on certain non-convex mesh entities. In
-  /// particular, if a non-convex cell abuts a cell that is inscribed in the
-  /// convex hull of the non-convex entity, it is possible that the non-convex
-  /// entity will share \em shared vertices with an entity that abuts the
-  /// convex hull without actually being connected. Other similar cases of
-  /// this nature are also possible.
   /// \note This method marshalls the naive partition information on the
   /// root process and sends the respective data to each initially-owning
   /// process. The current implementation is designed to avoid having many
   /// processes hit the file system at once. This may not be optimal on all
   /// parallel file systems.
   ///
-  /// \tparam S      If S is true, populate a util::dcrs data structure
-  ///                suitable for passing to a partitioner like
-  ///                util::parmetis::color.
   /// \param  kind   Entity kind for which to build connectivity.
-  /// \param  shared Entities are connected if they share more than shared
-  ///                vertices.
-  template<bool S>
-  void create_graph(entity_kind kind, std::size_t shared);
+  void create_graph(entity_kind kind);
 
   /// Color the primary entity type using the provided coloring function.
+  /// \param shared maximum number of shared vertices to disregard
   /// \param c coloring function object with the signature of
   ///          flecsi::util::parmetis::color
+  /// \warning This method will fail on certain non-convex mesh entities. In
+  /// particular, if a non-convex cell abuts a cell that is inscribed in the
+  /// convex hull of the non-convex entity, it is possible that the non-convex
+  /// entity will share \em shared vertices with an entity that abuts the
+  /// convex hull without actually being connected. Other similar cases of
+  /// this nature are also possible.
   template<typename C>
-  void color_primaries(C && c);
+  void color_primaries(std::size_t shared, C && c);
 
   /// Redistribute the primary entities. This method moves the primary
   /// entities to their owning colors.
@@ -339,9 +333,8 @@ private:
 // being opened by all processes may require changes or alternatives to this
 // function.
 template<typename MD>
-template<bool S>
 void
-coloring_utils<MD>::create_graph(std::size_t kind, std::size_t shared) {
+coloring_utils<MD>::create_graph(std::size_t kind) {
 
   const util::equal_map ecm(num_entities(kind), size_);
 
@@ -429,64 +422,65 @@ coloring_utils<MD>::create_graph(std::size_t kind, std::size_t shared) {
 
   // Remove duplicate referencers
   util::unique_each(cnns.v2e);
-
-  if constexpr(S) {
-    /*
-      Fill in the entity-to-entity connectivity that have "shared" vertices
-      in common.
-     */
-
-    std::size_t c{offset};
-    for(auto const & cdef : cnns.e2v) {
-      std::map<std::size_t, std::size_t> shr;
-
-      for(auto v : cdef) {
-        auto it = cnns.v2e.find(v);
-        if(it != cnns.v2e.end()) {
-          for(auto rc : cnns.v2e.at(v)) {
-            if(rc != c)
-              ++shr[rc];
-          } // for
-        } // if
-      } // for
-
-      for(auto tc : shr) {
-        if(tc.second > shared) {
-          cnns.e2e[c].emplace_back(tc.first);
-          cnns.e2e[tc.first].emplace_back(c);
-        } // if
-      } // for
-
-      ++c;
-    } // for
-
-    // Remove duplicate connections
-    util::unique_each(cnns.e2e);
-
-    /*
-      Populate the actual distributed crs data structure.
-     */
-
-    cnns.naive.distribution = ecm;
-
-    cnns.naive.offsets.emplace_back(0);
-    for(const std::size_t c : ecm[rank_]) {
-      for(auto cr : cnns.e2e[c]) {
-        cnns.naive.indices.emplace_back(cr);
-      } // for
-
-      cnns.naive.offsets.emplace_back(
-        cnns.naive.offsets.back() + cnns.e2e[c].size());
-    } // for
-  } // if
-} // create_graph
+}
 
 template<typename MD>
 template<typename C>
 void
-coloring_utils<MD>::color_primaries(C && c) {
-  const auto & n = primary_connectivity_state().naive;
-  primary_raw_ = std::forward<C>(c)(n.distribution, n, cd_.colors, comm_);
+coloring_utils<MD>::color_primaries(std::size_t shared, C && f) {
+  auto & cnns = primary_connectivity_state();
+  const util::equal_map ecm(num_primaries(), size_);
+
+  /*
+    Fill in the entity-to-entity connectivity that have "shared" vertices
+    in common.
+   */
+
+  std::size_t c = ecm(rank_);
+  for(auto const & cdef : cnns.e2v) {
+    std::map<std::size_t, std::size_t> shr;
+
+    for(auto v : cdef) {
+      auto it = cnns.v2e.find(v);
+      if(it != cnns.v2e.end()) {
+        for(auto rc : cnns.v2e.at(v)) {
+          if(rc != c)
+            ++shr[rc];
+        } // for
+      } // if
+    } // for
+
+    for(auto tc : shr) {
+      if(tc.second > shared) {
+        cnns.e2e[c].emplace_back(tc.first);
+        cnns.e2e[tc.first].emplace_back(c);
+      } // if
+    } // for
+
+    ++c;
+  } // for
+
+  // Remove duplicate connections
+  util::unique_each(cnns.e2e);
+
+  /*
+    Populate the actual distributed crs data structure.
+   */
+
+  cnns.naive.distribution = ecm;
+
+  cnns.naive.offsets.emplace_back(0);
+  for(const std::size_t c : ecm[rank_]) {
+    for(auto cr : cnns.e2e[c]) {
+      cnns.naive.indices.emplace_back(cr);
+    } // for
+
+    cnns.naive.offsets.emplace_back(
+      cnns.naive.offsets.back() + cnns.e2e[c].size());
+  } // for
+
+  const auto & n = cnns.naive;
+  primary_raw_ = std::forward<C>(f)(n.distribution, n, cd_.colors, comm_);
 } // color_primaries
 
 template<typename MD>
