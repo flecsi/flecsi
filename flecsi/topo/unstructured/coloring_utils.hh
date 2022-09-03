@@ -335,16 +335,9 @@ private:
   std::set<std::size_t> built_;
 }; // struct coloring_utils
 
-/// Create a connectivity graph from kind-to-kind through connections that
-/// share at least \em shared vertices, e.g., cell-to-cell connectivity
-/// through faces. This function requests the entity definitions (vertices
-/// that define each entity) from the mesh definition on the root process,
-/// and then communicates the naively-partitioned data to each
-/// initially-owning process. This strategy is useful to avoid resource
-/// contention when many processes request, .e.g., the same input file on a
-/// parallel file system. When support is added to employ other mechanisms
-/// for color initialization, this function may need to change, or offer
-/// additional strategies.
+// New mechanisms for color initialization that do not involve a shared file
+// being opened by all processes may require changes or alternatives to this
+// function.
 template<typename MD>
 template<bool S>
 void
