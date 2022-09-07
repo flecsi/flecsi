@@ -32,6 +32,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using colors = base::colors;
   using hypercube = base::hypercube;
   using coloring_definition = base::coloring_definition;
+  using color_map = base::color_map;
 
   struct meta_data {
     double xdelta;
@@ -196,20 +197,18 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     } // is_boundary
   }; // struct interface
 
-  static auto distribute(std::size_t np, std::vector<std::size_t> indices) {
-    return flecsi::topo::narray_utils::distribute(np, indices);
-  } // distribute
-
   /*--------------------------------------------------------------------------*
     Color Method.
    *--------------------------------------------------------------------------*/
 
-  static coloring color(colors axis_colors, coord axis_extents) {
+  static coloring color(std::size_t num_colors, coord axis_extents) {
     coord hdepths{1, 1};
     coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};
-    coloring_definition cd{
-      axis_colors, axis_extents, hdepths, bdepths, periodic};
+
+    auto axcm =
+      flecsi::topo::narray_utils::make_color_maps(num_colors, axis_extents);
+    coloring_definition cd{axcm, hdepths, bdepths, periodic};
 
     auto [nc, ne, pcs, partitions] =
       flecsi::topo::narray_utils::color(cd, MPI_COMM_WORLD);

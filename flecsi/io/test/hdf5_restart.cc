@@ -122,8 +122,8 @@ setup() {
   mesh1d::coord hdepths{0};
   mesh1d::coord bdepths{0};
   std::vector<bool> periodic{false};
-  mesh1d::coloring_definition cd = {
-    colors, indices, hdepths, bdepths, periodic, false};
+  auto axcm = topo::narray_utils::make_color_maps(colors[0], indices);
+  mesh1d::coloring_definition cd = {axcm, hdepths, bdepths, periodic, false};
   mc.allocate(cd);
   m.allocate(mc.get());
   run::context::instance().add_topology(m);
