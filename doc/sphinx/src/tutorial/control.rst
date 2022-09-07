@@ -357,9 +357,10 @@ termination is selected by throwing ``control_base::exception`` from an action):
    :language: cpp
    :lines: 78-84
 
-The return value stored in status is the code from *control_base::exception* if
-thrown.  Otherwise it is the bitwise or of return values from the executed
-actions.
+If inheriting from ``control_base``, the return value stored in status is either the
+code from ``control_base::exception`` if thrown or ``status::success`` otherwise.
+If not inheriting from ``control_base``, the return value is the bitwise or of return
+values from the executed actions.
 
 Now that we have defined the control model and added it to our runtime
 setup, the only thing that remains is to add some actions under the
