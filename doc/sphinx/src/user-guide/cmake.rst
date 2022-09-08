@@ -62,32 +62,38 @@ following CMake files can be included to utilize the same
 documentation system for your own projects.
 
 ``FleCSI/documentation``
-   Adds the ``flecsi_enable_documentation`` macro, which defines a
-   ``doc`` target.  It collects all later defined documentation
-   targets. ``make doc`` will build all defined sphinx and doxygen
-   targets.
+   Adds the ``flecsi_set_doc_target_name(target)`` macro, which is
+   used to define the name of a generic documentation target
+   ``FLECSI_DOC_TARGET``. This target collects and runs all other
+   later defined documentation targets. If no name is set, it defaults
+   to ``doc``.  This target itself is created during the first call of
+   either ``flecsi_add_doxygen_target`` or
+   ``flecsi_add_sphinx_target``.
 
-   It also adds the ``flecsi_enable_docs_deployment()`` macro, which
-   takes a Git repository URL as parameter. Calling this macro adds a
-   ``deploy-docs`` target. It will checkout the ``gh-pages`` branch
-   from the specified Git repository.  The checkout will be cleared
-   and the result of the ``doc`` target is copied into it. Files are
-   only added, but **not** commited or pushed. These are left as
-   manual steps.
+   This file also adds the ``flecsi_add_doc_deployment()`` function.
+   It takes two parameters: the target name and ``GITHUB_PAGES_REPO``
+   which is a Git repository URL. Running the target checks out the
+   ``gh-pages`` branch of that repository, clears it and puts the
+   result of all documentation targets into it.  Files are only added,
+   but **not** commited or pushed. These are left as manual steps.
 
 ``FleCSI/sphinx``
-  Adds the ``flecsi_enable_sphinx`` macro, which adds a ``sphinx``
-  target. It collects all later defined sphinx targets. The ``sphinx``
-  target is added as dependency of the ``doc`` target.
+  Adds the ``flecsi_set_sphinx_target_name`` macro, which is used to
+  define the name of a generic Sphinx target ``FLECSI_SPHINX_TARGET``.
+  This target collects and runs all other later defined Sphinx
+  targets. If no name is set, it defaults to ``sphinx``. The target
+  itself is created during the first call of
+  ``flecsi_add_sphinx_target``.
 
-  Sphinx builds are then defined with the ``flecsi_add_sphinx_target``
-  function. It takes three parameters: the target name, ``CONFIG``
-  directory, and ``OUTPUT`` directory. The provided ``CONFIG``
-  directory must contain a ``conf.py.in`` file. This template will be
-  processed with ``configure_file`` to produce the final Sphinx
-  configuration file ``conf.py``. This configuration file as well as
-  the ``_static`` and ``_templates`` directories will be copied to the
-  ``OUTPUT`` directory, where the target will be built.
+  Sphinx builds are defined with the ``flecsi_add_sphinx_target``
+  function. It takes three parameters: the target name, which will be
+  prefixed with ``${FLECSI_SPHINX_TARGET}-``, a ``CONFIG`` directory, and
+  ``OUTPUT`` directory. The provided ``CONFIG`` directory must contain
+  a ``conf.py.in`` file. This template will be processed with
+  ``configure_file`` to produce the final Sphinx configuration file
+  ``conf.py``. This configuration file as well as the ``_static`` and
+  ``_templates`` directories will be copied to the ``OUTPUT``
+  directory, where the target will be built.
 
   Usage:
 
@@ -96,21 +102,34 @@ documentation system for your own projects.
      include(FleCSI/documentation)
      include(FleCSI/sphinx)
 
-     flecsi_enable_documentation()
+     flecsi_set_doc_target_name(mydoc)
+     flecsi_set_sphinx_target_name(mysphinx)
 
      flecsi_add_sphinx_target(main              # custom target name
        CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx    # folder containing conf.py.in
        OUTPUT ${CMAKE_BINARY_DIR}/doc           # output directory
      )
 
+     flecsi_add_doc_deployment(deploy-docs
+                               GITHUB_PAGES_REPO git@github.com:flecsi/flecsi.git)
+
+     # the following targets will be defined:
+     # - mydoc
+     # - mysphinx
+     # - mysphinx-main
+     # - deploy-docs
+
 ``FleCSI/doxygen``
-  Adds the ``flecsi_enable_doxygen`` macro, which adds a ``doxygen``
-  target. It collects all later defined doxygen targets. The
-  ``doxygen`` target is added as dependency of the ``doc`` target.
+  Adds the ``flecsi_set_doxygen_target_name`` macro, which is used to
+  define the name of a generic Doxygen target
+  ``FLECSI_DOXYGEN_TARGET``. This target collects and runs all other
+  later defined Doxygen targets. If no name is set, it defaults to
+  ``doxygen``. The target itself is created during the first call of
+  ``flecsi_add_doxygen_target``.
 
   Doxygen builds are defined with the ``flecsi_add_doxygen_target``
   function.  It takes two parameters: the target name, which will be
-  prefixed with ``doxygen-``, and one or more file names in
+  prefixed with ``${FLECSI_DOXYGEN_TARGET}-``, and one or more file names in
   ``CONFIGS``. Each of the configuration files will be processed with
   ``configure_file``. The final output location is controlled by what
   is defined in these configuration files. E.g. by defining

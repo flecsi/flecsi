@@ -82,7 +82,6 @@ mark_as_advanced(GITHUB_PAGES_REPO)
 
 if(ENABLE_DOCUMENTATION)
   include(documentation)
-  flecsi_enable_documentation()
 
   option(ENABLE_DOXYGEN "Enable Doxygen documentation" ON)
   option(ENABLE_SPHINX  "Enable Sphinx documentation"  ON)
@@ -92,7 +91,6 @@ if(ENABLE_DOCUMENTATION)
 
   if(ENABLE_DOXYGEN)
     include(doxygen)
-    flecsi_enable_doxygen()
 
     # Create Doxygen output directory eagerly to avoid race condition.
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
@@ -111,7 +109,6 @@ if(ENABLE_DOCUMENTATION)
 
   if(ENABLE_SPHINX)
     include(sphinx)
-    flecsi_enable_sphinx()
 
     flecsi_add_sphinx_target(main
       CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
@@ -129,8 +126,8 @@ if(ENABLE_DOCUMENTATION)
     )
   endif()
 
-  if(GITHUB_PAGES_REPO AND ENABLE_SPHINX AND ENABLE_DOXYGEN)
-    flecsi_enable_docs_deployment(${GITHUB_PAGES_REPO})
+  if((NOT GITHUB_PAGES_REPO STREQUAL "") AND ENABLE_SPHINX AND ENABLE_DOXYGEN)
+    flecsi_add_doc_deployment(deploy-docs GITHUB_PAGES_REPO ${GITHUB_PAGES_REPO})
   endif()
 endif()
 
