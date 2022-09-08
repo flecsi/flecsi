@@ -4,14 +4,15 @@ macro(flecsi_enable_testing)
   endif()
 
   enable_testing()
-  add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
-  target_link_libraries(flecsi-unit-main PRIVATE FleCSI::FleCSI)
-  target_include_directories(flecsi-unit-main PRIVATE ${CMAKE_BINARY_DIR})
-  if (ENABLE_KOKKOS)
-    target_compile_options(flecsi-unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
-  endif()
   set(FLECSI_ENABLE_TESTING ON)
 endmacro()
+
+function(_flecsi_define_unit_main_target)
+  if(NOT TARGET flecsi-unit-main)
+    add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
+    target_link_libraries(flecsi-unit-main PUBLIC FleCSI::FleCSI)
+  endif()
+endfunction()
 
 function(flecsi_add_test name)
 
@@ -24,6 +25,8 @@ function(flecsi_add_test name)
   if(NOT FLECSI_ENABLE_TESTING)
     return()
   endif()
+
+  _flecsi_define_unit_main_target()
 
   #----------------------------------------------------------------------------#
   # Setup argument options.
@@ -131,7 +134,6 @@ function(flecsi_add_test name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    $<TARGET_OBJECTS:flecsi-unit-main>
   )
   
   set_target_properties(${name}
@@ -194,7 +196,7 @@ function(flecsi_add_test name)
     target_link_libraries(${name} PRIVATE ${unit_LIBRARIES})
   endif()
 
-  target_link_libraries(${name} PRIVATE FleCSI::FleCSI)
+  target_link_libraries(${name} PRIVATE flecsi-unit-main)
   target_link_libraries(${name} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
   if(unit_policy_libraries)
@@ -226,7 +228,7 @@ function(flecsi_add_test name)
   list(LENGTH unit_PROCS proc_instances)
 
   #we need to add -ll:gpu 1 to arguments if CUDA is enabled 
-  if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_CUDA)
+  if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND Kokkos_ENABLE_CUDA)
    list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
   endif()
 
