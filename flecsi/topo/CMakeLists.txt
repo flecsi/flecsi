@@ -82,6 +82,7 @@ endif()
 add_unit(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
+    unstructured/test/unstructured.hh
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
@@ -91,6 +92,15 @@ add_unit(unstructured
 add_unit(fixed
   SOURCES
     unstructured/test/fixed.cc
+  THREADS 4
+)
+
+add_unit(set
+  SOURCES
+    unstructured/test/unstructured.hh
+    set/test/mpm_set.cc
+  INPUTS
+    unstructured/test/simple2d-16x16.msh
   THREADS 4
 )
 
