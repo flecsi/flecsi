@@ -53,6 +53,7 @@ struct crs : util::with_index_iterator<const crs> {
     add_row(it.begin(), it.end());
   }
 
+  /// Return the number of rows.
   std::size_t size() const {
     flog_assert(offsets.empty() || offsets.size() > 1,
       "attempted to call size on invalid crs object");
@@ -64,6 +65,8 @@ struct crs : util::with_index_iterator<const crs> {
     indices.clear();
   }
 
+  /// Return a row.
+  /// \return substring of \c indices
   span operator[](std::size_t i) const {
     flog_assert(offsets.size() - 1 > i, "invalid span index");
     const std::size_t begin = offsets[i];
