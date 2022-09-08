@@ -44,7 +44,7 @@ interface() {
       static_assert(chk(2, 6, 2));
       static_assert(chk(3, 8, 2));
 
-      util::offsets eo(10, 4), off({1, 2, 5});
+      util::offsets eo(em), off({1, 2, 5});
       EXPECT_EQ(eo[3].size(), em[3].size());
       EXPECT_EQ(off[0].size(), 1);
       EXPECT_EQ(off[1].size(), 1);

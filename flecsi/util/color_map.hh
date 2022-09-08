@@ -68,13 +68,11 @@ struct offsets : map_base<offsets> {
 
   offsets() = default;
   offsets(storage e) : end(std::move(e)) {}
-  offsets(std::size_t size, Color bins) {
-    end.reserve(bins);
-    const equal_map em(size, bins);
-    for(Color c = 1; c <= bins; ++c)
+  offsets(const equal_map & em) {
+    end.reserve(em.size());
+    for(Color c = 1; c <= em.size(); ++c)
       end.push_back(em(c));
   }
-  offsets(const equal_map & em) : offsets(em.total(), em.size()) {}
 
   Color size() const {
     return end.size();
