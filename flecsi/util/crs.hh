@@ -29,17 +29,14 @@ as(std::vector<U> const & v) {
 struct crs : util::with_index_iterator<const crs> {
   using span = util::span<const std::size_t>;
 
-  /// The beginning of each row in \c indices, including a trailing value that
-  /// is the end of the last row.
-  std::vector<std::size_t> offsets;
+  /// The rows in \c indices.
+  util::offsets offsets;
   /// The concatenated rows.
   std::vector<std::size_t> indices;
 
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
-    if(offsets.empty())
-      offsets.emplace_back(0);
-    offsets.emplace_back(offsets.back() + std::distance(first, last));
+    offsets.push_back(std::distance(first, last));
     indices.insert(indices.end(), first, last);
   }
 
@@ -55,9 +52,7 @@ struct crs : util::with_index_iterator<const crs> {
 
   /// Return the number of rows.
   std::size_t size() const {
-    flog_assert(offsets.empty() || offsets.size() > 1,
-      "attempted to call size on invalid crs object");
-    return offsets.empty() ? 0 : offsets.size() - 1;
+    return offsets.size();
   }
 
   void clear() {
@@ -68,10 +63,8 @@ struct crs : util::with_index_iterator<const crs> {
   /// Return a row.
   /// \return substring of \c indices
   span operator[](std::size_t i) const {
-    flog_assert(offsets.size() - 1 > i, "invalid span index");
-    const std::size_t begin = offsets[i];
-    const std::size_t end = offsets[i + 1];
-    return span(&indices[begin], &indices[end]);
+    const auto r = offsets[i];
+    return span(indices.data() + *r.begin(), r.size());
   }
 }; // struct crs
 
@@ -79,18 +72,17 @@ inline std::string
 expand(crs const & graph) {
   std::stringstream stream;
   std::size_t r{0};
-  for(auto & o : graph.offsets) {
-    if(o != graph.offsets.back()) {
-      stream << r++ << ": <";
-      auto n = *(&o + 1);
-      for(std::size_t i{o}; i < n; ++i) {
-        stream << graph.indices[i];
-        if(i < n - 1) {
-          stream << ",";
-        }
-      }
-      stream << ">" << std::endl;
+  for(const crs::span row : graph) {
+    stream << r++ << ": <";
+    bool first = true;
+    for(const std::size_t i : row) {
+      if(first)
+        first = false;
+      else
+        stream << ",";
+      stream << i;
     }
+    stream << ">" << std::endl;
   }
   return stream.str();
 }
@@ -98,9 +90,8 @@ expand(crs const & graph) {
 inline std::ostream &
 operator<<(std::ostream & stream, crs const & graph) {
   stream << "crs offsets: ";
-  for(auto o : graph.offsets) {
+  for(auto o : graph.offsets.ends())
     stream << o << " ";
-  }
   stream << "\n\ncrs indices: ";
   for(auto o : graph.indices) {
     stream << o << " ";

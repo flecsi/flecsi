@@ -51,7 +51,7 @@ parmetis_coloring() {
         distribution);
 
       EXPECT_EQ(cu.primaries().at(process()), cnns.p2m);
-      UNIT_CAPTURE() << flog::container(naive.offsets) << '\n'
+      UNIT_CAPTURE() << flog::container(naive.offsets.ends()) << '\n'
                      << flog::container(naive.indices) << '\n'
                      << flog::container(cnns.p2m) << '\n'
                      << flog::container(cnns.m2p) << '\n';

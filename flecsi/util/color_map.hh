@@ -109,6 +109,16 @@ struct offsets : map_base<offsets> {
     return c ? end[c - 1] : 0;
   }
 
+  void clear() {
+    end.clear();
+  }
+  void reserve(Color b) {
+    end.reserve(b);
+  }
+  void push_back(std::size_t n) {
+    end.push_back(total() + n);
+  }
+
   const storage & ends() const {
     return end;
   }

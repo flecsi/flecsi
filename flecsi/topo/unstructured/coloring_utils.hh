@@ -823,12 +823,8 @@ coloring_utils<MD>::close_primaries() {
        */
 
       auto & crs = pc.cnx_colorings[cd_.vid.idx];
-      std::size_t o{0};
-      crs.offsets.emplace_back(o);
       for(auto e : pc.coloring.all) {
-        auto const & vertices = cnns.e2v[cnns.m2p[e]];
-        crs.indices.insert(crs.indices.end(), vertices.begin(), vertices.end());
-        crs.offsets.emplace_back(crs.offsets[++o - 1] + vertices.size());
+        crs.add_row(cnns.e2v[cnns.m2p[e]]);
       } // for
 
       ++lco;
@@ -1560,17 +1556,15 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   // Note: this is a rough estimate.
   c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
 
-  for(std::size_t cell = 0; cell < c2f.offsets.size() - 1; cell++) {
+  for(const util::crs::span cell : c2f) {
     std::vector<std::size_t> edges;
 
     // accumulate edges in cell
-    for(std::size_t fi = c2f.offsets[cell]; fi < c2f.offsets[cell + 1]; fi++) {
-      auto face = c2f.indices[fi];
-      for(std::size_t ei = f2e.offsets[face]; ei < f2e.offsets[face + 1];
-          ei++) {
-        auto it = std::find(edges.begin(), edges.end(), f2e.indices[ei]);
+    for(const std::size_t face : cell) {
+      for(const std::size_t ei : f2e.offsets[face]) {
+        auto it = std::find(edges.begin(), edges.end(), ei);
         if(it == edges.end()) {
-          edges.push_back(f2e.indices[ei]);
+          edges.push_back(ei);
         }
       }
     }
@@ -1614,15 +1608,13 @@ coloring_utils<MD>::build_intermediary(entity_kind kind,
     else
       md_.make_entity(kind, 0, these_verts, edges);
 
-    for(std::size_t row{0}; row < edges.offsets.size() - 1; ++row) {
-      auto beg = edges.indices.begin() + edges.offsets[row];
-      auto end = edges.indices.begin() + edges.offsets[row + 1];
-      sorted.assign(beg, end);
+    for(const util::crs::span row : edges) {
+      sorted.assign(row.begin(), row.end());
       std::sort(sorted.begin(), sorted.end());
 
       const auto eid = aux.v2i.size();
       if(const auto vit = aux.v2i.try_emplace(sorted, eid); vit.second) {
-        aux.i2v.add_row(beg, end);
+        aux.i2v.add_row(row);
         these_edges.push_back(eid);
       }
       else {

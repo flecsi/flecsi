@@ -25,6 +25,16 @@ namespace parmetis {
 /// \addtogroup utils
 /// \{
 
+inline auto
+with_zero(const util::offsets & o) {
+  std::vector<idx_t> ret;
+  ret.reserve(o.size() + 1);
+  ret.push_back(0);
+  auto & v = o.ends();
+  ret.insert(ret.end(), v.begin(), v.end());
+  return ret;
+}
+
 /// Generate a coloring of the given naive graph partition into \em colors
 /// colors.  This function uses \c ParMETIS_V3_PartKway.  Each
 /// process in the comm must participate.
@@ -56,12 +66,7 @@ color(const util::offsets & dist,
 
   std::vector<idx_t> part(graph.size());
 
-  std::vector<idx_t> vtxdist(1);
-  {
-    auto & v = dist.ends();
-    vtxdist.insert(vtxdist.end(), v.begin(), v.end());
-  }
-  std::vector<idx_t> xadj = as<idx_t>(graph.offsets);
+  std::vector<idx_t> vtxdist = with_zero(dist), xadj = with_zero(graph.offsets);
   std::vector<idx_t> adjncy = as<idx_t>(graph.indices);
 
   // clang-format off
