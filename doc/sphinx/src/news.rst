@@ -57,6 +57,7 @@ Fixed
 * Legion backend
 
   * Certain user-level fields are allocated properly.
+  * MPI tasks with reference parameters support argument conversions correctly.
   * Errors at process termination in certain configurations are avoided.
   * Accessors with both ``wo`` and ``na`` privileges are processed correctly.
 
