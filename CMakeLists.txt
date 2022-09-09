@@ -152,6 +152,11 @@ if(ENABLE_LIBRARY)
   include(caliper)
   include(library)
 
+  add_library(FleCSI)
+  add_library(FleCSI::FleCSI ALIAS FleCSI)
+
+  target_include_directories(FleCSI PUBLIC $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+
   #----------------------------------------------------------------------------#
   # Add option for setting entity id type
   #----------------------------------------------------------------------------#
@@ -250,39 +255,40 @@ if(ENABLE_LIBRARY)
   # Apply options
   #----------------------------------------------------------------------------#
   if(ENABLE_LEGION)
-    flecsi_enable_legion()
+    flecsi_enable_legion(FleCSI)
   endif()
 
   if(ENABLE_MPI)
-    flecsi_enable_mpi(${ENABLE_MPI_CXX_BINDINGS})
+    flecsi_enable_mpi(FleCSI ${ENABLE_MPI_CXX_BINDINGS})
   endif()
 
   if(ENABLE_PARMETIS)
-    flecsi_enable_parmetis()
+    flecsi_enable_parmetis(FleCSI)
   endif()
 
   if(ENABLE_HPX)
-    flecsi_enable_hpx()
+    flecsi_enable_hpx(FleCSI)
   endif()
 
   if(ENABLE_OPENMP)
-    flecsi_enable_openmp()
+    flecsi_enable_openmp(FleCSI)
   endif()
 
   if(ENABLE_HDF5)
-    flecsi_enable_hdf5()
+    flecsi_enable_hdf5(FleCSI)
   endif()
 
   if(ENABLE_GRAPHVIZ)
-    flecsi_enable_graphviz()
+    flecsi_enable_graphviz(FleCSI)
   endif()
 
   if(ENABLE_KOKKOS)
-    flecsi_enable_kokkos()
+    flecsi_enable_kokkos(FleCSI)
   endif()
 
   if(ENABLE_BOOST)
-    flecsi_enable_boost(
+    flecsi_enable_boost(FleCSI
+    COMPONENTS
       program_options
       atomic
       filesystem
@@ -292,13 +298,13 @@ if(ENABLE_LIBRARY)
   endif()
 
   if (NOT CALIPER_DETAIL STREQUAL "none")
-    flecsi_enable_caliper()
+    flecsi_enable_caliper(FleCSI)
   endif()
 
   #----------------------------------------------------------------------------#
   # Dynamic libraries.
   #----------------------------------------------------------------------------#
-  list(APPEND TPL_LIBRARIES ${CMAKE_DL_LIBS})
+  target_link_libraries(FleCSI PUBLIC ${CMAKE_DL_LIBS})
 
   #----------------------------------------------------------------------------#
   # FLOG
@@ -385,13 +391,6 @@ if(ENABLE_LIBRARY)
       ${FleCSI_VERSION}
     NAMESPACE
       FleCSI
-    DEFINE_PRIVATE
-      ${TPL_DEFINES}
-    INCLUDE_PUBLIC
-      ${TPL_INCLUDES}
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-    LINK_PUBLIC
-      ${TPL_LIBRARIES}
   )
 
   #----------------------------------------------------------------------------#

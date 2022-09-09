@@ -1,4 +1,4 @@
-macro(flecsi_enable_kokkos)
+macro(flecsi_enable_kokkos target)
   find_package(Kokkos REQUIRED)
-  list(APPEND TPL_LIBRARIES Kokkos::kokkos)
+  target_link_libraries(${target} PUBLIC Kokkos::kokkos)
 endmacro()

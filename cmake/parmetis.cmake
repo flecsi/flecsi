@@ -1,9 +1,9 @@
-macro(flecsi_enable_parmetis)
+macro(flecsi_enable_parmetis target)
   find_package(METIS REQUIRED)
 
   set(PARMETIS_TEST_RUNS TRUE)
   find_package(ParMETIS REQUIRED)
 
-  list(APPEND TPL_INCLUDES ${PARMETIS_INCLUDE_DIRS} ${METIS_INCLUDE_DIRS})
-  list(APPEND TPL_LIBRARIES ${METIS_LIBRARIES} ${PARMETIS_LIBRARIES})
+  target_include_directories(${target} SYSTEM PUBLIC ${PARMETIS_INCLUDE_DIRS} ${METIS_INCLUDE_DIRS})
+  target_link_libraries(${target} PUBLIC ${METIS_LIBRARIES} ${PARMETIS_LIBRARIES})
 endmacro()

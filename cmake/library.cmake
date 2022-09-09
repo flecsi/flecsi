@@ -122,20 +122,12 @@ function(add_library_target target directory)
   endforeach(_SUBDIR)
 
   #----------------------------------------------------------------------------#
-  # Add the actual build target
+  # Add sources to build target
   #----------------------------------------------------------------------------#
 
   if(_SOURCES)
-    add_library(${target} ${_SOURCES} ${_HEADERS})
-  else()
-    add_library(${target} INTERFACE)
+    target_sources(${target} PRIVATE ${_SOURCES} ${_HEADERS})
   endif()
- 
-  #----------------------------------------------------------------------------#
-  # Create an alias for local builds
-  #----------------------------------------------------------------------------#
-
-  add_library(${lib_NAMESPACE}::${target} ALIAS ${target})
 
   #----------------------------------------------------------------------------#
   # Add compile defines

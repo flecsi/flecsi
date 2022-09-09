@@ -1,4 +1,4 @@
-macro(flecsi_enable_legion)
+macro(flecsi_enable_legion target)
   find_package(Legion REQUIRED)
-  list(APPEND TPL_LIBRARIES Legion::Legion)
+  target_link_libraries(${target} PUBLIC Legion::Legion)
 endmacro()

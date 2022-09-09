@@ -1,8 +1,8 @@
-macro(flecsi_enable_caliper)
+macro(flecsi_enable_caliper target)
   find_package(caliper REQUIRED)
 
   message(STATUS "Found Caliper: ${caliper_INCLUDE_DIR}")
 
-  list(APPEND TPL_INCLUDES  ${caliper_INCLUDE_DIR})
-  list(APPEND TPL_LIBRARIES caliper)
+  target_include_directories(${target} SYSTEM PUBLIC ${caliper_INCLUDE_DIR})
+  target_link_libraries(${target} PUBLIC caliper)
 endmacro()
