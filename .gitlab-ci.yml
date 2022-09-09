@@ -298,7 +298,7 @@ openmpi-legion-clang-cuda-ibv:
     <<: *openmpi-cuda-ibv-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
-    BUILD_TYPE: Release
+    BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
     CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
