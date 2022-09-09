@@ -48,12 +48,6 @@ you can add it as follows:
 
    include(FleCSI/documentation)
 
-.. note::
-
-   These utilities themselves depend on CMake files provided by the
-   `lanl-cmake-modules <https://github.com/lanl/cmake-modules>`_
-   project, which is a Spack dependency of FleCSI.
-
 Documentation
 -------------
 

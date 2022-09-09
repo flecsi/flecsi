@@ -50,11 +50,6 @@ if(NO_BRACED_SCALAR_INIT)
 endif()
 
 #------------------------------------------------------------------------------#
-# Add extra cmake modules.
-#------------------------------------------------------------------------------#
-find_package(LANLCMakeModules)
-
-#------------------------------------------------------------------------------#
 # FleCSI Version
 #------------------------------------------------------------------------------#
 include(version)
@@ -63,13 +58,16 @@ include(version)
 # Formatting
 #------------------------------------------------------------------------------#
 option(ENABLE_FORMAT "Enable format target" OFF)
-option(ClangFormat_VERSION "Set the required version (major[.minor[.patch]]) of clang-format" "13.0.0")
 mark_as_advanced(ENABLE_FORMAT)
-mark_as_advanced(ClangFormat_VERSION)
 
 if(ENABLE_FORMAT)
   include(format)
-  flecsi_enable_format(${ClangFormat_VERSION})
+
+  set(ClangFormat_VERSION "13.0.1" CACHE STRING
+      "Set the required version (major[.minor[.patch]]) of clang-format")
+  mark_as_advanced(ClangFormat_VERSION)
+
+  flecsi_add_format_target(${PROJECT_NAME} ${PROJECT_SOURCE_DIR} "${ClangFormat_VERSION}")
 endif()
 
 
@@ -77,7 +75,8 @@ endif()
 # Documentation
 #------------------------------------------------------------------------------#
 option(ENABLE_DOCUMENTATION "Enable documentation" OFF)
-option(GITHUB_PAGES_REPO    "GitHub Pages repository for gh-pages branch" "git@github.com:flecsi/flecsi.git")
+set(GITHUB_PAGES_REPO "git@github.com:flecsi/flecsi.git"
+    CACHE STRING "GitHub Pages repository for gh-pages branch")
 mark_as_advanced(ENABLE_DOCUMENTATION)
 mark_as_advanced(GITHUB_PAGES_REPO)
 
@@ -162,18 +161,17 @@ if(ENABLE_LIBRARY)
   # Add option for setting entity id type
   #----------------------------------------------------------------------------#
 
-  option(FLECSI_ID_TYPE
-	 "Select the type that will be used for entity ids by topologies"
-	 "std::uint32_t")
+  set(FLECSI_ID_TYPE "std::uint32_t" CACHE STRING
+	 "Select the type that will be used for entity ids by topologies")
   mark_as_advanced(FLECSI_ID_TYPE)
 
   #----------------------------------------------------------------------------#
   # Add option for counter size
   #----------------------------------------------------------------------------#
 
-  option(FLECSI_COUNTER_TYPE
+  set(FLECSI_COUNTER_TYPE "std::int32_t" CACHE STRING
 	 "Select the type that will be used for loop and iterator values"
-	 "std::int32_t")
+	)
   mark_as_advanced(FLECSI_COUNTER_TYPE)
 
   #----------------------------------------------------------------------------#
@@ -404,24 +402,35 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
 
   install(
-    FILES ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/caliper.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/format.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/hdf5.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/hpx.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/kokkos.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/legion.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/library.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/mpi.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/parmetis.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/sphinx.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
-    FILES ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
+    FILES
+     ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/caliper.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/format.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/hdf5.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/hpx.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/kokkos.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/legion.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/library.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/mpi.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/parmetis.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/sphinx.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
+     ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
+  )
+
+  install(
+    FILES
+      ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
+      ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
+      ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
+      ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake
+      ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake
   )
 
   install(
