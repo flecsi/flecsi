@@ -4,6 +4,8 @@
 #ifndef FLECSI_UTIL_COMMON_HH
 #define FLECSI_UTIL_COMMON_HH
 
+#include <flecsi-config.h>
+
 #include <cassert>
 #include <cstdint>
 #include <functional>
