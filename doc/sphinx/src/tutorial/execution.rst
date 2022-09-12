@@ -40,18 +40,21 @@ Therefore, it is a single task.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 8-15
+  :start-at: // Trivial task (no arguments, no return).
+  :end-at: }
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 66-66
+  :start-at: // Execute a trivial task.
+  :end-at: execute<trivial>();
 
 You can return a value from the task; a *future* is a mechanism to
 access the result of an asynchronous task execution.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 72-92
+  :start-at: // Execute a task with a return value.
+  :end-at: } // scope
 
 FleCSI can execute a task that takes an argument by-value.
 FleCSI tasks can take any valid C++ type by value. However, because task
@@ -60,17 +63,20 @@ arguments that contain pointers.
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 100-104
+  :start-at: // Execute a task that takes an argument by-value.
+  :end-at: } // scope
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 50-57
+  :start-at: template<typename Type>
+  :end-at: } // template
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 110-114
+  :start-at: // Execute a templated task.
+  :end-at: } // scope
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
@@ -84,8 +90,8 @@ the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :lines: 12-29
-
+  :start-at: // Task with no arguments.
+  :end-at: } // advance()
 
 Launch Domains
 ^^^^^^^^^^^^^^
@@ -109,6 +115,7 @@ method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :lines: 12-26
+  :start-at: // Task with no arguments.
+  :end-at: } // advance()
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

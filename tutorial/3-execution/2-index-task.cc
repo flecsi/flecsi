@@ -5,9 +5,7 @@
 
 using namespace flecsi;
 
-/*
-  Task with no arguments.
- */
+// Task with no arguments.
 
 void
 task(exec::launch_domain) {
@@ -15,9 +13,7 @@ task(exec::launch_domain) {
              << std::endl;
 }
 
-/*
-  Advance control point.
- */
+// Advance control point.
 
 int
 advance() {
@@ -26,5 +22,5 @@ advance() {
   execute<task>(ld);
 
   return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

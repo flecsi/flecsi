@@ -9,9 +9,7 @@ int
 allocate() {
   flog(info) << "allocate" << std::endl;
 
-  /*
-    Call a method of the control state to allocate an array of size 10.
-   */
+  // Call a method of the control state to allocate an array of size 10.
 
   control::state().allocate_values(10);
 
@@ -23,9 +21,7 @@ int
 initialize() {
   flog(info) << "initialize" << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and initialize.
-   */
+  // Access the array through the 'values()' method, and initialize.
 
   control_policy::int_custom & values = control::state().values();
 
@@ -45,9 +41,7 @@ advance() {
 
   ss << "advance " << control::state().step() << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and modify.
-   */
+  // Access the array through the 'values()' method, and modify.
 
   control_policy::int_custom & values = control::state().values();
 
@@ -67,9 +61,7 @@ int
 finalize() {
   flog(info) << "finalize" << std::endl;
 
-  /*
-    Deallocate the array using the control state interface.
-   */
+  // Deallocate the array using the control state interface.
 
   control::state().deallocate_values();
 

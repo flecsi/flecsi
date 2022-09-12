@@ -477,12 +477,27 @@ documentation.
 
   .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
     :language: cpp
-    :lines: 18-38
+    :start-at: // Function definition of an advance action.
+    :end-before: // Register the finalize action under the 'finalize' control point.
 
 This will be rendered like:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
   :language: cpp
-  :lines: 18-38
+  :start-at: // Function definition of an advance action.
+  :end-before: // Register the finalize action under the 'finalize' control point.
+
+The included parts of the file begin with a ``:start-at:`` or
+``:start-after:`` input and end with an ``:end-at:`` or ``:end-before:`` input. Each
+of these performs a literal string match for the string that follows the colon.
+That is, ``:start-at: some text`` will match against the string ``some text`` and
+will start including the entire line it contains. Similarly,
+``:start-after:`` will match the same line, but only start including after
+the line containing the string. ``:end-at:`` and ``:end-before:`` work in a
+similar fashion. Note that for the above we included the block of
+comments that matched ``// Function definition of an advance action.``
+and we stopped including just before a line that begins another comment
+block section for another part of the code. Since an ``end-before`` was
+used, the line containing the matched string was not included.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

@@ -39,5 +39,5 @@ advance() {
   execute<print>(canonical, pf);
 
   return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;
