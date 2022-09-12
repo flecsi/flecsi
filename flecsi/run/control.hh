@@ -52,7 +52,7 @@ using control_point = run_impl::control_point<CP>;
   \tparam CP \c control_point or \c cycle types
   \deprecated Use \c control_base::cycle.
  */
-template<auto P, typename... CP>
+template<bool (*P)(), typename... CP>
 using cycle = run_impl::cycle<P, CP...>;
 
 /*!
@@ -71,7 +71,9 @@ struct control_base {
   using meta = run_impl::meta_point<CP>;
 
   /// A control-flow cycle.
-  /// \tparam P tested before each iteration
+  /// \tparam P of type `bool (*)(user_policy&)` tested before each iteration,
+  /// where `user_policy` inherits from control_base.  This provides access to
+  /// the control policy instance during policy execution.
   /// \tparam CP \c point or \c cycle types
   template<auto P, typename... CP>
   using cycle = run_impl::cycle<P, CP...>;
@@ -182,12 +184,7 @@ public:
   using sorted_type = std::map<control_points_enum, typename dag::sorted_type>;
   using dag_map = std::map<control_points_enum, dag>;
 
-  static control & instance() {
-    static control c;
-    return c;
-  }
-
-protected:
+private:
   /*
     Initialize the control point dags. This is necessary in order to
     assign labels in the case that no actions are registered at one
@@ -195,6 +192,11 @@ protected:
   */
   control() {
     run_impl::walk<control_points>(init_walker(registry_));
+  }
+
+  static control & instance() {
+    static control c;
+    return c;
   }
 
   /*
@@ -258,7 +260,8 @@ private:
 
 public:
   /// Return the control policy object.
-  /// \deprecated use #policy
+  /// \deprecated use control_base, this cannot be used if inheriting from
+  /// control_base
   static P & state() {
     static_assert(!is_control_base_policy);
     return instance().policy_;

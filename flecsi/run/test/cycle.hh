@@ -71,7 +71,7 @@ struct control_policy : flecsi::run::control_base {
     return false;
   }
 
-  using main_cycle = flecsi::run::cycle<cycle_control,
+  using main_cycle = cycle<cycle_control,
     meta<control_points_enum::advance_internal>,
     point<control_points_enum::advance>,
     subcycle,

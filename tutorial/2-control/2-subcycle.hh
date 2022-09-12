@@ -66,8 +66,7 @@ struct control_policy : flecsi::run::control_base {
   using subcycle =
     cycle<subcycle_control, point<cp::advance>, point<cp::advance2>>;
 
-  using main_cycle =
-    flecsi::run::cycle<cycle_control, subcycle, point<cp::analyze>>;
+  using main_cycle = cycle<cycle_control, subcycle, point<cp::analyze>>;
 
   using control_points =
     list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
