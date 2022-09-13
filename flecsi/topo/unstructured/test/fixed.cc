@@ -315,7 +315,6 @@ print(fixed_mesh::accessor<ro, ro> m,
   field<std::size_t>::accessor<ro, ro> cids,
   field<std::size_t>::accessor<ro, ro> vids) {
   (void)cids;
-#if 1
   for(auto c : m.cells()) {
     std::stringstream ss;
     ss << "cell(" << cids[c] << "," << c << "): ";
@@ -324,7 +323,6 @@ print(fixed_mesh::accessor<ro, ro> m,
     }
     flog(info) << ss.str() << std::endl;
   }
-#endif
 
   for(auto v : m.vertices()) {
     std::stringstream ss;

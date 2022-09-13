@@ -33,12 +33,11 @@ staging_area staging;
 
 void
 compute_closure() {
-#if 1
   const Color colors = 4;
   topo::unstructured_impl::simple_definition sd("simple2d-8x8.msh");
   // const Color colors = 6;
   // topo::unstructured_impl::simple_definition sd("simple2d-16x16.msh");
-#else
+#if 0
   const Color colors = 6;
   topo::unstructured_impl::ugm_definition sd("bunny.ugm");
 #endif
@@ -141,10 +140,8 @@ compute_closure() {
     } // for
 #endif
 
-#if 1
   auto colorings = topo::unstructured_impl::closure<closure_policy>(
     sd, colors, raw, primaries, c2v, v2c, c2c, m2p, p2m);
-#endif
 
 #if 0
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
