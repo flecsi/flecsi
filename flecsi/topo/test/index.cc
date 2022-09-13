@@ -91,7 +91,7 @@ assign(double_field::accessor<wo> p,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) { // must be an MPI task
+reset(noisy::accessor<wo>) { // must be an MPI task for correct total
   return Noisy::count;
 }
 
