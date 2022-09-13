@@ -106,7 +106,7 @@ struct cell_connectivity {
     : size_(dist.size() - 1), rank_(rank), connectivity_(size_) {
 
     int offset{0};
-    for(auto r : vertices) {
+    for(auto & r : vertices) {
       if(offset != rank_) {
         for(auto v : r) {
           connectivity_[offset][v] = connectivity.at(v);
