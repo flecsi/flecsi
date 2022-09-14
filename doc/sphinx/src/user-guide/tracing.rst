@@ -4,17 +4,17 @@ Performance Effect of Tracing
 The performance affect of using tracing cannot be overstated.
 
 This is a weak scaling plot for a
-Red-Black Gauss-Seidel iterative solver of Poisson's Equation.
-The orange squares are the weak scaling results without tracing and blue circles are with tracing.
+Red-Black Gauss-Seidel iterator for Poisson's Equation.
+The blue circles are the weak scaling results without tracing and green squares are with tracing.
 Already at fifty nodes there is a 20X performance difference.  The solution time
-without tracing scales as `nodes^0.7`.  So this difference will only get worse.
+without tracing scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will only get worse.
 
 .. image:: tracing/tracing_vs_no_tracing.png
 
 Implementing Tracing in Your Code
 ++++++++++++++++++++++++++++++++++++
 
-Here is the solver loop without tracing.
+Here is the iteration loop without tracing.
 
 .. code-block:: c++
   :caption: Red-Black Gauss-Seidel non-blocking, no tracing
@@ -36,6 +36,10 @@ Here is the solver loop without tracing.
     execute<task::print_residual>(residual, ita+sub);
 
   } while(ita < max_iterations.value());
+
+.. note:: 
+  Residual tolerance termination conditions are usually employed for solvers, but
+  FleCSI does not yet support futures in this way.
 
 .. note:: 
   These loops contain `flecsi::execute<>` task launches. Any such loops in your code

@@ -2,10 +2,10 @@ Performance Effect of `get()` Outside of a Task
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is a weak scaling plot for a
-Red-Black Gauss-Seidel iterative solver of Poisson's Equation.
-The orange squares are the weak scaling results when `get()` is used outside of a task.
-Already at fifty nodes there is a 30X performance difference.  The solution time
-without `get()` scales as `nodes^0.7`.  So this difference will only get worse.
+Red-Black Gauss-Seidel iterator for Poisson's Equation.
+The green squares are the weak scaling results when `get()` is used outside of a task.
+Already at fifty nodes there is a 30X performance difference.  This blocked solution time
+scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will only get worse.
 
 .. image:: blocking/blocked_vs_nonblocking.png
 
@@ -60,7 +60,7 @@ Removing Bulk-Synchronousity from Your Code
 
 Here we pass the future to the `print_residual` task.  Calling `get()` inside
 a task is correct as it allows the runtime to continue with other tasks while
-`print_resicual` is waiting on the reduction.
+`print_residual` is waiting on the reduction.
 
 .. code-block:: c++
   :caption: Red-Black Gauss-Seidel non-blocking, no tracing
@@ -86,6 +86,10 @@ a task is correct as it allows the runtime to continue with other tasks while
     execute<task::print_residual>(residual, ita+sub);
 
   } while(ita < max_iterations.value());
+
+.. note:: 
+  Residual tolerance termination conditions are usually employed for solvers, but
+  FleCSI does not yet support futures in this way.
 
 .. code-block:: c++
   :caption: `print_residual` task
