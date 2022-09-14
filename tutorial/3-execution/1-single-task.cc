@@ -59,8 +59,8 @@ templated_task(Type t) {
   return retval;
 }
 
-int
-advance() {
+void
+advance(control_policy &) {
 
   /*
     Execute a trivial task.
@@ -118,7 +118,5 @@ advance() {
     auto future = execute<templated_task<double>>(value);
     flog(info) << "Got templated value " << future.get() << std::endl;
   } // scope
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

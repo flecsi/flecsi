@@ -71,9 +71,11 @@ struct control_base {
   using meta = run_impl::meta_point<CP>;
 
   /// A control-flow cycle.
-  /// \tparam P tested before each iteration
+  /// \tparam P of type `bool (*)(user_policy&)` tested before each iteration,
+  /// where `user_policy` inherits from control_base.  This provides access to
+  /// the control policy instance during policy execution.
   /// \tparam CP \c point or \c cycle types
-  template<bool (*P)(), typename... CP>
+  template<auto P, typename... CP>
   using cycle = run_impl::cycle<P, CP...>;
 
   /// Type for specifying control points
@@ -81,18 +83,12 @@ struct control_base {
   template<class... TT>
   using list = util::types<TT...>;
 
-  /// Called before executing.  If the value returned is not \c success,
-  /// \c run and \c finalize are skipped.
-  /// \return exit status
-  int initialize() {
-    return success;
-  }
-  /// Called after executing.
-  /// \param run exit status from running
-  /// \return exit status
-  int finalize(int run) {
-    return run;
-  }
+  /*!
+    Exception class for control points.
+  */
+  struct exception {
+    int code; /// status code
+  };
 };
 
 #ifdef DOXYGEN
@@ -131,7 +127,13 @@ inline const char * operator*(control_policy::control_points_enum);
 template<typename P>
 struct control {
 
-  using target_type = int (*)();
+  using policy_type = P;
+
+  static constexpr bool is_control_base_policy =
+    std::is_base_of_v<control_base, P>;
+
+  using target_type =
+    std::conditional_t<is_control_base_policy, void (*)(P &), int (*)()>;
 
 private:
   using control_points = run_impl::to_types_t<P>;
@@ -159,8 +161,11 @@ private:
     control_node(target_type target, Args &&... args)
       : node_policy(std::forward<Args>(args)...), target_(target) {}
 
-    int execute() const {
-      return target_();
+    std::conditional_t<is_control_base_policy, void, int> execute(P * p) const {
+      if constexpr(is_control_base_policy)
+        target_(*p);
+      else
+        return target_();
     }
 
   private:
@@ -184,16 +189,10 @@ private:
     Initialize the control point dags. This is necessary in order to
     assign labels in the case that no actions are registered at one
     or more control points.
-   */
-
+  */
   control() {
     run_impl::walk<control_points>(init_walker(registry_));
   }
-
-  /*
-    The singleton instance is private, and should only be accessed by internal
-    types.
-   */
 
   static control & instance() {
     static control c;
@@ -202,8 +201,7 @@ private:
 
   /*
     Return the dag at the given control point.
-   */
-
+  */
   dag & control_point_dag(control_points_enum cp) {
     registry_.try_emplace(cp, *cp);
     return registry_[cp];
@@ -211,8 +209,7 @@ private:
 
   /*
     Return a map of the sorted dags under each control point.
-   */
-
+  */
   sorted_type sort() const {
     sorted_type sorted;
     for(auto & d : registry_) {
@@ -223,18 +220,21 @@ private:
 
   /*
     Run the control model.
-   */
-
+  */
   int run() const {
     int status{flecsi::run::status::success};
-    run_impl::walk<control_points>(point_walker(sort(), status));
+    if constexpr(is_control_base_policy) {
+      P pol;
+      run_impl::walk<control_points>(point_walker(sort(), status, &pol));
+    }
+    else
+      run_impl::walk<control_points>(point_walker(sort(), status));
     return status;
   } // run
 
   /*
     Output a graph of the control model.
-   */
-
+  */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() const {
     flecsi::util::graphviz gv;
@@ -253,26 +253,18 @@ private:
   } // write_sorted
 #endif
 
-  P policy_;
   dag_map registry_;
 
+private:
+  std::conditional_t<is_control_base_policy, std::nullptr_t, P> policy_;
+
 public:
-  /*!
-    Return the user's control policy.
-
-    @return The singleton instance of the user's control policy type. Users can
-            add arbitrary data members and interfaces to this type that can be
-            to store control state information.
-   */
-
-  static P & policy() {
-    return instance().policy_;
-  }
-
   /// Return the control policy object.
-  /// \deprecated use #policy
+  /// \deprecated use control_base, this cannot be used if inheriting from
+  /// control_base
   static P & state() {
-    return policy();
+    static_assert(!is_control_base_policy);
+    return instance().policy_;
   }
 
   /*!
@@ -340,17 +332,26 @@ public:
   /*!
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
-    valid ordering, and executes the actions.
+    valid ordering, and executes the actions.  If the policy `P` inherits from
+    `control_base`, \c control_base::exception can be thrown for early
+    termination. \return code from a thrown \c control_base::exception or the
+    bitwise or of return values of execuded actions.
    */
 
   static int execute() {
-    if constexpr(std::is_base_of_v<control_base, P>) {
-      const int r = policy().initialize();
-      return r == success ? policy().finalize(instance().run()) : r;
+    int ret{status::success};
+    if constexpr(is_control_base_policy) {
+      try {
+        ret = instance().run();
+      }
+      catch(control_base::exception e) {
+        ret = e.code;
+      }
     }
     else {
-      return instance().run();
+      ret = instance().run();
     }
+    return ret;
   } // execute
 
   /*!

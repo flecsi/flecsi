@@ -47,8 +47,8 @@ struct control_policy : flecsi::run::control_base {
     policy instance, and can be accessed through a static interface.
    */
 
-  static bool cycle_control() {
-    return control::policy().step()++ < 5;
+  static bool cycle_control(control_policy & policy) {
+    return policy.step()++ < 5;
   }
 
   /*

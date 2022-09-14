@@ -51,12 +51,12 @@ struct control_policy : flecsi::run::control_base {
     Define a subcycle control function.
    */
 
-  static bool subcycle_control() {
-    return control::policy().substep()++ % 3 < 2;
+  static bool subcycle_control(control_policy & policy) {
+    return policy.substep()++ % 3 < 2;
   }
 
-  static bool cycle_control() {
-    return control::policy().step()++ < 5;
+  static bool cycle_control(control_policy & policy) {
+    return policy.step()++ < 5;
   }
 
   /*
@@ -66,8 +66,7 @@ struct control_policy : flecsi::run::control_base {
   using subcycle =
     cycle<subcycle_control, point<cp::advance>, point<cp::advance2>>;
 
-  using main_cycle =
-    flecsi::run::cycle<cycle_control, subcycle, point<cp::analyze>>;
+  using main_cycle = cycle<cycle_control, subcycle, point<cp::analyze>>;
 
   using control_points =
     list<point<cp::initialize>, main_cycle, point<cp::finalize>>;

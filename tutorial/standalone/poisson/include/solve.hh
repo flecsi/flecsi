@@ -11,7 +11,7 @@
 namespace poisson {
 namespace action {
 
-int solve();
+void solve(control_policy &);
 inline control::action<solve, cp::solve> solve_action;
 
 } // namespace action

@@ -22,12 +22,10 @@ task(exec::launch_domain) {
   Advance control point.
  */
 
-int
-advance() {
+void
+advance(control_policy &) {
   exec::launch_domain ld{4};
 
   execute<task>(ld);
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

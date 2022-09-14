@@ -11,7 +11,7 @@
 namespace poisson {
 namespace action {
 
-int finalize();
+void finalize(control_policy &);
 inline control::action<finalize, cp::finalize> finalize_action;
 
 } // namespace action

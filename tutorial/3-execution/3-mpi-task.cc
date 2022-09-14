@@ -21,10 +21,8 @@ task() {
   Advance control point.
  */
 
-int
-advance() {
+void
+advance(control_policy &) {
   execute<task, mpi>();
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

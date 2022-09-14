@@ -35,15 +35,12 @@ struct meta_point : util::constant<P> {};
   @tparam ControlPoints A variadic list of control points within the cycle.
  */
 
-template<bool (*Predicate)(), typename... ControlPoints>
+template<auto Predicate, typename... ControlPoints>
 struct cycle {
 
   using type = util::types<ControlPoints...>;
 
-  static bool predicate() {
-    return Predicate();
-  } // run
-
+  static constexpr auto predicate = Predicate;
 }; // struct cycle
 
 template<class F, class... TT>
@@ -90,7 +87,7 @@ struct search {
   constexpr void visit(C cp, util::types<TT...> *) {
     (visit(cp, static_cast<TT *>(nullptr)), ...);
   }
-  template<bool (*P)(), class... TT>
+  template<auto P, class... TT>
   constexpr void visit(C cp, cycle<P, TT...> *) {
     visit(cp, static_cast<typename cycle<P, TT...>::type *>(nullptr));
   }
@@ -159,9 +156,12 @@ struct point_walker {
 
   using control_points_enum = typename P::control_points_enum;
   using sorted_type = typename P::sorted_type;
+  using policy_type = typename P::policy_type;
 
-  point_walker(const sorted_type & sorted, int & exit_status)
-    : sorted_(sorted), exit_status_(exit_status) {}
+  point_walker(const sorted_type & sorted,
+    int & exit_status,
+    policy_type * policy = nullptr)
+    : sorted_(sorted), exit_status_(exit_status), policy_(policy) {}
 
   /*!
     Handle the tuple type \em ElementType.
@@ -180,14 +180,23 @@ struct point_walker {
 
       // This is not a cycle -> execute each action for this control point.
       for(auto & node : sorted_.at(ElementType::value)) {
-        exit_status_ |= node->execute();
+        if constexpr(P::is_control_base_policy)
+          node->execute(policy_);
+        else
+          exit_status_ |= node->execute(policy_);
       } // for
     }
     else {
       // This is a cycle -> create a new control point walker to recurse
       // the cycle.
-      while(ElementType::predicate()) {
-        point_walker walker(sorted_, exit_status_);
+      auto test = [this]() {
+        if constexpr(P::is_control_base_policy)
+          return ElementType::predicate(*policy_);
+        else
+          return ElementType::predicate();
+      };
+      while(test()) {
+        point_walker walker(sorted_, exit_status_, policy_);
         walk<typename ElementType::type>(walker);
       } // while
     } // if
@@ -196,7 +205,7 @@ struct point_walker {
 private:
   const sorted_type & sorted_;
   int & exit_status_;
-
+  policy_type * policy_;
 }; // struct point_walker
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)

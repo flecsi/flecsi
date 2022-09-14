@@ -28,14 +28,12 @@ print(single<std::size_t>::accessor<ro> iv) {
               << colors() << ")" << std::endl;
 }
 
-int
-advance() {
+void
+advance(control_policy &) {
 
   custom_topology.allocate(4);
 
   execute<init>(ifield(custom_topology));
   execute<print>(ifield(custom_topology));
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

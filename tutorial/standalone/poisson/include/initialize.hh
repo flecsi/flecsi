@@ -11,7 +11,7 @@
 namespace poisson {
 namespace action {
 
-int init_mesh();
+void init_mesh(control_policy &);
 inline control::action<init_mesh, cp::initialize> init_mesh_action;
 
 } // namespace action

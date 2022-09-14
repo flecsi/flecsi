@@ -55,8 +55,8 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   } // for
 } // print
 
-int
-advance() {
+void
+advance(control_policy &) {
   coloring.allocate("test.txt");
   canonical.allocate(coloring.get());
 
@@ -68,7 +68,5 @@ advance() {
   execute<reduce2, default_accelerator>(canonical, pf);
   // cpu_task
   execute<print>(canonical, pf);
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

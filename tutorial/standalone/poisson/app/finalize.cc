@@ -9,8 +9,7 @@
 
 using namespace flecsi;
 
-int
-poisson::action::finalize() {
+void
+poisson::action::finalize(control_policy &) {
   execute<task::io, mpi>(m, ud(m), "solution");
-  return 0;
 } // finalize

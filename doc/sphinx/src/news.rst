@@ -45,7 +45,7 @@ New features
 
 * Runtime
 
-  * Control policies may inherit from ``control_base`` to enable ``initialize`` and ``finalize`` hooks.
+  * Control policies may inherit from ``control_base`` to enable throwing ``control_base::exception`` and to limit their lifetime to that of ``control::execute``.
   * ``control::policy`` replaces ``control::state``.
   * ``meta_point`` defines special control points for a specialization's use via ``control::meta``.
 

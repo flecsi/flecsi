@@ -284,7 +284,7 @@ passing then a scalar constant *a* directly and access to a subset of
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 144-150
+   :lines: 143-148
 
 The third and final action, ``finalize_action``, sums the elements
 of *Y* by initiating a global reduction.  Because they represent a
@@ -296,7 +296,7 @@ previously allocated by ``initialize_action``.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 167-177
+   :lines: 165-174
 
 
 Tasks
@@ -345,7 +345,7 @@ over its subset of the distributed *X* and *Y* vectors.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 134-141
+   :lines: 133-140
 
 The third and final task, ``reduce_y_task``,
 computes and returns the sum of a subspace of *Y*.
@@ -356,7 +356,7 @@ the summation.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 153-164
+   :lines: 151-162
 
 
 Program initialization
@@ -369,7 +369,7 @@ finalizes FleCSI.
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :lines: 188-204
+   :lines: 185-201
 
 
 Usage

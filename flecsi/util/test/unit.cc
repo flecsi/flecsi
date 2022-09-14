@@ -17,7 +17,7 @@ using namespace flecsi;
 int
 init_a() {
   flog::devel_guard guard(unit_tag);
-  flog(info) << "init a" << std::endl;
+  flog(info) << "init" << std::endl;
 
   flog(trace) << "trace (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
   flog(info) << "info (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
@@ -27,16 +27,6 @@ init_a() {
 }
 
 unit::initialization<init_a> ia_action;
-
-int
-init_b() {
-  flog::devel_guard guard(unit_tag);
-  flog(info) << "init b" << std::endl;
-  return 0;
-}
-
-unit::initialization<init_b> ib_action;
-const auto ab = ib_action.add(ia_action);
 
 int
 test1() {
