@@ -1,8 +1,8 @@
 Performance Effect of `get()` Outside of a Task
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This is a weak scaling plot for a
-Red-Black Gauss-Seidel iterator for Poisson's Equation in 2D.
+This is a weak scaling plot of
+Red-Black Gauss-Seidel iteration for Poisson's Equation in 2D.
 The green squares are the weak scaling results when `get()` is used outside of a task.
 Already at fifty nodes there is a 30X performance difference.  This blocked solution time
 scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will only get worse.

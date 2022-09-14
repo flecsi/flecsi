@@ -3,8 +3,8 @@ Performance Effect of Tracing
 
 The performance affect of using tracing cannot be overstated.
 
-This is a weak scaling plot for a
-Red-Black Gauss-Seidel iterator for Poisson's Equation in 2D.
+This is a weak scaling plot of
+Red-Black Gauss-Seidel iteration for Poisson's Equation in 2D.
 The blue circles are the weak scaling results without tracing and green squares are with tracing.
 Already at fifty nodes there is a 20X performance difference.  The solution time
 without tracing scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will only get worse.
