@@ -170,7 +170,6 @@ public:
       if(process_ == 0) {
         end_flusher();
         flusher_thread_.join();
-        flush_packets();
       } // if
     } // if
 #endif // FLOG_ENABLE_MPI
