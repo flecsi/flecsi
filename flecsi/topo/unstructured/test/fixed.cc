@@ -192,34 +192,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
 
-  static void init_c2v(
-    data::multi<field<util::id, data::ragged>::mutator<wo, wo, na>> mc2v,
-    std::vector<base::process_coloring> const & prc_clrngs,
-    std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
-    auto pcs = prc_clrngs.begin();
-    auto vms = vmaps.begin();
-    for(auto & c2v : mc2v.accessors()) {
-      auto const & pc = *pcs++;
-      auto const & vm = *vms++;
-      std::size_t off{0};
-
-      auto const & cnx = pc.cnx_colorings[core::index<fixed_mesh::vertices>];
-
-      for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
-        const std::size_t start = cnx.offsets[off];
-        const std::size_t size = cnx.offsets[off + 1] - start;
-
-        c2v[c].resize(size);
-
-        for(std::size_t i{0}; i < size; ++i) {
-          c2v[c][i] = vm.at(cnx.indices[start + i]);
-        } // for
-
-        ++off;
-      } // for
-    } // for
-  } // init_c2v
-
   static void initialize(data::topology_slot<fixed_mesh> & s,
     coloring const & c) {
     auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
@@ -230,7 +202,12 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     execute<init_cnx>(v2c(s));
 
     auto lm = data::launch::make(s);
-    execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[fixed_mesh::cells], vmaps);
+    execute<
+      topo::unstructured_impl::init_connectivity<core::index<fixed_mesh::cells>,
+        core::index<fixed_mesh::vertices>,
+        privilege_count<cells>>,
+      mpi>(c2v(lm), c, vmaps);
+
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));

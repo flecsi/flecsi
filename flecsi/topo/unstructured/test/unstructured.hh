@@ -115,8 +115,8 @@ struct unstructured
     // clang-format on
 
     // Primaries
-    cu.create_graph<true>(cells, 1);
-    cu.color_primaries(flecsi::util::parmetis::color);
+    cu.create_graph(cells);
+    cu.color_primaries(1, flecsi::util::parmetis::color);
     cu.migrate_primaries();
     cu.close_primaries();
 

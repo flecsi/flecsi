@@ -151,7 +151,7 @@ struct move_primaries {
     >;
   // clang-format on
 
-  move_primaries(const util::offsets & dist,
+  move_primaries(const util::equal_map & dist,
     Color colors,
     std::vector<Color> const & index_colors,
     util::crs & e2v,

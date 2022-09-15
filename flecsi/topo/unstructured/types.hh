@@ -818,16 +818,10 @@ init_connectivity(
     std::size_t off{0};
 
     auto const & cnx = pc.cnx_colorings[To];
-    for(std::size_t e{0}; e < cnx.offsets.size() - 1; ++e) {
-      const std::size_t start = cnx.offsets[off];
-      const std::size_t size = cnx.offsets[off + 1] - start;
-      x2y[e].resize(size);
-
-      for(std::size_t i{0}; i < size; ++i) {
-        x2y[e][i] = vm.at(cnx.indices[start + i]);
-      } // for
-
-      ++off;
+    for(const util::crs::span r : cnx) {
+      auto v =
+        util::transform_view(r, [&vm](std::size_t i) { return vm.at(i); });
+      x2y[off++].assign(v.begin(), v.end());
     } // for
   } // for
 }

@@ -70,6 +70,13 @@ add_unit(coloring
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
     unstructured/test/disconnected.msh
+    unstructured/test/coloring_5.0.blessed
+    unstructured/test/coloring_5.1.blessed
+    unstructured/test/coloring_5.2.blessed
+    unstructured/test/coloring_5.3.blessed
+    unstructured/test/coloring_5.4.blessed
+    unstructured/test/coloring_2.0.blessed
+    unstructured/test/coloring_2.1.blessed
   THREADS 5
 )
 

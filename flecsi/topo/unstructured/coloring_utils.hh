@@ -111,35 +111,29 @@ struct coloring_utils {
     coloring_.idx_spaces.resize(2 + cd_.aidxs.size());
   } // coloring_utils
 
-  /// Create connectivity graph for the given entity id through the specified
-  /// number of shared vertices.
+  /// Create connectivity graph for the given entity type.
   ///
-  /// \warning This method will fail on certain non-convex mesh entities. In
-  /// particular, if a non-convex cell abuts a cell that is inscribed in the
-  /// convex hull of the non-convex entity, it is possible that the non-convex
-  /// entity will share \em shared vertices with an entity that abuts the
-  /// convex hull without actually being connected. Other similar cases of
-  /// this nature are also possible.
   /// \note This method marshalls the naive partition information on the
   /// root process and sends the respective data to each initially-owning
   /// process. The current implementation is designed to avoid having many
   /// processes hit the file system at once. This may not be optimal on all
   /// parallel file systems.
   ///
-  /// \tparam S      If S is true, populate a util::dcrs data structure
-  ///                suitable for passing to a partitioner like
-  ///                util::parmetis::color.
   /// \param  kind   Entity kind for which to build connectivity.
-  /// \param  shared Entities are connected if they share more than shared
-  ///                vertices.
-  template<bool S>
-  void create_graph(entity_kind kind, std::size_t shared);
+  void create_graph(entity_kind kind);
 
   /// Color the primary entity type using the provided coloring function.
+  /// \param shared maximum number of shared vertices to disregard
   /// \param c coloring function object with the signature of
   ///          flecsi::util::parmetis::color
+  /// \warning This method will fail on certain non-convex mesh entities. In
+  /// particular, if a non-convex cell abuts a cell that is inscribed in the
+  /// convex hull of the non-convex entity, it is possible that the non-convex
+  /// entity will share \em shared vertices with an entity that abuts the
+  /// convex hull without actually being connected. Other similar cases of
+  /// this nature are also possible.
   template<typename C>
-  void color_primaries(C && c);
+  void color_primaries(std::size_t shared, C && c);
 
   /// Redistribute the primary entities. This method moves the primary
   /// entities to their owning colors.
@@ -181,9 +175,9 @@ struct coloring_utils {
 
   /// Close the local auxiliary distributions with respect to off-color
   /// dependencies, i.e., assemble the local shared and ghost information.
-  /// \param idx  The entity index space of the auxiliary to close.
   /// \param kind The mesh definition entity kind of the auxiliary to close.
-  void close_auxiliary(std::size_t idx, entity_kind kind);
+  /// \param idx  The entity index space of the auxiliary to close.
+  void close_auxiliary(entity_kind kind, std::size_t idx);
 
   /// Return a reference to the coloring object. Note that this method
   /// has side effects: it gathers global peer information for the superset
@@ -224,6 +218,10 @@ struct coloring_utils {
   // Return a map from local colors to all indices in the closure.
   auto & all() {
     return all_;
+  }
+
+  auto & get_naive() const {
+    return naive;
   }
 
 private:
@@ -277,7 +275,6 @@ private:
   }
 
   struct connectivity_state_t {
-    util::dcrs naive;
     util::crs e2v;
     std::map<std::size_t, std::vector<std::size_t>> v2e;
     std::map<std::size_t, std::vector<std::size_t>> e2e;
@@ -315,6 +312,7 @@ private:
   // Connectivity state is associated with an entity's kind (as opposed to
   // its index space).
   std::vector<connectivity_state_t> conns_;
+  util::crs naive;
 
   std::vector<Color> primary_raw_;
   std::vector<Color> vertex_raw_;
@@ -335,20 +333,12 @@ private:
   std::set<std::size_t> built_;
 }; // struct coloring_utils
 
-/// Create a connectivity graph from kind-to-kind through connections that
-/// share at least \em shared vertices, e.g., cell-to-cell connectivity
-/// through faces. This function requests the entity definitions (vertices
-/// that define each entity) from the mesh definition on the root process,
-/// and then communicates the naively-partitioned data to each
-/// initially-owning process. This strategy is useful to avoid resource
-/// contention when many processes request, .e.g., the same input file on a
-/// parallel file system. When support is added to employ other mechanisms
-/// for color initialization, this function may need to change, or offer
-/// additional strategies.
+// New mechanisms for color initialization that do not involve a shared file
+// being opened by all processes may require changes or alternatives to this
+// function.
 template<typename MD>
-template<bool S>
 void
-coloring_utils<MD>::create_graph(std::size_t kind, std::size_t shared) {
+coloring_utils<MD>::create_graph(std::size_t kind) {
 
   const util::equal_map ecm(num_entities(kind), size_);
 
@@ -436,64 +426,56 @@ coloring_utils<MD>::create_graph(std::size_t kind, std::size_t shared) {
 
   // Remove duplicate referencers
   util::unique_each(cnns.v2e);
-
-  if constexpr(S) {
-    /*
-      Fill in the entity-to-entity connectivity that have "shared" vertices
-      in common.
-     */
-
-    std::size_t c{offset};
-    for(auto const & cdef : cnns.e2v) {
-      std::map<std::size_t, std::size_t> shr;
-
-      for(auto v : cdef) {
-        auto it = cnns.v2e.find(v);
-        if(it != cnns.v2e.end()) {
-          for(auto rc : cnns.v2e.at(v)) {
-            if(rc != c)
-              ++shr[rc];
-          } // for
-        } // if
-      } // for
-
-      for(auto tc : shr) {
-        if(tc.second > shared) {
-          cnns.e2e[c].emplace_back(tc.first);
-          cnns.e2e[tc.first].emplace_back(c);
-        } // if
-      } // for
-
-      ++c;
-    } // for
-
-    // Remove duplicate connections
-    util::unique_each(cnns.e2e);
-
-    /*
-      Populate the actual distributed crs data structure.
-     */
-
-    cnns.naive.distribution = ecm;
-
-    cnns.naive.offsets.emplace_back(0);
-    for(const std::size_t c : ecm[rank_]) {
-      for(auto cr : cnns.e2e[c]) {
-        cnns.naive.indices.emplace_back(cr);
-      } // for
-
-      cnns.naive.offsets.emplace_back(
-        cnns.naive.offsets.back() + cnns.e2e[c].size());
-    } // for
-  } // if
-} // create_graph
+}
 
 template<typename MD>
 template<typename C>
 void
-coloring_utils<MD>::color_primaries(C && c) {
-  primary_raw_ =
-    std::forward<C>(c)(primary_connectivity_state().naive, cd_.colors, comm_);
+coloring_utils<MD>::color_primaries(std::size_t shared, C && f) {
+  auto & cnns = primary_connectivity_state();
+  const util::equal_map ecm(num_primaries(), size_);
+
+  /*
+    Fill in the entity-to-entity connectivity that have "shared" vertices
+    in common.
+   */
+
+  std::size_t c = ecm(rank_);
+  for(auto const & cdef : cnns.e2v) {
+    std::map<std::size_t, std::size_t> shr;
+
+    for(auto v : cdef) {
+      auto it = cnns.v2e.find(v);
+      if(it != cnns.v2e.end()) {
+        for(auto rc : cnns.v2e.at(v)) {
+          if(rc != c)
+            ++shr[rc];
+        } // for
+      } // if
+    } // for
+
+    for(auto tc : shr) {
+      if(tc.second > shared) {
+        cnns.e2e[c].emplace_back(tc.first);
+        cnns.e2e[tc.first].emplace_back(c);
+      } // if
+    } // for
+
+    ++c;
+  } // for
+
+  // Remove duplicate connections
+  util::unique_each(cnns.e2e);
+
+  /*
+    Populate the actual distributed crs data structure.
+   */
+
+  for(const std::size_t c : ecm[rank_]) {
+    naive.add_row(cnns.e2e[c]);
+  } // for
+
+  primary_raw_ = std::forward<C>(f)(ecm, naive, cd_.colors, comm_);
 } // color_primaries
 
 template<typename MD>
@@ -506,7 +488,7 @@ coloring_utils<MD>::migrate_primaries() {
   auto migrated =
     util::mpi::all_to_allv<move_primaries>(
       {
-        cnns.naive.distribution, cd_.colors, primary_raw_, cnns.e2v,
+          util::equal_map(num_primaries(), size_), cd_.colors, primary_raw_, cnns.e2v,
         cnns.v2e, cnns.e2e, rank_
       },
       comm_
@@ -841,12 +823,8 @@ coloring_utils<MD>::close_primaries() {
        */
 
       auto & crs = pc.cnx_colorings[cd_.vid.idx];
-      std::size_t o{0};
-      crs.offsets.emplace_back(o);
       for(auto e : pc.coloring.all) {
-        auto const & vertices = cnns.e2v[cnns.m2p[e]];
-        crs.indices.insert(crs.indices.end(), vertices.begin(), vertices.end());
-        crs.offsets.emplace_back(crs.offsets[++o - 1] + vertices.size());
+        crs.add_row(cnns.e2v[cnns.m2p[e]]);
       } // for
 
       ++lco;
@@ -1578,17 +1556,15 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   // Note: this is a rough estimate.
   c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
 
-  for(std::size_t cell = 0; cell < c2f.offsets.size() - 1; cell++) {
+  for(const util::crs::span cell : c2f) {
     std::vector<std::size_t> edges;
 
     // accumulate edges in cell
-    for(std::size_t fi = c2f.offsets[cell]; fi < c2f.offsets[cell + 1]; fi++) {
-      auto face = c2f.indices[fi];
-      for(std::size_t ei = f2e.offsets[face]; ei < f2e.offsets[face + 1];
-          ei++) {
-        auto it = std::find(edges.begin(), edges.end(), f2e.indices[ei]);
+    for(const std::size_t face : cell) {
+      for(const std::size_t ei : f2e.offsets[face]) {
+        auto it = std::find(edges.begin(), edges.end(), ei);
         if(it == edges.end()) {
-          edges.push_back(f2e.indices[ei]);
+          edges.push_back(ei);
         }
       }
     }
@@ -1632,15 +1608,13 @@ coloring_utils<MD>::build_intermediary(entity_kind kind,
     else
       md_.make_entity(kind, 0, these_verts, edges);
 
-    for(std::size_t row{0}; row < edges.offsets.size() - 1; ++row) {
-      auto beg = edges.indices.begin() + edges.offsets[row];
-      auto end = edges.indices.begin() + edges.offsets[row + 1];
-      sorted.assign(beg, end);
+    for(const util::crs::span row : edges) {
+      sorted.assign(row.begin(), row.end());
       std::sort(sorted.begin(), sorted.end());
 
       const auto eid = aux.v2i.size();
       if(const auto vit = aux.v2i.try_emplace(sorted, eid); vit.second) {
-        aux.i2v.add_row(beg, end);
+        aux.i2v.add_row(row);
         these_edges.push_back(eid);
       }
       else {

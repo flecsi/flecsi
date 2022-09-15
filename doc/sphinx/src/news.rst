@@ -87,6 +87,8 @@ New features
   * ``mpi::one_to_alli`` scatters generated and/or serialized data with bounded memory usage.
   * MPI communication functions compute values to send in rank order and support mutable functors.
   * ``substring_view`` represents part of another range.
+  * ``crs`` provides a Compressed Row Storage implementation.
+  * ``equal_map`` and ``offsets`` represent partitions of integer ranges.
 
 * Logging
 
