@@ -392,7 +392,7 @@ private:
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
   std::vector<packet_t> packets_;
-  bool run_flusher_ = true;
+  std::atomic<bool> run_flusher_ = true;
   bool serialized_ = false;
 #endif
 
