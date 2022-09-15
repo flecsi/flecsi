@@ -184,7 +184,7 @@ do
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -Og -ggdb -gdwarf-5"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -Og -ggdb -gdwarf-5"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -Og -ggdb -gdwarf-5"
       fi
       ;;
     intel)
@@ -195,7 +195,7 @@ do
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -g"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -g"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -g"
       fi
       ;;
     oneapi)
@@ -206,7 +206,7 @@ do
 
       if [ $debug -eq 1 ]; then
         SCRIPT_C_FLAGS="$SCRIPT_C_FLAGS -g"
-        SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -g"
+        SCRIPT_CXX_FLAGS="$SCRIPT_CXX_FLAGS -g"
       fi
       ;;
     kokkos)
