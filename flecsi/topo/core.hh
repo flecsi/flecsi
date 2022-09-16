@@ -4,6 +4,7 @@
 #ifndef FLECSI_TOPO_CORE_HH
 #define FLECSI_TOPO_CORE_HH
 
+#include "flecsi/data/field.hh" // cleanup
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
@@ -50,6 +51,10 @@ inline TopologyType next_id;
 template<template<class> class T>
 using base_t = typename detail::base<T>::type;
 
+struct with_cleanup {
+  data::cleanup cleanup;
+};
+
 #ifdef DOXYGEN
 /// An example topology base that is not really implemented.
 struct core_base {
@@ -84,6 +89,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   data::region & get_region();
 
   /// Find the partition for a field.
+  /// \return a \c repartition if appropriate
   /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
   const data::partition & get_partition() const;

@@ -80,7 +80,7 @@ struct unstructured : unstructured_base,
     return part_.template get<S>();
   }
   template<index_space S>
-  const data::partition & get_partition() const {
+  const repartition & get_partition() const {
     return part_.template get<S>();
   }
 
