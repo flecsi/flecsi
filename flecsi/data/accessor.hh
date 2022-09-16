@@ -247,10 +247,9 @@ struct ragged_accessor
       using Topo = typename topo::ragged_partitioned<typename R::Topology,
         R::space>::base_type;
       typename Topo::core & t = r.get_ragged();
-      t.template get_region<topo::elements>().cleanup(i, [=] {
-        if constexpr(!std::is_trivially_destructible_v<T>)
-          detail::destroy<P>(r);
-      });
+      if constexpr(!std::is_trivially_destructible_v<T>)
+        t.template get_region<topo::elements>().cleanup(
+          i, [=] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
