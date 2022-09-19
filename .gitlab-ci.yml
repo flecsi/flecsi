@@ -368,7 +368,7 @@ mpich-legion-clang:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: mpi
+    BACKEND: legion
     CXX_COMPILER: clang++
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
