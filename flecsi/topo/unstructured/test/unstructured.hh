@@ -24,10 +24,9 @@ struct unstructured
     from<edges, to<vertices, cells>>,
     from<vertices, to<cells>>>;
 
-  enum entity_list { special, owned, shared, ghost };
-  using entity_lists =
-    list<entity<vertices, has<special, owned, shared, ghost>>,
-      entity<cells, has<owned, shared, ghost>>>;
+  enum entity_list { owned, shared, ghost };
+  using entity_lists = list<entity<vertices, has<owned, shared, ghost>>,
+    entity<cells, has<owned, shared, ghost>>>;
 
   template<auto>
   static constexpr flecsi::PrivilegeCount privilege_count = 3;
