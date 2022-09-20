@@ -117,11 +117,11 @@ struct index_coloring {
 
 inline std::ostream &
 operator<<(std::ostream & stream, index_coloring const & ic) {
-  stream << "all\n" << flog::container{ic.all};
-  stream << "owned\n" << flog::container{ic.owned};
-  stream << "exclusive\n" << flog::container{ic.exclusive};
-  stream << "shared\n" << flog::container{ic.shared};
-  stream << "ghost\n" << flog::container{ic.ghost};
+  stream << "all\n" << flog::container{ic.all} << std::endl;
+  stream << "owned\n" << flog::container{ic.owned} << std::endl;
+  stream << "exclusive\n" << flog::container{ic.exclusive} << std::endl;
+  stream << "shared\n" << flog::container{ic.shared} << std::endl;
+  stream << "ghost\n" << flog::container{ic.ghost} << std::endl;
   return stream;
 }
 
