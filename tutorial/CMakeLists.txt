@@ -20,17 +20,19 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 #------------------------------------------------------------------------------#
+# FleCSI
+#------------------------------------------------------------------------------#
+
+find_package(FleCSI REQUIRED)
+
+#------------------------------------------------------------------------------#
 # Auxiliary Tools
 #------------------------------------------------------------------------------#
 
 option(ENABLE_DEVELOPER_MODE "Enable devel targets" OFF)
 
 if(ENABLE_DEVELOPER_MODE)
-  find_program(DOT_EXECUTABLE dot)
-  if(DOT_EXECUTABLE-NOTFOUND)
-    message(FATAL_ERROR "Failed to find dot executable")
-  endif()
-
+  find_package(Graphviz REQUIRED)
   find_package(ImageMagick COMPONENTS convert REQUIRED)
 endif()
 
@@ -60,12 +62,6 @@ function(add_unit name)
       ${CMAKE_BINARY_DIR}
   )
 endfunction()
-
-#------------------------------------------------------------------------------#
-# FleCSI
-#------------------------------------------------------------------------------#
-
-find_package(FleCSI REQUIRED)
 
 #------------------------------------------------------------------------------#
 # FleCSI-Tutorial library.
@@ -151,18 +147,23 @@ add_unit(control-state)
 
 if(ENABLE_DEVELOPER_MODE)
   add_custom_target(pngs
-    ${CMAKE_BINARY_DIR}/control-simple --control-model &&
-    ${DOT_EXECUTABLE} -Teps control-simple-control-model.dot > simple.eps &&
-    ${IMAGEMAGICK_CONVERT_EXECUTABLE} -density 600 simple.eps simple.png &&
-    ${CMAKE_BINARY_DIR}/control-cycle --control-model &&
-    ${DOT_EXECUTABLE} -Teps control-cycle-control-model.dot > cycle.eps &&
-    ${IMAGEMAGICK_CONVERT_EXECUTABLE} -density 600 cycle.eps cycle.png &&
-    ${CMAKE_BINARY_DIR}/control-subcycle --control-model &&
-    ${DOT_EXECUTABLE} -Teps control-subcycle-control-model.dot > subcycle.eps &&
-    ${IMAGEMAGICK_CONVERT_EXECUTABLE} -density 600 subcycle.eps subcycle.png &&
-    ${CMAKE_BINARY_DIR}/control-dependencies --control-model &&
-    ${DOT_EXECUTABLE} -Teps control-dependencies-control-model.dot > dependencies.eps &&
-    ${IMAGEMAGICK_CONVERT_EXECUTABLE} -density 600 dependencies.eps dependencies.png
+    $<TARGET_FILE:control-simple> --control-model &&
+    $<TARGET_FILE:Graphviz::dot> -Teps control-simple-control-model.dot > simple.eps &&
+    ${ImageMagick_convert_EXECUTABLE} -density 600 simple.eps simple.png &&
+    $<TARGET_FILE:control-cycle> --control-model &&
+    $<TARGET_FILE:Graphviz::dot> -Teps control-cycle-control-model.dot > cycle.eps &&
+    ${ImageMagick_convert_EXECUTABLE} -density 600 cycle.eps cycle.png &&
+    $<TARGET_FILE:control-subcycle> --control-model &&
+    $<TARGET_FILE:Graphviz::dot> -Teps control-subcycle-control-model.dot > subcycle.eps &&
+    ${ImageMagick_convert_EXECUTABLE} -density 600 subcycle.eps subcycle.png &&
+    $<TARGET_FILE:control-dependencies> --control-model &&
+    $<TARGET_FILE:Graphviz::dot> -Teps control-dependencies-control-model.dot > dependencies.eps &&
+    ${ImageMagick_convert_EXECUTABLE} -density 600 dependencies.eps dependencies.png
+    DEPENDS
+      control-simple
+      control-cycle
+      control-subcycle
+      control-dependencies
   )
 endif()
 

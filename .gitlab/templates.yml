@@ -45,7 +45,7 @@
     - spack config add concretizer:unify:when_possible
     - spack config add concretizer:reuse:false
     - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
-    - spack add py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
+    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
     - spack install -j $(nproc)
     - echo -e "\e[0Ksection_end:`date +%s`:python_env_init\r\e[0K"
 
@@ -75,7 +75,6 @@
   script: &darwin_env_shell
     - export SPACK_DISABLE_LOCAL_CONFIG=true
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
-    - if [ -e $TMPDIR/python-env ]; then source $TMPDIR/python-env/bin/activate; fi
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
     - module load cuda/11.7.0
@@ -257,9 +256,6 @@
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   PARTITIONS:   Darwin cluster partitions
-#   MPI_PROVIDER: The MPI provider. Generally this will be mpich, or openmpi.
-#   VERSION:  The version of FleCSI to use for spack build.
-#   VARIANTS: Spack variants not including the backend.
 #   FORMAT_VERSION: The required version of clang-format
 #------------------------------------------------------------------------------#
 #
@@ -272,10 +268,11 @@
 .darwin_docs_and_format_template:
   tags:
     - darwin-slurm-shared
+  variables:
+    MPI_PROVIDER: none
   script:
     - *darwin_env_init
     - *darwin_python_env_init
-    - *darwin_env_spack_install_flecsi_deps
     - *darwin_clang_format_init
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
@@ -283,13 +280,9 @@
     - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
     - |-
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
-        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-        -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
-        -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" \
-        -DCMAKE_C_COMPILER=${C_COMPILER} \
-        -DCMAKE_C_FLAGS="${C_FLAGS}" \
-        -DFLECSI_BACKEND=${BACKEND} \
+        -DENABLE_LIBRARY=OFF \
         -DENABLE_DOCUMENTATION=ON \
+        -DENABLE_FORMAT=ON \
         -DClangFormat_VERSION=${FORMAT_VERSION} \
         ${CMAKE_OPTIONS} \
         ../..

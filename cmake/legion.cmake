@@ -1,13 +1,4 @@
-option(ENABLE_LEGION "Enable Legion" OFF)
-
-if(ENABLE_LEGION)
-
+macro(flecsi_enable_legion target)
   find_package(Legion REQUIRED)
-
-  if(NOT Legion_FOUND)
-    message(FATAL_ERROR "Legion is required for this build configuration")
-  endif(NOT Legion_FOUND)
-
-  list(APPEND TPL_LIBRARIES Legion::Legion)
-
-endif(ENABLE_LEGION)
+  target_link_libraries(${target} PUBLIC Legion::Legion)
+endmacro()

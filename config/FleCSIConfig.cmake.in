@@ -14,19 +14,22 @@
 @FLOG_CONFIG_CODE@
 
 #------------------------------------------------------------------------------#
-# FleCSI library dependencies (contains definitions for IMPORTED targets)
+# Add FleCSI CMake modules
 #------------------------------------------------------------------------------#
 get_filename_component(FleCSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
-  include(${FleCSI_CMAKE_DIR}/FleCSITargets.cmake)
+if(NOT FLECSI_CMAKE)
+  get_filename_component(FleCSI_CMAKE_BASE_DIR "${FleCSI_CMAKE_DIR}" DIRECTORY)
+  message(STATUS "Found FleCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
+    ${FleCSI_CMAKE_BASE_DIR})
+  list(APPEND CMAKE_MODULE_PATH ${FleCSI_CMAKE_BASE_DIR})
+  set(FLECSI_UNIT_MAIN ${FleCSI_CMAKE_DIR}/unit-main.cc)
+  set(FLECSI_CMAKE TRUE)
 endif()
 
 #------------------------------------------------------------------------------#
 # Handle TPLs
 #------------------------------------------------------------------------------#
-
-find_package(LANLCMakeModules REQUIRED)
 
 if(@ENABLE_BOOST@)
   find_package(Boost REQUIRED @BOOST_COMPONENTS@)
@@ -41,8 +44,11 @@ if(@ENABLE_MPI@)
   endif()
 endif()
 
+if(@ENABLE_OPENMP@)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+endif()
+
 if(@ENABLE_PARMETIS@)
-  find_package(METIS @METIS_VERSION@ REQUIRED)
   set(preserve_PMT ${PARMETIS_TEST_RUNS})
   set(PARMETIS_TEST_RUNS TRUE)
   find_package(ParMETIS @PARMETIS_VERSION@ REQUIRED)
@@ -72,4 +78,13 @@ endif()
 
 if(@ENABLE_GRAPHVIZ@)
   find_package(Graphviz REQUIRED)
+endif()
+
+
+#------------------------------------------------------------------------------#
+# FleCSI library dependencies (contains definitions for IMPORTED targets)
+#------------------------------------------------------------------------------#
+
+if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
+  include(${FleCSI_CMAKE_DIR}/FleCSITargets.cmake)
 endif()

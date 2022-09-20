@@ -45,6 +45,7 @@ Fixed
 * Runtime
 
   * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
+  * ``--backend-args`` can be specified multiple times. The collected arguments are passed to the backend.
 
 * Data
 

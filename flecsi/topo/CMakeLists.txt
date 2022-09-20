@@ -52,25 +52,25 @@ set(topo_SOURCES
 
 # index -----------------------------------------------------------------------#
 
-add_unit(index
+flecsi_add_test(index
   SOURCES
     test/index.cc
-  THREADS 2
+  PROCS 2
   )
 
 # unstructured ---------------------------------------------------------------#
 
-add_unit(coloring
+flecsi_add_test(coloring
   SOURCES
     unstructured/test/coloring.cc
     unstructured/test/simple_definition.hh
   INPUTS
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
-  THREADS 5
+  PROCS 5
 )
 
-add_unit(closure
+flecsi_add_test(closure
   SOURCES
     unstructured/test/closure.cc
     unstructured/test/simple_definition.hh
@@ -79,47 +79,47 @@ add_unit(closure
     unstructured/test/simple2d-16x16.msh
     unstructured/test/simple2d-8x8.msh
     unstructured/test/bunny.ugm
-  THREADS 2
+  PROCS 2
 )
 
-#add_unit(closure
+#flecsi_add_test(closure
 #  SOURCES
 #    unstructured/test/closure.cc
 #    unstructured/test/test_definition.hh
 #)
 
-add_unit(unstructured
+flecsi_add_test(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
-  THREADS 2
+  PROCS 2
 )
 
-add_unit(fixed
+flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
-  THREADS 4
+  PROCS 4
 )
 
 # narray ----------------------------------------------------------------------#
 
-add_unit(narray
+flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
-  THREADS 4
+  PROCS 4
 )
 
 # ntree -----------------------------------------------------------------------#
 
-add_unit(ntree_policy
+flecsi_add_test(ntree_policy
   SOURCES ntree/test/ntree.cc
   INPUTS ntree/test/coordinates.blessed
-  THREADS 4
+  PROCS 4
 )
 
-add_unit(ntree_geometry
+flecsi_add_test(ntree_geometry
   SOURCES ntree/test/geometry.cc
 )

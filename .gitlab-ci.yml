@@ -298,7 +298,7 @@ openmpi-legion-clang-cuda-ibv:
     <<: *openmpi-cuda-ibv-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
-    BUILD_TYPE: Release
+    BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
     CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
@@ -410,18 +410,10 @@ docs_and_format:
   only:
     - merge_requests
   variables:
-    MPI_PROVIDER: mpich
-    VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    VARIANTS: +graphviz +hdf5 ^graphviz+poppler
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     GCC_VERSION: 11.1.0
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    BUILD_TYPE: Debug
-    BACKEND: mpi
-    SPACK_INSTALL_FLECSI_BACKEND: mpi
-    CXX_COMPILER: g++
-    C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_GRAPHVIZ=ON
+    CMAKE_OPTIONS: ""
     FORMAT_VERSION: 13.0.1
   allow_failure: true
 

@@ -52,20 +52,20 @@ set(exec_HEADERS
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-add_unit(kernel
+flecsi_add_test(kernel
     SOURCES
       test/kernel.cc
 )
 
-add_unit(task
+flecsi_add_test(task
   SOURCES
     test/task.cc
-  THREADS
+  PROCS
     4 # Warning: This number is hard-coded into the test.
 )
 
-add_unit(future
+flecsi_add_test(future
   SOURCES
     test/future.cc
-  THREADS 2
+  PROCS 2
 )
