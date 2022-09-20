@@ -13,82 +13,6 @@
 using namespace flecsi;
 
 void
-print(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> cids,
-  field<util::id>::accessor<ro, ro, ro> vids,
-  field<util::id>::accessor<ro, ro, ro> eids) {
-
-  std::stringstream ss;
-  ss << "color(" << color() << ")" << std::endl;
-  for(auto c : m.cells()) {
-    ss << "cell(" << cids[c] << "," << c << "): ";
-    for(auto v : m.vertices(c)) {
-      ss << vids[v] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto v : m.vertices()) {
-    ss << "vertex(" << vids[v] << "," << v << "): ";
-    for(auto c : m.cells(v)) {
-      ss << cids[c] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto e : m.edges()) {
-    ss << "edge(" << eids[e] << "," << e << "): ";
-    for(auto c : m.cells(e)) {
-      ss << cids[c] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto e : m.edges()) {
-    ss << "edge(" << eids[e] << "," << e << "): ";
-    for(auto v : m.vertices(e)) {
-      ss << vids[v] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-}
-
-void
-init_f(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> vids,
-  field<int>::accessor<wo, wo, na> f) {
-  for(auto v : m.vertices<unstructured::owned>()) {
-    f[v] = int(vids[v] * 1000);
-  }
-}
-
-void
-print_f(unstructured::accessor<ro, ro, ro> m,
-  field<int>::accessor<ro, ro, ro> f) {
-  std::stringstream ss;
-  ss << "OWNED " << color() << std::endl;
-  for(auto v : m.vertices<unstructured::owned>()) {
-    ss << f[v] << std::endl;
-  }
-  ss << "\nSHARED " << color() << std::endl;
-  for(auto v : m.vertices<unstructured::shared>()) {
-    ss << f[v] << std::endl;
-  }
-  ss << "\nGHOST " << color() << std::endl;
-  for(auto v : m.vertices<unstructured::ghost>()) {
-    ss << f[v] << std::endl;
-  }
-  flog(warn) << ss.str() << std::endl;
-}
-
-void
 init_rf(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::mutator<wo, wo, na> tf,
@@ -180,21 +104,13 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
 
 unstructured::slot mesh, m1, m2;
 unstructured::cslot coloring, c1, c2;
-field<int, data::ragged>::definition<unstructured, unstructured::cells>
-  rcf;
-field<int, data::ragged>::definition<unstructured, unstructured::vertices>
-  rvf;
-field<int>::definition<unstructured, unstructured::vertices> vf;
+field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
+field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
 int
 unstructured_driver() {
   std::vector<std::string> files = {
-    "simple2d-16x16.msh"
-    ,
-    "simple2d-8x8.msh"
-    ,
-    "disconnected.msh"
-  };
+    "simple2d-16x16.msh", "simple2d-8x8.msh", "disconnected.msh"};
   UNIT() {
     for(auto f : files) {
       flog(info) << "testing mesh: " << f << std::endl;
@@ -202,33 +118,27 @@ unstructured_driver() {
       mesh.allocate(coloring.get());
 
       {
-      auto & tf = rcf(mesh).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field>(mesh, tf.sizes(), true);
-      tf.resize();
+        auto & tf = rcf(mesh).get_ragged();
+        tf.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate_field>(mesh, tf.sizes(), true);
+        tf.resize();
 
-      auto const & cids = mesh->forward_map<unstructured::cells>();
-      execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
-      EXPECT_EQ(test<verify_rf>(mesh, cids(mesh), rcf(mesh), true), 0);
+        auto const & cids = mesh->forward_map<unstructured::cells>();
+        execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
+        EXPECT_EQ(test<verify_rf>(mesh, cids(mesh), rcf(mesh), true), 0);
       } // scope
 
       {
-      auto & tf = rvf(mesh).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field>(mesh, tf.sizes(), false);
-      tf.resize();
+        auto & tf = rvf(mesh).get_ragged();
+        tf.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate_field>(mesh, tf.sizes(), false);
+        tf.resize();
 
-      auto const & vids = mesh->forward_map<unstructured::vertices>();
-      execute<init_f>(mesh, vids(mesh), vf(mesh));
-      execute<init_rf>(mesh, vids(mesh), rvf(mesh), false);
-      execute<print_rf>(mesh, vids(mesh), rvf(mesh), false);
-      EXPECT_EQ(test<verify_rf>(mesh, vids(mesh), rvf(mesh), false), 0);
+        auto const & vids = mesh->forward_map<unstructured::vertices>();
+        execute<init_rf>(mesh, vids(mesh), rvf(mesh), false);
+        execute<print_rf>(mesh, vids(mesh), rvf(mesh), false);
+        EXPECT_EQ(test<verify_rf>(mesh, vids(mesh), rvf(mesh), false), 0);
       } // scope
-
-      auto const & cids = mesh->forward_map<unstructured::cells>();
-      auto const & vids = mesh->forward_map<unstructured::vertices>();
-      auto const & eids = mesh->forward_map<unstructured::edges>();
-      execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
     } // for
   };
 } // unstructured_driver

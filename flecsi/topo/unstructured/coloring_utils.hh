@@ -321,6 +321,7 @@ private:
   std::unordered_map<std::size_t, Color> p2co_;
   std::unordered_map<std::size_t, Color> v2co_;
   std::unordered_map<Color, std::set<std::size_t>> shared_, ghost_;
+  std::unordered_map<std::size_t, std::set<Color>> vdeps_;
   std::vector<std::size_t> rghost_;
   unstructured_base::coloring coloring_;
   std::vector<std::set<Color>> color_peers_;
@@ -643,7 +644,7 @@ coloring_utils<MD>::close_primaries() {
               // If we don't have the entity, we need to request it.
               layer.emplace_back(en);
 
-              // Collect the dependent color for request.
+              // This primary depends on the current color.
               dependencies[en].insert(p.first);
 
               // If we're within the requested depth, this is also
@@ -660,7 +661,8 @@ coloring_utils<MD>::close_primaries() {
               // Add this entity to the shared of the owning color.
               shared_[p2co_.at(en)].insert(en);
 
-              // Add the current color as a dependent.
+              // Add the current color as a dependent of this primary.
+              vdeps_[en].insert(p.first);
               dependents[en].insert(p.first);
 
               // This entity is a ghost for the current color.
@@ -707,7 +709,11 @@ coloring_utils<MD>::close_primaries() {
     Color r{0};
     for(auto rv : requested) {
       for(auto e : rv) {
+        // Add this entity to the list of entities that we need to fulfill
+        // in `communicate_entities` below.
         fulfill[r].emplace_back(e.first);
+
+        // Add this primary to shared and add the colors that depend on it
         if(d < cd_.depth) {
           dependents[e.first].insert(e.second.begin(), e.second.end());
           shared_[p2co_.at(e.first)].insert(e.first);
@@ -717,7 +723,8 @@ coloring_utils<MD>::close_primaries() {
     } // for
 
     auto fulfilled = util::mpi::all_to_allv<communicate_entities>(
-      {fulfill, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p}, comm_);
+      {fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p},
+      comm_);
 
     /*
       Update local information.
@@ -727,12 +734,18 @@ coloring_utils<MD>::close_primaries() {
       auto const & entity_pack = std::get<0>(r);
       for(auto const & e : entity_pack) {
         auto const & info = std::get<0>(e);
+        auto const id = std::get<1>(info);
         cnns.e2v.add_row(std::get<1>(e));
-        cnns.m2p[std::get<1>(info)] = cnns.e2v.size() - 1;
-        p2co_.try_emplace(std::get<1>(info), std::get<0>(info));
+        cnns.m2p[id] = cnns.e2v.size() - 1;
+        p2co_.try_emplace(id, std::get<0>(info));
+        auto const & deps = std::get<2>(e);
 
-        for(auto co : dependencies.at(std::get<1>(info))) {
-          wkset.at(co).emplace_back(std::get<1>(info));
+        if(d < cd_.depth) {
+          vdeps_[id].insert(deps.begin(), deps.end());
+        } // if
+
+        for(auto co : dependencies.at(id)) {
+          wkset.at(co).emplace_back(id);
         } // for
       } // for
 
@@ -951,13 +964,8 @@ coloring_utils<MD>::close_vertices() {
       pc.color = p.first;
       pc.entities = num_vertices();
 
-      for(auto e : primary.exclusive) {
-        for(auto v : cnns.e2v[cnns.m2p.at(e)]) {
-          pc.coloring.exclusive.emplace_back(v);
-          pc.coloring.owned.emplace_back(v);
-        } // for
-      } // for
-
+      std::unordered_map<std::size_t, std::set<std::size_t>> dependents;
+      std::set<std::size_t> shared;
       if(cd_.colors > 1) {
         // Go through the shared primaries and look for ghosts. Some of these
         // may be on the local processor, i.e., we don't need to request
@@ -968,8 +976,8 @@ coloring_utils<MD>::close_vertices() {
             flog_assert(vit != v2co_.end(), "invalid vertex id");
 
             if(vit->second == p.first) {
-              // This vertex is owned by the current color
-              pc.coloring.shared.emplace_back(shared_entity{v, e.dependents});
+              shared.insert(v);
+              dependents[v].insert(e.dependents.begin(), e.dependents.end());
               pc.coloring.owned.emplace_back(v);
             }
             else {
@@ -994,6 +1002,13 @@ coloring_utils<MD>::close_vertices() {
           for(auto v : cnns.e2v[cnns.m2p.at(e.id)]) {
             auto vit = v2co_.find(v);
 
+            // Add dependents through ghosts.
+            if(shared.count(v) && vdeps_.count(e.id)) {
+              auto deps = vdeps_.at(e.id);
+              deps.erase(p.first);
+              dependents[v].insert(deps.begin(), deps.end());
+            } // if
+
             if(vit != v2co_.end()) {
               if(vit->second != p.first) {
                 const auto [pr, li] = pmap.invert(vit->second);
@@ -1009,6 +1024,20 @@ coloring_utils<MD>::close_vertices() {
           } // for
         } // for
       } // if
+
+      for(auto s : shared) {
+        pc.coloring.shared.push_back(
+          {s, {dependents.at(s).begin(), dependents.at(s).end()}});
+      }
+
+      for(auto e : primary.exclusive) {
+        for(auto v : cnns.e2v[cnns.m2p.at(e)]) {
+          if(!shared.count(v)) {
+            pc.coloring.exclusive.emplace_back(v);
+          }
+          pc.coloring.owned.emplace_back(v);
+        } // for
+      } // for
 
       util::force_unique(pc.coloring.owned);
       util::force_unique(pc.coloring.exclusive);
@@ -1134,7 +1163,6 @@ coloring_utils<MD>::close_vertices() {
       }
 
       vertex_partitions().emplace_back(pc.coloring.all.size());
-
       ++lco;
     } // for
   } // scope

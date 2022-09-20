@@ -134,16 +134,20 @@ struct unstructured
     cu.close_auxiliary(edges, core::index<edges>);
 
     auto co = cu.generate();
-    std::size_t const entities = co.idx_spaces[core::index<cells>][0].entities;
-    std::size_t M = std::sqrt(entities);
 
-    if(M*M == entities) {
-      flecsi::util::tikz::write_closure(M,
-        M,
-        co.idx_spaces[core::index<cells>],
-        co.idx_spaces[core::index<vertices>],
-        MPI_COMM_WORLD);
-    }
+    if(flecsi::processes() <= colors) {
+      std::size_t const entities =
+        co.idx_spaces[core::index<cells>][0].entities;
+      std::size_t M = std::sqrt(entities);
+
+      if(M * M == entities) {
+        flecsi::util::tikz::write_closure(M,
+          M,
+          co.idx_spaces[core::index<cells>],
+          co.idx_spaces[core::index<vertices>],
+          MPI_COMM_WORLD);
+      } // if
+    } // if
 
     return co;
   } // color
