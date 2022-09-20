@@ -6,12 +6,15 @@
 #ifndef FLECSI_CONFIG_H
 #define FLECSI_CONFIG_H
 
-//----------------------------------------------------------------------------//
-// FleCSI Version
-//
-// Format: (major << 16) | (minor << 8) | patch
-//----------------------------------------------------------------------------//
+/// \defgroup config Configuration
+/// FleCSI Configuration
+/// \{
 
+/*!
+FleCSI Version
+
+Format: \code(major << 16) | (minor << 8) | patch\endcode
+*/
 #define FLECSI_VERSION @FleCSI_VERSION_HEX@
 
 //----------------------------------------------------------------------------//
@@ -134,5 +137,7 @@
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
 #cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
+
+/// \}
 
 #endif
