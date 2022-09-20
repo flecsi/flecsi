@@ -114,7 +114,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
   template<index_space S>
-  const data::partition & get_partition() const {
+  const repartition & get_partition() const {
     return part_.template get<S>();
   }
 

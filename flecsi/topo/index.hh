@@ -22,7 +22,7 @@ inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
 // A partition with a field for dynamically resizing it.
-struct repartition : with_size, data::prefixes {
+struct repartition : with_size, data::prefixes, with_cleanup {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
@@ -33,6 +33,11 @@ struct repartition : with_size, data::prefixes {
       })) {}
   void resize() { // apply sizes stored in the field
     update(sizes());
+  }
+
+  template<auto>
+  repartition & get_partition() {
+    return *this;
   }
 
 private:
@@ -182,7 +187,7 @@ struct index_base {
 };
 
 template<class P>
-struct index_category : index_base, color<P>, with_ragged<P> {
+struct index_category : index_base, color<P>, with_ragged<P>, with_cleanup {
   using index_base::coloring; // override color_base::coloring
   explicit index_category(coloring c) : color<P>({c, 1}), with_ragged<P>(c) {}
 };
@@ -242,6 +247,7 @@ struct index : specialization<index_category, index> {
 /// \}
 /// \}
 } // namespace topo
+
 } // namespace flecsi
 
 #endif
