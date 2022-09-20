@@ -655,7 +655,7 @@ options are:
 .. caution::
 
    To use Caliper annotations with the Legion backend, the Legion option
-   ``--ll:force-kthreads`` must be used.  Caliper is not aware of Legion
+   ``-ll:force_kthreads`` must be used.  Caliper is not aware of Legion
    user-level threads, so additional care must be practiced when using
    annotations with this runtime.
 
