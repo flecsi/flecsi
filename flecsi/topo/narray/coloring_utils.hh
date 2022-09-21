@@ -154,7 +154,7 @@ make_color(Dimension dimension,
     log1 = log0 + cm.indices(axis_color, 0);
     tot = log1 + (hi ? bdepths : hdepths)[axis];
     idxco.extended[1][axis] = hi ? tot : log1;
-    idxco.offset[axis] = cm.index_offset(axis_color, 0) - ext0;
+    idxco.offset[axis] = cm.index_offset(axis_color, 0);
 
     auto & gi = ghstitvls[axis];
     if(!lo)
@@ -400,17 +400,12 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
           Compute a remote index from a global coordinate.
          */
 
-        auto rmtidx = [dimension, &axis_bdepths](
+        auto rmtidx = [dimension](
                         index_coloring const & idxco, coord const & gidx) {
           coord result(dimension);
+          auto & log0 = idxco.logical[0];
           for(Dimension axis = 0; axis < dimension; ++axis) {
-            uint32_t bits = idxco.faces >> axis * 2;
-            if(bits & low) {
-              result[axis] = gidx[axis] + axis_bdepths[axis];
-            }
-            else {
-              result[axis] = gidx[axis] - idxco.offset[axis];
-            }
+            result[axis] = gidx[axis] - idxco.offset[axis] + log0[axis];
           }
           return result;
         };
@@ -428,18 +423,12 @@ color(std::vector<narray_impl::coloring_definition> const & index_spaces,
             const std::size_t sa = start[axis], ea = end[axis], i = idx[axis];
             if(bits & high && i >= ea) // periodic high
               result[axis] = i - ea;
-            else if(bits & low) {
-              // Here, i=sa is global index 0 and thus the reference.
-              if(i < sa) {
-                /* periodic low */
-                result[axis] = idxco.global[axis] - sa + i;
-              }
-              else {
-                result[axis] = i - sa;
-              }
+            else if(bits & low && i < sa) {
+              /* periodic low */
+              result[axis] = idxco.global[axis] - sa + i;
             }
             else {
-              result[axis] = idxco.offset[axis] + i;
+              result[axis] = idxco.offset[axis] + i - sa;
             }
           }
           return result;

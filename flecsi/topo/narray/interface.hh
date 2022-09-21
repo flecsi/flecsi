@@ -73,8 +73,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     /// Global extents per index space.
     /// These are necessarily the same on every color.
     std::array<scoord, index_spaces::size> global,
-      /// The global offsets to the beginning of the color's region per index
-      /// space, excluding any non-physical boundary padding.
+      /// The global offsets to the beginning of the color's logical region
+      /// per index space.
       /// Use to map from local to global ids.
       offset,
       /// The size of the color's region per index space, including ghosts and

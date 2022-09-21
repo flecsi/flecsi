@@ -84,9 +84,9 @@ check_1d(mesh1d::accessor<ro> m) {
 
     // check offsets
     std::size_t xoffsets_ex[4][8] = {{2, 0, 0, 0, 5, 0, 5, 0},
-      {1, 1, 0, 1, 3, 0, 3, 2},
-      {1, 1, 0, 1, 3, 0, 3, 4},
-      {1, 1, 0, 1, 3, 0, 3, 6}};
+      {1, 1, 0, 1, 3, 0, 3, 3},
+      {1, 1, 0, 1, 3, 0, 3, 5},
+      {1, 1, 0, 1, 3, 0, 3, 7}};
 
     std::size_t xoffsets[] = {m.offset<ax::x_axis>(),
       m.offset<ax::x_axis, r::extended>(),
@@ -232,9 +232,9 @@ check_2d(mesh2d::accessor<ro> m) {
 
     // check offsets
     std::size_t xoffsets_ex[4][8] = {{2, 0, 0, 0, 6, 0, 6, 0},
-      {1, 1, 0, 1, 5, 0, 5, 3},
+      {1, 1, 0, 1, 5, 0, 5, 4},
       {2, 0, 0, 0, 6, 0, 6, 0},
-      {1, 1, 0, 1, 5, 0, 5, 3}};
+      {1, 1, 0, 1, 5, 0, 5, 4}};
 
     std::size_t xoffsets[] = {m.offset<ax::x_axis>(),
       m.offset<ax::x_axis, r::extended>(),
@@ -251,8 +251,8 @@ check_2d(mesh2d::accessor<ro> m) {
 
     std::size_t yoffsets_ex[4][8] = {{1, 0, 0, 0, 5, 0, 5, 0},
       {1, 0, 0, 0, 5, 0, 5, 0},
-      {2, 2, 0, 2, 6, 0, 6, 2},
-      {2, 2, 0, 2, 6, 0, 6, 2}};
+      {2, 2, 0, 2, 6, 0, 6, 4},
+      {2, 2, 0, 2, 6, 0, 6, 4}};
 
     std::size_t yoffsets[] = {m.offset<ax::y_axis>(),
       m.offset<ax::y_axis, r::extended>(),
@@ -436,9 +436,9 @@ check_3d(mesh3d::accessor<ro> m) {
 
     // check offsets
     std::size_t xoffsets_ex[4][8] = {{1, 0, 0, 0, 3, 0, 3, 0},
-      {2, 2, 0, 2, 3, 0, 3, 0},
+      {2, 2, 0, 2, 3, 0, 3, 2},
       {1, 0, 0, 0, 3, 0, 3, 0},
-      {2, 2, 0, 2, 3, 0, 3, 0}};
+      {2, 2, 0, 2, 3, 0, 3, 2}};
 
     std::size_t xoffsets[] = {m.offset<ax::x_axis>(),
       m.offset<ax::x_axis, r::extended>(),
@@ -472,8 +472,8 @@ check_3d(mesh3d::accessor<ro> m) {
 
     std::size_t zoffsets_ex[4][8] = {{1, 0, 0, 0, 3, 0, 3, 0},
       {1, 0, 0, 0, 3, 0, 3, 0},
-      {1, 1, 0, 1, 3, 0, 3, 1},
-      {1, 1, 0, 1, 3, 0, 3, 1}};
+      {1, 1, 0, 1, 3, 0, 3, 2},
+      {1, 1, 0, 1, 3, 0, 3, 2}};
 
     std::size_t zoffsets[] = {m.offset<ax::z_axis>(),
       m.offset<ax::z_axis, r::extended>(),
