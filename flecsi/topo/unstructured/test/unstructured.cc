@@ -13,59 +13,11 @@
 using namespace flecsi;
 
 void
-print(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> cids,
-  field<util::id>::accessor<ro, ro, ro> vids,
-  field<util::id>::accessor<ro, ro, ro> eids) {
-
-  std::stringstream ss;
-  ss << "color(" << color() << ")" << std::endl;
-  for(auto c : m.cells()) {
-    ss << "cell(" << cids[c] << "," << c << "): ";
-    for(auto v : m.vertices(c)) {
-      ss << vids[v] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto v : m.vertices()) {
-    ss << "vertex(" << vids[v] << "," << v << "): ";
-    for(auto c : m.cells(v)) {
-      ss << cids[c] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto e : m.edges()) {
-    ss << "edge(" << eids[e] << "," << e << "): ";
-    for(auto c : m.cells(e)) {
-      ss << cids[c] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-
-  ss.str("");
-  for(auto e : m.edges()) {
-    ss << "edge(" << eids[e] << "," << e << "): ";
-    for(auto v : m.vertices(e)) {
-      ss << vids[v] << " ";
-    }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
-}
-
-void
-init_field(unstructured::accessor<ro, ro, ro> m,
+init_rf(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::mutator<wo, wo, na> tf,
   bool is_cell) {
-  int sz = 100;
+  int sz = 3;
   if(is_cell) {
     for(auto c : m.cells<unstructured::owned>()) {
       tf[c].resize(sz);
@@ -80,20 +32,21 @@ init_field(unstructured::accessor<ro, ro, ro> m,
         tf[v][i] = (int)(vids[v] * 10000 + i);
     }
   }
-
-} // init_field
+} // init_rf
 
 void
-print_field(unstructured::accessor<ro, ro, ro> m,
+print_rf(unstructured::accessor<ro, ro, ro> m,
+  field<util::id>::accessor<ro, ro, ro> gids,
   field<int, data::ragged>::accessor<ro, ro, ro> tf,
   bool is_cell) {
 
   std::stringstream ss;
+  ss << " Color " << color() << std::endl;
   if(is_cell) {
     ss << " Number of cells = " << m.cells().size() << "\n";
     for(auto c : m.cells()) {
-      ss << "For cell " << c << ", field_size = " << tf[c].size()
-         << ", field vals = [ ";
+      ss << "For cell (" << c << ", " << gids[c]
+         << "), field_size = " << tf[c].size() << ", field vals = [ ";
       for(std::size_t i = 0; i < tf[c].size(); ++i)
         ss << tf[c][i] << "  ";
       ss << "]\n\n";
@@ -102,8 +55,8 @@ print_field(unstructured::accessor<ro, ro, ro> m,
   else {
     ss << " Number of vertices = " << m.vertices().size() << "\n";
     for(auto v : m.vertices()) {
-      ss << "For vertex " << v << ", field_size = " << tf[v].size()
-         << ", field vals = [ ";
+      ss << "For vertex (" << v << ", " << gids[v]
+         << "), field_size = " << tf[v].size() << ", field vals = [ ";
       for(std::size_t i = 0; i < tf[v].size(); ++i)
         ss << tf[v][i] << "  ";
       ss << "]\n\n";
@@ -111,13 +64,13 @@ print_field(unstructured::accessor<ro, ro, ro> m,
   }
 
   flog(info) << ss.str() << std::endl;
-} // print_field
+} // print_rf
 
 void
 allocate_field(unstructured::accessor<ro, ro, ro> m,
   topo::resize::Field::accessor<wo> a,
   bool is_cell) {
-  int sz = 100;
+  int sz = 3;
   if(is_cell)
     a = m.cells().size() * sz;
   else
@@ -125,13 +78,13 @@ allocate_field(unstructured::accessor<ro, ro, ro> m,
 }
 
 int
-verify_field(unstructured::accessor<ro, ro, ro> m,
+verify_rf(unstructured::accessor<ro, ro, ro> m,
   field<util::id>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::accessor<ro, ro, ro> tf,
   bool is_cell) {
 
   UNIT("VERIFY_FIELD") {
-    int sz = 100;
+    int sz = 3;
     if(is_cell) {
       for(auto c : m.cells()) {
         EXPECT_EQ(tf[c].size(), sz);
@@ -151,8 +104,8 @@ verify_field(unstructured::accessor<ro, ro, ro> m,
 
 unstructured::slot mesh, m1, m2;
 unstructured::cslot coloring, c1, c2;
-field<int, data::ragged>::definition<unstructured, unstructured::cells>
-  cellfield;
+field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
+field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
 int
 unstructured_driver() {
@@ -164,21 +117,28 @@ unstructured_driver() {
       coloring.allocate(f);
       mesh.allocate(coloring.get());
 
-      auto & tf = cellfield(mesh).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field>(mesh, tf.sizes(), true);
-      tf.resize();
+      {
+        auto & tf = rcf(mesh).get_ragged();
+        tf.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate_field>(mesh, tf.sizes(), true);
+        tf.resize();
 
-      auto const & cids = mesh->forward_map<unstructured::cells>();
-      execute<init_field>(mesh, cids(mesh), cellfield(mesh), true);
-      EXPECT_EQ(test<verify_field>(mesh, cids(mesh), cellfield(mesh), true), 0);
+        auto const & cids = mesh->forward_map<unstructured::cells>();
+        execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
+        EXPECT_EQ(test<verify_rf>(mesh, cids(mesh), rcf(mesh), true), 0);
+      } // scope
 
-#if 0
-      auto const & vids = mesh->forward_map<unstructured::vertices>();
-      auto const & eids = mesh->forward_map<unstructured::edges>();
-      execute<print>(mesh, cids(mesh), vids(mesh), eids(mesh));
-      execute<print_field>(mesh, cellfield(mesh), true);
-#endif
+      {
+        auto & tf = rvf(mesh).get_ragged();
+        tf.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate_field>(mesh, tf.sizes(), false);
+        tf.resize();
+
+        auto const & vids = mesh->forward_map<unstructured::vertices>();
+        execute<init_rf>(mesh, vids(mesh), rvf(mesh), false);
+        execute<print_rf>(mesh, vids(mesh), rvf(mesh), false);
+        EXPECT_EQ(test<verify_rf>(mesh, vids(mesh), rvf(mesh), false), 0);
+      } // scope
     } // for
   };
 } // unstructured_driver

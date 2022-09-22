@@ -151,7 +151,7 @@ struct move_primaries {
     >;
   // clang-format on
 
-  move_primaries(const util::equal_map & dist,
+  move_primaries(const util::offsets & dist,
     Color colors,
     std::vector<Color> const & index_colors,
     util::crs & e2v,
@@ -221,7 +221,8 @@ struct communicate_entities {
       std::vector</* over entities */
         std::tuple<
           std::array<std::size_t, 2> /* color, mesh id> */,
-          std::vector<std::size_t> /* entity definition (vertex mesh ids) */
+          std::vector<std::size_t> /* entity definition (vertex mesh ids) */,
+          std::set<Color> /* dependents */
         >
       >,
       std::map</* over vertices */
@@ -236,6 +237,7 @@ struct communicate_entities {
   // clang-format on
 
   communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
+    std::unordered_map<std::size_t, std::set<Color>> const & deps,
     std::unordered_map<std::size_t, Color> const & colors,
     util::crs const & e2v,
     std::map<std::size_t, std::vector<std::size_t>> const & v2e,
@@ -243,15 +245,18 @@ struct communicate_entities {
     std::map<std::size_t, std::size_t> const & m2p)
     : size_(entities.size()) {
     for(auto re : entities) {
-      std::vector<
-        std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
+      std::vector<std::tuple<std::array<std::size_t, 2>,
+        std::vector<std::size_t>,
+        std::set<Color>>>
         entity_pack;
       std::map<std::size_t, std::vector<std::size_t>> v2e_pack;
       std::map<std::size_t, std::vector<std::size_t>> e2e_pack;
 
       for(auto c : re) {
         const std::array<std::size_t, 2> info{colors.at(c), c};
-        entity_pack.push_back(std::make_tuple(info, to_vector(e2v[m2p.at(c)])));
+        entity_pack.push_back(std::make_tuple(info,
+          to_vector(e2v[m2p.at(c)]),
+          deps.count(c) ? deps.at(c) : std::set<Color>{}));
 
         for(auto const & v : e2v[m2p.at(c)]) {
           v2e_pack[v] = v2e.at(v);

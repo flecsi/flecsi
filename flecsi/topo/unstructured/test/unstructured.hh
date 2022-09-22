@@ -1,7 +1,9 @@
 #include "flecsi/data.hh"
+#include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/parmetis.hh"
+#include "flecsi/util/tikz.hh"
 #include "simple_definition.hh"
 
 struct unstructured
@@ -22,9 +24,9 @@ struct unstructured
     from<edges, to<vertices, cells>>,
     from<vertices, to<cells>>>;
 
-  enum entity_list { special, owned };
-  using entity_lists =
-    list<entity<vertices, has<special, owned>>, entity<cells, has<owned>>>;
+  enum entity_list { owned, shared, ghost };
+  using entity_lists = list<entity<vertices, has<owned, shared, ghost>>,
+    entity<cells, has<owned, shared, ghost>>>;
 
   template<auto>
   static constexpr flecsi::PrivilegeCount privilege_count = 3;
@@ -130,28 +132,51 @@ struct unstructured
     cu.color_auxiliary(edges);
     cu.close_auxiliary(edges, core::index<edges>);
 
-    return cu.generate();
-    // return cu.generate();
+    auto co = cu.generate();
+
+    if(flecsi::processes() <= colors) {
+      std::size_t const entities =
+        co.idx_spaces[core::index<cells>][0].entities;
+      std::size_t M = std::sqrt(entities);
+
+      if(M * M == entities) {
+        flecsi::util::tikz::write_closure(M,
+          M,
+          co.idx_spaces[core::index<cells>],
+          co.idx_spaces[core::index<vertices>],
+          MPI_COMM_WORLD);
+      } // if
+    } // if
+
+    return co;
   } // color
 
   /*--------------------------------------------------------------------------*
     Initialization
    *--------------------------------------------------------------------------*/
 
-  static void allocate_owned(
+  template<entity_list E>
+  static void allocate_list(
     flecsi::data::multi<flecsi::topo::array<unstructured>::accessor<flecsi::wo>>
       aa,
     const std::vector<base::process_coloring> & vpc) {
 
     auto it = vpc.begin();
     for(auto & a : aa.accessors()) {
-      a.size() = it++->coloring.owned.size();
+      if constexpr(E == owned) {
+        a.size() = it++->coloring.owned.size();
+      }
+      else if(E == shared) {
+        a.size() = it++->coloring.shared.size();
+      }
+      else if(E == ghost) {
+        a.size() = it++->coloring.ghost.size();
+      }
     }
+  } // allocate_list
 
-    // a = pc.coloring.owned.size();
-  } // allocate_owned
-
-  static void init_owned(
+  template<entity_list E>
+  static void populate_list(
     flecsi::data::multi<flecsi::field<flecsi::util::id>::accessor<flecsi::wo>>
       m,
     const std::vector<base::process_coloring> & vpc,
@@ -160,12 +185,45 @@ struct unstructured
     std::size_t c = 0;
     for(auto & a : m.accessors()) {
       std::size_t i{0};
-      for(auto e : it++->coloring.owned) {
-        a[i++] = rmaps[c].at(e);
+      if constexpr(E == owned) {
+        for(auto e : it++->coloring.owned) {
+          a[i++] = rmaps[c].at(e);
+        }
+      }
+      else if(E == shared) {
+        for(auto e : it++->coloring.shared) {
+          a[i++] = rmaps[c].at(e.id);
+        }
+      }
+      else if(E == ghost) {
+        for(auto e : it++->coloring.ghost) {
+          a[i++] = rmaps[c].at(e.id);
+        }
       }
       c++;
     }
-  } // init_owned
+  } // populate_list
+
+  template<index_space I, entity_list E>
+  static void init_list(flecsi::data::topology_slot<unstructured> & s,
+    coloring const & c) {
+    using namespace flecsi;
+    using namespace topo::unstructured_impl;
+
+    auto & el = s->special_.get<I>().template get<E>();
+
+    {
+      auto slm = data::launch::make(el);
+      execute<allocate_list<E>, flecsi::mpi>(slm, c.idx_spaces[core::index<I>]);
+      el.resize();
+    }
+
+    // the launch maps need to be resized with the correct allocation
+    auto slm = data::launch::make(el);
+    auto const & rmaps = s->reverse_map<I>();
+    execute<populate_list<E>>(
+      core::special_field(slm), c.idx_spaces[core::index<I>], rmaps);
+  } // init_list
 
   static void initialize(flecsi::data::topology_slot<unstructured> & s,
     coloring const & c) {
@@ -196,36 +254,11 @@ struct unstructured
       mpi>(e2v(lm), c, vmaps);
     execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
 
-    // owned vertices setup
-    auto & owned_vert_f =
-      s->special_.get<index_space::vertices>().get<entity_list::owned>();
-
-    {
-      auto slm = data::launch::make(owned_vert_f);
-      execute<allocate_owned, flecsi::mpi>(
-        slm, c.idx_spaces[core::index<vertices>]);
-      owned_vert_f.resize();
-    }
-
-    // the launch maps need to be resized with the correct allocation
-    auto slm = data::launch::make(owned_vert_f);
-    execute<init_owned>(
-      core::special_field(slm), c.idx_spaces[core::index<vertices>], vmaps);
-
-    // owned cells setup
-    auto & owned_cell_f =
-      s->special_.get<index_space::cells>().get<entity_list::owned>();
-
-    {
-      auto slm = data::launch::make(owned_cell_f);
-      execute<allocate_owned, flecsi::mpi>(
-        slm, c.idx_spaces[core::index<cells>]);
-      owned_cell_f.resize();
-    }
-
-    // the launch maps need to be resized with the correct allocation
-    auto slmc = data::launch::make(owned_cell_f);
-    execute<init_owned>(
-      core::special_field(slmc), c.idx_spaces[core::index<cells>], cmaps);
+    init_list<index_space::cells, entity_list::owned>(s, c);
+    init_list<index_space::cells, entity_list::shared>(s, c);
+    init_list<index_space::cells, entity_list::ghost>(s, c);
+    init_list<index_space::vertices, entity_list::owned>(s, c);
+    init_list<index_space::vertices, entity_list::shared>(s, c);
+    init_list<index_space::vertices, entity_list::ghost>(s, c);
   } // initialize
 }; // struct unstructured
