@@ -1,43 +1,77 @@
-execute_process(
-  COMMAND ${CMAKE_SOURCE_DIR}/config/version.sh
-  OUTPUT_VARIABLE version
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-string(REGEX REPLACE "\n$" "" version "${version}")
+file(STRINGS ${CMAKE_SOURCE_DIR}/.version version
+     REGEX "^(develop|f[0-9]+|r[0-9]+.[0-9]+|v[0-9]+.[0-9]+.[0-9]+)$"
+     LIMIT_COUNT 1)
 
-# debug
-# message(STATUS "VERSION: ${version}")
-
-string(REPLACE " " ";" fields ${version})
-list(LENGTH fields size)
-
-list(GET fields 0 branch)
-list(GET fields 1 version)
-
-if(size GREATER 2)
-  list(SUBLIST fields 2 -1 rest)
+if(version STREQUAL "")
+  message(FATAL_ERROR "Invalid version string in .version")
 endif()
 
-# debug
-#message(STATUS "branch: ${branch}")
-#message(STATUS "version: ${version}")
-#message(STATUS "fields: ${fields}")
-#message(STATUS "rest: ${rest}")
-
-set(${PROJECT_NAME}_COMMITS)
-if(rest)
-  string(REPLACE ";" "\ " commits "${rest}")
-  string(REGEX REPLACE "([()])" "" commits "${commits}")
-  string(STRIP commits "${commits}")
-  set(${PROJECT_NAME}_COMMITS ${commits})
+if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
+  find_package(Git)
 endif()
 
-set(${PROJECT_NAME}_VERSION ${version})
-
-if(branch STREQUAL "devel")
-  math(EXPR next "${version}+1")
-  set(${PROJECT_NAME}_DOCUMENTATION_VERSION "${next}.-1 (devel)")
+if(version STREQUAL "develop")
+  set(FleCSI_VERSION "255.0.0")
+  set(FleCSI_BRANCH "develop")
+  set(FleCSI_VERSION_BRIEF "develop")
+  set(last_release_regex "^v")
 else()
-  set(${PROJECT_NAME}_DOCUMENTATION_VERSION "${version}")
+  string(SUBSTRING "${version}" 0 1 branch)
+  string(SUBSTRING "${version}" 1 -1 version)
+  set(last_release_regex "^v${version}")
+
+  if(branch STREQUAL "f")
+    set(FleCSI_VERSION "${version}.255.0")
+    set(FleCSI_VERSION_BRIEF "${version} (feature branch)")
+  elseif(branch STREQUAL "r")
+    set(FleCSI_VERSION "${version}.255")
+    set(FleCSI_VERSION_BRIEF "${version} (release branch)")
+  elseif(branch STREQUAL "v")
+    set(FleCSI_VERSION "${version}")
+    set(FleCSI_VERSION_BRIEF "${version} (release)")
+    set(last_release_regex "")
+  endif()
+endif()
+
+string(REPLACE "." ";" ver_comp "${FleCSI_VERSION}")
+list(GET ver_comp 0 FleCSI_VERSION_MAJOR)
+list(GET ver_comp 1 FleCSI_VERSION_MINOR)
+list(GET ver_comp 2 FleCSI_VERSION_PATCH)
+
+math(EXPR FleCSI_VERSION_HEX
+    "${FleCSI_VERSION_MAJOR} << 16 | ${FleCSI_VERSION_MINOR} << 8 | ${FleCSI_VERSION_PATCH}"
+    OUTPUT_FORMAT HEXADECIMAL)
+
+if(Git_FOUND AND last_release_regex)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} tag
+    OUTPUT_VARIABLE output
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  string(REPLACE "\n" ";" tags "${output}")
+  list(FILTER tags INCLUDE REGEX "${last_release_regex}")
+
+  if(tags)
+    list(GET tags -1 last_release)
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} log ${last_release} -n 1 --pretty=%h
+      OUTPUT_VARIABLE last_release_sha
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-list --count ${last_release}..HEAD
+      OUTPUT_VARIABLE commits
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    set(FleCSI_REPO_STATE "${commits} commits since ${last_release} (${last_release_sha})")
+  else()
+    set(FleCSI_REPO_STATE "")
+  endif()
 endif()
