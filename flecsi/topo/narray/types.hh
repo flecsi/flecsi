@@ -31,6 +31,7 @@ using coord = std::vector<std::size_t>;
 using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
+using color_map = std::vector<util::offsets>;
 
 /*!
   This type is an input to the coloring method, and encapsulates
@@ -39,8 +40,9 @@ using colors = std::vector<Color>;
   used by the coloring algorithm to create mesh partitions.
  */
 struct coloring_definition {
-  colors axis_colors; ///< number of colors into which each axis will be divided
-  coord axis_extents; ///< extents to be partitioned
+  color_map
+    axis_colormaps; ///< encoding the number of colors into which axis will be
+                    ///< divided, and the extents to be partitioned
   coord axis_hdepths; ///< halo depth (or number of ghost layers) per axis
   coord axis_bdepths; ///< number of boundary layers to be added to the domain
                       ///< per axis
@@ -133,6 +135,7 @@ struct narray_base {
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;
+  using color_map = narray_impl::color_map;
 
   /// Coloring type.
   /// \ingroup narray

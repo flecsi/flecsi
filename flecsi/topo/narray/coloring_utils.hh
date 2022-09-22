@@ -66,6 +66,28 @@ distribute(Color np, std::vector<std::size_t> indices) {
   return parts;
 } // decomp
 
+/*!
+  Create a color map of the extents for the given number of colors. The method
+  first finds the distribution of colors per axis. Then, the end offsets for
+  each color per axis is computed.
+
+  @param num_colors total number of colors
+  @param indices number of entities per axis
+
+  \return offsets encoding the end offset per color  per axis after
+  decomposition
+ */
+inline narray_impl::color_map
+make_color_maps(std::size_t num_colors, const narray_impl::coord & indices) {
+  narray_impl::color_map cm;
+  auto colors = distribute(num_colors, indices);
+  flog(warn) << flog::container{colors} << std::endl;
+  for(std::size_t d = 0; d < indices.size(); d++) {
+    flecsi::util::equal_map em{indices[d], colors[d]};
+    cm.push_back(em);
+  }
+  return cm;
+} // make_color_map
 /*
   Using the index colors for the given color, this function determines the
   position of the local partition within the color space. The "orientation"
@@ -77,14 +99,14 @@ distribute(Color np, std::vector<std::size_t> indices) {
 inline auto
 orientation(Dimension dimension,
   const narray_impl::colors & color_indices,
-  const narray_impl::colors & axis_colors) {
+  const narray_impl::color_map & axis_colormaps) {
   using namespace narray_impl;
 
   std::uint32_t o{mask::interior};
   std::uint32_t shft{mask::low};
   // clang-format off
   for(Dimension axis = 0; axis < dimension; ++axis) {
-    o |= [ci = color_indices[axis], nc = axis_colors[axis], l = shft,
+    o |= [ci = color_indices[axis], nc = axis_colormaps[axis].size(), l = shft,
       h = shft << 1]() {
       return
         (ci == 0 && ci == (nc - 1)) ?
@@ -108,7 +130,7 @@ orientation(Dimension dimension,
   @param dimension mesh dimension
   @param color_indices indices of the given color w.r.t the grid of colors in
   the decomposition.
-  \param axem \c equal_map of entities over colors on each axis
+  \param axem \c offsets of entities over colors on each axis
   @param orient encodes orientation of the given color w.r.t the domain
   @param hdepths halo depths per axis
   @param bdepths domain boundary depths per axis
@@ -120,7 +142,7 @@ orientation(Dimension dimension,
 inline auto
 make_color(Dimension dimension,
   const narray_impl::colors & color_indices,
-  std::vector<util::equal_map> const & axem,
+  std::vector<util::offsets> const & axem,
   uint32_t orient,
   narray_impl::coord const & hdepths,
   narray_impl::coord const & bdepths,
@@ -147,7 +169,7 @@ make_color(Dimension dimension,
   std::size_t extents{1};
   for(Dimension axis = 0; axis < dimension; ++axis) {
     auto axis_color = color_indices[axis];
-    const util::equal_map & em = axem[axis];
+    const util::offsets & em = axem[axis];
     const std::uint32_t bits = orient >> axis * 2;
     const bool lo = bits & mask::low, hi = bits & mask::high;
     auto &log0 = idxco.logical[0][axis], &log1 = idxco.logical[1][axis],
@@ -203,16 +225,16 @@ color(narray_impl::coloring_definition const & cd,
   MPI_Comm comm = MPI_COMM_WORLD) {
   using namespace narray_impl;
 
-  const Dimension dimension = cd.axis_colors.size();
+  const Dimension dimension = cd.axis_colormaps.size();
 
   flog_assert(dimension < 17,
     "current implementation is limited to 16 dimensions (uint32_t)");
 
-  flog_assert(cd.axis_colors.size() == cd.axis_extents.size(),
-    "argument mismatch: sizes(" << cd.axis_colors.size() << "vs. "
-                                << cd.axis_extents.size()
-                                << ") must be consistent");
-  flog_assert(cd.axis_colors.size() == dimension,
+  flog_assert(cd.axis_hdepths.size() == dimension,
+    "size must match the intended dimension(" << dimension << ")");
+  flog_assert(cd.axis_bdepths.size() == dimension,
+    "size must match the intended dimension(" << dimension << ")");
+  flog_assert(cd.axis_periodic.size() == dimension,
     "size must match the intended dimension(" << dimension << ")");
 
   auto [rank, size] = util::mpi::info(comm);
@@ -225,11 +247,9 @@ color(narray_impl::coloring_definition const & cd,
 
   Color nc = 1;
   std::size_t indices{1};
-  std::vector<util::equal_map> axem;
   for(Dimension d = 0; d < dimension; ++d) {
-    nc *= cd.axis_colors[d];
-    indices *= cd.axis_extents[d];
-    axem.emplace_back(cd.axis_extents[d], cd.axis_colors[d]);
+    nc *= cd.axis_colormaps[d].size();
+    indices *= cd.axis_colormaps[d].total();
   } // for
 
   /*
@@ -250,15 +270,6 @@ color(narray_impl::coloring_definition const & cd,
       Convenience functions to map between colors and indices.
      */
 
-    const auto co2idx = [](Color co, const colors & szs) {
-      colors indices;
-      for(auto sz : szs) {
-        indices.emplace_back(co % sz);
-        co /= sz;
-      }
-      return indices;
-    };
-
     const auto idx2co = [](const auto & idx, const auto & szs) {
       auto pr = szs[0];
       decltype(pr) co = 0;
@@ -273,13 +284,20 @@ color(narray_impl::coloring_definition const & cd,
       Get the indices representation of our color.
      */
 
-    auto color_indices = co2idx(c, cd.axis_colors);
+    colors color_indices;
+    {
+      Color i = c;
+      for(auto & cm : cd.axis_colormaps) {
+        color_indices.push_back(i % cm.size());
+        i /= cm.size();
+      }
+    }
 
     /*
       Find our orientation within the color space.
      */
 
-    uint32_t orient = orientation(dimension, color_indices, cd.axis_colors);
+    uint32_t orient = orientation(dimension, color_indices, cd.axis_colormaps);
 
     /*
       Make the coloring information for our color.
@@ -287,7 +305,7 @@ color(narray_impl::coloring_definition const & cd,
 
     auto [idxco, ghstitvls, extents] = make_color(dimension,
       color_indices,
-      axem,
+      cd.axis_colormaps,
       orient,
       cd.axis_hdepths,
       cd.axis_bdepths,
@@ -472,7 +490,10 @@ color(narray_impl::coloring_definition const & cd,
 
     std::unordered_map<Color, process_color> idxmap;
     for(auto s : subregions) {
-      auto co = idx2co(s.first, cd.axis_colors);
+      colors axis_colors;
+      for(auto & ac : cd.axis_colormaps)
+        axis_colors.push_back(ac.size());
+      auto co = idx2co(s.first, axis_colors);
       if(idxmap.find(co) == idxmap.end()) {
         /*
           Create basic coloring information for the owning color, so
@@ -482,8 +503,8 @@ color(narray_impl::coloring_definition const & cd,
 
         auto [ridxco, rghstitvls, extents] = make_color(dimension,
           s.first,
-          axem,
-          orientation(dimension, s.first, cd.axis_colors),
+          cd.axis_colormaps,
+          orientation(dimension, s.first, cd.axis_colormaps),
           cd.axis_hdepths,
           cd.axis_bdepths,
           cd.axis_periodic);
