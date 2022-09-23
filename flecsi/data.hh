@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 #ifndef FLECSI_DATA_HH
 #define FLECSI_DATA_HH
 
