@@ -61,8 +61,8 @@
     - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
     - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/current/$(uname -i)
     - export SPACK_COMMIT_HASH=$(cd $DARWIN_SPACK_UPSTREAM; git rev-parse HEAD)
-    - git clone -c feature.manyFiles=true https://github.com/spack/spack $TMPDIR/spack
-    - git -C $TMPDIR/spack checkout ${SPACK_COMMIT_HASH}
+    - mkdir -p $TMPDIR/spack
+    - git -C ${DARWIN_SPACK_UPSTREAM} archive ${SPACK_COMMIT_HASH} | tar -x -C $TMPDIR/spack
     - cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/*.yaml $TMPDIR/spack/etc/spack/
 
 #------------------------------------------------------------------------------#
