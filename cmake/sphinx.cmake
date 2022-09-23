@@ -1,23 +1,36 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
-include(CMakeDependentOption)
-include(colors)
-
-cmake_dependent_option(ENABLE_SPHINX "Enable Sphinx documentation"
-  ON "ENABLE_DOCUMENTATION" OFF)
-mark_as_advanced(ENABLE_SPHINX)
-
 #------------------------------------------------------------------------------#
-# This creates a `sphinx` target that can be used to build all of the
-# sphinx targets added with `add_sphinx_target`.
+# Set a custom sphinx group target name
 #------------------------------------------------------------------------------#
 
-if(ENABLE_SPHINX)
-  add_custom_target(sphinx
-    ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
-  )
-endif()
+macro(flecsi_set_sphinx_target_name target)
+  set(FLECSI_SPHINX_TARGET ${target})
+endmacro()
+
+#------------------------------------------------------------------------------#
+# create group target ${FLECSI_SPHINX_TARGET}
+# if no name is set, use default name "sphinx"
+# ${FLECSI_SPHINX_TARGET} is also added as dependency of the
+# ${FLECSI_DOC_TARGET} target defined via documentation.cmake
+#------------------------------------------------------------------------------#
+
+macro(_flecsi_define_sphinx_group_target)
+  if(NOT DEFINED FLECSI_SPHINX_TARGET)
+    set(FLECSI_SPHINX_TARGET sphinx PARENT_SCOPE)
+    set(FLECSI_SPHINX_TARGET sphinx)
+  endif()
+
+  if(NOT DEFINED FLECSI_DOC_TARGET OR NOT TARGET ${FLECSI_DOC_TARGET})
+    include(documentation)
+    _flecsi_define_doc_group_target()
+  endif()
+
+  if(NOT TARGET ${FLECSI_SPHINX_TARGET})
+    add_custom_target(${FLECSI_SPHINX_TARGET}
+      ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
+    )
+    add_dependencies(${FLECSI_DOC_TARGET} ${FLECSI_SPHINX_TARGET})
+  endif()
+endmacro()
 
 #------------------------------------------------------------------------------#
 # Add a sphinx target
@@ -30,7 +43,7 @@ endif()
 #        (.sphinx subdir).
 #------------------------------------------------------------------------------#
 
-function(add_sphinx_target name)
+function(flecsi_add_sphinx_target name)
 
   set(options)
   set(one_value_args CONFIG OUTPUT INSTALL)
@@ -39,37 +52,49 @@ function(add_sphinx_target name)
   cmake_parse_arguments(sphx "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
 
-  if(ENABLE_SPHINX)
-    find_package(Sphinx REQUIRED)
+  _flecsi_define_sphinx_group_target()
 
-    file(COPY ${sphx_CONFIG}/_static DESTINATION ${sphx_OUTPUT}/.sphinx/)
-    file(COPY ${sphx_CONFIG}/_templates DESTINATION ${sphx_OUTPUT}/.sphinx/)
+  find_package(Sphinx REQUIRED)
 
-    configure_file(${sphx_CONFIG}/conf.py.in
-      ${sphx_OUTPUT}/.sphinx/conf.py)
+  file(COPY ${sphx_CONFIG}/_static DESTINATION ${sphx_OUTPUT}/.sphinx/)
+  file(COPY ${sphx_CONFIG}/_templates DESTINATION ${sphx_OUTPUT}/.sphinx/)
 
-    # Generate SVG graphics from GraphViz Dot sources.
-    file(GLOB_RECURSE source_dot_files
-      LIST_DIRECTORIES false
-      "${sphx_CONFIG}/*.dot")
+  # Generate SVG graphics from GraphViz Dot sources.
+  file(
+    GLOB_RECURSE source_dot_files
+    LIST_DIRECTORIES false
+    "${sphx_CONFIG}/*.dot"
+  )
+
+  if(source_dot_files)
+    find_package(Graphviz REQUIRED)
     foreach(image_dot IN LISTS source_dot_files)
       string(REPLACE .dot .svg image_svg "${image_dot}")
       add_custom_command(OUTPUT ${image_svg}
         MAIN_DEPENDENCY ${image_dot}
-        COMMAND dot -Tsvg -o ${image_svg} ${image_dot})
+        COMMAND Graphviz::dot -Tsvg -o ${image_svg} ${image_dot})
     endforeach()
     string(REPLACE .dot .svg generated_svg_files "${source_dot_files}")
-
-    add_custom_target(${name}
-      DEPENDS ${generated_svg_files}
-      COMMAND ${SPHINX_EXECUTABLE} -nqW -c
-        ${sphx_OUTPUT}/.sphinx
-        ${sphx_CONFIG}
-        ${sphx_OUTPUT}
-    )
-
-    add_dependencies(sphinx ${name})
-    add_dependencies(doc sphinx)
   endif()
+
+  add_custom_target(${name}
+    COMMAND ${SPHINX_EXECUTABLE} -nqW -c
+      ${sphx_OUTPUT}/.sphinx
+      ${sphx_CONFIG}
+      ${sphx_OUTPUT}
+  )
+
+  configure_file(${sphx_CONFIG}/conf.py.in
+    ${sphx_OUTPUT}/.sphinx/conf.py)
+
+  add_custom_target(${FLECSI_SPHINX_TARGET}-${name}
+    COMMAND Sphinx::Sphinx -nqW -c
+      ${sphx_OUTPUT}/.sphinx
+      ${sphx_CONFIG}
+      ${sphx_OUTPUT}
+    DEPENDS "${generated_svg_files}"
+  )
+
+  add_dependencies(${FLECSI_SPHINX_TARGET} ${FLECSI_SPHINX_TARGET}-${name})
 
 endfunction()

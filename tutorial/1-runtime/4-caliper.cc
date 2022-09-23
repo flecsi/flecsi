@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <chrono>
 #include <thread>
 
@@ -47,6 +44,7 @@ top_level_action() {
   return 0;
 }
 
+// main
 int
 main(int argc, char * argv[]) {
   annotation::rguard<main_region> main_guard;

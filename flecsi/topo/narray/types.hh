@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_NARRAY_TYPES_HH
@@ -68,9 +68,8 @@ struct process_color {
   ///  defines a hypercube from {0, 0, ..., 0} to extents{...}.
   coord extents;
 
-  ///  The global coordinate offset of the local hypercube.
+  ///  The global coordinate offset of the logical hypercube.
   ///  Local to global id translation can be computed with this.
-  ///  The local hypercube includes ghosts but not boundary padding.
   coord offset;
 
   ///  The logical entities, i.e., the entities for this color without

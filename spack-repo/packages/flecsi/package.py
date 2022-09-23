@@ -60,10 +60,6 @@ class Flecsi(CMakePackage, CudaPackage):
     # Dependencies
     #--------------------------------------------------------------------------#
 
-    # LANL CMake Modules
-
-    depends_on('lanl-cmake-modules')
-
     # Boost
 
     depends_on('boost@1.79.0: cxxstd=17 +program_options +atomic '

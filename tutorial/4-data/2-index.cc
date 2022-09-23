@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
@@ -35,5 +32,5 @@ advance(control_policy &) {
 
   execute<init>(ifield(custom_topology));
   execute<print>(ifield(custom_topology));
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

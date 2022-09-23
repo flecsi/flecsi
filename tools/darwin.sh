@@ -51,8 +51,8 @@ else
     echo "ERROR: The current checkout does not match origin/releases/v0.18!"
     echo
     echo "Please update manually with:"
-    echo " git -C ~/spack switch releases/v0.18"
-    echo " git -C ~/spack pull"
+    echo " git -C ~/spack fetch +releases/v0.18:refs/remotes/origin/releases/v0.18"
+    echo " git -C ~/spack switch origin/releases/v0.18"
     echo
     echo "WARNING: This may invalidate other Spack environments that rely on" \
          "this Spack instance!"

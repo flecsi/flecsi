@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // The most basic topologies, used to represent per-color metadata.
 
 #ifndef FLECSI_TOPO_COLOR_HH

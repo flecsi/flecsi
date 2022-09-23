@@ -1,9 +1,6 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 include(colors)
 
-macro(summary_header)
+macro(flecsi_summary_header)
   string(APPEND _summary
     "${FLECSI_BoldCyan}"
     "\n"
@@ -19,7 +16,7 @@ macro(summary_header)
 )
 endmacro()
 
-macro(summary_info name info allow_split)
+macro(flecsi_summary_info name info allow_split)
   if(NOT ${info} STREQUAL "")
     string(REPLACE " " ";" split ${info})
     list(LENGTH split split_length)
@@ -60,7 +57,7 @@ macro(summary_info name info allow_split)
   endif()
 endmacro()
 
-macro(summary_option name state extra)
+macro(flecsi_summary_option name state extra)
   string(APPEND _summary
     "${FLECSI_Plain}"
     "  ${name}:"

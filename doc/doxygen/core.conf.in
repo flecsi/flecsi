@@ -5,3 +5,6 @@
 PROJECT_NAME = "FleCSI Core API"
 
 ENABLED_SECTIONS = core
+# Since we avoid befriending user code, we can configure this here rather than
+# decorating individual comments:
+EXTRACT_PRIVATE = YES

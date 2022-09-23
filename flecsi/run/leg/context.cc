@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi-config.h>
 
 #include "flecsi/data.hh"
@@ -189,13 +186,9 @@ context_t::start(const std::function<int()> & action) {
   std::vector<char *> largv;
   largv.push_back(argv_[0]);
 
-  auto iss = std::istringstream{backend_};
-  std::vector<std::string> lsargv(std::istream_iterator<std::string>{iss},
-    std::istream_iterator<std::string>());
-
-  for(auto & arg : lsargv) {
+  for(auto & arg : backend_args_) {
     largv.push_back(&arg[0]);
-  } // for
+  }
 
   // FIXME: This needs to be gotten from Legion
   context::threads_per_process_ = 1;

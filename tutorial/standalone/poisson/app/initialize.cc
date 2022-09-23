@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #include "initialize.hh"
 #include "options.hh"
 #include "specialization/control.hh"

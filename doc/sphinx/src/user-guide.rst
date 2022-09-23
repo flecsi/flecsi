@@ -8,6 +8,7 @@ User Guide
 .. toctree::
   :caption: User Guide:
 
+  user-guide/cmake
   user-guide/topologies
   user-guide/runtime
   user-guide/performance

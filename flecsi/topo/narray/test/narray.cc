@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "narray.hh"
 
 #include "flecsi/execution.hh"
@@ -167,9 +164,9 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       // check offsets
       std::size_t xoffsets_ex[4][8] = {{2, 0, 0, 0, 5, 0, 5, 0},
-        {1, 1, 0, 1, 3, 0, 3, 2},
-        {1, 1, 0, 1, 3, 0, 3, 4},
-        {1, 1, 0, 1, 3, 0, 3, 6}};
+        {1, 1, 0, 1, 3, 0, 3, 3},
+        {1, 1, 0, 1, 3, 0, 3, 5},
+        {1, 1, 0, 1, 3, 0, 3, 7}};
 
       std::size_t xoffsets[] = {m.template offset<ax::x_axis>(),
         m.template offset<ax::x_axis, r::extended>(),
@@ -305,9 +302,9 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       // check offsets
       std::size_t xoffsets_ex[4][8] = {{2, 0, 0, 0, 6, 0, 6, 0},
-        {1, 1, 0, 1, 5, 0, 5, 3},
+        {1, 1, 0, 1, 5, 0, 5, 4},
         {2, 0, 0, 0, 6, 0, 6, 0},
-        {1, 1, 0, 1, 5, 0, 5, 3}};
+        {1, 1, 0, 1, 5, 0, 5, 4}};
 
       std::size_t xoffsets[] = {m.template offset<ax::x_axis>(),
         m.template offset<ax::x_axis, r::extended>(),
@@ -324,8 +321,8 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       std::size_t yoffsets_ex[4][8] = {{1, 0, 0, 0, 5, 0, 5, 0},
         {1, 0, 0, 0, 5, 0, 5, 0},
-        {2, 2, 0, 2, 6, 0, 6, 2},
-        {2, 2, 0, 2, 6, 0, 6, 2}};
+        {2, 2, 0, 2, 6, 0, 6, 4},
+        {2, 2, 0, 2, 6, 0, 6, 4}};
 
       std::size_t yoffsets[] = {m.template offset<ax::y_axis>(),
         m.template offset<ax::y_axis, r::extended>(),
@@ -527,9 +524,9 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       // check offsets
       std::size_t xoffsets_ex[4][8] = {{1, 0, 0, 0, 3, 0, 3, 0},
-        {1, 1, 0, 1, 3, 0, 3, 1},
+        {1, 1, 0, 1, 3, 0, 3, 2},
         {1, 0, 0, 0, 3, 0, 3, 0},
-        {1, 1, 0, 1, 3, 0, 3, 1}};
+        {1, 1, 0, 1, 3, 0, 3, 2}};
 
       std::size_t xoffsets[] = {m.template offset<ax::x_axis>(),
         m.template offset<ax::x_axis, r::extended>(),
@@ -546,8 +543,8 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       std::size_t yoffsets_ex[4][8] = {{1, 0, 0, 0, 3, 0, 3, 0},
         {1, 0, 0, 0, 3, 0, 3, 0},
-        {1, 1, 0, 1, 3, 0, 3, 1},
-        {1, 1, 0, 1, 3, 0, 3, 1}};
+        {1, 1, 0, 1, 3, 0, 3, 2},
+        {1, 1, 0, 1, 3, 0, 3, 2}};
 
       std::size_t yoffsets[] = {m.template offset<ax::y_axis>(),
         m.template offset<ax::y_axis, r::extended>(),
@@ -743,18 +740,15 @@ check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
     using D = mesh1d::domain;
     std::size_t last, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
-      auto sz = m.size<x, D::global>(), off = m.offset<x, D::global>(),
-           log = m.offset<x, D::logical>();
-      decltype(sz) boundary = 0;
+      auto sz = m.size<x, D::global>(), off = m.offset<x, D::global>();
       if(total) {
         EXPECT_EQ(sz, total);
-        EXPECT_EQ(last, off + log);
+        EXPECT_EQ(last, off);
       }
       else {
         total = sz;
-        boundary = log - m.offset<x, D::extended>();
       }
-      last = off + m.offset<x, D::ghost_high>() - boundary;
+      last = off + (m.offset<x, D::ghost_high>() - m.offset<x, D::logical>());
     }
     EXPECT_EQ(last, total);
   };

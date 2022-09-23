@@ -120,14 +120,17 @@ Fixed
   * HDF5 is supported by the CMake configuration.
   * Caliper is supported by the MPI backend.
   * Building with the MPI backend properly links to the threading library.
+  * Added ``FLECSI_VERSION`` define to record version
 
 * Runtime
 
   * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
+  * ``--backend-args`` can be specified multiple times. The collected arguments are passed to the backend.
 
 * Data
 
   * Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).
+  * Mutators work on fields over zero index points.
 
 * Topologies
 
@@ -136,6 +139,7 @@ Fixed
 * Legion backend
 
   * Certain user-level fields are allocated properly.
+  * MPI tasks with reference parameters support argument conversions correctly.
   * Errors at process termination in certain configurations are avoided.
   * Accessors with both ``wo`` and ``na`` privileges are processed correctly.
 
@@ -147,7 +151,7 @@ Fixed
 
 * On-node parallelism
 
-  * More topology accessor functions are available on a device.
+  * More accessor and topology accessor functions are available on a device.
   * Several uses of "iterator" in documentation have been corrected to use "range".
 
 * Logging

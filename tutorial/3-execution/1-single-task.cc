@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
@@ -8,18 +5,14 @@
 
 using namespace flecsi;
 
-/*
-  Trivial task (no arguments, no return).
- */
+// Trivial task (no arguments, no return).
 
 void
 trivial() {
   flog(info) << "Hello World" << std::endl;
 }
 
-/*
-  Task with return value.
- */
+// Task with return value.
 
 int
 with_return() {
@@ -28,9 +21,7 @@ with_return() {
   return value;
 }
 
-/*
-  Task with by-value argument.
- */
+// Task with by-value argument.
 
 int
 with_by_value_argument(std::vector<size_t> v) {
@@ -44,11 +35,9 @@ with_by_value_argument(std::vector<size_t> v) {
   flog(info) << ss.str() << std::endl;
 
   return retval;
-}
+} // with_by_value_argument
 
-/*
-  Templated task.
- */
+// Templated task.
 
 template<typename Type>
 Type
@@ -57,51 +46,39 @@ templated_task(Type t) {
   flog(info) << "Returning value " << retval << " with type "
              << typeid(t).name() << std::endl;
   return retval;
-}
+} // template
 
 void
 advance(control_policy &) {
 
-  /*
-    Execute a trivial task.
-   */
+  // Execute a trivial task.
 
   execute<trivial>();
 
-  /*
-    Execute a task with a return value.
-   */
+  // Execute a task with a return value.
 
   {
-    /*
-      A future is a mechanism to access the result of an asynchronous
-      operation.
-     */
+    // A future is a mechanism to access the result of an asynchronous
+    // operation.
 
     auto future = execute<with_return>();
 
-    /*
-      The 'wait()' method waits for the result to become available.
-     */
+    // The 'wait()' method waits for the result to become available.
 
     future.wait();
 
-    /*
-      The 'get()' method returns the result. Note that calling 'get()' by
-      itself will wait for the result to become available. The call to 'wait()'
-      in this example is illustrative.
-     */
+    // The 'get()' method returns the result. Note that calling 'get()' by
+    // itself will wait for the result to become available. The call to 'wait()'
+    // in this example are illustrative.
 
     flog(info) << "Got value " << future.get() << std::endl;
   } // scope
 
-  /*
-    Execute a task that takes an argument by-value. FleCSI tasks can take any
-    valid C++ type by value. However, because task data must be relocatable,
-    you cannot pass pointer arguments, or arguments that contain pointers.
-    Modifications made to by-value data are local to the task and will not be
-    reflected at the call site.
-   */
+  // Execute a task that takes an argument by-value. FleCSI tasks can take any
+  // valid C++ type by value. However, because task data must be relocatable,
+  // you cannot pass pointer arguments, or arguments that contain pointers.
+  // Modifications made to by-value data are local to the task and will not be
+  // reflected at the call site.
 
   {
     std::vector<size_t> v = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
@@ -109,9 +86,7 @@ advance(control_policy &) {
     flog(info) << "Sum is " << future.get() << std::endl;
   } // scope
 
-  /*
-    Execute a templated task.
-   */
+  // Execute a templated task.
 
   {
     double value{32.0};

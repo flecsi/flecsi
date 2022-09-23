@@ -1,6 +1,3 @@
-#  Copyright (c) 2016, Los Alamos National Security, LLC
-#  All rights reserved.
-
 include(CMakeDependentOption)
 
 option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" ON)
@@ -61,5 +58,5 @@ endif()
 
 if(FLOG_ENABLE_MPI)
   find_package(Threads)
-  list(APPEND TPL_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(FleCSI PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()

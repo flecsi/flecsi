@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/flog/utils.hh"
 #include "flecsi/flog/packet.hh"
 #include "flecsi/flog/state.hh"

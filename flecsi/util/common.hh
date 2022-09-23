@@ -1,8 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_COMMON_HH
 #define FLECSI_UTIL_COMMON_HH
+
+#include <flecsi-config.h>
 
 #include <cassert>
 #include <cstdint>

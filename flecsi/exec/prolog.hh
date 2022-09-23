@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // Backend-independent task argument handling.
 
 #ifndef FLECSI_EXEC_PROLOG_HH

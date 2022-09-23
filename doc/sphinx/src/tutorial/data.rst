@@ -26,13 +26,15 @@ is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 13-17
+  :start-at: template<typename T>
+  :end-at: const single<double>::definition<global> gfield;
 
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 19-35
+  :start-at: void
+  :end-at: // advance()
 
 Example 2: Index data 
 +++++++++++++++++++++
@@ -41,7 +43,8 @@ A field on an ``index`` topology stores one value for each color.
 
 .. literalinclude:: ../../../../tutorial/4-data/2-index.cc
   :language: cpp
-  :lines: 12-38
+  :start-at: using namespace flecsi;
+  :end-at: // advance()
 
 Example 3: Dense data
 +++++++++++++++++++++
@@ -52,7 +55,8 @@ of the `canonical` topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 16-16
+  :start-at: const field<double>::definition<canon, canon::cells> pressure;
+  :end-at: const field<double>::definition<canon, canon::cells> pressure;
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
@@ -64,7 +68,8 @@ The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a pa
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 18-51
+  :start-at: void
+  :end-at: // advance()
 
 ----
 

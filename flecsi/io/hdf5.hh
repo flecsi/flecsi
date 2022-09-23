@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 // Low-level HDF5 interface.

@@ -251,10 +251,10 @@ The first thing about a control model is the control points. To define
 these, we use an enumeration. Consider the following from
 *tutorial/2-control/1-simple.hh*:
 
-
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 12-17
+  :start-at: // Enumeration defining the control point identifiers
+  :end-at: enum class cp {
 
 The name of the enumeration (*cp*) is arbitrary.
 However, it is useful to make it concise because it will be used in the
@@ -265,7 +265,8 @@ overload of the ``* operator`` (function call operator overloading):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 19-37
+  :start-at: // Define labels for the control points
+  :end-before: // Control policy for this example.
 
 Perhaps this looks complicated, but really all it does is to return a
 string literal given one of the control point enumeration values defined
@@ -279,7 +280,8 @@ individual parts.):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 39-74
+  :start-at: // Control policy for this example
+  :end-at: // struct control_policy
 
 The first type definition in the policy captures the control points
 enumeration type.
@@ -287,7 +289,8 @@ This type is used in the control interface for declaring actions:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 49-54
+  :start-at: // Capture the control points enumeration type
+  :end-at: using control_points_enum = cp
 
 The next type is the *node_policy*. Each set of actions under a control
 point forms a DAG.
@@ -297,7 +300,8 @@ In this simple example, the node type is empty:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 56-63
+  :start-at: // The actions that are added under each control point
+  :end-at: struct node_policy {};
 
 The actual control points are defined as a list of the typeified
 integer-valued control points enumeration.
@@ -306,7 +310,8 @@ typeifying the control points:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 65-73
+  :start-at: // The control_points list defines
+  :end-at: // struct control_policy
 
 In the above *control_points* list definition, the order is important,
 as it is the order in which the control points will be sorted and thus
@@ -317,7 +322,8 @@ type. This is the control type that we will use in our example application.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp
-  :lines: 75-80
+  :start-at: // Define a fully-qualified control type
+  :end-at: using control = flecsi::run::control<control_policy>;
 
 That's the entire control policy for this example.
 Without comments, it is about 20 lines of code. Let's see how we use it!
@@ -344,7 +350,8 @@ otherwise:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 65-74
+   :start-at: // The check_status() method 
+   :end-before: flecsi::flog::add_output_stream
 
 The last part of the main function is not really different from previous
 examples; we just have a better understanding of it now.
@@ -355,7 +362,8 @@ termination is selected by throwing ``control_base::exception`` from an action):
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 78-84
+   :start-at: // Pass the control model
+   :end-at: status = flecsi::start(control::execute);
 
 If inheriting from ``control_base``, the return value stored in status is either the
 code from ``control_base::exception`` if thrown or ``status::success`` otherwise.
@@ -372,14 +380,16 @@ We list only the *initialize* function here:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 11-19
+   :start-at: // Function definition of an initialize action
+   :end-before: // Register the initialize action under 
 
 To register an action with the control model, we declare a control
 action:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :lines: 20-24
+   :start-at: // Register the initialize action under
+   :end-at: control::action<initialize, cp::initialize>
 
 The template parameters to *control::action* are the function pointer
 *initialize* and the control point *cp::initialize* (which is why it can be expedient to use a concise enumeration type name).
@@ -447,21 +457,24 @@ Starting from the previous example, we add the analyze control point:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 12-27
+   :start-at: enum class cp { initialize, advance, analyze, finalize };
+   :end-before: struct control_policy
 
 We will use *cp::advance* and *cp::analyze* to define the cycle from the
 core FleCSI cycle type:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 54-61
+   :start-at: // A cycle type. Cycles are similar
+   :end-at: cycle<cycle_control
 
 Cycles are similar to the *control_points* list, with the addition of a
 predicate function that controls termination of the cycle:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 44-52
+   :start-at: // The core FleCSI control model inherits from the control
+   :end-at: }
 
 For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
@@ -482,7 +495,8 @@ The last piece needed to add the cycle is the actual definition of the
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :lines: 62-70
+   :start-at: // The control_points list type takes
+   :end-before: private:
 
 Other than adding an action under the new analyze control point, the
 main function for this example is the same.
@@ -525,20 +539,23 @@ Several actions are defined for the two control points in
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 14-62
+   :start-at: // Register several actions under control point one.
+   :end-at: control::action<package_g, cp::cp2> package_g_action;
 
 Additionally, several dependencies are defined in the same file:
 
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
-   :lines: 64-80
+   :start-at: // Add dependencies a -> b, b -> d, and a -> d, i.e.,
+   :end-at: const auto dep_gf = package_g_action.add(package_f_action);
 
 Finally, the additional dependencies from c to a and from d to c are
 added in the *3-dependencies.cc* file:
 
 .. literalinclude:: ../../../../tutorial/2-control/3-dependencies.cc
    :language: cpp
-   :lines: 12-19
+   :start-at: // Add dependencies a -> c, and c -> d.
+   :end-at: const auto dep_dc = package_d_action.add(package_c_action);
 
 The point of defining the dependencies involving c in a different file
 is to demonstrate that dependencies do not need to be collocated,
@@ -562,7 +579,8 @@ methods and some private data:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
-   :lines: 56-113
+   :start-at: std::size_t & step() {
+   :end-at: using control = flecsi::run::control<control_policy>;
 
 .. important::
 
@@ -581,7 +599,8 @@ and frees the data. Again, the code is self-explanatory:
 
 .. literalinclude:: ../../../../tutorial/2-control/4-state.cc
    :language: cpp
-   :lines: 11-74
+   :start-after: using namespace state;
+   :end-at: control::action<finalize, cp::finalize> finalize_action;
 
 The primary take-away from this example should be that users can define
 arbitrary C++ interfaces and data, given the concurrent access restrictions above.

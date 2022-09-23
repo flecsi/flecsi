@@ -1,12 +1,9 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 include(subdirlist)
 
 if(NOT DEFINED LIBDIR)
   include(GNUInstallDirs)
   set(LIBDIR "${CMAKE_INSTALL_LIBDIR}")
-endif(NOT DEFINED LIBDIR)
+endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 mark_as_advanced(BUILD_SHARED_LIBS)
@@ -125,20 +122,12 @@ function(add_library_target target directory)
   endforeach(_SUBDIR)
 
   #----------------------------------------------------------------------------#
-  # Add the actual build target
+  # Add sources to build target
   #----------------------------------------------------------------------------#
 
   if(_SOURCES)
-    add_library(${target} ${_SOURCES} ${_HEADERS})
-  else()
-    add_library(${target} INTERFACE)
+    target_sources(${target} PRIVATE ${_SOURCES} ${_HEADERS})
   endif()
- 
-  #----------------------------------------------------------------------------#
-  # Create an alias for local builds
-  #----------------------------------------------------------------------------#
-
-  add_library(${lib_NAMESPACE}::${target} ALIAS ${target})
 
   #----------------------------------------------------------------------------#
   # Add compile defines

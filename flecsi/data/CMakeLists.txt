@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 #------------------------------------------------------------------------------#
 # Add header files. Note that these will be "exported" to the parent
 # scope below.

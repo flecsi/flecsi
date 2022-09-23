@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
@@ -8,9 +5,7 @@
 
 using namespace flecsi;
 
-/*
-  Task with no arguments.
- */
+// Task with no arguments.
 
 void
 task(exec::launch_domain) {
@@ -18,14 +13,12 @@ task(exec::launch_domain) {
              << std::endl;
 }
 
-/*
-  Advance control point.
- */
+// Advance control point.
 
 void
 advance(control_policy &) {
   exec::launch_domain ld{4};
 
   execute<task>(ld);
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

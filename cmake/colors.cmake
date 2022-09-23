@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(FLECSI_ColorReset  "${Esc}[m")

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_INDEX_HH
@@ -22,7 +22,7 @@ inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
 // A partition with a field for dynamically resizing it.
-struct repartition : with_size, data::prefixes {
+struct repartition : with_size, data::prefixes, with_cleanup {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
@@ -234,7 +234,7 @@ struct detail::base<ragged_category> {
 struct index_base : column_base {};
 
 template<class P>
-struct index_category : index_base, column<P>, with_ragged<P> {
+struct index_category : index_base, column<P>, with_ragged<P>, with_cleanup {
   explicit index_category(coloring c) : column<P>(c), with_ragged<P>(c) {}
 };
 template<>
@@ -576,6 +576,7 @@ struct borrow_extra<array_category<P>> {
 
 /// \}
 } // namespace topo
+
 } // namespace flecsi
 
 #endif

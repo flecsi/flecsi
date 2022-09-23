@@ -72,7 +72,7 @@ Task separation
 ^^^^^^^^^^^^^^^
 
 Field data appears as actual, borrowed arrays in a task but as owning, opaque handles in the caller.
-As such, certain types are used only in one context or the other, and the types of some task arguments differ from the types of the parameters they indirectly initialize.
+As such, certain *caller-only* or *task-only* types are used only in one context or the other, and the types of some task arguments differ from the types of the parameters they indirectly initialize.
 Conveniently, this separation also guarantees thread safety in the event that tasks execute concurrently with their callers in the same process.
 
 Storage
