@@ -51,6 +51,7 @@ Fixed
 * Data
 
   * Mutators support write-only privileges (which, as with accessors, are necessary to properly initialize fields).
+  * Mutators work on fields over zero index points.
 
 * Topologies
 
@@ -71,7 +72,7 @@ Fixed
 
 * On-node parallelism
 
-  * More topology accessor functions are available on a device.
+  * More accessor and topology accessor functions are available on a device.
   * Several uses of "iterator" in documentation have been corrected to use "range".
 
 * Logging
