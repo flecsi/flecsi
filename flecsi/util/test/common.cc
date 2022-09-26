@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/util/common.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"

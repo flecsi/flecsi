@@ -1,23 +1,20 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
-option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
-
-if(NOT ENABLE_FLOG AND ENABLE_UNIT_TESTS)
-    message(FATAL_ERROR "Unit tests require ENABLE_FLOG=ON")
-endif()
-
-if(ENABLE_UNIT_TESTS)
-  enable_testing()
-  add_library(unit-main OBJECT ${FLECSI_UNIT_MAIN})
-  target_link_libraries(unit-main PRIVATE FleCSI::FleCSI)
-  target_include_directories(unit-main PRIVATE ${CMAKE_BINARY_DIR})
-  if (ENABLE_KOKKOS)
-    target_compile_options(unit-main PRIVATE ${KOKKOS_COMPILE_OPTIONS})
+macro(flecsi_enable_testing)
+  if(NOT FleCSI_ENABLE_FLOG)
+    message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
   endif()
-endif()
 
-function(add_unit name)
+  enable_testing()
+  set(FLECSI_ENABLE_TESTING ON)
+endmacro()
+
+function(_flecsi_define_unit_main_target)
+  if(NOT TARGET flecsi-unit-main)
+    add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
+    target_link_libraries(flecsi-unit-main PUBLIC FleCSI::FleCSI)
+  endif()
+endfunction()
+
+function(flecsi_add_test name)
 
   #----------------------------------------------------------------------------#
   # Enable new behavior for in-list if statements.
@@ -25,18 +22,20 @@ function(add_unit name)
 
   cmake_policy(SET CMP0057 NEW)
 
-  if(NOT ENABLE_UNIT_TESTS)
+  if(NOT FLECSI_ENABLE_TESTING)
     return()
   endif()
+
+  _flecsi_define_unit_main_target()
 
   #----------------------------------------------------------------------------#
   # Setup argument options.
   #----------------------------------------------------------------------------#
 
-  set(options NOCI NOOPENMPI)
+  set(options)
   set(one_value_args POLICY)
   set(multi_value_args
-    SOURCES INPUTS THREADS LIBRARIES DEFINES ARGUMENTS TESTLABELS
+    SOURCES INPUTS PROCS LIBRARIES DEFINES ARGUMENTS TESTLABELS
   )
   cmake_parse_arguments(unit "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
@@ -78,17 +77,17 @@ function(add_unit name)
   # Check to see if the user has specified a backend and process it.
   #----------------------------------------------------------------------------#
 
-  if(FLECSI_BACKEND STREQUAL "mpi")
+  if(FleCSI_BACKEND STREQUAL "mpi")
 
     set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
     set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
     set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES})
     set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
+    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
-  elseif(FLECSI_BACKEND STREQUAL "legion")
+  elseif(FleCSI_BACKEND STREQUAL "legion")
 
     set(unit_policy_flags ${Legion_CXX_FLAGS}
       ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
@@ -97,7 +96,7 @@ function(add_unit name)
     set(unit_policy_libraries ${Legion_LIBRARIES} ${Legion_LIB_FLAGS}
       ${MPI_${MPI_LANGUAGE}_LIBRARIES})
     set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_threads ${MPIEXEC_NUMPROC_FLAG})
+    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
     set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
     set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
@@ -135,7 +134,6 @@ function(add_unit name)
 
   add_executable(${name}
     ${unit_SOURCES}
-    $<TARGET_OBJECTS:unit-main>
   )
   
   set_target_properties(${name}
@@ -198,7 +196,7 @@ function(add_unit name)
     target_link_libraries(${name} PRIVATE ${unit_LIBRARIES})
   endif()
 
-  target_link_libraries(${name} PRIVATE FleCSI::FleCSI)
+  target_link_libraries(${name} PRIVATE flecsi-unit-main)
   target_link_libraries(${name} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
   if(unit_policy_libraries)
@@ -214,53 +212,39 @@ function(add_unit name)
   endif()
 
   #----------------------------------------------------------------------------#
-  # Check for threads.
+  # Check for procs
   #
   # If found, replace the semi-colons with pipes to avoid list
   # interpretation.
   #----------------------------------------------------------------------------#
 
-  if(NOT unit_THREADS)
-    set(unit_THREADS 1)
-  endif(NOT unit_THREADS)
+  if(NOT unit_PROCS)
+    set(unit_PROCS 1)
+  endif()
 
   #----------------------------------------------------------------------------#
   # Add the test target to CTest
   #----------------------------------------------------------------------------#
+  list(LENGTH unit_PROCS proc_instances)
 
-  if(unit_NOOPENMPI AND ( "$ENV{OPENMPI}" STREQUAL "true" )
-    AND ( NOT "$ENV{IGNORE_NOOPENMPI}" STREQUAL "true" ))
-    message(STATUS "Skipping test ${_TEST_PREFIX}${name} "
-      " due to OPENMPI enabled")
-    return()
-  endif()
-
-  if(unit_NOCI AND ( "$ENV{CI}" STREQUAL "true" )
-    AND ( NOT "$ENV{IGNORE_NOCI}" STREQUAL "true" ))
-    message(STATUS "Skipping test ${_TEST_PREFIX}${name} due to CI enabled")
-    return()
-  endif()
-
-  list(LENGTH unit_THREADS thread_instances)
-
-  if (ENABLE_KOKKOS AND ENABLE_LEGION AND 
+  if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND 
      (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
    list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
   endif()
  
-  if (ENABLE_KOKKOS AND ENABLE_LEGION AND Kokkos_ENABLE_OPENMP AND Legion_USE_OpenMP)
+  if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND Kokkos_ENABLE_OPENMP AND Legion_USE_OpenMP)
     list(APPEND  UNIT_FLAGS "--backend-args=-ll:ocpu 1 -ll:onuma 0") 
   endif()
 
-  if(${thread_instances} GREATER 1)
-    foreach(instance ${unit_THREADS})
+  if(${proc_instances} GREATER 1)
+    foreach(instance ${unit_PROCS})
       add_test(
         NAME
           "${_TEST_PREFIX}${name}_${instance}"
         COMMAND
           ${unit_policy_exec}
           ${unit_policy_exec_preflags}
-          ${unit_policy_exec_threads} ${instance}
+          ${unit_policy_exec_procs} ${instance}
           $<TARGET_FILE:${name}>
           ${unit_ARGUMENTS}
           ${unit_policy_exec_postflags}
@@ -279,8 +263,8 @@ function(add_unit name)
           "${_TEST_PREFIX}${name}"
         COMMAND
           ${unit_policy_exec}
-          ${unit_policy_exec_threads}
-          ${unit_THREADS}
+          ${unit_policy_exec_procs}
+          ${unit_PROCS}
           ${unit_policy_exec_preflags}
           $<TARGET_FILE:${name}>
           ${unit_ARGUMENTS}

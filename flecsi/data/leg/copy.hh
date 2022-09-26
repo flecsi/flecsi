@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // High-level topology type implementation.
 
 #ifndef FLECSI_DATA_LEG_COPY_HH

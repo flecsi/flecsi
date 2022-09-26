@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "4-state.hh"
 
 #include "flecsi/flog.hh"
@@ -12,9 +9,7 @@ void
 allocate(control_policy & policy) {
   flog(info) << "allocate" << std::endl;
 
-  /*
-    Call a method of the control policy to allocate an array of size 10.
-   */
+  // Call a method of the control policy to allocate an array of size 10.
 
   policy.allocate_values(10);
 }
@@ -24,9 +19,7 @@ void
 initialize(control_policy & policy) {
   flog(info) << "initialize" << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and initialize.
-   */
+  // Access the array through the 'values()' method, and initialize.
 
   control_policy::int_custom & values = policy.values();
 
@@ -44,9 +37,7 @@ advance(control_policy & policy) {
 
   ss << "advance " << policy.step() << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and modify.
-   */
+  // Access the array through the 'values()' method, and modify.
 
   control_policy::int_custom & values = policy.values();
 
@@ -65,9 +56,7 @@ void
 finalize(control_policy & policy) {
   flog(info) << "finalize" << std::endl;
 
-  /*
-    Deallocate the array using the control policy interface.
-   */
+  // Deallocate the array using the control policy interface.
 
   policy.deallocate_values();
 }

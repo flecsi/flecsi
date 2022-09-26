@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 if(ENABLE_HDF5)
 
 set(io_HEADERS
@@ -62,18 +59,18 @@ set(io_SOURCES
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-add_unit(hdf5_restart
+flecsi_add_test(hdf5_restart
   SOURCES
     test/hdf5_restart.cc
-  THREADS 4
+  PROCS 4
 )
 
 if(FLECSI_BACKEND STREQUAL "legion")
 
-add_unit(io_metadata
+flecsi_add_test(io_metadata
   SOURCES
     test/io_metadata.cc
-  THREADS 2
+  PROCS 2
 )
 endif()
                 

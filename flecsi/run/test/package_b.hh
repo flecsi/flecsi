@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_RUN_TEST_PACKAGE_B_HH
 #define FLECSI_RUN_TEST_PACKAGE_B_HH
 

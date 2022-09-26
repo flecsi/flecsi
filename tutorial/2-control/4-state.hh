@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_4_STATE_HH
 #define TUTORIAL_2_CONTROL_4_STATE_HH
 
@@ -71,9 +68,9 @@ struct control_policy : flecsi::run::control_base {
     main_cycle,
     point<cp::finalize>>;
 
-  /*--------------------------------------------------------------------------*
-    State interface
-   *--------------------------------------------------------------------------*/
+  //--------------------------------------------------------------------------
+  // State interface
+  //--------------------------------------------------------------------------
 
   using int_custom = placeholder::custom<int>;
 
@@ -101,9 +98,9 @@ struct control_policy : flecsi::run::control_base {
   }
 
 private:
-  /*--------------------------------------------------------------------------*
-    State members
-   *--------------------------------------------------------------------------*/
+  //--------------------------------------------------------------------------
+  // State members
+  //--------------------------------------------------------------------------
 
   std::size_t step_{0};
   std::size_t steps_{0};

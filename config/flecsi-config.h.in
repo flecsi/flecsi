@@ -1,9 +1,21 @@
-/*
-   Copyright (c) 2016, Los Alamos National Security, LLC
-   All rights reserved.
-                                                                              */
+//----------------------------------------------------------------------------//
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved
+//----------------------------------------------------------------------------//
+
 #ifndef FLECSI_CONFIG_H
 #define FLECSI_CONFIG_H
+
+/// \defgroup config Configuration
+/// FleCSI Configuration
+/// \{
+
+/*!
+FleCSI Version
+
+Format: \code(major << 16) | (minor << 8) | patch\endcode
+*/
+#define FLECSI_VERSION @FleCSI_VERSION_HEX@
 
 //----------------------------------------------------------------------------//
 // Backends
@@ -126,5 +138,7 @@
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
 #cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
+
+/// \}
 
 #endif

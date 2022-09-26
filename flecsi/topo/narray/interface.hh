@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_NARRAY_INTERFACE_HH
@@ -98,8 +98,7 @@ private:
     /// Global extents.
     /// These are necessarily the same on every color.
     scoord global;
-    /// The global offsets to the beginning of the color's region, excluding
-    /// any non-physical boundary padding.
+    /// The global offsets to the beginning of the color's logical region.
     /// Use to map from local to global ids.
     scoord offset;
     /// The size of the color's region, including ghosts and boundaries.

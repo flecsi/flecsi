@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_NARRAY_COLORING_UTILS_HH
@@ -182,7 +182,7 @@ make_color(Dimension dimension,
     log1 = log0 + em[axis_color].size();
     tot = log1 + (hi ? bdepths : hdepths)[axis];
     idxco.extended[1][axis] = hi ? tot : log1;
-    idxco.offset[axis] = em(axis_color) - ext0;
+    idxco.offset[axis] = em(axis_color);
 
     auto & gi = ghstitvls[axis];
     if(!lo)
@@ -423,18 +423,11 @@ color(narray_impl::coloring_definition const & cd,
       Compute a remote index from a global coordinate.
      */
 
-    auto const & axis_bdepths = cd.axis_bdepths;
-    auto rmtidx = [dimension, &axis_bdepths](
-                    process_color const & idxco, coord const & gidx) {
+    auto rmtidx = [dimension](process_color const & idxco, coord const & gidx) {
       coord result(dimension);
+      auto & log0 = idxco.logical[0];
       for(Dimension axis = 0; axis < dimension; ++axis) {
-        uint32_t bits = idxco.orientation >> axis * 2;
-        if(bits & mask::low) {
-          result[axis] = gidx[axis] + axis_bdepths[axis];
-        }
-        else {
-          result[axis] = gidx[axis] - idxco.offset[axis];
-        }
+        result[axis] = gidx[axis] - idxco.offset[axis] + log0[axis];
       }
       return result;
     };
@@ -450,20 +443,14 @@ color(narray_impl::coloring_definition const & cd,
       for(Dimension axis = 0; axis < dimension; ++axis) {
         uint32_t bits = orient >> axis * 2;
         const std::size_t sa = start[axis], ea = end[axis], i = idx[axis];
-        if(bits & mask::high && i >= ea) // periodic high
+        if(bits & high && i >= ea) // periodic high
           result[axis] = i - ea;
-        else if(bits & mask::low) {
-          // Here, i=sa is global index 0 and thus the reference.
-          if(i < sa) {
-            /* periodic low */
-            result[axis] = idxco.global[axis] - sa + i;
-          }
-          else {
-            result[axis] = i - sa;
-          }
+        else if(bits & low && i < sa) {
+          /* periodic low */
+          result[axis] = idxco.global[axis] - sa + i;
         }
         else {
-          result[axis] = idxco.offset[axis] + i;
+          result[axis] = idxco.offset[axis] + i - sa;
         }
       }
       return result;

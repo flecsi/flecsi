@@ -1,9 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_CORE_HH
 #define FLECSI_TOPO_CORE_HH
 
+#include "flecsi/data/field.hh" // cleanup
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
@@ -60,6 +61,10 @@ using base_t = typename detail::base<T>::type;
 // Map P::core to P:
 template<class T>
 using policy_t = typename detail::policy<T>::type;
+
+struct with_cleanup {
+  data::cleanup cleanup;
+};
 
 #ifdef DOXYGEN
 /// An example topology base that is not really implemented.

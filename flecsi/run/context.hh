@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_RUN_CONTEXT_HH
@@ -180,7 +180,7 @@ struct context {
         : boost::program_options::options_description("FleCSI Options");
 
     flecsi_desc.add_options()("backend-args",
-      boost::program_options::value(&backend_)->default_value(""),
+      boost::program_options::value<std::vector<std::string>>(),
       "Pass arguments to the backend. The single argument is a quoted "
       "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
@@ -305,6 +305,14 @@ struct context {
       boost::program_options::variables_map vm;
       boost::program_options::store(parsed, vm);
 
+      if(vm.count("backend-args")) {
+        auto args = vm["backend-args"].as<std::vector<std::string>>();
+        using I = std::istream_iterator<std::string>;
+        for(auto & a : args) {
+          auto iss = std::istringstream(a);
+          backend_args_.insert(backend_args_.end(), I(iss), I());
+        }
+      }
       if(vm.count("help")) {
         print_usage(program_, master, flecsi_desc);
         return status::help;
@@ -605,7 +613,7 @@ private:
 protected:
   std::string program_;
   std::vector<char *> argv_;
-  std::string backend_;
+  std::vector<std::string> backend_args_;
 
   bool initialize_dependent_ = true;
 

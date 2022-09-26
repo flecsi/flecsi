@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "1-simple.hh"
 
 #include "flecsi/execution.hh"
@@ -8,64 +5,48 @@
 
 using namespace simple;
 
-/*
-  Function definition of an initialize action.
- */
+// Function definition of an initialize action.
 
 void
 initialize(control_policy &) {
   flog(info) << "initialize" << std::endl;
 }
 
-/*
-  Register the initialize action under the 'initialize' control point.
- */
+// Register the initialize action under the 'initialize' control point.
 
 control::action<initialize, cp::initialize> initialize_action;
 
-/*
-  Function definition of an advance action.
- */
+// Function definition of an advance action.
 
 void
 advance(control_policy &) {
   flog(info) << "advance" << std::endl;
 }
 
-/*
-  Register the advance action under the 'advance' control point.
- */
+// Register the advance action under the 'advance' control point.
 
 control::action<advance, cp::advance> advance_action;
 
-/*
-  Function definition of a finalize action.
- */
+// Function definition of a finalize action.
 
 void
 finalize(control_policy &) {
   flog(info) << "finalize" << std::endl;
 }
 
-/*
-  Register the finalize action under the 'finalize' control point.
- */
+// Register the finalize action under the 'finalize' control point.
 
 control::action<finalize, cp::finalize> finalize_action;
 
-/*
-  The main function is similar to previous examples, but with the addition of
-  logic to check control-model options.
- */
+// The main function is similar to previous examples, but with the addition of
+// logic to check control-model options.
 
 int
 main(int argc, char ** argv) {
   auto status = flecsi::initialize(argc, argv);
 
-  /*
-    The check_status() method checks to see if any control-model options were
-    specified on the command line, and handles them appropriately.
-   */
+  // The check_status() method checks to see if any control-model options were
+  // specified on the command line, and handles them appropriately.
 
   status = control::check_status(status);
 
@@ -75,11 +56,9 @@ main(int argc, char ** argv) {
 
   flecsi::flog::add_output_stream("clog", std::clog, true);
 
-  /*
-    Pass the control model's 'execute' method to start. FleCSI will invoke
-    the execute function after runtime initialization. This will, in turn,
-    execute all of the cycles, and actions of the control model.
-   */
+  // Pass the control model's 'execute' method to start. FleCSI will invoke
+  // the execute function after runtime initialization. This will, in turn,
+  // execute all of the cycles, and actions of the control model.
 
   status = flecsi::start(control::execute);
 

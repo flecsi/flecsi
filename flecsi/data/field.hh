@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_FIELD_HH
@@ -12,9 +12,11 @@
 
 namespace flecsi {
 namespace topo {
+struct with_cleanup; // defined in terms of cleanup
+
 template<class>
 struct ragged; // defined in terms of field
-}
+} // namespace topo
 
 namespace data {
 /// \addtogroup data
@@ -42,7 +44,58 @@ template<class P>
 struct mapping;
 }
 
+// Each field can have a destructor (for individual field values) registered
+// that is invoked when the field is recreated or the region is destroyed.
+struct cleanup {
+  using function = std::function<void()>;
+
+  void operator()(field_id_t f, function d) {
+    fields.insert_or_assign(f, std::move(d));
+  }
+
+private:
+  struct finalizer {
+    finalizer(function f) noexcept : f(std::move(f)) {}
+    finalizer(finalizer && o) noexcept {
+      f.swap(o.f); // guarantee o.f is empty
+    }
+    ~finalizer() {
+      if(f)
+        f();
+    }
+    finalizer & operator=(finalizer o) noexcept {
+      f.swap(o.f);
+      return *this;
+    }
+
+  private:
+    function f;
+  };
+
+  std::map<field_id_t, finalizer> fields;
+};
+
 namespace detail {
+template<class T, auto S, class = void> // core topology type
+struct cleanup {
+  static data::cleanup & get(T & t) {
+    return t.template get_partition<S>().cleanup;
+  }
+};
+template<class T, auto S>
+struct cleanup<T,
+  S,
+  std::enable_if_t<std::is_base_of_v<topo::with_cleanup, T>>> {
+  static data::cleanup & get(T & t) {
+    return t.cleanup;
+  }
+};
+template<auto S, class T>
+data::cleanup &
+get_cleanup(T & t) {
+  return cleanup<T, S>::get(t);
+}
+
 template<class, layout>
 struct field_base {};
 template<class, layout, class Topo, typename Topo::index_space>
@@ -177,6 +230,9 @@ struct field_reference : field_reference_t<Topo> {
   auto & get_ragged() const {
     // A ragged_partition<...>::core, or borrowing of same:
     return this->topology().ragged.template get<Space>()[this->fid()];
+  }
+  void cleanup(std::function<void()> f) const {
+    detail::get_cleanup<Space>(this->topology())(this->fid(), std::move(f));
   }
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts

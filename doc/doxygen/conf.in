@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------#
 
 PROJECT_LOGO           = @PROJECT_SOURCE_DIR@/doc/doxygen/flecsi.png
-PROJECT_NUMBER         = "Version: ${${PROJECT_NAME}_DOCUMENTATION_VERSION}"
+PROJECT_NUMBER         = "Version: ${${PROJECT_NAME}_VERSION}"
 OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/doc/api
 HTML_OUTPUT            = @name@
 HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/doc/doxygen/customdoxygen.css \
@@ -15,9 +15,12 @@ HTML_EXTRA_STYLESHEET  = @PROJECT_SOURCE_DIR@/doc/doxygen/customdoxygen.css \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/nav_g.png \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/nav_h.png
 IMAGE_PATH             = @PROJECT_SOURCE_DIR@/doc/doxygen/images
-STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/flecsi
-STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/flecsi
+STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/flecsi \
+                         @CMAKE_BINARY_DIR@
+STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/flecsi \
+                         @CMAKE_BINARY_DIR@
 INPUT                  = @PROJECT_SOURCE_DIR@/flecsi \
+                         @CMAKE_BINARY_DIR@/flecsi-config.h \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 

@@ -1,10 +1,4 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
-option(ENABLE_HDF5 "Enable HDF5" OFF)
-
-if(ENABLE_HDF5)
-
+macro(flecsi_enable_hdf5 target)
   # CMake's FindHDF5 package ignores any path in CMAKE_PREFIX_PATH that
   # doesn't contain the hdf5-config.cmake file in a certain location.
   # Some of our HDF5 builds don't have this.  So we have to give CMake
@@ -18,10 +12,6 @@ if(ENABLE_HDF5)
 
   find_package(HDF5 REQUIRED)
 
-  if(NOT HDF5_FOUND)
-    message(FATAL_ERROR "HDF5 requested, but not found")
-  endif()
-
-  list(APPEND TPL_INCLUDES ${HDF5_INCLUDE_DIRS})
-  list(APPEND TPL_LIBRARIES ${HDF5_LIBRARIES})
-endif()
+  target_include_directories(${target} SYSTEM PUBLIC ${HDF5_INCLUDE_DIRS})
+  target_link_libraries(${target} PUBLIC ${HDF5_LIBRARIES})
+endmacro()

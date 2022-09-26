@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"

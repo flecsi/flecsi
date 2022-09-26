@@ -160,7 +160,8 @@ this option, we use the following declaration:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 6-21
+  :start-at: // Add an integer-valued command-line option with a default value
+  :end-before: // Add a string-valued command-line option with a default value
 
 First, notice that the flecsi::program_option type is templated on the
 underlying option type *int*. In general, this can be any valid C++
@@ -202,7 +203,8 @@ value type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 23-38
+  :start-at: // Add a string-valued command-line option with a default value
+  :end-before: // Add an option that defines an implicit value.
 
 The only real difference is that (because the underlying type is
 std::string) the default value is also a string.
@@ -212,7 +214,8 @@ demonstrates the use of flecsi::option_implicit:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 40-52
+  :start-at: // Add an option that defines an implicit value.
+  :end-before: // Add a an option to a different section,
 
 Providing an implicit value defines the behavior for the case that the user invokes the program with the given flag but does not assign a
 value, e.g., ``--child-seat`` vs. ``--child-seat=1``. The value is
@@ -234,7 +237,8 @@ code:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 54-70
+  :start-at: // Add a an option to a different section,
+  :end-before: // Add an option with no default.
 
 This option demonstrates how an enumeration can be used to define
 possible values. Although FleCSI does not enforce correctness, the
@@ -248,14 +252,16 @@ whether or not an option was passed in the next section:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 72-80
+  :start-at: // Add an option with no default.
+  :end-before: // Add a positional option. 
 
 The final option in this example is a positional option: i.e., it is an
 argument to the program itself.
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 82-96
+  :start-at: // Add a positional option. 
+  :end-before: // User-defined program options are available after FleCSI
 
 Positional options are required: i.e., the program will error and print
 the usage message if a value is not passed.
@@ -274,7 +280,8 @@ Options that have a default value defined do not need to be tested:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 107-135
+  :start-at: // Add cost for trim level.
+  :end-before: // Add cost for lightspeed.
 
 Here, we simply need to access the value of the option using the
 *value()* method.
@@ -284,14 +291,16 @@ option has a value using the *has_value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 137-144
+  :start-at: // Add cost for lightspeed.
+  :end-before: // Do something with the positional argument.
 
 Our one positional option works like the defaulted options (because it
 is required) and can be accessed using the *value()* method:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
-  :lines: 146-157
+  :start-at: // Do something with the positional argument.
+  :end-at: price *= passengers * 1.10 * price;
 
 Here is the full source for this tutorial example:
 
@@ -344,7 +353,8 @@ Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 60-99
+  :start-after: // top_level_action
+  :end-at: } // main
 
 The first output stream added is `std::clog`__.
 
@@ -352,7 +362,8 @@ __ https://en.cppreference.com/w/cpp/io/clog
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 81-85
+  :start-at: // Add the standard log descriptor to FLOG's buffers.
+  :end-at: log::add_output_stream("clog", std::clog, true);
 
 The arguments to add_output_stream are:
 
@@ -372,7 +383,8 @@ To add an output stream to a file, we can do the following:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 87-92
+  :start-at: // Add an output file to FLOG's buffers.
+  :end-at: log::add_output_stream("log file", log_file);
 
 That's it! For this example, FLOG is now configured to write output to
 std::clog, and to *output.txt*. Next, we will see how to actually write
@@ -399,7 +411,8 @@ the basic output objects:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 21-29
+  :start-at: // This output will always be generated because
+  :end-at: flog(error) << "Error level output" << std::endl;
 
 Controlling Output - Strip Levels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -444,7 +457,8 @@ To create a new tag, we use the flog::tag type:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 11-16
+  :start-at: // Create some tags to control output.
+  :end-at: log::tag tag2("tag2");
 
 Tags take a single std::string argument that is used in the help message
 to identify available tags.
@@ -460,13 +474,15 @@ the ``--flog-tags`` option:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 31-42
+  :start-at: // This output will only be generated if 'tag1' or 'all' is specified
+  :end-at: } // scope
 
 Here is another code example that defines a guarded section for *tag2*:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :lines: 44-55
+  :start-at: // This output will only be generated if 'tag2' or 'all' is specified
+  :end-at: } // scope
 
 You should experiment with invoking this example:
 
@@ -639,7 +655,7 @@ options are:
 .. caution::
 
    To use Caliper annotations with the Legion backend, the Legion option
-   ``--ll:force-kthreads`` must be used.  Caliper is not aware of Legion
+   ``-ll:force_kthreads`` must be used.  Caliper is not aware of Legion
    user-level threads, so additional care must be practiced when using
    annotations with this runtime.
 
@@ -661,13 +677,15 @@ Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 50-67
+  :start-after: // main
+  :end-at: } // main
 
 A scope guard is used to annotation the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 60-62
+  :start-at: status = (annotation::guard<annotation::execution, annotation::detail::low>(
+  :end-at: flecsi::start(top_level_action));
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -676,7 +694,8 @@ specified using structs that inherit from ``annotation::region``:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 13-28
+  :start-at: struct user_execution : annotation::context<user_execution> {
+  :end-before: void
 
 This first defines a new annotation context ``user_execution`` by inheriting
 from ``annotation::context`` and specifying a name for the context.  Three code
@@ -686,11 +705,13 @@ The main and sleeper functions are then annotated using region-based scope guard
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 52-52
+  :start-at: annotation::rguard<main_region> main_guard;
+  :end-at: annotation::rguard<main_region> main_guard;
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :lines: 34-35
+  :start-at: annotation::rguard<sleeper_subtask>(),
+  :end-at: std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
 Generating Reports
 ^^^^^^^^^^^^^^^^^^

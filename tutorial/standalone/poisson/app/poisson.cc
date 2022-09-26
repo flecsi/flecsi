@@ -1,8 +1,3 @@
-/*
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
-
 #include "poisson.hh"
 #include "analyze.hh"
 #include "finalize.hh"

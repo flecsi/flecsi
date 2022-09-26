@@ -1,5 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
 #ifndef CONTROL_HH
 #define CONTROL_HH
 

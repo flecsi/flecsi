@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_ACCESSOR_HH
@@ -241,7 +241,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
     std::forward<F>(f)(get_base(), [](const auto & r) {
       // TODO: use just one task for all fields
       if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
-        r.get_region().cleanup(r.fid(), [r] { detail::destroy<P>(r); });
+        r.cleanup([r] { detail::destroy<P>(r); });
       return r.template cast<raw>();
     });
     if constexpr(privilege_discard(P))
@@ -312,10 +312,8 @@ struct ragged_accessor
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
       auto & t = r.get_ragged();
-      t.template get_region<topo::elements>().cleanup(i, [=] {
-        if constexpr(!std::is_trivially_destructible_v<T>)
-          detail::destroy<P>(r);
-      });
+      if constexpr(!std::is_trivially_destructible_v<T>)
+        r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))

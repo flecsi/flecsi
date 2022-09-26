@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
@@ -48,5 +45,5 @@ advance(control_policy &) {
   execute<init>(canonical, pf);
   execute<copy>(pf, pf2);
   execute<print>(cp, pf2);
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

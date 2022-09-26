@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 #------------------------------------------------------------------------------#
 # Add header files. Note that these will be "exported" to the parent
 # scope below.
@@ -54,15 +51,15 @@ set(topo_SOURCES
 
 # index -----------------------------------------------------------------------#
 
-add_unit(index
+flecsi_add_test(index
   SOURCES
     test/index.cc
-  THREADS 2
+  PROCS 2
   )
 
 # unstructured ---------------------------------------------------------------#
 
-add_unit(coloring
+flecsi_add_test(coloring
   SOURCES
     unstructured/test/coloring.cc
     unstructured/test/simple_definition.hh
@@ -77,59 +74,59 @@ add_unit(coloring
     unstructured/test/coloring_5.4.blessed
     unstructured/test/coloring_2.0.blessed
     unstructured/test/coloring_2.1.blessed
-  THREADS 5
+  PROCS 5
 )
 
-set(UTHREADS 4)
+set(UPROCS 4)
 if(FLECSI_BACKEND STREQUAL "legion")
-  #UTHREADS SHOULD BE SET TO 1 2 4 6 once the #colors>#ranks case is working for ragged communication. 
-  set(UTHREADS 1 4 6)
+  #UPROCS should be set to 1 2 4 6 once the #colors>#ranks case is working for ragged communication.
+  set(UPROCS 1 4 6)
 endif()
 
-add_unit(unstructured
+flecsi_add_test(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
     unstructured/test/unstructured.hh
     unstructured/test/unstructured.cc
   INPUTS
     unstructured/test/simple2d-8x8.msh
-  THREADS ${UTHREADS}
+  PROCS ${UPROCS}
 )
 
-add_unit(fixed
+flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
-  THREADS 4
+  PROCS 4
 )
 
-add_unit(set
+flecsi_add_test(set
   SOURCES
     unstructured/test/unstructured.hh
     set/test/mpm_set.cc
   INPUTS
     unstructured/test/simple2d-16x16.msh
-  THREADS 4
+  PROCS 4
 )
 
 # narray ----------------------------------------------------------------------#
 
-add_unit(narray
+flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
-  THREADS 4
+  PROCS 4
 )
 
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_BACKEND STREQUAL "legion")
-  add_unit(ntree_policy
+  flecsi_add_test(ntree_policy
     SOURCES ntree/test/ntree.cc
     INPUTS ntree/test/coordinates.blessed
-    THREADS 4
+    PROCS 4
   )
 endif()
 
-add_unit(ntree_geometry
+flecsi_add_test(ntree_geometry
   SOURCES ntree/test/geometry.cc
 )

@@ -45,25 +45,29 @@ Consider the following from ``tutorial/3-execution/1-single-task.cc``:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 11-18
+  :start-at: // Trivial task (no arguments, no return).
+  :end-at: }
 
 Execution of the task is trivial:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 65-69
+  :start-at: // Execute a trivial task.
+  :end-at: execute<trivial>();
 
 A single task can return a value:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 20-29
+  :start-at: // Task with return value.
+  :end-at: }
 
 The return value can be retrieved with a `future`:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 71-96
+  :start-at: // A future is
+  :end-at: } // scope
 
 FleCSI tasks can take any valid C++ type as an argument `by-value`,
 e.g., a ``std::vector``:
@@ -78,25 +82,29 @@ e.g., a ``std::vector``:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 31-47
+  :start-at: // Task with by-value argument.
+  :end-at: } // with_by_value_argument
 
 Execution of such a task is what you would expect:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 98-110
+  :start-at: // Execute a task that takes an argument by-value.
+  :end-at: } // scope
 
 FleCSI tasks can also be templated:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 49-60
+  :start-at: template<typename Type>
+  :end-at: } // template
 
 Again, execution is straightforward:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp
-  :lines: 112-120
+  :start-at: // Execute a templated task.
+  :end-at: } // scope
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
@@ -110,8 +118,8 @@ the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
   :language: cpp
-  :lines: 15-30
-
+  :start-at: // Task with no arguments.
+  :end-at: // advance()
 
 Launch Domains
 ^^^^^^^^^^^^^^
@@ -135,6 +143,7 @@ method should be set to ``mpi``.
 
 .. literalinclude:: ../../../../tutorial/3-execution/3-mpi-task.cc
   :language: cpp
-  :lines: 15-27
+  :start-at: // Task with no arguments.
+  :end-at: // advance()
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

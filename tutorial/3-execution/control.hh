@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_3_EXECUTION_CONTROL_HH
 #define TUTORIAL_3_EXECUTION_CONTROL_HH
 

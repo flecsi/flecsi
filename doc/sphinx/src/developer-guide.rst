@@ -1,7 +1,3 @@
-.. |br| raw:: html
-
-   <br />
-
 Developer Guide
 ***************
 
@@ -129,16 +125,16 @@ Tags are used to identify releases as well as certain internal reference points 
 Branch Types
 ^^^^^^^^^^^^
 
-* **incompatible** |br|
+incompatible
   The *develop* branch is where work on the next major release takes
   place, potentially with interface and feature changes that are
   *incompatible* with previous versions.
 
-* **feature** |br|
+feature
   Feature branches (named for their *major* version number, e.g., 1, 2,
   3) are for feature development on the current major version.
 
-* **release** |br|
+release
   Release branches (named for their *major.minor* version number, e.g.,
   1.1, 1.2) are interface-stable versions of the code base.
   At appropriate points, tags (named for their
@@ -149,9 +145,9 @@ Branch Types
 
   At the time of writing, FleCSI has the following branches:
 
-  **develop** (incompatible) |br|
-  **2** (feature) |br|
-  **2.1** (release)
+  - **develop** (incompatible)
+  - **2** (feature)
+  - **2.1** (release)
 
 In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
 The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
@@ -161,32 +157,70 @@ It is also unfortunate to need to consider reverting a change because an officia
 Tags
 ^^^^
 
-The form of a tag is determined by the underlying branch type and commit
-it is intended to reference:
+Release tags should be created for each new release, with *v* and the
+release version, e.g., *v1.4.1*.
 
-* **devel branch** |br|
-  In general, a commit on the devel branch should only be tagged if it
-  is the first commit *after* a new feature branch has been created, and
-  should be named with *d* and the major version of the feature branch:
-  e.g., when feature branch *2* is created, a new devel tag *d2* should
-  be created on the next devel commit.
+FleCSI Version File (``.version``) and ``FLECSI_VERSION``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* **feature branch** |br|
-  Feature tags should be created on the next commit after a new release
-  branch is created, with *f* and the major.minor version of the release
-  branch: e.g., when release branch *1.5* is created, a new feature tag
-  *f1.5* should be created on the next feature commit.
+The contents of the ``.version`` file in the root of a FleCSI source
+checkout is used to identify the branch type and version of
+FleCSI. Given the three different branch types and tagged versioned
+releases, its content will be one of the following four schemes:
 
-* **release branch** |br|
-  Release tags should be created for each new release, with *v* and the
-  release version, e.g., *v1.4.1*.
+develop branch
+  ``develop``
 
-.. tip::
+feature branch
+  ``f<major>``
 
-  Tags mark a *whence* or *origin* for development rather than a
-  *whither* or *completion*. The first letter of the tag is important,
-  i.e., *d*, *f*, or *v*, as it is used by FleCSI to determine the
-  branch type of the tag during CMake configuration.
+release branch
+  ``r<major>.<minor>``
+
+tagged release
+  ``v<major>.<minor>.<patch>``
+
+
+FleCSI uses the information in ``.version`` to define
+``FLECSI_VERSION`` in its ``flecsi-config.h`` header. This constant
+encodes the major, minor and patch version of FleCSI in a single
+integer value.
+
+For **tagged releases** (``v<major>.<minor>.<patch>``) it is defined
+as ``(major << 16) | (minor << 8) | patch``.
+
+On **release branches** both major and minor version components are
+set to the release version, however, the patch version component is set
+to its maximul value 255.
+
+On **feature branches** only the major version component is set to the
+version value, while the minor version component is set to its maximum
+255 and the patch version component is set to 0.
+
+Finally, on the **develop branch**, the major version component is set
+to its maximum 255, while the other componets are set
+to 0.
+
+The following table summarizes these rules with some examples:
+
+.. list-table:: Examples of ``.version`` and ``FLECSI_VERSION``
+   :header-rows: 1
+
+   * - Source
+     - Contents of ``.version``
+     - ``FLECSI_VERSION``
+   * - ``develop`` branch
+     - ``develop``
+     - ``0xff0000``
+   * - ``2`` feature branch
+     - ``f2``
+     - ``0x02ff00``
+   * - ``2.1`` release branch
+     - ``r2.1``
+     - ``0x0201ff``
+   * - ``v2.2.0`` tagged release
+     - ``v2.2.0``
+     - ``0x020200``
 
 Workflow
 ^^^^^^^^
@@ -477,12 +511,27 @@ documentation.
 
   .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
     :language: cpp
-    :lines: 20-39
+    :start-at: // Function definition of an advance action.
+    :end-before: // Register the finalize action under the 'finalize' control point.
 
 This will be rendered like:
 
 .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
   :language: cpp
-  :lines: 20-39
+  :start-at: // Function definition of an advance action.
+  :end-before: // Register the finalize action under the 'finalize' control point.
+
+The included parts of the file begin with a ``:start-at:`` or
+``:start-after:`` input and end with an ``:end-at:`` or ``:end-before:`` input. Each
+of these performs a literal string match for the string that follows the colon.
+That is, ``:start-at: some text`` will match against the string ``some text`` and
+will start including the entire line it contains. Similarly,
+``:start-after:`` will match the same line, but only start including after
+the line containing the string. ``:end-at:`` and ``:end-before:`` work in a
+similar fashion. Note that for the above we included the block of
+comments that matched ``// Function definition of an advance action.``
+and we stopped including just before a line that begins another comment
+block section for another part of the code. Since an ``end-before`` was
+used, the line containing the matched string was not included.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

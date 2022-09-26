@@ -1,11 +1,6 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
-set(Boost_NO_BOOST_CMAKE ON)
-set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
-mark_as_advanced(ENABLE_BOOST)
-
-if(ENABLE_BOOST)
+macro(flecsi_enable_boost target)
+  set(Boost_NO_BOOST_CMAKE ON)
+  cmake_parse_arguments(BOOST "" "" "COMPONENTS" ${ARGN})
 
   #----------------------------------------------------------------------------#
   # Set BOOST_COMPONENTS to the desired components, e.g., program_options,
@@ -17,10 +12,11 @@ if(ENABLE_BOOST)
 
   find_package(Boost REQUIRED ${BOOST_COMPONENTS})
 
-  list(APPEND TPL_LIBRARIES Boost::boost)
+  target_link_libraries(${target} PUBLIC Boost::boost)
 
   foreach(_COMP IN LISTS BOOST_COMPONENTS)
-    list(APPEND TPL_LIBRARIES Boost::${_COMP})
+    target_link_libraries(${target} PUBLIC Boost::${_COMP})
   endforeach()
 
-endif()
+  set(FLECSI_CMAKE_ENABLE_BOOST ON)
+endmacro()
