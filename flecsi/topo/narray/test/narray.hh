@@ -12,17 +12,7 @@ template<std::size_t D>
 struct mesh {
   static_assert((D >= 1 && D <= 3), "Invalid dimension for testing !");
 
-  enum index_space { entities };
-  enum range {
-    logical,
-    extended,
-    all,
-    boundary_low,
-    boundary_high,
-    ghost_low,
-    ghost_high,
-    global
-  };
+  using range = topo::narray_base::range;
   enum axis { x_axis, y_axis, z_axis };
 
   struct meta_data {
@@ -38,113 +28,19 @@ struct mesh {
   template<class B>
   struct interface : B {
 
-    template<axis A, range SE = logical>
+    template<axis A, range SE = range::logical>
     std::size_t size() const {
-      switch(SE) {
-        case logical:
-          return B::
-            template size<index_space::entities, A, B::range::logical>();
-          break;
-        case extended:
-          return B::
-            template size<index_space::entities, A, B::range::extended>();
-          break;
-        case all:
-          return B::template size<index_space::entities, A, B::range::all>();
-          break;
-        case boundary_low:
-          return B::
-            template size<index_space::entities, A, B::range::boundary_low>();
-          break;
-        case boundary_high:
-          return B::
-            template size<index_space::entities, A, B::range::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template size<index_space::entities, A, B::range::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template size<index_space::entities, A, B::range::ghost_high>();
-          break;
-        case global:
-          return B::template size<index_space::entities, A, B::range::global>();
-          break;
-      }
+      return B::template size<topo::elements, A, SE>();
     }
 
-    template<axis A, range SE = logical>
+    template<axis A, range SE = range::logical>
     auto extents() const {
-      switch(SE) {
-        case logical:
-          return B::
-            template extents<index_space::entities, A, B::range::logical>();
-          break;
-        case extended:
-          return B::
-            template extents<index_space::entities, A, B::range::extended>();
-          break;
-        case all:
-          return B::template extents<index_space::entities, A, B::range::all>();
-          break;
-        case boundary_low:
-          return B::template extents<index_space::entities,
-            A,
-            B::range::boundary_low>();
-          break;
-        case boundary_high:
-          return B::template extents<index_space::entities,
-            A,
-            B::range::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template extents<index_space::entities, A, B::range::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template extents<index_space::entities, A, B::range::ghost_high>();
-          break;
-      }
+      return B::template extents<topo::elements, A, SE>();
     }
 
-    template<axis A, range SE = logical>
+    template<axis A, range SE = range::logical>
     auto offset() const {
-      switch(SE) {
-        case logical:
-          return B::
-            template offset<index_space::entities, A, B::range::logical>();
-          break;
-        case extended:
-          return B::
-            template offset<index_space::entities, A, B::range::extended>();
-          break;
-        case all:
-          return B::template offset<index_space::entities, A, B::range::all>();
-          break;
-        case boundary_low:
-          return B::
-            template offset<index_space::entities, A, B::range::boundary_low>();
-          break;
-        case boundary_high:
-          return B::template offset<index_space::entities,
-            A,
-            B::range::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template offset<index_space::entities, A, B::range::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template offset<index_space::entities, A, B::range::ghost_high>();
-          break;
-        case global:
-          return B::
-            template offset<index_space::entities, A, B::range::global>();
-          break;
-      }
+      return B::template offset<topo::elements, A, SE>();
     }
   };
 }; // mesh
@@ -152,7 +48,6 @@ struct mesh {
 struct mesh1d : topo::specialization<topo::narray, mesh1d> {
   using meshbase = mesh<1>;
 
-  using index_space = meshbase::index_space;
   using range = meshbase::range;
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
@@ -165,7 +60,6 @@ struct mesh1d : topo::specialization<topo::narray, mesh1d> {
   template<class B>
   using interface = meshbase::interface<B>;
 
-  using index_spaces = has<index_space::entities>;
   using axes = has<axis::x_axis>;
   using coord = base::coord;
   using coloring_definition = base::coloring_definition;
@@ -193,7 +87,6 @@ struct mesh1d : topo::specialization<topo::narray, mesh1d> {
 struct mesh2d : topo::specialization<topo::narray, mesh2d> {
   using meshbase = mesh<2>;
 
-  using index_space = meshbase::index_space;
   using range = meshbase::range;
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
@@ -206,7 +99,6 @@ struct mesh2d : topo::specialization<topo::narray, mesh2d> {
   template<class B>
   using interface = meshbase::interface<B>;
 
-  using index_spaces = has<index_space::entities>;
   using axes = has<axis::x_axis, axis::y_axis>;
   using coord = base::coord;
   using coloring_definition = base::coloring_definition;
@@ -233,7 +125,6 @@ struct mesh2d : topo::specialization<topo::narray, mesh2d> {
 struct mesh3d : topo::specialization<topo::narray, mesh3d> {
   using meshbase = mesh<3>;
 
-  using index_space = meshbase::index_space;
   using range = meshbase::range;
   using axis = meshbase::axis;
   using meta_data = meshbase::meta_data;
@@ -246,7 +137,6 @@ struct mesh3d : topo::specialization<topo::narray, mesh3d> {
   template<class B>
   using interface = meshbase::interface<B>;
 
-  using index_spaces = has<index_space::entities>;
   using axes = has<axis::x_axis, axis::y_axis, axis::z_axis>;
   using coord = base::coord;
   using coloring_definition = base::coloring_definition;
