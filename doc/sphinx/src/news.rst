@@ -48,6 +48,7 @@ New features
   * Control policies may inherit from ``control_base`` to enable throwing ``control_base::exception`` and to limit their lifetime to that of ``control::execute``.
   * ``control::policy`` replaces ``control::state``.
   * ``meta_point`` defines special control points for a specialization's use via ``control::meta``.
+  * New option ``--Xbackend`` to pass single backend arguments. Can be used multiple times.
 
 * Data
 
