@@ -61,7 +61,7 @@ option(ENABLE_FORMAT "Enable format target" OFF)
 mark_as_advanced(ENABLE_FORMAT)
 
 if(ENABLE_FORMAT)
-  include(format)
+  include(FleCSI/format)
 
   set(ClangFormat_VERSION "13.0.1" CACHE STRING
       "Set the required version (major[.minor[.patch]]) of clang-format")
@@ -80,7 +80,7 @@ mark_as_advanced(ENABLE_DOCUMENTATION)
 mark_as_advanced(GITHUB_PAGES_REPO)
 
 if(ENABLE_DOCUMENTATION)
-  include(documentation)
+  include(FleCSI/documentation)
 
   option(ENABLE_DOXYGEN "Enable Doxygen documentation" ON)
   option(ENABLE_SPHINX  "Enable Sphinx documentation"  ON)
@@ -89,7 +89,7 @@ if(ENABLE_DOCUMENTATION)
 
 
   if(ENABLE_DOXYGEN)
-    include(doxygen)
+    include(FleCSI/doxygen)
 
     # Create Doxygen output directory eagerly to avoid race condition.
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doc/api)
@@ -107,7 +107,7 @@ if(ENABLE_DOCUMENTATION)
   endif()
 
   if(ENABLE_SPHINX)
-    include(sphinx)
+    include(FleCSI/sphinx)
 
     flecsi_add_sphinx_target(main
       CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
@@ -138,18 +138,18 @@ option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
 mark_as_advanced(ENABLE_LIBRARY)
 
 if(ENABLE_LIBRARY)
-  include(coverage)
-  include(legion)
-  include(mpi)
-  include(parmetis)
-  include(hpx)
-  include(openmp)
-  include(hdf5)
-  include(graphviz)
-  include(kokkos)
-  include(boost)
-  include(caliper)
-  include(library)
+  include(FleCSI/coverage)
+  include(FleCSI/legion)
+  include(FleCSI/mpi)
+  include(FleCSI/parmetis)
+  include(FleCSI/hpx)
+  include(FleCSI/openmp)
+  include(FleCSI/hdf5)
+  include(FleCSI/graphviz)
+  include(FleCSI/kokkos)
+  include(FleCSI/boost)
+  include(FleCSI/caliper)
+  include(FleCSI/library)
 
   add_library(FleCSI)
   add_library(FleCSI::FleCSI ALIAS FleCSI)
@@ -370,7 +370,7 @@ if(ENABLE_LIBRARY)
   # Unit Tests
   #----------------------------------------------------------------------------#
   set(FLECSI_UNIT_MAIN ${CMAKE_SOURCE_DIR}/flecsi/util/unit/main.cc)
-  include(unit)
+  include(FleCSI/unit)
 
   option(ENABLE_UNIT_TESTS "Enable unit testing" OFF)
 
@@ -401,25 +401,9 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
 
   install(
-    FILES
-     ${PROJECT_SOURCE_DIR}/cmake/boost.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/caliper.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/colors.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/documentation.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/format.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/graphviz.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/hdf5.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/hpx.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/kokkos.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/legion.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/library.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/mpi.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/parmetis.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/sphinx.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/subdirlist.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/summary.cmake
-     ${PROJECT_SOURCE_DIR}/cmake/unit.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
+    DIRECTORY
+     ${PROJECT_SOURCE_DIR}/cmake/FleCSI
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake
   )
 
   install(
@@ -450,7 +434,7 @@ endif()
 #------------------------------------------------------------------------------#
 # Output configuration summary.
 #------------------------------------------------------------------------------#
-include(summary)
+include(FleCSI/summary)
 
 flecsi_summary_header()
 flecsi_summary_info("FleCSI Version" "${FleCSI_VERSION_BRIEF}" FALSE)
