@@ -483,7 +483,7 @@ if(ENABLE_DOCUMENTATION)
   flecsi_summary_option("ENABLE_DOXYGEN" ${ENABLE_DOXYGEN} " (ENABLE_DOCUMENTATION)")
 endif()
 
-if(ENABLE_FORMAT AND ClangFormat_FOUND)
+if(ENABLE_FORMAT AND TARGET ClangFormat::ClangFormat)
   flecsi_summary_info("ClangFormat_EXECUTABLE" "${ClangFormat_EXECUTABLE}" TRUE)
 endif()
 
