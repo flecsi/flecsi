@@ -9,22 +9,20 @@
 
 using namespace flecsi;
 
-using is = mesh2d::index_space;
 using rg = mesh2d::range;
 using ax = mesh2d::axis;
 
 mesh2d::slot m;
 mesh2d::cslot mc;
 
-const field<double>::definition<mesh2d, mesh2d::index_space::entities>
-  m_field_1, m_field_2;
+const field<double>::definition<mesh2d> m_field_1, m_field_2;
 
 void
 init(mesh2d::accessor<ro> m,
   field<double>::accessor<wo, na> mf1,
   field<double>::accessor<wo, na> mf2) {
-  auto ms1 = m.mdspan<is::entities>(mf1);
-  auto ms2 = m.mdspan<is::entities>(mf2);
+  auto ms1 = m.mdspan<topo::elements>(mf1);
+  auto ms2 = m.mdspan<topo::elements>(mf2);
   for(auto i : m.extents<ax::x_axis, rg::all>()) {
     for(auto j : m.extents<ax::y_axis, rg::all>()) {
       double val = 16. * color() + 8. * (int)i + (int)j;
@@ -38,8 +36,8 @@ void
 clear(mesh2d::accessor<ro> m,
   field<double>::accessor<wo, na> mf1,
   field<double>::accessor<wo, na> mf2) {
-  auto ms1 = m.mdspan<is::entities>(mf1);
-  auto ms2 = m.mdspan<is::entities>(mf2);
+  auto ms1 = m.mdspan<topo::elements>(mf1);
+  auto ms2 = m.mdspan<topo::elements>(mf2);
   for(auto i : m.extents<ax::x_axis, rg::all>()) {
     for(auto j : m.extents<ax::y_axis, rg::all>()) {
       ms1[j][i] = 0.;
@@ -53,8 +51,8 @@ check(mesh2d::accessor<ro> m,
   field<double>::accessor<ro, na> mf1,
   field<double>::accessor<ro, na> mf2) {
   UNIT {
-    auto ms1 = m.mdspan<is::entities>(mf1);
-    auto ms2 = m.mdspan<is::entities>(mf2);
+    auto ms1 = m.mdspan<topo::elements>(mf1);
+    auto ms2 = m.mdspan<topo::elements>(mf2);
     for(auto i : m.extents<ax::x_axis, rg::all>()) {
       for(auto j : m.extents<ax::y_axis, rg::all>()) {
         double val = 16. * color() + 8. * (int)i + (int)j;
@@ -87,7 +85,7 @@ restart_driver() {
     int num_files = 4;
     io::io_interface iif{num_files};
     // TODO:  make this registration automatic, not manual
-    iif.add_region<mesh2d, mesh2d::index_space::entities>(m);
+    iif.add_region<mesh2d, mesh2d::index_space::elements>(m);
     iif.checkpoint_all_fields("hdf5_restart.dat");
 
     execute<clear>(m, mf1, mf2);

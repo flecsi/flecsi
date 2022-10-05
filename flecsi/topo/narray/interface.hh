@@ -241,29 +241,6 @@ struct narray<Policy>::access {
   access() {}
 
   /*!
-   This range enumeration provides a classification of the various
-   types of partition entities that can be requested out of a topology
-   specialization created using this type. The following describes what each
-   of the range enumeration means in a mesh part returned by the coloring
-   algorithm. For the structured mesh partitioning, the partition info is
-   specified per axis.
-
-   These ranges are used in many of the interface methods to provide
-   information such as size, extents, offsets about them.
-  */
-  enum class range : std::size_t {
-    logical, ///<  the logical, i.e., the owned part of the axis
-    extended, ///< the boundary padding along with the logical part
-    all, ///< the ghost padding along with the logical part
-    boundary_low, ///< the boundary padding on the lower bound of the axis
-    boundary_high, ///< the boundary padding on the upper bound of the axis
-    ghost_low, ///< the ghost padding on the lower bound of the axis
-    ghost_high, ///< the ghost padding on the upper bound of the axis
-    global ///< global info about the mesh, the meaning depends on what is being
-           ///< queried
-  };
-
-  /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
    This function is \ref topology "host-accessible".

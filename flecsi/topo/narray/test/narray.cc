@@ -11,11 +11,11 @@ using namespace flecsi;
 // 1D Mesh
 mesh1d::slot m1;
 mesh1d::cslot coloring1;
-const field<std::size_t>::definition<mesh1d, mesh1d::index_space::entities> f1;
+const field<std::size_t>::definition<mesh1d> f1;
 
 void
 set_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
-  auto c = m.mdspan<mesh1d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh1d::index_space::elements>(ca);
   auto clr = color();
   forall(i, m.extents<mesh1d::axis::x_axis>(), "set_field_1d") { c[i] = clr; };
 }
@@ -23,7 +23,7 @@ set_field_1d(mesh1d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
 void
 print_field_1d(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
-  auto c = m.mdspan<mesh1d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh1d::index_space::elements>(ca);
   std::stringstream ss;
   for(auto i : m.extents<mesh1d::axis::x_axis, mesh1d::range::all>()) {
     ss << c[i] << " ";
@@ -106,11 +106,11 @@ check_1d(mesh1d::accessor<ro> m) {
 // 2D Mesh
 mesh2d::slot m2;
 mesh2d::cslot coloring2;
-const field<std::size_t>::definition<mesh2d, mesh2d::index_space::entities> f2;
+const field<std::size_t>::definition<mesh2d> f2;
 
 void
 set_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
-  auto c = m.mdspan<mesh2d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh2d::index_space::elements>(ca);
   auto x_ex = m.extents<mesh2d::axis::x_axis>();
   auto clr = color();
   forall(j, m.extents<mesh2d::axis::y_axis>(), "set_field_2d") {
@@ -122,7 +122,7 @@ set_field_2d(mesh2d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
 void
 print_field_2d(mesh2d::accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
-  auto c = m.mdspan<mesh2d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh2d::index_space::elements>(ca);
   std::stringstream ss;
   for(int j = m.size<mesh2d::axis::y_axis, mesh2d::range::all>() - 1; j >= 0;
       --j) {
@@ -272,11 +272,11 @@ check_2d(mesh2d::accessor<ro> m) {
 // 3D Mesh
 mesh3d::slot m3;
 mesh3d::cslot coloring3;
-const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
+const field<std::size_t>::definition<mesh3d> f3;
 
 void
 set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
-  auto c = m.mdspan<mesh3d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh3d::index_space::elements>(ca);
   auto x_ex = m.extents<mesh3d::axis::x_axis>();
   auto y_ex = m.extents<mesh3d::axis::y_axis>();
   auto clr = color();
@@ -290,7 +290,7 @@ set_field_3d(mesh3d::accessor<ro> m, field<std::size_t>::accessor<wo, na> ca) {
 void
 print_field_3d(mesh3d::accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
-  auto c = m.mdspan<mesh3d::index_space::entities>(ca);
+  auto c = m.mdspan<mesh3d::index_space::elements>(ca);
   std::stringstream ss;
   for(int k = m.size<mesh3d::axis::z_axis, mesh3d::range::all>() - 1; k >= 0;
       --k) {
