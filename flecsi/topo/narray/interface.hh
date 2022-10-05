@@ -63,7 +63,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
         std::make_index_sequence<index_spaces::size>()) {}
 
   /// Structural information about one color.
-  /// \image html narray-layout.png "Layouts for each possible orientation."
+  /// \image html narray-layout.svg "Layouts for each possible orientation." width=100%
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
     using shypercube = std::array<scoord, 2>;
