@@ -33,7 +33,7 @@ struct reduce {
 #endif
 
 /*!
-  Minimum reduction type.
+  Minimum reduction type. This class is supported for GPU execution.
  */
 struct min {
   template<class T>
@@ -52,7 +52,7 @@ public:
 }; // struct min
 
 /*!
-  Maximum reduction type.
+  Maximum reduction type. This class is supported for GPU execution.
  */
 struct max {
   template<class T>
@@ -71,7 +71,7 @@ public:
 }; // struct max
 
 /*!
-  Sum reduction type.
+  Sum reduction type. This class is supported for GPU execution.
  */
 struct sum {
   template<class T>
@@ -83,7 +83,7 @@ struct sum {
 }; // struct sum
 
 /*!
-  Product reduction type.
+  Product reduction type. This class is supported for GPU execution.
  */
 struct product {
   template<class T>

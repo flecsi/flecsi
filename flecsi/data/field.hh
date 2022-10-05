@@ -7,6 +7,7 @@
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/target.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
@@ -137,10 +138,10 @@ struct particle : particle_base {
   particle(size_type s, size_type p, size_type n) : free{p, n}, skip(s) {}
   // This class is indestructible; we run T's destructor when necessary.
   template<class... AA>
-  link emplace(AA &&... aa) {
+  FLECSI_INLINE_TARGET link emplace(AA &&... aa) {
     struct guard {
-      guard(particle & p) : p(p), ret(p.free) {}
-      ~guard() {
+      FLECSI_INLINE_TARGET guard(particle & p) : p(p), ret(p.free) {}
+      FLECSI_INLINE_TARGET ~guard() {
         if(fail)
           p.free = ret;
       }

@@ -66,28 +66,33 @@ struct axis_color {
   /// \showinitializer
   bool auxiliary = false;
 
-  /// Whether the current color is at the low end of the axis
+  /// Whether the current color is at the low end of the axis.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET bool is_low() const {
     return color_index == 0;
   }
 
-  /// Whether the color is at the high end of the axis
+  /// Whether the color is at the high end of the axis.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET bool is_high() const {
     return color_index == (colors - 1);
   }
 
   /// The global extent of this axis.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::gid global() const {
     return global_extent;
   }
 
-  /// The global index for a given logical index on the local axis
+  /// The global index for a given logical index on the local axis.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
     return offset() + logical_id;
   }
 
   /// The global coordinate offset of the local axis.
   /// Local to global id translation can be computed with this.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::gid offset() const {
     return offsets[0];
   }
@@ -95,12 +100,14 @@ struct axis_color {
   /// The local extent of this color. This is the full size including
   /// boundary depth, and ghosts. The "extent" coordinate implicitly
   /// defines a range [0, extent[.
+  /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::id extent() const {
     return logical<1>() + (is_high() ? bdepth : hdepth);
   }
 
   /// The logical entities, i.e., the entities for this color without
   /// boundary padding or ghosts.
+  /// This function is supported for GPU execution.
   template<std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
     static_assert(P == 0 || P == 1);
@@ -116,6 +123,7 @@ struct axis_color {
   /// The ghost depth can be computed like:
   ///   halo_depth_low = extended<0>();
   ///   halo_depth_high = extent() - extended<1>();
+  /// This function is supported for GPU execution.
   template<std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
     static_assert(P == 0 || P == 1);

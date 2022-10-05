@@ -68,18 +68,14 @@ void
 insert_test(accessorm m,
   field<util::gid>::accessor<ro, ro, ro> cids,
   particle_field::mutator<rw> particle_t_m) {
-  auto rank = process();
-  for(auto c : m.cells()) {
+  forall(c, m.cells(), "insert_test") {
     if(cids[c] == 20) {
       Particle p_t;
       p_t.cgid = cids[c];
       p_t.pressure = 1.0;
       particle_t_m.insert(p_t);
     }
-  }
-  std::cout << "after num_particle=" << particle_t_m.size()
-            << "particle_cap=" << particle_t_m.capacity()
-            << "from rank=" << rank << std::endl;
+  };
 }
 
 void
@@ -112,7 +108,8 @@ set_driver() {
     execute<init_fields>(mesh_underlying, cids(mesh_underlying), particle_t);
 
     execute<print_test>(particle_t);
-    execute<insert_test>(mesh_underlying, cids(mesh_underlying), particle_t);
+    execute<insert_test, default_accelerator>(
+      mesh_underlying, cids(mesh_underlying), particle_t);
     execute<update_test>(particle_t);
   };
 

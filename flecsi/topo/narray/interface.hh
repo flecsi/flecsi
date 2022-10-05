@@ -227,7 +227,7 @@ struct borrow_extra<narray<P>> {
 /*----------------------------------------------------------------------------*
   Narray Access.
  *----------------------------------------------------------------------------*/
-
+/// This class is supported for GPU execution.
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
