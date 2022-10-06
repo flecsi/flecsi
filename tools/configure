@@ -1,9 +1,4 @@
 #! /usr/bin/env bash
-#------------------------------------------------------------------------------#
-# Get the path to the project from which this script was called
-#------------------------------------------------------------------------------#
-
-cwd="$(dirname "$(cd "$(dirname "$0")"; pwd)")"
 
 #------------------------------------------------------------------------------#
 # Check required environment variables
@@ -19,7 +14,7 @@ EOF
 fi
 
 #------------------------------------------------------------------------------#
-# Help message
+# Colors
 #------------------------------------------------------------------------------#
 
 WHITE=$'\e[38;5;15m'
@@ -27,6 +22,10 @@ GREEN=$'\e[38;5;46m'
 RED=$'\e[38;5;160m'
 GOLD=$'\e[38;5;228m'
 NEUTRAL=$'\e[0m'
+
+#------------------------------------------------------------------------------#
+# Help message
+#------------------------------------------------------------------------------#
 
 help(){
   command=`echo $0 | sed 's,.*\/,,g'`
@@ -54,7 +53,8 @@ aid in debugging code.
    $GREEN clang (default)$NEUTRAL
     hip
     gnu
-    intel
+    oneapi
+    dpcpp
 
  $WHITE Backend Options:$NEUTRAL
    $GREEN legion (default)$NEUTRAL
@@ -62,7 +62,7 @@ aid in debugging code.
     hpx
 
  $WHITE Generator Options:$NEUTRAL
-   $GREEN unix - Unix Makefiles (default)$NEUTRAL
+   $GREEN unix  - Unix Makefiles (default)$NEUTRAL
     ninja - Ninja
 
  $WHITE Miscellaneous Options:$NEUTRAL
@@ -91,13 +91,12 @@ EOF
 }
 
 #------------------------------------------------------------------------------#
-# Install prefix
+# Environment
 #------------------------------------------------------------------------------#
 
-CMAKE_INSTALL_PREFIX="/usr/local"
-if [ -n "${CONFIG_INSTALL_PREFIX}" ] ; then
-  CMAKE_INSTALL_PREFIX="${CONFIG_INSTALL_PREFIX}"
-fi
+CMAKE_INSTALL_PREFIX="${CONFIG_INSTALL_PREFIX:-/usr/local}"
+SCRIPT_GENERATOR=" ${CONFIG_SCRIPT_GENERATOR:-Unix Makefiles}"
+CLANG_FORMAT=${CLANG_FORMAT_EXECUTABLE:+"-DENABLE_FORMAT=ON -DClangFormat_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}"}
 
 #------------------------------------------------------------------------------#
 # Check command-line arguments
@@ -108,7 +107,6 @@ backend=legion
 cmake_args=""
 
 WARN="-Wall -Wundef -W -Werror"
-SCRIPT_GENERATOR="Unix Makefiles"
 SCRIPT_BUILD_TYPE=RelWithDebInfo
 
 # Default is clang
@@ -127,11 +125,6 @@ SCRIPT_ENABLE_DOCUMENTATION="ON"
 SCRIPT_ENABLE_KOKKOS="OFF"
 SCRIPT_ENABLE_HDF5="OFF"
 SCRIPT_ENABLE_OPENMP="OFF"
-
-CLANG_FORMAT=""
-if [ -n "${CLANG_FORMAT_EXECUTABLE}" ] ; then
-  CLANG_FORMAT="-DClangFormat_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}"
-fi
 
 debug=0
 
@@ -187,7 +180,7 @@ do
         SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -Og -ggdb -gdwarf-5"
       fi
       ;;
-    intel)
+    oneapi)
       SCRIPT_C_COMPILER=icx
       SCRIPT_C_FLAGS="-diag-error-limit=5 $WARN"
       SCRIPT_CXX_COMPILER=icpx
@@ -198,7 +191,7 @@ do
         SCRIPT_C_FLAGS="$SCRIPT_CXX_FLAGS -g"
       fi
       ;;
-    oneapi)
+    dpcpp)
       SCRIPT_C_COMPILER=icx
       SCRIPT_C_FLAGS="$WARN"
       SCRIPT_CXX_COMPILER=dpcpp
@@ -255,7 +248,7 @@ done
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
   ${CLANG_FORMAT} \
   $cmake_args \
-  $cwd
+  ..
 )
 
 #------------------------------------------------------------------------------#
