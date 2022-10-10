@@ -313,8 +313,8 @@ check_density(fixed_mesh::accessor<ro, ro, ro> m,
 
 void
 print(fixed_mesh::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> cids,
-  field<util::id>::accessor<ro, ro, ro> vids) {
+  field<util::gid>::accessor<ro, ro, ro> cids,
+  field<util::gid>::accessor<ro, ro, ro> vids) {
 
   std::stringstream ss;
   for(auto c : m.cells()) {

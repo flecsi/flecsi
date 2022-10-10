@@ -180,7 +180,7 @@ struct unstructured
     flecsi::data::multi<flecsi::field<flecsi::util::id>::accessor<flecsi::wo>>
       m,
     const std::vector<base::process_coloring> & vpc,
-    const std::vector<std::map<std::size_t, std::size_t>> & rmaps) {
+    const base::reverse_maps_t & rmaps) {
     auto it = vpc.begin();
     std::size_t c = 0;
     for(auto & a : m.accessors()) {

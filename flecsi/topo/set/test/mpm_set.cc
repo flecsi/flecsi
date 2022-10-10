@@ -41,7 +41,7 @@ const particle_field::definition<spec_setopo_t> particles;
 
 void
 init_fields(accessorm m,
-  field<util::id>::accessor<ro, ro, ro> cids,
+  field<util::gid>::accessor<ro, ro, ro> cids,
   particle_field::mutator<wo> particle_t_m) {
   for(auto c : m.cells()) {
     Particle p_t;
@@ -66,7 +66,7 @@ print_test(particle_field::accessor<ro> particle_t) {
 
 void
 insert_test(accessorm m,
-  field<util::id>::accessor<ro, ro, ro> cids,
+  field<util::gid>::accessor<ro, ro, ro> cids,
   particle_field::mutator<rw> particle_t_m) {
   auto rank = process();
   for(auto c : m.cells()) {

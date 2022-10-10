@@ -19,7 +19,6 @@ class simple_definition
 {
 public:
   using point = std::array<double, 2>;
-  using id = std::size_t;
   static constexpr Dimension dimension() {
     return 2;
   }
