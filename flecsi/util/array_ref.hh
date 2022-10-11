@@ -222,7 +222,7 @@ template<class T, unsigned short D>
 struct mdspan : detail::mdbase<T, D> {
   using mdspan::mdbase::mdbase;
   using typename mdspan::mdbase::size_type;
-  friend struct mdspan<T, D + 1>;
+  friend mdspan<T, D + 1>;
 
   /// Select a subset of the view.
   /// \param i index (must be smaller than `length(D-1)`)

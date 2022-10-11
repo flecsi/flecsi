@@ -36,11 +36,11 @@ namespace annotation {
 enum class detail { low, medium, high };
 
 #if FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_high
-constexpr detail detail_level{detail::high};
+inline constexpr detail detail_level{detail::high};
 #elif FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_medium
-constexpr detail detail_level{detail::medium};
+inline constexpr detail detail_level{detail::medium};
 #elif FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_low
-constexpr detail detail_level{detail::low};
+inline constexpr detail detail_level{detail::low};
 #else // FLECSI_CALIPER_DETAIL == FLECSI_CALIPER_DETAIL_none
 #define DISABLE_CALIPER
 #endif

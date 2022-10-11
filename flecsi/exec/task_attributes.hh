@@ -29,7 +29,7 @@ enum task_attributes_mask_t : TaskAttributes {
 }; // task_attributes_mask_t
 
 /// \c toc if support for it is available, otherwise \c loc.
-constexpr auto default_accelerator =
+inline constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__)
   toc
 #else
@@ -61,8 +61,7 @@ enum class task_processor_type_t : size_t {
 }; // task_processor_type_t
 
 // Bits for representing task attributes
-constexpr size_t task_attributes_bits = 8;
-constexpr size_t task_type_bits = 3;
+inline constexpr size_t task_attributes_bits = 8, task_type_bits = 3;
 
 constexpr auto
 as_mask(task_type_t t) {

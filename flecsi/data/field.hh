@@ -119,12 +119,19 @@ inline constexpr bool is_trivially_move_constructible_v =
   std::is_move_constructible_v<move_check<T>>;
 } // namespace detail
 
-template<class Topo>
-struct field_reference_t : convert_tag {
+/// Identifies a field on a particular topology instance.
+/// Declare a task parameter as an \c accessor to use the field.
+/// \tparam T data type (merely for type safety)
+/// \tparam L data layout (similarly)
+/// \tparam Space topology-relative index space
+template<class T, layout L, class Topo, typename Topo::index_space Space>
+struct field_reference : convert_tag {
+  using value_type = T;
   using Topology = Topo;
   using topology_t = typename Topo::core;
+  static constexpr auto space = Space;
 
-  field_reference_t(const field_info_t & info, topology_t & topology)
+  field_reference(const field_info_t & info, topology_t & topology)
     : fid_(info.fid), topology_(&topology) {}
 
   field_id_t fid() const {
@@ -133,26 +140,6 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
-
-private:
-  field_id_t fid_;
-  topology_t * topology_;
-
-}; // struct field_reference
-
-/// Identifies a field on a particular topology instance.
-/// Declare a task parameter as an \c accessor to use the field.
-/// \tparam T data type (merely for type safety)
-/// \tparam L data layout (similarly)
-/// \tparam Space topology-relative index space
-template<class T, layout L, class Topo, typename Topo::index_space Space>
-struct field_reference : field_reference_t<Topo> {
-  using Base = typename field_reference::field_reference_t; // TIP: dependent
-  using value_type = T;
-  static constexpr auto space = Space;
-
-  using Base::Base;
-  explicit field_reference(const Base & b) : Base(b) {}
 
   // We can't forward-declare partition, so just deduce these:
   template<class S>
@@ -165,14 +152,14 @@ struct field_reference : field_reference_t<Topo> {
   }
 
   auto & get_region() const {
-    return get_region(this->topology());
+    return get_region(*topology_);
   }
   auto & get_partition() const {
-    return get_partition(this->topology());
+    return get_partition(*topology_);
   }
 
   auto & get_ragged() const { // -> ragged_partition<...>::core
-    return this->topology().ragged.template get<Space>()[this->fid()];
+    return topology_->ragged.template get<Space>()[fid_];
   }
   void cleanup(std::function<void()> f) const {
     detail::get_cleanup<Space>(this->topology())(this->fid(), std::move(f));
@@ -180,7 +167,7 @@ struct field_reference : field_reference_t<Topo> {
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts
   auto cast() const {
-    return field_reference<T2, L2, Topo, Space>(*this);
+    return field_reference<T2, L2, Topo, Space>({fid_, 0, {}}, *topology_);
   }
 
   /// \if core
@@ -191,6 +178,10 @@ struct field_reference : field_reference_t<Topo> {
     std::forward<F>(f)(*this);
     return *this;
   }
+
+private:
+  field_id_t fid_;
+  topology_t * topology_;
 };
 
 // This is the portion of field validity that can be checked and that

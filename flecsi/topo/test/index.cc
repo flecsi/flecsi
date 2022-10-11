@@ -3,6 +3,8 @@
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 
+#include <atomic>
+
 using namespace flecsi;
 using namespace flecsi::data;
 
@@ -14,7 +16,7 @@ struct Noisy {
   static std::size_t value() {
     return color() + 1;
   }
-  static inline std::size_t count;
+  static inline std::atomic<std::size_t> count;
 };
 
 using double_field = field<double, single>;
@@ -89,7 +91,7 @@ assign(double_field::accessor<wo> p,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) { // must be an MPI task
+reset(noisy::accessor<wo>) { // must be an MPI task for correct total
   return Noisy::count;
 }
 

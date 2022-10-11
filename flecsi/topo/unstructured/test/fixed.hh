@@ -9,9 +9,8 @@ namespace ftui = flecsi::topo::unstructured_impl;
 
 namespace fixed {
 
-constexpr flecsi::Color colors = 4;
-constexpr std::size_t num_cells = 256;
-constexpr std::size_t num_vertices = 289;
+inline constexpr flecsi::Color colors = 4;
+inline constexpr std::size_t num_cells = 256, num_vertices = 289;
 
 // clang-format off
 inline std::vector<std::vector<ftui::crs>> connectivity = {

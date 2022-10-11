@@ -517,7 +517,6 @@ closure(Definition const & md,
     util::force_unique(primary.shared);
     util::force_unique(primary.ghosts);
 
-#if 1
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
     ss << log::container{primary.owned} << std::endl;
@@ -539,7 +538,6 @@ closure(Definition const & md,
     ss << std::endl;
 
     flog(warn) << ss.str() << std::endl;
-#endif
   } // for
 
 #if 0
