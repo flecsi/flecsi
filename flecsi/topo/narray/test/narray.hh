@@ -56,6 +56,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   static constexpr PrivilegeCount privilege_count = 2;
 
   using coord = typename mesh::base::coord;
+  using gcoord = typename mesh::base::gcoord;
   using coloring_definition = typename mesh::base::coloring_definition;
   using coloring = typename mesh::base::coloring;
   using color_map = typename mesh::base::color_map;

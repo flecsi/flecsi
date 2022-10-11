@@ -13,7 +13,7 @@ poisson::action::init_mesh(control_policy &) {
              << " mesh" << std::endl;
   flecsi::flog::flush();
 
-  std::vector<std::size_t> axis_extents{x_extents.value(), y_extents.value()};
+  mesh::gcoord axis_extents{x_extents.value(), y_extents.value()};
 
   coloring.allocate(flecsi::processes(), axis_extents);
 

@@ -25,6 +25,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   enum boundary { low, high };
 
   using coord = base::coord;
+  using gcoord = base::gcoord;
   using colors = base::colors;
   using hypercube = base::hypercube;
   using coloring_definition = base::coloring_definition;
@@ -190,7 +191,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     Color Method.
    *--------------------------------------------------------------------------*/
 
-  static coloring color(std::size_t num_colors, coord axis_extents) {
+  static coloring color(std::size_t num_colors, gcoord axis_extents) {
     coord hdepths{1, 1};
     coord bdepths{0, 0};
     std::vector<bool> periodic{false, false};

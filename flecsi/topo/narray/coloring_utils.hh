@@ -50,7 +50,7 @@ factor(std::size_t np) {
  */
 
 inline narray_impl::colors
-distribute(Color np, std::vector<std::size_t> indices) {
+distribute(Color np, narray_impl::gcoord indices) {
   narray_impl::colors parts(indices.size(), 1);
 
   auto facs = factor(np);
@@ -78,7 +78,7 @@ distribute(Color np, std::vector<std::size_t> indices) {
   decomposition
  */
 inline narray_impl::color_map
-make_color_maps(std::size_t num_colors, const narray_impl::coord & indices) {
+make_color_maps(std::size_t num_colors, const narray_impl::gcoord & indices) {
   narray_impl::color_map cm;
   auto colors = distribute(num_colors, indices);
   flog(warn) << flog::container{colors} << std::endl;
