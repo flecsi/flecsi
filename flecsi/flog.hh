@@ -24,6 +24,10 @@
 
 #include <unistd.h>
 
+namespace flecsi {
+namespace log = flog;
+}
+
 #if defined(FLECSI_ENABLE_FLOG)
 
 namespace flecsi {
@@ -266,7 +270,6 @@ private:
 
 /// \}
 } // namespace flog
-namespace log = flog;
 } // namespace flecsi
 
 /// \addtogroup flog
