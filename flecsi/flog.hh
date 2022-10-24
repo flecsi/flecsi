@@ -394,7 +394,7 @@ namespace log = flog;
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
+#define FLOG_FLUSH_WAIT usleep(FLOG_PACKET_FLUSH_INTERVAL)
 
 #else // FLECSI_ENABLE_FLOG
 
@@ -448,7 +448,7 @@ struct container {
 #define flog_warn(message)
 #define flog_error(message)
 
-#define __flog_internal_wait_on_flusher()
+#define FLOG_FLUSH_WAIT
 
 #endif // FLECSI_ENABLE_FLOG
 
@@ -517,7 +517,7 @@ dumpstack() {
              << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
-    __flog_internal_wait_on_flusher();                                         \
+    FLOG_FLUSH_WAIT;                                                           \
     const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
     if(dump != nullptr) {                                                      \
       ::flecsi::flog::dumpstack();                                             \

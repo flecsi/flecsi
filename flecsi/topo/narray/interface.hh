@@ -86,7 +86,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
 private:
   /// Structural information about one color.
-  /// \image html narray-layout.png "Layouts for each possible orientation."
+  /// \image html narray-layout.svg "Layouts for each possible orientation." width=100%
   struct meta_data {
     /// Two bits for each axis that give the position of the color along the
     /// axis (\e low, \e interior, or \e high).
@@ -309,29 +309,6 @@ private:
   data::scalar_access<narray::meta_field, Priv> meta_;
 
   access() {}
-
-  /*!
-   This domain enumeration provides a classification of the various
-   types of partition entities that can be requested out of a topology
-   specialization created using this type. The following describes what each
-   of the domain enumeration means in a mesh part returned by the coloring
-   algorithm. For the structured mesh partitioning, the partition info is
-   specified per axis.
-
-   These domains are used in many of the interface methods to provide
-   information such as size, extents, offsets about them.
-  */
-  enum class domain : std::size_t {
-    logical, ///<  the logical, i.e., the owned part of the axis
-    extended, ///< the boundary padding along with the logical part
-    all, ///< the ghost padding along with the logical part
-    boundary_low, ///< the boundary padding on the lower bound of the axis
-    boundary_high, ///< the boundary padding on the upper bound of the axis
-    ghost_low, ///< the ghost padding on the lower bound of the axis
-    ghost_high, ///< the ghost padding on the upper bound of the axis
-    global ///< global info about the mesh, the meaning depends on what is being
-           ///< queried
-  };
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {

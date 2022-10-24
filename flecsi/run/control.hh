@@ -140,14 +140,14 @@ private:
   using control_points_enum = typename P::control_points_enum;
   using node_policy = typename P::node_policy;
 
-  using point_walker = run_impl::point_walker<control<P>>;
+  using point_walker = run_impl::point_walker<control>;
   friend point_walker;
 
-  using init_walker = run_impl::init_walker<control<P>>;
+  using init_walker = run_impl::init_walker<control>;
   friend init_walker;
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  using point_writer = run_impl::point_writer<control<P>>;
+  using point_writer = run_impl::point_writer<control>;
   friend point_writer;
 #endif
 

@@ -12,17 +12,15 @@ using namespace flecsi;
 using namespace flecsi::data;
 
 using mesh1d = mesh<1>;
-using is = mesh1d::index_space;
 using ax = mesh1d::axis;
 
 mesh1d::slot m;
 mesh1d::cslot mc;
 
-const field<double>::definition<mesh1d, is::entities> m_field_1, m_field_2;
-const field<int>::definition<mesh1d, is::entities> m_field_i;
-const field<std::size_t>::definition<mesh1d, is::entities> m_field_s;
-const field<int, ragged>::definition<mesh1d, is::entities> m_field_r1,
-  m_field_r2;
+const field<double>::definition<mesh1d> m_field_1, m_field_2;
+const field<int>::definition<mesh1d> m_field_i;
+const field<std::size_t>::definition<mesh1d> m_field_s;
+const field<int, ragged>::definition<mesh1d> m_field_r1, m_field_r2;
 
 void
 allocate(topo::resize::Field::accessor<wo> a) {

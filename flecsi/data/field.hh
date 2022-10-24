@@ -175,13 +175,20 @@ struct particle : particle_base {
 };
 } // namespace detail
 
-template<class Topo>
-struct field_reference_t : convert_tag {
+/// Identifies a field on a particular topology instance.
+/// Declare a task parameter as an \c accessor to use the field.
+/// \tparam T data type (merely for type safety)
+/// \tparam L data layout (similarly)
+/// \tparam Space topology-relative index space
+template<class T, layout L, class Topo, typename Topo::index_space Space>
+struct field_reference : convert_tag {
+  using value_type = T;
   using Topology = Topo;
   using topology_t = typename Topo::core;
+  static constexpr auto space = Space;
 
   // construct references just from field IDs.
-  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
+  field_reference(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
   field_id_t fid() const {
     return fid_;
@@ -189,26 +196,6 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
-
-private:
-  field_id_t fid_;
-  topology_t * topology_;
-
-}; // struct field_reference
-
-/// Identifies a field on a particular topology instance.
-/// Declare a task parameter as an \c accessor to use the field.
-/// \tparam T data type (merely for type safety)
-/// \tparam L data layout (similarly)
-/// \tparam Space topology-relative index space
-template<class T, layout L, class Topo, typename Topo::index_space Space>
-struct field_reference : field_reference_t<Topo> {
-  using Base = typename field_reference::field_reference_t; // TIP: dependent
-  using value_type = T;
-  static constexpr auto space = Space;
-
-  using Base::Base;
-  explicit field_reference(const Base & b) : Base(b) {}
 
   // Some of these types vary across topologies:
   template<class S>
@@ -221,23 +208,23 @@ struct field_reference : field_reference_t<Topo> {
   }
 
   auto & get_region() const {
-    return get_region(this->topology());
+    return get_region(*topology_);
   }
   auto & get_partition() const {
-    return get_partition(this->topology());
+    return get_partition(*topology_);
   }
 
   auto & get_ragged() const {
     // A ragged_partition<...>::core, or borrowing of same:
-    return this->topology().ragged.template get<Space>()[this->fid()];
+    return topology_->ragged.template get<Space>()[fid_];
   }
   void cleanup(std::function<void()> f) const {
-    detail::get_cleanup<Space>(this->topology())(this->fid(), std::move(f));
+    detail::get_cleanup<Space> (*topology_)(fid_, std::move(f));
   }
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts
   auto cast() const {
-    return field_reference<T2, L2, Topo, Space>(*this);
+    return field_reference<T2, L2, Topo, Space>(fid_, *topology_);
   }
 
   /// \if core
@@ -249,9 +236,9 @@ struct field_reference : field_reference_t<Topo> {
     return *this;
   }
 
-  static field_reference from_id(field_id_t f, typename Base::topology_t & t) {
-    return {f, t};
-  }
+private:
+  field_id_t fid_;
+  topology_t * topology_;
 };
 
 /// Identifies a field on a \c\ref mapping.
@@ -270,8 +257,8 @@ struct multi_reference : convert_tag {
   }
 
   // i indexes into the depth of the map rather than being a color directly.
-  auto data(Color i) const {
-    return field_reference<T, L, typename Map::Borrow, S>::from_id(f, map()[i]);
+  field_reference<T, L, typename Map::Borrow, S> data(Color i) const {
+    return {f, map()[i]};
   }
 
 private:

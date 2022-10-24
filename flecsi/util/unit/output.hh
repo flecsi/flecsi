@@ -4,10 +4,9 @@
 #ifndef FLECSI_UTIL_UNIT_OUTPUT_HH
 #define FLECSI_UTIL_UNIT_OUTPUT_HH
 
+#include <cstdlib>
 #include <fstream>
-#include <iostream>
-#include <memory>
-#include <regex>
+#include <sstream>
 
 namespace flecsi {
 namespace util {
@@ -25,7 +24,7 @@ public:
   } // instance
 
   std::ostream & get_stream() {
-    return *stream_;
+    return default_;
   } // get_stream
 
   std::string get_buffer() {
@@ -79,11 +78,7 @@ public:
   } // equal_blessed
 
 private:
-  test_output_t()
-    : stream_(new std::ostream(default_.rdbuf())) {} // test_output_t
-
   std::stringstream default_;
-  std::shared_ptr<std::ostream> stream_;
 
 }; // class test_output_t
 

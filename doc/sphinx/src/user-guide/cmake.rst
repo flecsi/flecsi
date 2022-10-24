@@ -265,10 +265,8 @@ FleCSI uses itself. External libraries used by FleCSI are added via
 their own CMake file and the macros they define.
 
 The general structure in these files is that they add a
-``flecsi_enable_<PACKAGE>`` macro, which adds package defines, include
-folders and libraries to the globals ``TPL_DEFINES``, ``TPL_INCLUDES``
-and ``TPL_LIBRARIES``. Customizations are controlled through macro
-parameters, which can be user defined via CMake options.
+``flecsi_enable_<PACKAGE>`` macro, which adds the necessary defines,
+include folders and libraries to a given target.
 
 * ``FleCSI/hdf5``
 * ``FleCSI/hpx``

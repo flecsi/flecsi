@@ -1,4 +1,4 @@
-include(subdirlist)
+include(FleCSI/subdirlist)
 
 if(NOT DEFINED LIBDIR)
   include(GNUInstallDirs)
