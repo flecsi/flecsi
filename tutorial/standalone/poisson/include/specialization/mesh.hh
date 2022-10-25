@@ -52,13 +52,13 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
         return size<A, logical>() - 2;
       }
       else if constexpr(SE == logical) {
-        return B::template size<index_space::vertices, A, B::range::logical>();
+        return B::template size<mesh::vertices, A, base::range::logical>();
       }
       else if(SE == all) {
-        return B::template size<index_space::vertices, A, B::range::all>();
+        return B::template size<mesh::vertices, A, base::range::all>();
       }
       else if(SE == global) {
-        return B::template size<index_space::vertices, A, B::range::global>();
+        return B::template size<mesh::vertices, A, base::range::global>();
       }
     }
 
@@ -66,17 +66,16 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     auto vertices() {
       if constexpr(SE == interior) {
         auto const & md = *(this->meta_);
-        return flecsi::topo::make_ids<index_space::vertices>(
+        return flecsi::topo::make_ids<mesh::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(
-            md.logical[index_space::vertices][0][A] + 1,
-            md.logical[index_space::vertices][1][A] - 1));
+            md.logical[mesh::vertices][0][A] + 1,
+            md.logical[mesh::vertices][1][A] - 1));
       }
       else if constexpr(SE == logical) {
-        return B::
-          template extents<index_space::vertices, A, B::range::logical>();
+        return B::template extents<mesh::vertices, A, base::range::logical>();
       }
       else if(SE == all) {
-        return B::template extents<index_space::vertices, A, B::range::all>();
+        return B::template extents<mesh::vertices, A, base::range::all>();
       }
     }
 
@@ -95,21 +94,20 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A>
     double value(std::size_t i) {
       return (A == x_axis ? xdelta() : ydelta()) *
-             (B::template offset<index_space::vertices, A, B::range::global>() +
-               i);
+             (B::template offset<mesh::vertices, A, base::range::global>() + i);
     }
 
     template<axis A, orientation E>
     bool is_boundary(std::size_t i) {
       auto const loff =
-        B::template offset<index_space::vertices, A, B::range::logical>();
+        B::template offset<mesh::vertices, A, base::range::logical>();
 
-      if(B::template is_low<index_space::vertices, A>()) {
+      if(B::template is_low<mesh::vertices, A>()) {
         return i == loff;
       }
-      else if(B::template is_high<index_space::vertices, A>()) {
+      else if(B::template is_high<mesh::vertices, A>()) {
         auto const lsize =
-          B::template size<index_space::vertices, A, B::range::logical>();
+          B::template size<mesh::vertices, A, base::range::logical>();
         return i == (lsize - loff);
       }
       else {
