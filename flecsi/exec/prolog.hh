@@ -51,7 +51,9 @@ protected:
 */
 template<task_processor_type_t ProcessorType>
 struct prolog : task_prologue<ProcessorType> {
-  // Note that accessors here may be empty versions made to be serialized.
+  // Note that accessors here may be empty versions made to be serialized and
+  // that the arguments have been moved from (which doesn't matter for the
+  // relevant types).
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;

@@ -60,7 +60,7 @@ template<typename R>
 struct future<R, exec::launch_type_t::index> {
   using result_type = std::conditional_t<std::is_same_v<R, bool>, char, R>;
 
-  explicit future(R result) : result(result) {
+  explicit future(R r) : result(std::move(r)) {
     results.resize(size());
 
     // Initiate MPI_Iallgather
@@ -73,6 +73,7 @@ struct future<R, exec::launch_type_t::index> {
       MPI_COMM_WORLD,
       &request));
   }
+  future(future &&) = delete;
 
   void wait(bool = false) {
     util::mpi::test(MPI_Wait(&request, MPI_STATUS_IGNORE));

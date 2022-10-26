@@ -41,17 +41,7 @@ template<std::size_t D>
 struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");
 
-  enum index_space { entities };
-  enum domain {
-    logical,
-    extended,
-    all,
-    boundary_low,
-    boundary_high,
-    ghost_low,
-    ghost_high,
-    global
-  };
+  using domain = typename mesh::base::domain;
 
   using axis = typename axes_helper<D>::axis;
   using axes = typename axes_helper<D>::axes;
@@ -65,7 +55,6 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   template<auto>
   static constexpr PrivilegeCount privilege_count = 2;
 
-  using index_spaces = typename mesh::template has<entities>;
   using coord = typename mesh::base::coord;
   using coloring_definition = typename mesh::base::coloring_definition;
   using coloring = typename mesh::base::coloring;
@@ -87,115 +76,19 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
 
   template<class B>
   struct interface : B {
-
-    template<axis A, domain DM = logical>
+    template<axis A, domain DM = domain::logical>
     std::size_t size() const {
-      switch(DM) {
-        case logical:
-          return B::
-            template size<index_space::entities, A, B::domain::logical>();
-          break;
-        case extended:
-          return B::
-            template size<index_space::entities, A, B::domain::extended>();
-          break;
-        case all:
-          return B::template size<index_space::entities, A, B::domain::all>();
-          break;
-        case boundary_low:
-          return B::
-            template size<index_space::entities, A, B::domain::boundary_low>();
-          break;
-        case boundary_high:
-          return B::
-            template size<index_space::entities, A, B::domain::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template size<index_space::entities, A, B::domain::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template size<index_space::entities, A, B::domain::ghost_high>();
-          break;
-        case global:
-          return B::
-            template size<index_space::entities, A, B::domain::global>();
-          break;
-      }
+      return B::template size<topo::elements, A, DM>();
     }
 
-    template<axis A, domain DM = logical>
+    template<axis A, domain DM = domain::logical>
     auto range() const {
-      switch(DM) {
-        case logical:
-          return B::
-            template range<index_space::entities, A, B::domain::logical>();
-          break;
-        case extended:
-          return B::
-            template range<index_space::entities, A, B::domain::extended>();
-          break;
-        case all:
-          return B::template range<index_space::entities, A, B::domain::all>();
-          break;
-        case boundary_low:
-          return B::
-            template range<index_space::entities, A, B::domain::boundary_low>();
-          break;
-        case boundary_high:
-          return B::template range<index_space::entities,
-            A,
-            B::domain::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template range<index_space::entities, A, B::domain::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template range<index_space::entities, A, B::domain::ghost_high>();
-          break;
-      }
+      return B::template range<topo::elements, A, DM>();
     }
 
-    template<axis A, domain DM = logical>
+    template<axis A, domain DM = domain::logical>
     auto offset() const {
-      switch(DM) {
-        case logical:
-          return B::
-            template offset<index_space::entities, A, B::domain::logical>();
-          break;
-        case extended:
-          return B::
-            template offset<index_space::entities, A, B::domain::extended>();
-          break;
-        case all:
-          return B::template offset<index_space::entities, A, B::domain::all>();
-          break;
-        case boundary_low:
-          return B::template offset<index_space::entities,
-            A,
-            B::domain::boundary_low>();
-          break;
-        case boundary_high:
-          return B::template offset<index_space::entities,
-            A,
-            B::domain::boundary_high>();
-          break;
-        case ghost_low:
-          return B::
-            template offset<index_space::entities, A, B::domain::ghost_low>();
-          break;
-        case ghost_high:
-          return B::
-            template offset<index_space::entities, A, B::domain::ghost_high>();
-          break;
-        case global:
-          return B::
-            template offset<index_space::entities, A, B::domain::global>();
-          break;
-      }
+      return B::template offset<topo::elements, A, DM>();
     }
   };
 }; // mesh

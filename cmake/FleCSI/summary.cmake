@@ -1,4 +1,4 @@
-include(colors)
+include(FleCSI/colors)
 
 macro(flecsi_summary_header)
   string(APPEND _summary

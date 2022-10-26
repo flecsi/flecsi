@@ -44,7 +44,7 @@ function(flecsi_add_doc_deployment target)
   endif()
 
   find_package(Git REQUIRED)
-  include(colors)
+  include(FleCSI/colors)
 
   _flecsi_define_doc_group_target()
 

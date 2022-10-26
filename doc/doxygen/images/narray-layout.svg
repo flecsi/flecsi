@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="1280" height="720" version="1.1" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+ <g stroke-width="1.33">
+  <path id="white_background" d="m0 0h1280v720h-1280z" fill="#fff"/>
+  <path id="low_background" d="m0 0h1280v240h-1280z" fill="#7f7f7f" fill-opacity="0.1"/>
+  <path id="high_background" d="m0 480h1280v240h-1280z" fill="#7f7f7f" fill-opacity="0.1"/>
+ </g>
+ <g id="low_group">
+  <g id="low_cells">
+   <g stroke-width="1.33">
+    <path d="m488.5 102.6h38.03v38.39h-38.03z" fill="#c5e0b4"/>
+    <path d="m488.7 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m526.5 102.6h38.03v38.39h-38.03z" fill="#c5e0b4"/>
+    <path d="m526.7 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m564.7 102.6h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m564.8 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m602.6 102.6h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m602.8 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m640.6 102.6h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m640.8 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m678.6 102.6h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m678.9 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m716.8 102.6h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+    <path d="m716.9 102.4h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m754.7 102.6h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+   </g>
+   <g fill="none" stroke-miterlimit="8">
+    <path d="m754.9 102.4h38.04v38.4h-38.04z" stroke="#000" stroke-width="1.33"/>
+    <path d="m486.7 101.4h234.7v40.5h-234.7z" stroke="#5b9bd5" stroke-width="6.67"/>
+    <path d="m564.8 102.4h152.2v38.4h-152.2z" stroke="#000" stroke-width="4"/>
+   </g>
+  </g>
+  <text id="low_title" x="621.6" y="67.84" fill="#000000" font-family="Calibri" font-size="24px" font-weight="bold" stroke-width="0.32" xml:space="preserve"><tspan x="621.6 627.43 640.23" y="67.84" stroke-width="0.32">low</tspan></text>
+ </g>
+ <g id="low_ranges">
+  <g id="low_axis" fill="none" stroke-miterlimit="8" stroke-width="2.67">
+   <path d="m23.02 104.3h76.81" stroke="#00b050"/>
+   <path d="m99.82 104.3h230.6" stroke="#000"/>
+   <path d="m330.4 104.3h76.81" stroke="#bfbfbf"/>
+  </g>
+  <g id="low_logical">
+   <path d="m330.4 108.5c0 5.34-6.47 9.67-14.45 9.67h-86.39c-7.98 0-14.45 4.33-14.45 9.67 0-5.34-6.47-9.67-14.45-9.67h-86.39c-7.98 0-14.45-4.33-14.45-9.67" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="161.7" y="138.6" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="161.7 164.7 171.7 178.03 181.03 186.7 193.03 196.03 199.03 203.2 210.2 216.87 223.2 226.2 233.2 236.53 239.53 246.2 253.2 260.2" y="138.6" stroke-width="0.32">logical [begin, end)</tspan></text>
+  </g>
+  <g id="low_extended">
+   <path d="m330.4 190.4c0 5.34-6.47 9.67-14.45 9.67h-124.8c-7.98 0-14.45 4.33-14.45 9.67 0-5.34-6.47-9.67-14.45-9.67h-124.8c-7.98 0-14.45-4.33-14.45-9.67" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="114.8" y="219.5" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="114.8 121.47 127.3 131.8 138.47 145.47 152.47 159.13 166.13 169.13 173.3 180.3 186.97 193.3 196.3 203.3 206.63 209.63 216.3 223.3 230.3" y="219.5" stroke-width="0.32">extended [begin, end)</tspan></text>
+  </g>
+  <g id="low_extents">
+   <path d="m23.02 51.23c0-5.34 6.47-9.67 14.45-9.67h161c7.98 0 14.45-4.33 14.45-9.67 0 5.34 6.47 9.67 14.45 9.67h161c7.98 0 14.45 4.33 14.45 9.67" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="192.8" y="19.2" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="192.8 199.47 205.3 209.8 216.47 223.47 227.97" y="19.2" stroke-width="0.32">extents</tspan></text>
+  </g>
+  <g id="low_boundary">
+   <path d="m23.01 100.2c0-5.34 6.47-9.67 14.45-9.67h9.51c7.98 0 14.45-4.33 14.45-9.67 0 5.34 6.47 9.67 14.45 9.67h9.51c7.98 0 14.45 4.33 14.45 9.67" fill="none" stroke="#00b050" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="35.42" y="68.8" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="35.42 42.42 49.42 56.42 63.42 70.42 76.75 81.42" y="68.8" stroke-width="0.32">boundary</tspan></text>
+  </g>
+  <g id="low_ghost">
+   <path d="m330.4 100.2c0-5.34 6.47-9.67 14.45-9.67h9.51c7.98 0 14.45-4.33 14.45-9.67 0 5.34 6.47 9.67 14.45 9.67h9.51c7.98 0 14.45 4.33 14.45 9.67" fill="none" stroke="#bfbfbf" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="349.5" y="68.8" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="349.5 355.83 362.83 369.83 375" y="68.8" stroke-width="0.32">ghost</tspan></text>
+  </g>
+  <g id="low_global_offset">
+   <path d="m99.12 176v-65.9h1.33v65.9zm0.67-65.9-4 2.67 4-8 4 8z" fill="#0070c0" stroke-width="1.33"/>
+   <text x="109.4" y="176.6" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="109.4 115.73 118.73 125.73 132.73 139.07 142.07 145.07 152.07 156.07 160.07 165.23 171.9" y="176.6" stroke-width="0.32">global offset</tspan></text>
+  </g>
+ </g>
+ <g id="interior_group">
+  <text id="interior_title" x="815.2" y="305.9" fill="#000000" font-family="Calibri" font-size="24px" font-weight="bold" stroke-width="0.32" xml:space="preserve"><tspan x="815.2 821.03 833.64 841.68 853.68 862.18 868.01 880.86" y="305.9" stroke-width="0.32">interior</tspan></text>
+  <g id="interior_cells">
+   <g stroke-width="1.33">
+    <path d="m700.4 340.5h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+    <path d="m700.6 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m738.5 340.5h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+    <path d="m738.6 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m776.5 340.5h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m776.6 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m814.5 340.5h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m814.7 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m852.5 340.5h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m852.7 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m890.6 340.5h38.03v38.39h-38.03z" fill="#fff"/>
+    <path d="m890.7 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m928.6 340.5h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+    <path d="m928.8 340.5h38.04v38.4h-38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m966.6 340.5h38.03v38.39h-38.03z" fill="#7f7f7f"/>
+   </g>
+   <g fill="none" stroke-miterlimit="8">
+    <path d="m966.8 340.5h38.04v38.4h-38.04z" stroke="#000" stroke-width="1.33"/>
+    <path d="m773.2 339.4h158.8v40.5h-158.8z" stroke="#5b9bd5" stroke-width="6.67"/>
+    <path d="m776.6 340.5h152.2v38.4h-152.2z" stroke="#000" stroke-width="4"/>
+   </g>
+  </g>
+ </g>
+ <g id="interior_ranges">
+  <g id="interior_axis" fill="none" stroke-miterlimit="8" stroke-width="2.67">
+   <path d="m235.9 348h76.81" stroke="#bfbfbf"/>
+   <path d="m312.7 348h230.6" stroke="#000"/>
+   <path d="m543.2 348h76.81" stroke="#bfbfbf"/>
+  </g>
+  <g id="interior_logical">
+   <path d="m543.3 351.3c0 4.27-5.18 7.74-11.56 7.74h-92.17c-6.38 0-11.56 3.46-11.56 7.74 0-4.27-5.18-7.74-11.56-7.74h-92.17c-6.38 0-11.56-3.46-11.56-7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="374.5" y="378.6" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="374.5 377.5 384.5 390.83 393.83 399.5 405.83 408.83 411.83 416 423 429.67 436 439 446 449.33 452.33 459 466 473.0" y="378.6" stroke-width="0.32">logical [begin, end)</tspan></text>
+  </g>
+  <g id="interior_extended">
+   <path d="m543.3 416.8c0 4.27-5.18 7.74-11.56 7.74h-92.17c-6.38 0-11.56 3.46-11.56 7.74 0-4.27-5.18-7.74-11.56-7.74h-92.17c-6.38 0-11.56-3.46-11.56-7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="368.1" y="443.8" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="368.1 374.77 380.6 385.1 391.77 398.77 405.77 412.43 419.43 422.43 426.6 433.6 440.27 446.6 449.6 456.6 459.93 462.93 469.6 476.6 483.6" y="443.8" stroke-width="0.32">extended [begin, end)</tspan></text>
+  </g>
+  <g id="interior_extents">
+   <path d="m235.8 305.5c0-4.27 5.17-7.74 11.56-7.74h166.8c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.17 7.74 11.56 7.74h166.8c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="405.6" y="283.2" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="405.6 412.27 418.1 422.6 429.27 436.27 440.77" y="283.2" stroke-width="0.32">extents</tspan></text>
+  </g>
+  <g id="interior_ghost_low">
+   <path d="m235.9 344.7c0-4.27 5.18-7.74 11.56-7.74h15.28c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.18 7.74 11.56 7.74h15.28c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#bfbfbf" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="259.3" y="322.9" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="259.3 265.63 272.63 279.63 284.8" y="322.9" stroke-width="0.32">ghost</tspan></text>
+  </g>
+  <g id="interior_ghost_high">
+   <path d="m543.2 344.7c0-4.27 5.18-7.74 11.56-7.74h15.28c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.18 7.74 11.56 7.74h15.28c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#bfbfbf" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="562.3" y="322.9" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="562.3 568.63 575.63 582.63 587.8" y="322.9" stroke-width="0.32">ghost</tspan></text>
+  </g>
+  <g id="interior_global_offset">
+   <path d="m313.3 406.7v-51.65h-1.33v51.65zm-0.67-51.65 4 2.67-4-8-4 8z" fill="#0070c0" stroke-width="1.33"/>
+   <text x="240.1" y="407.4" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="240.1 246.43 249.43 256.43 263.43 269.77 272.77 275.77 282.77 286.77 290.77 295.93 302.6" y="407.4" stroke-width="0.32">global offset</tspan></text>
+  </g>
+ </g>
+ <g id="high_group">
+  <text id="high_title" x="1042" y="542.7" fill="#000000" font-family="Calibri" font-size="24px" font-weight="bold" stroke-width="0.32" xml:space="preserve"><tspan x="1042 1054.83 1060.66 1071.98" y="542.7" stroke-width="0.32">high</tspan></text>
+  <g id="high_cells">
+   <g stroke-width="1.33">
+    <path d="m1214 619.2h-38.03v-38.39h38.03z" fill="#c5e0b4"/>
+    <path d="m1214 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m1176 619.2h-38.03v-38.39h38.03z" fill="#c5e0b4"/>
+    <path d="m1176 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m1138 619.2h-38.03v-38.39h38.03z" fill="#fff"/>
+    <path d="m1138 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m1100 619.2h-38.03v-38.39h38.03z" fill="#fff"/>
+    <path d="m1100 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m1062 619.2h-38.03v-38.39h38.03z" fill="#fff"/>
+    <path d="m1062 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m1024 619.2h-38.03v-38.39h38.03z" fill="#fff"/>
+    <path d="m1024 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m985.9 619.2h-38.03v-38.39h38.03z" fill="#7f7f7f"/>
+    <path d="m986.1 619.2h-38.04v-38.4h38.04z" fill="none" stroke="#000" stroke-miterlimit="8"/>
+    <path d="m947.9 619.2h-38.03v-38.39h38.03z" fill="#7f7f7f"/>
+   </g>
+   <g fill="none" stroke-miterlimit="8">
+    <path d="m948.1 619.2h-38.04v-38.4h38.04z" stroke="#000" stroke-width="1.33"/>
+    <path d="m1217 620.2h-234.7v-40.5h234.7z" stroke="#5b9bd5" stroke-width="6.67"/>
+    <path d="m1138 619.2h-152.2v-38.4h152.2z" stroke="#000" stroke-width="4"/>
+   </g>
+  </g>
+ </g>
+ <g id="high_ranges">
+  <g id="high_axis" fill="none" stroke-miterlimit="8" stroke-width="2.67">
+   <path d="m447.8 585.4h76.81" stroke="#bfbfbf"/>
+   <path d="m524.6 585.4h230.6" stroke="#000"/>
+   <path d="m755.1 585.4h76.81" stroke="#00b050"/>
+  </g>
+  <g id="high_logical">
+   <path d="m755.2 588.7c0 4.27-5.18 7.74-11.56 7.74h-92.17c-6.38 0-11.56 3.46-11.56 7.74 0-4.27-5.18-7.74-11.56-7.74h-92.17c-6.38 0-11.56-3.46-11.56-7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="586.4" y="616" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="586.4 589.4 596.4 602.73 605.73 611.4 617.73 620.73 623.73 627.9 634.9 641.57 647.9 650.9 657.9 661.23 664.23 670.9 677.9 684.9" y="616" stroke-width="0.32">logical [begin, end)</tspan></text>
+  </g>
+  <g id="high_extended">
+   <path d="m832 660.3c0 4.27-5.18 7.74-11.56 7.74h-130.6c-6.38 0-11.56 3.46-11.56 7.74 0-4.27-5.18-7.74-11.56-7.74h-130.6c-6.38 0-11.56-3.46-11.56-7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="616.3" y="687" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="616.3 622.97 628.8 633.3 639.97 646.97 653.97 660.63 667.63 670.63 674.8 681.8 688.47 694.8 697.8 704.8 708.13 711.13 717.8 724.8 731.8" y="687" stroke-width="0.32">extended [begin, end)</tspan></text>
+  </g>
+  <g id="high_extents">
+   <path d="m447.7 543c0-4.27 5.18-7.74 11.56-7.74h169c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.18 7.74 11.56 7.74h169c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#000" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="617.5" y="520.6" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="617.5 624.17 630 634.5 641.17 648.17 652.67" y="520.6" stroke-width="0.32">extents</tspan></text>
+  </g>
+  <g id="high_ghost">
+   <path d="m447.8 582.1c0-4.27 5.18-7.74 11.56-7.74h15.28c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.18 7.74 11.56 7.74h15.28c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#bfbfbf" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="471.2" y="560.3" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="471.2 477.53 484.53 491.53 496.7" y="560.3" stroke-width="0.32">ghost</tspan></text>
+  </g>
+  <g id="high_boundary">
+   <path d="m755.1 582.1c0-4.27 5.18-7.74 11.56-7.74h15.28c6.38 0 11.56-3.46 11.56-7.74 0 4.27 5.18 7.74 11.56 7.74h15.28c6.38 0 11.56 3.46 11.56 7.74" fill="none" stroke="#00b050" stroke-miterlimit="8" stroke-width="1.33"/>
+   <text x="763.2" y="560.3" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="763.2 770.2 777.2 784.2 791.2 798.2 804.53 809.2" y="560.3" stroke-width="0.32">boundary</tspan></text>
+  </g>
+  <g id="high_global_offset">
+   <path d="m524.9 643.7v-51.65h-1.33v51.65zm-0.67-51.65 4 2.67-4-8-4 8z" fill="#0070c0" stroke-width="1.33"/>
+   <text x="452" y="645.8" fill="#000000" font-family="Calibri" font-size="13.33px" stroke-width="0.32" xml:space="preserve"><tspan x="452 458.33 461.33 468.33 475.33 481.67 484.67 487.67 494.67 498.67 502.67 507.83 514.5" y="645.8" stroke-width="0.32">global offset</tspan></text>
+  </g>
+ </g>
+ <g id="legend">
+  <path id="legend_background" transform="matrix(1.33 0 0 -1.33 0 720)" d="m751.1 535h204.8v-161.7h-204.8z" fill="#fff"/>
+  <g id="legend_logical">
+   <text transform="matrix(0.32 0 0 0.32 1071 58.56)" fill="#000000" font-family="Calibri" font-size="75px" xml:space="preserve"><tspan x="0 17.19 56.8 92.22 109.41 140.55 176.49" y="0">logical</tspan></text>
+   <rect id="legend_logical_rect" x="1030" y="34" width="30" height="30" fill="#fff" stroke="#000" stroke-width="4"/>
+  </g>
+  <g id="legend_extended">
+   <text transform="matrix(0.32 0 0 0.32 1071 97.6)" fill="#000000" font-family="Calibri" font-size="75px" xml:space="preserve"><tspan x="0 36.38 68.93 93.15 130.65 170.25 209.85 247.35" y="0">extended</tspan></text>
+   <rect id="legend_extended_rect" x="1030" y="74" width="30" height="30" fill="#fff" stroke="#5b9bd5" stroke-width="4"/>
+  </g>
+  <g id="legend_boundary">
+   <text transform="matrix(0.32 0 0 0.32 1071 139.5)" fill="#000000" font-family="Calibri" font-size="75px" xml:space="preserve"><tspan x="0 39.58 79.17 118.75 158.34 197.93 233.84 260.22" y="0">boundary</tspan></text>
+   <rect id="legend_boundary_rect" x="1030" y="114" width="30" height="30" fill="#a9d18e" stroke="#000"/>
+  </g>
+  <g id="legend_ghost">
+   <text transform="matrix(0.32 0 0 0.32 1071 178.9)" fill="#000000" font-family="Calibri" font-size="75px" xml:space="preserve"><tspan x="0 35.42 75.03 114.64 143.01" y="0">ghost</tspan></text>
+   <rect id="legend_ghost_rect" x="1030" y="154" width="30" height="30" fill="#7f7f7f" stroke="#000"/>
+  </g>
+ </g>
+</svg>

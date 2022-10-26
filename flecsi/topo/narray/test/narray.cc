@@ -18,7 +18,7 @@ void
 field_helper(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca,
   F && fvalue) {
-  auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
+  auto c = m.template mdspan<topo::elements>(ca);
 
   // auto x=  m.template range<mesh1d::axis::x_axis>();
   if constexpr(D == 1) {
@@ -66,7 +66,7 @@ template<std::size_t D>
 void
 print_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
-  auto c = m.template mdspan<mesh<D>::index_space::entities>(ca);
+  auto c = m.template mdspan<topo::elements>(ca);
   std::stringstream ss;
   if constexpr(D == 1) {
     for(auto i :
@@ -183,7 +183,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       // check field values on the ghost layers
       int ngb_ranks[4][2] = {{-1, 1}, {0, 2}, {1, 3}, {2, -1}};
-      auto c = m.template mdspan<mesh1d::index_space::entities>(ca);
+      auto c = m.template mdspan<topo::elements>(ca);
 
       if(ngb_ranks[rank][0] != -1) {
         for(auto i : ghost_low[rank]) {
@@ -350,7 +350,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         {-1, 0, 1, -1, -1, 3, -1, -1, -1},
         {0, 1, -1, 2, -1, -1, -1, -1, -1}};
 
-      auto c = m.template mdspan<mesh2d::index_space::entities>(ca);
+      auto c = m.template mdspan<topo::elements>(ca);
 
       auto chk =
         [&c](std::set<util::id> & ybnd, std::set<util::id> & xbnd, int r) {
@@ -590,7 +590,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         {-1, 0, 1, -1, -1, 3, -1, -1, -1},
         {0, 1, -1, 2, -1, -1, -1, -1, -1}};
 
-      auto c = m.template mdspan<mesh3d::index_space::entities>(ca);
+      auto c = m.template mdspan<topo::elements>(ca);
 
       auto chk = [&c](std::set<util::id> & zbnd,
                    std::set<util::id> & ybnd,
@@ -712,17 +712,17 @@ flecsi::unit::driver<coloring_driver> cd;
 // 1D Mesh
 mesh1d::slot m1;
 mesh1d::cslot coloring1;
-const field<std::size_t>::definition<mesh1d, mesh1d::index_space::entities> f1;
+const field<std::size_t>::definition<mesh1d> f1;
 
 // 2D Mesh
 mesh2d::slot m2;
 mesh2d::cslot coloring2;
-const field<std::size_t>::definition<mesh2d, mesh2d::index_space::entities> f2;
+const field<std::size_t>::definition<mesh2d> f2;
 
 // 3D Mesh
 mesh3d::slot m3;
 mesh3d::cslot coloring3;
-const field<std::size_t>::definition<mesh3d, mesh3d::index_space::entities> f3;
+const field<std::size_t>::definition<mesh3d> f3;
 
 // 4D Mesh
 mesh4d::slot m4;

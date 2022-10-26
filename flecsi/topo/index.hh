@@ -501,8 +501,7 @@ struct borrow_category : borrow_base,
   void ghost_copy(data::field_reference<T, L, P, S> const & f) {
     if(first)
       base->ghost_copy(
-        data::field_reference<T, L, typename P::Base, S>::from_id(
-          f.fid(), *base));
+        data::field_reference<T, L, typename P::Base, S>(f.fid(), *base));
   }
 
 private:

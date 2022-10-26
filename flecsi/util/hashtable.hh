@@ -24,7 +24,7 @@ private:
   ht_type_t * ptr_;
   const ht_t * h_;
 
-  friend struct hashtable<KEY, TYPE, HASH>;
+  friend hashtable<KEY, TYPE, HASH>;
   hashtableIterator(ht_type_t * p, const ht_t * h) : ptr_(p), h_(h) {}
 
 public:

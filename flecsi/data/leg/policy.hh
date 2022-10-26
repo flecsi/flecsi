@@ -176,6 +176,9 @@ struct region {
       logical_region(
         named(run().create_logical_region(ctx(), index_space, field_space),
           name)) {}
+  // Retain value semantics:
+  region(region &&) = default;
+  region & operator=(region &&) & = default;
 
   size2 size() const {
     const auto p = run().get_index_space_domain(index_space).hi();
@@ -190,6 +193,10 @@ struct region {
 struct partition_base {
   shared_index_partition index_partition;
   Legion::LogicalPartition logical_partition;
+
+  // Retain value semantics:
+  partition_base(partition_base &&) = default;
+  partition_base & operator=(partition_base &&) & = default;
 
   Legion::IndexSpace get_color_space() const {
     return run().get_index_partition_color_space_name(index_partition);

@@ -50,8 +50,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, domain DM = interior>
     std::size_t size() {
       if constexpr(DM == interior) {
-        const bool low = B::template is_low<index_space::vertices, A>();
-        const bool high = B::template is_high<index_space::vertices, A>();
+        const bool low = B::template is_low<mesh::vertices, A>();
+        const bool high = B::template is_high<mesh::vertices, A>();
 
         if(low && high) { /* degenerate */
           return size<A, logical>() - 2;
@@ -64,51 +64,46 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
         }
       }
       else if constexpr(DM == logical) {
-        return B::template size<index_space::vertices, A, B::domain::logical>();
+        return B::template size<mesh::vertices, A, base::domain::logical>();
       }
       else if(DM == all) {
-        return B::template size<index_space::vertices, A, B::domain::all>();
+        return B::template size<mesh::vertices, A, base::domain::all>();
       }
       else if(DM == global) {
-        return B::template size<index_space::vertices, A, B::domain::global>();
+        return B::template size<mesh::vertices, A, base::domain::global>();
       }
     }
 
     template<axis A>
     FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
-      return B::template global_id<index_space::vertices, A>(i);
+      return B::template global_id<mesh::vertices, A>(i);
     }
 
     template<axis A, domain DM = interior>
     auto vertices() {
       if constexpr(DM == interior) {
-        const bool low = B::template is_low<index_space::vertices, A>();
-        const bool high = B::template is_high<index_space::vertices, A>();
-        const std::size_t start =
-          B::template logical<index_space::vertices, A, 0>();
-        const std::size_t end =
-          B::template logical<index_space::vertices, A, 1>();
+        const bool low = B::template is_low<mesh::vertices, A>();
+        const bool high = B::template is_high<mesh::vertices, A>();
+        const std::size_t start = B::template logical<mesh::vertices, A, 0>();
+        const std::size_t end = B::template logical<mesh::vertices, A, 1>();
 
-        return flecsi::topo::make_ids<index_space::vertices>(
+        return flecsi::topo::make_ids<mesh::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(start + low, end - high));
       }
       else if constexpr(DM == logical) {
-        return B::
-          template range<index_space::vertices, A, B::domain::logical>();
+        return B::template range<mesh::vertices, A, base::domain::logical>();
       }
       else if(DM == all) {
-        return B::template range<index_space::vertices, A, B::domain::all>();
+        return B::template range<mesh::vertices, A, base::domain::all>();
       }
     }
 
     template<axis A>
     FLECSI_INLINE_TARGET auto red(std::size_t row) const {
-      const bool low = B::template is_low<index_space::vertices, A>();
-      const bool high = B::template is_high<index_space::vertices, A>();
-      const std::size_t start =
-        B::template logical<index_space::vertices, A, 0>();
-      const std::size_t end =
-        B::template logical<index_space::vertices, A, 1>();
+      const bool low = B::template is_low<mesh::vertices, A>();
+      const bool high = B::template is_high<mesh::vertices, A>();
+      const std::size_t start = B::template logical<mesh::vertices, A, 0>();
+      const std::size_t end = B::template logical<mesh::vertices, A, 1>();
       const std::size_t rng = (end - high) - (start + low);
       const bool parity = (0 == global_id<A>(start + low) % 2);
 
@@ -121,7 +116,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
             (rng - 1) / 2; // fewer red than black
       // clang-format on
 
-      return flecsi::topo::make_stride_ids<index_space::vertices, 2>(
+      return flecsi::topo::make_stride_ids<mesh::vertices, 2>(
         flecsi::util::iota_view<flecsi::util::id>(0, pts),
         start + low,
         (row + parity) % 2);
@@ -147,9 +142,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A>
     double value(std::size_t i) {
       return (A == x_axis ? xdelta() : ydelta()) *
-             (B::template offset<index_space::vertices,
-                A,
-                B::domain::global>() +
+             (B::template offset<mesh::vertices, A, base::domain::global>() +
                i);
     }
 
@@ -157,11 +150,11 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     bool is_boundary(std::size_t i) {
 
       auto const loff =
-        B::template offset<index_space::vertices, A, B::domain::logical>();
+        B::template offset<mesh::vertices, A, base::domain::logical>();
       auto const lsize =
-        B::template size<index_space::vertices, A, B::domain::logical>();
-      const bool l = B::template is_low<index_space::vertices, A>();
-      const bool h = B::template is_high<index_space::vertices, A>();
+        B::template size<mesh::vertices, A, base::domain::logical>();
+      const bool l = B::template is_low<mesh::vertices, A>();
+      const bool h = B::template is_high<mesh::vertices, A>();
 
       if(l && h) { /* degenerate */
         if constexpr(BD == boundary::low) {

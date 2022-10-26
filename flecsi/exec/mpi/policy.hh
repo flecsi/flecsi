@@ -94,8 +94,8 @@ reduce_internal(Args &&... args) {
   //    index>.get(j) to get the return value on any rank j. This implies an
   //    Allgather is needed.
   //
-  const auto ds =
-    launch_size<Attributes, decltype(params)>(std::forward<Args>(args)...);
+  const auto ds = launch_size<Attributes, decltype(params)>(args...);
+  const auto task = [&params] { return std::apply(F, std::move(params)); };
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();
@@ -103,14 +103,14 @@ reduce_internal(Args &&... args) {
     if constexpr(std::is_void_v<R>) {
       // void return type, just invoke, no return value to broadcast
       if(root) {
-        std::apply(F, std::move(params));
+        task();
       }
       return future<void>{};
     }
     else {
       auto ret = std::make_unique<R>();
       if(root) {
-        *ret = std::apply(F, std::move(params));
+        *ret = task();
       }
 
       auto request = std::make_unique<MPI_Request>();
@@ -145,7 +145,7 @@ reduce_internal(Args &&... args) {
       // A real reduce operation, every rank needs to be able to access the
       // same result through future<R>::get().
       // 1. Call the F, get the local return value
-      auto ret = std::make_unique<R>(std::apply(F, std::move(params)));
+      auto ret = std::make_unique<R>(task());
 
       // 2. Reduce the local return values with the Reduction (using its
       // corresponding MPI_Op created by register_reduction<>()).
@@ -172,11 +172,10 @@ reduce_internal(Args &&... args) {
       // There is an Allgather happening in the constructor of future<R, index>
       // where the results from ranks are redistributed such that clients on
       // every rank i can get the return value of rank j by calling get(j).
-      return future<R, exec::launch_type_t::index>{
-        std::apply(F, std::move(params))};
+      return future<R, exec::launch_type_t::index>{task()};
     else {
       // index launch of void functions, e.g. printf("hello world");
-      std::apply(F, std::move(params));
+      task();
       return future<void, exec::launch_type_t::index>{};
     }
   }

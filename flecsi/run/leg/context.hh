@@ -40,7 +40,7 @@ namespace mapper {
 /// Flags used to request custom mapper features.
 /// \{
 
-constexpr Legion::MappingTagID
+inline constexpr Legion::MappingTagID
   force_rank_match = 0x00001000, ///< Put colors on corresponding MPI ranks.
 #if 0
   compacted_storage = 0x00002000, ///< Combine exclusive, shared, and ghosts.

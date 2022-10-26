@@ -106,7 +106,7 @@ struct entity_connectivity {
     : size_(dist.size()), connectivity_(size_) {
 
     int ro{0};
-    for(auto r : vertices) {
+    for(auto & r : vertices) {
       if(ro != rank) {
         for(auto v : r) {
           connectivity_[ro][v] = connectivity.at(v);

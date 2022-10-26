@@ -252,6 +252,9 @@ private:
 };
 
 struct partition {
+  partition(partition &&) = default;
+  partition & operator=(partition &&) & = default;
+
   Color colors() const {
     // number of rows, essentially the number of MPI ranks.
     return r->size().first;
@@ -375,6 +378,8 @@ struct borrow : partition {
   }
 };
 
+struct copy_engine;
+
 struct intervals {
   using Value = subrow; // [begin, end)
   static Value make(subrow r, std::size_t = 0) {
@@ -416,7 +421,7 @@ struct intervals {
 
 private:
   // This member function is only called by copy_engine.
-  friend struct copy_engine;
+  friend copy_engine;
 
   template<typename T>
   auto get_storage(field_id_t fid) const {
@@ -443,7 +448,7 @@ private:
   // The region `r` contains field data of shared entities on this rank as
   // source to be copied to remote peers. We make copy_engine a friend to allow
   // direct access to the region.
-  friend struct copy_engine;
+  friend copy_engine;
 
   mpi::region_impl * r;
 };

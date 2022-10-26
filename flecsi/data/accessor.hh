@@ -321,7 +321,7 @@ struct ragged_accessor
       return field_reference<T,
         raw,
         topo::policy_t<std::remove_reference_t<decltype(t)>>,
-        topo::elements>::from_id(i, t);
+        topo::elements>(i, t);
     });
     std::forward<F>(f)(get_offsets(), [](const auto & r) {
       // Disable normal ghost copy of offsets:

@@ -21,7 +21,7 @@ macro(_flecsi_define_doxygen_group_target)
   endif()
 
   if(NOT DEFINED FLECSI_DOC_TARGET OR NOT TARGET ${FLECSI_DOC_TARGET})
-    include(documentation)
+    include(FleCSI/documentation)
     _flecsi_define_doc_group_target()
   endif()
 
