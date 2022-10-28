@@ -672,38 +672,153 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 int
 coloring_driver() {
   UNIT() {
-#if 1
-    mesh3d::gcoord indices{8, 8, 8};
-#else
+    // 9x9x9 with 3x3x1 colors, extend x-axis, full_ghosts: no
+    //
+    // 0   1   2   3   (3)  4   5   6   (6)  7   8   9
+    // +---+---+---+    +---+---+---+    +---+---+---+
+    // | 0 | 1 | 2 |    | 3 | 4 | 5 |    | 6 | 7 | 8 |
+    // +---+---+---+    +---+---+---+    +---+---+---+
+
     mesh3d::gcoord indices{9, 9, 9};
-#endif
 
-    mesh3d::coord hdepths{1, 1, 1};
-    mesh3d::coord bdepths{0, 0, 0};
-    std::vector<bool> periodic{false, false, false};
-    std::vector<bool> extend{true, false, false};
+    mesh3d::index_definition idef;
+    idef.axes = topo::narray_utils::make_axes(9, indices);
+    for(auto & a : idef.axes) {
+      a.hdepth = 1;
+    }
 
-    auto axcm = topo::narray_utils::make_color_maps(processes(), indices);
-    mesh3d::coloring_definition cd = {axcm, hdepths, bdepths, periodic, false};
-    auto [nc, ne, coloring, partitions] =
-      topo::narray_utils::color(cd, MPI_COMM_WORLD);
+    auto coloring = idef.process_coloring(MPI_COMM_WORLD);
+    auto adef = idef;
+    adef.axes[0].auxiliary = true;
+    adef.full_ghosts = false;
+    auto avpc = adef.process_coloring(MPI_COMM_WORLD);
 
-    auto [avpc, aprts] =
-      topo::narray_utils::color_auxiliary(nc, coloring, extend);
+    mesh3d::gcoord global;
+    std::map<Color, mesh3d::gcoord> extents, offset;
+    std::map<Color, mesh3d::coord> logical_low, logical_high;
+    std::map<Color, mesh3d::coord> extended_low, extended_high;
 
-    std::stringstream ss;
-    ss << "primary" << std::endl;
-    for(auto p : coloring) {
-      ss << p << std::endl;
-    } // for
-    ss << "auxiliary" << std::endl;
-    for(auto p : avpc) {
-      ss << p << std::endl;
-    } // for
-    flog(warn) << ss.str() << std::endl;
+    global = {10, 9, 9};
 
-    flog(warn) << flog::container{partitions} << std::endl;
-    flog(warn) << flog::container{aprts} << std::endl;
+    for(Color c = 0; c < 9; ++c) {
+      extents[c] = {4, 3, 9};
+      extended_high[c] = logical_high[c] = {4, 3, 9};
+    }
+
+    offset[0] = {0, 0, 0};
+    offset[1] = {4, 0, 0};
+    offset[2] = {7, 0, 0};
+    offset[3] = {0, 3, 0};
+    offset[4] = {4, 3, 0};
+    offset[5] = {7, 3, 0};
+    offset[6] = {0, 6, 0};
+    offset[7] = {4, 6, 0};
+    offset[8] = {7, 6, 0};
+
+    extended_low[0] = logical_low[0] = {0, 0, 0};
+    extended_low[1] = logical_low[1] = {1, 0, 0};
+    extended_low[2] = logical_low[2] = {1, 0, 0};
+    extended_low[3] = logical_low[3] = {0, 0, 0};
+    extended_low[4] = logical_low[4] = {1, 0, 0};
+    extended_low[5] = logical_low[5] = {1, 0, 0};
+    extended_low[6] = logical_low[6] = {0, 0, 0};
+    extended_low[7] = logical_low[7] = {1, 0, 0};
+    extended_low[8] = logical_low[8] = {1, 0, 0};
+
+    for(auto & p : avpc) {
+      auto c = p.color();
+      for(Dimension axis = 0; axis < 3; ++axis) {
+        auto & axco = p.axis_colors[axis];
+        EXPECT_EQ(axco.global(), global[axis]);
+        EXPECT_EQ(axco.extent(), extents[c][axis]);
+        EXPECT_EQ(axco.offset(), offset[c][axis]);
+        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
+        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
+        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
+        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
+      }
+    }
+
+    auto print_colorings = [&]() {
+      std::stringstream ss;
+      ss << "primary" << std::endl;
+      for(auto p : coloring) {
+        ss << p << std::endl;
+      } // for
+      ss << "auxiliary" << std::endl;
+      for(auto p : avpc) {
+        ss << p << std::endl;
+      } // for
+      flog(warn) << ss.str() << std::endl;
+    };
+
+    print_colorings();
+
+    // 9x9x9 with 3x3x1 colors, extend x-axis, full_ghosts: yes
+    //
+    // 0   1   2   3   4   (2) (3)  4   5   6  (7)  (5) (6)  7   8   9
+    // +---+---+---+ ~ +    + ~ +---+---+---+ ~ +    + ~ +---+---+---+
+    // | 0 | 1 | 2 |(3)|    |(2)| 3 | 4 | 5 |(6)|    |(5)| 6 | 7 | 8 |
+    // +---+---+---+ ~ +    + ~ +---+---+---+ ~ +    + ~ +---+---+---+
+
+    adef.full_ghosts = true;
+    avpc = adef.process_coloring(MPI_COMM_WORLD);
+
+    extents[0] = {5, 4, 9};
+    extents[1] = {6, 4, 9};
+    extents[2] = {5, 4, 9};
+    extents[3] = {5, 5, 9};
+    extents[4] = {6, 5, 9};
+    extents[5] = {5, 5, 9};
+    extents[6] = {5, 4, 9};
+    extents[7] = {6, 4, 9};
+    extents[8] = {5, 4, 9};
+
+    offset[0] = {0, 0, 0};
+    offset[1] = {4, 0, 0};
+    offset[2] = {7, 0, 0};
+    offset[3] = {0, 3, 0};
+    offset[4] = {4, 3, 0};
+    offset[5] = {7, 3, 0};
+    offset[6] = {0, 6, 0};
+    offset[7] = {4, 6, 0};
+    offset[8] = {7, 6, 0};
+
+    extended_low[0] = logical_low[0] = {0, 0, 0};
+    extended_low[1] = logical_low[1] = {2, 0, 0};
+    extended_low[2] = logical_low[2] = {2, 0, 0};
+    extended_low[3] = logical_low[3] = {0, 1, 0};
+    extended_low[4] = logical_low[4] = {2, 1, 0};
+    extended_low[5] = logical_low[5] = {2, 1, 0};
+    extended_low[6] = logical_low[6] = {0, 1, 0};
+    extended_low[7] = logical_low[7] = {2, 1, 0};
+    extended_low[8] = logical_low[8] = {2, 1, 0};
+
+    extended_high[0] = logical_high[0] = {4, 3, 9};
+    extended_high[1] = logical_high[1] = {5, 3, 9};
+    extended_high[2] = logical_high[2] = {5, 3, 9};
+    extended_high[3] = logical_high[3] = {4, 4, 9};
+    extended_high[4] = logical_high[4] = {5, 4, 9};
+    extended_high[5] = logical_high[5] = {5, 4, 9};
+    extended_high[6] = logical_high[6] = {4, 4, 9};
+    extended_high[7] = logical_high[7] = {5, 4, 9};
+    extended_high[8] = logical_high[8] = {5, 4, 9};
+
+    for(auto & p : avpc) {
+      auto c = p.color();
+      for(Dimension axis = 0; axis < 3; ++axis) {
+        auto & axco = p.axis_colors[axis];
+        EXPECT_EQ(axco.global(), global[axis]);
+        EXPECT_EQ(axco.extent(), extents[c][axis]);
+        EXPECT_EQ(axco.offset(), offset[c][axis]);
+        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
+        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
+        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
+        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
+      }
+    }
+
+    print_colorings();
   };
 }
 
@@ -830,17 +945,15 @@ narray_driver() {
     {
       // 1D Mesh
       mesh1d::gcoord indices{9};
-      mesh1d::coord hdepths{1};
-      mesh1d::coord bdepths{2};
-      std::vector<bool> periodic{false};
-      bool diagonals = true;
-      auto axcm = topo::narray_utils::make_color_maps(processes(), indices);
-
-      mesh1d::coloring_definition cd = {
-        axcm, hdepths, bdepths, periodic, diagonals};
+      mesh1d::index_definition idef;
+      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes[0].hdepth = 1;
+      idef.axes[0].bdepth = 2;
+      idef.diagonals = true;
+      idef.full_ghosts = true;
 
       // coloring1.allocate(index_definitions);
-      coloring1.allocate(cd);
+      coloring1.allocate(idef);
       m1.allocate(coloring1.get());
       execute<init_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
@@ -857,16 +970,16 @@ narray_driver() {
     {
       // 2D Mesh
       mesh2d::gcoord indices{8, 8};
-      mesh2d::coord hdepths{1, 2};
-      mesh2d::coord bdepths{2, 1};
-      std::vector<bool> periodic{false, false};
-      bool diagonals = true;
-      auto axcm = topo::narray_utils::make_color_maps(processes(), indices);
+      mesh2d::index_definition idef;
+      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes[0].hdepth = 1;
+      idef.axes[1].hdepth = 2;
+      idef.axes[0].bdepth = 2;
+      idef.axes[1].bdepth = 1;
+      idef.diagonals = true;
+      idef.full_ghosts = true;
 
-      mesh2d::coloring_definition cd = {
-        axcm, hdepths, bdepths, periodic, diagonals};
-
-      coloring2.allocate(cd);
+      coloring2.allocate(idef);
       m2.allocate(coloring2.get());
       execute<init_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
@@ -878,16 +991,16 @@ narray_driver() {
     {
       // 3D Mesh
       mesh3d::gcoord indices{4, 4, 4};
-      mesh3d::coord hdepths{1, 1, 1};
-      mesh3d::coord bdepths{1, 1, 1};
-      std::vector<bool> periodic{false, false, false};
-      bool diagonals = true;
-      auto axcm = topo::narray_utils::make_color_maps(processes(), indices);
+      mesh3d::index_definition idef;
+      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      for(auto & a : idef.axes) {
+        a.hdepth = 1;
+        a.bdepth = 1;
+      }
+      idef.diagonals = true;
+      idef.full_ghosts = true;
 
-      mesh3d::coloring_definition cd = {
-        axcm, hdepths, bdepths, periodic, diagonals};
-
-      coloring3.allocate(cd);
+      coloring3.allocate(idef);
       m3.allocate(coloring3.get());
       execute<init_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
@@ -899,19 +1012,19 @@ narray_driver() {
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
       // 4D Mesh
       mesh4d::gcoord indices{4, 4, 4, 4};
-      mesh4d::coord hdepths{1, 1, 1, 1};
-      mesh4d::coord bdepths{1, 1, 1, 1};
-      std::vector<bool> periodic{false, false, false, false};
-      bool diagonals = true;
-      auto axcm = topo::narray_utils::make_color_maps(processes(), indices);
+      mesh4d::index_definition idef;
+      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      for(auto & a : idef.axes) {
+        a.hdepth = 1;
+        a.bdepth = 1;
+      }
+      idef.diagonals = true;
+      idef.full_ghosts = true;
 
-      mesh4d::coloring_definition cd = {
-        axcm, hdepths, bdepths, periodic, diagonals};
-      coloring4.allocate(cd);
+      coloring4.allocate(idef);
       m4.allocate(coloring4.get());
       execute<check_4dmesh>(m4);
     }
-
   }; // UNIT
 } // narray_driver
 

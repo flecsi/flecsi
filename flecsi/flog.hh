@@ -116,14 +116,14 @@ struct stream<T,
 template<class R>
 void
 put_range(container_sequence<R> s, const R & r) {
-  for(auto & x : r)
+  for(const auto & x : r)
     s()(x);
 }
 template<class M>
 void
 put_map(const output & o, const M & m) {
   container_sequence<M> s(o, '{', '}');
-  for(auto & [k, v] : m) {
+  for(const auto & [k, v] : m) {
     s()(k);
     s(':')(v);
   }
