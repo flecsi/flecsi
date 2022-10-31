@@ -27,7 +27,8 @@ enum mask : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 
 enum axes : Dimension { x_axis, y_axis, z_axis };
 
-using coord = std::vector<std::size_t>;
+using coord = std::vector<util::id>;
+using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
@@ -63,7 +64,7 @@ struct process_color {
   std::uint32_t orientation;
 
   ///  The global extents.
-  coord global;
+  gcoord global;
 
   ///  The local extents of this color. This is the full size including
   ///  boundary depth, and ghosts. The "extents" coordinate implicitly
@@ -72,7 +73,7 @@ struct process_color {
 
   ///  The global coordinate offset of the logical hypercube.
   ///  Local to global id translation can be computed with this.
-  coord offset;
+  gcoord offset;
 
   ///  The logical entities, i.e., the entities for this color without
   ///  boundary padding or ghosts.
@@ -131,6 +132,7 @@ operator<<(std::ostream & stream, process_color const & ic) {
 struct narray_base {
   using process_color = narray_impl::process_color;
   using coord = narray_impl::coord;
+  using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
   using coloring_definition = narray_impl::coloring_definition;

@@ -34,17 +34,14 @@ struct mesh_definition {
   /// Get the dimensionality of the mesh.
   static constexpr Dimension dimension();
 
-  /// The type for global indices, which must be exactly this.
-  using id = std::size_t;
-
   /// Get the global number of entities of a kind.
-  std::size_t num_entities(Dimension) const;
+  util::gid num_entities(Dimension) const;
 
   /// Get the entities connected to or associated with an entity.
   /// \param id of entity of dimension \a from
   /// \return ids of entities of dimension \a to
   std::vector<std::size_t>
-  entities(Dimension from, Dimension to, std::size_t id) const;
+  entities(Dimension from, Dimension to, util::gid id) const;
 
   /// Get entities of a given dimension associated with a set of vertices.
   /// \param k Entity kind
@@ -53,12 +50,12 @@ struct mesh_definition {
   /// \param v vertex IDs
   /// \param[out] e entities, initially empty
   void make_entity(entity_kind k,
-    std::size_t g,
-    const std::vector<std::size_t> & v,
+    util::gid g,
+    const std::vector<util::gid> & v,
     util::crs & e);
 
   /// Return the vertex with the given id.
-  point vertex(std::size_t) const;
+  point vertex(util::gid) const;
 
   /// Vertex information type, perhaps spatial coordinates.
   using point = decltype(std::declval<mesh_definition>().vertex(0));
@@ -133,7 +130,7 @@ struct coloring_utils {
   /// convex hull without actually being connected. Other similar cases of
   /// this nature are also possible.
   template<typename C>
-  void color_primaries(std::size_t shared, C && c);
+  void color_primaries(util::id shared, C && c);
 
   /// Redistribute the primary entities. This method moves the primary
   /// entities to their owning colors.
@@ -227,17 +224,17 @@ struct coloring_utils {
 private:
   void build_intermediary(std::size_t kind,
     util::crs & e2v,
-    std::vector<std::size_t> const & p2m);
+    std::vector<util::gid> const & p2m);
 
-  std::size_t num_primaries() {
+  util::gid num_primaries() {
     return md_.num_entities(cd_.cid.kind);
   }
 
-  std::size_t num_vertices() {
+  util::gid num_vertices() {
     return md_.num_entities(cd_.vid.kind);
   }
 
-  std::size_t num_entities(entity_kind kind) {
+  util::gid num_entities(entity_kind kind) {
     return built_.count(kind) ? auxiliary_state(kind).entities
                               : md_.num_entities(kind);
   }
@@ -276,31 +273,27 @@ private:
 
   struct connectivity_state_t {
     util::crs e2v;
-    std::map<std::size_t, std::vector<std::size_t>> v2e;
-    std::map<std::size_t, std::vector<std::size_t>> e2e;
-    std::vector<std::size_t> p2m;
-    std::map<std::size_t, std::size_t> m2p;
+    std::map<util::gid, std::vector<util::gid>> v2e, e2e;
+    std::vector<util::gid> p2m;
+    std::map<util::gid, util::id> m2p;
   };
 
   struct auxiliary_state_t {
-    std::size_t entities;
-    util::crs e2i;
-    util::crs i2e;
-    util::crs i2v;
-    std::map<std::vector<std::size_t>, std::size_t> v2i;
-    std::map<Color, std::map<std::size_t, std::set<Color>>> ldependents;
-    std::map<Color, std::map<std::size_t, std::set<Color>>> dependents;
-    std::map<Color, std::map<std::size_t, Color>> ldependencies;
-    std::map<Color, std::map<std::size_t, Color>> dependencies;
-    std::map<std::size_t, std::pair<Color, bool>> a2co;
-    std::map<std::size_t, std::pair<Color, std::vector<std::size_t>>> ghost;
+    util::gid entities;
+    util::crs e2i, i2e, i2v;
+    std::map<std::vector<util::gid>, util::gid> v2i;
+    std::map<Color, std::map<util::gid, std::set<Color>>> ldependents,
+      dependents;
+    std::map<Color, std::map<util::gid, Color>> ldependencies, dependencies;
+    std::map<util::gid, std::pair<Color, bool>> a2co;
+    std::map<util::gid, std::pair<Color, std::vector<util::gid>>> ghost;
     std::vector<
-      std::map<std::vector<std::size_t>, std::pair<std::size_t, std::size_t>>>
+      std::map<std::vector<util::gid>, std::pair<util::id, util::gid>>>
       shared;
-    std::map<std::size_t, std::size_t> l2g;
+    std::map<util::id, util::gid> l2g;
   };
 
-  std::unordered_map<Color, std::size_t> g2l_;
+  std::unordered_map<Color, util::id> g2l_;
 
   MD const & md_;
   unstructured_impl::coloring_definition cd_;
@@ -316,17 +309,16 @@ private:
 
   std::vector<Color> primary_raw_;
   std::vector<Color> vertex_raw_;
-  std::map<Color, std::vector<std::size_t>> primaries_;
-  std::map<Color, std::map<std::size_t, std::set<std::size_t>>> all_;
-  std::unordered_map<std::size_t, Color> p2co_;
-  std::unordered_map<std::size_t, Color> v2co_;
-  std::unordered_map<Color, std::set<std::size_t>> shared_, ghost_;
+  std::map<Color, std::vector<util::gid>> primaries_;
+  std::map<Color, std::map<entity_index_space, std::set<util::gid>>> all_;
+  std::unordered_map<util::gid, Color> p2co_;
+  std::unordered_map<util::gid, Color> v2co_;
+  std::unordered_map<Color, std::set<util::gid>> shared_, ghost_;
   std::unordered_map<std::size_t, std::set<Color>> vdeps_;
   std::vector<std::size_t> rghost_;
   unstructured_base::coloring coloring_;
   std::vector<std::set<Color>> color_peers_;
-  std::unordered_map<std::size_t, std::tuple<Color, typename MD::point>>
-    v2info_;
+  std::unordered_map<util::gid, std::tuple<Color, typename MD::point>> v2info_;
 
   // Auxiliary state is associated with an entity's kind (as opposed to
   // its index space).
@@ -339,7 +331,7 @@ private:
 // function.
 template<typename MD>
 void
-coloring_utils<MD>::create_graph(std::size_t kind) {
+coloring_utils<MD>::create_graph(entity_kind kind) {
 
   const util::equal_map ecm(num_entities(kind), size_);
 
@@ -398,7 +390,7 @@ coloring_utils<MD>::create_graph(std::size_t kind) {
     that are referenced by our connected vertices.
    */
 
-  std::vector<std::vector<std::size_t>> referencer_inverse(size_);
+  std::vector<std::vector<util::gid>> referencer_inverse(size_);
 
   for(auto const & v : cnns.v2e) {
     for(auto c : v.second) {
@@ -432,7 +424,7 @@ coloring_utils<MD>::create_graph(std::size_t kind) {
 template<typename MD>
 template<typename C>
 void
-coloring_utils<MD>::color_primaries(std::size_t shared, C && f) {
+coloring_utils<MD>::color_primaries(util::id shared, C && f) {
   auto & cnns = primary_connectivity_state();
   const util::equal_map ecm(num_primaries(), size_);
 
@@ -443,7 +435,7 @@ coloring_utils<MD>::color_primaries(std::size_t shared, C && f) {
 
   std::size_t c = ecm(rank_);
   for(auto const & cdef : cnns.e2v) {
-    std::map<std::size_t, std::size_t> shr;
+    std::map<util::gid, util::id> shr;
 
     for(auto v : cdef) {
       auto it = cnns.v2e.find(v);
@@ -551,14 +543,14 @@ coloring_utils<MD>::migrate_primaries() {
 /// @param comm     The MPI communicator to use for communication.
 /// \return the owning process for each entity
 inline std::vector<Color>
-request_owners(std::vector<std::size_t> const & request,
-  std::size_t ne,
+request_owners(std::vector<util::gid> const & request,
+  util::gid ne,
   Color colors,
   std::vector<Color> const & idx_cos,
   MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = util::mpi::info(comm);
 
-  std::vector<std::vector<std::size_t>> requests(size);
+  std::vector<std::vector<util::gid>> requests(size);
   const util::equal_map pm(ne, size);
   for(auto e : request) {
     requests[pm.bin(e)].emplace_back(e);
@@ -571,7 +563,7 @@ request_owners(std::vector<std::size_t> const & request,
     Fulfill naive-owner requests with migrated owners.
    */
 
-  std::vector<std::vector<std::size_t>> fulfill(size);
+  std::vector<std::vector<util::gid>> fulfill(size);
   {
     const std::size_t start = pm(rank);
     Color r = 0;
@@ -606,7 +598,7 @@ coloring_utils<MD>::close_primaries() {
     'p2co' will get updated as we build out our dependencies.
    */
 
-  std::map<std::size_t, std::vector<std::size_t>> wkset;
+  std::map<Color, std::vector<util::gid>> wkset;
   for(auto const & p : primaries()) {
     wkset[p.first].reserve(p.second.size());
     for(auto e : p.second) {
@@ -616,7 +608,7 @@ coloring_utils<MD>::close_primaries() {
   } // for
 
   auto & cnns = primary_connectivity_state();
-  std::unordered_map<std::size_t, std::set<Color>> dependents, dependencies;
+  std::unordered_map<util::gid, std::set<Color>> dependents, dependencies;
 
   /*
     The gist of this loop is to add layers of entities out to the depth
@@ -630,7 +622,7 @@ coloring_utils<MD>::close_primaries() {
    */
 
   for(std::size_t d{0}; d < cd_.depth + 1; ++d) {
-    std::vector<std::size_t> layer;
+    std::vector<util::gid> layer;
 
     /*
       Create request layer, and add local information.
@@ -677,7 +669,7 @@ coloring_utils<MD>::close_primaries() {
 
     util::force_unique(layer);
 
-    std::vector<std::vector<std::pair<std::size_t, std::set<Color>>>> request(
+    std::vector<std::vector<std::pair<util::gid, std::set<Color>>>> request(
       size_);
     {
       /*
@@ -705,7 +697,7 @@ coloring_utils<MD>::close_primaries() {
       Keep track of dependent colors for requested entities.
      */
 
-    std::vector<std::vector<std::size_t>> fulfill(size_);
+    std::vector<std::vector<util::gid>> fulfill(size_);
     Color r{0};
     for(auto rv : requested) {
       for(auto e : rv) {
@@ -953,8 +945,8 @@ coloring_utils<MD>::close_vertices() {
 
   vertex_coloring().resize(primaries().size());
   const util::equal_map pmap(cd_.colors, size_);
-  std::vector<std::size_t> remote;
-  std::unordered_map<Color, std::set<std::size_t>> ghost;
+  std::vector<util::gid> remote;
+  std::unordered_map<Color, std::set<util::gid>> ghost;
   {
     std::size_t lco{0};
     for(auto p : primaries()) {
@@ -1056,7 +1048,7 @@ coloring_utils<MD>::close_vertices() {
   auto owners =
     request_owners(remote, num_vertices(), cd_.colors, vertex_raw_, comm_);
 
-  std::vector<std::vector<std::size_t>> request(size_);
+  std::vector<std::vector<util::gid>> request(size_);
   {
     std::size_t vid{0};
     for(auto v : remote) {
@@ -1091,8 +1083,8 @@ coloring_utils<MD>::close_vertices() {
    */
 
   std::vector<typename MD::point> v2cd;
-  std::map<std::size_t, std::size_t> m2pv;
-  std::vector<std::size_t> p2mv;
+  std::map<util::gid, util::id> m2pv;
+  std::vector<util::gid> p2mv;
 
   std::size_t ri{0};
   for(auto rv : request) {
@@ -1198,7 +1190,7 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
   util::crs i_p2v; /* intermediary primary-to-vertex */
 
   // Start with the remote ghosts from the primaries (input).
-  std::vector<std::size_t> i_p2m(rghost_.begin(), rghost_.end());
+  std::vector<util::gid> i_p2m(rghost_.begin(), rghost_.end());
 
   // Add owned primaries for all local colors.
   for(const auto & lco : primary_coloring()) {
@@ -1213,9 +1205,9 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
     Populate the reverse map.
    */
 
-  std::map<std::size_t, std::size_t> i_m2p;
+  std::map<util::gid, util::id> i_m2p;
   {
-    std::size_t eid{0};
+    util::id eid{0};
     for(auto const & e : i_p2m) {
       i_p2v.add_row(cnns.e2v[cnns.m2p.at(e)]);
       i_m2p[e] = eid++;
@@ -1231,7 +1223,7 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
 
   auto & aux = auxiliary_state(kind);
   {
-    std::vector<std::vector<std::size_t>> i2e(aux.i2v.size());
+    std::vector<std::vector<util::gid>> i2e(aux.i2v.size());
     std::size_t eid{0};
     for(auto e : aux.e2i) {
       for(auto in : e) {
@@ -1380,10 +1372,10 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
    */
 
   const util::equal_map pmap(cd_.colors, size_);
-  std::vector<std::vector<std::size_t>> lids(size_);
+  std::vector<std::vector<util::id>> lids(size_);
   std::vector<std::vector<std::tuple<Color /* owning color */,
     Color /* requesting color */,
-    std::vector<std::size_t>>>>
+    std::vector<util::gid>>>>
     request(size_);
   for(auto const & [in, info] : aux.ghost) {
     auto const & [rco, def] = info;
@@ -1400,8 +1392,8 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     [&request](int r, int) -> auto & { return request[r]; }, comm_);
 
   // Fulfill requested information.
-  std::vector<std::vector<std::
-      tuple<std::size_t, std::vector<std::size_t>, std::vector<std::size_t>>>>
+  std::vector<std::vector<
+    std::tuple<util::gid, std::vector<util::gid>, std::vector<util::gid>>>>
     fulfill(size_);
   std::size_t pr{0};
   for(auto & rv : requested) {
@@ -1508,7 +1500,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
 
         // Only add auxiliary connectivity that is covered by
         // the primary closure.
-        std::vector<std::size_t> pall;
+        std::vector<util::gid> pall;
         auto && pclo = all().at(p.first).at(cd_.cid.idx);
         for(auto e : aux.i2e[lid]) {
           if(pclo.count(e)) {
@@ -1585,7 +1577,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
 
   for(const util::crs::span cell : c2f) {
-    std::vector<std::size_t> edges;
+    std::vector<util::gid> edges;
 
     // accumulate edges in cell
     for(const std::size_t face : cell) {
@@ -1619,8 +1611,8 @@ coloring_utils<MD>::build_intermediary(entity_kind kind,
 
   // temporary storage
   util::crs edges;
-  std::vector<typename MD::id> sorted;
-  std::vector<typename MD::id> these_edges;
+  std::vector<util::gid> sorted;
+  std::vector<util::gid> these_edges;
 
   // iterate over primaries, adding all of their edges to the table
   std::size_t entity{0};

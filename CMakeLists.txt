@@ -164,6 +164,10 @@ if(ENABLE_LIBRARY)
 	 "Select the type that will be used for entity ids by topologies")
   mark_as_advanced(FLECSI_ID_TYPE)
 
+  set(FLECSI_GID_TYPE "std::uint64_t" CACHE STRING
+    "Select the type that will be used for global ids by topologies")
+  mark_as_advanced(FLECSI_GID_TYPE)
+
   #----------------------------------------------------------------------------#
   # Add option for counter size
   #----------------------------------------------------------------------------#

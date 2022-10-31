@@ -34,7 +34,7 @@ using entity_index_space = std::size_t;
 /// Information about an entity that is shared with other colors.
 struct shared_entity {
   /// Global id.
-  std::size_t id;
+  util::gid id;
   /// The \e colors with which this entity is shared.
   std::vector<std::size_t> dependents;
 
@@ -76,7 +76,7 @@ operator<<(std::ostream & stream, shared_entity const & s) {
 /// Information about an entity owned by another color.
 struct ghost_entity {
   /// Global id.
-  std::size_t id;
+  util::gid id;
   /// Owning process.
   Color process;
   /// Color within those of \e process.
@@ -104,11 +104,11 @@ operator<<(std::ostream & stream, ghost_entity const & g) {
 /// Information for one index space and one color.
 struct index_coloring {
   /// Global ids used by this color.
-  std::vector<std::size_t> all;
+  std::vector<util::gid> all;
   /// Global ids owned by this color.
-  std::vector<std::size_t> owned;
+  std::vector<util::gid> owned;
   /// The subset of \c owned that are not ghosts on any other color.
-  std::vector<std::size_t> exclusive;
+  std::vector<util::gid> exclusive;
   /// Entities that are ghosts on another color.
   std::vector<shared_entity> shared;
   /// Entities that are owned by another color.
@@ -157,8 +157,10 @@ struct coloring_definition {
   /// associating it with the entity index space defined by the
   /// specialization.
   struct index_map {
-    std::size_t kind; // mesh definition entity kind
-    std::size_t idx; // entity index space id
+    /// mesh definition entity kind
+    entity_kind kind;
+    /// entity index space id
+    entity_index_space idx;
   };
 
   /// Total number of colors.
@@ -182,7 +184,7 @@ struct process_coloring {
   Color color;
 
   /// The global number of entities in this index space.
-  std::size_t entities;
+  util::gid entities;
 
   /// The local coloring information for this index space.
   /// The coloring information is expressed in the mesh index space,
@@ -233,12 +235,13 @@ struct unstructured_base {
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = util::crs;
   using cmap = unstructured_impl::cmap;
+  using reverse_maps_t = std::vector<std::map<util::gid, util::id>>;
 
   using source_pointers = std::vector</* over local colors */
     std::map</* over global source colors */
       Color,
       std::vector</* over color source pointers */
-        std::pair<std::size_t /* global id */, std::size_t /* offset */>>>>;
+        std::pair<util::id /* local offset */, util::id /* remote offset */>>>>;
 
   using destination_intervals = std::vector</* over local colors */
     std::vector</* over contiguous intervals */
@@ -318,21 +321,21 @@ struct unstructured_base {
     source_pointers & pointers,
     data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph,
     data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph_shared,
-    data::multi<field<util::id>::accessor1<privilege_ghost_repeat<wo, na, N>>>
+    data::multi<field<util::gid>::accessor1<privilege_ghost_repeat<wo, na, N>>>
       fmap,
-    std::vector<std::map<std::size_t, std::size_t>> & rmaps,
+    reverse_maps_t & rmaps,
     MPI_Comm const & comm) {
     flog_assert(vpc.size() == fmap.depth(),
       vpc.size() << " colorings for " << fmap.depth() << " colors");
 
     auto [rank, size] = util::mpi::info(comm);
 
-    std::vector<std::map<std::size_t, std::size_t>> shared_offsets(vpc.size()),
+    std::vector<std::map<util::gid, util::id>> shared_offsets(vpc.size()),
       ghost_offsets(vpc.size());
 
     std::vector</* over processes */
       std::vector</* over local colors */
-        std::vector<std::tuple<std::size_t /* id */,
+        std::vector<std::tuple<util::gid,
           std::size_t /* local color */,
           std::size_t /* global color */>>>>
       sources(size);
@@ -350,7 +353,7 @@ struct unstructured_base {
     auto vi = vpc.begin();
     for(auto & fa : fmap.accessors()) {
       auto & pc = *vi++;
-      std::vector<std::size_t> entities;
+      std::vector<util::gid> entities;
       auto const & ic = pc.coloring;
 
       /*
@@ -434,7 +437,7 @@ struct unstructured_base {
 
     /*
       Fulfill the requests that we received from other processes, i.e.,
-      provide the locaL offset for the requested shared mesh ids.
+      provide the local offset for the requested shared mesh ids.
      */
 
     std::vector<std::vector<std::size_t>> fulfills(size);
@@ -527,7 +530,7 @@ struct unstructured_base {
       Setup cgraph data
      */
 
-    using ghost_info = std::tuple<std::size_t, /*ghost id*/
+    using ghost_info = std::tuple<util::gid, /*ghost id*/
       std::size_t, /*local color*/
       std::size_t, /*local offset*/
       std::size_t /*remote offset*/
@@ -540,7 +543,7 @@ struct unstructured_base {
 
     // lambda
     auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
-                            std::size_t const & in_id,
+                            util::gid const & in_id,
                             std::size_t const & in_lco,
                             std::size_t & gcolor,
                             ghost_info & ginfo) {
@@ -653,7 +656,7 @@ struct unstructured_base {
     data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
       aa,
     std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
+      std::vector<std::pair<util::id, util::id>>>> const & points,
     MPI_Comm const &) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
@@ -800,7 +803,7 @@ namespace unstructured_impl {
   @tparam NF    Number of privileges for connectivity field.
   @param  mconn A multi-accessor to the connectivity field.
   @param  c     The coloring.
-  @param  map   The local-to-global id map for the to entities.
+  @param  map   The global-to-local id map for the to entities.
  */
 template<entity_index_space From, entity_index_space To, PrivilegeCount NF>
 void
@@ -808,19 +811,18 @@ init_connectivity(
   data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
     mconn,
   unstructured_base::coloring const & c,
-  std::vector<std::map<std::size_t, std::size_t>> const & maps) {
+  unstructured_base::reverse_maps_t const & maps) {
 
   auto pcs = c.idx_spaces[From].begin();
   auto mp = maps.begin();
   for(auto & x2y : mconn.accessors()) {
     auto const & pc = *pcs++;
     auto const & vm = *mp++;
-    std::size_t off{0};
+    util::id off{0};
 
     auto const & cnx = pc.cnx_colorings[To];
     for(const util::crs::span r : cnx) {
-      auto v =
-        util::transform_view(r, [&vm](std::size_t i) { return vm.at(i); });
+      auto v = util::transform_view(r, [&vm](util::gid i) { return vm.at(i); });
       x2y[off++].assign(v.begin(), v.end());
     } // for
   } // for

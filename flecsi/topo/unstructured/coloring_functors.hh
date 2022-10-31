@@ -5,6 +5,7 @@
 #define FLECSI_TOPO_UNSTRUCTURED_COLORING_FUNCTORS_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/crs.hh"
 
@@ -20,7 +21,7 @@ namespace unstructured_impl {
 
 template<typename D>
 struct pack_definitions {
-  pack_definitions(D const & md, std::size_t id, const util::equal_map & dist)
+  pack_definitions(D const & md, entity_kind id, const util::equal_map & dist)
     : md_(md), id_(id), dist_(dist) {}
 
   auto operator()(int rank, int) const {
@@ -35,7 +36,7 @@ struct pack_definitions {
 
 private:
   D const & md_;
-  std::size_t const id_;
+  entity_kind const id_;
   const util::equal_map & dist_;
 }; // struct pack_definitions
 
@@ -68,7 +69,7 @@ private:
 
 struct vertex_referencers {
   vertex_referencers(
-    std::map<std::size_t, std::vector<std::size_t>> const & vertex2cell,
+    std::map<util::gid, std::vector<util::gid>> const & vertex2cell,
     const util::equal_map & dist,
     int rank)
     : size_(dist.size()) {
@@ -90,7 +91,7 @@ struct vertex_referencers {
 
 private:
   const int size_;
-  std::vector<std::map<std::size_t, std::vector<std::size_t>>> references_;
+  std::vector<std::map<util::gid, std::vector<util::gid>>> references_;
 }; // struct vertex_referencers
 
 /*
@@ -99,8 +100,8 @@ private:
  */
 
 struct entity_connectivity {
-  entity_connectivity(std::vector<std::vector<std::size_t>> const & vertices,
-    std::map<std::size_t, std::vector<std::size_t>> const & connectivity,
+  entity_connectivity(std::vector<std::vector<util::gid>> const & vertices,
+    std::map<util::gid, std::vector<util::gid>> const & connectivity,
     const util::equal_map & dist,
     int rank)
     : size_(dist.size()), connectivity_(size_) {
@@ -123,7 +124,7 @@ struct entity_connectivity {
 
 private:
   const int size_;
-  std::vector<std::map<std::size_t, std::vector<std::size_t>>> connectivity_;
+  std::vector<std::map<util::gid, std::vector<util::gid>>> connectivity_;
 }; // struct entity_connectivity
 
 /*
@@ -136,17 +137,17 @@ struct move_primaries {
     std::tuple<
       std::vector</* over cells */
         std::tuple<
-          std::array<std::size_t, 2> /* color, mesh id> */,
-          std::vector<std::size_t> /* entity definition (vertex mesh ids) */
+          std::pair<Color, util::gid>,
+          std::vector<util::gid> /* entity definition (vertex mesh ids) */
         >
       >,
-      std::map</* over vertices */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* vertex-to-entity connectivity */
+      std::map</* vertex-to-entity connectivity map */
+        util::gid,
+        std::vector<util::gid>
       >,
-      std::map</* over cells */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* cell-to-cell connectivity */
+      std::map</* cell-to-cell connectivity map */
+        util::gid,
+        std::vector<util::gid>
       >
     >;
   // clang-format on
@@ -155,23 +156,23 @@ struct move_primaries {
     Color colors,
     std::vector<Color> const & index_colors,
     util::crs & e2v,
-    std::map<std::size_t, std::vector<std::size_t>> & v2e,
-    std::map<std::size_t, std::vector<std::size_t>> & e2e,
+    std::map<util::gid, std::vector<util::gid>> & v2e,
+    std::map<util::gid, std::vector<util::gid>> & e2e,
     int rank)
     : size_(dist.size()) {
     const util::equal_map em(colors, size_);
 
     for(std::size_t r{0}; r < std::size_t(size_); ++r) {
       std::vector<
-        std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
+        std::tuple<std::pair<Color, util::gid>, std::vector<util::gid>>>
         cell_pack;
-      std::map<std::size_t, std::vector<std::size_t>> v2e_pack;
-      std::map<std::size_t, std::vector<std::size_t>> e2e_pack;
+      std::map<util::gid, std::vector<util::gid>> v2e_pack;
+      std::map<util::gid, std::vector<util::gid>> e2e_pack;
 
       for(std::size_t i{0}; i < dist[rank].size(); ++i) {
         if(em.bin(index_colors[i]) == r) {
           const auto j = dist(rank) + i;
-          const std::array<std::size_t, 2> info{index_colors[i], j};
+          const std::pair<Color, util::gid> info{index_colors[i], j};
           cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
 
           /*
@@ -220,40 +221,40 @@ struct communicate_entities {
     std::tuple<
       std::vector</* over entities */
         std::tuple<
-          std::array<std::size_t, 2> /* color, mesh id> */,
-          std::vector<std::size_t> /* entity definition (vertex mesh ids) */,
+          std::pair<Color, util::gid>,
+        std::vector<util::gid> /* entity definition (vertex mesh ids) */,
           std::set<Color> /* dependents */
         >
       >,
       std::map</* over vertices */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* vertex-to-entity connectivity */
+        util::gid, /* mesh id */
+        std::vector<util::gid> /* vertex-to-entity connectivity */
       >,
       std::map</* over entities */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* entity-to-entity connectivity */
+        util::gid, /* mesh id */
+        std::vector<util::gid> /* entity-to-entity connectivity */
       >
     >;
   // clang-format on
 
-  communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
-    std::unordered_map<std::size_t, std::set<Color>> const & deps,
-    std::unordered_map<std::size_t, Color> const & colors,
+  communicate_entities(std::vector<std::vector<util::gid>> const & entities,
+    std::unordered_map<util::gid, std::set<Color>> const & deps,
+    std::unordered_map<util::gid, Color> const & colors,
     util::crs const & e2v,
-    std::map<std::size_t, std::vector<std::size_t>> const & v2e,
-    std::map<std::size_t, std::vector<std::size_t>> const & e2e,
-    std::map<std::size_t, std::size_t> const & m2p)
+    std::map<util::gid, std::vector<util::gid>> const & v2e,
+    std::map<util::gid, std::vector<util::gid>> const & e2e,
+    std::map<util::gid, util::id> const & m2p)
     : size_(entities.size()) {
     for(auto re : entities) {
-      std::vector<std::tuple<std::array<std::size_t, 2>,
-        std::vector<std::size_t>,
+      std::vector<std::tuple<std::pair<Color, util::gid>,
+        std::vector<util::gid>,
         std::set<Color>>>
         entity_pack;
-      std::map<std::size_t, std::vector<std::size_t>> v2e_pack;
-      std::map<std::size_t, std::vector<std::size_t>> e2e_pack;
+      std::map<util::gid, std::vector<util::gid>> v2e_pack;
+      std::map<util::gid, std::vector<util::gid>> e2e_pack;
 
       for(auto c : re) {
-        const std::array<std::size_t, 2> info{colors.at(c), c};
+        const std::pair<Color, util::gid> info{colors.at(c), c};
         entity_pack.push_back(std::make_tuple(info,
           to_vector(e2v[m2p.at(c)]),
           deps.count(c) ? deps.at(c) : std::set<Color>{}));
@@ -282,12 +283,11 @@ private:
 struct rank_coloring {
 
   rank_coloring(const util::equal_map & pdist,
-    std::unordered_map<std::size_t, Color> const & v2co)
+    std::unordered_map<util::gid, Color> const & v2co)
     : size_(pdist.size()), vertices_(size_) {
 
     for(auto const & v : v2co) {
-      vertices_[pdist.bin(v.first)].emplace_back(
-        std::array<std::size_t, 2>{v.first, v.second});
+      vertices_[pdist.bin(v.first)].push_back({v.first, v.second});
     } // for
   } // rank_coloring
 
@@ -298,15 +298,15 @@ struct rank_coloring {
 
 private:
   const int size_;
-  std::vector<std::vector<std::array<std::size_t, 2>>> vertices_;
+  std::vector<std::vector<std::pair<util::gid, Color>>> vertices_;
 }; // struct rank_coloring
 
 template<typename Definition>
 struct move_vertices {
 
   using return_type = std::vector</* over vertices */
-    std::tuple<std::array<std::size_t, 2> /* color, mesh id */,
-      typename Definition::point /* coordinates */
+    std::tuple<std::pair<Color, util::gid>,
+      typename Definition::point // coordinates
       >>;
 
   move_vertices(const util::equal_map & dist,
@@ -323,7 +323,7 @@ struct move_vertices {
       return_type vertex_pack;
       for(std::size_t i{0}; i < n; ++i) {
         if(em.bin(index_colors[i]) == r) {
-          const std::array<std::size_t, 2> info{index_colors[i], v0 + i};
+          const std::pair<Color, util::gid> info{index_colors[i], v0 + i};
           vertex_pack.push_back(std::make_tuple(info, vertices[i]));
         } // if
       } // for

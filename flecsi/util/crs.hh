@@ -27,12 +27,12 @@ as(std::vector<U> const & v) {
 
 /// Efficient storage for a sequence of sequences of integers.
 struct crs : util::with_index_iterator<const crs> {
-  using span = util::span<const std::size_t>;
+  using span = util::span<const util::gid>;
 
   /// The rows in \c indices.
   util::offsets offsets;
   /// The concatenated rows.
-  std::vector<std::size_t> indices;
+  std::vector<util::gid> indices;
 
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {

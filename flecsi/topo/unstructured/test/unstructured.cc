@@ -11,7 +11,7 @@ using namespace flecsi;
 
 void
 init_rf(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> vids,
+  field<util::gid>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::mutator<wo, wo, na> tf,
   bool is_cell) {
   int sz = 3;
@@ -33,7 +33,7 @@ init_rf(unstructured::accessor<ro, ro, ro> m,
 
 void
 print_rf(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> gids,
+  field<util::gid>::accessor<ro, ro, ro> gids,
   field<int, data::ragged>::accessor<ro, ro, ro> tf,
   bool is_cell) {
 
@@ -76,7 +76,7 @@ allocate_field(unstructured::accessor<ro, ro, ro> m,
 
 int
 verify_rf(unstructured::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> vids,
+  field<util::gid>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::accessor<ro, ro, ro> tf,
   bool is_cell) {
 

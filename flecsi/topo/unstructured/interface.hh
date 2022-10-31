@@ -121,7 +121,7 @@ private:
    */
 
   template<index_space S>
-  auto reverse_map() & {
+  reverse_maps_t reverse_map() & {
     return reverse_maps_.template get<S>();
   }
 
@@ -135,7 +135,7 @@ private:
    */
 
   template<index_space S>
-  auto reverse_map() && {
+  reverse_maps_t reverse_map() && {
     return std::move(reverse_maps_.template get<index<S>>());
   }
 
@@ -296,7 +296,7 @@ private:
       typename field<T>::template definition<Policy, SS>>...>;
   };
 
-  static inline const typename key_define<util::id, index_spaces>::type
+  static inline const typename key_define<util::gid, index_spaces>::type
     forward_maps_;
 
   typename ctopo::core ctopo_;
@@ -313,8 +313,7 @@ private:
 
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
-  util::key_array<std::vector<std::map<std::size_t, std::size_t>>, index_spaces>
-    reverse_maps_;
+  util::key_array<reverse_maps_t, index_spaces> reverse_maps_;
   // Initializing this depends on the above:
   util::key_array<data::copy_plan, index_spaces> plan_;
 

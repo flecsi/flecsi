@@ -112,7 +112,7 @@ check(mesh1d::accessor<ro> m,
 namespace {
 int
 setup() {
-  mesh1d::coord indices{64};
+  mesh1d::gcoord indices{64};
   mesh1d::base::colors colors{4};
   mesh1d::coord hdepths{0};
   mesh1d::coord bdepths{0};

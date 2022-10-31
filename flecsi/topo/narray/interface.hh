@@ -7,6 +7,7 @@
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/layout.hh"
+#include "flecsi/data/map.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
@@ -92,15 +93,16 @@ private:
     /// axis (\e low, \e interior, or \e high).
     std::uint32_t orientation;
 
-    using scoord = util::key_array<std::size_t, axes>;
+    using scoord = util::key_array<util::id, axes>;
+    using global_scoord = util::key_array<util::gid, axes>;
     using shypercube = std::array<scoord, 2>;
 
     /// Global extents.
     /// These are necessarily the same on every color.
-    scoord global;
+    global_scoord global;
     /// The global offsets to the beginning of the color's logical region.
     /// Use to map from local to global ids.
-    scoord offset;
+    global_scoord offset;
     /// The size of the color's region, including ghosts and boundaries.
     scoord extents;
     /// The domain of the color's elements that logically exist.
@@ -175,8 +177,8 @@ private:
 
   static void set_meta_idx(meta_data & md, const process_color & pc) {
     // clang-format off
-    static constexpr auto copy = [](const coord & c,
-      typename meta_data::scoord & s) {
+    static constexpr auto copy = [](const auto & c,
+      auto & s) {
       const auto n = s.size();
       flog_assert(
         c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
@@ -274,7 +276,7 @@ struct narray<Policy>::access {
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), extents<S>());
+      s.data(), size_t_extents<S>(std::make_index_sequence<dimension>()));
   }
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
@@ -285,7 +287,8 @@ struct narray<Policy>::access {
     data::accessor<data::dense, T, P> const & a) const {
     return util::mdcolex<
       typename std::remove_reference_t<decltype(a)>::element_type,
-      dimension>(a.span().data(), extents<S>());
+      dimension>(a.span().data(),
+      size_t_extents<S>(std::make_index_sequence<dimension>()));
   }
 
   template<class F>
@@ -311,7 +314,7 @@ private:
   access() {}
 
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
+  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     return offset<S, A>() + i;
   }
 
@@ -321,18 +324,18 @@ private:
   }
 
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET std::size_t global() const {
+  FLECSI_INLINE_TARGET util::gid global() const {
     return meta_->template get<S>().global.template get<A>();
   }
 
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET std::size_t offset() const {
+  FLECSI_INLINE_TARGET util::gid offset() const {
     return meta_->template get<S>().offset.template get<A>();
   }
 
   /// \deprecated Renamed to \c range (currently a type).
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET std::size_t extents() const {
+  FLECSI_INLINE_TARGET util::id extents() const {
     return meta_->template get<S>().extents.template get<A>();
   }
 
@@ -342,12 +345,12 @@ private:
   }
 
   template<index_space S, axis A, std::size_t P>
-  FLECSI_INLINE_TARGET std::size_t logical() const {
+  FLECSI_INLINE_TARGET util::id logical() const {
     return meta_->template get<S>().logical[P].template get<A>();
   }
 
   template<index_space S, axis A, std::size_t P>
-  FLECSI_INLINE_TARGET std::size_t extended() const {
+  FLECSI_INLINE_TARGET util::id extended() const {
     return meta_->template get<S>().extended[P].template get<A>();
   }
 
@@ -471,7 +474,7 @@ private:
     \sa enum domain
   */
   template<index_space S, axis A, domain DM>
-  FLECSI_INLINE_TARGET std::size_t offset() const {
+  FLECSI_INLINE_TARGET util::gid offset() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 0>();
     }
@@ -502,6 +505,13 @@ private:
   template<axis A>
   FLECSI_TARGET static constexpr std::uint32_t to_idx() {
     return axes::template index<A>;
+  }
+
+  template<index_space S, std::size_t... I>
+  auto size_t_extents(std::index_sequence<I...>) const {
+    std::array<std::size_t, dimension> ret;
+    ((ret[I] = extents<S>()[I]), ...);
+    return ret;
   }
 }; // struct narray<Policy>::access
 

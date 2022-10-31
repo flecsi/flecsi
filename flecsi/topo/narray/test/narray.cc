@@ -673,9 +673,9 @@ int
 coloring_driver() {
   UNIT() {
 #if 1
-    mesh3d::coord indices{8, 8, 8};
+    mesh3d::gcoord indices{8, 8, 8};
 #else
-    mesh3d::coord indices{9, 9, 9};
+    mesh3d::gcoord indices{9, 9, 9};
 #endif
 
     mesh3d::coord hdepths{1, 1, 1};
@@ -829,7 +829,7 @@ narray_driver() {
 
     {
       // 1D Mesh
-      mesh1d::coord indices{9};
+      mesh1d::gcoord indices{9};
       mesh1d::coord hdepths{1};
       mesh1d::coord bdepths{2};
       std::vector<bool> periodic{false};
@@ -856,7 +856,7 @@ narray_driver() {
 
     {
       // 2D Mesh
-      mesh2d::coord indices{8, 8};
+      mesh2d::gcoord indices{8, 8};
       mesh2d::coord hdepths{1, 2};
       mesh2d::coord bdepths{2, 1};
       std::vector<bool> periodic{false, false};
@@ -877,7 +877,7 @@ narray_driver() {
 
     {
       // 3D Mesh
-      mesh3d::coord indices{4, 4, 4};
+      mesh3d::gcoord indices{4, 4, 4};
       mesh3d::coord hdepths{1, 1, 1};
       mesh3d::coord bdepths{1, 1, 1};
       std::vector<bool> periodic{false, false, false};
@@ -898,7 +898,7 @@ narray_driver() {
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
       // 4D Mesh
-      mesh4d::coord indices{4, 4, 4, 4};
+      mesh4d::gcoord indices{4, 4, 4, 4};
       mesh4d::coord hdepths{1, 1, 1, 1};
       mesh4d::coord bdepths{1, 1, 1, 1};
       std::vector<bool> periodic{false, false, false, false};
