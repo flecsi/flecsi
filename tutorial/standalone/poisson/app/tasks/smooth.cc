@@ -1,5 +1,4 @@
 #include "tasks/smooth.hh"
-#include <Kokkos_Core.hpp>
 
 using namespace flecsi;
 
@@ -23,7 +22,6 @@ poisson::task::red(mesh::accessor<ro> m,
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
   }; // for
-  Kokkos::fence();
   // clang format on
 } // smooth
 
@@ -47,6 +45,5 @@ poisson::task::black(mesh::accessor<ro> m,
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
   }; // for
-  Kokkos::fence();
   // clang format on
 } // smooth
