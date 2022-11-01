@@ -17,6 +17,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <regex>
 #include <sstream>
 #include <vector>
 
@@ -40,6 +41,17 @@ struct node : NodePolicy, std::list<node<NodePolicy> const *> {
     std::stringstream ss;
     ss << address;
     identifier_ = ss.str();
+
+    // Strip arguments.
+    label_ = std::regex_replace(label_, std::regex("\\([^\\)]*\\)"), "()");
+
+    // Strip unit test wrapper.
+    label_ = std::count(label_.begin(), label_.end(), '<')
+               ? std::regex_replace(
+                   std::regex_replace(label, std::regex("^[^<]*<"), ""),
+                   std::regex(std::regex(",.*")),
+                   "")
+               : label_;
   }
 
   std::string const & identifier() const {
@@ -146,9 +158,35 @@ struct dag : std::vector<dag_impl::node<NodePolicy> *> {
   void add(graphviz & gv, const char * color = "#c5def5") const {
     std::map<uintptr_t, Agnode_t *> node_map;
 
-    for(auto n : *this) {
+    // Find the common leading substring of the nodes under this dag.
+    std::string cmmn;
+    if(this->size()) {
+      // Return substring up to last occurance of "::" (exclusive) or
+      // empty string.
+      auto strip_ns = [](std::string const & s) {
+        auto pos = s.find_last_of(':');
+        return std::count(s.begin(), s.end(), ':') % 2 == 0 &&
+                   pos != std::string::npos
+                 ? s.substr(0, pos - 1) /* assumes namespace separator "::" */
+                 : "";
+      }; // strip_ns
 
-      auto * node = gv.add_node(n->identifier().c_str(), n->label().c_str());
+      auto n = this->begin();
+      cmmn = strip_ns((*n++)->label());
+      for(; n != this->end(); ++n) {
+        auto current = (*n)->label();
+        while(cmmn.size() && current.find(cmmn) == std::string::npos) {
+          cmmn = strip_ns(cmmn);
+        } // while
+      } // for
+      cmmn = cmmn.size() ? cmmn + "::" : cmmn;
+    } // if
+
+    for(auto n : *this) {
+      // Strip the common leading substring.
+      std::string label = std::regex_replace(n->label(), std::regex(cmmn), "");
+
+      auto * node = gv.add_node(n->identifier().c_str(), label.c_str());
       node_map[uintptr_t(n)] = node;
 
       gv.set_node_attribute(node, "color", "black");
