@@ -1013,7 +1013,7 @@ narray_driver() {
       // 4D Mesh
       mesh4d::gcoord indices{4, 4, 4, 4};
       mesh4d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes = topo::narray_utils::make_axes(16, indices);
       for(auto & a : idef.axes) {
         a.hdepth = 1;
         a.bdepth = 1;
@@ -1023,7 +1023,7 @@ narray_driver() {
 
       coloring4.allocate(idef);
       m4.allocate(coloring4.get());
-      execute<check_4dmesh>(m4);
+      EXPECT_EQ(test<check_4dmesh>(m4), 0);
     }
   }; // UNIT
 } // narray_driver
