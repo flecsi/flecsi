@@ -113,13 +113,10 @@ namespace {
 int
 setup() {
   mesh1d::gcoord indices{64};
-  mesh1d::base::colors colors{4};
-  mesh1d::coord hdepths{0};
-  mesh1d::coord bdepths{0};
-  std::vector<bool> periodic{false};
-  auto axcm = topo::narray_utils::make_color_maps(colors[0], indices);
-  mesh1d::coloring_definition cd = {axcm, hdepths, bdepths, periodic, false};
-  mc.allocate(cd);
+  Color colors{4};
+  mesh1d::index_definition idef;
+  idef.axes = topo::narray_utils::make_axes(colors, indices);
+  mc.allocate(idef);
   m.allocate(mc.get());
   run::context::instance().add_topology(m);
   return 0;

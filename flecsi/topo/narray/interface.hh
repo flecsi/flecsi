@@ -88,39 +88,25 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 private:
   /// Structural information about one color.
   /// \image html narray-layout.svg "Layouts for each possible orientation." width=100%
-  struct meta_data {
-    /// Two bits for each axis that give the position of the color along the
-    /// axis (\e low, \e interior, or \e high).
-    std::uint32_t orientation;
 
-    using scoord = util::key_array<util::id, axes>;
-    using global_scoord = util::key_array<util::gid, axes>;
-    using shypercube = std::array<scoord, 2>;
-
-    /// Global extents.
-    /// These are necessarily the same on every color.
-    global_scoord global;
-    /// The global offsets to the beginning of the color's logical region.
-    /// Use to map from local to global ids.
-    global_scoord offset;
-    /// The size of the color's region, including ghosts and boundaries.
-    scoord extents;
-    /// The domain of the color's elements that logically exist.
-    /// Ghosts and boundaries are not included.
-    shypercube logical;
-    /// The domain of the color's elements, including boundaries but not
-    /// ghosts.
-    shypercube extended;
-  };
+  using meta_data = util::key_array<axis_color, axes>;
 
   template<auto... Value, std::size_t... Index>
   narray(const coloring & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>)
-    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_{{make_repartitioned<Policy, Value>(c.colors,
-        make_partial<idx_size>(c.partitions[Index]))...}},
-      plan_{{make_copy_plan<Value>(c.colors,
+    : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
+      part_{{make_repartitioned<Policy, Value>(c.colors(),
+        make_partial<idx_size>([&]() {
+          std::vector<std::size_t> partitions;
+          for(const auto & idxco :
+            c.idx_colorings[Index].process_coloring(c.comm)) {
+            partitions.push_back(idxco.extents());
+          }
+          concatenate(partitions, c.colors(), c.comm);
+          return partitions;
+        }()))...}},
+      plan_{{make_copy_plan<Value>(c.colors(),
         c.idx_colorings[Index],
         part_[Index],
         c.comm)...}} {
@@ -130,14 +116,15 @@ private:
   }
 
   /*!
-   Method to create copy plans for entities of an index-sapce.
+   Method to create copy plans for entities of an index-space.
    @param colors  The number of colors
-   @param vpc  Vector of process_colors, where an index into vpc provides
-   coloring information corresponding to a particular color.
+   @param idef index definition
+   @param p partition
+   @param comm MPI communicator
   */
   template<index_space S>
   data::copy_plan make_copy_plan(Color colors,
-    std::vector<process_color> const & vpc,
+    index_definition const & idef,
     repartitioned & p,
     MPI_Comm const & comm) {
 
@@ -157,7 +144,7 @@ private:
     // communication is invoked as part of task execution depending upon the
     // privilege requirements of the task.
 
-    execute<idx_itvls, mpi>(vpc, num_intervals, intervals, points, comm);
+    execute<idx_itvls, mpi>(idef, num_intervals, intervals, points, comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
@@ -175,40 +162,19 @@ private:
     return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
-  static void set_meta_idx(meta_data & md, const process_color & pc) {
-    // clang-format off
-    static constexpr auto copy = [](const auto & c,
-      auto & s) {
-      const auto n = s.size();
-      flog_assert(
-        c.size() == n, "invalid #axes(" << c.size() << ") must be: " << n);
-      std::copy_n(c.begin(), n, s.begin());
-    };
-
-    static constexpr auto copy2 = [](const hypercube & h,
-      typename meta_data::shypercube & s) {
-      for(auto i = h.size(); i--;)
-        copy(h[i], s[i]);
-    };
-    // clang-format on
-
-    md.orientation = pc.orientation;
-    copy(pc.global, md.global);
-    copy(pc.offset, md.offset);
-    copy(pc.extents, md.extents);
-    copy2(pc.logical, md.logical);
-    copy2(pc.extended, md.extended);
-  }
-
   template<auto... Value> // index_spaces
   static void set_meta(
     data::multi<typename field<util::key_array<meta_data, index_spaces>,
       data::single>::template accessor<wo>> mm,
     narray_base::coloring const & c) {
     const auto ma = mm.accessors();
+    auto copy_meta_data = [](meta_data & md, const index_color & idxco) {
+      std::copy(idxco.axis_colors.begin(), idxco.axis_colors.end(), md.begin());
+    };
     for(auto i = ma.size(); i--;) {
       std::size_t index{0};
-      (set_meta_idx(ma[i]->template get<Value>(), c.idx_colorings[index++][i]),
+      (copy_meta_data(ma[i]->template get<Value>(),
+         c.idx_colorings[index++].process_coloring(c.comm)[i]),
         ...);
     }
   }
@@ -276,7 +242,7 @@ struct narray<Policy>::access {
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
     return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), size_t_extents<S>(std::make_index_sequence<dimension>()));
+      s.data(), extents<S>());
   }
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
@@ -287,8 +253,7 @@ struct narray<Policy>::access {
     data::accessor<data::dense, T, P> const & a) const {
     return util::mdcolex<
       typename std::remove_reference_t<decltype(a)>::element_type,
-      dimension>(a.span().data(),
-      size_t_extents<S>(std::make_index_sequence<dimension>()));
+      dimension>(a.span().data(), extents<S>());
   }
 
   template<class F>
@@ -315,72 +280,73 @@ private:
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
-    return offset<S, A>() + i;
-  }
-
-  template<index_space S, axis A>
-  FLECSI_INLINE_TARGET std::uint32_t orientation() const {
-    return meta_->template get<S>().orientation >> to_idx<A>() * 2;
+    return get_axis<S, A>().global_id(i);
   }
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return meta_->template get<S>().global.template get<A>();
+    return get_axis<S, A>().global();
   }
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
-    return meta_->template get<S>().offset.template get<A>();
+    return get_axis<S, A>().offset();
   }
 
   /// \deprecated Renamed to \c range (currently a type).
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET util::id extents() const {
-    return meta_->template get<S>().extents.template get<A>();
+  FLECSI_INLINE_TARGET util::id extent() const {
+    return get_axis<S, A>().extent();
+  }
+
+  template<index_space S, auto... A>
+  FLECSI_INLINE_TARGET auto extents(util::constants<A...>) const {
+    util::key_array<util::gid, axes> ext{{extent<S, A>()...}};
+    return ext;
   }
 
   template<index_space S>
   FLECSI_INLINE_TARGET auto extents() const {
-    return meta_->template get<S>().extents;
+    return extents<S>(axes());
   }
 
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
-    return meta_->template get<S>().logical[P].template get<A>();
+    return get_axis<S, A>().template logical<P>();
   }
 
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
-    return meta_->template get<S>().extended[P].template get<A>();
+    return get_axis<S, A>().template extended<P>();
   }
 
   /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
    This function is \ref topology "host-accessible".
-   \sa meta_data, process_color
+   \sa meta_data, index_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
-    return orientation<S, A>() & narray_impl::low;
+    return get_axis<S, A>().is_low();
   }
 
   /*!
    Method to check if an axis of the local mesh is incident on the upper
    bound of the corresponding axis of the global mesh.
    This function is \ref topology "host-accessible".
-   \sa meta_data, process_color
+   \sa meta_data, index_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
-    return orientation<S, A>() & narray_impl::high;
+    return get_axis<S, A>().is_high();
   }
 
   /*!
    Method to check if axis A of index-space S is in between the lower and upper
    bound along axis A of the global domain.
    This function is \ref topology "host-accessible".
-   \sa meta_data, process_color
+   \sa meta_data, index_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
@@ -406,7 +372,7 @@ private:
       return extended<S, A, 1>() - extended<S, A, 0>();
     }
     else if constexpr(DM == domain::all) {
-      return extents<S, A>();
+      return extent<S, A>();
     }
     else if constexpr(DM == domain::boundary_low) {
       return logical<S, A, 0>() - extended<S, A, 0>();
@@ -422,7 +388,7 @@ private:
     }
     else if constexpr(DM == domain::ghost_high) {
       if(!is_high<S, A>())
-        return extents<S, A>() - logical<S, A, 1>();
+        return extent<S, A>() - logical<S, A, 1>();
       else
         return 0;
     }
@@ -449,7 +415,7 @@ private:
         util::iota_view<util::id>(extended<S, A, 0>(), extended<S, A, 1>()));
     }
     else if constexpr(DM == domain::all) {
-      return make_ids<S>(util::iota_view<util::id>(0, extents<S, A>()));
+      return make_ids<S>(util::iota_view<util::id>(0, extent<S, A>()));
     }
     else if constexpr(DM == domain::boundary_low) {
       return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
@@ -507,11 +473,9 @@ private:
     return axes::template index<A>;
   }
 
-  template<index_space S, std::size_t... I>
-  auto size_t_extents(std::index_sequence<I...>) const {
-    std::array<std::size_t, dimension> ret;
-    ((ret[I] = extents<S>()[I]), ...);
-    return ret;
+  template<index_space S, axis A>
+  FLECSI_INLINE_TARGET const axis_color & get_axis() const {
+    return meta_->template get<S>().template get<A>();
   }
 }; // struct narray<Policy>::access
 

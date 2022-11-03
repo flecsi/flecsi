@@ -57,18 +57,11 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
 
   using coord = typename mesh::base::coord;
   using gcoord = typename mesh::base::gcoord;
-  using coloring_definition = typename mesh::base::coloring_definition;
+  using axis_definition = typename mesh::base::axis_definition;
+  using index_definition = typename mesh::base::index_definition;
   using coloring = typename mesh::base::coloring;
-  using color_map = typename mesh::base::color_map;
-  static coloring color(coloring_definition const & cd) {
-    auto [colors, ne, pcs, partitions] =
-      topo::narray_utils::color(cd, MPI_COMM_WORLD);
-    coloring c;
-    c.comm = MPI_COMM_WORLD;
-    c.colors = colors;
-    c.idx_colorings.emplace_back(std::move(pcs));
-    c.partitions.emplace_back(std::move(partitions));
-    return c;
+  static coloring color(index_definition const & idef) {
+    return {MPI_COMM_WORLD, {idef}};
   } // color
 
   /*--------------------------------------------------------------------------*
