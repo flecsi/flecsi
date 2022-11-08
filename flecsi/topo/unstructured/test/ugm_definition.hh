@@ -110,6 +110,7 @@ public:
     return ids;
   } // vertices
 
+private:
   /*
     Return the vertex with the given id.
 
@@ -138,7 +139,6 @@ public:
     return v;
   } // vertex
 
-private:
   mutable std::ifstream file_;
   util::crs e2v_;
 

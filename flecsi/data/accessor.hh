@@ -1374,10 +1374,11 @@ struct scalar_access : bind_tag {
   void topology_send(Func && f, S && s) {
     accessor_member<F, privilege_pack<ro>> acc;
     acc.topology_send(f, std::forward<S>(s));
-
-    scalar_value<value_type> dummy{
-      {}, acc.get_base().get_base().span().data(), &scalar_};
-    std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
+    // A single accessor can be empty if it is part of a multi
+    if(auto * const d = acc.get_base().get_base().span().data()) {
+      scalar_value<value_type> dummy{{}, d, &scalar_};
+      std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
+    }
   }
 
   FLECSI_INLINE_TARGET const value_type * operator->() const {

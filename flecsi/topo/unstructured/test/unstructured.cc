@@ -75,6 +75,23 @@ allocate_field(unstructured::accessor<ro, ro, ro> m,
 }
 
 int
+verify_vid(unstructured::accessor<ro, ro, ro> m,
+  field<std::size_t>::accessor<ro, ro, ro> vids,
+  field<util::gid>::accessor<ro, ro, ro> tf) {
+  UNIT() {
+    for(auto c : m.vertices()) {
+      EXPECT_EQ(tf[c], vids[c]);
+    }
+  };
+}
+
+int
+verify_coords(unstructured::accessor<ro, ro, ro> m,
+  field<unstructured::point>::accessor<ro, ro, ro> coords) {
+  UNIT() { EXPECT_EQ(coords.span().size(), m.vertices().size()); };
+}
+
+int
 verify_rf(unstructured::accessor<ro, ro, ro> m,
   field<util::gid>::accessor<ro, ro, ro> vids,
   field<int, data::ragged>::accessor<ro, ro, ro> tf,
@@ -110,9 +127,10 @@ unstructured_driver() {
     "simple2d-16x16.msh", "simple2d-8x8.msh", "disconnected.msh"};
   UNIT() {
     for(auto f : files) {
+      unstructured::init fields;
       flog(info) << "testing mesh: " << f << std::endl;
-      coloring.allocate(f);
-      mesh.allocate(coloring.get());
+      coloring.allocate(f, fields);
+      mesh.allocate(coloring.get(), fields);
 
       {
         auto & tf = rcf(mesh).get_ragged();
@@ -136,6 +154,14 @@ unstructured_driver() {
         execute<print_rf>(mesh, vids(mesh), rvf(mesh), false);
         EXPECT_EQ(test<verify_rf>(mesh, vids(mesh), rvf(mesh), false), 0);
       } // scope
+
+      {
+        auto const & vids = mesh->forward_map<unstructured::vertices>();
+        EXPECT_EQ(
+          test<verify_vid>(mesh, unstructured::vid(mesh), vids(mesh)), 0);
+        EXPECT_EQ(test<verify_coords>(mesh, unstructured::coords(mesh)), 0);
+      } // scope
+
     } // for
   };
 } // unstructured_driver

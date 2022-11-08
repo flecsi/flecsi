@@ -40,27 +40,25 @@ private:
   const util::equal_map & dist_;
 }; // struct pack_definitions
 
-template<typename Definition>
-struct pack_vertices {
-  pack_vertices(Definition const & md, const util::equal_map & dist)
-    : md_(md), dist_(dist) {}
+template<typename T>
+struct pack_field {
+  pack_field(const util::equal_map & dist, const std::vector<T> & field)
+    : dist_(dist), field_(field) {}
 
   auto operator()(int rank, int) const {
-    std::vector<typename Definition::point> vertices;
+    std::vector<std::pair<std::size_t, T>> field_pack;
     const auto dr = dist_[rank];
-    vertices.reserve(dr.size());
-
+    field_pack.reserve(dr.size());
     for(const std::size_t i : dr) {
-      vertices.emplace_back(md_.vertex(i));
+      field_pack.emplace_back(i, field_[i]);
     } // for
-
-    return vertices;
+    return field_pack;
   } // operator(int, int)
 
 private:
-  Definition const & md_;
   const util::equal_map & dist_;
-}; // struct pack_vertices
+  const std::vector<T> & field_;
+}; // struct pack_field
 
 /*
   Send partial vertex-to-cell connectivity information to the rank that owns
@@ -301,46 +299,32 @@ private:
   std::vector<std::vector<std::pair<util::gid, Color>>> vertices_;
 }; // struct rank_coloring
 
-template<typename Definition>
-struct move_vertices {
+template<typename T, typename M>
+struct move_field {
 
-  using return_type = std::vector</* over vertices */
-    std::tuple<std::pair<Color, util::gid>,
-      typename Definition::point // coordinates
-      >>;
-
-  move_vertices(const util::equal_map & dist,
+  move_field(std::size_t size,
     Color colors,
-    std::vector<Color> const & index_colors,
-    std::vector<typename Definition::point> & vertices,
-    int rank)
-    : size_(dist.size()) {
-    const util::equal_map em(colors, size_);
-    const auto v0 = dist(rank);
-    const auto n = index_colors.size();
+    const M & index_colors,
+    const std::vector<T> & field)
+    : em_(colors, size), index_colors_(index_colors), field_(field) {}
 
-    for(std::size_t r{0}; r < std::size_t(size_); ++r) {
-      return_type vertex_pack;
-      for(std::size_t i{0}; i < n; ++i) {
-        if(em.bin(index_colors[i]) == r) {
-          const std::pair<Color, util::gid> info{index_colors[i], v0 + i};
-          vertex_pack.push_back(std::make_tuple(info, vertices[i]));
-        } // if
-      } // for
-
-      packs_.emplace_back(vertex_pack);
+  std::vector<T> operator()(int rank, int) const {
+    std::vector<T> field_pack;
+    int i = 0;
+    for(const auto & v : index_colors_) {
+      if(em_.bin(v) == static_cast<unsigned int>(rank)) {
+        field_pack.push_back(field_[i]);
+      } // if
+      ++i;
     } // for
-  } // move_vertices
-
-  return_type operator()(int rank, int) const {
-    flog_assert(std::size_t(rank) < size_, "invalid rank");
-    return packs_[rank];
-  }
+    return field_pack;
+  } // operator(int, int)
 
 private:
-  std::size_t size_;
-  std::vector<return_type> packs_;
-}; // struct move_vertices
+  const util::equal_map em_;
+  const M & index_colors_;
+  const std::vector<T> & field_;
+}; // struct move_field
 
 } // namespace unstructured_impl
 } // namespace topo
