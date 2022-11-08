@@ -101,8 +101,9 @@ int
 set_driver() {
 
   UNIT() {
-    mesh_coloring.allocate("simple2d-16x16.msh");
-    mesh_underlying.allocate(mesh_coloring.get());
+    unstructured::init fields;
+    mesh_coloring.allocate("simple2d-16x16.msh", fields);
+    mesh_underlying.allocate(mesh_coloring.get(), fields);
     set_coloring.allocate(&mesh_underlying);
     spec_setopo.allocate(set_coloring.get());
 

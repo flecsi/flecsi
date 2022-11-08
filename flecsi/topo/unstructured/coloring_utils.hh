@@ -53,12 +53,6 @@ struct mesh_definition {
     util::gid g,
     const std::vector<util::gid> & v,
     util::crs & e);
-
-  /// Return the vertex with the given id.
-  point vertex(util::gid) const;
-
-  /// Vertex information type, perhaps spatial coordinates.
-  using point = decltype(std::declval<mesh_definition>().vertex(0));
 }; // struct mesh_definition
 #endif
 
@@ -145,10 +139,6 @@ struct coloring_utils {
   /// of a primary that references it.
   void color_vertices();
 
-  /// Redistribute the vertices. This method moves the vertices
-  /// to their owning colors.
-  void migrate_vertices();
-
   /// Close the local vertex distributions with respect to off-color
   /// dependencies, i.e., assemble the local shared and ghost information.
   void close_vertices();
@@ -182,6 +172,16 @@ struct coloring_utils {
   /// coloring, and it computes the connectivity allocation sizes for the
   /// connectivities specified in the coloring_definition.
   auto & generate();
+
+  /// Distribute a field based on the existing \p kind repartition.
+  /// Only primaries and vertices entity_kind are supported.
+  /// The input, \p elems, must be empty everywhere except on rank 0.
+  /// This function returns a vector of vectors of the field distributed in a
+  /// fashion similar to ParMETIS. Each vector correspond to the colors of the
+  /// process, in order.
+  template<class T>
+  std::vector<std::vector<T>> send_field(entity_kind kind,
+    const std::vector<T> & elems);
 
   //////////////////////////////////////////////////////////////////////////////
   // Internal: These are used for testing.
@@ -318,7 +318,6 @@ private:
   std::vector<std::size_t> rghost_;
   unstructured_base::coloring coloring_;
   std::vector<std::set<Color>> color_peers_;
-  std::unordered_map<util::gid, std::tuple<Color, typename MD::point>> v2info_;
 
   // Auxiliary state is associated with an entity's kind (as opposed to
   // its index space).
@@ -903,37 +902,6 @@ coloring_utils<MD>::color_vertices() {
 
 template<typename MD>
 void
-coloring_utils<MD>::migrate_vertices() {
-  /*
-    Read in the vertex coordinates. These will be migrated to the owning
-    processes.
-   */
-
-  const util::equal_map vpm(num_vertices(), size_);
-  auto vertices = util::mpi::one_to_allv<pack_vertices<MD>>({md_, vpm}, comm_);
-
-  /*
-    Migrate the vertices to their actual owners.
-   */
-
-  auto migrated = util::mpi::all_to_allv<move_vertices<MD>>(
-    {vpm, cd_.colors, vertex_raw_, vertices, rank_}, comm_);
-
-  /*
-    Update local information.
-   */
-
-  for(auto const & r : migrated) {
-    for(auto const & v : r) {
-      auto const & info = std::get<0>(v);
-      v2info_.try_emplace(
-        std::get<1>(info), std::make_tuple(std::get<0>(info), std::get<1>(v)));
-    } // for
-  } // for
-} // migrate_vertices
-
-template<typename MD>
-void
 coloring_utils<MD>::close_vertices() {
   auto const & cnns = primary_connectivity_state();
 
@@ -1063,16 +1031,13 @@ coloring_utils<MD>::close_vertices() {
     Fulfill requests from other ranks for our vertex information.
    */
 
-  std::vector<std::vector<std::tuple<Color, typename MD::point>>> fulfill(
-    size_);
-  Color r{0};
+  std::vector<std::vector<Color>> fulfill;
   for(auto rv : requested) {
+    auto & f = fulfill.emplace_back();
+    f.reserve(rv.size());
     for(auto const & v : rv) {
-      auto const & vit = v2info_.at(v);
-      fulfill[r].emplace_back(
-        std::make_tuple(std::get<0>(vit), std::get<1>(vit)));
+      f.push_back(v2co_.at(v));
     } // for
-    ++r;
   } // for
 
   auto fulfilled = util::mpi::all_to_allv(
@@ -1082,16 +1047,14 @@ coloring_utils<MD>::close_vertices() {
     Update our local information.
    */
 
-  std::vector<typename MD::point> v2cd;
-  std::map<util::gid, util::id> m2pv;
-  std::vector<util::gid> p2mv;
+  std::map<std::size_t, std::size_t> m2pv;
+  std::vector<std::size_t> p2mv;
 
   std::size_t ri{0};
   for(auto rv : request) {
     std::size_t vid{0};
     for(auto v : rv) {
-      v2co_.try_emplace(v, std::get<0>(fulfilled[ri][vid]));
-      v2cd.emplace_back(std::get<1>(fulfilled[ri][vid]));
+      v2co_.try_emplace(v, fulfilled[ri][vid]);
       m2pv[v] = vid;
       p2mv.emplace_back(v);
       ++vid;
@@ -1668,6 +1631,48 @@ coloring_utils<MD>::generate() {
 
   return coloring_;
 } // generate
+
+template<typename M, typename T>
+inline std::vector<T>
+find_field_color(const M & map,
+  const std::vector<std::vector<std::pair<std::size_t, T>>> & l,
+  Color c) {
+  std::vector<T> res;
+  for(const auto & lc : l) {
+    for(const auto & v : lc) {
+      if(map.at(v.first) == c)
+        res.push_back(v.second);
+    } // for
+  } // for
+  return res;
+} // find_field_color
+
+template<class MD>
+template<class T>
+std::vector<std::vector<T>>
+coloring_utils<MD>::send_field(entity_kind k, const std::vector<T> & f) {
+  flog_assert(idmap_.find(k) != idmap_.end(), "Invalid kind");
+  flog_assert(
+    k < 2, "Invalid kind, only primaries (0) and vertices (1) supported ");
+
+  // local id and type pairing
+  using l2t = std::pair<std::size_t, T>;
+
+  const util::equal_map em(num_entities(k), size_);
+  auto entities = util::mpi::one_to_allv(pack_field(em, f), comm_);
+
+  std::vector<std::vector<l2t>> locals = util::mpi::all_to_allv(
+    move_field(
+      em.size(), cd_.colors, k == 0 ? vertex_raw_ : primary_raw_, entities),
+    comm_);
+
+  std::vector<std::vector<T>> res;
+
+  for(auto i : util::equal_map(cd_.colors, size_)[process()])
+    res.emplace_back(find_field_color(k == 0 ? v2co_ : p2co_, locals, i));
+
+  return res;
+} // send_field
 
 /// \}
 } // namespace unstructured_impl

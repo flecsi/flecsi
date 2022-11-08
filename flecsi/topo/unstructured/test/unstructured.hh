@@ -9,6 +9,8 @@
 struct unstructured
   : flecsi::topo::specialization<flecsi::topo::unstructured, unstructured> {
 
+  using point = flecsi::topo::unstructured_impl::simple_definition::point;
+
   /*--------------------------------------------------------------------------*
     Structure
    *--------------------------------------------------------------------------*/
@@ -30,6 +32,17 @@ struct unstructured
 
   template<auto>
   static constexpr flecsi::PrivilegeCount privilege_count = 3;
+
+  static const inline flecsi::field<std::size_t>::definition<unstructured,
+    vertices>
+    vid;
+  static const inline flecsi::field<point>::definition<unstructured, vertices>
+    coords;
+
+  struct init {
+    std::vector<std::vector<std::size_t>> id;
+    std::vector<std::vector<point>> coords;
+  };
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -81,7 +94,7 @@ struct unstructured
     Coloring
    *--------------------------------------------------------------------------*/
 
-  static coloring color(std::string const & filename) {
+  static coloring color(std::string const & filename, init & fields) {
     using namespace flecsi::topo::unstructured_impl;
     simple_definition sd(filename.c_str());
 
@@ -124,7 +137,6 @@ struct unstructured
 
     // Vertices
     cu.color_vertices();
-    cu.migrate_vertices();
     cu.close_vertices();
 
     // Edges
@@ -132,23 +144,27 @@ struct unstructured
     cu.color_auxiliary(edges);
     cu.close_auxiliary(edges, core::index<edges>);
 
-    auto co = cu.generate();
+    // Create distributed vector of vector for both the extra fields: vertex id
+    // and coordinates
+    std::vector<std::size_t> lvid;
+    if(flecsi::process() == 0) {
+      auto nv = sd.num_entities(0);
+      lvid.reserve(nv);
+      for(unsigned long i = 0; i < nv; ++i)
+        lvid.push_back(sd.vertex_field(i));
+    }
+    fields.id = cu.send_field(vertices, lvid);
 
-    if(flecsi::processes() <= colors) {
-      std::size_t const entities =
-        co.idx_spaces[core::index<cells>][0].entities;
-      std::size_t M = std::sqrt(entities);
+    std::vector<point> lcoords;
+    if(flecsi::process() == 0) {
+      auto nv = sd.num_entities(0);
+      lcoords.reserve(nv);
+      for(unsigned long i = 0; i < nv; ++i)
+        lcoords.push_back(sd.vertex(i));
+    }
+    fields.coords = cu.send_field(vertices, lcoords);
 
-      if(M * M == entities) {
-        flecsi::util::tikz::write_closure(M,
-          M,
-          co.idx_spaces[core::index<cells>],
-          co.idx_spaces[core::index<vertices>],
-          MPI_COMM_WORLD);
-      } // if
-    } // if
-
-    return co;
+    return cu.generate();
   } // color
 
   /*--------------------------------------------------------------------------*
@@ -225,8 +241,32 @@ struct unstructured
       core::special_field(slm), c.idx_spaces[core::index<I>], rmaps);
   } // init_list
 
+  static void init_vid_coords(
+    flecsi::data::multi<
+      unstructured::accessor<flecsi::ro, flecsi::ro, flecsi::ro>> m,
+    flecsi::data::multi<
+      flecsi::field<std::size_t>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
+      mvid,
+    flecsi::data::multi<
+      flecsi::field<point>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
+      mcoords,
+    const std::vector<std::vector<std::size_t>> & vid,
+    const std::vector<std::vector<point>> & coords) {
+    const auto ma = m.accessors();
+    auto avid = mvid.accessors();
+    auto acoords = mcoords.accessors();
+    for(unsigned int i = 0; i < m.depth(); ++i) {
+      int j = 0;
+      for(auto v : ma[i].vertices<unstructured::owned>()) {
+        avid[i][v] = vid[i][j];
+        acoords[i][v] = coords[i][j++];
+      }
+    }
+  } // init_vid_coords
+
   static void initialize(flecsi::data::topology_slot<unstructured> & s,
-    coloring const & c) {
+    coloring const & c,
+    const init & fields) {
     using namespace flecsi;
     using namespace topo::unstructured_impl;
 
@@ -242,17 +282,19 @@ struct unstructured
     e2c(s).get_ragged().resize();
     e2v(s).get_ragged().resize();
 
-    auto lm = data::launch::make(s);
-    constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
-    constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
-    constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
-    execute<init_connectivity<core::index<cells>, core::index<vertices>, NPC>,
-      mpi>(c2v(lm), c, vmaps);
-    execute<init_connectivity<core::index<edges>, core::index<cells>, NPE>,
-      mpi>(e2c(lm), c, cmaps);
-    execute<init_connectivity<core::index<edges>, core::index<vertices>, NPE>,
-      mpi>(e2v(lm), c, vmaps);
-    execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
+    {
+      auto lm = data::launch::make(s);
+      constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
+      constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
+      constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
+      execute<init_connectivity<core::index<cells>, core::index<vertices>, NPC>,
+        mpi>(c2v(lm), c, vmaps);
+      execute<init_connectivity<core::index<edges>, core::index<cells>, NPE>,
+        mpi>(e2c(lm), c, cmaps);
+      execute<init_connectivity<core::index<edges>, core::index<vertices>, NPE>,
+        mpi>(e2v(lm), c, vmaps);
+      execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
+    }
 
     init_list<index_space::cells, entity_list::owned>(s, c);
     init_list<index_space::cells, entity_list::shared>(s, c);
@@ -260,5 +302,11 @@ struct unstructured
     init_list<index_space::vertices, entity_list::owned>(s, c);
     init_list<index_space::vertices, entity_list::shared>(s, c);
     init_list<index_space::vertices, entity_list::ghost>(s, c);
+
+    // Init the specific fields on the topology using user data
+    auto lm = data::launch::make(s);
+    execute<init_vid_coords, flecsi::mpi>(
+      lm, vid(lm), coords(lm), fields.id, fields.coords);
+
   } // initialize
 }; // struct unstructured

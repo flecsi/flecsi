@@ -147,6 +147,11 @@ public:
     return v;
   } // vertex
 
+  // Mimic a field on the vertex.
+  std::size_t vertex_field(std::size_t id) const {
+    return id;
+  }
+
 private:
   mutable std::ifstream file_;
   util::crs e2v_;
