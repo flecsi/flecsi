@@ -75,9 +75,11 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       }
     }
 
+    // i must refer to a logical index point.
     template<axis A>
     FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
-      return B::template global_id<mesh::vertices, A>(i);
+      return i - B::template logical<mesh::vertices, A, 0>() +
+             B::template offset<mesh::vertices, A, base::domain::global>();
     }
 
     template<axis A, domain DM = interior>
@@ -106,7 +108,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       const std::size_t start = B::template logical<mesh::vertices, A, 0>();
       const std::size_t end = B::template logical<mesh::vertices, A, 1>();
       const std::size_t rng = (end - high) - (start + low);
-      const bool parity = (0 == global_id<A>(start + low) % 2);
+      const bool parity = low == B::template offset<mesh::vertices, A>() % 2;
 
       // clang-format off
       const std::size_t pts =
@@ -142,9 +144,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
     template<axis A>
     double value(std::size_t i) {
-      return (A == x_axis ? xdelta() : ydelta()) *
-             (B::template offset<mesh::vertices, A, base::domain::global>() +
-               i);
+      return (A == x_axis ? xdelta() : ydelta()) * global_id<A>(i);
     }
 
     template<axis A, boundary BD>

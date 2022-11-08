@@ -279,11 +279,6 @@ private:
   access() {}
 
   template<index_space S, axis A>
-  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
-    return get_axis<S, A>().global_id(i);
-  }
-
-  template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
     return get_axis<S, A>().global();
   }
