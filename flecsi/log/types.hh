@@ -191,15 +191,15 @@ protected:
    */
 
   virtual int sync() {
-    int state = 0;
+    bool fail = false;
 
     for(auto b : buffers_) {
-      const int s = b.second.buffer->pubsync();
-      state = (state != 0) ? state : s;
+      if(b.second.buffer->pubsync())
+        fail = true;
     } // for
 
     // Return -1 if one of the buffers had an error
-    return (state == 0) ? 0 : -1;
+    return -fail;
   } // sync
 
 private:
