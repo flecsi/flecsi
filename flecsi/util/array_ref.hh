@@ -214,6 +214,9 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
+template<class T, std::size_t D>
+mdcolex(T *, std::array<std::size_t, D>) -> mdcolex<T, D>;
+
 /// \endcond
 
 /// A small, approximate subset of mdspan as proposed for C++23.
@@ -237,6 +240,8 @@ struct mdspan : detail::mdbase<T, D> {
       return *q;
   }
 };
+template<class T, std::size_t D>
+mdspan(T *, std::array<std::size_t, D>) -> mdspan<T, D>;
 
 /// \cond core
 
