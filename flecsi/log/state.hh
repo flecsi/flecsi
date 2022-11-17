@@ -353,14 +353,6 @@ public:
   void end_flusher() {
     run_flusher_ = false;
   }
-
-  void set_serialized() {
-    serialized_ = true;
-  }
-
-  bool serialized() {
-    return serialized_;
-  }
 #endif
 
 private:
@@ -393,7 +385,6 @@ private:
   std::mutex packets_mutex_;
   std::vector<packet_t> packets_;
   std::atomic<bool> run_flusher_ = true;
-  bool serialized_ = false;
 #endif
 
 }; // class state

@@ -16,17 +16,15 @@ flush_packets() {
     usleep(FLOG_PACKET_FLUSH_INTERVAL);
     std::lock_guard<std::mutex> guard(state::instance().packets_mutex());
 
-    if(state::instance().serialized()) {
-      if(state::instance().packets().size()) {
-        std::sort(state::instance().packets().begin(),
-          state::instance().packets().end());
+    if(state::instance().packets().size()) {
+      std::sort(
+        state::instance().packets().begin(), state::instance().packets().end());
 
-        for(auto & p : state::instance().packets()) {
-          state::instance().stream() << p.message();
-        } // for
+      for(auto & p : state::instance().packets()) {
+        state::instance().stream() << p.message();
+      } // for
 
-        state::instance().packets().clear();
-      } // if
+      state::instance().packets().clear();
     } // if
   } // while
 } // flush_packets

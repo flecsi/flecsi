@@ -80,8 +80,6 @@ send_to_one() {
       delete[] sizes;
       delete[] offsets;
     } // if
-
-    state::instance().set_serialized();
   } // if
 
 } // send_to_one
