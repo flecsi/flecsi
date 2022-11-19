@@ -263,7 +263,7 @@ struct context {
         std::cout << flecsi << std::endl;
 
 #if defined(FLECSI_ENABLE_FLOG)
-        auto const & tm = log::state::instance().tag_map();
+        auto const & tm = log::state::tag_map();
 
         if(tm.size()) {
           std::cout << "Available FLOG Tags (FleCSI Logging Utility):"
@@ -345,10 +345,15 @@ struct context {
       parsed.options, boost::program_options::include_positional);
 
 #if defined(FLECSI_ENABLE_FLOG)
-    if(log::state::instance().initialize(
-         flog_tags_, flog_verbose_, flog_output_process_)) {
+    if(flog_output_process_ + 1 && flog_output_process_ >= processes_) {
+      if(!process_)
+        std::cerr << program_ << ": flog process " << flog_output_process_
+                  << " does not exist with " << processes_ << " processes"
+                  << std::endl;
       return status::error;
-    } // if
+    }
+    log::state::instance.emplace(
+      flog_tags_, flog_verbose_, flog_output_process_);
 #endif
 
     initialized_ = true;
@@ -358,7 +363,7 @@ struct context {
 
   inline void finalize_generic() {
 #if defined(FLECSI_ENABLE_FLOG)
-    log::state::instance().finalize();
+    log::state::instance.reset();
 #endif
 
   } // finalize_generic

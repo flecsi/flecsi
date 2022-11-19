@@ -177,7 +177,7 @@ struct string_case_compare {
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
 #define UNIT                                                                   \
-  ::flecsi::log::state::instance().config_stream().add_buffer(                 \
+  ::flecsi::log::state::instance->config_stream().add_buffer(                  \
     "flog", std::clog, true);                                                  \
   ::flecsi::util::unit::state_t auto_unit_state(__func__);                     \
   return auto_unit_state->*[&]() -> void

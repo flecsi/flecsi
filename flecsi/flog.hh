@@ -81,13 +81,14 @@ struct guard;
   Create a tag group to enable/disable output using guards.
 
   @param label The name of the tag.
+  \warning Tag variables must not be templated.
  */
 
 struct tag {
   friend guard;
 
   tag(const char * label) : label_(label) {
-    state::instance().register_tag(label);
+    state::register_tag(label);
   }
 
 private:
@@ -102,8 +103,7 @@ private:
  */
 
 struct guard {
-  guard(tag const & t)
-    : scope_(state::instance().lookup_tag(t.label_.c_str())) {}
+  guard(tag const & t) : scope_(state::lookup_tag(t.label_.c_str())) {}
 
 private:
   tag_scope_t scope_;
@@ -136,7 +136,7 @@ inline void
 add_output_stream(std::string const & label,
   std::ostream & stream,
   bool colorize = false) {
-  state::instance().config_stream().add_buffer(label, stream, colorize);
+  state::instance.value().config_stream().add_buffer(label, stream, colorize);
 } // add_output_stream
 
 /*

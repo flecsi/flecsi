@@ -10,7 +10,6 @@ set(log_HEADERS
 )
 
 set(log_SOURCES
-  packet.cc
-  utils.cc
+  state.cc
   PARENT_SCOPE
 )

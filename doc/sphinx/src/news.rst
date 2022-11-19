@@ -78,6 +78,7 @@ Fixed
 * Logging
 
   * Messages are sorted by timestamp correctly.
+  * Exiting the process before ``flecsi::finalize`` does not crash.
 
 Changes in v2.1.0 (April 16 2021)
 +++++++++++++++++++++++++++++++++
