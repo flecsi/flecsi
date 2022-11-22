@@ -315,9 +315,6 @@ struct container {
 } // namespace log
 } // namespace flecsi
 
-#define flog_initialize(active)
-#define flog_finalize()
-
 #define flog(severity)                                                         \
   if(true) {                                                                   \
   }                                                                            \
