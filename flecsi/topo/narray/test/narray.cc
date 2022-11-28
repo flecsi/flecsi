@@ -557,4 +557,4 @@ narray_driver() {
   };
 } // coloring_driver
 
-flecsi::unit::driver<narray_driver> driver;
+util::unit::driver<narray_driver> driver;

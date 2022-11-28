@@ -100,4 +100,4 @@ future_driver() {
   };
 } // future
 
-flecsi::unit::driver<future_driver> driver;
+util::unit::driver<future_driver> driver;

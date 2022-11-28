@@ -53,4 +53,4 @@ dag() {
   }; // UNIT
 } // dag
 
-flecsi::unit::driver<dag> driver;
+util::unit::driver<dag> driver;

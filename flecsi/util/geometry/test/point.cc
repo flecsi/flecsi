@@ -24,7 +24,7 @@ point_sanity() {
   };
 } // point_sanity
 
-flecsi::unit::driver<point_sanity> point_sanity_driver;
+util::unit::driver<point_sanity> point_sanity_driver;
 
 int
 point_distance() {
@@ -46,7 +46,7 @@ point_distance() {
   };
 } // point_distance
 
-flecsi::unit::driver<point_distance> point_distance_driver;
+util::unit::driver<point_distance> point_distance_driver;
 
 int
 point_midpoint() {
@@ -71,4 +71,4 @@ point_midpoint() {
   };
 } // point_midpoint
 
-flecsi::unit::driver<point_midpoint> point_midpoint_driver;
+util::unit::driver<point_midpoint> point_midpoint_driver;

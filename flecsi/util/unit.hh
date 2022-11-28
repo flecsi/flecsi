@@ -12,8 +12,7 @@
 #include <tuple>
 
 /// \cond core
-namespace flecsi {
-namespace unit {
+namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
 /// Output is via \ref flog.
@@ -55,7 +54,7 @@ struct control_policy {
 
 }; // struct control_policy
 
-using control = flecsi::run::control<flecsi::unit::control_policy>;
+using control = flecsi::run::control<control_policy>;
 
 /// A test initialization registration.
 /// Declare a non-local variable of this type for each function.
@@ -77,8 +76,7 @@ template<control::target_type Target>
 using finalization = control::action<Target, test_control_points::finalization>;
 
 /// \}
-} // namespace unit
-} // namespace flecsi
+} // namespace flecsi::util::unit
 /// \endcond
 
 #endif

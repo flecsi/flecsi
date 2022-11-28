@@ -43,4 +43,4 @@ kernel_driver() {
   };
 } // kernel_driver
 
-flecsi::unit::driver<kernel_driver> driver;
+util::unit::driver<kernel_driver> driver;

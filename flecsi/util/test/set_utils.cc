@@ -121,4 +121,4 @@ set_utils() {
   };
 } // set_utils
 
-flecsi::unit::driver<set_utils> driver;
+flecsi::util::unit::driver<set_utils> driver;

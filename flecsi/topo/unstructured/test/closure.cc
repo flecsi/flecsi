@@ -182,4 +182,4 @@ closure_driver() {
   UNIT { execute<compute_closure, mpi>(); };
 }
 
-flecsi::unit::driver<closure_driver> driver;
+util::unit::driver<closure_driver> driver;
