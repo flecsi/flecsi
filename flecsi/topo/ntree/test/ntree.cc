@@ -116,11 +116,11 @@ init() {
   flecsi::execute<make_tree>(sph_ntree);
   return 0;
 } // init
-flecsi::unit::initialization<init> initialization;
+util::unit::initialization<init> initialization;
 
 int
 ntree_driver() {
 
   return 0;
 } // ntree_driver
-flecsi::unit::driver<ntree_driver> driver;
+util::unit::driver<ntree_driver> driver;

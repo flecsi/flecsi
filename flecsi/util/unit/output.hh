@@ -9,9 +9,7 @@
 #include <sstream>
 
 /// \cond core
-namespace flecsi {
-namespace util {
-namespace unit {
+namespace flecsi::util::unit {
 /// \addtogroup unit
 /// \{
 
@@ -84,9 +82,7 @@ private:
 }; // class test_output_t
 
 /// \}
-} // namespace unit
-} // namespace util
-} // namespace flecsi
+} // namespace flecsi::util::unit
 /// \endcond
 
 #endif

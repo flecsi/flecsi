@@ -363,4 +363,4 @@ fixed_driver() {
   };
 } // unstructured_driver
 
-flecsi::unit::driver<fixed_driver> driver;
+util::unit::driver<fixed_driver> driver;

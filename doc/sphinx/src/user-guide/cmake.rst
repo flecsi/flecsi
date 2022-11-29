@@ -199,13 +199,15 @@ CMake files to allow using it in your own applications.
 
      #include <flecsi/util/unit.hh>
 
+     using namespace flecsi;
+
      int mytest_driver() {
        UNIT() {
          ASSERT_TRUE(true);
        };
      } // mytest_driver
 
-     flecsi::unit::driver<mytest_driver> driver;
+     util::unit::driver<mytest_driver> driver;
 
   Which can be compiled with the following ``CMakeLists.txt``:
 

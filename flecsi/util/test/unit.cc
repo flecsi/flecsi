@@ -14,7 +14,7 @@ init_a() {
   return 0;
 }
 
-unit::initialization<init_a> ia_action;
+util::unit::initialization<init_a> ia_action;
 
 int
 init_b() {
@@ -23,7 +23,7 @@ init_b() {
   return 0;
 }
 
-unit::initialization<init_b> ib_action;
+util::unit::initialization<init_b> ib_action;
 const auto ab = ib_action.add(ia_action);
 
 int
@@ -38,7 +38,7 @@ test1() {
   };
 }
 
-unit::driver<test1> test1_driver;
+util::unit::driver<test1> test1_driver;
 
 int
 test2() {
@@ -50,7 +50,7 @@ test2() {
   };
 }
 
-unit::driver<test2> test2_driver;
+util::unit::driver<test2> test2_driver;
 
 int
 finalization() {
@@ -59,4 +59,4 @@ finalization() {
   return 0;
 }
 
-unit::finalization<finalization> f_action;
+util::unit::finalization<finalization> f_action;

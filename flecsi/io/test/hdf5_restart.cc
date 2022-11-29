@@ -97,4 +97,4 @@ restart_driver() {
   return 0;
 }
 
-flecsi::unit::driver<restart_driver> driver;
+util::unit::driver<restart_driver> driver;

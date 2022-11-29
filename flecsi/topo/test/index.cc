@@ -188,4 +188,4 @@ index_driver() {
   };
 } // index
 
-flecsi::unit::driver<index_driver> driver;
+util::unit::driver<index_driver> driver;

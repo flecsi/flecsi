@@ -93,4 +93,4 @@ hashtable_driver() {
   }; // UNIT
 } // ntree_driver
 
-flecsi::unit::driver<hashtable_driver> driver;
+unit::driver<hashtable_driver> driver;

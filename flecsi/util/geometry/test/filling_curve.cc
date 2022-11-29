@@ -44,7 +44,7 @@ hilbert_sanity() {
   };
 } // hilbert_sanity
 
-flecsi::unit::driver<hilbert_sanity> hilbert_driver;
+util::unit::driver<hilbert_sanity> hilbert_driver;
 
 int
 hilbert_2d_rnd() {
@@ -71,7 +71,7 @@ hilbert_2d_rnd() {
   };
 } // hilbert_2d_rnd
 
-flecsi::unit::driver<hilbert_2d_rnd> hilbert_2d_rnd_driver;
+util::unit::driver<hilbert_2d_rnd> hilbert_2d_rnd_driver;
 
 int
 hilbert_3d_rnd() {
@@ -116,7 +116,7 @@ hilbert_3d_rnd() {
   };
 } // hilbert_3d_rnd
 
-flecsi::unit::driver<hilbert_3d_rnd> hilbert_3d_rnd_driver;
+util::unit::driver<hilbert_3d_rnd> hilbert_3d_rnd_driver;
 
 int
 morton_sanity() {
@@ -147,7 +147,7 @@ morton_sanity() {
   };
 }
 
-flecsi::unit::driver<morton_sanity> morton_driver;
+util::unit::driver<morton_sanity> morton_driver;
 
 int
 morton_2d_rnd() {
@@ -186,7 +186,7 @@ morton_2d_rnd() {
   };
 } // morton_2d_rnd
 
-flecsi::unit::driver<morton_2d_rnd> morton_2d_rnd_driver;
+util::unit::driver<morton_2d_rnd> morton_2d_rnd_driver;
 
 int
 morton_3d_rnd() {
@@ -231,4 +231,4 @@ morton_3d_rnd() {
   };
 } // morton_3d_rnd
 
-flecsi::unit::driver<morton_3d_rnd> morton_3d_rnd_driver;
+util::unit::driver<morton_3d_rnd> morton_3d_rnd_driver;

@@ -73,4 +73,4 @@ color_map() {
   UNIT { EXPECT_EQ((test<interface, mpi>()), 0); };
 } // color_map
 
-unit::driver<color_map> color_map_driver;
+util::unit::driver<color_map> color_map_driver;
