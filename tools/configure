@@ -1,4 +1,9 @@
 #! /usr/bin/env bash
+#------------------------------------------------------------------------------#
+# Get the path to the project from which this script was called
+#------------------------------------------------------------------------------#
+
+cwd="$(readlink -f "$(dirname "$0")/..")"
 
 #------------------------------------------------------------------------------#
 # Check required environment variables
@@ -95,7 +100,7 @@ EOF
 #------------------------------------------------------------------------------#
 
 CMAKE_INSTALL_PREFIX="${CONFIG_INSTALL_PREFIX:-/usr/local}"
-SCRIPT_GENERATOR=" ${CONFIG_SCRIPT_GENERATOR:-Unix Makefiles}"
+SCRIPT_GENERATOR="${CONFIG_SCRIPT_GENERATOR:-Unix Makefiles}"
 CLANG_FORMAT=${CLANG_FORMAT_EXECUTABLE:+"-DENABLE_FORMAT=ON -DClangFormat_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}"}
 
 #------------------------------------------------------------------------------#
@@ -248,7 +253,7 @@ done
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
   ${CLANG_FORMAT} \
   $cmake_args \
-  ..
+  $cwd
 )
 
 #------------------------------------------------------------------------------#
