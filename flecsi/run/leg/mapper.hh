@@ -225,7 +225,7 @@ public:
     bool created;
 
     // creating physical instance for the compacted storaged
-    flog_assert((task.regions.size() >= (indx + 2)),
+    flog_assert(task.regions.size() > indx + 2,
       "ERROR:: wrong number of regions passed to the task wirth \
                the tag = compacted_storage");
 
