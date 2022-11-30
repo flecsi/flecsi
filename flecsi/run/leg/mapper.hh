@@ -86,14 +86,6 @@ public:
     else {
       local_framebuffer = Memory::NO_MEMORY;
     }
-    {
-      log::devel_guard guard(legion_mapper_tag);
-      flog_devel(info) << "Mapper constructor" << std::endl
-                       << "\tlocal: " << local << std::endl
-                       << "\tcpus: " << local_cpus.size() << std::endl
-                       << "\tgpus: " << local_gpus.size() << std::endl
-                       << "\tsysmem: " << local_sysmem << std::endl;
-    } // scope
   } // end mpi_mapper_t
 
   /*!

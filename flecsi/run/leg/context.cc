@@ -195,28 +195,6 @@ context_t::start(const std::function<int()> & action) {
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_ * context::threads_per_process_;
 
-  /*
-    Start Legion runtime.
-   */
-
-  {
-    log::devel_guard("context");
-
-    std::stringstream stream;
-
-    stream << "Starting Legion runtime" << std::endl;
-    stream << "\targc: " << largv.size() << std::endl;
-    stream << "\targv: ";
-
-    for(auto opt : largv) {
-      stream << opt << " ";
-    } // for
-
-    stream << std::endl;
-
-    flog_devel(info) << stream.str();
-  } // scope
-
   Runtime::start(largv.size(), largv.data(), true);
 
   while(true) {

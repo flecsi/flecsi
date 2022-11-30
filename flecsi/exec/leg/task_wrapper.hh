@@ -157,11 +157,6 @@ detail::register_task() {
     "Legion tasks cannot use MPI");
 
   const std::string name = util::symbol<*TASK>();
-  {
-    log::devel_guard guard(task_wrapper_tag);
-    flog_devel(info) << "registering pure Legion task " << name << std::endl;
-  }
-
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
   Legion::Processor::Kind kind = processor_type == task_processor_type_t::toc
                                    ? Legion::Processor::TOC_PROC
