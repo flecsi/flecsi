@@ -83,7 +83,6 @@ inline std::vector<narray_impl::axis_definition>
 make_axes(Color num_colors, const narray_impl::gcoord & indices) {
   std::vector<narray_impl::axis_definition> axes;
   auto colors = distribute(num_colors, indices);
-  flog(warn) << flog::container{colors} << std::endl;
   for(std::size_t d = 0; d < indices.size(); d++) {
     flecsi::util::equal_map em{indices[d], colors[d]};
     axes.push_back({em});
