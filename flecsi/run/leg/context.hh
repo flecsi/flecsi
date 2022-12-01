@@ -95,12 +95,6 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  void clear() {} // clear
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
   Color process() const {
     return context::process_;
   } // process

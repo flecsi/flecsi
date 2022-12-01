@@ -524,18 +524,6 @@ protected:
       ro();
   }
 
-#ifdef DOXYGEN
-  /*!
-    Clear the runtime state of the context.
-
-    Notes:
-      - This does not clear objects that cannot be serialized, e.g.,
-        std::function objects.
-   */
-
-  void clear();
-#endif
-
   /*--------------------------------------------------------------------------*
     Program options data members.
    *--------------------------------------------------------------------------*/
