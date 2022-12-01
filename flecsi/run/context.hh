@@ -393,24 +393,31 @@ struct context {
    */
 
   int start(const std::function<int()> & action);
+#endif
 
   /*!
     Return the current process id.
    */
 
-  Color process() const;
+  Color process() const {
+    return process_;
+  }
 
   /*!
     Return the number of processes.
    */
 
-  Color processes() const;
+  Color processes() const {
+    return processes_;
+  }
 
   /*!
     Return the number of threads per process.
    */
 
-  Color threads_per_process() const;
+  Color threads_per_process() const {
+    return threads_per_process_;
+  }
 
   /*!
     Return the number of execution instances with which the runtime was
@@ -420,8 +427,11 @@ struct context {
     running process that invokded the FleCSI runtime.
    */
 
-  Color threads() const;
+  Color threads() const {
+    return threads_;
+  }
 
+#ifdef DOXYGEN
   /*!
     Return the current task depth within the execution hierarchy. The
     top-level task has depth \em 0. This interface is primarily intended

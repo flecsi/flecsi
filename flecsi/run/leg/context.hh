@@ -95,38 +95,6 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  Color process() const {
-    return context::process_;
-  } // process
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color processes() const {
-    return context::processes_;
-  } // processes
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color threads_per_process() const {
-    return context::threads_per_process_;
-  } // threads_per_process
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color threads() const {
-    return context::threads_;
-  } // threads
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
   static int task_depth() {
     return Legion::Runtime::get_runtime()
       ->get_current_task(Legion::Runtime::get_context())

@@ -47,26 +47,6 @@ struct context_t : context {
 
   int start(const std::function<int()> &);
 
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  Color process() const {
-    return process_;
-  }
-
-  Color processes() const {
-    return processes_;
-  }
-
-  Color threads_per_process() const {
-    return 1;
-  }
-
-  Color threads() const {
-    return 0;
-  }
-
   /*
     Documnetation for this interface is in the top-level context type.
    */
