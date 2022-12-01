@@ -148,31 +148,6 @@ struct context_t : context {
   }
 
   /*!
-    Set the distributed-memory domain.
-   */
-
-  void set_all_processes(const LegionRuntime::Arrays::Rect<1> & all_processes) {
-    all_processes_ = all_processes;
-  } // all_processes
-
-  /*!
-     Return the distributed-memory domain.
-   */
-
-  const LegionRuntime::Arrays::Rect<1> & all_processes() const {
-    return all_processes_;
-  } // all_processes
-
-  /*!
-    Connect with the MPI runtime.
-
-    @param ctx The Legion runtime context.
-    @param runtime The Legion task runtime pointer.
-   */
-
-  void connect_with_mpi(Legion::Context & ctx, Legion::Runtime * runtime);
-
-  /*!
     Handoff to MPI from Legion.
    */
   void mpi_handoff() {
@@ -200,7 +175,6 @@ private:
 
   std::function<void()> mpi_task_;
   Legion::MPILegionHandshake handshake_;
-  LegionRuntime::Arrays::Rect<1> all_processes_;
 };
 
 /// \}

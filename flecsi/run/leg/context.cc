@@ -42,16 +42,11 @@ using namespace boost::program_options;
 void
 top_level_task(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
-  Legion::Context ctx,
-  Legion::Runtime * runtime) {
+  Legion::Context,
+  Legion::Runtime *) {
 
   context_t & context_ = context_t::instance();
 
-  /*
-    Initialize MPI interoperability.
-   */
-
-  context_.connect_with_mpi(ctx, runtime);
   context_.mpi_wait();
   /*
     Invoke the FleCSI runtime top-level action.
@@ -212,19 +207,6 @@ context_t::start(const std::function<int()> & action) {
 
   return context::exit_status();
 } // context_t::start
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::connect_with_mpi.
-//----------------------------------------------------------------------------//
-
-void
-context_t::connect_with_mpi(Legion::Context &, Legion::Runtime *) {
-  LegionRuntime::Arrays::Rect<1> launch_bounds(
-    LegionRuntime::Arrays::Point<1>(0),
-    LegionRuntime::Arrays::Point<1>(processes_ - 1));
-
-  context_t::instance().set_all_processes(launch_bounds);
-} // context_t::connect_with_mpi
 
 } // namespace run
 } // namespace flecsi
