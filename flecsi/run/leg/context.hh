@@ -17,7 +17,6 @@
 
 #include <functional>
 #include <map>
-#include <optional>
 #include <string_view>
 #include <unordered_map>
 
@@ -56,7 +55,12 @@ using task = R(const Legion::Task *,
   Legion::Runtime *);
 }
 
-struct context_t : context {
+struct dep_base { // for initialization order
+  using opt = std::optional<util::mpi::init>;
+  opt dep;
+};
+
+struct context_t : dep_base, context {
 
   /*
     Friend declarations. Some parts of this interface are intentionally private
@@ -69,17 +73,7 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  void finalize();
+  context_t(int argc, char ** argv, bool dependent);
 
   /*
     Documentation for this interface is in the top-level context type.
@@ -159,8 +153,6 @@ struct context_t : context {
   }
 
 private:
-  std::optional<util::mpi::init> dep;
-
   /*--------------------------------------------------------------------------*
     Runtime data.
    *--------------------------------------------------------------------------*/

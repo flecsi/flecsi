@@ -98,7 +98,7 @@ template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, raw, Topo, Space> : field_info_t {
   explicit field_register(field_id_t i)
     : field_info_t{i, sizeof(T), util::type<T>()} {
-    run::context::instance().add_field_info<Topo, Space>(this);
+    run::context::add_field_info<Topo, Space>(this);
   }
   field_register() : field_register(fid_counter()) {}
   // Copying/moving is inadvisable because the context knows the address.

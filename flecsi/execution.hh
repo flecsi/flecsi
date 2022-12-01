@@ -68,7 +68,7 @@ namespace flecsi {
 
 inline int
 initialize(int argc, char ** argv, bool dependent = true) {
-  return run::context::instance().initialize(argc, argv, dependent);
+  return run::context::ctx.emplace(argc, argv, dependent).exit_status();
 }
 
 /*!
@@ -96,7 +96,7 @@ start(const std::function<int()> & action) {
 
 inline void
 finalize() {
-  run::context::instance().finalize();
+  run::context::ctx.reset();
 }
 
 enum option_attribute : size_t {
@@ -224,15 +224,14 @@ struct program_option {
       boost::make_shared<boost::program_options::option_description>(
         flag, semantic_, help);
 
-    run::context::instance()
-      .descriptions_map()
+    run::context::descriptions_map()
       .try_emplace(section, section)
       .first->second.add(option);
 
     std::string sflag(flag);
     sflag = sflag.substr(0, sflag.find(','));
 
-    run::context::instance().option_checks().try_emplace(sflag, false, check);
+    run::context::option_checks().try_emplace(sflag, false, check);
   } // program_option
 
   /*!
@@ -259,11 +258,11 @@ struct program_option {
       boost::make_shared<boost::program_options::option_description>(
         name, semantic_, help);
 
-    auto & c = run::context::instance();
-    c.positional_description().add(name, count);
-    c.positional_help().try_emplace(name, help);
-    c.hidden_options().add(option);
-    c.option_checks().try_emplace(name, true, check);
+    using c = run::context;
+    c::positional_description().add(name, count);
+    c::positional_help().try_emplace(name, help);
+    c::hidden_options().add(option);
+    c::option_checks().try_emplace(name, true, check);
   } // program_options
 
   /// Get the value, which must exist.

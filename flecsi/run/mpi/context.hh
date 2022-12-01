@@ -17,7 +17,6 @@
 #include <mpi.h>
 
 #include <map>
-#include <optional>
 
 namespace flecsi::run {
 /// \defgroup mpi-runtime MPI Runtime
@@ -25,23 +24,27 @@ namespace flecsi::run {
 /// \ingroup runtime
 /// \{
 
-struct context_t : context {
+struct dep_base { // for initialization order
+  struct dependent {
+    dependent(int &, char **&);
+    ~dependent();
+
+  private:
+    util::mpi::init mpi;
+  };
+
+  using opt = std::optional<dependent>;
+
+  opt dep;
+};
+
+struct context_t : dep_base, context {
 
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  void finalize();
+  context_t(int argc, char ** argv, bool dependent);
 
   /*!
     Documnetation for this interface is in the top-level context type.
@@ -72,17 +75,6 @@ struct context_t : context {
   Color colors() const {
     return processes_;
   }
-
-private:
-  struct dependent {
-    dependent(int &, char **&);
-    ~dependent();
-
-  private:
-    util::mpi::init mpi;
-  };
-
-  std::optional<dependent> dep;
 };
 
 /// \}

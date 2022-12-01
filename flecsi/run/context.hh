@@ -16,6 +16,7 @@
 #include <cstdlib> // getenv
 #include <functional>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -62,34 +63,26 @@ struct context {
   context(context &&) = delete;
   context & operator=(context &&) = delete;
 
-  /*
-    Meyer's singleton instance.
-   */
-
   static inline context_t & instance();
-
-  bool initialized() {
-    return initialized_;
-  }
 
   /*--------------------------------------------------------------------------*
     Program options interface.
    *--------------------------------------------------------------------------*/
 
-  boost::program_options::positional_options_description &
+  static boost::program_options::positional_options_description &
   positional_description() {
     return positional_desc_;
   }
 
-  std::map<std::string, std::string> & positional_help() {
+  static std::map<std::string, std::string> & positional_help() {
     return positional_help_;
   }
 
-  boost::program_options::options_description & hidden_options() {
+  static boost::program_options::options_description & hidden_options() {
     return hidden_options_;
   }
 
-  std::map<std::string,
+  static std::map<std::string,
     std::pair<bool,
       std::function<bool(boost::any const &, std::stringstream & ss)>>> &
   option_checks() {
@@ -104,22 +97,20 @@ struct context {
     return program_;
   }
 
-  auto & descriptions_map() {
+  static auto & descriptions_map() {
     return descriptions_map_;
   }
 
   std::vector<std::string> const & unrecognized_options() {
-    flog_assert(initialized_,
-      "unitialized program options -> "
-      "invoke flecsi::initialize_program_options");
     return unrecognized_options_;
   }
 
   /*--------------------------------------------------------------------------*
     Runtime interface.
    *--------------------------------------------------------------------------*/
-
-  inline int initialize_generic(int argc, char ** argv) {
+protected:
+  context(int argc, char ** argv, Color np, Color proc)
+    : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
       std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
@@ -134,6 +125,10 @@ struct context {
     program_ = argv[0];
     program_ = program_.substr(program_.rfind('/') + 1);
 
+    exit_status_ = getopt(argc, argv);
+  }
+
+  status getopt(int argc, char ** argv) {
     boost::program_options::options_description master("Basic Options");
     master.add_options()("help,h", "Print this message and exit.");
 
@@ -351,33 +346,17 @@ struct context {
       flog_tags_, flog_verbose_, flog_output_process_);
 #endif
 
-    initialized_ = true;
-
     return status::success;
-  } // initialize_generic
+  }
 
-  inline void finalize_generic() {
+  ~context() {
 #if defined(FLECSI_ENABLE_FLOG)
     log::state::instance.reset();
 #endif
+  }
 
-  } // finalize_generic
-
+public:
 #ifdef DOXYGEN // these functions are implemented per-backend
-  /*
-    Documented in execution.hh
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*!
-    Perform FleCSI runtime finalization. If FleCSI was initialized with
-    the \em dependent flag set to true, FleCSI will also finalize any runtimes
-    on which it depends.
-   */
-
-  void finalize();
-
   /*!
     Start the FleCSI runtime.
 
@@ -456,7 +435,7 @@ struct context {
     return exit_status_;
   }
 
-  void register_init(void callback()) {
+  static void register_init(void callback()) {
     init_registry.push_back(callback);
   }
 
@@ -472,7 +451,7 @@ struct context {
     @param field_info               Field information.
    */
   template<class Topo, typename Topo::index_space Index>
-  void add_field_info(const data::field_info_t * field_info) {
+  static void add_field_info(const data::field_info_t * field_info) {
     if(topology_ids_.count(Topo::id()))
       flog_fatal("Cannot add fields on an allocated topology");
     constexpr std::size_t NIndex = Topo::index_spaces::size;
@@ -489,7 +468,7 @@ struct context {
     \tparam Index topology-relative index space
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  field_info_store_t const & field_info_store() {
+  static field_info_store_t const & field_info_store() {
     static const field_info_store_t empty;
     topology_ids_.insert(Topo::id());
 
@@ -520,8 +499,9 @@ struct context {
     return flog_task_count_;
   } // flog_task_count
 
+  static std::optional<context_t> ctx;
+
 protected:
-  context() = default;
   // Invoke initialization callbacks.
   // Call from hiding function in derived classses.
   void start() {
@@ -538,16 +518,18 @@ protected:
   std::vector<std::string> backend_args_;
 
   // Option Descriptions
-  std::map<std::string, boost::program_options::options_description>
+  static inline std::map<std::string,
+    boost::program_options::options_description>
     descriptions_map_;
 
   // Positional options
-  boost::program_options::positional_options_description positional_desc_;
-  boost::program_options::options_description hidden_options_;
-  std::map<std::string, std::string> positional_help_;
+  static inline boost::program_options::positional_options_description
+    positional_desc_;
+  static inline boost::program_options::options_description hidden_options_;
+  static inline std::map<std::string, std::string> positional_help_;
 
   // Validation functions
-  std::map<std::string,
+  static inline std::map<std::string,
     std::pair<bool,
       std::function<bool(boost::any const &, std::stringstream & ss)>>>
     option_checks_;
@@ -558,10 +540,9 @@ protected:
     Basic runtime data members.
    *--------------------------------------------------------------------------*/
 
-  bool initialized_ = false;
   Color process_, processes_, threads_per_process_, threads_;
 
-  int exit_status_ = 0;
+  int exit_status_;
 
   /*--------------------------------------------------------------------------*
     Field data members.
@@ -571,11 +552,12 @@ protected:
     This type allows storage of runtime field information per topology type.
    */
 
-  std::unordered_map<TopologyType, std::vector<field_info_store_t>>
+  static inline std::unordered_map<TopologyType,
+    std::vector<field_info_store_t>>
     topology_field_info_map_;
 
   /// Set of topology types for which field definitions have been used
-  std::set<TopologyType> topology_ids_;
+  static inline std::set<TopologyType> topology_ids_;
 
   /*--------------------------------------------------------------------------*
     Task count.
@@ -584,7 +566,7 @@ protected:
   size_t flog_task_count_ = 0;
 
 private:
-  std::vector<void (*)()> init_registry;
+  static inline std::vector<void (*)()> init_registry;
 }; // struct context
 
 /// \}

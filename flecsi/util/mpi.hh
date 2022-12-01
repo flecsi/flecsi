@@ -221,12 +221,22 @@ static_type() {
   Convenience function to get basic MPI communicator information.
  */
 
+inline int
+size(MPI_Comm comm = MPI_COMM_WORLD) {
+  int ret;
+  test(MPI_Comm_size(comm, &ret));
+  return ret;
+}
+inline int
+rank(MPI_Comm comm = MPI_COMM_WORLD) {
+  int ret;
+  test(MPI_Comm_rank(comm, &ret));
+  return ret;
+}
+
 inline auto
 info(MPI_Comm comm = MPI_COMM_WORLD) {
-  int rank, size;
-  test(MPI_Comm_size(comm, &size));
-  test(MPI_Comm_rank(comm, &rank));
-  return std::make_pair(rank, size);
+  return std::make_pair(rank(comm), size(comm));
 } // info
 
 /*!

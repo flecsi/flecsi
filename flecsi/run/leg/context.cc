@@ -66,34 +66,13 @@ top_level_task(const Legion::Task *,
 // Implementation of context_t::initialize.
 //----------------------------------------------------------------------------//
 
-int
-context_t::initialize(int argc, char ** argv, bool dependent) {
-  using util::mpi::test;
-
-  if(dependent) {
-    dep.emplace(argc, argv);
-  } // if
-
-  std::tie(context::process_, context::processes_) = util::mpi::info();
-
-  auto status = context::initialize_generic(argc, argv);
-
-  if(status != success) {
+context_t::context_t(int argc, char ** argv, bool d)
+  : dep_base{d ? opt(std::in_place, argc, argv) : std::nullopt},
+    context(argc, argv, util::mpi::size(), util::mpi::rank()) {
+  if(exit_status() != success) {
     dep.reset();
   } // if
-
-  return status;
 } // initialize
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::finalize.
-//----------------------------------------------------------------------------//
-
-void
-context_t::finalize() {
-  context::finalize_generic();
-  dep.reset();
-} // finalize
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.

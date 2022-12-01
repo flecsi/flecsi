@@ -131,7 +131,7 @@ private:
 
 public:
   static inline const Legion::ReductionOpID REDOP_ID =
-    (run::context::instance().register_init(init),
+    (run::context::register_init(init),
       Legion::Runtime::generate_static_reduction_id());
 };
 
