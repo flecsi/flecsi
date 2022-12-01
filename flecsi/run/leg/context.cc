@@ -53,7 +53,7 @@ top_level_task(const Legion::Task *,
    */
 
   detail::data_guard(),
-    context_.exit_status() = (*context_.top_level_action_)();
+    Legion::Runtime::set_return_code((*context_.top_level_action_)());
 
   /*
     Finish up Legion runtime and fall back out to MPI.
@@ -176,9 +176,7 @@ context_t::start(const std::function<int()> & action) {
     mpi_task_ = nullptr;
   }
 
-  Legion::Runtime::wait_for_shutdown();
-
-  return context::exit_status();
+  return Legion::Runtime::wait_for_shutdown();
 } // context_t::start
 
 } // namespace run
