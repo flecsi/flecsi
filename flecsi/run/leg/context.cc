@@ -71,37 +71,15 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
   using util::mpi::test;
 
   if(dependent) {
-    int version, subversion;
-    test(MPI_Get_version(&version, &subversion));
-
-#if defined(GASNET_CONDUIT_MPI)
-    if(version == 3 && subversion > 0) {
-      int provided;
-      test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
-
-      if(provided < MPI_THREAD_MULTIPLE) {
-        std::cerr << "Your implementation of MPI does not support "
-                     "MPI_THREAD_MULTIPLE which is required for use of the "
-                     "GASNet MPI conduit with the Legion-MPI Interop!"
-                  << std::endl;
-        std::abort();
-      } // if
-    }
-    else {
-      // Initialize the MPI runtime
-      test(MPI_Init(&argc, &argv));
-    } // if
-#else
-    test(MPI_Init(&argc, &argv));
-#endif
+    dep.emplace(argc, argv);
   } // if
 
   std::tie(context::process_, context::processes_) = util::mpi::info();
 
-  auto status = context::initialize_generic(argc, argv, dependent);
+  auto status = context::initialize_generic(argc, argv);
 
-  if(status != success && dependent) {
-    test(MPI_Finalize());
+  if(status != success) {
+    dep.reset();
   } // if
 
   return status;
@@ -114,12 +92,7 @@ context_t::initialize(int argc, char ** argv, bool dependent) {
 void
 context_t::finalize() {
   context::finalize_generic();
-
-#ifndef GASNET_CONDUIT_MPI
-  if(context::initialize_dependent_) {
-    util::mpi::test(MPI_Finalize());
-  } // if
-#endif
+  dep.reset();
 } // finalize
 
 //----------------------------------------------------------------------------//

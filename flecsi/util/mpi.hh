@@ -93,6 +93,23 @@ struct vector { // for *v functions
 };
 } // namespace detail
 
+struct init {
+  init(int & argc, char **& argv) {
+    // The MPI backend always requires this, as does the Legion backend with
+    // the MPI GASNet conduit, and it's become very common, so just use it:
+    int provided;
+    test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
+    if(provided < MPI_THREAD_MULTIPLE)
+      flog_fatal("MPI_THREAD_MULTIPLE unavailable");
+  }
+  init(init &&) = delete;
+  ~init() {
+#ifndef GASNET_CONDUIT_MPI
+    test(MPI_Finalize());
+#endif
+  }
+};
+
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
 auto

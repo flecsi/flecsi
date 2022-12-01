@@ -11,11 +11,13 @@
 #endif
 
 #include "flecsi/run/context.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <boost/program_options.hpp>
 #include <mpi.h>
 
 #include <map>
+#include <optional>
 
 namespace flecsi::run {
 /// \defgroup mpi-runtime MPI Runtime
@@ -70,6 +72,17 @@ struct context_t : context {
   Color colors() const {
     return processes_;
   }
+
+private:
+  struct dependent {
+    dependent(int &, char **&);
+    ~dependent();
+
+  private:
+    util::mpi::init mpi;
+  };
+
+  std::optional<dependent> dep;
 };
 
 /// \}

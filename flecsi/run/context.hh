@@ -12,10 +12,6 @@
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-#include <Kokkos_Core.hpp>
-#endif
-
 #include <cstddef>
 #include <cstdlib> // getenv
 #include <functional>
@@ -123,14 +119,12 @@ struct context {
     Runtime interface.
    *--------------------------------------------------------------------------*/
 
-  inline int initialize_generic(int argc, char ** argv, bool dependent) {
+  inline int initialize_generic(int argc, char ** argv) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
       std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
       sleep(n);
     }
-
-    initialize_dependent_ = dependent;
 
     // Save command-line arguments
     for(auto i(0); i < argc; ++i) {
@@ -541,8 +535,6 @@ protected:
   std::string program_;
   std::vector<char *> argv_;
   std::vector<std::string> backend_args_;
-
-  bool initialize_dependent_ = true;
 
   // Option Descriptions
   std::map<std::string, boost::program_options::options_description>

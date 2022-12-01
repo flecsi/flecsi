@@ -7,6 +7,7 @@
 #include <flecsi-config.h>
 
 #include "flecsi/run/context.hh"
+#include "flecsi/util/mpi.hh"
 
 #if !defined(FLECSI_ENABLE_LEGION)
 #error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
@@ -14,14 +15,9 @@
 
 #include <legion.h>
 
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
-#include <mpi.h>
-
 #include <functional>
 #include <map>
+#include <optional>
 #include <string_view>
 #include <unordered_map>
 
@@ -163,6 +159,8 @@ struct context_t : context {
   }
 
 private:
+  std::optional<util::mpi::init> dep;
+
   /*--------------------------------------------------------------------------*
     Runtime data.
    *--------------------------------------------------------------------------*/
