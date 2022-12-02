@@ -117,7 +117,9 @@ private:
       cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
       return;
 #elif defined(__HIPCC__)
-      HIP_ASSERT(hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost));
+      auto status =
+        hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost);
+      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
       return;
 #else
       flog_assert(false, "Cuda should be enabled when using toc task");
