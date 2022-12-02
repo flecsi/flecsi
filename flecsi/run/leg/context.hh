@@ -31,7 +31,6 @@ namespace flecsi::run {
 /// \ingroup runtime
 /// \{
 
-inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
 /// \addtogroup legion-runtime
 /// \{
