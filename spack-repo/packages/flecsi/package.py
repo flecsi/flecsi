@@ -75,7 +75,7 @@ class Flecsi(CMakePackage, CudaPackage):
 
     # CMake
 
-    depends_on('cmake@3.12:')
+    depends_on('cmake@3.19:')
 
     # Graphviz
 
