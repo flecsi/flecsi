@@ -99,9 +99,6 @@ namespace fold {
 /// \addtogroup legion-execution
 /// \{
 
-inline util::counter<Legion::ReductionOpID(MAX_APPLICATION_REDUCTION_ID)>
-  reduction_counter(0);
-
 // Adapts our interface to Legion's.
 template<class R, class T>
 struct custom_wrap {
@@ -141,9 +138,9 @@ private:
   }
 
 public:
-  // NB: 0 is reserved by Legion.
   static inline const Legion::ReductionOpID REDOP_ID =
-    (run::context::instance().register_init(init), reduction_counter());
+    (run::context::instance().register_init(init),
+      Legion::Runtime::generate_static_reduction_id());
 };
 
 namespace detail {

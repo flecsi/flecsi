@@ -146,6 +146,7 @@ context_t::start(const std::function<int()> & action) {
     Setup Legion top-level task.
    */
 
+  const TaskID FLECSI_TOP_LEVEL_TASK_ID = Runtime::generate_static_task_id();
   Runtime::set_top_level_task_id(FLECSI_TOP_LEVEL_TASK_ID);
 
   {
