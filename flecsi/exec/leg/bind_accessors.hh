@@ -114,7 +114,9 @@ private:
   static void visit(data::detail::scalar_value<T> & s) {
     if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
 #if defined(__NVCC__) || defined(__CUDACC__)
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      auto status =
+        cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
       return;
 #elif defined(__HIPCC__)
       auto status =
