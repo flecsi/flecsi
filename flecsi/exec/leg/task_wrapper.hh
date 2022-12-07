@@ -221,6 +221,7 @@ struct task_wrapper {
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_accessors(runtime, context, regions, task->futures)(task_args));
     return ann::rguard<ann::execute_task_user>(tname),
+           run::task_local_base::guard(),
            apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
 

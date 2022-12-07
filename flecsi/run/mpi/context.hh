@@ -18,7 +18,8 @@
 
 #include <map>
 
-namespace flecsi::run {
+namespace flecsi {
+namespace run {
 /// \defgroup mpi-runtime MPI Runtime
 /// Global state.
 /// \ingroup runtime
@@ -57,7 +58,7 @@ struct context_t : dep_base, context {
    */
 
   static int task_depth() {
-    return 0;
+    return depth;
   } // task_depth
 
   /*
@@ -75,9 +76,46 @@ struct context_t : dep_base, context {
   Color colors() const {
     return processes_;
   }
+
+  static inline int depth;
+
+  struct depth_guard {
+    depth_guard() {
+      ++depth;
+    }
+    ~depth_guard() {
+      --depth;
+    }
+  };
 };
 
 /// \}
-} // namespace flecsi::run
+} // namespace run
+
+template<class T>
+struct task_local : private run::task_local_base {
+  T & operator*() noexcept {
+    return *cur();
+  }
+  T * operator->() noexcept {
+    return &**this;
+  }
+
+private:
+  void emplace() override {
+    cur().emplace();
+  }
+  void reset() noexcept override {
+    cur().reset();
+  }
+
+  std::optional<T> & cur() {
+    return run::context_t::task_depth() ? task : outer;
+  }
+
+  std::optional<T> outer, task;
+};
+
+} // namespace flecsi
 
 #endif

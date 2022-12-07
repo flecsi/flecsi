@@ -569,6 +569,35 @@ private:
   static inline std::vector<void (*)()> init_registry;
 }; // struct context
 
+struct task_local_base {
+  struct guard {
+    guard() {
+      for(auto * p : all)
+        p->emplace();
+    }
+    ~guard() {
+      for(auto * p : all)
+        p->reset();
+    }
+  };
+
+  task_local_base() {
+    all.push_back(this);
+  }
+  task_local_base(task_local_base &&) = delete;
+
+protected:
+  ~task_local_base() {
+    all.erase(std::find(all.begin(), all.end(), this));
+  }
+
+private:
+  static inline std::vector<task_local_base *> all;
+
+  virtual void emplace() = 0;
+  virtual void reset() noexcept = 0;
+};
+
 /// \}
 } // namespace run
 } // namespace flecsi

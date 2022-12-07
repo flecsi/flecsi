@@ -44,7 +44,7 @@ context_t::start(const std::function<int()> & action) {
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_;
 
-  return detail::data_guard(), action(); // guard destroyed after action call
+  return detail::data_guard(), task_local_base::guard(), action();
 }
 
 } // namespace flecsi::run

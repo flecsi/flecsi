@@ -52,7 +52,7 @@ top_level_task(const Legion::Task *,
     Invoke the FleCSI runtime top-level action.
    */
 
-  detail::data_guard(),
+  detail::data_guard(), task_local_base::guard(),
     Legion::Runtime::set_return_code((*context_.top_level_action_)());
 
   /*
@@ -151,7 +151,7 @@ context_t::start(const std::function<int()> & action) {
     test(MPI_Barrier(MPI_COMM_WORLD));
     if(!mpi_task_)
       break;
-    mpi_task_();
+    task_local_base::guard(), mpi_task_();
     mpi_task_ = nullptr;
   }
 

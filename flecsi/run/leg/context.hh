@@ -20,7 +20,8 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace flecsi::run {
+namespace flecsi {
+namespace run {
 /// \defgroup legion-runtime Legion Runtime
 /// State for and control of the Legion runtime.
 /// \ingroup runtime
@@ -152,11 +153,16 @@ struct context_t : dep_base, context {
     handshake_.legion_wait_on_mpi();
   }
 
+  static Legion::LocalVariableID local_variable() {
+    return next_var++;
+  }
+
 private:
   /*--------------------------------------------------------------------------*
     Runtime data.
    *--------------------------------------------------------------------------*/
 
+  static inline Legion::LocalVariableID next_var;
   const std::function<int()> * top_level_action_ = nullptr;
 
   /*--------------------------------------------------------------------------*
@@ -168,6 +174,42 @@ private:
 };
 
 /// \}
-} // namespace flecsi::run
+} // namespace run
+
+template<class T>
+struct task_local : run::task_local_base {
+  task_local() : var(run::context_t::local_variable()) {}
+
+  T & operator*() noexcept {
+    return Run::has_context() ? *Run::get_runtime()->get_local_task_variable<T>(
+                                  Run::get_context(), var)
+                              : *mpi;
+  }
+  T * operator->() noexcept {
+    return &**this;
+  }
+
+private:
+  using Run = Legion::Runtime;
+
+  void emplace() override {
+    if(Run::has_context())
+      Run::get_runtime()->set_local_task_variable(
+        Run::get_context(), var, new T(), [](void * p) {
+          delete static_cast<T *>(p);
+        });
+    else
+      mpi.emplace();
+  }
+  void reset() noexcept override {
+    if(!Run::has_context())
+      mpi.reset();
+  }
+
+  std::optional<T> mpi;
+  Legion::LocalVariableID var;
+};
+
+} // namespace flecsi
 
 #endif

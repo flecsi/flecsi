@@ -367,6 +367,31 @@ colors() {
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
+/// \if core
+/// A global variable with a task-specific value.
+/// Must be constructed before calling \c start.
+/// The value for a task has the lifetime of that task; the value outside of
+/// any task has the lifetime of \c start.  Each is value-initialized.
+/// \note Thread-local variables do not function correctly in all backends.
+/// \endif
+template<class T>
+struct task_local
+#ifdef DOXYGEN // implemented per-backend
+{
+  /// Create a task-local variable.
+  task_local();
+  /// It would not be clear whether moving a \c task_local applied to the
+  /// (current) value or the identity of the variable.
+  task_local(task_local &&) = delete;
+
+  /// Get the current task's value.
+  T & operator*() & noexcept;
+  /// Access a member of the current task's value.
+  T * operator->() noexcept;
+}
+#endif
+;
+
 /*!
   Execute a reduction task.
 
