@@ -574,6 +574,8 @@ struct unstructured_base {
       // peers for local color k
       std::size_t p{0};
       for(auto const & sh : shared_cg[k]) {
+        //sort the sending local ids
+        std::sort(sh.second.begin(), sh.second.end());  
 
         // resize field
         a[p].resize(sh.second.size());
@@ -685,6 +687,30 @@ struct unstructured_base {
 
     static int
     xfer(fm_rw g, cga cgraph, cga cgraph_shared, data::buffers::Transfer mv) {
+      std::stringstream ss; 
+
+      ss<<"CGRAPH SHARED-->\n";
+      int c = 0; 
+      for (auto pg : cgraph_shared) {
+       ss<<"To color "<<c<<"\n"; 
+       for (auto e: pg){ 
+        ss<<"("<<e.lid<<", "<<e.rid<<")\n";
+       } 
+       ++c;
+      }
+
+      ss<<"CGRAPH -->\n";
+      c = 0; 
+      for (auto pg : cgraph) {
+       ss<<"From color "<<c<<"\n"; 
+       for (auto e: pg) {
+        ss<<"("<<e.lid<<", "<<e.rid<<")\n";
+       }
+       ++c;  
+      }
+      
+     flog(info)<<ss.str()<<std::endl; 
+
       int p = cgraph_shared.size(); // number of send buffers
       for(auto pg : cgraph) { // over peers
         data::buffers::ragged::read(g, mv[p], pg);

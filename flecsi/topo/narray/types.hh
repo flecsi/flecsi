@@ -87,7 +87,14 @@ struct axis_color {
   /// The global index for a given logical index on the local axis.
   /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
-    return offset() + logical_id;
+    util::gid id; 
+    if (is_low() && bdepth && (logical_id < bdepth))
+     id = global_extent - bdepth + logical_id; 
+    else if (is_high() && bdepth && (logical_id >= logical<1>())  )
+     id = logical_id - logical<1>() ; 
+    else 
+      id = is_low() ? offset() + logical_id - bdepth: offset() + logical_id -hdepth;  
+    return id;  
   }
 
   /// The global coordinate offset of the local axis.
@@ -311,6 +318,90 @@ struct index_definition {
     return indices;
   }
 
+
+  /*!
+   * Return the global communication graph over all colors
+   */
+   std::vector<std::vector<Color>> peers() const {
+
+      //lambda to obtain all neighbor color peers for a particular color 
+      std::function<void(int, int, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<Color>&)> color_peers = [&] (int i, int dim, std::vector<int> color_indices, std::vector<int> color_strs, std::vector<int> indices, std::vector<int> axes_bdepths, std::vector<Color>& ngb_colors) -> void {
+
+    if (i == -1){
+        std::vector<int> indices_mo(dim); 
+        for (int k = 0; k < dim; ++k){
+          indices_mo[k] = indices[k];  
+         //if boundary depth, add the correct ngb color 
+         if ((indices[k] == -1) && (color_indices[k] == 0) && axes_bdepths[k])
+           indices_mo[k] = color_strs[k]-1; 
+         if ((indices[k] == color_strs[k]) && (color_indices[k] == color_strs[k]-1) && axes_bdepths[k])
+           indices_mo[k] = 0; 
+        }
+
+        bool valid_ngb = true, same = true; 
+        for (int k = 0; k < dim; ++k){
+          if ((indices_mo[k] == -1) || (indices_mo[k] == color_strs[k])) 
+             valid_ngb = false;  
+
+          same = same && (indices[k] == color_indices[k]);        
+        }
+
+        int lid; 
+        if ((valid_ngb && !same)){
+          if (dim == 1){
+           lid = indices_mo[dim-1];
+          }
+          else {
+            lid = indices_mo[dim-1]*color_strs[dim-2]+indices_mo[dim-2];
+            for (int k = dim-3; k >=0; --k){
+              lid = lid*color_strs[k] + indices_mo[k];
+            } 
+          }
+          ngb_colors.push_back((Color)lid);
+        }
+       
+      return; 
+    }
+   
+    for (int k = 0; k < 3; ++k){
+        indices[i] = color_indices[i]+k-1; 
+        color_peers(i-1, dim, color_indices, color_strs, indices, axes_bdepths, ngb_colors);
+    }
+    }; //color_peers
+
+     //lambda to obtain communication graph  
+      std::function<void(int, int, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<std::vector<Color>>&)> traverse_colors = [&] (int i, int dim, std::vector<int> color_indices, std::vector<int> color_strs, std::vector<int> axes_bdepths, std::vector<std::vector<Color>>& peer) -> void {
+    if (i == -1){
+        std::vector<int> indices(dim);
+        std::vector<Color> ngb_colors; 
+        color_peers(dim-1, dim, color_indices, color_strs, indices, axes_bdepths, ngb_colors);
+       
+        std::sort(ngb_colors.begin(), ngb_colors.end());  
+        ngb_colors.erase(std::unique(ngb_colors.begin(), ngb_colors.end()), ngb_colors.end()); 
+        peer.push_back(ngb_colors); 
+        return;  
+    }
+
+    for (color_indices[i] = 0; color_indices[i] < color_strs[i]; ++color_indices[i]){
+        traverse_colors(i-1, dim, color_indices, color_strs, axes_bdepths, peer);
+    }
+   };
+
+     //obtain peers 
+     auto dim = dimensions(); 
+     std::vector<int> color_strs(dim), axes_bdepths(dim); 
+     for (int k = 0; k < dim; ++k){
+       color_strs[k] = axes[k].colormap.size();
+       axes_bdepths[k] = axes[k].bdepth; 
+     }
+
+     std::vector<int> color_indices(dim); 
+     std::vector<std::vector<Color>> peer; 
+     traverse_colors(dim-1, dim, color_indices, color_strs, axes_bdepths, peer); 
+
+     return peer; 
+    }
+  
   /*!
    * Return a coloring for the current MPI rank on the given
    * communicator
@@ -377,6 +468,12 @@ struct index_definition {
       util::gid offset_high = em(ci + 1);
       util::gid neigh_offset_low = em(ci - !lo);
       util::gid neigh_offset_high = em(ci + 1 + !hi);
+
+      if (ax.bdepth && lo)
+         neigh_offset_low = em(em.size()-1);
+
+      if (ax.bdepth && hi)
+         neigh_offset_high = em(1); 
 
       // modifications if auxiliary coloring
       if(ex) {
@@ -677,7 +774,7 @@ struct narray_base {
     std::vector</* over index spaces */
       index_definition>
       idx_colorings;
-
+ 
     Color colors() const {
       return idx_colorings[0].colors();
     }
@@ -766,6 +863,8 @@ struct narray_base {
       } // for
     }
   }
+  
+
 }; // struct narray_base
 
 /// \}

@@ -84,6 +84,11 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     auto offset() const {
       return B::template offset<topo::elements, A, DM>();
     }
+ 
+    template<axis A>
+    util::gid global_id(util::id lid) const {
+      return B::template global_id<topo::elements, A>(lid);
+    }
   };
 }; // mesh
 

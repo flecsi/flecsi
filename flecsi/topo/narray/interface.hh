@@ -82,7 +82,13 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     typename Policy::index_space Space>
   void ghost_copy(
     data::field_reference<Type, Layout, Policy, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
+    if constexpr(Layout == data::ragged) {
+     using Impl=ragged_impl<Space,Type,Policy::template privilege_count<Space>>; 
+      buffers_.template get<Space>()
+        .template xfer<Impl::start, Impl::xfer>(f, meta_field(this->meta));
+    }
+    else
+      plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
@@ -109,7 +115,8 @@ private:
       plan_{{make_copy_plan<Value>(c.colors(),
         c.idx_colorings[Index],
         part_[Index],
-        c.comm)...}} {
+        c.comm)...}},
+        buffers_ {{data::buffers::core(c.idx_colorings[Index].peers())...}}{
     auto lm = data::launch::make(this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     init_policy_meta(c);
@@ -193,6 +200,318 @@ private:
     return part_[i].sz;
   }
 
+  ///Ragged communication routines 
+  template<typename Policy::index_space Space, typename T, PrivilegeCount N>
+  struct ragged_impl {
+    using A = std::array<int, dimension>;
+    using A2 = std::array<A, 3>;
+
+    using fa = typename field<T,
+      data::ragged>::template accessor1<privilege_ghost_repeat<ro, na, N>>;
+
+    using fm_rw = typename field<T,
+      data::ragged>::template mutator1<privilege_ghost_repeat<ro, rw, N>>;
+
+    using mfa = typename field<util::key_array<meta_data, index_spaces>, data::single>::template accessor<ro>;
+
+    static void start(fa v, mfa mf, data::buffers::Start mv) {
+      send(v, mf, true, mv);
+    } // start
+
+    static int
+    xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) {
+     //get the meta data for the index space
+      meta_data md = mf->template get<Space>(); 
+      std::map<Color, std::vector<int>> color_bounds;  
+      get_ngb_color_bounds(false, md, color_bounds); 
+
+      A lbnds, ubnds, strs, indices; 
+      for (int i = 0; i < dimension; i++) {
+          strs[i] = md[i].extent();  
+       }
+
+      //Loop over the receiving colors and receive the data for all boxes
+      int bufid = color_bounds.size(); 
+      for (auto& [c,v]: color_bounds){
+          std::vector<int> lids;
+          auto get_lids = [&](int lid){lids.push_back(lid);}; 
+ 
+          int nboxes = v.size()/(2*dimension);
+          //get lids of all boxes
+          for (int k = nboxes-1; k >=0; --k){
+            for (int d = 0; d < dimension; ++d){
+               lbnds[d] = v[2*dimension*k+d]; 
+               ubnds[d] = v[2*dimension*k+dimension+d]; 
+             }
+            traverse(dimension-1, lbnds, ubnds, strs, indices, get_lids);
+          }
+           
+           //receive 
+           data::buffers::ragged::read(g, mv[bufid], lids);
+           ++bufid; 
+       }
+ 
+      // resume transfer if data was not fully packed during start
+      return send(g, mf, false, mv);  
+    } // xfer
+
+  private:
+
+    template<typename F, typename B>
+    static bool send(F f, mfa mf,  bool first, B mv) {
+      //get the meta data for the index space
+      meta_data md = mf->template get<Space>(); 
+      bool sent = false;
+      
+      A lbnds, ubnds, strs, indices;
+      for (int i = 0; i < dimension; i++) {
+          strs[i] = md[i].extent();  
+      }
+
+      std::map<Color, std::vector<int>> color_bounds;  
+      get_ngb_color_bounds(true, md, color_bounds); 
+
+      int p = 0; 
+      for (auto& [c,v]: color_bounds) {
+          auto b = data::buffers::ragged{mv[p++], first};
+          auto send_data = [&](int lid) {if (!b(f, lid, sent)) return;}; 
+
+          int nboxes = v.size()/(2*dimension);
+          //send each box
+          for (int k = 0; k < nboxes; ++k){
+            for (int d = 0; d < dimension; ++d){
+               lbnds[d] = v[2*dimension*k+d]; 
+               ubnds[d] = v[2*dimension*k+dimension+d]; 
+             }
+            traverse(dimension-1, lbnds, ubnds, strs, indices, send_data);
+          }
+      }
+ 
+      return sent;
+    } // send
+
+  static void get_ngb_color_bounds(bool send, meta_data& md, std::map<Color, std::vector<int>>& color_bounds) {
+
+      //For each axis, store the neigh color ids, and the 
+      //lower and upper bounds for sending/receiving data 
+      A2 ngb_colors, ngb_lbnds, ngb_ubnds; 
+      axes_bounds(send, md, ngb_colors, ngb_lbnds, ngb_ubnds); 
+      
+      //Obtain the set of boxes (lower, upper bounds) that will
+      //be sent to a particular color in a map 
+      A color_indices, color_lbnds, color_ubnds;
+      A color_strs, center_color, bdepth; 
+
+       for (int i = 0; i < dimension; i++) {
+          color_strs[i] = md[i].colors;
+          center_color[i] = md[i].color_index; 
+          bdepth[i] = md[i].bdepth; 
+       }
+       
+       ngb_color_boxes(dimension-1, bdepth, color_indices, center_color, color_lbnds, color_ubnds, color_strs, ngb_colors, ngb_lbnds, ngb_ubnds, color_bounds);
+ }
+
+   static void compute_index(A& indices, A& strs, int& lid){
+        if (dimension == 1){
+          lid = indices[dimension-1];
+        }
+        else {
+          lid = indices[dimension-1]*strs[dimension-2]+indices[dimension-2];
+          for (int k = dimension-3; k >=0; --k){
+            lid = lid*strs[k] + indices[k];
+          } 
+        }
+   }
+   
+   template<typename F>
+   static void traverse(int i, A& lbnds, A& ubnds, A& strs, A& indices, F f) {
+    if (i == -1){
+      int lid; 
+      compute_index(indices, strs, lid);
+      f(lid);  
+      return; 
+    }
+
+    for (int k = lbnds[i]; k < ubnds[i]; ++k){
+        indices[i] = k; 
+        traverse(i-1, lbnds, ubnds, strs, indices, f);
+    }
+  }; //traverse
+
+  /*
+ *   This method is used to find out the bounds of the boxes of data 
+ *   that will be sent to or received from between peers of this colors. 
+ *
+ *   We have a grid of colors with color_maps along each axis. 
+ *   For each color in the color grid, we want to loop over its neighbors, and send/receive relevant data. 
+ *   For example, in 2D, for a color with indices (CI, CJ), its peers are shown in the right side figure. 
+ *   In this method, we recursively figure out the send/receiving bounds for each such peer (which is its 
+ *   global color id). When the color is incident on the domain, depending on whether boundary layers are 
+ *   present, the correct peer color is computed. 
+ *
+ *   -------------------------
+ *   |    |   .......    |   |  C_Jm                 --------------------
+ *   -------------------------                       |     |      |     |  CJ+1
+ *   |    |   .......    |   |                       |     |      |     |
+ *   -------------------------                       -------------------
+ *   :    :   .......    :   :                       |     |      |     |  CJ
+ *   -------------------------                       |     |      |     |   
+ *   |    |   .......    |   |                       -------------------
+ *   -------------------------                       |     |      |     |  CJ-1
+ *   |    |   .......    |   |  C_J0                 |     |      |     |
+ *   -------------------------                       -------------------
+ *    C_I0      .......     C_In                      CI-1    CI     CI+1 
+ *
+ *  We loop over all peers by recursion, and fill out the box (given by the lower and upper bounds)
+ *  information for each peer. The "for" loop goes over the left, central and right colors along an 
+ *  axis, starting with the highest dimension (i=dimension-1), and fills out three pieces of information, 
+ *  the color_indices, color_lbnds, and color_ubnds. Using recursion, we traverse the peers in an ordered
+ *  manner, with lowest indices increasing fastest.
+ *
+ *  Essentially, this recursion is to replace a dimension-specific call block in the code, like in 3D 
+ *  for (int k = 0; k < 3; ++k)
+ *   for (ink j = 0; j < 3; ++j)
+ *    for (int i = 0; i < 3; ++i) 
+ *      .....
+ *  to be dimension independent.     
+ *
+ *  Once we reach the base case, 
+ *  1) we figure out if the current peer indices need to be modified in the presence of boundary layers, 
+ *  2) then check if the peer indices are a valid one (for example, there is no boundary layers, and as a result, 
+ *   the corner neighbor on a corner color is not a valid neigh for which data needs to be stored, and finally
+ *  3) ensure that we skip the central color while traversing peers.    
+ *
+ *  We then compute the global id of the peer, and store the lower and upper bounds that will be either
+ *  sent or received. Note there may be multiple boxes that will be sent to the same peer, usually for 
+ *  partitions with small number of colors along an axis, when information for both boundary and halo
+ *  layers need to be obtained from the same peer. 
+ * */
+   static void ngb_color_boxes(int i, A& bdepth, A& color_indices, A& center_color, A& color_lbnds, A& color_ubnds, A& color_strs, A2& ngb_colors, A2& ngb_lbnds, A2& ngb_ubnds, std::map<Color, std::vector<int>>& color_bounds) {
+
+    if (i == -1){
+        A color_indices_mo; 
+        for (int k = 0; k < dimension; ++k){
+          color_indices_mo[k] = color_indices[k];  
+         //if boundary depth, add the correct ngb color 
+         if ((color_indices[k] == -1) && (center_color[k] == 0) && bdepth[k])
+           color_indices_mo[k] = color_strs[k]-1; 
+         if ((color_indices[k] == -1) && (center_color[k] == color_strs[k]-1) && bdepth[k])
+           color_indices_mo[k] = 0; 
+        }
+
+        bool valid_ngb = true, same = true; 
+        for (int k = 0; k < dimension; ++k){
+          if (color_indices_mo[k] == -1)
+             valid_ngb = false; 
+          
+           same = same && (center_color[k] == color_indices[k]); 
+        }
+      
+        if (valid_ngb && !same) {
+          int lid; 
+          //get color id
+          compute_index(color_indices_mo, color_strs, lid); 
+
+          for (int k = 0; k < dimension; ++k) 
+             color_bounds[lid].push_back(color_lbnds[k]); 
+          for (int k = 0; k < dimension; ++k) 
+             color_bounds[lid].push_back(color_ubnds[k]); 
+        }
+
+    
+      return; 
+    }
+
+    for (int k = 0; k < 3; ++k){
+        color_indices[i] = ngb_colors[k][i];
+        color_lbnds[i] = ngb_lbnds[k][i]; 
+        color_ubnds[i] = ngb_ubnds[k][i]; 
+        ngb_color_boxes(i-1, bdepth, color_indices, center_color, color_lbnds, color_ubnds, color_strs, ngb_colors, ngb_lbnds, ngb_ubnds, color_bounds);
+    }
+  }; //color_boxes
+
+ /*
+ *
+ * In this method, we figure out: 
+ * 1) Left side color, lower and upper bounds along the axis which will either be sent or received 
+ * 2) Center color which is itself, logical lower and upper bounds of this color to send or receive data from lower/upper colors abutting this color 
+ * 3) Right side color, lower and upper bounds along the axis
+ *
+ * For example, for a color in the middle of the partition with halo layers on both sides along an axis A: 
+ *
+ *                      Left color      center         Right color
+ *   Axis            |-------------|--------------|--------------|
+ *
+ *  Sending bounds to left         |----|
+ *                                   h            
+ *  Sending bounds to lower/upper  |-------------|
+ *                                  logical       
+ *  Sending bounds to right                 |----|
+ *                                            h            
+ *  Receiving bounds         |----|--------------|----|
+ *                             h      logical      h 
+ *
+ * */
+  static void axes_bounds(bool send, meta_data& md, A2& ngb_colors, A2& ngb_lbnds, A2& ngb_ubnds){
+      
+      //fill out the indices of the ngb colors 
+      int p = 0; 
+      for (auto& ax : md){
+        auto ci = ax.color_index; 
+        ngb_colors[0][p] = ci-1; 
+        ngb_colors[1][p] = ci; 
+        ngb_colors[2][p] = ci+1; 
+        
+        if (ci == ax.colors - 1) {  //lies on right boundary
+            ngb_colors[2][p] = -1; 
+         }
+    
+        if (send) { 
+          ngb_lbnds[0][p] = ax.template logical<0>(); 
+          ngb_lbnds[1][p] = ax.template logical<0>(); 
+          ngb_lbnds[2][p] = ax.template logical<1>()-ax.hdepth; 
+     
+          ngb_ubnds[0][p] = ngb_lbnds[0][p] + ax.hdepth ; 
+          ngb_ubnds[1][p] = ax.template logical<1>(); 
+          ngb_ubnds[2][p] = ax.template logical<1>(); 
+
+          //bdepths 
+          if ((ci == 0) && ax.bdepth){
+             ngb_ubnds[0][p] = ax.template logical<0>() + ax.bdepth; 
+          }
+
+          if ((ci == ax.colors-1) && ax.bdepth){
+             ngb_lbnds[2][p] = ax.template logical<1>() - ax.bdepth; 
+             ngb_ubnds[2][p] = ax.template logical<1>(); 
+          }
+         }
+         else {
+           ngb_lbnds[0][p] = 0; 
+           ngb_lbnds[1][p] = ax.template logical<0>();  
+           ngb_lbnds[2][p] = ax.template logical<1>(); 
+     
+           ngb_ubnds[0][p] = ax.hdepth; 
+           ngb_ubnds[1][p] = ax.template logical<1>(); 
+           ngb_ubnds[2][p] = ax.template logical<1>() + ax.hdepth; 
+
+           //bdepths 
+           if ((ci == 0) && ax.bdepth){
+             ngb_lbnds[0][p] = 0; 
+             ngb_ubnds[0][p] = ax.bdepth; 
+           }
+
+           if ((ci == ax.colors-1) && ax.bdepth){
+             ngb_lbnds[2][p] = ax.template logical<1>(); 
+             ngb_ubnds[2][p] = ax.template logical<1>() + ax.bdepth; 
+          }
+         }
+         ++p; 
+      }
+  } 
+
+
+  }; // struct ragged_impl
+
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
@@ -213,6 +532,10 @@ private:
   // index-space specific copy plans
   util::key_array<data::copy_plan, index_spaces> plan_;
 
+  // This key_array of buffers core objects are needed to transfer
+  // ragged data. We have a key array over index_spaces because
+  // each index_space possibly may have a different communication graph.
+  util::key_array<data::buffers::core, index_spaces> buffers_;
 }; // struct narray
 
 template<class P>
@@ -349,6 +672,11 @@ protected:
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
     return is_low<S, A>() && is_high<S, A>();
+  }
+
+  template<index_space S, axis A>
+  FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
+    return get_axis<S, A>().global_id(logical_id);
   }
 
   /*!
