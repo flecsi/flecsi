@@ -124,7 +124,7 @@ private:
       flog_assert(hipSuccess == status, "Error calling hipMemcpy");
       return;
 #else
-      flog_assert(false, "Cuda should be enabled when using toc task");
+      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
 #endif
     }
     *s.host = *s.device;
