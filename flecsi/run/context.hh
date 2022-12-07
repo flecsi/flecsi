@@ -328,9 +328,10 @@ struct context {
         error.replace(pos, 2, "");
       } // if
 
-      std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error
-                << "!!!" << FLOG_COLOR_PLAIN << std::endl
-                << std::endl;
+      if(!process_)
+        std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error
+                  << "!!!" << FLOG_COLOR_PLAIN << std::endl
+                  << std::endl;
       print_usage(program_, master, flecsi_desc);
       return status::command_line_error;
     } // try
