@@ -25,27 +25,23 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
-struct dep_base { // for initialization order
-  struct dependent {
-    dependent(int &, char **&);
-    ~dependent();
+struct dependencies_guard {
+  dependencies_guard(arguments::dependent &);
+  ~dependencies_guard();
 
-  private:
-    util::mpi::init mpi;
-  };
+private:
+  dependencies_guard(int, char **);
 
-  using opt = std::optional<dependent>;
-
-  opt dep;
+  util::mpi::init mpi;
 };
 
-struct context_t : dep_base, context {
+struct context_t : context {
 
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(int argc, char ** argv, bool dependent);
+  context_t(const arguments::config &, arguments::action &);
 
   /*!
     Documnetation for this interface is in the top-level context type.
@@ -91,6 +87,8 @@ struct context_t : dep_base, context {
 
 /// \}
 } // namespace run
+
+using runtime = run::context_t;
 
 template<class T>
 struct task_local : private run::task_local_base {

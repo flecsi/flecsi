@@ -9,29 +9,22 @@ using namespace boost::program_options;
 
 namespace flecsi::run {
 
-dep_base::dependent::dependent(int & argc, char **& argv) : mpi(argc, argv) {
+dependencies_guard::dependencies_guard(arguments::dependent & d)
+  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(int mc, char ** mv) : mpi(mc, mv) {
 #ifdef FLECSI_ENABLE_KOKKOS
-  Kokkos::initialize(argc, argv);
+  [](int kc, char ** kv) { Kokkos::initialize(argc, argv); }(
+    d.kokkos.size(), arguments::pointers(d.kokkos).data());
 #endif
 }
-dep_base::dependent::~dependent() {
+dependencies_guard::~dependencies_guard() {
 #ifdef FLECSI_ENABLE_KOKKOS
   Kokkos::finalize();
 #endif
 }
 
-//----------------------------------------------------------------------------//
-// Implementation of context_t::initialize.
-//----------------------------------------------------------------------------//
-
-context_t::context_t(int argc, char ** argv, bool d)
-  : dep_base{d ? opt(std::in_place, argc, argv) : std::nullopt},
-    context(argc, argv, util::mpi::size(), util::mpi::rank()) {
-  // This is necessary only because clients can skip flecsi::finalize:
-  if(exit_status() != success) {
-    dep.reset();
-  } // if
-} // initialize
+context_t::context_t(const arguments::config & c, arguments::action & a)
+  : context(c, a, util::mpi::size(), util::mpi::rank()) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.

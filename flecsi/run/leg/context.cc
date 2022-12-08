@@ -62,17 +62,15 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-//----------------------------------------------------------------------------//
-// Implementation of context_t::initialize.
-//----------------------------------------------------------------------------//
+context_t::context_t(const arguments::config & c, arguments::action & a)
+  : context(c, a, util::mpi::size(), util::mpi::rank()), argv{a.program} {
+  argv.reserve(c.backend.size() + 1);
+  argv.insert(argv.end(), c.backend.begin(), c.backend.end());
+}
 
-context_t::context_t(int argc, char ** argv, bool d)
-  : dep_base{d ? opt(std::in_place, argc, argv) : std::nullopt},
-    context(argc, argv, util::mpi::size(), util::mpi::rank()) {
-  if(exit_status() != success) {
-    dep.reset();
-  } // if
-} // initialize
+dependencies_guard::dependencies_guard(arguments::dependent & d)
+  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(int mc, char ** mv) : init(mc, mv) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
@@ -127,22 +125,11 @@ context_t::start(const std::function<int()> & action) {
 
   context::start();
 
-  /*
-    Legion command-line arguments.
-   */
-
-  std::vector<char *> largv;
-  largv.push_back(argv_[0]);
-
-  for(auto & arg : backend_args_) {
-    largv.push_back(&arg[0]);
-  }
-
   // FIXME: This needs to be gotten from Legion
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_ * context::threads_per_process_;
 
-  Runtime::start(largv.size(), largv.data(), true);
+  Runtime::start(argv.size(), arguments::pointers(argv).data(), true);
 
   while(true) {
     test(MPI_Barrier(MPI_COMM_WORLD));

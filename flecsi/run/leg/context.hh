@@ -56,12 +56,14 @@ using task = R(const Legion::Task *,
   Legion::Runtime *);
 }
 
-struct dep_base { // for initialization order
-  using opt = std::optional<util::mpi::init>;
-  opt dep;
+struct dependencies_guard : util::mpi::init {
+  dependencies_guard(arguments::dependent &);
+
+private:
+  dependencies_guard(int, char **);
 };
 
-struct context_t : dep_base, context {
+struct context_t : context {
 
   /*
     Friend declarations. Some parts of this interface are intentionally private
@@ -74,7 +76,7 @@ struct context_t : dep_base, context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(int argc, char ** argv, bool dependent);
+  context_t(const arguments::config &, arguments::action &);
 
   /*
     Documentation for this interface is in the top-level context type.
@@ -163,6 +165,7 @@ private:
    *--------------------------------------------------------------------------*/
 
   static inline Legion::LocalVariableID next_var;
+  arguments::argv argv;
   const std::function<int()> * top_level_action_ = nullptr;
 
   /*--------------------------------------------------------------------------*

@@ -23,6 +23,8 @@ namespace flecsi {
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
+inline std::string argv0;
+
 /*!
   Perform FleCSI runtime initialization. If \em dependent is true, this call
   will also initialize any runtime on which FleCSI depends.
@@ -68,7 +70,18 @@ namespace flecsi {
 
 inline int
 initialize(int argc, char ** argv, bool dependent = true) {
-  return run::context::ctx.emplace(argc, argv, dependent).exit_status();
+  run::arguments args(argc, argv);
+  argv0 = args.act.program;
+  if(dependent)
+    run::dependent.emplace(args.dep);
+  auto & ctx = run::context::ctx.emplace(args.cfg, args.act);
+  const auto c = args.act.code;
+  if(c) {
+    if(!ctx.process())
+      std::cerr << args.act.stderr;
+    run::dependent.reset(); // because clients can skip finalize
+  }
+  return c;
 }
 
 /*!
@@ -97,6 +110,7 @@ start(const std::function<int()> & action) {
 inline void
 finalize() {
   run::context::ctx.reset();
+  run::dependent.reset();
 }
 
 enum option_attribute : size_t {
@@ -295,7 +309,7 @@ private:
 
 inline std::string const &
 program() {
-  return run::context::instance().program();
+  return argv0;
 }
 
 /*!

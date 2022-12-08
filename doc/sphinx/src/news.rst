@@ -47,6 +47,7 @@ Fixed
 
   * Certain control-flow graphs compile with Graphviz support and are drawn correctly.
   * ``--backend-args`` can be specified multiple times. The collected arguments are passed to the backend.
+  * MPI and Kokkos are initialized with no arguments (so that they cannot misinterpret arguments not meant for them).
 
 * Data
 

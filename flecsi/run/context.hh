@@ -46,6 +46,71 @@ enum status : int {
   error, // add specific error modes
 }; // initialization_codes
 
+/// \cond core
+
+/// The results of parsing command-line options defined by FleCSI.
+struct arguments {
+  /// A command line.
+  using argv = std::vector<std::string>;
+
+  /// Arguments and options not recognized during parsing.
+  argv unrecognized;
+
+  /// Specification of operation to be performed.
+  struct action {
+    /// Program name.
+    std::string program;
+    status code; ///< Operation mode.
+    std::string stderr; ///< Error text from initialization.
+  } act; ///< Operation to perform.
+  /// Specification for initializing underlying libraries.
+  struct dependent {
+#ifdef FLECSI_ENABLE_MPI
+    argv mpi; ///< Command line for MPI.
+#endif
+#ifdef FLECSI_ENABLE_KOKKOS
+    argv kokkos; ///< Command line for Kokkos.
+#endif
+  } dep; ///< Underlying initialization arguments.
+  /// Specification of options for FleCSI.
+  struct config {
+#ifdef FLECSI_ENABLE_FLOG
+    /// Specification for Flog operation.
+    struct log {
+      argv tags; ///< Tags to enable (perhaps including "all").
+      int verbose, ///< Verbosity level.
+        process; ///< Process from which to produce output, or -1 for all.
+    } flog; ///< Flog options.
+#endif
+    /// Command line for FleCSI backend.  Some backends ignore it.
+    argv backend;
+  } cfg; ///< FleCSI options.
+
+  /// Parse a command line.
+  /// \note \c dep contains only the program name.
+  arguments(int, char **);
+
+  static std::vector<char *> pointers(argv & v) {
+    std::vector<char *> ret;
+    ret.reserve(v.size());
+    for(auto & s : v)
+      ret.push_back(s.data());
+    return ret;
+  }
+
+private:
+  status getopt(int, char **);
+};
+
+#ifdef DOXYGEN // implemented per-backend
+/// RAII guard for initializing/finalizing FleCSI dependencies.
+/// Which are included depends on configuration.
+struct dependencies_guard {
+  /// Construct the guard, possibly mutating argument values.
+  dependencies_guard(arguments::dependent &);
+};
+#endif
+
 /*!
   The context type provides a high-level execution context interface that
   is implemented by a specific backend.
@@ -89,27 +154,18 @@ struct context {
     return option_checks_;
   }
 
-  std::vector<char *> & argv() {
-    return argv_;
-  }
-
-  std::string const & program() {
-    return program_;
-  }
-
   static auto & descriptions_map() {
     return descriptions_map_;
-  }
-
-  std::vector<std::string> const & unrecognized_options() {
-    return unrecognized_options_;
   }
 
   /*--------------------------------------------------------------------------*
     Runtime interface.
    *--------------------------------------------------------------------------*/
 protected:
-  context(int argc, char ** argv, Color np, Color proc)
+  context(const arguments::config & c,
+    arguments::action & a,
+    Color np,
+    Color proc)
     : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
@@ -117,242 +173,17 @@ protected:
       sleep(n);
     }
 
-    // Save command-line arguments
-    for(auto i(0); i < argc; ++i) {
-      argv_.push_back(argv[i]);
-    } // for
-
-    program_ = argv[0];
-    program_ = program_.substr(program_.rfind('/') + 1);
-
-    exit_status_ = getopt(argc, argv);
-  }
-
-  status getopt(int argc, char ** argv) {
-    boost::program_options::options_description master("Basic Options");
-    master.add_options()("help,h", "Print this message and exit.");
-
-    // Add externally-defined descriptions to the main description
-    for(auto & od : descriptions_map_) {
-      if(od.first != "FleCSI Options") {
-        master.add(od.second);
-      } // if
-    } // for
-
-    boost::program_options::options_description flecsi_desc =
-      descriptions_map_.count("FleCSI Options")
-        ? descriptions_map_["FleCSI Options"]
-        : boost::program_options::options_description("FleCSI Options");
-
-    flecsi_desc.add_options()("backend-args",
-      boost::program_options::value<std::vector<std::string>>(),
-      "Pass arguments to the backend. The single argument is a quoted "
-      "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
-    std::string flog_tags_;
-    int flog_verbose_;
-    int64_t flog_output_process_;
-    // Add FleCSI options
-    flecsi_desc.add_options() // clang-format off
-      (
-        "flog-tags",
-        boost::program_options::value(&flog_tags_)
-          ->default_value("all"),
-        "Enable the specified output tags, e.g., --flog-tags=tag1,tag2."
-        " Use '--flog-tags=all' to show all output, and "
-        " '--flog-tags=unscoped' to show only unguarded output."
-      )
-      (
-        "flog-verbose",
-        boost::program_options::value(&flog_verbose_)
-          ->implicit_value(1)
-          ->default_value(0),
-        "Enable verbose output. Passing '-1' will strip any additional"
-        " decorations added by flog and will only output the user's message."
-      )
-      (
-        "flog-process",
-        boost::program_options::value(&flog_output_process_)->default_value(0),
-        "Restrict output to the specified process id. The default is process 0."
-        " Use '--flog-process=-1' to enable all processes."
-      ); // clang-format on
-#endif
-
-    // Make an options description to hold all options. This is useful
-    // to exlude hidden options from help.
-    boost::program_options::options_description all("All Options");
-    all.add(master);
-    all.add(flecsi_desc);
-    all.add(hidden_options_);
-
-    boost::program_options::parsed_options parsed =
-      boost::program_options::command_line_parser(argc, argv)
-        .options(all)
-        .positional(positional_desc_)
-        .allow_unregistered()
-        .run();
-
-    auto print_usage = [this](std::string program,
-                         auto const & master,
-                         auto const & flecsi) {
-      if(process_ == 0) {
-        std::cout << "Usage: " << program << " ";
-
-        size_t positional_count = positional_desc_.max_total_count();
-        size_t max_label_chars = std::numeric_limits<size_t>::min();
-
-        for(size_t i{0}; i < positional_count; ++i) {
-          std::cout << "<" << positional_desc_.name_for_position(i) << "> ";
-
-          const size_t size = positional_desc_.name_for_position(i).size();
-          max_label_chars = size > max_label_chars ? size : max_label_chars;
-        } // for
-
-        max_label_chars += 2;
-
-        std::cout << std::endl << std::endl;
-
-        if(positional_count) {
-          std::cout << "Positional Options:" << std::endl;
-
-          for(size_t i{0}; i < positional_desc_.max_total_count(); ++i) {
-            auto const & name = positional_desc_.name_for_position(i);
-            auto help = positional_help_.at(name);
-            std::cout << "  " << name << " ";
-            std::cout << std::string(max_label_chars - name.size() - 2, ' ');
-
-            if(help.size() > 78 - max_label_chars) {
-              std::string first = help.substr(
-                0, help.substr(0, 78 - max_label_chars).find_last_of(' '));
-              std::cout << first << std::endl;
-              help =
-                help.substr(first.size() + 1, help.size() - first.size() + 1);
-
-              while(help.size() > 78 - max_label_chars) {
-                std::string part = help.substr(
-                  0, help.substr(0, 78 - max_label_chars).find_last_of(' '));
-                std::cout << std::string(max_label_chars + 1, ' ') << part
-                          << std::endl;
-                help = help.substr(part.size() + 1, help.size() - part.size());
-              } // while
-
-              std::cout << std::string(max_label_chars + 1, ' ') << help
-                        << std::endl;
-            }
-            else {
-              std::cout << help << std::endl;
-            } // if
-
-          } // for
-
-          std::cout << std::endl;
-        } // if
-
-        std::cout << master << std::endl;
-        std::cout << flecsi << std::endl;
-
-#if defined(FLECSI_ENABLE_FLOG)
-        auto const & tm = log::state::tag_map();
-
-        if(tm.size()) {
-          std::cout << "Available FLOG Tags (FleCSI Logging Utility):"
-                    << std::endl;
-        } // if
-
-        for(auto t : tm) {
-          std::cout << "  " << t.first << std::endl;
-        } // for
-#endif
-      } // if
-    }; // print_usage
-
-    try {
-      boost::program_options::variables_map vm;
-      boost::program_options::store(parsed, vm);
-
-      if(vm.count("backend-args")) {
-        auto args = vm["backend-args"].as<std::vector<std::string>>();
-        using I = std::istream_iterator<std::string>;
-        for(auto & a : args) {
-          auto iss = std::istringstream(a);
-          backend_args_.insert(backend_args_.end(), I(iss), I());
-        }
-      }
-      if(vm.count("help")) {
-        print_usage(program_, master, flecsi_desc);
-        return status::help;
-      } // if
-      if(vm.count("control-model")) {
-        return status::control_model;
-      } // if
-      if(vm.count("control-model-sorted")) {
-        return status::control_model_sorted;
-      } // if
-
-      boost::program_options::notify(vm);
-
-      // Call option check methods
-      for(auto const & [name, boost_any] : vm) {
-        auto const & ita = option_checks_.find(name);
-        if(ita != option_checks_.end()) {
-          auto [positional, check] = ita->second;
-
-          std::stringstream ss;
-          if(!check(boost_any.value(), ss)) {
-            if(process_ == 0) {
-              std::string dash = positional ? "" : "--";
-              std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED
-                        << "invalid argument for '" << dash << name
-                        << "' option!!!" << std::endl
-                        << FLOG_COLOR_LTRED << (ss.str().empty() ? "" : " => ")
-                        << ss.str() << FLOG_COLOR_PLAIN << std::endl
-                        << std::endl;
-            } // if
-
-            print_usage(program_, master, flecsi_desc);
-            return status::help;
-          } // if
-        } // if
-      } // for
+    if(c.flog.process + 1 && Color(c.flog.process) >= np) {
+      std::ostringstream stderr;
+      stderr << a.program << ": flog process " << c.flog.process
+             << " does not exist with " << processes_ << " processes\n";
+      a.stderr += std::move(stderr).str();
+      a.code = error;
     }
-    catch(boost::program_options::error & e) {
-      std::string error(e.what());
-
-      auto pos = error.find("--");
-      if(pos != std::string::npos) {
-        error.replace(pos, 2, "");
-      } // if
-
-      if(!process_)
-        std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error
-                  << "!!!" << FLOG_COLOR_PLAIN << std::endl
-                  << std::endl;
-      print_usage(program_, master, flecsi_desc);
-      return status::command_line_error;
-    } // try
-
-    unrecognized_options_ = boost::program_options::collect_unrecognized(
-      parsed.options, boost::program_options::include_positional);
-
-#if defined(FLECSI_ENABLE_FLOG)
-    if(flog_output_process_ + 1 && flog_output_process_ >= processes_) {
-      if(!process_)
-        std::cerr << program_ << ": flog process " << flog_output_process_
-                  << " does not exist with " << processes_ << " processes"
-                  << std::endl;
-      return status::error;
-    }
-    std::vector<std::string> tags;
-    if(flog_tags_ != "none") {
-      std::istringstream is(flog_tags_);
-      std::string tag;
-      while(std::getline(is, tag, ','))
-        tags.push_back(tag);
-    }
-    log::state::instance.emplace(tags, flog_verbose_, flog_output_process_);
+    else
+      log::state::instance.emplace(c.flog.tags, c.flog.verbose, c.flog.process);
 #endif
-
-    return status::success;
   }
 
   ~context() {
@@ -433,14 +264,6 @@ public:
   Color colors() const;
 #endif
 
-  /*!
-    Return the exit status of the FleCSI runtime.
-   */
-
-  int & exit_status() {
-    return exit_status_;
-  }
-
   static void register_init(void callback()) {
     init_registry.push_back(callback);
   }
@@ -519,10 +342,6 @@ protected:
     Program options data members.
    *--------------------------------------------------------------------------*/
 
-  std::string program_;
-  std::vector<char *> argv_;
-  std::vector<std::string> backend_args_;
-
   // Option Descriptions
   static inline std::map<std::string,
     boost::program_options::options_description>
@@ -540,15 +359,11 @@ protected:
       std::function<bool(boost::any const &, std::stringstream & ss)>>>
     option_checks_;
 
-  std::vector<std::string> unrecognized_options_;
-
   /*--------------------------------------------------------------------------*
     Basic runtime data members.
    *--------------------------------------------------------------------------*/
 
   Color process_, processes_, threads_per_process_, threads_;
-
-  int exit_status_;
 
   /*--------------------------------------------------------------------------*
     Field data members.
@@ -603,6 +418,8 @@ private:
   virtual void emplace() = 0;
   virtual void reset() noexcept = 0;
 };
+
+/// \endcond
 
 /// \}
 } // namespace run

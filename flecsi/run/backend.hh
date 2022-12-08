@@ -26,6 +26,7 @@
 #endif // FLECSI_BACKEND
 
 namespace flecsi::run {
+inline std::optional<dependencies_guard> dependent;
 // Now that the backend's context_t is complete:
 inline std::optional<context_t> context::ctx;
 context_t &
