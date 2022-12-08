@@ -47,7 +47,8 @@ namespace log {
 class state
 {
 public:
-  state(std::string active, int verbose, Color one_process) : verb(verbose) {
+  state(const std::vector<std::string> & active, int verbose, Color one_process)
+    : verb(verbose) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -64,25 +65,18 @@ public:
     // hashes. We should consider creating a const_string_t type for
     // constexpr string creation.
 
-    if(active == "all") {
-      // Turn on all of the bits for "all".
-      tag_bitset_.set();
+    for(auto & tag : active) {
+      if(tag == "all")
+        tag_bitset_.set();
+      else if(tag_map_.find(tag) != tag_map_.end()) {
+        tag_bitset_.set(tag_map_[tag]);
+      }
+      else {
+        std::cerr << "FLOG WARNING: tag " << tag
+                  << " has not been registered. Ignoring this group..."
+                  << std::endl;
+      }
     }
-    else if(active != "none") {
-      // Turn on the bits for the selected groups.
-      std::istringstream is(active);
-      std::string tag;
-      while(std::getline(is, tag, ',')) {
-        if(tag_map_.find(tag) != tag_map_.end()) {
-          tag_bitset_.set(tag_map_[tag]);
-        }
-        else {
-          std::cerr << "FLOG WARNING: tag " << tag
-                    << " has not been registered. Ignoring this group..."
-                    << std::endl;
-        } // if
-      } // while
-    } // if
 
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: active tags (" << active << ")"

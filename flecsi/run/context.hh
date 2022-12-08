@@ -342,8 +342,14 @@ protected:
                   << std::endl;
       return status::error;
     }
-    log::state::instance.emplace(
-      flog_tags_, flog_verbose_, flog_output_process_);
+    std::vector<std::string> tags;
+    if(flog_tags_ != "none") {
+      std::istringstream is(flog_tags_);
+      std::string tag;
+      while(std::getline(is, tag, ','))
+        tags.push_back(tag);
+    }
+    log::state::instance.emplace(tags, flog_verbose_, flog_output_process_);
 #endif
 
     return status::success;
