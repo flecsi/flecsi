@@ -68,9 +68,6 @@ public:
       // Turn on all of the bits for "all".
       tag_bitset_.set();
     }
-    else if(active == "unscoped") {
-      tag_bitset_.set(0);
-    }
     else if(active != "none") {
       // Turn on the bits for the selected groups.
       std::istringstream is(active);
@@ -299,7 +296,7 @@ private:
   std::bitset<FLOG_TAG_BITS> tag_bitset_;
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
-  static inline std::vector<std::string> tag_names{"unscoped"};
+  static inline std::vector<std::string> tag_names;
 
 #if defined(FLOG_ENABLE_MPI)
   void send_to_one(bool last);

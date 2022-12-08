@@ -94,6 +94,7 @@ struct tag {
 private:
   std::string label_;
 }; // struct tag
+const inline tag unscoped_tag("unscoped");
 
 /*!
   Create a guard to control output of flog output within the scope of the
