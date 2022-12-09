@@ -72,7 +72,7 @@ struct vertex_referencers {
     int rank)
     : size_(dist.size() - 1), rank_(rank) {
     references_.resize(size_);
-    for(auto v : vertex2cell) {
+    for(auto & v : vertex2cell) {
       auto r = util::distribution_offset(dist, v.first);
       if(r != rank_) {
         for(auto c : v.second) {

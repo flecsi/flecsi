@@ -185,7 +185,7 @@ protected:
   virtual int sync() {
     bool fail = false;
 
-    for(auto b : buffers_) {
+    for(const auto & b : buffers_) {
       if(b.second.buffer->pubsync())
         fail = true;
     } // for
@@ -211,7 +211,7 @@ private:
     int eof = !EOF;
 
     // Put test buffer characters to each buffer
-    for(auto b : buffers_) {
+    for(const auto & b : buffers_) {
       if(predicate(b.second)) {
         for(auto bc : test_buffer_) {
           const int w = b.second.buffer->sputc(bc);
