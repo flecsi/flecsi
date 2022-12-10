@@ -34,6 +34,12 @@ namespace detail {
 // XREF: more specializations in accessor.hh
 template<class>
 struct task_param {};
+// A is what the user gives us when calling execute(), P is what the user
+// defined function/task expects. P may not be the same as A, for example, user
+// pass a field_reference as an argument to execute() but the task expects an
+// data accessor as its formal parameter. For instance, replace_argument replaces
+// a field_reference with an accessor. This is done through various
+// specialization of the exec::detail::task_param<> template.
 template<class P, class A, class = void> // A is a reference type
 struct replace_argument;
 // Allow specialization as well as use of convert_tag:
@@ -138,6 +144,17 @@ replace_argument(T && t) {
   return detail::replace_argument<std::decay_t<P>, T &&>::replace(
     std::forward<T>(t));
 }
+
+namespace detail {
+template<class... PP, class... AA>
+auto
+replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
+  // Specify the template arguments explicitly to produce references to
+  // unchanged arguments.
+  return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
+    aa)))...>(exec::replace_argument<PP>(std::forward<AA>(aa))...);
+}
+} // namespace detail
 
 // Return the number of task invocations for the given parameter tuple and
 // arguments, or std::monostate() if a single launch is appropriate.

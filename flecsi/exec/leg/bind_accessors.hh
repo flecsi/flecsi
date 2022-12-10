@@ -23,9 +23,6 @@
 namespace flecsi {
 /// \addtogroup legion-execution
 /// \{
-
-inline flog::devel_tag bind_accessors_tag("bind_accessors");
-
 namespace exec::leg {
 
 /*!
@@ -46,17 +43,7 @@ struct bind_accessors {
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
       regions_(regions), futures_(futures) {}
 
-  template<class A>
-  void operator()(A & a) {
-    std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
-  }
-
 private:
-  auto visitor() {
-    return
-      [&](auto & p, auto &&) { visit(p); }; // Clang 8.0.1 deems 'this' unused
-  }
-
   // All accessors are handled in terms of their underlying raw accessors.
 
   template<typename D, Privileges P>
@@ -69,11 +56,6 @@ private:
       Realm::AffineAccessor<D, data::leg::region_dimensions, Legion::coord_t>>
       ac(reg, accessor.field());
     bind(reg, accessor, ac);
-  }
-
-  template<class P>
-  std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
-    p.send(visitor());
   }
 
   template<class R, typename D>
@@ -106,39 +88,6 @@ private:
   void visit(future<D> & f) {
     f = {futures_[future_id++]};
   }
-
-  // Note: due to how visitor() is implemented above the first
-  // parameter can not be 'const &' here, otherwise template/overload
-  // resolution fails (silently).
-  template<typename T>
-  static void visit(data::detail::scalar_value<T> & s) {
-    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
-      return;
-#elif defined(__HIPCC__)
-      HIP_ASSERT(hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost));
-      return;
-#else
-      flog_assert(false, "Cuda should be enabled when using toc task");
-#endif
-    }
-    *s.host = *s.device;
-  }
-
-  /*--------------------------------------------------------------------------*
-    Non-FleCSI Data Types
-   *--------------------------------------------------------------------------*/
-
-  template<typename D>
-  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
-    D &) {
-    {
-      flog::devel_guard guard(bind_accessors_tag);
-      flog_devel(info) << "No setup for parameter of type " << util::type<D>()
-                       << std::endl;
-    }
-  } // visit
 
   Legion::Runtime * legion_runtime_;
   Legion::Context & legion_context_;

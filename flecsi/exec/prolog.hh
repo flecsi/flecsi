@@ -19,6 +19,8 @@ inline flog::devel_tag task_prologue_tag("task_prologue");
 #include "flecsi/exec/leg/task_prologue.hh"
 #elif FLECSI_BACKEND == FLECSI_BACKEND_mpi
 #include "flecsi/exec/mpi/task_prologue.hh"
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
+#include "flecsi/exec/hpx/task_prologue.hh"
 #endif
 
 /// \cond core

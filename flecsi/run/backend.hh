@@ -21,7 +21,7 @@
 
 #elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
 
-#include "hpx/context.hh"
+#include "flecsi/run/hpx/context.hh"
 
 #endif // FLECSI_BACKEND
 

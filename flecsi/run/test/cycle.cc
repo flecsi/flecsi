@@ -1,8 +1,8 @@
+#include "flecsi/execution.hh"
+
 #include "package_a.hh"
 #include "package_b.hh"
 #include "package_c.hh"
-
-#include "flecsi/execution.hh"
 
 int
 main(int argc, char ** argv) {

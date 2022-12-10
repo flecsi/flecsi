@@ -77,28 +77,40 @@ function(flecsi_add_test name)
   # Check to see if the user has specified a backend and process it.
   #----------------------------------------------------------------------------#
 
-  if(FleCSI_BACKEND STREQUAL "mpi")
+  set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
+  set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
+  set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES})
+  set(unit_policy_exec ${MPIEXEC})
+  set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
+  set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
+  set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
 
-    set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
-    set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
-    set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES})
-    set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
-    set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
-    set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
+  if(FLECSI_BACKEND STREQUAL "mpi")
+
+    if(MSVC)
+      set(unit_policy_defines ${unit_policy_defines} NOMINMAX)
+      set(unit_policy_defines ${unit_policy_defines} _CRT_SECURE_NO_WARNINGS)
+    endif()
 
   elseif(FleCSI_BACKEND STREQUAL "legion")
 
-    set(unit_policy_flags ${Legion_CXX_FLAGS}
-      ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
-    set(unit_policy_includes ${Legion_INCLUDE_DIRS}
-      ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
-    set(unit_policy_libraries ${Legion_LIBRARIES} ${Legion_LIB_FLAGS}
-      ${MPI_${MPI_LANGUAGE}_LIBRARIES})
-    set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
-    set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
-    set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
+    set(unit_policy_flags
+      ${unit_policy_flags} ${Legion_CXX_FLAGS})
+    set(unit_policy_includes
+      ${unit_policy_includes} ${Legion_INCLUDE_DIRS})
+    set(unit_policy_libraries
+      ${unit_policy_libraries} ${Legion_LIBRARIES} ${Legion_LIB_FLAGS})
+
+  elseif(FLECSI_BACKEND STREQUAL "hpx")
+
+    set(unit_policy_libraries
+      ${unit_policy_libraries} HPX::hpx HPX::wrap_main)
+    set(unit_policy_defines ENABLE_HPX)
+
+    if(MSVC)
+      set(unit_policy_defines ${unit_policy_defines} NOMINMAX)
+      set(unit_policy_defines ${unit_policy_defines} _CRT_SECURE_NO_WARNINGS)
+    endif()
 
   else()
 
@@ -135,7 +147,7 @@ function(flecsi_add_test name)
   add_executable(${name}
     ${unit_SOURCES}
   )
-  
+
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${_OUTPUT_DIR})
 
@@ -229,11 +241,11 @@ function(flecsi_add_test name)
 
   if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND 
      (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
-   list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1") 
+   list(APPEND  UNIT_FLAGS "--backend-args=-ll:gpu 1")
   endif()
- 
+
   if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND Kokkos_ENABLE_OPENMP AND Legion_USE_OpenMP)
-    list(APPEND  UNIT_FLAGS "--backend-args=-ll:ocpu 1 -ll:onuma 0") 
+    list(APPEND  UNIT_FLAGS "--backend-args=-ll:ocpu 1 -ll:onuma 0")
   endif()
 
   if(${proc_instances} GREATER 1)
@@ -272,7 +284,7 @@ function(flecsi_add_test name)
           ${UNIT_FLAGS}
         WORKING_DIRECTORY ${_OUTPUT_DIR}
       )
-  else()
+    else()
       add_test(
         NAME
           "${_TEST_PREFIX}${name}"
