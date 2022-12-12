@@ -30,9 +30,4 @@
 #define FLECSI_INLINE_TARGET inline
 #endif
 
-#if defined(__HIPCC__)
-#include "hip/hip_runtime.h"
-#define HIP_ASSERT(status) assert((status) == hipSuccess)
-#endif
-
 #endif

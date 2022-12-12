@@ -114,13 +114,17 @@ private:
   static void visit(data::detail::scalar_value<T> & s) {
     if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
 #if defined(__NVCC__) || defined(__CUDACC__)
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      auto status =
+        cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
+      flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");
       return;
 #elif defined(__HIPCC__)
-      HIP_ASSERT(hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost));
+      auto status =
+        hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost);
+      flog_assert(hipSuccess == status, "Error calling hipMemcpy");
       return;
 #else
-      flog_assert(false, "Cuda should be enabled when using toc task");
+      flog_assert(false, "CUDA or HIP should be enabled when using toc task");
 #endif
     }
     *s.host = *s.device;
