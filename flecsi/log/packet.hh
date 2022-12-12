@@ -17,7 +17,6 @@
 #endif
 
 #include <sys/time.h>
-#include <unistd.h>
 
 #include <algorithm>
 #include <array>
@@ -34,11 +33,6 @@
 
 #ifndef FLOG_MAX_PACKET_BUFFER
 #define FLOG_MAX_PACKET_BUFFER 1024
-#endif
-
-// Microsecond interval
-#ifndef FLOG_PACKET_FLUSH_INTERVAL
-#define FLOG_PACKET_FLUSH_INTERVAL 100000
 #endif
 
 /// \cond core

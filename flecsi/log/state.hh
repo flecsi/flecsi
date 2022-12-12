@@ -16,6 +16,7 @@
 #include <atomic>
 #include <bitset>
 #include <cassert>
+#include <condition_variable>
 #include <functional>
 #include <optional>
 #include <sstream>
@@ -119,10 +120,9 @@ public:
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: state destructor" << std::endl;
 #endif
 #if defined(FLOG_ENABLE_MPI)
-    send_to_one();
+    send_to_one(true);
 
     if(process_ == 0) {
-      run_flusher_ = false;
       flusher_thread_.join();
     } // if
 #endif // FLOG_ENABLE_MPI
@@ -289,7 +289,7 @@ public:
   }
   /// Gather log output on the root.
   static void gather(state & s) {
-    s.send_to_one();
+    s.send_to_one(false);
   }
 #endif
 
@@ -306,13 +306,14 @@ private:
   static inline std::vector<std::string> tag_names{"unscoped"};
 
 #if defined(FLOG_ENABLE_MPI)
-  void send_to_one();
+  void send_to_one(bool last);
 
   Color one_process_, process_, processes_;
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
+  std::condition_variable avail;
   std::vector<packet_t> packets_;
-  std::atomic<bool> run_flusher_ = true;
+  bool stop = false;
 #endif
 
 }; // class state

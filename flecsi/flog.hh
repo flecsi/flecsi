@@ -283,8 +283,6 @@ private:
   ::flecsi::log::message<flecsi::log::error>(__FILE__, __LINE__).format()      \
     << stream
 
-#define FLOG_FLUSH_WAIT usleep(FLOG_PACKET_FLUSH_INTERVAL)
-
 #else // FLECSI_ENABLE_FLOG
 
 namespace flecsi {
@@ -336,8 +334,6 @@ struct container {
 #define flog_info(message)
 #define flog_warn(message)
 #define flog_error(message)
-
-#define FLOG_FLUSH_WAIT
 
 #endif // FLECSI_ENABLE_FLOG
 
@@ -406,7 +402,7 @@ dumpstack() {
              << FLOG_OUTPUT_YELLOW(::flecsi::log::rstrip<'/'>(__FILE__)        \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
-    FLOG_FLUSH_WAIT;                                                           \
+    ::flecsi::log::state::instance.reset();                                    \
     std::cerr << _sstream.str() << std::endl;                                  \
     ::flecsi::log::dumpstack();                                                \
     std::abort();                                                              \

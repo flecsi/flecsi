@@ -13,7 +13,7 @@ namespace log {
 #if defined(FLOG_ENABLE_MPI)
 
 void
-state::send_to_one() {
+state::send_to_one(bool last) {
   using util::mpi::test;
 
   std::lock_guard guard(packets_mutex_);
@@ -62,16 +62,17 @@ state::send_to_one() {
           packets_.end(), remote_packets.begin(), remote_packets.end());
       } // if
     } // for
+
+    stop = last;
+    avail.notify_one();
   } // if
 
 } // send_to_one
 
 void
 state::flush_packets() {
-  while(run_flusher_) {
-    usleep(FLOG_PACKET_FLUSH_INTERVAL);
-    std::lock_guard guard(packets_mutex_);
-
+  std::unique_lock lk(packets_mutex_);
+  while(true) {
     std::sort(packets_.begin(), packets_.end());
 
     for(auto & p : packets_) {
@@ -79,6 +80,9 @@ state::flush_packets() {
     } // for
 
     packets_.clear();
+    if(stop)
+      break;
+    avail.wait(lk); // spurious wakeups have no effect
   } // while
 } // flush_packets
 
