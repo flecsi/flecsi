@@ -236,22 +236,21 @@ protected:
   }
 };
 
-struct with_color { // for initialization order
-  shared_index_space color_space;
-};
-
-struct rows : with_color, partition_base {
+struct rows : partition_base {
   explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
 
   // this constructor will create partition by rows with s.first being number
   // of colors and s.second the max size of the rows
   rows(const Legion::LogicalRegion & reg, size2 s)
-    : with_color{run().create_index_space(ctx(),
-        Legion::Rect<1>(0, upper(s.first)))},
-      partition_base(reg, partition_rows(reg, upper(s.second))) {}
+    : partition_base(reg,
+        partition_rows(reg,
+          shared_index_space(run().create_index_space(ctx(),
+            Legion::Rect<1>(0, upper(s.first)))),
+          upper(s.second))) {}
 
 private:
   shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
+    Legion::IndexSpace color_space,
     Legion::coord_t hi) {
     // The type-erased version assumes a square transformation matrix
     return named(run().create_partition_by_restriction(
@@ -273,7 +272,7 @@ public:
   void update(const Legion::LogicalRegion & reg) {
     Legion::DomainPoint hi =
       run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, hi[1]);
+    auto ip = partition_rows(reg, get_color_space(), hi[1]);
 
     logical_partition = log(reg, ip);
     index_partition = std::move(ip);
@@ -307,8 +306,6 @@ struct partition : partition_base {
   }
 
 private:
-  // We document that src must outlive this partitioning, although Legion is
-  // said to support deleting its color space before our partition using it.
   partition(const Legion::LogicalRegion & reg,
     const Legion::IndexSpace & is,
     const partition_base & src,

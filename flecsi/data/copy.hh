@@ -21,8 +21,7 @@ namespace flecsi::data {
 /// A prefix of each row in a region_base.
 struct prefixes : partition, prefixes_base {
   /// Derive row lengths from a field accessor.  The partition hosting the
-  /// field must have the same number of rows as \a r and survive until this
-  /// partition is updated or destroyed.
+  /// field must have the same number of rows as \a r.
   /// \param r region to subdivide
   /// \param f field accessor for \c Field
   template<class F>
@@ -42,8 +41,7 @@ struct intervals {
 
   /// Derive intervals from the field values in each row of a partition.
   /// \param pfx partition of which to create a subset
-  /// \param part must have the same number of rows as \a pfx and outlive this
-  ///   value
+  /// \param part must have the same number of rows as \a pfx
   /// \param id field of type \c Value
   intervals(prefixes & pfx,
     const partition & part,
@@ -60,8 +58,7 @@ struct points {
 
   /// Derive points from the field values in each row of a partition.
   /// \param pfx partition from which to select
-  /// \param iv must have the same number of rows as \a pfx and outlive this
-  ///   value
+  /// \param iv must have the same number of rows as \a pfx
   /// \param id field of type \c Value (need not be unique)
   points(prefixes & pfx,
     const intervals & iv,
