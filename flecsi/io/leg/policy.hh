@@ -188,7 +188,7 @@ struct io_interface {
           data::leg::ctx(), file_color_bounds);
       }()),
       launch_partition(data::leg::run().create_equal_partition(data::leg::ctx(),
-        process_topology->index_space,
+        process_topology->get_index_space(),
         launch_space)) {}
 
   template<bool W = true> // whether to write or read the file
