@@ -25,6 +25,9 @@
 
 /// \cond core
 namespace flecsi {
+template<class>
+struct task_local;
+
 namespace log {
 /// \addtogroup flog
 /// \{
@@ -88,7 +91,8 @@ public:
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: active tags (" << active << ")"
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
-
+#else
+    (void)active;
 #endif // FLOG_ENABLE_TAGS
 
 #if defined(FLOG_ENABLE_MPI)
@@ -180,20 +184,10 @@ public:
   } // next_tag
 
   /*!
-    Return a reference to the active tag (const version).
+    Return a reference to the active tag.
    */
 
-  const std::atomic<size_t> & active_tag() const {
-    return active_tag_;
-  }
-
-  /*!
-    Return a reference to the active tag (mutable version).
-   */
-
-  std::atomic<size_t> & active_tag() {
-    return active_tag_;
-  }
+  static std::size_t & active_tag();
 
   /*!
     Return the tag name associated with a tag id.
@@ -210,7 +204,7 @@ public:
   static std::string active_tag_name() {
     if(!instance)
       return "external";
-    return tag_name(instance->active_tag_);
+    return tag_name(active_tag());
   }
 
   static bool tag_enabled() {
@@ -225,7 +219,7 @@ public:
 #endif
     } // if
 
-    const std::size_t t = instance->active_tag_;
+    const std::size_t t = active_tag();
     const bool ret = instance->tag_bitset_.test(t);
 
 #if defined(FLOG_ENABLE_DEBUG)
@@ -300,8 +294,10 @@ private:
 
   tee_stream_t stream_;
 
-  std::atomic<std::size_t> active_tag_ = 0;
+#ifdef FLOG_ENABLE_TAGS
+  static task_local<std::size_t> cur_tag;
   std::bitset<FLOG_TAG_BITS> tag_bitset_;
+#endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names{"unscoped"};
 

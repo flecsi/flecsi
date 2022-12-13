@@ -77,6 +77,7 @@ Fixed
 
 * Logging
 
+  * Tags work correctly in tasks executed in parallel.
   * Messages are sorted by timestamp correctly.
   * Exiting the process before ``flecsi::finalize`` does not crash.
 

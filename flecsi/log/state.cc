@@ -1,5 +1,6 @@
 #include <flecsi-config.h>
 
+#include "flecsi/execution.hh"
 #include "flecsi/log/packet.hh"
 #include "flecsi/log/state.hh"
 #include "flecsi/log/utils.hh"
@@ -9,6 +10,20 @@
 
 namespace flecsi {
 namespace log {
+
+#ifdef FLOG_ENABLE_TAGS
+task_local<std::size_t> state::cur_tag;
+#endif
+
+std::size_t &
+state::active_tag() {
+#ifdef FLOG_ENABLE_TAGS
+  return *cur_tag;
+#else
+  static std::size_t t; // modifications disabled here
+  return t;
+#endif
+}
 
 #if defined(FLOG_ENABLE_MPI)
 

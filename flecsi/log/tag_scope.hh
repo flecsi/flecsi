@@ -31,7 +31,7 @@ struct tag_scope_t {
 
     // Warn users about externally-scoped messages
     if(state::instance)
-      stash_ = state::instance->active_tag().exchange(tag);
+      stash_ = std::exchange(state::active_tag(), tag);
     else {
       std::cerr
         << FLOG_COLOR_YELLOW << "FLOG: !!!WARNING You cannot use "
@@ -43,7 +43,7 @@ struct tag_scope_t {
 
   ~tag_scope_t() {
     if(state::instance)
-      state::instance->active_tag() = stash_;
+      state::active_tag() = stash_;
   } // ~tag_scope_t
 
 private:
