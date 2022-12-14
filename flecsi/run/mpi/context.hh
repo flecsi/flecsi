@@ -11,17 +11,29 @@
 #endif
 
 #include "flecsi/run/context.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <boost/program_options.hpp>
 #include <mpi.h>
 
 #include <map>
 
-namespace flecsi::run {
+namespace flecsi {
+namespace run {
 /// \defgroup mpi-runtime MPI Runtime
 /// Global state.
 /// \ingroup runtime
 /// \{
+
+struct dependencies_guard {
+  dependencies_guard(arguments::dependent &);
+  ~dependencies_guard();
+
+private:
+  dependencies_guard(int, char **);
+
+  util::mpi::init mpi;
+};
 
 struct context_t : context {
 
@@ -29,17 +41,7 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  void finalize();
+  context_t(const arguments::config &, arguments::action &);
 
   /*!
     Documnetation for this interface is in the top-level context type.
@@ -47,32 +49,12 @@ struct context_t : context {
 
   int start(const std::function<int()> &);
 
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
-  Color process() const {
-    return process_;
-  }
-
-  Color processes() const {
-    return processes_;
-  }
-
-  Color threads_per_process() const {
-    return 1;
-  }
-
-  Color threads() const {
-    return 0;
-  }
-
   /*
     Documnetation for this interface is in the top-level context type.
    */
 
   static int task_depth() {
-    return 0;
+    return depth;
   } // task_depth
 
   /*
@@ -90,9 +72,48 @@ struct context_t : context {
   Color colors() const {
     return processes_;
   }
+
+  static inline int depth;
+
+  struct depth_guard {
+    depth_guard() {
+      ++depth;
+    }
+    ~depth_guard() {
+      --depth;
+    }
+  };
 };
 
 /// \}
-} // namespace flecsi::run
+} // namespace run
+
+using runtime = run::context_t;
+
+template<class T>
+struct task_local : private run::task_local_base {
+  T & operator*() noexcept {
+    return *cur();
+  }
+  T * operator->() noexcept {
+    return &**this;
+  }
+
+private:
+  void emplace() override {
+    cur().emplace();
+  }
+  void reset() noexcept override {
+    cur().reset();
+  }
+
+  std::optional<T> & cur() {
+    return run::context_t::task_depth() ? task : outer;
+  }
+
+  std::optional<T> outer, task;
+};
+
+} // namespace flecsi
 
 #endif

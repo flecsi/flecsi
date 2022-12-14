@@ -35,7 +35,7 @@ struct message {
   }
 
   ~message() {
-    if(Policy::strip() or not state::instance().tag_enabled()) {
+    if(Policy::strip() || !state::tag_enabled()) {
       return;
     } // if
 
@@ -59,8 +59,8 @@ struct message {
     } // if
 
 #if defined(FLOG_ENABLE_MPI)
-    if(state::instance().initialized()) {
-      state::instance().buffer_output(ss_.str());
+    if(state::instance) {
+      state::instance->buffer_output(ss_.str());
     }
     else {
       std::cout << ss_.str();
@@ -95,8 +95,7 @@ struct message {
    */
 
   message & format() {
-    clean_ = state::instance().verbose() >= 0 &&
-             Policy::format(ss_, file_, line_, devel_);
+    clean_ = state::verbose() >= 0 && Policy::format(ss_, file_, line_, devel_);
     return *this;
   }
 

@@ -143,7 +143,7 @@ struct tuple_get<std::tuple<TT...>> {
 template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #96523
 extern const Legion::TaskID
-  task_id = (run::context::instance().register_init(detail::register_task<
+  task_id = (run::context::register_init(detail::register_task<
                typename util::function_traits<decltype(F)>::return_type,
                F,
                A>),
@@ -157,11 +157,6 @@ detail::register_task() {
     "Legion tasks cannot use MPI");
 
   const std::string name = util::symbol<*TASK>();
-  {
-    log::devel_guard guard(task_wrapper_tag);
-    flog_devel(info) << "registering pure Legion task " << name << std::endl;
-  }
-
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
   Legion::Processor::Kind kind = processor_type == task_processor_type_t::toc
                                    ? Legion::Processor::TOC_PROC
@@ -185,16 +180,6 @@ detail::register_task() {
     Legion::Runtime::preregister_task_variant<RETURN, TASK>(
       registrar, name.c_str());
   } // if
-}
-
-// A trivial wrapper for nullary functions.
-template<auto & F>
-auto
-verb(const Legion::Task *,
-  const std::vector<Legion::PhysicalRegion> &,
-  Legion::Context,
-  Legion::Runtime *) {
-  return F();
 }
 
 /*!
@@ -236,6 +221,7 @@ struct task_wrapper {
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_accessors(runtime, context, regions, task->futures)(task_args));
     return ann::rguard<ann::execute_task_user>(tname),
+           run::task_local_base::guard(),
            apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
 

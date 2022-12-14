@@ -69,7 +69,7 @@ struct region : region_base {
   template<class Topo, typename Topo::index_space S>
   region(size2 s, util::key_type<S, Topo>)
     : region_base(s,
-        run::context::instance().field_info_store<Topo, S>(),
+        run::context::field_info_store<Topo, S>(),
         (util::type<Topo>() + '[' + std::to_string(S) + ']').c_str()) {}
 
   // Return whether a copy is needed.

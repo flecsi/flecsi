@@ -403,15 +403,13 @@ struct narray<Policy>::access {
   FLECSI_INLINE_TARGET auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
-    return util::mdspan<typename decltype(s)::element_type, dimension>(
+    return util::mdspan(
       s.data(), meta_->extents[index_spaces::template index<S>]);
   }
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
-    return util::mdcolex<
-      typename std::remove_reference_t<decltype(a)>::element_type,
-      dimension>(
+    return util::mdcolex(
       a.span().data(), meta_->extents[index_spaces::template index<S>]);
   }
 

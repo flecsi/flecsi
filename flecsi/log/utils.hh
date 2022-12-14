@@ -124,26 +124,6 @@ rstrip(const char * file) {
   return tmp.substr(tmp.rfind(C) + 1);
 } // rstrip
 
-#ifndef FLOG_SERIALIZATION_INTERVAL
-#define FLOG_SERIALIZATION_INTERVAL 1
-#endif
-
-#ifndef FLOG_SERIALIZATION_THRESHOLD
-#define FLOG_SERIALIZATION_THRESHOLD 1
-#endif
-
-/*!
-  Returnt the current number of buffered packets.
- */
-
-std::size_t log_size();
-
-/*!
-  Serialize output to a single process.
- */
-
-void send_to_one();
-
 /// \}
 } // namespace log
 } // namespace flecsi

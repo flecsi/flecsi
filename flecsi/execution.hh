@@ -23,6 +23,8 @@ namespace flecsi {
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
+inline std::string argv0;
+
 /*!
   Perform FleCSI runtime initialization. If \em dependent is true, this call
   will also initialize any runtime on which FleCSI depends.
@@ -68,7 +70,18 @@ namespace flecsi {
 
 inline int
 initialize(int argc, char ** argv, bool dependent = true) {
-  return run::context::instance().initialize(argc, argv, dependent);
+  run::arguments args(argc, argv);
+  argv0 = args.act.program;
+  if(dependent)
+    run::dependent.emplace(args.dep);
+  auto & ctx = run::context::ctx.emplace(args.cfg, args.act);
+  const auto c = args.act.code;
+  if(c) {
+    if(!ctx.process())
+      std::cerr << args.act.stderr;
+    run::dependent.reset(); // because clients can skip finalize
+  }
+  return c;
 }
 
 /*!
@@ -96,7 +109,8 @@ start(const std::function<int()> & action) {
 
 inline void
 finalize() {
-  run::context::instance().finalize();
+  run::context::ctx.reset();
+  run::dependent.reset();
 }
 
 enum option_attribute : size_t {
@@ -224,15 +238,14 @@ struct program_option {
       boost::make_shared<boost::program_options::option_description>(
         flag, semantic_, help);
 
-    run::context::instance()
-      .descriptions_map()
+    run::context::descriptions_map()
       .try_emplace(section, section)
       .first->second.add(option);
 
     std::string sflag(flag);
     sflag = sflag.substr(0, sflag.find(','));
 
-    run::context::instance().option_checks().try_emplace(sflag, false, check);
+    run::context::option_checks().try_emplace(sflag, false, check);
   } // program_option
 
   /*!
@@ -259,11 +272,11 @@ struct program_option {
       boost::make_shared<boost::program_options::option_description>(
         name, semantic_, help);
 
-    auto & c = run::context::instance();
-    c.positional_description().add(name, count);
-    c.positional_help().try_emplace(name, help);
-    c.hidden_options().add(option);
-    c.option_checks().try_emplace(name, true, check);
+    using c = run::context;
+    c::positional_description().add(name, count);
+    c::positional_help().try_emplace(name, help);
+    c::hidden_options().add(option);
+    c::option_checks().try_emplace(name, true, check);
   } // program_options
 
   /// Get the value, which must exist.
@@ -296,7 +309,7 @@ private:
 
 inline std::string const &
 program() {
-  return run::context::instance().program();
+  return argv0;
 }
 
 /*!
@@ -368,6 +381,31 @@ colors() {
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
+/// \if core
+/// A global variable with a task-specific value.
+/// Must be constructed before calling \c start.
+/// The value for a task has the lifetime of that task; the value outside of
+/// any task has the lifetime of \c start.  Each is value-initialized.
+/// \note Thread-local variables do not function correctly in all backends.
+/// \endif
+template<class T>
+struct task_local
+#ifdef DOXYGEN // implemented per-backend
+{
+  /// Create a task-local variable.
+  task_local();
+  /// It would not be clear whether moving a \c task_local applied to the
+  /// (current) value or the identity of the variable.
+  task_local(task_local &&) = delete;
+
+  /// Get the current task's value.
+  T & operator*() & noexcept;
+  /// Access a member of the current task's value.
+  T * operator->() noexcept;
+}
+#endif
+;
+
 /*!
   Execute a reduction task.
 
@@ -394,9 +432,11 @@ reduce(Args &&... args) {
   std::size_t & flog_task_count = flecsi_context.flog_task_count();
   ++flog_task_count;
   if(flog_task_count % FLOG_SERIALIZATION_INTERVAL == 0 &&
-     reduce_internal<log::log_size, fold::max, flecsi::mpi>().get() >
-       FLOG_SERIALIZATION_THRESHOLD)
-    reduce_internal<log::send_to_one, void, flecsi::mpi>();
+     reduce_internal<log::state::log_size, fold::max, flecsi::mpi>(
+       *log::state::instance)
+         .get() > FLOG_SERIALIZATION_THRESHOLD)
+    reduce_internal<log::state::gather, void, flecsi::mpi>(
+      *log::state::instance);
 #endif
 
   return reduce_internal<Task, Reduction, Attributes, Args...>(
@@ -450,7 +490,8 @@ namespace log {
 inline void
 flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  flecsi::exec::reduce_internal<log::send_to_one, void, flecsi::mpi>();
+  flecsi::exec::reduce_internal<log::state::gather, void, flecsi::mpi>(
+    *log::state::instance);
   flecsi::run::context::instance().flog_task_count() = 0;
 #endif
 } // flush

@@ -6,6 +6,7 @@ set(run_HEADERS
 )
 
 set(run_SOURCES
+  context.cc
 )
 
 if(FLECSI_BACKEND STREQUAL "legion")

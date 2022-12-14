@@ -8,7 +8,6 @@
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/demangle.hh"
-#include <flecsi/flog.hh>
 
 #include <legion.h>
 
@@ -127,19 +126,12 @@ struct custom_wrap {
 
 private:
   static void init() {
-    {
-      log::devel_guard guard(reduction_wrapper_tag);
-      flog_devel(info) << "registering reduction operation " << util::type<R>()
-                       << " for " << util::type<T>() << std::endl;
-    }
-
-    // Register the operation with the Legion runtime
     Legion::Runtime::register_reduction_op<custom_wrap>(REDOP_ID);
   }
 
 public:
   static inline const Legion::ReductionOpID REDOP_ID =
-    (run::context::instance().register_init(init),
+    (run::context::register_init(init),
       Legion::Runtime::generate_static_reduction_id());
 };
 

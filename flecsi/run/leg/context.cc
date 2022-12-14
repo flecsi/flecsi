@@ -42,23 +42,18 @@ using namespace boost::program_options;
 void
 top_level_task(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
-  Legion::Context ctx,
-  Legion::Runtime * runtime) {
+  Legion::Context,
+  Legion::Runtime *) {
 
   context_t & context_ = context_t::instance();
 
-  /*
-    Initialize MPI interoperability.
-   */
-
-  context_.connect_with_mpi(ctx, runtime);
   context_.mpi_wait();
   /*
     Invoke the FleCSI runtime top-level action.
    */
 
-  detail::data_guard(),
-    context_.exit_status() = (*context_.top_level_action_)();
+  detail::data_guard(), task_local_base::guard(),
+    Legion::Runtime::set_return_code((*context_.top_level_action_)());
 
   /*
     Finish up Legion runtime and fall back out to MPI.
@@ -67,65 +62,15 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-//----------------------------------------------------------------------------//
-// Implementation of context_t::initialize.
-//----------------------------------------------------------------------------//
+context_t::context_t(const arguments::config & c, arguments::action & a)
+  : context(c, a, util::mpi::size(), util::mpi::rank()), argv{a.program} {
+  argv.reserve(c.backend.size() + 1);
+  argv.insert(argv.end(), c.backend.begin(), c.backend.end());
+}
 
-int
-context_t::initialize(int argc, char ** argv, bool dependent) {
-  using util::mpi::test;
-
-  if(dependent) {
-    int version, subversion;
-    test(MPI_Get_version(&version, &subversion));
-
-#if defined(GASNET_CONDUIT_MPI)
-    if(version == 3 && subversion > 0) {
-      int provided;
-      test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
-
-      if(provided < MPI_THREAD_MULTIPLE) {
-        std::cerr << "Your implementation of MPI does not support "
-                     "MPI_THREAD_MULTIPLE which is required for use of the "
-                     "GASNet MPI conduit with the Legion-MPI Interop!"
-                  << std::endl;
-        std::abort();
-      } // if
-    }
-    else {
-      // Initialize the MPI runtime
-      test(MPI_Init(&argc, &argv));
-    } // if
-#else
-    test(MPI_Init(&argc, &argv));
-#endif
-  } // if
-
-  std::tie(context::process_, context::processes_) = util::mpi::info();
-
-  auto status = context::initialize_generic(argc, argv, dependent);
-
-  if(status != success && dependent) {
-    test(MPI_Finalize());
-  } // if
-
-  return status;
-} // initialize
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::finalize.
-//----------------------------------------------------------------------------//
-
-void
-context_t::finalize() {
-  context::finalize_generic();
-
-#ifndef GASNET_CONDUIT_MPI
-  if(context::initialize_dependent_) {
-    util::mpi::test(MPI_Finalize());
-  } // if
-#endif
-} // finalize
+dependencies_guard::dependencies_guard(arguments::dependent & d)
+  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(int mc, char ** mv) : init(mc, mv) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
@@ -180,44 +125,11 @@ context_t::start(const std::function<int()> & action) {
 
   context::start();
 
-  /*
-    Legion command-line arguments.
-   */
-
-  std::vector<char *> largv;
-  largv.push_back(argv_[0]);
-
-  for(auto & arg : backend_args_) {
-    largv.push_back(&arg[0]);
-  }
-
   // FIXME: This needs to be gotten from Legion
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_ * context::threads_per_process_;
 
-  /*
-    Start Legion runtime.
-   */
-
-  {
-    log::devel_guard("context");
-
-    std::stringstream stream;
-
-    stream << "Starting Legion runtime" << std::endl;
-    stream << "\targc: " << largv.size() << std::endl;
-    stream << "\targv: ";
-
-    for(auto opt : largv) {
-      stream << opt << " ";
-    } // for
-
-    stream << std::endl;
-
-    flog_devel(info) << stream.str();
-  } // scope
-
-  Runtime::start(largv.size(), largv.data(), true);
+  Runtime::start(argv.size(), arguments::pointers(argv).data(), true);
 
   while(true) {
     test(MPI_Barrier(MPI_COMM_WORLD));
@@ -226,27 +138,12 @@ context_t::start(const std::function<int()> & action) {
     test(MPI_Barrier(MPI_COMM_WORLD));
     if(!mpi_task_)
       break;
-    mpi_task_();
+    task_local_base::guard(), mpi_task_();
     mpi_task_ = nullptr;
   }
 
-  Legion::Runtime::wait_for_shutdown();
-
-  return context::exit_status();
+  return Legion::Runtime::wait_for_shutdown();
 } // context_t::start
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::connect_with_mpi.
-//----------------------------------------------------------------------------//
-
-void
-context_t::connect_with_mpi(Legion::Context &, Legion::Runtime *) {
-  LegionRuntime::Arrays::Rect<1> launch_bounds(
-    LegionRuntime::Arrays::Point<1>(0),
-    LegionRuntime::Arrays::Point<1>(processes_ - 1));
-
-  context_t::instance().set_all_processes(launch_bounds);
-} // context_t::connect_with_mpi
 
 } // namespace run
 } // namespace flecsi

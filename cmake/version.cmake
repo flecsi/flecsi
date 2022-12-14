@@ -57,7 +57,7 @@ if(Git_FOUND AND last_release_regex)
     list(GET tags -1 last_release)
 
     execute_process(
-      COMMAND ${GIT_EXECUTABLE} log ${last_release} -n 1 --pretty=%h
+      COMMAND ${GIT_EXECUTABLE} rev-parse ${last_release}
       OUTPUT_VARIABLE last_release_sha
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       OUTPUT_STRIP_TRAILING_WHITESPACE
