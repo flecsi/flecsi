@@ -199,8 +199,10 @@ field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
 int
 unstructured_driver() {
-  std::vector<std::string> files = {
-    "simple2d-8x8.msh", "disconnected.msh", "simple2d-3x3.msh"};
+  std::vector<std::string> files = {"simple2d-8x8.msh",
+    "disconnected.msh",
+    "simple2d-3x3.msh",
+    "single-cell.msh"};
   UNIT() {
     for(auto f : files) {
       unstructured::init fields;
