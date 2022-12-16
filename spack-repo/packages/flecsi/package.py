@@ -19,3 +19,5 @@ else:
 
 class Flecsi(Flecsi):
     version(flecsi_version, **flecsi_selector)
+
+    conflicts('^hpx networking=tcp', when='backend=hpx')
