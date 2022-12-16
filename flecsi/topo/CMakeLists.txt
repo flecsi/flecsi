@@ -90,6 +90,7 @@ flecsi_add_test(unstructured
     unstructured/test/simple2d-3x3.msh
     unstructured/test/simple2d-8x8.msh
     unstructured/test/single-cell.msh
+    unstructured/test/two-cell.msh
     unstructured/test/disconnected.msh
     unstructured/test/unstructured_disconnected_entities_1_0.blessed
     unstructured/test/unstructured_disconnected_entities_1_1.blessed
@@ -139,6 +140,18 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_single-cell_entities_6_1.blessed
     unstructured/test/unstructured_single-cell_entities_6_2.blessed
     unstructured/test/unstructured_single-cell_entities_6_3.blessed
+    unstructured/test/unstructured_two-cell_entities_1_0.blessed
+    unstructured/test/unstructured_two-cell_entities_1_1.blessed
+    unstructured/test/unstructured_two-cell_entities_1_2.blessed
+    unstructured/test/unstructured_two-cell_entities_1_3.blessed
+    unstructured/test/unstructured_two-cell_entities_4_0.blessed
+    unstructured/test/unstructured_two-cell_entities_4_1.blessed
+    unstructured/test/unstructured_two-cell_entities_4_2.blessed
+    unstructured/test/unstructured_two-cell_entities_4_3.blessed
+    unstructured/test/unstructured_two-cell_entities_6_0.blessed
+    unstructured/test/unstructured_two-cell_entities_6_1.blessed
+    unstructured/test/unstructured_two-cell_entities_6_2.blessed
+    unstructured/test/unstructured_two-cell_entities_6_3.blessed
   PROCS ${UPROCS}
 )
 

@@ -202,7 +202,8 @@ unstructured_driver() {
   std::vector<std::string> files = {"simple2d-8x8.msh",
     "disconnected.msh",
     "simple2d-3x3.msh",
-    "single-cell.msh"};
+    "single-cell.msh",
+    "two-cell.msh"};
   UNIT() {
     for(auto f : files) {
       unstructured::init fields;
