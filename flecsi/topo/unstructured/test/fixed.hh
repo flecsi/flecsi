@@ -25,7 +25,7 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
         224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276,
         280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324
       }},
-      { /* indices */
+      { /* values */
           7,   8,  25,  24,
           8,   9,  26,  25,
           9,  10,  27,  26,
@@ -121,7 +121,7 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
         224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276,
         280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324
       }},
-      { /* indices */
+      { /* values */
           0,   1,  18,  17,
           1,   2,  19,  18,
           2,   3,  20,  19,
@@ -217,7 +217,7 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
         224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276,
         280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324
       }},
-      { /* indices */
+      { /* values */
         126, 127, 144, 143,
         127, 128, 145, 144,
         128, 129, 146, 145,
@@ -313,7 +313,7 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
         224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276,
         280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324
       }},
-      { /* indices */
+      { /* values */
         119, 120, 137, 136,
         120, 121, 138, 137,
         121, 122, 139, 138,
@@ -1068,20 +1068,20 @@ inline std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
 
 inline std::vector<std::vector<std::vector<std::size_t>>> cnx_allocs = {
   {/* color 0 */
-    {connectivity[0][0].indices.size()},
-    {connectivity[0][0].indices.size()}
+    {connectivity[0][0].values.size()},
+    {connectivity[0][0].values.size()}
   },
   {/* color 1 */
-    {connectivity[1][0].indices.size()},
-    {connectivity[1][0].indices.size()}
+    {connectivity[1][0].values.size()},
+    {connectivity[1][0].values.size()}
   },
   {/* color 2 */
-    {connectivity[2][0].indices.size()},
-    {connectivity[2][0].indices.size()}
+    {connectivity[2][0].values.size()},
+    {connectivity[2][0].values.size()}
   },
   {/* color 3 */
-    {connectivity[3][0].indices.size()},
-    {connectivity[3][0].indices.size()}
+    {connectivity[3][0].values.size()},
+    {connectivity[3][0].values.size()}
   }
 };
 

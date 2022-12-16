@@ -29,15 +29,15 @@ as(std::vector<U> const & v) {
 struct crs : util::with_index_iterator<const crs> {
   using span = util::span<const util::gid>;
 
-  /// The rows in \c indices.
+  /// The rows in \c values.
   util::offsets offsets;
   /// The concatenated rows.
-  std::vector<util::gid> indices;
+  std::vector<util::gid> values;
 
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
     offsets.push_back(std::distance(first, last));
-    indices.insert(indices.end(), first, last);
+    values.insert(values.end(), first, last);
   }
 
   template<class U>
@@ -57,14 +57,14 @@ struct crs : util::with_index_iterator<const crs> {
 
   void clear() {
     offsets.clear();
-    indices.clear();
+    values.clear();
   }
 
   /// Return a row.
-  /// \return substring of \c indices
+  /// \return substring of \c values
   span operator[](std::size_t i) const {
     const auto r = offsets[i];
-    return span(indices.data() + *r.begin(), r.size());
+    return span(values.data() + *r.begin(), r.size());
   }
 }; // struct crs
 
@@ -93,7 +93,7 @@ operator<<(std::ostream & stream, crs const & graph) {
   for(auto o : graph.offsets.ends())
     stream << o << " ";
   stream << "\n\ncrs indices: ";
-  for(auto o : graph.indices) {
+  for(auto o : graph.values) {
     stream << o << " ";
   }
   stream << "\n\ncrs expansion:\n" << expand(graph) << std::endl;
@@ -108,7 +108,7 @@ struct util::serial::traits<util::crs> {
   using type = util::crs;
   template<class P>
   static void put(P & p, const type & c) {
-    serial::put(p, c.offsets, c.indices);
+    serial::put(p, c.offsets, c.values);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
