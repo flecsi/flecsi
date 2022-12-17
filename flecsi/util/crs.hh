@@ -25,8 +25,18 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
-/// Efficient storage for a sequence of sequences of integers.
+/// Efficient (compressed-row) storage for a sequence of sequences of
+/// integers.  There are no constraints on the size or contents of either
+/// the sequences or sequences of sequences: sequences can be different
+/// sizes, can have overlapping values, can include values in any order,
+/// and can hold duplicate values.
+///
+/// This type is a random-access range of \c span objects.  Because the \c
+/// offsets and \c values fields must be kept in sync they are best treated
+/// as read-only.  Use the \c add_row methods to modify those fields in a
+/// consistent manner.
 struct crs : util::with_index_iterator<const crs> {
+  /// A view of a row (a substring of \c values).
   using span = util::span<const util::gid>;
 
   /// The rows in \c values.
@@ -40,17 +50,22 @@ struct crs : util::with_index_iterator<const crs> {
   crs(util::offsets os, std::vector<util::gid> vs)
     : offsets(std::move(os)), values(std::move(vs)) {}
 
+  /// Append onto the \c crs (via data copy) a row of values pointed to by
+  /// a beginning and an ending iterator.
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
     offsets.push_back(std::distance(first, last));
     values.insert(values.end(), first, last);
   }
 
+  /// Append onto the \c crs (via data copy) a row of values.
   template<class U>
   void add_row(std::initializer_list<U> init) {
     add_row(init.begin(), init.end());
   }
 
+  /// Append onto the \c crs (via data copy) a row of values acquired by
+  /// traversing a range.
   template<typename Range>
   void add_row(Range const & it) {
     add_row(it.begin(), it.end());
@@ -61,6 +76,7 @@ struct crs : util::with_index_iterator<const crs> {
     return offsets.size();
   }
 
+  /// Discard all data (\c offsets and \c values).
   void clear() {
     offsets.clear();
     values.clear();
