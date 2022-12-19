@@ -48,7 +48,7 @@ color(const util::offsets & dist,
   auto [rank, size] = util::mpi::info(comm);
 
   flog_assert(dist.size() == size_t(size),
-    "distribution size (" << colors << ") must equal comm size(" << size
+    "distribution size (" << dist.size() << ") must equal comm size(" << size
                           << ")");
 
   idx_t wgtflag = 0;
