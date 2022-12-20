@@ -22,6 +22,8 @@ variables:
   # global defaults
   GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
+  ROCM_VERSION: 4.5.2
+  CUDA_VERSION: "11.7.0"
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
@@ -63,22 +65,22 @@ variables:
 .openmpi-cuda: &openmpi-cuda
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} ^${KOKKOS_CUDA} ^cuda@11.7"
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-debug: &openmpi-cuda-debug
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@11.7"
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi: &openmpi-cuda-mpi
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} ^${KOKKOS_CUDA} ^cuda@11.7"
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi-debug: &openmpi-cuda-mpi-debug
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@11.7"
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
@@ -286,7 +288,7 @@ openmpi-legion-clang-cuda:
   variables:
     <<: *openmpi-cuda-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -307,7 +309,7 @@ openmpi-legion-clang-cuda-mpi:
   variables:
     <<: *openmpi-cuda-mpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
+    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
