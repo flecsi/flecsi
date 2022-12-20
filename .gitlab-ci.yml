@@ -13,6 +13,7 @@ default:
   interruptible: true
 
 variables:
+  USE_SPACK_UPSTREAM: v0.19
   COLOR_BLUE: '\033[1;34m'
   COLOR_GREEN: '\033[0;32m'
   COLOR_MAGENTA: '\033[1;35m'

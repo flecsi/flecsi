@@ -58,8 +58,8 @@
 .darwin_env_create:
   script: &darwin_env_create
     - module load git
-    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
-    - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/current/$(uname -i)
+    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}
+    - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/${USE_SPACK_UPSTREAM}/$(uname -i)
     - |
       rsync -rpl \
         --exclude=".git" \
@@ -124,10 +124,12 @@
     # This uses the legion backend by default because it also satisfies the dependencies
     # for MPI (and potentially HPX)
     - export SPACK_INSTALL_FLECSI_BACKEND=${SPACK_INSTALL_FLECSI_BACKEND:-legion}
-    - echo -e "spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+    - echo -e "spack add ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
-    - spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+    - spack add ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
+    - spack install -j $(nproc) --only dependencies --until cmake
+    - spack find -v
     - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
 
 #------------------------------------------------------------------------------#
