@@ -55,9 +55,17 @@ function(add_unit name)
   cmake_parse_arguments(unit "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
 
+  if(FleCSI_ENABLE_MPI)
+    # adds explicit single process mpiexec command to avoid errors
+    # when running in some OpenMPI/SLURM environments
+    set(TEST_LAUNCHER ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1)
+  else()
+    set(TEST_LAUNCHER "")
+  endif()
+
   add_test(NAME ${name}
     COMMAND
-      $<TARGET_FILE:${name}> ${unit_ARGUMENTS}
+      ${TEST_LAUNCHER} $<TARGET_FILE:${name}> ${unit_ARGUMENTS}
     WORKING_DIRECTORY
       ${CMAKE_BINARY_DIR}
   )
