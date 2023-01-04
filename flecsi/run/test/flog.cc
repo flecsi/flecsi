@@ -39,4 +39,4 @@ log_driver() {
   };
 } // flog
 
-flecsi::unit::driver<log_driver> driver;
+util::unit::driver<log_driver> driver;

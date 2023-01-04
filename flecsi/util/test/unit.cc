@@ -23,7 +23,7 @@ init_a() {
   return 0;
 }
 
-unit::initialization<init_a> ia_action;
+util::unit::initialization<init_a> ia_action;
 
 int
 test1() {
@@ -37,7 +37,7 @@ test1() {
   };
 }
 
-unit::driver<test1> test1_driver;
+util::unit::driver<test1> test1_driver;
 
 int
 test2() {
@@ -49,7 +49,7 @@ test2() {
   };
 }
 
-unit::driver<test2> test2_driver;
+util::unit::driver<test2> test2_driver;
 
 int
 finalization() {
@@ -58,7 +58,7 @@ finalization() {
   return 0;
 }
 
-unit::finalization<finalization> f_action;
+util::unit::finalization<finalization> f_action;
 
 /*----------------------------------------------------------------------------*
   This tests task execution in the unit test framework.
@@ -114,4 +114,4 @@ dag() {
   }; // UNIT
 } // dag
 
-flecsi::unit::driver<dag> driver;
+util::unit::driver<dag> driver;

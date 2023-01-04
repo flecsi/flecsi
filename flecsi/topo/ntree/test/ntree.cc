@@ -300,4 +300,4 @@ ntree_driver() {
 
   return 0;
 } // ntree_driver
-flecsi::unit::driver<ntree_driver> driver;
+util::unit::driver<ntree_driver> driver;

@@ -100,4 +100,4 @@ coloring_driver() {
   UNIT() { ASSERT_EQ((test<parmetis_coloring, mpi>()), 0); };
 } // simple2d_8x8
 
-flecsi::unit::driver<coloring_driver> driver;
+util::unit::driver<coloring_driver> driver;

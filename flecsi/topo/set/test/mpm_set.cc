@@ -118,4 +118,4 @@ set_driver() {
 
 } // set_driver
 
-flecsi::unit::driver<set_driver> driver1;
+util::unit::driver<set_driver> driver1;

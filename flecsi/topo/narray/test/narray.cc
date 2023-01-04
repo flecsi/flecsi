@@ -822,7 +822,7 @@ coloring_driver() {
   };
 }
 
-flecsi::unit::driver<coloring_driver> cd;
+util::unit::driver<coloring_driver> cd;
 
 // 1D Mesh
 mesh1d::slot m1;
@@ -1028,4 +1028,4 @@ narray_driver() {
   }; // UNIT
 } // narray_driver
 
-flecsi::unit::driver<narray_driver> nd;
+util::unit::driver<narray_driver> nd;

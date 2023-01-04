@@ -132,7 +132,7 @@ geometry_1d_sanity() {
   };
 } // geometry_1d_sanity
 
-flecsi::unit::driver<geometry_1d_sanity> driver_1d;
+util::unit::driver<geometry_1d_sanity> driver_1d;
 
 using geo2d = topo::ntree_geometry<double, 2>;
 using p2d = util::point<double, 2>;
@@ -236,7 +236,7 @@ geometry_2d_sanity() {
   };
 } // geometry_2d_sanity
 
-flecsi::unit::driver<geometry_2d_sanity> driver_2d;
+util::unit::driver<geometry_2d_sanity> driver_2d;
 
 using geo3d = topo::ntree_geometry<double, 3>;
 using p3d = util::point<double, 3>;
@@ -350,4 +350,4 @@ geometry_3d_sanity() {
   };
 } // geometry_3d_sanity
 
-flecsi::unit::driver<geometry_3d_sanity> driver_3d;
+util::unit::driver<geometry_3d_sanity> driver_3d;

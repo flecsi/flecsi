@@ -26,7 +26,7 @@ endmacro()
 function(flecsi_add_format_target target source_dir version)
   _flecsi_define_format_group_target()
 
-  find_package(ClangFormat "${version}" EXACT REQUIRED)
+  find_package(ClangFormat "${version}" REQUIRED)
   find_package(Git REQUIRED)
 
   if(EXISTS ${source_dir}/.git)

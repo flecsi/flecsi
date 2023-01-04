@@ -17,8 +17,7 @@
 
 #include <tuple>
 
-namespace flecsi {
-namespace unit {
+namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
 /// Output is via \ref flog.
@@ -63,7 +62,7 @@ struct control_policy : flecsi::run::control_base {
   int status;
 }; // struct control_policy
 
-using control = flecsi::run::control<flecsi::unit::control_policy>;
+using control = flecsi::run::control<control_policy>;
 
 template<int (&F)(), test_control_points cp>
 class action
@@ -95,7 +94,6 @@ template<target_type Target>
 using finalization = action<Target, test_control_points::finalization>;
 
 /// \}
-} // namespace unit
-} // namespace flecsi
+} // namespace flecsi::util::unit
 
 #endif

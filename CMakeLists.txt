@@ -10,7 +10,7 @@
 #
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 
 #------------------------------------------------------------------------------#
 # Add local module path.
@@ -63,7 +63,7 @@ mark_as_advanced(ENABLE_FORMAT)
 if(ENABLE_FORMAT)
   include(FleCSI/format)
 
-  set(ClangFormat_VERSION "13.0.1" CACHE STRING
+  set(ClangFormat_VERSION "13...<14" CACHE STRING
       "Set the required version (major[.minor[.patch]]) of clang-format")
   mark_as_advanced(ClangFormat_VERSION)
 

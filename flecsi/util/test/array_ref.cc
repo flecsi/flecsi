@@ -280,4 +280,4 @@ array_ref() {
   };
 } // array_ref
 
-flecsi::unit::driver<array_ref> driver;
+util::unit::driver<array_ref> driver;

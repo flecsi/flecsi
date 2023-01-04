@@ -50,4 +50,4 @@ index_topology() {
   };
 } // index_topology
 
-flecsi::unit::driver<index_topology> driver;
+util::unit::driver<index_topology> driver;

@@ -52,7 +52,7 @@ sanity() {
   };
 } // sanity
 
-flecsi::unit::driver<sanity> driver;
+unit::driver<sanity> driver;
 
 //----------------------------------------------------------------------------//
 // Simple user type.
@@ -97,7 +97,7 @@ user_type() {
   };
 } // user_type
 
-flecsi::unit::driver<user_type> user_type_driver;
+unit::driver<user_type> user_type_driver;
 
 //----------------------------------------------------------------------------//
 // Simple context test.
@@ -243,7 +243,7 @@ simple_context() {
   };
 } // simple_context
 
-flecsi::unit::driver<simple_context> simple_context_driver;
+unit::driver<simple_context> simple_context_driver;
 
 //----------------------------------------------------------------------------//
 // FleCSI context test.
@@ -254,4 +254,4 @@ flecsi_context() {
   UNIT() {};
 } // simple_context
 
-flecsi::unit::driver<flecsi_context> flecsi_context_driver;
+unit::driver<flecsi_context> flecsi_context_driver;
