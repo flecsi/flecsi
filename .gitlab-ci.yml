@@ -21,6 +21,7 @@ variables:
   # global defaults
   GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
+  ROCM_VERSION: 4.5.2
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
@@ -500,7 +501,7 @@ openmpi-mpi-rocm:
   variables:
     <<: *openmpi-rocm
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: rocmcc@5.1.0
+    TOOLCHAIN: rocmcc@${ROCM_VERSION}
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi

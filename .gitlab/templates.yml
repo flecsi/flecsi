@@ -160,6 +160,21 @@
       which cc
       spack arch
 
+.darwin_setup_hip:
+  script: &darwin_setup_hip
+    - |
+      if [ "$CXX_COMPILER" = "hipcc" ]; then
+        echo -e "${COLOR_MAGENTA}Using Darwin HIP installation at: ${ROCM_PATH}${COLOR_PLAIN}"
+        export ROCMINFO_PATH=/opt/rocm-${ROCM_VERSION}/bin
+        export ROCM_PATH=/opt/rocm-${ROCM_VERSION}
+        export HSA_PATH=/opt/rocm-${ROCM_VERSION}/hsa
+        export DEVICE_LIB_PATH=/opt/rocm-${ROCM_VERSION}/amdgcn/bitcode/
+        export HIP_PLATFORM=amd
+        export HIP_CLANG_PATH=/opt/rocm-${ROCM_VERSION}/llvm/bin
+        export HIP_COMPILER=clang
+        export ROCM_PATH=$(spack location -i hip)
+      fi
+
 .darwin_build_template:
   stage: Build + Unit Tests
   tags:
@@ -169,6 +184,7 @@
     - *darwin_env_spack_install_flecsi_deps
     - if [ -f /usr/bin/nvidia-smi ] ; then nvidia-smi || true; fi
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
+    - *darwin_setup_hip
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
     - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
