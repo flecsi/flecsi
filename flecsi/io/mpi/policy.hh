@@ -33,11 +33,8 @@ const auto hsize_mpi_type = util::mpi::static_type<hsize_t>();
 struct io_interface {
 
   explicit io_interface(Color ranks_per_file = 1) {
-
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    num_files = util::ceil_div(Color(world_size), ranks_per_file);
 
     MPI_Comm new_comm;
     new_color = rank / ranks_per_file;
@@ -45,7 +42,6 @@ struct io_interface {
 
     mpi_hdf5_comm = new_comm;
 
-    MPI_Comm_size(new_comm, &new_world_size);
     MPI_Comm_rank(new_comm, &new_rank);
   }
 
@@ -160,9 +156,7 @@ struct io_interface {
   } // recover_data
 
 private:
-  int num_files;
-
-  int world_size, rank, new_world_size, new_rank;
+  int new_rank;
   int new_color;
 
   MPI_Comm mpi_hdf5_comm;
