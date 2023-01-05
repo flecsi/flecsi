@@ -96,6 +96,7 @@ class Flecsi(CMakePackage, CudaPackage):
     depends_on('legion+shared',when='backend=legion +shared')
     depends_on('legion network=gasnet', when='backend=legion')
     depends_on('legion +kokkos +cuda', when='backend=legion +kokkos +cuda')
+    conflicts('legion@ctrl-rep-14',when='backend=legion')
 
     # Metis
 
