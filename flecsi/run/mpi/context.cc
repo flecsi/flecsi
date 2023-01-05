@@ -10,11 +10,16 @@ using namespace boost::program_options;
 namespace flecsi::run {
 
 dependencies_guard::dependencies_guard(arguments::dependent & d)
-  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
-dependencies_guard::dependencies_guard(int mc, char ** mv) : mpi(mc, mv) {
+  : dependencies_guard(d, d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(arguments::dependent & d,
+  int mc,
+  char ** mv)
+  : mpi(mc, mv) {
 #ifdef FLECSI_ENABLE_KOKKOS
-  [](int kc, char ** kv) { Kokkos::initialize(argc, argv); }(
+  [](int kc, char ** kv) { Kokkos::initialize(kc, kv); }(
     d.kokkos.size(), arguments::pointers(d.kokkos).data());
+#else
+  (void)d;
 #endif
 }
 dependencies_guard::~dependencies_guard() {
