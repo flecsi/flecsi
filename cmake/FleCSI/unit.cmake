@@ -14,6 +14,11 @@ function(_flecsi_define_unit_main_target)
   endif()
 endfunction()
 
+function(flecsi_test_link_libraries)
+  _flecsi_define_unit_main_target()
+  target_link_libraries(flecsi-unit-main PUBLIC ${ARGN})
+endfunction()
+
 function(flecsi_add_test name)
 
   #----------------------------------------------------------------------------#

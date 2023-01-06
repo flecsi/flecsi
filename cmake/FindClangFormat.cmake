@@ -59,6 +59,7 @@ find_package_handle_standard_args(ClangFormat
     ClangFormat_EXECUTABLE
   VERSION_VAR
     ClangFormat_VERSION
+  HANDLE_VERSION_RANGE
 )
 
 if(ClangFormat_FOUND AND NOT TARGET ClangFormat::ClangFormat)

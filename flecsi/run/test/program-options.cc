@@ -32,4 +32,4 @@ program_options() {
   };
 } // program_options
 
-flecsi::unit::driver<program_options> driver;
+flecsi::util::unit::driver<program_options> driver;

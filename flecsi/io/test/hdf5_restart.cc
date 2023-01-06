@@ -162,10 +162,10 @@ restart_driver() {
   return 0;
 }
 
-unit::initialization<setup> init_mesh;
+util::unit::initialization<setup> init_mesh;
 // for MPI:  run test once, since attach flag is ignored.
 // for Legion:  run test twice, once with and once without attach.
-flecsi::unit::driver<restart_driver<true>> driver_w;
+util::unit::driver<restart_driver<true>> driver_w;
 #if defined(FLECSI_ENABLE_LEGION)
-flecsi::unit::driver<restart_driver<false>> driver_wo;
+util::unit::driver<restart_driver<false>> driver_wo;
 #endif

@@ -148,9 +148,6 @@ namespace exec::leg {
 using run::leg::task;
 
 namespace detail {
-inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
-  run::FLECSI_TOP_LEVEL_TASK_ID);
-
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
@@ -179,7 +176,7 @@ extern const Legion::TaskID
                typename util::function_traits<decltype(F)>::return_type,
                F,
                A>),
-    detail::task_counter());
+    Legion::Runtime::generate_static_task_id());
 
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void
