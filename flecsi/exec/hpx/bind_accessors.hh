@@ -118,7 +118,8 @@ public:
           // there is no way to report the error to the user's code at this
           // point, thus termination is the only option
           flog_fatal("future is in exceptional state during destruction of "
-                     "bind_accessors");
+                     "bind_accessors:\n" +
+                     ::hpx::diagnostic_information(f.get_exception_ptr()));
         }
       }
     }

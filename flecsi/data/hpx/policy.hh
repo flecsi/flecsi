@@ -52,7 +52,8 @@ struct backend_storage : local::detail::storage {
         // there is no way to report the error to the user's code at this point,
         // thus termination is the only option
         flog_fatal(
-          "future is in exceptional state during destruction of region");
+          "future is in exceptional state during destruction of region:\n" +
+          ::hpx::diagnostic_information(future.get_exception_ptr()));
       }
     }
   }

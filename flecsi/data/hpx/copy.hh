@@ -87,7 +87,8 @@ struct copy_engine : local::copy_engine {
         // there is no way to report the error to the user's code at this
         // point, thus termination is the only option
         flog_fatal("future is in exceptional state during destruction of "
-                   "copy_engine");
+                   "copy_engine:\n" +
+                   ::hpx::diagnostic_information(f.get_exception_ptr()));
       }
     }
   }
