@@ -12,6 +12,7 @@
 
 #include <hpx/modules/collectives.hpp>
 #include <hpx/modules/futures.hpp>
+#include <hpx/modules/lock_registration.hpp>
 #include <hpx/modules/synchronization.hpp>
 
 #include "flecsi/data/field_info.hh"
@@ -42,7 +43,7 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
   std::vector<std::vector<std::size_t>> result;
   result.reserve(size);
 
-  for(int r = 0; r < size; ++r)
+  for(std::size_t r = 0; r < size; ++r)
     result.push_back(f(r, size));
 
   return all_to_all(
@@ -114,6 +115,9 @@ struct copy_engine : local::copy_engine {
         // being executed.
         {
           std::unique_lock l(mtx);
+          // ignore lock while suspending
+          [[maybe_unused]] ::hpx::util::ignore_while_checking il(&l);
+
           if(max_local_source_idx == 0) {
             init_copy_engine([&](auto const & remote_shared_entities) {
               return detail::all_to_allv(
