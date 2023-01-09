@@ -9,11 +9,12 @@ namespace flecsi::exec {
 struct trace {
 
   struct guard;
-  using id_t = int;
+  using id_t = Legion::TraceID;
 
   inline guard make_guard();
 
-  trace() : trace(g_id_++) {}
+  trace()
+    : trace(Legion::Runtime::get_runtime()->generate_dynamic_trace_id()) {}
   explicit trace(id_t id) : id_(id), skip_(false) {}
 
   trace(trace &&) = default;
@@ -56,7 +57,6 @@ public:
   }
 
 private:
-  static inline id_t g_id_ = 0;
   id_t id_;
   bool skip_;
   static inline bool tracing = false;
