@@ -516,7 +516,7 @@ openmpi-mpi-rocm:
   variables:
     <<: *openmpi-rocm
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: rocmcc@${ROCM_VERSION}
+    TOOLCHAIN: "gcc@9.4.0"
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
