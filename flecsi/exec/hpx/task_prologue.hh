@@ -69,7 +69,6 @@ protected:
     ();
 
     auto & field = r_or_p[f];
-    bool added_as_dependency = false;
 
     // store associated partition for bind_accessors
     regions_partitions.push_back(r_or_p.share());
@@ -84,14 +83,6 @@ protected:
       // operation. This happens inside ghost_copy (see the implementation
       // copy_engine::operator()()).
       reg.ghost_copy<P>(ref);
-
-      // add any pending write operations (including ghost-copy operation) as a
-      // dependency for this task
-      if(field.future.valid() && !field.future.is_ready() &&
-         field.dep == data::dependency::write) {
-        dependencies.push_back(field.future);
-        added_as_dependency = true;
-      }
     }
     else {
       // Perform ghost copy using host side storage if required. This might copy
@@ -130,14 +121,6 @@ protected:
         };
 
         data::init_delayed_ghost_copy(field, delayed_ghost_copy);
-
-        // add any pending write operations (including ghost-copy operation) as
-        // a dependency for this task
-        if(field.future.valid() && !field.future.is_ready() &&
-           field.dep == data::dependency::write) {
-          dependencies.push_back(field.future);
-          added_as_dependency = true;
-        }
       }
     }
 
@@ -146,13 +129,10 @@ protected:
     // dependency for executing the current task, but only if it represents
     // either a "read after write" or a "write after read or write" dependency.
     // "read after read" dependencies are not considered here.
-    if(!added_as_dependency && field.future.valid() &&
-       !field.future.is_ready() &&
-       (privilege_write(P) ||
-         (privilege_read(P) && field.dep == data::dependency::write))) {
+    // Note that it might derive from the ghost copies just above.
+    const bool pending = field.future.valid() && !field.future.is_ready();
+    if(pending && (privilege_write(P) || field.dep == data::dependency::write))
       dependencies.push_back(field.future);
-      added_as_dependency = true;
-    }
 
     // The dependencies of this task can be either "read after write" (if this
     // task reads from a field, then any known write to the same field has to
@@ -162,14 +142,6 @@ protected:
       // request future from promise only if required (once for all arguments)
       if(!future.valid()) {
         future = promise.get_future();
-      }
-
-      // Any possibly valid field-future must be added as a dependency for this
-      // task (if it has not been added already, is valid, and has not been
-      // marked as ready yet).
-      if(!added_as_dependency && field.future.valid() &&
-         !field.future.is_ready()) {
-        dependencies.push_back(std::move(field.future));
       }
 
       // If the task writes to the current argument then we must associate the
@@ -189,7 +161,7 @@ protected:
       // argument. We have to make sure that possibly more than one read
       // operation may have to finish before other operations are allowed to go
       // ahead.
-      if(!field.future.valid() || field.future.is_ready()) {
+      if(!pending) {
         // This is either the first operation using the given field or any
         // previous operations have already finished.
         field.future = future;
