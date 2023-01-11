@@ -34,6 +34,12 @@ struct crs : util::with_index_iterator<const crs> {
   /// The concatenated rows.
   std::vector<util::gid> values;
 
+  /// Create an empty sequence of sequences.
+  crs() = default;
+
+  crs(util::offsets os, std::vector<util::gid> vs)
+    : offsets(std::move(os)), values(std::move(vs)) {}
+
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
     offsets.push_back(std::distance(first, last));
@@ -112,7 +118,7 @@ struct util::serial::traits<util::crs> {
   }
   static type get(const std::byte *& p) {
     const cast r{p};
-    return type{{}, r, r};
+    return type{r, r};
   }
 };
 

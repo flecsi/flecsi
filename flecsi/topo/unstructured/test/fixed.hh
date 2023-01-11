@@ -16,7 +16,6 @@ inline constexpr std::size_t num_cells = 256, num_vertices = 289;
 inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
   { /* color 0 */
     { /* cell -> vertex */
-      { /* base */ },
       {{ /* offsets */
           4,   8,  12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,
          56,  60,  64,  68,  72,  76,  80,  84,  88,  92,  96, 100, 104, 108,
@@ -112,7 +111,6 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
   },
   { /* color 1 */
     { /* cell -> vertex */
-      { /* base */ },
       {{ /* offsets */
           4,   8,  12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,
          56,  60,  64,  68,  72,  76,  80,  84,  88,  92,  96, 100, 104, 108,
@@ -208,7 +206,6 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
   },
   { /* color 2 */
     { /* cell -> vertex */
-      { /* base */ },
       {{ /* offsets */
           4,   8,  12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,
          56,  60,  64,  68,  72,  76,  80,  84,  88,  92,  96, 100, 104, 108,
@@ -304,7 +301,6 @@ inline std::vector<std::vector<flecsi::util::crs>> connectivity = {
   },
   { /* color 3 */
     { /* cell -> vertex */
-      { /* base */ },
       {{ /* offsets */
           4,   8,  12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,
          56,  60,  64,  68,  72,  76,  80,  84,  88,  92,  96, 100, 104, 108,
