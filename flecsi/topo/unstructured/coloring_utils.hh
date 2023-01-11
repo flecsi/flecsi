@@ -218,6 +218,20 @@ struct coloring_utils {
   // Internal: These are used for testing.
   //////////////////////////////////////////////////////////////////////////////
 
+  util::equal_map pmap() const {
+    return {cd_.colors, Color(size_)};
+  }
+  auto ours() const {
+    return pmap()[rank_];
+  }
+  bool ours(Color g) const {
+    const auto r = ours();
+    return g >= r.front() && g < *r.end(); // well defined even if empty
+  }
+  Color lc(Color g) const {
+    return g - ours().front();
+  }
+
   // Return the intermediate connectivity information for the
   // primary entity type.
   auto & primary_connectivity_state() {
@@ -237,15 +251,10 @@ struct coloring_utils {
     return primary_raw_;
   }
 
-  // Return a map from local colors to primary indices. These are the owned
-  // entities for each color (Ghost entities are excluded.).
+  // Return a vector relating local colors to primary indices. These are the
+  // owned entities for each color (Ghost entities are excluded.).
   auto & primaries() {
     return primaries_;
-  }
-
-  // Return a map from local colors to all indices in the closure.
-  auto & all() {
-    return all_;
   }
 
   auto & get_naive() const {
@@ -253,6 +262,11 @@ struct coloring_utils {
   }
 
 private:
+  bool shared_has(Color c, util::gid i) const {
+    const auto it = shared_.find(c);
+    return it != shared_.end() && it->second.count(i);
+  }
+
   void build_intermediary(std::size_t kind,
     const util::crs & e2v,
     std::vector<util::gid> const & p2m);
@@ -324,8 +338,6 @@ private:
     std::map<util::id, util::gid> l2g;
   };
 
-  std::unordered_map<Color, util::id> g2l_;
-
   MD const & md_;
   unstructured_impl::coloring_definition cd_;
   std::vector<connectivity_allocation_t> ca_;
@@ -340,11 +352,12 @@ private:
 
   std::vector<Color> primary_raw_;
   std::vector<Color> vertex_raw_;
-  std::map<Color, std::vector<util::gid>> primaries_;
-  std::map<Color, std::map<entity_index_space, std::set<util::gid>>> all_;
+  std::vector<std::vector<util::gid>> primaries_;
+  std::vector<std::map<entity_index_space, std::set<util::gid>>> all;
   std::unordered_map<util::gid, Color> p2co_;
   std::unordered_map<util::gid, Color> v2co_;
-  std::unordered_map<Color, std::set<util::gid>> shared_, ghost_;
+  std::unordered_map<Color, std::set<util::gid>> shared_;
+  std::vector<std::set<util::gid>> ghost;
   std::unordered_map<std::size_t, std::set<Color>> vdeps_;
   std::vector<std::size_t> rghost_;
   unstructured_base::coloring coloring_;
@@ -516,6 +529,9 @@ coloring_utils<MD>::migrate_primaries() {
       rank_),
     comm_);
 
+  primaries_.resize(ours().size());
+  ghost.resize(primaries_.size());
+
   for(auto const & r : migrated) {
     auto const & cell_pack = std::get<0>(r);
     for(auto const & c : cell_pack) { /* std::vector over cells */
@@ -523,7 +539,7 @@ coloring_utils<MD>::migrate_primaries() {
       cnns.e2v.add_row(std::get<1>(c)); /* cell definition (vertex mesh ids) */
       cnns.m2p[std::get<1>(info)] = cnns.e2v.size() - 1; /* offset map */
       cnns.p2m.emplace_back(std::get<1>(info)); /* cell mesh id */
-      primaries()[std::get<0>(info)].emplace_back(std::get<1>(info));
+      primaries()[lc(std::get<0>(info))].emplace_back(std::get<1>(info));
     } // for
 
     // vertex-to-cell connectivity
@@ -548,17 +564,10 @@ coloring_utils<MD>::migrate_primaries() {
 
   // Set the vector sizes for connectivity information.
   for(auto [from, to, transpose] : ca_) {
-    for(std::size_t lco{0}; lco < primaries().size(); ++lco) {
-      auto & pc = coloring_.idx_spaces[from][lco];
+    for(auto & pc : coloring_.idx_spaces[from]) {
       pc.cnx_allocs.resize(2 + cd_.aidxs.size());
       pc.cnx_colorings.resize(2 + cd_.aidxs.size());
     } // for
-  } // for
-
-  // Save convenience maps.
-  std::size_t lco{0};
-  for(auto const & p : primaries()) {
-    g2l_[p.first] = lco++;
   } // for
 } // migrate_primaries
 
@@ -626,14 +635,19 @@ coloring_utils<MD>::close_primaries() {
     'p2co' will get updated as we build out our dependencies.
    */
 
-  std::map<Color, std::vector<util::gid>> wkset;
-  for(auto const & p : primaries()) {
-    wkset[p.first].reserve(p.second.size());
-    for(auto e : p.second) {
-      p2co_.try_emplace(e, p.first);
-      wkset[p.first].emplace_back(e);
+  std::vector<std::vector<util::gid>> wkset;
+  {
+    auto co = ours().begin();
+    for(auto const & p : primaries()) {
+      auto & v = wkset.emplace_back();
+      v.reserve(p.size());
+      for(auto e : p) {
+        p2co_.try_emplace(e, *co);
+        v.emplace_back(e);
+      } // for
+      ++co;
     } // for
-  } // for
+  }
 
   auto & cnns = primary_connectivity_state();
   std::unordered_map<util::gid, std::set<Color>> dependents, dependencies;
@@ -656,8 +670,10 @@ coloring_utils<MD>::close_primaries() {
       Create request layer, and add local information.
      */
 
-    for(auto const & p : primaries()) {
-      for(auto const & e : wkset.at(p.first)) {
+    for(const Color co : ours()) {
+      const Color lco = lc(co);
+      auto & g = ghost[lco];
+      for(auto const & e : std::exchange(wkset[lco], {})) {
         for(auto const & v : cnns.e2v[cnns.m2p.at(e)]) {
           for(auto const & en : cnns.v2e.at(v)) {
             if(cnns.e2e.find(en) == cnns.e2e.end()) {
@@ -665,16 +681,16 @@ coloring_utils<MD>::close_primaries() {
               layer.emplace_back(en);
 
               // This primary depends on the current color.
-              dependencies[en].insert(p.first);
+              dependencies[en].insert(co);
 
               // If we're within the requested depth, this is also
               // a ghost entity.
               if(d < cd_.depth) {
-                ghost_[p.first].insert(en);
+                g.insert(en);
                 rghost_.emplace_back(en);
               }
             }
-            else if(d < cd_.depth && p2co_.at(en) != p.first) {
+            else if(d < cd_.depth && p2co_.at(en) != co) {
               // This entity is on the local process, but not
               // owned by the current color.
 
@@ -682,17 +698,15 @@ coloring_utils<MD>::close_primaries() {
               shared_[p2co_.at(en)].insert(en);
 
               // Add the current color as a dependent of this primary.
-              vdeps_[en].insert(p.first);
-              dependents[en].insert(p.first);
+              vdeps_[en].insert(co);
+              dependents[en].insert(co);
 
               // This entity is a ghost for the current color.
-              ghost_[p.first].insert(en);
+              g.insert(en);
             } // if
           } // for
         } // for
       } // for
-
-      wkset.at(p.first).clear();
     } // for
 
     util::force_unique(layer);
@@ -766,7 +780,7 @@ coloring_utils<MD>::close_primaries() {
         } // if
 
         for(auto co : dependencies.at(id)) {
-          wkset.at(co).emplace_back(id);
+          wkset.at(lc(co)).emplace_back(id);
         } // for
       } // for
 
@@ -791,26 +805,22 @@ coloring_utils<MD>::close_primaries() {
    */
 
   auto & partitions = coloring_.partitions[cd_.cid.idx];
-  std::vector<Color> process_colors;
   std::vector<std::vector<Color>> is_peers(primaries().size());
-  const util::equal_map pmap(cd_.colors, size_);
   {
-    std::size_t lco{0};
+    auto co = ours().begin();
     for(const auto & p : primaries()) {
-      process_colors.emplace_back(p.first);
+      const Color lco = lc(*co);
       auto & pc = coloring_.idx_spaces[cd_.cid.idx][lco];
-      pc.color = p.first;
+      pc.color = *co;
       pc.entities = num_primaries();
 
-      pc.coloring.all.reserve(p.second.size());
-      pc.coloring.all.insert(
-        pc.coloring.all.begin(), p.second.begin(), p.second.end());
-      pc.coloring.owned.reserve(p.second.size());
-      pc.coloring.owned.insert(
-        pc.coloring.owned.begin(), p.second.begin(), p.second.end());
+      pc.coloring.all.reserve(p.size());
+      pc.coloring.all.insert(pc.coloring.all.begin(), p.begin(), p.end());
+      pc.coloring.owned.reserve(p.size());
+      pc.coloring.owned.insert(pc.coloring.owned.begin(), p.begin(), p.end());
 
-      for(auto e : p.second) {
-        if(shared_.size() && shared_.at(p.first).count(e)) {
+      for(auto e : p) {
+        if(shared_has(*co, e)) {
           pc.coloring.shared.emplace_back(shared_entity{
             e, {dependents.at(e).begin(), dependents.at(e).end()}});
         }
@@ -820,17 +830,15 @@ coloring_utils<MD>::close_primaries() {
       } // for
 
       auto & cp = color_peers_[lco];
-      if(ghost_.size()) {
-        for(auto e : ghost_.at(p.first)) {
-          const auto gco = p2co_.at(e);
-          const auto [pr, lco] = pmap.invert(gco);
-          pc.coloring.ghost.emplace_back(ghost_entity{e, pr, Color(lco), gco});
-          pc.coloring.all.emplace_back(e);
-          cp.insert(gco);
-        } // for
-      } // if
+      for(auto e : ghost[lco]) {
+        const auto gco = p2co_.at(e);
+        const auto [pr, lco] = pmap().invert(gco);
+        pc.coloring.ghost.emplace_back(ghost_entity{e, pr, Color(lco), gco});
+        pc.coloring.all.emplace_back(e);
+        cp.insert(gco);
+      } // for
       std::set<Color> peers;
-      for(auto e : shared_[p.first])
+      for(auto e : shared_[*co])
         peers.insert(dependents.at(e).begin(), dependents.at(e).end());
       cp.insert(peers.begin(), peers.end());
       pc.peers.assign(peers.begin(), peers.end());
@@ -847,7 +855,7 @@ coloring_utils<MD>::close_primaries() {
       util::force_unique(pc.coloring.ghost);
 
       if(auxs_.size()) {
-        all()[p.first][cd_.cid.idx].insert(
+        all.emplace_back()[cd_.cid.idx].insert(
           pc.coloring.all.begin(), pc.coloring.all.end());
       }
 
@@ -862,7 +870,7 @@ coloring_utils<MD>::close_primaries() {
         crs.add_row(cnns.e2v[cnns.m2p[e]]);
       } // for
 
-      ++lco;
+      ++co;
     } // for
   } // scope
 
@@ -881,11 +889,8 @@ coloring_utils<MD>::close_primaries() {
     } // for
   } // scope
 
-  /*
-    Gather the process-to-color mapping.
-   */
-
-  coloring_.process_colors = util::mpi::all_gatherv(process_colors, comm_);
+  for(const auto r : pmap())
+    coloring_.process_colors.emplace_back(r.begin(), r.end());
 
   /*
     Gather partition sizes for entities.
@@ -943,16 +948,15 @@ coloring_utils<MD>::close_vertices() {
    */
 
   vertex_coloring().resize(primaries().size());
-  const util::equal_map pmap(cd_.colors, size_);
   std::vector<util::gid> remote;
-  std::unordered_map<Color, std::set<util::gid>> ghost;
+  std::unordered_map<Color, std::set<util::gid>> vg;
   {
-    std::size_t lco{0};
-    for(auto p : primaries()) {
+    for(const Color co : ours()) {
+      const Color lco = lc(co);
       auto primary = primary_coloring()[lco].coloring;
       vertex_coloring()[lco].entities = num_vertices();
       auto & pc = vertex_coloring()[lco];
-      pc.color = p.first;
+      pc.color = co;
       pc.entities = num_vertices();
 
       std::unordered_map<std::size_t, std::set<std::size_t>> dependents;
@@ -966,13 +970,13 @@ coloring_utils<MD>::close_vertices() {
             auto vit = v2co_.find(v);
             flog_assert(vit != v2co_.end(), "invalid vertex id");
 
-            if(vit->second == p.first) {
+            if(vit->second == co) {
               shared.insert(v);
               dependents[v].insert(e.dependents.begin(), e.dependents.end());
               pc.coloring.owned.emplace_back(v);
             }
             else {
-              if(const auto [pr, li] = pmap.invert(vit->second);
+              if(const auto [pr, li] = pmap().invert(vit->second);
                  pr == Color(rank_)) {
                 // This process owns the current color.
                 pc.coloring.ghost.emplace_back(
@@ -981,7 +985,7 @@ coloring_utils<MD>::close_vertices() {
               else {
                 // The ghost is remote: add to remote requests.
                 remote.emplace_back(v);
-                ghost[p.first].insert(v);
+                vg[co].insert(v);
               } // if
             } // if
           } // for
@@ -996,13 +1000,13 @@ coloring_utils<MD>::close_vertices() {
             // Add dependents through ghosts.
             if(shared.count(v) && vdeps_.count(e.id)) {
               auto deps = vdeps_.at(e.id);
-              deps.erase(p.first);
+              deps.erase(co);
               dependents[v].insert(deps.begin(), deps.end());
             } // if
 
             if(vit != v2co_.end()) {
-              if(vit->second != p.first) {
-                const auto [pr, li] = pmap.invert(vit->second);
+              if(vit->second != co) {
+                const auto [pr, li] = pmap().invert(vit->second);
                 pc.coloring.ghost.emplace_back(
                   ghost_entity{v, pr, Color(li), vit->second});
               } // if
@@ -1010,7 +1014,7 @@ coloring_utils<MD>::close_vertices() {
             else {
               // The ghost is remote: add to remote requests.
               remote.emplace_back(v);
-              ghost[p.first].insert(v);
+              vg[co].insert(v);
             } // if
           } // for
         } // for
@@ -1033,8 +1037,6 @@ coloring_utils<MD>::close_vertices() {
       util::force_unique(pc.coloring.owned);
       util::force_unique(pc.coloring.exclusive);
       util::force_unique(pc.coloring.shared);
-
-      ++lco;
     } // for
   } // scope
 
@@ -1099,8 +1101,8 @@ coloring_utils<MD>::close_vertices() {
 
   std::vector<std::vector<Color>> is_peers(primaries().size());
   {
-    std::size_t lco{0};
-    for(auto const & p : primaries()) {
+    for(const Color co : ours()) {
+      const Color lco = lc(co);
       auto & pc = vertex_coloring()[lco];
 
       pc.coloring.all.reserve(
@@ -1123,12 +1125,12 @@ coloring_utils<MD>::close_vertices() {
 
         if(size_ > 1) { // only necessary if there are multiple processes.
           // Add requested ghosts.
-          auto it = ghost.find(p.first);
-          if(it != ghost.end()) {
+          auto it = vg.find(co);
+          if(it != vg.end()) {
             for(auto v : it->second) {
               const auto gco = v2co_.at(v);
               cp.insert(gco);
-              const auto [pr, li] = pmap.invert(gco);
+              const auto [pr, li] = pmap().invert(gco);
               pc.coloring.ghost.emplace_back(
                 ghost_entity{v, pr, Color(li), gco});
               pc.coloring.all.emplace_back(v);
@@ -1147,12 +1149,11 @@ coloring_utils<MD>::close_vertices() {
       util::force_unique(pc.coloring.ghost);
 
       if(auxs_.size()) {
-        all()[p.first][cd_.vid.idx].insert(
+        all[lco][cd_.vid.idx].insert(
           pc.coloring.all.begin(), pc.coloring.all.end());
       }
 
       vertex_partitions().emplace_back(pc.coloring.all.size());
-      ++lco;
     } // for
   } // scope
 
@@ -1242,8 +1243,8 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
    */
 
   std::size_t pcnt{0};
-  for(auto const & p : primaries()) {
-    for(auto e : primary_coloring()[g2l_.at(p.first)].coloring.all) {
+  for(const auto gco : ours()) {
+    for(auto e : primary_coloring()[lc(gco)].coloring.all) {
       bool halo{false};
 
       // Entity to connected intermediaries.
@@ -1265,15 +1266,14 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
 
         for(auto ie : aux.i2e[in]) {
           halo = /* greedy, but just used to construct a lookup table */
-            halo || (shared_.count(p.first) && shared_.at(p.first).count(ie)) ||
-            (ghost_.count(p.first) && ghost_.at(p.first).count(ie));
+            halo || shared_has(gco, ie) || ghost[lc(gco)].count(ie);
         } // for
 
         auto const [it, add] =
           aux.a2co.try_emplace(in, std::make_pair(co, halo));
 
         if(add) {
-          if(g2l_.count(co)) {
+          if(ours(co)) {
             // Add this auxiliary to the count if we haven't already seen it.
             ++pcnt;
           }
@@ -1281,18 +1281,18 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
             // Keep track of remote ghost auxiliaries so that we can request
             // them (by vertices).
             auto v = util::to_vector(aux.i2v[in]);
-            aux.ghost.try_emplace(in, p.first, std::move(v));
+            aux.ghost.try_emplace(in, gco, std::move(v));
           } // if
         } // if
 
         // Keep track of ghost and shared between local colors (on process).
-        if(g2l_.count(co) && co != p.first) {
+        if(ours(co) && co != gco) {
           // co -> owning color
           // in -> auxiliary
-          // p.first -> dependent color
+          // gco -> dependent color
 
-          aux.ldependents[co][in].insert(p.first);
-          aux.ldependencies[p.first].try_emplace(in, co);
+          aux.ldependents[co][in].insert(gco);
+          aux.ldependencies[gco].try_emplace(in, co);
         } // if
       } // for
     } // for
@@ -1322,12 +1322,12 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
   for(auto && [lid, info] /* local id, color info */ : aux.a2co) {
     auto && [co, halo] = info; /* global color, boolean: primary is halo */
 
-    if(g2l_.count(co)) {
+    if(ours(co)) {
       if(halo) { /* potentially shared, save for fulfill */
         // These are sorted for matching with off-process requesters.
         auto v = util::to_vector(aux.i2v[lid]);
         util::force_unique(v);
-        aux.shared[g2l_.at(co)].try_emplace(std::move(v), lid, offset);
+        aux.shared[lc(co)].try_emplace(std::move(v), lid, offset);
       } // if
 
       aux.l2g[lid] = offset++;
@@ -1368,7 +1368,6 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     auxiliaries.
    */
 
-  const util::equal_map pmap(cd_.colors, size_);
   std::vector<std::vector<util::id>> lids(size_);
   std::vector<std::vector<std::tuple<Color /* owning color */,
     Color /* requesting color */,
@@ -1378,7 +1377,7 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     auto const & [rco, def] = info;
 
     // Get process that owns this ghost and add to requests.
-    auto const pr{pmap.bin(aux.a2co.at(in).first)};
+    auto const pr{pmap().bin(aux.a2co.at(in).first)};
     request[pr].emplace_back(std::make_tuple(aux.a2co.at(in).first, rco, def));
 
     // Keep track of local ids on each process.
@@ -1397,9 +1396,9 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     for(auto & [oco, rco, def] : rv) {
       // Sort the vertices for match (aux.shared is already sorted.)
       util::force_unique(def);
-      auto it = aux.shared[g2l_.at(oco)].find(def);
+      auto it = aux.shared[lc(oco)].find(def);
       flog_assert(
-        it != aux.shared[g2l_.at(oco)].end(), "invalid auxiliary definition");
+        it != aux.shared[lc(oco)].end(), "invalid auxiliary definition");
 
       // FIXME: Remove unused information, i.e., aux.i2e
 
@@ -1444,15 +1443,12 @@ template<typename MD>
 void
 coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   auto & aux = auxiliary_state(kind);
-  const util::equal_map pmap(cd_.colors, size_);
+  auto & ai = auxiliary_coloring(idx);
 
-  auxiliary_coloring(idx).resize(primaries().size());
-
-  std::size_t lco{0};
-  for(auto const & p : primaries()) {
-    auxiliary_coloring(idx)[lco].color = p.first;
-    auxiliary_coloring(idx)[lco].entities = num_entities(kind);
-    ++lco;
+  for(const Color c : ours()) {
+    auto & a1 = ai[lc(c)];
+    a1.color = c;
+    a1.entities = num_entities(kind);
   } // for
 
   /*
@@ -1461,16 +1457,15 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
 
   std::map<Color, std::set<Color>> peers;
   for(auto [lid, gid] : aux.l2g) {
-    std::size_t lco{0};
-
-    for(auto p : primaries()) {
+    for(const Color gco : ours()) {
+      const Color lco = lc(gco);
       auto const co = aux.a2co.at(lid).first;
 
-      bool const ownd = (p.first == co);
+      bool const ownd = (gco == co);
       bool const ghst = !ownd && aux.dependencies[co].count(gid) &&
-                        aux.dependencies[co][gid] == p.first;
+                        aux.dependencies[co][gid] == gco;
 
-      auto & pc = auxiliary_coloring(idx)[lco];
+      auto & pc = ai[lco];
 
       if(ownd || ghst) {
         pc.coloring.all.emplace_back(gid);
@@ -1492,13 +1487,13 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
       } // if
 
       if(ghst) {
-        const auto [pr, li] = pmap.invert(co);
+        const auto [pr, li] = pmap().invert(co);
         pc.coloring.ghost.push_back({gid, pr, Color(li), co});
 
         // Only add auxiliary connectivity that is covered by
         // the primary closure.
         std::vector<util::gid> pall;
-        auto && pclo = all().at(p.first).at(cd_.cid.idx);
+        auto && pclo = all[lco].at(cd_.cid.idx);
         for(auto e : aux.i2e[lid]) {
           if(pclo.count(e)) {
             pall.push_back(e);
@@ -1512,8 +1507,6 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
         pc.cnx_colorings[cd_.vid.idx].add_row(aux.i2v[lid]);
         color_peers_[lco].insert(co);
       } // if
-
-      ++lco;
     } // for
   } // for
 
@@ -1524,7 +1517,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   std::vector<std::size_t> & partitions = coloring_.partitions[idx];
   std::vector<std::vector<Color>> is_peers(primaries().size());
   for(std::size_t lco{0}; lco < primaries().size(); ++lco) {
-    auto & pc = auxiliary_coloring(idx)[lco];
+    auto & pc = ai[lco];
     partitions.emplace_back(pc.coloring.all.size());
     if(peers.count(lco)) {
       color_peers_[lco].insert(peers.at(lco).begin(), peers.at(lco).end());
@@ -1702,7 +1695,7 @@ coloring_utils<MD>::send_field(entity_kind k, const std::vector<T> & f) {
 
   std::vector<std::vector<T>> res;
 
-  for(auto i : util::equal_map(cd_.colors, size_)[process()])
+  for(auto i : ours())
     res.emplace_back(find_field_color(k == 0 ? v2co_ : p2co_, locals, i));
 
   return res;

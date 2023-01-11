@@ -47,7 +47,7 @@ parmetis_coloring() {
         util::offsets(util::equal_map(sd.num_entities(2), colors)).ends(),
         distribution);
 
-      EXPECT_EQ(cu.primaries().at(process()), cnns.p2m);
+      EXPECT_EQ(cu.primaries().at(cu.lc(process())), cnns.p2m);
       UNIT_CAPTURE() << flog::container(naive.offsets.ends()) << '\n'
                      << flog::container(naive.values) << '\n'
                      << flog::container(cnns.p2m) << '\n'
@@ -80,7 +80,8 @@ parmetis_coloring() {
         cu.migrate_primaries();
         auto const & cnns = cu.primary_connectivity_state();
 
-        UNIT_CAPTURE() << flog::container(cu.primaries()) << '\n'
+        UNIT_CAPTURE() << cu.ours().front() << '\n'
+                       << flog::container(cu.primaries()) << '\n'
                        << flog::container(cnns.p2m) << '\n'
                        << flog::container(cnns.m2p) << '\n';
         EXPECT_TRUE(UNIT_EQUAL_BLESSED(
