@@ -442,6 +442,7 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
 namespace detail {
 template<class T>
 struct scalar_value;
+struct init_needed {};
 } // namespace detail
 
 /// \}
