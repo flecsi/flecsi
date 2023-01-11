@@ -28,9 +28,15 @@ template<class>
 struct multi;
 
 namespace detail {
-template<class A>
+template<class A, typename F>
 void
-construct(const A & a) {
+construct(const A & a, F && f) {
+  // Capture if the field can be initialized on the device (toc + wo)
+  if constexpr(!std::is_trivially_default_constructible_v<
+                 typename A::value_type>) {
+    data::detail::init_needed init{};
+    std::forward<F>(f)(init, [](auto &) { return nullptr; });
+  }
   std::uninitialized_default_construct(a.begin(), a.end());
 }
 template<class T, layout L, Privileges P, bool Span>
@@ -245,7 +251,8 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
       return r.template cast<raw>();
     });
     if constexpr(privilege_discard(P))
-      detail::construct(this->span()); // no-op on caller side
+      detail::construct(
+        this->span(), std::forward<F>(f)); // no-op on caller side
   }
 };
 
@@ -334,7 +341,7 @@ struct ragged_accessor
       std::fill(s.begin(), s.end(), 0);
     }
     else if constexpr(privilege_discard(P))
-      detail::construct(span());
+      detail::construct(span(), std::forward<F>(f));
   }
 
   template<class Topo, typename Topo::index_space S>
@@ -1224,7 +1231,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   void send(F && f) {
     accessor::particle_accessor::send(std::forward<F>(f));
     if constexpr(privilege_discard(P))
-      detail::construct(*this); // no-op on caller side
+      detail::construct(*this, std::forward<F>(f)); // no-op on caller side
   }
 };
 
