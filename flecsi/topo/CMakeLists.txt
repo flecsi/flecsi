@@ -77,8 +77,7 @@ flecsi_add_test(coloring
 
 set(UPROCS 4)
 if(FLECSI_BACKEND STREQUAL "legion")
-  #UPROCS should be set to 1 2 4 6 once the #colors>#ranks case is working for ragged communication.
-  set(UPROCS 1 4 6)
+  set(UPROCS 1 2 4 6)
 endif()
 
 flecsi_add_test(unstructured
@@ -96,6 +95,10 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_disconnected_entities_1_1.blessed
     unstructured/test/unstructured_disconnected_entities_1_2.blessed
     unstructured/test/unstructured_disconnected_entities_1_3.blessed
+    unstructured/test/unstructured_disconnected_entities_2_0.blessed
+    unstructured/test/unstructured_disconnected_entities_2_1.blessed
+    unstructured/test/unstructured_disconnected_entities_2_2.blessed
+    unstructured/test/unstructured_disconnected_entities_2_3.blessed
     unstructured/test/unstructured_disconnected_entities_4_0.blessed
     unstructured/test/unstructured_disconnected_entities_4_1.blessed
     unstructured/test/unstructured_disconnected_entities_4_2.blessed
@@ -108,6 +111,10 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_simple2d-8x8_entities_1_1.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_1_2.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_1_3.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_0.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_1.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_2.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_3.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_4_0.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_4_1.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_4_2.blessed
@@ -120,6 +127,10 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_simple2d-3x3_entities_1_1.blessed
     unstructured/test/unstructured_simple2d-3x3_entities_1_2.blessed
     unstructured/test/unstructured_simple2d-3x3_entities_1_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_3.blessed
     unstructured/test/unstructured_simple2d-3x3_entities_4_0.blessed
     unstructured/test/unstructured_simple2d-3x3_entities_4_1.blessed
     unstructured/test/unstructured_simple2d-3x3_entities_4_2.blessed
@@ -132,6 +143,10 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_single-cell_entities_1_1.blessed
     unstructured/test/unstructured_single-cell_entities_1_2.blessed
     unstructured/test/unstructured_single-cell_entities_1_3.blessed
+    unstructured/test/unstructured_single-cell_entities_2_0.blessed
+    unstructured/test/unstructured_single-cell_entities_2_1.blessed
+    unstructured/test/unstructured_single-cell_entities_2_2.blessed
+    unstructured/test/unstructured_single-cell_entities_2_3.blessed
     unstructured/test/unstructured_single-cell_entities_4_0.blessed
     unstructured/test/unstructured_single-cell_entities_4_1.blessed
     unstructured/test/unstructured_single-cell_entities_4_2.blessed
@@ -144,6 +159,10 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_two-cell_entities_1_1.blessed
     unstructured/test/unstructured_two-cell_entities_1_2.blessed
     unstructured/test/unstructured_two-cell_entities_1_3.blessed
+    unstructured/test/unstructured_two-cell_entities_2_0.blessed
+    unstructured/test/unstructured_two-cell_entities_2_1.blessed
+    unstructured/test/unstructured_two-cell_entities_2_2.blessed
+    unstructured/test/unstructured_two-cell_entities_2_3.blessed
     unstructured/test/unstructured_two-cell_entities_4_0.blessed
     unstructured/test/unstructured_two-cell_entities_4_1.blessed
     unstructured/test/unstructured_two-cell_entities_4_2.blessed
