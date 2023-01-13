@@ -63,14 +63,17 @@ set(run_SOURCES
 # is meant to test different low-level control model features.
 #------------------------------------------------------------------------------#
 
-add_executable(cycle
-  test/cycle.cc
-  test/cycle_control.hh
-  test/package_a.hh
-  test/package_b.hh
-  test/package_c.hh)
-target_link_libraries(cycle FleCSI)
-target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
+if(ENABLE_UNIT_TESTS)
+  add_executable(cycle
+    test/cycle.cc
+    test/cycle_control.hh
+    test/package_a.hh
+    test/package_b.hh
+    test/package_c.hh)
+  target_link_libraries(cycle FleCSI)
+  target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
+  add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
+endif()
 
 flecsi_add_test(flog
   SOURCES
