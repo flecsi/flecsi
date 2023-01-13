@@ -113,17 +113,17 @@ if(ENABLE_DOCUMENTATION)
       CONFIG ${CMAKE_SOURCE_DIR}/doc/sphinx
       OUTPUT ${CMAKE_BINARY_DIR}/doc
     )
-
-    # This is for local install of the documentation. To deploy the
-    # documentation to the flecsi website, use the "deploy-documentation" target.
-    install(
-      DIRECTORY
-        ${CMAKE_BINARY_DIR}/doc/
-      DESTINATION
-        ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
-      OPTIONAL
-    )
   endif()
+
+  # This is for local install of the documentation. To deploy the
+  # documentation to the flecsi website, use the "deploy-documentation" target.
+  install(
+    DIRECTORY
+      ${CMAKE_BINARY_DIR}/doc/
+    DESTINATION
+      ${CMAKE_INSTALL_PREFIX}/share/doc/FleCSI
+    OPTIONAL
+  )
 
   if((NOT GITHUB_PAGES_REPO STREQUAL "") AND ENABLE_SPHINX AND ENABLE_DOXYGEN)
     flecsi_add_doc_deployment(deploy-docs GITHUB_PAGES_REPO ${GITHUB_PAGES_REPO})
