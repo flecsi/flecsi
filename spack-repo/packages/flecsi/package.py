@@ -52,6 +52,9 @@ class Flecsi(CMakePackage, CudaPackage):
     variant('unit', default=False,
             description='Enable Unit Tests (Requires +flog)')
 
+    variant('doc', default=False,
+            description='Enable Documentation build')
+
     # Spack-specific variants
 
     variant('shared', default=True,
@@ -111,6 +114,14 @@ class Flecsi(CMakePackage, CudaPackage):
 
     depends_on('hpx cxxstd=17 malloc=system',when='backend=hpx')
 
+    # Documentation dependencies
+
+    depends_on('py-sphinx', when='+doc')
+    depends_on('py-sphinx-rtd-theme', when='+doc')
+    depends_on('py-recommonmark', when='+doc')
+    depends_on('doxygen', when='+doc')
+    depends_on('graphviz', when='+doc')
+
     # Propagate cuda_arch requirement to dependencies
     cuda_arch_list = ('60', '70', '75', '80')
     for _flag in cuda_arch_list:
@@ -138,6 +149,7 @@ class Flecsi(CMakePackage, CudaPackage):
             self.define_from_variant('ENABLE_KOKKOS', 'kokkos'),
             self.define_from_variant('ENABLE_OPENMP', 'openmp'),
             self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
-            self.define_from_variant('ENABLE_UNIT_TESTS', 'unit')
+            self.define_from_variant('ENABLE_UNIT_TESTS', 'unit'),
+            self.define_from_variant('ENABLE_DOCUMENTATION', 'doc')
         ]
         return options
