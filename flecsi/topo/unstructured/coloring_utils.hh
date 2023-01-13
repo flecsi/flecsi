@@ -698,7 +698,7 @@ coloring_utils<MD>::close_primaries() {
 
     std::vector<std::vector<util::gid>> fulfill(size_);
     Color r{0};
-    for(auto rv : requested) {
+    for(const auto & rv : requested) {
       for(auto e : rv) {
         // Add this entity to the list of entities that we need to fulfill
         // in `communicate_entities` below.
@@ -766,7 +766,7 @@ coloring_utils<MD>::close_primaries() {
   const util::equal_map pmap(cd_.colors, size_);
   {
     std::size_t lco{0};
-    for(auto p : primaries()) {
+    for(const auto & p : primaries()) {
       process_colors.emplace_back(p.first);
       auto & pc = coloring_.idx_spaces[cd_.cid.idx][lco];
       pc.color = p.first;
