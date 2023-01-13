@@ -799,10 +799,8 @@ coloring_utils<MD>::close_primaries() {
           peers.insert(gco);
         } // for
         color_peers_[lco].insert(peers.begin(), peers.end());
-        is_peers[lco].resize(peers.size());
-        std::copy(peers.begin(), peers.end(), is_peers[lco].begin());
-        pc.peers.resize(peers.size());
-        std::copy(peers.begin(), peers.end(), pc.peers.begin());
+        pc.peers.assign(peers.begin(), peers.end());
+        is_peers[lco] = pc.peers;
       } // if
 
       flog_assert(pc.coloring.owned.size() ==
