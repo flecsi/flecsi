@@ -128,6 +128,15 @@ class Flecsi(CMakePackage, CudaPackage):
         depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
         depends_on("legion cuda_arch=" + _flag, when="backend=legion +cuda cuda_arch=" + _flag)
 
+    @property
+    def build_targets(self):
+        targets = ["all"]
+        if "+doc" in self.spec:
+            targets.append("doc")
+        if "+unit" in self.spec:
+            targets.append("unit_tests")
+        return targets
+
     #--------------------------------------------------------------------------#
     # Conflicts
     #--------------------------------------------------------------------------#
