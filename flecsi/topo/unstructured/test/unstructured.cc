@@ -5,8 +5,6 @@
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/unit.hh"
 
-#include <optional>
-
 using namespace flecsi;
 
 void
