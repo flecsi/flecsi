@@ -790,7 +790,6 @@ operator<<(std::ostream & stream,
   return stream;
 }
 
-#if 1
 namespace unstructured_impl {
 /*!
   Initialize a connectivity using the coloring. This method uses
@@ -826,7 +825,6 @@ init_connectivity(entity_index_space from,
   } // for
 }
 } // namespace unstructured_impl
-#endif
 
 /// \}
 } // namespace topo

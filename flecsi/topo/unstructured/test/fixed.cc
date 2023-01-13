@@ -367,11 +367,9 @@ fixed_driver() {
       execute<check_pressure>(lm, pressure(lm));
     }
 
-#if 1
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
     execute<check_density>(mesh, density(mesh));
-#endif
   };
 } // unstructured_driver
 
