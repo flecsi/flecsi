@@ -287,12 +287,12 @@ struct unstructured
       constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
       constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
       constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
-      execute<init_connectivity<core::index<cells>, core::index<vertices>, NPC>,
-        mpi>(c2v(lm), c, vmaps);
-      execute<init_connectivity<core::index<edges>, core::index<cells>, NPE>,
-        mpi>(e2c(lm), c, cmaps);
-      execute<init_connectivity<core::index<edges>, core::index<vertices>, NPE>,
-        mpi>(e2v(lm), c, vmaps);
+      execute<init_connectivity<NPC>, mpi>(
+        core::index<cells>, core::index<vertices>, c2v(lm), c, vmaps);
+      execute<init_connectivity<NPE>, mpi>(
+        core::index<edges>, core::index<cells>, e2c(lm), c, cmaps);
+      execute<init_connectivity<NPE>, mpi>(
+        core::index<edges>, core::index<vertices>, e2v(lm), c, vmaps);
       execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
     }
 

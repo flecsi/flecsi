@@ -199,11 +199,12 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     execute<init_cnx>(v2c(s));
 
     auto lm = data::launch::make(s);
-    execute<
-      topo::unstructured_impl::init_connectivity<core::index<fixed_mesh::cells>,
-        core::index<fixed_mesh::vertices>,
-        privilege_count<cells>>,
-      mpi>(c2v(lm), c, vmaps);
+    execute<topo::unstructured_impl::init_connectivity<privilege_count<cells>>,
+      mpi>(core::index<fixed_mesh::cells>,
+      core::index<fixed_mesh::vertices>,
+      c2v(lm),
+      c,
+      vmaps);
 
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;

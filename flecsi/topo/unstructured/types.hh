@@ -797,29 +797,28 @@ namespace unstructured_impl {
   from-to nomenclature, e.g., 'from' cells to 'vertices' initializes the
   cell index space connectivity to the vertices index space.
 
-  @tparam From  The index space for the from entity.
-  @tparam To    The index space for the to entity.
   @tparam NF    Number of privileges for connectivity field.
   @param  mconn A multi-accessor to the connectivity field.
   @param  c     The coloring.
   @param  map   The global-to-local id map for the to entities.
  */
-template<entity_index_space From, entity_index_space To, PrivilegeCount NF>
+template<PrivilegeCount NF>
 void
-init_connectivity(
+init_connectivity(entity_index_space from,
+  entity_index_space to,
   data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
     mconn,
   unstructured_base::coloring const & c,
   unstructured_base::reverse_maps_t const & maps) {
 
-  auto pcs = c.idx_spaces[From].begin();
+  auto pcs = c.idx_spaces[from].begin();
   auto mp = maps.begin();
   for(auto & x2y : mconn.accessors()) {
     auto const & pc = *pcs++;
     auto const & vm = *mp++;
     util::id off{0};
 
-    auto const & cnx = pc.cnx_colorings[To];
+    auto const & cnx = pc.cnx_colorings[to];
     for(const util::crs::span r : cnx) {
       auto v = util::transform_view(r, [&vm](util::gid i) { return vm.at(i); });
       x2y[off++].assign(v.begin(), v.end());
