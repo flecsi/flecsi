@@ -21,9 +21,7 @@ macro(_flecsi_define_doc_group_target)
   endif()
 
   if(NOT TARGET ${FLECSI_DOC_TARGET})
-    add_custom_target(${FLECSI_DOC_TARGET}
-      ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.doc-dummy
-    )
+    add_custom_target(${FLECSI_DOC_TARGET})
   endif()
 endmacro()
 
