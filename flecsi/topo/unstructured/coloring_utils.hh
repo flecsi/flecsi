@@ -28,6 +28,35 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
+/// Strategy for contructing colorings.
+struct coloring_definition {
+  /// Instances of this type are used to map from a mesh definition
+  /// to an index space. In many cases, it is not possible to simply
+  /// use the topological dimension of the entity type, e.g., edges will
+  /// collide with corners. This problem is solved by using explicit
+  /// identifiers for each entity kind in the mesh definition and
+  /// associating it with the entity index space defined by the
+  /// specialization.
+  struct index_map {
+    /// mesh definition entity kind
+    entity_kind kind;
+    /// entity index space id
+    entity_index_space idx;
+  };
+
+  /// Total number of colors.
+  Color colors;
+  /// Index of primary entity in \c index_spaces.
+  /// \warning Not an \c index_space enumerator \b value.
+  index_map cid;
+  /// Number of layers of ghosts needed.
+  std::size_t depth;
+  /// Index of vertices in \c index_spaces.
+  index_map vid;
+  /// Indices of auxiliary entities in \c index_spaces.
+  std::vector<index_map> aidxs;
+};
+
 #ifdef DOXYGEN
 /// An example mesh definition that is not really implemented.
 struct mesh_definition {
