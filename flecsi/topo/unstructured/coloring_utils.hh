@@ -370,8 +370,7 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
    */
 
   auto & cnns = connectivity_state(kind);
-  cnns.e2v =
-    util::mpi::one_to_allv<pack_definitions<MD>>({md_, kind, ecm}, comm_);
+  cnns.e2v = util::mpi::one_to_allv(pack_definitions(md_, kind, ecm), comm_);
 
   /*
     Create a map of vertex-to-entity connectivity information from
@@ -392,7 +391,7 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
   // Request all referencers of our connected vertices
   const util::equal_map vm(num_vertices(), size_);
   auto referencers =
-    util::mpi::all_to_allv<vertex_referencers>({cnns.v2e, vm, rank_}, comm_);
+    util::mpi::all_to_allv(vertex_referencers(cnns.v2e, vm, rank_), comm_);
 
   /*
     Update our local connectivity information. We now have all
@@ -434,8 +433,8 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
 
   // Request vertex-to-entity connectivity for the entities that are
   // on other ranks in the naive entity distribution.
-  auto connectivity = util::mpi::all_to_allv<entity_connectivity>(
-    {referencer_inverse, cnns.v2e, vm, rank_}, comm_);
+  auto connectivity = util::mpi::all_to_allv(
+    entity_connectivity(referencer_inverse, cnns.v2e, vm, rank_), comm_);
 
   for(auto & r : connectivity) {
     for(auto & v : r) {
@@ -505,16 +504,15 @@ coloring_utils<MD>::migrate_primaries() {
 
   auto & cnns = primary_connectivity_state();
 
-  // clang-format off
-  auto migrated =
-    util::mpi::all_to_allv<move_primaries>(
-      {
-          util::equal_map(num_primaries(), size_), cd_.colors, primary_raw_, cnns.e2v,
-        cnns.v2e, cnns.e2e, rank_
-      },
-      comm_
-    );
-  // clang-format on
+  auto migrated = util::mpi::all_to_allv(
+    move_primaries(util::equal_map(num_primaries(), size_),
+      cd_.colors,
+      primary_raw_,
+      cnns.e2v,
+      cnns.v2e,
+      cnns.e2e,
+      rank_),
+    comm_);
 
   for(auto const & r : migrated) {
     auto const & cell_pack = std::get<0>(r);
@@ -742,8 +740,9 @@ coloring_utils<MD>::close_primaries() {
       ++r;
     } // for
 
-    auto fulfilled = util::mpi::all_to_allv<communicate_entities>(
-      {fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p},
+    auto fulfilled = util::mpi::all_to_allv(
+      communicate_entities(
+        fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p),
       comm_);
 
     /*
@@ -916,7 +915,7 @@ coloring_utils<MD>::color_vertices() {
    */
 
   const util::equal_map vpm(num_vertices(), size_);
-  auto rank_colors = util::mpi::all_to_allv<rank_coloring>({vpm, v2co_}, comm_);
+  auto rank_colors = util::mpi::all_to_allv(rank_coloring(vpm, v2co_), comm_);
 
   const auto vr = vpm[rank_];
   vertex_raw_.resize(vr.size());
