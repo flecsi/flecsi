@@ -25,7 +25,13 @@ variables:
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
   PARTITIONS: general,skylake-gold,skylake-platinum
-  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
+  LEGION_IBV: legion conduit=ibv
+  LEGION_MPI: legion conduit=mpi
+  LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
+  LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
+  KOKKOS_SERIAL: kokkos ~cuda
+  KOKKOS_CUDA: kokkos +cuda +hwloc
 
 #------------------------------------------------------------------------------#
 # Common build variants
@@ -33,42 +39,42 @@ variables:
 .mpich: &mpich
   MPI_PROVIDER: mpich
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos ^kokkos~cuda
+  VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .mpich-debug: &mpich-debug
   MPI_PROVIDER: mpich
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: caliper_detail=low +graphviz +hdf5 +kokkos ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos ^kokkos~cuda
+  VARIANTS: "caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi: &openmpi
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos ^legion network=gasnet conduit=mpi +hdf5 +kokkos ^kokkos~cuda
+  VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-debug: &openmpi-debug
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos ^kokkos~cuda
+  VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-cuda: &openmpi-cuda
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos +cuda cuda_arch=70 ^legion network=gasnet conduit=mpi +hdf5 +kokkos+cuda+cuda_unsupported_compiler ^kokkos +cuda +hwloc ^cuda@11.7
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} ^${KOKKOS_CUDA} ^cuda@11.7"
 
 .openmpi-cuda-debug: &openmpi-cuda-debug
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos +cuda cuda_arch=70 ^legion build_type=Debug network=gasnet conduit=mpi +hdf5 +kokkos+cuda+cuda_unsupported_compiler ^kokkos +cuda +hwloc ^cuda@11.7
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@11.7"
 
-.openmpi-cuda-ibv: &openmpi-cuda-ibv
+.openmpi-cuda-mpi: &openmpi-cuda-mpi
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos +cuda cuda_arch=70 ^legion network=gasnet conduit=ibv +hdf5 +kokkos+cuda+cuda_unsupported_compiler ^kokkos +cuda +hwloc ^cuda@11.7
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} ^${KOKKOS_CUDA} ^cuda@11.7"
 
-.openmpi-cuda-ibv-debug: &openmpi-cuda-ibv-debug
+.openmpi-cuda-mpi-debug: &openmpi-cuda-mpi-debug
   MPI_PROVIDER: openmpi
   VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos +cuda cuda_arch=70 ^legion build_type=Debug network=gasnet conduit=ibv +hdf5 +kokkos+cuda+cuda_unsupported_compiler ^kokkos +cuda +hwloc ^cuda@11.7
+  VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@11.7"
 
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
@@ -92,6 +98,8 @@ docs_and_format:check:
     - job: tutorial:legion # Hack to make this last. Gitlab needs some mechanism to allow this
   only:
     - merge_requests
+  variables:
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
@@ -131,7 +139,7 @@ mpich-legion-gnu:
     C_COMPILER: gcc
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -218,7 +226,7 @@ tutorial:legion:
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -287,7 +295,7 @@ openmpi-legion-clang-cuda:
     PARTITIONS: volta-x86,power9
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
 
-openmpi-legion-clang-cuda-ibv:
+openmpi-legion-clang-cuda-mpi:
   stage: Legion backend
   extends: .darwin_build_template
   needs: []
@@ -295,7 +303,7 @@ openmpi-legion-clang-cuda-ibv:
   only:
     - merge_requests
   variables:
-    <<: *openmpi-cuda-ibv-debug
+    <<: *openmpi-cuda-mpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: clang@13.0.1_cuda_11.7_sm70
     BUILD_TYPE: Debug
@@ -415,6 +423,7 @@ docs_and_format:
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     CMAKE_OPTIONS: ""
     FORMAT_VERSION: 13.0.1
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
   allow_failure: true
 
 #------------------------------------------------------------------------------#
