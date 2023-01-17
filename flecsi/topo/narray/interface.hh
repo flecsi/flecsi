@@ -231,8 +231,6 @@ struct borrow_extra<narray<P>> {
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
-  friend Policy;
-
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
   /// This function is \ref topology "host-accessible", although the values in
@@ -276,8 +274,6 @@ private:
 
   data::scalar_access<narray::meta_field, Priv> meta_;
 
-  access() {}
-
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
     return get_axis<S, A>().global();
@@ -313,6 +309,12 @@ private:
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
     return get_axis<S, A>().template extended<P>();
+  }
+
+protected:
+  /// Get the specialization's metadata.
+  auto & policy_meta() const {
+    return *policy_meta_;
   }
 
   /*!
@@ -463,6 +465,7 @@ private:
     }
   }
 
+private:
   template<axis A>
   FLECSI_TARGET static constexpr std::uint32_t to_idx() {
     return axes::template index<A>;

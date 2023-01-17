@@ -78,7 +78,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     // i must refer to a logical index point.
     template<axis A>
     FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
-      return i - B::template logical<mesh::vertices, A, 0>() +
+      return i -
+             B::template offset<mesh::vertices, A, base::domain::logical>() +
              B::template offset<mesh::vertices, A, base::domain::global>();
     }
 
@@ -87,8 +88,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       if constexpr(DM == interior) {
         const bool low = B::template is_low<mesh::vertices, A>();
         const bool high = B::template is_high<mesh::vertices, A>();
-        const std::size_t start = B::template logical<mesh::vertices, A, 0>();
-        const std::size_t end = B::template logical<mesh::vertices, A, 1>();
+        const std::size_t start =
+          B::template offset<mesh::vertices, A, base::domain::logical>();
+        const std::size_t end =
+          B::template offset<mesh::vertices, A, base::domain::ghost_high>();
 
         return flecsi::topo::make_ids<mesh::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(start + low, end - high));
@@ -111,12 +114,16 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       return red<A>(row + 1);
     }
 
+    void set_geometry(double x, double y) { // available if writable
+      this->policy_meta() = {x, y};
+    }
+
     double xdelta() {
-      return (*(this->policy_meta_)).xdelta;
+      return this->policy_meta().xdelta;
     }
 
     double ydelta() {
-      return (*(this->policy_meta_)).ydelta;
+      return this->policy_meta().ydelta;
     }
 
     double dxdy() {
@@ -192,14 +199,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using grect = std::array<std::array<double, 2>, 2>;
 
   static void set_geometry(mesh::accessor<flecsi::rw> sm, grect const & g) {
-    meta_data & md = sm.policy_meta_;
-    double xdelta =
-      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1);
-    double ydelta =
-      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1);
-
-    md.xdelta = xdelta;
-    md.ydelta = ydelta;
+    sm.set_geometry(
+      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1),
+      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1));
   }
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,
