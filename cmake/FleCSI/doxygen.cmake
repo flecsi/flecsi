@@ -26,9 +26,7 @@ macro(_flecsi_define_doxygen_group_target)
   endif()
 
   if(NOT TARGET ${FLECSI_DOXYGEN_TARGET})
-    add_custom_target(${FLECSI_DOXYGEN_TARGET}
-      ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.dox-dummy
-    )
+    add_custom_target(${FLECSI_DOXYGEN_TARGET})
     add_dependencies(${FLECSI_DOC_TARGET} ${FLECSI_DOXYGEN_TARGET})
   endif()
 endmacro()

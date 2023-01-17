@@ -25,9 +25,7 @@ macro(_flecsi_define_sphinx_group_target)
   endif()
 
   if(NOT TARGET ${FLECSI_SPHINX_TARGET})
-    add_custom_target(${FLECSI_SPHINX_TARGET}
-      ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.sphx-dummy
-    )
+    add_custom_target(${FLECSI_SPHINX_TARGET})
     add_dependencies(${FLECSI_DOC_TARGET} ${FLECSI_SPHINX_TARGET})
   endif()
 endmacro()

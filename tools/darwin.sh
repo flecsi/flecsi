@@ -83,15 +83,11 @@ export SPACK_DISABLE_LOCAL_CONFIG=true
 # allow spack to dynamically concretize packages together instead of separately.
 # this avoids some installation errors due to multiple python packages depending
 # on different versions of a dependency
-spack config add concretizer:unify:when_possible
 spack config add concretizer:reuse:false
 spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
 
 # add FleCSI spack package repository
 spack repo add ../spack-repo
-
-# add documentation dependencies
-spack add py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
 
 # On Darwin we have a Spack upstream that already has prebuilt dependencies
 DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
@@ -107,13 +103,13 @@ else
   spack external find
 fi
 
-# install packages added so far
-spack install -j $(nproc)
-
 # Install FleCSI's dependencies with Spack.
 # This also builds a version of MPICH in Spack since the ones on Darwin do not include
 # an mpiexec/mpirun that works.
-spack install -j $(nproc) --only dependencies flecsi%gcc@${GCC_VERSION} backend=legion +hdf5 +kokkos +flog ^mpich@3.4.2%gcc@${GCC_VERSION}+hydra+romio~verbs device=ch4 ^legion network=gasnet conduit=mpi build_type=Debug
+spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +hdf5 +kokkos +flog \
+          ^mpich@3.4.2%gcc@${GCC_VERSION}+hydra+romio~verbs device=ch4 \
+          ^legion network=gasnet conduit=mpi build_type=Debug
+spack install -j $(nproc) -u cmake
 
 # Build, test, and install FleCSI.
 ../tools/configure gnu legion -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"
@@ -129,7 +125,7 @@ test -d build && rm -rf build
 mkdir build
 cd build
 cmake -DFleCSI_DIR="$FLECSI_INSTALL/lib64/cmake/FleCSI" ..
-make
+make -j $(nproc)
 cd ../..
 
 # Build complete
