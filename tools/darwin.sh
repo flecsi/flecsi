@@ -115,7 +115,6 @@ spack install -j $(nproc) -u cmake
 ../tools/configure gnu legion -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"
 make VERBOSE=1 -j $(nproc)
 make test
-make doc
 make install
 cd ..
 
