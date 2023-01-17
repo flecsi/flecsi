@@ -18,7 +18,7 @@ macro(_flecsi_define_unit_tests_target)
   endif()
 
   if(NOT TARGET ${FLECSI_UNIT_TESTS_TARGET})
-    add_custom_target(${FLECSI_UNIT_TESTS_TARGET})
+    add_custom_target(${FLECSI_UNIT_TESTS_TARGET} ALL)
   endif()
 endmacro()
 

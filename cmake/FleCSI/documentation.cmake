@@ -21,7 +21,7 @@ macro(_flecsi_define_doc_group_target)
   endif()
 
   if(NOT TARGET ${FLECSI_DOC_TARGET})
-    add_custom_target(${FLECSI_DOC_TARGET})
+    add_custom_target(${FLECSI_DOC_TARGET} ALL)
   endif()
 endmacro()
 
