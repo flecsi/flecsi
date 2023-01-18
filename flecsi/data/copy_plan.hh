@@ -346,10 +346,12 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       const auto n = row.size();
       auto & b = w.get_buffer();
       if(skip < n) {
-        // Each row's record is its index, the number of elements remaining to
-        // write in it (which might not all fit), and then the elements.
-        // The first row is prefixed with a flag to indicate resumption.
-        if(!b.len && !w(!!skip) || !w(i) || !w(n - skip))
+        // Each row's record comprises the number of elements remaining to
+        // write in it and then as many of those as fit.  The first row is
+        // prefixed with the number of complete rows sent and a flag to
+        // indicate a further partial row.  (Rarely, the same row is sent more
+        // than once, so its index would be insufficient to synchronize.)
+        if(!b.len && !(w(rows) && w(!!skip)) || !w(n - skip))
           return full();
         for(auto s = std::exchange(skip, 0); s < n; ++s)
           if(w(row[s])) {
@@ -361,24 +363,27 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       }
       else
         skip -= n;
+      ++rows;
       return true;
     }
 
     /*! The method to read received data.
+      An appropriate subrange of \a ghost is used on each call.
 
        @param rag The mutator to the ragged field
        @param b The buffer where the data is received
-       @param f The function object encoding "remote/shared index -> local/ghost
-       index map"
+       \param ghost range of local (ghost) indices
     */
-    template<class R, class F>
-    static void read(const R & rag, const Buffer & b, F && f) {
+    template<class M, class R>
+    static void read(const M & rag, const Buffer & b, R && ghost) {
       Buffer::reader r{&b};
-      if(!r) // the resumption flag exists only if any rows were sent
+      if(!r) // resumption information exists only if any rows were sent
         return;
+      const auto e = ghost.end();
+      auto g = std::next(std::forward<R>(ghost).begin(), r.get<std::size_t>());
       bool resume = r();
-      while(r) {
-        const auto row = rag[f(r.get<std::size_t>())];
+      for(; g != e; ++g) {
+        const auto row = rag[*g];
         if(!r)
           break; // in case the write stopped mid-record
         if(resume)
@@ -390,11 +395,12 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         while(r && n--)
           row.push_back(r());
       }
+      flog_assert(!r, "too many ghost rows");
     }
 
   private:
     // Just count linearly (many ghost visitors will be sequential anyway):
-    std::size_t skip;
+    std::size_t rows = 0, skip;
     Buffer::writer w;
   };
 };
