@@ -30,7 +30,7 @@ struct dependencies_guard {
   ~dependencies_guard();
 
 private:
-  dependencies_guard(int, char **);
+  dependencies_guard(arguments::dependent &, int, char **);
 
   util::mpi::init mpi;
 };
