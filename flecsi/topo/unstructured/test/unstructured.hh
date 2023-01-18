@@ -237,7 +237,7 @@ struct unstructured
     // the launch maps need to be resized with the correct allocation
     auto slm = data::launch::make(el);
     auto const & rmaps = s->reverse_map<I>();
-    execute<populate_list<E>>(
+    execute<populate_list<E>, flecsi::mpi>(
       core::special_field(slm), c.idx_spaces[core::index<I>], rmaps);
   } // init_list
 

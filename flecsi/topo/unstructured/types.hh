@@ -800,55 +800,6 @@ init_connectivity(entity_index_space from,
 /// \}
 } // namespace topo
 
-/*----------------------------------------------------------------------------*
-  Serialization Rules
- *----------------------------------------------------------------------------*/
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::shared_entity> {
-  using type = topo::unstructured_impl::shared_entity;
-  template<class P>
-  static void put(P & p, const type & s) {
-    serial::put(p, s.id, s.dependents);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::index_coloring> {
-  using type = topo::unstructured_impl::index_coloring;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial::put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r, r, r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::process_coloring> {
-  using type = topo::unstructured_impl::process_coloring;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial::put(p,
-      c.color,
-      c.entities,
-      c.coloring,
-      c.peers,
-      c.cnx_allocs,
-      c.cnx_colorings);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r, r, r, r, r};
-  }
-};
-
 } // namespace flecsi
 
 #endif
