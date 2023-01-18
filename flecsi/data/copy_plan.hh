@@ -344,15 +344,22 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       };
       const auto row = rag[i];
       const auto n = row.size();
-      auto & b = w.get_buffer();
-      if(skip < n) {
+      if(skip > n)
+        skip -= n + 1;
+      else {
+        auto & b = w.get_buffer();
         // Each row's record comprises the number of elements remaining to
         // write in it and then as many of those as fit.  The first row is
         // prefixed with the number of complete rows sent and a flag to
         // indicate a further partial row.  (Rarely, the same row is sent more
         // than once, so its index would be insufficient to synchronize.)
-        if(!b.len && !(w(rows) && w(!!skip)) || !w(n - skip))
+        if(!b.len && !(w(rows) && w(!!skip)))
           return full();
+        if(skip)
+          --skip, --b.off;
+        if(!w(n - skip))
+          return full();
+        ++b.off;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
           if(w(row[s])) {
             ++b.off;
@@ -361,8 +368,6 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
           else
             return full();
       }
-      else
-        skip -= n;
       ++rows;
       return true;
     }
@@ -399,7 +404,9 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
     }
 
   private:
-    // Just count linearly (many ghost visitors will be sequential anyway):
+    // We simply count elements sent, since many ghost visitors will be
+    // sequential anyway.  To avoid ambiguity for empty rows, we also count
+    // the size of a row as an element.
     std::size_t rows = 0, skip;
     Buffer::writer w;
   };
