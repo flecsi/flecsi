@@ -25,7 +25,10 @@ variables:
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
   PARTITIONS: general,skylake-gold,skylake-platinum
-  SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
+  IB_EDR_CONSTRAINT: "--constraint=ib:edr"
+  V100_CONSTRAINT: "--constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
+  JOB_CONSTRAINTS: "${IB_EDR_CONSTRAINT}"
+  SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
   LEGION_MPI: legion conduit=mpi
   LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
@@ -99,7 +102,7 @@ docs_and_format:check:
   only:
     - merge_requests
   variables:
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    JOB_CONSTRAINTS: ""
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
@@ -139,7 +142,6 @@ mpich-legion-gnu:
     C_COMPILER: gcc
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -226,7 +228,6 @@ tutorial:legion:
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C ib:edr"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -293,7 +294,7 @@ openmpi-legion-clang-cuda:
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
     PARTITIONS: volta-x86,power9
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-legion-clang-cuda-mpi:
   stage: Legion backend
@@ -314,8 +315,7 @@ openmpi-legion-clang-cuda-mpi:
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
     PARTITIONS: volta-x86,power9
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}  --constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
-
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,
@@ -423,7 +423,7 @@ docs_and_format:
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     CMAKE_OPTIONS: ""
     FORMAT_VERSION: 13.0.1
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    JOB_CONSTRAINTS: ""
   allow_failure: true
 
 #------------------------------------------------------------------------------#
