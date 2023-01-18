@@ -22,6 +22,8 @@
 #include <utility>
 #include <vector>
 
+/// \cond core
+
 namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
@@ -1704,5 +1706,7 @@ coloring_utils<MD>::send_field(entity_kind k, const std::vector<T> & f) {
 } // namespace unstructured_impl
 } // namespace topo
 } // namespace flecsi
+
+/// \endcond
 
 #endif
