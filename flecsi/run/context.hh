@@ -183,6 +183,8 @@ protected:
     }
     else
       log::state::instance.emplace(c.flog.tags, c.flog.verbose, c.flog.process);
+#else
+    (void)c, (void)a;
 #endif
   }
 
