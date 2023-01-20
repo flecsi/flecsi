@@ -189,7 +189,7 @@
     - make -j $(nproc)
     - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
     - echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
-    - GASNET_BACKTRACE=1 CTEST_OUTPUT_ON_FAILURE=1 make test
+    - GASNET_BACKTRACE=1 CTEST_OUTPUT_ON_FAILURE=1 ctest --output-junit tests.xml
     - echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
     - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
     - make install
@@ -199,6 +199,8 @@
     expire_in: 2 weeks
     paths:
       - ${CI_PROJECT_DIR}/state
+    reports:
+      junit: ${CI_PROJECT_DIR}/state/build/tests.xml
 
 #------------------------------------------------------------------------------#
 # darwin_defaults_build_template
