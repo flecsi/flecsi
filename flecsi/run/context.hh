@@ -363,11 +363,15 @@ private:
             for(const auto & fip :
               field_info_store<topo::ragged<Topo>, Index>()) {
               auto & t = slot->ragged.template get<Index>()[fip->fid];
-              index_space_info_vector_.push_back({&t.get_region(),
-                &t.get_partition(),
-                {fip},
-                util::type<Topo>() + "::ragged[" + std::to_string(Index) +
-                  ']'});
+              // Clang doesn't like "t.space" as a constant expression:
+              constexpr auto space =
+                std::remove_reference_t<decltype(t)>::space;
+              index_space_info_vector_.push_back(
+                {&t.template get_region<space>(),
+                  &t.template get_partition<space>(),
+                  {fip},
+                  util::type<Topo>() + "::ragged[" + std::to_string(Index) +
+                    ']'});
             }
           }(),
           ...);
