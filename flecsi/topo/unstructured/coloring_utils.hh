@@ -252,7 +252,7 @@ struct coloring_utils {
 
 private:
   void build_intermediary(std::size_t kind,
-    util::crs & e2v,
+    const util::crs & e2v,
     std::vector<util::gid> const & p2m);
 
   util::gid num_primaries() {
@@ -1594,7 +1594,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
 template<class MD>
 void
 coloring_utils<MD>::build_intermediary(entity_kind kind,
-  util::crs & e2v,
+  const util::crs & e2v,
   std::vector<std::size_t> const & p2m) {
   auto & aux = auxiliary_state(kind);
 
