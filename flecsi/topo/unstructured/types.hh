@@ -641,22 +641,6 @@ struct unstructured_base {
     } // for
   }
 
-  template<std::size_t S>
-  static void idx_subspaces(index_coloring const & ic,
-    field<util::id, data::ragged>::mutator<rw> owned,
-    field<util::id, data::ragged>::mutator<rw> exclusive,
-    field<util::id, data::ragged>::mutator<rw> shared,
-    field<util::id, data::ragged>::mutator<rw> ghost) {
-    const auto cp = [](auto r, const std::vector<util::id> & v) {
-      r.assign(v.begin(), v.end());
-    };
-
-    cp(owned[S], ic.owned);
-    cp(exclusive[S], ic.exclusive);
-    cp(shared[S], ic.shared);
-    cp(ghost[S], ic.ghost);
-  }
-
   static void cnx_size(std::vector<process_coloring> const & vpc,
     std::size_t is,
     data::multi<resize::Field::accessor<wo>> aa) {
