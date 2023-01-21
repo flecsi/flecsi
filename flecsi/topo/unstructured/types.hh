@@ -166,8 +166,7 @@ struct process_coloring {
   std::vector<Color> peers;
 
   /// The local allocation size for each connectivity. The vector is over
-  /// connectivities between this entity type and another entity type. The
-  /// ordering follows that given in the specialization policy.
+  /// all connectivities in the order given in the specialization policy.
   std::vector<std::size_t> cnx_allocs;
 
   /// The local graph for each connectivity.
