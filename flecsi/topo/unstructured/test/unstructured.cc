@@ -114,8 +114,8 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
   };
 }
 
-unstructured::slot mesh, m1, m2;
-unstructured::cslot coloring, c1, c2;
+unstructured::slot mesh;
+unstructured::cslot coloring;
 field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
 field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
