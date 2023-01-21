@@ -134,7 +134,6 @@ unstructured_driver() {
         auto & tf = rcf(mesh).get_ragged();
         tf.growth = {0, 0, 0.25, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), true);
-        tf.resize();
 
         auto const & cids = mesh->forward_map<unstructured::cells>();
         execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
@@ -145,7 +144,6 @@ unstructured_driver() {
         auto & tf = rvf(mesh).get_ragged();
         tf.growth = {0, 0, 0.25, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), false);
-        tf.resize();
 
         auto const & vids = mesh->forward_map<unstructured::vertices>();
         execute<init_rf>(mesh, vids(mesh), rvf(mesh), false);
