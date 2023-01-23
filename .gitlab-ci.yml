@@ -38,6 +38,7 @@ variables:
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
   KOKKOS_SERIAL: kokkos ~cuda
   KOKKOS_CUDA: kokkos +cuda +hwloc
+  ENABLE_UNIT_TESTS: "ON"
 
 #------------------------------------------------------------------------------#
 # Common build variants
@@ -143,7 +144,7 @@ mpich-legion-gnu:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON -DENABLE_GRAPHVIZ=ON -DCALIPER_DETAIL=low
     PARTITIONS: skylake-gold
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -164,7 +165,7 @@ mpich-legion-gnu:release:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
@@ -186,7 +187,7 @@ mpich-mpi-gnu:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 mpich-mpi-gnu:release:
   stage: MPI backend
@@ -205,7 +206,7 @@ mpich-mpi-gnu:release:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Tutorial tests for Legion backend with MPICH provider,
@@ -252,7 +253,7 @@ openmpi-legion-gnu:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON
 
 openmpi-legion-gnu:release:
   stage: Legion backend
@@ -271,7 +272,7 @@ openmpi-legion-gnu:release:
     BACKEND: legion
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -295,7 +296,7 @@ openmpi-legion-clang-cuda:
     CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
     PARTITIONS: volta-x86,power9
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
@@ -316,7 +317,7 @@ openmpi-legion-clang-cuda-mpi:
     CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
     PARTITIONS: volta-x86,power9
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
@@ -341,7 +342,7 @@ openmpi-mpi-gnu:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON
 
 openmpi-mpi-gnu:release:
   stage: MPI backend
@@ -360,7 +361,7 @@ openmpi-mpi-gnu:release:
     BACKEND: mpi
     CXX_COMPILER: g++
     C_COMPILER: gcc
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON
 
 
 #------------------------------------------------------------------------------#
@@ -385,7 +386,7 @@ mpich-legion-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
@@ -410,7 +411,7 @@ mpich-mpi-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON
 
 #------------------------------------------------------------------------------#
 # Documentation
@@ -426,7 +427,6 @@ docs_and_format:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     GCC_VERSION: 11.1.0
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    CMAKE_OPTIONS: ""
     FORMAT_VERSION: 13.0.1
     JOB_CONSTRAINTS: ""
   allow_failure: true
@@ -453,4 +453,4 @@ openmpi-mpi-clang:
     CXX_FLAGS: "-fcolor-diagnostics ${WARN}"
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
-    CMAKE_OPTIONS: -DENABLE_UNIT_TESTS=ON -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=ON

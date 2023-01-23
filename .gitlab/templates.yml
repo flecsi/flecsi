@@ -174,7 +174,7 @@
     - spack env activate ${SPACK_ENVIRONMENT}-${MPI_PROVIDER}
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
+    - echo -e "\e[0Ksection_start:`date +%s`:build_noflog\r\e[0K${COLOR_CYAN}Build without FLOG${COLOR_PLAIN}"
     - *darwin_print_build_info
     - |-
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
@@ -184,13 +184,21 @@
         -DCMAKE_C_COMPILER=${C_COMPILER} \
         -DCMAKE_C_FLAGS="${C_FLAGS}" \
         -DFLECSI_BACKEND=${BACKEND} \
+        -DENABLE_FLOG=OFF \
         ${CMAKE_OPTIONS} \
         ../..
     - make -j $(nproc)
-    - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
-    - echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
-    - GASNET_BACKTRACE=1 CTEST_OUTPUT_ON_FAILURE=1 ctest --output-junit tests.xml
-    - echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
+    - echo -e "\e[0Ksection_end:`date +%s`:build_noflog\r\e[0K"
+    - |
+      if [ "${ENABLE_UNIT_TESTS}" = "ON" ] ; then
+        echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+        cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
+        make -j $(nproc)
+        echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
+        echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
+        GASNET_BACKTRACE=1 CTEST_OUTPUT_ON_FAILURE=1 ctest --output-junit tests.xml
+        echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
+      fi
     - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
     - make install
     - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
@@ -290,7 +298,6 @@
         -DENABLE_DOCUMENTATION=ON \
         -DENABLE_FORMAT=ON \
         -DClangFormat_VERSION=${FORMAT_VERSION} \
-        ${CMAKE_OPTIONS} \
         ../..
     - fail=0
     - |
