@@ -141,7 +141,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             /* cnx_allocs */
             {
               0,
-              fixed::connectivity[process()][0].indices.size()
+              fixed::connectivity[process()][0].values.size()
             },
 
             /* cnx_colorings */
@@ -168,7 +168,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
             /* cnx_allocs */
             {
-              fixed::connectivity[process()][0].indices.size(),
+              fixed::connectivity[process()][0].values.size(),
               0
             },
 

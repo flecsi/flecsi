@@ -25,26 +25,47 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
-/// Efficient storage for a sequence of sequences of integers.
+/// Efficient (compressed-row) storage for a sequence of sequences of
+/// integers.  There are no constraints on the size or contents of either
+/// the sequences or sequences of sequences: sequences can be different
+/// sizes, can have overlapping values, can include values in any order,
+/// and can hold duplicate values.
+///
+/// This type is a random-access range of \c span objects.  Because the \c
+/// offsets and \c values fields must be kept in sync they are best treated
+/// as read-only.  Use the \c add_row methods to modify those fields in a
+/// consistent manner.
 struct crs : util::with_index_iterator<const crs> {
+  /// A view of a row (a substring of \c values).
   using span = util::span<const util::gid>;
 
-  /// The rows in \c indices.
+  /// The rows in \c values.
   util::offsets offsets;
   /// The concatenated rows.
-  std::vector<util::gid> indices;
+  std::vector<util::gid> values;
 
+  /// Create an empty sequence of sequences.
+  crs() = default;
+
+  crs(util::offsets os, std::vector<util::gid> vs)
+    : offsets(std::move(os)), values(std::move(vs)) {}
+
+  /// Append onto the \c crs (via data copy) a row of values pointed to by
+  /// a beginning and an ending iterator.
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
     offsets.push_back(std::distance(first, last));
-    indices.insert(indices.end(), first, last);
+    values.insert(values.end(), first, last);
   }
 
+  /// Append onto the \c crs (via data copy) a row of values.
   template<class U>
   void add_row(std::initializer_list<U> init) {
     add_row(init.begin(), init.end());
   }
 
+  /// Append onto the \c crs (via data copy) a row of values acquired by
+  /// traversing a range.
   template<typename Range>
   void add_row(Range const & it) {
     add_row(it.begin(), it.end());
@@ -55,16 +76,17 @@ struct crs : util::with_index_iterator<const crs> {
     return offsets.size();
   }
 
+  /// Discard all data (\c offsets and \c values).
   void clear() {
     offsets.clear();
-    indices.clear();
+    values.clear();
   }
 
   /// Return a row.
-  /// \return substring of \c indices
+  /// \return substring of \c values
   span operator[](std::size_t i) const {
     const auto r = offsets[i];
-    return span(indices.data() + *r.begin(), r.size());
+    return span(values.data() + *r.begin(), r.size());
   }
 }; // struct crs
 
@@ -93,7 +115,7 @@ operator<<(std::ostream & stream, crs const & graph) {
   for(auto o : graph.offsets.ends())
     stream << o << " ";
   stream << "\n\ncrs indices: ";
-  for(auto o : graph.indices) {
+  for(auto o : graph.values) {
     stream << o << " ";
   }
   stream << "\n\ncrs expansion:\n" << expand(graph) << std::endl;
@@ -108,11 +130,11 @@ struct util::serial::traits<util::crs> {
   using type = util::crs;
   template<class P>
   static void put(P & p, const type & c) {
-    serial::put(p, c.offsets, c.indices);
+    serial::put(p, c.offsets, c.values);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
-    return type{{}, r, r};
+    return type{r, r};
   }
 };
 

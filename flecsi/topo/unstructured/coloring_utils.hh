@@ -1537,7 +1537,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   util::crs c2e;
   c2e.offsets.reserve(c2f.offsets.size());
   // Note: this is a rough estimate.
-  c2e.indices.reserve(c2f.indices.size() + f2e.indices.size());
+  c2e.values.reserve(c2f.values.size() + f2e.values.size());
 
   for(const util::crs::span cell : c2f) {
     std::vector<util::gid> edges;
@@ -1585,7 +1585,7 @@ coloring_utils<MD>::build_intermediary(entity_kind kind,
 
     // build the edges for the cell
     edges.offsets.clear();
-    edges.indices.clear();
+    edges.values.clear();
     if(MD::dimension() == cd_.cid.kind)
       md_.make_entity(kind, p2m[entity++], these_verts, edges);
     else
@@ -1625,7 +1625,7 @@ coloring_utils<MD>::generate() {
       coloring_.idx_spaces[from][lco].cnx_allocs[to] =
         coloring_.idx_spaces[transpose ? to : from][lco]
           .cnx_colorings[transpose ? from : to]
-          .indices.size();
+          .values.size();
     } // for
   } // for
 

@@ -67,7 +67,7 @@ color(const util::offsets & dist,
   std::vector<idx_t> part(graph.size());
 
   std::vector<idx_t> vtxdist = with_zero(dist), xadj = with_zero(graph.offsets);
-  std::vector<idx_t> adjncy = as<idx_t>(graph.indices);
+  std::vector<idx_t> adjncy = as<idx_t>(graph.values);
 
   // clang-format off
   int result = ParMETIS_V3_PartKway(&vtxdist[0], &xadj[0], &adjncy[0],
