@@ -87,17 +87,13 @@ make_repartitioned(Color r, F f) {
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partition_base : repartition {
   using coloring = data::region &;
+  static constexpr single_space space = elements; // for run::context
 
   ragged_partition_base(coloring c) : repartition(c), reg(&c) {}
 
-  template<single_space = elements> // default for I/O code
+  template<single_space>
   data::region & get_region() const {
     return *reg;
-  }
-
-  template<single_space = elements>
-  repartition & get_partition() {
-    return *this;
   }
 
   // Ragged ghost copies must be handled at the level of the host topology.
@@ -437,8 +433,6 @@ private:
   typename detail::ragged_tuple_t<borrow_ragged_partitions, P> part;
 };
 template<class>
-struct borrow_category;
-template<class>
 struct borrow;
 
 struct borrow_base {
@@ -453,7 +447,7 @@ struct borrow_base {
 
   template<template<class> class C, class T>
   static auto & derived(borrow_extra<C<T>> & e) {
-    return static_cast<typename topo::borrow<T>::core &>(e);
+    return static_cast<typename borrow<T>::core &>(e);
   }
 };
 

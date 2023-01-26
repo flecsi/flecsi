@@ -48,6 +48,7 @@ struct hdf5 {
     close();
   }
 
+private:
   void init(const char * f, hid_t file_access_plist_id, bool create) {
     id =
       (create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, file_access_plist_id)
@@ -64,6 +65,7 @@ struct hdf5 {
     }
   }
 
+public:
   bool close() { // true if successfully closed
     if(*this) {
       H5Fflush(id, H5F_SCOPE_LOCAL);

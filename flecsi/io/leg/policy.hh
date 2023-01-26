@@ -270,7 +270,6 @@ private:
     return fsm;
   }
 
-private:
   data::leg::shared_index_space launch_space;
   data::leg::shared_index_partition launch_partition;
 };

@@ -12,7 +12,6 @@
 #include "flecsi/topo/types.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
-#include "flecsi/util/crs.hh"
 #include "flecsi/util/set_utils.hh"
 
 #include <map>

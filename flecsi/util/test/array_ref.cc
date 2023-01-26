@@ -270,6 +270,15 @@ array_ref() {
     EXPECT_EQ(tv.end()[-1], &b.back());
 
     {
+      constexpr util::iota_view iv(0, 10);
+      constexpr auto s0 = stride_view(iv, 3), s1 = stride_view(iv, 3, 1);
+      static_assert(s0.size() == 4);
+      static_assert(s0[1] == 3);
+      static_assert(s1.size() == 3);
+      static_assert(s1[2] == 7);
+    }
+
+    {
       static short four[4];
       constexpr int i = 1, n = 2;
       constexpr util::substring_view sv((util::span(four)), i, n);

@@ -28,6 +28,35 @@ namespace unstructured_impl {
 /// \addtogroup unstructured
 /// \{
 
+/// Strategy for contructing colorings.
+struct coloring_definition {
+  /// Instances of this type are used to map from a mesh definition
+  /// to an index space. In many cases, it is not possible to simply
+  /// use the topological dimension of the entity type, e.g., edges will
+  /// collide with corners. This problem is solved by using explicit
+  /// identifiers for each entity kind in the mesh definition and
+  /// associating it with the entity index space defined by the
+  /// specialization.
+  struct index_map {
+    /// mesh definition entity kind
+    entity_kind kind;
+    /// entity index space id
+    entity_index_space idx;
+  };
+
+  /// Total number of colors.
+  Color colors;
+  /// Index of primary entity in \c index_spaces.
+  /// \warning Not an \c index_space enumerator \b value.
+  index_map cid;
+  /// Number of layers of ghosts needed.
+  std::size_t depth;
+  /// Index of vertices in \c index_spaces.
+  index_map vid;
+  /// Indices of auxiliary entities in \c index_spaces.
+  std::vector<index_map> aidxs;
+};
+
 #ifdef DOXYGEN
 /// An example mesh definition that is not really implemented.
 struct mesh_definition {
@@ -223,7 +252,7 @@ struct coloring_utils {
 
 private:
   void build_intermediary(std::size_t kind,
-    util::crs & e2v,
+    const util::crs & e2v,
     std::vector<util::gid> const & p2m);
 
   util::gid num_primaries() {
@@ -341,8 +370,7 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
    */
 
   auto & cnns = connectivity_state(kind);
-  cnns.e2v =
-    util::mpi::one_to_allv<pack_definitions<MD>>({md_, kind, ecm}, comm_);
+  cnns.e2v = util::mpi::one_to_allv(pack_definitions(md_, kind, ecm), comm_);
 
   /*
     Create a map of vertex-to-entity connectivity information from
@@ -363,7 +391,7 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
   // Request all referencers of our connected vertices
   const util::equal_map vm(num_vertices(), size_);
   auto referencers =
-    util::mpi::all_to_allv<vertex_referencers>({cnns.v2e, vm, rank_}, comm_);
+    util::mpi::all_to_allv(vertex_referencers(cnns.v2e, vm, rank_), comm_);
 
   /*
     Update our local connectivity information. We now have all
@@ -405,8 +433,8 @@ coloring_utils<MD>::create_graph(entity_kind kind) {
 
   // Request vertex-to-entity connectivity for the entities that are
   // on other ranks in the naive entity distribution.
-  auto connectivity = util::mpi::all_to_allv<entity_connectivity>(
-    {referencer_inverse, cnns.v2e, vm, rank_}, comm_);
+  auto connectivity = util::mpi::all_to_allv(
+    entity_connectivity(referencer_inverse, cnns.v2e, vm, rank_), comm_);
 
   for(auto & r : connectivity) {
     for(auto & v : r) {
@@ -476,16 +504,15 @@ coloring_utils<MD>::migrate_primaries() {
 
   auto & cnns = primary_connectivity_state();
 
-  // clang-format off
-  auto migrated =
-    util::mpi::all_to_allv<move_primaries>(
-      {
-          util::equal_map(num_primaries(), size_), cd_.colors, primary_raw_, cnns.e2v,
-        cnns.v2e, cnns.e2e, rank_
-      },
-      comm_
-    );
-  // clang-format on
+  auto migrated = util::mpi::all_to_allv(
+    move_primaries(util::equal_map(num_primaries(), size_),
+      cd_.colors,
+      primary_raw_,
+      cnns.e2v,
+      cnns.v2e,
+      cnns.e2e,
+      rank_),
+    comm_);
 
   for(auto const & r : migrated) {
     auto const & cell_pack = std::get<0>(r);
@@ -698,7 +725,7 @@ coloring_utils<MD>::close_primaries() {
 
     std::vector<std::vector<util::gid>> fulfill(size_);
     Color r{0};
-    for(auto rv : requested) {
+    for(const auto & rv : requested) {
       for(auto e : rv) {
         // Add this entity to the list of entities that we need to fulfill
         // in `communicate_entities` below.
@@ -713,8 +740,9 @@ coloring_utils<MD>::close_primaries() {
       ++r;
     } // for
 
-    auto fulfilled = util::mpi::all_to_allv<communicate_entities>(
-      {fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p},
+    auto fulfilled = util::mpi::all_to_allv(
+      communicate_entities(
+        fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p),
       comm_);
 
     /*
@@ -766,7 +794,7 @@ coloring_utils<MD>::close_primaries() {
   const util::equal_map pmap(cd_.colors, size_);
   {
     std::size_t lco{0};
-    for(auto p : primaries()) {
+    for(const auto & p : primaries()) {
       process_colors.emplace_back(p.first);
       auto & pc = coloring_.idx_spaces[cd_.cid.idx][lco];
       pc.color = p.first;
@@ -799,10 +827,8 @@ coloring_utils<MD>::close_primaries() {
           peers.insert(gco);
         } // for
         color_peers_[lco].insert(peers.begin(), peers.end());
-        is_peers[lco].resize(peers.size());
-        std::copy(peers.begin(), peers.end(), is_peers[lco].begin());
-        pc.peers.resize(peers.size());
-        std::copy(peers.begin(), peers.end(), pc.peers.begin());
+        pc.peers.assign(peers.begin(), peers.end());
+        is_peers[lco] = pc.peers;
       } // if
 
       flog_assert(pc.coloring.owned.size() ==
@@ -889,7 +915,7 @@ coloring_utils<MD>::color_vertices() {
    */
 
   const util::equal_map vpm(num_vertices(), size_);
-  auto rank_colors = util::mpi::all_to_allv<rank_coloring>({vpm, v2co_}, comm_);
+  auto rank_colors = util::mpi::all_to_allv(rank_coloring(vpm, v2co_), comm_);
 
   const auto vr = vpm[rank_];
   vertex_raw_.resize(vr.size());
@@ -1568,7 +1594,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
 template<class MD>
 void
 coloring_utils<MD>::build_intermediary(entity_kind kind,
-  util::crs & e2v,
+  const util::crs & e2v,
   std::vector<std::size_t> const & p2m) {
   auto & aux = auxiliary_state(kind);
 

@@ -147,35 +147,6 @@ transpose(
   }
 }
 
-/// Strategy for contructing colorings.
-struct coloring_definition {
-  /// Instances of this type are used to map from a mesh definition
-  /// to an index space. In many cases, it is not possible to simply
-  /// use the topological dimension of the entity type, e.g., edges will
-  /// collide with corners. This problem is solved by using explicit
-  /// identifiers for each entity kind in the mesh definition and
-  /// associating it with the entity index space defined by the
-  /// specialization.
-  struct index_map {
-    /// mesh definition entity kind
-    entity_kind kind;
-    /// entity index space id
-    entity_index_space idx;
-  };
-
-  /// Total number of colors.
-  Color colors;
-  /// Index of primary entity in \c index_spaces.
-  /// \warning Not an \c index_space enumerator \b value.
-  index_map cid;
-  /// Number of layers of ghosts needed.
-  std::size_t depth;
-  /// Index of vertices in \c index_spaces.
-  index_map vid;
-  /// Indices of auxiliary entities in \c index_spaces.
-  std::vector<index_map> aidxs;
-};
-
 /// Information specific to a local color.
 /// \ingroup unstructured
 struct process_coloring {
@@ -233,7 +204,6 @@ struct unstructured_base {
   using index_coloring = unstructured_impl::index_coloring;
   using process_coloring = unstructured_impl::process_coloring;
   using ghost_entity = unstructured_impl::ghost_entity;
-  using crs = util::crs;
   using cmap = unstructured_impl::cmap;
   using reverse_maps_t = std::vector<std::map<util::gid, util::id>>;
 
@@ -671,22 +641,6 @@ struct unstructured_base {
     } // for
   }
 
-  template<std::size_t S>
-  static void idx_subspaces(index_coloring const & ic,
-    field<util::id, data::ragged>::mutator<rw> owned,
-    field<util::id, data::ragged>::mutator<rw> exclusive,
-    field<util::id, data::ragged>::mutator<rw> shared,
-    field<util::id, data::ragged>::mutator<rw> ghost) {
-    const auto cp = [](auto r, const std::vector<util::id> & v) {
-      r.assign(v.begin(), v.end());
-    };
-
-    cp(owned[S], ic.owned);
-    cp(exclusive[S], ic.exclusive);
-    cp(shared[S], ic.shared);
-    cp(ghost[S], ic.ghost);
-  }
-
   static void cnx_size(std::vector<process_coloring> const & vpc,
     std::size_t is,
     data::multi<resize::Field::accessor<wo>> aa) {
@@ -791,36 +745,34 @@ operator<<(std::ostream & stream,
   return stream;
 }
 
-#if 1
 namespace unstructured_impl {
 /*!
   Initialize a connectivity using the coloring. This method uses
   from-to nomenclature, e.g., 'from' cells to 'vertices' initializes the
   cell index space connectivity to the vertices index space.
 
-  @tparam From  The index space for the from entity.
-  @tparam To    The index space for the to entity.
   @tparam NF    Number of privileges for connectivity field.
   @param  mconn A multi-accessor to the connectivity field.
   @param  c     The coloring.
   @param  map   The global-to-local id map for the to entities.
  */
-template<entity_index_space From, entity_index_space To, PrivilegeCount NF>
+template<PrivilegeCount NF>
 void
-init_connectivity(
+init_connectivity(entity_index_space from,
+  entity_index_space to,
   data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
     mconn,
   unstructured_base::coloring const & c,
   unstructured_base::reverse_maps_t const & maps) {
 
-  auto pcs = c.idx_spaces[From].begin();
+  auto pcs = c.idx_spaces[from].begin();
   auto mp = maps.begin();
   for(auto & x2y : mconn.accessors()) {
     auto const & pc = *pcs++;
     auto const & vm = *mp++;
     util::id off{0};
 
-    auto const & cnx = pc.cnx_colorings[To];
+    auto const & cnx = pc.cnx_colorings[to];
     for(const util::crs::span r : cnx) {
       auto v = util::transform_view(r, [&vm](util::gid i) { return vm.at(i); });
       x2y[off++].assign(v.begin(), v.end());
@@ -828,59 +780,9 @@ init_connectivity(
   } // for
 }
 } // namespace unstructured_impl
-#endif
 
 /// \}
 } // namespace topo
-
-/*----------------------------------------------------------------------------*
-  Serialization Rules
- *----------------------------------------------------------------------------*/
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::shared_entity> {
-  using type = topo::unstructured_impl::shared_entity;
-  template<class P>
-  static void put(P & p, const type & s) {
-    serial::put(p, s.id, s.dependents);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::index_coloring> {
-  using type = topo::unstructured_impl::index_coloring;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial::put(p, c.all, c.owned, c.exclusive, c.shared, c.ghost);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r, r, r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<topo::unstructured_impl::process_coloring> {
-  using type = topo::unstructured_impl::process_coloring;
-  template<class P>
-  static void put(P & p, const type & c) {
-    serial::put(p,
-      c.color,
-      c.entities,
-      c.coloring,
-      c.peers,
-      c.cnx_allocs,
-      c.cnx_colorings);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{r, r, r, r, r, r};
-  }
-};
 
 } // namespace flecsi
 

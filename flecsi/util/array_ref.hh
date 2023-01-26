@@ -240,6 +240,7 @@ struct mdspan : detail::mdbase<T, D> {
 /// A very simple emulation of std::ranges::iota_view from C++20.
 template<class I>
 struct iota_view {
+  static_assert(!std::is_const_v<I>, "integer type must not be qualified");
   struct iterator {
     using value_type = I;
     using reference = I;
@@ -648,6 +649,23 @@ public:
   }
 
 }; // struct transform_view
+
+/// A simple emulation of \c std::stride_view from C++23 for random-access
+/// underlying ranges.
+/// \param o initial offset (not part of C++23)
+template<class R>
+constexpr auto
+stride_view(R && r,
+  typename std::iterator_traits<decltype(std::begin(
+    std::declval<R>()))>::difference_type n,
+  decltype(n) o = 0) {
+  using I = std::make_unsigned_t<decltype(n)>;
+  const I sz = ceil_div<I>(std::size(r) - o, n); // before moving
+  return transform_view(
+    iota_view<I>(0, sz), [r = std::forward<R>(r), n, o](I i) -> decltype(auto) {
+      return r[i * n + o];
+    });
+}
 
 /// \endcond
 

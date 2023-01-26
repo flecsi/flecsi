@@ -4,6 +4,7 @@
 #define FLECSI_DATA_MAP_HH
 
 #include "flecsi/topo/index.hh"
+#include "flecsi/util/color_map.hh"
 
 #include <deque>
 
@@ -25,11 +26,10 @@ using param = topo::claims::Field::Reference<topo::claims, topo::elements>;
 /// For example, 5 colors are assigned to 3 tasks as {0,1}, {2,3}, and {4}.
 inline bool
 block(topo::claims::Field::accessor<wo> a, Color i, Color n) {
-  const auto me = color(), us = colors(), q = n / us, r = n % us,
-             mine = q + (me < r);
-  a = topo::claims::row(
-    i < mine ? std::optional((mine + (me == r)) * me + i) : std::nullopt);
-  return i + 1 < mine;
+  const auto c = util::equal_map(n, colors())[color()];
+  const Color left = c.size() - i;
+  a = topo::claims::row(left ? std::optional<Color>(c[i]) : std::nullopt);
+  return left > 1;
 }
 /// Rule to assign colors in a cycle.
 /// For example, 5 colors are assigned to 3 tasks as {0,3}, {1,4}, and {2}.
