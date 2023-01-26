@@ -253,47 +253,6 @@ make_ids(C && c) {
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
 
-namespace stride_impl {
-
-/*!
-  Adaptor for creating strided iterators over contiguous array types.
- */
-
-template<auto S, auto N>
-struct stride {
-  using type = decltype(N);
-  FLECSI_INLINE_TARGET stride(type o, type c) : o_(o), c_(c) {
-    assert(c < N && "invalid color");
-  }
-  FLECSI_INLINE_TARGET auto operator()(const type i) const {
-    type base = (c_ + o_) % N;
-    return id<S>(o_ + base + i * N);
-  }
-
-private:
-  type o_, c_;
-};
-} // namespace stride_impl
-
-/*!
-  Make a strided array iterator.
-
-  @tparam S The index space.
-  @tparam N The number of stride colors.
-  @tparam V The conainer type.
-
-  @param v A container instance.
-  @param o The offset at which to start.
-  @param c The color.
- */
-
-template<auto S, auto N, class V>
-FLECSI_INLINE_TARGET auto
-make_stride_ids(V && v, decltype(N) o, decltype(N) c) {
-  return util::transform_view(
-    std::forward<V>(v), stride_impl::stride<S, N>(o, c));
-}
-
 template<class T>
 void
 concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
