@@ -101,7 +101,13 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
     template<axis A>
     FLECSI_INLINE_TARGET auto red(std::size_t row) const {
-      return flecsi::util::stride_view(vertices<A>(), 2, row % 2);
+      // The checkerboard extends across colors.  The (boundary) point with
+      // global ID (0,0) is red; row is local, and 0 in the space of the
+      // stride_view is the first interior vertex.
+      return flecsi::util::stride_view(vertices<A>(),
+        2,
+        (global_id<(A == x_axis ? y_axis : x_axis)>(row) + global_id<A>(1)) %
+          2);
     }
 
     template<axis A>
