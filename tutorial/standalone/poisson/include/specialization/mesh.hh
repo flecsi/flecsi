@@ -86,15 +86,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, domain DM = interior>
     FLECSI_INLINE_TARGET auto vertices() const {
       if constexpr(DM == interior) {
-        const bool low = B::template is_low<mesh::vertices, A>();
-        const bool high = B::template is_high<mesh::vertices, A>();
-        const std::size_t start =
-          B::template offset<mesh::vertices, A, base::domain::logical>();
-        const std::size_t end =
-          B::template offset<mesh::vertices, A, base::domain::ghost_high>();
-
+        // The outermost layer is either ghosts or fixed boundaries:
         return flecsi::topo::make_ids<mesh::vertices>(
-          flecsi::util::iota_view<flecsi::util::id>(start + low, end - high));
+          flecsi::util::iota_view<flecsi::util::id>(
+            1, B::template size<mesh::vertices, A, base::domain::all>() - 1));
       }
       else if constexpr(DM == logical) {
         return B::template range<mesh::vertices, A, base::domain::logical>();
