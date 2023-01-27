@@ -84,7 +84,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A, domain DM = interior>
-    auto vertices() const {
+    FLECSI_INLINE_TARGET auto vertices() const {
       if constexpr(DM == interior) {
         const bool low = B::template is_low<mesh::vertices, A>();
         const bool high = B::template is_high<mesh::vertices, A>();
@@ -105,7 +105,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     template<axis A>
-    auto red(std::size_t row) const {
+    FLECSI_INLINE_TARGET auto red(std::size_t row) const {
       return flecsi::util::stride_view(vertices<A>(), 2, row % 2);
     }
 
