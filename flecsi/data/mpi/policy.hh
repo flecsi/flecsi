@@ -26,6 +26,25 @@ namespace mpi {
 
 namespace detail {
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+using host_view = Kokkos::
+  View<std::byte *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
+using host_const_view = Kokkos::View<const std::byte *,
+  Kokkos::HostSpace,
+  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
+using device_view = Kokkos::View<std::byte *,
+  Kokkos::DefaultExecutionSpace,
+  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
+using device_const_view = Kokkos::View<const std::byte *,
+  Kokkos::DefaultExecutionSpace,
+  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
+using view_variant = std::variant<host_view, device_view>;
+#endif
+
 struct buffer {
   template<exec::task_processor_type_t ProcessorType =
              exec::task_processor_type_t::loc>
@@ -39,15 +58,11 @@ struct buffer {
 
 #if defined(FLECSI_ENABLE_KOKKOS)
   auto kokkos_view() {
-    return Kokkos::View<std::byte *,
-      Kokkos::HostSpace,
-      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(v.data(), v.size());
+    return host_view{v.data(), v.size()};
   }
 
   auto kokkos_view() const {
-    return Kokkos::View<const std::byte *,
-      Kokkos::HostSpace,
-      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(v.data(), v.size());
+    return host_const_view{v.data(), v.size()};
   }
 #endif
 
@@ -85,15 +100,11 @@ struct buffer_impl_toc {
   }
 
   auto kokkos_view() {
-    return Kokkos::View<std::byte *,
-      Kokkos::DefaultExecutionSpace,
-      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, s);
+    return device_view{ptr, s};
   }
 
   auto kokkos_view() const {
-    return Kokkos::View<const std::byte *,
-      Kokkos::DefaultExecutionSpace,
-      Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, s);
+    return device_const_view{ptr, s};
   }
 
   ~buffer_impl_toc() {
@@ -129,6 +140,15 @@ struct storage {
       return toc_buffer.data();
   }
 
+  view_variant kokkos_view() {
+    if(is_on == exec::task_processor_type_t::loc) {
+      return {loc_buffer.kokkos_view()};
+    }
+    else {
+      return {toc_buffer.kokkos_view()};
+    }
+  }
+
   std::size_t size() const {
     if(is_on == exec::task_processor_type_t::loc)
       return loc_buffer.size();
@@ -152,12 +172,14 @@ private:
     // attempt deep_copy to cause buffer overrun (Kokkos does check that).
     if(dst.size() < src.size())
       dst.resize(src.size());
-    Kokkos::deep_copy(dst.kokkos_view(), src.kokkos_view());
+    Kokkos::deep_copy(
+      Kokkos::DefaultExecutionSpace{}, dst.kokkos_view(), src.kokkos_view());
   }
 
   exec::task_processor_type_t is_on = exec::task_processor_type_t::loc;
-  // TODO: How to handle the case when ExecutionSpace is actually HostSpace
-  //  (e.g. OpenMP)?
+  // We don't need to worry about the case that ExecutionSpace is actually
+  // HostSpace (e.g. OpenMP) since currently default_accelerator == toc only
+  // when compiling for CUDA or HIP.
   // Why don't we use Kokkos_View directly? Ans: our region lives longer than
   // Kokkos.
   buffer_impl_loc loc_buffer;
@@ -214,6 +236,12 @@ struct region_impl {
       v.resize(nbytes);
     return {reinterpret_cast<T *>(v.data<ProcessorType>()), nelems};
   }
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+  auto kokkos_view(field_id_t fid) {
+    return storages.at(fid).kokkos_view();
+  }
+#endif
 
   auto get_field_info(field_id_t fid) const {
     for(auto & f : fs) {
@@ -428,6 +456,12 @@ private:
     return r->get_storage<T>(fid, max_end);
   }
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+  auto kokkos_view(field_id_t fid) const {
+    return r->kokkos_view(fid);
+  }
+#endif
+
   mpi::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.
@@ -509,11 +543,15 @@ struct copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
-    // Since we are doing ghost copy via MPI, we always want the host side
-    // version. Unless we are doing some direct CUDA MPI thing in the future.
+#if defined(FLECSI_ENABLE_KOKKOS)
+    auto source_view = source.r->kokkos_view(data_fid);
+    auto destination_view = destination.kokkos_view(data_fid);
+#else
     auto source_storage =
       source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
     auto destination_storage = destination.get_storage<std::byte>(data_fid);
+#endif
+
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
     std::vector<MPI_Request> requests;
@@ -532,15 +570,38 @@ struct copy_engine {
         &requests.back()));
     }
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+    auto ith_element = [type_size](auto ptr, auto i) {
+      return mpi::detail::host_view{ptr + i * type_size, type_size};
+    };
+    auto one_element = [type_size](auto idx) {
+      return std::pair(idx * type_size, (idx + 1) * type_size);
+    };
+#endif
+
+    // TODO: The current way of copying data between host and device creates a
+    //  large number of calls to cudaMemcpy, each copying one element. If this
+    //  turns out to be a performance bottleneck, consider turning the inner
+    //  for loop into a kernel.
     std::vector<std::vector<std::byte>> send_buffers;
     for(const auto & [dst_rank, shared_indices] : shared_entities) {
       requests.resize(requests.size() + 1);
       send_buffers.emplace_back(shared_indices.size() * type_size);
       std::size_t i = 0;
       for(auto shared_idx : shared_indices) {
+#if defined(FLECSI_ENABLE_KOKKOS)
+        std::visit(
+          [&](auto && src) {
+            Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+              ith_element(send_buffers.back().data(), i++),
+              Kokkos::subview(src, one_element(shared_idx)));
+          },
+          source_view);
+#else
         std::memcpy(send_buffers.back().data() + i++ * type_size,
           source_storage.data() + shared_idx * type_size,
           type_size);
+#endif
       }
       test(MPI_Isend(send_buffers.back().data(),
         int(send_buffers.back().size()),
@@ -559,9 +620,19 @@ struct copy_engine {
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
       std::size_t i = 0;
       for(auto ghost_idx : ghost_indices) {
+#if defined(FLECSI_ENABLE_KOKKOS)
+        std::visit(
+          [&](auto && dst) {
+            Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+              Kokkos::subview(dst, one_element(ghost_idx)),
+              ith_element(recv_buffer->data(), i++));
+          },
+          destination_view);
+#else
         std::memcpy(destination_storage.data() + ghost_idx * type_size,
           recv_buffer->data() + i++ * type_size,
           type_size);
+#endif
       }
       recv_buffer++;
     }
