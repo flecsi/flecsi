@@ -376,9 +376,8 @@ struct borrow_partition_base : indirect_base {
 
   indirect<topo::resize>::core sz;
 
-  // There is no need to use a particular index_space type; only ragged fields
-  // use this topology directly.  The default is for I/O code.
-  template<single_space = elements>
+  // Only ragged fields use this topology directly.
+  template<single_space>
   data::region & get_region() {
     return indirect_base::get_region();
   }
@@ -499,7 +498,7 @@ struct borrow_category : borrow_base,
 
   template<index_space S>
   data::region & get_region() {
-    return get_partition<S>().get_region();
+    return get_partition<S>().get_region<elements>();
   }
   template<index_space S>
   Partition & get_partition() {
