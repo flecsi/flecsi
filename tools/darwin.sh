@@ -37,22 +37,23 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 GCC_VERSION=11.1.0
 
 # Download a version of Spack known to work with FleCSI and activate it.
+SPACK_VERSION=v0.19
 pushd "$HOME"
 if [ ! -d spack ]; then
   git clone https://github.com/spack/spack.git
   cd spack
-  git switch releases/v0.18
+  git switch releases/$SPACK_VERSION
   git rev-parse HEAD
 else
   cd spack
   echo "Found existing Spack install in ~/spack"
   git fetch origin
-  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/releases/v0.18)" ]; then
-    echo "ERROR: The current checkout does not match origin/releases/v0.18!"
+  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/releases/$SPACK_VERSION)" ]; then
+    echo "ERROR: The current checkout does not match origin/releases/$SPACK_VERSION!"
     echo
     echo "Please update manually with:"
-    echo " git -C ~/spack fetch +releases/v0.18:refs/remotes/origin/releases/v0.18"
-    echo " git -C ~/spack switch origin/releases/v0.18"
+    echo " git -C ~/spack fetch +releases/$SPACK_VERSION:refs/remotes/origin/releases/$SPACK_VERSION"
+    echo " git -C ~/spack switch origin/releases/$SPACK_VERSION"
     echo
     echo "WARNING: This may invalidate other Spack environments that rely on" \
          "this Spack instance!"
@@ -90,7 +91,7 @@ spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
 spack repo add ../spack-repo
 
 # On Darwin we have a Spack upstream that already has prebuilt dependencies
-DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
+DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/$SPACK_VERSION
 
 if [ -d "$DARWIN_SPACK_UPSTREAM" ] && [ -x "${DARWIN_SPACK_UPSTREAM}" ]; then
   # add spack upstream if accessible
