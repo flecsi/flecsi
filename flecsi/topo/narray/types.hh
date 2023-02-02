@@ -33,6 +33,79 @@ using colors = std::vector<Color>;
 
 /// \cond core
 
+template<Dimension D>
+struct neighbors_view {
+  using S=short;
+  struct iterator {
+    using M=std::array<S,D>;
+
+    iterator() : iterator(-1) {}
+    explicit iterator(S s) : iterator(s,std::make_index_sequence<D-1>()) {}
+
+    const M& operator*() const {return m;}
+
+    iterator& operator++() {
+      for(Dimension d=0;++m[d]==2 && ++d<D;m[d-1]=-1);
+      if(m==M()) m[0]=1; // skip origin; note that std::none_of is actually faster
+      return *this;
+    }
+    iterator operator++(int) {
+      iterator ret=*this;
+      ++*this;
+      return ret;
+    }
+
+    bool operator==(const iterator &i) const {return m==i.m;}
+    bool operator!=(const iterator &i) const {return !(*this==i);}
+
+  private:
+    template<std::size_t ...II>
+    iterator(S last,std::index_sequence<II...>) : m{(void(II),-1)...,last} {}
+
+    M m;
+  };
+
+  iterator begin() const {return {};}
+  iterator end() const {return iterator(2);}
+};
+
+template<Dimension D>
+struct neighbors_view_dyn {
+  using S=int;
+  using M=std::array<S,D>;
+  static inline M lbnds, ubnds; 
+  
+  struct iterator {
+    using M=std::array<S,D>;
+ 
+    iterator() : iterator(lbnds) {}
+    iterator(M bnds, S s): m(bnds) {m[D-1] = s;}
+    iterator(M bnds): m(bnds){} 
+
+    const M& operator*() const {return m;}
+
+    iterator& operator++() {
+      for(Dimension d=0; ++m[d]==ubnds[d] && ++d<D; m[d-1]=lbnds[d-1]){ }
+      return *this;
+    }
+
+    iterator operator++(int) {
+      iterator ret=*this;
+      ++*this;
+      return ret;
+    }
+
+    bool operator==(const iterator &i) const {return m==i.m;}
+    bool operator!=(const iterator &i) const {return !(*this==i);}
+
+  private:
+    M m;
+  };
+
+  iterator begin() const {  return {};}
+  iterator end() const {return iterator(lbnds, ubnds[D-1]);}
+};
+
 /*!
  Type to store the coloring information for one axis of one color.
  */
@@ -318,90 +391,6 @@ struct index_definition {
     return indices;
   }
 
-
-  /*!
-   * Return the global communication graph over all colors
-   */
-   std::vector<std::vector<Color>> peers() const {
-
-      //lambda to obtain all neighbor color peers for a particular color 
-      std::function<void(int, int, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<Color>&)> color_peers = [&] (int i, int dim, std::vector<int> color_indices, std::vector<int> color_strs, std::vector<int> indices, std::vector<int> axes_bdepths, std::vector<Color>& ngb_colors) -> void {
-
-    if (i == -1){
-        std::vector<int> indices_mo(dim); 
-        for (int k = 0; k < dim; ++k){
-          indices_mo[k] = indices[k];  
-         //if boundary depth, add the correct ngb color 
-         if ((indices[k] == -1) && (color_indices[k] == 0) && axes_bdepths[k])
-           indices_mo[k] = color_strs[k]-1; 
-         if ((indices[k] == color_strs[k]) && (color_indices[k] == color_strs[k]-1) && axes_bdepths[k])
-           indices_mo[k] = 0; 
-        }
-
-        bool valid_ngb = true, same = true; 
-        for (int k = 0; k < dim; ++k){
-          if ((indices_mo[k] == -1) || (indices_mo[k] == color_strs[k])) 
-             valid_ngb = false;  
-
-          same = same && (indices[k] == color_indices[k]);        
-        }
-
-        int lid; 
-        if ((valid_ngb && !same)){
-          if (dim == 1){
-           lid = indices_mo[dim-1];
-          }
-          else {
-            lid = indices_mo[dim-1]*color_strs[dim-2]+indices_mo[dim-2];
-            for (int k = dim-3; k >=0; --k){
-              lid = lid*color_strs[k] + indices_mo[k];
-            } 
-          }
-          ngb_colors.push_back((Color)lid);
-        }
-       
-      return; 
-    }
-   
-    for (int k = 0; k < 3; ++k){
-        indices[i] = color_indices[i]+k-1; 
-        color_peers(i-1, dim, color_indices, color_strs, indices, axes_bdepths, ngb_colors);
-    }
-    }; //color_peers
-
-     //lambda to obtain communication graph  
-      std::function<void(int, int, std::vector<int>, std::vector<int>, std::vector<int>, std::vector<std::vector<Color>>&)> traverse_colors = [&] (int i, int dim, std::vector<int> color_indices, std::vector<int> color_strs, std::vector<int> axes_bdepths, std::vector<std::vector<Color>>& peer) -> void {
-    if (i == -1){
-        std::vector<int> indices(dim);
-        std::vector<Color> ngb_colors; 
-        color_peers(dim-1, dim, color_indices, color_strs, indices, axes_bdepths, ngb_colors);
-       
-        std::sort(ngb_colors.begin(), ngb_colors.end());  
-        ngb_colors.erase(std::unique(ngb_colors.begin(), ngb_colors.end()), ngb_colors.end()); 
-        peer.push_back(ngb_colors); 
-        return;  
-    }
-
-    for (color_indices[i] = 0; color_indices[i] < color_strs[i]; ++color_indices[i]){
-        traverse_colors(i-1, dim, color_indices, color_strs, axes_bdepths, peer);
-    }
-   };
-
-     //obtain peers 
-     auto dim = dimensions(); 
-     std::vector<int> color_strs(dim), axes_bdepths(dim); 
-     for (int k = 0; k < dim; ++k){
-       color_strs[k] = axes[k].colormap.size();
-       axes_bdepths[k] = axes[k].bdepth; 
-     }
-
-     std::vector<int> color_indices(dim); 
-     std::vector<std::vector<Color>> peer; 
-     traverse_colors(dim-1, dim, color_indices, color_strs, axes_bdepths, peer); 
-
-     return peer; 
-    }
-  
   /*!
    * Return a coloring for the current MPI rank on the given
    * communicator
@@ -696,6 +685,76 @@ struct index_definition {
     return make_pair(points, intervals);
   }
 };
+
+/*!
+ * Return the global communication graph over all colors
+ */
+template<Dimension D>
+std::vector<std::vector<Color>> peers(index_definition idef) {
+  using A = std::array<int, D>; 
+  using nview = flecsi::topo::narray_impl::neighbors_view<D>; 
+
+  auto color_peers = [&](A& color_indices, A& color_strs, A& axes_bdepths, std::vector<Color>& ngb_colors){       
+  for(auto &&v : nview()) {
+      A indices_mo; 
+      for (int d = 0; d < D; ++d){
+        indices_mo[d] = color_indices[d] + v[d];  
+       //if boundary depth, add the correct ngb color 
+       if ((indices_mo[d] == -1) && (color_indices[d] == 0) && axes_bdepths[d])
+         indices_mo[d] = color_strs[d]-1; 
+       if ((indices_mo[d] == color_strs[d]) && (color_indices[d] == color_strs[d]-1) && axes_bdepths[d])
+         indices_mo[d] = 0; 
+      }
+
+      bool valid_ngb = true; 
+      for (int k = 0; k < D; ++k){
+        if ((indices_mo[k] == -1) || (indices_mo[k] == color_strs[k])) 
+           valid_ngb = false;  
+      }
+
+      int lid; 
+      if (valid_ngb){
+        if (D == 1){
+         lid = indices_mo[D-1];
+        }
+        else {
+          lid = indices_mo[D-1]*color_strs[D-2]+indices_mo[D-2];
+          for (int k = D-3; k >=0; --k){
+            lid = lid*color_strs[k] + indices_mo[k];
+          } 
+        }
+        ngb_colors.push_back((Color)lid);
+      }
+    }
+  }; 
+
+   //obtain peers 
+   A color_bnd, color_strs, axes_bdepths, color_indices; 
+   for (int k = 0; k < D; ++k){
+     color_bnd[k] = 0; 
+     color_strs[k] = idef.axes[k].colormap.size();
+     axes_bdepths[k] = idef.axes[k].bdepth; 
+   }
+
+   std::vector<std::vector<Color>> peer; 
+
+   using nviewd = neighbors_view_dyn<D>; 
+   nviewd::lbnds = color_bnd;
+   nviewd::ubnds = color_strs;  
+   for(auto &&v : nviewd()) {
+      for (int k = 0; k < D; ++k)
+        color_indices[k] = v[k]; 
+
+      std::vector<Color> ngb_colors; 
+      color_peers(color_indices, color_strs, axes_bdepths, ngb_colors);
+     
+      std::sort(ngb_colors.begin(), ngb_colors.end());  
+      ngb_colors.erase(std::unique(ngb_colors.begin(), ngb_colors.end()), ngb_colors.end()); 
+      peer.push_back(ngb_colors); 
+   }
+
+   return peer; 
+  }
 
 inline std::ostream &
 operator<<(std::ostream & stream, axis_color const & ac) {
