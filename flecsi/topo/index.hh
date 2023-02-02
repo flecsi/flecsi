@@ -507,6 +507,7 @@ struct borrow_category : borrow_base,
 
   template<class T, data::layout L, index_space S>
   void ghost_copy(data::field_reference<T, L, P, S> const & f) {
+    // With (say) <rw,ro> privileges, each round would request a ghost copy.
     if(first)
       base->ghost_copy(
         data::field_reference<T, L, typename P::Base, S>(f.fid(), *base));
