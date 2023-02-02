@@ -6,7 +6,7 @@
 from spack import *
 
 
-class Flecsi(CMakePackage, CudaPackage):
+class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     '''FleCSI is a compile-time configurable framework designed to support
        multi-physics application development. As such, FleCSI attempts to
        provide a very general set of infrastructure design patterns that can
@@ -88,6 +88,7 @@ class Flecsi(CMakePackage, CudaPackage):
 
     depends_on('kokkos@3.2.00:', when='+kokkos')
     depends_on('kokkos +cuda +cuda_constexpr +cuda_lambda', when='+kokkos +cuda')
+    depends_on('kokkos +rocm', when='+kokkos +rocm')
 
     # Legion
 
@@ -118,6 +119,10 @@ class Flecsi(CMakePackage, CudaPackage):
         depends_on("kokkos cuda_arch=" + _flag, when="+cuda+kokkos cuda_arch=" + _flag)
         depends_on("legion cuda_arch=" + _flag, when="backend=legion +cuda cuda_arch=" + _flag)
 
+    # Propagate amdgpu_target requirement to dependencies
+    for _flag in ROCmPackage.amdgpu_targets:
+        depends_on("kokkos amdgpu_target=" + _flag, when="+kokkos +rocm amdgpu_target=" + _flag)
+
     #--------------------------------------------------------------------------#
     # Conflicts
     #--------------------------------------------------------------------------#
@@ -141,4 +146,8 @@ class Flecsi(CMakePackage, CudaPackage):
             self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
             self.define_from_variant('ENABLE_UNIT_TESTS', 'unit')
         ]
+
+        if "+rocm" in self.spec:
+            options.append(self.define("CMAKE_CXX_COMPILER", self.spec["hip"].hipcc))
+            options.append(self.define("CMAKE_C_COMPILER", self.spec["hip"].hipcc))
         return options
