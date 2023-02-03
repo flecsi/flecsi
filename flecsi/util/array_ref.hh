@@ -24,6 +24,7 @@ namespace util {
 
 /// A workalike for std::span from C++20 (only dynamic-extent, without ranges
 /// support).
+/// This class is supported for GPU execution.
 template<class T>
 struct span {
   using element_type = T;
@@ -38,11 +39,12 @@ struct span {
   using iterator = pointer; // implementation-defined
   using reverse_iterator = std::reverse_iterator<iterator>;
 
-  constexpr span() noexcept : span(nullptr, nullptr) {}
-  constexpr span(pointer p, size_type sz) : span(p, p + sz) {}
-  constexpr span(pointer p, pointer q) : p(p), q(q) {}
+  FLECSI_INLINE_TARGET constexpr span() noexcept : span(nullptr, nullptr) {}
+  FLECSI_INLINE_TARGET constexpr span(pointer p, size_type sz)
+    : span(p, p + sz) {}
+  FLECSI_INLINE_TARGET constexpr span(pointer p, pointer q) : p(p), q(q) {}
   template<std::size_t N>
-  constexpr span(element_type (&a)[N]) : span(a, N) {}
+  FLECSI_INLINE_TARGET constexpr span(element_type (&a)[N]) : span(a, N) {}
   /// \warning Destroying \a C leaves this object dangling if it owns its
   ///   elements.  This implementation does not check for "borrowing".
   template<class C,
@@ -50,7 +52,8 @@ struct span {
       std::remove_pointer_t<decltype(void(std::size(std::declval<C &&>())),
         std::data(std::declval<C &&>()))> (*)[],
       T (*)[]>>>
-  constexpr span(C && c) : span(std::data(c), std::size(c)) {}
+  FLECSI_INLINE_TARGET constexpr span(C && c)
+    : span(std::data(c), std::size(c)) {}
   FLECSI_INLINE_TARGET
   constexpr iterator begin() const noexcept {
     return p;
@@ -148,6 +151,7 @@ to_vector(span<T> s) {
 
 namespace detail {
 /// A multi-dimensional view of an array.
+/// This class is supported for GPU execution.
 template<class T, Dimension D>
 struct mdbase {
   static_assert(D > 0);
@@ -214,6 +218,7 @@ struct mdcolex : detail::mdbase<T, D> {
 };
 
 /// A small, approximate subset of mdspan as proposed for C++23.
+/// This class is supported for GPU execution.
 /// \tparam D dimension
 template<class T, unsigned short D>
 struct mdspan : detail::mdbase<T, D> {
@@ -238,6 +243,7 @@ struct mdspan : detail::mdbase<T, D> {
 /// \cond core
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
+/// This class is supported for GPU execution.
 template<class I>
 struct iota_view {
   static_assert(!std::is_const_v<I>, "integer type must not be qualified");
@@ -248,73 +254,81 @@ struct iota_view {
     using difference_type = I;
     using iterator_category = std::input_iterator_tag;
 
-    constexpr iterator(I i = I()) : i(i) {}
+    FLECSI_INLINE_TARGET constexpr iterator(I i = I()) : i(i) {}
 
-    constexpr I operator*() const {
+    FLECSI_INLINE_TARGET constexpr I operator*() const {
       return i;
     }
-    constexpr I operator[](difference_type n) {
+    FLECSI_INLINE_TARGET constexpr I operator[](difference_type n) {
       return i + n;
     }
 
-    constexpr iterator & operator++() {
+    FLECSI_INLINE_TARGET constexpr iterator & operator++() {
       ++i;
       return *this;
     }
-    constexpr iterator operator++(int) {
+    FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
     }
-    constexpr iterator & operator--() {
+    FLECSI_INLINE_TARGET constexpr iterator & operator--() {
       --i;
       return *this;
     }
-    constexpr iterator operator--(int) {
+    FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;
     }
-    constexpr iterator & operator+=(difference_type n) {
+    FLECSI_INLINE_TARGET constexpr iterator & operator+=(difference_type n) {
       i += n;
       return *this;
     }
-    friend constexpr iterator operator+(difference_type n, iterator i) {
+    FLECSI_INLINE_TARGET friend constexpr iterator operator+(difference_type n,
+      iterator i) {
       i += n;
       return i;
     }
-    constexpr iterator operator+(difference_type n) const {
+    FLECSI_INLINE_TARGET constexpr iterator operator+(difference_type n) const {
       return n + *this;
     }
-    constexpr iterator & operator-=(difference_type n) {
+    FLECSI_INLINE_TARGET constexpr iterator & operator-=(difference_type n) {
       i -= n;
       return *this;
     }
-    constexpr iterator operator-(difference_type n) const {
+    FLECSI_INLINE_TARGET constexpr iterator operator-(difference_type n) const {
       iterator ret = *this;
       ret -= n;
       return ret;
     }
-    constexpr difference_type operator-(const iterator & r) const {
+    FLECSI_INLINE_TARGET constexpr difference_type operator-(
+      const iterator & r) const {
       return i - r.i;
     }
 
-    constexpr bool operator==(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator==(
+      const iterator & r) const noexcept {
       return i == r.i;
     }
-    constexpr bool operator!=(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator!=(
+      const iterator & r) const noexcept {
       return !(*this == r);
     }
-    constexpr bool operator<(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator<(
+      const iterator & r) const noexcept {
       return i < r.i;
     }
-    constexpr bool operator>(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator>(
+      const iterator & r) const noexcept {
       return r < *this;
     }
-    constexpr bool operator<=(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator<=(
+      const iterator & r) const noexcept {
       return !(*this > r);
     }
-    constexpr bool operator>=(const iterator & r) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator>=(
+      const iterator & r) const noexcept {
       return !(*this < r);
     }
 
@@ -381,79 +395,82 @@ public:
   using difference_type = std::ptrdiff_t;
   using iterator_category = std::random_access_iterator_tag;
 
-  index_iterator() noexcept : index_iterator(nullptr, 0) {}
-  index_iterator(C * p, std::size_t i) : c(p), i(i) {}
+  FLECSI_INLINE_TARGET index_iterator() noexcept : index_iterator(nullptr, 0) {}
+  FLECSI_INLINE_TARGET index_iterator(C * p, std::size_t i) : c(p), i(i) {}
 
-  decltype(auto) operator*() const {
+  FLECSI_INLINE_TARGET decltype(auto) operator*() const {
     return (*this)[0];
   }
-  auto operator->() const {
+  FLECSI_INLINE_TARGET auto operator->() const {
     return &**this;
   }
 
-  decltype(auto) operator[](difference_type n) const {
+  FLECSI_INLINE_TARGET decltype(auto) operator[](difference_type n) const {
     return (*c)[i + n];
   }
 
-  index_iterator & operator++() {
+  FLECSI_INLINE_TARGET index_iterator & operator++() {
     ++i;
     return *this;
   }
-  index_iterator operator++(int) {
+  FLECSI_INLINE_TARGET index_iterator operator++(int) {
     index_iterator ret = *this;
     ++*this;
     return ret;
   }
-  index_iterator & operator--() {
+  FLECSI_INLINE_TARGET index_iterator & operator--() {
     --i;
     return *this;
   }
-  index_iterator operator--(int) {
+  FLECSI_INLINE_TARGET index_iterator operator--(int) {
     index_iterator ret = *this;
     --*this;
     return ret;
   }
 
-  index_iterator & operator+=(difference_type n) {
+  FLECSI_INLINE_TARGET index_iterator & operator+=(difference_type n) {
     i += n;
     return *this;
   }
-  friend index_iterator operator+(difference_type n, index_iterator i) {
+  FLECSI_INLINE_TARGET friend index_iterator operator+(difference_type n,
+    index_iterator i) {
     return i += n;
   }
-  index_iterator operator+(difference_type n) const {
+  FLECSI_INLINE_TARGET index_iterator operator+(difference_type n) const {
     return n + *this;
   }
-  index_iterator & operator-=(difference_type n) {
+  FLECSI_INLINE_TARGET index_iterator & operator-=(difference_type n) {
     i -= n;
     return *this;
   }
-  friend index_iterator operator-(difference_type n, index_iterator i) {
+  FLECSI_INLINE_TARGET friend index_iterator operator-(difference_type n,
+    index_iterator i) {
     return i -= n;
   }
-  index_iterator operator-(difference_type n) const {
+  FLECSI_INLINE_TARGET index_iterator operator-(difference_type n) const {
     return n - *this;
   }
-  difference_type operator-(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET difference_type operator-(
+    const index_iterator & o) const {
     return i - o.i;
   }
 
-  bool operator==(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator==(const index_iterator & o) const {
     return i == o.i;
   }
-  bool operator!=(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator!=(const index_iterator & o) const {
     return i != o.i;
   }
-  bool operator<(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator<(const index_iterator & o) const {
     return i < o.i;
   }
-  bool operator<=(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator<=(const index_iterator & o) const {
     return i <= o.i;
   }
-  bool operator>(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator>(const index_iterator & o) const {
     return i > o.i;
   }
-  bool operator>=(const index_iterator & o) const {
+  FLECSI_INLINE_TARGET bool operator>=(const index_iterator & o) const {
     return i >= o.i;
   }
 
@@ -466,21 +483,26 @@ template<class D> // CRTP, but D might be const
 struct with_index_iterator {
   using iterator = index_iterator<D>;
 
+  FLECSI_INLINE_TARGET
   iterator begin() const noexcept {
     return {derived(), 0};
   }
+
+  FLECSI_INLINE_TARGET
   iterator end() const noexcept {
     const auto * p = derived();
     return {p, p->size()};
   }
 
 private:
+  FLECSI_INLINE_TARGET
   D * derived() const noexcept {
     return static_cast<D *>(this);
   }
 };
 
 /// A very simple emulation of std::ranges::transform_view from C++20.
+/// This class is supported for GPU execution.
 template<class C, class F>
 struct transform_view {
 private:
@@ -509,64 +531,72 @@ public:
       : iterator({}, nullptr) {} // null F won't be used
     constexpr iterator(base_iterator p, const F * f) noexcept : p(p), f(f) {}
 
-    constexpr iterator & operator++() {
+    FLECSI_INLINE_TARGET constexpr iterator & operator++() {
       ++p;
       return *this;
     }
-    constexpr iterator operator++(int) {
+    FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
     }
-    constexpr iterator & operator--() {
+    FLECSI_INLINE_TARGET constexpr iterator & operator--() {
       --p;
       return *this;
     }
-    constexpr iterator operator--(int) {
+    FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;
     }
-    constexpr iterator & operator+=(difference_type n) {
+    FLECSI_INLINE_TARGET constexpr iterator & operator+=(difference_type n) {
       p += n;
       return *this;
     }
-    friend constexpr iterator operator+(difference_type n, iterator i) {
+    FLECSI_INLINE_TARGET friend constexpr iterator operator+(difference_type n,
+      iterator i) {
       i += n;
       return i;
     }
-    constexpr iterator operator+(difference_type n) const {
+    FLECSI_INLINE_TARGET constexpr iterator operator+(difference_type n) const {
       return n + *this;
     }
-    constexpr iterator & operator-=(difference_type n) {
+    FLECSI_INLINE_TARGET constexpr iterator & operator-=(difference_type n) {
       p -= n;
       return *this;
     }
-    constexpr iterator operator-(difference_type n) const {
+    FLECSI_INLINE_TARGET constexpr iterator operator-(difference_type n) const {
       iterator ret = *this;
       ret -= n;
       return ret;
     }
-    constexpr difference_type operator-(const iterator & i) const {
+    FLECSI_INLINE_TARGET constexpr difference_type operator-(
+      const iterator & i) const {
       return p - i.p;
     }
 
-    constexpr bool operator==(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator==(
+      const iterator & i) const noexcept {
       return p == i.p;
     }
-    constexpr bool operator!=(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator!=(
+      const iterator & i) const noexcept {
       return !(*this == i);
     }
-    constexpr bool operator<(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator<(
+      const iterator & i) const noexcept {
       return p < i.p;
     }
-    constexpr bool operator>(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator>(
+      const iterator & i) const noexcept {
       return i < *this;
     }
-    constexpr bool operator<=(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator<=(
+      const iterator & i) const noexcept {
       return !(*this > i);
     }
-    constexpr bool operator>=(const iterator & i) const noexcept {
+    FLECSI_INLINE_TARGET constexpr bool operator>=(
+      const iterator & i) const noexcept {
       return !(*this < i);
     }
 
@@ -670,6 +700,7 @@ stride_view(R && r,
 /// \endcond
 
 /// A view of part of a range.  Analogous to a combination of
+/// This class is supported for GPU execution.
 /// \c std::take_view and \c std::drop_view from C++20.
 template<class R>
 struct substring_view {

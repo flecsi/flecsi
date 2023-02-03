@@ -90,7 +90,7 @@ struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
 // All accessors are ultimately implemented in terms of those for the raw
 // layout, minimizing the amount of backend-specific code required.
 
-/// Accessor for a single value.
+/// Accessor for a single value. This class is supported for GPU execution.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using value_type = DATA_TYPE;
@@ -111,21 +111,22 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   } // value
 
   /// Assign to the value.
-  const accessor & operator=(const DATA_TYPE & value) const {
+  FLECSI_INLINE_TARGET const accessor & operator=(
+    const DATA_TYPE & value) const {
     return const_cast<accessor &>(*this) = value;
   } // operator=
   /// Assign to the value.
-  accessor & operator=(const DATA_TYPE & value) {
+  FLECSI_INLINE_TARGET accessor & operator=(const DATA_TYPE & value) {
     get() = value;
     return *this;
   } // operator=
 
   /// Get the value.
-  element_type & operator*() const {
+  FLECSI_INLINE_TARGET element_type & operator*() const {
     return get();
   }
   /// Access a member of the value.
-  element_type * operator->() const {
+  FLECSI_INLINE_TARGET element_type * operator->() const {
     return &get();
   } // operator->
 
@@ -145,7 +146,8 @@ private:
   base_type base;
 }; // struct accessor
 
-/// Accessor for computing reductions.
+/// Accessor for computing reductions. This class is supported for GPU
+/// execution.
 /// Name via \c field::reduction.
 /// Usable only with the global topology.  Pass a normal \c field_reference.
 /// The previous field value contributes to the result.
@@ -185,6 +187,7 @@ private:
 };
 
 /// Accessor for potentially uninitialized memory.
+/// This class is supported for GPU execution.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
@@ -213,6 +216,7 @@ private:
 }; // struct accessor
 
 /// Accessor for ordinary fields.
+/// This class is supported for GPU execution.
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
 template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
@@ -226,7 +230,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   FLECSI_INLINE_TARGET
   typename accessor::element_type & operator()(size_type index) const {
     const auto s = this->span();
-    flog_assert(index < s.size(), "index out of range");
+    assert(index < s.size() && "index out of range");
     return s[index];
   } // operator()
 
@@ -259,7 +263,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 // The offsets privileges are separate because they are writable for mutators
 // but read-only for even writable accessors.
 
-/// Accessor for ragged fields.
+/// Accessor for ragged fields. This class is supported for GPU execution.
 /// \tparam P if write-only, rows do not change size but their elements are
 ///   reinitialized
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
@@ -286,7 +290,7 @@ struct ragged_accessor
     return this->span().first(off(i)).subspan(i ? off(i - 1) : 0);
   }
   /// Return the number of rows.
-  size_type size() const noexcept {
+  FLECSI_INLINE_TARGET size_type size() const noexcept {
     return off.span().size();
   }
   /// Return the number of elements across all rows.
@@ -790,7 +794,7 @@ private:
 
 // Many compilers incorrectly require the 'template' for a base class.
 
-/// Accessor for sparse fields.
+/// Accessor for sparse fields. This class is supported for GPU execution.
 /// \tparam P cannot be write-only
 /// \see \link ragged_accessor the base class\endlink
 template<class T, Privileges P>
@@ -817,16 +821,28 @@ public:
   /// A mapping backed by a row.  Use the \c ragged interface to iterate.
   struct row {
     using key_type = typename Field::key_type;
-    row(base_row s) : s(s) {}
+    FLECSI_INLINE_TARGET row(base_row s) : s(s) {}
     /// Find an element.
     /// \param c must exist
-    element_type & operator()(key_type c) const {
-      return std::partition_point(
-        s.begin(), s.end(), [c](const value_type & v) { return v.first < c; })
-        ->second;
+    FLECSI_INLINE_TARGET element_type & operator()(key_type c) const {
+      return partition_point(s.begin(), s.end(), [c](const value_type & v) {
+        return v.first < c;
+      })->second;
     }
 
   private:
+    template<class I, class F>
+    FLECSI_INLINE_TARGET static I partition_point(I b, I e, F && f) {
+      while(b != e) {
+        I m = b + (e - b) / 2;
+        if(f(*m))
+          b = m + 1;
+        else
+          e = m;
+      }
+      return b;
+    }
+
     base_row s;
   };
 
@@ -834,14 +850,14 @@ public:
   accessor(const base_type & b) : base_type(b) {}
 
   /// Get the row at an index point.
-  row operator[](typename accessor::size_type i) const {
+  FLECSI_INLINE_TARGET row operator[](typename accessor::size_type i) const {
     return get_base()[i];
   }
 
   base_type & get_base() {
     return *this;
   }
-  const base_type & get_base() const {
+  FLECSI_INLINE_TARGET const base_type & get_base() const {
     return *this;
   }
   template<class F>
@@ -1079,7 +1095,7 @@ private:
   base_type rag;
 };
 
-/// Accessor for particle fields.
+/// Accessor for particle fields. This class is supported for GPU execution.
 /// Provides bidirectional iterators over the existing particles.
 /// \tparam P if write-only, particles are not created or destroyed but they
 ///   are reinitialized
@@ -1100,58 +1116,59 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
-    iterator() noexcept : iterator(nullptr, 0) {}
-    iterator(const particle_accessor * a, size_type i) : a(a), i(i) {}
+    FLECSI_INLINE_TARGET iterator() noexcept : iterator(nullptr, 0) {}
+    FLECSI_INLINE_TARGET iterator(const particle_accessor * a, size_type i)
+      : a(a), i(i) {}
 
-    reference operator*() const {
+    FLECSI_INLINE_TARGET reference operator*() const {
       return a->span()[i].data;
     }
-    pointer operator->() const {
+    FLECSI_INLINE_TARGET pointer operator->() const {
       return &**this;
     }
 
-    iterator & operator++() {
+    FLECSI_INLINE_TARGET iterator & operator++() {
       const auto s = a->span();
       if(++i != s.size())
         i += s[i].skip;
       return *this;
     }
-    iterator operator++(int) {
+    FLECSI_INLINE_TARGET iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
     }
-    iterator & operator--() {
+    FLECSI_INLINE_TARGET iterator & operator--() {
       if(--i)
         i -= a->span()[i].skip;
       return *this;
     }
-    iterator operator--(int) {
+    FLECSI_INLINE_TARGET iterator operator--(int) {
       iterator ret = *this;
       --*this;
       return ret;
     }
 
-    bool operator==(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator==(const iterator & o) const {
       return i == o.i;
     }
-    bool operator!=(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator!=(const iterator & o) const {
       return i != o.i;
     }
-    bool operator<(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator<(const iterator & o) const {
       return i < o.i;
     }
-    bool operator<=(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator<=(const iterator & o) const {
       return i <= o.i;
     }
-    bool operator>(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator>(const iterator & o) const {
       return i > o.i;
     }
-    bool operator>=(const iterator & o) const {
+    FLECSI_INLINE_TARGET bool operator>=(const iterator & o) const {
       return i >= o.i;
     }
 
-    size_type location() const noexcept {
+    FLECSI_INLINE_TARGET size_type location() const noexcept {
       return i;
     }
 
@@ -1166,44 +1183,45 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   // This interface is a subset of that proposed for std::hive.
 
   /// Get the number of extant particles.
-  size_type size() const {
+  FLECSI_INLINE_TARGET size_type size() const {
     const auto s = this->span();
     const auto n = s.size();
     const auto i = n ? s.front().skip : 0;
     return i == n ? n : s[i].free.prev;
   }
   /// Get the maximum number of particles.
-  size_type capacity() const {
+  FLECSI_INLINE_TARGET size_type capacity() const {
     return this->span().size();
   }
   /// Test whether any particles exist.
-  bool empty() const {
+  FLECSI_INLINE_TARGET bool empty() const {
     return !size();
   }
 
-  iterator begin() const {
+  FLECSI_INLINE_TARGET iterator begin() const {
     const auto s = this->span();
     return {this, s.empty() || s.front().skip ? 0 : 1 + first_skip()};
   }
-  iterator end() const {
+  FLECSI_INLINE_TARGET iterator end() const {
     return {this, capacity()};
   }
 
   /// Get an iterator that refers to a particle.
   /// \c T must be standard-layout.
-  iterator get_iterator_from_pointer(element_type * the_pointer) const {
+  FLECSI_INLINE_TARGET iterator get_iterator_from_pointer(
+    element_type * the_pointer) const {
     static_assert(std::is_standard_layout_v<Particle>);
     const auto * const p = reinterpret_cast<Particle *>(the_pointer);
     const auto ret = p - this->span().data();
     // Some skipfield values are unused, so this isn't reliable:
-    flog_assert(!p->skip != !ret, "field slot is empty");
+    assert(!p->skip != !ret && "field slot is empty");
     return iterator(this, ret);
   }
 
   base_type & get_base() {
     return *this;
   }
-  const base_type & get_base() const {
+  FLECSI_INLINE_TARGET const base_type & get_base() const {
     return *this;
   }
 
@@ -1217,7 +1235,8 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   }
 
 protected:
-  size_type first_skip() const { // after special first element
+  FLECSI_INLINE_TARGET size_type
+  first_skip() const { // after special first element
     const auto s = this->span();
     return s.size() == 1 ? 0 : s[1].skip;
   }
@@ -1236,6 +1255,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
 };
 
 /// Mutator for particle fields.
+/// This class is supported for GPU execution however it is not thread-safe.
 /// Iterators are invalidated only if their particle is removed.
 /// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>
@@ -1254,31 +1274,31 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   // However, the natural wo semantics differ between the two cases.
 
   /// Remove all particles.
-  void clear() const {
+  FLECSI_INLINE_TARGET void clear() const {
     std::destroy(this->begin(), this->end());
     init();
   }
 
   /// Add a particle.
   /// \see emplace
-  iterator insert(const value_type & v) const {
+  FLECSI_INLINE_TARGET iterator insert(const value_type & v) const {
     return emplace(v);
   }
   /// Add a particle by moving.
   /// \see emplace
-  iterator insert(value_type && v) const {
+  FLECSI_INLINE_TARGET iterator insert(value_type && v) const {
     return emplace(std::move(v));
   }
   /// Create an element, in constant time.
   /// It is unspecified where it appears in the sequence.
   /// \return an iterator to the new element
   template<class... AA>
-  iterator emplace(AA &&... aa) const {
+  FLECSI_INLINE_TARGET iterator emplace(AA &&... aa) const {
     const auto s = this->span();
     const auto n = s.size();
-    flog_assert(n, "no particle space");
+    assert(n && "no particle space");
     Skip &ptr = s.front().skip, ret = ptr;
-    flog_assert(ret != n, "too many particles");
+    assert(ret != n && "too many particles");
     auto * const head = &s[ret];
     Skip & skip = head->skip;
     const auto link = head->emplace(std::forward<AA>(aa)...);
@@ -1298,10 +1318,10 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
   /// Remove an element, in constant time.
   /// \return an iterator past the removed element
-  iterator erase(const iterator & it) const {
+  FLECSI_INLINE_TARGET iterator erase(const iterator & it) const {
     const auto s = this->span();
     const auto n = s.size();
-    flog_assert(n, "no particles to erase");
+    assert(n && "no particles to erase");
     Skip & ptr = s.front().skip;
     const typename mutator::size_type i = it.location();
     auto * const rm = &s[i];
@@ -1346,7 +1366,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
   }
 
 private:
-  void init() const {
+  FLECSI_INLINE_TARGET void init() const {
     const auto s = this->span();
     if(const auto n = s.size()) {
       auto & a = s.front();
@@ -1409,7 +1429,7 @@ struct scalar_access : bind_tag {
     return &scalar_;
   }
 
-  const value_type & operator*() const {
+  FLECSI_INLINE_TARGET const value_type & operator*() const {
     return scalar_;
   }
 

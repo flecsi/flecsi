@@ -243,6 +243,7 @@ private:
 };
 
 /// Specify an iteration over \c id objects.
+/// This function is supported for GPU execution.
 /// \tparam S index space
 /// \param c range of integers
 /// \return a range of \c id<S> objects, perhaps lifetime-bound to \a c

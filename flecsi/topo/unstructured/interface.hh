@@ -350,6 +350,7 @@ private:
 };
 
 /// Topology interface base.
+/// This class is supported for GPU execution.
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Privileges>
@@ -380,14 +381,13 @@ protected:
    */
 
   template<index_space S>
-  auto entities() const {
+  FLECSI_INLINE_TARGET auto entities() const {
     return make_ids<S>(util::iota_view<util::id>(0, *size_.template get<S>()));
   }
 
   /*!
     Return a range of connectivity information for the parameterized
     index spaces.
-
     @tparam T The connected index space.
     @tparam F The index space with connections.
     \param from query entity
@@ -402,7 +402,7 @@ protected:
   /// Get a special-entities list.
   /// \return range of \c id\<I\> values
   template<index_space I, entity_list L>
-  auto special_entities() const {
+  FLECSI_INLINE_TARGET auto special_entities() const {
     return make_ids<I>(special_.template get<I>().template get<L>().span());
   }
 
