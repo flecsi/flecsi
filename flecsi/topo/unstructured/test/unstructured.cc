@@ -220,7 +220,6 @@ unstructured_driver() {
 
         auto const & cids = mesh->forward_map<unstructured::cells>();
         execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
-        execute<print_rf>(mesh, cids(mesh), rcf(mesh), true);
         EXPECT_EQ(test<verify_rf>(mesh, cids(mesh), rcf(mesh), true), 0);
       } // scope
 
@@ -241,7 +240,7 @@ unstructured_driver() {
           test<verify_vid>(mesh, unstructured::vid(mesh), vids(mesh)), 0);
         EXPECT_EQ(test<verify_coords>(mesh, unstructured::coords(mesh)), 0);
       } // scope
-      
+
     } // for
   };
 } // unstructured_driver

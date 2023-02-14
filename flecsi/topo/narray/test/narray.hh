@@ -70,6 +70,8 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
 
   template<class B>
   struct interface : B {
+    using M = std::array<util::id, dimension>;
+
     template<axis A, domain DM = domain::logical>
     std::size_t size() const {
       return B::template size<topo::elements, A, DM>();
@@ -84,10 +86,75 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     auto offset() const {
       return B::template offset<topo::elements, A, DM>();
     }
- 
+
     template<axis A>
     util::gid global_id(util::id lid) const {
       return B::template global_id<topo::elements, A>(lid);
+    }
+
+    auto global_ids(M lid) const {
+      std::array<util::gid, dimension> val;
+      if constexpr(D == 1) {
+        val[0] = global_id<axis::x_axis>(lid[0]);
+      }
+      else if constexpr(D == 2) {
+        val[0] = global_id<axis::x_axis>(lid[0]);
+        val[1] = global_id<axis::y_axis>(lid[1]);
+      }
+      else {
+        val[0] = global_id<axis::x_axis>(lid[0]);
+        val[1] = global_id<axis::y_axis>(lid[1]);
+        val[2] = global_id<axis::z_axis>(lid[2]);
+      }
+      return val;
+    }
+
+    template<typename S = util::id, domain DM = domain::all>
+    auto strides() {
+      std::array<S, dimension> val;
+      if constexpr(D == 1) {
+        val[0] = size<axis::x_axis, DM>();
+      }
+      else if constexpr(D == 2) {
+        val[0] = size<axis::x_axis, DM>();
+        val[1] = size<axis::y_axis, DM>();
+      }
+      else {
+        val[0] = size<axis::x_axis, DM>();
+        val[1] = size<axis::y_axis, DM>();
+        val[2] = size<axis::z_axis, DM>();
+      }
+      return val;
+    }
+
+    template<axis A, domain DM = domain::logical>
+    std::array<util::id, 2> axis_bounds() {
+      util::id lo = (DM == domain::logical || DM == domain::ghost_high)
+                      ? offset<A, DM>()
+                      : 0;
+      return {lo, lo + (util::id)size<A, DM>()};
+    }
+
+    template<domain DM = domain::logical>
+    void bounds(M & lbnds, M & ubnds) {
+      if constexpr(D == 1) {
+        auto b = axis_bounds<axis::x_axis, DM>();
+        lbnds[0] = b[0];
+        ubnds[0] = b[1];
+      }
+      else if constexpr(D == 2) {
+        auto bx = axis_bounds<axis::x_axis, DM>();
+        auto by = axis_bounds<axis::y_axis, DM>();
+        lbnds = {bx[0], by[0]};
+        ubnds = {bx[1], by[1]};
+      }
+      else {
+        auto bx = axis_bounds<axis::x_axis, DM>();
+        auto by = axis_bounds<axis::y_axis, DM>();
+        auto bz = axis_bounds<axis::z_axis, DM>();
+        lbnds = {bx[0], by[0], bz[0]};
+        ubnds = {by[1], by[1], bz[1]};
+      }
     }
   };
 }; // mesh

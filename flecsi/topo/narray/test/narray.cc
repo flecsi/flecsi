@@ -669,218 +669,94 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
   } // d=3
 } // check_mesh_field
 
-template<std::size_t D>
-void
-init_rf(typename mesh<D>::template accessor<ro> m,
-  field<int, data::ragged>::mutator<wo, na> tf) {
-   int sz = 100; 
-   util::id lid;
-   util::gid gid; 
- 
-   //std::stringstream ss;
-   if constexpr(D==1) {
-     for(util::id i : m.template range<mesh1d::axis::x_axis, mesh1d::domain::logical>()) {
-         auto ig = m.template global_id<mesh1d::axis::x_axis>(i); 
-         gid = ig; 
-         lid = i; 
-         tf[lid].resize(sz);
-         for(int k = 0; k < sz; ++k) 
-          tf[lid][k] = (int)(gid * 10000 + k);
-       }
-   }
-   else if constexpr(D==2) {
-     util::id str = m.template size<mesh2d::axis::x_axis, mesh2d::domain::all>(); 
-     util::gid strg = m.template size<mesh2d::axis::x_axis, mesh2d::domain::global>();
-     for(util::id j : m.template range<mesh2d::axis::y_axis, mesh2d::domain::logical>()) {
-       auto jg = m.template global_id<mesh2d::axis::y_axis>(j);  
-       for(util::id i : m.template range<mesh2d::axis::x_axis, mesh2d::domain::logical>()) {
-         auto ig = m.template global_id<mesh2d::axis::x_axis>(i); 
-         gid = ig + strg* jg; 
-         lid = i + str* j; 
-         tf[lid].resize(sz);
-         for(int k = 0; k < sz; ++k) 
-          tf[lid][k] = (int)(gid * 10000 + k);
-       }
-     }
-   }
-   else {
-     util::id strx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::all>(); 
-     util::gid strgx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::global>();
-
-     util::id stry = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>(); 
-     util::gid strgy = m.template size<mesh3d::axis::y_axis, mesh3d::domain::global>();
-     for(util::id k : m.template range<mesh3d::axis::z_axis, mesh3d::domain::logical>()) {
-       auto kg = m.template global_id<mesh3d::axis::z_axis>(k);  
-       for(util::id j : m.template range<mesh3d::axis::y_axis, mesh3d::domain::logical>()) {
-         auto jg = m.template global_id<mesh3d::axis::y_axis>(j);  
-         for(util::id i : m.template range<mesh3d::axis::x_axis, mesh3d::domain::logical>()) {
-           auto ig = m.template global_id<mesh3d::axis::x_axis>(i); 
-           gid = ig + strgx* jg + strgx*strgy*kg; 
-           lid = i + strx* j + strx*stry*k; 
-           tf[lid].resize(sz);
-           for(int n = 0; n < sz; ++n) 
-             tf[lid][n] = (int)(gid * 10000 + n);
-         }
-       }
-     }
-  }
-
-  //flog(info) << ss.str() << std::endl;
-} // init_rf
+using ints = field<int, data::ragged>;
 
 template<std::size_t D>
 void
-print_rf(typename mesh<D>::template accessor<ro> m,
-  field<int, data::ragged>::accessor<ro, ro> tf) {
-   std::stringstream ss;
-   ss << " Color " << color() << std::endl;
-   util::id lid; 
-   util::gid gid;  
-   int count = 0; 
-   if constexpr(D==1) {
-     util::id str = m.template size<mesh1d::axis::x_axis, mesh1d::domain::all>(); 
-     util::gid strg = m.template size<mesh1d::axis::x_axis, mesh1d::domain::global>();
+print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, ro> tf) {
+  std::stringstream ss;
+  ss << " Color " << color() << std::endl;
 
-     ss<<"local str = "<<str<<", global str = "<<strg<<"\n"; 
-     ss<<"   x-offset = "<<m.template offset<mesh1d::axis::x_axis, mesh1d::domain::global>()<<"\n"; 
-       for(util::id i : m.template range<mesh1d::axis::x_axis, mesh1d::domain::all>()) {
-         auto ig = m.template global_id<mesh1d::axis::x_axis>(i); 
-         gid = ig; 
-         lid = i;   
-         ss<< "For cell ("<<lid<<", "<<gid<<"), field_size = "<<tf[lid].size()<<", field vals = [";        
-         for (std::size_t k = 0; k < tf[lid].size(); ++k) 
-          ss << tf[lid][k] << "  ";
-         ss << "]\n\n";
-      }      
-    }
-   else if constexpr(D==2) {
-     util::id str = m.template size<mesh2d::axis::x_axis, mesh2d::domain::all>(); 
-     util::gid strg = m.template size<mesh2d::axis::x_axis, mesh2d::domain::global>();
-     for(util::id j : m.template range<mesh2d::axis::y_axis, mesh2d::domain::all>()) {
-       auto jg = m.template global_id<mesh2d::axis::y_axis>(j);  
-       for(util::id i : m.template range<mesh2d::axis::x_axis, mesh2d::domain::all>()) {
-         auto ig = m.template global_id<mesh2d::axis::x_axis>(i);  
-         gid = ig + strg* jg; 
-         lid = i + str*j;  
-         ss<< "For cell ("<<lid<<", "<<gid<<"), field_size = "<<tf[lid].size()<<", field vals = [";        
-         for (std::size_t k = 0; k < tf[lid].size(); ++k) 
-           ss << tf[lid][k] << "  ";
-         ss << "]\n\n";
-       }    
-     }
-  }
-  else {
-     util::id strx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::all>(); 
-     util::gid strgx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::global>();
+  using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+  std::array<util::id, D> lbnds{0};
+  auto str_local = m.template strides();
+  auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
+  flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+  flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
 
-     util::id stry = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>(); 
-     util::gid strgy = m.template size<mesh3d::axis::y_axis, mesh3d::domain::global>();
- 
-     for(util::id k : m.template range<mesh3d::axis::z_axis, mesh3d::domain::all>()) {
-       auto kg = m.template global_id<mesh3d::axis::z_axis>(k);  
-       for(util::id j : m.template range<mesh3d::axis::y_axis, mesh3d::domain::all>()) {
-         auto jg = m.template global_id<mesh3d::axis::y_axis>(j);  
-         for(util::id i : m.template range<mesh3d::axis::x_axis, mesh3d::domain::all>()) {
-           auto ig = m.template global_id<mesh3d::axis::x_axis>(i); 
-           gid = ig + strgx* jg + strgx*strgy*kg; 
-           lid = i + strx* j + strx*stry*k; 
-           if (!tf[lid].size()) ++count; 
- 
-           ss<< "For cell ("<<lid<<", "<<gid<<"), field_size = "<<tf[lid].size()<<", field vals = [";        
-           for (std::size_t n = 0; n < tf[lid].size(); ++n) 
-             ss << tf[lid][n] << "  ";
-           ss << "]\n\n";
-       }    
-     }
-   }
+  for(auto && v : tb(lbnds, str_local)) {
+    auto gids = m.global_ids(v);
+    auto lid = ln_local(v);
+    auto gid = ln_global(gids);
+
+    ss << "For cell (" << lid << ", " << gid
+       << "), field_size = " << tf[lid].size() << ", field vals = [";
+    for(std::size_t k = 0; k < tf[lid].size(); ++k)
+      ss << tf[lid][k] << "  ";
+    ss << "]\n\n";
   }
-  ss<<"count = "<<count<<"\n"; 
+
   flog(info) << ss.str() << std::endl;
 } // print_rf
 
 template<std::size_t D>
 void
-allocate_field(typename mesh<D>::template accessor<ro> m,
-  topo::resize::Field::accessor<wo> a) {
-  int sz = 100, asz;  
-  if constexpr(D==1) {
-    auto nx = m.template size<mesh1d::axis::x_axis, mesh1d::domain::all>(); 
-    asz = nx*sz;
-  }
-  else if constexpr(D==2) {
-    auto nx = m.template size<mesh2d::axis::x_axis, mesh2d::domain::all>(); 
-    auto ny = m.template size<mesh2d::axis::y_axis, mesh2d::domain::all>(); 
-    asz = nx*ny*sz;
-  }
-  else {
-    auto nx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::all>(); 
-    auto ny = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>(); 
-    auto nz = m.template size<mesh3d::axis::z_axis, mesh3d::domain::all>(); 
-    asz = nx*ny*nz*sz;
-  }
-  a = asz; 
+allocate_field(field<std::size_t>::accessor<ro, ro> f,
+  topo::resize::Field::accessor<wo> a,
+  int sz) {
+  a = f.span().size() * sz;
 }
 
+bool
+check(const int & x, int y) {
+  return (x == y);
+}
 
-template<std::size_t D>
-int
-verify_rf(typename mesh<D>::template accessor<ro> m,
-  field<int, data::ragged>::accessor<ro, ro> tf) {
-  UNIT("VERIFY_RAGGED_FIELD") {
-   int sz = 100;
-   util::id lid;
-   util::gid gid; 
- 
-   if constexpr(D==1) {
-     for(util::id i : m.template range<mesh1d::axis::x_axis, mesh1d::domain::all>()) {
-         auto ig = m.template global_id<mesh1d::axis::x_axis>(i); 
-         gid = ig; 
-         lid = i; 
-         EXPECT_EQ(tf[lid].size(), sz);
-         for(int n = 0; n < sz; ++n)
-          EXPECT_EQ(tf[lid][n], (int)(gid* 10000 + n));
-      }
-   }
-   else if constexpr(D==2) {
-     util::id str = m.template size<mesh2d::axis::x_axis, mesh2d::domain::all>(); 
-     util::gid strg = m.template size<mesh2d::axis::x_axis, mesh2d::domain::global>();
- 
-     for(util::id j : m.template range<mesh2d::axis::y_axis, mesh2d::domain::all>()) {
-       auto jg = m.template global_id<mesh2d::axis::y_axis>(j);  
-       for(util::id i : m.template range<mesh2d::axis::x_axis, mesh2d::domain::all>()) {
-         auto ig = m.template global_id<mesh2d::axis::x_axis>(i); 
-         gid = ig + strg* jg; 
-         lid = i + str* j; 
-         EXPECT_EQ(tf[lid].size(), sz);
-         for(int n = 0; n < sz; ++n)
-          EXPECT_EQ(tf[lid][n], (int)(gid* 10000 + n));
-       }
-     }
-   }
-   else {
-     util::id strx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::all>(); 
-     util::gid strgx = m.template size<mesh3d::axis::x_axis, mesh3d::domain::global>();
+bool
+check(int & x, int y) {
+  x = y;
+  return true;
+}
 
-     util::id stry = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>(); 
-     util::gid strgy = m.template size<mesh3d::axis::y_axis, mesh3d::domain::global>();
- 
-     for(util::id k : m.template range<mesh3d::axis::z_axis, mesh3d::domain::all>()) {
-       auto kg = m.template global_id<mesh3d::axis::z_axis>(k);  
-       for(util::id j : m.template range<mesh3d::axis::y_axis, mesh3d::domain::all>()) {
-         auto jg = m.template global_id<mesh3d::axis::y_axis>(j);  
-         for(util::id i : m.template range<mesh3d::axis::x_axis, mesh3d::domain::all>()) {
-           auto ig = m.template global_id<mesh3d::axis::x_axis>(i); 
-           gid = ig + strgx* jg + strgx*strgy*kg; 
-           lid = i + strx* j + strx*stry*k; 
-           EXPECT_EQ(tf[lid].size(), sz);
-           for(int n = 0; n < sz; ++n)
-            EXPECT_EQ(tf[lid][n], (int)(gid* 10000 + n));
-         }
-       }
-     }
+template<bool V>
+bool
+check_sz(
+  std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
+  util::id & lid,
+  int sz) {
+  if constexpr(V) {
+    return (tf[lid].size() == (std::size_t)sz);
   }
+  else {
+    tf[lid].resize(sz);
+  }
+  return true;
+}
+
+template<std::size_t D, typename mesh<D>::domain DOM, bool V>
+int
+init_verify_rf(typename mesh<D>::template accessor<ro> m,
+  std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
+  int sz) {
+  UNIT("INIT_VERIFY_RAGGED_FIELD") {
+    std::array<util::id, D> lbnds, ubnds;
+    m.template bounds<DOM>(lbnds, ubnds);
+    auto str_local = m.template strides();
+    auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
+    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+    flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+
+    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+    for(auto && v : tb(lbnds, ubnds)) {
+      auto gids = m.global_ids(v);
+      auto lid = ln_local(v);
+      auto gid = ln_global(gids);
+      check_sz<V>(tf, lid, sz);
+      for(int n = 0; n < sz; ++n)
+        check(tf[lid][n], (int)(gid * 10000 + n));
+    }
   };
-} 
+}
 
 int
 coloring_driver() {
@@ -1157,7 +1033,7 @@ narray_driver() {
       EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
       EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
     } // scope
-    
+
     {
       // 1D Mesh
       mesh1d::gcoord indices{9};
@@ -1181,17 +1057,25 @@ narray_driver() {
         EXPECT_EQ(test<check_contiguous>(lm), 0);
       }
 
-      //ragged field
-      auto & tf = rf1(m1).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field<1>>(m1, tf.sizes());
-      tf.resize();
+      // ragged field
+      int sz = 100;
 
-      execute<init_rf<1>>(m1, rf1(m1));
-      //execute<print_rf<1>>(m1, rf1(m1));
-      EXPECT_EQ(test<verify_rf<1>>(m1, rf1(m1)), 0);
+      auto & tf = rf1(m1).get_elements();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
+
+      execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
+        m1, rf1(m1), sz);
+      execute<print_rf<1>>(m1, rf1(m1));
+
+      // tests the case where the periodic flag is false, but with non-zero
+      // bdepth, communication is expected only for the halo layers.
+      execute<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
+        m1, rf1(m1), sz);
+      execute<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
+        m1, rf1(m1), sz);
     } // scope
-         
+
     {
       // 2D Mesh
       mesh2d::gcoord indices{8, 8};
@@ -1201,6 +1085,8 @@ narray_driver() {
       idef.axes[1].hdepth = 2;
       idef.axes[0].bdepth = 2;
       idef.axes[1].bdepth = 1;
+      idef.axes[0].periodic = true;
+      idef.axes[1].periodic = true;
       idef.diagonals = true;
       idef.full_ghosts = true;
 
@@ -1211,18 +1097,20 @@ narray_driver() {
       execute<update_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
       EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
- 
-      //ragged field
-      auto & tf = rf2(m2).get_ragged();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field<2>>(m2, tf.sizes());
-      tf.resize();
 
-      execute<init_rf<2>>(m2, rf2(m2));
-      //execute<print_rf<2>>(m2, rf2(m2));
-      EXPECT_EQ(test<verify_rf<2>>(m2, rf2(m2)), 0);
+      // ragged field
+      int sz = 100;
+
+      auto & tf = rf2(m2).get_elements();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
+
+      execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
+        m2, rf2(m2), sz);
+      // execute<print_rf<2>>(m2, rf2(m2));
+      execute<init_verify_rf<2, mesh2d::domain::all, true>>(m2, rf2(m2), sz);
     } // scope
-               
+
     {
       // 3D Mesh
       mesh3d::gcoord indices{4, 4, 4};
@@ -1231,6 +1119,7 @@ narray_driver() {
       for(auto & a : idef.axes) {
         a.hdepth = 1;
         a.bdepth = 1;
+        a.periodic = true;
       }
       idef.diagonals = true;
       idef.full_ghosts = true;
@@ -1242,25 +1131,26 @@ narray_driver() {
       execute<update_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
       EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
-      
 
-      //ragged field
-      auto & tf = rf3(m3).get_ragged();
-    
-      //The usual growth policy (with lo = 0.25) will not work for this particular problem setup
-      //since the number of cells initialized (2*2*4 = 16) is much less than
-      //the quarter of the capacity (which is 192), reducing the lo value from 
-      //quarter to a tenth of the capacity ensures that the correct size is maintained.   
+      // ragged field
+      int sz = 100;
+
+      auto & tf = rf3(m3).get_elements();
+
+      // The usual growth policy (with lo = 0.25) will not work for this
+      // particular problem setup since the number of cells initialized (2*2*4 =
+      // 16) is much less than the quarter of the capacity (which is 192),
+      // reducing the lo value from quarter to a tenth of the capacity ensures
+      // that the correct size is maintained.
       tf.growth = {0, 0, 0.1, 0.5, 1};
-      execute<allocate_field<3>>(m3, tf.sizes());
-      tf.resize();
+      execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
 
-      execute<init_rf<3>>(m3, rf3(m3));
-      //execute<print_rf<3>>(m3, rf3(m3));
-      EXPECT_EQ(test<verify_rf<3>>(m3, rf3(m3)), 0);
+      execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
+        m3, rf3(m3), sz);
+      // execute<print_rf<3>>(m3, rf3(m3));
+      execute<init_verify_rf<3, mesh3d::domain::all, true>>(m3, rf3(m3), sz);
     } // scope
-     
-                 
+
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
       // 4D Mesh
       mesh4d::gcoord indices{4, 4, 4, 4};
@@ -1276,7 +1166,7 @@ narray_driver() {
       coloring4.allocate(idef);
       m4.allocate(coloring4.get());
       EXPECT_EQ(test<check_4dmesh>(m4), 0);
-    } 
+    }
   }; // UNIT
 } // narray_driver
 
