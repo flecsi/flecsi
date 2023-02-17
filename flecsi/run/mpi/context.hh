@@ -4,8 +4,7 @@
 #ifndef FLECSI_RUN_MPI_CONTEXT_HH
 #define FLECSI_RUN_MPI_CONTEXT_HH
 
-#include "flecsi/run/context.hh"
-#include "flecsi/util/mpi.hh"
+#include "flecsi/run/local/context.hh"
 
 #include <boost/program_options.hpp>
 #include <mpi.h>
@@ -19,25 +18,14 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
-struct dependencies_guard {
-  dependencies_guard(dependencies_config = {});
-
-private:
-  util::mpi::init mpi;
-#ifdef FLECSI_ENABLE_KOKKOS
-  Kokkos::ScopeGuard kokkos;
-#endif
-};
-
 struct config : config_base {};
 
-struct context_t : context {
+struct context_t : local::context {
 
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
-
-  context_t(const config &);
+  using context::context;
 
   [[nodiscard]] int start(const std::function<int()> &, bool);
 

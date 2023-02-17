@@ -17,6 +17,7 @@ if(FLECSI_BACKEND STREQUAL "legion")
     leg/task_prologue.hh
     leg/reduction_wrapper.hh
     leg/tracer.hh
+    bind_parameters.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
@@ -24,9 +25,18 @@ elseif(FLECSI_BACKEND STREQUAL "mpi")
     mpi/policy.hh
     mpi/reduction_wrapper.hh
     mpi/task_prologue.hh
-    mpi/tracer.hh
+    tracer.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "hpx")
+  flecsi_headers(
+    hpx/bind_accessors.hh
+    hpx/future.hh
+    hpx/policy.hh
+    hpx/reduction_wrapper.hh
+    hpx/task_prologue.hh
+    bind_parameters.hh
+    tracer.hh
+  )
 endif()
 
 flecsi_add_test(kernel

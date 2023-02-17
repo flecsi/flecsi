@@ -7,18 +7,6 @@
 
 namespace flecsi::run {
 
-dependencies_guard::dependencies_guard(dependencies_config d)
-  : mpi(d.mpi.size(), pointers(d.mpi).data())
-#ifdef FLECSI_ENABLE_KOKKOS
-    ,
-    kokkos(d.kokkos)
-#endif
-{
-}
-
-context_t::context_t(const config & c)
-  : context(c, util::mpi::size(), util::mpi::rank()) {}
-
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
 //----------------------------------------------------------------------------//

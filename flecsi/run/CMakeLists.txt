@@ -17,8 +17,21 @@ if(FLECSI_BACKEND STREQUAL "legion")
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
     mpi/context.hh
+    local/context.hh
   )
-  flecsi_sources(mpi/context.cc)
+  flecsi_sources(
+    mpi/context.cc
+    local/context.cc
+  )
+elseif(FLECSI_BACKEND STREQUAL "hpx")
+  flecsi_headers(
+    hpx/context.hh
+    local/context.hh
+  )
+  flecsi_sources(
+    hpx/context.cc
+    local/context.cc
+  )
 endif()
 
 if(ENABLE_UNIT_TESTS)
@@ -29,6 +42,9 @@ if(ENABLE_UNIT_TESTS)
   set_source_files_properties(test/cycle.cc
     PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   target_link_libraries(cycle FleCSI)
+  if(MSVC)
+    target_compile_definitions(cycle PRIVATE NOMINMAX)
+  endif()
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
   flecsi_add_target_test(cycle)
 endif()

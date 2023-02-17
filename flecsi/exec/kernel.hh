@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"
+#include "flecsi/util/array_ref.hh"
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>

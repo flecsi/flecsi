@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <vector>
 
+// 'interface' is defined as a macro on some platforms
+#undef interface
+
 using namespace flecsi;
 
 namespace ftui = topo::unstructured_impl;
@@ -436,7 +439,11 @@ static data::launch::Claims
 rotate(Color n) {
   data::launch::Claims ret(n);
   for(Color i = 0; i < n; ++i)
-    ret[(i + n - (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n].push_back(i);
+    ret[(i + n -
+          (FLECSI_BACKEND != FLECSI_BACKEND_mpi &&
+            FLECSI_BACKEND != FLECSI_BACKEND_hpx)) %
+        n]
+      .push_back(i);
   return ret;
 }
 

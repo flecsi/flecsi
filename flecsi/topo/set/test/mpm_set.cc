@@ -55,7 +55,7 @@ print_test(particle_field::accessor<ro> particle_t) {
     ss << std::endl;
   }
   flog(info) << ss.rdbuf() << std::endl;
-  std::cout << "before num_particle=" << particle_t.size()
+  std::cout << "before num_particle=" << particle_t.size() << ", "
             << "particle_cap=" << particle_t.capacity() << std::endl;
 }
 

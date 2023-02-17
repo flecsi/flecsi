@@ -21,10 +21,20 @@ if(FLECSI_BACKEND STREQUAL "legion")
   )
 elseif(FLECSI_BACKEND STREQUAL "mpi")
   flecsi_headers(
+    local/copy.hh
+    local/policy.hh
+    local/storage.hh
     mpi/copy.hh
     mpi/policy.hh
   )
 elseif(FLECSI_BACKEND STREQUAL "hpx")
+  flecsi_headers(
+    local/copy.hh
+    local/policy.hh
+    local/storage.hh
+    hpx/copy.hh
+    hpx/policy.hh
+  )
 endif()
 
 flecsi_add_test(data
