@@ -469,7 +469,9 @@ to_string(T const & t) {
 
 #define fixme() flog(warn)
 
+#if !defined(NDEBUG)
 #include <boost/stacktrace.hpp>
+#endif
 
 namespace flecsi {
 namespace flog {
