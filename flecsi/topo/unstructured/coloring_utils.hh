@@ -1597,7 +1597,7 @@ template<class MD>
 void
 coloring_utils<MD>::build_intermediary(entity_kind kind,
   const util::crs & e2v,
-  std::vector<std::size_t> const & p2m) {
+  std::vector<util::gid> const & p2m) {
   auto & aux = auxiliary_state(kind);
 
   // temporary storage
