@@ -89,15 +89,23 @@ struct unstructured : unstructured_base,
       plan_.template get<S>().issue_copy(f.fid());
   }
 
+  /*!
+    Return the connectivity between two index spaces.
+    \tparam F The "from" index space.
+    \tparam T The "to" index space.
+    \return a \c ragged field (of type flecsi::field::definition) that
+            maps each element of \c F to zero or more elements of \c T.
+   */
   template<index_space F, index_space T>
   auto & get_connectivity() {
     return connect_.template get<F>().template get<T>();
   }
 
-  /*
+  /*!
     Return the forward map (local-to-global) for the given index space.
+    \return a mapping from a local index to a global index in the form of a
+            flecsi::field::definition.
    */
-
   template<index_space S>
   auto const & forward_map() {
     return forward_maps_.template get<S>();
@@ -388,8 +396,8 @@ protected:
   /*!
     Return a range of connectivity information for the parameterized
     index spaces.
-    @tparam T The connected index space.
-    @tparam F The index space with connections.
+    \tparam T The connected index space.
+    \tparam F The index space with connections.
     \param from query entity
     \return range of \c id\<To\> values
    */
