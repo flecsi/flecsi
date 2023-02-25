@@ -28,7 +28,7 @@ EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
                    */test/*
 PREDEFINED = FLECSI_ENABLE_FLOG \
              FLOG_ENABLE_MPI \
-             FLOG_ENABLE_KOKKOS \
+             FLECSI_ENABLE_KOKKOS \
              DOXYGEN \
              FLECSI_TARGET= \
              FLECSI_INLINE_TARGET=
