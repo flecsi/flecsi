@@ -56,13 +56,13 @@ private:
   } // privilege_mode
 
   template<class P>
-  static Legion::ProjectionID get_projection(
+  static const data::borrow * get_projection(
     const topo::borrow_category<P> & b) {
-    return b.get_projection().proj();
+    return &b.get_projection();
   }
   template<class T>
-  static Legion::ProjectionID get_projection(const T &) {
-    return data::leg::def_proj;
+  static const data::borrow * get_projection(const T &) {
+    return nullptr;
   }
 
 protected:
@@ -84,13 +84,17 @@ protected:
     const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
-    else
-      region_reqs_.emplace_back(
-        t.template get_partition<Space>().logical_partition,
-        get_projection(t),
-        m,
-        LEGION_EXCLUSIVE,
-        lr);
+    else {
+      const data::borrow * b = get_projection(t);
+      data::borrow::attach(
+        region_reqs_.emplace_back(
+          t.template get_partition<Space>().logical_partition,
+          data::borrow::projection(b),
+          m,
+          LEGION_EXCLUSIVE,
+          lr),
+        b);
+    }
     region_reqs_.back().add_field(f);
   } // visit
 
