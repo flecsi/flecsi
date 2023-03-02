@@ -21,6 +21,8 @@ namespace flecsi {
 
 namespace topo {
 struct global_base;
+template<class>
+struct borrow_category;
 } // namespace topo
 
 namespace exec {
@@ -53,6 +55,16 @@ private:
                : LEGION_NO_ACCESS;
   } // privilege_mode
 
+  template<class P>
+  static Legion::ProjectionID get_projection(
+    const topo::borrow_category<P> & b) {
+    return b.get_projection().proj();
+  }
+  template<class T>
+  static Legion::ProjectionID get_projection(const T &) {
+    return data::leg::def_proj;
+  }
+
 protected:
   // This implementation can be generic because all topologies are expected to
   // provide get_region (and, with one exception, get_partition).
@@ -75,7 +87,7 @@ protected:
     else
       region_reqs_.emplace_back(
         t.template get_partition<Space>().logical_partition,
-        data::leg::def_proj,
+        get_projection(t),
         m,
         LEGION_EXCLUSIVE,
         lr);

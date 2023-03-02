@@ -344,22 +344,64 @@ private:
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
-struct borrow : partition<true, false> {
-  using Value = rect;
+struct projection : Legion::ProjectionFunctor, borrow_base {
+  explicit projection(Legion::Runtime * r, Claims c)
+    : ProjectionFunctor(r), v(std::move(c)) {}
 
-  static Value make(prefixes_base::row r,
-    std::size_t c = run::context::instance().color()) {
-    const Legion::coord_t i = c;
-    return {{i, 0}, {i, upper(r)}};
+  unsigned get_depth() const override {
+    return 0;
   }
-  static std::size_t get_row(const Value & v) {
-    return v.lo[0];
+  bool is_exclusive() const override {
+    return false;
   }
-  static prefixes_base::row get_size(const Value & v) {
-    return bound(v.hi[1]);
+  bool is_functional() const override {
+    return true;
+  }
+  Legion::LogicalRegion project(Legion::LogicalPartition p,
+    const Legion::DomainPoint & i,
+    const Legion::Domain &) override {
+    const auto & o = v[i.get_color()];
+    return o == nil ? Legion::LogicalRegion::NO_REGION
+                    : runtime->get_logical_subregion_by_color(p, o);
   }
 
-  using partition::partition;
+  // NB: There is no way to destroy the functor before Legion shutdown.
+  static Legion::ProjectionID make(Claims c) {
+    struct args {
+      Legion::ProjectionID id;
+      Claims & c;
+    } a{run().generate_dynamic_projection_id(), c};
+    Legion::Runtime::perform_registration_callback(
+      [](const Legion::RegistrationCallbackArgs & rca) {
+        const args & a = *static_cast<args *>(rca.buffer.get_ptr());
+        rca.runtime->register_projection_functor(
+          a.id, new projection(rca.runtime, std::move(a.c)), true);
+      },
+      Legion::UntypedBuffer(&a, sizeof a),
+      false,
+      false);
+    return a.id;
+  }
+
+private:
+  Claims v;
+};
+
+struct borrow : borrow_base {
+  borrow(Claims c) : sz(c.size()), id(projection::make(std::move(c))) {}
+  borrow(borrow &&) = default; // emulate ownership
+
+  Color size() const {
+    return sz;
+  }
+
+  Legion::ProjectionID proj() const {
+    return id;
+  }
+
+private:
+  Color sz;
+  Legion::ProjectionID id;
 };
 /// \}
 } // namespace leg

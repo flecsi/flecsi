@@ -62,6 +62,9 @@ private:
   template<typename D, Privileges P>
   void visit(data::accessor<data::raw, D, P> & accessor) {
     auto & reg = regions_[region++];
+    // For incomplete launch maps:
+    if(!reg.get_logical_region().exists())
+      return;
 
     const Legion::UnsafeFieldAccessor<D,
       data::leg::region_dimensions,

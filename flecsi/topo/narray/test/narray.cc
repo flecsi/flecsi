@@ -1053,7 +1053,7 @@ narray_driver() {
       EXPECT_EQ(test<check_mesh_field<1>>(m1, f1(m1)), 0);
 
       if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
-        auto lm = data::launch::make<data::launch::gather>(m1, 1);
+        auto lm = data::launch::make(m1, data::launch::gather(m1.colors(), 1));
         EXPECT_EQ(test<check_contiguous>(lm), 0);
       }
 

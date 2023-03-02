@@ -456,6 +456,7 @@ private:
   /*--------------------------------------------------------------------------*
     Private data members.
    *--------------------------------------------------------------------------*/
+  friend borrow_extra<narray>;
 
   // fields for storing topology meta data per index-space
   static inline const typename field<util::key_array<meta_data, index_spaces>,
@@ -480,12 +481,8 @@ private:
 }; // struct narray
 
 template<class P>
-struct borrow_extra<narray<P>> {
-  borrow_extra(narray<P> &, claims::core &, bool) {}
-
-  auto & get_sizes(std::size_t i) {
-    return borrow_base::derived(*this).spc[i].sz;
-  }
+struct borrow_extra<narray<P>> : borrow_sizes<P> {
+  using borrow_extra::borrow_sizes::borrow_sizes;
 };
 
 /*----------------------------------------------------------------------------*

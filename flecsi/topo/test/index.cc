@@ -281,8 +281,8 @@ index_driver() {
       p.resize();
     }
 
-    auto lm =
-      launch::make<launch::robin>(a, std::max(np / process_fraction, {1}));
+    auto lm = launch::make(
+      a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
     EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
     EXPECT_EQ(test<check_map>(arag(a)), 0);
   };

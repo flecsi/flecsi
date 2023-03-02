@@ -325,13 +325,17 @@ struct index : specialization<index_category, index> {
 
 namespace detail {
 // Q is the underlying topology, not to be confused with P which is borrow<Q>.
+template<class Q>
+struct borrow_ragged_partition {
+  borrow_ragged_partition(typename Q::core &, const data::borrow &, bool) {}
+};
 template<class Q, bool = std::is_base_of_v<with_ragged<Q>, typename Q::core>>
 struct borrow_ragged {
-  borrow_ragged(typename Q::core &, claims::core &, bool) {}
+  borrow_ragged(typename Q::core &, const data::borrow &, bool) {}
 };
 template<class Q, bool = std::is_base_of_v<with_meta<Q>, typename Q::core>>
 struct borrow_meta {
-  borrow_meta(typename Q::core &, claims::core &, bool) {}
+  borrow_meta(typename Q::core &, const data::borrow &, bool) {}
 };
 } // namespace detail
 /// Topology-specific extension to support multi-color topology accessors.
@@ -340,83 +344,24 @@ struct borrow_meta {
 template<class T>
 struct borrow_extra {
   /// Constructor invoked by \c borrow_category with its arguments.
-  borrow_extra(T &, claims::core &, bool) {}
-};
-// An emulation of topo::repartition with borrowed rows.
-struct borrow_partition_base : indirect_base {
-  struct coloring {
-    data::region * r;
-    repartition * p;
-    claims::core * c;
-  };
-
-  borrow_partition_base(const coloring & c)
-    : indirect_base(*c.r,
-        data::pointers(*c.p, *c.c),
-        data::pointers::field.fid),
-      sz(c.p->sz, *c.c, claims::field.fid, data::completeness()),
-      growth(&c.p->grow()) {}
-
-  const topo::resize::policy & grow() const {
-    return *growth;
-  }
-  template<class T, typename policy_t<T>::index_space S>
-  borrow_partition_base(T & t, util::constant<S>, claims::core & c)
-    : borrow_partition_base(
-        {&t.template get_region<S>(), &t.template get_partition<S>(), &c}) {}
-
-  auto sizes() {
-    return topo::resize::field(sz);
-  }
-  // TODO: this shouldn't happen depth() times; note that we'd need to
-  // recreate the data::borrow base if we did resize here.  There's also
-  // the issue of updates to the underlying partition not propagating into
-  // ours.
-  void resize() {}
-
-  indirect<topo::resize>::core sz;
-
-  // Only ragged fields use this topology directly.
-  template<single_space>
-  data::region & get_region() {
-    return indirect_base::get_region();
-  }
-
-  template<class R>
-  void ghost_copy(const R &) {}
-
-private:
-  const topo::resize::policy * growth;
-};
-template<class>
-struct borrow_partition_category : borrow_partition_base {
-  using borrow_partition_base::borrow_partition_base;
-};
-template<>
-struct detail::base<borrow_partition_category> {
-  using type = borrow_partition_base;
-};
-template<PrivilegeCount N>
-struct borrow_partition
-  : specialization<borrow_partition_category, borrow_partition<N>> {
-  template<single_space>
-  static constexpr PrivilegeCount privilege_count = N;
+  borrow_extra(T &, const data::borrow &, bool) {}
 };
 template<class P, typename P::index_space S>
 struct borrow_ragged_partitions
   : detail::ragged_partitions<
-      borrow_partition<P::template privilege_count<S>>> {
-  borrow_ragged_partitions(ragged_partitioned<P, S> & r, claims::core & c) {
+      borrow<ragged_partition<P::template privilege_count<S>>>> {
+  borrow_ragged_partitions(ragged_partitioned<P, S> & r,
+    const data::borrow & b,
+    bool f) {
     for(const auto & fi :
       run::context::instance().field_info_store<ragged<P>, S>())
-      this->part.try_emplace(
-        fi->fid, r[fi->fid], util::constant<elements>(), c);
+      this->part.try_emplace(fi->fid, r[fi->fid], b, f);
   }
 };
 template<class P>
 struct borrow_ragged_elements {
-  borrow_ragged_elements(ragged_elements<P> & r, claims::core & c)
-    : borrow_ragged_elements(r, c, typename P::index_spaces()) {}
+  borrow_ragged_elements(ragged_elements<P> & r, const data::borrow & b, bool f)
+    : borrow_ragged_elements(r, b, f, typename P::index_spaces()) {}
 
   template<typename P::index_space S>
   borrow_ragged_partitions<P, S> & get() {
@@ -428,10 +373,11 @@ private:
   // requires copying) or from UU&&... (which cannot use list-initialization).
   template<auto... VV>
   borrow_ragged_elements(ragged_elements<P> & r,
-    claims::core & c,
+    const data::borrow & b,
+    bool f,
     util::constants<VV...> /* index_spaces, to deduce a pack */
     )
-    : part(borrow_ragged_partitions<P, VV>(r.template get<VV>(), c)...) {}
+    : part(borrow_ragged_partitions<P, VV>(r.template get<VV>(), b, f)...) {}
 
   typename detail::ragged_tuple_t<borrow_ragged_partitions, P> part;
 };
@@ -442,7 +388,7 @@ struct borrow;
 struct borrow_base {
   struct coloring {
     void * topo;
-    claims::core * clm;
+    const data::borrow * proj;
     bool first;
   };
 
@@ -463,46 +409,48 @@ struct borrow_base {
 /// A selection from an underlying topology.  In general, it may have a
 /// different number of colors and be partial or non-injective.  Several may
 /// be used in concert for many-to-many mappings.
-/// \note Certain topologies too simple to use repartition are not supported.
 template<class P>
 struct borrow_category : borrow_base,
+                         detail::borrow_ragged_partition<typename P::Base>,
                          detail::borrow_ragged<typename P::Base>,
                          detail::borrow_meta<typename P::Base>,
                          borrow_extra<typename P::Base::core> {
   using index_space = typename P::index_space;
   using index_spaces = typename P::index_spaces;
   using Base = typename P::Base::core;
-  // Using this directly avoids an irrelevant choice of privilege count.
-  using Partition = borrow_partition_base;
 
   // The underlying topology's accessor is reused, wrapped in a multiplexer
   // that corresponds to more than one instance of this class.
 
   explicit borrow_category(const coloring & c)
-    : borrow_category(*static_cast<Base *>(c.topo), *c.clm, c.first) {}
+    : borrow_category(*static_cast<Base *>(c.topo), *c.proj, c.first) {}
   /// Borrow a topology.
   /// \param t underlying core topology
-  /// \param c color of \a t to select, if any, for each color of this object
+  /// \param b selection of colors from \a t
   /// \param f whether this is the first of a set of several borrowings used
   ///   together for many-to-many access
-  borrow_category(Base & t, claims::core & c, bool f)
-    : borrow_category(t, c, f, index_spaces()) {}
+  borrow_category(Base & t, const data::borrow & b, bool f)
+    : borrow_category::borrow_ragged_partition(t, b, f),
+      borrow_category::borrow_ragged(t, b, f), borrow_category::borrow_meta(t,
+                                                 b,
+                                                 f),
+      borrow_category::borrow_extra(t, b, f), base(&t), proj(&b), first(f) {}
 
   Color colors() const {
-    return clm->colors();
+    return proj->size();
   }
 
-  auto get_claims() {
-    return claims::field(*clm);
+  const data::borrow & get_projection() const {
+    return *proj;
   }
 
   template<index_space S>
   data::region & get_region() {
-    return get_partition<S>().get_region<elements>();
+    return base->template get_region<S>();
   }
   template<index_space S>
-  Partition & get_partition() {
-    return spc.template get<S>();
+  auto & get_partition() {
+    return base->template get_partition<S>();
   }
 
   template<class T, data::layout L, index_space S>
@@ -514,21 +462,11 @@ struct borrow_category : borrow_base,
   }
 
 private:
-  template<auto... SS>
-  borrow_category(Base & t, claims::core & c, bool f, util::constants<SS...>)
-    : borrow_category::borrow_ragged(t, c, f),
-      borrow_category::borrow_meta(t, c, f), borrow_category::borrow_extra(t,
-                                               c,
-                                               f),
-      base(&t), spc{{Partition(t, util::constant<SS>(), c)...}}, clm(&c),
-      first(f) {}
-
+  friend typename borrow_category::borrow_ragged_partition;
   friend typename borrow_category::borrow_extra;
 
   Base * base; ///< The underlying core topology.
-  /// Borrowed versions of each index space.
-  util::key_array<Partition, index_spaces> spc;
-  claims::core * clm;
+  const data::borrow * proj;
   bool first;
 };
 template<>
@@ -552,37 +490,74 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
 };
 
 namespace detail {
+template<PrivilegeCount N>
+struct borrow_ragged_partition<ragged_partition<N>> {
+  using Base = ragged_partition<N>;
+
+  borrow_ragged_partition(typename Base::core & r,
+    const data::borrow & b,
+    bool f)
+    : sz(r.sz, b, f) {}
+
+  auto sizes() {
+    return resize::field(sz);
+  }
+  void resize() {
+    const auto & b = static_cast<typename borrow<Base>::core &>(*this);
+    if(b.first)
+      b.base->resize();
+  }
+
+protected:
+  borrow<topo::resize>::core sz;
+};
 template<class Q>
 struct borrow_ragged<Q, true> {
-  borrow_ragged(typename Q::core & t, claims::core & c, bool)
-    : ragged(t.ragged, c) {}
+  borrow_ragged(typename Q::core & t, const data::borrow & b, bool f)
+    : ragged(t.ragged, b, f) {}
   borrow_ragged_elements<Q> ragged;
 };
 template<class Q>
 struct borrow_meta<Q, true> {
-  borrow_meta(typename Q::core & t, claims::core & c, bool f)
-    : meta(t.meta, c, f) {}
+  borrow_meta(typename Q::core & t, const data::borrow & b, bool f)
+    : meta(t.meta, b, f) {}
   typename borrow<topo::meta<Q>>::core meta;
 };
 } // namespace detail
 
-// Specialization of borrow_extra for types defined above
-template<class P>
-struct borrow_extra<ragged_partition_category<P>> {
-  borrow_extra(ragged_partition_category<P> &, claims::core &, bool) {}
+// Common utility for borrow_extra specializations.
+template<class Q>
+struct borrow_sizes {
+  borrow_sizes(typename Q::core & t, const data::borrow & b, bool f)
+    : borrow_sizes(t, b, f, typename Q::index_spaces()) {}
 
-  auto & get_sizes() {
-    return borrow_base::derived(*this).spc[0].sz;
+  auto & get_sizes(std::size_t i) {
+    return sz[i];
   }
+  auto & get_sizes() {
+    static_assert(Q::index_spaces::size == 1);
+    return get_sizes(0);
+  }
+
+private:
+  template<typename Q::index_space... SS>
+  borrow_sizes(typename Q::core & t,
+    const data::borrow & b,
+    bool f,
+    util::constants<SS...>)
+    : sz{{{{t.template get_partition<SS>().sz, b, f}...}}} {}
+
+  util::key_array<borrow<resize>::core, typename Q::index_spaces> sz;
 };
 
+// Specialization of borrow_extra for types defined above
 template<class P>
-struct borrow_extra<array_category<P>> {
-  borrow_extra(array_category<P> &, claims::core &, bool) {}
-
-  auto & get_sizes() {
-    return borrow_base::derived(*this).spc[0].sz;
-  }
+struct borrow_extra<ragged_partition_category<P>> : borrow_sizes<P> {
+  using borrow_extra::borrow_sizes::borrow_sizes;
+};
+template<class P>
+struct borrow_extra<array_category<P>> : borrow_sizes<P> {
+  using borrow_extra::borrow_sizes::borrow_sizes;
 };
 
 /// \endcond

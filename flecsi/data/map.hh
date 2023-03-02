@@ -17,54 +17,83 @@ namespace data::launch {
 /// \ingroup data
 /// \{
 
-/// \if core
-/// Parameter type for establishing a \c mapping.
-/// \endif
-using param = topo::claims::Field::Reference<topo::claims, topo::elements>;
+/// Desired underlying colors for each outer color.
+/// Elements need not have the same length.
+using Claims = std::vector<borrow::Claims>;
 
-/// Rule to assign colors in blocks.
+/// Assign colors in blocks.
 /// For example, 5 colors are assigned to 3 tasks as {0,1}, {2,3}, and {4}.
-inline bool
-block(topo::claims::Field::accessor<wo> a, Color i, Color n) {
-  const auto c = util::equal_map(n, colors())[color()];
-  const Color left = c.size() - i;
-  a = topo::claims::row(left ? std::optional<Color>(c[i]) : std::nullopt);
-  return left > 1;
+/// \param u number of colors
+/// \param n number of tasks
+inline Claims
+block(Color u, Color n) {
+  Claims ret;
+  for(auto b : util::equal_map(u, n))
+    ret.emplace_back(b.begin(), b.end());
+  return ret;
 }
-/// Rule to assign colors in a cycle.
+/// Assign colors in a cycle.
 /// For example, 5 colors are assigned to 3 tasks as {0,3}, {1,4}, and {2}.
-inline bool
-robin(topo::claims::Field::accessor<wo> a, Color i, Color n) {
-  const auto f = [me = color(), us = colors()](Color i) { return i * us + me; };
-  const Color c = f(i);
-  a = topo::claims::row(c < n ? std::optional(c) : std::nullopt);
-  return f(i + 1) < n;
+/// \param u number of colors
+/// \param n number of tasks
+inline Claims
+robin(Color u, Color n) {
+  Claims ret;
+  for(auto b : util::equal_map(u, n)) {
+    Color i = ret.size();
+    auto & v = ret.emplace_back();
+    for(auto j = b.size(); j--;) {
+      v.push_back(i);
+      i += n;
+    }
+  }
+  return ret;
 }
 /// Make all colors available on all point tasks.
-inline bool
-gather(topo::claims::Field::accessor<wo> a, Color i, Color n) {
-  a = topo::claims::row(i);
-  return i < n - 1;
+/// \param u number of colors
+/// \param n number of tasks
+inline Claims
+gather(Color u, Color n) {
+  const util::iota_view v({}, u);
+  return {n, {v.begin(), v.end()}};
 }
 
+struct claims { // to know the colors for each multi<> component
+  claims(const borrow::Claims & c) : clm(c.size()) {
+    execute<fill>(topo::claims::field(clm), c);
+  }
+
+  topo::claims::core clm;
+
+private:
+  static void fill(topo::claims::Field::accessor<wo> a,
+    const borrow::Claims & c) {
+    a = c[color()];
+  }
+};
+
 /// A prepared assignment of colors.
-/// Invalidated by resizing the underlying topology (\e e.g., with a mutator).
 /// \tparam P underlying topology
 template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
 
-  // f: param -> bool (another partition is needed)
-  template<class F>
-  mapping(typename P::core & t, Color n, F && f) {
-    bool more;
-    // We can't learn in time that 0 rounds are needed, but we make use of the
-    // guaranteed single round elsewhere anyway.
-    do {
-      topo::claims::core clm(n);
-      more = f(topo::claims::field(clm));
-      rnd.emplace_back(t, std::move(clm), rnd.empty());
-    } while(more);
+  mapping(typename P::core & t, const Claims & clm) {
+    // Transpose clm for the data::borrow objects.
+    // Serialization assumes that we always have at least one round.
+    bool more = true;
+    for(borrow::Claims::size_type i = 0; more; ++i) {
+      more = false;
+      borrow::Claims c;
+      c.reserve(clm.size());
+      for(auto & v : clm) {
+        const auto n = v.size();
+        c.push_back(i < n ? v[i] : borrow::nil);
+        if(i + 1 < n)
+          more = true;
+      }
+      rnd.emplace_back(t, std::move(c), rnd.empty());
+    }
   }
 
   Color colors() const {
@@ -75,6 +104,9 @@ struct mapping : convert_tag {
   }
   auto & operator[](Color i) {
     return rnd[i].b.get();
+  }
+  auto claims(Color i) {
+    return topo::claims::field(rnd[i].clm);
   }
 
   template<class T, layout L, typename P::index_space S>
@@ -93,15 +125,15 @@ struct mapping : convert_tag {
 
 private:
   // Owns a set of claims for potentially several (nested) borrow topologies.
-  struct round {
-    round(typename P::core & t, topo::claims::core && c, bool first)
-      : clm(std::move(c)) {
-      b.allocate({&t, &clm, first});
+  struct round : claims {
+    round(typename P::core & t, borrow::Claims c, bool first)
+      : claims(c), proj(std::move(c)) {
+      b.allocate({&t, &proj, first});
     }
     round(round &&) = delete; // address stability
 
   private:
-    topo::claims::core clm;
+    borrow proj;
 
   public:
     typename Borrow::slot b;
@@ -109,25 +141,26 @@ private:
 
   std::deque<round> rnd;
 };
-template<class T, class F>
-mapping(T &, Color, F &&) -> mapping<topo::policy_t<T>>;
+template<class T>
+mapping(T &, const Claims &) -> mapping<topo::policy_t<T>>;
 
-template<auto & F = block, class T>
+template<class T>
 mapping<topo::policy_t<T>>
-make(T & t, Color n = processes()) {
-  return {t, n, [c = t.colors(), i = Color()](param r) mutable {
-            return reduce<F, exec::fold::max>(r, i++, c).get();
-          }};
+make(T & t) { // convenience for subtopology initialization
+  return {t, block(t.colors(), processes())};
 }
-/// Create a \c mapping from a rule.
-/// \tparam F rule task that accepts a \c topo::claims::Field::accessor<wo>, a
-///   round counter, and a count of input colors and returns whether its color
-///   needs more claims
-/// \param n number of colors
-template<auto & F = block, class P>
+/// Create a \c mapping.
+template<class P>
 mapping<P>
-make(topology_slot<P> & t, Color n = processes()) {
-  return make<F>(t.get(), n);
+make(topology_slot<P> & t, const Claims & c) {
+  return {t.get(), c};
+}
+/// Create a \c mapping for initialization using an MPI task.
+/// The \ref\c Claims are constructed using \ref\c block.
+template<class P>
+mapping<P>
+make(topology_slot<P> & t) {
+  return make(t.get());
 }
 
 /// \}
