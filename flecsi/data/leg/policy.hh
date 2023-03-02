@@ -9,6 +9,7 @@
 #endif
 
 #include "flecsi/run/leg/mapper.hh"
+#include "flecsi/util/array_ref.hh"
 
 #include <legion.h>
 
@@ -411,14 +412,18 @@ inline const Legion::ProjectionID projection::id = [] {
 }();
 
 struct borrow : borrow_base {
-  borrow(Claims c) : c(std::move(c)) {}
+  borrow(Claims c) : sz(c.size()) {
+    // Avoid storing identity sequences:
+    if(!std::equal(c.begin(), c.end(), util::iota_view({}, sz).begin()))
+      c.swap(this->c);
+  }
 
   Color size() const {
-    return c.size();
+    return sz;
   }
 
   static Legion::ProjectionID projection(const borrow * b) {
-    return b ? leg::projection::id : def_proj;
+    return b && !b->c.empty() ? leg::projection::id : def_proj;
   }
   static void attach(Legion::RegionRequirement & r, const borrow * b) {
     if(b)
@@ -427,10 +432,12 @@ struct borrow : borrow_base {
 
 private:
   void attach(Legion::RegionRequirement & r) const {
-    r.set_projection_args(c.data(), c.size() * sizeof c.front());
+    if(!c.empty())
+      r.set_projection_args(c.data(), c.size() * sizeof c.front());
   }
 
-  Claims c;
+  Color sz;
+  Claims c; // if non-trivial
 };
 /// \}
 } // namespace leg
