@@ -206,9 +206,9 @@ struct unstructured_base {
     std::vector</* over contiguous intervals */
       data::subrow>>;
 
-  /// The coloring data strcuture is how information is passed to the FleCSI
+  /// The coloring data structure is how information is passed to the FleCSI
   /// runtime to construct one or more unstructured mesh specialization types.
-  /// The coloring object is returned by the specailization's `color` method.
+  /// The coloring object is returned by the specialization's `color` method.
   /// \ingroup unstructured
   struct coloring {
     /// An MPI communicator that can be used to specify subsets of COMM_WORLD
@@ -220,7 +220,7 @@ struct unstructured_base {
     /// this coloring instance will divide the input mesh.
     Color colors;
 
-    /// The local colors that belong to a given process. This varaible stores
+    /// The local colors that belong to a given process. This variable stores
     /// the local color information over all global processes.
     std::vector</* over global processes */
       std::vector</* over local process colors */
