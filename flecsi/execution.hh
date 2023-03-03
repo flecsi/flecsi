@@ -510,7 +510,8 @@ namespace exec {
 #ifdef DOXYGEN // implemented per-backend
 /// Records execution of a loop whose iterations all execute the same sequence
 /// of tasks.  With the Legion backend, subsequent iterations run faster if
-/// traced.  The first iteration should be ignored if it might perform different
+/// traced.  Some \c data::mutator specializations cannot be traced.  The
+/// first iteration should be ignored if it might perform different
 /// ghost copies.
 struct trace {
 

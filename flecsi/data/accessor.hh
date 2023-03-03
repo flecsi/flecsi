@@ -365,6 +365,7 @@ struct accessor<ragged, T, P>
 };
 
 /// Mutator for ragged fields.
+/// Cannot be used while tracing.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
@@ -868,6 +869,7 @@ public:
 };
 
 /// Mutator for sparse fields.
+/// Cannot be used while tracing.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
