@@ -4,8 +4,6 @@
 #ifndef FLECSI_IO_MPI_POLICY_HH
 #define FLECSI_IO_MPI_POLICY_HH
 
-/*!  @file */
-
 #include <cstddef>
 #include <hdf5.h>
 #include <mpi.h>
