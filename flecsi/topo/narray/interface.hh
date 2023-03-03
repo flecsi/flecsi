@@ -281,7 +281,6 @@ private:
     return get_axis<S, A>().offset();
   }
 
-  /// \deprecated Renamed to \c range (currently a type).
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::id extent() const {
     return get_axis<S, A>().extent();

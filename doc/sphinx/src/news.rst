@@ -30,10 +30,6 @@ Deprecated
 
   * ``global_topology`` and ``process_topology`` |mdash| create instances of ``topo::global`` and ``topo::index`` as needed
 
-* Topologies
-
-  * In ``narray::access``, ``extents`` and ``range`` |mdash| renamed to ``range`` and ``domain`` respectively
-
 * Logging
 
   * The namespace ``flecsi::log`` |mdash| use ``flecsi::flog`` instead
