@@ -411,6 +411,7 @@ private:
 /// Send data from rank 0 to all others, controlling memory usage.
 /// No messages are constructed while data in transit exceeds \a mem
 /// (transmission occurs, at least serially, even if it is 0).
+/// \tparam F functor type with signature \em (rank, size)
 /// \param f function object, invoked only on rank 0 and in recipient order
 /// \param mem bytes of memory to use before waiting
 template<class F>
