@@ -22,8 +22,9 @@ Deprecated
 ^^^^^^^^^^
 * Runtime
 
-  * Using a control policy type that does not inherit from ``control_base`` |mdash| derive from it with no other changes
-  * ``control::state`` |mdash| use ``control::policy``
+  * ``control::state`` |mdash| derive the control policy type from ``control_base`` and define actions accepting a reference to it
+  * ``run::control_point`` |mdash| use ``control_base::point``
+  * ``run::cycle`` |mdash| use ``control_base::cycle``
 
 * Data
 
@@ -45,9 +46,8 @@ New features
 
 * Runtime
 
-  * Control policies may inherit from ``control_base`` to enable throwing ``control_base::exception`` and to limit their lifetime to that of ``control::execute``.
-  * ``control::policy`` replaces ``control::state``.
-  * ``meta_point`` defines special control points for a specialization's use via ``control::meta``.
+  * Control policies may inherit from ``control_base`` to be provided to actions, to allow those actions to throw ``control_base::exception``, and to limit their lifetime to that of ``control::execute``.
+  * ``control_base::meta`` defines special control points for a specialization's use via ``control::meta``.
   * New option ``--Xbackend`` to pass single backend arguments. Can be used multiple times.
 
 * Data

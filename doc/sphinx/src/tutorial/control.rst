@@ -473,17 +473,14 @@ predicate function that controls termination of the cycle:
 
 .. literalinclude:: ../../../../tutorial/2-control/2-cycle.hh
    :language: cpp
-   :start-at: // The core FleCSI control model inherits from the control
+   :start-at: // Cycle predicates are passed the policy object.
    :end-at: }
 
 For this example, the control function simply iterates for five cycles.
 In a real application, the control function could be arbitrarily
 complex, e.g., invoking a reduction to compute a variable time step.
 
-Notice that the *cycle_control* function is static and uses the
-``state`` method to access the single instance of the control object.
-The singleton instance can access any data members that have been added
-to the policy.
+Notice that the *cycle_control* function (is static and) accepts the control object as a parameter.
 In this case, we use it to access the *step_* data member that keeps
 track of which simulation step we are on:
 
@@ -566,12 +563,11 @@ provided that they honor normal C++ declaration rules.
 Example 4: Control State
 ++++++++++++++++++++++++
 
-The control policy object is available via the ``control::policy`` function:
+Actions can use state via the control policy object argument:
 
 .. code-block:: cpp
 
-    auto & policy = control::policy();
-    policy.my_method();
+    void my_action(my_policy &p) {p.my_method();}
 
 Let's consider a concrete example of this. In
 *tutorial/2-control/4-state.hh*, we define a control policy with several
