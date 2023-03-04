@@ -11,14 +11,14 @@
 namespace flecsi {
 inline log::devel_tag io_tag("io");
 
-namespace io {
+namespace io::hdf5 {
 /// \addtogroup io
 /// \{
 namespace detail {
 // An RAII HDF5 file handle.
-struct hdf5 {
-  hdf5() noexcept : id(-1) {}
-  hdf5(const char * f, bool create)
+struct file {
+  file() noexcept : id(-1) {}
+  file(const char * f, bool create)
     : id(create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
                 : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
     const auto v = create ? "create" : "open";
@@ -31,10 +31,10 @@ struct hdf5 {
       flog(error) << "H5F" << v << " failed: " << id << std::endl;
     }
   }
-  hdf5(hdf5 && h) noexcept {
+  file(file && h) noexcept {
     id = std::exchange(h.id, -1);
   }
-  ~hdf5() {
+  ~file() {
     close();
   }
 
@@ -53,12 +53,12 @@ struct hdf5 {
     return false;
   }
 
-  hdf5 & operator=(hdf5 && h) noexcept {
-    hdf5(std::move(h)).swap(*this);
+  file & operator=(file && f) noexcept {
+    file(std::move(f)).swap(*this);
     return *this;
   }
 
-  void swap(hdf5 & h) noexcept {
+  void swap(file & h) noexcept {
     std::swap(id, h.id);
   }
 
@@ -76,11 +76,11 @@ private:
 } // namespace detail
 
 // Higher-level interface with group support.
-struct hdf5 {
-  static hdf5 create(const std::string & file_name) {
+struct file {
+  static file create(const std::string & file_name) {
     return {{file_name.c_str(), true}};
   }
-  static hdf5 open(const std::string & file_name) {
+  static file open(const std::string & file_name) {
     return {{file_name.c_str(), false}};
   }
 
@@ -221,13 +221,13 @@ struct hdf5 {
     return true;
   }
 
-  hdf5(detail::hdf5 h) : hdf5_file_id(std::move(h)) {}
+  file(detail::file f) : hdf5_file_id(std::move(f)) {}
 
-  detail::hdf5 hdf5_file_id;
+  detail::file hdf5_file_id;
   std::set<std::string> hdf5_groups;
 };
 /// \}
-} // namespace io
+} // namespace io::hdf5
 } // namespace flecsi
 /// \endcond
 
