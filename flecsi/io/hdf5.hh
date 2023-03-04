@@ -15,65 +15,124 @@ namespace io::hdf5 {
 /// \addtogroup io
 /// \{
 namespace detail {
-// An RAII HDF5 file handle.
-struct file {
-  file() noexcept : id(-1) {}
-  file(const char * f, bool create)
-    : id(create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
-                : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
-    const auto v = create ? "create" : "open";
-    if(*this) {
-      log::devel_guard guard(io_tag);
-      flog_devel(info) << v << " HDF5 file " << f << " file_id " << id
-                       << std::endl;
-    }
-    else {
-      flog(error) << "H5F" << v << " failed: " << id << std::endl;
-    }
+struct id {
+  explicit id(hid_t i = H5I_INVALID_HID) noexcept : h(i) {}
+  id(id && h) noexcept : h(h.release()) {}
+
+  explicit operator bool() const noexcept {
+    return h >= 0;
   }
-  file(file && h) noexcept {
-    id = std::exchange(h.id, -1);
-  }
-  ~file() {
-    close();
+  operator hid_t() const noexcept {
+    flog_assert(*this, "invalid HDF5 ID");
+    return h;
   }
 
-  bool close() { // true if successfully closed
-    if(*this) {
-      H5Fflush(id, H5F_SCOPE_LOCAL);
-      if(const herr_t e = H5Fclose(id); e >= 0) {
-        log::devel_guard guard(io_tag);
-        flog_devel(info) << "Close HDF5 file_id " << id << std::endl;
-        id = -1;
-        return true;
-      }
-      else
-        flog(error) << "H5Fclose failed: " << e << std::endl;
-    }
-    return false;
+protected:
+  hid_t release() noexcept {
+    return std::exchange(h, H5I_INVALID_HID);
   }
-
-  file & operator=(file && f) noexcept {
-    file(std::move(f)).swap(*this);
-    return *this;
-  }
-
-  void swap(file & h) noexcept {
-    std::swap(id, h.id);
-  }
-
-  explicit operator bool() const {
-    return id >= 0;
-  }
-  operator hid_t() const {
-    assert(*this);
-    return id;
+  void swap(id & i) noexcept {
+    std::swap(h, i.h);
   }
 
 private:
-  hid_t id;
+  hid_t h;
+};
+
+template<herr_t (&C)(hid_t)>
+struct unique : id {
+protected:
+  using id::id;
+  unique(unique &&) = default;
+  ~unique() {
+    close();
+  }
+
+  unique & operator=(unique && h) & noexcept {
+    unique(std::move(h)).swap(*this);
+    return *this;
+  }
+
+public:
+  bool close() { // true if successfully closed
+    return *this && C(release()) >= 0;
+  }
+
+  void swap(unique & h) noexcept {
+    id::swap(h);
+  }
+};
+
+// An RAII HDF5 file handle.
+struct file : unique<H5Fclose> {
+  file() = default;
+  file(const char * f, bool create)
+    : unique(create ? H5Fcreate(f, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
+                    : H5Fopen(f, H5F_ACC_RDWR, H5P_DEFAULT)) {
+    const auto v = create ? "create" : "open";
+    if(*this) {
+      log::devel_guard guard(io_tag);
+      flog_devel(info) << v << " HDF5 file " << f << " file_id " << *this
+                       << std::endl;
+    }
+    else {
+      flog(error) << "H5F" << v << " failed: " << *this << std::endl;
+    }
+  }
 };
 } // namespace detail
+
+struct group : detail::unique<H5Gclose> {
+  group(hid_t f, const char * n, bool create)
+    : unique(create ? H5Gcreate2(f, n, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
+                    : H5Gopen2(f, n, H5P_DEFAULT)) {}
+};
+
+struct dataset : detail::unique<H5Dclose> {
+  dataset(hid_t l, const char * n, hid_t file, hid_t space)
+    : unique(
+        H5Dcreate2(l, n, file, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) {}
+  dataset(hid_t l, const char * n) : unique(H5Dopen2(l, n, H5P_DEFAULT)) {}
+};
+
+struct dataspace : detail::unique<H5Sclose> {
+  template<std::size_t N>
+  explicit dataspace(const hsize_t (&s)[N])
+    : unique(H5Screate_simple(N, s, NULL)) {}
+  explicit dataspace(const dataset & d) : unique(H5Dget_space(d)) {}
+};
+
+struct datatype : detail::unique<H5Tclose> {
+  using unique::unique;
+  explicit datatype(const dataset & d) : unique(H5Dget_type(d)) {}
+
+  static datatype copy(hid_t t) {
+    return datatype(H5Tcopy(t));
+  }
+  static datatype string() {
+    auto ret = copy(H5T_C_S1);
+    H5Tset_size(ret, H5T_VARIABLE);
+    return ret;
+  }
+};
+
+struct string {
+  explicit string(const dataset & d) : dset(d) { // lifetime-bound
+    H5Dread(d, str, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
+  }
+  ~string() {
+    H5Dvlen_reclaim(str, dataspace(dset), H5P_DEFAULT, &data);
+  }
+
+  operator char *() const {
+    return data;
+  }
+
+private:
+  datatype str = datatype::string();
+  const dataset & dset;
+  char * data;
+};
 
 // Higher-level interface with group support.
 struct file {
@@ -101,13 +160,7 @@ struct file {
     // status = H5Gget_objinfo (hdf5_file_id, group_name, 0, NULL);
 
     const bool add = hdf5_groups.insert(group_name).second;
-    const hid_t group_id =
-      add ? H5Gcreate2(hdf5_file_id,
-              group_name.c_str(),
-              H5P_DEFAULT,
-              H5P_DEFAULT,
-              H5P_DEFAULT)
-          : H5Gopen2(hdf5_file_id, group_name.c_str(), H5P_DEFAULT);
+    const group group_id(hdf5_file_id, group_name.c_str(), add);
     if(group_id < 0) {
       flog(error) << (add ? "H5Gcreate2" : "H5Gopen2")
                   << " failed: " << group_id << std::endl;
@@ -115,30 +168,14 @@ struct file {
       return false;
     }
 
-    hid_t filetype = H5Tcopy(H5T_C_S1);
-    status = H5Tset_size(filetype, H5T_VARIABLE);
-    hid_t memtype = H5Tcopy(H5T_C_S1);
-    status = H5Tset_size(memtype, H5T_VARIABLE);
-
-    const hsize_t dim = 1;
-    hid_t dataspace_id = H5Screate_simple(1, &dim, NULL);
+    const auto filetype = datatype::string();
 
     const auto data = str.c_str();
-    hid_t dset = H5Dcreate2(group_id,
-      dataset_name.c_str(),
-      filetype,
-      dataspace_id,
-      H5P_DEFAULT,
-      H5P_DEFAULT,
-      H5P_DEFAULT);
-    status = H5Dwrite(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
+    const dataset dset(
+      group_id, dataset_name.c_str(), filetype, dataspace({1}));
+    status = H5Dwrite(dset, filetype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
 
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
-    status = H5Dclose(dset);
-    status = H5Sclose(dataspace_id);
-    status = H5Tclose(filetype);
-    status = H5Tclose(memtype);
-    status = H5Gclose(group_id);
     return true;
   }
 
@@ -151,8 +188,7 @@ struct file {
     // status = H5Eset_auto(NULL, NULL);
     // status = H5Gget_objinfo (hdf5_file_id, group_name, 0, NULL);
 
-    hid_t group_id;
-    group_id = H5Gopen2(hdf5_file_id, group_name.c_str(), H5P_DEFAULT);
+    const group group_id(hdf5_file_id, group_name.c_str(), false);
 
     if(group_id < 0) {
       flog(error) << "H5Gopen2 failed: " << group_id << std::endl;
@@ -160,63 +196,36 @@ struct file {
       return false;
     }
 
-    hid_t dset = H5Dopen2(group_id, dataset_name.c_str(), H5P_DEFAULT);
-
-    hid_t filetype = H5Dget_type(dset);
-    hid_t memtype = H5Tcopy(H5T_C_S1);
-    status = H5Tset_size(memtype, H5T_VARIABLE);
-
-    char * data;
-    status = H5Dread(dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data);
-
-    str += data;
+    str += string(dataset(group_id, dataset_name.c_str()));
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
 
-    hid_t space = H5Dget_space(dset);
-    status = H5Dvlen_reclaim(memtype, space, H5P_DEFAULT, &data);
-    status = H5Dclose(dset);
-    status = H5Tclose(filetype);
-    status = H5Tclose(memtype);
-    status = H5Gclose(group_id);
     return true;
   }
 
   bool create_dataset(const std::string & field_name, hsize_t size) {
     const hsize_t nsize = util::ceil_div(size, {sizeof(double)});
 
-    const hsize_t dims[2] = {nsize, 1};
-    const hid_t dataspace_id = H5Screate_simple(2, dims, NULL);
+    const dataspace dataspace_id({nsize, 1});
     if(dataspace_id < 0) {
       flog(error) << "H5Screate_simple failed: " << dataspace_id << std::endl;
       close();
       return false;
     }
 #if 0
-    hid_t group_id = H5Gcreate2(file_id, (*lr_it).logical_region_name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    const group group_id(file_id, (*lr_it).logical_region_name.c_str(), true);
     if (group_id < 0) {
       printf("H5Gcreate2 failed: %lld\n", (long long)group_id);
-      H5Sclose(dataspace_id);
       close();
       return false;
     }
 #endif
-    hid_t dataset = H5Dcreate2(hdf5_file_id,
-      field_name.c_str(),
-      H5T_IEEE_F64LE,
-      dataspace_id,
-      H5P_DEFAULT,
-      H5P_DEFAULT,
-      H5P_DEFAULT);
+    const dataset dataset(
+      hdf5_file_id, field_name.c_str(), H5T_IEEE_F64LE, dataspace_id);
     if(dataset < 0) {
       flog(error) << "H5Dcreate2 failed: " << dataset << std::endl;
-      //    H5Gclose(group_id);
-      H5Sclose(dataspace_id);
       close();
       return false;
     }
-    H5Dclose(dataset);
-    //   H5Gclose(group_id);
-    H5Sclose(dataspace_id);
     H5Fflush(hdf5_file_id, H5F_SCOPE_LOCAL);
     return true;
   }
