@@ -110,7 +110,7 @@ fi
 spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +hdf5 +kokkos +flog \
           ^mpich@3.4.2%gcc@${GCC_VERSION}+hydra+romio~verbs device=ch4 \
           ^legion network=gasnet conduit=mpi build_type=Debug
-spack install -j $(nproc) -u cmake
+spack install -j $(nproc) --only dependencies
 
 # Build, test, and install FleCSI.
 ../tools/configure gnu legion -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"

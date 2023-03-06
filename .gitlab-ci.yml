@@ -11,6 +11,8 @@ stages:
 
 default:
   interruptible: true
+  before_script:
+   - echo "Running on $(hostname)"
 
 variables:
   USE_SPACK_UPSTREAM: v0.19
