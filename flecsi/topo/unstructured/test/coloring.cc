@@ -87,7 +87,7 @@ parmetis_coloring() {
                        << flog::container(cnns.p2m) << '\n'
                        << flog::container(cnns.m2p) << '\n';
         EXPECT_TRUE(UNIT_EQUAL_BLESSED(
-          ("coloring_2." + std::to_string(process()) + ".blessed").c_str()));
+          "coloring_2." + std::to_string(process()) + ".blessed"));
 
         test(MPI_Comm_free(&group_comm));
       } // if

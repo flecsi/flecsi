@@ -44,21 +44,18 @@ public:
     f << default_.rdbuf();
   } // to_file
 
-  bool equal_blessed(const char * filename) {
-    std::string testdir_filename(filename);
-
+  bool equal_blessed(const std::string & filename) {
     // backup rdbuffer, because it will get flushed by to_file
     std::stringstream backup;
     backup << default_.rdbuf();
     backup >> default_.rdbuf();
 
     // save test output to .current for updates
-    size_t lastindex = testdir_filename.find_last_of(".");
-    std::string save_output =
-      testdir_filename.substr(0, lastindex) + ".current";
+    size_t lastindex = filename.find_last_of(".");
+    std::string save_output = filename.substr(0, lastindex) + ".current";
     to_file(save_output);
 
-    std::ifstream f(testdir_filename);
+    std::ifstream f(filename);
 
     if(!f.good()) {
       std::cerr << "Failed to open " << filename << std::endl;
