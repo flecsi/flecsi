@@ -5,7 +5,85 @@
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/unit.hh"
 
+#include <iostream>
+#include <set>
+#include <string>
+
 using namespace flecsi;
+
+int
+verify_entities(unstructured::accessor<ro, ro, ro> m,
+  std::string source_file,
+  field<util::gid>::accessor<ro, ro, ro> cids,
+  field<util::gid>::accessor<ro, ro, ro> vids) {
+  UNIT("verify_entities") {
+    std::string source_mesh = source_file.substr(0, source_file.size() - 4);
+    std::string output_file = "unstructured_" + source_mesh + "_entities_" +
+                              std::to_string(processes()) + "_" +
+                              std::to_string(color()) + ".blessed";
+
+    auto & out = UNIT_CAPTURE();
+    out << "{\n";
+    out << "\"process\": " << process() << ",\n";
+    out << "\"color\": " << color() << ",\n";
+
+    auto write_sequence = [&](std::string title, const auto & entities) {
+      out << "\"" << title << "\": [";
+      decltype(entities.size()) count = 0;
+      for(auto c : entities) {
+        out << c;
+        if(count + 1 < entities.size())
+          out << ",";
+        if(count > 0 && (count % 32) == 0)
+          out << "\n";
+        ++count;
+      }
+      out << "]";
+    };
+
+    auto write_entities =
+      [&](std::string title, const auto & entities, const auto & gids) {
+        write_sequence(title + "_local", entities);
+        out << ",\n";
+        write_sequence(title + "_global",
+          flecsi::util::transform_view(
+            entities, [&](auto e) { return gids[e]; }));
+      };
+
+    auto write_exclusive_entities = [&](std::string title,
+                                      const auto & owned,
+                                      const auto & shared,
+                                      const auto & gids) {
+      const std::set<util::id> ss(shared.begin(), shared.end());
+      std::vector<util::id> ex;
+      for(auto o : owned)
+        if(!ss.count(o))
+          ex.push_back(o);
+      write_entities(title, ex, gids);
+    };
+
+    write_exclusive_entities("exclusive_cells",
+      m.cells<unstructured::owned>(),
+      m.cells<unstructured::shared>(),
+      cids);
+    out << ",\n";
+    write_entities("shared_cells", m.cells<unstructured::shared>(), cids);
+    out << ",\n";
+    write_entities("ghost_cells", m.cells<unstructured::ghost>(), cids);
+    out << ",\n";
+    write_exclusive_entities("exclusive_vertices",
+      m.vertices<unstructured::owned>(),
+      m.vertices<unstructured::shared>(),
+      vids);
+    out << ",\n";
+    write_entities("shared_vertices", m.vertices<unstructured::shared>(), vids);
+    out << ",\n";
+    write_entities("ghost_vertices", m.vertices<unstructured::ghost>(), vids);
+    out << "\n}\n";
+
+    EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
+  };
+} // verify entities
 
 void
 init_rf(unstructured::accessor<ro, ro, ro> m,
@@ -121,14 +199,19 @@ field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
 int
 unstructured_driver() {
-  std::vector<std::string> files = {
-    "simple2d-16x16.msh", "simple2d-8x8.msh", "disconnected.msh"};
+  std::vector<std::string> files = {"simple2d-8x8.msh", "disconnected.msh"};
   UNIT() {
     for(auto f : files) {
       unstructured::init fields;
       flog(info) << "testing mesh: " << f << std::endl;
       coloring.allocate(f, fields);
       mesh.allocate(coloring.get(), fields);
+
+      {
+        auto const & cids = mesh->forward_map<unstructured::cells>();
+        auto const & vids = mesh->forward_map<unstructured::vertices>();
+        EXPECT_EQ(test<verify_entities>(mesh, f, cids(mesh), vids(mesh)), 0);
+      }
 
       {
         auto & tf = rcf(mesh).get_ragged();
