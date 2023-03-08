@@ -55,6 +55,7 @@ checkpoint_task(const Legion::Task * task,
   const std::vector<Legion::PhysicalRegion> & regions,
   Legion::Context ctx,
   Legion::Runtime * runtime) {
+  using F = hdf5::file;
 
   const int point = task->index_point.point_data[0];
 
@@ -65,11 +66,11 @@ checkpoint_task(const Legion::Task * task,
   const auto fname =
     util::serial::get<std::string>(task_args) + std::to_string(point);
 
-  hdf5 checkpoint_file({});
+  F checkpoint_file({});
   if constexpr(A) {
     if constexpr(W) {
       // create files and datasets
-      checkpoint_file = hdf5::create(fname);
+      checkpoint_file = F::create(fname);
       for(unsigned int rid = 0; rid < regions.size(); rid++) {
         const auto & rr = task->regions[rid];
         Legion::Rect<2> rect =
@@ -86,7 +87,7 @@ checkpoint_task(const Legion::Task * task,
     }
   }
   else
-    checkpoint_file = (W ? hdf5::create : hdf5::open)(fname);
+    checkpoint_file = (W ? F::create : F::open)(fname);
 
   for(unsigned int rid = 0; rid < regions.size(); rid++) {
     auto & rr = task->regions[rid];

@@ -42,6 +42,13 @@ test(int err) {
 
 namespace detail {
 struct guard {
+  guard() = default;
+  guard(guard &&) = delete; // MPI knows our address
+  ~guard() {
+    if(!v.empty())
+      flog_fatal("MPI datatypes list destroyed too early");
+  }
+
   void commit(MPI_Datatype & d) {
     if(!setup) {
       int keyval;

@@ -10,6 +10,8 @@
 
 #include "flecsi/log/state.hh"
 
+#include <utility> // exchange
+
 /// \cond core
 namespace flecsi {
 namespace log {

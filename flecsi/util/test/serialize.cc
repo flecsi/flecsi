@@ -244,14 +244,3 @@ simple_context() {
 } // simple_context
 
 unit::driver<simple_context> simple_context_driver;
-
-//----------------------------------------------------------------------------//
-// FleCSI context test.
-//----------------------------------------------------------------------------//
-
-int
-flecsi_context() {
-  UNIT {};
-} // simple_context
-
-unit::driver<flecsi_context> flecsi_context_driver;

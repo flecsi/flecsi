@@ -21,7 +21,6 @@ else
     cd -
     git clone git@gitlab.lanl.gov:flecsi/flecsi.git
     cd flecsi
-    git checkout origin/2.1
 fi
 git rev-parse HEAD
 
