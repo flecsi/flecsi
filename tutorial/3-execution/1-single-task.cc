@@ -69,7 +69,7 @@ advance() {
 
     // The 'get()' method returns the result. Note that calling 'get()' by
     // itself will wait for the result to become available. The call to 'wait()'
-    // in this example are illustrative.
+    // in this example is illustrative.
 
     flog(info) << "Got value " << future.get() << std::endl;
   } // scope
