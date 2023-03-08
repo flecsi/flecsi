@@ -352,7 +352,7 @@ protected:
   }
 
   /*!
-    Method to return size of the index-space S along axis A for domain SE.
+    Method to return size of \c S along \c A for \a DM.
     This function is \ref topology "host-accessible".
     \sa enum domain
   */
@@ -428,7 +428,7 @@ protected:
   }
 
   /*!
-    Method to return an offset of the index-space S along axis A for domain SE.
+    Method to return an offset of \c S along \c A for \a DM.
     This function is \ref topology "host-accessible".
     \sa enum domain
   */
