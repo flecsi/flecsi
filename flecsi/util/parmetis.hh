@@ -15,6 +15,7 @@
 
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 namespace parmetis {
@@ -80,5 +81,6 @@ color(const util::offsets & dist,
 } // namespace parmetis
 } // namespace util
 } // namespace flecsi
+/// \endcond
 
 #endif
