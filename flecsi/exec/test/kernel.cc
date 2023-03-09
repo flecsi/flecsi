@@ -25,7 +25,7 @@ check(intN::accessor<ro> a) {
 
 void
 modify_policy(intN::accessor<wo> a) {
-  forall(i, flecsi::exec::range_policy(util::span(*a)), "modify_policy") {
+  forall(i, (flecsi::exec::threads<64, 1>(util::span(*a))), "modify_policy") {
     i = 3;
   };
 }

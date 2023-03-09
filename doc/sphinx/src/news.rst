@@ -182,7 +182,8 @@ New features
 * On-node parallelism
 
   * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be used without Kokkos enabled, in which case they run serially.
-  * ``mdiota_view`` provides support for multi dimensional ranges. Supports ``full_range``, ``prefix_range`` and ``sub_range`` options.
+  * ``exec::mdiota_view`` provides support for multi dimensional ranges. Supports ``full_range``, ``prefix_range`` and ``sub_range`` options.
+  * ``exec::threads`` provides support to fine-tune the number of blocks and threads for GPU execution.  
 
 * Utilities
 

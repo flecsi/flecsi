@@ -120,27 +120,43 @@ public:
 
 struct policy_tag {};
 
-struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  using Policy = Kokkos::RangePolicy<Kokkos::IndexType<util::id>>;
-  using index = Policy::member_type;
+template<class... PP>
+using policy_type = Kokkos::RangePolicy<Kokkos::IndexType<util::id>, PP...>;
+#endif
+
+template<typename Range, int T = 0, int B = 0>
+struct range_policy : policy_tag {
+  range_policy(Range r) : range(std::move(r)) {}
+#if defined(FLECSI_ENABLE_KOKKOS)
+  using Policy = std::conditional_t<T == 0 && B == 0,
+    policy_type<>,
+    policy_type<Kokkos::LaunchBounds<T, B>>>;
+  using index = typename Policy::member_type;
 #else
   typedef util::id index;
   using Policy = util::iota_view<index>;
 #endif
-};
-/// The integer type used for multi-dimensional indices.
-using range_index = range_base::index;
-
-template<typename Range>
-struct range_policy : range_base, policy_tag {
-  range_policy(Range r) : range(std::move(r)) {}
-
   auto get_policy() {
     return Policy(0, range.size());
   }
   Range range;
 };
+
+using range_index = range_policy<int>::index;
+
+/// This function supports to fine-tune the number of blocks and threads
+/// for GPU execution.
+/// \tparam T maximum number of threads per block
+/// \tparam B minimum number of blocks per grid
+/// \param range sized random-access range
+/// \return Policy object constructed with parameters \c T and \c B for the
+/// sized random-access range \c range.
+template<int T, int B, class Range>
+auto
+threads(Range range) {
+  return range_policy<Range, T, B>(std::move(range));
+}
 
 /// This class computes subinterval of a range based on the starting and ending
 /// indices provided.
