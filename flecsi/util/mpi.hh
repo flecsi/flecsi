@@ -16,6 +16,7 @@
 #include <complex>
 #include <cstddef> // byte
 #include <cstdint>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <stack>
