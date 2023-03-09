@@ -488,6 +488,16 @@ private:
   mpi::region_impl * r;
 };
 
+// Copy/Paste from cppreference.com to make std::visit looks more
+// like pattern matching in ML or Haskell.
+template<class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
 struct copy_engine {
   // One copy engine for each entity type i.e. vertex, cell, edge.
   copy_engine(const points & points,
@@ -571,39 +581,87 @@ struct copy_engine {
         &requests.back()));
     }
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-    auto ith_element = [type_size](auto ptr, auto i) {
-      return mpi::detail::host_view{ptr + i * type_size, type_size};
+    auto gather_copy = [type_size](std::byte * dst,
+                         const std::byte * src,
+                         const std::vector<std::size_t> & src_indices) {
+      for(std::size_t i = 0; i < src_indices.size(); i++) {
+        std::memcpy(
+          dst + i * type_size, src + src_indices[i] * type_size, type_size);
+      }
     };
-    auto one_element = [type_size](auto idx) {
-      return std::pair(idx * type_size, (idx + 1) * type_size);
+
+    auto scatter_copy = [type_size](std::byte * dst,
+                          const std::byte * src,
+                          const std::vector<std::size_t> & dst_indices) {
+      for(std::size_t i = 0; i < dst_indices.size(); i++) {
+        std::memcpy(
+          dst + dst_indices[i] * type_size, src + i * type_size, type_size);
+      }
+    };
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+    // copy a std::vector<T> from host to device memory and return the device
+    // version as a Kokkos::View
+    auto device_copy = [](const auto & hvec, const std::string & label) {
+      using T = typename std::decay_t<decltype(hvec)>::value_type;
+      Kokkos::View<T *, Kokkos::DefaultExecutionSpace> dview{
+        Kokkos::ViewAllocateWithoutInitializing(label), hvec.size()};
+      Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+        dview,
+        Kokkos::View<const T *, Kokkos::HostSpace>{hvec.data(), hvec.size()});
+      return dview;
     };
 #endif
 
-    // TODO: The current way of copying data between host and device creates a
-    //  large number of calls to cudaMemcpy, each copying one element. If this
-    //  turns out to be a performance bottleneck, consider turning the inner
-    //  for loop into a kernel.
     std::vector<std::vector<std::byte>> send_buffers;
     for(const auto & [dst_rank, shared_indices] : shared_entities) {
       requests.resize(requests.size() + 1);
-      send_buffers.emplace_back(shared_indices.size() * type_size);
-      std::size_t i = 0;
-      for(auto shared_idx : shared_indices) {
+      auto n_elements = shared_indices.size();
+      auto n_bytes = n_elements * type_size;
+      send_buffers.emplace_back(n_bytes);
+
 #if defined(FLECSI_ENABLE_KOKKOS)
-        std::visit(
-          [&](auto && src) {
+      // We can not capture shared_indices in the overloaded lambda inside
+      // std::visit directly
+      const auto & src_indices = shared_indices;
+      std::visit(
+        overloaded{[&](mpi::detail::host_view & src) {
+                     gather_copy(
+                       send_buffers.back().data(), src.data(), src_indices);
+                   },
+          [&](mpi::detail::device_view & src) {
+            // copy shared indices from host to device
+            auto shared_indices_device_view =
+              device_copy(src_indices, "shared indices");
+
+            // allocate gather buffer on device
+            auto gather_buffer_device_view =
+              Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
+                "gather", n_bytes};
+
+            // copy shared values to gather buffer on device in parallel, for
+            // each element
+            Kokkos::parallel_for(
+              n_elements, KOKKOS_LAMBDA(const auto & i) {
+                // Yes, memcpy is supported on device as long as there is no
+                // std:: qualifier.
+                memcpy(gather_buffer_device_view.data() + i * type_size,
+                  src.data() + shared_indices_device_view[i] * type_size,
+                  type_size);
+              });
+
+            // copy gathered shared values to send_buffer on host to be sent
+            // through MPI.
             Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-              ith_element(send_buffers.back().data(), i++),
-              Kokkos::subview(src, one_element(shared_idx)));
-          },
-          source_view);
+              mpi::detail::host_view{send_buffers.back().data(), n_bytes},
+              gather_buffer_device_view);
+          }},
+        source_view);
 #else
-        std::memcpy(send_buffers.back().data() + i++ * type_size,
-          source_storage.data() + shared_idx * type_size,
-          type_size);
+      gather_copy(
+        send_buffers.back().data(), source_storage.data(), shared_indices);
 #endif
-      }
+
       test(MPI_Isend(send_buffers.back().data(),
         int(send_buffers.back().size()),
         MPI_BYTE,
@@ -619,22 +677,38 @@ struct copy_engine {
     // copy from intermediate receive buffer to destination storage
     auto recv_buffer = recv_buffers.begin();
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
-      std::size_t i = 0;
-      for(auto ghost_idx : ghost_indices) {
 #if defined(FLECSI_ENABLE_KOKKOS)
-        std::visit(
-          [&](auto && dst) {
-            Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-              Kokkos::subview(dst, one_element(ghost_idx)),
-              ith_element(recv_buffer->data(), i++));
-          },
-          destination_view);
+      auto n_elements = ghost_indices.size();
+      // We can not capture ghost_indices in the overloaded lambda inside
+      // std::visit directly
+      const auto & dst_indices = ghost_indices;
+      std::visit(
+        overloaded{[&](mpi::detail::host_view & dst) {
+                     scatter_copy(dst.data(), recv_buffer->data(), dst_indices);
+                   },
+          [&](mpi::detail::device_view & dst) {
+            // copy ghost indices from host to device
+            auto ghost_indices_device_view =
+              device_copy(dst_indices, "ghost indices");
+
+            // copy recv buffer from host to scatter buffer on device
+            auto scatter_buffer_device_view =
+              device_copy(*recv_buffer, "scatter");
+
+            // copy ghost values from scatter buffer on device to field storage
+            // in parallel, for each element
+            Kokkos::parallel_for(
+              n_elements, KOKKOS_LAMBDA(const auto & i) {
+                memcpy(dst.data() + ghost_indices_device_view[i] * type_size,
+                  scatter_buffer_device_view.data() + i * type_size,
+                  type_size);
+              });
+          }},
+        destination_view);
 #else
-        std::memcpy(destination_storage.data() + ghost_idx * type_size,
-          recv_buffer->data() + i++ * type_size,
-          type_size);
+      scatter_copy(
+        destination_storage.data(), recv_buffer->data(), ghost_indices);
 #endif
-      }
       recv_buffer++;
     }
   }
