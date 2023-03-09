@@ -58,12 +58,15 @@
 .darwin_env_create:
   script: &darwin_env_create
     - module load git
-    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
-    - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/current/$(uname -i)
-    - export SPACK_COMMIT_HASH=$(cd $DARWIN_SPACK_UPSTREAM; git rev-parse HEAD)
-    - mkdir -p $TMPDIR/spack
-    - git -C ${DARWIN_SPACK_UPSTREAM} archive ${SPACK_COMMIT_HASH} | tar -x -C $TMPDIR/spack
-    - cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/*.yaml $TMPDIR/spack/etc/spack/
+    - export DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}
+    - export DARWIN_SPACK_BOOTSTRAP_MIRROR=/projects/flecsi-devel/gitlab/spack-bootstrap/${USE_SPACK_UPSTREAM}/$(uname -i)
+    - |
+      rsync -rpl \
+        --exclude=".git" \
+        --include="etc/spack/**" \
+        --include="lib/spack/**" \
+        --exclude-from=${DARWIN_SPACK_UPSTREAM}/.gitignore \
+        ${DARWIN_SPACK_UPSTREAM}/ $TMPDIR/spack/
 
 #------------------------------------------------------------------------------#
 # darwin_env_shell
@@ -77,12 +80,11 @@
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
-    - module load cuda/11.7.0
+    - module load cuda/${CUDA_VERSION}
     - export CC=gcc  # default C compiler
     - export CXX=g++ # default C++ compiler
-    - export CLANG_COMPILER_SPEC=${CLANG_COMPILER_SPEC:-"clang@${CLANG_VERSION}"}
-    - export CLANG_CC=$(spack compiler info $CLANG_COMPILER_SPEC | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1)
-    - export PATH=$(dirname $CLANG_CC):/opt/rocm-4.5.2/bin:${PATH}
+    - export COMPILER_PATH=$(dirname $(spack compiler info ${TOOLCHAIN} | grep "cc =" | grep $(uname -i) | cut -d= -f2 | head -n1))
+    - export PATH=$COMPILER_PATH:$PATH
     - echo "PATH=${PATH}"
     - |-
       if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
@@ -121,10 +123,11 @@
     # This uses the legion backend by default because it also satisfies the dependencies
     # for MPI (and potentially HPX)
     - export SPACK_INSTALL_FLECSI_BACKEND=${SPACK_INSTALL_FLECSI_BACKEND:-legion}
-    - echo -e "spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+    - echo -e "spack add ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
-    - spack install --only dependencies ${VERSION} %${TOOLCHAIN}
+    - spack add ${VERSION} %${TOOLCHAIN}
         backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
+    - spack install -j $(nproc) --only dependencies
     - spack find -v
     - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
 
@@ -187,7 +190,7 @@
     - *darwin_setup_hip
     - mkdir -p ${CI_PROJECT_DIR}/state/build
     - cd ${CI_PROJECT_DIR}/state/build
-    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
+    - echo -e "\e[0Ksection_start:`date +%s`:build_noflog\r\e[0K${COLOR_CYAN}Build without FLOG${COLOR_PLAIN}"
     - *darwin_print_build_info
     - |-
       cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install \
@@ -197,16 +200,23 @@
         -DCMAKE_C_COMPILER=${C_COMPILER} \
         -DCMAKE_C_FLAGS="${C_FLAGS}" \
         -DFLECSI_BACKEND=${BACKEND} \
+        -DENABLE_FLOG=OFF \
         ${CMAKE_OPTIONS} \
         ../..
     - make -j $(nproc)
-    - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
-    - echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
-    - export FLECSI_BACKTRACE=1
-    - export LEGION_BACKTRACE=1
-    - export CTEST_OUTPUT_ON_FAILURE=1
-    - make test
-    - echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
+    - echo -e "\e[0Ksection_end:`date +%s`:build_noflog\r\e[0K"
+    - |
+      if [ "${ENABLE_UNIT_TESTS}" = "ON" ] ; then
+        echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+        cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
+        make -j $(nproc)
+        echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
+        echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
+        export GASNET_BACKTRACE=1
+        export CTEST_OUTPUT_ON_FAILURE=1
+        ctest --output-junit tests.xml
+        echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
+      fi
     - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
     - make install
     - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
@@ -215,6 +225,8 @@
     expire_in: 2 weeks
     paths:
       - ${CI_PROJECT_DIR}/state
+    reports:
+      junit: ${CI_PROJECT_DIR}/state/build/tests.xml
 
 #------------------------------------------------------------------------------#
 # darwin_defaults_build_template
@@ -304,7 +316,6 @@
         -DENABLE_DOCUMENTATION=ON \
         -DENABLE_FORMAT=ON \
         -DClangFormat_VERSION=${FORMAT_VERSION} \
-        ${CMAKE_OPTIONS} \
         ../..
     - fail=0
     - |

@@ -16,18 +16,21 @@
 #include <atomic>
 #include <bitset>
 #include <cassert>
+#include <condition_variable>
+#include <functional>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 
 /// \cond core
 namespace flecsi {
+template<class>
+struct task_local;
+
 namespace flog {
 /// \addtogroup flog
 /// \{
-
-// Forward
-void flush_packets();
 
 /*!
   The state type provides access to logging parameters and configuration.
@@ -44,38 +47,12 @@ void flush_packets();
 class state
 {
 public:
-  /*!
-    Copy constructor (disabled)
-   */
-
-  state(const state &) = delete;
-
-  /*!
-    Assignment operator (disabled)
-   */
-
-  state & operator=(const state &) = delete;
-
-  /*!
-    Meyer's singleton instance.
-
-    \return The singleton instance of this type.
-   */
-
-  static state & instance() {
-    static state c;
-    return c;
-  } // instance
-
-  int initialize(std::string active = "none",
-    int verbose = 0,
-    Color one_process = -1) {
+  state(const std::vector<std::string> & active, int verbose, Color one_process)
+    : verb(verbose) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
-
-    verbose_ = verbose;
 
 #if defined(FLOG_ENABLE_TAGS)
     // Because active tags are specified at runtime, it is
@@ -88,41 +65,25 @@ public:
     // hashes. We should consider creating a const_string_t type for
     // constexpr string creation.
 
-    // Initialize everything to false. This is the default, i.e., "none".
-    tag_bitset_.reset();
-
-    // The default group is always active (unscoped). To avoid
-    // output for this tag, make sure to scope all FLOG output.
-    tag_reverse_map_[0] = "unscoped";
-
-    if(active == "all") {
-      // Turn on all of the bits for "all".
-      tag_bitset_.set();
+    for(auto & tag : active) {
+      if(tag == "all")
+        tag_bitset_.set();
+      else if(tag_map_.find(tag) != tag_map_.end()) {
+        tag_bitset_.set(tag_map_[tag]);
+      }
+      else {
+        std::cerr << "FLOG WARNING: tag " << tag
+                  << " has not been registered. Ignoring this group..."
+                  << std::endl;
+      }
     }
-    else if(active == "unscoped") {
-      tag_bitset_.set(0);
-    }
-    else if(active != "none") {
-      // Turn on the bits for the selected groups.
-      std::istringstream is(active);
-      std::string tag;
-      while(std::getline(is, tag, ',')) {
-        if(tag_map_.find(tag) != tag_map_.end()) {
-          tag_bitset_.set(tag_map_[tag]);
-        }
-        else {
-          std::cerr << "FLOG WARNING: tag " << tag
-                    << " has not been registered. Ignoring this group..."
-                    << std::endl;
-        } // if
-      } // while
-    } // if
 
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: active tags (" << active << ")"
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
-
+#else
+    (void)active;
 #endif // FLOG_ENABLE_TAGS
 
 #if defined(FLOG_ENABLE_MPI)
@@ -140,50 +101,37 @@ public:
       processes_ = np;
     }
 
-    if(one_process + 1 && one_process >= processes_) {
-      if(process_ == 0) {
-        std::cerr << "flog process " << one_process << " out-of-bounds ("
-                  << processes_ << " processes)" << std::endl;
-      } // if
-
-      return !0;
-    } // if
-
     one_process_ = one_process;
 
     if(process_ == 0) {
-      std::thread flusher(flush_packets);
-      instance().flusher_thread().swap(flusher);
+      flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
     } // if
 #endif // FLOG_ENABLE_MPI
+  }
+  state(state &&) = delete; // address is known to the thread
 
-    initialized_ = true;
-
-    return 0;
-  } // initialize
-
-  void finalize() {
+  ~state() {
+#if defined(FLOG_ENABLE_DEBUG)
+    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: state destructor" << std::endl;
+#endif
 #if defined(FLOG_ENABLE_MPI)
-    if(initialized_) {
-      send_to_one();
+    send_to_one(true);
 
-      if(process_ == 0) {
-        end_flusher();
-        flusher_thread_.join();
-      } // if
+    if(process_ == 0) {
+      flusher_thread_.join();
     } // if
 #endif // FLOG_ENABLE_MPI
   } // finalize
 
-  int verbose() const {
-    return verbose_;
+  static int verbose() {
+    return instance ? instance->verb : 0;
   }
 
   /*!
     Return the tag map.
    */
 
-  const std::unordered_map<std::string, size_t> & tag_map() {
+  static const std::unordered_map<std::string, size_t> & tag_map() {
     return tag_map_;
   }
 
@@ -208,70 +156,53 @@ public:
     Return the next tag id.
    */
 
-  size_t register_tag(const char * tag) {
+  static std::size_t register_tag(const char * tag) {
     // If the tag is already registered, just return the previously
     // assigned id. This allows tags to be registered in headers.
     if(tag_map_.find(tag) != tag_map_.end()) {
       return tag_map_[tag];
     } // if
 
-    const size_t id = ++tag_id_;
+    const size_t id = tag_names.size();
     assert(id < FLOG_TAG_BITS && "Tag bits overflow! Increase FLOG_TAG_BITS");
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: registering tag " << tag << ": "
               << id << FLOG_COLOR_PLAIN << std::endl;
 #endif
     tag_map_[tag] = id;
-    tag_reverse_map_[id] = tag;
+    tag_names.push_back(tag);
     return id;
   } // next_tag
 
   /*!
-    Return a reference to the active tag (const version).
+    Return a reference to the active tag.
    */
 
-  const std::atomic<size_t> & active_tag() const {
-    return active_tag_;
-  }
-
-  /*!
-    Return a reference to the active tag (mutable version).
-   */
-
-  std::atomic<size_t> & active_tag() {
-    return active_tag_;
-  }
+  static std::size_t & active_tag();
 
   /*!
     Return the tag name associated with a tag id.
    */
 
-  std::string tag_name(size_t id) {
-    assert(tag_reverse_map_.find(id) != tag_reverse_map_.end());
-    return tag_reverse_map_[id];
+  static std::string tag_name(size_t id) {
+    return tag_names.at(id);
   }
 
   /*!
     Return the tag name associated with the active tag.
    */
 
-  std::string active_tag_name() {
-    assert(tag_reverse_map_.find(active_tag_) != tag_reverse_map_.end());
-    return tag_reverse_map_[active_tag_];
+  static std::string active_tag_name() {
+    if(!instance)
+      return "external";
+    return tag_name(active_tag());
   }
 
-  bool tag_enabled() {
+  static bool tag_enabled() {
 #if defined(FLOG_ENABLE_TAGS)
-
-#if defined(FLOG_ENABLE_DEBUG)
-    auto active_set = tag_bitset_.test(active_tag_) == 1 ? "true" : "false";
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: tag " << active_tag_ << " is "
-              << active_set << FLOG_COLOR_PLAIN << std::endl;
-#endif
-
     // If the runtime context hasn't been initialized, return true only
     // if the user has enabled externally-scoped messages.
-    if(!initialized_) {
+    if(!instance) {
 #if defined(FLOG_ENABLE_EXTERNAL)
       return true;
 #else
@@ -279,13 +210,20 @@ public:
 #endif
     } // if
 
-    return tag_bitset_.test(active_tag_);
+    const std::size_t t = active_tag();
+    const bool ret = instance->tag_bitset_.test(t);
+
+#if defined(FLOG_ENABLE_DEBUG)
+    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: tag " << t << " is "
+              << (ret ? "true" : "false") << FLOG_COLOR_PLAIN << std::endl;
+#endif
+    return ret;
 #else
     return true;
 #endif // FLOG_ENABLE_TAGS
   } // tag_enabled
 
-  size_t lookup_tag(const char * tag) {
+  static std::size_t lookup_tag(const char * tag) {
     if(tag_map_.find(tag) == tag_map_.end()) {
       std::cerr << FLOG_COLOR_YELLOW << "FLOG: !!!WARNING " << tag
                 << " has not been registered. Ignoring this group..."
@@ -296,33 +234,13 @@ public:
     return tag_map_[tag];
   }
 
-  bool initialized() {
-    return initialized_;
-  }
-
 #if defined(FLOG_ENABLE_MPI)
   bool one_process() const {
     return one_process_ < processes_;
   }
 
-  Color output_process() const {
-    return one_process_;
-  }
-
-  Color process() {
+  Color process() const {
     return process_;
-  }
-
-  Color processes() {
-    return processes_;
-  }
-
-  std::thread & flusher_thread() {
-    return flusher_thread_;
-  }
-
-  std::mutex & packets_mutex() {
-    return packets_mutex_;
   }
 
   void buffer_output(std::string const & message) {
@@ -346,57 +264,47 @@ public:
     return packets_;
   }
 
-  bool run_flusher() {
-    return run_flusher_;
-  }
+  void flush_packets();
 
-  void end_flusher() {
-    run_flusher_ = false;
-  }
+  // Can be used as MPI tasks:
 
-  void set_serialized() {
-    serialized_ = true;
+  /// Return number of buffered packets.
+  static std::size_t log_size(const state & s) {
+    return s.packets_.size();
   }
-
-  bool serialized() {
-    return serialized_;
+  /// Gather log output on the root.
+  static void gather(state & s) {
+    s.send_to_one(false);
   }
 #endif
+
+  static std::optional<state> instance;
 
 private:
-  /*!
-    Constructor. This method is hidden because we are a singleton.
-   */
-
-  state() : tag_id_(0), active_tag_(0) {}
-
-  ~state() {
-#if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: state destructor" << std::endl;
-#endif
-  }
-
-  bool initialized_ = false;
-  int verbose_ = 0;
+  int verb;
 
   tee_stream_t stream_;
 
-  size_t tag_id_;
-  std::atomic<size_t> active_tag_;
+#ifdef FLOG_ENABLE_TAGS
+  static task_local<std::size_t> cur_tag;
   std::bitset<FLOG_TAG_BITS> tag_bitset_;
-  std::unordered_map<std::string, size_t> tag_map_;
-  std::unordered_map<size_t, std::string> tag_reverse_map_;
+#endif
+  static inline std::unordered_map<std::string, size_t> tag_map_;
+  static inline std::vector<std::string> tag_names;
 
 #if defined(FLOG_ENABLE_MPI)
+  void send_to_one(bool last);
+
   Color one_process_, process_, processes_;
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
+  std::condition_variable avail;
   std::vector<packet_t> packets_;
-  std::atomic<bool> run_flusher_ = true;
-  bool serialized_ = false;
+  bool stop = false;
 #endif
 
 }; // class state
+inline std::optional<state> state::instance;
 
 /// \}
 } // namespace flog

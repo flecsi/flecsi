@@ -44,8 +44,7 @@ private:
 
 public:
   // NB: The real initialization is in the callback.
-  static inline MPI_Op op =
-    (run::context::instance().register_init(init), MPI_Op());
+  static inline MPI_Op op = (run::context::register_init(init), MPI_Op());
 };
 
 template<class>

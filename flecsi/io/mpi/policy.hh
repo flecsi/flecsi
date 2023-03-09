@@ -65,32 +65,20 @@ struct io_interface {
     hsize_t nitems,
     hsize_t displ,
     hsize_t item_size) {
-    hid_t dataset_id =
-      H5Dopen2(hdf5_file_id, dataset_name.c_str(), H5P_DEFAULT);
-    if(dataset_id < 0) {
-      flog(error) << " H5Dopen2 failed: " << dataset_id << std::endl;
-      H5Fclose(hdf5_file_id);
-      assert(false);
-    }
+    using namespace hdf5;
 
-    const int ndims = 2;
+    const dataset dataset_id(hdf5_file_id, dataset_name.c_str());
+
     const hsize_t count[2] = {nitems, 1};
     const hsize_t offset[2] = {displ, 0};
-    hid_t mem_dataspace_id = H5Screate_simple(ndims, count, NULL);
-    if(mem_dataspace_id < 0) {
-      flog(error) << " H5Screate_simple failed: " << mem_dataspace_id
-                  << std::endl;
-      H5Fclose(hdf5_file_id);
-      assert(false);
-    }
+    const dataspace mem_dataspace_id(count), file_dataspace_id(dataset_id);
 
     // Select hyperslab in the file.
-    hid_t file_dataspace_id = H5Dget_space(dataset_id);
     H5Sselect_hyperslab(
       file_dataspace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
 
     // Create property list for collective dataset write.
-    hid_t xfer_plist_id = H5Pcreate(H5P_DATASET_XFER);
+    const plist xfer_plist_id(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(xfer_plist_id, H5FD_MPIO_COLLECTIVE);
 
     [] {
@@ -99,17 +87,15 @@ struct io_interface {
       else
         return H5Dread;
     }()(dataset_id,
-      hdf5_type(item_size),
+      datatype::bytes(item_size),
       mem_dataspace_id,
       file_dataspace_id,
       xfer_plist_id,
       buffer);
-    H5Pclose(xfer_plist_id);
-    H5Dclose(dataset_id);
   }
 
   template<bool W = true> // whether to write or read the file
-  void checkpoint_field(hdf5 & checkpoint_file,
+  void checkpoint_field(hdf5::file & checkpoint_file,
     const std::string & field_name,
     buffer_ptr<W> buffer,
     const hsize_t nitems,
@@ -133,9 +119,9 @@ struct io_interface {
 
   template<bool W = true> // whether to write or read the file
   inline void checkpoint_data(const std::string & file_name_in) {
+    using F = hdf5::file;
     std::string file_name = file_name_in + std::to_string(new_color);
-    hdf5 checkpoint_file =
-      (W ? hdf5::pcreate : hdf5::popen)(file_name, mpi_hdf5_comm);
+    F checkpoint_file = (W ? F::pcreate : F::popen)(file_name, mpi_hdf5_comm);
 
     // checkpoint
     auto & context = run::context::instance();

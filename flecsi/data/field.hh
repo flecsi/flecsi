@@ -106,7 +106,7 @@ struct field_register;
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, raw, Topo, Space> {
   explicit field_register(field_id_t i) : fid(i) {
-    run::context::instance().add_field_info<Topo, Space, T>(i);
+    run::context::add_field_info<Topo, Space, T>(i);
   }
   field_register() : field_register(fid_counter()) {}
   field_id_t fid;

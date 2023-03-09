@@ -148,8 +148,8 @@ CMake files to allow using it in your own applications.
 
 ``FleCSI/unit``
   Adds the ``flecsi_enable_testing`` macro, which turns on CMake's
-  testing capabilities through ``ctest`` and defines a ``test``
-  target.
+  testing capabilities through ``ctest`` and defines ``unit_tests`` and
+  ``test`` targets.
 
   While you can define your own test executables manually with
   `add_test
@@ -190,6 +190,14 @@ CMake files to allow using it in your own applications.
 
   ``TESTLABELS`` can be added to your test to allow filtering based on
   label when using ``ctest``.
+
+  The ``unit_tests`` target only builds unit tests (and its dependencies) added
+  via ``flecsi_add_test``. Its name can be customized with the
+  ``flecsi_set_unit_tests_target_name(name)`` macro, prior to calling
+  ``flecsi_enable_testing``.
+
+  The ``test`` target is defined by CMake itself and will run ``ctest``,
+  executing all added tests.
 
   **Usage:**
 

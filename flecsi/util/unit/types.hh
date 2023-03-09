@@ -4,7 +4,7 @@
 #ifndef FLECSI_UTIL_UNIT_TYPES_HH
 #define FLECSI_UTIL_UNIT_TYPES_HH
 
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 
@@ -194,8 +194,6 @@ label_default(std::string s) {
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
 #define UNIT(...)                                                              \
-  ::flecsi::flog::state::instance().config_stream().add_buffer(                \
-    "flog", std::clog, true);                                                  \
   ::flecsi::util::unit::state_t auto_unit_state(                               \
     __func__, label_default({__VA_ARGS__}));                                   \
   return auto_unit_state->*[&]() -> void

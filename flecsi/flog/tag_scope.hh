@@ -10,6 +10,8 @@
 
 #include "flecsi/flog/state.hh"
 
+#include <utility> // exchange
+
 /// \cond core
 namespace flecsi {
 namespace flog {
@@ -23,26 +25,27 @@ namespace flog {
  */
 
 struct tag_scope_t {
-  tag_scope_t(size_t tag = 0) : stash_(state::instance().active_tag()) {
+  tag_scope_t(size_t tag = 0) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: activating tag " << tag
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 
     // Warn users about externally-scoped messages
-    if(!state::instance().initialized()) {
+    if(state::instance)
+      stash_ = std::exchange(state::active_tag(), tag);
+    else {
       std::cerr
         << FLOG_COLOR_YELLOW << "FLOG: !!!WARNING You cannot use "
         << "tag guards for externally scoped messages!!! "
         << "This message will be active if FLOG_ENABLE_EXTERNAL is defined!!!"
         << FLOG_COLOR_PLAIN << std::endl;
     } // if
-
-    state::instance().active_tag() = tag;
   } // tag_scope_t
 
   ~tag_scope_t() {
-    state::instance().active_tag() = stash_;
+    if(state::instance)
+      state::active_tag() = stash_;
   } // ~tag_scope_t
 
 private:

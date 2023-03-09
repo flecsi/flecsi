@@ -23,7 +23,7 @@ verbose(const char * file, int line) {
 }
 
 #if defined(FLOG_ENABLE_MPI)
-#define process_stamp " p" << state::instance().process()
+#define process_stamp " p" << state::instance->process()
 #else
 #define process_stamp ""
 #endif
@@ -53,14 +53,11 @@ struct trace {
   static bool
   format(std::stringstream & ss, const char * file, int line, bool devel) {
     std::string label = devel ? "(devel) " : "";
-    std::string tag = state::instance().initialized()
-                        ? state::instance().active_tag_name()
-                        : "external";
 
     ss << FLOG_OUTPUT_CYAN("[trace ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::instance().verbose())
+    if(state::verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
-    ss << FLOG_OUTPUT_CYAN(tag);
+    ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
     ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
     ss << FLOG_OUTPUT_CYAN("] ") << std::endl;
@@ -81,14 +78,11 @@ struct info {
   static bool
   format(std::stringstream & ss, const char * file, int line, bool devel) {
     std::string label = devel ? "(devel) " : "";
-    std::string tag = state::instance().initialized()
-                        ? state::instance().active_tag_name()
-                        : "external";
 
     ss << FLOG_OUTPUT_GREEN("[info ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::instance().verbose())
+    if(state::verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
-    ss << FLOG_OUTPUT_CYAN(tag);
+    ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
     ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
     ss << FLOG_OUTPUT_GREEN("] ") << std::endl;
@@ -109,14 +103,11 @@ struct warn {
   static bool
   format(std::stringstream & ss, const char * file, int line, bool devel) {
     std::string label = devel ? "(devel) " : "";
-    std::string tag = state::instance().initialized()
-                        ? state::instance().active_tag_name()
-                        : "external";
 
     ss << FLOG_OUTPUT_BROWN("[warn ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::instance().verbose())
+    if(state::verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
-    ss << FLOG_OUTPUT_CYAN(tag);
+    ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
     ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
     ss << FLOG_OUTPUT_BROWN("] ") << std::endl << FLOG_COLOR_YELLOW;
@@ -137,14 +128,11 @@ struct error {
   static bool
   format(std::stringstream & ss, const char * file, int line, bool devel) {
     std::string label = devel ? "(devel) " : "";
-    std::string tag = state::instance().initialized()
-                        ? state::instance().active_tag_name()
-                        : "external";
 
     ss << FLOG_OUTPUT_RED("[ERROR ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::instance().verbose())
+    if(state::verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
-    ss << FLOG_OUTPUT_CYAN(tag);
+    ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
     ss << FLOG_OUTPUT_LTBLUE(thread_stamp);
     ss << FLOG_OUTPUT_RED("] ") << std::endl << FLOG_COLOR_LTRED;

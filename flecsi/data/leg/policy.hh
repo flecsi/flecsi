@@ -159,34 +159,42 @@ named(const Legion::LogicalPartition & p, const char * n) {
 
 struct region {
   region(size2 s, const fields & fs, const char * name = nullptr)
-    : index_space(named(run().create_index_space(ctx(),
-                          rect({0, 0}, {upper(s.first), upper(s.second)})),
-        name)),
-      field_space([&fs] { // TIP: IIFE (q.v.) allows statements here
+    : logical_region([&] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
         const auto c = ctx();
-        shared_field_space ret = r.create_field_space(c);
-        Legion::FieldAllocator allocator = r.create_field_allocator(c, ret);
+        shared_index_space index_space(
+          named(r.create_index_space(
+                  c, rect({0, 0}, {upper(s.first), upper(s.second)})),
+            name));
+        shared_field_space field_space(r.create_field_space(c));
+        Legion::FieldAllocator allocator =
+          r.create_field_allocator(c, field_space);
         for(auto const & fi : fs) {
           allocator.allocate_field(fi->type_size, fi->fid);
-          r.attach_name(ret, fi->fid, fi->name.c_str());
+          r.attach_name(field_space, fi->fid, fi->name.c_str());
         }
-        return ret;
-      }()),
-      logical_region(
-        named(run().create_logical_region(ctx(), index_space, field_space),
-          name)) {}
+
+        return named(
+          r.create_logical_region(c, index_space, field_space), name);
+      }()) {}
+
   // Retain value semantics:
   region(region &&) = default;
   region & operator=(region &&) & = default;
 
+  Legion::IndexSpace get_index_space() const {
+    return logical_region->get_index_space();
+  }
+
+  Legion::FieldSpace get_field_space() const {
+    return logical_region->get_field_space();
+  }
+
   size2 size() const {
-    const auto p = run().get_index_space_domain(index_space).hi();
+    const auto p = run().get_index_space_domain(get_index_space()).hi();
     return size2(p[0] + 1, p[1] + 1);
   }
 
-  shared_index_space index_space;
-  shared_field_space field_space;
   shared_logical_region logical_region;
 };
 
@@ -243,22 +251,21 @@ struct partition : leg::partition_base { // instead of "using partition ="
 };
 
 namespace leg {
-
-struct with_color { // for initialization order
-  shared_index_space color_space;
-};
-struct rows : with_color, partition {
+struct rows : partition {
   explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
 
   // this constructor will create partition by rows with s.first being number
   // of colors and s.second the max size of the rows
   rows(const Legion::LogicalRegion & reg, size2 s)
-    : with_color{run().create_index_space(ctx(),
-        Legion::Rect<1>(0, upper(s.first)))},
-      partition(reg, partition_rows(reg, upper(s.second))) {}
+    : partition(reg,
+        partition_rows(reg,
+          shared_index_space(run().create_index_space(ctx(),
+            Legion::Rect<1>(0, upper(s.first)))),
+          upper(s.second))) {}
 
 private:
   shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
+    Legion::IndexSpace color_space,
     Legion::coord_t hi) {
     // The type-erased version assumes a square transformation matrix
     return named(run().create_partition_by_restriction(
@@ -280,7 +287,7 @@ public:
   void update(const Legion::LogicalRegion & reg) {
     Legion::DomainPoint hi =
       run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, hi[1]);
+    auto ip = partition_rows(reg, get_color_space(), hi[1]);
 
     logical_partition = log(reg, ip);
     index_partition = std::move(ip);
@@ -296,7 +303,7 @@ struct partition : data::partition {
     const data::partition & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition(reg.logical_region, reg.index_space, src, fid, cpt) {}
+    : partition(reg.logical_region, reg.get_index_space(), src, fid, cpt) {}
 
   partition(prefixes & reg,
     const data::partition & src,
@@ -315,8 +322,6 @@ struct partition : data::partition {
   }
 
 private:
-  // We document that src must outlive this partitioning, although Legion is
-  // said to support deleting its color space before our partition using it.
   partition(const Legion::LogicalRegion & reg,
     const Legion::IndexSpace & is,
     const data::partition & src,

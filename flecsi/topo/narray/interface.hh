@@ -239,8 +239,7 @@ struct narray<Policy>::access {
   FLECSI_INLINE_TARGET auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
-    return util::mdspan<typename decltype(s)::element_type, dimension>(
-      s.data(), extents<S>());
+    return util::mdspan(s.data(), extents<S>());
   }
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
@@ -249,9 +248,7 @@ struct narray<Policy>::access {
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
-    return util::mdcolex<
-      typename std::remove_reference_t<decltype(a)>::element_type,
-      dimension>(a.span().data(), extents<S>());
+    return util::mdcolex(a.span().data(), extents<S>());
   }
 
   template<class F>

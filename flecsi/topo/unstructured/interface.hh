@@ -309,8 +309,7 @@ private:
   typename ctopo::core ctopo_;
 
   static inline const util::key_array<
-    typename field<unstructured_impl::cmap,
-      data::ragged>::template definition<ctopo>,
+    typename field<util::id, data::ragged>::template definition<ctopo>,
     index_spaces>
     cgraph_, cgraph_shared_;
 

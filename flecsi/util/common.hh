@@ -29,10 +29,6 @@ namespace util {
 // in topologies.
 //----------------------------------------------------------------------------//
 
-#ifndef FLECSI_ID_TYPE
-#define FLECSI_ID_TYPE std::uint32_t
-#endif
-
 using id = FLECSI_ID_TYPE;
 
 //----------------------------------------------------------------------------//
@@ -45,10 +41,6 @@ using gid = FLECSI_GID_TYPE;
 //----------------------------------------------------------------------------//
 // Index type
 //----------------------------------------------------------------------------//
-
-#ifndef FLECSI_COUNTER_TYPE
-#define FLECSI_COUNTER_TYPE int32_t
-#endif
 
 using counter_t = FLECSI_COUNTER_TYPE;
 

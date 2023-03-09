@@ -194,18 +194,20 @@ struct guard;
   Create a tag group to enable/disable output using guards.
 
   @param label The name of the tag.
+  \warning Tag variables must not be templated.
  */
 
 struct tag {
   friend guard;
 
   tag(const char * label) : label_(label) {
-    state::instance().register_tag(label);
+    state::register_tag(label);
   }
 
 private:
   std::string label_;
 }; // struct tag
+const inline tag unscoped_tag("unscoped");
 
 /*!
   Create a guard to control output of flog output within the scope of the
@@ -215,8 +217,7 @@ private:
  */
 
 struct guard {
-  guard(tag const & t)
-    : scope_(state::instance().lookup_tag(t.label_.c_str())) {}
+  guard(tag const & t) : scope_(state::lookup_tag(t.label_.c_str())) {}
 
 private:
   tag_scope_t scope_;
@@ -249,7 +250,7 @@ inline void
 add_output_stream(std::string const & label,
   std::ostream & stream,
   bool colorize = false) {
-  state::instance().config_stream().add_buffer(label, stream, colorize);
+  state::instance.value().config_stream().add_buffer(label, stream, colorize);
 } // add_output_stream
 
 /*
@@ -397,7 +398,7 @@ private:
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define FLOG_FLUSH_WAIT usleep(FLOG_PACKET_FLUSH_INTERVAL)
+#define FLOG_RESET ::flecsi::flog::state::instance.reset
 
 #else // FLECSI_ENABLE_FLOG
 
@@ -431,9 +432,6 @@ struct container {
 } // namespace flog
 } // namespace flecsi
 
-#define flog_initialize(active)
-#define flog_finalize()
-
 #define flog(severity)                                                         \
   if(true) {                                                                   \
   }                                                                            \
@@ -451,7 +449,7 @@ struct container {
 #define flog_warn(message)
 #define flog_error(message)
 
-#define FLOG_FLUSH_WAIT
+#define FLOG_RESET()
 
 #endif // FLECSI_ENABLE_FLOG
 
@@ -522,7 +520,7 @@ dumpstack() {
              << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
-    FLOG_FLUSH_WAIT;                                                           \
+    FLOG_RESET();                                                              \
     const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
     if(dump != nullptr) {                                                      \
       ::flecsi::flog::dumpstack();                                             \

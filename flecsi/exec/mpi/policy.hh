@@ -76,6 +76,9 @@ reduce_internal(Args &&... args) {
   // the fields is also done in the prolog.
   const prolog<mask_to_processor_type(Attributes)> pr(params, args...);
 
+  run::context_t::depth_guard rg;
+  run::task_local_base::guard tlg;
+
   // Different kinds of task invocation with flecsi::execute():
   // 1. domain_size is a std::monostate: a single task launch. On a single
   //    rank (0) of our choice, we apply F to ARGS. Given the return type R of

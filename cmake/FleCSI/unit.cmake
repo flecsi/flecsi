@@ -1,9 +1,34 @@
+#------------------------------------------------------------------------------#
+# Set a custom unit_tests target name
+#------------------------------------------------------------------------------#
+
+macro(flecsi_set_unit_tests_target_name name)
+  set(FLECSI_UNIT_TESTS_TARGET ${name})
+endmacro()
+
+#------------------------------------------------------------------------------#
+# create unit target ${FLECSI_UNIT_TESTS_TARGET}
+# this collects all unit tests added by flecsi_add_test
+# if no name is set, use default name "unit_tests"
+#------------------------------------------------------------------------------#
+
+macro(_flecsi_define_unit_tests_target)
+  if(NOT DEFINED FLECSI_UNIT_TESTS_TARGET)
+    set(FLECSI_UNIT_TESTS_TARGET unit_tests)
+  endif()
+
+  if(NOT TARGET ${FLECSI_UNIT_TESTS_TARGET})
+    add_custom_target(${FLECSI_UNIT_TESTS_TARGET} ALL)
+  endif()
+endmacro()
+
 macro(flecsi_enable_testing)
   if(NOT FleCSI_ENABLE_FLOG)
     message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
   endif()
 
   enable_testing()
+  _flecsi_define_unit_tests_target()
   set(FLECSI_ENABLE_TESTING ON)
 endmacro()
 
@@ -140,6 +165,7 @@ function(flecsi_add_test name)
   add_executable(${name}
     ${unit_SOURCES}
   )
+  add_dependencies(${FLECSI_UNIT_TESTS_TARGET} ${name})
   
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${_OUTPUT_DIR})

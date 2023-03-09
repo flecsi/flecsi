@@ -46,11 +46,7 @@ public:
    */
 
   void add_buffer(std::string key, std::streambuf * sb, bool colorized) {
-    if(buffers_.find(key) == buffers_.end()) {
-      buffers_[key].enabled = true;
-      buffers_[key].buffer = sb;
-      buffers_[key].colorized = colorized;
-    } // if
+    buffers_.insert({key, {true, colorized, sb}});
   } // add_buffer
 
   /*!
@@ -58,20 +54,16 @@ public:
     for buffers that have been disabled and need to be re-enabled.
    */
 
-  bool enable_buffer(std::string key) {
-    assert(buffers_.find(key) != buffers_.end());
-    buffers_[key].enabled = true;
-    return buffers_[key].enabled;
+  void enable_buffer(std::string key) {
+    buffers_.at(key).enabled = true;
   } // enable_buffer
 
   /*!
     Disable a buffer so that output is not written to it.
    */
 
-  bool disable_buffer(std::string key) {
-    assert(buffers_.find(key) != buffers_.end());
-    buffers_[key].enabled = false;
-    return buffers_[key].enabled;
+  void disable_buffer(std::string key) {
+    buffers_.at(key).enabled = false;
   } // disable_buffer
 
 protected:
@@ -191,15 +183,15 @@ protected:
    */
 
   virtual int sync() {
-    int state = 0;
+    bool fail = false;
 
-    for(auto b : buffers_) {
-      const int s = b.second.buffer->pubsync();
-      state = (state != 0) ? state : s;
+    for(const auto & b : buffers_) {
+      if(b.second.buffer->pubsync())
+        fail = true;
     } // for
 
     // Return -1 if one of the buffers had an error
-    return (state == 0) ? 0 : -1;
+    return -fail;
   } // sync
 
 private:
@@ -219,7 +211,7 @@ private:
     int eof = !EOF;
 
     // Put test buffer characters to each buffer
-    for(auto b : buffers_) {
+    for(const auto & b : buffers_) {
       if(predicate(b.second)) {
         for(auto bc : test_buffer_) {
           const int w = b.second.buffer->sputc(bc);
@@ -271,9 +263,8 @@ struct tee_stream_t : public std::ostream {
     \param key The string identifier of the streambuf.
    */
 
-  bool enable_buffer(std::string const & key) {
+  void enable_buffer(std::string const & key) {
     tee_.enable_buffer(key);
-    return true;
   } // enable_buffer
 
   /*!
@@ -282,9 +273,8 @@ struct tee_stream_t : public std::ostream {
     \param key The string identifier of the streambuf.
    */
 
-  bool disable_buffer(std::string const & key) {
+  void disable_buffer(std::string const & key) {
     tee_.disable_buffer(key);
-    return false;
   } // disable_buffer
 
 private:
