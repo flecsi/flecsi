@@ -3,9 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-
 from spack import *
-
 
 class Flecsi(CMakePackage, CudaPackage):
     '''FleCSI is a compile-time configurable framework designed to support
