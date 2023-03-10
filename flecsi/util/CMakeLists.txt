@@ -26,7 +26,6 @@ set(util_HEADERS
   set_intersection.hh
   set_utils.hh
   target.hh
-  tikz.hh
   type_traits.hh
   types.hh
   unit.hh

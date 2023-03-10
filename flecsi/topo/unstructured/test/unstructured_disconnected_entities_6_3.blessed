@@ -1,0 +1,16 @@
+{
+"process": 3,
+"color": 3,
+"exclusive_cells_local": [],
+"exclusive_cells_global": [],
+"shared_cells_local": [0,1],
+"shared_cells_global": [6,7],
+"ghost_cells_local": [2,3],
+"ghost_cells_global": [8,9],
+"exclusive_vertices_local": [],
+"exclusive_vertices_global": [],
+"shared_vertices_local": [0,1,2],
+"shared_vertices_global": [12,13,14],
+"ghost_vertices_local": [3,4,5,6,7,8],
+"ghost_vertices_global": [15,16,17,18,19,20]
+}

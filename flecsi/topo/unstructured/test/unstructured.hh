@@ -3,7 +3,6 @@
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 #include "flecsi/util/parmetis.hh"
-#include "flecsi/util/tikz.hh"
 #include "simple_definition.hh"
 
 struct unstructured
