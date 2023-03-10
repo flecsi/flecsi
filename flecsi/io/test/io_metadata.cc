@@ -13,11 +13,13 @@ using namespace flecsi;
 int
 index_topology() {
   UNIT() {
+    using F = io::hdf5::file;
+
     int my_rank = process();
     const std::string file_name{"io_metadata.dat" + std::to_string(my_rank)};
 
     // create hdf5 file and checkpoint
-    io::hdf5 checkpoint_file = io::hdf5::create(file_name);
+    F checkpoint_file = F::create(file_name);
 
     checkpoint_file.write_string("control", "ds1", "control_ds1");
     checkpoint_file.write_string("control", "ds2", "control_ds2");
@@ -26,7 +28,7 @@ index_topology() {
     checkpoint_file.close();
 
     // recover
-    checkpoint_file = io::hdf5::open(file_name);
+    checkpoint_file = F::open(file_name);
 
     std::string str1_recover;
     checkpoint_file.read_string("control", "ds1", str1_recover);

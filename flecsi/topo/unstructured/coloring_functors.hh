@@ -72,7 +72,7 @@ struct vertex_referencers {
     int rank)
     : size_(dist.size()) {
     references_.resize(size_);
-    for(auto v : vertex2cell) {
+    for(auto & v : vertex2cell) {
       auto r = dist.bin(v.first);
       if(int(r) != rank) {
         for(auto c : v.second) {

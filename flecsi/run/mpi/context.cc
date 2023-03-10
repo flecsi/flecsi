@@ -1,6 +1,10 @@
 #include "flecsi/run/mpi/context.hh"
 #include "flecsi/data.hh"
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+#include <Kokkos_Core.hpp>
+#endif
+
 using namespace boost::program_options;
 
 namespace flecsi::data {
@@ -19,64 +23,27 @@ pointers::expand(topo::claims::Field::accessor<ro> c,
 
 namespace flecsi::run {
 
-//----------------------------------------------------------------------------//
-// Implementation of context_t::initialize.
-//----------------------------------------------------------------------------//
-
-int
-context_t::initialize(int argc, char ** argv, bool dependent) {
-  using util::mpi::test;
-
-  if(dependent) {
-    int provided;
-    test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
-
-    if(provided < MPI_THREAD_MULTIPLE) {
-      std::cerr << "Your implementation of MPI does not support "
-                   "MPI_THREAD_MULTIPLE which is required!"
-                << std::endl;
-      std::abort();
-    }
-  } // if
-
-  std::tie(context::process_, context::processes_) = util::mpi::info();
-
-  auto status = context::initialize_generic(argc, argv, dependent);
-
-  if(status != success && dependent) {
-    test(MPI_Finalize());
-  } // if
-
-#if defined(FLECSI_ENABLE_KOKKOS)
-  if(dependent) {
-    Kokkos::initialize(argc, argv);
-  }
+dependencies_guard::dependencies_guard(arguments::dependent & d)
+  : dependencies_guard(d, d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(arguments::dependent & d,
+  int mc,
+  char ** mv)
+  : mpi(mc, mv) {
+#ifdef FLECSI_ENABLE_KOKKOS
+  [](int kc, char ** kv) { Kokkos::initialize(kc, kv); }(
+    d.kokkos.size(), arguments::pointers(d.kokkos).data());
+#else
+  (void)d;
 #endif
-
-  return status;
-} // initialize
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::finalize.
-//----------------------------------------------------------------------------//
-
-void
-context_t::finalize() {
-
-  context::finalize_generic();
-
-#ifndef GASNET_CONDUIT_MPI
-  if(context::initialize_dependent_) {
-    util::mpi::test(MPI_Finalize());
-  } // if
+}
+dependencies_guard::~dependencies_guard() {
+#ifdef FLECSI_ENABLE_KOKKOS
+  Kokkos::finalize();
 #endif
+}
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-  if(context::initialize_dependent_) {
-    Kokkos::finalize();
-  }
-#endif
-} // finalize
+context_t::context_t(const arguments::config & c, arguments::action & a)
+  : context(c, a, util::mpi::size(), util::mpi::rank()) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
@@ -89,16 +56,7 @@ context_t::start(const std::function<int()> & action) {
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_;
 
-  std::vector<char *> largv;
-  largv.push_back(argv_[0]);
-
-  for(auto opt = unrecognized_options_.begin();
-      opt != unrecognized_options_.end();
-      ++opt) {
-    largv.push_back(opt->data());
-  } // for
-
-  return detail::data_guard(), action(); // guard destroyed after action call
+  return detail::data_guard(), task_local_base::guard(), action();
 }
 
 } // namespace flecsi::run

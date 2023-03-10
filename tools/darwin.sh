@@ -21,7 +21,6 @@ else
     cd -
     git clone git@gitlab.lanl.gov:flecsi/flecsi.git
     cd flecsi
-    git checkout origin/2.1
 fi
 git rev-parse HEAD
 
@@ -37,22 +36,23 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 GCC_VERSION=11.1.0
 
 # Download a version of Spack known to work with FleCSI and activate it.
+SPACK_VERSION=v0.19
 pushd "$HOME"
 if [ ! -d spack ]; then
   git clone https://github.com/spack/spack.git
   cd spack
-  git switch releases/v0.18
+  git switch releases/$SPACK_VERSION
   git rev-parse HEAD
 else
   cd spack
   echo "Found existing Spack install in ~/spack"
   git fetch origin
-  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/releases/v0.18)" ]; then
-    echo "ERROR: The current checkout does not match origin/releases/v0.18!"
+  if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/releases/$SPACK_VERSION)" ]; then
+    echo "ERROR: The current checkout does not match origin/releases/$SPACK_VERSION!"
     echo
     echo "Please update manually with:"
-    echo " git -C ~/spack fetch +releases/v0.18:refs/remotes/origin/releases/v0.18"
-    echo " git -C ~/spack switch origin/releases/v0.18"
+    echo " git -C ~/spack fetch +releases/$SPACK_VERSION:refs/remotes/origin/releases/$SPACK_VERSION"
+    echo " git -C ~/spack switch origin/releases/$SPACK_VERSION"
     echo
     echo "WARNING: This may invalidate other Spack environments that rely on" \
          "this Spack instance!"
@@ -83,18 +83,14 @@ export SPACK_DISABLE_LOCAL_CONFIG=true
 # allow spack to dynamically concretize packages together instead of separately.
 # this avoids some installation errors due to multiple python packages depending
 # on different versions of a dependency
-spack config add concretizer:unify:when_possible
 spack config add concretizer:reuse:false
 spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
 
 # add FleCSI spack package repository
 spack repo add ../spack-repo
 
-# add documentation dependencies
-spack add py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
-
 # On Darwin we have a Spack upstream that already has prebuilt dependencies
-DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/current
+DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/$SPACK_VERSION
 
 if [ -d "$DARWIN_SPACK_UPSTREAM" ] && [ -x "${DARWIN_SPACK_UPSTREAM}" ]; then
   # add spack upstream if accessible
@@ -107,19 +103,18 @@ else
   spack external find
 fi
 
-# install packages added so far
-spack install -j $(nproc)
-
 # Install FleCSI's dependencies with Spack.
 # This also builds a version of MPICH in Spack since the ones on Darwin do not include
 # an mpiexec/mpirun that works.
-spack install -j $(nproc) --only dependencies flecsi%gcc@${GCC_VERSION} backend=legion +hdf5 +kokkos +flog ^mpich@3.4.2%gcc@${GCC_VERSION}+hydra+romio~verbs device=ch4 ^legion network=gasnet conduit=mpi build_type=Debug
+spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +hdf5 +kokkos +flog \
+          ^mpich@3.4.2%gcc@${GCC_VERSION}+hydra+romio~verbs device=ch4 \
+          ^legion network=gasnet conduit=mpi build_type=Debug
+spack install -j $(nproc) --only dependencies
 
 # Build, test, and install FleCSI.
 ../tools/configure gnu legion -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"
 make VERBOSE=1 -j $(nproc)
 make test
-make doc
 make install
 cd ..
 
@@ -129,7 +124,7 @@ test -d build && rm -rf build
 mkdir build
 cd build
 cmake -DFleCSI_DIR="$FLECSI_INSTALL/lib64/cmake/FleCSI" ..
-make
+make -j $(nproc)
 cd ../..
 
 # Build complete

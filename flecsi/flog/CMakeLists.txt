@@ -10,7 +10,6 @@ set(flog_HEADERS
 )
 
 set(flog_SOURCES
-  packet.cc
-  utils.cc
+  state.cc
   PARENT_SCOPE
 )

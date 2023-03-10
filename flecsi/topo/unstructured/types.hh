@@ -188,15 +188,6 @@ operator<<(std::ostream & stream, process_coloring const & pc) {
   return stream;
 }
 
-/*
-  Type for mapping ragged ghosts into buffers.
- */
-
-struct cmap {
-  std::size_t lid;
-  std::size_t rid;
-};
-
 } // namespace unstructured_impl
 
 struct unstructured_base {
@@ -204,7 +195,6 @@ struct unstructured_base {
   using index_coloring = unstructured_impl::index_coloring;
   using process_coloring = unstructured_impl::process_coloring;
   using ghost_entity = unstructured_impl::ghost_entity;
-  using cmap = unstructured_impl::cmap;
   using reverse_maps_t = std::vector<std::map<util::gid, util::id>>;
 
   using source_pointers = std::vector</* over local colors */
@@ -289,8 +279,8 @@ struct unstructured_base {
     std::vector<std::size_t> & nis,
     destination_intervals & intervals,
     source_pointers & pointers,
-    data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph,
-    data::multi<field<cmap, data::ragged>::mutator<wo>> cgraph_shared,
+    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph,
+    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared,
     data::multi<field<util::gid>::accessor1<privilege_ghost_repeat<wo, na, N>>>
       fmap,
     reverse_maps_t & rmaps,
@@ -571,8 +561,7 @@ struct unstructured_base {
         // loop over entries
         std::size_t cnt{0};
         for(auto [id, dmmy, lid, rid] : pg.second) {
-          a[p][cnt].lid = lid;
-          a[p][cnt].rid = rid;
+          a[p][cnt] = lid;
           ++cnt;
         }
         ++p;
@@ -593,8 +582,7 @@ struct unstructured_base {
         // loop over entries
         std::size_t cnt{0};
         for(auto offset : sh.second) {
-          a[p][cnt].lid = offset;
-          a[p][cnt].rid = offset;
+          a[p][cnt] = offset;
           ++cnt;
         }
         ++p;
@@ -690,7 +678,7 @@ struct unstructured_base {
     using fm_rw = typename field<T,
       data::ragged>::template mutator1<privilege_ghost_repeat<ro, rw, N>>;
 
-    using cga = field<cmap, data::ragged>::accessor<ro>;
+    using cga = field<util::id, data::ragged>::accessor<ro>;
 
     static void start(fa v, cga, cga cgraph_shared, data::buffers::Start mv) {
       send(v, cgraph_shared, true, mv);
@@ -700,11 +688,7 @@ struct unstructured_base {
     xfer(fm_rw g, cga cgraph, cga cgraph_shared, data::buffers::Transfer mv) {
       int p = cgraph_shared.size(); // number of send buffers
       for(auto pg : cgraph) { // over peers
-        data::buffers::ragged::read(g, mv[p], [&pg](std::size_t i) {
-          return std::partition_point(
-            pg.begin(), pg.end(), [i](const cmap & c) { return (i > c.rid); })
-            ->lid;
-        });
+        data::buffers::ragged::read(g, mv[p], pg);
         ++p;
       }
 
@@ -720,7 +704,7 @@ struct unstructured_base {
       for(auto pg : cgraph_shared) { // over peers
         auto b = data::buffers::ragged{mv[p++], first};
         for(auto & ent : pg) { // send data on shared entities
-          if(!b(f, ent.lid, sent))
+          if(!b(f, ent, sent))
             return sent; // if no more data can be packed, stop sending, will be
                          // packed by xfer
         }
