@@ -21,7 +21,7 @@ function(std::size_t) {
 inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
-// A partition with a field for dynamically resizing it.
+/// A partition with a field for dynamically resizing it.
 struct repartition : with_size, data::prefixes, with_cleanup {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
@@ -32,7 +32,8 @@ struct repartition : with_size, data::prefixes, with_cleanup {
         execute<fill<std::decay_t<F>>>(ref, std::forward<F>(f));
       })) {}
 
-  void resize() { // apply sizes stored in the field
+  /// Apply sizes stored in the field.
+  void resize() {
     update(sizes());
   }
 

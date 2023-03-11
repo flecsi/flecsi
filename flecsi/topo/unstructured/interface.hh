@@ -269,7 +269,7 @@ private:
         for_each(
           [&](auto v) { // invoked for each to-entity
             execute<cnx_size, mpi>(pc, index<v.value>, temp_size(lm));
-            auto & p = row.template get<v.value>()(*this).get_ragged();
+            auto & p = row.template get<v.value>()(*this).get_elements();
             execute<copy_sizes>(temp_size(this->meta), p.sizes());
           },
           typename TT::keys());

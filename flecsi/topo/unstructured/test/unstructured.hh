@@ -276,10 +276,10 @@ struct unstructured
     auto const & cmaps = s->reverse_map<cells>();
     auto const & vmaps = s->reverse_map<vertices>();
 
-    c2v(s).get_ragged().resize();
-    v2c(s).get_ragged().resize();
-    e2c(s).get_ragged().resize();
-    e2v(s).get_ragged().resize();
+    c2v(s).get_elements().resize();
+    v2c(s).get_elements().resize();
+    e2c(s).get_elements().resize();
+    e2v(s).get_elements().resize();
 
     {
       auto lm = data::launch::make(s);

@@ -48,6 +48,7 @@ New features
 
 * Data
 
+  * ``field_reference::get_elements`` and associated types allow control of the storage for elements of ragged/sparse fields.
   * ``launch::mapping`` allows field data to be accessed from other colors (using ``multi`` task parameters) with the Legion backend.
   * ``reduction_accessor`` allows ``dense`` fields on a ``global`` topology to be updated collectively.
   * The ``particle`` layout supports efficient creation and destruction of unordered field elements.
