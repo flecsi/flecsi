@@ -68,12 +68,6 @@ public:
     return k == 0 ? num_vertices_ : num_cells_;
   }
 
-  util::crs const & entities(entity_kind from, entity_kind to) const {
-    flog_assert(from == 2, "invalid entity kind " << from);
-    flog_assert(to == 0, "invalid entity kind " << to);
-    return e2v_;
-  }
-
   std::vector<size_t>
   entities(entity_kind from, entity_kind to, std::size_t entity_id) const {
     flog_assert(from == 2, "invalid entity kind " << from);
