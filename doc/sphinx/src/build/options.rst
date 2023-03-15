@@ -166,12 +166,6 @@ Miscellaneous options
   If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
   for checkpointing program state.
 
-* **ENABLE_PARMETIS [default: OFF]** |br|
-  Use the `ParMETIS
-  <http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview>`_ graph
-  partitioner for distributing mesh data in the `unstructured`
-  topology.
-
 * **ENABLE_UNIT_TESTS [default: OFF]** |br|
   Enable FleCSI unit tests. If enabled, the unit test suite can be run
   by invoking:

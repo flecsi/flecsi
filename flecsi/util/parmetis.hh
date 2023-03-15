@@ -11,10 +11,6 @@
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/types.hh"
 
-#if !defined(FLECSI_ENABLE_PARMETIS)
-#error FLECSI_ENABLE_PARMETIS not defined! This file depends on ParMETIS!
-#endif
-
 #include <parmetis.h>
 
 #include <vector>
