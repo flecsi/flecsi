@@ -573,7 +573,9 @@ struct unstructured_base {
     for(auto & a : cgraph_shared.accessors()) {
       // peers for local color k
       std::size_t p{0};
-      for(auto const & sh : shared_cg[k]) {
+      for(auto & sh : shared_cg[k]) {
+        // sort the sending local ids
+        std::sort(sh.second.begin(), sh.second.end());
 
         // resize field
         a[p].resize(sh.second.size());

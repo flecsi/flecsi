@@ -33,6 +33,120 @@ using colors = std::vector<Color>;
 
 /// \cond core
 
+template<Dimension D>
+struct neighbors_view {
+  using S = short;
+  struct iterator {
+    using M = std::array<S, D>;
+
+    iterator() : iterator(-1) {}
+    explicit iterator(S s) : iterator(s, std::make_index_sequence<D - 1>()) {}
+
+    const M & operator*() const {
+      return m;
+    }
+
+    iterator & operator++() {
+      for(Dimension d = 0; ++m[d] == 2 && ++d < D; m[d - 1] = -1)
+        ;
+      if(m == M())
+        m[0] = 1; // skip origin; note that std::none_of is actually faster
+      return *this;
+    }
+    iterator operator++(int) {
+      iterator ret = *this;
+      ++*this;
+      return ret;
+    }
+
+    bool operator==(const iterator & i) const {
+      return m == i.m;
+    }
+    bool operator!=(const iterator & i) const {
+      return !(*this == i);
+    }
+
+  private:
+    template<std::size_t... II>
+    iterator(S last, std::index_sequence<II...>) : m{(void(II), -1)..., last} {}
+
+    M m;
+  };
+
+  iterator begin() const {
+    return {};
+  }
+  iterator end() const {
+    return iterator(2);
+  }
+};
+
+template<Dimension D, typename I = int>
+struct traverse {
+  using M = std::array<I, D>;
+  M lbnds, ubnds;
+
+  struct iterator {
+    using M = std::array<I, D>;
+
+    iterator(M lower_bnds, M upper_bnds, M bnds, I i)
+      : iterator(lower_bnds, upper_bnds, bnds) {
+      m[D - 1] = i;
+    };
+    iterator(M lower_bnds, M upper_bnds, M bnds)
+      : lbnds(lower_bnds), ubnds(upper_bnds), m(bnds){};
+
+    const M & operator*() const {
+      return m;
+    }
+
+    iterator & operator++() {
+      for(Dimension d = 0; ++m[d] == ubnds[d] && ++d < D;
+          m[d - 1] = lbnds[d - 1]) {
+      }
+      return *this;
+    }
+
+    iterator operator++(int) {
+      iterator ret = *this;
+      ++*this;
+      return ret;
+    }
+
+    bool operator==(const iterator & i) const {
+      return m == i.m;
+    }
+    bool operator!=(const iterator & i) const {
+      return !(*this == i);
+    }
+
+  private:
+    M lbnds, ubnds, m;
+  };
+
+  iterator begin() const {
+    return iterator(lbnds, ubnds, lbnds);
+  }
+  iterator end() const {
+    return iterator(lbnds, ubnds, lbnds, ubnds[D - 1]);
+  }
+  traverse(M lower_bnds, M upper_bnds) : lbnds(lower_bnds), ubnds(upper_bnds){};
+};
+
+template<Dimension D, typename I = int>
+struct linearize {
+  using M = std::array<I, D>;
+  M strs;
+
+  I operator()(M indices) {
+    I lid = indices[D - 1];
+    for(Dimension k = D - 1; k--;) {
+      lid = lid * strs[k] + indices[k];
+    }
+    return lid;
+  }
+};
+
 /*!
  Type to store the coloring information for one axis of one color.
  */
@@ -86,8 +200,18 @@ struct axis_color {
 
   /// The global index for a given logical index on the local axis.
   /// This function is supported for GPU execution.
-  FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
-    return offset() + logical_id;
+  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
+    util::gid id;
+    const util::gid sa = logical<0>(), ea = logical<1>();
+    if(is_high() && i >= ea) // periodic high
+      id = i - ea;
+    else if(is_low() && i < sa) { // periodic low
+      id = global() - sa + i;
+    }
+    else {
+      id = offset() + i - sa;
+    }
+    return id;
   }
 
   /// The global coordinate offset of the local axis.
@@ -152,9 +276,8 @@ struct axis_color {
         gi.push_back({color_index + 1, {log1, tot}});
 
       if(periodic) {
-        flog_assert(hdepth == bdepth,
-          "halo and boundary depth must be identical for periodic axes");
-
+        flog_assert(
+          bdepth != 0, "boundary depth must be non-zero for periodic axes");
         if(lo)
           gi.push_back({colors - 1, {0, log0}});
         if(hi)
@@ -205,17 +328,7 @@ struct index_color {
     const auto dimension = axis_colors.size();
     gcoord result(dimension);
     for(Dimension axis = 0; axis < dimension; ++axis) {
-      auto & axco = axis_colors[axis];
-      const util::gid sa = axco.logical<0>(), ea = axco.logical<1>(),
-                      i = idx[axis];
-      if(axco.is_high() && i >= ea) // periodic high
-        result[axis] = i - ea;
-      else if(axco.is_low() && i < sa) { // periodic low
-        result[axis] = axco.global() - sa + i;
-      }
-      else {
-        result[axis] = axco.offset() + i - sa;
-      }
+      result[axis] = axis_colors[axis].global_id(idx[axis]);
     }
     return result;
   }
@@ -377,6 +490,12 @@ struct index_definition {
       util::gid offset_high = em(ci + 1);
       util::gid neigh_offset_low = em(ci - !lo);
       util::gid neigh_offset_high = em(ci + 1 + !hi);
+
+      if(ax.bdepth && lo)
+        neigh_offset_low = em(em.size() - 1);
+
+      if(ax.bdepth && hi)
+        neigh_offset_high = em(1);
 
       // modifications if auxiliary coloring
       if(ex) {
@@ -600,6 +719,79 @@ struct index_definition {
   }
 };
 
+/*
+ * Return the global communication graph over all colors
+ */
+template<Dimension D>
+std::vector<std::vector<Color>>
+peers(index_definition idef) {
+  using A = std::array<int, D>;
+  using nview = flecsi::topo::narray_impl::neighbors_view<D>;
+
+  A color_bnd, color_strs, axes_bdepths, color_indices;
+  std::array<bool, D> axes_periodic;
+  for(Dimension k = 0; k < D; ++k) {
+    color_bnd[k] = 0;
+    color_strs[k] = idef.axes[k].colormap.size();
+    axes_bdepths[k] = idef.axes[k].bdepth;
+    axes_periodic[k] = idef.axes[k].periodic;
+  }
+
+  std::vector<std::vector<Color>> peer;
+
+  // Loop over all colors
+  for(auto && v : traverse<D>(color_bnd, color_strs)) {
+    for(Dimension k = 0; k < D; ++k)
+      color_indices[k] = v[k];
+
+    std::vector<Color> ngb_colors;
+
+    // Loop over neighbors of a color
+    for(auto && nv : nview()) {
+      A indices_mo;
+      for(Dimension d = 0; d < D; ++d) {
+        indices_mo[d] = color_indices[d] + nv[d];
+        // if boundary depth, add the correct ngb color
+        if(axes_periodic[d]) {
+          if((indices_mo[d] == -1) && (color_indices[d] == 0) &&
+             axes_bdepths[d])
+            indices_mo[d] = color_strs[d] - 1;
+          if((indices_mo[d] == color_strs[d]) &&
+             (color_indices[d] == color_strs[d] - 1) && axes_bdepths[d])
+            indices_mo[d] = 0;
+        }
+      }
+
+      bool valid_ngb = true;
+      for(Dimension k = 0; k < D; ++k) {
+        if((indices_mo[k] == -1) || (indices_mo[k] == color_strs[k]))
+          valid_ngb = false;
+      }
+
+      int lid;
+      if(valid_ngb) {
+        if(D == 1) {
+          lid = indices_mo[D - 1];
+        }
+        else {
+          lid = indices_mo[D - 1] * color_strs[D - 2] + indices_mo[D - 2];
+          for(int k = D - 3; k >= 0; --k) {
+            lid = lid * color_strs[k] + indices_mo[k];
+          }
+        }
+        ngb_colors.push_back((Color)lid);
+      }
+    }
+
+    std::sort(ngb_colors.begin(), ngb_colors.end());
+    ngb_colors.erase(
+      std::unique(ngb_colors.begin(), ngb_colors.end()), ngb_colors.end());
+    peer.push_back(ngb_colors);
+  }
+
+  return peer;
+}
+
 inline std::ostream &
 operator<<(std::ostream & stream, axis_color const & ac) {
   stream << "global_extent\n"
@@ -766,6 +958,7 @@ struct narray_base {
       } // for
     }
   }
+
 }; // struct narray_base
 
 /// \}

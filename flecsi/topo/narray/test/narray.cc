@@ -669,6 +669,95 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
   } // d=3
 } // check_mesh_field
 
+using ints = field<int, data::ragged>;
+
+template<std::size_t D>
+void
+print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, ro> tf) {
+  std::stringstream ss;
+  ss << " Color " << color() << std::endl;
+
+  using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+  std::array<util::id, D> lbnds{0};
+  auto str_local = m.template strides();
+  auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
+  flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+  flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+
+  for(auto && v : tb(lbnds, str_local)) {
+    auto gids = m.global_ids(v);
+    auto lid = ln_local(v);
+    auto gid = ln_global(gids);
+
+    ss << "For cell (" << lid << ", " << gid
+       << "), field_size = " << tf[lid].size() << ", field vals = [";
+    for(std::size_t k = 0; k < tf[lid].size(); ++k)
+      ss << tf[lid][k] << "  ";
+    ss << "]\n\n";
+  }
+
+  flog(info) << ss.str() << std::endl;
+} // print_rf
+
+template<std::size_t D>
+void
+allocate_field(field<std::size_t>::accessor<ro, ro> f,
+  topo::resize::Field::accessor<wo> a,
+  int sz) {
+  a = f.span().size() * sz;
+}
+
+bool
+check(const int & x, int y) {
+  return (x == y);
+}
+
+bool
+check(int & x, int y) {
+  x = y;
+  return true;
+}
+
+template<bool V>
+bool
+check_sz(
+  std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
+  util::id & lid,
+  int sz) {
+  if constexpr(V) {
+    return (tf[lid].size() == (std::size_t)sz);
+  }
+  else {
+    tf[lid].resize(sz);
+  }
+  return true;
+}
+
+template<std::size_t D, typename mesh<D>::domain DOM, bool V>
+int
+init_verify_rf(typename mesh<D>::template accessor<ro> m,
+  std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
+  int sz) {
+  UNIT("INIT_VERIFY_RAGGED_FIELD") {
+    std::array<util::id, D> lbnds, ubnds;
+    m.template bounds<DOM>(lbnds, ubnds);
+    auto str_local = m.template strides();
+    auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
+    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+    flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+
+    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+    for(auto && v : tb(lbnds, ubnds)) {
+      auto gids = m.global_ids(v);
+      auto lid = ln_local(v);
+      auto gid = ln_global(gids);
+      check_sz<V>(tf, lid, sz);
+      for(int n = 0; n < sz; ++n)
+        check(tf[lid][n], (int)(gid * 10000 + n));
+    }
+  };
+}
+
 int
 coloring_driver() {
   UNIT() {
@@ -828,16 +917,19 @@ util::unit::driver<coloring_driver> cd;
 mesh1d::slot m1;
 mesh1d::cslot coloring1;
 const field<std::size_t>::definition<mesh1d> f1;
+field<int, data::ragged>::definition<mesh1d> rf1;
 
 // 2D Mesh
 mesh2d::slot m2;
 mesh2d::cslot coloring2;
 const field<std::size_t>::definition<mesh2d> f2;
+field<int, data::ragged>::definition<mesh2d> rf2;
 
 // 3D Mesh
 mesh3d::slot m3;
 mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d> f3;
+field<int, data::ragged>::definition<mesh3d> rf3;
 
 // 4D Mesh
 mesh4d::slot m4;
@@ -952,7 +1044,6 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      // coloring1.allocate(index_definitions);
       coloring1.allocate(idef);
       m1.allocate(coloring1.get());
       execute<init_field<1>, default_accelerator>(m1, f1(m1));
@@ -965,6 +1056,24 @@ narray_driver() {
         auto lm = data::launch::make<data::launch::gather>(m1, 1);
         EXPECT_EQ(test<check_contiguous>(lm), 0);
       }
+
+      // ragged field
+      int sz = 100;
+
+      auto & tf = rf1(m1).get_elements();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
+
+      execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
+        m1, rf1(m1), sz);
+      execute<print_rf<1>>(m1, rf1(m1));
+
+      // tests the case where the periodic flag is false, but with non-zero
+      // bdepth, communication is expected only for the halo layers.
+      execute<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
+        m1, rf1(m1), sz);
+      execute<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
+        m1, rf1(m1), sz);
     } // scope
 
     {
@@ -976,6 +1085,8 @@ narray_driver() {
       idef.axes[1].hdepth = 2;
       idef.axes[0].bdepth = 2;
       idef.axes[1].bdepth = 1;
+      idef.axes[0].periodic = true;
+      idef.axes[1].periodic = true;
       idef.diagonals = true;
       idef.full_ghosts = true;
 
@@ -986,6 +1097,18 @@ narray_driver() {
       execute<update_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
       EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
+
+      // ragged field
+      int sz = 100;
+
+      auto & tf = rf2(m2).get_elements();
+      tf.growth = {0, 0, 0.25, 0.5, 1};
+      execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
+
+      execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
+        m2, rf2(m2), sz);
+      // execute<print_rf<2>>(m2, rf2(m2));
+      execute<init_verify_rf<2, mesh2d::domain::all, true>>(m2, rf2(m2), sz);
     } // scope
 
     {
@@ -996,6 +1119,7 @@ narray_driver() {
       for(auto & a : idef.axes) {
         a.hdepth = 1;
         a.bdepth = 1;
+        a.periodic = true;
       }
       idef.diagonals = true;
       idef.full_ghosts = true;
@@ -1007,6 +1131,24 @@ narray_driver() {
       execute<update_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
       EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
+
+      // ragged field
+      int sz = 100;
+
+      auto & tf = rf3(m3).get_elements();
+
+      // The usual growth policy (with lo = 0.25) will not work for this
+      // particular problem setup since the number of cells initialized (2*2*4 =
+      // 16) is much less than the quarter of the capacity (which is 192),
+      // reducing the lo value from quarter to a tenth of the capacity ensures
+      // that the correct size is maintained.
+      tf.growth = {0, 0, 0.1, 0.5, 1};
+      execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
+
+      execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
+        m3, rf3(m3), sz);
+      // execute<print_rf<3>>(m3, rf3(m3));
+      execute<init_verify_rf<3, mesh3d::domain::all, true>>(m3, rf3(m3), sz);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
