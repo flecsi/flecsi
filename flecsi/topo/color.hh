@@ -44,7 +44,6 @@ struct detail::base<column> {
 };
 
 // A topology that reuses a region from another.
-// NB: No check is made that the field ID corresponds to the partition.
 struct indirect_base : data::borrow {
   struct coloring {};
 

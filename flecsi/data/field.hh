@@ -215,7 +215,11 @@ struct field_reference : convert_tag {
     return get_partition(*topology_);
   }
 
-  auto & get_ragged() const {
+  /// Get the dynamic element storage (for resizing it).
+  /// \return \c\ref repartition
+  /// \note \p L must be \c ragged or \c sparse.
+  auto & get_elements() const {
+    static_assert(L == ragged || L == sparse, "not a dynamic field");
     // A ragged_partition<...>::core, or borrowing of same:
     return topology_->ragged.template get<Space>()[fid_];
   }

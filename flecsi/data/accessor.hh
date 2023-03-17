@@ -322,7 +322,7 @@ struct ragged_accessor
     f(get_base(), [](const auto & r) {
       const field_id_t i = r.fid();
       r.get_region().template ghost_copy<P>(r);
-      auto & t = r.get_ragged();
+      auto & t = r.get_elements();
       if constexpr(!std::is_trivially_destructible_v<T>)
         r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
@@ -365,6 +365,7 @@ struct accessor<ragged, T, P>
 };
 
 /// Mutator for ragged fields.
+/// Cannot be used while tracing.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
@@ -707,7 +708,7 @@ public:
   void send(F && f) {
     f(get_base(), util::identity());
     std::forward<F>(f)(
-      get_size(), [](const auto & r) { return r.get_ragged().sizes(); });
+      get_size(), [](const auto & r) { return r.get_elements().sizes(); });
     if(over)
       over->resize(acc.size()); // no-op on caller side
   }
@@ -868,6 +869,7 @@ public:
 };
 
 /// Mutator for sparse fields.
+/// Cannot be used while tracing.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
@@ -1542,7 +1544,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {type::base_type::parameter(r), r.get_ragged().grow()};
+    return {type::base_type::parameter(r), r.get_elements().grow()};
   }
 };
 template<class T, Privileges P>

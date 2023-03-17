@@ -121,7 +121,7 @@ inline const char * operator*(control_policy::control_points_enum);
   can be written to a graphviz file that can be compiled and viewed using
   the \em dot program.
 
-  \tparam ControlPolicy policy type like \c control_policy
+  \tparam P policy type like \c control_policy
  */
 
 template<typename P>
@@ -271,7 +271,8 @@ public:
     The action type provides a mechanism to add execution elements to the
     FleCSI control model.
 
-    @tparam T  The execution target.
+    \tparam T function to call, of type `void(P&)` if \c P inherits from
+      \c control_base and `int()` otherwise
     @tparam CP The control point under which this action is executed.
     @tparam M  Boolean indicating whether or not the action is a meta action.
    */
@@ -335,7 +336,7 @@ public:
     valid ordering, and executes the actions.  If the policy `P` inherits from
     `control_base`, \c control_base::exception can be thrown for early
     termination. \return code from a thrown \c control_base::exception or the
-    bitwise or of return values of execuded actions.
+    bitwise or of return values of executed actions.
    */
 
   static int execute() {

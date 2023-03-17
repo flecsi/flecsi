@@ -510,7 +510,8 @@ namespace exec {
 #ifdef DOXYGEN // implemented per-backend
 /// Records execution of a loop whose iterations all execute the same sequence
 /// of tasks.  With the Legion backend, subsequent iterations run faster if
-/// traced.  The first iteration should be ignored if it might perform different
+/// traced.  Some \c data::mutator specializations cannot be traced.  The
+/// first iteration should be ignored if it might perform different
 /// ghost copies.
 struct trace {
 
@@ -527,7 +528,7 @@ struct trace {
 
   struct guard;
 
-  /// Creates a guard that traces during its lifetime, with flog support
+  /// Create a \c\ref guard for this \c trace.
   inline guard make_guard();
 
   /// Skip the next call to the tracer
@@ -540,11 +541,13 @@ private:
 #endif
 
 /// RAII guard for executing a trace.
+/// Flog output is deferred to the end of the trace as needed.
 struct trace::guard {
-
+  /// Immovable.
   guard(guard &&) = delete;
 
-  /// Start a trace.
+  /// Start a trace.  Required in certain contexts like use of \c
+  /// std::optional; otherwise prefer \c trace::make_guard.
   explicit guard(trace & t_) : t(t_) {
     current_flog_task_count =
       std::exchange(flecsi::run::context::instance().flog_task_count(), 0);
@@ -566,12 +569,12 @@ private:
 
 }; // struct trace::guard
 
+/// \}
+
 trace::guard
 trace::make_guard() {
   return guard(*this);
 }
-
-/// \}
 } // namespace exec
 
 } // namespace flecsi

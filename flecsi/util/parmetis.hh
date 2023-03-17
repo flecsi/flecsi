@@ -11,14 +11,11 @@
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/types.hh"
 
-#if !defined(FLECSI_ENABLE_PARMETIS)
-#error FLECSI_ENABLE_PARMETIS not defined! This file depends on ParMETIS!
-#endif
-
 #include <parmetis.h>
 
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 namespace parmetis {
@@ -84,5 +81,6 @@ color(const util::offsets & dist,
 } // namespace parmetis
 } // namespace util
 } // namespace flecsi
+/// \endcond
 
 #endif

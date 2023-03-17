@@ -71,14 +71,6 @@ function(add_unit name)
   )
 endfunction()
 
-#------------------------------------------------------------------------------#
-# FleCSI-Tutorial library.
-#------------------------------------------------------------------------------#
-
-add_library(FleCSI-Tutorial
-  ${CMAKE_SOURCE_DIR}/specialization/dummy/dummy.cc
-)
-
 include_directories(${PROJECT_SOURCE_DIR})
 
 #------------------------------------------------------------------------------#

@@ -236,7 +236,7 @@ index_driver() {
 
     Noisy::count = 0;
     constexpr static auto alloc = [](auto f) {
-      auto & p = f.get_ragged();
+      auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
     };
@@ -247,7 +247,7 @@ index_driver() {
     const auto noise = noisy_field(process_topology);
     alloc(verts);
     alloc(vfrac);
-    ghost.get_ragged().growth = {processes() + 1};
+    ghost.get_elements().growth = {processes() + 1};
     execute<irows>(verts);
     execute<irows>(verts); // to make new size visible
     EXPECT_EQ(test<drows>(vfrac), 0);
@@ -275,7 +275,7 @@ index_driver() {
     a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
     { // TODO: automatic resizing
-      auto & p = arag(a).get_ragged();
+      auto & p = arag(a).get_elements();
       execute<allocate>(p.sizes());
       p.resize();
     }

@@ -127,12 +127,12 @@ template<bool Attach>
 int
 restart_driver() {
   UNIT() {
-    auto & mr = m_field_r1(m).get_ragged();
+    auto & mr = m_field_r1(m).get_elements();
     mr.growth = {0, 0, 0.25, 0.5, 1};
     execute<allocate>(mr.sizes());
     // TODO:  figure out how to resize to the right size on a restart
     mr.resize();
-    auto & mr2 = m_field_r2(m).get_ragged();
+    auto & mr2 = m_field_r2(m).get_elements();
     mr2.growth = {0, 0, 0.25, 0.5, 1};
     execute<allocate>(mr2.sizes());
     mr2.resize();

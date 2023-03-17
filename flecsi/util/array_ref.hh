@@ -241,8 +241,15 @@ struct mdspan : detail::mdbase<T, D> {
       return *q;
   }
 };
+/// \}
+
+/// Deduction guide.
+/// \memberof mdspan
 template<class T, std::size_t D>
 mdspan(T *, std::array<std::size_t, D>) -> mdspan<T, D>;
+
+/// \addtogroup ranges
+/// \{
 
 /// \cond core
 

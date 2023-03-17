@@ -48,9 +48,6 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
     variant('openmp', default=False,
             description='Enable OpenMP Support')
 
-    variant('unit', default=False,
-            description='Enable Unit Tests (Requires +flog)')
-
     variant('doc', default=False,
             description='Enable Documentation build')
 
@@ -135,12 +132,6 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
         depends_on("kokkos amdgpu_target=" + _flag, when="+kokkos +rocm amdgpu_target=" + _flag)
 
     #--------------------------------------------------------------------------#
-    # Conflicts
-    #--------------------------------------------------------------------------#
-
-    conflicts('~flog', when='+unit', msg='Unit tests require +flog')
-
-    #--------------------------------------------------------------------------#
     # CMake Configuration
     #--------------------------------------------------------------------------#
 
@@ -155,7 +146,7 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant('ENABLE_KOKKOS', 'kokkos'),
             self.define_from_variant('ENABLE_OPENMP', 'openmp'),
             self.define_from_variant('BUILD_SHARED_LIBS', 'shared'),
-            self.define_from_variant('ENABLE_UNIT_TESTS', 'unit'),
+            self.define('ENABLE_UNIT_TESTS', self.run_tests),
             self.define_from_variant('ENABLE_DOCUMENTATION', 'doc')
         ]
 

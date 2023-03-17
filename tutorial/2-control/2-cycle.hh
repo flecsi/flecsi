@@ -36,9 +36,7 @@ struct control_policy : flecsi::run::control_base {
     return step_;
   }
 
-  // The core FleCSI control model inherits from the control policy, so that
-  // any data members defined in your policy are carried with the control
-  // policy instance, and can be accessed through a static interface.
+  // Cycle predicates are passed the policy object.
 
   static bool cycle_control(control_policy & policy) {
     return policy.step()++ < 5;

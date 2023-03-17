@@ -22,16 +22,13 @@ Deprecated
 ^^^^^^^^^^
 * Runtime
 
-  * Using a control policy type that does not inherit from ``control_base`` |mdash| derive from it with no other changes
-  * ``control::state`` |mdash| use ``control::policy``
+  * ``control::state`` |mdash| derive the control policy type from ``control_base`` and define actions accepting a reference to it
+  * ``run::control_point`` |mdash| use ``control_base::point``
+  * ``run::cycle`` |mdash| use ``control_base::cycle``
 
 * Data
 
   * ``global_topology`` and ``process_topology`` |mdash| create instances of ``topo::global`` and ``topo::index`` as needed
-
-* Topologies
-
-  * In ``narray::access``, ``extents`` and ``range`` |mdash| renamed to ``range`` and ``domain`` respectively
 
 * Logging
 
@@ -45,13 +42,13 @@ New features
 
 * Runtime
 
-  * Control policies may inherit from ``control_base`` to enable throwing ``control_base::exception`` and to limit their lifetime to that of ``control::execute``.
-  * ``control::policy`` replaces ``control::state``.
-  * ``meta_point`` defines special control points for a specialization's use via ``control::meta``.
+  * Control policies may inherit from ``control_base`` to be provided to actions, to allow those actions to throw ``control_base::exception``, and to limit their lifetime to that of ``control::execute``.
+  * ``control_base::meta`` defines special control points for a specialization's use via ``control::meta``.
   * New option ``--Xbackend`` to pass single backend arguments. Can be used multiple times.
 
 * Data
 
+  * ``field_reference::get_elements`` and associated types allow control of the storage for elements of ragged/sparse fields.
   * ``launch::mapping`` allows field data to be accessed from other colors (using ``multi`` task parameters) with the Legion backend.
   * ``reduction_accessor`` allows ``dense`` fields on a ``global`` topology to be updated collectively.
   * The ``particle`` layout supports efficient creation and destruction of unordered field elements.
@@ -61,6 +58,7 @@ New features
 
 * Execution
 
+  * Tasks may be executed as ``omp``, allowing efficient use of OpenMP.
   * ``exec::trace`` improves performance of loops when used with the Legion backend.
 
 * Topologies
@@ -81,7 +79,7 @@ New features
 
 * Utilities
 
-  * ``flog.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
+  * ``unit.hh`` provides macros, based on Google Test, for writing unit tests in or outside of tasks.
   * ``serial`` provides a general-purpose serialization interface.
     It may be extended to allow additional types to be used as task parameters or with MPI communication.
   * ``mdcolex`` accesses a multi-dimensional array using Fortran-like syntax.
@@ -93,6 +91,7 @@ New features
 
 * Logging
 
+  * ``flog_fatal`` suppresses backtraces (already unavailable if ``NDEBUG`` is defined) unless ``FLECSI_BACKTRACE`` is set in the environment.
   * ``flog`` is a new name that avoids collisions with ``::log`` in code lacking proper namespace qualifications.
 
 Changes in v2.1.1

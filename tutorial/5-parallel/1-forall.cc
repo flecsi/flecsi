@@ -2,7 +2,7 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include "canonical.hh"
+#include "../4-data/canonical.hh"
 #include "control.hh"
 
 // this tutorial is based on a 04-data/3-dence.cc tutorial example
