@@ -199,7 +199,8 @@ field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
 int
 unstructured_driver() {
-  std::vector<std::string> files = {"simple2d-8x8.msh", "disconnected.msh"};
+  std::vector<std::string> files = {
+    "simple2d-8x8.msh", "disconnected.msh", "simple2d-3x3.msh"};
   UNIT() {
     for(auto f : files) {
       unstructured::init fields;
@@ -225,7 +226,7 @@ unstructured_driver() {
 
       {
         auto & tf = rvf(mesh).get_elements();
-        tf.growth = {0, 0, 0.25, 0.5, 1};
+        tf.growth = {0, 0, 0.1, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), false);
 
         auto const & vids = mesh->forward_map<unstructured::vertices>();

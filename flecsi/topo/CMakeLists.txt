@@ -87,6 +87,7 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured.hh
     unstructured/test/unstructured.cc
   INPUTS
+    unstructured/test/simple2d-3x3.msh
     unstructured/test/simple2d-8x8.msh
     unstructured/test/disconnected.msh
     unstructured/test/unstructured_disconnected_entities_1_0.blessed
@@ -113,6 +114,18 @@ flecsi_add_test(unstructured
     unstructured/test/unstructured_simple2d-8x8_entities_6_1.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_6_2.blessed
     unstructured/test/unstructured_simple2d-8x8_entities_6_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_3.blessed
   PROCS ${UPROCS}
 )
 
