@@ -70,9 +70,7 @@ insert_test(accessorm m,
   particle_field::mutator<rw> particle_t_m) {
   forall(c, m.cells(), "insert_test") {
     if(cids[c] == 20) {
-      Particle p_t;
-      p_t.cgid = cids[c];
-      p_t.pressure = 1.0;
+      Particle p_t{1.0, cids[c]};
       particle_t_m.insert(p_t);
     }
   };
