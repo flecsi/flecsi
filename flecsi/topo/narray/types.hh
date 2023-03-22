@@ -169,9 +169,6 @@ struct axis_color {
   /// global offsets of this color
   std::array<util::gid, 2> offsets;
 
-  /// global offsets of neighbors
-  std::array<util::gid, 2> neigh_offsets;
-
   /// specify whether the axis is periodic
   /// \showinitializer
   bool periodic = false;
@@ -482,27 +479,17 @@ struct index_definition {
       auto & ax = axes[axis];
       auto ci = color_indices[axis];
       const util::offsets & em = ax.colormap;
-      const bool lo = (ci == 0), hi = (ci == (em.size() - 1));
+      const bool lo = (ci == 0);
       const util::gid ex = ax.auxiliary;
 
       // primary coloring
       util::gid offset_low = em(ci);
       util::gid offset_high = em(ci + 1);
-      util::gid neigh_offset_low = em(ci - !lo);
-      util::gid neigh_offset_high = em(ci + 1 + !hi);
-
-      if(ax.bdepth && lo)
-        neigh_offset_low = em(em.size() - 1);
-
-      if(ax.bdepth && hi)
-        neigh_offset_high = em(1);
 
       // modifications if auxiliary coloring
       if(ex) {
         offset_low += !lo;
         offset_high += 1;
-        neigh_offset_low += (neigh_offset_low > 0);
-        neigh_offset_high += 1;
       }
 
       idxco.axis_colors.push_back({em.size(),
@@ -511,7 +498,6 @@ struct index_definition {
         ax.bdepth,
         full_ghosts ? ax.hdepth : 0,
         {offset_low, offset_high},
-        {neigh_offset_low, neigh_offset_high},
         ax.periodic,
         ax.auxiliary});
     } // for
@@ -802,8 +788,6 @@ operator<<(std::ostream & stream, axis_color const & ac) {
          << flog::container{ac.hdepth} << '\n'
          << "offsets\n"
          << flog::container{ac.offsets} << '\n'
-         << "neigh_offsets\n"
-         << flog::container{ac.neigh_offsets} << '\n'
          << "periodic\n"
          << (ac.periodic ? "true" : "false") << '\n'
          << "auxiliary\n"
