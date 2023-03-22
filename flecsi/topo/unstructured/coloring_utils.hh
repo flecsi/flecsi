@@ -1571,7 +1571,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
 
     // accumulate edges in cell
     for(const std::size_t face : cell) {
-      for(const std::size_t ei : f2e.offsets[face]) {
+      for(const std::size_t ei : f2e[face]) {
         auto it = std::find(edges.begin(), edges.end(), ei);
         if(it == edges.end()) {
           edges.push_back(ei);
