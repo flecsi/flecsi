@@ -48,7 +48,7 @@ color(const util::offsets & dist,
   auto [rank, size] = util::mpi::info(comm);
 
   flog_assert(dist.size() == size_t(size),
-    "distribution size (" << colors << ") must equal comm size(" << size
+    "distribution size (" << dist.size() << ") must equal comm size(" << size
                           << ")");
 
   idx_t wgtflag = 0;
@@ -65,14 +65,21 @@ color(const util::offsets & dist,
 
   std::vector<idx_t> vtxdist = with_zero(dist), xadj = with_zero(graph.offsets);
   std::vector<idx_t> adjncy = as<idx_t>(graph.values);
+  // ParMETIS rejects certain trivial cases and nullptr+[0,0) ranges.
+  if(adjncy.empty())
+    adjncy.emplace_back();
 
-  // clang-format off
-  int result = ParMETIS_V3_PartKway(&vtxdist[0], &xadj[0], &adjncy[0],
-    nullptr, nullptr, &wgtflag, &numflag, &ncon, &colors, &tpwgts[0],
-    ubvec.data(), options, &edgecut, &part[0], &comm);
-  // clang-format on
+  auto sub = util::mpi::comm::split(comm, part.empty() ? MPI_UNDEFINED : 0);
 
-  flog_assert(result == METIS_OK, "ParMETIS_V3_PartKway returned " << result);
+  if(sub) {
+    // clang-format off
+    int result = ParMETIS_V3_PartKway(&vtxdist[0], &xadj[0], &adjncy[0],
+        nullptr, nullptr, &wgtflag, &numflag, &ncon, &colors, &tpwgts[0],
+        ubvec.data(), options, &edgecut, part.data(), &sub.c);
+    // clang-format on
+
+    flog_assert(result == METIS_OK, "ParMETIS_V3_PartKway returned " << result);
+  }
 
   return {part.begin(), part.end()};
 } // color

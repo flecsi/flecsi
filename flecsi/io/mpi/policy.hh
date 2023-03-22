@@ -32,25 +32,14 @@ const auto hsize_mpi_type = util::mpi::static_type<hsize_t>();
 
 struct io_interface {
 
-  explicit io_interface(Color ranks_per_file = 1) {
-
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    num_files = util::ceil_div(Color(world_size), ranks_per_file);
-
-    MPI_Comm new_comm;
-    new_color = rank / ranks_per_file;
-    MPI_Comm_split(MPI_COMM_WORLD, new_color, rank, &new_comm);
-
-    mpi_hdf5_comm = new_comm;
-
-    MPI_Comm_size(new_comm, &new_world_size);
-    MPI_Comm_rank(new_comm, &new_rank);
-  }
-
-  ~io_interface() {
-    MPI_Comm_free(&mpi_hdf5_comm);
+  explicit io_interface(Color ranks_per_file = 1)
+    : new_color([] {
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        return rank;
+      }() / ranks_per_file),
+      hcomm(util::mpi::comm::split(MPI_COMM_WORLD, new_color)) {
+    MPI_Comm_rank(hcomm.c, &new_rank);
   }
 
   template<bool W>
@@ -100,13 +89,12 @@ struct io_interface {
     const hsize_t item_size) {
     if constexpr(W) {
       hsize_t sum_nitems = 0;
-      MPI_Allreduce(
-        &nitems, &sum_nitems, 1, hsize_mpi_type, MPI_SUM, mpi_hdf5_comm);
+      MPI_Allreduce(&nitems, &sum_nitems, 1, hsize_mpi_type, MPI_SUM, hcomm.c);
       checkpoint_file.create_dataset(field_name.data(), sum_nitems, item_size);
     }
 
     hsize_t displ;
-    MPI_Exscan(&nitems, &displ, 1, hsize_mpi_type, MPI_SUM, mpi_hdf5_comm);
+    MPI_Exscan(&nitems, &displ, 1, hsize_mpi_type, MPI_SUM, hcomm.c);
     if(new_rank == 0)
       displ = 0;
 
@@ -119,7 +107,7 @@ struct io_interface {
   inline void checkpoint_data(const std::string & file_name_in) {
     using F = hdf5::file;
     std::string file_name = file_name_in + std::to_string(new_color);
-    F checkpoint_file = (W ? F::pcreate : F::popen)(file_name, mpi_hdf5_comm);
+    F checkpoint_file = (W ? F::pcreate : F::popen)(file_name, hcomm.c);
 
     // checkpoint
     auto & context = run::context::instance();
@@ -160,12 +148,10 @@ struct io_interface {
   } // recover_data
 
 private:
-  int num_files;
-
-  int world_size, rank, new_world_size, new_rank;
+  int new_rank;
   int new_color;
 
-  MPI_Comm mpi_hdf5_comm;
+  util::mpi::comm hcomm;
 };
 
 } // namespace io

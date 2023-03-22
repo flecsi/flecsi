@@ -20,7 +20,7 @@ namespace util {
 
 /// A partition of some prefix of the whole numbers into substrings.
 template<class D>
-struct map_base {
+struct map_base : with_index_iterator<const D> {
   /// Return a substring.
   constexpr iota_view<std::size_t> operator[](Color c) const {
     return {d()(c), d()(c + 1)};

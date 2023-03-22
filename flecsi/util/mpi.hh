@@ -121,6 +121,32 @@ struct init {
   }
 };
 
+struct comm {
+  MPI_Comm c = MPI_COMM_NULL;
+
+  comm() = default;
+  comm(comm && o) noexcept {
+    std::swap(c, o.c);
+  }
+  ~comm() {
+    if(*this)
+      test(MPI_Comm_free(&c));
+  }
+  comm & operator=(comm o) & noexcept {
+    std::swap(c, o.c);
+    return *this;
+  }
+  explicit operator bool() const noexcept {
+    return c != MPI_COMM_NULL;
+  }
+
+  static comm split(MPI_Comm c0, int c, int k = 0) {
+    comm ret;
+    test(MPI_Comm_split(c0, c, k, &ret.c));
+    return ret;
+  }
+};
+
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
 auto
