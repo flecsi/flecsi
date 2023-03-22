@@ -579,13 +579,7 @@ struct unstructured_base {
 
         // resize field
         a[p].resize(sh.second.size());
-
-        // loop over entries
-        std::size_t cnt{0};
-        for(auto offset : sh.second) {
-          a[p][cnt] = offset;
-          ++cnt;
-        }
+        std::copy(sh.second.begin(), sh.second.end(), a[p].begin());
         ++p;
       }
       ++k;
