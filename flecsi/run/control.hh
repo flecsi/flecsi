@@ -275,6 +275,9 @@ public:
       \c control_base and `int()` otherwise
     @tparam CP The control point under which this action is executed.
     @tparam M  Boolean indicating whether or not the action is a meta action.
+               This is intended for specialization developers; application
+               developers should omit this parameter (defaulting it to
+               \c false).
    */
 
   template<target_type T, control_points_enum CP, bool M = false>
