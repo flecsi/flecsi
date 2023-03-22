@@ -299,12 +299,12 @@ private:
   std::vector<std::vector<std::pair<util::gid, Color>>> vertices_;
 }; // struct rank_coloring
 
-template<typename T, typename M>
+template<typename T>
 struct move_field {
 
   move_field(std::size_t size,
     Color colors,
-    const M & index_colors,
+    const std::vector<Color> & index_colors,
     const std::vector<T> & field)
     : em_(colors, size), index_colors_(index_colors), field_(field) {}
 
@@ -322,7 +322,7 @@ struct move_field {
 
 private:
   const util::equal_map em_;
-  const M & index_colors_;
+  const std::vector<Color> & index_colors_;
   const std::vector<T> & field_;
 }; // struct move_field
 
