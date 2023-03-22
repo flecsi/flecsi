@@ -236,9 +236,9 @@ initialize(int argc, const char * const * argv, bool dependent) {
   const getopt go(&cfg);
 
   auto ret = run::success;
-  std::ostringstream stderr;
+  std::ostringstream cerr;
   const auto usage = [&](run::status s) {
-    stderr << go.usage(argv0);
+    cerr << go.usage(argv0);
     ret = s;
   };
 
@@ -263,9 +263,9 @@ initialize(int argc, const char * const * argv, bool dependent) {
   catch(po::error & e) {
     std::string error(e.what());
 
-    stderr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error << "!!!"
-           << FLOG_COLOR_PLAIN << std::endl
-           << std::endl;
+    cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error << "!!!"
+         << FLOG_COLOR_PLAIN << std::endl
+         << std::endl;
     usage(run::command_line_error);
   } // try
 
@@ -283,15 +283,15 @@ initialize(int argc, const char * const * argv, bool dependent) {
   {
     const Color p = flog::state::instance().source_process();
     if(p != flog::state::all_processes && p >= ctx.processes()) {
-      stderr << argv0 << ": flog process " << p << " does not exist with "
-             << ctx.processes() << " processes\n";
+      cerr << argv0 << ": flog process " << p << " does not exist with "
+           << ctx.processes() << " processes\n";
       ret = run::command_line_error;
     }
   }
 #endif
   if(ret) {
     if(!ctx.process())
-      std::cerr << stderr.rdbuf();
+      std::cerr << cerr.rdbuf();
     run::finalize();
   }
   return ret;
