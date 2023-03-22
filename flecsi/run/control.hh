@@ -254,8 +254,6 @@ private:
 #endif
 
   dag_map registry_;
-
-private:
   std::conditional_t<is_control_base_policy, std::nullptr_t, P> policy_;
 
 public:
