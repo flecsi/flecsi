@@ -243,10 +243,13 @@ public:
     using namespace Legion;
     using namespace Legion::Mapping;
 
+    const LogicalRegion r = task.regions[indx].region;
+    if(!r.exists()) // for incomplete launch maps
+      return;
+
     // check if instance was already created and stored in the
     // local_instamces_ map
-    const std::pair<Legion::LogicalRegion, Legion::Memory> key1(
-      task.regions[indx].region, target_mem);
+    const std::pair<Legion::LogicalRegion, Legion::Memory> key1(r, target_mem);
     auto key2 = task.regions[indx].privilege_fields;
     instance_map_t::const_iterator finder1 = local_instances_.find(key1);
     if(finder1 != local_instances_.end()) {
@@ -260,12 +263,8 @@ public:
     } // if
 
     output.chosen_instances[indx].push_back(
-      local_instances_[key1][key2] = get_instance(ctx,
-        task,
-        target_mem,
-        layout_constraints,
-        indx,
-        {task.regions[indx].region}));
+      local_instances_[key1][key2] =
+        get_instance(ctx, task, target_mem, layout_constraints, indx, {r}));
   } // create_instance
 
   /*!

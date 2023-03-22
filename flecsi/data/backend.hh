@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <utility>
+#include <vector>
 
 #include "flecsi/data/field.hh"
 #include "flecsi/topo/core.hh" // single_space
@@ -27,6 +28,11 @@ constexpr inline std::size_t logical_size = 1ul << 32;
 struct prefixes_base {
   using row = std::size_t;
   using Field = field<row, single>;
+};
+struct borrow_base {
+  using Claim = std::size_t;
+  using Claims = std::vector<Claim>;
+  static constexpr Claim nil = -1;
 };
 /// \}
 } // namespace flecsi::data

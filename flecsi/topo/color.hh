@@ -43,57 +43,10 @@ struct detail::base<column> {
   using type = column_base;
 };
 
-// A topology that reuses a region from another.
-struct indirect_base : data::borrow {
-  struct coloring {};
-
-  template<class... AA>
-  explicit indirect_base(data::region & r, AA &&... aa)
-    : borrow(r, std::forward<AA>(aa)...), reg(&r) {}
-
-  data::region & get_region() const {
-    return *reg;
-  }
-
-private:
-  data::region * reg;
-};
-// Note that P is not the underlying topology Q, but rather indirect<Q>.
-template<class P>
-struct indirect_category : indirect_base {
-  template<class... AA>
-  explicit indirect_category(typename P::Base::core & t, AA &&... aa)
-    : indirect_base(t.template get_region<P::index_spaces::value>(),
-        std::forward<AA>(aa)...) {}
-
-  template<typename P::index_space>
-  data::region & get_region() const {
-    return indirect_base::get_region();
-  }
-};
-template<>
-struct detail::base<indirect_category> {
-  using type = indirect_base;
-};
-
-template<class Q, typename Q::index_space S = Q::default_space()>
-struct indirect : specialization<indirect_category, indirect<Q>> {
-  using Base = Q;
-  using index_space = typename Q::index_space;
-  using index_spaces = util::constants<S>;
-
-  static TopologyType id() = delete; // prevent ineffectual field registration
-};
-
 // An optional color to use for a point task.
 struct claims : specialization<column, claims> {
-  using Field = flecsi::field<data::borrow::Value, data::single>;
+  using Field = flecsi::field<data::borrow::Claim, data::single>;
   static const Field::definition<claims> field;
-
-  // The color is encoded as a prefix of size 0 or 1.
-  static data::borrow::Value row(std::optional<Color> c) {
-    return data::borrow::make(!!c, c.value_or(0));
-  }
 };
 inline const claims::Field::definition<claims> claims::field;
 

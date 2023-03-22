@@ -331,13 +331,9 @@ private:
 }; // struct unstructured
 
 template<class P>
-struct borrow_extra<unstructured<P>> {
-  borrow_extra(unstructured<P> & u, claims::core & c, bool f)
-    : borrow_extra(u, c, f, typename P::entity_lists()) {}
-
-  auto & get_sizes(std::size_t i) {
-    return borrow_base::derived(*this).spc[i].sz;
-  }
+struct borrow_extra<unstructured<P>> : borrow_sizes<P> {
+  borrow_extra(unstructured<P> & u, const data::borrow & b, bool f)
+    : borrow_extra(u, b, f, typename P::entity_lists()) {}
 
 private:
   friend unstructured<P>; // for access::send
@@ -348,11 +344,12 @@ private:
 
   template<typename P::index_space... VV, class... TT>
   borrow_extra(unstructured<P> & u,
-    claims::core & c,
+    const data::borrow & b,
     bool f,
     util::types<util::key_type<VV, TT>...> /* deduce pack */)
-    : special_(u.special_.template get<VV>().map([&c, f](auto & t) {
-        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, c, f);
+    : borrow_extra::borrow_sizes(u, b, f),
+      special_(u.special_.template get<VV>().map([&b, f](auto & t) {
+        return borrow_base::wrap<std::decay_t<decltype(t)>>(t, b, f);
       })...) {}
 };
 

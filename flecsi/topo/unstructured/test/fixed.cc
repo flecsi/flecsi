@@ -338,10 +338,12 @@ print(fixed_mesh::accessor<ro, ro, ro> m,
   flog(info) << ss.str() << std::endl;
 }
 
-static bool
-rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
-  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n);
-  return false;
+static data::launch::Claims
+rotate(Color n) {
+  data::launch::Claims ret(n);
+  for(Color i = 0; i < n; ++i)
+    ret[(i + n - (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n].push_back(i);
+  return ret;
 }
 
 int
@@ -363,7 +365,7 @@ fixed_driver() {
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
     {
-      auto lm = data::launch::make<rotate>(mesh, mesh->colors());
+      auto lm = data::launch::make(mesh, rotate(mesh.colors()));
       execute<check_pressure>(lm, pressure(lm));
     }
 

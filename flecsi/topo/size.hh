@@ -82,10 +82,6 @@ struct with_size { // separate to control initialization order
   resize::core sz;
   /// Automatic growth control.
   resize::policy growth;
-  // For compatibility with borrow_category:
-  const resize::policy & grow() const {
-    return growth;
-  }
 };
 
 /// \}

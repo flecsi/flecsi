@@ -172,18 +172,6 @@ public:
   }
 };
 
-struct pointers : topo::indirect<leg::halves>::core {
-  static constexpr auto & field = leg::halves::field;
-
-  // Legion doesn't need the advertised permission to modify src.
-  pointers(prefixes & pfx, const topo::claims::core & src)
-    : indirect_category(pfx.get_rects(), src, topo::claims::field.fid) {}
-
-  auto operator*() {
-    return field(*this);
-  }
-};
-
 } // namespace flecsi::data
 
 #endif

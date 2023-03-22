@@ -9,6 +9,7 @@
 #endif
 
 #include "flecsi/run/leg/mapper.hh"
+#include "flecsi/util/array_ref.hh"
 
 #include <legion.h>
 
@@ -344,22 +345,99 @@ private:
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
-struct borrow : partition<true, false> {
-  using Value = rect;
+// Stateless "functors" avoid holding onto memory indefinitely.
+struct projection : Legion::ProjectionFunctor, borrow_base {
+  unsigned get_depth() const override {
+    return 0;
+  }
+  bool is_exclusive() const override {
+    return false;
+  }
+  Legion::LogicalRegion project(const Legion::Mappable * m,
+    unsigned r,
+    Legion::LogicalPartition p,
+    const Legion::DomainPoint & i) override {
+    const auto & o = static_cast<const Claim *>(
+      get_req(*m, r).get_projection_args(nullptr))[i.get_color()];
+    return o == nil ? Legion::LogicalRegion::NO_REGION
+                    : runtime->get_logical_subregion_by_color(p, o);
+  }
 
-  static Value make(prefixes_base::row r,
-    std::size_t c = run::context::instance().color()) {
-    const Legion::coord_t i = c;
-    return {{i, 0}, {i, upper(r)}};
-  }
-  static std::size_t get_row(const Value & v) {
-    return v.lo[0];
-  }
-  static prefixes_base::row get_size(const Value & v) {
-    return bound(v.hi[1]);
+  static const Legion::ProjectionID id;
+
+private:
+  // When is July 123rd?
+  template<class... VV>
+  static auto & calendar(unsigned i, const VV &... vv) {
+    decltype((vv.data(), ...)) ret;
+    const bool found = ([&] {
+      const unsigned n = vv.size();
+      const bool here = i < n;
+      if(here)
+        ret = &vv[i];
+      else
+        i -= n;
+      return here;
+    }() || ...);
+    flog_assert(found, "RegionRequirement index out of range");
+    return *ret;
   }
 
-  using partition::partition;
+  static const Legion::RegionRequirement & get_req(const Legion::Mappable & m,
+    unsigned i) {
+    switch(m.get_mappable_type()) {
+      case LEGION_TASK_MAPPABLE:
+        return m.as_task()->regions[i];
+      case LEGION_COPY_MAPPABLE: {
+        const auto & c = *m.as_copy();
+        return calendar(i,
+          c.src_requirements,
+          c.dst_requirements,
+          c.src_indirect_requirements,
+          c.dst_indirect_requirements);
+      }
+      case LEGION_INLINE_MAPPABLE:
+        return m.as_inline()->requirement;
+      case LEGION_FILL_MAPPABLE:
+        return m.as_fill()->requirement;
+      default:
+        flog_fatal("unknown Mappable type");
+    }
+  }
+};
+inline const Legion::ProjectionID projection::id = [] {
+  const auto ret = Legion::Runtime::generate_static_projection_id();
+  Legion::Runtime::preregister_projection_functor(ret, new projection);
+  return ret;
+}();
+
+struct borrow : borrow_base {
+  borrow(Claims c) : sz(c.size()) {
+    // Avoid storing identity sequences:
+    if(!std::equal(c.begin(), c.end(), util::iota_view({}, sz).begin()))
+      c.swap(this->c);
+  }
+
+  Color size() const {
+    return sz;
+  }
+
+  static Legion::ProjectionID projection(const borrow * b) {
+    return b && !b->c.empty() ? leg::projection::id : def_proj;
+  }
+  static void attach(Legion::RegionRequirement & r, const borrow * b) {
+    if(b)
+      b->attach(r);
+  }
+
+private:
+  void attach(Legion::RegionRequirement & r) const {
+    if(!c.empty())
+      r.set_projection_args(c.data(), c.size() * sizeof c.front());
+  }
+
+  Color sz;
+  Claims c; // if non-trivial
 };
 /// \}
 } // namespace leg

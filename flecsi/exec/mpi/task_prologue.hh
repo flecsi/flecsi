@@ -22,7 +22,9 @@
 namespace flecsi {
 namespace topo {
 struct global_base;
-}
+template<class>
+struct borrow_category;
+} // namespace topo
 
 namespace exec {
 
@@ -83,6 +85,8 @@ protected:
     else
       reg.ghost_copy<P>(ref);
 
+    if(!get_selected(t))
+      return;
     // Now bind the ExecutionSpace storage to the accessor. This will also
     // trigger a host <-> device copy if needed.
     const auto storage = [&]() -> auto & {
@@ -133,6 +137,15 @@ public:
   }
 
 private:
+  template<class P>
+  static bool get_selected(const topo::borrow_category<P> & b) {
+    return b.get_projection().selected();
+  }
+  template<class T>
+  static bool get_selected(const T &) {
+    return true;
+  }
+
   std::vector<std::function<MPI_Request()>> reductions;
 
 }; // struct task_prologue

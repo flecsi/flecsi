@@ -80,15 +80,6 @@ struct copy_engine {
   /// Copy one field from \a src to \a dest.
   void operator()(field_id_t) const;
 };
-
-struct pointers : partition { // up to one source row number in each row
-  static constexpr auto & field; // a flecsi::field<borrow::Value>::definition
-
-  // The claims are not const but are not modified.
-  pointers(prefixes &, topo::claims::core &);
-
-  auto operator*(); // field reference onto this partition
-};
 #endif
 
 /// \}

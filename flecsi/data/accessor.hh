@@ -1471,7 +1471,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
   auto components() const {
     return util::transform_view(
       util::span(*vp), [](const round & r) -> std::pair<Color, const A &> {
-        return {borrow::get_row(r.row), r.a};
+        return {r.row, r.a};
       });
   }
   // Usable on caller side:
@@ -1490,7 +1490,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
       f(c.get_base(), [&](auto & r) {
         flog_assert(r.map().depth() == Color(v.size()),
           "launch map has depth " << r.map().depth() << ", not " << v.size());
-        return r.map()[i].get_claims();
+        return r.map().claims(i);
       });
       f(a, [&](auto & r) -> decltype(auto) { return r.data(i); });
       ++i;
@@ -1500,7 +1500,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
               v.end(),
               [](const round & r) {
                 return !r.row.get_base().get_base().span().empty() &&
-                       !borrow::get_size(r.row);
+                       r.row == borrow::nil;
               }),
       v.end());
   }
@@ -1544,7 +1544,8 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    return {type::base_type::parameter(r), r.get_elements().grow()};
+    return {type::base_type::parameter(r),
+      r.get_elements().template get_partition<topo::elements>().growth};
   }
 };
 template<class T, Privileges P>

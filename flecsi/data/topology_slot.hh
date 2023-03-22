@@ -58,6 +58,11 @@ struct topology_slot : convert_tag {
     return &*data;
   }
 
+  /// Return the number of colors for the topology, which must exist.
+  Color colors() const {
+    return get().colors();
+  }
+
 private:
   std::optional<core> data;
 }; // struct topology_slot
