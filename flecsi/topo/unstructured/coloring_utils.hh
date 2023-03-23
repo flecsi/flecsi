@@ -345,7 +345,7 @@ private:
 
   struct connectivity_state_t {
     util::crs e2v;
-    std::map<util::gid, std::vector<util::gid>> v2e, e2e;
+    std::map<util::gid, std::vector<util::gid>> v2e;
     std::vector<util::gid> p2m;
     std::map<util::gid, util::id> m2p;
   };
@@ -505,6 +505,7 @@ coloring_utils<MD>::color_primaries(util::id shared, C && f) {
     Fill in the entity-to-entity connectivity that have "shared" vertices
     in common.
    */
+  std::map<util::gid, std::vector<util::gid>> e2e;
 
   std::size_t c = ecm(rank_);
   for(auto const & cdef : cnns.e2v) {
@@ -522,8 +523,8 @@ coloring_utils<MD>::color_primaries(util::id shared, C && f) {
 
     for(auto tc : shr) {
       if(tc.second > shared) {
-        cnns.e2e[c].emplace_back(tc.first);
-        cnns.e2e[tc.first].emplace_back(c);
+        e2e[c].emplace_back(tc.first);
+        e2e[tc.first].emplace_back(c);
       } // if
     } // for
 
@@ -531,14 +532,14 @@ coloring_utils<MD>::color_primaries(util::id shared, C && f) {
   } // for
 
   // Remove duplicate connections
-  util::unique_each(cnns.e2e);
+  util::unique_each(e2e);
 
   /*
     Populate the actual distributed crs data structure.
    */
 
   for(const std::size_t c : ecm[rank_]) {
-    naive.add_row(cnns.e2e[c]);
+    naive.add_row(e2e[c]);
   } // for
 
   primary_raw_ = std::forward<C>(f)(ecm, naive, cd_.colors, comm_);
@@ -556,14 +557,13 @@ coloring_utils<MD>::migrate_primaries() {
       primary_raw_,
       cnns.e2v,
       cnns.v2e,
-      cnns.e2e,
       rank_),
     comm_);
 
   primaries_.resize(ours().size());
   ghost.resize(ours().size());
 
-  for(auto const & [entity_pack, v2e_pack, e2e_pack] : migrated) {
+  for(auto const & [entity_pack, v2e_pack] : migrated) {
     for(auto const & [info, vertices] : entity_pack) {
       auto const [co, eid] = info;
       cnns.e2v.add_row(vertices);
@@ -575,11 +575,6 @@ coloring_utils<MD>::migrate_primaries() {
     // vertex-to-entity connectivity
     for(auto const & [v, entities] : v2e_pack) {
       cnns.v2e.try_emplace(v, entities);
-    } // for
-
-    // entity-to-entity connectivity
-    for(auto const & e : e2e_pack) {
-      cnns.e2e.try_emplace(e.first, e.second);
     } // for
   } // for
 
@@ -710,7 +705,7 @@ coloring_utils<MD>::close_primaries() {
       for(auto const & e : std::exchange(wkset[lco], {})) {
         for(auto const & v : cnns.e2v[cnns.m2p.at(e)]) {
           for(auto const & en : cnns.v2e.at(v)) {
-            if(cnns.e2e.find(en) == cnns.e2e.end()) {
+            if(!cnns.m2p.count(en)) {
               // If we don't have the entity, we need to request it.
               layer.emplace_back(en);
 
@@ -792,7 +787,7 @@ coloring_utils<MD>::close_primaries() {
 
     auto fulfilled = util::mpi::all_to_allv(
       communicate_entities(
-        fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.e2e, cnns.m2p),
+        fulfill, dependents, p2co_, cnns.e2v, cnns.v2e, cnns.m2p),
       comm_);
 
     /*
@@ -824,12 +819,6 @@ coloring_utils<MD>::close_primaries() {
       auto v2e_pack = std::get<1>(r);
       for(auto const & v : v2e_pack) {
         cnns.v2e.try_emplace(v.first, v.second);
-      } // for
-
-      // entity-to-entity connectivity
-      auto e2e_pack = std::get<2>(r);
-      for(auto const & e : e2e_pack) {
-        cnns.e2e.try_emplace(e.first, e.second);
       } // for
     } // for
   } // for

@@ -144,10 +144,6 @@ struct move_primaries {
       std::map</* vertex-to-entity connectivity map */
         util::gid,
         std::vector<util::gid>
-      >,
-      std::map</* cell-to-cell connectivity map */
-        util::gid,
-        std::vector<util::gid>
       >
     >;
   // clang-format on
@@ -157,7 +153,6 @@ struct move_primaries {
     std::vector<Color> const & index_colors,
     util::crs & e2v,
     std::map<util::gid, std::vector<util::gid>> & v2e,
-    std::map<util::gid, std::vector<util::gid>> & e2e,
     int rank)
     : size_(dist.size()) {
     const util::equal_map em(colors, size_);
@@ -167,7 +162,6 @@ struct move_primaries {
         std::tuple<std::pair<Color, util::gid>, std::vector<util::gid>>>
         cell_pack;
       std::map<util::gid, std::vector<util::gid>> v2e_pack;
-      std::map<util::gid, std::vector<util::gid>> e2e_pack;
 
       for(std::size_t i{0}; i < dist[rank].size(); ++i) {
         if(em.bin(index_colors[i]) == r) {
@@ -185,23 +179,13 @@ struct move_primaries {
           for(auto const & v : e2v[i]) {
             v2e_pack[v] = v2e[v];
           } // for
-
-          e2e_pack[j] = e2e[j];
-
-          /*
-            Remove information that we are migrating. We can't remove
-            vertex-to-cell information until the loop over ranks is done.
-           */
-
-          e2e.erase(i);
         } // if
       } // for
 
-      packs_.emplace_back(std::make_tuple(cell_pack, v2e_pack, e2e_pack));
+      packs_.emplace_back(std::make_tuple(cell_pack, v2e_pack));
     } // for
 
     e2v.clear();
-    e2e.clear();
     v2e.clear();
   } // move_primaries
 
@@ -229,10 +213,6 @@ struct communicate_entities {
       std::map</* over vertices */
         util::gid, /* mesh id */
         std::vector<util::gid> /* vertex-to-entity connectivity */
-      >,
-      std::map</* over entities */
-        util::gid, /* mesh id */
-        std::vector<util::gid> /* entity-to-entity connectivity */
       >
     >;
   // clang-format on
@@ -242,7 +222,6 @@ struct communicate_entities {
     std::unordered_map<util::gid, Color> const & colors,
     util::crs const & e2v,
     std::map<util::gid, std::vector<util::gid>> const & v2e,
-    std::map<util::gid, std::vector<util::gid>> const & e2e,
     std::map<util::gid, util::id> const & m2p)
     : size_(entities.size()) {
     for(auto re : entities) {
@@ -251,7 +230,6 @@ struct communicate_entities {
         std::set<Color>>>
         entity_pack;
       std::map<util::gid, std::vector<util::gid>> v2e_pack;
-      std::map<util::gid, std::vector<util::gid>> e2e_pack;
 
       for(auto c : re) {
         const std::pair<Color, util::gid> info{colors.at(c), c};
@@ -262,11 +240,9 @@ struct communicate_entities {
         for(auto const & v : e2v[m2p.at(c)]) {
           v2e_pack[v] = v2e.at(v);
         } // for
-
-        e2e_pack[c] = e2e.at(c);
       } // for
 
-      packs_.emplace_back(std::make_tuple(entity_pack, v2e_pack, e2e_pack));
+      packs_.emplace_back(std::make_tuple(entity_pack, v2e_pack));
     } // for
   } // communicate_entities
 
