@@ -302,6 +302,11 @@ private:
     return auxs_[idmap_.at(kind) - aoff];
   }
 
+  template<class R>
+  static decltype(auto) range_min(R && r) {
+    return *std::min_element(r.begin(), r.end());
+  }
+
   std::vector<Color> request_owners(const std::vector<util::gid> &,
     util::gid n,
     const std::vector<Color> &) const;
@@ -1043,12 +1048,8 @@ coloring_utils<MD>::color_vertices() {
     for(auto lid : primary.owned()) {
       auto egid = primary_pcd.all[lid];
       for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
-        Color co = std::numeric_limits<Color>::max();
-        for(auto ev : cnns.v2e.at(v)) {
-          co = std::min(p2co_.at(ev), co);
-        } // for
-
-        v2co_[v] = co;
+        v2co_[v] = range_min(util::transform_view(
+          cnns.v2e.at(v), [this](util::gid ev) { return p2co_.at(ev); }));
       } // for
     } // for
   } // for
@@ -1530,20 +1531,11 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
 
       // Entity to connected intermediaries.
       for(auto in : aux.e2i[i_m2p.at(e)] /* util::crs */) {
-        Color co = std::numeric_limits<Color>::max();
-
-        switch(h) {
-          case vertex:
-            for(auto iv : aux.i2v[in]) {
-              co = std::min(v2co_.at(iv), co);
-            }
-            break;
-          case cell:
-            for(auto ie : aux.i2e[in]) {
-              co = std::min(p2co_.at(ie), co);
-            } // for
-            break;
-        } // switch
+        const Color co = h == vertex
+                           ? range_min(util::transform_view(aux.i2v[in],
+                               [this](util::gid iv) { return v2co_.at(iv); }))
+                           : range_min(util::transform_view(aux.i2e[in],
+                               [this](util::gid ie) { return p2co_.at(ie); }));
 
         for(auto ie : aux.i2e[in]) {
           halo = /* greedy, but just used to construct a lookup table */
