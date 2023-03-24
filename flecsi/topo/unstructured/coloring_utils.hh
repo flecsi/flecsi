@@ -302,6 +302,10 @@ private:
     return auxs_[idmap_.at(kind) - aoff];
   }
 
+  std::vector<Color> request_owners(const std::vector<util::gid> &,
+    util::gid n,
+    const std::vector<Color> &) const;
+
   void compute_interval_sizes(std::size_t idx,
     std::vector<std::map<util::gid, util::id>> & ghost_offsets) {
     /*
@@ -604,48 +608,42 @@ coloring_utils<MD>::migrate_primaries() {
 /// owners.
 /// @param request  The global ids of the desired entities.
 /// @param ne       The global number of entities.
-/// @param colors   The number of colors.
 /// @param idx_cos  The naive coloring of the entities.
-/// @param comm     The MPI communicator to use for communication.
 /// \return the owning process for each entity
-inline std::vector<Color>
-request_owners(std::vector<util::gid> const & request,
+template<typename MD>
+std::vector<Color>
+coloring_utils<MD>::request_owners(std::vector<util::gid> const & request,
   util::gid ne,
-  Color colors,
-  std::vector<Color> const & idx_cos,
-  MPI_Comm comm = MPI_COMM_WORLD) {
-  auto [rank, size] = util::mpi::info(comm);
-
-  std::vector<std::vector<util::gid>> requests(size);
-  const util::equal_map pm(ne, size);
+  std::vector<Color> const & idx_cos) const {
+  std::vector<std::vector<util::gid>> requests(size_);
+  const util::equal_map pm(ne, size_);
   for(auto e : request) {
     requests[pm.bin(e)].emplace_back(e);
   } // for
 
   auto requested = util::mpi::all_to_allv(
-    [&requests](int r, int) -> auto & { return requests[r]; }, comm);
+    [&requests](int r, int) -> auto & { return requests[r]; }, comm_);
 
   /*
     Fulfill naive-owner requests with migrated owners.
    */
 
-  std::vector<std::vector<util::gid>> fulfill(size);
+  std::vector<std::vector<util::gid>> fulfill(size_);
   {
-    const std::size_t start = pm(rank);
+    const std::size_t start = pm(rank_);
     Color r = 0;
-    const util::equal_map ecm(colors, size);
     for(auto rv : requested) {
       for(auto e : rv) {
-        fulfill[r].emplace_back(ecm.bin(idx_cos[e - start]));
+        fulfill[r].emplace_back(pmap().bin(idx_cos[e - start]));
       } // for
       ++r;
     } // for
   } // scope
 
   auto fulfilled = util::mpi::all_to_allv(
-    [&fulfill](int r, int) -> auto & { return fulfill[r]; }, comm);
+    [&fulfill](int r, int) -> auto & { return fulfill[r]; }, comm_);
 
-  std::vector<std::size_t> offs(size, 0ul);
+  std::vector<std::size_t> offs(size_);
   std::vector<Color> owners;
   for(auto e : request) {
     auto p = pm.bin(e);
@@ -747,8 +745,7 @@ coloring_utils<MD>::close_primaries() {
         Request entity owners from naive-owners.
        */
 
-      auto owners =
-        request_owners(layer, num_primaries(), cd_.colors, primary_raw_, comm_);
+      auto owners = request_owners(layer, num_primaries(), primary_raw_);
 
       /*
         Request entity information from migrated owners.
@@ -1200,8 +1197,7 @@ coloring_utils<MD>::close_vertices() {
       Request the migrated owners for remote vertex requests.
      */
 
-    auto owners =
-      request_owners(remote, num_vertices(), cd_.colors, vertex_raw_, comm_);
+    auto owners = request_owners(remote, num_vertices(), vertex_raw_);
 
     std::vector<std::vector<util::gid>> request(size_);
     {
