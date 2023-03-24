@@ -266,8 +266,8 @@ private:
   }
 
   util::gid num_entities(entity_kind kind) {
-    return built_.count(kind) ? auxiliary_state(kind).entities
-                              : md_.num_entities(kind);
+    return idmap_.at(kind) >= aoff ? auxiliary_state(kind).entities
+                                   : md_.num_entities(kind);
   }
 
   auto & coloring(std::size_t idx) {
@@ -412,7 +412,6 @@ private:
   // Auxiliary state is associated with an entity's kind (as opposed to
   // its index space).
   std::vector<auxiliary_state_t> auxs_;
-  std::set<std::size_t> built_;
 }; // struct coloring_utils
 
 template<typename MD>
@@ -1637,9 +1636,6 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
       aux.l2g[lid] = offset++;
     } // if
   } // for
-
-  // Add this id to the set of built auxiliaries
-  built_.insert(kind);
 } // build_auxiliary
 
 template<typename MD>
