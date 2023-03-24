@@ -50,7 +50,7 @@ namespace run {
 
 struct context_t; // supplied by backend
 
-/// exit status returned by initialization code
+/// Exit status returned by initialization code.
 /// \see flecsi::initialize
 /// \see flecsi::run::control::check_status
 enum status : int {
@@ -279,7 +279,7 @@ public:
   static int task_depth();
 
   /*!
-    Get the color of this process.
+    Get the color of the current point task.
    */
 
   Color color() const;
@@ -319,8 +319,8 @@ public:
   } // add_field_information
 
   /*!
-    Return the stored field info for the given topology type and layout.
-    Const version.
+    Return the stored field info for the given topology type and layout
+    (\c const version).
 
     \tparam Topo topology type
     \tparam Index topology-relative index space
@@ -355,7 +355,7 @@ public:
    *--------------------------------------------------------------------------*/
 
   /*!
-    Return the count of executed tasks. Const version.
+    Return the count of executed tasks (\c const version).
    */
 
   size_t const & flog_task_count() const {
