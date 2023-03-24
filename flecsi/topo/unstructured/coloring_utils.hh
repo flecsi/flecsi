@@ -790,24 +790,25 @@ coloring_utils<MD>::close_primaries() {
     /*
       Update local information.
      */
-
     for(auto & [entity_pack, v2e_pack] : fulfilled) {
-      for(auto & [info, vv, deps] : entity_pack) {
-        auto [co, id] = info;
-        cnns.e2v.add_row(vv);
-        cnns.m2p[id] = cnns.e2v.size() - 1;
-        cnns.p2m.emplace_back(id);
-        flog_assert(cnns.p2m.size() == cnns.e2v.size(), "local info corrupted");
-        p2co_.try_emplace(id, co);
+      for(auto & [co, ep] : entity_pack) {
+        for(auto & [id, vv, deps] : ep) {
+          cnns.e2v.add_row(vv);
+          cnns.m2p[id] = cnns.e2v.size() - 1;
+          cnns.p2m.emplace_back(id);
+          flog_assert(
+            cnns.p2m.size() == cnns.e2v.size(), "local info corrupted");
+          p2co_.try_emplace(id, co);
 
-        if(d < cd_.depth) {
-          vdeps_[id].insert(deps.begin(), deps.end());
-        } // if
+          if(d < cd_.depth) {
+            vdeps_[id].insert(deps.begin(), deps.end());
+          } // if
 
-        for(auto co : dependencies.at(id)) {
-          wkset.at(lc(co)).emplace_back(id);
+          for(auto co : dependencies.at(id)) {
+            wkset.at(lc(co)).emplace_back(id);
+          } // for
         } // for
-      } // for
+      }
 
       // vertex-to-entity connectivity
       for(auto const & v : v2e_pack) {

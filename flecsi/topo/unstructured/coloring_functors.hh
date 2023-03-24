@@ -200,22 +200,17 @@ private:
 }; // struct move_primaries
 
 struct communicate_entities {
-  // clang-format off
-  using return_type =
-    std::tuple<
-      std::vector</* over entities */
-        std::tuple<
-          std::pair<Color, util::gid>,
+  using EntityPack = std::map<Color,
+    std::vector</* over entities */
+      std::tuple<util::gid,
         std::vector<util::gid> /* entity definition (vertex mesh ids) */,
-          std::set<Color> /* dependents */
-        >
-      >,
-      std::map</* over vertices */
-        util::gid, /* mesh id */
-        std::vector<util::gid> /* vertex-to-entity connectivity */
-      >
+        std::set<Color> /* dependents */
+        >>>;
+  using VertexPack = std::map</* over vertices */
+    util::gid, /* mesh id */
+    std::vector<util::gid> /* vertex-to-entity connectivity */
     >;
-  // clang-format on
+  using return_type = std::pair<EntityPack, VertexPack>;
 
   communicate_entities(std::vector<std::vector<util::gid>> const & entities,
     std::unordered_map<util::gid, std::set<Color>> const & deps,
@@ -225,15 +220,11 @@ struct communicate_entities {
     std::map<util::gid, util::id> const & m2p)
     : size_(entities.size()) {
     for(auto re : entities) {
-      std::vector<std::tuple<std::pair<Color, util::gid>,
-        std::vector<util::gid>,
-        std::set<Color>>>
-        entity_pack;
-      std::map<util::gid, std::vector<util::gid>> v2e_pack;
+      EntityPack entity_pack;
+      VertexPack v2e_pack;
 
       for(auto c : re) {
-        const std::pair<Color, util::gid> info{colors.at(c), c};
-        entity_pack.push_back(std::make_tuple(info,
+        entity_pack[colors.at(c)].push_back(std::make_tuple(c,
           to_vector(e2v[m2p.at(c)]),
           deps.count(c) ? deps.at(c) : std::set<Color>{}));
 
