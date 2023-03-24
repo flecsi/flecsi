@@ -88,11 +88,16 @@ initialize(int argc, char ** argv, bool dependent = true) {
   Perform FleCSI runtime start. This causes the runtime to begin execution
   of the top-level action.
 
-  @param  The top-level action, i.e., the entry point for flecsi to begin
+  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
+  integer, the runtime will delay for that number of seconds during context
+  creation.
+
+  \param  action
+          The top-level action, i.e., the entry point for FleCSI to begin
           execution.
 
-  @return An integer indicating the finalization status. This will either
-          be 0 for successful completion, or an error code from
+  \return An integer indicating the finalization status. This will be
+          either 0 for successful completion or an error code from
           flecsi::run::status.
  */
 
