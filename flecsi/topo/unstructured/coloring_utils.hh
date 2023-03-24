@@ -791,17 +791,14 @@ coloring_utils<MD>::close_primaries() {
       Update local information.
      */
 
-    for(auto const & r : fulfilled) {
-      auto const & entity_pack = std::get<0>(r);
-      for(auto const & e : entity_pack) {
-        auto const & info = std::get<0>(e);
-        auto const id = std::get<1>(info);
-        cnns.e2v.add_row(std::get<1>(e));
+    for(auto & [entity_pack, v2e_pack] : fulfilled) {
+      for(auto & [info, vv, deps] : entity_pack) {
+        auto [co, id] = info;
+        cnns.e2v.add_row(vv);
         cnns.m2p[id] = cnns.e2v.size() - 1;
         cnns.p2m.emplace_back(id);
         flog_assert(cnns.p2m.size() == cnns.e2v.size(), "local info corrupted");
-        p2co_.try_emplace(id, std::get<0>(info));
-        auto const & deps = std::get<2>(e);
+        p2co_.try_emplace(id, co);
 
         if(d < cd_.depth) {
           vdeps_[id].insert(deps.begin(), deps.end());
@@ -813,7 +810,6 @@ coloring_utils<MD>::close_primaries() {
       } // for
 
       // vertex-to-entity connectivity
-      auto v2e_pack = std::get<1>(r);
       for(auto const & v : v2e_pack) {
         cnns.v2e.try_emplace(v.first, v.second);
       } // for
