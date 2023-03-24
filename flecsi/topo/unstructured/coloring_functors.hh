@@ -182,7 +182,7 @@ struct move_primaries {
         } // if
       } // for
 
-      packs_.emplace_back(std::make_tuple(cell_pack, v2e_pack));
+      packs_.emplace_back(std::move(cell_pack), std::move(v2e_pack));
     } // for
 
     e2v.clear();
@@ -242,7 +242,7 @@ struct communicate_entities {
         } // for
       } // for
 
-      packs_.emplace_back(std::make_tuple(entity_pack, v2e_pack));
+      packs_.emplace_back(std::move(entity_pack), std::move(v2e_pack));
     } // for
   } // communicate_entities
 
