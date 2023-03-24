@@ -935,8 +935,6 @@ coloring_utils<MD>::close_primaries() {
       [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
 
     struct ghost_info {
-      util::gid gid;
-      std::size_t lco;
       util::id lid;
       util::id rid;
     };
@@ -954,7 +952,7 @@ coloring_utils<MD>::close_primaries() {
           for(auto [id, dmmy, gco] : cv) {
             if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
               gcolor = gco;
-              ginfo = {in_id, in_lco, ghost_offsets[pc][id], fulfilled[k][cnt]};
+              ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
               return;
             }
             ++cnt;
@@ -1321,8 +1319,6 @@ coloring_utils<MD>::close_vertices() {
     [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
 
   struct ghost_info {
-    util::gid gid;
-    std::size_t lco;
     util::id lid;
     util::id rid;
   };
@@ -1340,7 +1336,7 @@ coloring_utils<MD>::close_vertices() {
         for(auto [id, dmmy, gco] : cv) {
           if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
             gcolor = gco;
-            ginfo = {in_id, in_lco, ghost_offsets[pc][id], fulfilled[k][cnt]};
+            ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
             return;
           }
           ++cnt;
@@ -1882,8 +1878,6 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
 
   struct ghost_info {
-    util::gid gid;
-    std::size_t lco;
     util::id lid;
     util::id rid;
   };
@@ -1901,7 +1895,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
         for(auto [id, dmmy, gco] : cv) {
           if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
             gcolor = gco;
-            ginfo = {in_id, in_lco, ghost_offsets[pc][id], fulfilled[k][cnt]};
+            ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
             return;
           }
           ++cnt;
