@@ -380,8 +380,9 @@ private:
         i -= n;
       return here;
     }() || ...);
-    flog_assert(found, "RegionRequirement index out of range");
-    return *ret;
+    if(found)
+      return *ret;
+    flog_fatal("RegionRequirement index out of range");
   }
 
   static const Legion::RegionRequirement & get_req(const Legion::Mappable & m,
