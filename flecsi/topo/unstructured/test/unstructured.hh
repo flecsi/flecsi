@@ -33,14 +33,21 @@ struct unstructured
   static constexpr flecsi::PrivilegeCount privilege_count = 3;
 
   static const inline flecsi::field<std::size_t>::definition<unstructured,
+    cells>
+    cid;
+  static const inline flecsi::field<std::size_t>::definition<unstructured,
     vertices>
     vid;
   static const inline flecsi::field<point>::definition<unstructured, vertices>
     coords;
 
   struct init {
+    std::vector<std::vector<std::size_t>> cid;
     std::vector<std::vector<std::size_t>> id;
     std::vector<std::vector<point>> coords;
+    std::vector<flecsi::util::crs> c2v_connectivity;
+    std::vector<flecsi::util::crs> e2c_connectivity;
+    std::vector<flecsi::util::crs> e2v_connectivity;
   };
 
   /*--------------------------------------------------------------------------*
@@ -129,7 +136,6 @@ struct unstructured
     // clang-format on
 
     // Primaries
-    cu.create_graph(cells);
     cu.color_primaries(1, flecsi::util::parmetis::color);
     cu.migrate_primaries();
     cu.close_primaries();
@@ -143,11 +149,19 @@ struct unstructured
     cu.color_auxiliary(edges);
     cu.close_auxiliary(edges, core::index<edges>);
 
+    // Create distributed vector of vector for extra field: cell id
+    std::vector<std::size_t> lcid;
+    if(flecsi::process() == 0) {
+      const flecsi::util::iota_view cs({}, sd.num_entities(cells));
+      lcid.assign(cs.begin(), cs.end());
+    }
+    fields.cid = cu.send_field(cells, lcid);
+
     // Create distributed vector of vector for both the extra fields: vertex id
     // and coordinates
     std::vector<std::size_t> lvid;
     if(flecsi::process() == 0) {
-      auto nv = sd.num_entities(0);
+      auto nv = sd.num_entities(vertices);
       lvid.reserve(nv);
       for(unsigned long i = 0; i < nv; ++i)
         lvid.push_back(sd.vertex_field(i));
@@ -156,12 +170,16 @@ struct unstructured
 
     std::vector<point> lcoords;
     if(flecsi::process() == 0) {
-      auto nv = sd.num_entities(0);
+      auto nv = sd.num_entities(vertices);
       lcoords.reserve(nv);
       for(unsigned long i = 0; i < nv; ++i)
         lcoords.push_back(sd.vertex(i));
     }
     fields.coords = cu.send_field(vertices, lcoords);
+
+    fields.c2v_connectivity = cu.get_connectivity(cells, vertices);
+    fields.e2c_connectivity = cu.get_connectivity(edges, cells);
+    fields.e2v_connectivity = cu.get_connectivity(edges, vertices);
 
     return cu.generate();
   } // color
@@ -171,22 +189,29 @@ struct unstructured
    *--------------------------------------------------------------------------*/
 
   template<entity_list E>
+  static auto get_list(const base::index_color & ic) {
+    if constexpr(E == owned) {
+      return ic.owned();
+    }
+    else if constexpr(E == shared) {
+      return ic.shared();
+    }
+    else {
+      static_assert(E == ghost);
+      return flecsi::util::transform_view(
+        ic.ghost, [](auto & g) { return g.lid; });
+    }
+  }
+
+  template<entity_list E>
   static void allocate_list(
     flecsi::data::multi<flecsi::topo::array<unstructured>::accessor<flecsi::wo>>
       aa,
-    const std::vector<base::process_coloring> & vpc) {
+    const std::vector<base::index_color> & vic) {
 
-    auto it = vpc.begin();
+    auto it = vic.begin();
     for(auto & a : aa.accessors()) {
-      if constexpr(E == owned) {
-        a.size() = it++->coloring.owned.size();
-      }
-      else if(E == shared) {
-        a.size() = it++->coloring.shared.size();
-      }
-      else if(E == ghost) {
-        a.size() = it++->coloring.ghost.size();
-      }
+      a.size() = get_list<E>(*it++).size();
     }
   } // allocate_list
 
@@ -194,28 +219,11 @@ struct unstructured
   static void populate_list(
     flecsi::data::multi<flecsi::field<flecsi::util::id>::accessor<flecsi::wo>>
       m,
-    const std::vector<base::process_coloring> & vpc,
-    const base::reverse_maps_t & rmaps) {
-    auto it = vpc.begin();
-    std::size_t c = 0;
+    const std::vector<base::index_color> & vic) {
+    auto it = vic.begin();
     for(auto & a : m.accessors()) {
-      std::size_t i{0};
-      if constexpr(E == owned) {
-        for(auto e : it++->coloring.owned) {
-          a[i++] = rmaps[c].at(e);
-        }
-      }
-      else if(E == shared) {
-        for(auto e : it++->coloring.shared) {
-          a[i++] = rmaps[c].at(e.id);
-        }
-      }
-      else if(E == ghost) {
-        for(auto e : it++->coloring.ghost) {
-          a[i++] = rmaps[c].at(e.id);
-        }
-      }
-      c++;
+      auto elements = get_list<E>(*it++);
+      std::copy(elements.begin(), elements.end(), a.span().begin());
     }
   } // populate_list
 
@@ -229,29 +237,32 @@ struct unstructured
 
     {
       auto slm = data::launch::make(el);
-      execute<allocate_list<E>, flecsi::mpi>(slm, c.idx_spaces[core::index<I>]);
+      execute<allocate_list<E>, flecsi::mpi>(
+        slm, c.idx_spaces[core::index<I>].colors);
       el.resize();
     }
 
     // the launch maps need to be resized with the correct allocation
     auto slm = data::launch::make(el);
-    auto const & rmaps = s->reverse_map<I>();
     execute<populate_list<E>, flecsi::mpi>(
-      core::special_field(slm), c.idx_spaces[core::index<I>], rmaps);
+      core::special_field(slm), c.idx_spaces[core::index<I>].colors);
   } // init_list
 
   static void init_vid_coords(
     flecsi::data::multi<
       unstructured::accessor<flecsi::ro, flecsi::ro, flecsi::ro>> m,
-    flecsi::data::multi<
-      flecsi::field<std::size_t>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
-      mvid,
+    flecsi::data::multi<flecsi::field<
+      flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mcid,
+    flecsi::data::multi<flecsi::field<
+      flecsi::util::gid>::accessor<flecsi::wo, flecsi::wo, flecsi::na>> mvid,
     flecsi::data::multi<
       flecsi::field<point>::accessor<flecsi::wo, flecsi::wo, flecsi::na>>
       mcoords,
+    const std::vector<std::vector<std::size_t>> & cid,
     const std::vector<std::vector<std::size_t>> & vid,
     const std::vector<std::vector<point>> & coords) {
     const auto ma = m.accessors();
+    auto acid = mcid.accessors();
     auto avid = mvid.accessors();
     auto acoords = mcoords.accessors();
     for(unsigned int i = 0; i < m.depth(); ++i) {
@@ -259,6 +270,10 @@ struct unstructured
       for(auto v : ma[i].vertices<unstructured::owned>()) {
         avid[i][v] = vid[i][j];
         acoords[i][v] = coords[i][j++];
+      }
+      j = 0;
+      for(auto c : ma[i].cells<unstructured::owned>()) {
+        acid[i][c] = cid[i][j++];
       }
     }
   } // init_vid_coords
@@ -273,8 +288,6 @@ struct unstructured
     auto & v2c = s->get_connectivity<vertices, cells>();
     auto & e2c = s->get_connectivity<edges, cells>();
     auto & e2v = s->get_connectivity<edges, vertices>();
-    auto const & cmaps = s->reverse_map<cells>();
-    auto const & vmaps = s->reverse_map<vertices>();
 
     c2v(s).get_elements().resize();
     v2c(s).get_elements().resize();
@@ -286,12 +299,9 @@ struct unstructured
       constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
       constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
       constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
-      execute<init_connectivity<NPC>, mpi>(
-        core::index<cells>, core::index<vertices>, c2v(lm), c, vmaps);
-      execute<init_connectivity<NPE>, mpi>(
-        core::index<edges>, core::index<cells>, e2c(lm), c, cmaps);
-      execute<init_connectivity<NPE>, mpi>(
-        core::index<edges>, core::index<vertices>, e2v(lm), c, vmaps);
+      execute<init_connectivity<NPC>, mpi>(c2v(lm), fields.c2v_connectivity);
+      execute<init_connectivity<NPE>, mpi>(e2c(lm), fields.e2c_connectivity);
+      execute<init_connectivity<NPE>, mpi>(e2v(lm), fields.e2v_connectivity);
       execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
     }
 
@@ -305,7 +315,7 @@ struct unstructured
     // Init the specific fields on the topology using user data
     auto lm = data::launch::make(s);
     execute<init_vid_coords, flecsi::mpi>(
-      lm, vid(lm), coords(lm), fields.id, fields.coords);
+      lm, cid(lm), vid(lm), coords(lm), fields.cid, fields.id, fields.coords);
 
   } // initialize
 }; // struct unstructured

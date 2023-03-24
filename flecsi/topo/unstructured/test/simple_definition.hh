@@ -2,6 +2,7 @@
 #define FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/util/crs.hh"
 
 #include <fstream>
@@ -62,21 +63,21 @@ public:
   simple_definition(const simple_definition &) = delete;
   simple_definition & operator=(const simple_definition &) = delete;
 
-  std::size_t num_entities(Dimension dimension) const {
-    flog_assert(dimension == 0 || dimension == 2, "invalid dimension");
-    return dimension == 0 ? num_vertices_ : num_cells_;
+  std::size_t num_entities(entity_kind k) const {
+    flog_assert(k == 0 || k == 2, "invalid entity kind");
+    return k == 0 ? num_vertices_ : num_cells_;
   }
 
-  util::crs const & entities(Dimension from_dim, Dimension to_dim) const {
-    flog_assert(from_dim == 2, "invalid dimension " << from_dim);
-    flog_assert(to_dim == 0, "invalid dimension " << to_dim);
+  util::crs const & entities(entity_kind from, entity_kind to) const {
+    flog_assert(from == 2, "invalid entity kind " << from);
+    flog_assert(to == 0, "invalid entity kind " << to);
     return e2v_;
   }
 
   std::vector<size_t>
-  entities(Dimension from_dim, Dimension to_dim, std::size_t entity_id) const {
-    flog_assert(from_dim == 2, "invalid dimension " << from_dim);
-    flog_assert(to_dim == 0, "invalid dimension " << to_dim);
+  entities(entity_kind from, entity_kind to, std::size_t entity_id) const {
+    flog_assert(from == 2, "invalid entity kind " << from);
+    flog_assert(to == 0, "invalid entity kind " << to);
 
     std::string line;
     std::vector<size_t> ids;
@@ -106,11 +107,11 @@ public:
   } // vertices
 
   template<typename T>
-  void make_entity(std::size_t dim,
+  void make_entity(entity_kind k,
     std::size_t,
     std::vector<T> const & vertices,
     util::crs & entities) const {
-    flog_assert(dim == 1, "invalid entity dimension(" << dim << ")");
+    flog_assert(k == 1, "invalid entity kind(" << k << ")");
 
     const T * last = &vertices.back();
     for(auto & v : vertices) {

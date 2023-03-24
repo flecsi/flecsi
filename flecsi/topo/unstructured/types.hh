@@ -28,100 +28,31 @@ namespace topo {
 /// \{
 namespace unstructured_impl {
 
-using entity_kind = std::size_t;
 using entity_index_space = std::size_t;
-
-/// Information about an entity that is shared with other colors.
-struct shared_entity {
-  /// Global id.
-  util::gid id;
-  /// The \e colors with which this entity is shared.
-  std::vector<std::size_t> dependents;
-
-  /*
-    These operators are designed to be used with util::force_unique, which
-    first applies std::sort (using operator<), and then applies std::unique
-    (using operator==). The implementation of the operators is designed to be
-    greedy, i.e., it favors shared entity variants that have more dependents by
-    placing them first in the sorted order. When std::unique is applied, the
-    variant with the most dependents will be kept.
-   */
-
-  bool operator<(const shared_entity & s) const {
-    return id == s.id ? dependents.size() > s.dependents.size()
-                      : /* greedy dependendents */
-             id < s.id;
-  }
-
-  bool operator==(const shared_entity & s) const {
-    return id == s.id; // ignores dependendents
-  }
-};
-
-inline std::ostream &
-operator<<(std::ostream & stream, shared_entity const & s) {
-  stream << "<" << s.id << ": ";
-  bool first = true;
-  for(auto d : s.dependents) {
-    if(first)
-      first = false;
-    else
-      stream << ", ";
-    stream << d;
-  } // for
-  stream << ">";
-  return stream;
-}
 
 /// Information about an entity owned by another color.
 struct ghost_entity {
-  /// Global id.
-  util::gid id;
-  /// Owning process.
-  Color process;
-  /// Color within those of \e process.
-  Color local;
+  // local ghost id
+  util::id lid;
+
+  // remote ghost id
+  util::id rid;
+
   /// Owning color.
   Color global;
 
   bool operator<(const ghost_entity & g) const {
-    return id < g.id;
+    return lid < g.lid;
   }
 
   bool operator==(const ghost_entity & g) const {
-    return id == g.id && process == g.process && local == g.local &&
-           global == g.global;
+    return lid == g.lid && global == g.global;
   }
 };
 
 inline std::ostream &
 operator<<(std::ostream & stream, ghost_entity const & g) {
-  stream << "<" << g.id << ":" << g.process << ":" << g.local << ":" << g.global
-         << ">";
-  return stream;
-}
-
-/// Information for one index space and one color.
-struct index_coloring {
-  /// Global ids used by this color.
-  std::vector<util::gid> all;
-  /// Global ids owned by this color.
-  std::vector<util::gid> owned;
-  /// The subset of \c owned that are not ghosts on any other color.
-  std::vector<util::gid> exclusive;
-  /// Entities that are ghosts on another color.
-  std::vector<shared_entity> shared;
-  /// Entities that are owned by another color.
-  std::vector<ghost_entity> ghost;
-};
-
-inline std::ostream &
-operator<<(std::ostream & stream, index_coloring const & ic) {
-  stream << "all\n" << flog::container{ic.all} << std::endl;
-  stream << "owned\n" << flog::container{ic.owned} << std::endl;
-  stream << "exclusive\n" << flog::container{ic.exclusive} << std::endl;
-  stream << "shared\n" << flog::container{ic.shared} << std::endl;
-  stream << "ghost\n" << flog::container{ic.ghost} << std::endl;
+  stream << "<" << g.lid << ":" << g.rid << ":" << g.global << ">";
   return stream;
 }
 
@@ -147,43 +78,71 @@ transpose(
   }
 }
 
-/// Information specific to a local color.
+/// Information specific to a single index space and color.
 /// \ingroup unstructured
-struct process_coloring {
+struct index_color {
+  /// Total number of entities stored by this color, including ghosts.
+  util::id entities = 0;
 
-  /// The global color that this object defines.
-  Color color;
+  /// Map peers to entities that are ghosts there
+  std::map<Color, std::set<util::id>> peer_shared;
 
-  /// The global number of entities in this index space.
-  util::gid entities;
+  /// Entities that are owned by another color.
+  std::vector<ghost_entity> ghost;
 
-  /// The local coloring information for this index space.
-  /// The coloring information is expressed in the mesh index space,
-  /// i.e., the ids are global.
-  index_coloring coloring;
+  /// \cond core
 
-  /// Communication peers (needed for ragged/sparse buffer creation).
-  std::vector<Color> peers;
+  /// Entities owned by this color
+  auto owned() const {
+    std::vector<util::id> ownd;
+    std::set<util::id> ghst;
+
+    for(auto & g : ghost) {
+      ghst.insert(g.lid);
+    }
+
+    for(util::id e = 0; e < entities; ++e) {
+      if(!ghst.count(e)) {
+        ownd.push_back(e);
+      }
+    }
+    return ownd;
+  }
+
+  /// Entities that are ghosts on another color.
+  auto shared() const {
+    std::set<util::id> shr;
+    for(auto & p : peer_shared) {
+      shr.insert(p.second.begin(), p.second.end());
+    }
+    return shr;
+  }
+
+  /// The subset of \c owned that are not ghosts on any other color.
+  auto exclusive() const {
+    const auto ss = shared();
+    std::vector<util::id> ex;
+    for(auto o : owned())
+      if(!ss.count(o))
+        ex.push_back(o);
+    return ex;
+  }
+
+  /// \endcond
 
   /// The local allocation size for each connectivity. The vector is over
   /// all connectivities in the order given in the specialization policy.
   std::vector<std::size_t> cnx_allocs;
 
-  /// The local graph for each connectivity.
-  /// The graph information is expressed in the mesh index space,
-  /// i.e., the ids are global. The vector is like cnx_alloc.
-  std::vector<util::crs> cnx_colorings;
-}; // struct process_coloring
+}; // struct index_color
 
 inline std::ostream &
-operator<<(std::ostream & stream, process_coloring const & pc) {
-  stream << "color: " << pc.color << std::endl;
-  stream << "entities: " << pc.entities << std::endl;
-  stream << "coloring:\n" << pc.coloring << std::endl;
-  stream << "peers:\n" << flog::container{pc.peers} << std::endl;
-  stream << "cnx_allocs:\n" << flog::container{pc.cnx_allocs} << std::endl;
-  stream << "cnx_colorings:\n"
-         << flog::container{pc.cnx_colorings} << std::endl;
+operator<<(std::ostream & stream, index_color const & ic) {
+  stream << "owned\n" << flog::container{ic.owned()} << "\n";
+  stream << "exclusive\n" << flog::container{ic.exclusive()} << "\n";
+  stream << "shared\n" << flog::container{ic.shared()} << "\n";
+  stream << "ghost\n" << flog::container{ic.ghost} << "\n";
+  stream << "cnx_allocs:\n" << flog::container{ic.cnx_allocs} << "\n";
   return stream;
 }
 
@@ -191,10 +150,8 @@ operator<<(std::ostream & stream, process_coloring const & pc) {
 
 struct unstructured_base {
 
-  using index_coloring = unstructured_impl::index_coloring;
-  using process_coloring = unstructured_impl::process_coloring;
+  using index_color = unstructured_impl::index_color;
   using ghost_entity = unstructured_impl::ghost_entity;
-  using reverse_maps_t = std::vector<std::map<util::gid, util::id>>;
 
   using source_pointers = std::vector</* over local colors */
     std::map</* over global source colors */
@@ -211,49 +168,43 @@ struct unstructured_base {
   /// The coloring object is returned by the specialization's `color` method.
   /// \ingroup unstructured
   struct coloring {
-    /// An MPI communicator that can be used to specify subsets of COMM_WORLD
-    /// ranks on which the coloring should be computed. This variable is used
-    /// internaly in several of the FleCSI coloring utilities methods.
-    MPI_Comm comm;
+    struct index_space {
+      /// The communication peers over all colors, i.e.,
+      /// for each color, the communication peers
+      /// (color ids) are stored.
+      std::vector</* over global colors */
+        std::vector</* over peers */
+          Color>>
+        peers;
+
+      /// The partition sizes over all colors.
+      std::vector</* over global colors */
+        std::size_t>
+        partitions;
+
+      /// The global number of entities in this index space.
+      util::gid entities;
+
+      /// Information specific to local colors.
+      std::vector</* over process colors */
+        index_color>
+        colors;
+
+      // number of ghost intervals over all colors
+      std::vector<std::size_t> num_intervals;
+    };
 
     /// The global number of colors, i.e., the number of partitions into which
     /// this coloring instance will divide the input mesh.
     Color colors;
 
-    /// The local colors that belong to a given process. This variable stores
-    /// the local color information over all global processes.
-    std::vector</* over global processes */
-      std::vector</* over local process colors */
-        Color>>
-      process_colors;
+    std::vector<index_space> idx_spaces;
 
     /// The superset of communication peers over the global colors, i.e., for
     /// each color, this stores the number of communication peers over all
     /// index spaces.
-    std::vector</* over global colors */
-      std::size_t>
-      color_peers;
+    std::vector<std::size_t> color_peers;
 
-    /// The communication peers over each index space over all colors, i.e.,
-    /// for each index space and for each color, the communication peers
-    /// (color ids) are stored.
-    std::vector</* over index spaces */
-      std::vector</* over global colors */
-        std::vector</* over peers */
-          Color>>>
-      peers;
-
-    /// The partition sizes over each index space and over all colors.
-    std::vector</* over index spaces */
-      std::vector</* over global colors */
-        std::size_t>>
-      partitions;
-
-    /// The index space coloring over each index space and local color.
-    std::vector</* over index spaces */
-      std::vector</* over process colors */
-        process_coloring>>
-      idx_spaces;
   }; // struct coloring
 
   template<class A>
@@ -270,193 +221,45 @@ struct unstructured_base {
     and pointers, respectively, are filled with this information.
    */
 
-  // privilege_cat<privilege_repeat<wo, N - (N > 1)>,
-  //   privilege_repeat<na, (N > 1)>>>> fmap,
-  template<PrivilegeCount N>
-  static void idx_itvls(std::vector<process_coloring> const & vpc,
-    std::vector<std::vector<Color>> const & pcs,
-    std::vector<std::size_t> & nis,
+  static void idx_itvls(std::vector<index_color> const & vic,
     destination_intervals & intervals,
     source_pointers & pointers,
     data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph,
-    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared,
-    data::multi<field<util::gid>::accessor1<privilege_ghost_repeat<wo, na, N>>>
-      fmap,
-    reverse_maps_t & rmaps,
-    MPI_Comm const & comm) {
-    flog_assert(vpc.size() == fmap.depth(),
-      vpc.size() << " colorings for " << fmap.depth() << " colors");
+    data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared) {
 
-    auto [rank, size] = util::mpi::info(comm);
+    std::vector<std::vector<util::id>> ghost_offsets(vic.size());
 
-    std::vector<std::map<util::gid, util::id>> shared_offsets(vpc.size()),
-      ghost_offsets(vpc.size());
-
-    std::vector</* over processes */
-      std::vector</* over local colors */
-        std::vector<std::tuple<util::gid,
-          std::size_t /* local color */,
-          std::size_t /* global color */>>>>
-      sources(size);
-
-    std::vector<std::vector<std::size_t>> sources_lco(size);
-
-    std::vector</* over local colors */
-      std::map<std::size_t /* shared color */,
-        std::vector<std::size_t /* local shared offsets */>>>
-      shared_cg(vpc.size());
-
-    pointers.resize(vpc.size());
-    rmaps.resize(vpc.size());
+    pointers.resize(vic.size());
     std::size_t lco{0};
-    auto vi = vpc.begin();
-    for(auto & fa : fmap.accessors()) {
-      auto & pc = *vi++;
-      std::vector<util::gid> entities;
-      auto const & ic = pc.coloring;
-
-      /*
-        Define the entity ordering from the coloring. The ordering is
-        defined by "all".
-       */
-
-      for(auto const & e : ic.all) {
-        entities.push_back(e);
-      } // for
-
-      /*
-        Add ghosts to sources.
-       */
-
-      for(auto const & e : ic.ghost) {
-        if(sources[e.process].size() == 0) {
-          sources[e.process].resize(vpc.size());
-        } // if
-
-        auto const s = std::make_tuple(e.id, e.local, e.global);
-        sources[e.process][lco].emplace_back(s);
-        sources_lco[e.process].emplace_back(lco);
-      } // for
-
-      /*
-        Initialize the forward and reverse maps.
-       */
-
-      flog_assert(entities.size() == (ic.owned.size() + ic.ghost.size()),
-        "entities size(" << entities.size() << ") doesn't match sum of owned("
-                         << ic.owned.size() << ") and ghost(" << ic.ghost.size()
-                         << ")");
-
-      std::size_t off{0};
-      auto & rmap = rmaps[lco];
-      rmap.clear();
-      for(auto e : entities) {
-        fa[off] = e;
-        rmap.try_emplace(e, off++);
-      } // for
+    for(auto & ic : vic) {
 
       /*
         Create a lookup table for local ghost offsets.
        */
 
-      for(auto e : ic.ghost) {
-        auto it = std::find(entities.begin(), entities.end(), e.id);
-        flog_assert(it != entities.end(), "ghost entity doesn't exist");
-        ghost_offsets[lco][e.id] = std::distance(entities.begin(), it);
-      } // for
+      auto & pts = pointers[lco];
 
-      /*
-        We also need to add shared offsets to the lookup table so that we can
-        provide local shared offset information to other processes that
-        request it.
-       */
-
-      for(auto & e : ic.shared) {
-        auto it = std::find(entities.begin(), entities.end(), e.id);
-        flog_assert(it != entities.end(), "shared entity doesn't exist");
-        auto offset = std::distance(entities.begin(), it);
-        shared_offsets[lco][e.id] = offset;
-        // shared_offsets[lco][e.id] = std::distance(entities.begin(), it);
-
-        // fill out the map of dependent color to local offset
-        for(auto & dep : e.dependents) {
-          shared_cg[lco][dep].push_back(offset);
-        }
+      for(auto const & e : ic.ghost) {
+        ghost_offsets[lco].push_back(e.lid);
+        pts[e.global].emplace_back(std::make_pair(e.lid, e.rid));
       } // for
 
       ++lco;
     } // for
 
     /*
-      Send/Receive requests for shared offsets with other processes.
-     */
-
-    auto requested = util::mpi::all_to_allv(
-      [&sources](int r, int) -> auto & { return sources[r]; }, comm);
-
-    /*
-      Fulfill the requests that we received from other processes, i.e.,
-      provide the local offset for the requested shared mesh ids.
-     */
-
-    std::vector<std::vector<std::size_t>> fulfills(size);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(const auto & pc : rv) {
-          for(auto [id, lc, dmmy] : pc) {
-            fulfills[r].emplace_back(shared_offsets[lc][id]);
-          } // for
-        } // for
-
-        ++r;
-      } // for
-    } // scope
-
-    /*
-      Send/Receive the local offset information with other processes.
-     */
-
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm);
-
-    /*
-      Setup source pointers.
-     */
-
-    int r{0};
-    for(auto const & rv : sources) {
-      (void)rv;
-      std::size_t pc{0};
-      std::size_t cnt{0};
-      for(auto const & cv : sources[r]) {
-        auto & pts = pointers[pc];
-
-        for(auto [id, dmmy, gco] : cv) {
-          pts[gco].emplace_back(
-            std::make_pair(ghost_offsets[pc][id], fulfilled[r][cnt++]));
-        } // for
-
-        ++pc;
-      } // for
-
-      ++r;
-    } // for
-
-    /*
       Compute local intervals.
      */
 
-    std::vector<std::size_t> local_itvls(vpc.size());
-    intervals.resize(vpc.size());
-    for(std::size_t lc{0}; lc < vpc.size(); ++lc) {
+    intervals.resize(vic.size());
+    for(std::size_t lc{0}; lc < vic.size(); ++lc) {
       auto g = ghost_offsets[lc].begin();
-      std::size_t begin = g == ghost_offsets[lc].end() ? 0 : g->second, run = 0;
+      std::size_t begin = g == ghost_offsets[lc].end() ? 0 : *g, run = 0;
       for(; g != ghost_offsets[lc].end(); ++g) {
-        if(!run || g->second != begin + run) {
+        if(!run || *g != begin + run) {
           if(run) {
             intervals[lc].emplace_back(std::make_pair(begin, begin + run));
-            begin = g->second;
+            begin = *g;
           }
           run = 1;
         }
@@ -466,82 +269,25 @@ struct unstructured_base {
       } // for
 
       intervals[lc].emplace_back(std::make_pair(begin, begin + run));
-      local_itvls[lc] = intervals[lc].size();
-    } // for
-
-    /*
-      Gather global interval sizes.
-     */
-
-    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
-
-    std::size_t p{0};
-    for(auto const & pv : pcs) {
-      std::size_t c{0};
-      for(auto const & pc : pv) {
-        nis[pc] = global_itvls[p][c++];
-      } // for
-
-      ++p;
     } // for
 
     /*
       Setup cgraph data
      */
+    source_pointers peer_ghosts;
 
-    using ghost_info = std::tuple<util::gid, /*ghost id*/
-      std::size_t, /*local color*/
-      std::size_t, /*local offset*/
-      std::size_t /*remote offset*/
-      >;
-
-    std::vector</*local colors*/
-      std::map<std::size_t, /*global color*/
-        std::vector<ghost_info>>>
-      peer_ghosts;
-
-    // lambda
-    auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
-                            util::gid const & in_id,
-                            std::size_t const & in_lco,
-                            std::size_t & gcolor,
-                            ghost_info & ginfo) {
-      int k{0};
-      for(auto const & rv : sources) { // process
-        std::size_t pc{0}, cnt{0};
-        for(auto const & cv : rv) { // local colors
-          for(auto [id, dmmy, gco] : cv) {
-            if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
-              gcolor = gco;
-              ginfo = std::make_tuple(
-                in_id, in_lco, ghost_offsets[pc][id], fulfilled[k][cnt]);
-              return true;
-            }
-            ++cnt;
-          } // for
-          ++pc;
-        } // for
-        ++k;
-      } // for
-      return false;
-    };
-
-    for(std::size_t i = 0; i < vpc.size(); ++i) {
-      std::map<std::size_t, std::vector<ghost_info>> temp;
-      for(auto const & g : ghost_offsets[i]) {
-        std::size_t gcolor;
-        ghost_info ginfo;
-        if(find_in_source(g.first, i, gcolor, ginfo)) {
-          temp[gcolor].emplace_back(ginfo);
-        }
+    for(auto & ic : vic) {
+      std::map<Color, std::vector<std::pair<util::id, util::id>>> temp;
+      for(auto const & g : ic.ghost) {
+        temp[g.global].push_back(std::make_pair(g.lid, g.rid));
       }
 
       // sort the vectors for each color by the remote id of the ghosts
       for(auto & c : temp) {
         std::sort(std::begin(c.second),
           std::end(c.second),
-          [](const ghost_info & t1, const ghost_info & t2) {
-            return std::get<3>(t1) < std::get<3>(t2);
+          [](const auto & g1, const auto & g2) {
+            return g1.second < g2.second;
           });
       }
 
@@ -559,8 +305,8 @@ struct unstructured_base {
 
         // loop over entries
         std::size_t cnt{0};
-        for(auto [id, dmmy, lid, rid] : pg.second) {
-          a[p][cnt] = lid;
+        for(auto const & g : pg.second) {
+          a[p][cnt] = g.first; // local id
           ++cnt;
         }
         ++p;
@@ -573,9 +319,7 @@ struct unstructured_base {
     for(auto & a : cgraph_shared.accessors()) {
       // peers for local color k
       std::size_t p{0};
-      for(auto & sh : shared_cg[k]) {
-        // sort the sending local ids
-        std::sort(sh.second.begin(), sh.second.end());
+      for(auto const & sh : vic[k].peer_shared) {
 
         // resize field
         a[p].resize(sh.second.size());
@@ -589,8 +333,7 @@ struct unstructured_base {
 
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,
-    std::vector<std::vector<data::subrow>> const & intervals,
-    MPI_Comm const &) {
+    std::vector<std::vector<data::subrow>> const & intervals) {
     std::size_t ci = 0;
     for(auto [c, a] : aa.components()) {
       auto & iv = intervals[ci++];
@@ -609,25 +352,21 @@ struct unstructured_base {
     data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
       aa,
     std::vector<std::map<Color,
-      std::vector<std::pair<util::id, util::id>>>> const & points,
-    MPI_Comm const &) {
+      std::vector<std::pair<util::id, util::id>>>> const & points) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
-      for(auto const & si : points[ci++]) {
-        for(auto p : si.second) {
-          // si.first: owner
-          // p.first: local ghost offset
-          // p.second: remote shared offset
-          a[p.first] = data::points::make(si.first, p.second);
+      for(auto const & [owner, ghosts] : points[ci++]) {
+        for(auto const & [local_offset, remote_offset] : ghosts) {
+          a[local_offset] = data::points::make(owner, remote_offset);
         } // for
       } // for
     } // for
   }
 
-  static void cnx_size(std::vector<process_coloring> const & vpc,
+  static void cnx_size(std::vector<index_color> const & vic,
     std::size_t is,
     data::multi<resize::Field::accessor<wo>> aa) {
-    auto it = vpc.begin();
+    auto it = vic.begin();
     for(auto & a : aa.accessors()) {
       a = it++->cnx_allocs[is];
     }
@@ -639,25 +378,24 @@ struct unstructured_base {
   }
 
   // resize ragged fields storing communication graph for ghosts
-  static void cgraph_size(std::vector<process_coloring> const & vpc,
+  static void cgraph_size(std::vector<index_color> const & vic,
     data::multi<ragged_partition<1>::accessor<wo>> aa) {
-    auto it = vpc.begin();
+    auto it = vic.begin();
     for(auto & a : aa.accessors()) {
-      auto & ic = it->coloring;
-      a.size() = ic.ghost.size();
+      a.size() = it->ghost.size();
       ++it;
     }
   } // cgraph_size
 
   // resize ragged fields storing communication graph for shared
-  static void cgraph_shared_size(std::vector<process_coloring> const & vpc,
+  static void cgraph_shared_size(std::vector<index_color> const & vic,
     data::multi<ragged_partition<1>::accessor<wo>> aa) {
-    auto it = vpc.begin();
+    auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {
       std::size_t count = 0;
-      for(auto & e : it++->coloring.shared) {
-        count += e.dependents.size();
+      for(auto & e : it++->peer_shared) {
+        count += e.second.size();
       }
       a.size() = count;
     }
@@ -722,12 +460,17 @@ inline std::ostream &
 operator<<(std::ostream & stream,
   typename unstructured_base::coloring const & c) {
   stream << "colors: " << c.colors << std::endl;
-  stream << "process_colors\n"
-         << flog::container{c.process_colors} << std::endl;
   stream << "color_peers\n" << flog::container{c.color_peers} << std::endl;
-  stream << "peers\n" << flog::container{c.peers} << std::endl;
-  stream << "partitions\n" << flog::container{c.partitions} << std::endl;
   stream << "idx_spaces\n" << flog::container{c.idx_spaces} << std::endl;
+  return stream;
+}
+
+inline std::ostream &
+operator<<(std::ostream & stream,
+  typename unstructured_base::coloring::index_space const & idx) {
+  stream << "peers: " << flog::container(idx.peers) << std::endl;
+  stream << "partitions\n" << flog::container{idx.partitions} << std::endl;
+  stream << "colors\n" << flog::container{idx.colors} << std::endl;
   return stream;
 }
 
@@ -739,29 +482,22 @@ namespace unstructured_impl {
 
   @tparam NF    Number of privileges for connectivity field.
   @param  mconn A multi-accessor to the connectivity field.
-  @param  c     The coloring.
-  @param  map   The global-to-local id map for the to entities.
+  @param  connectivities
  */
 template<PrivilegeCount NF>
 void
-init_connectivity(entity_index_space from,
-  entity_index_space to,
+init_connectivity(
   data::multi<field<util::id, data::ragged>::mutator1<privilege_repeat<wo, NF>>>
     mconn,
-  unstructured_base::coloring const & c,
-  unstructured_base::reverse_maps_t const & maps) {
+  std::vector<util::crs> const & connectivities) {
 
-  auto pcs = c.idx_spaces[from].begin();
-  auto mp = maps.begin();
+  auto cnxs = connectivities.begin();
   for(auto & x2y : mconn.accessors()) {
-    auto const & pc = *pcs++;
-    auto const & vm = *mp++;
+    auto const & cnx = *cnxs++;
     util::id off{0};
 
-    auto const & cnx = pc.cnx_colorings[to];
     for(const auto r : cnx) {
-      auto v = util::transform_view(r, [&vm](util::gid i) { return vm.at(i); });
-      x2y[off++].assign(v.begin(), v.end());
+      x2y[off++].assign(r.begin(), r.end());
     } // for
   } // for
 }

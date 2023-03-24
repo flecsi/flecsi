@@ -177,6 +177,11 @@ flecsi_add_test(unstructured
 flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
+  INPUTS
+    unstructured/test/fixed_0.blessed
+    unstructured/test/fixed_1.blessed
+    unstructured/test/fixed_2.blessed
+    unstructured/test/fixed_3.blessed
   PROCS 4
 )
 

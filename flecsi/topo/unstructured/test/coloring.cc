@@ -25,7 +25,6 @@ parmetis_coloring() {
     {
       coloring_utils cu(
         &sd, {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {});
-      cu.create_graph(2);
       cu.color_primaries(1, util::parmetis::color);
 
       {
@@ -64,7 +63,6 @@ parmetis_coloring() {
       if(c2) {
         coloring_utils cu(
           &sd, {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {}, c2.c);
-        cu.create_graph(2);
         cu.color_primaries(1, util::parmetis::color);
 
         {

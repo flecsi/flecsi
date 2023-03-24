@@ -19,6 +19,8 @@ namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
 
+using entity_kind = std::size_t;
+
 template<typename D>
 struct pack_definitions {
   pack_definitions(D const & md, entity_kind id, const util::equal_map & dist)

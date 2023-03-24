@@ -101,13 +101,13 @@ set_driver() {
     set_coloring.allocate(&mesh_underlying);
     spec_setopo.allocate(set_coloring.get());
 
-    auto const & cids = mesh_underlying->forward_map<unstructured::cells>();
     auto particle_t = particles(spec_setopo);
-    execute<init_fields>(mesh_underlying, cids(mesh_underlying), particle_t);
+    execute<init_fields>(
+      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
 
     execute<print_test>(particle_t);
     execute<insert_test, default_accelerator>(
-      mesh_underlying, cids(mesh_underlying), particle_t);
+      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
     execute<update_test>(particle_t);
   };
 

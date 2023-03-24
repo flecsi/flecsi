@@ -1,0 +1,27 @@
+cell(0,0): 0 1 6 5
+cell(1,1): 1 2 7 6
+cell(4,2): 5 6 11 10
+cell(5,3): 6 7 12 11
+cell(2,4): 2 3 8 7
+cell(6,5): 7 8 13 12
+cell(8,6): 10 11 16 15
+cell(9,7): 11 12 17 16
+cell(10,8): 12 13 18 17
+
+vertex(0,0): 0
+vertex(1,1): 0 1
+vertex(5,2): 0 4
+vertex(6,3): 0 1 4 5
+vertex(10,4): 4 8
+vertex(11,5): 4 5 8 9
+vertex(2,6): 1 2
+vertex(3,7): 2
+vertex(7,8): 1 5 2 6
+vertex(8,9): 2 6
+vertex(12,10): 5 6 9 10
+vertex(13,11): 6 10
+vertex(15,12): 8
+vertex(16,13): 8 9
+vertex(17,14): 9 10
+vertex(18,15): 10
+
