@@ -193,9 +193,11 @@ struct unstructured_base {
     std::vector<index_space> idx_spaces;
 
     /// The superset of communication peers over the global colors, i.e., for
-    /// each color, this stores the number of communication peers over all
-    /// index spaces.
-    std::vector<std::size_t> color_peers;
+    /// each color, this stores the maximum number of sending or receiving
+    /// peers over all index spaces.
+    std::vector</* over global colors */
+      std::size_t>
+      color_peers;
 
   }; // struct coloring
 
