@@ -1014,8 +1014,6 @@ coloring_utils<MD>::close_primaries() {
       cp.insert(peers.begin(), peers.end());
       is_peers[lco].assign(peers.begin(), peers.end());
 
-      util::force_unique(ic.ghost);
-
       ++co;
     } // for
 
@@ -1413,8 +1411,6 @@ coloring_utils<MD>::close_vertices() {
 
       cp.insert(peers.begin(), peers.end());
       is_peers[lco].assign(peers.begin(), peers.end());
-
-      util::force_unique(ic.ghost);
 
       partitions(vertex_index()).emplace_back(vertex_pcd.all.size());
     } // for

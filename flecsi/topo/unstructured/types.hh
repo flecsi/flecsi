@@ -40,14 +40,6 @@ struct ghost_entity {
 
   /// Owning color.
   Color global;
-
-  bool operator<(const ghost_entity & g) const {
-    return lid < g.lid;
-  }
-
-  bool operator==(const ghost_entity & g) const {
-    return lid == g.lid && global == g.global;
-  }
 };
 
 inline std::ostream &
