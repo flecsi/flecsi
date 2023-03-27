@@ -829,7 +829,7 @@ coloring_utils<MD>::close_primaries() {
    */
 
   auto & primary_partitions = partitions(cell_index());
-  std::vector<std::vector<Color>> is_peers(ours().size());
+  auto & is_peers = peers(cell_index());
 
   std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
     ghost_offsets(ours().size());
@@ -997,8 +997,8 @@ coloring_utils<MD>::close_primaries() {
       std::set<Color> peers;
       for(auto e : shared_[*co])
         peers.insert(dependents.at(e).begin(), dependents.at(e).end());
-      cp.insert(peers.begin(), peers.end());
-      is_peers[lco].assign(peers.begin(), peers.end());
+      is_peers.emplace_back(peers.begin(), peers.end());
+      cp.merge(peers);
 
       ++co;
     } // for
@@ -1009,16 +1009,7 @@ coloring_utils<MD>::close_primaries() {
     Gather the tight peer information for the primary entity type.
    */
 
-  {
-    auto & primary_peers = peers(cell_index());
-    primary_peers.reserve(cd_.colors);
-
-    for(auto vp : util::mpi::all_gatherv(is_peers, comm_)) {
-      for(auto & pc : vp) { /* over process colors */
-        primary_peers.push_back(std::move(pc));
-      } // for
-    } // for
-  } // scope
+  concatenate(is_peers, cd_.colors, comm_);
 
   coloring_.colors = cd_.colors;
 
@@ -1082,7 +1073,7 @@ coloring_utils<MD>::close_vertices() {
    */
 
   coloring(vertex_index()).resize(ours().size());
-  std::vector<std::vector<Color>> is_peers(ours().size());
+  auto & is_peers = peers(vertex_index());
   std::vector<util::gid> remote;
 
   std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
@@ -1389,7 +1380,7 @@ coloring_utils<MD>::close_vertices() {
       } // if
 
       cp.insert(peers.begin(), peers.end());
-      is_peers[lco].assign(peers.begin(), peers.end());
+      is_peers.emplace_back(peers.begin(), peers.end());
 
       partitions(vertex_index()).emplace_back(vertex_pcd.all.size());
     } // for
@@ -1399,14 +1390,7 @@ coloring_utils<MD>::close_vertices() {
     Gather the tight peer information for the vertices.
    */
 
-  auto & vertex_peers = peers(vertex_index());
-  vertex_peers.reserve(cd_.colors);
-
-  for(auto vp : util::mpi::all_gatherv(is_peers, comm_)) {
-    for(auto & pc : vp) { /* over process colors */
-      vertex_peers.push_back(std::move(pc));
-    } // for
-  } // for
+  concatenate(is_peers, cd_.colors, comm_);
 
   /*
     Gather partition sizes or vertices.
@@ -1726,7 +1710,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
 
   std::vector<std::vector<std::size_t>> sources_lco(size_);
   std::vector<std::set<util::gid>> pclo;
-  std::map<Color, std::set<Color>> peers;
+  std::vector<std::set<Color>> peers(ours().size());
 
   pclo.resize(ours().size());
 
@@ -1950,30 +1934,20 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
    */
 
   auto & parts = partitions(idx);
-  std::vector<std::vector<Color>> is_peers(ours().size());
+  auto & is_peers = this->peers(idx);
   for(std::size_t lco{0}; lco < ours().size(); ++lco) {
     auto & ic = ai[lco];
     parts.emplace_back(ic.entities);
-    if(peers.count(lco)) {
-      color_peers_[lco].insert(peers.at(lco).begin(), peers.at(lco).end());
-      is_peers[lco].assign(peers.at(lco).begin(), peers.at(lco).end());
-    } // if
+    auto & pp = peers[lco];
+    color_peers_[lco].insert(pp.begin(), pp.end());
+    is_peers.emplace_back(pp.begin(), pp.end());
   } // for
 
   /*
     Gather the tight peer information for this auxiliary entity type.
    */
 
-  {
-    auto & apeers = coloring_utils::peers(idx);
-    apeers.reserve(cd_.colors);
-
-    for(auto vp : util::mpi::all_gatherv(is_peers, comm_)) {
-      for(auto & pc : vp) { /* over process colors */
-        apeers.push_back(std::move(pc));
-      } // for
-    } // for
-  } // scope
+  concatenate(is_peers, cd_.colors, comm_);
 
   /*
     Gather partition sizes for entities.

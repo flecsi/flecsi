@@ -257,12 +257,12 @@ make_ids(C && c) {
 template<class T>
 void
 concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
-  const auto g = util::mpi::all_gatherv(v, comm);
-  v.resize(total);
-  auto it = v.begin();
-  for(const auto & g1 : g)
-    for(const auto & t : g1)
-      *it++ = t;
+  auto g = util::mpi::all_gatherv(v, comm);
+  v.clear();
+  v.reserve(total);
+  for(auto & g1 : g)
+    for(auto & t : g1)
+      v.push_back(std::move(t));
 }
 
 /// \}
