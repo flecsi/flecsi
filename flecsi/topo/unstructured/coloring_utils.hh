@@ -2027,9 +2027,9 @@ coloring_utils<MD>::generate() {
   return coloring_;
 } // generate
 
-template<typename M, typename T>
+template<typename T>
 inline std::vector<T>
-find_field_color(const M & map,
+find_field_color(const std::unordered_map<util::gid, Color> & map,
   const std::vector<std::vector<std::pair<std::size_t, T>>> & l,
   Color c) {
   std::vector<T> res;
