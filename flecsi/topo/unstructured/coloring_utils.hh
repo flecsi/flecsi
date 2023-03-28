@@ -1189,33 +1189,30 @@ coloring_utils<MD>::close_vertices() {
 
   {
     /*
-      Request the migrated owners for remote vertex requests.
+      Request colors for remote vertices
      */
 
-    auto owners = request_owners(remote, num_vertices(), vertex_raw_);
-
-    std::vector<std::vector<util::gid>> request(size_);
-    {
-      std::size_t vid{0};
-      for(auto v : remote) {
-        request[owners[vid++]].emplace_back(v);
-      } // for
-    }
+    std::vector<std::vector<util::gid>> requests(size_);
+    const util::equal_map pm(num_vertices(), size_);
+    for(auto e : remote) {
+      requests[pm.bin(e)].emplace_back(e);
+    } // for
 
     auto requested = util::mpi::all_to_allv(
-      [&request](int r, int) -> auto & { return request[r]; }, comm_);
+      [&requests](int r, int) -> auto & { return requests[r]; }, comm_);
 
     /*
-      Fulfill requests from other ranks for our vertex information.
+      Fulfill requests from other ranks
      */
 
-    std::vector<std::vector<Color>> fulfill;
-    for(auto rv : requested) {
-      auto & f = fulfill.emplace_back();
-      f.reserve(rv.size());
-      for(auto const & v : rv) {
-        f.push_back(v2co_.at(v));
+    std::vector<std::vector<Color>> fulfill(size_);
+    const std::size_t start = pm(rank_);
+    Color r = 0;
+    for(const auto & rv : requested) {
+      for(auto e : rv) {
+        fulfill[r].emplace_back(vertex_raw_[e - start]);
       } // for
+      ++r;
     } // for
 
     auto fulfilled = util::mpi::all_to_allv(
@@ -1224,15 +1221,11 @@ coloring_utils<MD>::close_vertices() {
     /*
       Update our local information.
      */
-
-    std::size_t ri{0};
-    for(auto rv : request) {
-      std::size_t vid{0};
-      for(auto v : rv) {
-        v2co_.try_emplace(v, fulfilled[ri][vid]);
-        ++vid;
-      } // for
-      ++ri;
+    std::vector<std::size_t> offs(size_);
+    for(auto e : remote) {
+      auto p = pm.bin(e);
+      v2co_.try_emplace(e, fulfilled[p][offs[p]]);
+      ++offs[p];
     } // for
   }
 
