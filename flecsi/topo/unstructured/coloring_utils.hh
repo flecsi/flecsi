@@ -643,7 +643,7 @@ coloring_utils<MD>::request_owners(std::vector<util::gid> const & request,
   {
     const std::size_t start = pm(rank_);
     Color r = 0;
-    for(auto rv : requested) {
+    for(const auto & rv : requested) {
       for(auto e : rv) {
         fulfill[r].emplace_back(pmap().bin(idx_cos[e - start]));
       } // for
@@ -1060,7 +1060,7 @@ coloring_utils<MD>::color_vertices() {
 
   const auto vr = vpm[rank_];
   vertex_raw_.resize(vr.size());
-  for(auto r : rank_colors) {
+  for(const auto & r : rank_colors) {
     for(auto v : r) {
       vertex_raw_[std::get<0>(v) - vr.front()] = std::get<1>(v);
     } // for
