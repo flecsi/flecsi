@@ -320,13 +320,19 @@ private:
     std::vector<std::size_t> local_itvls(ours().size());
     for(std::size_t lc{0}; lc < ours().size(); ++lc) {
       std::size_t nlocal = 0;
-      auto g = ghost_offsets[lc].begin();
+      std::vector<util::id> gs;
+      for(auto [k, v] : ghost_offsets[lc]) {
+        gs.push_back(v);
+      }
+      std::sort(gs.begin(), gs.end());
 
-      std::size_t begin = g == ghost_offsets[lc].end() ? 0 : g->second, run = 0;
-      for(; g != ghost_offsets[lc].end(); ++g) {
-        if(!run || g->second != begin + run) {
+      auto g = gs.begin();
+
+      std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
+      for(; g != gs.end(); ++g) {
+        if(!run || *g != begin + run) {
           if(run) {
-            begin = g->second;
+            begin = *g;
             nlocal++;
           }
           run = 1;
@@ -991,7 +997,7 @@ coloring_utils<MD>::close_primaries() {
         ghost_info ginfo;
         find_in_source(e, lco, gcolor, ginfo);
         flog_assert(gcolor == gco, "global color mismatch");
-        ic.ghost.emplace_back(ghost_entity{ginfo.lid, ginfo.rid, gco});
+        ic.ghost[gco][ginfo.rid] = ginfo.lid;
         cp.insert(gco);
       } // for
       std::set<Color> peers;
@@ -1127,32 +1133,34 @@ coloring_utils<MD>::close_vertices() {
 
         // Go through the ghost primaries and look for ghosts. Some of these
         // may also be on the local processor.
-        for(auto e : primary.ghost) {
-          auto egid = primary_pcd.all[e.lid];
+        for(auto & [c, gs] : primary.ghost) {
+          for(auto [rid, lid] : gs) {
+            auto egid = primary_pcd.all[lid];
 
-          for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
-            auto vit = v2co_.find(v);
+            for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
+              auto vit = v2co_.find(v);
 
-            // Add dependents through ghosts.
-            if(vertex_pcd.shared.count(v) && vdeps_.count(egid)) {
-              auto deps = vdeps_.at(egid);
-              deps.erase(co);
-              vertex_pcd.dependents[v].insert(deps.begin(), deps.end());
-            } // if
-
-            if(vit != v2co_.end()) {
-              auto gco = vit->second;
-              if(gco != co) {
-                vertex_pcd.ghost.emplace_back(v);
+              // Add dependents through ghosts.
+              if(vertex_pcd.shared.count(v) && vdeps_.count(egid)) {
+                auto deps = vdeps_.at(egid);
+                deps.erase(co);
+                vertex_pcd.dependents[v].insert(deps.begin(), deps.end());
               } // if
-            }
-            else {
-              // The ghost is remote: add to remote requests.
-              vertex_pcd.ghost.emplace_back(v);
-              remote.emplace_back(v);
-            } // if
+
+              if(vit != v2co_.end()) {
+                auto gco = vit->second;
+                if(gco != co) {
+                  vertex_pcd.ghost.emplace_back(v);
+                } // if
+              }
+              else {
+                // The ghost is remote: add to remote requests.
+                vertex_pcd.ghost.emplace_back(v);
+                remote.emplace_back(v);
+              } // if
+            } // for
           } // for
-        } // for
+        }
       } // if
 
       for(auto lid : primary.exclusive()) {
@@ -1375,7 +1383,7 @@ coloring_utils<MD>::close_vertices() {
           ghost_info ginfo;
           find_in_source(v, lco, gcolor, ginfo);
           flog_assert(gcolor == gco, "global color mismatch");
-          ic.ghost.emplace_back(ghost_entity{ginfo.lid, ginfo.rid, gco});
+          ic.ghost[gco][ginfo.rid] = ginfo.lid;
         } // for
       } // if
 
@@ -1408,7 +1416,6 @@ coloring_utils<MD>::close_vertices() {
    */
 
   for(std::size_t lco = 0; lco < ours().size(); ++lco) {
-    auto & ic = coloring(cell_index())[lco];
     auto & vertex_pcd = vertex_pcdata[lco];
     auto & primary_pcd = primary_pcdata[lco];
     auto & crs = connectivity(cell_index())[lco][vertex_index()];
@@ -1419,13 +1426,7 @@ coloring_utils<MD>::close_vertices() {
       return std::distance(all.begin(), it);
     };
 
-    for(auto lid : ic.owned()) {
-      auto egid = primary_pcd.all[lid];
-      crs.add_row(util::transform_view(cnns.e2v[cnns.m2p.at(egid)], g2l));
-    } // for
-
-    for(auto g : ic.ghost) {
-      auto egid = primary_pcd.all[g.lid];
+    for(auto egid : primary_pcd.all) {
       crs.add_row(util::transform_view(cnns.e2v[cnns.m2p.at(egid)], g2l));
     } // for
   }
@@ -1914,19 +1915,13 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
       }
     }
 
-    // order ghosts by gid
-    std::map<util::gid, ghost_entity> ghosts;
-
     for(auto gid : aux_pcd.ghost) {
       Color gcolor;
       ghost_info ginfo;
       find_in_source(gid, lco, gcolor, ginfo);
-      ghosts[gid] = ghost_entity{ginfo.lid, ginfo.rid, gcolor};
+      ic.ghost[gcolor][ginfo.rid] = ginfo.lid;
     } // for
 
-    for(auto & g : ghosts) {
-      ic.ghost.emplace_back(std::move(g.second));
-    }
   } // for
 
   /*

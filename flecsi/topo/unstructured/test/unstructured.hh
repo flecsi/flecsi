@@ -198,8 +198,7 @@ struct unstructured
     }
     else {
       static_assert(E == ghost);
-      return flecsi::util::transform_view(
-        ic.ghost, [](auto & g) { return g.lid; });
+      return ic.ghosts();
     }
   }
 

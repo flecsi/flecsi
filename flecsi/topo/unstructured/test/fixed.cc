@@ -109,7 +109,8 @@ const std::vector<std::map<Color, std::set<util::id>>> local_shared_cells {
   {
     {0, {0, 1}},
     {1, {0}},
-    {3, {0, 2}}},
+    {3, {0, 2}}
+  },
   {
     {0, {1}},
     {1, {0, 1}},
@@ -117,32 +118,26 @@ const std::vector<std::map<Color, std::set<util::id>>> local_shared_cells {
   }
 };
 
-const std::vector<std::vector<ftui::ghost_entity>> local_ghost_cells {
+const std::vector<std::map<Color, std::map<util::id, util::id>>> local_ghost_cells {
   {
-    {4, 1, 1},
-    {5, 3, 1},
-    {6, 1, 3},
-    {7, 0, 2},
-    {8, 1, 2},
+    {1, {{1, 4}, {3, 5}}},
+    {3, {{1, 6}}},
+    {2, {{0, 7}, {1, 8}}}
   },
   {
-    {4, 0, 0},
-    {5, 2, 0},
-    {6, 0, 3},
-    {7, 1, 3},
-    {8, 0, 2}},
+    {0, {{0, 4}, {2, 5}}},
+    {3, {{0, 6}, {1, 7}}},
+    {2, {{0, 8}}},
+  },
   {
-    {4, 3, 1},
-    {5, 2, 0},
-    {6, 3, 0},
-    {7, 1, 3},
-    {8, 3, 3}},
+    {1, {{3, 4}}},
+    {0, {{2, 5}, {3, 6}}},
+    {3, {{1, 7}, {3, 8}}}
+  },
   {
-    {4, 2, 1},
-    {5, 3, 1},
-    {6, 2, 0},
-    {7, 0, 2},
-    {8, 2, 2}
+    {1, {{2, 4}, {3, 5}}},
+    {0, {{2, 6}}},
+    {2, {{0, 7}, {2, 8}}}
   }
 };
 
@@ -171,55 +166,36 @@ const std::vector<std::map<Color, std::set<util::id>>> local_shared_vertices {
   }
 };
 
-const std::vector<std::vector<ftui::ghost_entity>> local_ghost_vertices {
+const std::vector<std::map<Color, std::map<util::id, util::id>>> local_ghost_vertices {
   {
-    { 9, 1, 1},
-    {10, 3, 1},
-    {11, 5, 1},
-    {12, 1, 3},
-    {13, 0, 2},
-    {14, 1, 2},
-    {15, 2, 2}
+    {1, {{1,  9}, {3, 10}, {5, 11}}},
+    {3, {{1, 12}}},
+    {2, {{0, 13}, {1, 14}, {2, 15}}}
   },
   {
-    { 6, 0, 0},
-    { 7, 1, 0},
-    { 8, 3, 0},
-    { 9, 4, 0},
-    {10, 6, 0},
-    {11, 7, 0},
-    {12, 0, 3},
-    {13, 1, 3},
-    {14, 0, 2},
-    {15, 1, 2}
+    {0, {{0,  6}, {1,  7}, {3, 8}, {4, 9}, {6, 10}, {7, 11}}},
+    {3, {{0, 12}, {1, 13}}},
+    {2, {{0, 14}, {1, 15}}}
   },
   {
-    { 6, 3, 1},
-    { 7, 3, 0},
-    { 8, 4, 0},
-    { 9, 5, 0},
-    {10, 5, 1},
-    {11, 6, 0},
-    {12, 7, 0},
-    {13, 8, 0},
-    {14, 1, 3},
-    {15, 3, 3}
+    {1, {{3, 6}, {5, 10}}},
+    {0, {{3, 7}, {4, 8}, {5,  9}, {6, 11}, {7, 12}, {8, 13}}},
+    {3, {{1, 14}, {3, 15}}}
   },
   {
-    { 4, 2, 1},
-    { 5, 3, 1},
-    { 6, 3, 0},
-    { 7, 4, 0},
-    { 8, 4, 1},
-    { 9, 5, 1},
-    {10, 6, 0},
-    {11, 7, 0},
-    {12, 0, 2},
-    {13, 1, 2},
-    {14, 3, 2},
-    {15, 4, 2}
+    {1, {{2,  4}, {3, 5}, {4,  8}, {5, 9}}},
+    {0, {{3,  6}, {4, 7}, {6, 10}, {7, 11}}},
+    {2, {{0, 12}, {1, 13}, {3, 14}, {4, 15}}}
   }
 };
+
+util::id num_ghosts(const std::map<Color, std::map<util::id, util::id>> & ghosts) {
+  util::id cnt = 0;
+  for(const auto & [c, gs] : ghosts) {
+    cnt += static_cast<util::id>(gs.size());
+  }
+  return cnt;
+}
 
 }
 
@@ -314,16 +290,16 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
           },
           { /* cell partitions */
-            local_owned_cells + local_ghost_cells[0].size(),
-            local_owned_cells + local_ghost_cells[1].size(),
-            local_owned_cells + local_ghost_cells[2].size(),
-            local_owned_cells + local_ghost_cells[3].size()
+            local_owned_cells + num_ghosts(local_ghost_cells[0]),
+            local_owned_cells + num_ghosts(local_ghost_cells[1]),
+            local_owned_cells + num_ghosts(local_ghost_cells[2]),
+            local_owned_cells + num_ghosts(local_ghost_cells[3])
           },
           num_cells,
           { /* over process colors */
             {
 
-              local_owned_cells + static_cast<util::id>(local_ghost_cells[process()].size()),
+              local_owned_cells + num_ghosts(local_ghost_cells[process()]),
               local_shared_cells[process()],
               local_ghost_cells[process()],
 
@@ -341,10 +317,10 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
           },
           { /* vertex partitions */
-            local_owned_vertices[0] + local_ghost_vertices[0].size(),
-            local_owned_vertices[1] + local_ghost_vertices[1].size(),
-            local_owned_vertices[2] + local_ghost_vertices[2].size(),
-            local_owned_vertices[3] + local_ghost_vertices[3].size()
+            local_owned_vertices[0] + num_ghosts(local_ghost_vertices[0]),
+            local_owned_vertices[1] + num_ghosts(local_ghost_vertices[1]),
+            local_owned_vertices[2] + num_ghosts(local_ghost_vertices[2]),
+            local_owned_vertices[3] + num_ghosts(local_ghost_vertices[3])
           },
           num_vertices,
           { /* over process colors */

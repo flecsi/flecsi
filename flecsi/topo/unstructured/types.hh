@@ -30,24 +30,6 @@ namespace unstructured_impl {
 
 using entity_index_space = std::size_t;
 
-/// Information about an entity owned by another color.
-struct ghost_entity {
-  // local ghost id
-  util::id lid;
-
-  // remote ghost id
-  util::id rid;
-
-  /// Owning color.
-  Color global;
-};
-
-inline std::ostream &
-operator<<(std::ostream & stream, ghost_entity const & g) {
-  stream << "<" << g.lid << ":" << g.rid << ":" << g.global << ">";
-  return stream;
-}
-
 /*!
   Initialize a connectivity using its transpose connectivity, e.g.,
   initializing vertex-to-cell connectivity using cell-to-vertex.
@@ -80,18 +62,23 @@ struct index_color {
   std::map<Color, std::set<util::id>> peer_shared;
 
   /// Entities that are owned by another color.
-  std::vector<ghost_entity> ghost;
+  std::map<Color, std::map<util::id, util::id>> ghost;
 
   /// \cond core
+
+  auto ghosts() const {
+    std::set<util::id> ghst;
+    for(auto & [c, gs] : ghost) {
+      for(auto [rid, lid] : gs)
+        ghst.insert(lid);
+    }
+    return ghst;
+  }
 
   /// Entities owned by this color
   auto owned() const {
     std::vector<util::id> ownd;
-    std::set<util::id> ghst;
-
-    for(auto & g : ghost) {
-      ghst.insert(g.lid);
-    }
+    std::set<util::id> ghst = ghosts();
 
     for(util::id e = 0; e < entities; ++e) {
       if(!ghst.count(e)) {
@@ -143,7 +130,6 @@ operator<<(std::ostream & stream, index_color const & ic) {
 struct unstructured_base {
 
   using index_color = unstructured_impl::index_color;
-  using ghost_entity = unstructured_impl::ghost_entity;
 
   using source_pointers = std::vector</* over local colors */
     std::map</* over global source colors */
@@ -233,10 +219,14 @@ struct unstructured_base {
 
       auto & pts = pointers[lco];
 
-      for(auto const & e : ic.ghost) {
-        ghost_offsets[lco].push_back(e.lid);
-        pts[e.global].emplace_back(std::make_pair(e.lid, e.rid));
+      for(auto const & [global, gs] : ic.ghost) {
+        for(auto [rid, lid] : gs) {
+          ghost_offsets[lco].push_back(lid);
+          pts[global].emplace_back(std::make_pair(lid, rid));
+        }
       } // for
+
+      std::sort(ghost_offsets[lco].begin(), ghost_offsets[lco].end());
 
       ++lco;
     } // for
@@ -268,31 +258,12 @@ struct unstructured_base {
     /*
       Setup cgraph data
      */
-    source_pointers peer_ghosts;
-
-    for(auto & ic : vic) {
-      std::map<Color, std::vector<std::pair<util::id, util::id>>> temp;
-      for(auto const & g : ic.ghost) {
-        temp[g.global].push_back(std::make_pair(g.lid, g.rid));
-      }
-
-      // sort the vectors for each color by the remote id of the ghosts
-      for(auto & c : temp) {
-        std::sort(std::begin(c.second),
-          std::end(c.second),
-          [](const auto & g1, const auto & g2) {
-            return g1.second < g2.second;
-          });
-      }
-
-      peer_ghosts.push_back(temp);
-    }
 
     int k = 0;
     for(auto & a : cgraph.accessors()) {
       // peers for local color k
       std::size_t p{0};
-      for(auto const & pg : peer_ghosts[k]) {
+      for(auto const & pg : vic[k].ghost) {
 
         // resize field
         a[p].resize(pg.second.size());
@@ -300,7 +271,7 @@ struct unstructured_base {
         // loop over entries
         std::size_t cnt{0};
         for(auto const & g : pg.second) {
-          a[p][cnt] = g.first; // local id
+          a[p][cnt] = g.second; // local id
           ++cnt;
         }
         ++p;
@@ -376,7 +347,7 @@ struct unstructured_base {
     data::multi<ragged_partition<1>::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
-      a.size() = it->ghost.size();
+      a.size() = it->ghosts().size();
       ++it;
     }
   } // cgraph_size
