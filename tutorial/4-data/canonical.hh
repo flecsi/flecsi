@@ -49,8 +49,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
           { /* cells over process colors */
             {
               4, /* entities */
-              {}, /* shared */
-              {}, /* ghost */
+              {}, /* peers */
               {} /* cnx_allocs */
             }
           },
@@ -66,8 +65,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
           { /* vertices over process colors */
             {
               2, /* entities */
-              {}, /* shared */
-              {}, /* ghost */
+              {}, /* peers */
               {} /* cnx_allocs */
             }
           },

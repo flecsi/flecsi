@@ -52,24 +52,27 @@ transpose(
   }
 }
 
+struct peer_entities {
+  std::set<util::id> shared;
+  std::map<util::id, util::id> ghost;
+};
+
 /// Information specific to a single index space and color.
 /// \ingroup unstructured
 struct index_color {
   /// Total number of entities stored by this color, including ghosts.
   util::id entities = 0;
 
-  /// Map peers to entities that are ghosts there
-  std::map<Color, std::set<util::id>> peer_shared;
-
-  /// Entities that are owned by another color.
-  std::map<Color, std::map<util::id, util::id>> ghost;
+  // Entities sent to and received from other Colors
+  std::map<Color, peer_entities> peers;
 
   /// \cond core
 
+  /// Entities received from other colors
   auto ghosts() const {
     std::set<util::id> ghst;
-    for(auto & [c, gs] : ghost) {
-      for(auto [rid, lid] : gs)
+    for(auto & p : peers) {
+      for(auto [rid, lid] : p.second.ghost)
         ghst.insert(lid);
     }
     return ghst;
@@ -91,8 +94,8 @@ struct index_color {
   /// Entities that are ghosts on another color.
   auto shared() const {
     std::set<util::id> shr;
-    for(auto & p : peer_shared) {
-      shr.insert(p.second.begin(), p.second.end());
+    for(auto & p : peers) {
+      shr.insert(p.second.shared.begin(), p.second.shared.end());
     }
     return shr;
   }
@@ -120,7 +123,7 @@ operator<<(std::ostream & stream, index_color const & ic) {
   stream << "owned\n" << flog::container{ic.owned()} << "\n";
   stream << "exclusive\n" << flog::container{ic.exclusive()} << "\n";
   stream << "shared\n" << flog::container{ic.shared()} << "\n";
-  stream << "ghost\n" << flog::container{ic.ghost} << "\n";
+  stream << "ghosts\n" << flog::container{ic.ghosts()} << "\n";
   stream << "cnx_allocs:\n" << flog::container{ic.cnx_allocs} << "\n";
   return stream;
 }
@@ -219,8 +222,8 @@ struct unstructured_base {
 
       auto & pts = pointers[lco];
 
-      for(auto const & [global, gs] : ic.ghost) {
-        for(auto [rid, lid] : gs) {
+      for(auto const & [global, pe] : ic.peers) {
+        for(auto [rid, lid] : pe.ghost) {
           ghost_offsets[lco].push_back(lid);
           pts[global].emplace_back(std::make_pair(lid, rid));
         }
@@ -263,14 +266,14 @@ struct unstructured_base {
     for(auto & a : cgraph.accessors()) {
       // peers for local color k
       std::size_t p{0};
-      for(auto const & pg : vic[k].ghost) {
+      for(auto const & pe : vic[k].peers) {
 
         // resize field
-        a[p].resize(pg.second.size());
+        a[p].resize(pe.second.ghost.size());
 
         // loop over entries
         std::size_t cnt{0};
-        for(auto const & g : pg.second) {
+        for(auto const & g : pe.second.ghost) {
           a[p][cnt] = g.second; // local id
           ++cnt;
         }
@@ -284,13 +287,8 @@ struct unstructured_base {
     for(auto & a : cgraph_shared.accessors()) {
       // peers for local color k
       std::size_t p{0};
-      for(auto const & sh : vic[k].peer_shared) {
-
-        // resize field
-        a[p].resize(sh.second.size());
-        std::copy(sh.second.begin(), sh.second.end(), a[p].begin());
-        ++p;
-      }
+      for(auto const & pe : vic[k].peers)
+        a[p++].assign(pe.second.shared.begin(), pe.second.shared.end());
       ++k;
     }
 
@@ -359,8 +357,8 @@ struct unstructured_base {
 
     for(auto & a : aa.accessors()) {
       std::size_t count = 0;
-      for(auto & e : it++->peer_shared) {
-        count += e.second.size();
+      for(auto & p : it++->peers) {
+        count += p.second.shared.size();
       }
       a.size() = count;
     }

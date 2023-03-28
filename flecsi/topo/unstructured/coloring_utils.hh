@@ -985,7 +985,7 @@ coloring_utils<MD>::close_primaries() {
           const auto lid = std::distance(gall.begin(), it);
 
           for(auto d : dependents.at(e)) {
-            ic.peer_shared[d].insert(lid);
+            ic.peers[d].shared.insert(lid);
           }
         }
       } // for
@@ -997,7 +997,7 @@ coloring_utils<MD>::close_primaries() {
         ghost_info ginfo;
         find_in_source(e, lco, gcolor, ginfo);
         flog_assert(gcolor == gco, "global color mismatch");
-        ic.ghost[gco][ginfo.rid] = ginfo.lid;
+        ic.peers[gco].ghost[ginfo.rid] = ginfo.lid;
         cp.insert(gco);
       } // for
       std::set<Color> peers;
@@ -1107,8 +1107,8 @@ coloring_utils<MD>::close_vertices() {
         // Go through the shared primaries and look for ghosts. Some of these
         // may be on the local processor, i.e., we don't need to request
         // remote information about them.
-        for(const auto & [d, shared_entities] : primary.peer_shared) {
-          for(auto lid : shared_entities) {
+        for(const auto & [d, pe] : primary.peers) {
+          for(auto lid : pe.shared) {
             auto sgid = primary_pcd.all[lid];
             for(auto v : cnns.e2v[cnns.m2p.at(sgid)]) {
               auto vit = v2co_.find(v);
@@ -1133,8 +1133,8 @@ coloring_utils<MD>::close_vertices() {
 
         // Go through the ghost primaries and look for ghosts. Some of these
         // may also be on the local processor.
-        for(auto & [c, gs] : primary.ghost) {
-          for(auto [rid, lid] : gs) {
+        for(auto & [c, pe] : primary.peers) {
+          for(auto [rid, lid] : pe.ghost) {
             auto egid = primary_pcd.all[lid];
 
             for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
@@ -1369,7 +1369,7 @@ coloring_utils<MD>::close_vertices() {
 
         if(vertex_pcd.shared.size() && vertex_pcd.shared.count(v)) {
           for(auto d : vertex_pcd.dependents.at(v)) {
-            ic.peer_shared[d].insert(lid);
+            ic.peers[d].shared.insert(lid);
             peers.insert(d);
           }
         }
@@ -1383,7 +1383,7 @@ coloring_utils<MD>::close_vertices() {
           ghost_info ginfo;
           find_in_source(v, lco, gcolor, ginfo);
           flog_assert(gcolor == gco, "global color mismatch");
-          ic.ghost[gco][ginfo.rid] = ginfo.lid;
+          ic.peers[gco].ghost[ginfo.rid] = ginfo.lid;
         } // for
       } // if
 
@@ -1910,7 +1910,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
 
       if(aux_pcd.shared.count(gid)) {
         for(auto d : aux_pcd.dependents[gid]) {
-          ic.peer_shared[d].insert(real_lid);
+          ic.peers[d].shared.insert(real_lid);
         }
       }
     }
@@ -1919,7 +1919,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
       Color gcolor;
       ghost_info ginfo;
       find_in_source(gid, lco, gcolor, ginfo);
-      ic.ghost[gcolor][ginfo.rid] = ginfo.lid;
+      ic.peers[gcolor].ghost[ginfo.rid] = ginfo.lid;
     } // for
 
   } // for
