@@ -62,7 +62,7 @@ main(int argc, char ** argv) {
       const double y = yoff + j * yinc;
 
       if(ascii) {
-        mesh << xoff + i * xinc << " " << yoff + j * yinc << std::endl;
+        mesh << x << " " << y << std::endl;
       }
       else {
         write(mesh, x);
@@ -76,8 +76,8 @@ main(int argc, char ** argv) {
     for(size_t i(0); i < N; ++i) {
       size_t v0 = i + j * (M + 1);
       size_t v1 = v0 + 1;
-      size_t v2 = v0 + M + 1;
-      size_t v3 = v2 + 1;
+      size_t v2 = v0 + M + 2;
+      size_t v3 = v2 - 1;
 
       if(ascii) {
         mesh << v0 << " " << v1 << " " << v2 << " " << v3 << std::endl;
