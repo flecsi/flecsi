@@ -405,7 +405,6 @@ private:
 
   std::vector<process_primary_color_data> primary_pcdata;
   std::vector<process_color_data> vertex_pcdata;
-  std::map<entity_kind, std::vector<process_color_data>> aux_pcdata;
 
   // Connectivity state is associated with primary entity's kind (as opposed to
   // its index space).
@@ -1715,11 +1714,11 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     }
   }
 
-  aux_pcdata[kind].resize(ours().size());
+  std::vector<process_color_data> aux_pcdata(ours().size());
 
   for(auto gco : ours()) {
     auto const lco = lc(gco);
-    auto & aux_pcd = aux_pcdata[kind][lco];
+    auto & aux_pcd = aux_pcdata[lco];
     auto & primary_pcd = primary_pcdata[lco];
     auto & vertex_pcd = vertex_pcdata[lco];
     auto & cnx = connectivity(idx)[lco];
@@ -1893,7 +1892,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   for(auto gco : ours()) {
     auto lco = lc(gco);
     auto & ic = ai[lco];
-    auto & aux_pcd = aux_pcdata[kind][lco];
+    auto & aux_pcd = aux_pcdata[lco];
 
     ic.entities = aux_pcd.all.size();
 
