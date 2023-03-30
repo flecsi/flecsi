@@ -850,32 +850,23 @@ coloring_utils<MD>::close_primaries() {
 
     pri_color.entities = num_primaries();
 
-    co = ours().begin();
-    for(const auto & entities : primaries()) {
-      const Color lco = lc(*co);
+    for(const auto co : ours()) {
+      const Color lco = lc(co);
       auto & ic = pri_color.colors[lco];
       auto & gall = primary_pcdata[lco].all;
       ic.entities = gall.size();
 
-      for(auto e : entities) {
-        if(shared_has(*co, e)) {
-          auto it = std::find(gall.begin(), gall.end(), e);
-          const auto lid = std::distance(gall.begin(), it);
-
-          for(auto d : dependents.at(e)) {
-            ic.peers[d].shared.insert(lid);
-          }
-        }
-      } // for
-
       auto & cp = color_peers_[lco];
+      auto & o = offsets[lco];
       std::set<Color> peers;
-      for(auto e : shared_[*co])
+      for(auto e : shared_[co]) {
+        const util::id lid = o.at(e);
+        for(auto d : dependents.at(e))
+          ic.peers[d].shared.insert(lid);
         peers.insert(dependents.at(e).begin(), dependents.at(e).end());
+      }
       is_peers.emplace_back(peers.begin(), peers.end());
       cp.merge(peers);
-
-      ++co;
     } // for
 
   } // scope
