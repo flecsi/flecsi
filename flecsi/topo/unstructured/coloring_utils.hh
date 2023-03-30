@@ -318,26 +318,7 @@ private:
 
     std::vector<std::size_t> local_itvls(ours().size());
     for(std::size_t lc{0}; lc < ours().size(); ++lc) {
-      std::size_t nlocal = 0;
-      auto gs = coloring(idx)[lc].ghosts();
-
-      auto g = gs.begin();
-
-      std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
-      for(; g != gs.end(); ++g) {
-        if(!run || *g != begin + run) {
-          if(run) {
-            begin = *g;
-            nlocal++;
-          }
-          run = 1;
-        }
-        else {
-          ++run;
-        }
-      } // for
-
-      local_itvls[lc] = ++nlocal;
+      local_itvls[lc] = coloring(idx)[lc].ghost_intervals().size();
     } // for
 
     /*

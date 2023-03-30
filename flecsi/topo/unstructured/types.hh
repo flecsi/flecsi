@@ -66,6 +66,10 @@ struct index_color {
   // Entities sent to and received from other Colors
   std::map<Color, peer_entities> peers;
 
+  /// The local allocation size for each connectivity. The vector is over
+  /// all connectivities in the order given in the specialization policy.
+  std::vector<std::size_t> cnx_allocs;
+
   /// \cond core
 
   /// Entities received from other colors
@@ -110,12 +114,29 @@ struct index_color {
     return ex;
   }
 
+  auto ghost_intervals() const {
+    std::vector<data::subrow> intervals;
+    auto gs = ghosts();
+    auto g = gs.begin();
+    std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
+    for(; g != gs.end(); ++g) {
+      if(!run || *g != begin + run) {
+        if(run) {
+          intervals.emplace_back(std::make_pair(begin, begin + run));
+          begin = *g;
+        }
+        run = 1;
+      }
+      else {
+        ++run;
+      }
+    } // for
+
+    intervals.emplace_back(std::make_pair(begin, begin + run));
+    return intervals;
+  }
+
   /// \endcond
-
-  /// The local allocation size for each connectivity. The vector is over
-  /// all connectivities in the order given in the specialization policy.
-  std::vector<std::size_t> cnx_allocs;
-
 }; // struct index_color
 
 inline std::ostream &
@@ -235,23 +256,7 @@ struct unstructured_base {
 
     intervals.resize(vic.size());
     for(std::size_t lc{0}; lc < vic.size(); ++lc) {
-      auto gs = vic[lc].ghosts();
-      auto g = gs.begin();
-      std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
-      for(; g != gs.end(); ++g) {
-        if(!run || *g != begin + run) {
-          if(run) {
-            intervals[lc].emplace_back(std::make_pair(begin, begin + run));
-            begin = *g;
-          }
-          run = 1;
-        }
-        else {
-          ++run;
-        }
-      } // for
-
-      intervals[lc].emplace_back(std::make_pair(begin, begin + run));
+      intervals[lc] = vic[lc].ghost_intervals();
     } // for
 
     /*
