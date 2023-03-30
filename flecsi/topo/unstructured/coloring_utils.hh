@@ -791,11 +791,7 @@ coloring_utils<MD>::close_primaries() {
       const Color lco = lc(*co);
       auto & cp = color_peers_[lco];
       auto & gall = primary_pcdata[lco].all;
-      gall.reserve(entities.size());
-
-      for(auto e : entities) {
-        gall.push_back(e);
-      }
+      gall = entities;
 
       for(auto e : ghost[lco]) {
         const auto gco = p2co_.at(e);
