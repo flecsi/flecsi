@@ -809,12 +809,23 @@ coloring_utils<MD>::close_primaries() {
 
       util::force_unique(gall);
 
+      auto & ic = pri_color.colors[lco];
       primary_partitions.emplace_back(gall.size());
+      ic.entities = gall.size();
       {
         util::id i = 0;
         auto & o = offsets.emplace_back();
         for(auto g : gall)
           o[g] = i++;
+        std::set<Color> peers;
+        for(auto e : shared_[*co]) {
+          const util::id lid = o.at(e);
+          for(auto d : dependents.at(e))
+            ic.peers[d].shared.insert(lid);
+          peers.insert(dependents.at(e).begin(), dependents.at(e).end());
+        }
+        is_peers.emplace_back(peers.begin(), peers.end());
+        cp.merge(peers);
       }
 
       ++co;
@@ -849,26 +860,6 @@ coloring_utils<MD>::close_primaries() {
     }
 
     pri_color.entities = num_primaries();
-
-    for(const auto co : ours()) {
-      const Color lco = lc(co);
-      auto & ic = pri_color.colors[lco];
-      auto & gall = primary_pcdata[lco].all;
-      ic.entities = gall.size();
-
-      auto & cp = color_peers_[lco];
-      auto & o = offsets[lco];
-      std::set<Color> peers;
-      for(auto e : shared_[co]) {
-        const util::id lid = o.at(e);
-        for(auto d : dependents.at(e))
-          ic.peers[d].shared.insert(lid);
-        peers.insert(dependents.at(e).begin(), dependents.at(e).end());
-      }
-      is_peers.emplace_back(peers.begin(), peers.end());
-      cp.merge(peers);
-    } // for
-
   } // scope
 
   /*
