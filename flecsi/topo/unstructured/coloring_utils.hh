@@ -925,21 +925,18 @@ coloring_utils<MD>::close_vertices() {
     adding remote requests.
    */
 
-  coloring(vertex_index()).colors.resize(ours().size());
-  auto & is_peers = coloring(vertex_index()).peers;
+  auto & vert_color = coloring(vertex_index());
+  auto & vert_partitions = vert_color.partitions;
+  auto & is_peers = vert_color.peers;
+
+  vert_color.colors.resize(ours().size());
+
   std::vector<util::gid> remote;
 
-  std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
-    ghost_offsets(ours().size());
+  std::vector<std::map<util::gid, util::id>> offsets;
 
-  std::vector</* over processes */
-    std::vector</* over local colors */
-      std::vector<std::tuple<util::gid,
-        std::size_t /* local color */,
-        std::size_t /* global color */>>>>
-    sources(size_);
-
-  std::vector<std::vector<std::size_t>> sources_lco(size_);
+  std::vector<std::vector<util::gid>> sources(size_);
+  std::vector<std::vector<std::pair<Color, util::gid>>> process_ghosts(size_);
 
   vertex_pcdata.resize(ours().size());
 
@@ -1029,6 +1026,14 @@ coloring_utils<MD>::close_vertices() {
       util::force_unique(vertex_pcd.all);
       util::force_unique(vertex_pcd.owned);
       util::force_unique(vertex_pcd.ghost);
+
+      vert_partitions.emplace_back(vertex_pcd.all.size());
+      {
+        util::id i = 0;
+        auto & o = offsets.emplace_back();
+        for(auto g : vertex_pcd.all)
+          o[g] = i++;
+      }
     } // for
   } // scope
 
@@ -1077,135 +1082,18 @@ coloring_utils<MD>::close_vertices() {
   }
 
   {
-    const std::size_t num_lco = ours().size();
-
-    for(std::size_t lco = 0; lco < num_lco; ++lco) {
-      auto & vertex_pcd = vertex_pcdata[lco];
-
-      if(vertex_pcd.ghost.size()) {
-        for(auto v : vertex_pcd.ghost) {
-          const auto gco = v2co_.at(v);
-          const auto [pr, li] = pmap().invert(gco);
-
-          if(sources[pr].size() == 0) {
-            sources[pr].resize(ours().size());
-          }
-
-          auto const s = std::make_tuple(v, Color(li), gco);
-
-          sources[pr][lco].emplace_back(s);
-          sources_lco[pr].emplace_back(lco);
-        } // for
-      } // if
-
-      /*
-        Create a lookup table for local ghost offsets.
-       */
-
-      for(auto v : vertex_pcd.ghost) {
-        auto it = std::find(vertex_pcd.all.begin(), vertex_pcd.all.end(), v);
-        flog_assert(it != vertex_pcd.all.end(), "ghost entity doesn't exist");
-        ghost_offsets[lco][v] = std::distance(vertex_pcd.all.begin(), it);
-      } // for
-
-      /*
-        We also need to add shared offsets to the lookup table so that we can
-        provide local shared offset information to other processes that
-        request it.
-       */
-
-      for(auto v : vertex_pcd.shared) {
-        auto it = std::find(vertex_pcd.all.begin(), vertex_pcd.all.end(), v);
-        flog_assert(it != vertex_pcd.all.end(), "shared entity doesn't exist");
-        auto offset = std::distance(vertex_pcd.all.begin(), it);
-        shared_offsets[lco][v] = offset;
-      } // for
-
-    } // for
-  } // scope
-
-  /*
-    Send/Receive requests for shared offsets with other processes.
-   */
-
-  auto requested = util::mpi::all_to_allv(
-    [&sources](int r, int) -> auto & { return sources[r]; }, comm_);
-
-  /*
-    Fulfill the requests that we received from other processes, i.e.,
-    provide the local offset for the requested shared mesh ids.
-   */
-
-  std::vector<std::vector<util::id>> fulfills(size_);
-  {
-    int r = 0;
-    for(const auto & rv : requested) {
-      for(const auto & pc : rv) {
-        for(auto [id, lc, dmmy] : pc) {
-          fulfills[r].emplace_back(shared_offsets[lc][id]);
-        } // for
-      } // for
-
-      ++r;
-    } // for
-  } // scope
-
-  /*
-    Send/Receive the local offset information with other processes.
-   */
-
-  auto fulfilled = util::mpi::all_to_allv(
-    [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
-
-  struct ghost_info {
-    util::id lid;
-    util::id rid;
-  };
-
-  // lambda
-  auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
-                          util::gid const & in_id,
-                          std::size_t const & in_lco,
-                          std::size_t & gcolor,
-                          ghost_info & ginfo) {
-    int k{0};
-    for(auto const & rv : sources) { // process
-      std::size_t pc{0}, cnt{0};
-      for(auto const & cv : rv) { // local colors
-        for(auto [id, dmmy, gco] : cv) {
-          if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
-            gcolor = gco;
-            ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
-            return;
-          }
-          ++cnt;
-        } // for
-        ++pc;
-      } // for
-      ++k;
-    } // for
-    flog_fatal("could not find ghost info");
-  };
-
-  /*
-    Finish populating the vertex index coloring.
-   */
-  coloring(vertex_index()).entities = num_vertices();
-
-  {
     for(const Color co : ours()) {
       const Color lco = lc(co);
-      auto & ic = coloring(vertex_index()).colors[lco];
+      auto & ic = vert_color.colors[lco];
       auto & vertex_pcd = vertex_pcdata[lco];
+      auto & cp = color_peers_[lco];
+      auto & o = offsets[lco];
+      std::set<Color> peers;
 
       ic.entities = vertex_pcd.all.size();
 
-      auto & cp = color_peers_[lco];
-      std::set<Color> peers;
-
       for(auto v : vertex_pcd.owned) {
-        auto it = std::find(vertex_pcd.all.begin(), vertex_pcd.all.end(), v);
-        const auto lid = std::distance(vertex_pcd.all.begin(), it);
+        const util::id lid = o.at(v);
 
         if(vertex_pcd.shared.size() && vertex_pcd.shared.count(v)) {
           for(auto d : vertex_pcd.dependents.at(v)) {
@@ -1215,24 +1103,52 @@ coloring_utils<MD>::close_vertices() {
         }
       } // for
 
-      if(vertex_pcd.ghost.size()) {
-        for(auto v : vertex_pcd.ghost) {
-          const auto gco = v2co_.at(v);
-          cp.insert(gco);
-          std::size_t gcolor = -1;
-          ghost_info ginfo;
-          find_in_source(v, lco, gcolor, ginfo);
-          flog_assert(gcolor == gco, "global color mismatch");
-          ic.peers[gco].ghost[ginfo.rid] = ginfo.lid;
-        } // for
-      } // if
+      for(auto v : vertex_pcd.ghost) {
+        const auto gco = v2co_.at(v);
+        const auto pr = pmap().bin(gco);
+
+        sources[pr].emplace_back(v);
+        process_ghosts[pr].emplace_back(lco, v);
+        cp.insert(gco);
+      } // for
 
       cp.insert(peers.begin(), peers.end());
       is_peers.emplace_back(peers.begin(), peers.end());
-
-      coloring(vertex_index()).partitions.emplace_back(vertex_pcd.all.size());
     } // for
   } // scope
+
+  /*
+    Communicate local offsets for shared vertex ids.
+   */
+
+  std::vector<std::vector<util::id>> fulfills;
+  for(const auto &rv : util::mpi::all_to_allv(
+        [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+    auto & f = fulfills.emplace_back();
+    for(const auto id : rv)
+      f.emplace_back(offsets[lc(v2co_.at(id))].at(id));
+  } // for
+
+  /*
+    Send/Receive the local offset information with other processes.
+   */
+
+  {
+    auto pgi = process_ghosts.begin();
+    for(const auto &ans : util::mpi::all_to_allv(
+          [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
+          comm_)) {
+      auto ai = ans.begin();
+      for(auto & [lco, e] : *pgi++)
+        vert_color.colors[lco].peers[v2co_.at(e)].ghost[*ai++] =
+          offsets[lco].at(e);
+    }
+  }
+
+  /*
+    Finish populating the vertex index coloring.
+   */
+  vert_color.entities = num_vertices();
 
   /*
     Gather the tight peer information for the vertices.
@@ -1243,7 +1159,7 @@ coloring_utils<MD>::close_vertices() {
   /*
     Gather partition sizes or vertices.
    */
-  concatenate(coloring(vertex_index()).partitions, cd_.colors, comm_);
+  concatenate(vert_partitions, cd_.colors, comm_);
 
   /*
    * Compute vertex ghost interval sizes
