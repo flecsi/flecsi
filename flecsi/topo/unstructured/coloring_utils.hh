@@ -337,7 +337,6 @@ private:
   struct connectivity_state_t {
     util::crs e2v;
     std::map<util::gid, std::vector<util::gid>> v2e;
-    std::vector<util::gid> p2m;
     std::map<util::gid, util::id> m2p;
   };
 
@@ -558,7 +557,6 @@ coloring_utils<MD>::migrate_primaries() {
       auto const [co, eid] = info;
       cnns.e2v.add_row(vertices);
       cnns.m2p[eid] = cnns.e2v.size() - 1; /* offset map */
-      cnns.p2m.emplace_back(eid);
       primaries()[lc(co)].emplace_back(eid);
     } // for
 
@@ -781,9 +779,6 @@ coloring_utils<MD>::close_primaries() {
         for(auto & [id, vv, deps] : ep) {
           cnns.e2v.add_row(vv);
           cnns.m2p[id] = cnns.e2v.size() - 1;
-          cnns.p2m.emplace_back(id);
-          flog_assert(
-            cnns.p2m.size() == cnns.e2v.size(), "local info corrupted");
           p2co_.try_emplace(id, co);
 
           if(d < cd_.depth) {
