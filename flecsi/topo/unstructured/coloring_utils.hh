@@ -774,26 +774,22 @@ coloring_utils<MD>::close_primaries() {
     Primary entities.
    */
 
-  auto & primary_partitions = coloring(cell_index()).partitions;
-  auto & is_peers = coloring(cell_index()).peers;
+  auto & pri_color = coloring(cell_index());
+  auto & primary_partitions = pri_color.partitions;
+  auto & is_peers = pri_color.peers;
 
-  std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
-    ghost_offsets(ours().size());
+  std::vector<std::map<util::gid, util::id>> offsets;
 
-  std::vector</* over processes */
-    std::vector</* over local colors */
-      std::vector<std::tuple<util::gid,
-        std::size_t /* local color */,
-        std::size_t /* global color */>>>>
-    sources(size_);
+  std::vector<std::vector<util::gid>> sources(size_);
+  std::vector<std::vector<std::pair<Color, util::gid>>> process_ghosts(size_);
 
-  std::vector<std::vector<std::size_t>> sources_lco(size_);
   primary_pcdata.resize(ours().size());
 
   {
     auto co = ours().begin();
     for(const auto & entities : primaries()) {
       const Color lco = lc(*co);
+      auto & cp = color_peers_[lco];
       auto & gall = primary_pcdata[lco].all;
       gall.reserve(entities.size());
 
@@ -803,119 +799,61 @@ coloring_utils<MD>::close_primaries() {
 
       for(auto e : ghost[lco]) {
         const auto gco = p2co_.at(e);
-        const auto [pr, li] = pmap().invert(gco);
+        const auto pr = pmap().bin(gco);
         gall.emplace_back(e);
 
-        if(sources[pr].size() == 0) {
-          sources[pr].resize(ours().size());
-        }
-
-        auto const s = std::make_tuple(e, Color(li), gco);
-        sources[pr][lco].emplace_back(s);
-        sources_lco[pr].emplace_back(lco);
+        sources[pr].push_back(e);
+        process_ghosts[pr].emplace_back(lco, e);
+        cp.insert(gco);
       } // for
 
       util::force_unique(gall);
 
-      /*
-        Create a lookup table for local ghost offsets.
-       */
-
-      for(auto e : ghost[lco]) {
-        auto it = std::find(gall.begin(), gall.end(), e);
-        flog_assert(it != gall.end(), "ghost entity doesn't exist");
-        ghost_offsets[lco][e] = std::distance(gall.begin(), it);
-      } // for
-
-      /*
-        We also need to add shared offsets to the lookup table so that we can
-        provide local shared offset information to other processes that
-        request it.
-       */
-
-      for(auto e : entities) {
-        if(shared_has(*co, e)) {
-          auto it = std::find(gall.begin(), gall.end(), e);
-          flog_assert(it != gall.end(), "shared entity doesn't exist");
-          auto offset = std::distance(gall.begin(), it);
-          shared_offsets[lco][e] = offset;
-        }
-      } // for
-
       primary_partitions.emplace_back(gall.size());
+      {
+        util::id i = 0;
+        auto & o = offsets.emplace_back();
+        for(auto g : gall)
+          o[g] = i++;
+      }
 
       ++co;
     } // for
 
     /*
-      Send/Receive requests for shared offsets with other processes.
-     */
+      Communicate local offsets for shared mesh ids.
+    */
 
-    auto requested = util::mpi::all_to_allv(
-      [&sources](int r, int) -> auto & { return sources[r]; }, comm_);
-
-    /*
-      Fulfill the requests that we received from other processes, i.e.,
-      provide the local offset for the requested shared mesh ids.
-     */
-
-    std::vector<std::vector<util::id>> fulfills(size_);
-    {
-      int r = 0;
-      for(const auto & rv : requested) {
-        for(const auto & pc : rv) {
-          for(auto [id, lc, dmmy] : pc) {
-            fulfills[r].emplace_back(shared_offsets[lc][id]);
-          } // for
-        } // for
-
-        ++r;
-      } // for
-    } // scope
+    std::vector<std::vector<util::id>> fulfills;
+    for(const auto &rv : util::mpi::all_to_allv(
+          [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+      auto & f = fulfills.emplace_back();
+      for(const auto id : rv)
+        f.emplace_back(offsets[lc(p2co_.at(id))].at(id));
+    } // for
 
     /*
       Send/Receive the local offset information with other processes.
      */
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
+    {
+      auto pgi = process_ghosts.begin();
+      for(const auto &ans : util::mpi::all_to_allv(
+            [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
+            comm_)) {
+        auto ai = ans.begin();
+        for(auto & [lco, e] : *pgi++)
+          pri_color.colors[lco].peers[p2co_.at(e)].ghost[*ai++] =
+            offsets[lco].at(e);
+      }
+    }
 
-    struct ghost_info {
-      util::id lid;
-      util::id rid;
-    };
-
-    // lambda
-    auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
-                            util::gid const & in_id,
-                            std::size_t const & in_lco,
-                            std::size_t & gcolor,
-                            ghost_info & ginfo) {
-      int k{0};
-      for(auto const & rv : sources) { // process
-        std::size_t pc{0}, cnt{0};
-        for(auto const & cv : rv) { // local colors
-          for(auto [id, dmmy, gco] : cv) {
-            if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
-              gcolor = gco;
-              ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
-              return;
-            }
-            ++cnt;
-          } // for
-          ++pc;
-        } // for
-        ++k;
-      } // for
-      flog_fatal("could not find ghost info");
-    };
-
-    coloring(cell_index()).entities = num_primaries();
+    pri_color.entities = num_primaries();
 
     co = ours().begin();
     for(const auto & entities : primaries()) {
       const Color lco = lc(*co);
-      auto & ic = coloring(cell_index()).colors[lco];
+      auto & ic = pri_color.colors[lco];
       auto & gall = primary_pcdata[lco].all;
       ic.entities = gall.size();
 
@@ -931,15 +869,6 @@ coloring_utils<MD>::close_primaries() {
       } // for
 
       auto & cp = color_peers_[lco];
-      for(auto e : ghost[lco]) {
-        const auto gco = p2co_.at(e);
-        std::size_t gcolor;
-        ghost_info ginfo;
-        find_in_source(e, lco, gcolor, ginfo);
-        flog_assert(gcolor == gco, "global color mismatch");
-        ic.peers[gco].ghost[ginfo.rid] = ginfo.lid;
-        cp.insert(gco);
-      } // for
       std::set<Color> peers;
       for(auto e : shared_[*co])
         peers.insert(dependents.at(e).begin(), dependents.at(e).end());
