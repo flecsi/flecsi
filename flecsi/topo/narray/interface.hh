@@ -667,7 +667,7 @@ protected:
     \sa enum domain
   */
   template<index_space S, axis A, domain DM>
-  FLECSI_INLINE_TARGET std::size_t size() const {
+  FLECSI_INLINE_TARGET auto size() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 1>() - logical<S, A, 0>();
     }
@@ -687,13 +687,13 @@ protected:
       if(!is_low<S, A>())
         return logical<S, A, 0>();
       else
-        return 0;
+        return util::id();
     }
     else if constexpr(DM == domain::ghost_high) {
       if(!is_high<S, A>())
         return extent<S, A>() - logical<S, A, 1>();
       else
-        return 0;
+        return util::id();
     }
     else {
       static_assert(DM == domain::global, "invalid domain identifier");
