@@ -271,7 +271,7 @@ private:
   }
 
   auto & coloring(std::size_t idx) {
-    return coloring_.idx_spaces[idx].colors;
+    return coloring_.idx_spaces[idx];
   }
 
   auto & connectivity(std::size_t idx) {
@@ -284,18 +284,6 @@ private:
 
   auto vertex_index() const {
     return cd_.vid.idx;
-  }
-
-  auto & entities(std::size_t idx) {
-    return coloring_.idx_spaces[idx].entities;
-  }
-
-  auto & peers(std::size_t idx) {
-    return coloring_.idx_spaces[idx].peers;
-  }
-
-  auto & partitions(std::size_t idx) {
-    return coloring_.idx_spaces[idx].partitions;
   }
 
   auto & auxiliary_state(entity_kind kind) {
@@ -318,7 +306,7 @@ private:
 
     std::vector<std::size_t> local_itvls(ours().size());
     for(std::size_t lc{0}; lc < ours().size(); ++lc) {
-      local_itvls[lc] = coloring(idx)[lc].ghost_intervals().size();
+      local_itvls[lc] = coloring(idx).colors[lc].ghost_intervals().size();
     } // for
 
     /*
@@ -567,18 +555,18 @@ coloring_utils<MD>::migrate_primaries() {
   } // for
 
   color_peers_.resize(ours().size());
-  coloring(cell_index()).resize(ours().size());
-  coloring(vertex_index()).resize(ours().size());
+  coloring(cell_index()).colors.resize(ours().size());
+  coloring(vertex_index()).colors.resize(ours().size());
   connectivity(cell_index()).resize(ours().size());
   connectivity(vertex_index()).resize(ours().size());
   for(auto const [kind, idx] : cd_.aidxs) {
-    coloring(idx).resize(ours().size());
+    coloring(idx).colors.resize(ours().size());
     connectivity(idx).resize(ours().size());
   } // for
 
   // Set the vector sizes for connectivity information.
   for(auto [from, to, transpose] : ca_) {
-    for(auto & ic : coloring(from)) {
+    for(auto & ic : coloring(from).colors) {
       ic.cnx_allocs.resize(idmap_.size());
     }
 
@@ -804,8 +792,8 @@ coloring_utils<MD>::close_primaries() {
     Primary entities.
    */
 
-  auto & primary_partitions = partitions(cell_index());
-  auto & is_peers = peers(cell_index());
+  auto & primary_partitions = coloring(cell_index()).partitions;
+  auto & is_peers = coloring(cell_index()).peers;
 
   std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
     ghost_offsets(ours().size());
@@ -940,12 +928,12 @@ coloring_utils<MD>::close_primaries() {
       flog_fatal("could not find ghost info");
     };
 
-    entities(cell_index()) = num_primaries();
+    coloring(cell_index()).entities = num_primaries();
 
     co = ours().begin();
     for(const auto & entities : primaries()) {
       const Color lco = lc(*co);
-      auto & ic = coloring(cell_index())[lco];
+      auto & ic = coloring(cell_index()).colors[lco];
       auto & gall = primary_pcdata[lco].all;
       ic.entities = gall.size();
 
@@ -1007,7 +995,7 @@ coloring_utils<MD>::color_vertices() {
   auto & cnns = primary_connectivity_state();
 
   for(std::size_t lco{0}; lco < ours().size(); ++lco) {
-    auto const & primary = coloring(cell_index())[lco];
+    auto const & primary = coloring(cell_index()).colors[lco];
     auto const & primary_pcd = primary_pcdata[lco];
 
     for(auto lid : primary.owned()) {
@@ -1048,8 +1036,8 @@ coloring_utils<MD>::close_vertices() {
     adding remote requests.
    */
 
-  coloring(vertex_index()).resize(ours().size());
-  auto & is_peers = peers(vertex_index());
+  coloring(vertex_index()).colors.resize(ours().size());
+  auto & is_peers = coloring(vertex_index()).peers;
   std::vector<util::gid> remote;
 
   std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
@@ -1069,7 +1057,7 @@ coloring_utils<MD>::close_vertices() {
   {
     for(const Color co : ours()) {
       const Color lco = lc(co);
-      auto primary = coloring(cell_index())[lco];
+      auto primary = coloring(cell_index()).colors[lco];
       auto & vertex_pcd = vertex_pcdata[lco];
       auto & primary_pcd = primary_pcdata[lco];
 
@@ -1313,12 +1301,12 @@ coloring_utils<MD>::close_vertices() {
   /*
     Finish populating the vertex index coloring.
    */
-  entities(vertex_index()) = num_vertices();
+  coloring(vertex_index()).entities = num_vertices();
 
   {
     for(const Color co : ours()) {
       const Color lco = lc(co);
-      auto & ic = coloring(vertex_index())[lco];
+      auto & ic = coloring(vertex_index()).colors[lco];
       auto & vertex_pcd = vertex_pcdata[lco];
 
       ic.entities = vertex_pcd.all.size();
@@ -1353,7 +1341,7 @@ coloring_utils<MD>::close_vertices() {
       cp.insert(peers.begin(), peers.end());
       is_peers.emplace_back(peers.begin(), peers.end());
 
-      partitions(vertex_index()).emplace_back(vertex_pcd.all.size());
+      coloring(vertex_index()).partitions.emplace_back(vertex_pcd.all.size());
     } // for
   } // scope
 
@@ -1366,7 +1354,7 @@ coloring_utils<MD>::close_vertices() {
   /*
     Gather partition sizes or vertices.
    */
-  concatenate(partitions(vertex_index()), cd_.colors, comm_);
+  concatenate(coloring(vertex_index()).partitions, cd_.colors, comm_);
 
   /*
    * Compute vertex ghost interval sizes
@@ -1413,7 +1401,7 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
 
   // Add owned primaries for all local colors.
   for(std::size_t lco = 0; lco < ours().size(); ++lco) {
-    auto & ic = coloring(cell_index())[lco];
+    auto & ic = coloring(cell_index()).colors[lco];
     auto & primary_pcd = primary_pcdata[lco];
     for(auto & plid : ic.owned()) {
       i_p2m.emplace_back(primary_pcd.all[plid]);
@@ -1658,7 +1646,7 @@ template<typename MD>
 void
 coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   auto & aux = auxiliary_state(kind);
-  auto & ai = coloring(idx);
+  auto & ai = coloring(idx).colors;
 
   ai.resize(ours().size());
 
@@ -1858,7 +1846,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   /*
     Populate the coloring information.
    */
-  entities(idx) = num_entities(kind);
+  coloring(idx).entities = num_entities(kind);
 
   for(auto gco : ours()) {
     auto lco = lc(gco);
@@ -1891,8 +1879,8 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     Populate peer information.
    */
 
-  auto & parts = partitions(idx);
-  auto & is_peers = this->peers(idx);
+  auto & parts = coloring(idx).partitions;
+  auto & is_peers = coloring(idx).peers;
   for(std::size_t lco{0}; lco < ours().size(); ++lco) {
     auto & ic = ai[lco];
     parts.emplace_back(ic.entities);
@@ -2018,7 +2006,7 @@ coloring_utils<MD>::generate() {
 
   for(auto [from, to, transpose] : ca_) {
     for(std::size_t lco{0}; lco < ours().size(); ++lco) {
-      coloring(from)[lco].cnx_allocs[to] =
+      coloring(from).colors[lco].cnx_allocs[to] =
         connectivity(transpose ? to : from)[lco][transpose ? from : to]
           .values.size();
     } // for
