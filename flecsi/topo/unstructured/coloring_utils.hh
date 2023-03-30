@@ -133,6 +133,7 @@ struct coloring_utils {
   /// \param shared maximum number of shared vertices to disregard
   /// \param c coloring function object with the signature of
   ///          flecsi::util::parmetis::color
+  //  \return the naive crs data structure
   //
   /// \note This method first marshalls the naive partition information on the
   /// root process and sends the respective data to each initially-owning
@@ -147,7 +148,7 @@ struct coloring_utils {
   /// convex hull without actually being connected. Other similar cases of
   /// this nature are also possible.
   template<typename C>
-  void color_primaries(util::id shared, C && c);
+  util::crs color_primaries(util::id shared, C && c);
 
   /// Redistribute the primary entities. This method moves the primary
   /// entities to their owning colors.
@@ -241,10 +242,6 @@ struct coloring_utils {
   // owned entities for each color (Ghost entities are excluded.).
   auto & primaries() {
     return primaries_;
-  }
-
-  auto & get_naive() const {
-    return naive;
   }
 
 private:
@@ -356,7 +353,6 @@ private:
   // Connectivity state is associated with primary entity's kind (as opposed to
   // its index space).
   connectivity_state_t primary_conns_;
-  util::crs naive;
 
   std::vector<Color> primary_raw_;
   std::vector<Color> vertex_raw_;
@@ -377,7 +373,7 @@ private:
 
 template<typename MD>
 template<typename C>
-void
+util::crs
 coloring_utils<MD>::color_primaries(util::id shared, C && f) {
   auto & cnns = primary_connectivity_state();
 
@@ -498,12 +494,14 @@ coloring_utils<MD>::color_primaries(util::id shared, C && f) {
   /*
     Populate the actual distributed crs data structure.
    */
+  util::crs naive;
 
   for(const std::size_t c : ecm[rank_]) {
     naive.add_row(e2e[c]);
   } // for
 
   primary_raw_ = std::forward<C>(f)(ecm, naive, cd_.colors, comm_);
+  return naive;
 } // color_primaries
 
 template<typename MD>
