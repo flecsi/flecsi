@@ -73,7 +73,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     using M = std::array<util::id, dimension>;
 
     template<axis A, domain DM = domain::logical>
-    std::size_t size() const {
+    auto size() const {
       return B::template size<topo::elements, A, DM>();
     }
 
@@ -132,7 +132,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
       util::id lo = (DM == domain::logical || DM == domain::ghost_high)
                       ? offset<A, DM>()
                       : 0;
-      return {lo, lo + (util::id)size<A, DM>()};
+      return {lo, lo + size<A, DM>()};
     }
 
     template<domain DM = domain::logical>

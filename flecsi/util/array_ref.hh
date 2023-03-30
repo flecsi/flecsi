@@ -164,12 +164,17 @@ struct mdbase {
   /// \endcode
   /// \param p pointer to first element of (sub)array
   /// \param sz sizes, least significant first
-  constexpr mdbase(T * p, std::array<size_type, D> sz) noexcept
-    : mdbase(p, [&sz] {
-        for(int d = 1; d < D; ++d) // premultiply to convert to strides
-          sz[d] *= sz[d - 1];
-        return sz.data();
-      }()) {}
+  template<typename U = size_type,
+    typename = std::enable_if_t<std::is_convertible_v<U, size_type>>>
+  constexpr mdbase(T * p, std::array<U, D> sz) noexcept
+    : mdbase(p,
+        [sz = std::apply(
+           [](auto &&... a) { return std::array<size_type, D>{a...}; },
+           sz)]() mutable {
+          for(int d = 1; d < D; ++d) // premultiply to convert to strides
+            sz[d] *= sz[d - 1];
+          return sz.data();
+        }()) {}
 
   /// Get one size of the view.
   /// \param i dimension (0 for least significant)
@@ -245,8 +250,8 @@ struct mdspan : detail::mdbase<T, D> {
 
 /// Deduction guide.
 /// \memberof mdspan
-template<class T, std::size_t D>
-mdspan(T *, std::array<std::size_t, D>) -> mdspan<T, D>;
+template<class T, class U, std::size_t D>
+mdspan(T *, std::array<U, D>) -> mdspan<T, D>;
 
 /// \addtogroup ranges
 /// \{
