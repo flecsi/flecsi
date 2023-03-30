@@ -300,26 +300,10 @@ private:
     const std::vector<Color> &) const;
 
   void compute_interval_sizes(std::size_t idx) {
-    /*
-     * Compute local intervals.
-     */
-
-    std::vector<std::size_t> local_itvls(ours().size());
-    for(std::size_t lc{0}; lc < ours().size(); ++lc) {
-      local_itvls[lc] = coloring(idx).colors[lc].ghost_intervals().size();
-    } // for
-
-    /*
-     * Gather global interval sizes.
-     */
-
-    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm_);
-    auto & nis = coloring_.idx_spaces[idx].num_intervals;
-    nis.reserve(coloring_.colors);
-
-    for(const auto & p : global_itvls) {
-      nis.insert(nis.end(), p.begin(), p.end());
-    }
+    auto & local_itvls = coloring(idx).num_intervals;
+    for(auto & c : coloring(idx).colors)
+      local_itvls.push_back(c.ghost_intervals().size());
+    concatenate(local_itvls, cd_.colors, comm_);
   }
 
   struct connectivity_state_t {
