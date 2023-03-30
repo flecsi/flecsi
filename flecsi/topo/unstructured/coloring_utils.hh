@@ -311,8 +311,7 @@ private:
     util::gid n,
     const std::vector<Color> &) const;
 
-  void compute_interval_sizes(std::size_t idx,
-    std::vector<std::map<util::gid, util::id>> & ghost_offsets) {
+  void compute_interval_sizes(std::size_t idx) {
     /*
      * Compute local intervals.
      */
@@ -320,11 +319,7 @@ private:
     std::vector<std::size_t> local_itvls(ours().size());
     for(std::size_t lc{0}; lc < ours().size(); ++lc) {
       std::size_t nlocal = 0;
-      std::vector<util::id> gs;
-      for(auto [k, v] : ghost_offsets[lc]) {
-        gs.push_back(v);
-      }
-      std::sort(gs.begin(), gs.end());
+      auto gs = coloring(idx)[lc].ghosts();
 
       auto g = gs.begin();
 
@@ -1026,7 +1021,7 @@ coloring_utils<MD>::close_primaries() {
   /*
     Compute primary ghost interval sizes
    */
-  compute_interval_sizes(cell_index(), ghost_offsets);
+  compute_interval_sizes(cell_index());
 
 } // close_primaries
 
@@ -1401,7 +1396,7 @@ coloring_utils<MD>::close_vertices() {
    * Compute vertex ghost interval sizes
    */
 
-  compute_interval_sizes(vertex_index(), ghost_offsets);
+  compute_interval_sizes(vertex_index());
 
   /*
    * Build up connectivity
@@ -1946,7 +1941,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
    * Compute aux ghost interval sizes
    */
 
-  compute_interval_sizes(idx, ghost_offsets);
+  compute_interval_sizes(idx);
 
 } // close_auxiliary
 

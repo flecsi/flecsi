@@ -210,8 +210,6 @@ struct unstructured_base {
     data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph,
     data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared) {
 
-    std::vector<std::vector<util::id>> ghost_offsets(vic.size());
-
     pointers.resize(vic.size());
     std::size_t lco{0};
     for(auto & ic : vic) {
@@ -224,12 +222,9 @@ struct unstructured_base {
 
       for(auto const & [global, pe] : ic.peers) {
         for(auto [rid, lid] : pe.ghost) {
-          ghost_offsets[lco].push_back(lid);
           pts[global].emplace_back(std::make_pair(lid, rid));
         }
       } // for
-
-      std::sort(ghost_offsets[lco].begin(), ghost_offsets[lco].end());
 
       ++lco;
     } // for
@@ -240,9 +235,10 @@ struct unstructured_base {
 
     intervals.resize(vic.size());
     for(std::size_t lc{0}; lc < vic.size(); ++lc) {
-      auto g = ghost_offsets[lc].begin();
-      std::size_t begin = g == ghost_offsets[lc].end() ? 0 : *g, run = 0;
-      for(; g != ghost_offsets[lc].end(); ++g) {
+      auto gs = vic[lc].ghosts();
+      auto g = gs.begin();
+      std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
+      for(; g != gs.end(); ++g) {
         if(!run || *g != begin + run) {
           if(run) {
             intervals[lc].emplace_back(std::make_pair(begin, begin + run));
