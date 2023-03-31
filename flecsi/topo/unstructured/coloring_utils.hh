@@ -322,6 +322,7 @@ private:
       std::map<std::vector<util::gid>, std::pair<util::id, util::gid>>>
       shared;
     std::map<util::id, util::gid> l2g;
+    std::map<util::gid, util::id> g2l;
   };
 
   MD const & md_;
@@ -1334,7 +1335,9 @@ coloring_utils<MD>::build_auxiliary(entity_kind kind, heuristic h) {
         aux.shared[lc(co)].try_emplace(std::move(v), lid, offset);
       } // if
 
-      aux.l2g[lid] = offset++;
+      aux.l2g[lid] = offset;
+      aux.g2l[offset] = lid;
+      offset++;
     } // if
   } // for
 } // build_auxiliary
@@ -1426,6 +1429,7 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     for(auto const & ff : fv) {
       // local, global
       aux.l2g.try_emplace(lids[pr][off], std::get<0>(ff));
+      aux.g2l.try_emplace(std::get<0>(ff), lids[pr][off]);
       ++off;
     } // for
 
@@ -1445,21 +1449,13 @@ template<typename MD>
 void
 coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   auto & aux = auxiliary_state(kind);
-  auto & ai = coloring(idx).colors;
+  auto & aux_color = coloring(idx);
 
-  ai.resize(ours().size());
+  aux_color.colors.resize(ours().size());
 
-  std::vector<std::map<util::gid, util::id>> shared_offsets(ours().size()),
-    ghost_offsets(ours().size());
+  std::vector<std::vector<util::gid>> sources(size_);
+  std::vector<std::vector<std::pair<Color, util::gid>>> process_ghosts(size_);
 
-  std::vector</* over processes */
-    std::vector</* over local colors */
-      std::vector<std::tuple<util::gid,
-        std::size_t /* local color */,
-        std::size_t /* global color */>>>>
-    sources(size_);
-
-  std::vector<std::vector<std::size_t>> sources_lco(size_);
   std::vector<std::set<util::gid>> pclo;
   std::vector<std::set<Color>> peers(ours().size());
 
@@ -1480,6 +1476,8 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     auto & primary_pcd = primary_pcdata[lco];
     auto & vertex_pcd = vertex_pcdata[lco];
     auto & cnx = connectivity(idx)[lco];
+    auto & cp = color_peers_[lco];
+    auto & offsets = aux_pcd.offsets;
 
     auto entity_g2l = [&offsets = primary_pcd.offsets](
                         util::gid gid) -> util::id { return offsets.at(gid); };
@@ -1511,16 +1509,11 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
       else if(aux.dependencies[co].count(gid) &&
               aux.dependencies[co][gid] == gco) {
         aux_pcd.ghost.push_back(gid);
-        const auto [pr, li] = pmap().invert(co);
-        auto const s = std::make_tuple(gid, Color(li), co);
+        const auto pr = pmap().bin(co);
 
-        if(sources[pr].size() == 0) {
-          sources[pr].resize(ours().size());
-        }
-
-        sources[pr][lco].emplace_back(s);
-        sources_lco[pr].emplace_back(lco);
-        color_peers_[lco].insert(co);
+        sources[pr].emplace_back(gid);
+        process_ghosts[pr].emplace_back(lco, gid);
+        cp.insert(co);
 
         // Only add auxiliary connectivity that is covered by
         // the primary closure.
@@ -1552,121 +1545,66 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     util::force_unique(aux_pcd.owned);
     util::force_unique(aux_pcd.ghost);
 
-    /*
-      Create a lookup table for local ghost offsets.
-     */
-
-    for(auto gid : aux_pcd.ghost) {
-      auto it = std::find(aux_pcd.all.begin(), aux_pcd.all.end(), gid);
-      ghost_offsets[lco][gid] = std::distance(aux_pcd.all.begin(), it);
-    } // for
-
-    /*
-      We also need to add shared offsets to the lookup table so that we can
-      provide local shared offset information to other processes that
-      request it.
-     */
-
-    for(auto gid : aux_pcd.shared) {
-      auto it = std::find(aux_pcd.all.begin(), aux_pcd.all.end(), gid);
-      shared_offsets[lco][gid] = std::distance(aux_pcd.all.begin(), it);
-    } // for
-
+    {
+      util::id i = 0;
+      for(auto gid : aux_pcd.all) {
+        offsets[gid] = i++;
+      }
+    }
   } // for
 
   /*
-    Send/Receive requests for shared offsets with other processes.
+    Communicate local offsets for shared aux ids.
    */
 
-  auto requested = util::mpi::all_to_allv(
-    [&sources](int r, int) -> auto & { return sources[r]; }, comm_);
-
-  /*
-    Fulfill the requests that we received from other processes, i.e.,
-    provide the local offset for the requested shared mesh ids.
-   */
-
-  std::vector<std::vector<util::id>> fulfills(size_);
-  {
-    int r = 0;
-    for(const auto & rv : requested) {
-      for(const auto & pc : rv) {
-        for(auto [id, lc, dmmy] : pc) {
-          fulfills[r].emplace_back(shared_offsets[lc][id]);
-        } // for
-      } // for
-
-      ++r;
-    } // for
-  } // scope
+  std::vector<std::vector<util::id>> fulfills;
+  for(const auto &rv : util::mpi::all_to_allv(
+        [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+    auto & f = fulfills.emplace_back();
+    for(const auto id : rv)
+      f.emplace_back(
+        aux_pcdata[lc(aux.a2co.at(aux.g2l.at(id)).first)].offsets.at(id));
+  } // for
 
   /*
     Send/Receive the local offset information with other processes.
    */
 
-  auto fulfilled = util::mpi::all_to_allv(
-    [f = std::move(fulfills)](int r, int) { return std::move(f[r]); }, comm_);
-
-  struct ghost_info {
-    util::id lid;
-    util::id rid;
-  };
-
-  // lambda
-  auto find_in_source = [&sources, &sources_lco, &ghost_offsets, &fulfilled](
-                          util::gid const & in_id,
-                          std::size_t const & in_lco,
-                          Color & gcolor,
-                          ghost_info & ginfo) {
-    int k{0};
-    for(auto const & rv : sources) { // process
-      std::size_t pc{0}, cnt{0};
-      for(auto const & cv : rv) { // local colors
-        for(auto [id, dmmy, gco] : cv) {
-          if((in_id == id) && (in_lco == sources_lco[k][cnt])) {
-            gcolor = gco;
-            ginfo = {ghost_offsets[pc][id], fulfilled[k][cnt]};
-            return;
-          }
-          ++cnt;
-        } // for
-        ++pc;
-      } // for
-      ++k;
-    } // for
-    flog_fatal("could not find ghost info");
-  };
+  {
+    auto pgi = process_ghosts.begin();
+    for(const auto &ans : util::mpi::all_to_allv(
+          [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
+          comm_)) {
+      auto ai = ans.begin();
+      for(auto & [lco, e] : *pgi++)
+        aux_color.colors[lco]
+          .peers[aux.a2co.at(aux.g2l.at(e)).first]
+          .ghost[*ai++] = aux_pcdata[lco].offsets.at(e);
+    }
+  }
 
   /*
     Populate the coloring information.
    */
-  coloring(idx).entities = num_entities(kind);
+  aux_color.entities = num_entities(kind);
 
   for(auto gco : ours()) {
     auto lco = lc(gco);
-    auto & ic = ai[lco];
+    auto & ic = aux_color.colors[lco];
     auto & aux_pcd = aux_pcdata[lco];
+    auto & offsets = aux_pcd.offsets;
 
     ic.entities = aux_pcd.all.size();
 
     for(auto gid : aux_pcd.owned) {
-      auto it = std::find(aux_pcd.all.begin(), aux_pcd.all.end(), gid);
-      util::id real_lid = (util::id)std::distance(aux_pcd.all.begin(), it);
+      util::id lid = offsets.at(gid);
 
       if(aux_pcd.shared.count(gid)) {
         for(auto d : aux_pcd.dependents[gid]) {
-          ic.peers[d].shared.insert(real_lid);
+          ic.peers[d].shared.insert(lid);
         }
       }
     }
-
-    for(auto gid : aux_pcd.ghost) {
-      Color gcolor;
-      ghost_info ginfo;
-      find_in_source(gid, lco, gcolor, ginfo);
-      ic.peers[gcolor].ghost[ginfo.rid] = ginfo.lid;
-    } // for
-
   } // for
 
   /*
@@ -1676,7 +1614,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
   auto & parts = coloring(idx).partitions;
   auto & is_peers = coloring(idx).peers;
   for(std::size_t lco{0}; lco < ours().size(); ++lco) {
-    auto & ic = ai[lco];
+    auto & ic = aux_color.colors[lco];
     parts.emplace_back(ic.entities);
     auto & pp = peers[lco];
     color_peers_[lco].insert(pp.begin(), pp.end());
