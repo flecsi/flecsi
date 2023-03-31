@@ -333,6 +333,7 @@ private:
 
   struct process_primary_color_data {
     std::vector<util::gid> all;
+    std::map<util::gid, util::id> offsets;
   };
 
   struct process_color_data : process_primary_color_data {
@@ -778,8 +779,6 @@ coloring_utils<MD>::close_primaries() {
   auto & primary_partitions = pri_color.partitions;
   auto & is_peers = pri_color.peers;
 
-  std::vector<std::map<util::gid, util::id>> offsets;
-
   std::vector<std::vector<util::gid>> sources(size_);
   std::vector<std::vector<std::pair<Color, util::gid>>> process_ghosts(size_);
 
@@ -791,6 +790,7 @@ coloring_utils<MD>::close_primaries() {
       const Color lco = lc(*co);
       auto & cp = color_peers_[lco];
       auto & gall = primary_pcdata[lco].all;
+      auto & offsets = primary_pcdata[lco].offsets;
       gall = entities;
 
       for(auto e : ghost[lco]) {
@@ -810,12 +810,11 @@ coloring_utils<MD>::close_primaries() {
       ic.entities = gall.size();
       {
         util::id i = 0;
-        auto & o = offsets.emplace_back();
         for(auto g : gall)
-          o[g] = i++;
+          offsets[g] = i++;
         std::set<Color> peers;
         for(auto e : shared_[*co]) {
-          const util::id lid = o.at(e);
+          const util::id lid = offsets.at(e);
           for(auto d : dependents.at(e))
             ic.peers[d].shared.insert(lid);
           peers.insert(dependents.at(e).begin(), dependents.at(e).end());
@@ -836,7 +835,7 @@ coloring_utils<MD>::close_primaries() {
           [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
       auto & f = fulfills.emplace_back();
       for(const auto id : rv)
-        f.emplace_back(offsets[lc(p2co_.at(id))].at(id));
+        f.emplace_back(primary_pcdata[lc(p2co_.at(id))].offsets.at(id));
     } // for
 
     /*
@@ -851,7 +850,7 @@ coloring_utils<MD>::close_primaries() {
         auto ai = ans.begin();
         for(auto & [lco, e] : *pgi++)
           pri_color.colors[lco].peers[p2co_.at(e)].ghost[*ai++] =
-            offsets[lco].at(e);
+            primary_pcdata[lco].offsets.at(e);
       }
     }
 
@@ -933,8 +932,6 @@ coloring_utils<MD>::close_vertices() {
 
   std::vector<util::gid> remote;
 
-  std::vector<std::map<util::gid, util::id>> offsets;
-
   std::vector<std::vector<util::gid>> sources(size_);
   std::vector<std::vector<std::pair<Color, util::gid>>> process_ghosts(size_);
 
@@ -946,6 +943,7 @@ coloring_utils<MD>::close_vertices() {
       auto primary = coloring(cell_index()).colors[lco];
       auto & vertex_pcd = vertex_pcdata[lco];
       auto & primary_pcd = primary_pcdata[lco];
+      auto & offsets = vertex_pcdata[lco].offsets;
 
       if(cd_.colors > 1) {
         // Go through the shared primaries and look for ghosts. Some of these
@@ -1030,9 +1028,8 @@ coloring_utils<MD>::close_vertices() {
       vert_partitions.emplace_back(vertex_pcd.all.size());
       {
         util::id i = 0;
-        auto & o = offsets.emplace_back();
         for(auto g : vertex_pcd.all)
-          o[g] = i++;
+          offsets[g] = i++;
       }
     } // for
   } // scope
@@ -1087,7 +1084,7 @@ coloring_utils<MD>::close_vertices() {
       auto & ic = vert_color.colors[lco];
       auto & vertex_pcd = vertex_pcdata[lco];
       auto & cp = color_peers_[lco];
-      auto & o = offsets[lco];
+      auto & o = vertex_pcd.offsets;
       std::set<Color> peers;
 
       ic.entities = vertex_pcd.all.size();
@@ -1126,7 +1123,7 @@ coloring_utils<MD>::close_vertices() {
         [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
     auto & f = fulfills.emplace_back();
     for(const auto id : rv)
-      f.emplace_back(offsets[lc(v2co_.at(id))].at(id));
+      f.emplace_back(vertex_pcdata[lc(v2co_.at(id))].offsets.at(id));
   } // for
 
   /*
@@ -1141,7 +1138,7 @@ coloring_utils<MD>::close_vertices() {
       auto ai = ans.begin();
       for(auto & [lco, e] : *pgi++)
         vert_color.colors[lco].peers[v2co_.at(e)].ghost[*ai++] =
-          offsets[lco].at(e);
+          vertex_pcdata[lco].offsets.at(e);
     }
   }
 
@@ -1176,11 +1173,8 @@ coloring_utils<MD>::close_vertices() {
     auto & primary_pcd = primary_pcdata[lco];
     auto & crs = connectivity(cell_index())[lco][vertex_index()];
 
-    auto g2l = [&all = vertex_pcd.all](util::gid gid) -> util::id {
-      auto it = std::find(all.begin(), all.end(), gid);
-      flog_assert(it != all.end(), "unknown vertex");
-      return std::distance(all.begin(), it);
-    };
+    auto g2l = [&offsets = vertex_pcd.offsets](
+                 util::gid gid) -> util::id { return offsets.at(gid); };
 
     for(auto egid : primary_pcd.all) {
       crs.add_row(util::transform_view(cnns.e2v[cnns.m2p.at(egid)], g2l));
@@ -1487,16 +1481,11 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     auto & vertex_pcd = vertex_pcdata[lco];
     auto & cnx = connectivity(idx)[lco];
 
-    auto entity_g2l = [&all = primary_pcd.all](util::gid gid) -> util::id {
-      auto it = std::find(all.begin(), all.end(), gid);
-      return std::distance(all.begin(), it);
-    };
+    auto entity_g2l = [&offsets = primary_pcd.offsets](
+                        util::gid gid) -> util::id { return offsets.at(gid); };
 
-    auto vertex_g2l = [&all = vertex_pcd.all](util::gid gid) -> util::id {
-      auto it = std::find(all.begin(), all.end(), gid);
-      flog_assert(it != all.end(), "unknown vertex");
-      return std::distance(all.begin(), it);
-    };
+    auto vertex_g2l = [&offsets = vertex_pcd.offsets](
+                        util::gid gid) -> util::id { return offsets.at(gid); };
 
     for(auto [lid, gid] : aux.l2g) {
       auto const co = aux.a2co.at(lid).first;
