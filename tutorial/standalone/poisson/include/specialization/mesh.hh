@@ -119,20 +119,20 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       this->policy_meta() = {x, y};
     }
 
-    double xdelta() {
+    FLECSI_INLINE_TARGET double xdelta() const {
       return this->policy_meta().xdelta;
     }
 
-    double ydelta() {
+    FLECSI_INLINE_TARGET double ydelta() const {
       return this->policy_meta().ydelta;
     }
 
-    double dxdy() {
+    FLECSI_INLINE_TARGET double dxdy() const {
       return xdelta() * ydelta();
     }
 
     template<axis A>
-    double value(std::size_t i) {
+    FLECSI_INLINE_TARGET double value(std::size_t i) const {
       return (A == x_axis ? xdelta() : ydelta()) * global_id<A>(i);
     }
 

@@ -21,7 +21,7 @@ poisson::task::red(mesh::accessor<ro> m,
                  dy_over_dx * (u[j][i + 1] + u[j][i - 1]) +
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
-  }; // for
+  }; // forall
   // clang format on
 } // smooth
 
@@ -44,6 +44,6 @@ poisson::task::black(mesh::accessor<ro> m,
                  dy_over_dx * (u[j][i + 1] + u[j][i - 1]) +
                  dx_over_dy * (u[j + 1][i] + u[j - 1][i]));
     } // for
-  }; // for
+  }; // forall
   // clang format on
 } // smooth
