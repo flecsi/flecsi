@@ -33,33 +33,13 @@ Flog (FleCSI logging utility) options
 
 * **ENABLE_FLOG [default: OFF]** |br|
   This option enables support for the FleCSI logging utility (Flog).
-  By default, it also activates the Flog unit tests in the build
-  system.
+  When *OFF*, functions in the ``flog`` namespace
+  and the ``flog`` macros
+  remain defined but produce no output.
 
 * **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
   Produce colorized Flog output instead of using the output device's
   default colors.
-
-* **FLOG_ENABLE_DEBUG [default: OFF]** |br|
-  Enable Flog debug mode.  This causes Flog to output ``FLOG: …``
-  messages describing its internal operations.  This is intended for
-  use by developers to debug Flog itself.
-
-* **FLOG_ENABLE_DEVELOPER_MODE [default: OFF]** |br|
-  Enable internal FleCSI developer messages in the form of a
-  ``flog_devel(severity)`` output stream.
-
-* **FLOG_ENABLE_EXTERNAL [default: ON]** |br|
-  Enable support for messages defined at namespace scope.
-
-* **FLOG_ENABLE_MPI [default: ON]** |br|
-  Include MPI support in Flog.
-
-* **FLOG_ENABLE_TAGS [default: ON]** |br|
-  Enable tag groups in Flog.  Tag groups enable the programmer to
-  "guard" sets of messages with a tag and the user to select which
-  tags should be enabled or disabled.  This gives the user the ability
-  to control the types of information a program should output.
 
 * **FLOG_SERIALIZATION_INTERVAL [default: 100]** |br|
   The Flog serialization interval specifies the number of task
@@ -99,10 +79,6 @@ Flog (FleCSI logging utility) options
   only *error* and *fatal* log messages will be output. Regardless of
   the strip level, Flog messages that are designated *fatal* will
   generate a runtime error and will invoke ``std::exit``.
-
-* **FLOG_TAG_BITS [default: 1024]** |br|
-  Specify the number of bits to use for tag groups.  This corresponds
-  to the maximum number of tag groups a program can define.
 
 Parallelization options
 -----------------------

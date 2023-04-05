@@ -323,13 +323,6 @@ a file buffer and the ``std::clog`` stream buffer.
 
 Before attempting this example, you should make sure that you have
 configured and built FleCSI with ENABLE_FLOG=ON.
-Additional useful options are:
-
-* FLOG_ENABLE_COLOR_OUTPUT=ON
-* FLOG_ENABLE_TAGS=ON
-* FLOG_STRIP_LEVEL=0
-* FLOG_ENABLE_DEBUG=OFF
-* FLOG_DEVELOPER_MODE=OFF
 
 .. important::
 
