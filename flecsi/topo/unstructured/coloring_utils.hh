@@ -335,6 +335,10 @@ private:
   struct process_primary_color_data {
     std::vector<util::gid> all;
     std::map<util::gid, util::id> offsets;
+
+    auto g2l() const {
+      return [&](util::gid g) { return offsets.at(g); };
+    }
   };
 
   struct process_color_data : process_primary_color_data {
@@ -1174,11 +1178,9 @@ coloring_utils<MD>::close_vertices() {
     auto & primary_pcd = primary_pcdata[lco];
     auto & crs = connectivity(cell_index())[lco][vertex_index()];
 
-    auto g2l = [&offsets = vertex_pcd.offsets](
-                 util::gid gid) -> util::id { return offsets.at(gid); };
-
     for(auto egid : primary_pcd.all) {
-      crs.add_row(util::transform_view(cnns.e2v[cnns.m2p.at(egid)], g2l));
+      crs.add_row(
+        util::transform_view(cnns.e2v[cnns.m2p.at(egid)], vertex_pcd.g2l()));
     } // for
   }
 
@@ -1479,12 +1481,6 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     auto & cp = color_peers_[lco];
     auto & offsets = aux_pcd.offsets;
 
-    auto entity_g2l = [&offsets = primary_pcd.offsets](
-                        util::gid gid) -> util::id { return offsets.at(gid); };
-
-    auto vertex_g2l = [&offsets = vertex_pcd.offsets](
-                        util::gid gid) -> util::id { return offsets.at(gid); };
-
     for(auto [lid, gid] : aux.l2g) {
       auto const co = aux.a2co.at(lid).first;
 
@@ -1492,9 +1488,9 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
         aux_pcd.owned.emplace_back(gid);
 
         cnx[cell_index()].add_row(
-          util::transform_view(aux.i2e[lid], entity_g2l));
+          util::transform_view(aux.i2e[lid], primary_pcd.g2l()));
         cnx[vertex_index()].add_row(
-          util::transform_view(aux.i2v[lid], vertex_g2l));
+          util::transform_view(aux.i2v[lid], vertex_pcd.g2l()));
 
         if(aux.dependents[co].count(gid)) {
           aux_pcd.shared.insert(gid);
@@ -1525,11 +1521,12 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
         } // for
 
         if(pall.size()) {
-          cnx[cell_index()].add_row(util::transform_view(pall, entity_g2l));
+          cnx[cell_index()].add_row(
+            util::transform_view(pall, primary_pcd.g2l()));
         }
 
         cnx[vertex_index()].add_row(
-          util::transform_view(aux.i2v[lid], vertex_g2l));
+          util::transform_view(aux.i2v[lid], vertex_pcd.g2l()));
       }
     }
 
