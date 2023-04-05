@@ -1394,9 +1394,7 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     [&request](int r, int) -> auto & { return request[r]; }, comm_);
 
   // Fulfill requested information.
-  std::vector<std::vector<
-    std::tuple<util::gid, std::vector<util::gid>, std::vector<util::gid>>>>
-    fulfill(size_);
+  std::vector<std::vector<util::gid>> fulfill(size_);
   std::size_t pr{0};
   for(auto & rv : requested) {
     for(auto & [oco, rco, def] : rv) {
@@ -1406,12 +1404,8 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
       flog_assert(
         it != aux.shared[lc(oco)].end(), "invalid auxiliary definition");
 
-      // FIXME: Remove unused information, i.e., aux.i2e
-
       // Fulfillment sends the unsorted order to the requester.
-      fulfill[pr].emplace_back(std::make_tuple(it->second.second,
-        util::to_vector(aux.i2v[it->second.first]),
-        util::to_vector(aux.i2e[it->second.first])));
+      fulfill[pr].push_back(it->second.second);
 
       // Add the requesting color and auxiliary to things that depend on us.
       aux.dependents[oco][it->second.second].insert(rco);
@@ -1428,10 +1422,10 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
   pr = 0;
   for(auto & fv : fulfilled) {
     std::size_t off{0};
-    for(auto const & ff : fv) {
+    for(const auto ff : fv) {
       // local, global
-      aux.l2g.try_emplace(lids[pr][off], std::get<0>(ff));
-      aux.g2l.try_emplace(std::get<0>(ff), lids[pr][off]);
+      aux.l2g.try_emplace(lids[pr][off], ff);
+      aux.g2l.try_emplace(ff, lids[pr][off]);
       ++off;
     } // for
 
