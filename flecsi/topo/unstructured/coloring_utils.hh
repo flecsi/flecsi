@@ -1670,7 +1670,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
 
   \param kind The mesh definition entity kind.
   @param e2v entity to vertex graph.
-  @param p2m Process-to-mesh map for the primary entities.
+  \param p2m primary (global) ID for each row of \a e2v
 */
 
 template<class MD>
