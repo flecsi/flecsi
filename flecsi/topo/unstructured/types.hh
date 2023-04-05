@@ -231,68 +231,31 @@ struct unstructured_base {
     data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph,
     data::multi<field<util::id, data::ragged>::mutator<wo>> cgraph_shared) {
 
-    pointers.resize(vic.size());
-    std::size_t lco{0};
+    const auto prep = [n = vic.size()](auto & v) {
+      v.clear();
+      v.reserve(n);
+    };
+    prep(intervals);
+    prep(pointers);
+    const auto ca = cgraph.accessors(), sa = cgraph_shared.accessors();
+    auto ci = ca.begin(), si = sa.begin();
     for(auto & ic : vic) {
+      intervals.push_back(ic.ghost_intervals());
+      auto & pts = pointers.emplace_back();
 
-      /*
-        Create a lookup table for local ghost offsets.
-       */
-
-      auto & pts = pointers[lco];
-
+      auto ci1 = (*ci++).begin(), si1 = (*si++).begin();
       for(auto const & [global, pe] : ic.peers) {
+        auto c = *ci1++, s = *si1++;
+        auto & p = pts[global];
+        c.reserve(pe.ghost.size());
+        p.reserve(pe.ghost.size());
         for(auto [rid, lid] : pe.ghost) {
-          pts[global].emplace_back(std::make_pair(lid, rid));
+          p.emplace_back(lid, rid);
+          c.push_back(lid);
         }
+        s.assign(pe.shared.begin(), pe.shared.end());
       } // for
-
-      ++lco;
     } // for
-
-    /*
-      Compute local intervals.
-     */
-
-    intervals.resize(vic.size());
-    for(std::size_t lc{0}; lc < vic.size(); ++lc) {
-      intervals[lc] = vic[lc].ghost_intervals();
-    } // for
-
-    /*
-      Setup cgraph data
-     */
-
-    int k = 0;
-    for(auto & a : cgraph.accessors()) {
-      // peers for local color k
-      std::size_t p{0};
-      for(auto const & pe : vic[k].peers) {
-
-        // resize field
-        a[p].resize(pe.second.ghost.size());
-
-        // loop over entries
-        std::size_t cnt{0};
-        for(auto const & g : pe.second.ghost) {
-          a[p][cnt] = g.second; // local id
-          ++cnt;
-        }
-        ++p;
-      }
-      ++k;
-    }
-
-    // fill out cgraph_shared
-    k = 0;
-    for(auto & a : cgraph_shared.accessors()) {
-      // peers for local color k
-      std::size_t p{0};
-      for(auto const & pe : vic[k].peers)
-        a[p++].assign(pe.second.shared.begin(), pe.second.shared.end());
-      ++k;
-    }
-
   } // idx_itvls
 
   static void set_dests(
