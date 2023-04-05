@@ -52,8 +52,11 @@ transpose(
   }
 }
 
+/// Communication pattern for a single pair of colors.
 struct peer_entities {
+  /// Local entities sent to the peer.
   std::set<util::id> shared;
+  /// Local ID for (the remote ID) each entity received from the peer.
   std::map<util::id, util::id> ghost;
 };
 
@@ -63,7 +66,7 @@ struct index_color {
   /// Total number of entities stored by this color, including ghosts.
   util::id entities = 0;
 
-  // Entities sent to and received from other Colors
+  /// Entities sent to and received from other colors.
   std::map<Color, peer_entities> peers;
 
   /// The local allocation size for each connectivity. The vector is over
