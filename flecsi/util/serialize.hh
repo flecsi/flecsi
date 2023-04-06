@@ -237,10 +237,14 @@ struct traits<std::array<T, N>,
       serial::put(p, e);
     }
   }
+
+private:
   template<std::size_t... I>
   static type make_array(const std::byte *& p, std::index_sequence<I...>) {
     return {(void(I), serial::get<T>(p))...};
   }
+
+public:
   static type get(const std::byte *& p) {
     return make_array(p, std::make_index_sequence<N>());
   }
