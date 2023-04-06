@@ -246,14 +246,8 @@ struct traits<std::array<T, N>,
   }
 };
 template<class T>
-struct traits<std::vector<T>> {
+struct traits<std::vector<T>> : detail::container<std::vector<T>> {
   using type = std::vector<T>;
-  template<class P>
-  static void put(P & p, const type & v) {
-    serial::put(p, v.size());
-    for(auto & t : v)
-      serial::put(p, t);
-  }
   static type get(const std::byte *& p) {
     return get_vector<T>(p);
   }
