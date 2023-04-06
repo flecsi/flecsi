@@ -174,8 +174,5 @@ Miscellaneous options
 
   $ make test
 
-* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
-  Specify the C++ type for FleCSI to use for loop and iterator values.
-
 * **FLECSI_ID_TYPE [default: std::uint32_t]** |br|
   Specify the C++ type for FleCSI topologies to use for entity IDs.
