@@ -416,13 +416,11 @@ maybe_flush() {
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
-/// \if core
 /// A global variable with a task-specific value.
 /// Must be constructed before calling \c start.
 /// The value for a task has the lifetime of that task; the value outside of
 /// any task has the lifetime of \c start.  Each is value-initialized.
 /// \note Thread-local variables do not function correctly in all backends.
-/// \endif
 template<class T>
 struct task_local
 #ifdef DOXYGEN // implemented per-backend
