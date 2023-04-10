@@ -187,7 +187,7 @@ do
       ;;
     oneapi)
       SCRIPT_C_COMPILER=icx
-      SCRIPT_C_FLAGS="-diag-error-limit=5 $WARN"
+      SCRIPT_C_FLAGS="-diag-error-limit=5 $WARN -Wno-debug-disables-optimization"
       SCRIPT_CXX_COMPILER=icpx
       SCRIPT_CXX_FLAGS=$SCRIPT_C_FLAGS
 
