@@ -1024,6 +1024,49 @@ check_4dmesh(mesh4d::accessor<ro> m) {
   };
 } // check_4dmesh
 
+template<std::size_t D, typename mesh<D>::domain DOM>
+int
+value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
+  ints::accessor<wo, na> a,
+  int sz) {
+  UNIT("REWRITE_RF") {
+    std::array<util::id, D> lbnds, ubnds;
+    m.template bounds<DOM>(lbnds, ubnds);
+    auto str_local = m.template strides();
+    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+
+    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+    for(auto && v : tb(lbnds, ubnds)) {
+      auto lid = ln_local(v);
+      for(int n = 0; n < sz; ++n)
+        a[lid][n] = -a[lid][n];
+    }
+  };
+}
+
+template<std::size_t D, typename mesh<D>::domain DOM>
+int
+value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
+  ints::accessor<ro, ro> tf) {
+  UNIT("REWRITE_VERIFY_RF") {
+    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
+    auto str_local = m.template strides();
+    auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
+    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
+    flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+    std::array<util::id, D> lbnds, ubnds;
+
+    m.template bounds<DOM>(lbnds, ubnds);
+    for(auto && v : tb(lbnds, ubnds)) {
+      auto gids = m.global_ids(v);
+      auto lid = ln_local(v);
+      auto gid = ln_global(gids);
+      for(std::size_t k = 0; k < tf[lid].size(); ++k)
+        EXPECT_EQ(tf[lid][k], (int)(-(gid * 10000 + k)));
+    }
+  };
+}
+
 int
 narray_driver() {
   UNIT() {
@@ -1067,6 +1110,16 @@ narray_driver() {
       execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
         m1, rf1(m1), sz);
       execute<print_rf<1>>(m1, rf1(m1));
+
+      // tests if a rewrite of values on ragged with an accessor triggers a
+      // ghost copy
+      execute<value_rewrite_rf<1, mesh1d::domain::logical>>(m1, rf1(m1), sz);
+      auto res = test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_low>>(
+        m1, rf1(m1));
+      EXPECT_EQ(res, 0);
+      res = test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_high>>(
+        m1, rf1(m1));
+      EXPECT_EQ(res, 0);
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
