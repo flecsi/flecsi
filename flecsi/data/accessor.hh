@@ -321,8 +321,12 @@ struct ragged_accessor
   void send(F && f) {
     f(get_base(), [](const auto & r) {
       const field_id_t i = r.fid();
-      r.get_region().template ghost_copy<P>(r);
+      // The following call will trigger the ghost copy on the ragged, if
+      // needed. After the execution of this lambda, the call to f will trigger
+      // another ghost copy on the same region but a different topology
+      // which will not have any effect or change the dirty flag.
       auto & t = r.get_elements();
+      t.template get_region<topo::elements>().template ghost_copy<P>(r);
       if constexpr(!std::is_trivially_destructible_v<T>)
         r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform
