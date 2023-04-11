@@ -544,8 +544,8 @@ As stated in the preceding sections, FLOG buffers and serializes output
 to avoid collisions from different threads.
 As a safeguard, FleCSI's default settings flush these buffers
 periodically, so as to avoid memory capacity issues.
-The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
-``FLOG_SERIALIZATION_THRESHOLD`` define this behavior:
+The CMake configuration option ``FLOG_SERIALIZATION_INTERVAL`` defines
+this behavior:
 
 * *FLOG_SERIALIZATION_INTERVAL* |br|
   The serialization interval specifies how often FleCSI should check for
@@ -555,12 +555,6 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
   of each process every multiple of 300 task executions. |br|
   *(default: 100)*
 
-* *FLOG_SERIALIZATION_THRESHOLD* |br|
-  The serialization threshold sets the number of messages that must have
-  accumulated before output will be collected (requires reduction) to a
-  single process and written to the output streams. |br|
-  *(default: 1024)*
-
 .. caution::
 
   It is important to understand and tune FLOG serialization to your
@@ -568,8 +562,7 @@ The CMake configuration options ``FLOG_SERIALIZATION_INTERVAL`` and
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
   However, overly aggressive settings, e.g.,
-  ``FLOG_SERIALIZATION_INTERVAL=1`` and
-  ``FLOG_SERIALIZATION_THRESHOLD=1``, could force complete serialization
+  ``FLOG_SERIALIZATION_INTERVAL=1`` could force complete serialization
   of your application.
   This can be beneficial for debugging, but should not be used for
   actual simulation runs.
@@ -582,8 +575,7 @@ force FleCSI to serialize and flush output.
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
-  for ``FLOG_SERIALIZATION_INTERVAL`` and
-  ``FLOG_SERIALIZATION_THRESHOLD`` and to use ``flecsi::flog::flush()``
+  for ``FLOG_SERIALIZATION_INTERVAL`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
 FLOG Options (Command-Line)
