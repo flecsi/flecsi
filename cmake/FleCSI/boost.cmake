@@ -18,5 +18,10 @@ macro(flecsi_enable_boost target)
     target_link_libraries(${target} PUBLIC Boost::${_COMP})
   endforeach()
 
+  # workaround for boost::stacktrace on MacOS
+  if(APPLE)
+    target_compile_definitions(${target} PUBLIC BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
+  endif()
+
   set(FLECSI_CMAKE_ENABLE_BOOST ON)
 endmacro()
