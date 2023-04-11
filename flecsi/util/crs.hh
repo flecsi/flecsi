@@ -14,6 +14,7 @@
 #include <ostream>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 /// \addtogroup utils
@@ -141,5 +142,6 @@ struct util::serial::traits<util::crs> {
 };
 
 } // namespace flecsi
+/// \endcond
 
 #endif

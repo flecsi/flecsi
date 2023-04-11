@@ -405,6 +405,7 @@ operator<<(std::ostream & stream,
 }
 
 namespace unstructured_impl {
+/// \cond core
 /*!
   Initialize a connectivity using the coloring. This method uses
   from-to nomenclature, e.g., 'from' cells to 'vertices' initializes the
@@ -431,6 +432,7 @@ init_connectivity(
     } // for
   } // for
 }
+/// \endcond
 } // namespace unstructured_impl
 
 /// \}
