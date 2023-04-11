@@ -33,6 +33,7 @@ Deprecated
 * Logging
 
   * The namespace ``flecsi::log`` |mdash| use ``flecsi::flog`` instead
+  * The CMAKE option ``FLOG_SERIALIZATION_THRESHOLD`` is not used anymore 
 
 New features
 ^^^^^^^^^^^^

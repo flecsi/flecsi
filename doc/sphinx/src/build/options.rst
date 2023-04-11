@@ -48,13 +48,8 @@ Flog (FleCSI logging utility) options
   timeliness (lower = more timely output) against performance (higher
   = less overhead from the requisite global reduction).
 
-* **FLOG_SERIALIZATION_THRESHOLD [default: 1024]** |br|
-  The Flog serialization threshold specifies the number of messages
-  that must have accumulated before output will be collected to a
-  single process and written to the output streams.  It should be set
-  to a value that balances output timeliness (lower = more timely
-  output) against performance (higher = less overhead from the
-  requisite global reduction and from writing the output).
+* **FLOG_SERIALIZATION_THRESHOLD** |br|
+  **This interface is deprecated and not used anymore.**
 
 * **FLOG_STRIP_LEVEL [default: 0]** |br|
   Set the Flog strip level, which should an integer from 0 to 4.  Like

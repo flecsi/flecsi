@@ -398,16 +398,12 @@ flush() {
 } // flush
 
 inline void
-maybe_flush([[maybe_unused]] const bool check_size = true) {
+maybe_flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   auto & flecsi_context = run::context::instance();
   std::size_t & flog_task_count = flecsi_context.flog_task_count();
   if(flog_task_count >= FLOG_SERIALIZATION_INTERVAL)
-    if(!check_size || flecsi::exec::reduce_internal<flog::state::log_size,
-                        flecsi::exec::fold::max,
-                        flecsi::mpi>(*flog::state::instance)
-                          .get() > FLOG_SERIALIZATION_THRESHOLD)
-      flush();
+    flush();
 #endif
 } // maybe_flush
 
@@ -467,7 +463,7 @@ reduce(Args &&... args) {
   using namespace exec;
 
   ++run::context::instance().flog_task_count();
-  flog::maybe_flush(!trace::is_tracing());
+  flog::maybe_flush();
 
   return reduce_internal<Task, Reduction, Attributes, Args...>(
     std::forward<Args>(args)...);

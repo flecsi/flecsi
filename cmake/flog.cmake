@@ -34,10 +34,6 @@ set(FLOG_SERIALIZATION_INTERVAL "100" CACHE STRING
   "Select the frequency of message serialization in number of tasks")
 mark_as_advanced(FLOG_SERIALIZATION_INTERVAL)
 
-set(FLOG_SERIALIZATION_THRESHOLD "1024" CACHE STRING
-  "Select the threshold size in number of messages")
-mark_as_advanced(FLOG_SERIALIZATION_THRESHOLD)
-
 set(FLOG_MAX_MESSAGE_SIZE "4096" CACHE STRING
   "Select the max message size (larger will be truncated)")
 mark_as_advanced(FLOG_MAX_MESSAGE_SIZE)
