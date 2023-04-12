@@ -143,8 +143,7 @@ private:
       std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
       points;
 
-    // In this method, a mpi task "idx_itvls" is invoked, which computes couple
-    // of information: intervals and points. The intervals encode local ghost
+    // The intervals encode local ghost
     // intervals, whereas points capture the  local offset and corresponding
     // remote/shared offset on remote/shared color. The intervals and points are
     // used to create function objects "dest_tasks" and "ptrs_tasks" that is
@@ -153,7 +152,7 @@ private:
     // communication is invoked as part of task execution depending upon the
     // privilege requirements of the task.
 
-    execute<idx_itvls, mpi>(idef, num_intervals, intervals, points, comm);
+    idx_itvls(idef, num_intervals, intervals, points, comm);
 
     // clang-format off
     auto dest_task = [&intervals](auto f) {
