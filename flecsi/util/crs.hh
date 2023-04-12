@@ -36,9 +36,6 @@ as(std::vector<U> const & v) {
 /// as read-only.  Use the \c add_row methods to modify those fields in a
 /// consistent manner.
 struct crs : util::with_index_iterator<const crs> {
-  /// A view of a row (a substring of \c values).
-  using span = util::span<const util::gid>;
-
   /// The rows in \c values.
   util::offsets offsets;
   /// The concatenated rows.
@@ -84,17 +81,22 @@ struct crs : util::with_index_iterator<const crs> {
 
   /// Return a row.
   /// \return substring of \c values
-  span operator[](std::size_t i) const {
-    const auto r = offsets[i];
-    return span(values.data() + *r.begin(), r.size());
+  /// \{
+  util::span<const util::gid> operator[](std::size_t i) const {
+    return const_cast<crs &>(*this)[i];
   }
+  util::span<util::gid> operator[](std::size_t i) {
+    const auto r = offsets[i];
+    return {values.data() + *r.begin(), r.size()};
+  }
+  /// \}
 }; // struct crs
 
 inline std::string
 expand(crs const & graph) {
   std::stringstream stream;
   std::size_t r{0};
-  for(const crs::span row : graph) {
+  for(const auto row : graph) {
     stream << r++ << ": <";
     bool first = true;
     for(const std::size_t i : row) {

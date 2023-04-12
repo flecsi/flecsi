@@ -1566,7 +1566,7 @@ intersect_connectivity(const util::crs & c2f, const util::crs & f2e) {
   // Note: this is a rough estimate.
   c2e.values.reserve(c2f.values.size() + f2e.values.size());
 
-  for(const util::crs::span cell : c2f) {
+  for(const auto cell : c2f) {
     std::vector<util::gid> edges;
 
     // accumulate edges in cell
@@ -1618,7 +1618,7 @@ coloring_utils<MD>::build_intermediary(entity_kind kind,
     else
       md_.make_entity(kind, 0, these_verts, edges);
 
-    for(const util::crs::span row : edges) {
+    for(const auto row : edges) {
       sorted.assign(row.begin(), row.end());
       std::sort(sorted.begin(), sorted.end());
 
