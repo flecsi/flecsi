@@ -848,8 +848,6 @@ struct narray_base {
   /// Coloring type.
   /// \ingroup narray
   struct coloring {
-    MPI_Comm comm;
-
     std::vector</* over index spaces */
       index_definition>
       idx_colorings;

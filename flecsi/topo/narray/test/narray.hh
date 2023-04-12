@@ -61,7 +61,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
   using index_definition = typename mesh::base::index_definition;
   using coloring = typename mesh::base::coloring;
   static coloring color(index_definition const & idef) {
-    return {MPI_COMM_WORLD, {idef}};
+    return {{idef}};
   } // color
 
   /*--------------------------------------------------------------------------*

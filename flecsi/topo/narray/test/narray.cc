@@ -776,11 +776,11 @@ coloring_driver() {
       a.hdepth = 1;
     }
 
-    auto coloring = idef.process_coloring(MPI_COMM_WORLD);
+    auto coloring = idef.process_coloring();
     auto adef = idef;
     adef.axes[0].auxiliary = true;
     adef.full_ghosts = false;
-    auto avpc = adef.process_coloring(MPI_COMM_WORLD);
+    auto avpc = adef.process_coloring();
 
     mesh3d::gcoord global;
     std::map<Color, mesh3d::gcoord> extents, offset;
@@ -851,7 +851,7 @@ coloring_driver() {
     // +---+---+---+ ~ +    + ~ +---+---+---+ ~ +    + ~ +---+---+---+
 
     adef.full_ghosts = true;
-    avpc = adef.process_coloring(MPI_COMM_WORLD);
+    avpc = adef.process_coloring();
 
     extents[0] = {5, 4, 9};
     extents[1] = {6, 4, 9};
