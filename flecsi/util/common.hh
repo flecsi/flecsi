@@ -24,18 +24,11 @@ namespace util {
 /// Non-domain-specific infrastructure.
 /// \{
 
-//----------------------------------------------------------------------------//
-// Entity id type. This type should be used for id types for entities
-// in topologies.
-//----------------------------------------------------------------------------//
-
+/// Local (color-specific) topology entity ID type.
+/// Often provided in a index-space-specific convertible wrapper.
 using id = FLECSI_ID_TYPE;
 
-//----------------------------------------------------------------------------//
-// Global id type. This type should be used for global id types for entities
-// in topologies.
-//----------------------------------------------------------------------------//
-
+/// Global topology entity ID type.
 using gid = FLECSI_GID_TYPE;
 
 //----------------------------------------------------------------------------//

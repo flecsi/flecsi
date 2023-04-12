@@ -70,6 +70,7 @@ New features
   * ``narray`` represents hyperrectangular arrays, including structured meshes.
   * ``global`` topology instances may be created with sizes other than 1.
     (All elements are shared together among all point tasks in an index launch.)
+  * ``util::id`` and ``util::gid`` store topology-entity IDs.
 
 * MPI backend
 
