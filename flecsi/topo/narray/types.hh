@@ -907,8 +907,7 @@ struct narray_base {
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> const &
-      intervals,
-    MPI_Comm const &) {
+      intervals) {
     std::size_t ci = 0;
     for(auto [c, a] : aa.components()) {
       auto & iv = intervals[ci++];
@@ -928,8 +927,7 @@ struct narray_base {
     data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
       aa,
     std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> const & points,
-    MPI_Comm const &) {
+      std::vector<std::pair<std::size_t, std::size_t>>>> const & points) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
       for(auto const & si : points[ci++]) {

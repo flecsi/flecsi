@@ -156,15 +156,15 @@ private:
     execute<idx_itvls, mpi>(idef, num_intervals, intervals, points, comm);
 
     // clang-format off
-    auto dest_task = [&intervals, &comm](auto f) {
+    auto dest_task = [&intervals](auto f) {
       auto lm = data::launch::make(f.topology());
-      execute<set_dests, mpi>(lm(f), intervals, comm);
+      execute<set_dests, mpi>(lm(f), intervals);
     };
 
-    auto ptrs_task = [&points, &comm](auto f) {
+    auto ptrs_task = [&points](auto f) {
       auto lm = data::launch::make(f.topology());
       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        lm(f), points, comm);
+        lm(f), points);
     };
     // clang-format on
 
