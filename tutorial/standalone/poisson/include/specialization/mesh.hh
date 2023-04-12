@@ -184,9 +184,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       a.hdepth = 1;
     }
 
-    flog_assert(idef.colors() == flecsi::processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
     return {{idef}};
   } // color
 
