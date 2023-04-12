@@ -17,8 +17,11 @@ using Privileges = unsigned;
 using PrivilegeCount = unsigned short;
 
 /*!
-  Enumeration for specifying access privleges for data that are passed
+  Access privileges for data passed
   to FleCSI tasks.
+
+  Each field must be initialized with \c wo privileges (perhaps combined with
+  \c na).  Any use of such privileges produces default-initialized values.
 
   Ghost data is updated only when read access to it is requested.
   Writes to shared data are never propagated to ghost data for which the same
@@ -28,7 +31,7 @@ using PrivilegeCount = unsigned short;
 enum partition_privilege_t : Privileges {
   na = 0b00, ///< no access: defer consistency update
   ro = 0b01, ///< read-only
-  wo = 0b10, ///< write-only: data uninitialized; consistency updates discarded
+  wo = 0b10, ///< write-only: consistency updates discarded
   rw = 0b11 ///< read-write
 }; // enum partition_privilege_t
 

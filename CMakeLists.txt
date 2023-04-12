@@ -437,11 +437,6 @@ include(FleCSI/summary)
 flecsi_summary_header()
 flecsi_summary_info("FleCSI Version" "${FleCSI_VERSION_BRIEF}" FALSE)
 
-if(ENABLE_DOCUMENTATION)
-  flecsi_summary_info("FleCSI_DOCUMENTATION_VERSION"
-    "${FleCSI_DOCUMENTATION_VERSION}" FALSE)
-endif()
-
 string(APPEND _summary "\n")
 
 if(FleCSI_REPO_STATE)

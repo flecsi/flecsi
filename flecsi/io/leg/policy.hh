@@ -159,26 +159,17 @@ checkpoint_task(const Legion::Task * task,
           Legion::coord_t,
           Realm::AffineAccessor<char, 2, Legion::coord_t>>
           acc_fid(pr, fid, item_size);
-        auto * const dset_data = acc_fid.ptr(rect.lo);
-        hid_t dataset_id =
-          H5Dopen2(checkpoint_file.hdf5_file_id, name.c_str(), H5P_DEFAULT);
-        if(dataset_id < 0) {
-          flog(error) << "H5Dopen2 failed: " << dataset_id << std::endl;
-          H5Fclose(checkpoint_file.hdf5_file_id);
-          assert(0);
-        }
         [] {
           if constexpr(W)
             return H5Dwrite;
           else
             return H5Dread;
-        }()(dataset_id,
+        }()(hdf5::dataset(checkpoint_file.hdf5_file_id, name.c_str()),
           hdf5::datatype::bytes(item_size),
           H5S_ALL,
           H5S_ALL,
           H5P_DEFAULT,
-          dset_data);
-        H5Dclose(dataset_id);
+          acc_fid.ptr(rect.lo));
       });
     }
   }

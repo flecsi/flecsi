@@ -349,12 +349,13 @@ make_reduce(P policy, std::string n) {
   return {std::move(policy), n};
 }
 
-/// A parallel reduction loop.  Follow with a compound statement and `;`.
+/// A parallel reduction loop.
+/// Follow with a compound statement to form an expression.
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
 /// \param it variable name to introduce for elements
-/// \param ref variable name to introduce for storing results: call it to add
-///   a value to the reduction
+/// \param ref variable name to introduce for storing results; call it with
+///   each value participating in the reduction
 /// \param p sized random-access range
 /// \param R reduction operation type
 /// \param T data type

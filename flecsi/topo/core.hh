@@ -99,7 +99,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   template<typename P::index_space>
   data::region & get_region();
 
-  /// Find the partition for a field.
+  /// Find the partition for an index space.
   /// \return a \c repartition if appropriate
   /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
@@ -109,7 +109,6 @@ struct core : core_base { // with_ragged<P> is often another base class
   /// Required only if multiple privileges are used.
   /// \tparam T data type
   /// \tparam L use to trigger special copies for dynamic fields
-  /// \tparam Topo \c P, generally
   /// \tparam S use to identify relevant copy plan
   /// \param f to deduce the above as well as for the field ID
   template<class T, data::layout L, typename P::index_space S>

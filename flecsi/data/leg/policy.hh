@@ -41,6 +41,7 @@ constexpr inline std::size_t region_dimensions = 2;
 
 inline auto &
 run() {
+  // NB: the optional argument here is for only internal Legion testing.
   return *Legion::Runtime::get_runtime();
 }
 inline auto

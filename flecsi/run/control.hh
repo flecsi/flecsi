@@ -290,7 +290,7 @@ public:
       Add a function to be executed under the specified control point.
 
       @param args   A variadic list of arguments that are forwarded to the
-                    user-defined node type, as spcified in the control policy.
+                    user-defined node type, as specified in the control policy
      */
 
     template<typename... Args>

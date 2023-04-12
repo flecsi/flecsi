@@ -423,7 +423,7 @@ add_output_stream(std::string const &, std::ostream &, bool = false) {}
 
 template<class T>
 struct container {
-  container(T &) {}
+  container(const T &) {}
   friend std::ostream & operator<<(std::ostream & o, const container &) {
     return o;
   }
