@@ -276,12 +276,6 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
   }
 }
 
-void
-make_tree(sph_ntree_t::accessor<rw> t) {
-  t.make_tree();
-  t.graphviz_draw(0);
-} // make_tree
-
 int
 ntree_driver() {
 

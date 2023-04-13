@@ -156,10 +156,7 @@ reduce_internal(Args &&... args) {
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    {
-      flog::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing single task" << std::endl;
-    }
+    flog_devel(info) << "Executing single task" << std::endl;
 
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
     add(launcher);
@@ -168,10 +165,7 @@ reduce_internal(Args &&... args) {
       legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
-    {
-      flog::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing index task" << std::endl;
-    }
+    flog_devel(info) << "Executing index task" << std::endl;
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),

@@ -28,14 +28,20 @@ template<class>
 struct multi;
 
 namespace detail {
+template<class F>
+void
+require_host(F && f) {
+  host_only h; // lvalue required
+  std::forward<F>(f)(h, [](auto &) { return nullptr; });
+}
+
 template<class A, typename F>
 void
 construct(const A & a, F && f) {
   // Capture if the field can be initialized on the device (toc + wo)
   if constexpr(!std::is_trivially_default_constructible_v<
                  typename A::value_type>) {
-    data::detail::init_needed init{};
-    std::forward<F>(f)(init, [](auto &) { return nullptr; });
+    require_host(std::forward<F>(f));
   }
   std::uninitialized_default_construct(a.begin(), a.end());
 }
@@ -369,7 +375,7 @@ struct accessor<ragged, T, P>
 };
 
 /// Mutator for ragged fields.
-/// Cannot be used while tracing.
+/// Cannot be used while tracing or in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
@@ -710,6 +716,7 @@ public:
   }
   template<class F>
   void send(F && f) {
+    detail::require_host(f);
     f(get_base(), util::identity());
     std::forward<F>(f)(
       get_size(), [](const auto & r) { return r.get_elements().sizes(); });
@@ -873,7 +880,7 @@ public:
 };
 
 /// Mutator for sparse fields.
-/// Cannot be used while tracing.
+/// Cannot be used while tracing or in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
@@ -1548,6 +1555,8 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
+    flog_assert(!exec::trace::is_tracing(),
+      "ragged mutators cannot be used while tracing");
     return {type::base_type::parameter(r),
       r.get_elements().template get_partition<topo::elements>().growth};
   }

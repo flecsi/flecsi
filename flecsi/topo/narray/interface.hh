@@ -106,17 +106,15 @@ private:
       part_{{make_repartitioned<Policy, Value>(c.colors(),
         make_partial<idx_size>([&]() {
           std::vector<std::size_t> partitions;
-          for(const auto & idxco :
-            c.idx_colorings[Index].process_coloring(c.comm)) {
+          for(const auto & idxco : c.idx_colorings[Index].process_coloring()) {
             partitions.push_back(idxco.extents());
           }
-          concatenate(partitions, c.colors(), c.comm);
+          concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
         }()))...}},
       plan_{{make_copy_plan<Value>(c.colors(),
         c.idx_colorings[Index],
-        part_[Index],
-        c.comm)...}},
+        part_[Index])...}},
       buffers_{{data::buffers::core(
         narray_impl::peers<dimension>(c.idx_colorings[Index]))...}} {
     auto lm = data::launch::make(this->meta);
@@ -129,13 +127,11 @@ private:
    @param colors  The number of colors
    @param idef index definition
    @param p partition
-   @param comm MPI communicator
   */
   template<index_space S>
   data::copy_plan make_copy_plan(Color colors,
     index_definition const & idef,
-    repartitioned & p,
-    MPI_Comm const & comm) {
+    repartitioned & p) {
 
     std::vector<std::size_t> num_intervals(colors, 0);
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
@@ -143,8 +139,7 @@ private:
       std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
       points;
 
-    // In this method, a mpi task "idx_itvls" is invoked, which computes couple
-    // of information: intervals and points. The intervals encode local ghost
+    // The intervals encode local ghost
     // intervals, whereas points capture the  local offset and corresponding
     // remote/shared offset on remote/shared color. The intervals and points are
     // used to create function objects "dest_tasks" and "ptrs_tasks" that is
@@ -153,18 +148,18 @@ private:
     // communication is invoked as part of task execution depending upon the
     // privilege requirements of the task.
 
-    execute<idx_itvls, mpi>(idef, num_intervals, intervals, points, comm);
+    idx_itvls(idef, num_intervals, intervals, points, MPI_COMM_WORLD);
 
     // clang-format off
-    auto dest_task = [&intervals, &comm](auto f) {
+    auto dest_task = [&intervals](auto f) {
       auto lm = data::launch::make(f.topology());
-      execute<set_dests, mpi>(lm(f), intervals, comm);
+      execute<set_dests, mpi>(lm(f), intervals);
     };
 
-    auto ptrs_task = [&points, &comm](auto f) {
+    auto ptrs_task = [&points](auto f) {
       auto lm = data::launch::make(f.topology());
       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        lm(f), points, comm);
+        lm(f), points);
     };
     // clang-format on
 
@@ -183,7 +178,7 @@ private:
     for(auto i = ma.size(); i--;) {
       std::size_t index{0};
       (copy_meta_data(ma[i]->template get<Value>(),
-         c.idx_colorings[index++].process_coloring(c.comm)[i]),
+         c.idx_colorings[index++].process_coloring()[i]),
         ...);
     }
   }

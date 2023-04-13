@@ -75,12 +75,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       }
     }
 
-    // i must refer to a logical index point.
     template<axis A>
     FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
-      return i -
-             B::template offset<mesh::vertices, A, base::domain::logical>() +
-             B::template offset<mesh::vertices, A, base::domain::global>();
+      return B::template global_id<mesh::vertices, A>(i);
     }
 
     template<axis A, domain DM = interior>
@@ -187,10 +184,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       a.hdepth = 1;
     }
 
-    flog_assert(idef.colors() == flecsi::processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
-    return {MPI_COMM_WORLD, {idef}};
+    return {{idef}};
   } // color
 
   /*--------------------------------------------------------------------------*

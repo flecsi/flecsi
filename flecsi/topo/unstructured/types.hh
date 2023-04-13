@@ -579,13 +579,7 @@ struct unstructured_base {
 
         // resize field
         a[p].resize(sh.second.size());
-
-        // loop over entries
-        std::size_t cnt{0};
-        for(auto offset : sh.second) {
-          a[p][cnt] = offset;
-          ++cnt;
-        }
+        std::copy(sh.second.begin(), sh.second.end(), a[p].begin());
         ++p;
       }
       ++k;
@@ -765,7 +759,7 @@ init_connectivity(entity_index_space from,
     util::id off{0};
 
     auto const & cnx = pc.cnx_colorings[to];
-    for(const util::crs::span r : cnx) {
+    for(const auto r : cnx) {
       auto v = util::transform_view(r, [&vm](util::gid i) { return vm.at(i); });
       x2y[off++].assign(v.begin(), v.end());
     } // for
