@@ -395,6 +395,8 @@ struct index_definition {
   /// \showinitializer
   bool full_ghosts = true;
 
+  /// \cond core
+
   /// Dimensions of index space
   Dimension dimensions() const {
     const Dimension dimensions = axes.size();
@@ -703,6 +705,8 @@ struct index_definition {
     } // for
     return make_pair(points, intervals);
   }
+
+  /// \endcond
 };
 
 /*
@@ -832,6 +836,7 @@ struct narray_base {
 
    These domains are used in many of the interface methods to provide
    information such as size, extents, offsets about them.
+   \ingroup narray
   */
   enum class domain : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
@@ -848,14 +853,13 @@ struct narray_base {
   /// Coloring type.
   /// \ingroup narray
   struct coloring {
-    std::vector</* over index spaces */
-      index_definition>
-      idx_colorings;
+    /// Coloring information for each index space.
+    std::vector<index_definition> idx_colorings;
 
     Color colors() const {
       return idx_colorings[0].colors();
     }
-  }; // struct _coloring
+  };
 
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
     return vs[c];

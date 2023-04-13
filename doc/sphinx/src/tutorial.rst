@@ -57,43 +57,6 @@ subdirectory of the FleCSI source:
 
 ----
 
-Using the Docker Container
-++++++++++++++++++++++++++
-
-The tutorial is also available as a Docker container. This simplifies
-getting and installing FleCSI and its dependencies.
-You may need to start by :ref:`container`.
-
-Pulling the Image
-^^^^^^^^^^^^^^^^^
-
-To pull the tutorial image, do:
-
-.. code-block:: console
-
-  $ docker pull laristra/flecsi-tutorial:latest
-
-This will download the image to your machine. Once the pull is complete,
-you can run the image like:
-
-.. code-block:: console
-
-  $ docker run -it --shm-size=512m -h tutorialhost -u flecsi laristra/flecsi-tutorial:latest
-
-This will place you into a bash prompt, from which you can build and run
-the tutorial examples. The tutorials are in the *top-level* directory in
-the Docker container.
-
-**Note:** You can also pull a Docker image for a specific backend, e.g.,
-mpi or legion. The default image *latest* is built against the Legion
-backend. To pull the MPI backend image do:
-
-.. code-block:: console
-
-  $ docker pull laristra/flecsi-tutorial:mpi
-
-----
-
 Tutorial Examples
 +++++++++++++++++
 
