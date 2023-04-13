@@ -31,12 +31,6 @@ using id = FLECSI_ID_TYPE;
 /// Global topology entity ID type.
 using gid = FLECSI_GID_TYPE;
 
-//----------------------------------------------------------------------------//
-// Index type
-//----------------------------------------------------------------------------//
-
-using counter_t = FLECSI_COUNTER_TYPE;
-
 /// Interpret a type as itself in functional contexts.
 struct identity {
   template<class T>

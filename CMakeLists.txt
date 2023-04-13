@@ -169,15 +169,6 @@ if(ENABLE_LIBRARY)
   mark_as_advanced(FLECSI_GID_TYPE)
 
   #----------------------------------------------------------------------------#
-  # Add option for counter size
-  #----------------------------------------------------------------------------#
-
-  set(FLECSI_COUNTER_TYPE "std::int32_t" CACHE STRING
-	 "Select the type that will be used for loop and iterator values"
-	)
-  mark_as_advanced(FLECSI_COUNTER_TYPE)
-
-  #----------------------------------------------------------------------------#
   # Coverage.
   #----------------------------------------------------------------------------#
   option(ENABLE_COVERAGE_BUILD "Do a coverage build" OFF)
