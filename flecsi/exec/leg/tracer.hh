@@ -51,6 +51,11 @@ private:
     }
   }
 
+public:
+  static bool is_tracing() {
+    return tracing;
+  }
+
 private:
   id_t id_;
   bool skip_;

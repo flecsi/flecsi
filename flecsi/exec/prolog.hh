@@ -69,6 +69,11 @@ private:
 
   using task_prologue<ProcessorType>::visit; // for raw accessors, futures, etc.
 
+  static void visit(data::detail::host_only &, decltype(nullptr)) {
+    static_assert(ProcessorType != flecsi::exec::task_processor_type_t::toc,
+      "accessor type is supported only on host");
+  }
+
   template<class P, class A>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p, A && a) {
     p.send(visitor(a));

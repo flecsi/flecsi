@@ -119,12 +119,6 @@ private:
     s.template copy<ProcessorType>();
   }
 
-  // Capture if the field can be initialized on the device (toc + wo)
-  static void visit(data::detail::init_needed &) {
-    static_assert(ProcessorType != flecsi::exec::task_processor_type_t::toc,
-      "field constructors cannot run on a device.");
-  }
-
   /*--------------------------------------------------------------------------*
     Non-FleCSI Data Types
    *--------------------------------------------------------------------------*/
