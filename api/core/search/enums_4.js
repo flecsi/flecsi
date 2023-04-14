@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['single_5fspace',['single_space',['../group__topology.html#gae8bebd5a7b51c9fa113f340a6988dc0a',1,'flecsi::topo']]]
+  ['heuristic',['heuristic',['../structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__utils.html#a854068caebbf8988ff4ed26acd5cb512',1,'flecsi::topo::unstructured_impl::coloring_utils']]]
 ];

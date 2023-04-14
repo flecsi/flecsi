@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Build &amp; Install &mdash; FleCSI 2.1.0 documentation</title>
+  <title>Build &amp; Install &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -39,7 +40,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="next" title="CMake Configuration Options" href="build/options.html" />
     <link rel="prev" title="Release Notes" href="news.html" /> 
 </head>
 
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -95,6 +96,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Build &amp; Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html">CMake Configuration Options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#requirements-prerequisites">Requirements &amp; Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-the-code">Getting The Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#spack">Spack</a></li>
@@ -106,10 +108,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -179,17 +179,31 @@
   <div class="section" id="build-install">
 <span id="build"></span><h1>Build &amp; Install<a class="headerlink" href="#build-install" title="Permalink to this headline">¶</a></h1>
 <p>FleCSI can be configured to run with different distributed-memory
-runtimes, including Legion, and MPI. FleCSI also has support for various
+runtimes, including Legion and MPI.
+FleCSI also has support for various
 fine-grained, node-level runtimes, including OpenMP, Kokkos, and
 the C++17 extensions for parallelism. Full documentation for FleCSI
 requires both Sphinx and Doxygen. These configuration options are listed
 to convey to the reader that the FleCSI build system has several paths
 that can be taken to tailor FleCSI to a given system and architecture.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Building:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build/options.html">CMake Configuration Options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html#basic-cmake-options">Basic CMake options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html#parallelization-options">Parallelization options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html#documentation-options">Documentation options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="build/options.html#miscellaneous-options">Miscellaneous options</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <hr class="docutils" />
 <div class="section" id="requirements-prerequisites">
 <h2>Requirements &amp; Prerequisites<a class="headerlink" href="#requirements-prerequisites" title="Permalink to this headline">¶</a></h2>
 <p>The following list of requirements provides a complete set of build
-options, but is not necessary for a particular build:</p>
+options, which might not be necessary for a particular build:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>CI listings indicate specific versions used by FleCSI’s continuous
@@ -199,19 +213,19 @@ version tested.</p>
 <ul class="simple">
 <li><p><strong>Boost</strong> <br />
 We require <em>program_options</em> and <em>stacktrace</em>. <br />
-<em>CI: 1.70.0</em></p></li>
+<em>CI: 1.79.0</em></p></li>
 <li><p><strong>C++17 compliant compiler</strong> <br />
-At the current time, FleCSI has been tested with GNU, Clang, and Intel
+At the current time, FleCSI has been tested with GNU and Clang
 C++ compilers. <br />
-<em>CI: gcc 8.3.0, clang 8.0.1, icpc 19.0.2</em></p></li>
+<em>CI: gcc 9.4.0, clang 13.0.1</em></p></li>
 <li><p><strong>Doxygen</strong> <br />
 Doxygen is only required to build the interface documentation.</p></li>
 <li><p><strong>GASNet</strong> <br />
 GASNet is only required if Legion support is enabled.</p></li>
 <li><p><strong>MPI</strong> <br />
-If Legion support is enabled, the MPI implementation must have support
+The MPI implementation must have support
 for <em>MPI_THREAD_MULTIPLE</em>. <br />
-<em>CI: mpich 3.2.1, openmpi 3.1.3</em></p></li>
+<em>CI: mpich 3.4.2, openmpi 4.1.2</em></p></li>
 <li><p><strong>Legion</strong> <br />
 We are currently using the most up-to-date version of the control
 replication branch. <br />
@@ -219,12 +233,12 @@ replication branch. <br />
 <li><p><strong>parMETIS/METIS</strong> <br />
 <em>CI: 4.0.3 (parMETIS), 5.1.0 (METIS)</em></p></li>
 <li><p><strong>CMake</strong> <br />
-We currently require CMake version 3.12 or greater.
-<em>CI: 3.12</em></p></li>
+We currently require CMake version 3.12 or greater. <br />
+<em>CI: 3.20.1</em></p></li>
 <li><p><strong>Sphinx</strong> <br />
 Sphinx is only required to build the web-based documentation. We are
-currently using Sphinx 1.1.0. We also require the Sphinx RTD Theme
-(using version 0.4.2). These can be installed on most Linux systems
+currently using Sphinx 5.0.2. We also require the Sphinx RTD Theme
+(using version 1.0.0). These can be installed on most Linux systems
 using pip.</p></li>
 <li><p><strong>Python</strong> <br />
 We currently require Python 3.0 or greater.</p></li>
@@ -238,7 +252,7 @@ We currently require Python 3.0 or greater.</p></li>
 <p>If you are a user and only want to install FleCSI, you can skip this
 step and use the instructions for installing FleCSI using Spack.</p>
 </div>
-<p>Clone the FleCSI git repository, and create an out-of-source build area
+<p>Clone the <a class="reference external" href="https://github.com/flecsi/flecsi">FleCSI git repository</a> and create an out-of-source build area
 (FleCSI prohibits in-source builds):</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone https://github.com/flecsi/flecsi.git
 <span class="gp">$</span> <span class="nb">cd</span> flecsi
@@ -262,7 +276,7 @@ to install and configure:</p>
 </pre></div>
 </div>
 <p>FleCSI supports several different versions and variants, e.g.:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install flecsi@1.0 +legion +graphviz
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install flecsi@2 <span class="nv">backend</span><span class="o">=</span>legion +graphviz +kokkos
 </pre></div>
 </div>
 <p>For a complete list of versions and variants, type:</p>
@@ -276,7 +290,7 @@ to install and configure:</p>
 <h2>FleCSI Developers<a class="headerlink" href="#flecsi-developers" title="Permalink to this headline">¶</a></h2>
 <p>If you are a developer, and would like to install only the dependencies of
 FleCSI (assuming that you will build FleCSI from source), you can use
-spack’s <em>–only</em> option:</p>
+Spack’s <code class="docutils literal notranslate"><span class="pre">--only</span></code> option:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> spack install --only dependencies flecsi <span class="nv">backend</span><span class="o">=</span>legion +hdf5 ^mpich
 </pre></div>
 </div>
@@ -306,12 +320,12 @@ successful build.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DFLECSI_BACKEND<span class="o">=</span>legion ..
 </pre></div>
 </div>
-<p>After configuration is complete, just use <em>make</em> to build:</p>
+<p>After configuration is complete, just use <code class="docutils literal notranslate"><span class="pre">make</span></code> to build:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make -j <span class="m">16</span>
 </pre></div>
 </div>
-<p>Installation uses the normal <em>make install</em>, and will install FleCSI in
-the directory specified by CMAKE_INSTALL_PREFIX:</p>
+<p>Installation uses the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> and will install FleCSI in
+the directory specified by <code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code>:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make install
 </pre></div>
 </div>
@@ -319,10 +333,9 @@ the directory specified by CMAKE_INSTALL_PREFIX:</p>
 <hr class="docutils" />
 <div class="section" id="building-the-unit-tests">
 <h2>Building the Unit Tests<a class="headerlink" href="#building-the-unit-tests" title="Permalink to this headline">¶</a></h2>
-<p>To build FleCSI unit test suite, enable the option for the FleCSI
-logging utility (flog). <strong>By default, this will also enable the unit
-tests.</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake .. -DENABLE_FLOG<span class="o">=</span>ON
+<p>To build the FleCSI unit test suite, turn on the <code class="docutils literal notranslate"><span class="pre">ENABLE_UNIT_TESTS</span></code>
+option:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cmake -DENABLE_UNIT_TESTS<span class="o">=</span>ON ..
 </pre></div>
 </div>
 <p>After building FleCSI, you can run the unit tests like:</p>
@@ -333,12 +346,12 @@ tests.</strong></p>
 <hr class="docutils" />
 <div class="section" id="building-the-documentation-developers">
 <h2>Building the Documentation (Developers)<a class="headerlink" href="#building-the-documentation-developers" title="Permalink to this headline">¶</a></h2>
-<p>FleCSI uses Doxygen for its API reference, and Sphinx for user and
+<p>FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.</p>
 <p>Doxygen can be installed with most Linux package managers.  To install
-Sphinx, you can install pip3, and use it to install <em>Sphinx</em>,
-<em>recommonmark</em>, and <em>sphinx_rtd_theme</em>. Your package manager should also
-have pip3, e.g., on Ubuntu, you can install all of these requirements
+Sphinx, you can install <code class="docutils literal notranslate"><span class="pre">pip3</span></code> and use it to install <code class="docutils literal notranslate"><span class="pre">Sphinx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">recommonmark</span></code>, and <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code>. Your package manager should also
+have <code class="docutils literal notranslate"><span class="pre">pip3</span></code>; e.g., on Ubuntu, you can install all of these requirements
 like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo apt install doxygen
 <span class="gp">$</span> sudo apt install python3-pip
@@ -357,13 +370,13 @@ configured FleCSI, you can build the documentation like:</p>
 <span class="gp">$</span> make sphinx
 </pre></div>
 </div>
-<p>Both of these targets will be built in your build directory under <em>doc</em>,
-e.g., the main Doxygen index.html page will be located at
-<em>‘doc/api/index.html’</em>. Similarly, the Sphinx main index.html
-page will be located at <em>‘doc/index.html’</em>. You can open these in
+<p>Both of these targets will be built in your build directory under <code class="docutils literal notranslate"><span class="pre">doc/</span></code>:
+e.g., the main Doxygen <code class="docutils literal notranslate"><span class="pre">index.html</span></code> page will be located at
+<code class="docutils literal notranslate"><span class="pre">doc/api/index.html</span></code>. Similarly, the Sphinx main <code class="docutils literal notranslate"><span class="pre">index.html</span></code>
+page will be located at <code class="docutils literal notranslate"><span class="pre">doc/index.html</span></code>. You can open these in
 your browser with
-<em>file:///path/to/your/build/directory/doc/api/index.html</em>, and
-<em>file:///path/to/your/build/directory/doc/index.html</em>.</p>
+<code class="docutils literal notranslate"><span class="pre">file:///path/to/your/build/directory/doc/api/index.html</span></code> and
+<code class="docutils literal notranslate"><span class="pre">file:///path/to/your/build/directory/doc/index.html</span></code>.</p>
 </div>
 </div>
 
@@ -375,7 +388,7 @@ your browser with
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="build/options.html" class="btn btn-neutral float-right" title="CMake Configuration Options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="news.html" class="btn btn-neutral float-left" title="Release Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -387,7 +400,7 @@ your browser with
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

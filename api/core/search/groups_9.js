@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['reduction_20operations',['Reduction Operations',['../group__fold.html',1,'']]],
-  ['ranges',['Ranges',['../group__ranges.html',1,'']]],
-  ['runtime_20model',['Runtime Model',['../group__runtime.html',1,'']]]
+  ['profiling',['Profiling',['../group__annotation.html',1,'']]],
+  ['point',['Point',['../group__point.html',1,'']]],
+  ['particle_20set',['Particle Set',['../group__set.html',1,'']]],
+  ['predefined_20specializations',['Predefined specializations',['../group__spec.html',1,'']]]
 ];

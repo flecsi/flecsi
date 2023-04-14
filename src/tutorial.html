@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorial &mdash; FleCSI 2.1.0 documentation</title>
+  <title>Tutorial &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -40,7 +41,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Runtime Model" href="tutorial/runtime.html" />
-    <link rel="prev" title="Build &amp; Install" href="build.html" /> 
+    <link rel="prev" title="CMake Configuration Options" href="build/options.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -98,15 +99,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#building-the-examples">Building the Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-the-docker-container">Using the Docker Container</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#installing-a-container-engine">Installing a Container Engine</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#docker">Docker</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#podman">Podman</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#pulling-the-image">Pulling the Image</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#tutorial-examples">Tutorial Examples</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/control.html">Control Model</a></li>
@@ -114,17 +106,16 @@
 <li class="toctree-l3"><a class="reference internal" href="tutorial/execution.html#tasks">Tasks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/data.html">Data Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorial/topologies.html">Topologies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorial/standalone.html">Standalone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/poisson.html">Poisson</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -200,7 +191,7 @@ Details on how to build the tutorials are given below.</p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p>The tutorial is primarily designed as an introduction for application
-developers, i.e., we do not go into the details of designing or
+developers: i.e., we do not go into the details of designing or
 implementing the specialization layer, and the discussion of core
 FleCSI features is limited to the high-level execution and data
 interfaces.</p>
@@ -208,9 +199,7 @@ interfaces.</p>
 provided a simple mesh interface as part of the tutorial. Users who
 are interested in the basic structure of a mesh topology
 specialization are encouraged to examine the source code in the
-<em>specialization</em> subdirectory of this tutorial (The complete source
-code is in the <em>tutorial/specialization</em> subdirectory of the main
-project.)</p>
+<em>specialization</em> subdirectory of this tutorial.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="requirements">
@@ -234,59 +223,6 @@ subdirectory of the FleCSI source:</p>
 <span class="gp">$</span> cmake ..
 <span class="gp">$</span> make
 </pre></div>
-</div>
-</div>
-<hr class="docutils" />
-<div class="section" id="using-the-docker-container">
-<h2>Using the Docker Container<a class="headerlink" href="#using-the-docker-container" title="Permalink to this headline">¶</a></h2>
-<p>The tutorial is also available as a Docker container. This simplifies
-getting and installing FleCSI and its dependencies.</p>
-<div class="section" id="installing-a-container-engine">
-<h3>Installing a Container Engine<a class="headerlink" href="#installing-a-container-engine" title="Permalink to this headline">¶</a></h3>
-<p>Some FleCSI developer tasks require a container engine, e.g., <em>Docker</em>.
-This section provides links to installation and usage documentation for
-<em>Docker</em>, and <em>Podman</em>.</p>
-<div class="section" id="docker">
-<h4>Docker<a class="headerlink" href="#docker" title="Permalink to this headline">¶</a></h4>
-<p>The Docker daemon is available for a variety of platforms from the
-<a class="reference external" href="https://www.docker.com">docker</a> website.</p>
-<p>For linux, the community engine is available for several distributions:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/fedora">Fedora</a></p></li>
-<li><p><a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/ubuntu">Ubuntu</a></p></li>
-<li><p><a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/centos">CentOS</a></p></li>
-</ul>
-</div>
-<div class="section" id="podman">
-<h4>Podman<a class="headerlink" href="#podman" title="Permalink to this headline">¶</a></h4>
-<p>An alternative, drop-in replacement for Docker is <a class="reference external" href="https://podman.io">Podman</a>. Podman has
-the advantage that it is daemonless, and does not require root
-privileges to run.</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://podman.io/getting-started/installation">Install Podman</a></p></li>
-</ul>
-</div>
-</div>
-<div class="section" id="pulling-the-image">
-<h3>Pulling the Image<a class="headerlink" href="#pulling-the-image" title="Permalink to this headline">¶</a></h3>
-<p>To pull the tutorial image, do:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> docker pull laristra/flecsi-tutorial:latest
-</pre></div>
-</div>
-<p>This will download the image to your machine. Once the pull is complete,
-you can run the image like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> docker run -it --shm-size<span class="o">=</span>512m -h tutorialhost -u flecsi laristra/flecsi-tutorial:latest
-</pre></div>
-</div>
-<p>This will place you into a bash prompt, from which you can build and run
-the tutorial examples. The tutorials are in the <em>top-level</em> directory in
-the Docker container.</p>
-<p><strong>Note:</strong> You can also pull a Docker image for a specific backend, e.g.,
-mpi or legion. The default image <em>latest</em> is built against the Legion
-backend. To pull the MPI backend image do:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> docker pull laristra/flecsi-tutorial:mpi
-</pre></div>
-</div>
 </div>
 </div>
 <hr class="docutils" />
@@ -350,16 +286,30 @@ more advanced FleCSI concepts.</p>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html">Distributed and shared memory parallelism</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-1-forall-macro">Example 1: forall macro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html">Distributed and shared memory parallelism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/parallel.html#shared-memory">Shared memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-1-forall-macro-parallel-for-interface">Example 1: forall macro / parallel_for interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/parallel.html#example-2-reduceall-macro-parallel-reduce-interface">Example 2: reduceall macro / parallel_reduce interface</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/topologies.html">Topologies</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/standalone.html">Standalone</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/standalone.html#build-system">Build System</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/standalone.html#control-model">Control Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/standalone.html#main-function">Main Function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial/standalone.html#building-the-stand-alone-example">Building the Stand-Alone Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/flaxpy.html">DAXPY</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#preliminaries">Preliminaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#data-structures">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#control-flow">Control flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#control-points">Control points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#actions">Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorial/flaxpy.html#tasks">Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#program-initialization">Program initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/flaxpy.html#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/poisson.html">Poisson</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#build-system">Build system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#control-policy">Control policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#main-function">Main function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/poisson.html#building-the-poisson-application">Building the Poisson application</a></li>
 </ul>
 </li>
 </ul>
@@ -378,7 +328,7 @@ more advanced FleCSI concepts.</p>
         <a href="tutorial/runtime.html" class="btn btn-neutral float-right" title="Runtime Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="build.html" class="btn btn-neutral float-left" title="Build &amp; Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="build/options.html" class="btn btn-neutral float-left" title="CMake Configuration Options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -387,7 +337,7 @@ more advanced FleCSI concepts.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

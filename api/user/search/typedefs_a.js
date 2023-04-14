@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['scalar_5faccess',['scalar_access',['../group__data.html#gaa6b9196cbe90dee0a1a18c5788171fe7',1,'flecsi::data']]],
-  ['slot',['slot',['../structflecsi_1_1topo_1_1specialization.html#a1e9ef266ae2f55c0e34f78e4374d4541',1,'flecsi::topo::specialization']]]
+  ['meta',['meta',['../structflecsi_1_1run_1_1control__base.html#abea9ef97da7d6f46d43269adefc4724a',1,'flecsi::run::control_base::meta()'],['../structflecsi_1_1run_1_1control.html#a82ef556db71c31f664db5acecd1814ad',1,'flecsi::run::control::meta()']]],
+  ['mutator',['mutator',['../structflecsi_1_1field.html#a30dbe29d30996fbd0c3ea36347b19c58',1,'flecsi::field']]]
 ];

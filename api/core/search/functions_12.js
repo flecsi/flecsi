@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['wait',['wait',['../structflecsi_1_1future_3_01Return_01_4.html#a983a5004cbbeaeab471de54edb026250',1,'flecsi::future&lt; Return &gt;::wait()'],['../structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#acff710392c57e43016345fef3bd16b9e',1,'flecsi::future&lt; Return, exec::launch_type_t::index &gt;::wait()']]],
-  ['write',['write',['../classflecsi_1_1util_1_1graphviz.html#aa9b83eb1f31f83dfa5622a070a03e6cc',1,'flecsi::util::graphviz']]]
+  ['unique_5feach',['unique_each',['../group__utils.html#gab6718cd6b031b186bda77e535b7aa790',1,'flecsi::util::unique_each(std::map&lt; K, T &gt; &amp;m)'],['../group__utils.html#ga0bf2cd0a88fa7048fbc53b7d24ccda68',1,'flecsi::util::unique_each(std::vector&lt; T &gt; &amp;vv)']]],
+  ['update',['update',['../structflecsi_1_1data_1_1prefixes.html#a3d9ed8344b242a257d05470e34ab7544',1,'flecsi::data::prefixes']]],
+  ['use',['use',['../structflecsi_1_1data_1_1field__reference.html#a88a5640edecbd864e3e3a9b42a618a53',1,'flecsi::data::field_reference']]]
 ];

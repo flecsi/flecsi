@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Execution Model &mdash; FleCSI 2.1.0 documentation</title>
+  <title>Execution Model &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -98,7 +99,6 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#using-the-docker-container">Using the Docker Container</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
@@ -111,17 +111,16 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="standalone.html">Standalone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -191,85 +190,141 @@
            <div itemprop="articleBody">
             
   <div class="section" id="execution-model">
-<span id="tut-cm"></span><h1>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h1>
+<span id="tut-em"></span><h1>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h1>
 <p>FleCSI has two mechanisms for expressing work:</p>
-<ul class="simple">
-<li><p><strong>Tasks</strong> <br />
-Tasks operate on data distributed to one or more address spaces, and
+<dl class="simple">
+<dt>Tasks</dt><dd><p>Tasks operate on data distributed to one or more address spaces and
 use data privileges to maintain memory consistency. FleCSI tasks are
 like a more flexible version of MPI that does not require the user to
-explicitly update dependencies between different ranks, and which does
-not use static process mappings, i.e., relocatable, distributed-memory
-data parallelism.</p></li>
-<li><p><strong>Kernels</strong> <br />
-Kernels operate on data in a single address space, but require
+explicitly update dependencies between different ranks and which does not use static process mappings: i.e., relocatable, distributed-memory
+data parallelism.</p>
+</dd>
+<dt>Kernels</dt><dd><p>Kernels operate on data in a single address space but require
 explicit barriers to ensure consistency. This is generally referred to
 as a relaxed-consistency memory model. The kernel interface in
-FleCSI is defined by three parallel operations: <em>forall</em>, <em>reduceall</em>,
-and <em>scan</em>. Each of these is a fine-grained, data-parallel operation.
-The use of the <em>kernel</em> nomenclature is derived from CUDA, and OpenCL,
-and is conceptually consistent with those models. Please see example
-of using <em>forall</em> kernels in <em>parallel</em> section of the tutorials.</p></li>
-</ul>
+FleCSI is defined by two parallel operations: <em>forall</em> and <em>reduceall</em>.
+Each of these is a fine-grained, data-parallel operation.
+The use of the <em>kernel</em> nomenclature is derived from CUDA and OpenCL
+and is conceptually consistent with those models. Please see the
+example of using <em>forall</em> kernels in the <em>parallel</em> section of the
+tutorial.</p>
+</dd>
+</dl>
 </div>
 <hr class="docutils" />
 <div class="section" id="tasks">
 <h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="example-1-single-tasks">
 <h2>Example 1: Single Tasks<a class="headerlink" href="#example-1-single-tasks" title="Permalink to this headline">¶</a></h2>
-<p>Single task is a task that operates on entire data passed to it and is
-executed by a single process.
-<cite>execute</cite> method will call a single task if no ‘launch domain` (see in
-the next example) or a topology with a launch domain is passed to it.</p>
-<p>In the example of <cite>trivial</cite> task, there is no arguments passed and a
-default <cite>launch domain</cite> is used. Therefore, it is a single task</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<p>A <cite>single</cite> task launches on a single process, i.e., only one instance of
+the task is executed.
+This is in contrast to an <cite>index</cite> launch, which executes a task as a
+data-parallel operation, potentially across many processes.
+FleCSI uses information about the arguments passed to a task to decide
+how to launch the task: If no parameter is passed that defines a <cite>launch
+domain</cite>, e.g., an explicit <em>launch domain</em>, a <cite>topology</cite> instance, or a
+<cite>future map</cite>, FleCSI will launch the task as <cite>single</cite>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">trivial</span></code> task is an example of a <code class="docutils literal notranslate"><span class="pre">single</span></code> task.
+Consider the following from <code class="docutils literal notranslate"><span class="pre">tutorial/3-execution/1-single-task.cc</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Trivial task (no arguments, no return).</span>
 
-<span class="cm">/*</span>
+<span class="kt">void</span>
+<span class="nf">trivial</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="cm">/*</span>
+<p>Execution of the task is trivial:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a trivial task.</span>
+
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">trivial</span><span class="o">&gt;</span><span class="p">();</span>
 </pre></div>
 </div>
-<p>You can return a value from the task. And A <cite>future</cite> is a mechanism, to
-access the result of an asynchronous task execution.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="cm">/*</span>
-<span class="cm">      The &#39;wait()&#39; method waits for the result to become available.</span>
-<span class="cm">     */</span>
+<p>A single task can return a value:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with return value.</span>
+
+<span class="kt">int</span>
+<span class="nf">with_return</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">value</span><span class="p">{</span><span class="mi">100</span><span class="p">};</span>
+</pre></div>
+</div>
+<p>The return value can be retrieved with a <cite>future</cite>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="c1">// A future is a mechanism to access the result of an asynchronous</span>
+    <span class="c1">// operation.</span>
+
+    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">with_return</span><span class="o">&gt;</span><span class="p">();</span>
+
+    <span class="c1">// The &#39;wait()&#39; method waits for the result to become available.</span>
 
     <span class="n">future</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
 
-    <span class="cm">/*</span>
-<span class="cm">      The &#39;get()&#39; method returns the result. Note that calling &#39;get()&#39; by itself</span>
-<span class="cm">      will wait for the result to become available. The call to &#39;wait()&#39; in this</span>
-<span class="cm">      example are illustrative.</span>
-<span class="cm">     */</span>
+    <span class="c1">// The &#39;get()&#39; method returns the result. Note that calling &#39;get()&#39; by</span>
+    <span class="c1">// itself will wait for the result to become available. The call to &#39;wait()&#39;</span>
+    <span class="c1">// in this example is illustrative.</span>
 
     <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Got value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// scope</span>
 </pre></div>
 </div>
-<p>FleCSI can execute a task that takes an argument by-value.
-FleCSI tasks can take any valid C++ type by value. However, because task
-data must be relocatable, you cannot pass pointer arguments, or
-arguments that contain pointers.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Sum is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<p>FleCSI tasks can take any valid C++ type as an argument <cite>by-value</cite>,
+e.g., a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>:</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>FleCSI tasks can take any valid C++ type by value. However, because
+task data must be relocatable, you cannot pass pointer arguments or
+arguments that contain pointers.  Modifications made to by-value
+data are local to the task and will not be reflected at the call
+site.</p>
+</div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with by-value argument.</span>
+
+<span class="kt">int</span>
+<span class="nf">with_by_value_argument</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="n">ss</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">retval</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Parameter values: &quot;</span><span class="p">;</span>
+  <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">i</span> <span class="p">:</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">retval</span> <span class="o">+=</span> <span class="n">i</span><span class="p">;</span>
+    <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
+  <span class="p">}</span> <span class="c1">// for</span>
+  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// with_by_value_argument</span>
+</pre></div>
+</div>
+<p>Execution of such a task is what you would expect:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a task that takes an argument by-value. FleCSI tasks can take any</span>
+  <span class="c1">// valid C++ type by value. However, because task data must be relocatable,</span>
+  <span class="c1">// you cannot pass pointer arguments, or arguments that contain pointers.</span>
+  <span class="c1">// Modifications made to by-value data are local to the task and will not be</span>
+  <span class="c1">// reflected at the call site.</span>
+
+  <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">v</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">34</span><span class="p">};</span>
+    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">with_by_value_argument</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Sum is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// scope</span>
 </pre></div>
 </div>
 <p>FleCSI tasks can also be templated:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span> <span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Type</span><span class="o">&gt;</span>
+<span class="n">Type</span>
+<span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span> <span class="n">t</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">Type</span> <span class="n">retval</span><span class="p">{</span><span class="n">t</span> <span class="o">+</span> <span class="n">Type</span><span class="p">(</span><span class="mi">10</span><span class="p">)};</span>
   <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Returning value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">retval</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; with type &quot;</span>
              <span class="o">&lt;&lt;</span> <span class="k">typeid</span><span class="p">(</span><span class="n">t</span><span class="p">).</span><span class="n">name</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
   <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span>
+<span class="p">}</span> <span class="c1">// template</span>
 </pre></div>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Got templated value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<p>Again, execution is straightforward:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a templated task.</span>
+
+  <span class="p">{</span>
+    <span class="kt">double</span> <span class="n">value</span><span class="p">{</span><span class="mf">32.0</span><span class="p">};</span>
+    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">templated_task</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Got templated value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// scope</span>
 </pre></div>
 </div>
@@ -279,36 +334,33 @@ arguments that contain pointers.</p>
 <p>Index task is a task that is executed by several processes. It is often
 used to operate on different parts of the input data (like partitioned
 mesh) asynchronously.</p>
-<p>In this example we explicitly ask to execute <cite>task</cite> on 4 processes by
-specifying <cite>launch_domain</cite> parameter</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+<p>In this example we explicitly ask to execute <code class="docutils literal notranslate"><span class="pre">task</span></code> on 4 processes via
+the <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> argument.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
+
+<span class="kt">void</span>
 <span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World from color &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">color</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; of &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">colors</span><span class="p">()</span>
              <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cm">/*</span>
-<span class="cm">  Advance control point.</span>
-<span class="cm"> */</span>
+<span class="c1">// Advance control point.</span>
 
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span> <span class="n">ld</span><span class="p">{</span><span class="mi">4</span><span class="p">};</span>
 
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ld</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// advance()</span>
 </pre></div>
 </div>
 <div class="section" id="launch-domains">
 <h3>Launch Domains<a class="headerlink" href="#launch-domains" title="Permalink to this headline">¶</a></h3>
-<p>Launch domain (<cite>exec::launch_domain</cite>) is used to define how many index
-points should index task have. If no <cite>launch_dmain</cite> is passed to the
-<cite>execute</cite> method, the default will be used. The default is <cite>0</cite> if no
-topology instanced is passed or the one specified in the topology
-instance passed to the task (the number of colors topology instance
-have).</p>
+<p>Launch domain (<code class="docutils literal notranslate"><span class="pre">exec::launch_domain</span></code>) is used to define how many index
+points an index task should have. If no <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> is passed to the
+<code class="docutils literal notranslate"><span class="pre">execute</span></code> method, the default will be used. If a topology instance is
+passed the default is the number of colors that instance has.
+Otherwise, the default is to launch a single task.</p>
 </div>
 </div>
 <div class="section" id="example-3-mpi-tasks">
@@ -317,23 +369,21 @@ have).</p>
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
 MPI task adds synchronization between Legion and MPI and, therefore,
 should only be used when one needs to call MPI library.
-To execute an MPI task, second template parameter to the <cite>execute</cite>
-method should be set to <cite>mpi</cite>.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
+To execute an MPI task, the second template argument to the <code class="docutils literal notranslate"><span class="pre">execute</span></code>
+method should be set to <code class="docutils literal notranslate"><span class="pre">mpi</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
+
+<span class="kt">void</span>
 <span class="nf">task</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World from process: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">process</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cm">/*</span>
-<span class="cm">  Advance control point.</span>
-<span class="cm"> */</span>
+<span class="c1">// Advance control point.</span>
 
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="p">,</span> <span class="n">mpi</span><span class="o">&gt;</span><span class="p">();</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// advance()</span>
 </pre></div>
 </div>
 </div>
@@ -359,7 +409,7 @@ method should be set to <cite>mpi</cite>.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

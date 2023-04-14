@@ -1,0 +1,553 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CMake for FleCSI client applications &mdash; FleCSI 2.2.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/cmake.html"/>
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Topologies" href="topologies.html" />
+    <link rel="prev" title="User Guide" href="../user-guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                Version: 2.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">CMake for FleCSI client applications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#flecsi-cmake-files">FleCSI CMake files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coverage-and-unit-testing">Coverage and Unit Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#code-formatting">Code Formatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-files">Other files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FleCSI</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../user-guide.html">User Guide</a> &raquo;</li>
+        
+      <li>CMake for FleCSI client applications</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/src/user-guide/cmake.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cmake-for-flecsi-client-applications">
+<h1>CMake for FleCSI client applications<a class="headerlink" href="#cmake-for-flecsi-client-applications" title="Permalink to this headline">¶</a></h1>
+<p>The FleCSI installation provides mutliple CMake files to support
+writing new software.  While the <code class="docutils literal notranslate"><span class="pre">FleCSI</span></code> CMake package is used to
+build software on top of FleCSI, the additional CMake files
+provide common CMake code and macros for adding dependencies, building
+documentation, unit-testing and other utilities that might be useful
+for clients.</p>
+<p>The CMake package is installed either when you build and install
+FleCSI manually via CMake to <code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code> or when using a
+Spack installation.</p>
+<p>If you installed FleCSI in a Spack environment the necessary
+environment variables will be automatically set.</p>
+<p>After manual compilation and installation of FleCSI via CMake, you will
+have to prepend the installation prefix to the <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code>
+environment variable to make it available.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span>/path/to/your/flecsi/install:<span class="nv">$CMAKE_PREFIX_PATH</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<div class="section" id="flecsi-cmake-files">
+<h2>FleCSI CMake files<a class="headerlink" href="#flecsi-cmake-files" title="Permalink to this headline">¶</a></h2>
+<p>FleCSI-based applications often need common CMake code to enable
+features and/or add dependencies. The <code class="docutils literal notranslate"><span class="pre">FleCSI</span></code> package also exposes
+utility CMake files that are meant to be included in new projects. It
+does so by adding its installation parent folder to the CMake’s search
+path when you add the package:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">FleCSI</span> <span class="s">REQUIRED</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Once added, you can <code class="docutils literal notranslate"><span class="pre">include</span></code> the CMake files provided by this
+package.</p>
+<p>For example, if you want to use the provided <code class="docutils literal notranslate"><span class="pre">documentation.cmake</span></code>,
+you can add it as follows:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FleCSI/documentation</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>FleCSI uses both Sphinx and Doxygen for its documentation system. The
+following CMake files can be included to utilize the same
+documentation system for your own projects.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/documentation</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_set_doc_target_name(target)</span></code> macro, which is
+used to define the name of a generic documentation target
+<code class="docutils literal notranslate"><span class="pre">FLECSI_DOC_TARGET</span></code>. This target collects and runs all other
+later defined documentation targets. If no name is set, it defaults
+to <code class="docutils literal notranslate"><span class="pre">doc</span></code>.  This target itself is created during the first call of
+either <code class="docutils literal notranslate"><span class="pre">flecsi_add_doxygen_target</span></code> or
+<code class="docutils literal notranslate"><span class="pre">flecsi_add_sphinx_target</span></code>.</p>
+<p>This file also adds the <code class="docutils literal notranslate"><span class="pre">flecsi_add_doc_deployment()</span></code> function.
+It takes two parameters: the target name and <code class="docutils literal notranslate"><span class="pre">GITHUB_PAGES_REPO</span></code>
+which is a Git repository URL. Running the target checks out the
+<code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch of that repository, clears it and puts the
+result of all documentation targets into it.  Files are only added,
+but <strong>not</strong> commited or pushed. These are left as manual steps.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/sphinx</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_set_sphinx_target_name</span></code> macro, which is used to
+define the name of a generic Sphinx target <code class="docutils literal notranslate"><span class="pre">FLECSI_SPHINX_TARGET</span></code>.
+This target collects and runs all other later defined Sphinx
+targets. If no name is set, it defaults to <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>. The target
+itself is created during the first call of
+<code class="docutils literal notranslate"><span class="pre">flecsi_add_sphinx_target</span></code>.</p>
+<p>Sphinx builds are defined with the <code class="docutils literal notranslate"><span class="pre">flecsi_add_sphinx_target</span></code>
+function. It takes three parameters: the target name, which will be
+prefixed with <code class="docutils literal notranslate"><span class="pre">${FLECSI_SPHINX_TARGET}-</span></code>, a <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code> directory, and
+<code class="docutils literal notranslate"><span class="pre">OUTPUT</span></code> directory. The provided <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code> directory must contain
+a <code class="docutils literal notranslate"><span class="pre">conf.py.in</span></code> file. This template will be processed with
+<code class="docutils literal notranslate"><span class="pre">configure_file</span></code> to produce the final Sphinx configuration file
+<code class="docutils literal notranslate"><span class="pre">conf.py</span></code>. This configuration file as well as the <code class="docutils literal notranslate"><span class="pre">_static</span></code> and
+<code class="docutils literal notranslate"><span class="pre">_templates</span></code> directories will be copied to the <code class="docutils literal notranslate"><span class="pre">OUTPUT</span></code>
+directory, where the target will be built.</p>
+<p>Usage:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FleCSI/documentation</span><span class="p">)</span>
+<span class="nb">include</span><span class="p">(</span><span class="s">FleCSI/sphinx</span><span class="p">)</span>
+
+<span class="nb">flecsi_set_doc_target_name</span><span class="p">(</span><span class="s">mydoc</span><span class="p">)</span>
+<span class="nb">flecsi_set_sphinx_target_name</span><span class="p">(</span><span class="s">mysphinx</span><span class="p">)</span>
+
+<span class="nb">flecsi_add_sphinx_target</span><span class="p">(</span><span class="s">main</span>              <span class="c"># custom target name</span>
+  <span class="s">CONFIG</span> <span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/doc/sphinx</span>    <span class="c"># folder containing conf.py.in</span>
+  <span class="s">OUTPUT</span> <span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span><span class="s">/doc</span>           <span class="c"># output directory</span>
+<span class="p">)</span>
+
+<span class="nb">flecsi_add_doc_deployment</span><span class="p">(</span><span class="s">deploy-docs</span>
+                          <span class="s">GITHUB_PAGES_REPO</span> <span class="s">git@github.com:flecsi/flecsi.git</span><span class="p">)</span>
+
+<span class="c"># the following targets will be defined:</span>
+<span class="c"># - mydoc</span>
+<span class="c"># - mysphinx</span>
+<span class="c"># - mysphinx-main</span>
+<span class="c"># - deploy-docs</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/doxygen</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_set_doxygen_target_name</span></code> macro, which is used to
+define the name of a generic Doxygen target
+<code class="docutils literal notranslate"><span class="pre">FLECSI_DOXYGEN_TARGET</span></code>. This target collects and runs all other
+later defined Doxygen targets. If no name is set, it defaults to
+<code class="docutils literal notranslate"><span class="pre">doxygen</span></code>. The target itself is created during the first call of
+<code class="docutils literal notranslate"><span class="pre">flecsi_add_doxygen_target</span></code>.</p>
+<p>Doxygen builds are defined with the <code class="docutils literal notranslate"><span class="pre">flecsi_add_doxygen_target</span></code>
+function.  It takes two parameters: the target name, which will be
+prefixed with <code class="docutils literal notranslate"><span class="pre">${FLECSI_DOXYGEN_TARGET}-</span></code>, and one or more file names in
+<code class="docutils literal notranslate"><span class="pre">CONFIGS</span></code>. Each of the configuration files will be processed with
+<code class="docutils literal notranslate"><span class="pre">configure_file</span></code>. The final output location is controlled by what
+is defined in these configuration files. E.g. by defining
+<code class="docutils literal notranslate"><span class="pre">OUTPUT_DIRECTORY</span></code> relative to the <code class="docutils literal notranslate"><span class="pre">CMAKE_BINARY_DIR</span></code>:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">OUTPUT_DIRECTORY</span> <span class="o">=</span> <span class="s">@CMAKE_BINARY_DIR@/doc/api</span>
+</pre></div>
+</div>
+<p>See <code class="docutils literal notranslate"><span class="pre">doc/doxygen/conf.in</span></code> in the FleCSI source repository as an
+example configuration.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="coverage-and-unit-testing">
+<h3>Coverage and Unit Testing<a class="headerlink" href="#coverage-and-unit-testing" title="Permalink to this headline">¶</a></h3>
+<p>FleCSI uses its own unit-testing framework and installs the necessary
+CMake files to allow using it in your own applications.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/coverage</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_enable_coverage</span></code> macro, which adds compiler and
+linker flags to enable capturing coverage information.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/unit</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_enable_testing</span></code> macro, which turns on CMake’s
+testing capabilities through <code class="docutils literal notranslate"><span class="pre">ctest</span></code> and defines <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> and
+<code class="docutils literal notranslate"><span class="pre">test</span></code> targets.</p>
+<p>While you can define your own test executables manually with
+<a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_test.html">add_test</a>, this
+CMake file also defines its own <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> function for
+writing tests based on FleCSI Unit Test framework.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">flecsi_add_test</span><span class="p">(</span><span class="s">test-name</span>                           <span class="c"># name of target</span>
+                <span class="s">SOURCES</span> <span class="s">src1</span> <span class="s">src2</span> <span class="s">...</span> <span class="s">srcN</span>          <span class="c"># list of source files</span>
+                <span class="s">INPUTS</span> <span class="s">in1</span> <span class="s">in2</span> <span class="s">...</span> <span class="s">inN</span>              <span class="c"># list of input files</span>
+                <span class="s">LIBRARIES</span> <span class="s">lib1</span> <span class="s">lib2</span> <span class="s">...</span> <span class="s">libN</span>        <span class="c"># libraries linked to test target</span>
+                <span class="s">DEFINES</span> <span class="s">define1</span> <span class="s">define2</span> <span class="s">...</span> <span class="s">defineN</span> <span class="c"># defines added to test target</span>
+                <span class="s">ARGUMENTS</span>  <span class="s">arg1</span> <span class="s">arg2</span> <span class="s">...</span> <span class="s">argN</span>       <span class="c"># command arguments</span>
+                <span class="s">TESTLABELS</span> <span class="s">label1</span> <span class="s">label2</span> <span class="s">...</span> <span class="s">labelN</span> <span class="c"># labels added to test target</span>
+                <span class="s">PROCS</span> <span class="s">nprocs1</span> <span class="s">nprocs2</span> <span class="s">...</span> <span class="s">nprocsN</span>   <span class="c"># number(s) of MPI processes</span>
+               <span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> will take the sources files in <code class="docutils literal notranslate"><span class="pre">SOURCES</span></code> and
+compile them together with a predefined <code class="docutils literal notranslate"><span class="pre">main()</span></code> function. It will
+also link to any <code class="docutils literal notranslate"><span class="pre">LIBRARIES</span></code> and add <code class="docutils literal notranslate"><span class="pre">DEFINES</span></code> as compile
+definitions.</p>
+<p>If the test uses input files, they can be specified as
+<code class="docutils literal notranslate"><span class="pre">INPUTS</span></code>. This ensures they are copied to the execution folder.</p>
+<p>Command-line arguments are passed via the <code class="docutils literal notranslate"><span class="pre">ARGUMENTS</span></code> option. You
+can also control the number of MPI processes with <code class="docutils literal notranslate"><span class="pre">PROCS</span></code>. If you
+provide more than one value in <code class="docutils literal notranslate"><span class="pre">PROCS</span></code>, this will define one
+target per value with a name <code class="docutils literal notranslate"><span class="pre">&lt;target-name&gt;_&lt;value&gt;</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Targets added with <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> will be run with GPU
+support if appropriate.</p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">TESTLABELS</span></code> can be added to your test to allow filtering based on
+label when using <code class="docutils literal notranslate"><span class="pre">ctest</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> target only builds unit tests (and its dependencies) added
+via <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code>. Its name can be customized with the
+<code class="docutils literal notranslate"><span class="pre">flecsi_set_unit_tests_target_name(name)</span></code> macro, prior to calling
+<code class="docutils literal notranslate"><span class="pre">flecsi_enable_testing</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">test</span></code> target is defined by CMake itself and will run <code class="docutils literal notranslate"><span class="pre">ctest</span></code>,
+executing all added tests.</p>
+<p><strong>Usage:</strong></p>
+<p>Here is a minimal unit test file <code class="docutils literal notranslate"><span class="pre">mytest.cc</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;flecsi/util/unit.hh&gt;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">flecsi</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">mytest_driver</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">UNIT</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">ASSERT_TRUE</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+  <span class="p">};</span>
+<span class="p">}</span> <span class="c1">// mytest_driver</span>
+
+<span class="n">util</span><span class="o">::</span><span class="n">unit</span><span class="o">::</span><span class="n">driver</span><span class="o">&lt;</span><span class="n">mytest_driver</span><span class="o">&gt;</span> <span class="n">driver</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Which can be compiled with the following <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.20</span><span class="p">)</span>
+<span class="nb">project</span><span class="p">(</span><span class="s">myproject</span> <span class="s">LANGUAGES</span> <span class="s">CXX</span> <span class="s">C</span><span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span><span class="s">CXX_STANDARD_REQUIRED</span> <span class="s">ON</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span> <span class="s">17</span><span class="p">)</span>
+
+<span class="nb">find_package</span><span class="p">(</span><span class="s">FleCSI</span> <span class="s">REQUIRED</span><span class="p">)</span>
+
+<span class="nb">include</span><span class="p">(</span><span class="s">FleCSI/unit</span><span class="p">)</span>
+<span class="nb">flecsi_enable_testing</span><span class="p">()</span>
+
+<span class="nb">flecsi_add_test</span><span class="p">(</span><span class="s">mytest</span>
+                <span class="s">SOURCES</span> <span class="s">mytest.cc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To configure and compile:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">mkdir build</span>
+<span class="go">cd build</span>
+<span class="go">cmake ..</span>
+<span class="go">make</span>
+</pre></div>
+</div>
+<p>Once compiled, you can run the tests with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">make test</span>
+<span class="gp">#</span> OR
+<span class="go">ctest</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="code-formatting">
+<h3>Code Formatting<a class="headerlink" href="#code-formatting" title="Permalink to this headline">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/format</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_enable_format</span></code> macro, which takes a required
+<code class="docutils literal notranslate"><span class="pre">clang-format</span></code> version as parameter.</p>
+<p>It defines a <code class="docutils literal notranslate"><span class="pre">format</span></code> target that depends on both <code class="docutils literal notranslate"><span class="pre">git</span></code> and
+<code class="docutils literal notranslate"><span class="pre">clang-format</span></code> to be present. It also requires the source tree to
+be a Git checkout. Running this target will find all <code class="docutils literal notranslate"><span class="pre">.hh</span></code> and
+<code class="docutils literal notranslate"><span class="pre">.cc</span></code> files and apply the style defined in the project’s
+<code class="docutils literal notranslate"><span class="pre">.clang-format</span></code>.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Some projects might want to explicitly link to dependencies that
+FleCSI uses itself. External libraries used by FleCSI are added via
+their own CMake file and the macros they define.</p>
+<p>The general structure in these files is that they add a
+<code class="docutils literal notranslate"><span class="pre">flecsi_enable_&lt;PACKAGE&gt;</span></code> macro, which adds the necessary defines,
+include folders and libraries to a given target.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/hdf5</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/hpx</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/kokkos</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/legion</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/mpi</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/openmp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/parmetis</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/boost</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FleCSI/caliper</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="other-files">
+<h3>Other files<a class="headerlink" href="#other-files" title="Permalink to this headline">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/colors</span></code></dt><dd><p>Defines several ASCII color codes for colored console output.</p>
+<table class="hlist"><tr><td><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_ColorReset</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_ColorBold</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Red</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Green</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Yellow</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Brown</span></code></p></li>
+</ul>
+</td><td><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Blue</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Magenta</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_Cyan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_White</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldGrey</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldRed</span></code></p></li>
+</ul>
+</td><td><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldGreen</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldYellow</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldBlue</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldMagenta</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldCyan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLECSI_BoldWhite</span></code></p></li>
+</ul>
+</td></tr></table>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">FleCSI/summary</span></code></dt><dd><p>Defines multiple macros to generate a (colored) configuration
+summary. Each of these macros appends to the global <code class="docutils literal notranslate"><span class="pre">_summary</span></code>.
+At the end of your CMake file you can then print this summary using
+<code class="docutils literal notranslate"><span class="pre">message(STATUS</span> <span class="pre">${_summary})</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_summary_header</span></code> will add a header.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_summary_info(name</span> <span class="pre">info</span> <span class="pre">allow_split)</span></code> will take a given
+<code class="docutils literal notranslate"><span class="pre">name</span></code> and add its value <code class="docutils literal notranslate"><span class="pre">info</span></code> next to it. If <code class="docutils literal notranslate"><span class="pre">info</span></code> is a
+space-separated list of values, <code class="docutils literal notranslate"><span class="pre">allow_split</span></code> controls if each
+value should be in its own line.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_summary_option(name</span> <span class="pre">state</span> <span class="pre">extra)</span></code> is used for adding
+Boolean values to the summary. If <code class="docutils literal notranslate"><span class="pre">state</span></code> evaluates to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>
+the option state will be shown in a bright green color, followed by
+what is in <code class="docutils literal notranslate"><span class="pre">extra</span></code>. Otherwise, the <code class="docutils literal notranslate"><span class="pre">state</span></code> will be shown in
+gray.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="topologies.html" class="btn btn-neutral float-right" title="Topologies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../user-guide.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

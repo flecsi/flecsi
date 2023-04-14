@@ -5,5 +5,6 @@ var modules =
     [ "Execution Model", "group__execution.html", "group__execution" ],
     [ "Logging", "group__flog.html", "group__flog" ],
     [ "Topologies", "group__topology.html", "group__topology" ],
-    [ "Utilities", "group__utils.html", "group__utils" ]
+    [ "Utilities", "group__utils.html", "group__utils" ],
+    [ "Configuration", "group__config.html", "group__config" ]
 ];

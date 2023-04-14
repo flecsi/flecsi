@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>CMake Configuration Options &mdash; FleCSI 2.1.0 documentation</title>
+  <title>CMake Configuration Options &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -38,7 +39,9 @@
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tutorial" href="../tutorial.html" />
+    <link rel="prev" title="Build &amp; Install" href="../build.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -65,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -90,15 +93,30 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../build.html">Build &amp; Install</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">CMake Configuration Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-cmake-options">Basic CMake options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallelization-options">Parallelization options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation-options">Documentation options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous-options">Miscellaneous options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#requirements-prerequisites">Requirements &amp; Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#getting-the-code">Getting The Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#spack">Spack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#flecsi-developers">FleCSI Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#configuration-build">Configuration &amp; Build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#building-the-unit-tests">Building the Unit Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#building-the-documentation-developers">Building the Documentation (Developers)</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -146,6 +164,8 @@
     
       <li><a href="../../index.html">Docs</a> &raquo;</li>
         
+          <li><a href="../build.html">Build &amp; Install</a> &raquo;</li>
+        
       <li>CMake Configuration Options</li>
     
     
@@ -169,6 +189,8 @@
 <h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this headline">¶</a></h1>
 <p>The following set of options are available to control how FleCSI is
 built.</p>
+<div class="section" id="basic-cmake-options">
+<h2>Basic CMake options<a class="headerlink" href="#basic-cmake-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><strong>BUILD_SHARED_LIBS [default: ON]</strong> <br />
 Build shared library objects (as opposed to static).</p></li>
@@ -176,129 +198,133 @@ Build shared library objects (as opposed to static).</p></li>
 Specify the build type (configuration) statically for this build tree.
 Possible choices are <em>Debug</em>, <em>Release</em>, <em>RelWithDebInfo</em>, and
 <em>MinSizeRel</em>.</p></li>
+<li><p><strong>CMAKE_CXX_COMPILER [default: g++]</strong> <br />
+Specify the C++ compiler to use to build FleCSI.</p></li>
+<li><p><strong>CMAKE_CXX_FLAGS [default: “”]</strong> <br />
+Specify the flags to pass to the C++ compiler when building FleCSI.</p></li>
 <li><p><strong>CMAKE_INSTALL_PREFIX [default: /usr/local]</strong> <br />
 Specify the installation path to use when <em>make install</em> is invoked.</p></li>
-<li><p><strong>CXX_CONFORMANCE_STANDARD [default: c++14]</strong> <br />
-Specify to which C++ standard a compiler must conform. This is a
-developer option used to identify whether or not the selected C++
-compiler will be able to compile FleCSI, and which (if any) tests it
-fails to compile. This information can be shared with vendors to
-identify features that are required by FleCSI that are not
-standards-compliant in the vendor’s compiler.</p></li>
-<li><p><strong>ENABLE_BOOST_PREPROCESSOR [default: ON]</strong> <br />
-Boost.Preprocessor is a header-only Boost library that provides
-enhanced pre-processor options and manipulation, which are not
-supported by the standard C preprocessor. Currently, FleCSI uses the
-preprocessor to implement type reflection.</p></li>
-<li><p><strong>ENABLE_BOOST_PROGRAM_OPTIONS [default: OFF]</strong> <br />
-Boost.Program_options provides support for handling command-line
-options to a program. When this build option is enabled, CMake will
-attempt to locate a valid installation of the program options library,
-and Cinch will enable certain command-line options for unit tests. In
-particular, if Cinch’s clog extensions are enabled, the <em>–tags</em>
-command-line option will be available to select output tags.</p></li>
-<li><p><strong>ENABLE_CINCH_DEVELOPMENT [default: OFF]</strong> <br />
-If this option is enabled, extra information will be generated to help
-debug different Cinch behaviors. Currenlty, this only affects the
-generation of documentation: when enabled, the resulting PDF
-documentation will be annotated with the original locations of the
-content. <strong>FIXME: We should consider renaming this option</strong></p></li>
-<li><p><strong>ENABLE_CINCH_VERBOSE [default: OFF]</strong> <br />
-If this option is enabled, extra information will be output during the
-CMake configuration and build that may be helpful in debugging Cinch.</p></li>
-<li><p><strong>ENABLE_CLOG [default: OFF]</strong> <br />
-Enable Cinch Logging (clog). The Cinch logging interface provides
-methods for generating and controlling output from a running
-application.</p></li>
-<li><p><strong>CLOG_COLOR_OUTPUT [default: ON]</strong> <br />
-Enable colorization of clog output.</p></li>
-<li><p><strong>CLOG_DEBUG [default: OFF]</strong> <br />
-Enable verbose debugging output for clog.</p></li>
-<li><p><strong>CLOG_ENABLE_EXTERNAL [default: OFF]</strong> <br />
-The Cinch clog facility is a runtime. As such, some of the features
-provided by clog require initialization. Because of the C++ mechanism
-used by clog to implement parts of its interface, it is possible to
-call the interface from parts of the code that are <em>external</em>, i.e.,
-at file scope. Externally scoped statements are executed before the
-clog runtime can be initialized, and therefore their output cannot be
-controlled by the clog tagging feature. This option allows the user to
-enable this type of output, which can be quite verbose.</p></li>
-<li><p><strong>CLOG_ENABLE_TAGS [default: OFF]</strong> <br />
-Enable the tag feature for clog. If enabled, users can selectively
-control clog output by specifying active tags on the command line:</p></li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> ./executable --tags<span class="o">=</span>tag1,tag2
-</pre></div>
 </div>
-<blockquote>
-<div><p>Invoking the <em>–tags</em> flag with no arguments will list the available
-tags. <strong>This option requries that ENABLE_BOOST_PROGRAM_OPTIONS be ON.</strong></p>
-</div></blockquote>
-<ul class="simple">
-<li><p><strong>CLOG_STRIP_LEVEL [default: 0]</strong> <br />
-Strip levels are another mechanism to allow the user to control the
-amount of output that is generated by clog. In general, the higher the
-stip level, the fewer the number of clog messages that will be output.
-There are five strip levels in clog: <em>trace</em>, <em>info</em>, <em>warn</em>, <em>error</em>,
-and <em>fatal</em>. Output for all of these levels is turned on if the strip
-level is 0. As the strip level is increased, fewer levels are output,
-e.g., if the strip level is 3, only <em>error</em> and <em>fatal</em> log messages
-will be output. <strong>Regardless of the strip level, clog messages that
-are designated *fatal* will generate a runtime error and will invoke
-std::exit.</strong></p></li>
-<li><p><strong>ENABLE_COLORING [default: OFF]</strong> <br />
-This option controls whether or not various library dependencies and
-code sections are active that are required for graph partitioning
-(coloring) and distributed-memory parallelism. In general, if you have
-selected a runtime mode that requires this option, it will
-automatically be enabled.</p></li>
-<li><p><strong>ENABLE_COLOR_UNIT_TESTS [default: OFF]</strong> <br />
-Enable coloraization of unit test output.</p></li>
-<li><p><strong>ENABLE_COVERAGE_BUILD [default: OFF]</strong> <br />
-Enable build mode to determine the code coverage of the current set of
-unit tests. This is useful for continuous integration (CI) test analysis.</p></li>
-<li><p><strong>ENABLE_DEVEL_TARGETS [default: OFF]</strong> <br />
-Development targets allow developers to add small programs to the
-FleCSI source code for testing code while it is being developed. These
-programs are not intended to be used as unit tests, and may be added
-or removed as the code evolves.</p></li>
-<li><p><strong>ENABLE_DOCUMENTATION [default: OFF]</strong> <br />
-This option controls whether or not the FleCSI user and developer
-guide documentation is built. If enabled, CMake will generate these
-guides as PDFs in the <em>doc</em> subdirectory of the build.</p></li>
-<li><p><strong>ENABLE_DOXYGEN [default: OFF]</strong> <br />
-If enabled, CMake will verify that a suitable <em>doxygen</em> binary is
-available on the system, and will add a target for generating
-Doxygen-style interface documentation from the FleCSI source code.
-<strong>To build the doxygen documentation, users must explicitly invoke:</strong></p></li>
+<div class="section" id="flog-flecsi-logging-utility-options">
+<h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p><strong>ENABLE_FLOG [default: OFF]</strong> <br />
+This option enables support for the FleCSI logging utility (Flog).
+When <em>OFF</em>, functions in the <code class="docutils literal notranslate"><span class="pre">flog</span></code> namespace
+and the <code class="docutils literal notranslate"><span class="pre">flog</span></code> macros
+remain defined but produce no output.</p></li>
+<li><p><strong>FLOG_ENABLE_COLOR_OUTPUT [default: OFF]</strong> <br />
+Produce colorized Flog output instead of using the output device’s
+default colors.</p></li>
+<li><p><strong>FLOG_SERIALIZATION_INTERVAL [default: 100]</strong> <br />
+The Flog serialization interval specifies the number of task
+executions after which FleCSI should check for buffered output to
+process.  It should be set to a value that balances output
+timeliness (lower = more timely output) against performance (higher
+= less overhead from the requisite global reduction).</p></li>
+<li><p><strong>FLOG_SERIALIZATION_THRESHOLD</strong> <br />
+<strong>This interface is deprecated and not used anymore.</strong></p></li>
+<li><p><strong>FLOG_STRIP_LEVEL [default: 0]</strong> <br />
+Set the Flog strip level, which should an integer from 0 to 4.  Like
+tag groups, strip levels are a mechanism for the user to control the
+amount of output that Flog generates: the higher the strip level,
+the fewer Flog messages will be output.  There are five strip levels
+in Flog:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>trace</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>info</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>warn</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>error</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>fatal</p></td>
+</tr>
+</tbody>
+</table>
+<p>Each number represents the largest value of <code class="docutils literal notranslate"><span class="pre">FLOG_STRIP_LEVEL</span></code>
+that will produce that type of output.  That is, if the strip level
+is 0, all message types will be output; if the strip level is 3,
+only <em>error</em> and <em>fatal</em> log messages will be output. Regardless of
+the strip level, Flog messages that are designated <em>fatal</em> will
+generate a runtime error and will invoke <code class="docutils literal notranslate"><span class="pre">std::exit</span></code>.</p>
+</li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make doxygen
-</pre></div>
 </div>
+<div class="section" id="parallelization-options">
+<h2>Parallelization options<a class="headerlink" href="#parallelization-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><strong>ENABLE_DOXYGEN_WARN [default: OFF]</strong> <br />
-Normal Doxygen output produces many pages worth of warnings. These are
-distracting and overly verbose. As such, they are disabled by default.
-This options allows the user to turn them back on.</p></li>
-<li><p><strong>ENABLE_EXODUS [default: OFF]</strong> <br />
-If enabled, CMake will verify that a suitable Exodus library is
-available on the system, and will enable Exodus functionality in the
-FleCSI I/O interface.</p></li>
-<li><p><strong>ENABLE_JENKINS_OUTPUT [default: OFF]</strong> <br />
-If this options is on, extra meta data will be output during unit test
-invocation that may be used by the Jenkins CI system.</p></li>
+<li><p><strong>ENABLE_KOKKOS [default: OFF]</strong> <br />
+If enabled, support the use of <a class="reference external" href="https://kokkos.org/">Kokkos</a> for
+thread-level parallelism and GPU support.</p></li>
 <li><p><strong>ENABLE_MPI_CXX_BINDINGS [default: OFF]</strong> <br />
 This option is a fall-back for codes that actually require the MPI C++
 bindings. <strong>This interface is deprecated and should only be used if it
 is impossible to get rid of the dependency.</strong></p></li>
 <li><p><strong>ENABLE_OPENMP [default: OFF]</strong> <br />
-Enable OpenMP support. If enabled, the appropriate flags will be
-passed to the C++ compiler to enable language support for OpenMP
-pragmas.</p></li>
-<li><p><strong>ENABLE_OPENSSL [default: OFF]</strong> <br />
-If enabled, CMake will verify that a suitable OpenSSL library is
-available on the system, and will enable the FleCSI checksum
-interface.</p></li>
+Enable <a class="reference external" href="https://www.openmp.org/">OpenMP</a> pragmas for thread-level
+parallelism.  The appropriate flags will be passed to the C++
+compiler to enable language support for OpenMP.</p></li>
+<li><p><strong>FLECSI_BACKEND [default: legion]</strong> <br />
+Specify the backend to use. Currently, <em>legion</em> and <em>mpi</em> are
+the only valid options.</p></li>
+</ul>
+</div>
+<div class="section" id="documentation-options">
+<h2>Documentation options<a class="headerlink" href="#documentation-options" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>ENABLE_DOCUMENTATION [default: OFF]</strong> <br />
+This option controls whether or not the FleCSI user- and
+developer-guide documentation is built. If enabled, CMake will
+generate these guides as PDFs in the <em>doc</em> subdirectory of the
+build.  To build the documentation, run</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make doc
+</pre></div>
+</div>
+<ul>
+<li><p><strong>ENABLE_DOXYGEN [default: OFF]</strong> <br /></p>
+<p>If enabled, CMake will verify that a suitable <em>doxygen</em> binary is
+available on the system and will add a target for generating
+Doxygen-style interface documentation from the FleCSI source code
+(<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doxygen</span></code>, which becomes a dependency of <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code>).</p>
+</li>
+<li><p><strong>ENABLE_DOXYGEN_WARN [default: OFF]</strong> <br />
+Normal Doxygen output produces many pages worth of warnings. These are
+distracting and overly verbose. As such, they are disabled by default.
+This options allows the user to turn them back on.</p></li>
+</ul>
+</div>
+<div class="section" id="miscellaneous-options">
+<h2>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>ENABLE_COVERAGE_BUILD [default: OFF]</strong> <br />
+Enable build mode to determine the code coverage of the current set of
+unit tests. This is useful for continuous integration (CI) test analysis.</p></li>
+<li><p><strong>ENABLE_GRAPHVIZ [default: OFF]</strong> <br />
+If enabled, support the use of <a class="reference external" href="https://graphviz.org/">Graphviz</a>
+to produce graphical visualizations of a FleCSI program’s control
+points and actions.</p></li>
+<li><p><strong>ENABLE_HDF5 [default: OFF]</strong> <br />
+If enabled, support the use of <a class="reference external" href="https://www.hdfgroup.org/">HDF5</a>
+for checkpointing program state.</p></li>
 <li><p><strong>ENABLE_UNIT_TESTS [default: OFF]</strong> <br />
 Enable FleCSI unit tests. If enabled, the unit test suite can be run
 by invoking:</p></li>
@@ -307,20 +333,10 @@ by invoking:</p></li>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><strong>FLECSI_COUNTER_TYPE [default: int32_t]</strong> <br />
-Specify the C++ type to use for the FleCSI counter interface.</p></li>
-<li><p><strong>FLECSI_DBC_ACTION [default: throw]</strong> <br />
-Select the design-by-contract action.</p></li>
-<li><p><strong>FLECSI_DBC_REQUIRE [default: ON]</strong> <br />
-Enable DBC pre/post condition assertions.</p></li>
-<li><p><strong>FLECSI_BACKEND [default: mpi]</strong> <br />
-Specify the backend to use. Currently, <em>legion</em> and <em>mpi</em> are
-the only valid options.</p></li>
-<li><p><strong>VERSION_CREATION [default: git describe]</strong> <br />
-This options allows the user to either directly specify a version by
-entering it here, or to let the build system provide a version using
-git describe.</p></li>
+<li><p><strong>FLECSI_ID_TYPE [default: std::uint32_t]</strong> <br />
+Specify the C++ type for FleCSI topologies to use for entity IDs.</p></li>
 </ul>
+</div>
 </div>
 
 
@@ -329,12 +345,21 @@ git describe.</p></li>
           </div>
           <footer>
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../build.html" class="btn btn-neutral float-left" title="Build &amp; Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

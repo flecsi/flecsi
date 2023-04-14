@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Internal Summary &mdash; FleCSI 2.1.0 documentation</title>
+  <title>Internal Summary &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -39,8 +40,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Contributors" href="team.html" />
-    <link rel="prev" title="API Reference" href="api.html" /> 
+    <link rel="next" title="User Guide" href="user-guide.html" />
+    <link rel="prev" title="Developer Guide" href="developer-guide.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -96,39 +97,49 @@
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developer-guide.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Internal Summary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarchy">Hierarchy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#compound-clients">Compound clients</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#data">Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#task-separation">Task separation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#storage">Storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#definition">Definition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access">Access</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#execution">Execution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#levels">Levels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#task-launches">Task launches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#explicit-parallelism">Explicit parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#topologies">Topologies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#interfaces">Interfaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#subcomponents">Subcomponents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#predefined">Predefined</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#style-guide">Style Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#versioning">Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#published-documentation">Published Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#spack-cheat-sheet">Spack Cheat Sheet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#git-cheat-sheet">Git Cheat Sheet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#building-for-darwin">Building for Darwin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#graphviz-notes">Graphviz Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#doxygen">Doxygen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide.html#sphinx">Sphinx</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Internal Summary</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#hierarchy">Hierarchy</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compound-clients">Compound clients</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#data">Data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#task-separation">Task separation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#storage">Storage</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#layouts">Layouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#definition">Definition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#access">Access</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#execution">Execution</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#levels">Levels</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#task-launches">Task launches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#explicit-parallelism">Explicit parallelism</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#topologies">Topologies</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#interfaces">Interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#subcomponents">Subcomponents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#predefined">Predefined</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -176,6 +187,8 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
+          <li><a href="developer-guide.html">Developer Guide</a> &raquo;</li>
+        
       <li>Internal Summary</li>
     
     
@@ -207,7 +220,7 @@ It is meant to provide context for the details found when reading a source file 
 <li><p><code class="docutils literal notranslate"><span class="pre">topo</span></code>: Organize those arrays into <em>topologies</em> that represent computational physics domains of several kinds.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">exec</span></code>: Call user-specified functions (<em>tasks</em>) with pointers to the allocated memory (in the form of <em>accessors</em>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">io</span></code>: Save and restore the contents of fields to and from disk.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: Aggregate diagnostic output from multiple processes (<code class="docutils literal notranslate"><span class="pre">flecsi::log</span></code> is abbreviated <code class="docutils literal notranslate"><span class="pre">flog</span></code> in macro names).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code>: Aggregate diagnostic output from multiple processes (the namespace is <code class="docutils literal notranslate"><span class="pre">flog</span></code>).</p></li>
 </ul>
 <p>The implementation of these components is divided between the “front end” and one of a number of <em>backends</em> that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an <em>entry point</em>.
@@ -254,14 +267,14 @@ Again, each such action is a non-local variable that can be supplied separately 
 <div class="section" id="task-separation">
 <h3>Task separation<a class="headerlink" href="#task-separation" title="Permalink to this headline">¶</a></h3>
 <p>Field data appears as actual, borrowed arrays in a task but as owning, opaque handles in the caller.
-As such, certain types are used only in one context or the other, and the types of some task arguments differ from the types of the parameters they indirectly initialize.
+As such, certain <em>caller-only</em> or <em>task-only</em> types are used only in one context or the other, and the types of some task arguments differ from the types of the parameters they indirectly initialize.
 Conveniently, this separation also guarantees thread safety in the event that tasks execute concurrently with their callers in the same process.</p>
 </div>
 <div class="section" id="storage">
 <h3>Storage<a class="headerlink" href="#storage" title="Permalink to this headline">¶</a></h3>
 <p>The FleCSI data model is based on <a class="reference external" href="https://legion.stanford.edu/tutorial/logical_regions.html">that of Legion</a>, with certain simplifications.
 Each field has a value at each of several <em>index points</em>, each of which is a pair of abstract integers.
-The first indicates the <em>color</em> to which the index point pertains, which corresponds (under some permutation) to the process that typically operates on the associated field values.
+The first indicates the <em>color</em> to which the index point pertains, which determines the execution agent that typically operates on the associated field values.
 The second is an index within the index points for that color; both are zero-based.
 (This structure, where field values at certain index points are periodically copied to other colors for access by other processes, is known as an “Extended Index Space”.)</p>
 <p>A <em>region</em> is the domain for some number of fields: a rectangular subregion of the two-dimensional integer lattice whose lower-left corner is always (0,0).
@@ -287,7 +300,7 @@ The class template <code class="docutils literal notranslate"><span class="pre">
 <div class="section" id="layouts">
 <h3>Layouts<a class="headerlink" href="#layouts" title="Permalink to this headline">¶</a></h3>
 <p>The backend is expected merely to provide uninitialized storage arrays for each field and <code class="docutils literal notranslate"><span class="pre">memcpy</span></code> it appropriately.
-Therefore, <code class="docutils literal notranslate"><span class="pre">sizeof(T)</span></code> and the partition size is sufficient information to allocate it, but the type must be self-contained and trivially relocatable.
+Therefore, <code class="docutils literal notranslate"><span class="pre">sizeof(T)</span></code> and the partition size is sufficient information to allocate it, but (if it is used with any non-MPI task) the type must be self-contained and trivially relocatable.
 (This is not a formal C++ classification; note that <code class="docutils literal notranslate"><span class="pre">std::tuple&lt;int&gt;</span></code> is not trivially copyable.)</p>
 <p>This support is called the <code class="docutils literal notranslate"><span class="pre">raw</span></code> <em>layout</em>.
 Higher-level layouts are implemented in terms of it:</p>
@@ -298,13 +311,17 @@ Higher-level layouts are implemented in terms of it:</p>
 The elements of the arrays are packed in an underlying <code class="docutils literal notranslate"><span class="pre">raw</span></code> field (with slack space to reduce reallocations, as with <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> itself); the offsets of the beginning of each array are stored in a separate <code class="docutils literal notranslate"><span class="pre">dense</span></code> field.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sparse</span></code> stores a mapping from integers to <code class="docutils literal notranslate"><span class="pre">T</span></code> at each index point, as if the field type were <code class="docutils literal notranslate"><span class="pre">std::map&lt;std::size_t,T&gt;</span></code>.
 The implementation is simply a <code class="docutils literal notranslate"><span class="pre">ragged</span></code> field of <code class="docutils literal notranslate"><span class="pre">std::pair&lt;std::size_t,T&gt;</span></code>, with each row sorted by the key.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span></code> stores a set of <code class="docutils literal notranslate"><span class="pre">T</span></code> objects bounded by the size of the index space.
+The implementation augments <code class="docutils literal notranslate"><span class="pre">T</span></code> with a “skip field” that allows efficient iteration, insertion, and deletion.</p></li>
 </ul>
 <p>This enumeration is defined in <code class="docutils literal notranslate"><span class="pre">layout.hh</span></code>.</p>
 </div>
 <div class="section" id="definition">
 <h3>Definition<a class="headerlink" href="#definition" title="Permalink to this headline">¶</a></h3>
 <p>The various types used for working with a field are exposed as members of <code class="docutils literal notranslate"><span class="pre">field&lt;T,L&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">T</span></code> is the field data type and <code class="docutils literal notranslate"><span class="pre">L</span></code> is the layout (which defaults to <code class="docutils literal notranslate"><span class="pre">dense</span></code>).
-Application code, topology specializations, and topologies alike register fields by defining non-local, caller-only objects of type <code class="docutils literal notranslate"><span class="pre">field&lt;T,L&gt;::definition&lt;P,S&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">P</span></code> is the topology type (specialization, sometimes called a “Policy”) and <code class="docutils literal notranslate"><span class="pre">S</span></code> is the index space (of the type <code class="docutils literal notranslate"><span class="pre">P::index_space</span></code>, which is typically an enumeration).</p>
+Application code, topology specializations, and topologies all register fields the same way, by defining caller-only objects of type <code class="docutils literal notranslate"><span class="pre">field&lt;T,L&gt;::definition&lt;P,S&gt;</span></code>.
+<code class="docutils literal notranslate"><span class="pre">P</span></code> here is the topology type (specialization, sometimes called a “Policy”), and <code class="docutils literal notranslate"><span class="pre">S</span></code> is the index space (of the type <code class="docutils literal notranslate"><span class="pre">P::index_space</span></code>, which is typically an enumeration).
+These are often non-local variables.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">L</span></code> is <code class="docutils literal notranslate"><span class="pre">raw</span></code>, the field is registered on the global FleCSI <em>context</em> with a field ID drawn from a global counter, organized by topology type and index space.
 Otherwise, the <code class="docutils literal notranslate"><span class="pre">definition</span></code> recursively registers appropriate underlying fields (via specializations of the helper class templates <code class="docutils literal notranslate"><span class="pre">field_base</span></code> and <code class="docutils literal notranslate"><span class="pre">field_register</span></code>).
 These types are defined in <code class="docutils literal notranslate"><span class="pre">field.hh</span></code> (but, as a principal name used by application code, <code class="docutils literal notranslate"><span class="pre">field</span></code> appears directly in the <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> namespace).</p>
@@ -330,7 +347,8 @@ The actual type of an accessor is <code class="docutils literal notranslate"><sp
 <p>When the arrays for one or more index points in a <code class="docutils literal notranslate"><span class="pre">ragged</span></code> or <code class="docutils literal notranslate"><span class="pre">sparse</span></code> field are resized, they must be repacked.
 To do so efficiently, the interface for such resizing is provided by accessor variants called <em>mutators</em>, which use temporary storage (from the ordinary heap) to track changes made by a task and then apply those changes when it finishes.
 They automatically resize such fields (according to a policy set by the topology) to maintain slack space for insertions, but the process simply fails if that guess is overrun.
-Mutators also have permissions, used to distinguish those that trigger ghost copies from those that implement them.</p>
+Mutators also have permissions: write-only mutators (re)initialize a field (to all empty structures).
+Multiple permissions distinguish mutators that trigger ghost copies from those that implement them.</p>
 <p>Accessors of different layouts form a hierarchy parallel to that of field definitions.
 The ultimately underlying <code class="docutils literal notranslate"><span class="pre">raw</span></code> accessors merely store a <code class="docutils literal notranslate"><span class="pre">util::span&lt;T&gt;</span></code>, along with a field ID used to look up the storage.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
@@ -341,6 +359,11 @@ Topology accessors are of course also task-only; a topology accessor parameter i
 The topology’s <code class="docutils literal notranslate"><span class="pre">access</span></code> type is used wrapped in the <code class="docutils literal notranslate"><span class="pre">topology_accessor</span></code> class template wrapper defined in <code class="docutils literal notranslate"><span class="pre">topology_accessor.hh</span></code>.</p>
 <p>To help specify the members of topology accessors, which typically are accessors for preselected fields, <code class="docutils literal notranslate"><span class="pre">field.hh</span></code> also defines the class template <code class="docutils literal notranslate"><span class="pre">accessor_member</span></code> that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
 (The field ID is not known until runtime, but the <em>location</em> where it will be stored is known at compile time.)</p>
+<p><em>Multi-color accessors</em> allow an execution agent to access data outside of its color (beyond that supplied by ghost copies), including the special case of data outside of the data model altogether (<em>e.g.</em>, distributed objects created by MPI-based libraries).
+These take the form of a sequence of color-accessor pairs inside a task; the accessor can also be a mutator or a topology accessor.
+They are created from a <em>launch map</em> that specifies which colors should be made available where (discussed further below).
+The MPI backend supports only trivial launch maps that specify some subset of the normal arrangement.</p>
+<p>See below about the special case of <em>reduction accessors</em>.</p>
 </div>
 </div>
 <div class="section" id="execution">
@@ -371,11 +394,13 @@ The <code class="docutils literal notranslate"><span class="pre">partial</span><
 <p>In addition to converting arguments that identify resources, those resources are recruited for the task’s use.
 For fields, this involves identifying the responsible <code class="docutils literal notranslate"><span class="pre">partition</span></code> from the topology on the caller side.
 (For Legion, its associated Legion handles are then identified as resources needed for the task launch, controlling data movement and parallelism discovery.)
-The <em>global topology</em> (described further below) is a special case: it uses a (single-point) <code class="docutils literal notranslate"><span class="pre">region</span></code> directly and requires that a task that writes to it be a single launch.
+The <em>global topology</em> (described further below) is a special case: it uses a <code class="docutils literal notranslate"><span class="pre">region</span></code> directly, so all point tasks use the same field values.
+A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 On the task side, the recruited resources and the accessors’ field IDs are consulted to obtain values for the contained <code class="docutils literal notranslate"><span class="pre">span</span></code> objects.
 Because a task’s parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate <em>buffers</em> that can be processed afterwards.</p>
 <p>On both sides, various tag base classes are used to recognize relevant FleCSI types; <code class="docutils literal notranslate"><span class="pre">send_tag</span></code> in particular identifies types that can decompose themselves into simpler parameters via a <code class="docutils literal notranslate"><span class="pre">send</span></code> member function template.
 This function template accepts a callback that is used to process the subcomponents and which itself accepts a callback that, on the caller side only, is used to transform the task <em>arguments</em>.
+Those task arguments may include <code class="docutils literal notranslate"><span class="pre">borrow_category</span></code> versions of the underlying topologies and field references to such versions.
 The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.</p>
 <p>A call to <code class="docutils literal notranslate"><span class="pre">execute&lt;F&gt;</span></code> can return before the task does; it returns a <em>future</em> that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for non-trivial class types to serialize themselves when so returned.)
@@ -401,7 +426,7 @@ Because the call is not made in an ordinary task context, <code class="docutils 
 The usual argument replacements still apply, which allows MPI tasks to have access to both fields and objects created by the caller.
 Arguments that are not so interpreted need not have the same value on every shard.
 However, return values must follow the ordinary rules (so as to support futures and reductions).</p>
-<p>FleCSI also provides, in <code class="docutils literal notranslate"><span class="pre">kernel_interface.hh</span></code>, a wrapper interface for simple Kokkos parallel loops and reductions, including macros <code class="docutils literal notranslate"><span class="pre">forall</span></code> and <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> that are followed by a lambda body (and a semicolon, since the lambda is an expression).
+<p>FleCSI also provides, in <code class="docutils literal notranslate"><span class="pre">kernel.hh</span></code>, a wrapper interface for simple Kokkos parallel loops and reductions, including macros <code class="docutils literal notranslate"><span class="pre">forall</span></code> and <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> that are followed by a lambda body (and a semicolon, since the lambda is an expression).
 The same reduction types as for index launches are supported.</p>
 </div>
 </div>
@@ -423,25 +448,30 @@ Its unit tests also provide examples of specializations.</p>
 <p>For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type <code class="docutils literal notranslate"><span class="pre">subtopology::core</span></code>).
 Some of these are so trivial as to merely inherit from the appropriate specialization of <code class="docutils literal notranslate"><span class="pre">specialization</span></code> with an empty class body.
 The most fundamental of these is <code class="docutils literal notranslate"><span class="pre">resize</span></code>, which holds the sizes needed to construct a non-trivial <code class="docutils literal notranslate"><span class="pre">partition</span></code>.
-It is defined in <code class="docutils literal notranslate"><span class="pre">size.hh</span></code> in terms of the even lower-level <code class="docutils literal notranslate"><span class="pre">color</span></code> machinery (from <code class="docutils literal notranslate"><span class="pre">color.hh</span></code>) that defines fields with a fixed number of values per color.</p>
+It is defined in <code class="docutils literal notranslate"><span class="pre">size.hh</span></code> in terms of the even lower-level <code class="docutils literal notranslate"><span class="pre">color</span></code> and <code class="docutils literal notranslate"><span class="pre">column</span></code> machinery (from <code class="docutils literal notranslate"><span class="pre">color.hh</span></code>) that define fields with a fixed number (1 for <code class="docutils literal notranslate"><span class="pre">column</span></code>) of values per color.</p>
 <p>The type <code class="docutils literal notranslate"><span class="pre">topo::repartition</span></code> augments <code class="docutils literal notranslate"><span class="pre">data::partition</span></code> with a <code class="docutils literal notranslate"><span class="pre">resize</span></code> and schedules a task to initialize them properly; it too can be combined with a <code class="docutils literal notranslate"><span class="pre">region</span></code> with the <em>ed</em> suffix.
 It is defined in <code class="docutils literal notranslate"><span class="pre">index.hh</span></code>, along with higher-level subtopologies that provide the backing store for the <code class="docutils literal notranslate"><span class="pre">ragged</span></code> layout as well as the user-level <code class="docutils literal notranslate"><span class="pre">index</span></code> topology that supports <code class="docutils literal notranslate"><span class="pre">ragged</span></code> fields.
 The topology <code class="docutils literal notranslate"><span class="pre">ragged</span></code> is itself a class template, parametrized with the (user) topology type to distinguish <code class="docutils literal notranslate"><span class="pre">ragged</span></code> field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with <code class="docutils literal notranslate"><span class="pre">with_</span></code> to be used as a base class.</p>
+<p>Launch maps are constructed from several auxiliary topology types that create alternate partitions that expose (some of) a region’s existing row-prefixes in a different order.
+Using several of these partial permutations allows an arbitrary many-to-many mapping to be expressed while retaining the identity of each row selected.
+Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.</p>
+<p>The non-trivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
+This indirection avoids needing to know the sizes of other colors’ rows (which vary per index space) to select them as well as needing to reserve a row number for “no row needed”.</p>
 <p>Several templates are defined in <code class="docutils literal notranslate"><span class="pre">utility_types.hh</span></code> to assist in defining topologies.
 In particular, <code class="docutils literal notranslate"><span class="pre">topo::id</span></code> serves to distinguish in user-facing interfaces the indices for different index spaces.</p>
 </div>
 <div class="section" id="predefined">
 <h3>Predefined<a class="headerlink" href="#predefined" title="Permalink to this headline">¶</a></h3>
-<p>Because the global and index topologies do not need user-defined specializations and are generally useful for defining job- and color-global variables (respectively), a global instance of each is defined in <code class="docutils literal notranslate"><span class="pre">flecsi/data.hh</span></code>.
-(Their colorings are trivial, so no coloring slots are used.)
+<p>Because the global and index topologies do not need user-defined specializations, a predefined specialization is provided of each (and the categories are suffixed with <code class="docutils literal notranslate"><span class="pre">_category</span></code>).
+A deprecated global instance of each is defined in <code class="docutils literal notranslate"><span class="pre">flecsi/data.hh</span></code>.
 Each backend’s initialization code uses the <code class="docutils literal notranslate"><span class="pre">data_guard</span></code> type to manage their lifetimes.</p>
 </div>
 </div>
 <div class="section" id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
 <p>Since <code class="docutils literal notranslate"><span class="pre">util</span></code> is self-contained and has little internal interaction, there is little need for centralized, prose description.
-However, a few utilities have sufficiently wide relevance as to deserve mention.</p>
+However, a few utilities (beyond the serialization already mentioned) have sufficiently wide relevance as to deserve mention.</p>
 <p>Simplified backports of several range utilities from C++20 are provided in <code class="docutils literal notranslate"><span class="pre">array_ref.hh</span></code>.
 The intent is to switch to the <code class="docutils literal notranslate"><span class="pre">std</span></code> versions (with only trivial code changes) when compiler support becomes available.</p>
 <p>Fixed-size containers that associate an enumeration value with each element are provided in <code class="docutils literal notranslate"><span class="pre">constant.hh</span></code>.
@@ -462,10 +492,10 @@ A main program to be linked with each unit test source file is provided.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="team.html" class="btn btn-neutral float-right" title="Contributors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="user-guide.html" class="btn btn-neutral float-right" title="User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="developer-guide.html" class="btn btn-neutral float-left" title="Developer Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -474,7 +504,7 @@ A main program to be linked with each unit test source file is provided.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

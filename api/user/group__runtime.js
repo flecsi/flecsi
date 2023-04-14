@@ -1,28 +1,20 @@
 var group__runtime =
 [
     [ "Control Model", "group__control.html", "group__control" ],
-    [ "context", "structflecsi_1_1run_1_1context.html", [
-      [ "finalize", "structflecsi_1_1run_1_1context.html#a012c1580e338e0d55fce8db379e62727", null ],
-      [ "start", "structflecsi_1_1run_1_1context.html#ad85539dbf6240712f35b420cd1f52ddf", null ],
-      [ "process", "structflecsi_1_1run_1_1context.html#a61a0aa5146bc16a8980ab63df69cbb00", null ],
-      [ "processes", "structflecsi_1_1run_1_1context.html#a6a760cd915d9c5fe0c8f310762341a44", null ],
-      [ "threads_per_process", "structflecsi_1_1run_1_1context.html#a0e75050105311825c1ffcb3c65b902a7", null ],
-      [ "threads", "structflecsi_1_1run_1_1context.html#a7cadf70f499e563fb3fd54a8334bc900", null ],
-      [ "color", "structflecsi_1_1run_1_1context.html#a5472ce999ca932a45513b4f0b183a633", null ],
-      [ "colors", "structflecsi_1_1run_1_1context.html#ab5c4072f561da611bf3653436fc5c290", null ],
-      [ "exit_status", "structflecsi_1_1run_1_1context.html#a8a552fcc701c0e4794367e3ddba4fb3c", null ],
-      [ "add_field_info", "structflecsi_1_1run_1_1context.html#ab89dee96175e20ae3247f95b42791132", null ],
-      [ "get_field_info_store", "structflecsi_1_1run_1_1context.html#aa2b532358b688d26ef3b4f80386d10c4", null ],
-      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#af298e546a40800a160a761e185f4904d", null ],
-      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#a9badfef55c971c8d1f0c991cf045a82c", null ],
-      [ "clear", "structflecsi_1_1run_1_1context.html#a5cbf2740cf0efce457bfa96f449fe674", null ]
-    ] ],
     [ "program_option", "structflecsi_1_1program__option.html", [
       [ "program_option", "structflecsi_1_1program__option.html#ac16de698ef90a5c690081f7540f52106", null ],
       [ "program_option", "structflecsi_1_1program__option.html#a9866b2fd47296e0095bf299e770539ba", null ],
-      [ "value", "structflecsi_1_1program__option.html#ad49a764265db3a849281eec2ab6cb9b3", null ],
-      [ "operator ValueType", "structflecsi_1_1program__option.html#a62540952f1ea33968dab55bd31024808", null ],
-      [ "has_value", "structflecsi_1_1program__option.html#a379f5d596cfd300ebfda9eff734af296", null ]
+      [ "value", "structflecsi_1_1program__option.html#a31c3595a9bf760dc9bf8acc40d3b9f35", null ],
+      [ "operator ValueType", "structflecsi_1_1program__option.html#a962ce29a018852b58d7d1c50cdde714b", null ],
+      [ "has_value", "structflecsi_1_1program__option.html#a9b5cfdb6ec90c3333faf8dd7618ef600", null ]
+    ] ],
+    [ "status", "group__runtime.html#gad82c680be1ec581dea8cf34fc6feb32f", [
+      [ "help", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fab8d70bac9c12376b582b548787b8d275", null ],
+      [ "control_model", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fa10aa145607390dedd1c6a37d570ab1e4", null ],
+      [ "control_model_sorted", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fafb267fa0694cf78ab8b0a8bd2b8bda0b", null ],
+      [ "clean", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32faf4a7c960d1228649907f383d01a7f88d", null ],
+      [ "command_line_error", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fa865e359d5f45962053c7b472d0eb0a92", null ],
+      [ "error", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fad606f01e9e2a07aecb31fe996437b157", null ]
     ] ],
     [ "initialize", "group__runtime.html#gab7bce80856f18e3a0a0968291217247f", null ],
     [ "start", "group__runtime.html#ga807a7550dece2dd889efa3e5ceb9763d", null ],

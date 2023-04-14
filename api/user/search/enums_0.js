@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['axis',['axis',['../group__utils.html#gab86bd7d5e2480bdf86ec2531a6f05f6a',1,'flecsi::util']]]
+  ['axis',['axis',['../structflecsi_1_1topo_1_1narray__specialization.html#aa1c279f302116c94d5bf49f1a08a3aa7',1,'flecsi::topo::narray_specialization::axis()'],['../structflecsi_1_1topo_1_1narray__specialization.html#aa1c279f302116c94d5bf49f1a08a3aa7',1,'flecsi::topo::narray_specialization::axis()']]]
 ];

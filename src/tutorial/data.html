@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data Model &mdash; FleCSI 2.1.0 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -98,7 +99,6 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#using-the-docker-container">Using the Docker Container</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
@@ -111,17 +111,16 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
-<li class="toctree-l3"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="standalone.html">Standalone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
@@ -195,14 +194,20 @@
 <p>FleCSI provides a data model that integrates with the task and kernel
 abstractions to provide easy registration and access to various data
 types with automatic dependency tracking.</p>
+<div class="sidebar">
+<p class="sidebar-title">Field definitions in headers</p>
+<p>Declaring field definitions as <code class="docutils literal notranslate"><span class="pre">const</span></code> namespace members gives them
+internal linkage. When putting them in headers make sure to declare them
+as <code class="docutils literal notranslate"><span class="pre">inline</span> <span class="pre">const</span></code> to avoid breaking the One-Definition Rule (ODR).</p>
+</div>
 <div class="section" id="example-1-global-data">
 <h2>Example 1: Global data<a class="headerlink" href="#example-1-global-data" title="Permalink to this headline">¶</a></h2>
-<p>Global fields are used to store global variables/objects that can
-be accessed by any task.
-Since there is only one value for each field, it is natural to use the <code class="docutils literal notranslate"><span class="pre">data::single</span></code> layout.</p>
+<p>Global fields are used to store global variables/objects that can be
+accessed by any task.  For the common case of only one value for each field, it
+is natural to use the <code class="docutils literal notranslate"><span class="pre">data::single</span></code> layout.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
 <span class="k">using</span> <span class="n">single</span> <span class="o">=</span> <span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="k">const</span> <span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">global</span><span class="o">&gt;</span> <span class="n">lue</span><span class="p">;</span>
+<span class="k">const</span> <span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">global</span><span class="o">&gt;</span> <span class="n">gfield</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Writing to a global field requires a single task launch.</p>
@@ -216,29 +221,26 @@ Since there is only one value for each field, it is natural to use the <code cla
   <span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;global value: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">gv</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
-
-  <span class="k">const</span> <span class="k">auto</span> <span class="n">v</span> <span class="o">=</span> <span class="n">lue</span><span class="p">(</span><span class="n">global_topology</span><span class="p">);</span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">gtopo</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="k">const</span> <span class="k">auto</span> <span class="n">v</span> <span class="o">=</span> <span class="n">gfield</span><span class="p">(</span><span class="n">gtopo</span><span class="p">);</span>
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">42.0</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// advance()</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="example-2-index-data">
 <h2>Example 2: Index data<a class="headerlink" href="#example-2-index-data" title="Permalink to this headline">¶</a></h2>
-<p>Index field is a field that is local to a color or process (MPI rank or
-Legion shard). It is defined as a filed on an <cite>index</cite> topology.</p>
+<p>A field on an <code class="docutils literal notranslate"><span class="pre">index</span></code> topology stores one value for each color.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">flecsi</span><span class="p">;</span>
 
 <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
 <span class="k">using</span> <span class="n">single</span> <span class="o">=</span> <span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="k">const</span> <span class="n">single</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">lue</span><span class="p">;</span>
+<span class="k">const</span> <span class="n">single</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span> <span class="n">ifield</span><span class="p">;</span>
 
-<span class="kr">inline</span> <span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span> <span class="n">custom_topology</span><span class="p">;</span>
+<span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span> <span class="n">custom_topology</span><span class="p">;</span>
 
 <span class="kt">void</span>
 <span class="nf">init</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">iv</span><span class="p">)</span> <span class="p">{</span>
@@ -253,60 +255,66 @@ Legion shard). It is defined as a filed on an <cite>index</cite> topology.</p>
               <span class="o">&lt;&lt;</span> <span class="n">colors</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;)&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
 
   <span class="n">custom_topology</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
 
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lue</span><span class="p">(</span><span class="n">process_topology</span><span class="p">));</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lue</span><span class="p">(</span><span class="n">process_topology</span><span class="p">));</span>
-
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lue</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lue</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">custom_topology</span><span class="p">));</span>
+<span class="p">}</span> <span class="c1">// advance()</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="example-3-dense-data">
 <h2>Example 3: Dense data<a class="headerlink" href="#example-3-dense-data" title="Permalink to this headline">¶</a></h2>
-<p>Dense field is a field defined on a dense topology index space.
-In this example we allocate <cite>pressure</cite> field on the <cite>cells</cite> index space
-of <cite>canonical</cite> topology.</p>
+<p>A dense field is a field defined on a dense topology index space.  In
+this example we allocate a <cite>pressure</cite> field on the <cite>cells</cite> index space
+of the <cite>canonical</cite> topology.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">canon</span><span class="p">,</span> <span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span> <span class="n">pressure</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>One can access the field inside of the FLeCSI task through passing
-topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).</p>
+<p>One can access the field inside of the FleCSI task by passing
+topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).
+The <code class="docutils literal notranslate"><span class="pre">canonical</span></code> topology is a very simple specialization of the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> core topology.
+It illustrates the use of a <em>coloring slot</em>, which applies a specialization-defined rule for specifying a <em>coloring</em>: the run-time information for constructing a topology distributed over colors.
+Here, a file is the source of the mesh (for purposes of illustration).
+The resulting coloring is used to initialize two meshes <code class="docutils literal notranslate"><span class="pre">canonical</span></code> and <code class="docutils literal notranslate"><span class="pre">cp</span></code>, and the <code class="docutils literal notranslate"><span class="pre">copy</span></code> task operates on both of them at once using a low-level accessor.
+The <code class="docutils literal notranslate"><span class="pre">init</span></code> and <code class="docutils literal notranslate"><span class="pre">print</span></code> tasks, by contrast, use a <em>topology accessor</em> as a parameter that provides access to the structure of the mesh via the <code class="docutils literal notranslate"><span class="pre">entities</span></code> function.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+<span class="nf">init</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">off</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-  <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span> <span class="p">{</span>
     <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">off</span><span class="o">++</span><span class="p">)</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// for</span>
 <span class="p">}</span> <span class="c1">// init</span>
 
 <span class="kt">void</span>
+<span class="nf">copy</span><span class="p">(</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">src</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">dest</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">auto</span> <span class="n">s</span> <span class="o">=</span> <span class="n">src</span><span class="p">.</span><span class="n">span</span><span class="p">();</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">s</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">dest</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">begin</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
 <span class="nf">print</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">t</span><span class="p">,</span> <span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">off</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-  <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="o">&lt;</span><span class="n">canon</span><span class="o">::</span><span class="n">cells</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">c</span> <span class="p">:</span> <span class="n">t</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span> <span class="p">{</span>
     <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;cell &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">off</span><span class="o">++</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; has pressure &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">p</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
   <span class="p">}</span> <span class="c1">// for</span>
 <span class="p">}</span> <span class="c1">// print</span>
 
-<span class="kt">int</span>
-<span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">coloring</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
   <span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+  <span class="n">cp</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
 
-  <span class="k">auto</span> <span class="n">pf</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
+  <span class="k">auto</span> <span class="n">pf</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">),</span> <span class="n">pf2</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">(</span><span class="n">cp</span><span class="p">);</span>
 
   <span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">canonical</span><span class="p">,</span> <span class="n">pf</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">copy</span><span class="o">&gt;</span><span class="p">(</span><span class="n">pf</span><span class="p">,</span> <span class="n">pf2</span><span class="p">);</span>
+  <span class="n">execute</span><span class="o">&lt;</span><span class="n">print</span><span class="o">&gt;</span><span class="p">(</span><span class="n">cp</span><span class="p">,</span> <span class="n">pf2</span><span class="p">);</span>
+<span class="p">}</span> <span class="c1">// advance()</span>
 </pre></div>
 </div>
 <hr class="docutils" />
@@ -333,7 +341,7 @@ topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).</p
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>

@@ -1,14 +1,20 @@
 var searchData=
 [
-  ['tag_5fmap',['tag_map',['../classflecsi_1_1log_1_1state.html#a4146e8acd877a0ca226766a7352f856a',1,'flecsi::log::state']]],
-  ['tag_5fname',['tag_name',['../classflecsi_1_1log_1_1state.html#a0ae764402fa0f0af3f96062f2d037fc8',1,'flecsi::log::state']]],
-  ['task_5fdepth',['task_depth',['../structflecsi_1_1run_1_1context.html#add07e11579335f352eb25a06d2f81ed1',1,'flecsi::run::context']]],
-  ['task_5fprologue',['task_prologue',['../structflecsi_1_1exec_1_1task__prologue.html#ad9cb695250298a4b7575ed19dc642c29',1,'flecsi::exec::task_prologue']]],
-  ['threads',['threads',['../structflecsi_1_1run_1_1context.html#a7cadf70f499e563fb3fd54a8334bc900',1,'flecsi::run::context::threads()'],['../group__runtime.html#gacf07651a8d4fd938c09346af9de4c936',1,'flecsi::threads()']]],
-  ['threads_5fper_5fprocess',['threads_per_process',['../structflecsi_1_1run_1_1context.html#a0e75050105311825c1ffcb3c65b902a7',1,'flecsi::run::context::threads_per_process()'],['../group__runtime.html#ga29d1ae6c43c28fb1c98f9465a40a9887',1,'flecsi::threads_per_process()']]],
-  ['timestamp',['timestamp',['../group__flog.html#ga698eed29e3718cfc2dfa92f26b4a4b65',1,'flecsi::log']]],
-  ['to_5fvector',['to_vector',['../group__ranges.html#gad7ef17fe5e0632c54c93f3cf1256dfd2',1,'flecsi::util']]],
-  ['total',['total',['../structflecsi_1_1data_1_1ragged__accessor.html#a237822538e95255507b5213e196cc85c',1,'flecsi::data::ragged_accessor']]],
-  ['transform_5fview',['transform_view',['../structflecsi_1_1util_1_1transform__view.html#a9f40d0ac7d1a3c3d997c9bf0aa987089',1,'flecsi::util::transform_view::transform_view(I b, I e, F f={})'],['../structflecsi_1_1util_1_1transform__view.html#a8bb9f8b8638e9c09a9f02b55ac59ccdd',1,'flecsi::util::transform_view::transform_view(C &amp;&amp;c, F f={})']]],
-  ['type',['type',['../group__utils.html#ga6e5af774450374ecdbbc2898bb65031e',1,'flecsi::util::type()'],['../group__utils.html#gab14902e541853aef2482e355ba22bf1b',1,'flecsi::util::type(const std::type_info &amp;type_info)']]]
+  ['radius',['radius',['../classflecsi_1_1topo_1_1sort__entity.html#ad3d540601f6246bdc030621730985d1d',1,'flecsi::topo::sort_entity']]],
+  ['ragged',['ragged',['../structflecsi_1_1data_1_1buffers_1_1ragged.html#aa62755a6e8899e507f902bca7b4bec85',1,'flecsi::data::buffers::ragged']]],
+  ['range',['range',['../structflecsi_1_1topo_1_1narray_1_1access.html#abe5059142e83ee8cc80957241e2918da',1,'flecsi::topo::narray::access']]],
+  ['read',['read',['../structflecsi_1_1data_1_1buffers_1_1ragged.html#addfcbabce1b0841eb67ad1a9a5dd0cbd',1,'flecsi::data::buffers::ragged']]],
+  ['reduce',['reduce',['../group__execution.html#gad544135370dc72d08d7d428dd9c3a9ab',1,'flecsi']]],
+  ['region_5fbase',['region_base',['../structflecsi_1_1data_1_1region__base.html#a07c187b4a374144d945abed9790316ad',1,'flecsi::data::region_base']]],
+  ['register_5ftag',['register_tag',['../classflecsi_1_1flog_1_1state.html#a2311a04e71928f7b9ea093ba662713ac',1,'flecsi::flog::state']]],
+  ['remove_5fnode',['remove_node',['../classflecsi_1_1util_1_1graphviz.html#ae287e4b98136da9a6e03b90d69ebb097',1,'flecsi::util::graphviz']]],
+  ['reorder',['reorder',['../group__utils.html#ga1859e483fdc35d0102a16d01fec65b28',1,'flecsi::util']]],
+  ['reorder_5fdestructive',['reorder_destructive',['../group__utils.html#ga26a08619de9304c975c01d2315b286a5',1,'flecsi::util']]],
+  ['request_5fowners',['request_owners',['../group__unstructured.html#ga1901213b0446ddd751e235eb2d55bca1',1,'flecsi::topo::unstructured_impl::coloring_utils']]],
+  ['reset',['reset',['../structflecsi_1_1topo_1_1ntree.html#a8ffb34d80750b1dda71ac0acc026f94f',1,'flecsi::topo::ntree']]],
+  ['resize',['resize',['../structflecsi_1_1topo_1_1repartition.html#a6652a74d30c8ce80ee486b5c327e6891',1,'flecsi::topo::repartition']]],
+  ['rguard',['rguard',['../classflecsi_1_1util_1_1annotation_1_1rguard.html#a944769366c6aa83ab0ac93cf0e097d13',1,'flecsi::util::annotation::rguard']]],
+  ['robin',['robin',['../group__launch.html#ga40d2a4911e9245d186786438d10d425a',1,'flecsi::data::launch']]],
+  ['rows',['rows',['../structflecsi_1_1data_1_1rows.html#a52138de97ad1273d3853fc73a9169dc0',1,'flecsi::data::rows']]],
+  ['rstrip',['rstrip',['../group__flog.html#ga82cda82e44f7ee6154b9cf25ba6e5512',1,'flecsi::flog']]]
 ];

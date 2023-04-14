@@ -1,5 +1,6 @@
 var structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4 =
 [
-    [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a8bf33c5253f1ab6aa8808c67c4f66ac2", null ],
-    [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a7492c825cd3509025f0f5d379ee11ebe", null ]
+    [ "row", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html", null ],
+    [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#acc42f02e009db2a67d66c1331bc9e6b0", null ],
+    [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a2b5b84e17a45f4928e808c9b4d1059e6", null ]
 ];

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['offset',['offset',['../structflecsi_1_1topo_1_1narray_1_1meta__data.html#a0f2df80008b9441b1a6704c4bcf3dbcd',1,'flecsi::topo::narray::meta_data']]],
-  ['overlay',['overlay',['../structflecsi_1_1topo_1_1structured__impl_1_1box__coloring.html#a9ba0917c8574a9b458929152722c8cdb',1,'flecsi::topo::structured_impl::box_coloring']]]
+  ['hdepth',['hdepth',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__color.html#a70a8534bf7e79566d09050671ad8a621',1,'flecsi::topo::narray_impl::axis_color::hdepth()'],['../structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html#a48dba8f67548ce2d612d6042742aef56',1,'flecsi::topo::narray_impl::axis_definition::hdepth()']]]
 ];

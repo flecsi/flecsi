@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>User Guide &mdash; FleCSI 2.1.0 documentation</title>
+  <title>User Guide &mdash; FleCSI 2.2.0 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -39,8 +40,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Index Spaces" href="user-guide/introduction.html" />
-    <link rel="prev" title="Topologies" href="specialization-guide/topologies.html" /> 
+    <link rel="next" title="CMake for FleCSI client applications" href="user-guide/cmake.html" />
+    <link rel="prev" title="Internal Summary" href="summary.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                Version: 2.1.0
+                Version: 2.2.0
               </div>
             
           
@@ -97,19 +98,14 @@
 <li class="toctree-l1"><a class="reference internal" href="build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer-guide.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specialization-guide.html">Specialization Guide</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/introduction.html">Index Spaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/introduction.html#topologies">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/cmake.html">CMake for FleCSI client applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/topologies.html">Topologies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/runtime.html">Runtime Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/control.html">Control Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/data.html">Data Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/execution.html">Execution Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/flog.html">Logging Utility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/performance.html">Performance Do’s and Don’ts</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="summary.html">Internal Summary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html#alumni">Alumni</a></li>
 </ul>
@@ -181,19 +177,42 @@
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">User Guide:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/introduction.html">Index Spaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/introduction.html#topologies">Topologies</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/introduction.html#colorings">Colorings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/cmake.html">CMake for FleCSI client applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/cmake.html#flecsi-cmake-files">FleCSI CMake files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/cmake.html#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/cmake.html#coverage-and-unit-testing">Coverage and Unit Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/cmake.html#code-formatting">Code Formatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/cmake.html#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/cmake.html#other-files">Other files</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/runtime.html">Runtime Model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/runtime.html#custom-handlers">Custom Handlers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/control.html">Control Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/data.html">Data Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/execution.html">Execution Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user-guide/flog.html">Logging Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/topologies.html">Topologies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/topologies.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/topologies.html#basic-categories">Basic Categories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/topologies.html#field-registration">Field Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/topologies.html#colorings">Colorings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/runtime.html">Runtime Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/performance.html">Performance Do’s and Don’ts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/tracing.html">Performance Effect of Tracing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/tracing.html#enabling-trace-replay-on-the-command-line">Enabling Trace Replay on the Command Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/performance.html#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/blocking.html">Performance Effect of <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/blocking.html#when-to-call-get-outside-of-a-task">When to Call <cite>get()</cite> Outside of a Task</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -206,10 +225,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="user-guide/introduction.html" class="btn btn-neutral float-right" title="Index Spaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="user-guide/cmake.html" class="btn btn-neutral float-right" title="CMake for FleCSI client applications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="specialization-guide/topologies.html" class="btn btn-neutral float-left" title="Topologies" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="summary.html" class="btn btn-neutral float-left" title="Internal Summary" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -218,7 +237,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (c) 2016, Triad National Security, LLC
+        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
 
     </p>
   </div>
