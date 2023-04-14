@@ -122,10 +122,10 @@ struct policy_tag {};
 
 struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  using Policy = Kokkos::RangePolicy<>;
+  using Policy = Kokkos::RangePolicy<Kokkos::IndexType<util::id>>;
   using index = Policy::member_type;
 #else
-  typedef util::counter_t index;
+  typedef util::id index;
   using Policy = util::iota_view<index>;
 #endif
 };

@@ -95,11 +95,6 @@ static_assert(!util::constants<>::size);
 int
 common() {
   UNIT() {
-    // types
-    UNIT_CAPTURE() << UNIT_TTYPE(FLECSI_COUNTER_TYPE) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(flecsi::util::counter_t) << std::endl;
-    UNIT_CAPTURE() << std::endl;
-
     // square
     UNIT_CAPTURE() << flecsi::util::square(10) << std::endl;
     UNIT_CAPTURE() << flecsi::util::square(20.0) << std::endl;
