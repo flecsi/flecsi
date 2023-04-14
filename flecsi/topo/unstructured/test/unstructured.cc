@@ -16,7 +16,7 @@ verify_entities(unstructured::accessor<ro, ro, ro> m,
   std::string source_file,
   field<util::gid>::accessor<ro, ro, ro> cids,
   field<util::gid>::accessor<ro, ro, ro> vids) {
-  UNIT("verify_entities") {
+  UNIT("TASK") {
     std::string source_mesh = source_file.substr(0, source_file.size() - 4);
     std::string output_file = "unstructured_" + source_mesh + "_entities_" +
                               std::to_string(processes()) + "_" +
@@ -151,17 +151,6 @@ allocate_field(unstructured::accessor<ro, ro, ro> m,
 }
 
 int
-verify_vid(unstructured::accessor<ro, ro, ro> m,
-  field<std::size_t>::accessor<ro, ro, ro> vids,
-  field<util::gid>::accessor<ro, ro, ro> tf) {
-  UNIT() {
-    for(auto c : m.vertices()) {
-      EXPECT_EQ(tf[c], vids[c]);
-    }
-  };
-}
-
-int
 verify_coords(unstructured::accessor<ro, ro, ro> m,
   field<unstructured::point>::accessor<ro, ro, ro> coords) {
   UNIT() { EXPECT_EQ(coords.span().size(), m.vertices().size()); };
@@ -212,9 +201,9 @@ unstructured_driver() {
       mesh.allocate(coloring.get(), fields);
 
       {
-        auto const & cids = mesh->forward_map<unstructured::cells>();
-        auto const & vids = mesh->forward_map<unstructured::vertices>();
-        EXPECT_EQ(test<verify_entities>(mesh, f, cids(mesh), vids(mesh)), 0);
+        EXPECT_EQ(test<verify_entities>(
+                    mesh, f, unstructured::cid(mesh), unstructured::vid(mesh)),
+          0);
       }
 
       {
@@ -222,9 +211,9 @@ unstructured_driver() {
         tf.growth = {0, 0, 0.25, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), true);
 
-        auto const & cids = mesh->forward_map<unstructured::cells>();
-        execute<init_rf>(mesh, cids(mesh), rcf(mesh), true);
-        EXPECT_EQ(test<verify_rf>(mesh, cids(mesh), rcf(mesh), true), 0);
+        execute<init_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true);
+        EXPECT_EQ(
+          test<verify_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true), 0);
       } // scope
 
       {
@@ -232,16 +221,13 @@ unstructured_driver() {
         tf.growth = {0, 0, 0.1, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), false);
 
-        auto const & vids = mesh->forward_map<unstructured::vertices>();
-        execute<init_rf>(mesh, vids(mesh), rvf(mesh), false);
-        execute<print_rf>(mesh, vids(mesh), rvf(mesh), false);
-        EXPECT_EQ(test<verify_rf>(mesh, vids(mesh), rvf(mesh), false), 0);
+        execute<init_rf>(mesh, unstructured::vid(mesh), rvf(mesh), false);
+        execute<print_rf>(mesh, unstructured::vid(mesh), rvf(mesh), false);
+        EXPECT_EQ(
+          test<verify_rf>(mesh, unstructured::vid(mesh), rvf(mesh), false), 0);
       } // scope
 
       {
-        auto const & vids = mesh->forward_map<unstructured::vertices>();
-        EXPECT_EQ(
-          test<verify_vid>(mesh, unstructured::vid(mesh), vids(mesh)), 0);
         EXPECT_EQ(test<verify_coords>(mesh, unstructured::coords(mesh)), 0);
       } // scope
 

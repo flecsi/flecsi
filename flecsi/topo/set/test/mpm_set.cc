@@ -70,9 +70,7 @@ insert_test(accessorm m,
   particle_field::mutator<rw> particle_t_m) {
   forall(c, m.cells(), "insert_test") {
     if(cids[c] == 20) {
-      Particle p_t;
-      p_t.cgid = cids[c];
-      p_t.pressure = 1.0;
+      Particle p_t{1.0, cids[c]};
       particle_t_m.insert(p_t);
     }
   };
@@ -103,13 +101,13 @@ set_driver() {
     set_coloring.allocate(&mesh_underlying);
     spec_setopo.allocate(set_coloring.get());
 
-    auto const & cids = mesh_underlying->forward_map<unstructured::cells>();
     auto particle_t = particles(spec_setopo);
-    execute<init_fields>(mesh_underlying, cids(mesh_underlying), particle_t);
+    execute<init_fields>(
+      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
 
     execute<print_test>(particle_t);
     execute<insert_test, default_accelerator>(
-      mesh_underlying, cids(mesh_underlying), particle_t);
+      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
     execute<update_test>(particle_t);
   };
 

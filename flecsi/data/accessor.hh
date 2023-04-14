@@ -67,9 +67,6 @@ destroy(const field_reference<T, L, Topo, S> & r) {
   execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>,
     portable_v<T> ? loc | leaf : flecsi::mpi>(r);
 }
-template<class T>
-inline constexpr bool forward_v = std::is_base_of_v<std::forward_iterator_tag,
-  typename std::iterator_traits<T>::iterator_category>;
 template<class T, Privileges P>
 using element_t = std::conditional_t<privilege_write(P), T, const T>;
 template<class T, Privileges P, bool M>
@@ -440,15 +437,9 @@ public:
     }
     template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
     void assign(I a, I b) const {
-      clear();
-      if constexpr(detail::forward_v<I>) {
-        for(auto n = std::min(std::distance(a, b), s.size()); n--; ++a)
-          push_span(*a);
-        o->add.assign(a, b);
-      }
-      else
-        while(a != b)
-          push_back(*a++);
+      for(clear(); o->del && a != b; ++a)
+        push_span(*a);
+      o->add.assign(std::move(a), std::move(b));
     }
     void assign(std::initializer_list<T> l) const {
       assign(l.begin(), l.end());

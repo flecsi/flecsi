@@ -25,8 +25,7 @@ parmetis_coloring() {
     {
       coloring_utils cu(
         &sd, {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {});
-      cu.create_graph(2);
-      cu.color_primaries(1, util::parmetis::color);
+      auto const naive = cu.color_primaries(1, util::parmetis::color);
 
       {
         std::stringstream ss;
@@ -40,17 +39,14 @@ parmetis_coloring() {
 
       cu.migrate_primaries();
       auto const & cnns = cu.primary_connectivity_state();
-      auto const & naive = cu.get_naive();
 
       std::vector<size_t> distribution = {52, 103, 154, 205, 256};
       ASSERT_EQ(
         util::offsets(util::equal_map(sd.num_entities(2), colors)).ends(),
         distribution);
 
-      EXPECT_EQ(cu.primaries().at(cu.lc(process())), cnns.p2m);
       UNIT_CAPTURE() << flog::container(naive.offsets.ends()) << '\n'
                      << flog::container(naive.values) << '\n'
-                     << flog::container(cnns.p2m) << '\n'
                      << flog::container(cnns.m2p) << '\n';
       EXPECT_TRUE(UNIT_EQUAL_BLESSED(
         ("coloring_5." + std::to_string(process()) + ".blessed").c_str()));
@@ -64,7 +60,6 @@ parmetis_coloring() {
       if(c2) {
         coloring_utils cu(
           &sd, {colors, {2 /*id*/, 0 /*idx*/}, 1, {0, 1}, {{1, 2}}}, {}, c2.c);
-        cu.create_graph(2);
         cu.color_primaries(1, util::parmetis::color);
 
         {
@@ -82,7 +77,6 @@ parmetis_coloring() {
 
         UNIT_CAPTURE() << cu.ours().front() << '\n'
                        << flog::container(cu.primaries()) << '\n'
-                       << flog::container(cnns.p2m) << '\n'
                        << flog::container(cnns.m2p) << '\n';
         EXPECT_TRUE(UNIT_EQUAL_BLESSED(
           "coloring_2." + std::to_string(process()) + ".blessed"));

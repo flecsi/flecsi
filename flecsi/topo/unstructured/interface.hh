@@ -101,50 +101,12 @@ struct unstructured : unstructured_base,
     return connect_.template get<F>().template get<T>();
   }
 
-  /*!
-    Return the forward map (local-to-global) for the given index space.
-    \return a mapping from a local index to a global index in the form of a
-            flecsi::field::definition.
-   */
-  template<index_space S>
-  auto const & forward_map() {
-    return forward_maps_.template get<S>();
-  }
-
 private:
   /*
     Communication graph topology for ragged ghost updates.
    */
 
   struct ctopo : specialization<user, ctopo> {};
-
-  /*
-    Constant reference version:
-    Return the reverse maps (global-to-local) for the given index space.
-    The vector is over local process colors.
-
-    Use like:
-      auto const & maps = slot->reverse_map();
-   */
-
-  template<index_space S>
-  reverse_maps_t reverse_map() & {
-    return reverse_maps_.template get<S>();
-  }
-
-  /*
-    Move version:
-    Return the reverse maps (global-to-local) for the given index space.
-    The vector is over local process colors.
-
-    Use like:
-      auto maps = std::move(slot)->reverse_map();
-   */
-
-  template<index_space S>
-  reverse_maps_t reverse_map() && {
-    return std::move(reverse_maps_.template get<index<S>>());
-  }
 
   /*
     Define the partial closures that will be used to construct partitions
@@ -162,17 +124,17 @@ private:
         {
         make_repartitioned<Policy, VV>(
           c.colors,
-          make_partial<idx_size>(c.partitions[index<VV>]))...
+          make_partial<idx_size>(c.idx_spaces[index<VV>].partitions))...
         }
       },
       special_(c.colors),
       /* all data members need to be initialized before make_copy_plan */
       plan_{
         {
-        make_copy_plan<VV>(c, c.comm)...
+        make_copy_plan<VV>(c)...
         }
       },
-      buffers_ {{data::buffers::core(c.peers[index<VV>])...}}
+      buffers_ {{data::buffers::core(c.idx_spaces[index<VV>].peers)...}}
 
   {
     allocate_connectivities(c, connect_);
@@ -184,11 +146,9 @@ private:
    */
 
   template<index_space S>
-  data::copy_plan make_copy_plan(unstructured_base::coloring const & c,
-    MPI_Comm const & comm) {
+  data::copy_plan make_copy_plan(unstructured_base::coloring const & c) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
-    std::vector<std::size_t> num_intervals(c.colors, 0);
     destination_intervals intervals;
     source_pointers pointers;
 
@@ -198,7 +158,7 @@ private:
 
     // creating a launch map for the underlying ragged partition
     auto cgplm = data::launch::make(cgp);
-    execute<cgraph_size, mpi>(c.idx_spaces[index<S>], cgplm);
+    execute<cgraph_size, mpi>(c.idx_spaces[index<S>].colors, cgplm);
 
     // the actual resize of the underlying fields
     cgp.resize();
@@ -207,43 +167,33 @@ private:
     auto const & sh = cgraph_shared_.template get<S>();
     auto & shp = ctopo_.ragged.template get<elements>()[sh.fid];
     auto shplm = data::launch::make(shp);
-    execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>], shplm);
+    execute<cgraph_shared_size, mpi>(c.idx_spaces[index<S>].colors, shplm);
     shp.resize();
 
     // compute the launch maps for the fields
     auto clm = data::launch::make(ctopo_);
 
-    auto const & fmd = forward_maps_.template get<S>();
-
     auto lm = data::launch::make(*this);
 
-    execute<idx_itvls<NP>, mpi>(c.idx_spaces[index<S>],
-      c.process_colors,
-      num_intervals,
-      intervals,
-      pointers,
-      cg(clm),
-      sh(clm),
-      fmd(lm),
-      reverse_maps_.template get<S>(),
-      comm);
+    execute<idx_itvls, mpi>(
+      c.idx_spaces[index<S>].colors, intervals, pointers, cg(clm), sh(clm));
 
     // clang-format off
-    auto dest_task = [&intervals, &comm](auto f) {
+    auto dest_task = [&intervals](auto f) {
       // TODO: make this just once for all index spaces
       auto lm = data::launch::make(f.topology());
-      execute<set_dests, mpi>(lm(f), intervals, comm);
+      execute<set_dests, mpi>(lm(f), intervals);
     };
 
     auto ptrs_task = [&](auto f) {
       auto lm = data::launch::make(f.topology());
-      execute<set_ptrs<NP>, mpi>(lm(f), pointers, comm);
+      execute<set_ptrs<NP>, mpi>(lm(f), pointers);
     };
     // clang-format on
 
     return {*this,
       part_.template get<S>(),
-      num_intervals,
+      c.idx_spaces[index<S>].num_intervals,
       dest_task,
       ptrs_task,
       util::constant<S>()};
@@ -265,10 +215,10 @@ private:
     auto lm = data::launch::make(this->meta);
     (
       [&](TT const & row) { // invoked for each from-entity
-        const std::vector<process_coloring> & pc = c.idx_spaces[index<VV>];
+        const std::vector<index_color> & ic = c.idx_spaces[index<VV>].colors;
         for_each(
           [&](auto v) { // invoked for each to-entity
-            execute<cnx_size, mpi>(pc, index<v.value>, temp_size(lm));
+            execute<cnx_size, mpi>(ic, index<v.value>, temp_size(lm));
             auto & p = row.template get<v.value>()(*this).get_elements();
             execute<copy_sizes>(temp_size(this->meta), p.sizes());
           },
@@ -303,9 +253,6 @@ private:
       typename field<T>::template definition<Policy, SS>>...>;
   };
 
-  static inline const typename key_define<util::gid, index_spaces>::type
-    forward_maps_;
-
   typename ctopo::core ctopo_;
 
   static inline const util::key_array<
@@ -319,7 +266,6 @@ private:
 
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
-  util::key_array<reverse_maps_t, index_spaces> reverse_maps_;
   // Initializing this depends on the above:
   util::key_array<data::copy_plan, index_spaces> plan_;
 
