@@ -15,8 +15,18 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
-Changes in v2.2.0
-+++++++++++++++++
+Changes in v2.2.0 (April 14 2023)
++++++++++++++++++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Build
+
+  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`runtime`).
+
+* Utilties
+
+  * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 
 Deprecated
 ^^^^^^^^^^
@@ -29,6 +39,10 @@ Deprecated
 * Data
 
   * ``global_topology`` and ``process_topology`` |mdash| create instances of ``topo::global`` and ``topo::index`` as needed
+
+* Utilities
+
+  * in ``util::annotation``, ``begin`` and ``end`` |mdash| use ``guard`` or ``rguard``
 
 * Logging
 
@@ -96,25 +110,6 @@ New features
 
   * ``flog_fatal`` suppresses backtraces (already unavailable if ``NDEBUG`` is defined) unless ``FLECSI_BACKTRACE`` is set in the environment.
   * ``flog`` is a new name that avoids collisions with ``::log`` in code lacking proper namespace qualifications.
-
-Changes in v2.1.1
-+++++++++++++++++
-
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Build
-
-  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`runtime`).
-
-* Utilties
-
-  * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
-
-Deprecated
-^^^^^^^^^^
-* Utilities
-
-  * in ``util::annotation``, ``begin`` and ``end`` |mdash| use ``guard`` or ``rguard``
 
 Fixed
 ^^^^^
