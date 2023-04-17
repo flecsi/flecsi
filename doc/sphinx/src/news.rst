@@ -15,6 +15,21 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v2.3.0
++++++++++++++++++
+
+Deprecated
+^^^^^^^^^^
+* Utilities
+
+  * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
+
+New features
+^^^^^^^^^^^^
+* Utilities
+
+  * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+
 Changes in v2.2.0 (April 14 2023)
 +++++++++++++++++++++++++++++++++
 

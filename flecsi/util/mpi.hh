@@ -6,16 +6,18 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/util/array_ref.hh" // span
+#include "flecsi/util/array_ref.hh"
 #include "flecsi/util/serialize.hh"
 
 #if !defined(FLECSI_ENABLE_MPI)
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
 #endif
 
+#include <algorithm>
 #include <complex>
 #include <cstddef> // byte
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -276,38 +278,63 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
   return std::make_pair(rank(comm), size(comm));
 } // info
 
+namespace detail {
+template<class R, class = void>
+struct make_range {
+  static decltype(auto) get(R && r, int n) {
+    if constexpr(std::is_invocable_v<R, int>)
+      return util::transform_view(util::iota_view(0, n), std::forward<R>(r));
+    else
+      return std::forward<R>(r);
+  }
+};
+template<class T>
+decltype(auto)
+range(T && t, int n) {
+  return make_range<T>::get(std::forward<T>(t), n);
+}
+template<class F>
+struct make_range<F, decltype(void(std::declval<F &>()(1, 1)))> {
+  [[deprecated("remove second parameter or pass a range")]] static auto
+  get(F && f, int n) {
+    // NB: we assume that f is not a temporary in the immediate caller.
+    return range([&f, n](int r) -> decltype(auto) { return f(r, n); }, n);
+  }
+};
+
+template<class R>
+using value_type = std::decay_t<decltype(*std::declval<R>().begin())>;
+} // namespace detail
+
 /*!
   One-to-All (variable) communication pattern.
 
-  This function uses the FleCSI serialization interface with a packing
-  callable object to communicate data from the root rank (0) to all
+  This function uses the FleCSI serialization interface to communicate data
+  from the root rank (0) to all
   other ranks.
 
-  @tparam F The packing functor type with signature \em (rank, size).
-
-  @param f function object, invoked only on rank 0 and in recipient order
+  \param r range or functor with signature (rank) or (\b deprecated) (rank,
+    size), read/invoked only on rank 0 and in recipient order
   @param comm An MPI communicator.
 
-  @return For all ranks besides the root rank (0), the communicated data.
-          For the root rank (0), the callable object applied for the root
-          rank (0) and size.
+  \return the value from \a r for the current rank
  */
 
-template<typename F>
+template<typename R>
 inline auto
-one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = std::decay_t<decltype(f(1, 1))>;
-
+one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
+  auto && rng = detail::range(std::forward<R>(r), size);
+  using return_type = detail::value_type<decltype(rng)>;
+
   if constexpr(bit_copyable_v<return_type>) {
     std::vector<return_type> send;
-    if(!rank)
+    if(!rank) {
       send.reserve(size);
+      std::copy_n(rng.begin(), size, std::back_inserter(send));
+    }
     else
       send.resize(1);
-    if(!rank)
-      for(int r = 0; r < size; ++r)
-        send.push_back(f(r, size));
     test(MPI_Scatter(send.data(),
       1,
       type<return_type>(),
@@ -323,9 +350,11 @@ one_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
     detail::vector v(size);
     v.skip(); // v.sz used even off-root
     if(rank == 0) {
-      mine.emplace(f(0, size));
-      for(int r = 1; r < size; ++r)
-        v.put(f(r, size));
+      auto i = rng.begin();
+      mine.emplace(*i);
+      ++i;
+      for(auto n = size; --n; ++i)
+        v.put(*i);
     }
 
     test(MPI_Scatter(v.sz.data(),
@@ -363,8 +392,8 @@ namespace detail {
 template<class T>
 struct bit_message {
   bit_message(int, int, MPI_Comm) : p(new T) {}
-  template<class F> // deferred to support prvalues
-  bit_message(F & f, int r, int n) : p(new T(f(r, n))) {}
+  template<class I> // deferred to support prvalues
+  explicit bit_message(I && i) : p(new T(*std::forward<I>(i))) {}
 
   void * data() {
     return p.get();
@@ -403,8 +432,9 @@ struct serial_message {
         test(MPI_Get_count(&st, type(), &ret));
         return ret;
       }()) {}
-  template<class F>
-  serial_message(F & f, int r, int n) : v(serial::put_tuple<T>(f(r, n))) {}
+  template<class I>
+  explicit serial_message(I && i)
+    : v(serial::put_tuple<T>(*std::forward<I>(i))) {}
 
   void * data() {
     return v.data();
@@ -437,20 +467,23 @@ private:
 /// Send data from rank 0 to all others, controlling memory usage.
 /// No messages are constructed while data in transit exceeds \a mem
 /// (transmission occurs, at least serially, even if it is 0).
-/// \tparam F functor type with signature \em (rank, size)
-/// \param f function object, invoked only on rank 0 and in recipient order
+/// \param r range or functor with signature (rank) or (\b deprecated) (rank,
+///   size), read/invoked only on rank 0 and in recipient order
 /// \param mem bytes of memory to use before waiting
-template<class F>
+template<class R>
 auto
-one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
-  using R = std::decay_t<decltype(f(1, 1))>;
-  using M = std::conditional_t<bit_copyable_v<R>,
-    detail::bit_message<R>,
-    detail::serial_message<R>>;
-
+one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   const auto [rank, size] = info(comm);
+  auto && rng = detail::range(std::forward<R>(r), size);
+  using T = detail::value_type<decltype(rng)>;
+  using M = std::conditional_t<bit_copyable_v<T>,
+    detail::bit_message<T>,
+    detail::serial_message<T>>;
+
   if(!rank) {
-    auto ret = f(0, size);
+    auto it = rng.begin();
+    auto ret = *it;
+    ++it;
     {
       const auto n = size - 1;
       std::vector<MPI_Request> req;
@@ -460,17 +493,16 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
         std::vector<int> done(n);
         std::stack<int> free; // inactive requests
         std::size_t used = 0;
-        for(int r = 1; r < size; ++r) {
+        for(int r = 1; r < size; ++r, ++it) {
           const int i = [&] {
             if(free.empty()) {
-              // Capturing a structured binding requires C++20:
-              val.emplace_back(f, r, n + 1);
+              val.emplace_back(it);
               return int(req.size()); // created below
             }
             else {
               const auto ret = free.top();
               free.pop();
-              val[ret] = {f, r, n + 1};
+              val[ret] = M(it);
               return ret;
             }
           }();
@@ -515,26 +547,25 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   This function uses the FleCSI serialization interface with a packing
   callable object to communicate data from all ranks to all other ranks.
 
-  @tparam F The packing type with signature \em (rank, size).
-
-  @param f function object, invoked in recipient order
+  \param r range or functor with signature (rank) or (\b deprecated) (rank,
+    size), read/invoked in recipient order
   @param comm An MPI communicator.
 
-  @return A \c std::vector<return_type>, where \em return_type is the type
-          returned by the callable object.
+  \return a \c std::vector of the values for the current rank from each rank's
+    \a r
  */
 
-template<typename F>
+template<typename R>
 inline auto
-all_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
-  using return_type = std::decay_t<decltype(f(1, 1))>;
-
+all_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
   auto [rank, size] = info(comm);
+  auto && rng = detail::range(std::forward<R>(r), size);
+  using return_type = detail::value_type<decltype(rng)>;
+
   std::vector<return_type> result;
   result.reserve(size);
   if constexpr(bit_copyable_v<return_type>) {
-    for(int r = 0; r < size; ++r)
-      result.push_back(f(r, size));
+    std::copy_n(rng.begin(), size, std::back_inserter(result));
     test(MPI_Alltoall(MPI_IN_PLACE,
       0,
       MPI_DATATYPE_NULL,
@@ -549,14 +580,17 @@ all_to_allv(F && f, MPI_Comm comm = MPI_COMM_WORLD) {
     {
       detail::vector send(size);
 
-      for(int r = 0; r < size; ++r) {
-        if(r == rank) {
-          mine.emplace(f(r, size));
-          send.skip();
-        }
-        else
-          send.put(f(r, size));
-      } // for
+      {
+        auto i = rng.begin();
+        for(int r = 0; r < size; ++r, ++i) {
+          if(r == rank) {
+            mine.emplace(*i);
+            send.skip();
+          }
+          else
+            send.put(*i);
+        } // for
+      }
 
       recv.sz.resize(size);
       test(MPI_Alltoall(
