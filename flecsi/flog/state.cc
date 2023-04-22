@@ -68,7 +68,7 @@ state::send_to_one(bool last) {
 
     for(Color p = 0; p < processes_; ++p) {
 
-      if(!one_process() || p == one_process_) {
+      if(!(one_process_ + 1) || p == one_process_) {
         auto remote_packets =
           util::serial::get1<std::vector<packet_t>>(buffer.data() + offsets[p]);
 

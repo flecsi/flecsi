@@ -186,10 +186,7 @@ struct context {
     Runtime interface.
    *--------------------------------------------------------------------------*/
 protected:
-  context(const arguments::config & c,
-    arguments::action & a,
-    Color np,
-    Color proc)
+  context(const arguments::config & c, Color np, Color proc)
     : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
@@ -198,18 +195,9 @@ protected:
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
-    if(c.flog.process + 1 && Color(c.flog.process) >= np) {
-      std::ostringstream stderr;
-      stderr << a.program << ": flog process " << c.flog.process
-             << " does not exist with " << processes_ << " processes\n";
-      a.stderr += std::move(stderr).str();
-      a.code = error;
-    }
-    else
-      flog::state::instance.emplace(
-        c.flog.tags, c.flog.verbose, c.flog.process);
+    flog::state::instance.emplace(c.flog.tags, c.flog.verbose, c.flog.process);
 #else
-    (void)c, (void)a;
+    (void)c;
 #endif
   }
 
@@ -220,6 +208,21 @@ protected:
   }
 
 public:
+  void check_config(arguments::action & a) const {
+#ifdef FLECSI_ENABLE_FLOG
+    const Color p = flog::state::instance->one_process();
+    if(p + 1 && p >= processes_) {
+      std::ostringstream stderr;
+      stderr << a.program << ": flog process " << p << " does not exist with "
+             << processes_ << " processes\n";
+      a.stderr += std::move(stderr).str();
+      a.code = error;
+    }
+#else
+    (void)a;
+#endif
+  }
+
 #ifdef DOXYGEN // these functions are implemented per-backend
   /*!
     Start the FleCSI runtime.

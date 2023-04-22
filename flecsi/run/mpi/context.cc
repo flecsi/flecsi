@@ -28,8 +28,8 @@ dependencies_guard::~dependencies_guard() {
 #endif
 }
 
-context_t::context_t(const arguments::config & c, arguments::action & a)
-  : context(c, a, util::mpi::size(), util::mpi::rank()) {}
+context_t::context_t(const arguments::config & c)
+  : context(c, util::mpi::size(), util::mpi::rank()) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.

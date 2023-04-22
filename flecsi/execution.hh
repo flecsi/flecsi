@@ -78,7 +78,8 @@ initialize(int argc, char ** argv, bool dependent = true) {
   argv0 = args.act.program;
   if(dependent)
     run::dependent.emplace(args.dep);
-  auto & ctx = run::context::ctx.emplace(args.cfg, args.act);
+  auto & ctx = run::context::ctx.emplace(args.cfg);
+  ctx.check_config(args.act);
   const auto c = args.act.code;
   if(c) {
     if(!ctx.process())
