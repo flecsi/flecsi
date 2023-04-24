@@ -33,6 +33,28 @@ Ben Bergen
 
 |clearboth|
 
+Richard Berger
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/rberger.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Richard is a computational scientist in the Co-Design team with a
+      background in Mechatronics, high-performance computing, and software
+      engineering. He is currently contributing to the core development of FleCSI and
+      working on improving builds on multiple platforms.
+
+|clearboth|
+
 David Daniel
 ++++++++++++
 
@@ -139,61 +161,6 @@ Christoph Junghans
 
 |clearboth|
 
-Navamita Ray
-++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/navamita.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-    Navamita is a staff scientist in the co-design team in CCS-7 with
-    expertise in meshing technologies and numerical methods.
-    At LANL, she has been involved in designing and developing mesh data
-    structures for advanced programming runtimes targeting hetergeneous
-    architectures for exascale computing.
-    She is also working on next generation libraries for conservative
-    data remapping to link LANL applications.
-    She has also worked on projects involving quantum computing for
-    solving linear systems for fluid flows and protein folding problems.
-    Before joining LANL, Navamita Ray was part of the SIGMA project at
-    Argonne National Lab where she implemented new data structures for
-    their MOAB mesh framework library.  
-
-|clearboth|
-
-Andrew Reisner
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/andrew.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Andrew is a computer scientist on the Co-Design Team with a
-      background in parallel and scientific computing.
-      His research interests include scalable solvers and performance
-      models as a predictive tool for guiding applications.
-      His current work is focused on the integration and performance
-      analysis of applying FleCSI to software projects at LANL,
-      including the CANGA project.
-
-|clearboth|
-
 Sumathi Lakshmiranganatha
 +++++++++++++++++++++++++
 
@@ -276,14 +243,14 @@ Julien Loiseau
 
 |clearboth|
 
-Richard Berger
-++++++++++++++
+Navamita Ray
+++++++++++++
 
 .. container:: twocol
 
    .. container:: leftside
 
-     .. image:: team/rberger.jpg
+     .. image:: team/navamita.jpg
         :align: left
 
    .. container:: rightside
@@ -291,10 +258,43 @@ Richard Berger
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Richard is a computational scientist in the Co-Design team with a
-      background in Mechatronics, high-performance computing, and software
-      engineering. He is currently contributing to the core development of FleCSI and
-      working on improving builds on multiple platforms.
+    Navamita is a staff scientist in the co-design team in CCS-7 with
+    expertise in meshing technologies and numerical methods.
+    At LANL, she has been involved in designing and developing mesh data
+    structures for advanced programming runtimes targeting hetergeneous
+    architectures for exascale computing.
+    She is also working on next generation libraries for conservative
+    data remapping to link LANL applications.
+    She has also worked on projects involving quantum computing for
+    solving linear systems for fluid flows and protein folding problems.
+    Before joining LANL, Navamita Ray was part of the SIGMA project at
+    Argonne National Lab where she implemented new data structures for
+    their MOAB mesh framework library.
+
+|clearboth|
+
+Andrew Reisner
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/andrew.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Andrew is a computer scientist on the Co-Design Team with a
+      background in parallel and scientific computing.
+      His research interests include scalable solvers and performance
+      models as a predictive tool for guiding applications.
+      His current work is focused on the integration and performance
+      analysis of applying FleCSI to software projects at LANL,
+      including the CANGA project.
 
 |clearboth|
 
