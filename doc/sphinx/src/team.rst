@@ -55,26 +55,6 @@ Richard Berger
 
 |clearboth|
 
-David Daniel
-++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/david.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      David is a computational scientist  with a broad background in
-      parallel computing and in physics research from QCD to cosmology.
-
-|clearboth|
-
 Jonathan Graham
 +++++++++++++++
 
@@ -324,6 +304,26 @@ Andrew Reisner
 
 Alumni
 ******
+
+David Daniel
+++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/david.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      David is a computational scientist  with a broad background in
+      parallel computing and in physics research from QCD to cosmology.
+
+|clearboth|
 
 Irina Demeshko
 ++++++++++++++
