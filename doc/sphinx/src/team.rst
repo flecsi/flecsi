@@ -130,7 +130,7 @@ Davis Herring
       simulations conducted in T-1.
       Davis and Ollie represent LANL on the ISO C++ committee; in turn,
       Davis has worked to improve the user-interface and maintainability
-      of FleCSI 2 by taking advantage of modern C++ features. 
+      of FleCSI 2 by taking advantage of modern C++ features.
 
       Davis is the current technical lead for FleCSI.
 
@@ -239,7 +239,31 @@ Julien Loiseau
       simulation.
       He is currently working on several aspects of development from topology
       in FleCSI, GPU support using Kokkos in the Exasheds project and Smoothed
-      Particles Hydrodynamics as lead CS developer of FleCSPH.  
+      Particles Hydrodynamics as lead CS developer of FleCSPH.
+
+|clearboth|
+
+Scott Pakin
++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/scott.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Scott is a computer scientist with broad interests in
+      high-performance computing, including programming models,
+      high-speed communication, performance analysis, and quantum
+      computing.
+      He is the team leader for the CCS-7 Co-Design Team and has been
+      serving since October 2021 as the FleCSI project lead.
 
 |clearboth|
 
