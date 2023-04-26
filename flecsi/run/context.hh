@@ -143,14 +143,7 @@ struct index_space_info_t {
 struct context {
   using field_info_store_t = data::fields;
 
-  /*--------------------------------------------------------------------------*
-    Deleted contructor and assignment interfaces.
-   *--------------------------------------------------------------------------*/
-
-  context(const context &) = delete;
-  context & operator=(const context &) = delete;
   context(context &&) = delete;
-  context & operator=(context &&) = delete;
 
   static inline context_t & instance();
 
