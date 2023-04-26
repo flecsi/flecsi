@@ -188,8 +188,6 @@
 
 .darwin_build_template:
   stage: Build + Unit Tests
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
@@ -263,8 +261,6 @@
       spack arch
 
 .darwin_defaults_build_template:
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
@@ -306,8 +302,6 @@
       echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
 
 .darwin_docs_and_format_template:
-  tags:
-    - darwin-slurm-shared
   variables:
     MPI_PROVIDER: none
   script:
@@ -375,8 +369,6 @@
 
 .darwin_standalone_template:
   stage: Standalone
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_restore_spack_env
     - *darwin_env_shell

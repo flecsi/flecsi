@@ -11,6 +11,8 @@ stages:
 
 default:
   interruptible: true
+  tags:
+    - darwin-slurm-shared
   before_script:
    - echo "Running on $(hostname)"
 
