@@ -384,6 +384,31 @@ public:
 
 }; // struct control
 
+struct call_policy : control_base {
+  enum control_points_enum { single };
+  using control_points = list<point<single>>;
+  struct node_policy {};
+
+  template<class F>
+  explicit call_policy(F && f) : f(std::forward<F>(f)) {}
+  int operator()() const {
+    return f();
+  }
+
+private:
+  std::function<int()> f;
+};
+
+inline const char *
+operator*(call_policy::control_points_enum) {
+  return "single";
+}
+
+/// A trivial control model that calls a single function.
+/// Its control policy object can be constructed from any callable with the
+/// signature `int()`.
+using call = control<call_policy>;
+
 /// \}
 } // namespace run
 } // namespace flecsi

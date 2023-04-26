@@ -29,6 +29,7 @@ New features
 * Runtime
 
   * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
+  * ``run::call`` is a trivial predefined control model.
 
 * Topologies
 
