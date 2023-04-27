@@ -181,6 +181,7 @@ flaxpy::control::action<finalize_action, flaxpy::cp::finalize> fin;
 
 } // namespace
 
+// The main program largely delegates to the control model.
 int
 main(int argc, char ** argv) {
   // Initialize the FleCSI run-time system.
