@@ -1,8 +1,8 @@
 #ifndef TUTORIAL_4_DATA_CANONICAL_HH
 #define TUTORIAL_4_DATA_CANONICAL_HH
 
+#include <flecsi/data.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/topo/unstructured/interface.hh>
 
 using namespace flecsi;
 

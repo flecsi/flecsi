@@ -7,7 +7,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
-#include <flecsi/topo/index.hh>
 
 // In a larger program, this namespace would typically appear in a header file,
 // where the inline keywords are necessary.
