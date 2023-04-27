@@ -73,7 +73,9 @@ private:
 };
 
 /// A prepared assignment of colors.
+/// Declare `multi<Topo::accessor<...>>` task parameter to use the topology.
 /// \tparam P underlying topology
+/// \see field::definition
 template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
