@@ -366,7 +366,7 @@ over its subset of the distributed *X* and *Y* vectors.
 
 The third and final task, ``reduce_y_task``,
 computes and returns the sum of a subspace of *Y*.
-For this it requests read/write access to the subspace
+For this it requests read-only access to the subspace
 and uses FleCSI's ``reduceall`` macro to locally parallelize
 (e.g., using thread parallelism)
 the summation.

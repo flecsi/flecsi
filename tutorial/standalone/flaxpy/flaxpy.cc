@@ -148,7 +148,7 @@ mul_add_action(flaxpy::control_policy &) {
 
 // Define a task that adds up all values of Y and returns the sum.
 double
-reduce_y_task(one_field<double>::accessor<flecsi::rw> y_acc) {
+reduce_y_task(one_field<double>::accessor<flecsi::ro> y_acc) {
   auto local_sum = reduceall(elt,
     accum,
     y_acc.span(),
