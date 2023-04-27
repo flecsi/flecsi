@@ -33,14 +33,14 @@ Ben Bergen
 
 |clearboth|
 
-David Daniel
-++++++++++++
+Richard Berger
+++++++++++++++
 
 .. container:: twocol
 
    .. container:: leftside
 
-     .. image:: team/david.jpg
+     .. image:: team/rberger.jpg
         :align: left
 
    .. container:: rightside
@@ -48,8 +48,10 @@ David Daniel
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      David is a computational scientist  with a broad background in
-      parallel computing and in physics research from QCD to cosmology.
+      Richard is a computational scientist in the Co-Design team with a
+      background in Mechatronics, high-performance computing, and software
+      engineering. He is currently contributing to the core development of FleCSI and
+      working on improving builds on multiple platforms.
 
 |clearboth|
 
@@ -108,7 +110,7 @@ Davis Herring
       simulations conducted in T-1.
       Davis and Ollie represent LANL on the ISO C++ committee; in turn,
       Davis has worked to improve the user-interface and maintainability
-      of FleCSI 2 by taking advantage of modern C++ features. 
+      of FleCSI 2 by taking advantage of modern C++ features.
 
       Davis is the current technical lead for FleCSI.
 
@@ -136,61 +138,6 @@ Christoph Junghans
       His interests lie in understanding modern computing architectures
       and the design of sustainable code.
       Christoph is the CCS-7 group leader.
-
-|clearboth|
-
-Navamita Ray
-++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/navamita.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-    Navamita is a staff scientist in the co-design team in CCS-7 with
-    expertise in meshing technologies and numerical methods.
-    At LANL, she has been involved in designing and developing mesh data
-    structures for advanced programming runtimes targeting hetergeneous
-    architectures for exascale computing.
-    She is also working on next generation libraries for conservative
-    data remapping to link LANL applications.
-    She has also worked on projects involving quantum computing for
-    solving linear systems for fluid flows and protein folding problems.
-    Before joining LANL, Navamita Ray was part of the SIGMA project at
-    Argonne National Lab where she implemented new data structures for
-    their MOAB mesh framework library.  
-
-|clearboth|
-
-Andrew Reisner
-++++++++++++++
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/andrew.jpg
-        :align: left
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Andrew is a computer scientist on the Co-Design Team with a
-      background in parallel and scientific computing.
-      His research interests include scalable solvers and performance
-      models as a predictive tool for guiding applications.
-      His current work is focused on the integration and performance
-      analysis of applying FleCSI to software projects at LANL,
-      including the CANGA project.
 
 |clearboth|
 
@@ -272,18 +219,18 @@ Julien Loiseau
       simulation.
       He is currently working on several aspects of development from topology
       in FleCSI, GPU support using Kokkos in the Exasheds project and Smoothed
-      Particles Hydrodynamics as lead CS developer of FleCSPH.  
+      Particles Hydrodynamics as lead CS developer of FleCSPH.
 
 |clearboth|
 
-Richard Berger
-++++++++++++++
+Scott Pakin
++++++++++++
 
 .. container:: twocol
 
    .. container:: leftside
 
-     .. image:: team/rberger.jpg
+     .. image:: team/scott.jpg
         :align: left
 
    .. container:: rightside
@@ -291,15 +238,92 @@ Richard Berger
       **CCS-7 Applied Computer Science** |br|
       *Los Alamos National Laboratory*
 
-      Richard is a computational scientist in the Co-Design team with a
-      background in Mechatronics, high-performance computing, and software
-      engineering. He is currently contributing to the core development of FleCSI and
-      working on improving builds on multiple platforms.
+      Scott is a computer scientist with broad interests in
+      high-performance computing, including programming models,
+      high-speed communication, performance analysis, and quantum
+      computing.
+      He is the team leader for the CCS-7 Co-Design Team and has been
+      serving since October 2021 as the FleCSI project lead.
+
+|clearboth|
+
+Navamita Ray
+++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/navamita.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+    Navamita is a staff scientist in the co-design team in CCS-7 with
+    expertise in meshing technologies and numerical methods.
+    At LANL, she has been involved in designing and developing mesh data
+    structures for advanced programming runtimes targeting hetergeneous
+    architectures for exascale computing.
+    She is also working on next generation libraries for conservative
+    data remapping to link LANL applications.
+    She has also worked on projects involving quantum computing for
+    solving linear systems for fluid flows and protein folding problems.
+    Before joining LANL, Navamita Ray was part of the SIGMA project at
+    Argonne National Lab where she implemented new data structures for
+    their MOAB mesh framework library.
+
+|clearboth|
+
+Andrew Reisner
+++++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/andrew.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Andrew is a computer scientist on the Co-Design Team with a
+      background in parallel and scientific computing.
+      His research interests include scalable solvers and performance
+      models as a predictive tool for guiding applications.
+      His current work is focused on the integration and performance
+      analysis of applying FleCSI to software projects at LANL,
+      including the CANGA project.
 
 |clearboth|
 
 Alumni
 ******
+
+David Daniel
+++++++++++++
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/david.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      David is a computational scientist  with a broad background in
+      parallel computing and in physics research from QCD to cosmology.
+
+|clearboth|
 
 Irina Demeshko
 ++++++++++++++
