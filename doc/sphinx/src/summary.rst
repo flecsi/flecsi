@@ -100,7 +100,7 @@ Often, other regions and partitions are included, organized into *subtopologies*
 The classes ``region_base`` and ``partition`` are entry points.
 The other entry points for data handling all concern *copy engines*, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion's support for overlapping partitions as a means of transferring data.)
-Each is defined in terms of a field whose value at a destination of the copy is its source index points.
+Each is defined in terms of a field whose value at a destination of the copy is its source index point.
 (Since an index point may be copied to more than one destination simultaneously, the inverse function does not exist.)
 
 All of these types are caller-only; their APIs are defined in ``topology.hh``.
@@ -179,7 +179,7 @@ All these types are defined in ``accessor.hh``; because it must include the task
 
 Because the structural information about a topology is often necessary for using the physics fields defined on it, each topology defines a *topology accessor* type that packages accessors for the fields that hold that structural information (registered by the topology itself), further extending the hierarchy of composite accessors.
 Topology accessors are of course also task-only; a topology accessor parameter is matched by a topology slot argument.
-The topology's ``access`` type is used wrapped in the ``topology_accessor`` class template wrapper defined in ``topology_accessor.hh``.
+The topology's ``access`` type is used wrapped in the ``topology_accessor`` class template defined in ``topology_accessor.hh``.
 
 To help specify the members of topology accessors, which typically are accessors for preselected fields, ``field.hh`` also defines the class template ``accessor_member`` that accepts (a reference to) the field as a template argument and automatically initializes the accessor with the correct field ID.
 (The field ID is not known until runtime, but the *location* where it will be stored is known at compile time.)
