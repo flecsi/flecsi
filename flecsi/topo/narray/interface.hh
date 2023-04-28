@@ -500,7 +500,7 @@ struct narray<Policy>::access {
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
   /// \a a are typically not.
-  /// \return \c\ref mdcolex
+  /// \return \c util::mdcolex
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {

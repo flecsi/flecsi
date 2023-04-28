@@ -225,6 +225,8 @@ mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
 /// This function computes the indices for each dimension for multi-dimensional
 /// ranges provided.
 /// @param m mdspan or mdcolex object
+/// \param rr \c full_range, \c prefix_range, or \c sub_range objects for each
+///   dimension
 /// \return sized random-access range of \c std::array objects, each with one
 /// index of type \c range_index for each argument in \a rr
 template<class M, class... RR>
@@ -297,6 +299,7 @@ struct reduce_ref {
 
 /// This function is a wrapper for Kokkos::parallel_reduce that has been adapted
 /// to work with random access ranges common in FleCSI topologies.
+/// \tparam R reduction operation type
 /// \param p sized random-access range
 
 template<class R, class T, typename Policy, typename Lambda>

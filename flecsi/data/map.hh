@@ -158,7 +158,7 @@ make(topology_slot<P> & t, const Claims & c) {
   return {t.get(), c};
 }
 /// Create a \c mapping for initialization using an MPI task.
-/// The \ref\c Claims are constructed using \ref\c block.
+/// The \c Claims are constructed using \link block() `block`\endlink.
 template<class P>
 mapping<P>
 make(topology_slot<P> & t) {

@@ -527,7 +527,7 @@ struct trace {
 
   struct guard;
 
-  /// Create a \c\ref guard for this \c trace.
+  /// Create a <code>\ref guard</code> for this \c trace.
   inline guard make_guard();
 
   /// Skip the next call to the tracer
