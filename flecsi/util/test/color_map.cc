@@ -48,8 +48,8 @@ interface() {
       EXPECT_EQ(off[2].size(), 3);
     }
 
-    EXPECT_EQ(util::mpi::one_to_alli([](int r, int) { return single{r}; }, 0).r,
-      process());
+    EXPECT_EQ(
+      util::mpi::one_to_alli([](int r) { return single{r}; }, 0).r, process());
   };
 }
 

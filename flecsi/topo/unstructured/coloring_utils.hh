@@ -520,8 +520,8 @@ coloring_utils<MD>::migrate_primaries() {
     move_primaries(util::equal_map(num_primaries(), size_),
       cd_.colors,
       primary_raw_,
-      cnns.e2v,
-      cnns.v2e,
+      std::move(cnns.e2v),
+      std::move(cnns.v2e),
       rank_),
     comm_);
 
@@ -581,8 +581,7 @@ coloring_utils<MD>::request_owners(std::vector<util::gid> const & request,
     requests[pm.bin(e)].emplace_back(e);
   } // for
 
-  auto requested = util::mpi::all_to_allv(
-    [&requests](int r, int) -> auto & { return requests[r]; }, comm_);
+  auto requested = util::mpi::all_to_allv(requests, comm_);
 
   /*
     Fulfill naive-owner requests with migrated owners.
@@ -600,8 +599,7 @@ coloring_utils<MD>::request_owners(std::vector<util::gid> const & request,
     } // for
   } // scope
 
-  auto fulfilled = util::mpi::all_to_allv(
-    [&fulfill](int r, int) -> auto & { return fulfill[r]; }, comm_);
+  auto fulfilled = util::mpi::all_to_allv(fulfill, comm_);
 
   std::vector<std::size_t> offs(size_);
   std::vector<Color> owners;
@@ -718,8 +716,7 @@ coloring_utils<MD>::close_primaries() {
       } // for
     } // scope
 
-    auto requested = util::mpi::all_to_allv(
-      [&request](int r, int) -> auto & { return request[r]; }, comm_);
+    auto requested = util::mpi::all_to_allv(request, comm_);
 
     /*
       Keep track of dependent colors for requested entities.
@@ -836,8 +833,7 @@ coloring_utils<MD>::close_primaries() {
     */
 
     std::vector<std::vector<util::id>> fulfills;
-    for(const auto &rv : util::mpi::all_to_allv(
-          [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+    for(const auto & rv : util::mpi::all_to_allv(sources, comm_)) {
       auto & f = fulfills.emplace_back();
       for(const auto id : rv)
         f.emplace_back(primary_pcdata[lc(p2co_.at(id))].offsets.at(id));
@@ -849,9 +845,7 @@ coloring_utils<MD>::close_primaries() {
 
     {
       auto pgi = process_ghosts.begin();
-      for(const auto &ans : util::mpi::all_to_allv(
-            [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
-            comm_)) {
+      for(const auto & ans : util::mpi::all_to_allv(fulfills, comm_)) {
         auto ai = ans.begin();
         for(auto & [lco, e] : *pgi++)
           pri_color.colors[lco].peers[p2co_.at(e)].ghost[*ai++] =
@@ -1052,8 +1046,7 @@ coloring_utils<MD>::close_vertices() {
       requests[pm.bin(e)].emplace_back(e);
     } // for
 
-    auto requested = util::mpi::all_to_allv(
-      [&requests](int r, int) -> auto & { return requests[r]; }, comm_);
+    auto requested = util::mpi::all_to_allv(requests, comm_);
 
     /*
       Fulfill requests from other ranks
@@ -1069,8 +1062,7 @@ coloring_utils<MD>::close_vertices() {
       ++r;
     } // for
 
-    auto fulfilled = util::mpi::all_to_allv(
-      [&fulfill](int r, int) -> auto & { return fulfill[r]; }, comm_);
+    auto fulfilled = util::mpi::all_to_allv(fulfill, comm_);
 
     /*
       Update our local information.
@@ -1124,8 +1116,7 @@ coloring_utils<MD>::close_vertices() {
    */
 
   std::vector<std::vector<util::id>> fulfills;
-  for(const auto &rv : util::mpi::all_to_allv(
-        [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+  for(const auto & rv : util::mpi::all_to_allv(sources, comm_)) {
     auto & f = fulfills.emplace_back();
     for(const auto id : rv)
       f.emplace_back(vertex_pcdata[lc(v2co_.at(id))].offsets.at(id));
@@ -1137,9 +1128,7 @@ coloring_utils<MD>::close_vertices() {
 
   {
     auto pgi = process_ghosts.begin();
-    for(const auto &ans : util::mpi::all_to_allv(
-          [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
-          comm_)) {
+    for(const auto & ans : util::mpi::all_to_allv(fulfills, comm_)) {
       auto ai = ans.begin();
       for(auto & [lco, e] : *pgi++)
         vert_color.colors[lco].peers[v2co_.at(e)].ghost[*ai++] =
@@ -1390,8 +1379,7 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     lids[pr].emplace_back(in);
   } // for
 
-  auto requested = util::mpi::all_to_allv(
-    [&request](int r, int) -> auto & { return request[r]; }, comm_);
+  auto requested = util::mpi::all_to_allv(request, comm_);
 
   // Fulfill requested information.
   std::vector<std::vector<util::gid>> fulfill(size_);
@@ -1414,8 +1402,7 @@ coloring_utils<MD>::color_auxiliary(entity_kind kind) {
     ++pr;
   } // for
 
-  auto fulfilled = util::mpi::all_to_allv(
-    [&fulfill](int r, int) -> auto & { return fulfill[r]; }, comm_);
+  auto fulfilled = util::mpi::all_to_allv(fulfill, comm_);
 
   // This really just updates our local-to-global id map with the remote
   // entities that we just requested.
@@ -1549,8 +1536,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
    */
 
   std::vector<std::vector<util::id>> fulfills;
-  for(const auto &rv : util::mpi::all_to_allv(
-        [&sources](int r, int) -> auto & { return sources[r]; }, comm_)) {
+  for(const auto & rv : util::mpi::all_to_allv(sources, comm_)) {
     auto & f = fulfills.emplace_back();
     for(const auto id : rv)
       f.emplace_back(
@@ -1563,9 +1549,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
 
   {
     auto pgi = process_ghosts.begin();
-    for(const auto &ans : util::mpi::all_to_allv(
-          [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
-          comm_)) {
+    for(const auto & ans : util::mpi::all_to_allv(fulfills, comm_)) {
       auto ai = ans.begin();
       for(auto & [lco, e] : *pgi++)
         aux_color.colors[lco]

@@ -518,7 +518,7 @@ struct copy_engine {
     // information is later used by MPI_Send().
     {
       std::size_t r = 0;
-      for(auto &v : util::mpi::all_to_allv([&](int r, int) -> auto & {
+      for(auto & v : util::mpi::all_to_allv([&](int r) -> auto & {
             static const std::vector<std::size_t> empty;
             const auto i = remote_shared_entities.find(r);
             return i == remote_shared_entities.end() ? empty : i->second;
