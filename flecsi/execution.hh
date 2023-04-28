@@ -31,9 +31,13 @@ inline std::string argv0;
 
   The following options are interpreted in addition to any \c program_option
   objects:
+  - \c \--Xbackend=arg
+
+    Provide a command-line option to the backend.  May be used more than once.
   - \c \--backend-args=args
 
-    Provide command-line options to the backend; word splitting is applied.
+    Provide command-line options to the backend.
+    May be used more than once; word splitting is applied.
   - \c \--flog-tags=tags
 
     Enable comma-separated output \a tags.
