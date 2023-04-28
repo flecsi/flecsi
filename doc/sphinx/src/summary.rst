@@ -15,12 +15,12 @@ FleCSI performs only a few fundamental actions, each of which corresponds to one
 * ``topo``: Organize those arrays into *topologies* that represent computational physics domains of several kinds.
 * ``exec``: Call user-specified functions (*tasks*) with pointers to the allocated memory (in the form of *accessors*).
 * ``io``: Save and restore the contents of fields to and from disk.
-* ``log``: Aggregate diagnostic output from multiple processes (the namespace is ``flog``).
+* ``flog``: Aggregate diagnostic output from multiple processes.
 
 The implementation of these components is divided between the "front end" and one of a number of *backends* that leverage some external mechanism for allocating memory, transferring distributed data, and executing tasks.
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
 Most entry points are defined in files named ``policy.hh`` in a backend-specific directory in a component.
-``topo`` and ``log`` are implemented entirely in the front end.
+``topo`` and ``flog`` are implemented entirely in the front end.
 Except for ``topo``, each of these has a single header for application developers with a similar (if longer) name.
 
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
@@ -47,7 +47,7 @@ As a result, there are several circular dependencies among components (when igno
 Similarly, ``topo`` is high because non-trivial topologies themselves need to allocate and use field data.
 Generally, ``exec`` is higher than ``data`` because launching a task involves obtaining access to allocated data, but the latter is the most dispersed among the layers.
 ``run`` is lower because it provides certain global variables and the access to the underlying communication system, except that its support for callbacks is outside the hierarchy altogether.
-``log`` is lower still, since it relies merely on MPI for communication.
+``flog`` is lower still, since it relies merely on MPI for communication.
 Finally, ``util`` is the lowest, generic level.
 
 There is also an expected hierarchy beyond FleCSI.
