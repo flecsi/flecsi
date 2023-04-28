@@ -222,8 +222,7 @@ mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
   }()...);
 }
 
-/// This function computes the indices for each dimension for multi-dimensional
-/// ranges provided.
+/// Compute the Cartesian product of several intervals of integers.
 /// @param m mdspan or mdcolex object
 /// \param rr \c full_range, \c prefix_range, or \c sub_range objects for each
 ///   dimension
