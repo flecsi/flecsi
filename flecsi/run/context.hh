@@ -262,7 +262,7 @@ public:
     invoked. In this context a \em thread is defined as an instance of
     execution, and does not imply any other properties. This interface can be
     used to determine the full subscription of the execution instances of the
-    running process that invokded the FleCSI runtime.
+    running process that invoked the FleCSI runtime.
    */
 
   Color threads() const {
