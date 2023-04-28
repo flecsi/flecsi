@@ -44,7 +44,7 @@ Since the facilities provided by FleCSI are general-purpose, many of them are us
 As a result, there are several circular dependencies among components (when ignoring their internal structure), but there is also a general hierarchy among them.
 
 ``io`` is highest because it provides a user-level service in terms of the other components.
-Similarly, ``topo`` is high because non-trivial topologies themselves need to allocate and use field data.
+Similarly, ``topo`` is high because nontrivial topologies themselves need to allocate and use field data.
 Generally, ``exec`` is higher than ``data`` because launching a task involves obtaining access to allocated data, but the latter is the most dispersed among the layers.
 ``run`` is lower because it provides certain global variables and the access to the underlying communication system, except that its support for callbacks is outside the hierarchy altogether.
 ``flog`` is lower still, since it relies merely on MPI for communication.
@@ -235,7 +235,7 @@ Those task arguments may include ``borrow_category`` versions of the underlying 
 The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
-(Legion provides a mechanism for non-trivial class types to serialize themselves when so returned.)
+(Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)
 A call that performs an index launch returns a ``future<T,launch_type_t::index>`` that can access the value returned from each point task.
 Such an object can also be passed as a task argument for a ``future<T>`` parameter, which produces an index launch that processes all values in parallel.
 
@@ -289,7 +289,7 @@ Subcomponents
 
 For constructing complex, user-facing topologies, a number of simple topologies are defined for use as subtopologies (typically as data members of type ``subtopology::core``).
 Some of these are so trivial as to merely inherit from the appropriate specialization of ``specialization`` with an empty class body.
-The most fundamental of these is ``resize``, which holds the sizes needed to construct a non-trivial ``partition``.
+The most fundamental of these is ``resize``, which holds the sizes needed to construct a nontrivial ``partition``.
 It is defined in ``size.hh`` in terms of the even lower-level ``color`` and ``column`` machinery (from ``color.hh``) that define fields with a fixed number (1 for ``column``) of values per color.
 
 The type ``topo::repartition`` augments ``data::partition`` with a ``resize`` and schedules a task to initialize them properly; it too can be combined with a ``region`` with the *ed* suffix.
@@ -301,7 +301,7 @@ Launch maps are constructed from several auxiliary topology types that create al
 Using several of these partial permutations allows an arbitrary many-to-many mapping to be expressed while retaining the identity of each row selected.
 Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.
 
-The non-trivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
+The nontrivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
 This indirection avoids needing to know the sizes of other colors' rows (which vary per index space) to select them as well as needing to reserve a row number for "no row needed".
 
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
