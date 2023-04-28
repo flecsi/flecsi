@@ -21,7 +21,6 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -193,6 +192,24 @@ struct context {
     return descriptions_map_;
   }
 
+private:
+  struct fields {
+    explicit fields(std::size_t n) : ff(n), used(false) {}
+    std::vector<data::fields> ff; // per index space
+    bool used;
+  };
+
+  template<class Topo>
+  static fields & topology_fields() {
+    static fields ret(Topo::index_spaces::size);
+    return ret;
+  }
+
+  static auto & init_registry() {
+    static std::vector<void (*)()> r;
+    return r;
+  }
+
   /*--------------------------------------------------------------------------*
     Runtime interface.
    *--------------------------------------------------------------------------*/
@@ -311,7 +328,7 @@ public:
 #endif
 
   static void register_init(void callback()) {
-    init_registry.push_back(callback);
+    init_registry().push_back(callback);
   }
 
   /*--------------------------------------------------------------------------*
@@ -328,14 +345,13 @@ public:
    */
   template<class Topo, typename Topo::index_space Index, typename Field>
   static void add_field_info(field_id_t id) {
-    if(topology_ids_.count(Topo::id()))
+    auto & tf = topology_fields<Topo>();
+    if(tf.used)
       flog_fatal("Cannot add fields on an allocated topology");
-    constexpr std::size_t NIndex = Topo::index_spaces::size;
-    topology_field_info_map_.try_emplace(Topo::id(), NIndex)
-      .first->second[Topo::index_spaces::template index<Index>]
-      .push_back(std::make_shared<data::field_info_t>(
+    tf.ff[Topo::index_spaces::template index<Index>].push_back(
+      std::make_shared<data::field_info_t>(
         data::field_info_t{id, sizeof(Field), util::type<Field>()}));
-  } // add_field_information
+  }
 
   /*!
     Return the stored field info for the given topology type and layout
@@ -346,14 +362,9 @@ public:
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
   static field_info_store_t const & field_info_store() {
-    static const field_info_store_t empty;
-    topology_ids_.insert(Topo::id());
-
-    auto const & tita = topology_field_info_map_.find(Topo::id());
-    if(tita == topology_field_info_map_.end())
-      return empty;
-
-    return tita->second[Topo::index_spaces::template index<Index>];
+    auto & tf = topology_fields<Topo>();
+    tf.used = true;
+    return tf.ff[Topo::index_spaces::template index<Index>];
   } // field_info_store
 
   /*--------------------------------------------------------------------------*
@@ -395,7 +406,7 @@ protected:
   // Invoke initialization callbacks.
   // Call from hiding function in derived classses.
   void start() {
-    for(auto ro : init_registry)
+    for(auto ro : init_registry())
       ro();
   }
 
@@ -468,21 +479,6 @@ protected:
   Color process_, processes_, threads_per_process_, threads_;
 
   /*--------------------------------------------------------------------------*
-    Field data members.
-   *--------------------------------------------------------------------------*/
-
-  /*
-    This type allows storage of runtime field information per topology type.
-   */
-
-  static inline std::unordered_map<TopologyType,
-    std::vector<field_info_store_t>>
-    topology_field_info_map_;
-
-  /// Set of topology types for which field definitions have been used
-  static inline std::set<TopologyType> topology_ids_;
-
-  /*--------------------------------------------------------------------------*
     Index space data members.
    *--------------------------------------------------------------------------*/
 
@@ -493,9 +489,6 @@ protected:
    *--------------------------------------------------------------------------*/
 
   size_t flog_task_count_ = 0;
-
-private:
-  static inline std::vector<void (*)()> init_registry;
 }; // struct context
 
 struct task_local_base {

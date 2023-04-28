@@ -505,8 +505,6 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
   template<index_space S>
   static constexpr PrivilegeCount privilege_count =
     Q::template privilege_count<S>;
-
-  static TopologyType id() = delete; // prevent ineffectual field registration
 };
 
 namespace detail {
