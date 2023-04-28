@@ -123,15 +123,15 @@ the number of vector indices to assign to each *color*.
 any compile-time information,
 but most other core topologies do.
 
-For FLAXPY we divide the indices as equally as possible among colors.
+FleCSI provides the ``equal_map`` utility for dividing indices as equally as possible among colors.
 The following helper function, still within the ``flaxpy`` namespace,
 handles mapping ``vector_length`` number of indices (see
 `Preliminaries`_ above) onto a given number of colors:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
-   :start-at: inline std::vector
-   :end-at: }
+   :start-at: equal_map
+   :end-at: // Define
 
 Given that helper function, constructing a specialization of ``user``
 is trivial.  FLAXPY names its specialization (still within the
