@@ -34,8 +34,11 @@ namespace detail {
 // XREF: more specializations in accessor.hh
 template<class>
 struct task_param {};
-template<class P, class A, class = void> // A is a reference type
-struct replace_argument;
+template<class P, class A, class V = void> // A is a reference type
+struct replace_argument {
+  static_assert(!std::is_void_v<V>,
+    "mismatch between task parameter and argument");
+};
 // Allow specialization as well as use of convert_tag:
 template<class T>
 struct must_convert
