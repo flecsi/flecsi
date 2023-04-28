@@ -93,9 +93,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
 private:
-  /// Structural information about one color.
-  /// \image html narray-layout.svg "Layouts for each possible orientation." width=100%
-
   using meta_data = util::key_array<axis_color, axes>;
 
   template<auto... Value, std::size_t... Index>

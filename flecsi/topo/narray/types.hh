@@ -836,6 +836,7 @@ struct narray_base {
 
    These domains are used in many of the interface methods to provide
    information such as size, extents, offsets about them.
+   \image html narray-layout.svg "Layouts for each possible orientation." width=100%
    \ingroup narray
   */
   enum class domain : std::size_t {
