@@ -7,7 +7,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
-#include <flecsi/topo/index.hh>
 
 // In a larger program, this namespace would typically appear in a header file,
 // where the inline keywords are necessary.
@@ -149,7 +148,7 @@ mul_add_action(flaxpy::control_policy &) {
 
 // Define a task that adds up all values of Y and returns the sum.
 double
-reduce_y_task(one_field<double>::accessor<flecsi::rw> y_acc) {
+reduce_y_task(one_field<double>::accessor<flecsi::ro> y_acc) {
   auto local_sum = reduceall(elt,
     accum,
     y_acc.span(),
@@ -182,6 +181,7 @@ flaxpy::control::action<finalize_action, flaxpy::cp::finalize> fin;
 
 } // namespace
 
+// The main program largely delegates to the control model.
 int
 main(int argc, char ** argv) {
   // Initialize the FleCSI run-time system.

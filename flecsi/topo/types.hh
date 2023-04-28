@@ -26,9 +26,9 @@ template<class, class>
 struct connect;
 
 /*!
-  Connectivity information for the given specialization policy \emph{P} for the
-  given key_types in \emph{VT}. This data structure adds ragged fields to the
-  specialized user type to store connectivity informaiton for each
+  Connectivity fields for the given specialization and specified entity kinds.
+  This data structure adds ragged fields to the
+  specialized user type to store connectivity information for each
   user-specified connectivity.
 
   @tparam P  A core topology specialization policy.

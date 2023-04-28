@@ -399,7 +399,7 @@ struct borrow_base {
 
   /// Get the derived object from a \c borrow_extra specialization.
   /// \param e usually \c *this
-  /// \param the \c borrow_category specialization to which \a e refers
+  /// \return the \c borrow_category specialization to which \a e refers
   template<template<class> class C, class T>
   static auto & derived(borrow_extra<C<T>> & e) {
     return static_cast<typename borrow<T>::core &>(e);

@@ -21,7 +21,7 @@ namespace flecsi::topo {
 /// Types for resizing partitions.
 /// \endif
 struct resize : specialization<column, resize> {
-  /// \c\ref field for storing sizes.
+  /// \link flecsi::field `field`\endlink for storing sizes.
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
   template<partition_privilege_t P>

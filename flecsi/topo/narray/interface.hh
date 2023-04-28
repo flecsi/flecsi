@@ -93,9 +93,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
 private:
-  /// Structural information about one color.
-  /// \image html narray-layout.svg "Layouts for each possible orientation." width=100%
-
   using meta_data = util::key_array<axis_color, axes>;
 
   template<auto... Value, std::size_t... Index>
@@ -500,7 +497,7 @@ struct narray<Policy>::access {
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
   /// \a a are typically not.
-  /// \return \c\ref mdcolex
+  /// \return \c util::mdcolex
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {

@@ -216,7 +216,7 @@ struct field_reference : convert_tag {
   }
 
   /// Get the dynamic element storage (for resizing it).
-  /// \return \c\ref repartition
+  /// \return \c topo::repartition
   /// \note \p L must be \c ragged or \c sparse.
   auto & get_elements() const {
     static_assert(L == ragged || L == sparse, "not a dynamic field");
@@ -246,7 +246,7 @@ private:
   topology_t * topology_;
 };
 
-/// Identifies a field on a \c\ref mapping.
+/// Identifies a field on a \c launch::mapping.
 /// Declare a task parameter as a `multi<accessor<...>>` to use the field.
 template<class T, layout L, class Topo, typename Topo::index_space S>
 struct multi_reference : convert_tag {

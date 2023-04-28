@@ -31,9 +31,13 @@ inline std::string argv0;
 
   The following options are interpreted in addition to any \c program_option
   objects:
+  - \c \--Xbackend=arg
+
+    Provide a command-line option to the backend.  May be used more than once.
   - \c \--backend-args=args
 
-    Provide command-line options to the backend; word splitting is applied.
+    Provide command-line options to the backend.
+    May be used more than once; word splitting is applied.
   - \c \--flog-tags=tags
 
     Enable comma-separated output \a tags.
@@ -349,7 +353,7 @@ threads_per_process() {
   invoked. In this context a \em thread is defined as an instance of
   execution, and does not imply any other properties. This interface can be
   used to determine the full subscription of the execution instances of the
-  running process that invokded the FleCSI runtime.
+  running process that invoked the FleCSI runtime.
  */
 
 inline Color
@@ -527,7 +531,7 @@ struct trace {
 
   struct guard;
 
-  /// Create a \c\ref guard for this \c trace.
+  /// Create a <code>\ref guard</code> for this \c trace.
   inline guard make_guard();
 
   /// Skip the next call to the tracer

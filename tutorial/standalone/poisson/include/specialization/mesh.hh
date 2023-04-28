@@ -5,7 +5,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 #include <flecsi/topo/narray/coloring_utils.hh>
-#include <flecsi/topo/narray/interface.hh>
 
 #include "types.hh"
 

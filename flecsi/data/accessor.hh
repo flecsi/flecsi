@@ -1451,7 +1451,7 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
-/// A sequence of accessors obtained from a \c\ref mapping.
+/// A sequence of accessors obtained from a \c launch::mapping.
 /// Pass a \c multi_reference or \c mapping to a task that accepts one.
 /// <!-- This gets the short name since users must
 ///      declare parameters with it. -->
