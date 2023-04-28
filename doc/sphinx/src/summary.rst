@@ -98,7 +98,7 @@ Each topology is a fixed-size set of *index spaces* (*e.g.*, the cells, vertices
 Often, other regions and partitions are included, organized into *subtopologies* that handle common kinds of data like the count of mesh elements.
 
 The classes ``region_base`` and ``partition`` are entry points.
-The other entry points for data handling all concern *copy engines*, which are uniquely responsible for transferring data between rows.
+Most other entry points for data handling concern *copy engines*, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion's support for overlapping partitions as a means of transferring data.)
 Each is defined in terms of a field whose value at a destination of the copy is its source index point.
 (Since an index point may be copied to more than one destination simultaneously, the inverse function does not exist.)
@@ -297,12 +297,10 @@ It is defined in ``index.hh``, along with higher-level subtopologies that provid
 The topology ``ragged`` is itself a class template, parametrized with the (user) topology type to distinguish ``ragged`` field registrations on each.
 For several of these types, there is a helper class (template) of the same name prefixed with ``with_`` to be used as a base class.
 
-Launch maps are constructed from several auxiliary topology types that create alternate partitions that expose (some of) a region's existing row-prefixes in a different order.
-Using several of these partial permutations allows an arbitrary many-to-many mapping to be expressed while retaining the identity of each row selected.
+Launch maps are constructed from several auxiliary topology types that apply a partial permutation to a region's existing rows.
+The permutation is represented by a ``borrow`` object, which is a data entry point implemented in a nontrivial sense only for Legion.
+With several such permutations, an arbitrary many-to-many mapping can be expressed.
 Topology accessors are supported with a system of wrapper classes that emulate the underlying topology instance, including support for all its index spaces, ragged fields, and other topology-specific details.
-
-The nontrivial implementation for Legion achieves this reinterpretation in two steps: the first selects and permutes the elements of the field that stores the rectangles describing each row, and the second follows each rectangle to obtain the actual field data.
-This indirection avoids needing to know the sizes of other colors' rows (which vary per index space) to select them as well as needing to reserve a row number for "no row needed".
 
 Several templates are defined in ``utility_types.hh`` to assist in defining topologies.
 In particular, ``topo::id`` serves to distinguish in user-facing interfaces the indices for different index spaces.
