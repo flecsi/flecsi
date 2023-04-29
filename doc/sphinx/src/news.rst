@@ -28,6 +28,10 @@ Fixed
 
   * ``ragged`` accessors with ``wo`` privileges work for GPU tasks. (The field type must still be trivially default-constructible.)
 
+* Utilities
+
+  * ``transform_view`` supports pointers to members (though not during constant evaluation).
+
 Changes in v2.2.0 (April 14 2023)
 +++++++++++++++++++++++++++++++++
 
