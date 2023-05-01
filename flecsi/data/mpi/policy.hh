@@ -79,9 +79,7 @@ private:
 using buffer_impl_loc = buffer;
 
 struct buffer_impl_toc {
-  buffer_impl_toc() = default;
-  buffer_impl_toc(const buffer_impl_toc &) = delete;
-  buffer_impl_toc & operator=(const buffer_impl_toc &) = delete;
+  buffer_impl_toc & operator=(buffer_impl_toc &&) = delete;
 
   std::byte * data() {
     return ptr;

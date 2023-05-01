@@ -31,6 +31,7 @@ struct backend_arg {
 arguments::arguments(int argc, char ** argv) {
   act.program = argv[0] ? argv[0] : "";
   act.program = act.program.substr(act.program.rfind('/') + 1);
+  cfg.backend.push_back(act.program);
 #ifdef FLECSI_ENABLE_MPI
   dep.mpi.push_back(act.program);
 #endif
