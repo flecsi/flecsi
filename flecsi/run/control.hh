@@ -255,8 +255,9 @@ public:
   /// Return the control policy object.
   /// It is default-initialized when the control points are created and
   /// destroyed at the end of the program.
-  /// \deprecated use control_base, this cannot be used if inheriting from
-  /// control_base
+  /// This function cannot be used if \c P inherits from \c control_base.
+  /// \deprecated derive \c P from \c control_base and use the parameter
+  ///   passed to each action
   static P & state() {
     static_assert(!is_control_base_policy);
     return instance().policy_;
