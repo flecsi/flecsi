@@ -6,53 +6,58 @@
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 
-using namespace dependencies;
-
 // Register several actions under control point one.
 
 inline void
-package_a(control_policy &) {
+package_a(dependencies::control_policy &) {
   flog(info) << "package_a" << std::endl;
 }
-inline control::action<package_a, cp::cp1> package_a_action;
+inline dependencies::control::action<package_a, dependencies::cp::cp1>
+  package_a_action;
 
 inline void
-package_b(control_policy &) {
+package_b(dependencies::control_policy &) {
   flog(info) << "package_b" << std::endl;
 }
-inline control::action<package_b, cp::cp1> package_b_action;
+inline dependencies::control::action<package_b, dependencies::cp::cp1>
+  package_b_action;
 
 inline void
-package_c(control_policy &) {
+package_c(dependencies::control_policy &) {
   flog(info) << "package_c" << std::endl;
 }
-inline control::action<package_c, cp::cp1> package_c_action;
+inline dependencies::control::action<package_c, dependencies::cp::cp1>
+  package_c_action;
 
 inline void
-package_d(control_policy &) {
+package_d(dependencies::control_policy &) {
   flog(info) << "package_d" << std::endl;
 }
-inline control::action<package_d, cp::cp1> package_d_action;
+inline dependencies::control::action<package_d, dependencies::cp::cp1>
+  package_d_action;
 
 // Register several actions under control point two.
 
 inline void
-package_e(control_policy &) {
+package_e(dependencies::control_policy &) {
   flog(info) << "package_e" << std::endl;
 }
-inline control::action<package_e, cp::cp2> package_e_action;
+inline dependencies::control::action<package_e, dependencies::cp::cp2>
+  package_e_action;
 
 inline void
-package_f(control_policy &) {
+package_f(dependencies::control_policy &) {
   flog(info) << "package_f" << std::endl;
 }
-inline control::action<package_f, cp::cp2> package_f_action;
+inline dependencies::control::action<package_f, dependencies::cp::cp2>
+  package_f_action;
 
 inline void
-package_g(control_policy &) {
+package_g(dependencies::control_policy &) {
   flog(info) << "package_g" << std::endl;
 }
-inline control::action<package_g, cp::cp2> package_g_action;
+inline dependencies::control::action<package_g, dependencies::cp::cp2>
+  package_g_action;
 
 // Add dependencies a -> b, b -> d, and a -> d, i.e.,
 // b depends on a, d depends on b, and d depends on a.

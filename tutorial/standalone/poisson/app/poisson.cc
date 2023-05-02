@@ -13,7 +13,7 @@
 
 int
 main(int argc, char ** argv) {
-  annotation::rguard<main_region> main_guard;
+  flecsi::util::annotation::rguard<main_region> main_guard;
 
   auto status = flecsi::initialize(argc, argv);
   status = poisson::control::check_status(status);

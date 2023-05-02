@@ -13,7 +13,7 @@ using namespace flecsi;
 
 void
 poisson::action::solve(control_policy &) {
-  annotation::rguard<solve_region> guard;
+  util::annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{100};
@@ -33,8 +33,9 @@ poisson::action::solve(control_policy &) {
   do {
     auto g = t.make_guard();
     // Annotation to time each cycle of the poisson solve
-    annotation::guard<annotation::execution, annotation::detail::low> aguard(
-      "poisson-cycle");
+    util::annotation::guard<util::annotation::execution,
+      util::annotation::detail::low>
+      aguard("poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
       execute<task::red, default_accelerator>(m, ud(m), fd(m));
       execute<task::black, default_accelerator>(m, ud(m), fd(m));
