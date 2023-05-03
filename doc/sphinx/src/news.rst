@@ -26,6 +26,10 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
+* Runtime
+
+  * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
+
 * Topologies
 
   * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.

@@ -333,17 +333,19 @@ public:
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
     valid ordering, and executes the actions.  If the policy `P` inherits from
-    `control_base`, an object of type \c P is value-initialized and destroyed
-    before this function returns.
+    `control_base`, an object of type \c P is initialized from \a aa and
+    destroyed before this function returns.
     \c control_base::exception can be thrown for early
-    termination. \return code from a thrown \c control_base::exception or the
+    termination.
+    \param aa only if inheriting from \c control_base
+    \return code from a thrown \c control_base::exception or the
     bitwise or of return values of executed actions.
    */
-
-  static int execute() {
+  template<class... AA>
+  static int invoke(AA &&... aa) {
     if constexpr(is_control_base_policy) {
       try {
-        P pol = P();
+        P pol(std::forward<AA>(aa)...);
         return instance().run(&pol);
       }
       catch(control_base::exception e) {
@@ -351,9 +353,14 @@ public:
       }
     }
     else {
+      static_assert(!sizeof...(aa), "arguments allowed only with control_base");
       return instance().run(nullptr);
     }
-  } // execute
+  }
+  /// Call \c #invoke with no arguments.
+  static int execute() {
+    return invoke();
+  }
 
   /*!
     Process control model command-line options.
