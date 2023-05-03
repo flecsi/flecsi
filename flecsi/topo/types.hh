@@ -13,11 +13,11 @@
 
 #include <type_traits>
 
+/// \cond core
 namespace flecsi {
 namespace topo {
 /// \addtogroup topology
 /// \{
-/// \cond core
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
@@ -241,7 +241,6 @@ struct id {
 private:
   T t;
 };
-/// \endcond
 
 /// Specify an iteration over \c id objects.
 /// This function is supported for GPU execution.
@@ -254,7 +253,6 @@ make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
-/// \anchor make_ids
 
 template<class T>
 void
@@ -270,5 +268,6 @@ concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
 /// \}
 } // namespace topo
 } // namespace flecsi
+/// \endcond
 
 #endif
