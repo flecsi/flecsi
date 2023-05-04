@@ -140,9 +140,13 @@ private:
 #ifdef DOXYGEN // implemented per-backend
 /// RAII guard for initializing/finalizing FleCSI dependencies.
 /// Which are included depends on configuration.
+/// Only one guard can exist at a time.
+/// \warning Some libraries cannot ever be reinitialized.
 struct dependencies_guard {
   /// Construct the guard, possibly mutating argument values.
   dependencies_guard(arguments::dependent &);
+  /// Immovable.
+  dependencies_guard(dependencies_guard &&) = delete;
 };
 #endif
 
