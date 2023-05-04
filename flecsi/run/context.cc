@@ -38,10 +38,10 @@ arguments::arguments(int argc, char ** argv) {
 #ifdef FLECSI_ENABLE_KOKKOS
   dep.kokkos.push_back(act.program);
 #endif
-  act.code = getopt(argc, argv); // also populates act.stderr
+  act.op = getopt(argc, argv); // also populates act.stderr
 }
 
-status
+arguments::action::operation
 arguments::getopt(int argc, char ** argv) {
   po::options_description master("Basic Options");
   master.add_options()("help,h", "Print this message and exit.");
@@ -190,13 +190,13 @@ arguments::getopt(int argc, char ** argv) {
 
     if(vm.count("help")) {
       usage();
-      return status::help;
+      return act.help;
     } // if
     if(vm.count("control-model")) {
-      return status::control_model;
+      return act.control_model;
     } // if
     if(vm.count("control-model-sorted")) {
-      return status::control_model_sorted;
+      return act.control_model_sorted;
     } // if
 
     po::notify(vm);
@@ -228,7 +228,7 @@ arguments::getopt(int argc, char ** argv) {
                  << std::endl;
 
           usage();
-          return status::help;
+          return act.error;
         } // if
       } // if
     } // for
@@ -245,13 +245,13 @@ arguments::getopt(int argc, char ** argv) {
            << FLOG_COLOR_PLAIN << std::endl
            << std::endl;
     usage();
-    return status::command_line_error;
+    return act.error;
   } // try
 
   unrecognized =
     po::collect_unrecognized(parsed.options, po::include_positional);
 
-  return status::success;
+  return act.run;
 }
 
 } // namespace flecsi::run

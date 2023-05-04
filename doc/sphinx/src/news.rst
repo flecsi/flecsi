@@ -23,6 +23,7 @@ Fixed
 * Runtime
 
   * Control policy objects are value-initialized by ``run::control::execute``.
+  * The same exit status is used for all erroneous command lines.
 
 * Data
 

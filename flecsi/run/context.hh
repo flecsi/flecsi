@@ -59,9 +59,8 @@ enum status : int {
   control_model, /// print out control model graph in dot format
   control_model_sorted, /// print out sorted control model graph in dot format
   clean, /// any value greater than this implies an error
-  command_line_error, /// error parsing command line
-  error, // add specific error modes
-}; // initialization_codes
+  command_line_error /// error parsing command line
+};
 
 /// \cond core
 
@@ -77,8 +76,30 @@ struct arguments {
   struct action {
     /// Program name.
     std::string program;
-    status code; ///< Operation mode.
+    /// Operation mode.
+    enum operation {
+      help, ///< Exit with a usage message.
+      error, ///< Exit with a command-line error message.
+      run, ///< \ref control::invoke "Invoke" the control model.
+      control_model, ///< Write the control model graph.
+      control_model_sorted ///< Write the sequence of actions.
+    } op; ///< Operation selected.
     std::string stderr; ///< Error text from initialization.
+
+    run::status status() const {
+      switch(op) {
+        case run:
+          return success;
+        case help:
+          return run::help;
+        case control_model:
+          return run::control_model;
+        case control_model_sorted:
+          return run::control_model_sorted;
+        default:
+          return command_line_error;
+      }
+    }
   } act; ///< Operation to perform.
   /// Specification for initializing underlying libraries.
   struct dependent {
@@ -116,7 +137,7 @@ struct arguments {
   }
 
 private:
-  status getopt(int, char **);
+  action::operation getopt(int, char **);
 };
 
 #ifdef DOXYGEN // implemented per-backend
@@ -209,7 +230,7 @@ public:
       stderr << a.program << ": flog process " << p << " does not exist with "
              << processes_ << " processes\n";
       a.stderr += std::move(stderr).str();
-      a.code = error;
+      a.op = a.error;
     }
 #else
     (void)a;

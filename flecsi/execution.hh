@@ -80,7 +80,7 @@ initialize(int argc, char ** argv, bool dependent = true) {
     run::dependent.emplace(args.dep);
   auto & ctx = run::context::ctx.emplace(args.cfg);
   ctx.check_config(args.act);
-  const auto c = args.act.code;
+  const auto c = args.act.status();
   if(c) {
     if(!ctx.process())
       std::cerr << args.act.stderr;
