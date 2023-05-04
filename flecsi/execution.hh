@@ -76,9 +76,13 @@ inline int
 initialize(int argc, char ** argv, bool dependent = true) {
   run::arguments args(argc, argv);
   argv0 = args.act.program;
+  const auto make = [](auto & o, auto & x) -> auto & {
+    flog_assert(!o, "already initialized");
+    return o.emplace(x);
+  };
   if(dependent)
-    run::dependent.emplace(args.dep);
-  auto & ctx = run::context::ctx.emplace(args.cfg);
+    make(run::dependent, args.dep);
+  auto & ctx = make(run::context::ctx, args.cfg);
   ctx.check_config(args.act);
   const auto c = args.act.status();
   if(c) {
