@@ -69,9 +69,6 @@ struct arguments {
   /// A command line.
   using argv = std::vector<std::string>;
 
-  /// Arguments and options not recognized during parsing.
-  argv unrecognized;
-
   /// Specification of operation to be performed.
   struct action {
     /// Program name.

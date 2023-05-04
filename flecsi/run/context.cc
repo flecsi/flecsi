@@ -104,11 +104,6 @@ arguments::getopt(int argc, char ** argv) {
   all.add(context::hidden_options());
 
   auto & pd = context::positional_description();
-  po::parsed_options parsed = po::command_line_parser(argc, argv)
-                                .options(all)
-                                .positional(pd)
-                                .allow_unregistered()
-                                .run();
 
   struct guard : std::ostringstream {
     guard(std::string & s) : out(s) {}
@@ -185,6 +180,8 @@ arguments::getopt(int argc, char ** argv) {
   };
 
   try {
+    po::parsed_options parsed =
+      po::command_line_parser(argc, argv).options(all).positional(pd).run();
     po::variables_map vm;
     po::store(parsed, vm);
 
@@ -247,9 +244,6 @@ arguments::getopt(int argc, char ** argv) {
     usage();
     return act.error;
   } // try
-
-  unrecognized =
-    po::collect_unrecognized(parsed.options, po::include_positional);
 
   return act.run;
 }
