@@ -21,6 +21,14 @@ namespace util {
 std::string demangle(const char * const name);
 
 /*!
+  Return signature without parameter list
+
+  @param sig The function signature
+ */
+
+std::string strip_parameter_list(const std::string & sig);
+
+/*!
   Return the demangled name of the type T.
 
   @tparam T the type (references and cv-qualification ignored)

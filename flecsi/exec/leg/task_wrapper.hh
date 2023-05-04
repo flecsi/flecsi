@@ -214,22 +214,8 @@ detail::register_task() {
           layouts[std::stoi(m[2])]);
     }
 
-    // filter out parameters list
     std::string sig = name;
-    int level = 1;
-    std::size_t pos = name.length() - 2;
-
-    while(pos > 0 && level > 0) {
-      char c = name[pos--];
-      if(c == '(')
-        --level;
-      else if(c == ')')
-        ++level;
-    }
-
-    if(level == 0) {
-      name = name.substr(0, pos + 1);
-    }
+    name = util::strip_parameter_list(name);
 
     // hash signature and attach to short name
     std::stringstream ss;

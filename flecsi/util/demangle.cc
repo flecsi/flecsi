@@ -22,5 +22,24 @@ demangle(const char * const name) {
   return name;
 } // demangle
 
+std::string
+strip_parameter_list(const std::string & sig) {
+  int level = 1;
+  std::size_t pos = sig.length() - 2;
+
+  while(pos > 0 && level > 0) {
+    char c = sig[pos--];
+    if(c == '(')
+      --level;
+    else if(c == ')')
+      ++level;
+  }
+
+  if(level == 0) {
+    return sig.substr(0, pos + 1);
+  }
+  return sig;
+}
+
 } // namespace util
 } // namespace flecsi
