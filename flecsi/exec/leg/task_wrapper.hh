@@ -215,7 +215,7 @@ detail::register_task() {
     }
 
     std::string sig = name;
-    name = util::strip_parameter_list(name);
+    name = util::strip_return_type(util::strip_parameter_list(name));
 
     // hash signature and attach to short name
     std::stringstream ss;
