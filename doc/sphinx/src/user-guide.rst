@@ -12,5 +12,6 @@ User Guide
   user-guide/topologies
   user-guide/specializations
   user-guide/performance
+  user-guide/profiling
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

@@ -30,6 +30,10 @@ New features
 
   * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.
 
+* Legion backend
+
+  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user-guide/profiling` for details.
+
 * Utilities
 
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
