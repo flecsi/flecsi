@@ -531,7 +531,7 @@ Several actions are defined for the two control points in
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
    :start-at: // Register several actions under control point one.
-   :end-at: control::action<package_g, cp::cp2> package_g_action;
+   :end-at: package_g_action
 
 Additionally, several dependencies are defined in the same file:
 

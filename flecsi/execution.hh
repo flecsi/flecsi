@@ -62,6 +62,9 @@ inline std::string argv0;
   The control model options require Graphviz support and take effect via
   \c control::check_status.
 
+  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
+  integer, the runtime will delay for that number of seconds.
+
   @param argc number of command-line arguments to process
   @param argv command-line arguments to process
   @param dependent A boolean telling FleCSI whether or not to initialize
@@ -96,10 +99,6 @@ initialize(int argc, char ** argv, bool dependent = true) {
 /*!
   Perform FleCSI runtime start. This causes the runtime to begin execution
   of the top-level action.
-
-  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
-  integer, the runtime will delay for that number of seconds during context
-  creation.
 
   \param  action
           The top-level action, i.e., the entry point for FleCSI to begin

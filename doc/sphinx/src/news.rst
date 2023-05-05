@@ -30,10 +30,6 @@ Fixed
 
   * ``ragged`` accessors with ``wo`` privileges work for GPU tasks. (The field type must still be trivially default-constructible.)
 
-* Topologies
-
-  * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects. 
-
 * Utilities
 
   * ``transform_view`` supports pointers to members (though not during constant evaluation).
@@ -99,7 +95,7 @@ New features
 
   * Tasks may be executed as ``omp``, allowing efficient use of OpenMP.
   * ``exec::trace`` improves performance of loops when used with the Legion backend.
-  * ``task_local`` objects define global variables with task-local variables.
+  * ``task_local`` objects define global variables with task-local values.
 
 * Topologies
 
