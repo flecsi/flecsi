@@ -70,6 +70,9 @@ if(ENABLE_UNIT_TESTS)
     test/package_a.hh
     test/package_b.hh
     test/package_c.hh)
+  # This file exercises the old interface for main.
+  set_source_files_properties(test/cycle.cc
+    PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   target_link_libraries(cycle FleCSI)
   target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)

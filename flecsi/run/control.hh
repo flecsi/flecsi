@@ -231,17 +231,17 @@ private:
     Output a graph of the control model.
   */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  void write() const {
+  void write(const std::string & p) const {
     flecsi::util::graphviz gv;
     point_writer::write(registry_, gv);
-    std::string file = program() + "-control-model.dot";
+    std::string file = p + "-control-model.dot";
     gv.write(file);
   } // write
 
-  void write_sorted() const {
+  void write_sorted(const std::string & p) const {
     flecsi::util::graphviz gv;
     point_writer::write_sorted(sort(), gv);
-    std::string file = program() + "-control-model-sorted.dot";
+    std::string file = p + "-control-model-sorted.dot";
     gv.write(file);
   } // write_sorted
 #endif
@@ -356,24 +356,28 @@ public:
     }
   }
   /// Call \c #invoke with no arguments.
-  static int execute() {
+  /// \deprecated Use \c invoke directly or call \c runtime::main.
+  [[deprecated("use invoke")]] static int execute() {
     return invoke();
   }
 
   /*!
     Process control model command-line options.
-    \param s initialization status
+    \param s initialization status from \c initialize
     \return status of control model output if requested, else \a s
+    \deprecated Use \c runtime::main.
+    \see arguments::action::operation
    */
-
-  static int check_status(int s) {
+  [[deprecated("use flecsi::runtime")]] static int check_status(int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
+    // If a confused client calls this without having called initialize,
+    // argv0 will be empty, which is a mild form of failure.
     switch(s) {
       case flecsi::run::status::control_model:
-        instance().write();
+        write_graph(argv0);
         break;
       case flecsi::run::status::control_model_sorted:
-        instance().write_sorted();
+        write_actions(argv0);
         break;
       default:
         break;
@@ -382,6 +386,14 @@ public:
     return s;
   } // check_status
 
+#ifdef FLECSI_ENABLE_GRAPHVIZ
+  static void write_graph(const std::string & p) {
+    instance().write(p);
+  }
+  static void write_actions(const std::string & p) {
+    instance().write_sorted(p);
+  }
+#endif
 }; // struct control
 
 struct call_policy : control_base {

@@ -88,8 +88,6 @@ struct context_t : context {
 /// \}
 } // namespace run
 
-using runtime = run::context_t;
-
 template<class T>
 struct task_local : private run::task_local_base {
   T & operator*() noexcept {

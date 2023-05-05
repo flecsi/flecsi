@@ -25,45 +25,63 @@ namespace flecsi {
 
 inline std::string argv0;
 
+/// FleCSI runtime state.
+/// Only one can exist at a time.
+struct runtime {
+  /// Construct from a configuration.
+  ///
+  /// As a debugging aid, if the \c FLECSI_SLEEP environment variable is set
+  /// to an integer, wait for that number of seconds.
+  explicit runtime(const run::arguments::config & c) {
+    auto & r = run::context::ctx;
+    flog_assert(!r, "runtime already initialized");
+    r.emplace(c);
+  }
+  /// Immovable.
+  runtime(runtime &&) = delete;
+  ~runtime() {
+    run::context::ctx.reset();
+  }
+
+  /// Perform the \ref run::arguments::action::operation "operation"
+  /// indicated by a command line.
+  /// \tparam C control model
+  /// \param aa arguments for \link run::control::invoke `C::invoke`\endlink
+  ///   (if it is called)
+  /// \return resulting exit code
+  /// \warning The return value does not in general match that from
+  ///   \c initialize or \c start.
+  template<class C, class... AA>
+  int main(run::arguments::action a, AA &&... aa) const {
+    using A = decltype(a);
+    auto & ctx = run::context::instance();
+    ctx.check_config(a);
+    if(!ctx.process())
+      std::cerr << a.stderr;
+    switch(a.op) {
+#ifdef FLECSI_ENABLE_GRAPHVIZ
+      case A::control_model:
+        C::write_graph(a.program);
+        break;
+      case A::control_model_sorted:
+        C::write_actions(a.program);
+        break;
+#endif
+      case A::run:
+        return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); });
+      case A::help:
+        break;
+      default:
+        return 1;
+    }
+    return 0;
+  }
+};
+
 /*!
-  Perform FleCSI runtime initialization. If \em dependent is true, this call
+  Perform FleCSI <code>\ref runtime</code> initialization (which see).
+  If \em dependent is true, this call
   will also initialize any runtime on which FleCSI depends.
-
-  The following options are interpreted in addition to any \c program_option
-  objects:
-  - \c \--Xbackend=arg
-
-    Provide a command-line option to the backend.  May be used more than once.
-  - \c \--backend-args=args
-
-    Provide command-line options to the backend.
-    May be used more than once; word splitting is applied.
-  - \c \--flog-tags=tags
-
-    Enable comma-separated output \a tags.
-    \c all enables all and is the default; \c unscoped disables all.
-  - <tt>\--flog-verbose[=level]</tt>
-
-    Enable verbose output if \a level is omitted or positive; suppress
-    decorations if it is negative.  The default is 0.
-  - \c \--flog-process=p
-
-    Select output from process \a p (default 0), or from all if &minus;1.
-  - \c \--control-model
-
-    Write \c <em>program</em>-control-model.dot with the control points and
-    the actions for each.
-  - \c \--control-model-sorted
-
-    Write \c <em>program</em>-control-model-sorted.dot containing linearized
-    actions.
-
-  The Flog options are recognized only when that feature is enabled.
-  The control model options require Graphviz support and take effect via
-  \c control::check_status.
-
-  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
-  integer, the runtime will delay for that number of seconds.
 
   @param argc number of command-line arguments to process
   @param argv command-line arguments to process
@@ -73,9 +91,11 @@ inline std::string argv0;
   @return An integer indicating the initialization status. This may be
           interpreted as a \em flecsi::run::status enumeration, e.g.,
           a value of 1 is equivalent to flecsi::run::status::help.
- */
+          Control model options take effect via \c control::check_status.
 
-inline int
+  \deprecated Construct a \c runtime object.
+ */
+[[deprecated("use flecsi::runtime")]] inline int
 initialize(int argc, char ** argv, bool dependent = true) {
   run::arguments args(argc, argv);
   argv0 = args.act.program;
@@ -107,9 +127,10 @@ initialize(int argc, char ** argv, bool dependent = true) {
   \return An integer indicating the finalization status. This will be
           either 0 for successful completion or an error code from
           flecsi::run::status.
- */
 
-inline int
+  \deprecated Use \c runtime::main.
+ */
+[[deprecated("use flecsi::runtime")]] inline int
 start(const std::function<int()> & action) {
   return run::context::instance().start(action);
 }
@@ -118,9 +139,10 @@ start(const std::function<int()> & action) {
   Perform FleCSI runtime finalization. If FleCSI was initialized with the \em
   dependent flag set to true, FleCSI will also finalize any runtimes on which
   it depends.
- */
 
-inline void
+  \deprecated Destroy a \c runtime object.
+ */
+[[deprecated("use flecsi::runtime")]] inline void
 finalize() {
   run::context::ctx.reset();
   run::dependent.reset();
@@ -318,9 +340,11 @@ private:
 
 /*!
   Return the program name.
- */
+  Available only with \c initialize.
 
-inline std::string const &
+  \deprecated Use \c act.program in \c run::arguments.
+ */
+[[deprecated("use run::arguments")]] inline std::string const &
 program() {
   return argv0;
 }

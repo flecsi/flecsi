@@ -51,9 +51,10 @@ namespace run {
 struct context_t; // supplied by backend
 
 /// Exit status returned by initialization code.
+/// \deprecated Used only with \c initialize.
 /// \see flecsi::initialize
 /// \see flecsi::run::control::check_status
-enum status : int {
+enum /* [[deprecated]] would warn for internal usage */ status : int {
   success, /// successful initialization
   help, /// user requested usage help
   control_model, /// print out control model graph in dot format
@@ -61,8 +62,6 @@ enum status : int {
   clean, /// any value greater than this implies an error
   command_line_error /// error parsing command line
 };
-
-/// \cond core
 
 /// The results of parsing command-line options defined by FleCSI.
 struct arguments {
@@ -80,7 +79,10 @@ struct arguments {
       run, ///< \ref control::invoke "Invoke" the control model.
       control_model, ///< Write the control model graph.
       control_model_sorted ///< Write the sequence of actions.
-    } op; ///< Operation selected.
+    }
+    /// Operation selected, populated from \c \--control-model or
+    /// \c \--control-model-sorted options.
+    op;
     std::string stderr; ///< Error text from initialization.
 
     run::status status() const {
@@ -111,13 +113,21 @@ struct arguments {
   struct config {
 #ifdef FLECSI_ENABLE_FLOG
     /// Specification for Flog operation.
+    /// Exists only if that feature is enabled.
     struct log {
-      argv tags; ///< Tags to enable (perhaps including "all").
-      int verbose, ///< Verbosity level.
-        process; ///< Process from which to produce output, or -1 for all.
-    } flog; ///< Flog options.
+      /// Tags to enable (perhaps including "all").
+      /// Populated from \c \--flog-tags option.
+      argv tags;
+      /// Verbosity level (suppresses decorations if negative).  Populated
+      /// from \c \--flog-verbose option.
+      int verbose,
+        /// Process from which to produce output, or -1 for all.
+        /// Populated from \c \--flog-process option.
+        process;
+    } flog; ///< Flog options, if that feature is enabled.
 #endif
     /// Command line for FleCSI backend.  Some backends ignore it.
+    /// Populated from \c \--Xbackend and \c \--backend-args options.
     argv backend;
   } cfg; ///< FleCSI options.
 
@@ -149,6 +159,8 @@ struct dependencies_guard {
   dependencies_guard(dependencies_guard &&) = delete;
 };
 #endif
+
+/// \cond core
 
 struct index_space_info_t {
   const data::region * region;

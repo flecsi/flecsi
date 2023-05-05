@@ -43,26 +43,11 @@ control::action<finalize, cp::finalize> finalize_action;
 
 int
 main(int argc, char ** argv) {
-  auto status = flecsi::initialize(argc, argv);
-
-  // The check_status() method checks to see if any control-model options were
-  // specified on the command line, and handles them appropriately.
-
-  status = control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  }
-
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-
-  // Pass the control model's 'execute' method to start. FleCSI will invoke
-  // the execute function after runtime initialization. This will, in turn,
+  // Run the control model.  control::execute will, in turn,
   // execute all of the cycles, and actions of the control model.
-
-  status = flecsi::start(control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  return run.main<control>(args.act);
 } // main

@@ -671,8 +671,8 @@ A scope guard is used to annotate the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :start-at: status = (annotation::guard<annotation::execution, annotation::detail::low>(
-  :end-at: flecsi::start(top_level_action));
+  :start-at: (annotation
+  :end-at: .main
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.

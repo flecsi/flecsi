@@ -83,7 +83,6 @@ drop(int n, const std::string & s) {
 int
 index_task(exec::launch_domain) {
   UNIT("TASK") {
-    flog(info) << "program: " << program() << std::endl;
     flog(info) << "processes: " << processes() << std::endl;
     flog(info) << "process: " << process() << std::endl;
     // flog(info) << "threads per process: " << threads_per_process() <<
