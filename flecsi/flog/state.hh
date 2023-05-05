@@ -47,8 +47,14 @@ namespace flog {
 class state
 {
 public:
-  state(const std::vector<std::string> & active, int verbose, Color one_process)
-    : verb(verbose) {
+  state(const std::vector<std::string> & active,
+    int verbose,
+    Color one_process,
+    std::size_t serialization_interval,
+    bool color_output,
+    int strip_level)
+    : verb(verbose), serialization_interval_(serialization_interval),
+      color_output_(color_output), strip_level_(strip_level) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -125,6 +131,19 @@ public:
 
   static int verbose() {
     return instance ? instance->verb : 0;
+  }
+
+  static size_t & serialization_interval() {
+    return instance ? instance->serialization_interval_
+                    : default_serialization_interval;
+  }
+
+  static bool & color_output() {
+    return instance ? instance->color_output_ : default_color_output;
+  }
+
+  static int & strip_level() {
+    return instance ? instance->strip_level_ : default_strip_level;
   }
 
   /*!
@@ -282,6 +301,9 @@ public:
 
 private:
   int verb;
+  size_t serialization_interval_;
+  bool color_output_;
+  int strip_level_;
 
   tee_stream_t stream_;
 
@@ -291,6 +313,15 @@ private:
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
+  static inline std::size_t default_serialization_interval =
+    FLOG_SERIALIZATION_INTERVAL;
+
+#ifdef FLOG_ENABLE_COLOR_OUTPUT
+  static inline bool default_color_output = true;
+#else
+  static inline bool default_color_output = false;
+#endif
+  static inline int default_strip_level = FLOG_STRIP_LEVEL;
 
 #if defined(FLOG_ENABLE_MPI)
   void send_to_one(bool last);
@@ -307,6 +338,16 @@ private:
 inline std::optional<state> state::instance;
 
 /// \}
+
+namespace detail {
+
+inline const char *
+use_color(const char * c) {
+  return state::color_output() ? c : "";
+}
+
+} // namespace detail
+
 } // namespace flog
 } // namespace flecsi
 /// \endcond

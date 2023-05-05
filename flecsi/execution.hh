@@ -466,7 +466,7 @@ maybe_flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   auto & flecsi_context = run::context::instance();
   std::size_t & flog_task_count = flecsi_context.flog_task_count();
-  if(flog_task_count >= FLOG_SERIALIZATION_INTERVAL)
+  if(flog_task_count >= flog::state::serialization_interval())
     flush();
 #endif
 } // maybe_flush

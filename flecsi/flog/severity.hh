@@ -46,8 +46,8 @@ struct utility {
 //----------------------------------------------------------------------------//
 
 struct trace {
-  static constexpr bool strip() {
-    return FLOG_STRIP_LEVEL > 0;
+  static bool strip() {
+    return flog::state::strip_level() > 0;
   }
 
   static bool
@@ -71,8 +71,8 @@ struct trace {
 //----------------------------------------------------------------------------//
 
 struct info {
-  static constexpr bool strip() {
-    return FLOG_STRIP_LEVEL > 1;
+  static bool strip() {
+    return flog::state::strip_level() > 1;
   }
 
   static bool
@@ -96,8 +96,8 @@ struct info {
 //----------------------------------------------------------------------------//
 
 struct warn {
-  static constexpr bool strip() {
-    return FLOG_STRIP_LEVEL > 2;
+  static bool strip() {
+    return flog::state::strip_level() > 2;
   }
 
   static bool
@@ -121,8 +121,8 @@ struct warn {
 //----------------------------------------------------------------------------//
 
 struct error {
-  static constexpr bool strip() {
-    return FLOG_STRIP_LEVEL > 3;
+  static bool strip() {
+    return flog::state::strip_level() > 3;
   }
 
   static bool

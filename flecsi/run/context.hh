@@ -124,6 +124,12 @@ struct arguments {
         /// Process from which to produce output, or -1 for all.
         /// Populated from \c \--flog-process option.
         process;
+      ///< Frequency of message serialization in number of tasks
+      std::size_t serialization_interval;
+      ///< Enable color output
+      bool color;
+      ///< FLOG strip level (0-4)
+      int strip_level;
     } flog; ///< Flog options, if that feature is enabled.
 #endif
     /// Command line for FleCSI backend.  Some backends ignore it.
@@ -222,7 +228,12 @@ protected:
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
-    flog::state::instance.emplace(c.flog.tags, c.flog.verbose, c.flog.process);
+    flog::state::instance.emplace(c.flog.tags,
+      c.flog.verbose,
+      c.flog.process,
+      c.flog.serialization_interval,
+      c.flog.color,
+      c.flog.strip_level);
 #else
     (void)c;
 #endif
@@ -388,7 +399,7 @@ public:
     Return the count of executed tasks (\c const version).
    */
 
-  size_t const & flog_task_count() const {
+  std::size_t const & flog_task_count() const {
     return flog_task_count_;
   } // flog_task_count
 
@@ -396,7 +407,7 @@ public:
     Return the count of executed tasks.
    */
 
-  size_t & flog_task_count() {
+  std::size_t & flog_task_count() {
     return flog_task_count_;
   } // flog_task_count
 
@@ -503,7 +514,7 @@ protected:
     Task count.
    *--------------------------------------------------------------------------*/
 
-  size_t flog_task_count_ = 0;
+  std::size_t flog_task_count_ = 0;
 
 private:
   static inline std::vector<void (*)()> init_registry;

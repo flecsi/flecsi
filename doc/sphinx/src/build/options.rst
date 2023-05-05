@@ -38,10 +38,23 @@ Flog (FleCSI logging utility) options
   remain defined but produce no output.
 
 * **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-color`` command-line option. See also :doc:`../tutorial/runtime`.
+
   Produce colorized Flog output instead of using the output device's
   default colors.
 
 * **FLOG_SERIALIZATION_INTERVAL [default: 100]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-serialization-interval`` command-line option. See also
+     :doc:`../tutorial/runtime`.
+
   The Flog serialization interval specifies the number of task
   executions after which FleCSI should check for buffered output to
   process.  It should be set to a value that balances output
@@ -49,9 +62,19 @@ Flog (FleCSI logging utility) options
   = less overhead from the requisite global reduction).
 
 * **FLOG_SERIALIZATION_THRESHOLD** |br|
-  **This interface is deprecated and not used anymore.**
+
+  .. warning::
+
+     This interface is deprecated and not used anymore.
 
 * **FLOG_STRIP_LEVEL [default: 0]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-strip-level`` command-line option. See also
+     :doc:`../tutorial/runtime`.
+
   Set the Flog strip level, which should an integer from 0 to 4.  Like
   tag groups, strip levels are a mechanism for the user to control the
   amount of output that Flog generates: the higher the strip level,

@@ -16,62 +16,23 @@
 #define _flog_stringify(s) _flog_util_stringify(s)
 #define _flog_concat(a, b) a##b
 
-#ifndef FLOG_ENABLE_COLOR_OUTPUT
-
-#define FLOG_COLOR_BLACK ""
-#define FLOG_COLOR_DKGRAY ""
-#define FLOG_COLOR_RED ""
-#define FLOG_COLOR_LTRED ""
-#define FLOG_COLOR_GREEN ""
-#define FLOG_COLOR_LTGREEN ""
-#define FLOG_COLOR_BROWN ""
-#define FLOG_COLOR_YELLOW ""
-#define FLOG_COLOR_BLUE ""
-#define FLOG_COLOR_LTBLUE ""
-#define FLOG_COLOR_PURPLE ""
-#define FLOG_COLOR_LTPURPLE ""
-#define FLOG_COLOR_CYAN ""
-#define FLOG_COLOR_LTCYAN ""
-#define FLOG_COLOR_LTGRAY ""
-#define FLOG_COLOR_WHITE ""
-#define FLOG_COLOR_PLAIN ""
-
-#define FLOG_OUTPUT_BLACK(s) s
-#define FLOG_OUTPUT_DKGRAY(s) s
-#define FLOG_OUTPUT_RED(s) s
-#define FLOG_OUTPUT_LTRED(s) s
-#define FLOG_OUTPUT_GREEN(s) s
-#define FLOG_OUTPUT_LTGREEN(s) s
-#define FLOG_OUTPUT_BROWN(s) s
-#define FLOG_OUTPUT_YELLOW(s) s
-#define FLOG_OUTPUT_BLUE(s) s
-#define FLOG_OUTPUT_LTBLUE(s) s
-#define FLOG_OUTPUT_PURPLE(s) s
-#define FLOG_OUTPUT_LTPURPLE(s) s
-#define FLOG_OUTPUT_CYAN(s) s
-#define FLOG_OUTPUT_LTCYAN(s) s
-#define FLOG_OUTPUT_LTGRAY(s) s
-#define FLOG_OUTPUT_WHITE(s) s
-
-#else
-
-#define FLOG_COLOR_BLACK "\033[0;30m"
-#define FLOG_COLOR_DKGRAY "\033[1;30m"
-#define FLOG_COLOR_RED "\033[0;31m"
-#define FLOG_COLOR_LTRED "\033[1;31m"
-#define FLOG_COLOR_GREEN "\033[0;32m"
-#define FLOG_COLOR_LTGREEN "\033[1;32m"
-#define FLOG_COLOR_BROWN "\033[0;33m"
-#define FLOG_COLOR_YELLOW "\033[1;33m"
-#define FLOG_COLOR_BLUE "\033[0;34m"
-#define FLOG_COLOR_LTBLUE "\033[1;34m"
-#define FLOG_COLOR_PURPLE "\033[0;35m"
-#define FLOG_COLOR_LTPURPLE "\033[1;35m"
-#define FLOG_COLOR_CYAN "\033[0;36m"
-#define FLOG_COLOR_LTCYAN "\033[1;36m"
-#define FLOG_COLOR_LTGRAY "\033[0;37m"
-#define FLOG_COLOR_WHITE "\033[1;37m"
-#define FLOG_COLOR_PLAIN "\033[0m"
+#define FLOG_COLOR_BLACK flecsi::flog::detail::use_color("\033[0;30m")
+#define FLOG_COLOR_DKGRAY flecsi::flog::detail::use_color("\033[1;30m")
+#define FLOG_COLOR_RED flecsi::flog::detail::use_color("\033[0;31m")
+#define FLOG_COLOR_LTRED flecsi::flog::detail::use_color("\033[1;31m")
+#define FLOG_COLOR_GREEN flecsi::flog::detail::use_color("\033[0;32m")
+#define FLOG_COLOR_LTGREEN flecsi::flog::detail::use_color("\033[1;32m")
+#define FLOG_COLOR_BROWN flecsi::flog::detail::use_color("\033[0;33m")
+#define FLOG_COLOR_YELLOW flecsi::flog::detail::use_color("\033[1;33m")
+#define FLOG_COLOR_BLUE flecsi::flog::detail::use_color("\033[0;34m")
+#define FLOG_COLOR_LTBLUE flecsi::flog::detail::use_color("\033[1;34m")
+#define FLOG_COLOR_PURPLE flecsi::flog::detail::use_color("\033[0;35m")
+#define FLOG_COLOR_LTPURPLE flecsi::flog::detail::use_color("\033[1;35m")
+#define FLOG_COLOR_CYAN flecsi::flog::detail::use_color("\033[0;36m")
+#define FLOG_COLOR_LTCYAN flecsi::flog::detail::use_color("\033[1;36m")
+#define FLOG_COLOR_LTGRAY flecsi::flog::detail::use_color("\033[0;37m")
+#define FLOG_COLOR_WHITE flecsi::flog::detail::use_color("\033[1;37m")
+#define FLOG_COLOR_PLAIN flecsi::flog::detail::use_color("\033[0m")
 
 #define FLOG_OUTPUT_BLACK(s) FLOG_COLOR_BLACK << s << FLOG_COLOR_PLAIN
 #define FLOG_OUTPUT_DKGRAY(s) FLOG_COLOR_DKGRAY << s << FLOG_COLOR_PLAIN
@@ -89,8 +50,6 @@
 #define FLOG_OUTPUT_LTCYAN(s) FLOG_COLOR_LTCYAN << s << FLOG_COLOR_PLAIN
 #define FLOG_OUTPUT_LTGRAY(s) FLOG_COLOR_LTGRAY << s << FLOG_COLOR_PLAIN
 #define FLOG_OUTPUT_WHITE(s) FLOG_COLOR_WHITE << s << FLOG_COLOR_PLAIN
-
-#endif // FLOG_ENABLE_COLOR_OUTPUT
 /// \}
 
 namespace flecsi {
@@ -124,7 +83,12 @@ rstrip(const char * file) {
   return tmp.substr(tmp.rfind(C) + 1);
 } // rstrip
 
+namespace detail {
+inline const char * use_color(const char * c);
+} // namespace detail
+
 /// \}
+
 } // namespace flog
 } // namespace flecsi
 /// \endcond

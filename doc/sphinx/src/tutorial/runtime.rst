@@ -105,40 +105,53 @@ like this:
 
 .. code-block:: console
 
-  Usage: runtime-program_options <passenger-list>
+   Usage: runtime-program_options <passenger-list>
 
-  Positional Options:
-    passenger-list The list of passengers for this trip [.txt].
+   Positional Options:
+     passenger-list The list of passengers for this trip [.txt].
 
-  Basic Options:
-    -h [ --help ]                         Print this message and exit.
+   Basic Options:
+     -h [ --help ]                         Print this message and exit.
 
-  Car Options:
-    -l [ --level ] arg (= 1)              Specify the trim level [1-10].
-    -t [ --transmission ] arg (= manual)  Specify the transmission type
-                                          ["automatic", "manual"].
-    -c [ --child-seat ] [=arg(= 1)] (= 0) Request a child seat.
+   Car Options:
+     -l [ --level ] arg (= 1)              Specify the trim level [1-10].
+     -t [ --transmission ] arg (= manual)  Specify the transmission type
+                                           ["automatic", "manual"].
+     -c [ --child-seat ] [=arg(= 1)] (= 0) Request a child seat.
 
-  Ride Options:
-    -p [ --purpose ] arg (= 1)            Specify the purpose of the trip
-                                          (personal=0, business=1).
-    --lightspeed                          Travel at the speed of light.
+   Ride Options:
+     -p [ --purpose ] arg (= 1)            Specify the purpose of the trip
+                                           (personal=0, business=1).
+     --lightspeed                          Travel at the speed of light.
 
-  FleCSI Options:
-    --backend-args arg             Pass arguments to the backend. The
-                                   single argument is a quoted string of
-                                   backend-specific options.
-    --flog-tags arg (=all)         Enable the specified output tags, e.g.,
-                                   --flog-tags=tag1,tag2. Use '--flog-tags=all'
-                                   to show all output, and
-                                   '--flog-tags=unscoped' to show only unguarded
-                                   output.
-    --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing '-1' will strip
-                                   any additional decorations added by flog and
-                                   will only output the user's message.
-    --flog-process arg (=0)        Restrict output to the specified process id.
-                                   The default is process 0. Use
-                                   '--flog-process=-1' to enable all processes.
+   FleCSI Options:
+     --backend-args arg                    Pass arguments to the backend. The
+                                           single argument is a quoted string of
+                                           backend-specific options.
+     --Xbackend arg                        Pass single argument to the backend.
+                                           This option can be passed multiple
+                                           times.
+     --flog-color [=arg(=1)] (=1)          Enable color output.
+     --flog-serialization-interval arg (=100)
+                                           Frequency of message serialization in
+                                           number of tasks.
+     --flog-strip-level arg (=0)           Set FLOG strip level (0-4)
+     --flog-tags arg (=all)                Enable the specified output tags, e.g.,
+                                           --flog-tags=tag1,tag2. Use
+                                           '--flog-tags=all' to show all output,
+                                           and  '--flog-tags=unscoped' to show
+                                           only unguarded output.
+     --flog-verbose [=arg(=1)] (=0)        Enable verbose output. Passing '-1'
+                                           will strip any additional decorations
+                                           added by flog and will only output the
+                                           user's message.
+     --flog-process arg (=0)               Restrict output to the specified
+                                           process id. The default is process 0.
+                                           Use '--flog-process=-1' to enable all
+                                           processes.
+
+   Available FLOG Tags (FleCSI Logging Utility):
+     unscoped
 
 This shows the program usage, the basic options, e.g., ``--help``, the
 command-line and positional options for the example, and some auxiliary
@@ -409,6 +422,7 @@ the basic output objects:
   :start-at: // This output will always be generated because
   :end-at: flog(error) << "Error level output" << std::endl;
 
+
 Controlling Output - Strip Levels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -417,10 +431,12 @@ Controlling Output - Strip Levels
   If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
   compiled out: i.e., there is no runtime overhead.
 
-The strip level is a preprocessor option *FLOG_STRIP_LEVEL* that can
-be specified during FleCSI configuration. Valid strip levels are
-*[0-4]*. The default strip level is *0* (most verbose). Depending on
-the strip level, FLOG limits the type of messages that are output.
+The strip level is a command-line option ``--flog-strip-level`` that can
+be specified at runtime.
+
+Valid strip levels are *[0-4]*. The default strip level is *0* (most
+verbose). Depending on the strip level, FLOG limits the type of messages
+that are output.
 
 * *trace* |br|
   Output written to the trace object is enabled for strip levels less
@@ -492,30 +508,41 @@ which should look something like this:
 
 .. code-block:: console
 
-  Usage: runtime-flog
+   Usage: runtime-flog
 
-  Basic Options:
-    -h [ --help ]         Print this message and exit.
+   Basic Options:
+     -h [ --help ]         Print this message and exit.
 
-  FleCSI Options:
-    --backend-args arg             Pass arguments to the runtime backend. The
-                                   single argument is a quoted string of
-                                   backend-specific options.
-    --flog-tags arg (=all)         Enable the specified output tags, e.g.,
-                                   --flog-tags=tag1,tag2. Use '--flog-tags=all'
-                                   to show all output, and
-                                   '--flog-tags=unscoped' to show only unguarded
-                                   output.
-    --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing '-1' will strip
-                                   any additional decorations added by flog and
-                                   will only output the user's message.
-    --flog-process arg (=0)        Restrict output to the specified process id.
-                                   The default is process 0. Use
-                                   '--flog-process=-1' to enable all processes.
+   FleCSI Options:
+     --backend-args arg                    Pass arguments to the backend. The
+                                           single argument is a quoted string of
+                                           backend-specific options.
+     --Xbackend arg                        Pass single argument to the backend.
+                                           This option can be passed multiple
+                                           times.
+     --flog-color [=arg(=1)] (=1)          Enable color output.
+     --flog-serialization-interval arg (=100)
+                                           Frequency of message serialization in
+                                           number of tasks.
+     --flog-strip-level arg (=0)           Set FLOG strip level (0-4)
+     --flog-tags arg (=all)                Enable the specified output tags, e.g.,
+                                           --flog-tags=tag1,tag2. Use
+                                           '--flog-tags=all' to show all output,
+                                           and  '--flog-tags=unscoped' to show
+                                           only unguarded output.
+     --flog-verbose [=arg(=1)] (=0)        Enable verbose output. Passing '-1'
+                                           will strip any additional decorations
+                                           added by flog and will only output the
+                                           user's message.
+     --flog-process arg (=0)               Restrict output to the specified
+                                           process id. The default is process 0.
+                                           Use '--flog-process=-1' to enable all
+                                           processes.
 
-  Available FLOG Tags (FleCSI Logging Utility):
-    tag2
-    tag1
+   Available FLOG Tags (FleCSI Logging Utility):
+     tag2
+     tag1
+     unscoped
 
 Invoking this example with ``--flog-tags=tag1`` will generate output for
 unguarded sections and for output guarded with the *tag1* tag:
@@ -532,8 +559,8 @@ unguarded sections and for output guarded with the *tag1* tag:
   [Warn tag1 p0] Warn level output (in tag1 guard)
   [ERROR tag1 p0] Error level output (in tag1 guard)
 
-FLOG Options (CMake)
-^^^^^^^^^^^^^^^^^^^^
+FLOG Options
+^^^^^^^^^^^^
 
 Defaults for the FLOG options have been chosen in an attempt to most
 closely model the behavior one would expect from the execution and
@@ -546,10 +573,10 @@ As stated in the preceding sections, FLOG buffers and serializes output
 to avoid collisions from different threads.
 As a safeguard, FleCSI's default settings flush these buffers
 periodically, so as to avoid memory capacity issues.
-The CMake configuration option ``FLOG_SERIALIZATION_INTERVAL`` defines
+The FLOG command-line option ``--flog-serialization-interval`` defines
 this behavior:
 
-* *FLOG_SERIALIZATION_INTERVAL* |br|
+* ``--flog-serialization-interval`` |br|
   The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
   tasks executed: i.e., if the serialization interval is set to 300,
@@ -564,7 +591,7 @@ this behavior:
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
   However, overly aggressive settings, e.g.,
-  ``FLOG_SERIALIZATION_INTERVAL=1`` could force complete serialization
+  ``--flog-serialization-interval=1`` could force complete serialization
   of your application.
   This can be beneficial for debugging, but should not be used for
   actual simulation runs.
@@ -577,14 +604,17 @@ force FleCSI to serialize and flush output.
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
-  for ``FLOG_SERIALIZATION_INTERVAL`` and to use ``flecsi::flog::flush()``
+  for ``--flog-serialization-interval`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
-FLOG Options (Command-Line)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We have already covered the ``--flog-tags`` option.
-There are currently two other options that control FLOG output:
+We have already covered the ``--flog-tags`` and ``--flog-strip-level``
+options. There are currently three other options that control FLOG output:
+
+* *--flog-color* |br|
+  This option controls whether coloring is enabled for FLOG messages
+  By default, colors are activated ``1`` and can be disabled with ``0`` |br|
+  *(default: 1)*
 
 * *--flog-verbose* |br|
   This option controls how much additional information is output with
