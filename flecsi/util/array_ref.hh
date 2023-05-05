@@ -7,6 +7,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -618,7 +619,10 @@ public:
 
     FLECSI_INLINE_TARGET
     constexpr reference operator*() const {
-      return (*f)(*p);
+      if constexpr(std::is_member_pointer_v<F>)
+        return std::invoke(*f, *p); // not constexpr until C++20
+      else
+        return (*f)(*p);
     }
     // operator-> makes sense only for a true 'reference'
     FLECSI_INLINE_TARGET

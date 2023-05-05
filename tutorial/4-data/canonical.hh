@@ -1,12 +1,10 @@
 #ifndef TUTORIAL_4_DATA_CANONICAL_HH
 #define TUTORIAL_4_DATA_CANONICAL_HH
 
+#include <flecsi/data.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/topo/unstructured/interface.hh>
 
-using namespace flecsi;
-
-struct canon : topo::specialization<topo::unstructured, canon> {
+struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
   using connectivities = list<>;
@@ -21,7 +19,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
     }
 
     template<index_space From>
-    auto cells(topo::id<From> from) {
+    auto cells(flecsi::topo::id<From> from) {
       return B::template entities<index_space::cells>(from);
     }
 

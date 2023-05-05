@@ -59,9 +59,8 @@ enum status : int {
   control_model, /// print out control model graph in dot format
   control_model_sorted, /// print out sorted control model graph in dot format
   clean, /// any value greater than this implies an error
-  command_line_error, /// error parsing command line
-  error, // add specific error modes
-}; // initialization_codes
+  command_line_error /// error parsing command line
+};
 
 /// \cond core
 
@@ -70,15 +69,34 @@ struct arguments {
   /// A command line.
   using argv = std::vector<std::string>;
 
-  /// Arguments and options not recognized during parsing.
-  argv unrecognized;
-
   /// Specification of operation to be performed.
   struct action {
     /// Program name.
     std::string program;
-    status code; ///< Operation mode.
+    /// Operation mode.
+    enum operation {
+      help, ///< Exit with a usage message.
+      error, ///< Exit with a command-line error message.
+      run, ///< \ref control::invoke "Invoke" the control model.
+      control_model, ///< Write the control model graph.
+      control_model_sorted ///< Write the sequence of actions.
+    } op; ///< Operation selected.
     std::string stderr; ///< Error text from initialization.
+
+    run::status status() const {
+      switch(op) {
+        case run:
+          return success;
+        case help:
+          return run::help;
+        case control_model:
+          return run::control_model;
+        case control_model_sorted:
+          return run::control_model_sorted;
+        default:
+          return command_line_error;
+      }
+    }
   } act; ///< Operation to perform.
   /// Specification for initializing underlying libraries.
   struct dependent {
@@ -116,15 +134,19 @@ struct arguments {
   }
 
 private:
-  status getopt(int, char **);
+  action::operation getopt(int, char **);
 };
 
 #ifdef DOXYGEN // implemented per-backend
 /// RAII guard for initializing/finalizing FleCSI dependencies.
 /// Which are included depends on configuration.
+/// Only one guard can exist at a time.
+/// \warning Some libraries cannot ever be reinitialized.
 struct dependencies_guard {
   /// Construct the guard, possibly mutating argument values.
   dependencies_guard(arguments::dependent &);
+  /// Immovable.
+  dependencies_guard(dependencies_guard &&) = delete;
 };
 #endif
 
@@ -143,14 +165,7 @@ struct index_space_info_t {
 struct context {
   using field_info_store_t = data::fields;
 
-  /*--------------------------------------------------------------------------*
-    Deleted contructor and assignment interfaces.
-   *--------------------------------------------------------------------------*/
-
-  context(const context &) = delete;
-  context & operator=(const context &) = delete;
   context(context &&) = delete;
-  context & operator=(context &&) = delete;
 
   static inline context_t & instance();
 
@@ -186,10 +201,7 @@ struct context {
     Runtime interface.
    *--------------------------------------------------------------------------*/
 protected:
-  context(const arguments::config & c,
-    arguments::action & a,
-    Color np,
-    Color proc)
+  context(const arguments::config & c, Color np, Color proc)
     : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
@@ -198,18 +210,9 @@ protected:
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
-    if(c.flog.process + 1 && Color(c.flog.process) >= np) {
-      std::ostringstream stderr;
-      stderr << a.program << ": flog process " << c.flog.process
-             << " does not exist with " << processes_ << " processes\n";
-      a.stderr += std::move(stderr).str();
-      a.code = error;
-    }
-    else
-      flog::state::instance.emplace(
-        c.flog.tags, c.flog.verbose, c.flog.process);
+    flog::state::instance.emplace(c.flog.tags, c.flog.verbose, c.flog.process);
 #else
-    (void)c, (void)a;
+    (void)c;
 #endif
   }
 
@@ -220,6 +223,21 @@ protected:
   }
 
 public:
+  void check_config(arguments::action & a) const {
+#ifdef FLECSI_ENABLE_FLOG
+    const Color p = flog::state::instance->one_process();
+    if(p + 1 && p >= processes_) {
+      std::ostringstream stderr;
+      stderr << a.program << ": flog process " << p << " does not exist with "
+             << processes_ << " processes\n";
+      a.stderr += std::move(stderr).str();
+      a.op = a.error;
+    }
+#else
+    (void)a;
+#endif
+  }
+
 #ifdef DOXYGEN // these functions are implemented per-backend
   /*!
     Start the FleCSI runtime.
@@ -262,7 +280,7 @@ public:
     invoked. In this context a \em thread is defined as an instance of
     execution, and does not imply any other properties. This interface can be
     used to determine the full subscription of the execution instances of the
-    running process that invokded the FleCSI runtime.
+    running process that invoked the FleCSI runtime.
    */
 
   Color threads() const {

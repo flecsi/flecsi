@@ -6,39 +6,36 @@
 #include "flecsi/topo/narray/coloring_utils.hh"
 #include "flecsi/topo/narray/interface.hh"
 
-using namespace flecsi;
-
-struct mesh_helper : topo::specialization<topo::narray, mesh_helper> {};
-
 template<std::size_t D>
 struct axes_helper {};
 
 template<>
 struct axes_helper<1> {
   enum axis { x_axis };
-  using axes = mesh_helper::has<x_axis>;
+  using axes = flecsi::topo::help::has<x_axis>;
 };
 
 template<>
 struct axes_helper<2> {
   enum axis { x_axis, y_axis };
-  using axes = mesh_helper::has<x_axis, y_axis>;
+  using axes = flecsi::topo::help::has<x_axis, y_axis>;
 };
 
 template<>
 struct axes_helper<3> {
   enum axis { x_axis, y_axis, z_axis };
-  using axes = mesh_helper::has<x_axis, y_axis, z_axis>;
+  using axes = flecsi::topo::help::has<x_axis, y_axis, z_axis>;
 };
 
 template<>
 struct axes_helper<4> {
   enum axis { x_axis, y_axis, z_axis, t_axis };
-  using axes = mesh_helper::has<x_axis, y_axis, z_axis, t_axis>;
+  using axes = flecsi::topo::help::has<x_axis, y_axis, z_axis, t_axis>;
 };
 
 template<std::size_t D>
-struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
+struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
+              axes_helper<D> {
   static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");
 
   using domain = typename mesh::base::domain;
@@ -50,10 +47,10 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     double delta;
   };
 
-  static constexpr Dimension dimension = D;
+  static constexpr flecsi::Dimension dimension = D;
 
   template<auto>
-  static constexpr PrivilegeCount privilege_count = 2;
+  static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
   using coord = typename mesh::base::coord;
   using gcoord = typename mesh::base::gcoord;
@@ -70,30 +67,30 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
 
   template<class B>
   struct interface : B {
-    using M = std::array<util::id, dimension>;
+    using M = std::array<flecsi::util::id, dimension>;
 
     template<axis A, domain DM = domain::logical>
     auto size() const {
-      return B::template size<topo::elements, A, DM>();
+      return B::template size<flecsi::topo::elements, A, DM>();
     }
 
     template<axis A, domain DM = domain::logical>
     auto range() const {
-      return B::template range<topo::elements, A, DM>();
+      return B::template range<flecsi::topo::elements, A, DM>();
     }
 
     template<axis A, domain DM = domain::logical>
     auto offset() const {
-      return B::template offset<topo::elements, A, DM>();
+      return B::template offset<flecsi::topo::elements, A, DM>();
     }
 
     template<axis A>
-    util::gid global_id(util::id lid) const {
-      return B::template global_id<topo::elements, A>(lid);
+    flecsi::util::gid global_id(flecsi::util::id lid) const {
+      return B::template global_id<flecsi::topo::elements, A>(lid);
     }
 
     auto global_ids(M lid) const {
-      std::array<util::gid, dimension> val;
+      std::array<flecsi::util::gid, dimension> val;
       if constexpr(D == 1) {
         val[0] = global_id<axis::x_axis>(lid[0]);
       }
@@ -109,7 +106,7 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
       return val;
     }
 
-    template<typename S = util::id, domain DM = domain::all>
+    template<typename S = flecsi::util::id, domain DM = domain::all>
     auto strides() {
       std::array<S, dimension> val;
       if constexpr(D == 1) {
@@ -128,10 +125,10 @@ struct mesh : topo::specialization<topo::narray, mesh<D>>, axes_helper<D> {
     }
 
     template<axis A, domain DM = domain::logical>
-    std::array<util::id, 2> axis_bounds() {
-      util::id lo = (DM == domain::logical || DM == domain::ghost_high)
-                      ? offset<A, DM>()
-                      : 0;
+    std::array<flecsi::util::id, 2> axis_bounds() {
+      flecsi::util::id lo = (DM == domain::logical || DM == domain::ghost_high)
+                              ? offset<A, DM>()
+                              : 0;
       return {lo, lo + size<A, DM>()};
     }
 

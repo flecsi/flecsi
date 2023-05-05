@@ -328,6 +328,5 @@ label_default(std::string s) {
 #endif
 
 /// \}
-/// \}
 
 #endif

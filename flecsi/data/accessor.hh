@@ -35,16 +35,19 @@ require_host(F && f) {
   std::forward<F>(f)(h, [](auto &) { return nullptr; });
 }
 
-template<class A, typename F>
+template<Privileges P, class S, class F>
 void
-construct(const A & a, F && f) {
-  // Capture if the field can be initialized on the device (toc + wo)
-  if constexpr(!std::is_trivially_default_constructible_v<
-                 typename A::value_type>) {
+construct(S && s, F && f) {
+  if constexpr(privilege_discard(P) &&
+               !std::is_trivially_default_constructible_v<
+                 std::remove_reference_t<
+                   decltype(*std::declval<S>()().begin())>>) {
     require_host(std::forward<F>(f));
+    auto && a = std::forward<S>(s)();
+    std::uninitialized_default_construct(a.begin(), a.end());
   }
-  std::uninitialized_default_construct(a.begin(), a.end());
 }
+
 template<class T, layout L, Privileges P, bool Span>
 void
 destroy_task(typename field<T, L>::template accessor1<P> a) {
@@ -257,9 +260,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
         r.cleanup([r] { detail::destroy<P>(r); });
       return r.template cast<raw>();
     });
-    if constexpr(privilege_discard(P))
-      detail::construct(
-        this->span(), std::forward<F>(f)); // no-op on caller side
+    detail::construct<P>([this] { return this->span(); }, std::forward<F>(f));
   }
 };
 
@@ -351,8 +352,8 @@ struct ragged_accessor
       const auto s = off.span();
       std::fill(s.begin(), s.end(), 0);
     }
-    else if constexpr(privilege_discard(P))
-      detail::construct(span(), std::forward<F>(f));
+    else
+      detail::construct<P>([this] { return span(); }, std::forward<F>(f));
   }
 
   template<class Topo, typename Topo::index_space S>
@@ -1253,8 +1254,8 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
   template<class F>
   void send(F && f) {
     accessor::particle_accessor::send(std::forward<F>(f));
-    if constexpr(privilege_discard(P))
-      detail::construct(*this, std::forward<F>(f)); // no-op on caller side
+    detail::construct<P>(
+      [this]() -> auto & { return *this; }, std::forward<F>(f));
   }
 };
 
@@ -1451,7 +1452,7 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
 
-/// A sequence of accessors obtained from a \c\ref mapping.
+/// A sequence of accessors obtained from a \c launch::mapping.
 /// Pass a \c multi_reference or \c mapping to a task that accepts one.
 /// <!-- This gets the short name since users must
 ///      declare parameters with it. -->

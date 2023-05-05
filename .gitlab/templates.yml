@@ -123,10 +123,18 @@
     # This uses the legion backend by default because it also satisfies the dependencies
     # for MPI (and potentially HPX)
     - export SPACK_INSTALL_FLECSI_BACKEND=${SPACK_INSTALL_FLECSI_BACKEND:-legion}
+    - |
+      if [ "$(spack arch)" = "linux-rhel7-power9le" ]; then
+        # required due to older libibverbs.so being pulled in from /usr/lib64 rpath
+        # can be removed once Spack-built Slurm is current with system Slurm
+        export ARCH_DEPS="^rdma-core@22.4"
+      else
+        export ARCH_DEPS=""
+      fi
     - echo -e "spack add ${VERSION} %${TOOLCHAIN}
-        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}"
+        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER} ${ARCH_DEPS}"
     - spack add ${VERSION} %${TOOLCHAIN}
-        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER}
+        backend=${SPACK_INSTALL_FLECSI_BACKEND} ${VARIANTS} ^${MPI_PROVIDER} ${ARCH_DEPS}
     - spack install -j $(nproc) --only dependencies
     - spack find -v
     - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
@@ -180,8 +188,6 @@
 
 .darwin_build_template:
   stage: Build + Unit Tests
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
@@ -255,8 +261,6 @@
       spack arch
 
 .darwin_defaults_build_template:
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
@@ -298,8 +302,6 @@
       echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
 
 .darwin_docs_and_format_template:
-  tags:
-    - darwin-slurm-shared
   variables:
     MPI_PROVIDER: none
   script:
@@ -367,8 +369,6 @@
 
 .darwin_standalone_template:
   stage: Standalone
-  tags:
-    - darwin-slurm-shared
   script:
     - *darwin_restore_spack_env
     - *darwin_env_shell

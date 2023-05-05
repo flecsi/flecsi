@@ -62,11 +62,8 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-context_t::context_t(const arguments::config & c, arguments::action & a)
-  : context(c, a, util::mpi::size(), util::mpi::rank()), argv{a.program} {
-  argv.reserve(c.backend.size() + 1);
-  argv.insert(argv.end(), c.backend.begin(), c.backend.end());
-}
+context_t::context_t(const arguments::config & c)
+  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.backend) {}
 
 dependencies_guard::dependencies_guard(arguments::dependent & d)
   : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}

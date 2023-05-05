@@ -1027,8 +1027,7 @@ check_4dmesh(mesh4d::accessor<ro> m) {
 template<std::size_t D, typename mesh<D>::domain DOM>
 int
 value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
-  ints::accessor<wo, na> a,
-  int sz) {
+  ints::accessor<wo, na> a) {
   UNIT("REWRITE_RF") {
     std::array<util::id, D> lbnds, ubnds;
     m.template bounds<DOM>(lbnds, ubnds);
@@ -1037,9 +1036,8 @@ value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
 
     using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
     for(auto && v : tb(lbnds, ubnds)) {
-      auto lid = ln_local(v);
-      for(int n = 0; n < sz; ++n)
-        a[lid][n] = -a[lid][n];
+      for(auto & x : a[ln_local(v)])
+        x = -x;
     }
   };
 }
@@ -1113,7 +1111,7 @@ narray_driver() {
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy
-      execute<value_rewrite_rf<1, mesh1d::domain::logical>>(m1, rf1(m1), sz);
+      execute<value_rewrite_rf<1, mesh1d::domain::logical>>(m1, rf1(m1));
       auto res = test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_low>>(
         m1, rf1(m1));
       EXPECT_EQ(res, 0);

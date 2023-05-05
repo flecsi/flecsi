@@ -76,7 +76,7 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(const arguments::config &, arguments::action &);
+  context_t(const arguments::config &);
 
   /*
     Documentation for this interface is in the top-level context type.

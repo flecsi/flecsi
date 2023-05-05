@@ -11,6 +11,8 @@ stages:
 
 default:
   interruptible: true
+  tags:
+    - darwin-slurm-shared
   before_script:
    - echo "Running on $(hostname)"
 
@@ -343,7 +345,7 @@ openmpi-legion-clang-cuda:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86,power9
+    PARTITIONS: volta-x86,power9-rhel7
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-legion-clang-cuda-mpi:
@@ -364,7 +366,7 @@ openmpi-legion-clang-cuda-mpi:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86,power9
+    PARTITIONS: volta-x86,power9-rhel7
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
