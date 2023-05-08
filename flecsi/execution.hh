@@ -25,6 +25,8 @@ namespace flecsi {
 
 inline std::string argv0;
 
+void finalize();
+
 /*!
   Perform FleCSI runtime initialization. If \em dependent is true, this call
   will also initialize any runtime on which FleCSI depends.
@@ -91,7 +93,7 @@ initialize(int argc, char ** argv, bool dependent = true) {
   if(c) {
     if(!ctx.process())
       std::cerr << args.act.stderr;
-    run::dependent.reset(); // because clients can skip finalize
+    finalize();
   }
   return c;
 }
