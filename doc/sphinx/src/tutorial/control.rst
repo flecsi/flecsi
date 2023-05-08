@@ -355,20 +355,14 @@ otherwise:
 
 The last part of the main function is not really different from previous
 examples; we just have a better understanding of it now.
-Passing the *execute* method of our control model to FleCSI's *start*
-function tells FleCSI to run the control model, which will execute all
-of the cycles and actions registered on the control model (unless early
-termination is selected by throwing ``control_base::exception`` from an action):
+The *execute* method passed to ``flecsi::start`` executes the actions registered on the control model.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
    :start-at: // Pass the control model
    :end-at: status = flecsi::start(control::execute);
 
-If inheriting from ``control_base``, the return value stored in status is either the
-code from ``control_base::exception`` if thrown or ``status::success`` otherwise.
-If not inheriting from ``control_base``, the return value is the bitwise or of return
-values from the executed actions.
+The return value is 0 or the value in a ``control_base::exception`` thrown by an action to terminate execution.
 
 Now that we have defined the control model and added it to our runtime
 setup, the only thing that remains is to add some actions under the
@@ -537,7 +531,7 @@ Several actions are defined for the two control points in
 .. literalinclude:: ../../../../tutorial/2-control/3-actions.hh
    :language: cpp
    :start-at: // Register several actions under control point one.
-   :end-at: control::action<package_g, cp::cp2> package_g_action;
+   :end-at: package_g_action
 
 Additionally, several dependencies are defined in the same file:
 

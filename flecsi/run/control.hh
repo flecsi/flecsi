@@ -221,14 +221,9 @@ private:
   /*
     Run the control model.
   */
-  int run() const {
+  int run(P * p) const {
     int status{flecsi::run::status::success};
-    if constexpr(is_control_base_policy) {
-      P pol;
-      run_impl::walk<control_points>(point_walker(sort(), status, &pol));
-    }
-    else
-      run_impl::walk<control_points>(point_walker(sort(), status));
+    run_impl::walk<control_points>(point_walker(sort(), status, p));
     return status;
   } // run
 
@@ -258,8 +253,11 @@ private:
 
 public:
   /// Return the control policy object.
-  /// \deprecated use control_base, this cannot be used if inheriting from
-  /// control_base
+  /// It is default-initialized when the control points are created and
+  /// destroyed at the end of the program.
+  /// This function cannot be used if \c P inherits from \c control_base.
+  /// \deprecated derive \c P from \c control_base and use the parameter
+  ///   passed to each action
   static P & state() {
     static_assert(!is_control_base_policy);
     return instance().policy_;
@@ -335,25 +333,26 @@ public:
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
     valid ordering, and executes the actions.  If the policy `P` inherits from
-    `control_base`, \c control_base::exception can be thrown for early
+    `control_base`, an object of type \c P is value-initialized and destroyed
+    before this function returns.
+    \c control_base::exception can be thrown for early
     termination. \return code from a thrown \c control_base::exception or the
     bitwise or of return values of executed actions.
    */
 
   static int execute() {
-    int ret{status::success};
     if constexpr(is_control_base_policy) {
       try {
-        ret = instance().run();
+        P pol = P();
+        return instance().run(&pol);
       }
       catch(control_base::exception e) {
-        ret = e.code;
+        return e.code;
       }
     }
     else {
-      ret = instance().run();
+      return instance().run(nullptr);
     }
-    return ret;
   } // execute
 
   /*!

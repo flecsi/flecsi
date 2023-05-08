@@ -73,7 +73,9 @@ private:
 };
 
 /// A prepared assignment of colors.
+/// Declare `multi<Topo::accessor<...>>` task parameter to use the topology.
 /// \tparam P underlying topology
+/// \see field::definition
 template<class P>
 struct mapping : convert_tag {
   using Borrow = topo::borrow<P>;
@@ -156,7 +158,7 @@ make(topology_slot<P> & t, const Claims & c) {
   return {t.get(), c};
 }
 /// Create a \c mapping for initialization using an MPI task.
-/// The \ref\c Claims are constructed using \ref\c block.
+/// The \c Claims are constructed using \link block() `block`\endlink.
 template<class P>
 mapping<P>
 make(topology_slot<P> & t) {

@@ -2,6 +2,8 @@
 
    <br />
 
+.. _TUT-RM:
+
 Runtime Model
 *************
 
@@ -665,7 +667,7 @@ Consider the main function for this example:
   :start-after: // main
   :end-at: } // main
 
-A scope guard is used to annotation the top level task:
+A scope guard is used to annotate the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp

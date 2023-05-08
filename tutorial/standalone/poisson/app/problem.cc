@@ -10,7 +10,7 @@ using namespace flecsi;
 
 void
 poisson::action::problem(control_policy &) {
-  annotation::rguard<problem_region> guard;
+  util::annotation::rguard<problem_region> guard;
   execute<task::eggcarton, default_accelerator>(m, ud(m), fd(m), sd(m), Aud(m));
   execute<task::io, flecsi::mpi>(m, ud(m), "init");
   execute<task::io, flecsi::mpi>(m, sd(m), "actual");

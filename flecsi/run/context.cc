@@ -31,16 +31,17 @@ struct backend_arg {
 arguments::arguments(int argc, char ** argv) {
   act.program = argv[0] ? argv[0] : "";
   act.program = act.program.substr(act.program.rfind('/') + 1);
+  cfg.backend.push_back(act.program);
 #ifdef FLECSI_ENABLE_MPI
   dep.mpi.push_back(act.program);
 #endif
 #ifdef FLECSI_ENABLE_KOKKOS
   dep.kokkos.push_back(act.program);
 #endif
-  act.code = getopt(argc, argv); // also populates act.stderr
+  act.op = getopt(argc, argv); // also populates act.stderr
 }
 
-status
+arguments::action::operation
 arguments::getopt(int argc, char ** argv) {
   po::options_description master("Basic Options");
   master.add_options()("help,h", "Print this message and exit.");
@@ -103,11 +104,6 @@ arguments::getopt(int argc, char ** argv) {
   all.add(context::hidden_options());
 
   auto & pd = context::positional_description();
-  po::parsed_options parsed = po::command_line_parser(argc, argv)
-                                .options(all)
-                                .positional(pd)
-                                .allow_unregistered()
-                                .run();
 
   struct guard : std::ostringstream {
     guard(std::string & s) : out(s) {}
@@ -184,18 +180,20 @@ arguments::getopt(int argc, char ** argv) {
   };
 
   try {
+    po::parsed_options parsed =
+      po::command_line_parser(argc, argv).options(all).positional(pd).run();
     po::variables_map vm;
     po::store(parsed, vm);
 
     if(vm.count("help")) {
       usage();
-      return status::help;
+      return act.help;
     } // if
     if(vm.count("control-model")) {
-      return status::control_model;
+      return act.control_model;
     } // if
     if(vm.count("control-model-sorted")) {
-      return status::control_model_sorted;
+      return act.control_model_sorted;
     } // if
 
     po::notify(vm);
@@ -227,7 +225,7 @@ arguments::getopt(int argc, char ** argv) {
                  << std::endl;
 
           usage();
-          return status::help;
+          return act.error;
         } // if
       } // if
     } // for
@@ -244,13 +242,10 @@ arguments::getopt(int argc, char ** argv) {
            << FLOG_COLOR_PLAIN << std::endl
            << std::endl;
     usage();
-    return status::command_line_error;
+    return act.error;
   } // try
 
-  unrecognized =
-    po::collect_unrecognized(parsed.options, po::include_positional);
-
-  return status::success;
+  return act.run;
 }
 
 } // namespace flecsi::run

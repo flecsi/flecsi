@@ -26,9 +26,32 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
+* Topologies
+
+  * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.
+
 * Utilities
 
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+
+Changes in v2.2.1
++++++++++++++++++
+
+Fixed
+^^^^^
+* Runtime
+
+  * Control policy objects are value-initialized by ``run::control::execute``.
+  * Unrecognized options are properly rejected along with unrecognized positional arguments.
+  * The same exit status is used for all erroneous command lines.
+
+* Data
+
+  * ``ragged`` accessors with ``wo`` privileges work for GPU tasks. (The field type must still be trivially default-constructible.)
+
+* Utilities
+
+  * ``transform_view`` supports pointers to members (though not during constant evaluation).
 
 Changes in v2.2.0 (April 14 2023)
 +++++++++++++++++++++++++++++++++
@@ -37,7 +60,7 @@ Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 * Build
 
-  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`runtime`).
+  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
 
 * Utilties
 
@@ -91,7 +114,7 @@ New features
 
   * Tasks may be executed as ``omp``, allowing efficient use of OpenMP.
   * ``exec::trace`` improves performance of loops when used with the Legion backend.
-  * ``task_local`` objects define global variables with task-local variables.
+  * ``task_local`` objects define global variables with task-local values.
 
 * Topologies
 

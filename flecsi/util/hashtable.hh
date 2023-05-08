@@ -178,7 +178,6 @@ public:
 
 }; // class hashtable
 
-/// \}
 } // namespace util
 } // namespace flecsi
 

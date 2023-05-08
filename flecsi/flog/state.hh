@@ -235,8 +235,8 @@ public:
   }
 
 #if defined(FLOG_ENABLE_MPI)
-  bool one_process() const {
-    return one_process_ < processes_;
+  Color one_process() const {
+    return one_process_;
   }
 
   Color process() const {

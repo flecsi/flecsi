@@ -10,7 +10,7 @@ User Guide
 
   user-guide/cmake
   user-guide/topologies
-  user-guide/runtime
+  user-guide/specializations
   user-guide/performance
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

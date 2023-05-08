@@ -13,11 +13,11 @@
 
 #include <type_traits>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \addtogroup topology
 /// \{
+/// \cond core
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
@@ -26,9 +26,9 @@ template<class, class>
 struct connect;
 
 /*!
-  Connectivity information for the given specialization policy \emph{P} for the
-  given key_types in \emph{VT}. This data structure adds ragged fields to the
-  specialized user type to store connectivity informaiton for each
+  Connectivity fields for the given specialization and specified entity kinds.
+  This data structure adds ragged fields to the
+  specialized user type to store connectivity information for each
   user-specified connectivity.
 
   @tparam P  A core topology specialization policy.
@@ -241,18 +241,20 @@ struct id {
 private:
   T t;
 };
+/// \endcond
 
 /// Specify an iteration over \c id objects.
 /// This function is supported for GPU execution.
 /// \tparam S index space
 /// \param c range of integers
-/// \return a range of \c id<S> objects, perhaps lifetime-bound to \a c
+/// \return a range of \c id\<S\> objects
 template<auto S, class C>
 FLECSI_INLINE_TARGET auto
 make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
+/// \anchor make_ids
 
 template<class T>
 void
@@ -268,6 +270,5 @@ concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
 /// \}
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif

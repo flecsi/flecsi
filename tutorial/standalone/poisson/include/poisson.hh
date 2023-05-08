@@ -4,21 +4,20 @@
 #include <flecsi/execution.hh>
 #include <flecsi/util/annotation.hh>
 
-using namespace flecsi::util;
-
-struct main_region : annotation::region<annotation::execution> {
+struct main_region
+  : flecsi::util::annotation::region<flecsi::util::annotation::execution> {
   inline static const std::string name{"main"};
 };
-struct user_execution : annotation::context<user_execution> {
+struct user_execution : flecsi::util::annotation::context<user_execution> {
   static constexpr char name[] = "User-Execution";
 };
-struct problem_region : annotation::region<user_execution> {
+struct problem_region : flecsi::util::annotation::region<user_execution> {
   inline static const std::string name{"problem"};
 };
-struct solve_region : annotation::region<user_execution> {
+struct solve_region : flecsi::util::annotation::region<user_execution> {
   inline static const std::string name{"solve"};
 };
-struct analyze_region : annotation::region<user_execution> {
+struct analyze_region : flecsi::util::annotation::region<user_execution> {
   inline static const std::string name{"analyze"};
 };
 

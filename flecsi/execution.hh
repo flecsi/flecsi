@@ -31,9 +31,13 @@ inline std::string argv0;
 
   The following options are interpreted in addition to any \c program_option
   objects:
+  - \c \--Xbackend=arg
+
+    Provide a command-line option to the backend.  May be used more than once.
   - \c \--backend-args=args
 
-    Provide command-line options to the backend; word splitting is applied.
+    Provide command-line options to the backend.
+    May be used more than once; word splitting is applied.
   - \c \--flog-tags=tags
 
     Enable comma-separated output \a tags.
@@ -58,6 +62,9 @@ inline std::string argv0;
   The control model options require Graphviz support and take effect via
   \c control::check_status.
 
+  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
+  integer, the runtime will delay for that number of seconds.
+
   @param argc number of command-line arguments to process
   @param argv command-line arguments to process
   @param dependent A boolean telling FleCSI whether or not to initialize
@@ -72,10 +79,15 @@ inline int
 initialize(int argc, char ** argv, bool dependent = true) {
   run::arguments args(argc, argv);
   argv0 = args.act.program;
+  const auto make = [](auto & o, auto & x) -> auto & {
+    flog_assert(!o, "already initialized");
+    return o.emplace(x);
+  };
   if(dependent)
-    run::dependent.emplace(args.dep);
-  auto & ctx = run::context::ctx.emplace(args.cfg, args.act);
-  const auto c = args.act.code;
+    make(run::dependent, args.dep);
+  auto & ctx = make(run::context::ctx, args.cfg);
+  ctx.check_config(args.act);
+  const auto c = args.act.status();
   if(c) {
     if(!ctx.process())
       std::cerr << args.act.stderr;
@@ -87,10 +99,6 @@ initialize(int argc, char ** argv, bool dependent = true) {
 /*!
   Perform FleCSI runtime start. This causes the runtime to begin execution
   of the top-level action.
-
-  As a debugging aid, if the \c FLECSI_SLEEP environment variable is set to an
-  integer, the runtime will delay for that number of seconds during context
-  creation.
 
   \param  action
           The top-level action, i.e., the entry point for FleCSI to begin
@@ -349,7 +357,7 @@ threads_per_process() {
   invoked. In this context a \em thread is defined as an instance of
   execution, and does not imply any other properties. This interface can be
   used to determine the full subscription of the execution instances of the
-  running process that invokded the FleCSI runtime.
+  running process that invoked the FleCSI runtime.
  */
 
 inline Color
@@ -527,7 +535,7 @@ struct trace {
 
   struct guard;
 
-  /// Create a \c\ref guard for this \c trace.
+  /// Create a <code>\ref guard</code> for this \c trace.
   inline guard make_guard();
 
   /// Skip the next call to the tracer
