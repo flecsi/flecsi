@@ -150,8 +150,24 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
         auto by = axis_bounds<axis::y_axis, DM>();
         auto bz = axis_bounds<axis::z_axis, DM>();
         lbnds = {bx[0], by[0], bz[0]};
-        ubnds = {by[1], by[1], bz[1]};
+        ubnds = {bx[1], by[1], bz[1]};
       }
+    }
+
+    bool check_diag_bounds(M bnds) {
+      return check_diag_bounds(bnds, axes());
+    }
+
+  private:
+    template<auto... Axes>
+    bool check_diag_bounds(M bnds, flecsi::util::constants<Axes...>) {
+      return std::apply(
+               [this](auto... bb) {
+                 return ((bb >= this->offset<Axes, domain::ghost_high>() ||
+                           bb < this->offset<Axes, domain::logical>()) +
+                         ... + 0);
+               },
+               bnds) > 1;
     }
   };
 }; // mesh
