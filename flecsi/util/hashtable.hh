@@ -19,6 +19,7 @@ class hashtableIterator
 {
   using ht_t = hashtable<KEY, TYPE, HASH>;
   using ht_type_t = typename ht_t::pair_t;
+  using key_t = KEY;
 
 private:
   ht_type_t * ptr_;
