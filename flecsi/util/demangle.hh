@@ -21,6 +21,30 @@ namespace util {
 std::string demangle(const char * const name);
 
 /*!
+  Return signature without parameter list
+
+  @param sig The function signature
+ */
+
+std::string strip_parameter_list(const std::string & sig);
+
+/*!
+  Return signature without return type
+
+  While this works for many cases, if the heuristic fails to detect the return
+  type, it will return the full signature.
+
+  Example of a not supported signature:
+  \code
+  void f<X<void, K<(0)> e<0, 0>()>()
+  \endcode
+
+  @param sig The function signature
+ */
+
+std::string strip_return_type(const std::string & sig);
+
+/*!
   Return the demangled name of the type T.
 
   @tparam T the type (references and cv-qualification ignored)

@@ -23,12 +23,14 @@
 
 #include <legion.h>
 
+#include <regex>
 #include <string>
 #include <utility>
 
 namespace flecsi {
 
 inline flog::devel_tag task_wrapper_tag("task_wrapper");
+inline flog::tag task_names_tag("task_names");
 
 // Task parameter serialization (needed only for Legion):
 namespace data {
@@ -185,7 +187,46 @@ detail::register_task() {
   static_assert(processor_type != task_processor_type_t::mpi,
     "Legion tasks cannot use MPI");
 
-  const std::string name = util::symbol<*TASK>();
+  std::string name = util::symbol<*TASK>();
+
+  {
+    flog::guard guard(task_names_tag);
+
+    // extract wrapped task
+    constexpr char wrapper_prefix[] = "flecsi::exec::leg::task_wrapper<";
+    if(name.rfind(wrapper_prefix, 0) == 0) {
+      auto wrap_end = name.rfind(", (flecsi::exec::task_processor_type_t)");
+      name = name.substr(
+        sizeof(wrapper_prefix) - 1, wrap_end - sizeof(wrapper_prefix) + 1);
+    }
+
+    // replace known layouts
+    const std::array<std::string, 6> layouts = {
+      "raw", "single", "dense", "ragged", "sparse", "particle"};
+    std::regex layout_regex{
+      "(^|[^\\w:_])flecsi::data::accessor<\\(flecsi::data::layout\\)(\\d+)"};
+    std::smatch m;
+
+    while(std::regex_search(name, m, layout_regex)) {
+      name.replace(m[0].first,
+        m[0].second,
+        std::string(m[1]) + "flecsi::data::accessor<" +
+          layouts[std::stoi(m[2])]);
+    }
+
+    std::string sig = name;
+    name = util::strip_return_type(util::strip_parameter_list(name));
+
+    // hash signature and attach to short name
+    std::stringstream ss;
+    ss << name << " # ";
+    ss << std::hex << std::hash<std::string>{}(sig);
+    name = ss.str();
+
+    // allows dumping out full signatures mappping via "task_names" tag
+    flog(info) << "Registering task \"" << name << "\": " << sig << "\n";
+  }
+
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
   Legion::Processor::Kind kind;
   switch(processor_type) {
