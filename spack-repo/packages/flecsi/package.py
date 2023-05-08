@@ -73,7 +73,9 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
 
     # CMake
 
-    depends_on('cmake@3.19:')
+    # since we compile with -Wextra -Werror for development
+    # and https://gitlab.kitware.com/cmake/cmake/-/issues/23141
+    depends_on('cmake@3.19:3.21,3.22.3:')
 
     # Graphviz
 
