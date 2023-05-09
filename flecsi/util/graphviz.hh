@@ -22,56 +22,6 @@ namespace util {
 /// \ingroup utils
 /// \{
 
-// attribute strings
-inline constexpr const char *gv_graph = "graph", *gv_label_default = "",
-                            *gv_label = "label", *gv_color = "color",
-                            *gv_color_black = "black",
-                            *gv_penwidth = "penwidth",
-                            *gv_penwidth_default = "", *gv_shape = "shape",
-                            *gv_shape_default = "ellipse", *gv_style = "style",
-                            *gv_style_default = "",
-                            *gv_fill_color = "fillcolor",
-                            *gv_color_lightgrey = "lightgrey",
-                            *gv_font_color = "fontcolor", *gv_dir = "dir",
-                            *gv_dir_default = "forward",
-                            *gv_headport = "headport",
-                            *gv_headport_default = "c",
-                            *gv_tailport = "tailport",
-                            *gv_tailport_default = "c",
-                            *gv_arrowsize = "arrowsize",
-                            *gv_arrowsize_default = "0.75",
-                            *gv_arrowhead = "arrowhead",
-                            *gv_arrowhead_default = "normal",
-                            *gv_arrowtail = "arrowtail",
-                            *gv_arrowtail_default = "normal";
-
-#define GV_GRAPH const_cast<char *>(gv_graph)
-#define GV_LABEL const_cast<char *>(gv_label)
-#define GV_LABEL_DEFAULT const_cast<char *>(gv_label_default)
-#define GV_PENWIDTH const_cast<char *>(gv_penwidth)
-#define GV_PENWIDTH_DEFAULT const_cast<char *>(gv_penwidth_default)
-#define GV_COLOR const_cast<char *>(gv_color)
-#define GV_COLOR_BLACK const_cast<char *>(gv_color_black)
-#define GV_SHAPE const_cast<char *>(gv_shape)
-#define GV_SHAPE_DEFAULT const_cast<char *>(gv_shape_default)
-#define GV_STYLE const_cast<char *>(gv_style)
-#define GV_STYLE_DEFAULT const_cast<char *>(gv_style_default)
-#define GV_FILL_COLOR const_cast<char *>(gv_fill_color)
-#define GV_COLOR_LIGHTGREY const_cast<char *>(gv_color_lightgrey)
-#define GV_FONT_COLOR const_cast<char *>(gv_font_color)
-#define GV_DIR const_cast<char *>(gv_dir)
-#define GV_DIR_DEFAULT const_cast<char *>(gv_dir_default)
-#define GV_HEADPORT const_cast<char *>(gv_headport)
-#define GV_HEADPORT_DEFAULT const_cast<char *>(gv_headport_default)
-#define GV_TAILPORT const_cast<char *>(gv_tailport)
-#define GV_TAILPORT_DEFAULT const_cast<char *>(gv_tailport_default)
-#define GV_ARROWSIZE const_cast<char *>(gv_arrowsize)
-#define GV_ARROWSIZE_DEFAULT const_cast<char *>(gv_arrowsize_default)
-#define GV_ARROWHEAD const_cast<char *>(gv_arrowhead)
-#define GV_ARROWHEAD_DEFAULT const_cast<char *>(gv_arrowhead_default)
-#define GV_ARROWTAIL const_cast<char *>(gv_arrowtail)
-#define GV_ARROWTAIL_DEFAULT const_cast<char *>(gv_arrowtail_default)
-
 inline constexpr int ag_create = 1, ag_access = 0;
 
 /// Class for creating Graphviz trees.
@@ -88,31 +38,35 @@ public:
     } // if
   } // ~graphviz
 
-  graphviz() : graph_(agopen(GV_GRAPH, Agdirected, nullptr)) {
-    agattr(graph_, AGRAPH, cc("nodesep"), cc(".5"));
+  graphviz() : graph_(agopen(cc("graph"), Agdirected, nullptr)) {
+    const auto a = [&](int k, const char * n, const char * v) {
+      agattr(graph_, k, cc(n), cc(v));
+    };
+
+    a(AGRAPH, "nodesep", ".5");
 
     // set default node attributes
-    agattr(graph_, AGNODE, GV_LABEL, GV_LABEL_DEFAULT);
-    agattr(graph_, AGNODE, GV_PENWIDTH, GV_PENWIDTH_DEFAULT);
-    agattr(graph_, AGNODE, GV_COLOR, GV_COLOR_BLACK);
-    agattr(graph_, AGNODE, GV_SHAPE, GV_SHAPE_DEFAULT);
-    agattr(graph_, AGNODE, GV_STYLE, GV_STYLE_DEFAULT);
-    agattr(graph_, AGNODE, GV_FILL_COLOR, GV_COLOR_LIGHTGREY);
-    agattr(graph_, AGNODE, GV_FONT_COLOR, GV_COLOR_BLACK);
+    a(AGNODE, "label", "");
+    a(AGNODE, "penwidth", "");
+    a(AGNODE, "color", "black");
+    a(AGNODE, "shape", "ellipse");
+    a(AGNODE, "style", "");
+    a(AGNODE, "fillcolor", "lightgrey");
+    a(AGNODE, "fontcolor", "black");
 
     // set default edge attributes
-    agattr(graph_, AGEDGE, GV_DIR, GV_DIR_DEFAULT);
-    agattr(graph_, AGEDGE, GV_LABEL, GV_LABEL_DEFAULT);
-    agattr(graph_, AGEDGE, GV_PENWIDTH, GV_PENWIDTH_DEFAULT);
-    agattr(graph_, AGEDGE, GV_COLOR, GV_COLOR_BLACK);
-    agattr(graph_, AGEDGE, GV_STYLE, GV_STYLE_DEFAULT);
-    agattr(graph_, AGEDGE, GV_FILL_COLOR, GV_COLOR_BLACK);
-    agattr(graph_, AGEDGE, GV_FONT_COLOR, GV_COLOR_BLACK);
-    agattr(graph_, AGEDGE, GV_HEADPORT, GV_HEADPORT_DEFAULT);
-    agattr(graph_, AGEDGE, GV_TAILPORT, GV_TAILPORT_DEFAULT);
-    agattr(graph_, AGEDGE, GV_ARROWSIZE, GV_ARROWSIZE_DEFAULT);
-    agattr(graph_, AGEDGE, GV_ARROWHEAD, GV_ARROWHEAD_DEFAULT);
-    agattr(graph_, AGEDGE, GV_ARROWTAIL, GV_ARROWTAIL_DEFAULT);
+    a(AGEDGE, "dir", "forward");
+    a(AGEDGE, "label", "");
+    a(AGEDGE, "penwidth", "");
+    a(AGEDGE, "color", "black");
+    a(AGEDGE, "style", "");
+    a(AGEDGE, "fillcolor", "black");
+    a(AGEDGE, "fontcolor", "black");
+    a(AGEDGE, "headport", "c");
+    a(AGEDGE, "tailport", "c");
+    a(AGEDGE, "arrowsize", "0.75");
+    a(AGEDGE, "arrowhead", "normal");
+    a(AGEDGE, "arrowtail", "normal");
   }
   graphviz(graphviz && g) : graph_(std::exchange(g.graph_, {})) {}
 
