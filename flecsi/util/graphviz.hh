@@ -77,6 +77,10 @@ inline constexpr int ag_create = 1, ag_access = 0;
 /// Class for creating Graphviz trees.
 class graphviz
 {
+  static auto cc(const char * s) {
+    return const_cast<char *>(s);
+  }
+
 public:
   ~graphviz() {
     if(graph_ != nullptr) {
@@ -85,8 +89,7 @@ public:
   } // ~graphviz
 
   graphviz() : graph_(agopen(GV_GRAPH, Agdirected, nullptr)) {
-    agattr(
-      graph_, AGRAPH, const_cast<char *>("nodesep"), const_cast<char *>(".5"));
+    agattr(graph_, AGRAPH, cc("nodesep"), cc(".5"));
 
     // set default node attributes
     agattr(graph_, AGNODE, GV_LABEL, GV_LABEL_DEFAULT);
