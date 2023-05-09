@@ -8,7 +8,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cerrno>
 #include <cstdint>
+#include <cstdio>
+#include <ios>
 #include <limits>
 #include <map>
 #include <type_traits>
@@ -97,6 +100,26 @@ unique_each(std::vector<T> & vv) {
   for(auto & v : vv)
     force_unique(v);
 }
+
+struct FILE {
+  FILE(const char * n, const char * m) : f(std::fopen(n, m)) {
+    if(!f)
+      throw std::ios::failure(
+        "cannot open file", {errno, std::system_category()});
+  }
+  FILE(FILE && f) : f(std::exchange(f.f, {})) {}
+  ~FILE() {
+    if(f)
+      fclose(f); // NB: error lost
+  }
+
+  operator ::FILE *() const {
+    return f;
+  }
+
+private:
+  ::FILE * f;
+};
 
 /// \endcond
 /// \}

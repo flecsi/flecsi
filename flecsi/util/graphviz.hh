@@ -6,12 +6,15 @@
 
 #include <flecsi-config.h>
 
+#include "flecsi/util/common.hh" // FILE
+
 #if !defined(FLECSI_ENABLE_GRAPHVIZ)
 #error FLECSI_ENABLE_GRAPHVIZ not defined! This file depends on Graphviz!
 #endif
 
 #include <graphviz/cgraph.h>
 
+#include <stdexcept>
 #include <utility>
 
 /// \cond core
@@ -113,14 +116,8 @@ public:
   } // write
 
   void write(const char * name) const {
-    FILE * file = fopen(name, "w");
-
-    if(name == nullptr) {
-      flog_fatal("failed opening " << name);
-    } // if
-
-    agwrite(graph_, file);
-    fclose(file);
+    if(agwrite(graph_, FILE(name, "w")))
+      throw std::runtime_error("could not write graph");
   } // write
 
 private:
