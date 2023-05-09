@@ -224,7 +224,7 @@ protected:
 
 public:
   void check_config(arguments::action & a) const {
-#ifdef FLECSI_ENABLE_FLOG
+#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
     const Color p = flog::state::instance->one_process();
     if(p + 1 && p >= processes_) {
       std::ostringstream stderr;
