@@ -231,20 +231,18 @@ private:
     Output a graph of the control model.
   */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  int write() const {
+  void write() const {
     flecsi::util::graphviz gv;
     point_writer::write(registry_, gv);
     std::string file = program() + "-control-model.dot";
     gv.write(file);
-    return flecsi::run::status::control_model;
   } // write
 
-  int write_sorted() const {
+  void write_sorted() const {
     flecsi::util::graphviz gv;
     point_writer::write_sorted(sort(), gv);
     std::string file = program() + "-control-model-sorted.dot";
     gv.write(file);
-    return flecsi::run::status::control_model_sorted;
   } // write_sorted
 #endif
 
@@ -372,9 +370,11 @@ public:
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     switch(s) {
       case flecsi::run::status::control_model:
-        return instance().write();
+        instance().write();
+        break;
       case flecsi::run::status::control_model_sorted:
-        return instance().write_sorted();
+        instance().write_sorted();
+        break;
       default:
         break;
     } // switch
