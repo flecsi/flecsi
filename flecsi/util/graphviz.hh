@@ -134,7 +134,7 @@ public:
     return node;
   } // add_node
 
-  Agnode_t * node(const char * name) {
+  Agnode_t * node(const char * name) const {
     char buffer[1024];
     sprintf(buffer, "%s", name);
     return agnode(graph_, buffer, ag_access);
@@ -164,11 +164,11 @@ public:
     agset(edge, _attr, _value);
   } // set_edge_attribute
 
-  void write(const std::string & name) {
+  void write(const std::string & name) const {
     write(name.c_str());
   } // write
 
-  void write(const char * name) {
+  void write(const char * name) const {
     FILE * file = fopen(name, "w");
 
     if(name == nullptr) {
