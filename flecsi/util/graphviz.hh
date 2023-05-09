@@ -12,13 +12,14 @@
 #error FLECSI_ENABLE_GRAPHVIZ not defined! This file depends on Graphviz!
 #endif
 
-#include <graphviz/gvc.h>
+#include <graphviz/cgraph.h>
+#include <graphviz/types.h>
 
 /// \cond core
 namespace flecsi {
 namespace util {
 /// \defgroup graphviz Graphviz Support
-/// Wrapper for GVC.
+/// Wrapper for \c libcgraph.
 /// \ingroup utils
 /// \{
 
@@ -78,18 +79,14 @@ inline constexpr int ag_create = 1, ag_access = 0;
 class graphviz
 {
 public:
-  graphviz() : gvc_(nullptr), graph_(nullptr) {
-    gvc_ = gvContext();
+  graphviz() : graph_(nullptr) {
     clear();
   } // graphviz
 
   ~graphviz() {
     if(graph_ != nullptr) {
-      gvFreeLayout(gvc_, graph_);
       agclose(graph_);
     } // if
-
-    gvFreeContext(gvc_);
   } // ~graphviz
 
   /// Clear the graph.  This call is a little counter-intuitive.  It frees
@@ -97,7 +94,6 @@ public:
   /// Therefore, there is always a graph instance available.
   void clear() {
     if(graph_ != nullptr) {
-      gvFreeLayout(gvc_, graph_);
       agclose(graph_);
     } // if
 
@@ -248,17 +244,6 @@ public:
     agset(edge, _attr, _value);
   } // set_edge_attribute
 
-  /// Compute a layout using the specified engine.
-  void layout(const char * engine) {
-    char _engine[1024];
-    sprintf(_engine, "%s", engine);
-    // FIXME: Error handling
-    gvLayout(gvc_, graph_, _engine);
-  } // layout
-
-  /// Write the current layout to file.
-
-  // FIXME: May need to check that a valid layout exists.
   void write(const std::string & name) {
     write(name.c_str());
   } // write
@@ -275,8 +260,6 @@ public:
   } // write
 
 private:
-  // private data members
-  GVC_t * gvc_;
   Agraph_t * graph_;
 
 }; // class graphviz
