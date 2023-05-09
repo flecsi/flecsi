@@ -15,6 +15,8 @@
 #include <graphviz/cgraph.h>
 #include <graphviz/types.h>
 
+#include <utility>
+
 /// \cond core
 namespace flecsi {
 namespace util {
@@ -79,25 +81,13 @@ inline constexpr int ag_create = 1, ag_access = 0;
 class graphviz
 {
 public:
-  graphviz() : graph_(nullptr) {
-    clear();
-  } // graphviz
-
   ~graphviz() {
     if(graph_ != nullptr) {
       agclose(graph_);
     } // if
   } // ~graphviz
 
-  /// Clear the graph.  This call is a little counter-intuitive.  It frees
-  /// the currently allocated graph and creates a new empty one in its place.
-  /// Therefore, there is always a graph instance available.
-  void clear() {
-    if(graph_ != nullptr) {
-      agclose(graph_);
-    } // if
-
-    graph_ = agopen(GV_GRAPH, Agdirected, nullptr);
+  graphviz() : graph_(agopen(GV_GRAPH, Agdirected, nullptr)) {
     agattr(
       graph_, AGRAPH, const_cast<char *>("nodesep"), const_cast<char *>(".5"));
 
@@ -123,7 +113,12 @@ public:
     agattr(graph_, AGEDGE, GV_ARROWSIZE, GV_ARROWSIZE_DEFAULT);
     agattr(graph_, AGEDGE, GV_ARROWHEAD, GV_ARROWHEAD_DEFAULT);
     agattr(graph_, AGEDGE, GV_ARROWTAIL, GV_ARROWTAIL_DEFAULT);
-  } // clear
+  }
+  graphviz(graphviz && g) : graph_(std::exchange(g.graph_, {})) {}
+
+  explicit operator bool() const {
+    return graph_;
+  }
 
   /// Add a node to the graph.
   /// \param label if non-null, be used for the display name of the node.
