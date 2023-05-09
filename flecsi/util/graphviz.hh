@@ -79,34 +79,23 @@ public:
   /// Add a node to the graph.
   /// \param label if non-null, be used for the display name of the node.
   Agnode_t * add_node(const char * name, const char * label = nullptr) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agnode(graph_, buffer, ag_create);
+    Agnode_t * node = agnode(graph_, cc(name), ag_create);
 
     if(label != nullptr) {
-      char attr[1024];
-      sprintf(attr, "%s", "label");
-      sprintf(buffer, "%s", label);
-      agset(node, attr, buffer);
+      agset(node, cc("label"), cc(label));
     } // if
 
     return node;
   } // add_node
 
   Agnode_t * node(const char * name) const {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    return agnode(graph_, buffer, ag_access);
+    return agnode(graph_, cc(name), ag_access);
   } // node
 
   /// Set a node attribute.
   void
   set_node_attribute(Agnode_t * node, const char * attr, const char * value) {
-    char _attr[1024];
-    char _value[1024];
-    sprintf(_attr, "%s", attr);
-    sprintf(_value, "%s", value);
-    agset(node, _attr, _value);
+    agset(node, cc(attr), cc(value));
   } // set_node_attribute
 
   /// Add an edge to the graph.
@@ -116,11 +105,7 @@ public:
 
   void
   set_edge_attribute(Agedge_t * edge, const char * attr, const char * value) {
-    char _attr[1024];
-    char _value[1024];
-    sprintf(_attr, "%s", attr);
-    sprintf(_value, "%s", value);
-    agset(edge, _attr, _value);
+    agset(edge, cc(attr), cc(value));
   } // set_edge_attribute
 
   void write(const std::string & name) const {
