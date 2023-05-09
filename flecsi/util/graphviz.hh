@@ -38,7 +38,9 @@ public:
     } // if
   } // ~graphviz
 
-  graphviz() : graph_(agopen(cc("graph"), Agdirected, nullptr)) {
+  explicit graphviz(const std::string & name) : graphviz(name.c_str()) {}
+  explicit graphviz(const char * name)
+    : graph_(agopen(cc(name), Agdirected, nullptr)) {
     const auto a = [&](int k, const char * n, const char * v) {
       agattr(graph_, k, cc(n), cc(v));
     };

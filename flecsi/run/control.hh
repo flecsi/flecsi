@@ -232,7 +232,7 @@ private:
   */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   int write() const {
-    flecsi::util::graphviz gv;
+    flecsi::util::graphviz gv(program() + " control model");
     point_writer::write(registry_, gv);
     std::string file = program() + "-control-model.dot";
     gv.write(file);
@@ -240,7 +240,7 @@ private:
   } // write
 
   int write_sorted() const {
-    flecsi::util::graphviz gv;
+    flecsi::util::graphviz gv(program() + " actions");
     point_writer::write_sorted(sort(), gv);
     std::string file = program() + "-control-model-sorted.dot";
     gv.write(file);
