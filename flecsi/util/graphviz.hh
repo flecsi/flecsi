@@ -6,14 +6,11 @@
 
 #include <flecsi-config.h>
 
-#include "flecsi/flog.hh"
-
 #if !defined(FLECSI_ENABLE_GRAPHVIZ)
 #error FLECSI_ENABLE_GRAPHVIZ not defined! This file depends on Graphviz!
 #endif
 
 #include <graphviz/cgraph.h>
-#include <graphviz/types.h>
 
 #include <utility>
 
@@ -143,36 +140,7 @@ public:
     return agnode(graph_, buffer, ag_access);
   } // node
 
-  /// Remove a node from the graph.
-  void remove_node(const char * name) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agfindnode(graph_, buffer);
-
-    if(node != nullptr) {
-      agdelete(graph_, node);
-    } // if
-  } // remove_node
-
   /// Set a node attribute.
-  void
-  set_node_attribute(const char * name, const char * attr, const char * value) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agnode(graph_, buffer, ag_access);
-
-    if(node == nullptr) {
-      flog(warn) << "node " << name << " does not exist";
-      return;
-    } // if
-
-    char _attr[1024];
-    char _value[1024];
-    sprintf(_attr, "%s", attr);
-    sprintf(_value, "%s", value);
-    agset(node, _attr, _value);
-  } // set_node_attribute
-
   void
   set_node_attribute(Agnode_t * node, const char * attr, const char * value) {
     char _attr[1024];
@@ -181,49 +149,6 @@ public:
     sprintf(_value, "%s", value);
     agset(node, _attr, _value);
   } // set_node_attribute
-
-  /// Append to node label.
-  void set_label(const char * name, const char * label) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agnode(graph_, buffer, ag_access);
-
-    if(node == nullptr) {
-      flog(warn) << "node " << name << " does not exist";
-      return;
-    } // if
-
-    set_node_attribute(name, "label", label);
-  } // append_node_label
-
-  /// Get a node attribute.
-  char * get_node_attribute(const char * name, const char * attr) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agnode(graph_, buffer, ag_access);
-
-    if(node == nullptr) {
-      flog(warn) << "node " << name << " does not exist";
-      return nullptr;
-    } // if
-
-    char _attr[1024];
-    sprintf(_attr, "%s", attr);
-    return agget(node, _attr);
-  } // set_node_attribute
-
-  int inedge_count(const char * name) {
-    char buffer[1024];
-    sprintf(buffer, "%s", name);
-    Agnode_t * node = agnode(graph_, buffer, ag_access);
-
-    if(node == nullptr) {
-      flog(warn) << "node " << name << " does not exist";
-      return -1;
-    } // if
-
-    return agdegree(graph_, node, true, false);
-  } // edge_count
 
   /// Add an edge to the graph.
   Agedge_t * add_edge(Agnode_t * parent, Agnode_t * child) {
