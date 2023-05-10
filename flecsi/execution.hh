@@ -270,7 +270,7 @@ struct program_option {
     @param name  The name for the positional option.
     @param help  The help message for the option.
     @param count The number of values to consume for this positional option. If
-                 \em -1 is passed, this option will consume all remainging
+                 \em -1 is passed, this option will consume all remaining
                  values.
     @param check An optional, user-defined predicate to validate the option
                  passed by the user.
