@@ -44,6 +44,7 @@ void finalize();
 
     Enable comma-separated output \a tags.
     \c all enables all and is the default; \c unscoped disables all.
+    \c none disables normal Flog output entirely.
   - <tt>\--flog-verbose[=level]</tt>
 
     Enable verbose output if \a level is omitted or positive; suppress
