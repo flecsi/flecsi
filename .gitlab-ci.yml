@@ -526,4 +526,4 @@ openmpi-mpi-rocm:
     C_COMPILER: hipcc
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
     PARTITIONS: amd-epyc-gpu
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} -C gpu1_model:Radeon_Instinct_MI50_32GB"
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Radeon_Instinct_MI50_32GB|gpu1_model:Radeon_VII\""
