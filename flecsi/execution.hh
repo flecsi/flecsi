@@ -200,7 +200,7 @@ struct program_option {
                    option_implicit value specified. If \em option_multi is
                    passed, the flag will take multiple values.
     @param check   An optional, user-defined predicate to validate the option
-                   passed by the user.
+                   passed by the user; see signature below.
 
     @code
       program_option<int> my_flag("My Section",
@@ -210,7 +210,7 @@ struct program_option {
           {option_default, 1},
           {option_implicit, 0}
         },
-        [](flecsi::any const & v) {
+        [](flecsi::any const & v, std::stringstream &) {
           const int value = flecsi::option_value<int>(v);
           return value >= 0 && value < 10;
         });
