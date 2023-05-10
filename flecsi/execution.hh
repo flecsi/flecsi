@@ -161,16 +161,20 @@ enum option_attribute : size_t {
 
 using any = boost::any;
 
+template<class>
+struct program_option;
+
 /*!
   Convert an option value into its underlying type.
 
   @tparam ValueType The option underlying value type.
+  \deprecated Accept the value directly in the validation function.
  */
 
 template<typename ValueType>
 ValueType
 option_value(any const & v) {
-  return boost::any_cast<boost::optional<ValueType>>(v).value();
+  return program_option<ValueType>::unwrap(v);
 }
 
 /*!
@@ -178,10 +182,43 @@ option_value(any const & v) {
   Boost's Program Options utility. Creating an instance of this type at
   namespace scope will add a program option that can be queried after the
   \c initialize function is called.
+
+  A validation function can have the signature
+  `bool(ValueType,std::stringstream&)` or
+  `bool(flecsi::any,std::stringstream&)`.  An error message may be written to
+  the stream.  In the latter, \b deprecated case, use \link
+  flecsi::option_value() `option_value`\endlink to obtain the \c ValueType.
  */
 
 template<typename ValueType>
 struct program_option {
+  static const ValueType & unwrap(const boost::any & a) {
+    return boost::any_cast<const boost::optional<ValueType> &>(a).value();
+  }
+
+private:
+  static constexpr auto default_check = [](const ValueType &,
+                                          std::stringstream &) { return true; };
+
+  template<class F, class = void>
+  struct wrapper {
+    static auto get(F && f) {
+      return [f = std::forward<F>(f)](const boost::any & a,
+               std::stringstream & s) { return f(unwrap(a), s); };
+    }
+  };
+  template<class F>
+  struct wrapper<F,
+    decltype(void(std::declval<F>()(std::declval<const boost::any &>(),
+      std::declval<std::stringstream &>())))> {
+    [[deprecated]] static F && get(F && f) {
+      return std::forward<F>(f);
+    }
+  };
+  template<class F>
+  static decltype(auto) wrap(F && f) {
+    return wrapper<F>::get(std::forward<F>(f));
+  }
 
   struct initializer_value
     : public std::pair<option_attribute, boost::optional<ValueType>> {
@@ -201,6 +238,7 @@ struct program_option {
     }
   };
 
+public:
   /*!
     Construct a program option.
 
@@ -229,19 +267,17 @@ struct program_option {
           {option_default, 1},
           {option_implicit, 0}
         },
-        [](flecsi::any const & v) {
-          const int value = flecsi::option_value<int>(v);
+        [](int value) {
           return value >= 0 && value < 10;
         });
     @endcode
    */
-
+  template<class F = decltype((default_check))>
   program_option(const char * section,
     const char * flag,
     const char * help,
     std::initializer_list<initializer_value> values = {},
-    std::function<bool(boost::any const &, std::stringstream & ss)> check =
-      default_check) {
+    F && check = default_check) {
     auto semantic_ = boost::program_options::value(&value_);
 
     bool zero{false}, implicit{false};
@@ -280,7 +316,8 @@ struct program_option {
     std::string sflag(flag);
     sflag = sflag.substr(0, sflag.find(','));
 
-    run::context::option_checks().try_emplace(sflag, false, check);
+    run::context::option_checks().try_emplace(
+      sflag, false, wrap(std::forward<F>(check)));
   } // program_option
 
   /*!
@@ -294,12 +331,11 @@ struct program_option {
     @param check An optional, user-defined predicate to validate the option
                  passed by the user.
    */
-
+  template<class F = decltype((default_check))>
   program_option(const char * name,
     const char * help,
     size_t count,
-    std::function<bool(boost::any const &, std::stringstream & ss)> check =
-      default_check) {
+    F && check = default_check) {
     auto semantic_ = boost::program_options::value(&value_);
     semantic_->required();
 
@@ -311,7 +347,7 @@ struct program_option {
     c::positional_description().add(name, count);
     c::positional_help().try_emplace(name, help);
     c::hidden_options().add(option);
-    c::option_checks().try_emplace(name, true, check);
+    c::option_checks().try_emplace(name, true, wrap(std::forward<F>(check)));
   } // program_options
 
   /// Get the value, which must exist.
@@ -330,10 +366,6 @@ struct program_option {
   }
 
 private:
-  static bool default_check(boost::any const &, std::stringstream &) {
-    return true;
-  }
-
   boost::optional<ValueType> value_{};
 
 }; // struct program_option

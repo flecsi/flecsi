@@ -5,8 +5,7 @@ flecsi::program_option<int> po("Custom Options",
   "value,v",
   "Set the value [1-5].",
   {{flecsi::option_default, 1}, {flecsi::option_implicit, 2}},
-  [](flecsi::any const & v, std::stringstream & ss) {
-    auto val = flecsi::option_value<int>(v);
+  [](int val, std::stringstream & ss) {
     return val <= 5 || ((ss << "value(" << val << ") out-of-range"), false);
   });
 
@@ -14,9 +13,7 @@ flecsi::program_option<std::string> spo("Custom Options",
   "str,s",
   "Set the value.",
   {{flecsi::option_implicit, "help me!"}, {flecsi::option_zero}},
-  [](flecsi::any const & v, std::stringstream &) {
-    return flecsi::option_value<std::string>(v) == "help me!";
-  });
+  [](const std::string & v, std::stringstream &) { return v == "help me!"; });
 
 flecsi::program_option<bool> bpo("Custom Options",
   "bop,b",

@@ -25,6 +25,7 @@ Deprecated
   * ``initialize``, ``start``, ``finalize``, ``run::status``, and ``control::check_status`` |mdash| use ``runtime``
   * ``program`` |mdash| use ``run::arguments``
   * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::main``
+  * ``option_value`` and needing one in a ``program_option`` validation function |mdash| accept the option type instead
 
 * Utilities
 
@@ -38,6 +39,7 @@ New features
   * ``run::dependencies_guard`` allows for application control over initialization of FleCSI dependencies.
   * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
   * ``run::call`` is a trivial predefined control model.
+  * ``program_option`` validation functions can accept the option value directly.
 
 * Topologies
 
