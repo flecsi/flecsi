@@ -1475,7 +1475,7 @@ coloring_utils<MD>::close_auxiliary(entity_kind kind, std::size_t idx) {
     auto & cp = color_peers_[lco];
     auto & offsets = aux_pcd.offsets;
 
-    for(auto [lid, gid] : aux.l2g) {
+    for(auto [gid, lid] : aux.g2l) {
       auto const co = aux.a2co.at(lid).first;
 
       if(gco == co) {
