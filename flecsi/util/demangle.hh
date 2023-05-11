@@ -20,6 +20,10 @@ namespace util {
 
 std::string demangle(const char * const name);
 
+std::string strip_parameter_list(const std::string & sig);
+
+std::string strip_return_type(const std::string & sig);
+
 /*!
   Return the demangled name of the type T.
 

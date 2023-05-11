@@ -26,6 +26,8 @@ Fixed
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
   * Control-model graphs are labeled with the program name.
+  * Control model output strips parameters, return values, wrappers, and common
+    namespaces from actions for better readability.
 
 * Data
 

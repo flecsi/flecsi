@@ -6,6 +6,8 @@
 
 #include "flecsi/flog.hh"
 
+namespace cycle {
+namespace common {
 namespace package_b {
 
 //----------------------------------------------------------------------------//
@@ -18,7 +20,7 @@ advance(control_policy &) {
 } // advance
 
 inline control::action<advance, cp::advance> advance_action;
-inline const auto dep_a = advance_action.add(package_a::advance_action);
+inline const auto dep_a = advance_action.add(ns1::package_a::advance_action);
 
 //----------------------------------------------------------------------------//
 // Subcycle
@@ -35,7 +37,8 @@ subcycle(control_policy &) {
 }
 
 inline control::action<subcycle, cp::advance_subcycle> subcycle_action;
-inline const auto dep_a_sub = subcycle_action.add(package_a::subcycle_action);
+inline const auto dep_a_sub =
+  subcycle_action.add(ns1::package_a::subcycle_action);
 
 //----------------------------------------------------------------------------//
 // Analyze
@@ -49,5 +52,7 @@ analyze(control_policy &) {
 inline control::action<analyze, cp::analyze> analyze_action;
 
 } // namespace package_b
+} // namespace common
+} // namespace cycle
 
 #endif
