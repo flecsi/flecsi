@@ -25,6 +25,7 @@ Fixed
   * Control policy objects are value-initialized by ``run::control::execute``.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
+  * Control-model graphs are labeled with the program name.
 
 * Data
 
