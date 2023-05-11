@@ -7,20 +7,7 @@
 namespace flecsi {
 // These must be defined with the full execution machinery available:
 namespace data::leg {
-mirror::mirror(size2 s)
-  : rects({s.first, 2}), columns({2, 1}),
-    part(rects,
-      columns,
-      halves::field(columns)
-        .use([s](auto f) { execute<fill>(f, s.first); })
-        .fid(),
-      complete),
-    width(s.second) {}
-void
-mirror::fill(halves::Field::accessor<wo> a, size_t c) {
-  const Legion::coord_t clr = color();
-  a[0] = {{0, clr}, {upper(c), clr}};
-}
+mirror::mirror(size2 s) : rects({s.first, 2}), part(rects), width(s.second) {}
 void
 mirror::extend(field<std::size_t, single>::accessor<ro> r,
   halves::Field::accessor<wo> w,
