@@ -281,7 +281,8 @@ info(MPI_Comm comm = MPI_COMM_WORLD) {
 namespace detail {
 template<class R, class = void>
 struct make_range {
-  static decltype(auto) get(R && r, int n) {
+  // maybe_unused needed due to unused-but-set-error with GCC 9.4
+  static decltype(auto) get(R && r, [[maybe_unused]] int n) {
     if constexpr(std::is_invocable_v<R, int>)
       return util::transform_view(util::iota_view(0, n), std::forward<R>(r));
     else
