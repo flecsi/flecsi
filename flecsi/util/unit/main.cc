@@ -6,18 +6,9 @@ using flecsi::util::unit::control;
 
 int
 main(int argc, char ** argv) {
-  auto status = flecsi::initialize(argc, argv);
-  status = control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  } // if
-
-  flog::state::instance->config_stream().add_buffer("flog", std::clog, true);
-
-  status = flecsi::start(control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  run::arguments args(argc, argv);
+  const run::dependencies_guard dg(args.dep);
+  const runtime run(args.cfg);
+  flecsi::flog::add_output_stream("flog", std::clog, true);
+  return run.main<control>(args.act);
 } // main

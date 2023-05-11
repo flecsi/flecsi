@@ -1,5 +1,6 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
+#include <flecsi/run/control.hh>
 
 #include <fstream>
 
@@ -48,15 +49,11 @@ top_level_action() {
 
 int
 main(int argc, char ** argv) {
-
+  run::arguments args(argc, argv);
+  const run::dependencies_guard dg(args.dep);
   // If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized
-  // when flecsi::initialize() is invoked.
-
-  auto status = flecsi::initialize(argc, argv);
-
-  if(status != flecsi::run::status::success) {
-    return status == flecsi::run::status::help ? 0 : status;
-  } // if
+  // when the runtime is created.
+  const runtime run(args.cfg);
 
   // In order to see or capture any output from FLOG, the user must add at least
   // one output stream. The function flog::add_output_stream provides an
@@ -72,9 +69,5 @@ main(int argc, char ** argv) {
   std::ofstream log_file("output.txt");
   flog::add_output_stream("log file", log_file);
 
-  status = flecsi::start(top_level_action);
-
-  flecsi::finalize();
-
-  return status;
+  return run.main<run::call>(args.act, top_level_action);
 } // main

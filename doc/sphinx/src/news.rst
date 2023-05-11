@@ -20,12 +20,27 @@ Changes in v2.3.0
 
 Deprecated
 ^^^^^^^^^^
+* Runtime
+
+  * ``initialize``, ``start``, ``finalize``, ``run::status``, and ``control::check_status`` |mdash| use ``runtime``
+  * ``program`` |mdash| use ``run::arguments``
+  * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::main``
+  * ``option_value`` and needing one in a ``program_option`` validation function |mdash| accept the option type instead
+
 * Utilities
 
   * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
 
 New features
 ^^^^^^^^^^^^
+* Runtime
+
+  * ``run::arguments`` and its nested types represent a parsed command line.
+  * ``run::dependencies_guard`` allows for application control over initialization of FleCSI dependencies.
+  * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
+  * ``run::call`` is a trivial predefined control model.
+  * ``program_option`` validation functions can accept the option value directly.
+
 * Topologies
 
   * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.

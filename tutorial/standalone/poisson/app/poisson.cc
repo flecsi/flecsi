@@ -15,18 +15,9 @@ int
 main(int argc, char ** argv) {
   flecsi::util::annotation::rguard<main_region> main_guard;
 
-  auto status = flecsi::initialize(argc, argv);
-  status = poisson::control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  }
-
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-
-  status = flecsi::start(poisson::control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  return run.main<poisson::control>(args.act);
 } // main

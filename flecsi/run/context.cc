@@ -1,4 +1,5 @@
 #include "flecsi/run/backend.hh"
+#include "flecsi/run/control.hh"
 
 namespace po = boost::program_options;
 
@@ -26,6 +27,13 @@ struct backend_arg {
     }
   };
 };
+
+void
+do_call(call_policy & p) {
+  throw control_base::exception{p()};
+}
+call::action<do_call, call_policy::single> phone;
+
 } // namespace
 
 arguments::arguments(int argc, char ** argv) {

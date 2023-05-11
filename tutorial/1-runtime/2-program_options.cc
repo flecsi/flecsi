@@ -1,4 +1,5 @@
 #include <flecsi/execution.hh>
+#include <flecsi/run/control.hh>
 
 // Add an integer-valued command-line option with a default value of '1'. The
 // option will have a long form --level, and a short form -l. The option will be
@@ -134,16 +135,8 @@ top_level_action() {
 
 int
 main(int argc, char ** argv) {
-
-  auto status = flecsi::initialize(argc, argv);
-
-  if(status != flecsi::run::status::success) {
-    return status == flecsi::run::status::help ? 0 : status;
-  } // if
-
-  status = flecsi::start(top_level_action);
-
-  flecsi::finalize();
-
-  return status;
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
+  return run.main<flecsi::run::call>(args.act, top_level_action);
 } // main

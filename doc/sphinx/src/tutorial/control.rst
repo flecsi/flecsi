@@ -334,33 +334,22 @@ Using the Control Interface
 The source for this example is in *tutorial/2-control/1-simple.cc*.
 Much of the actual main function is the same as in the previous
 examples.
-Let's first consider the parts that are different.
 
 As referenced earlier, the control type adds the command-line options ``--control-model`` and ``--control-model-sorted`` to
 the program.
 These options allow the user to output dot files for visualizing the
 control model and resulting sequential ordering of the registered
 actions, respectively.
-To enable these options, we must call the method that checks for them
-and exit the program if they have been invoked.
-Although it is not strictly necessary to end execution after invocation
-of the control model outputs, it is generally desirable to do so for a
-real simulation program, which may run for many minutes or hours
-otherwise:
-
-.. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
-   :language: cpp
-   :start-at: // The check_status() method 
-   :end-before: flecsi::flog::add_output_stream
+They are automatically handled: ``run.main`` performs the appropriate action instead of executing the control model when they appear.
 
 The last part of the main function is not really different from previous
-examples; we just have a better understanding of it now.
-The *execute* method passed to ``flecsi::start`` executes the actions registered on the control model.
+examples; we just now use our own control type.
+FleCSI therefore executes the actions registered on the control model.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.cc
    :language: cpp
-   :start-at: // Pass the control model
-   :end-at: status = flecsi::start(control::execute);
+   :start-at: // Run the control model
+   :end-at: main<control>
 
 The return value is 0 or the value in a ``control_base::exception`` thrown by an action to terminate execution.
 
