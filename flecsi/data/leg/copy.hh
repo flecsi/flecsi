@@ -30,7 +30,7 @@ struct mirror {
   // Convert a prefixes_base::Field into a halves::Field.
   // Return the resulting two-subspace used/unused partition.
   template<class F>
-  const partition<> & convert(F f) {
+  const auto & convert(F f) {
     execute<extend>(f, halves::field(rects), width);
     return part;
   }
@@ -42,15 +42,12 @@ struct mirror {
   static constexpr const field_id_t & fid = halves::field.fid;
 
 private:
-  // Used to fill in mirror::columns with its completely predetermined pattern.
-  static void fill(halves::Field::accessor<wo>, size_t c);
   static void extend(prefixes_base::Field::accessor<ro>,
     halves::Field::accessor<wo>,
     std::size_t width);
 
-  halves::core rects, // n rows, each with its left and right rectangles
-    columns; // 2x1 rectangles pointing to each column of rect
-  partition<> part;
+  halves::core rects; // n rows, each with its left and right rectangles
+  rows<true> part;
   std::size_t width;
 };
 
@@ -63,7 +60,7 @@ struct with_partition {
 // Use inheritance to initialize mirror early:
 struct prefixes : private leg::mirror,
                   private leg::with_partition,
-                  leg::rows,
+                  rows,
                   prefixes_base {
   template<class F>
   prefixes(region & reg, F f)

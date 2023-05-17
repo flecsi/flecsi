@@ -253,6 +253,7 @@ struct partition : leg::partition_base { // instead of "using partition ="
 };
 
 namespace leg {
+template<bool C = false> // make columns instead
 struct rows : partition {
   explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
 
@@ -262,8 +263,8 @@ struct rows : partition {
     : partition(reg,
         partition_rows(reg,
           shared_index_space(run().create_index_space(ctx(),
-            Legion::Rect<1>(0, upper(s.first)))),
-          upper(s.second))) {}
+            Legion::Rect<1>(0, upper(C ? s.second : s.first)))),
+          upper(C ? s.first : s.second))) {}
 
 private:
   shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
@@ -276,11 +277,11 @@ private:
                    Legion::IndexSpaceT<1>(color_space),
                    [&] {
                      Legion::Transform<2, 1> ret;
-                     ret.rows[0].x = 1;
-                     ret.rows[1].x = 0;
+                     ret.rows[C].x = 1;
+                     ret.rows[!C].x = 0;
                      return ret;
                    }(),
-                   {{0, 0}, {0, hi}},
+                   {{0, 0}, {C ? hi : 0, C ? 0 : hi}},
                    DISJOINT_COMPLETE_KIND),
       (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
   }
@@ -289,7 +290,7 @@ public:
   void update(const Legion::LogicalRegion & reg) {
     Legion::DomainPoint hi =
       run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, get_color_space(), hi[1]);
+    auto ip = partition_rows(reg, get_color_space(), hi[!C]);
 
     logical_partition = log(reg, ip);
     index_partition = std::move(ip);
@@ -445,7 +446,8 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-using leg::rows, leg::borrow;
+using rows = leg::rows<>;
+using leg::borrow;
 
 } // namespace data
 } // namespace flecsi
