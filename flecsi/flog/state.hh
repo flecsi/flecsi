@@ -47,14 +47,9 @@ namespace flog {
 class state
 {
 public:
-  state(const std::vector<std::string> & active,
-    int verbose,
-    Color one_process,
-    std::size_t serialization_interval,
-    bool color_output,
-    int strip_level)
-    : verb(verbose), serialization_interval_(serialization_interval),
-      color_output_(color_output), strip_level_(strip_level) {
+  state(const config & cfg)
+    : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
+      color_output_(cfg.color), strip_level_(cfg.strip_level) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -71,7 +66,7 @@ public:
     // hashes. We should consider creating a const_string_t type for
     // constexpr string creation.
 
-    for(auto & tag : active) {
+    for(auto & tag : cfg.tags) {
       if(tag == "all")
         tag_bitset_.set();
       else if(tag_map_.find(tag) != tag_map_.end()) {
@@ -107,7 +102,7 @@ public:
       processes_ = np;
     }
 
-    one_process_ = one_process;
+    one_process_ = static_cast<Color>(cfg.process);
 
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
@@ -133,7 +128,7 @@ public:
     return instance ? instance->verb : 0;
   }
 
-  static size_t & serialization_interval() {
+  static unsigned & serialization_interval() {
     return instance ? instance->serialization_interval_
                     : default_serialization_interval;
   }
@@ -301,7 +296,7 @@ public:
 
 private:
   int verb;
-  size_t serialization_interval_;
+  unsigned serialization_interval_;
   bool color_output_;
   int strip_level_;
 
@@ -313,7 +308,7 @@ private:
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
-  static inline std::size_t default_serialization_interval =
+  static inline unsigned default_serialization_interval =
     FLOG_SERIALIZATION_INTERVAL;
 
 #ifdef FLOG_ENABLE_COLOR_OUTPUT

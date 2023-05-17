@@ -12,13 +12,34 @@
 #include "flecsi/flog/utils.hh"
 
 #include <cassert>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 /// \cond core
 namespace flecsi {
 namespace flog {
 /// \addtogroup flog
 /// \{
+
+/// Specification for Flog operation.
+struct config {
+  /// Tags to enable (perhaps including "all").
+  /// Populated from \c \--flog-tags option.
+  std::vector<std::string> tags;
+  /// Verbosity level (suppresses decorations if negative).  Populated
+  /// from \c \--flog-verbose option.
+  int verbose,
+    /// Process from which to produce output, or -1 for all.
+    /// Populated from \c \--flog-process option.
+    process;
+  /// Frequency of message serialization in number of tasks.
+  unsigned serialization_interval;
+  /// Enable color output.
+  bool color;
+  /// FLOG strip level (0-4).
+  int strip_level;
+};
 
 /*!
   The tee_buffer_t type provides a stream buffer that allows output to

@@ -112,25 +112,7 @@ struct arguments {
   /// Specification of options for FleCSI.
   struct config {
 #ifdef FLECSI_ENABLE_FLOG
-    /// Specification for Flog operation.
-    /// Exists only if that feature is enabled.
-    struct log {
-      /// Tags to enable (perhaps including "all").
-      /// Populated from \c \--flog-tags option.
-      argv tags;
-      /// Verbosity level (suppresses decorations if negative).  Populated
-      /// from \c \--flog-verbose option.
-      int verbose,
-        /// Process from which to produce output, or -1 for all.
-        /// Populated from \c \--flog-process option.
-        process;
-      ///< Frequency of message serialization in number of tasks
-      std::size_t serialization_interval;
-      ///< Enable color output
-      bool color;
-      ///< FLOG strip level (0-4)
-      int strip_level;
-    } flog; ///< Flog options, if that feature is enabled.
+    flecsi::flog::config flog; ///< Flog options, if that feature is enabled.
 #endif
     /// Command line for FleCSI backend.  Some backends ignore it.
     /// Populated from \c \--Xbackend and \c \--backend-args options.
@@ -228,12 +210,7 @@ protected:
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
-    flog::state::instance.emplace(c.flog.tags,
-      c.flog.verbose,
-      c.flog.process,
-      c.flog.serialization_interval,
-      c.flog.color,
-      c.flog.strip_level);
+    flog::state::instance.emplace(c.flog);
 #else
     (void)c;
 #endif
@@ -399,7 +376,7 @@ public:
     Return the count of executed tasks (\c const version).
    */
 
-  std::size_t const & flog_task_count() const {
+  unsigned const & flog_task_count() const {
     return flog_task_count_;
   } // flog_task_count
 
@@ -407,7 +384,7 @@ public:
     Return the count of executed tasks.
    */
 
-  std::size_t & flog_task_count() {
+  unsigned & flog_task_count() {
     return flog_task_count_;
   } // flog_task_count
 
@@ -514,7 +491,7 @@ protected:
     Task count.
    *--------------------------------------------------------------------------*/
 
-  std::size_t flog_task_count_ = 0;
+  unsigned flog_task_count_ = 0;
 
 private:
   static inline std::vector<void (*)()> init_registry;

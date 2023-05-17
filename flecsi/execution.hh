@@ -465,7 +465,7 @@ inline void
 maybe_flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   auto & flecsi_context = run::context::instance();
-  std::size_t & flog_task_count = flecsi_context.flog_task_count();
+  unsigned & flog_task_count = flecsi_context.flog_task_count();
   if(flog_task_count >= flog::state::serialization_interval())
     flush();
 #endif
@@ -628,7 +628,7 @@ struct trace::guard {
 
 private:
   trace & t;
-  std::size_t current_flog_task_count;
+  unsigned current_flog_task_count;
 
 }; // struct trace::guard
 
