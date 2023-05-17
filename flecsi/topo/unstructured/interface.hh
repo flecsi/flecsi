@@ -32,8 +32,6 @@ struct unstructured : unstructured_base,
                       with_ragged<Policy>,
                       with_meta<Policy> {
 
-  friend Policy;
-
   /*--------------------------------------------------------------------------*
     Public types.
    *--------------------------------------------------------------------------*/
@@ -100,6 +98,17 @@ struct unstructured : unstructured_base,
   auto & get_connectivity() {
     return connect_.template get<F>().template get<T>();
   }
+
+  /*!
+    Get the special entities for a given index space.
+    \return topology instance on which \c special_field is registered
+   */
+  template<index_space S, typename Policy::entity_list E>
+  auto & get_special_entities() {
+    return special_.template get<S>().template get<E>();
+  }
+
+  static inline const field<util::id>::definition<array<Policy>> special_field;
 
 private:
   /*
@@ -242,7 +251,6 @@ private:
   friend borrow_extra<unstructured>;
 
   static inline const connect_t<Policy> connect_;
-  static inline const field<util::id>::definition<array<Policy>> special_field;
 
   template<typename, typename>
   struct key_define;

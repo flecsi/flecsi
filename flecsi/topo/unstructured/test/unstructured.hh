@@ -232,7 +232,7 @@ struct unstructured
     using namespace flecsi;
     using namespace topo::unstructured_impl;
 
-    auto & el = s->special_.get<I>().template get<E>();
+    auto & el = s->get_special_entities<I, E>();
 
     {
       auto slm = data::launch::make(el);
