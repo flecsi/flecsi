@@ -7,9 +7,6 @@
 
 using namespace flecsi;
 
-canon::slot canonical, cp;
-canon::cslot coloring;
-
 const field<double>::definition<canon, canon::cells> pressure;
 
 void
@@ -36,9 +33,13 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
 
 void
 advance(control_policy &) {
-  coloring.allocate("test.txt");
-  canonical.allocate(coloring.get());
-  cp.allocate(coloring.get());
+  canon::slot canonical, cp;
+  {
+    canon::cslot coloring;
+    coloring.allocate("test.txt");
+    canonical.allocate(coloring.get());
+    cp.allocate(coloring.get());
+  }
 
   auto pf = pressure(canonical), pf2 = pressure(cp);
 

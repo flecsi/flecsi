@@ -5,6 +5,6 @@
 using namespace flecsi;
 
 void
-poisson::action::finalize(control_policy &) {
-  execute<task::io, mpi>(m, ud(m), "solution");
+poisson::action::finalize(control_policy & cp) {
+  execute<task::io, mpi>(cp.m, ud(cp.m), "solution");
 } // finalize

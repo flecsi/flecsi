@@ -20,6 +20,9 @@ struct convert_tag {}; // must be recognized as a task argument
 /// A slot that holds a topology, constructed upon request.
 /// Declare a task parameter as a \c topology_accessor to use the topology.
 /// \note A \c specialization provides aliases for both these types.
+/// \warning No topologies may exist outside the top-level action.  If a \c
+///   topology_slot outlives that function, use \c #deallocate before it
+///   returns.
 template<typename Topo>
 struct topology_slot : convert_tag {
   using core = typename Topo::core;
