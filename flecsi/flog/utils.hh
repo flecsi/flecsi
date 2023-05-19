@@ -12,10 +12,6 @@
 /// \cond core
 /// \addtogroup flog
 /// \{
-#define _flog_util_stringify(s) #s
-#define _flog_stringify(s) _flog_util_stringify(s)
-#define _flog_concat(a, b) a##b
-
 #ifndef FLOG_ENABLE_COLOR_OUTPUT
 
 #define FLOG_COLOR_BLACK ""
