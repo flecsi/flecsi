@@ -19,7 +19,6 @@
 
 #include <mpi.h>
 
-#include <future>
 #include <type_traits>
 #include <utility> // forward
 
@@ -111,31 +110,18 @@ reduce_internal(Args &&... args) {
       return future<void>{};
     }
     else {
-      auto ret = std::make_unique<R>();
-      if(root) {
-        *ret = task();
-      }
-
-      auto request = std::make_unique<MPI_Request>();
+      auto ret = future<R>::make(task, root);
 
       // Initiate Ibroadcast to broadcast the result from root to the rest of
       // ranks
-      test(MPI_Ibcast(ret.get(),
+      test(MPI_Ibcast(ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
         0,
         MPI_COMM_WORLD,
-        request.get()));
+        ret->request()));
 
-      // return future<R, launch_type::single> where clients on every rank
-      // will get the same value when calling .get().
-      return async(
-        // We will wait for the completion of the non-blocking Bcast in the
-        // async task.
-        [ret = std::move(ret), request = std::move(request)]() {
-          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
-          return *ret;
-        });
+      return ret;
     }
   }
   else {
@@ -148,28 +134,19 @@ reduce_internal(Args &&... args) {
       // A real reduce operation, every rank needs to be able to access the
       // same result through future<R>::get().
       // 1. Call the F, get the local return value
-      auto ret = std::make_unique<R>(task());
+      auto ret = future<R>::make(task, true);
 
       // 2. Reduce the local return values with the Reduction (using its
       // corresponding MPI_Op created by register_reduction<>()).
-      auto request = std::make_unique<MPI_Request>();
       test(MPI_Iallreduce(MPI_IN_PLACE,
-        ret.get(),
+        ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
         flecsi::exec::fold::wrap<Reduction, R>::op,
         MPI_COMM_WORLD,
-        request.get()));
+        ret->request()));
 
-      // 3. Put the reduced value in a future<R, single> (since there is only
-      // one final value) and return it.
-      return async(
-        // We will wait for the completion of the non-blocking Allreduce in the
-        // async task.
-        [ret = std::move(ret), request = std::move(request)]() {
-          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
-          return *ret;
-        });
+      return ret;
     }
     else if constexpr(!std::is_void_v<R>)
       // There is an Allgather happening in the constructor of future<R, index>

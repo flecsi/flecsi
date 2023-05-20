@@ -254,6 +254,57 @@ static_type() {
   return maybe_static<T>();
 }
 
+struct auto_requests {
+  auto_requests() = default;
+  explicit auto_requests(int n) {
+    v.reserve(n);
+  }
+  auto_requests(auto_requests &&) = default;
+  ~auto_requests() {
+    test(MPI_Waitall(v.size(), v.data(), MPI_STATUSES_IGNORE));
+  }
+
+  auto_requests & operator=(auto_requests a) & {
+    v.swap(a.v);
+    return *this;
+  }
+
+  MPI_Request * operator()() {
+    return &v.emplace_back();
+  }
+
+  std::vector<MPI_Request> v;
+};
+
+// A value still being received.
+template<class T>
+struct future {
+  future() = default;
+  future(T t) : t(std::move(t)) {}
+  template<class F>
+  future(F && f, bool root) : t(root ? T(std::forward<F>(f)()) : T()) {}
+  future(future &&) = delete; // data() stability
+
+  T & operator()() & {
+    this->req = {}; // this-> avoids Clang bug #62818
+    return t;
+  }
+  T && operator()() && {
+    return std::move((*this)());
+  }
+
+  T * data() {
+    return &t;
+  }
+  MPI_Request * request() {
+    return req();
+  }
+
+private:
+  T t;
+  auto_requests req;
+};
+
 /*!
   Convenience function to get basic MPI communicator information.
  */
@@ -453,8 +504,8 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
     auto ret = f(0, size);
     {
       const auto n = size - 1;
-      std::vector<MPI_Request> req;
-      std::vector<MPI_Status> stat(n);
+      auto_requests areq;
+      auto & req = areq.v;
       {
         std::vector<M> val; // parallel to req
         std::vector<int> done(n);
@@ -485,8 +536,11 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
           }
           while(used > mem) {
             int count;
-            test(MPI_Waitsome(
-              req.size(), req.data(), &count, done.data(), stat.data()));
+            test(MPI_Waitsome(req.size(),
+              req.data(),
+              &count,
+              done.data(),
+              MPI_STATUSES_IGNORE));
             // Clear data for completed sends:
             for(auto j : util::span(done).first(count)) {
               auto & w = val[j];
@@ -497,7 +551,6 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
           }
         }
       }
-      test(MPI_Waitall(req.size(), req.data(), stat.data()));
     }
     return ret;
   }
