@@ -10,8 +10,6 @@ template<typename T>
 using single = field<T, data::single>;
 const single<std::size_t>::definition<topo::index> ifield;
 
-topo::index::slot custom_topology;
-
 void
 init(single<std::size_t>::accessor<wo> iv) {
   flog(trace) << "initializing value on color " << color() << " of " << colors()
@@ -27,7 +25,7 @@ print(single<std::size_t>::accessor<ro> iv) {
 
 void
 advance(control_policy &) {
-
+  topo::index::slot custom_topology;
   custom_topology.allocate(4);
 
   execute<init>(ifield(custom_topology));

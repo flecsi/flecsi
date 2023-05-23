@@ -6,9 +6,6 @@
 
 using namespace flecsi;
 
-unstructured::slot mesh_underlying;
-unstructured::cslot mesh_coloring;
-
 struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
   static constexpr unsigned int dimension = 2;
 
@@ -25,9 +22,6 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
     return c;
   }
 };
-
-spec_setopo_t::slot spec_setopo;
-spec_setopo_t::cslot set_coloring;
 
 struct Particle {
   double pressure;
@@ -95,11 +89,19 @@ int
 set_driver() {
 
   UNIT() {
-    unstructured::init fields;
-    mesh_coloring.allocate("simple2d-16x16.msh", fields);
-    mesh_underlying.allocate(mesh_coloring.get(), fields);
-    set_coloring.allocate(&mesh_underlying);
-    spec_setopo.allocate(set_coloring.get());
+    unstructured::slot mesh_underlying;
+    {
+      unstructured::cslot mesh_coloring;
+      unstructured::init fields;
+      mesh_coloring.allocate("simple2d-16x16.msh", fields);
+      mesh_underlying.allocate(mesh_coloring.get(), fields);
+    }
+    spec_setopo_t::slot spec_setopo;
+    {
+      spec_setopo_t::cslot set_coloring;
+      set_coloring.allocate(&mesh_underlying);
+      spec_setopo.allocate(set_coloring.get());
+    }
 
     auto particle_t = particles(spec_setopo);
     execute<init_fields>(

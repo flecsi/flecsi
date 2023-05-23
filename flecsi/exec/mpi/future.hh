@@ -8,31 +8,42 @@
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/mpi.hh"
 
-#include <future>
-
 namespace flecsi {
 
 template<typename R>
 struct future<R> {
+  // Provide value semantics:
+  future() : future(make()) {}
+  future(const future &) = default;
+  future & operator=(const future &) & = default;
+
   void wait() {
-    fut.wait();
+    get();
   }
 
-  R get(bool = false) {
+  R & get(bool = false) {
+    return (*fut)();
+  }
+
+  auto * operator->() {
     return fut.get();
   }
 
-  ~future() {
-    // 'fut' might not have a valid shared state due to the "default"
-    // construction used for converting future<R, index> to future<R, single>
-    // in the generic code.
-    if(fut.valid())
-      fut.wait();
+  // To avoid competing with the copy constructor:
+  template<class... PP>
+  static future make(PP &&... pp) {
+    return future(
+      std::make_shared<util::mpi::future<R>>(std::forward<PP>(pp)...));
   }
+
+private:
+  using pointer = std::shared_ptr<util::mpi::future<R>>;
+
+  future(pointer p) : fut(std::move(p)) {}
 
   // Note: flecsi::future needs to be copyable and passed by value to user tasks
   // and .wait()/.get() called. See future.cc unit test for such a use case.
-  std::shared_future<R> fut;
+  pointer fut;
 };
 
 template<>
@@ -40,21 +51,6 @@ struct future<void> {
   void wait() {}
   void get(bool = false) {}
 };
-
-template<typename F>
-auto
-async(F && f) {
-  using R = typename util::function_traits<F>::return_type;
-  return future<R>{std::async(std::forward<F>(f)).share()};
-}
-
-template<typename T>
-auto
-make_ready_future(T t) {
-  std::promise<T> promise;
-  promise.set_value(t);
-  return promise.get_future();
-}
 
 template<typename R>
 struct future<R, exec::launch_type_t::index> {
@@ -71,15 +67,16 @@ struct future<R, exec::launch_type_t::index> {
       1,
       flecsi::util::mpi::type<result_type>(),
       MPI_COMM_WORLD,
-      &request));
+      request()));
   }
   future(future &&) = delete;
 
   void wait(bool = false) {
-    util::mpi::test(MPI_Wait(&request, MPI_STATUS_IGNORE));
+    this->request = {}; // this-> avoids Clang bug #62818
   }
 
-  R get(Color index = 0, bool = false) {
+  std::conditional_t<std::is_same_v<R, bool>, R, R &> get(Color index = 0,
+    bool = false) {
     wait();
     return results.at(index);
   }
@@ -90,15 +87,9 @@ struct future<R, exec::launch_type_t::index> {
 
   result_type result;
 
-  // Handling the case that the future<> is destroyed without wait()/get()
-  // (thus MPI_Wait()) being called.
-  ~future() {
-    wait();
-  }
-
 private:
-  MPI_Request request{};
   std::vector<result_type> results;
+  util::mpi::auto_requests request;
 };
 
 template<>

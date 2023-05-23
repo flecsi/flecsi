@@ -1,6 +1,8 @@
 #ifndef POISSON_SPECIALIZATION_CONTROL_HH
 #define POISSON_SPECIALIZATION_CONTROL_HH
 
+#include "mesh.hh"
+
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
 
@@ -34,6 +36,8 @@ struct control_policy : flecsi::run::control_base {
     point<cp::solve>,
     point<cp::analyze>,
     point<cp::finalize>>;
+
+  mesh::slot m;
 }; // struct control_policy
 
 using control = flecsi::run::control<control_policy>;

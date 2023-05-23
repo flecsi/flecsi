@@ -190,9 +190,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
 using ntree_t = topo::ntree<sph_ntree_t>;
 
-sph_ntree_t::slot sph_ntree;
-sph_ntree_t::cslot coloring;
-
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   density;
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
@@ -278,10 +275,14 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
 
 int
 ntree_driver() {
+  sph_ntree_t::slot sph_ntree;
 
-  std::vector<sph_ntree_t::ent_t> ents;
-  coloring.allocate("coordinates.blessed", ents);
-  sph_ntree.allocate(coloring.get(), ents);
+  {
+    sph_ntree_t::cslot coloring;
+    std::vector<sph_ntree_t::ent_t> ents;
+    coloring.allocate("coordinates.blessed", ents);
+    sph_ntree.allocate(coloring.get(), ents);
+  }
 
   auto d = density(sph_ntree);
 

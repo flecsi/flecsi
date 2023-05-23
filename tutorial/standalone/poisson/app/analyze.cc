@@ -11,10 +11,11 @@
 using namespace flecsi;
 
 void
-poisson::action::analyze(control_policy &) {
+poisson::action::analyze(control_policy & cp) {
   util::annotation::rguard<analyze_region> guard;
-  double sum = reduce<task::diff, exec::fold::sum>(m, ud(m), sd(m)).get();
-  sum = execute<task::scale>(m, sum).get();
+  double sum =
+    reduce<task::diff, exec::fold::sum>(cp.m, ud(cp.m), sd(cp.m)).get();
+  sum = execute<task::scale>(cp.m, sum).get();
   const double l2 = sqrt(sum);
   flog(info) << "l2 error: " << l2 << std::endl;
 } // analyze

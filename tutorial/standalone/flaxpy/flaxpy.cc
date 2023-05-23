@@ -66,6 +66,8 @@ struct control_policy : flecsi::run::control_base {
   struct node_policy {};
   using control_points =
     list<point<cp::initialize>, point<cp::mul_add>, point<cp::finalize>>;
+
+  dist_vector::slot dist_vector_slot;
 };
 
 // Define a fully qualified control type that implements our control policy.
@@ -87,10 +89,6 @@ template<typename T>
 using one_field = flecsi::field<T, flecsi::data::layout::dense>;
 const one_field<double>::definition<flaxpy::dist_vector> x_field, y_field;
 
-// Declare a coloring of the distributed vector.
-flaxpy::dist_vector::slot dist_vector_slot;
-flaxpy::dist_vector::cslot dist_vector_cslot;
-
 // Define a task that initializes the elements of the distributed vector.
 void
 initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
@@ -107,11 +105,13 @@ initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
 
 // Implement an action for the initialize control point.
 void
-initialize_action(flaxpy::control_policy &) {
+initialize_action(flaxpy::control_policy & policy) {
+  // Declare a coloring of the distributed vector.
+  flaxpy::dist_vector::cslot dist_vector_cslot;
   dist_vector_cslot.allocate();
-  dist_vector_slot.allocate(dist_vector_cslot.get());
+  policy.dist_vector_slot.allocate(dist_vector_cslot.get());
   flecsi::execute<initialize_vectors_task>(
-    x_field(dist_vector_slot), y_field(dist_vector_slot));
+    x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
 
 // Define a task that assigns Y <- a*X + Y.
@@ -126,10 +126,10 @@ mul_add_task(double a,
 
 // Implement an action for the mul_add control point.
 void
-mul_add_action(flaxpy::control_policy &) {
+mul_add_action(flaxpy::control_policy & policy) {
   const double a = 12.34; // Arbitrary scalar value to multiply
   flecsi::execute<mul_add_task>(
-    a, x_field(dist_vector_slot), y_field(dist_vector_slot));
+    a, x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
 
 // Define a task that adds up all values of Y and returns the sum.
@@ -148,14 +148,12 @@ reduce_y_task(one_field<double>::accessor<flecsi::ro> y_acc) {
 
 // Implement an action for the finalize control point.
 void
-finalize_action(flaxpy::control_policy &) {
+finalize_action(flaxpy::control_policy & policy) {
   double sum = flecsi::reduce<reduce_y_task, flecsi::exec::fold::sum>(
-    y_field(dist_vector_slot))
+    y_field(policy.dist_vector_slot))
                  .get();
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;
-  dist_vector_slot.deallocate();
-  dist_vector_cslot.deallocate();
 }
 
 // Register each of the preceding actions with its eponymous control point.

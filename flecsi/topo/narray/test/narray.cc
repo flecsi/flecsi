@@ -913,27 +913,12 @@ coloring_driver() {
 
 util::unit::driver<coloring_driver> cd;
 
-// 1D Mesh
-mesh1d::slot m1;
-mesh1d::cslot coloring1;
 const field<std::size_t>::definition<mesh1d> f1;
 field<int, data::ragged>::definition<mesh1d> rf1;
-
-// 2D Mesh
-mesh2d::slot m2;
-mesh2d::cslot coloring2;
 const field<std::size_t>::definition<mesh2d> f2;
 field<int, data::ragged>::definition<mesh2d> rf2;
-
-// 3D Mesh
-mesh3d::slot m3;
-mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d> f3;
 field<int, data::ragged>::definition<mesh3d> rf3;
-
-// 4D Mesh
-mesh4d::slot m4;
-mesh4d::cslot coloring4;
 
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
@@ -1077,6 +1062,8 @@ narray_driver() {
 
     {
       // 1D Mesh
+      mesh1d::slot m1;
+
       mesh1d::gcoord indices{9};
       mesh1d::index_definition idef;
       idef.axes = topo::narray_utils::make_axes(processes(), indices);
@@ -1085,8 +1072,11 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring1.allocate(idef);
-      m1.allocate(coloring1.get());
+      {
+        mesh1d::cslot coloring1;
+        coloring1.allocate(idef);
+        m1.allocate(coloring1.get());
+      }
       execute<init_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<update_field<1>, default_accelerator>(m1, f1(m1));
@@ -1129,6 +1119,8 @@ narray_driver() {
 
     {
       // 2D Mesh
+      mesh2d::slot m2;
+
       mesh2d::gcoord indices{8, 8};
       mesh2d::index_definition idef;
       idef.axes = topo::narray_utils::make_axes(processes(), indices);
@@ -1141,8 +1133,11 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring2.allocate(idef);
-      m2.allocate(coloring2.get());
+      {
+        mesh2d::cslot coloring2;
+        coloring2.allocate(idef);
+        m2.allocate(coloring2.get());
+      }
       execute<init_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
       execute<update_field<2>, default_accelerator>(m2, f2(m2));
@@ -1164,6 +1159,8 @@ narray_driver() {
 
     {
       // 3D Mesh
+      mesh3d::slot m3;
+
       mesh3d::gcoord indices{4, 4, 4};
       mesh3d::index_definition idef;
       idef.axes = topo::narray_utils::make_axes(processes(), indices);
@@ -1175,8 +1172,11 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring3.allocate(idef);
-      m3.allocate(coloring3.get());
+      {
+        mesh3d::cslot coloring3;
+        coloring3.allocate(idef);
+        m3.allocate(coloring3.get());
+      }
       execute<init_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
       execute<update_field<3>, default_accelerator>(m3, f3(m3));
@@ -1204,6 +1204,8 @@ narray_driver() {
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
       // 4D Mesh
+      mesh4d::slot m4;
+
       mesh4d::gcoord indices{4, 4, 4, 4};
       mesh4d::index_definition idef;
       idef.axes = topo::narray_utils::make_axes(16, indices);
@@ -1214,8 +1216,11 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring4.allocate(idef);
-      m4.allocate(coloring4.get());
+      {
+        mesh4d::cslot coloring4;
+        coloring4.allocate(idef);
+        m4.allocate(coloring4.get());
+      }
       EXPECT_EQ(test<check_4dmesh>(m4), 0);
     }
   }; // UNIT
