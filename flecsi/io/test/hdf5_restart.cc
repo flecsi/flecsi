@@ -114,7 +114,7 @@ setup() {
   mesh1d::gcoord indices{64};
   Color colors{4};
   mesh1d::index_definition idef;
-  idef.axes = topo::narray_utils::make_axes(colors, indices);
+  idef.axes = mesh1d::base::make_axes(colors, indices);
   m.allocate(mesh1d::mpi_coloring(idef));
   run::context::instance().add_topology(m);
   return 0;
