@@ -813,9 +813,8 @@ operator<<(std::ostream & stream, index_color const & ic) {
 /// \addtogroup narray
 /// \{
 
-/// \if core
 /// Specialization-independent definitions.
-/// \endif
+/// Name as \c base in an \c narray specialization.
 struct narray_base {
   using axis_color = narray_impl::axis_color;
   using index_color = narray_impl::index_color;
@@ -837,7 +836,6 @@ struct narray_base {
    These domains are used in many of the interface methods to provide
    information about an axis such as size, extents, and offsets.
    \image html narray-layout.svg "Layouts for each possible orientation." width=100%
-   \ingroup narray
   */
   enum class domain : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
@@ -852,7 +850,6 @@ struct narray_base {
   };
 
   /// Coloring type.
-  /// \ingroup narray
   struct coloring {
     /// Coloring information for each index space.
     std::vector<index_definition> idx_colorings;
@@ -866,6 +863,7 @@ struct narray_base {
     return vs[c];
   }
   /*!
+   \if core
    Method to compute the local ghost "intervals" and "points" which store map of
    local ghost offset to remote/shared offset. This method is called by the
    "make_copy_plan" method in the derived topology to create the copy plan
@@ -877,6 +875,7 @@ struct narray_base {
    @param[out] intervals  vector of local ghost intervals, over process colors
    @param[out] points vector of maps storing (local ghost offset, remote shared
    offset) for a shared color, over process colors
+   \endif
   */
   static void idx_itvls(index_definition const & idef,
     std::vector<std::size_t> & num_intervals,
