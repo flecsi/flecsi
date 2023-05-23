@@ -405,6 +405,13 @@ private:
 namespace flecsi {
 namespace flog {
 
+namespace detail {
+inline const char *
+use_color(const char *) {
+  return "";
+}
+} // namespace detail
+
 struct tag {
   tag(const char *) {}
 };

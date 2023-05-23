@@ -20,6 +20,12 @@ Changes in v2.3.0
 
 Deprecated
 ^^^^^^^^^^
+* Build
+
+  * ``FLOG_ENABLE_COLOR_OUTPUT``, ``FLOG_SERIALIZATION_INTERVAL``, and
+    ``FLOG_STRIP_LEVEL`` CMake options are deprecated and serve only as initial
+    defaults.
+
 * Runtime
 
   * ``initialize``, ``start``, ``finalize``, ``run::status``, and ``control::check_status`` |mdash| use ``runtime``
@@ -54,6 +60,12 @@ New features
 * Utilities
 
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+
+* Logging
+
+  * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
+  * FLOG configuration can be set at runtime via new command-line options ``--flog-color``, ``--flog-serialization-interval``,
+    and ``--flog-strip-level``.
 
 Changes in v2.2.1
 +++++++++++++++++

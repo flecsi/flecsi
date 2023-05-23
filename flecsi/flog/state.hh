@@ -47,8 +47,9 @@ namespace flog {
 class state
 {
 public:
-  state(const std::vector<std::string> & active, int verbose, Color one_process)
-    : verb(verbose) {
+  state(const config & cfg)
+    : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
+      color_output_(cfg.color), strip_level_(cfg.strip_level) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
               << FLOG_COLOR_PLAIN << std::endl;
@@ -65,7 +66,7 @@ public:
     // hashes. We should consider creating a const_string_t type for
     // constexpr string creation.
 
-    for(auto & tag : active) {
+    for(auto & tag : cfg.tags) {
       if(tag == "all")
         tag_bitset_.set();
       else if(tag_map_.find(tag) != tag_map_.end()) {
@@ -101,7 +102,7 @@ public:
       processes_ = np;
     }
 
-    one_process_ = one_process;
+    one_process_ = static_cast<Color>(cfg.process);
 
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
@@ -125,6 +126,19 @@ public:
 
   static int verbose() {
     return instance ? instance->verb : 0;
+  }
+
+  static unsigned & serialization_interval() {
+    return instance ? instance->serialization_interval_
+                    : default_serialization_interval;
+  }
+
+  static bool & color_output() {
+    return instance ? instance->color_output_ : default_color_output;
+  }
+
+  static int & strip_level() {
+    return instance ? instance->strip_level_ : default_strip_level;
   }
 
   /*!
@@ -282,6 +296,9 @@ public:
 
 private:
   int verb;
+  unsigned serialization_interval_;
+  bool color_output_;
+  int strip_level_;
 
   tee_stream_t stream_;
 
@@ -291,6 +308,15 @@ private:
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
+  static inline unsigned default_serialization_interval =
+    FLOG_SERIALIZATION_INTERVAL;
+
+#ifdef FLOG_ENABLE_COLOR_OUTPUT
+  static inline bool default_color_output = true;
+#else
+  static inline bool default_color_output = false;
+#endif
+  static inline int default_strip_level = FLOG_STRIP_LEVEL;
 
 #if defined(FLOG_ENABLE_MPI)
   void send_to_one(bool last);
@@ -307,6 +333,16 @@ private:
 inline std::optional<state> state::instance;
 
 /// \}
+
+namespace detail {
+
+inline const char *
+use_color(const char * c) {
+  return state::color_output() ? c : "";
+}
+
+} // namespace detail
+
 } // namespace flog
 } // namespace flecsi
 /// \endcond

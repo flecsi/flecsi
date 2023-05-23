@@ -450,8 +450,7 @@ if(ENABLE_LIBRARY)
 
   string(APPEND _summary "\n")
   flecsi_summary_info("FLECSI_BACKEND" "${FLECSI_BACKEND}" TRUE)
-  flecsi_summary_option("ENABLE_FLOG" ${ENABLE_FLOG}
-    " (FLOG_STRIP_LEVEL ${FLOG_STRIP_LEVEL})")
+  flecsi_summary_option("ENABLE_FLOG" ${ENABLE_FLOG} "")
   flecsi_summary_option("ENABLE_UNIT_TESTS" ${ENABLE_UNIT_TESTS} "")
   string(APPEND _summary "\n")
   flecsi_summary_option("ENABLE_KOKKOS" ${ENABLE_KOKKOS}

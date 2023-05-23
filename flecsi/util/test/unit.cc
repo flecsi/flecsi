@@ -4,8 +4,7 @@ using namespace flecsi;
 
 /*----------------------------------------------------------------------------*
   These test the unit test control model, as well as the different
-  trace levels. To actually test the trace levels, you must do several
-  cmake configurations that change the strip level (FLOG_STRIP_LEVEL).
+  trace levels.
 
   The control model has control points: "initialization", "driver", and
   "finalization".
@@ -15,11 +14,25 @@ int
 init_a() {
   flog::devel_guard guard(unit_tag);
   flog(info) << "init" << std::endl;
+  auto current = flog::state::strip_level();
 
-  flog(trace) << "trace (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(info) << "info (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(warn) << "warn (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(error) << "error (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
+  for(int i = 0; i < 5; ++i) {
+    flog::state::strip_level() = i;
+
+    flog(trace) << "trace (strip level " << i << ")" << std::endl;
+    flog(info) << "info (strip level " << i << ")" << std::endl;
+    flog(warn) << "warn (strip level " << i << ")" << std::endl;
+    flog(error) << "error (strip level " << i << ")" << std::endl;
+  }
+
+  flog::state::strip_level() = current;
+
+  auto color = flog::state::color_output();
+  flog(info) << "COLOR OUTPUT: " << (color ? "true" : "false") << std::endl;
+  flog::state::color_output() = !color;
+  flog(info) << "COLOR OUTPUT: " << (!color ? "true" : "false") << std::endl;
+  flog::state::color_output() = color;
+
   return 0;
 }
 

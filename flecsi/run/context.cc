@@ -81,6 +81,25 @@ arguments::getopt(int argc, char ** argv) {
   // Add FleCSI options
   flecsi_desc.add_options() // clang-format off
       (
+        "flog-color",
+        po::value(&cfg.flog.color)
+          ->implicit_value(true)
+          ->default_value(true),
+        "Enable color output."
+      )
+      (
+        "flog-serialization-interval",
+        po::value(&cfg.flog.serialization_interval)
+          ->default_value(FLOG_SERIALIZATION_INTERVAL),
+        "Frequency of message serialization in number of tasks."
+      )
+      (
+        "flog-strip-level",
+        po::value(&cfg.flog.strip_level)
+          ->default_value(FLOG_STRIP_LEVEL),
+        "Set FLOG strip level (0-4)"
+      )
+      (
         "flog-tags",
         po::value(&flog_tags_)
           ->default_value("all"),
