@@ -44,6 +44,8 @@ New features
 * Topologies
 
   * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.
+  * ``unstructured::special_field`` is the field definition for special-entity lists.
+  * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
 
 * Legion backend
 
