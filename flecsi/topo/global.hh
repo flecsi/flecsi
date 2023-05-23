@@ -40,7 +40,7 @@ struct detail::base<global_category> {
   default-constructing it produces a size of 1.
  */
 struct global : specialization<global_category, global> {
-  /// A \c cslot can be initialized from an integer size.
+  /// An \c mpi_coloring can be initialized from an integer size.
   static coloring color(util::id n) {
     return n;
   }

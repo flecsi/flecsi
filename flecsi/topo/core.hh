@@ -191,12 +191,38 @@ struct specialization : specialization_base {
   // This is just core::coloring, but core is incomplete here.
   using coloring = typename base::coloring; ///< The coloring type.
 
-  // NB: nested classes would prevent template argument deduction.
+  // NB: a nested class would prevent template argument deduction.
 
   /// The slot type for declaring topology instances.
   using slot = data::topology_slot<D>;
   /// The slot type for holding a \c coloring object.
-  using cslot = data::coloring_slot<D>;
+  /// \deprecated Use \c mpi_coloring.
+  using cslot [[deprecated("use mpi_coloring")]] = data::coloring_slot<D>;
+  /// Constructs a \c coloring in an MPI task.
+  /// \note \a D must define\code
+  /// static coloring color(/* ... */);
+  /// \endcode
+  struct mpi_coloring {
+    /// Create the coloring object.
+    /// \param aa arguments to \c D::color
+    template<class... AA>
+    explicit mpi_coloring(AA &&... aa) {
+      slot.emplace(std::forward<AA>(aa)...);
+    }
+
+    /// Get the resulting coloring.
+    /// \{
+    operator coloring &() {
+      return slot.get();
+    }
+    operator const coloring &() const {
+      return slot.get();
+    }
+    /// \}
+
+  private:
+    data::coloring_slot<D> slot;
+  };
 
   /// The topology accessor to use as a parameter to receive a \c slot.
   /// \tparam Priv the appropriate number of privileges

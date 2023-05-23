@@ -13,23 +13,26 @@ namespace data {
 /// \addtogroup data
 /// \{
 
-/// A coloring object, constructed on request.
-/// \tparam Topo specialization that defines\code
-/// static coloring color(/* ... */);
-/// \endcode
+/// A \link topo::specialization::mpi_coloring `mpi_coloring`\endlink object,
+/// constructed on request.
 /// \note Usually accessed as \c Topo::cslot.
+/// \deprecated Use \c mpi_coloring directly.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /// Create the coloring object in an MPI task.
-  /// \param args arguments to \c Topo::color
+  /// Create the \c mpi_coloring.
   /// \return the created \c Topo::coloring object
   template<typename... ARGS>
-  color_type & allocate(ARGS &&... args) {
-    execute<task<ARGS...>, flecsi::mpi>(*this, std::forward<ARGS>(args)...);
+  [[deprecated("use mpi_coloring")]] color_type & allocate(ARGS &&... args) {
+    emplace(std::forward<ARGS>(args)...);
     return get();
   } // allocate
+
+  template<class... AA>
+  void emplace(AA &&... aa) { // not deprecated
+    execute<task<AA...>, flecsi::mpi>(*this, std::forward<AA>(aa)...);
+  }
 
   /// Destroy the coloring object.
   void deallocate() {

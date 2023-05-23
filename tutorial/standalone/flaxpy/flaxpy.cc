@@ -89,7 +89,6 @@ const one_field<double>::definition<flaxpy::dist_vector> x_field, y_field;
 
 // Declare a coloring of the distributed vector.
 flaxpy::dist_vector::slot dist_vector_slot;
-flaxpy::dist_vector::cslot dist_vector_cslot;
 
 // Define a task that initializes the elements of the distributed vector.
 void
@@ -108,8 +107,7 @@ initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
 // Implement an action for the initialize control point.
 void
 initialize_action(flaxpy::control_policy &) {
-  dist_vector_cslot.allocate();
-  dist_vector_slot.allocate(dist_vector_cslot.get());
+  dist_vector_slot.allocate(flaxpy::dist_vector::mpi_coloring());
   flecsi::execute<initialize_vectors_task>(
     x_field(dist_vector_slot), y_field(dist_vector_slot));
 }
@@ -155,7 +153,6 @@ finalize_action(flaxpy::control_policy &) {
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;
   dist_vector_slot.deallocate();
-  dist_vector_cslot.deallocate();
 }
 
 // Register each of the preceding actions with its eponymous control point.

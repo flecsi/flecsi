@@ -174,7 +174,7 @@ applications from directly constructing an object of a specialization
 type and accessing this object before library initialization and
 synchronization have completed, FleCSI imposes a particular means of
 instantiating a specialization based on what it calls *slots*.  The
-following lines of code declare the (topology) *slot* and *coloring slot* that
+following line declares the (topology) *slot* that
 will be used within FLAXPY's initialization action (see `Actions`_
 below) to allocate distributed storage for the application's
 distributed vector:
@@ -182,7 +182,7 @@ distributed vector:
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp
    :start-at: _slot
-   :end-at: _cslot
+   :end-at: _
 
 
 Control flow
@@ -278,7 +278,7 @@ The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
 by instantiating a ``flaxpy::control::action``.
 
-The ``initialize_action`` action uses the slot and coloring slot
+The ``initialize_action`` action uses the slot and ``color`` function
 defined above in `Data structures`_
 to allocate memory for the ``dist_vector`` specialization.
 Once this memory is allocated,
