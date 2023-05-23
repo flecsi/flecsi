@@ -182,7 +182,6 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
 }
 
 unstructured::slot mesh;
-unstructured::cslot coloring;
 field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
 field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
@@ -197,8 +196,7 @@ unstructured_driver() {
     for(auto f : files) {
       unstructured::init fields;
       flog(info) << "testing mesh: " << f << std::endl;
-      coloring.allocate(f, fields);
-      mesh.allocate(coloring.get(), fields);
+      mesh.allocate(unstructured::mpi_coloring(f, fields), fields);
 
       {
         EXPECT_EQ(test<verify_entities>(

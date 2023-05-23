@@ -915,25 +915,21 @@ util::unit::driver<coloring_driver> cd;
 
 // 1D Mesh
 mesh1d::slot m1;
-mesh1d::cslot coloring1;
 const field<std::size_t>::definition<mesh1d> f1;
 field<int, data::ragged>::definition<mesh1d> rf1;
 
 // 2D Mesh
 mesh2d::slot m2;
-mesh2d::cslot coloring2;
 const field<std::size_t>::definition<mesh2d> f2;
 field<int, data::ragged>::definition<mesh2d> rf2;
 
 // 3D Mesh
 mesh3d::slot m3;
-mesh3d::cslot coloring3;
 const field<std::size_t>::definition<mesh3d> f3;
 field<int, data::ragged>::definition<mesh3d> rf3;
 
 // 4D Mesh
 mesh4d::slot m4;
-mesh4d::cslot coloring4;
 
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
@@ -1085,8 +1081,7 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring1.allocate(idef);
-      m1.allocate(coloring1.get());
+      m1.allocate(mesh1d::mpi_coloring(idef));
       execute<init_field<1>, default_accelerator>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<update_field<1>, default_accelerator>(m1, f1(m1));
@@ -1141,8 +1136,7 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring2.allocate(idef);
-      m2.allocate(coloring2.get());
+      m2.allocate(mesh2d::mpi_coloring(idef));
       execute<init_field<2>, default_accelerator>(m2, f2(m2));
       execute<print_field<2>>(m2, f2(m2));
       execute<update_field<2>, default_accelerator>(m2, f2(m2));
@@ -1175,8 +1169,7 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring3.allocate(idef);
-      m3.allocate(coloring3.get());
+      m3.allocate(mesh3d::mpi_coloring(idef));
       execute<init_field<3>, default_accelerator>(m3, f3(m3));
       execute<print_field<3>>(m3, f3(m3));
       execute<update_field<3>, default_accelerator>(m3, f3(m3));
@@ -1214,8 +1207,7 @@ narray_driver() {
       idef.diagonals = true;
       idef.full_ghosts = true;
 
-      coloring4.allocate(idef);
-      m4.allocate(coloring4.get());
+      m4.allocate(mesh4d::mpi_coloring(idef));
       EXPECT_EQ(test<check_4dmesh>(m4), 0);
     }
   }; // UNIT

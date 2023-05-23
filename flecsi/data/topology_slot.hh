@@ -26,7 +26,8 @@ struct topology_slot : convert_tag {
   using coloring = typename Topo::coloring;
 
   /// Create the topology.
-  /// \param coloring_reference coloring (perhaps from a \c coloring_slot)
+  /// \param coloring_reference coloring (perhaps from an \link
+  ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
   /// \param aa further specialization-specific parameters
   template<typename... AA>
   core & allocate(coloring const & coloring_reference, AA &&... aa) {

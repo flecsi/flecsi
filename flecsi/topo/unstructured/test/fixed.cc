@@ -325,7 +325,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 }; // struct fixed_mesh
 
 fixed_mesh::slot mesh;
-fixed_mesh::cslot coloring;
 
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
 const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
@@ -477,8 +476,7 @@ rotate(Color n) {
 int
 fixed_driver() {
   UNIT() {
-    coloring.allocate();
-    mesh.allocate(coloring.get());
+    mesh.allocate(fixed_mesh::mpi_coloring());
 
     execute<init_mesh_ids>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh));
 

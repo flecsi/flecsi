@@ -15,7 +15,6 @@ using mesh1d = mesh<1>;
 using ax = mesh1d::axis;
 
 mesh1d::slot m;
-mesh1d::cslot mc;
 
 const field<double>::definition<mesh1d> m_field_1, m_field_2;
 const field<int>::definition<mesh1d> m_field_i;
@@ -116,8 +115,7 @@ setup() {
   Color colors{4};
   mesh1d::index_definition idef;
   idef.axes = topo::narray_utils::make_axes(colors, indices);
-  mc.allocate(idef);
-  m.allocate(mc.get());
+  m.allocate(mesh1d::mpi_coloring(idef));
   run::context::instance().add_topology(m);
   return 0;
 }

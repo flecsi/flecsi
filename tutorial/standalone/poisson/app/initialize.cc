@@ -15,12 +15,10 @@ poisson::action::init_mesh(control_policy &) {
 
   mesh::gcoord axis_extents{x_extents.value(), y_extents.value()};
 
-  coloring.allocate(flecsi::processes(), axis_extents);
-
   mesh::grect geometry;
   geometry[0][0] = 0.0;
   geometry[0][1] = 1.0;
   geometry[1] = geometry[0];
 
-  m.allocate(coloring.get(), geometry);
+  m.allocate(mesh::mpi_coloring(flecsi::processes(), axis_extents), geometry);
 } // init_mesh

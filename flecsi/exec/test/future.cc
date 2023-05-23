@@ -57,10 +57,8 @@ future_driver() {
   UNIT() {
     using namespace future_test;
 
-    topo::global::cslot g2c;
-    g2c.allocate(2);
     topo::global::slot g2;
-    g2.allocate(g2c.get());
+    g2.allocate(2);
     const auto energy = energy_field(g2);
 
     // single future
