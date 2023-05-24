@@ -820,6 +820,18 @@ binary_index(R && r, const T & t) {
   }) - b;
 }
 
+/// Copy data into given (packed) indices of a range.
+/// This function supports GPU execution.
+/// \param s source range
+/// \param d random-access destination starting iterator
+/// \param i iterator to offsets from \a d
+template<class S, class D, class I>
+FLECSI_TARGET constexpr void
+unpack(S && s, const D & d, I i) {
+  for(auto && x : std::forward<S>(s))
+    d[*i] = x, ++i;
+}
+
 /// \}
 } // namespace util
 } // namespace flecsi
