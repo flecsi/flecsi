@@ -12,3 +12,4 @@ Renumbering
 It is common that some subset of a prefix of the whole numbers needs to be treated, comprising perhaps the global indices of a partition of a mesh or the local indices of ghost index points.
 ``util::transform`` can be applied to a range of such indices (or structures containing them) to gather them into a range (that already has the correct size).
 The indices into the output range can serve as local (or packed) IDs for the subset.
+``util::partition_point`` can be applied to a sorted range of such indices or structures to efficiently find the position or data for a particular index.

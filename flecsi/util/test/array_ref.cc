@@ -295,6 +295,8 @@ array_ref() {
         util::transform(primes, twins, [](int i) { return i + 2; });
         return twins[1] == primes[2];
       }());
+      static_assert(util::partition_point(
+                      primes, [](int i) { return !(i % 2); }) == primes + 1);
     }
   };
 } // array_ref

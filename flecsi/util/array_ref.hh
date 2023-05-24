@@ -789,6 +789,24 @@ transform(S && s, D d, F && f) {
     *d = f(std::forward<decltype(x)>(x)), ++d;
 }
 
+/// A subset of \c std::ranges::partition_point from C++20.
+/// This function supports GPU execution.
+/// \param r random-access range
+/// \return an iterator to the first element for which \a f returns \c false
+template<class R, class F>
+FLECSI_TARGET constexpr auto
+partition_point(R && r, F && f) {
+  auto b = std::begin(r), e = std::end(r);
+  while(b != e) {
+    auto m = b + (e - b) / 2;
+    if(f(*m))
+      b = m + 1;
+    else
+      e = m;
+  }
+  return b;
+}
+
 /// \}
 } // namespace util
 } // namespace flecsi

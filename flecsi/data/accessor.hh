@@ -829,24 +829,12 @@ public:
     /// Find an element.
     /// \param c must exist
     FLECSI_INLINE_TARGET element_type & operator()(key_type c) const {
-      return partition_point(s.begin(), s.end(), [c](const value_type & v) {
+      return util::partition_point(s, [c](const value_type & v) {
         return v.first < c;
       })->second;
     }
 
   private:
-    template<class I, class F>
-    FLECSI_INLINE_TARGET static I partition_point(I b, I e, F && f) {
-      while(b != e) {
-        I m = b + (e - b) / 2;
-        if(f(*m))
-          b = m + 1;
-        else
-          e = m;
-      }
-      return b;
-    }
-
     base_row s;
   };
 
