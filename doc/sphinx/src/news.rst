@@ -70,7 +70,7 @@ New features
 * Utilities
 
   * ``transform`` applies a transformation functor to a range.
-  * ``partition_point`` finds a value in a sorted range.
+  * ``partition_point`` and ``binary_index`` find values in sorted ranges.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
 
 * Logging

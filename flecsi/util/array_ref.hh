@@ -807,6 +807,19 @@ partition_point(R && r, F && f) {
   return b;
 }
 
+/// Find the index of a value in a sorted range.
+/// This function supports GPU execution.
+/// \param r random-access range
+template<class R,
+  class T = std::remove_reference_t<decltype(*std::begin(std::declval<R>()))>>
+FLECSI_TARGET constexpr auto
+binary_index(R && r, const T & t) {
+  const auto b = std::begin(r);
+  return (partition_point)(std::forward<R>(r), [&](const auto & x) {
+    return x < t;
+  }) - b;
+}
+
 /// \}
 } // namespace util
 } // namespace flecsi

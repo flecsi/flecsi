@@ -297,6 +297,7 @@ array_ref() {
       }());
       static_assert(util::partition_point(
                       primes, [](int i) { return !(i % 2); }) == primes + 1);
+      static_assert(util::binary_index(primes, 13) == 5);
     }
   };
 } // array_ref
