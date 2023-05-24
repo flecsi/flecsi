@@ -286,6 +286,16 @@ array_ref() {
       static_assert(sv.size() == n);
       static_assert(sv.begin() + n == sv.end());
     }
+
+    {
+      constexpr static int primes[] = {2, 3, 5, 7, 11, 13, 17},
+                           np = sizeof primes / sizeof *primes;
+      static_assert([] {
+        int twins[np]{};
+        util::transform(primes, twins, [](int i) { return i + 2; });
+        return twins[1] == primes[2];
+      }());
+    }
   };
 } // array_ref
 

@@ -69,6 +69,7 @@ New features
 
 * Utilities
 
+  * ``transform`` applies a transformation functor to a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
 
 * Logging

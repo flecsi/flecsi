@@ -778,6 +778,17 @@ private:
   difference_type n;
 };
 
+/// A simple subset of \c std::ranges::transform from C++20.
+/// This function supports GPU execution.
+/// \param s source range
+/// \param d destination iterator
+template<class S, class D, class F>
+FLECSI_TARGET constexpr void
+transform(S && s, D d, F && f) {
+  for(auto && x : s)
+    *d = f(std::forward<decltype(x)>(x)), ++d;
+}
+
 /// \}
 } // namespace util
 } // namespace flecsi
