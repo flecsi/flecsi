@@ -32,25 +32,44 @@ using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
 /// \cond core
-
 template<Dimension D>
 struct neighbors_view {
   using S = short;
+  bool diagonals;
+
+  explicit neighbors_view(bool diag) : diagonals{diag} {}
+
   struct iterator {
     using M = std::array<S, D>;
-
-    iterator() : iterator(-1) {}
-    explicit iterator(S s) : iterator(s, std::make_index_sequence<D - 1>()) {}
+    iterator(bool diag, S f, S s)
+      : iterator(diag, f, s, std::make_index_sequence<D - 1>()) {}
 
     const M & operator*() const {
       return m;
     }
 
     iterator & operator++() {
-      for(Dimension d = 0; ++m[d] == 2 && ++d < D; m[d - 1] = -1)
-        ;
-      if(m == M())
-        m[0] = 1; // skip origin; note that std::none_of is actually faster
+      if(diagonals) {
+        for(Dimension d = 0; ++m[d] == 2 && ++d < D; m[d - 1] = -1)
+          ;
+        if(m == M())
+          m[0] = 1; // skip origin; note that std::none_of is actually faster
+      }
+      else {
+        if(idx < D) {
+          std::swap(m[D - idx - 1], m[D - idx]);
+        }
+        else if(idx == D) {
+          m[0] = 1;
+        }
+        else if(idx > D && idx < 2 * D) {
+          std::swap(m[idx - D], m[idx - D - 1]);
+        }
+        else if(idx == 2 * D) {
+          m[D - 1] = 0;
+        }
+        idx++;
+      }
       return *this;
     }
     iterator operator++(int) {
@@ -68,16 +87,19 @@ struct neighbors_view {
 
   private:
     template<std::size_t... II>
-    iterator(S last, std::index_sequence<II...>) : m{(void(II), -1)..., last} {}
-
+    iterator(bool diag, S first, S last, std::index_sequence<II...>)
+      : diagonals{diag}, m{(void(II), first)..., last} {}
+    std::size_t idx = 1;
+    bool diagonals;
     M m;
   };
 
   iterator begin() const {
-    return {};
+    return (diagonals) ? iterator(diagonals, -1, -1)
+                       : iterator(diagonals, 0, -1);
   }
   iterator end() const {
-    return iterator(2);
+    return (diagonals) ? iterator(diagonals, -1, 2) : iterator(diagonals, 0, 0);
   }
 };
 
@@ -716,6 +738,7 @@ template<Dimension D>
 std::vector<std::vector<Color>>
 peers(index_definition idef) {
   using A = std::array<int, D>;
+
   using nview = flecsi::topo::narray_impl::neighbors_view<D>;
 
   A color_bnd, color_strs, axes_bdepths, color_indices;
@@ -737,7 +760,7 @@ peers(index_definition idef) {
     std::vector<Color> ngb_colors;
 
     // Loop over neighbors of a color
-    for(auto && nv : nview()) {
+    for(auto && nv : nview(idef.diagonals)) {
       A indices_mo;
       for(Dimension d = 0; d < D; ++d) {
         indices_mo[d] = color_indices[d] + nv[d];

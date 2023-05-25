@@ -671,9 +671,12 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
 using ints = field<int, data::ragged>;
 
+// This print task will only read the ghost values and not invoke any
+// communication. The purpose is to aid in debugging and see the sequence
+// of changes to field values as other tasks are performed.
 template<std::size_t D>
 void
-print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, ro> tf) {
+print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, na> tf) {
   std::stringstream ss;
   ss << " Color " << color() << std::endl;
 
@@ -737,7 +740,8 @@ template<std::size_t D, typename mesh<D>::domain DOM, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
-  int sz) {
+  int sz,
+  bool diagonals) {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
     std::array<util::id, D> lbnds, ubnds;
     m.template bounds<DOM>(lbnds, ubnds);
@@ -751,9 +755,11 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
-      check_sz<V>(tf, lid, sz);
-      for(int n = 0; n < sz; ++n)
-        check(tf[lid][n], (int)(gid * 10000 + n));
+      int sz2 = (V && (!diagonals) && m.check_diag_bounds(v)) ? 0 : sz;
+      EXPECT_EQ(check_sz<V>(tf, lid, sz2), true);
+      for(int n = 0; n < sz2; ++n) {
+        EXPECT_EQ(check(tf[lid][n], (int)(gid * 10000 + n)), true);
+      }
     }
   };
 }
@@ -1096,8 +1102,16 @@ narray_driver() {
       execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
 
       execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
-        m1, rf1(m1), sz);
+        m1, rf1(m1), sz, idef.diagonals);
       execute<print_rf<1>>(m1, rf1(m1));
+
+      // tests the case where the periodic flag is false, but with non-zero
+      // bdepth, communication is expected only for the halo layers.
+      execute<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
+        m1, rf1(m1), sz, idef.diagonals);
+      execute<print_rf<1>>(m1, rf1(m1));
+      execute<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
+        m1, rf1(m1), sz, idef.diagonals);
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy
@@ -1109,97 +1123,170 @@ narray_driver() {
         m1, rf1(m1));
       EXPECT_EQ(res, 0);
 
-      // tests the case where the periodic flag is false, but with non-zero
-      // bdepth, communication is expected only for the halo layers.
-      execute<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
-        m1, rf1(m1), sz);
-      execute<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
-        m1, rf1(m1), sz);
     } // scope
 
     {
       // 2D Mesh
-      mesh2d::slot m2;
+      auto test_2d = [](mesh2d::gcoord && ind,
+                       mesh2d::coord && hdepth,
+                       mesh2d::coord && bdepth,
+                       std::array<bool, 2> && periodic,
+                       bool diagonals,
+                       bool full_ghosts,
+                       int sz,
+                       bool full_verify) {
+        UNIT() {
+          mesh2d::gcoord indices{ind};
+          mesh2d::index_definition idef;
+          idef.axes = topo::narray_utils::make_axes(processes(), indices);
+          int i = 0;
+          for(auto & a : idef.axes) {
+            a.hdepth = hdepth[i];
+            a.bdepth = bdepth[i];
+            a.periodic = periodic[i];
+            ++i;
+          }
+          idef.diagonals = diagonals;
+          idef.full_ghosts = full_ghosts;
 
-      mesh2d::gcoord indices{8, 8};
-      mesh2d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
-      idef.axes[0].hdepth = 1;
-      idef.axes[1].hdepth = 2;
-      idef.axes[0].bdepth = 2;
-      idef.axes[1].bdepth = 1;
-      idef.axes[0].periodic = true;
-      idef.axes[1].periodic = true;
-      idef.diagonals = true;
-      idef.full_ghosts = true;
+          // create and allocate mesh slot
+          mesh2d::slot m2;
+          {
+            mesh2d::cslot coloring2;
+            coloring2.allocate(idef);
+            m2.allocate(coloring2.get());
+          }
 
-      {
-        mesh2d::cslot coloring2;
-        coloring2.allocate(idef);
-        m2.allocate(coloring2.get());
-      }
-      execute<init_field<2>, default_accelerator>(m2, f2(m2));
-      execute<print_field<2>>(m2, f2(m2));
-      execute<update_field<2>, default_accelerator>(m2, f2(m2));
-      execute<print_field<2>>(m2, f2(m2));
-      EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
+          execute<init_field<2>, default_accelerator>(m2, f2(m2));
 
-      // ragged field
-      int sz = 100;
+          if(full_verify) {
+            execute<print_field<2>>(m2, f2(m2));
+            execute<update_field<2>, default_accelerator>(m2, f2(m2));
+            execute<print_field<2>>(m2, f2(m2));
+            EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
+          }
 
-      auto & tf = rf2(m2).get_elements();
-      tf.growth = {0, 0, 0.25, 0.5, 1};
-      execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
+          // ragged field
+          auto & tf = rf2(m2).get_elements();
+          tf.growth = {0, 0, 0.25, 0.5, 1};
+          execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
 
-      execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
-        m2, rf2(m2), sz);
-      // execute<print_rf<2>>(m2, rf2(m2));
-      execute<init_verify_rf<2, mesh2d::domain::all, true>>(m2, rf2(m2), sz);
+          execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
+            m2, rf2(m2), sz, idef.diagonals);
+
+          if(!full_verify)
+            execute<print_rf<2>>(m2, rf2(m2));
+
+          execute<init_verify_rf<2, mesh2d::domain::all, true>>(
+            m2, rf2(m2), sz, idef.diagonals);
+
+          if(!full_verify)
+            execute<print_rf<2>>(m2, rf2(m2));
+        }; // unit
+      };
+
+      test_2d({8, 8}, {1, 2}, {2, 1}, {true, true}, true, true, 100, true);
+      test_2d({8, 8}, {1, 1}, {1, 1}, {true, true}, false, true, 3, false);
+
     } // scope
 
     {
-      // 3D Mesh
-      mesh3d::slot m3;
+      // 3D
+      auto test_3d = [](topo::narray_impl::colors && color_dist,
+                       mesh3d::gcoord && ind,
+                       mesh3d::coord && hdepth,
+                       mesh3d::coord && bdepth,
+                       std::array<bool, 3> && periodic,
+                       bool diagonals,
+                       bool full_ghosts,
+                       int sz,
+                       bool full_verify) {
+        UNIT() {
+          mesh3d::gcoord indices{ind};
+          mesh3d::index_definition idef;
+          if((color_dist.size() == 1) && (color_dist[0] == processes()))
+            idef.axes = topo::narray_utils::make_axes(processes(), indices);
+          else
+            idef.axes = topo::narray_utils::make_axes(color_dist, indices);
+          int i = 0;
+          for(auto & a : idef.axes) {
+            a.hdepth = hdepth[i];
+            a.bdepth = bdepth[i];
+            a.periodic = periodic[i];
+            ++i;
+          }
+          idef.diagonals = diagonals;
+          idef.full_ghosts = full_ghosts;
 
-      mesh3d::gcoord indices{4, 4, 4};
-      mesh3d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
-      for(auto & a : idef.axes) {
-        a.hdepth = 1;
-        a.bdepth = 1;
-        a.periodic = true;
-      }
-      idef.diagonals = true;
-      idef.full_ghosts = true;
+          // create and allocate mesh slot
+          mesh3d::slot m3;
+          {
+            mesh3d::cslot coloring3;
+            coloring3.allocate(idef);
+            m3.allocate(coloring3.get());
+          }
 
-      {
-        mesh3d::cslot coloring3;
-        coloring3.allocate(idef);
-        m3.allocate(coloring3.get());
-      }
-      execute<init_field<3>, default_accelerator>(m3, f3(m3));
-      execute<print_field<3>>(m3, f3(m3));
-      execute<update_field<3>, default_accelerator>(m3, f3(m3));
-      execute<print_field<3>>(m3, f3(m3));
-      EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
+          execute<init_field<3>, default_accelerator>(m3, f3(m3));
 
-      // ragged field
-      int sz = 100;
+          if(full_verify) {
+            execute<print_field<3>>(m3, f3(m3));
+            execute<update_field<3>, default_accelerator>(m3, f3(m3));
+            execute<print_field<3>>(m3, f3(m3));
+            EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
+          }
 
-      auto & tf = rf3(m3).get_elements();
+          // ragged field
+          auto & tf = rf3(m3).get_elements();
 
-      // The usual growth policy (with lo = 0.25) will not work for this
-      // particular problem setup since the number of cells initialized (2*2*4 =
-      // 16) is much less than the quarter of the capacity (which is 192),
-      // reducing the lo value from quarter to a tenth of the capacity ensures
-      // that the correct size is maintained.
-      tf.growth = {0, 0, 0.1, 0.5, 1};
-      execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
+          // The usual growth policy (with lo = 0.25) will not work for this
+          // particular problem setup since the number of cells initialized
+          // (2*2*4 = 16) is much less than the quarter of the capacity (which
+          // is 192), reducing the lo value from quarter to a tenth of the
+          // capacity ensures that the correct size is maintained.
+          tf.growth = {0, 0, 0.1, 0.5, 1};
+          execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
 
-      execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
-        m3, rf3(m3), sz);
-      // execute<print_rf<3>>(m3, rf3(m3));
-      execute<init_verify_rf<3, mesh3d::domain::all, true>>(m3, rf3(m3), sz);
+          execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
+            m3, rf3(m3), sz, idef.diagonals);
+
+          if(!full_verify)
+            execute<print_rf<3>>(m3, rf3(m3));
+
+          execute<init_verify_rf<3, mesh3d::domain::all, true>>(
+            m3, rf3(m3), sz, idef.diagonals);
+
+          if(!full_verify)
+            execute<print_rf<3>>(m3, rf3(m3));
+
+        }; // unit
+      };
+
+      test_3d({processes()},
+        {4, 4, 4},
+        {
+          1,
+          1,
+          1,
+        },
+        {1, 1, 1},
+        {true, true, true},
+        true,
+        true,
+        100,
+        true);
+      test_3d({2, 2, 1},
+        {4, 4, 2},
+        {
+          1,
+          1,
+          1,
+        },
+        {0, 0, 0},
+        {false, false, false},
+        false,
+        true,
+        3,
+        false);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
@@ -1223,6 +1310,7 @@ narray_driver() {
       }
       EXPECT_EQ(test<check_4dmesh>(m4), 0);
     }
+
   }; // UNIT
 } // narray_driver
 

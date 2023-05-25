@@ -70,9 +70,32 @@ distribute(Color np, narray_impl::gcoord indices) {
   Create a vector of axis definitions with default settings (hdepth=0,
   bdepth=0, periodic=false, etc) for the given extents and number of colors.
 
-  The method first finds the distribution of colors per axis.
+  The method takes as input the distribution of colors over axes.
   Then, the end offsets for each color per axis is computed and used to
   initialize each axis's definition object.
+
+  @param color_dist distribution of colors per axis
+  @param indices number of entities per axis
+
+  \return vector of axis definitions
+ */
+inline std::vector<narray_impl::axis_definition>
+make_axes(const narray_impl::colors & color_dist,
+  const narray_impl::gcoord & indices) {
+  std::vector<narray_impl::axis_definition> axes;
+  for(std::size_t d = 0; d < indices.size(); d++) {
+    flecsi::util::equal_map em{indices[d], color_dist[d]};
+    axes.push_back({em});
+  }
+  return axes;
+} // make_axes
+
+/*!
+  Choose a breakdown of colors per axis and construct axis definitions.
+  \see make_axes(const narray_impl::colors & color_dist, const
+  narray_impl::gcoord
+  &), #distribute
+
 
   @param num_colors total number of colors
   @param indices number of entities per axis
@@ -81,13 +104,8 @@ distribute(Color np, narray_impl::gcoord indices) {
  */
 inline std::vector<narray_impl::axis_definition>
 make_axes(Color num_colors, const narray_impl::gcoord & indices) {
-  std::vector<narray_impl::axis_definition> axes;
-  auto colors = distribute(num_colors, indices);
-  for(std::size_t d = 0; d < indices.size(); d++) {
-    flecsi::util::equal_map em{indices[d], colors[d]};
-    axes.push_back({em});
-  }
-  return axes;
+  const auto & colors = distribute(num_colors, indices);
+  return make_axes(colors, indices);
 } // make_axes
 
 } // namespace narray_utils
