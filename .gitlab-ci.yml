@@ -17,7 +17,7 @@ default:
    - echo "Running on $(hostname)"
 
 variables:
-  USE_SPACK_UPSTREAM: v0.19
+  USE_SPACK_UPSTREAM: develop-82d41a7be
   COLOR_BLUE: '\033[1;34m'
   COLOR_GREEN: '\033[0;32m'
   COLOR_MAGENTA: '\033[1;35m'
@@ -26,8 +26,8 @@ variables:
   # global defaults
   GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
-  ROCM_VERSION: 4.5.2
-  CUDA_VERSION: "11.7.0"
+  ROCM_VERSION: 5.4.3
+  CUDA_VERSION: 11.8.0
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
