@@ -49,47 +49,47 @@ variables:
 #------------------------------------------------------------------------------#
 .mpich: &mpich
   MPI_PROVIDER: mpich
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .mpich-debug: &mpich-debug
   MPI_PROVIDER: mpich
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi: &openmpi
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-debug: &openmpi-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-cuda: &openmpi-cuda
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-debug: &openmpi-cuda-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi: &openmpi-cuda-mpi
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi-debug: &openmpi-cuda-mpi-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: +hdf5 +kokkos ^kokkos +hwloc +rocm amdgpu_target=gfx906
 
 include: .gitlab/templates.yml
