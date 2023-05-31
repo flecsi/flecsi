@@ -106,9 +106,9 @@ docs_and_format:check:
   needs:
     - job: docs_and_format
       artifacts: true
-    - job: tutorial:legion
-    - job: flaxpy:legion
-    - job: poisson:legion
+    - job: mpich-tutorial:legion
+    - job: mpich-flaxpy:legion
+    - job: mpich-poisson:legion
   only:
     - merge_requests
   variables:
@@ -219,7 +219,7 @@ mpich-mpi-gnu:release:
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
-tutorial:legion:
+mpich-tutorial:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
@@ -239,7 +239,7 @@ tutorial:legion:
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
 
-flaxpy:legion:
+mpich-flaxpy:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
@@ -260,7 +260,7 @@ flaxpy:legion:
     PARTITIONS: skylake-gold
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
-poisson:legion:
+mpich-poisson:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
