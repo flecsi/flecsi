@@ -33,7 +33,7 @@ variables:
   C_FLAGS: ${WARN}
   PARTITIONS: general,skylake-gold,skylake-platinum
   IB_EDR_CONSTRAINT: "--constraint=ib:edr"
-  V100_CONSTRAINT: "--constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
+  V100_CONSTRAINT: "--constraint=\"cpu_family:haswell&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
   JOB_CONSTRAINTS: "${IB_EDR_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
@@ -232,7 +232,6 @@ mpich-tutorial:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
@@ -252,7 +251,6 @@ mpich-flaxpy:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
@@ -273,7 +271,6 @@ mpich-poisson:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
@@ -345,8 +342,9 @@ openmpi-legion-clang-cuda:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86,power9-rhel7
+    PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 openmpi-legion-clang-cuda-mpi:
   stage: Legion backend
@@ -522,6 +520,50 @@ openmpi-mpi-rocm:
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: amd-epyc-gpu
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Radeon_Instinct_MI50_32GB|gpu1_model:Radeon_VII\""
+    ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
+# GPU standalone tests
+#------------------------------------------------------------------------------#
+
+openmpi-poisson-cuda-clang:legion:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-legion-clang-cuda"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-cuda-debug
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    BUILD_TYPE: Debug
+    CXX_COMPILER: clang++
+    CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
+    C_COMPILER: clang
+    C_FLAGS: ${CXX_FLAGS}
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-rocm:mpi:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-mpi-rocm"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-rocm
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@9.4.0"
+    BUILD_TYPE: Debug
     CXX_COMPILER: hipcc
     C_COMPILER: hipcc
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on

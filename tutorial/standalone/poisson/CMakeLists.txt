@@ -50,7 +50,7 @@ function(add_unit name)
  
   add_test(NAME ${name}
   COMMAND
-     ${MPIEXEC_EXECUTABLE} -np 1 $<TARGET_FILE:${name}> ${unit_ARGUMENTS} ${UNIT_FLAGS}
+     ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 $<TARGET_FILE:${name}> ${unit_ARGUMENTS} ${UNIT_FLAGS}
      WORKING_DIRECTORY
       ${CMAKE_BINARY_DIR}
   )
