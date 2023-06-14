@@ -523,7 +523,7 @@ openmpi-mpi-rocm:
   variables:
     <<: *openmpi-rocm
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "gcc@9.4.0"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
@@ -549,7 +549,7 @@ openmpi-legion-rocm:
   variables:
     <<: *openmpi-legion-rocm-mpi
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "gcc@9.4.0"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: hipcc
@@ -594,7 +594,7 @@ openmpi-poisson-rocm:mpi:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "gcc@9.4.0"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     CXX_COMPILER: hipcc
     C_COMPILER: hipcc
@@ -613,7 +613,7 @@ openmpi-poisson-rocm:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "gcc@9.4.0"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     CXX_COMPILER: hipcc
     C_COMPILER: hipcc
