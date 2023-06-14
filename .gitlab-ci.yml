@@ -40,6 +40,8 @@ variables:
   LEGION_MPI: legion conduit=mpi
   LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
+  LEGION_IBV_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=ibv"
+  LEGION_MPI_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda
   KOKKOS_CUDA: kokkos +cuda +hwloc
   ENABLE_UNIT_TESTS: "ON"
@@ -90,7 +92,12 @@ variables:
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
   VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
-  VARIANTS: +hdf5 +kokkos ^kokkos +hwloc +rocm amdgpu_target=gfx906
+  VARIANTS: "+hdf5 +kokkos +rocm amdgpu_target=gfx906 ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION}"
+
+.openmpi-legion-rocm-mpi: &openmpi-legion-rocm-mpi
+  MPI_PROVIDER: openmpi
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
+  VARIANTS: "+hdf5 +kokkos +rocm amdgpu_target=gfx906 ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION}"
 
 include: .gitlab/templates.yml
 
@@ -528,6 +535,31 @@ openmpi-mpi-rocm:
     ARCHIVE_SPACK_ENV: "yes"
 
 #------------------------------------------------------------------------------#
+# Build and unit tests for Legion backend with OpenMPI provider,
+# and ROCM compiler toolchain.
+#------------------------------------------------------------------------------#
+
+openmpi-legion-rocm:
+  stage: Legion backend
+  extends: .darwin_build_template
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-legion-rocm-mpi
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@9.4.0"
+    BUILD_TYPE: Debug
+    BACKEND: legion
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: amd-epyc-gpu
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Radeon_Instinct_MI50_32GB|gpu1_model:Radeon_VII\""
+    ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
 # GPU standalone tests
 #------------------------------------------------------------------------------#
 
@@ -559,6 +591,25 @@ openmpi-poisson-rocm:mpi:
     - merge_requests
   variables:
     <<: *openmpi-rocm
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@9.4.0"
+    BUILD_TYPE: Debug
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: amd-epyc-gpu
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Radeon_Instinct_MI50_32GB|gpu1_model:Radeon_VII\""
+
+openmpi-poisson-rocm:legion:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-legion-rocm"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-legion-rocm-mpi
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
