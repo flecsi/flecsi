@@ -9,7 +9,6 @@ set(topo_HEADERS
   global.hh
   index.hh
   size.hh
-  narray/coloring_utils.hh
   narray/interface.hh
   narray/types.hh
   ntree/coloring.hh

@@ -20,6 +20,8 @@ namespace util {
 
 std::string demangle(const char * const name);
 
+/// \cond core
+
 /*!
   Return signature without parameter list
 
@@ -43,6 +45,8 @@ std::string strip_parameter_list(const std::string & sig);
  */
 
 std::string strip_return_type(const std::string & sig);
+
+/// \endcond
 
 /*!
   Return the demangled name of the type T.

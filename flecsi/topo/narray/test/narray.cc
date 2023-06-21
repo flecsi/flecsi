@@ -771,7 +771,7 @@ coloring_driver() {
     mesh3d::gcoord indices{9, 9, 9};
 
     mesh3d::index_definition idef;
-    idef.axes = topo::narray_utils::make_axes(9, indices);
+    idef.axes = mesh3d::base::make_axes(9, indices);
     for(auto & a : idef.axes) {
       a.hdepth = 1;
     }
@@ -1065,7 +1065,7 @@ int
 narray_driver() {
   UNIT() {
     {
-      using topo::narray_utils::factor;
+      using topo::narray_impl::factor;
       using V = std::vector<std::size_t>;
       EXPECT_EQ(factor(2 * 5 * 11 * 13 * 29), (V{29, 13, 11, 5, 2}));
       EXPECT_EQ(factor(2 * 2 * 23 * 23), (V{23, 23, 2, 2}));
@@ -1075,7 +1075,7 @@ narray_driver() {
       // 1D Mesh
       mesh1d::gcoord indices{9};
       mesh1d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes = mesh1d::base::make_axes(processes(), indices);
       idef.axes[0].hdepth = 1;
       idef.axes[0].bdepth = 2;
       idef.diagonals = true;
@@ -1126,7 +1126,7 @@ narray_driver() {
       // 2D Mesh
       mesh2d::gcoord indices{8, 8};
       mesh2d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes = mesh2d::base::make_axes(processes(), indices);
       idef.axes[0].hdepth = 1;
       idef.axes[1].hdepth = 2;
       idef.axes[0].bdepth = 2;
@@ -1160,7 +1160,7 @@ narray_driver() {
       // 3D Mesh
       mesh3d::gcoord indices{4, 4, 4};
       mesh3d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(processes(), indices);
+      idef.axes = mesh3d::base::make_axes(processes(), indices);
       for(auto & a : idef.axes) {
         a.hdepth = 1;
         a.bdepth = 1;
@@ -1199,7 +1199,7 @@ narray_driver() {
       // 4D Mesh
       mesh4d::gcoord indices{4, 4, 4, 4};
       mesh4d::index_definition idef;
-      idef.axes = topo::narray_utils::make_axes(16, indices);
+      idef.axes = mesh4d::base::make_axes(16, indices);
       for(auto & a : idef.axes) {
         a.hdepth = 1;
         a.bdepth = 1;

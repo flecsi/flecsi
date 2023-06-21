@@ -33,6 +33,28 @@ using colors = std::vector<Color>;
 
 /// \cond core
 
+inline std::vector<std::size_t>
+factor(std::size_t np) {
+  std::vector<std::size_t> facs;
+  const auto test = [&](std::size_t f) {
+    while(!(np % f)) {
+      facs.push_back(f);
+      np /= f;
+    }
+  };
+
+  // Trivial wheel factorization:
+  test(2);
+  test(3);
+  for(std::size_t i = 5, step = 2; i * i <= np; i += step, step = 2 * 3 - step)
+    test(i);
+  if(np > 1) // i.e., the largest prime factor is >3 and unique
+    facs.push_back(np);
+  std::reverse(facs.begin(), facs.end());
+
+  return facs;
+} // factor
+
 template<Dimension D>
 struct neighbors_view {
   using S = short;
@@ -813,9 +835,8 @@ operator<<(std::ostream & stream, index_color const & ic) {
 /// \addtogroup narray
 /// \{
 
-/// \if core
 /// Specialization-independent definitions.
-/// \endif
+/// Name as \c base in an \c narray specialization.
 struct narray_base {
   using axis_color = narray_impl::axis_color;
   using index_color = narray_impl::index_color;
@@ -837,7 +858,6 @@ struct narray_base {
    These domains are used in many of the interface methods to provide
    information about an axis such as size, extents, and offsets.
    \image html narray-layout.svg "Layouts for each possible orientation." width=100%
-   \ingroup narray
   */
   enum class domain : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
@@ -852,7 +872,6 @@ struct narray_base {
   };
 
   /// Coloring type.
-  /// \ingroup narray
   struct coloring {
     /// Coloring information for each index space.
     std::vector<index_definition> idx_colorings;
@@ -862,10 +881,59 @@ struct narray_base {
     }
   };
 
+  /*!
+    Create an axial color distribution for the given number of processes.
+
+    @param np total number of colors
+    @param indices number of entities per axis
+
+    \return number of colors per axis after decomposition
+   */
+  static colors distribute(Color np, gcoord indices) {
+    colors parts(indices.size(), 1);
+
+    auto facs = narray_impl::factor(np);
+
+    // greedy decomposition
+    for(auto fac : facs) {
+      auto maxind = std::distance(
+        indices.begin(), std::max_element(indices.begin(), indices.end()));
+      parts[maxind] *= fac;
+      indices[maxind] /= fac;
+    }
+
+    return parts;
+  } // decomp
+
+  /*!
+    Create a vector of axis definitions with default settings (hdepth=0,
+    bdepth=0, periodic=false, etc) for the given extents and number of colors.
+
+    The method first finds the distribution of colors per axis.
+    Then, the end offsets for each color per axis is computed and used to
+    initialize each axis's definition object.
+
+    @param num_colors total number of colors
+    @param indices number of entities per axis
+
+    \return vector of axis definitions
+   */
+  static std::vector<axis_definition> make_axes(Color num_colors,
+    const gcoord & indices) {
+    std::vector<axis_definition> axes;
+    auto colors = distribute(num_colors, indices);
+    for(std::size_t d = 0; d < indices.size(); d++) {
+      flecsi::util::equal_map em{indices[d], colors[d]};
+      axes.push_back({em});
+    }
+    return axes;
+  } // make_axes
+
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
     return vs[c];
   }
   /*!
+   \if core
    Method to compute the local ghost "intervals" and "points" which store map of
    local ghost offset to remote/shared offset. This method is called by the
    "make_copy_plan" method in the derived topology to create the copy plan
@@ -877,6 +945,7 @@ struct narray_base {
    @param[out] intervals  vector of local ghost intervals, over process colors
    @param[out] points vector of maps storing (local ghost offset, remote shared
    offset) for a shared color, over process colors
+   \endif
   */
   static void idx_itvls(index_definition const & idef,
     std::vector<std::size_t> & num_intervals,

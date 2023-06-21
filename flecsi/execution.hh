@@ -211,7 +211,7 @@ private:
   struct wrapper<F,
     decltype(void(std::declval<F>()(std::declval<const boost::any &>(),
       std::declval<std::stringstream &>())))> {
-    [[deprecated]] static F && get(F && f) {
+    [[deprecated("accept option value directly")]] static F && get(F && f) {
       return std::forward<F>(f);
     }
   };
