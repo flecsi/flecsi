@@ -65,13 +65,18 @@ flecsi_add_test(coloring
     unstructured/test/simple_definition.hh
   INPUTS
     unstructured/test/simple2d-16x16.msh
-    unstructured/test/coloring_5.0.blessed
-    unstructured/test/coloring_5.1.blessed
-    unstructured/test/coloring_5.2.blessed
-    unstructured/test/coloring_5.3.blessed
-    unstructured/test/coloring_5.4.blessed
-    unstructured/test/coloring_2.0.blessed
-    unstructured/test/coloring_2.1.blessed
+    unstructured/test/coloring_5.5.0.blessed
+    unstructured/test/coloring_5.5.1.blessed
+    unstructured/test/coloring_5.5.2.blessed
+    unstructured/test/coloring_5.5.3.blessed
+    unstructured/test/coloring_5.5.4.blessed
+    unstructured/test/coloring_5.2.0.blessed
+    unstructured/test/coloring_5.2.1.blessed
+    unstructured/test/coloring_1.5.0.blessed
+    unstructured/test/coloring_1.5.1.blessed
+    unstructured/test/coloring_1.5.2.blessed
+    unstructured/test/coloring_1.5.3.blessed
+    unstructured/test/coloring_1.5.4.blessed
   PROCS 5
 )
 
