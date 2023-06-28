@@ -165,17 +165,15 @@ struct tuple_get<std::tuple<TT...>> {
 /*!
   Arbitrary index for each task.
 
-  @tparam F          Legion task function.
+  @tparam F Legion task function.
   @tparam A task attributes mask
  */
 
 template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #96523
-extern const Legion::TaskID
-  task_id = (run::context::register_init(detail::register_task<
-               typename util::function_traits<decltype(F)>::return_type,
-               F,
-               A>),
+extern const Legion::TaskID task_id =
+  (run::context::register_init(
+     detail::register_task<typename util::function_t<F>::return_type, F, A>),
     Legion::Runtime::generate_static_task_id());
 
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
@@ -232,7 +230,7 @@ detail::register_task() {
 template<auto & F, task_processor_type_t P>
 struct task_wrapper {
 
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 
@@ -268,7 +266,7 @@ struct task_wrapper {
 
 template<auto & F>
 struct task_wrapper<F, task_processor_type_t::mpi> {
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 

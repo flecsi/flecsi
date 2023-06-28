@@ -52,7 +52,7 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using util::mpi::test;
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
 
   // replace arguments in args, for example, field_reference -> accessor.
