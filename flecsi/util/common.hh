@@ -108,13 +108,17 @@ struct FILE {
       throw std::ios::failure(
         "cannot open file", {errno, std::system_category()});
   }
-  FILE(FILE && f) : f(std::exchange(f.f, {})) {}
+  FILE(FILE && f) noexcept : f(std::exchange(f.f, {})) {}
   ~FILE() {
     if(f)
-      fclose(f); // NB: error lost
+      std::fclose(f); // NB: error lost
+  }
+  FILE & operator=(FILE src) & noexcept {
+    std::swap(f, src.f);
+    return *this;
   }
 
-  operator ::FILE *() const {
+  operator ::FILE *() const noexcept {
     return f;
   }
 
