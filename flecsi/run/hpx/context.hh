@@ -85,4 +85,73 @@ private:
 /// \}
 } // namespace flecsi::run
 
+namespace flecsi {
+namespace detail {
+
+using task_local_data = std::map<void *, void *>;
+
+// manage task local storage for this task
+void create_storage();
+task_local_data * storage() noexcept;
+void reset_storage() noexcept;
+
+template<typename T>
+void
+add(void * key) {
+  [[maybe_unused]] auto p = storage()->emplace(key, new T());
+  flog_assert(
+    p.second, "task local storage element should not have been created yet");
+}
+
+template<typename T>
+void
+erase(void * key) noexcept {
+  auto * stg = storage();
+  auto it = stg->find(key);
+  flog_assert(
+    it != stg->end(), "task local storage element should have been created");
+  delete static_cast<T *>((*it).second);
+  (*it).second = nullptr;
+}
+
+template<typename T>
+T *
+get(void * key) noexcept {
+  auto * stg = storage();
+  auto it = stg->find(key);
+  flog_assert(
+    it != stg->end(), "task local storage element should have been created");
+  return static_cast<T *>((*it).second);
+}
+} // namespace detail
+
+template<typename T>
+struct task_local : private run::task_local_base {
+  T & operator*() noexcept {
+    return *get();
+  }
+  T * operator->() noexcept {
+    return get();
+  }
+
+private:
+  void emplace() override {
+    detail::add<T>(this);
+  }
+  void reset() noexcept override {
+    detail::erase<T>(this);
+  }
+  void create_storage() override {
+    detail::create_storage();
+  }
+  void reset_storage() noexcept override {
+    detail::reset_storage();
+  }
+
+  T * get() noexcept {
+    return detail::get<T>(this);
+  }
+};
+} // namespace flecsi
+
 #endif // FLECSI_RUN_HPX_CONTEXT_HH

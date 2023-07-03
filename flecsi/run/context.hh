@@ -378,7 +378,7 @@ public:
 
 protected:
   // Invoke initialization callbacks.
-  // Call from hiding function in derived classses.
+  // Call from hiding function in derived classes.
   void start() {
     for(auto ro : init_registry())
       ro();
@@ -469,13 +469,19 @@ protected:
 struct task_local_base {
   struct guard {
     guard() {
-      for(auto * p : all)
-        p->emplace();
+      if(!all.empty()) {
+        all[0]->create_storage();
+        for(auto * p : all)
+          p->emplace();
+      }
     }
     guard(guard &&) = delete;
     ~guard() {
-      for(auto * p : all)
-        p->reset();
+      if(!all.empty()) {
+        for(auto * p : all)
+          p->reset();
+        all[0]->reset_storage();
+      }
     }
   };
 
@@ -494,6 +500,8 @@ private:
 
   virtual void emplace() = 0;
   virtual void reset() noexcept = 0;
+  virtual void create_storage() {}
+  virtual void reset_storage() noexcept {}
 };
 
 /// \endcond

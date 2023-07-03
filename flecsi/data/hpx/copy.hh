@@ -102,6 +102,9 @@ struct copy_engine : local::copy_engine {
 
     init_delayed_ghost_copy(field,
       [this, data_fid, comm_tag = std::move(comm_tag), comm_gen, p2p_gen]() {
+        // manage task_local variables for this task
+        run::task_local_base::guard tlg;
+
         // annotate new HPX thread
         ::hpx::scoped_annotation _(comm_tag);
 
