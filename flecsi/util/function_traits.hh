@@ -10,53 +10,24 @@
 namespace flecsi {
 namespace util {
 
-#ifndef DOXYGEN // it gets very confused by the specializations
 template<typename T>
-struct function_traits : function_traits<decltype(&T::operator())> {};
+struct function_traits {};
 
 template<typename R, typename... As>
 struct function_traits<R(As...)> {
+  static constexpr bool nonthrowing = false;
   using return_type = R;
   using arguments_type = std::tuple<As...>;
 };
 
 template<typename R, typename... As>
-struct function_traits<R (*)(As...)> : public function_traits<R(As...)> {};
-
-template<typename C, typename R, typename... As>
-struct function_traits<R (C::*)(As...)> : public function_traits<R(As...)> {
-  using owner_type = C;
+struct function_traits<R(As...) noexcept> : function_traits<R(As...)> {
+  static constexpr bool nonthrowing = true;
 };
 
-template<typename C, typename R, typename... As>
-struct function_traits<R (C::*)(As...) const>
-  : function_traits<R (C::*)(As...)> {};
-
-template<typename C, typename R, typename... As>
-struct function_traits<R (C::*)(As...) volatile>
-  : function_traits<R (C::*)(As...)> {};
-
-template<typename C, typename R, typename... As>
-struct function_traits<R (C::*)(As...) const volatile>
-  : function_traits<R (C::*)(As...)> {};
-
-template<typename R, typename... As>
-struct function_traits<std::function<R(As...)>>
-  : public function_traits<R(As...)> {};
-
-template<typename T>
-struct function_traits<T &> : public function_traits<T> {};
-template<typename T>
-struct function_traits<T &&> : public function_traits<T> {};
-template<typename T>
-struct function_traits<const T> : function_traits<T> {};
-template<typename T>
-struct function_traits<volatile T> : function_traits<T> {};
-template<typename T>
-struct function_traits<const volatile T> : function_traits<T> {};
-#endif
+template<auto & F>
+using function_t = function_traits<std::remove_reference_t<decltype(F)>>;
 
 } // namespace util
 } // namespace flecsi
-
 #endif

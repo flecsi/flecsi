@@ -82,7 +82,7 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using namespace Legion;
-  using traits_t = util::function_traits<decltype(F)>;
+  using traits_t = util::function_t<F>;
   using return_t = typename traits_t::return_type;
   using param_tuple = typename traits_t::arguments_type;
 

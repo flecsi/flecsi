@@ -8,77 +8,25 @@
 
 using namespace flecsi;
 
-struct MyClass {
-  int operator()(float, double, long double) const {
-    return 0;
-  }
-
-  void mem(char, int) {}
-  void memc(char, int) const {}
-  void memv(char, int) volatile {}
-  void memcv(char, int) const volatile {}
-};
-
-inline float
-MyFun(double, int, long) {
-  return float(0);
-}
-
-template<class T>
-using ft = util::function_traits<T>;
+float MyFun(double, int, long);
+float MyFunNoexcept(double, int, long) noexcept;
 
 template<class A, class B>
 constexpr const bool & eq = std::is_same_v<A, B>;
 
-template<class T>
-using ret = typename ft<T>::return_type;
-template<class T>
-using args = typename ft<T>::arguments_type;
-template<class... TT>
-using tup = std::tuple<TT...>;
-
-template<class T, class R, class A>
+template<auto & F, class R, class A, bool N>
 constexpr bool
 test() {
-  static_assert(eq<typename ft<T>::return_type, R>);
-  static_assert(eq<typename ft<T>::arguments_type, A>);
+  using tf = util::function_t<F>;
+  static_assert(tf::nonthrowing == N);
+  static_assert(eq<typename tf::return_type, R>);
+  static_assert(eq<typename tf::arguments_type, A>);
   return true;
 }
-template<class T, class... TT>
-constexpr bool
-same() {
-  return (
-    test<TT, typename ft<T>::return_type, typename ft<T>::arguments_type>() &&
-    ...);
-}
-template<auto M>
-constexpr bool
-pmf() {
-  using T = decltype(M);
-  static_assert(eq<typename ft<T>::owner_type, MyClass>);
-  return test<T, void, tup<char, int>>();
-}
 
-static_assert(pmf<&MyClass::mem>());
-static_assert(pmf<&MyClass::memc>());
-static_assert(pmf<&MyClass::memv>());
-static_assert(pmf<&MyClass::memcv>());
-
-static_assert(test<MyClass, int, tup<float, double, long double>>());
-static_assert(test<decltype(MyFun), float, tup<double, int, long>>());
-static_assert(same<decltype(MyFun),
-  decltype(&MyFun),
-  decltype(*MyFun),
-  std::function<decltype(MyFun)>>());
-static_assert(same<MyClass,
-  MyClass &,
-  const MyClass &,
-  volatile MyClass &,
-  const volatile MyClass &,
-  MyClass &&,
-  const MyClass &&,
-  volatile MyClass &&,
-  const volatile MyClass &&>());
+static_assert(test<MyFun, float, std::tuple<double, int, long>, false>());
+static_assert(
+  test<MyFunNoexcept, float, std::tuple<double, int, long>, true>());
 
 // ---------------
 using c31 = util::constants<3, 1>;
