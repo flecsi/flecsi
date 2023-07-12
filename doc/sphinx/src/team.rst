@@ -9,8 +9,11 @@
 Contributors
 ************
 
+Current
++++++++
+
 Ben Bergen
-++++++++++
+^^^^^^^^^^
 
 .. container:: twocol
 
@@ -34,7 +37,7 @@ Ben Bergen
 |clearboth|
 
 Richard Berger
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -56,7 +59,7 @@ Richard Berger
 |clearboth|
 
 Jonathan Graham
-+++++++++++++++
+^^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -86,7 +89,7 @@ Jonathan Graham
 |clearboth|
 
 Davis Herring
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -117,7 +120,7 @@ Davis Herring
 |clearboth|
 
 Christoph Junghans
-++++++++++++++++++
+^^^^^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -142,7 +145,7 @@ Christoph Junghans
 |clearboth|
 
 Sumathi Lakshmiranganatha
-+++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -174,7 +177,7 @@ Sumathi Lakshmiranganatha
 |clearboth|
 
 Li-Ta (Ollie) Lo
-++++++++++++++++
+^^^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -199,7 +202,7 @@ Li-Ta (Ollie) Lo
 |clearboth|
 
 Julien Loiseau
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -224,7 +227,7 @@ Julien Loiseau
 |clearboth|
 
 Scott Pakin
-+++++++++++
+^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -248,7 +251,7 @@ Scott Pakin
 |clearboth|
 
 Navamita Ray
-++++++++++++
+^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -278,7 +281,7 @@ Navamita Ray
 |clearboth|
 
 Andrew Reisner
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -303,10 +306,10 @@ Andrew Reisner
 |clearboth|
 
 Alumni
-******
+++++++
 
 David Daniel
-++++++++++++
+^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -326,7 +329,7 @@ David Daniel
 |clearboth|
 
 Irina Demeshko
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -350,7 +353,7 @@ Irina Demeshko
 |clearboth|
 
 Charles Ferenbaugh
-++++++++++++++++++
+^^^^^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -376,7 +379,7 @@ Charles Ferenbaugh
 |clearboth|
 
 Jonas Lippuner
-++++++++++++++
+^^^^^^^^^^^^^^
 
 .. container:: twocol
 
@@ -406,7 +409,7 @@ Jonas Lippuner
 |clearboth|
 
 Nick Moss
-+++++++++
+^^^^^^^^^
 
 .. container:: twocol
 
@@ -435,7 +438,7 @@ Nick Moss
 |clearboth|
 
 Karen Tsai
-++++++++++
+^^^^^^^^^^
 
 .. container:: twocol
 
@@ -464,7 +467,7 @@ Karen Tsai
 |clearboth|
 
 Wei Wu
-++++++
+^^^^^^
 
 .. container:: twocol
 
