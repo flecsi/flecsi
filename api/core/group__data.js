@@ -4,116 +4,116 @@ var group__data =
     [ "Launch maps", "group__launch.html", "group__launch" ],
     [ "MPI Data", "group__mpi-data.html", null ],
     [ "Topology implementation", "group__topology-data.html", "group__topology-data" ],
-    [ "accessor", "structflecsi_1_1data_1_1accessor.html", null ],
+    [ "accessor< L, T, Priv >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< dense, T, P >", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html", [
-      [ "operator()", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html#a156ad93b49c2af0f0f8fd9e7b8c18055", null ],
-      [ "operator[]", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html#a4aa1c211d497056fcc36e0a6bd35893f", null ]
+      [ "operator()", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html#a7b767b8a17a0a177a2f733b44b3e2dce", null ],
+      [ "operator[]", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html#ac7def3f972d464d56c8bd70be288a410", null ]
     ] ],
     [ "accessor< raw, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", [
-      [ "span", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#afeac575759059e1762fc62db034efe4d", null ]
+      [ "span", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a277e6699854279d69dbb22ca6a88c03a", null ]
     ] ],
     [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", [
-      [ "get", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#adac1da2aa0bf2c5872f091ff0cbf1cdb", null ],
-      [ "operator element_type &", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#ae9fe7133647a299371322211e2fb5abe", null ],
-      [ "operator=", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a96324769d344eb8cf26c93bee7cb9246", null ],
-      [ "operator=", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a4da6c5adee2daee1b7bea4b22e038e7d", null ],
-      [ "operator*", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a10470a826bacd00b88dffaabfa17fbd4", null ],
-      [ "operator->", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#abd28f611efbcc52801178b1203715261", null ]
+      [ "get", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a544b9609074180d5beed5b7022b08c34", null ],
+      [ "operator element_type &", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#aaf773101d2eeafa5676eb5c780e64dcf", null ],
+      [ "operator=", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#ac5c324f07aadd5d941ba0acf17f44a83", null ],
+      [ "operator=", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a3200aaf526c79079b44fc64f3d48ed53", null ],
+      [ "operator*", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#a0011afef76845375ccf536b7b2191de4", null ],
+      [ "operator->", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html#af149e712b7f8b122ae4b1471c44f8458", null ]
     ] ],
     [ "accessor< sparse, T, P >", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html", [
       [ "row", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4_1_1row.html", [
-        [ "operator()", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4_1_1row.html#ac5c1bd21e1ec95317280ab704ea76608", null ]
+        [ "operator()", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4_1_1row.html#a3e31e51d824fbd58f845f3a5eb76318e", null ]
       ] ],
-      [ "operator[]", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html#a18d11304e462ab143c2d5e310ac743f3", null ]
+      [ "operator[]", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html#aa09ac0a8a6b9714e4a214c2e7e9d066a", null ]
     ] ],
-    [ "coloring_slot", "structflecsi_1_1data_1_1coloring__slot.html", [
-      [ "allocate", "structflecsi_1_1data_1_1coloring__slot.html#ae21d3548a781116626f4eacd8c7e0cae", null ],
-      [ "deallocate", "structflecsi_1_1data_1_1coloring__slot.html#a33edbaa3fe59d9413caeb3e7250c7430", null ],
-      [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a8ea1415400df01c944cc7703543dfe0a", null ],
-      [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a5d2385236113fd6ccff96647e138d547", null ]
+    [ "coloring_slot< Topo >", "structflecsi_1_1data_1_1coloring__slot.html", [
+      [ "allocate", "structflecsi_1_1data_1_1coloring__slot.html#a8cf11cad9463cfd9fcd00a24dbe2dd30", null ],
+      [ "deallocate", "structflecsi_1_1data_1_1coloring__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],
+      [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a6706cb0ba611ec6bab66145c61c0c552", null ],
+      [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a586c841cc46dc477bd8a0c5e7ce3a00c", null ]
     ] ],
-    [ "field", "structflecsi_1_1field.html", [
+    [ "field< T, L >", "structflecsi_1_1field.html", [
       [ "definition", "structflecsi_1_1field_1_1definition.html", [
-        [ "operator()", "structflecsi_1_1field_1_1definition.html#a11ad223c13c8341a3b6caa3a639cf24e", null ],
-        [ "operator()", "structflecsi_1_1field_1_1definition.html#aa8c60b4234c3b7289a095e6a45d6fd66", null ]
+        [ "operator()", "structflecsi_1_1field_1_1definition.html#a91d7a8e7352165d51614a48f0ae2571c", null ],
+        [ "operator()", "structflecsi_1_1field_1_1definition.html#aba7406971fe79e94bd24cb2bd8e26261", null ]
       ] ],
-      [ "accessor", "structflecsi_1_1field.html#abe60e1a836b334d1d7b6ecb8ed4ce0ce", null ],
-      [ "mutator", "structflecsi_1_1field.html#a30dbe29d30996fbd0c3ea36347b19c58", null ],
-      [ "reduction", "structflecsi_1_1field.html#a15ab590b7e78046ed3cd6c9b0b6dbb1e", null ],
-      [ "field", "structflecsi_1_1field.html#af044d007716f40d7d265e129fb7d8116", null ]
+      [ "accessor", "structflecsi_1_1field.html#a93dcc210db84f8f3e8a71132186748f5", null ],
+      [ "mutator", "structflecsi_1_1field.html#a3f04d4e963a0f97f6e99395b0377e1d1", null ],
+      [ "reduction", "structflecsi_1_1field.html#ab2edf1e144a482b8083df98b5479cfee", null ],
+      [ "field", "structflecsi_1_1field.html#ac398e904396eb257a22ed89696cd0955", null ]
     ] ],
     [ "field_info_t", "structflecsi_1_1data_1_1field__info__t.html", null ],
-    [ "field_reference", "structflecsi_1_1data_1_1field__reference.html", [
-      [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a6312e69b13fbbd71a31d571979c12314", null ],
-      [ "use", "structflecsi_1_1data_1_1field__reference.html#a88a5640edecbd864e3e3a9b42a618a53", null ]
+    [ "field_reference< T, L, Topo, Space >", "structflecsi_1_1data_1_1field__reference.html", [
+      [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ],
+      [ "use", "structflecsi_1_1data_1_1field__reference.html#a2e3d756598b3e1d9bedf2f23092bdaf8", null ]
     ] ],
-    [ "multi", "structflecsi_1_1data_1_1multi.html", [
-      [ "components", "structflecsi_1_1data_1_1multi.html#a99e747739f421e4695d62293099ea9dd", null ]
+    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
+      [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
-    [ "multi_reference", "structflecsi_1_1data_1_1multi__reference.html", null ],
-    [ "mutator", "structflecsi_1_1data_1_1mutator.html", null ],
+    [ "multi_reference< T, L, Topo, S >", "structflecsi_1_1data_1_1multi__reference.html", null ],
+    [ "mutator< layout, class, Privileges >", "structflecsi_1_1data_1_1mutator.html", null ],
     [ "mutator< particle, T, P >", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html", [
-      [ "clear", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a504d13b65cf7e5603322ed7676917577", null ],
-      [ "insert", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a74caa71812728bf636d4f98076dc2cd8", null ],
-      [ "insert", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a78498a0d30740603eba7fb9d003cb83c", null ],
-      [ "emplace", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a7c14a45dd0a1dff5c06e83c476cb5e49", null ],
-      [ "erase", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a85b3008c5b28597efe2726ba544feafc", null ]
+      [ "clear", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#adf1d9633e64d0de6a36e0af17ccd8163", null ],
+      [ "insert", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a27e59eac3b96a1d4aef43515a53250ab", null ],
+      [ "insert", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#abbf123d9b48f93c4b33924cbf8033f16", null ],
+      [ "emplace", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#a6803ebd904a54592742fbe3d4c899456", null ],
+      [ "erase", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html#af4ce1f029773d320b8b4428e94540c3e", null ]
     ] ],
     [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", [
       [ "row", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html", null ],
-      [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#acc42f02e009db2a67d66c1331bc9e6b0", null ],
-      [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a2b5b84e17a45f4928e808c9b4d1059e6", null ]
+      [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a9dcd4c1880266ef3b9ddf916e605f309", null ],
+      [ "size", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html#a0801762a3fe36fe32dca5f16e515478d", null ]
     ] ],
     [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", [
       [ "row", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html", [
         [ "iterator", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row_1_1iterator.html", [
-          [ "operator*", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row_1_1iterator.html#a9b00d35873cd8798655726f852998e1c", null ]
+          [ "operator*", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row_1_1iterator.html#aca66a6259f1fbb791d28dfad1a22cae0", null ]
         ] ]
       ] ],
-      [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html#a8e0b9b082f46de94e7dbaffe9bc50862", null ],
-      [ "size", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html#a3af55ae8d103409e2e62a2d080195290", null ]
+      [ "operator[]", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html#a9dcd4c1880266ef3b9ddf916e605f309", null ],
+      [ "size", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html#a0801762a3fe36fe32dca5f16e515478d", null ]
     ] ],
-    [ "particle_accessor", "structflecsi_1_1data_1_1particle__accessor.html", [
-      [ "size", "structflecsi_1_1data_1_1particle__accessor.html#a472323e6b407bd4d90a6123646206055", null ],
-      [ "capacity", "structflecsi_1_1data_1_1particle__accessor.html#aa13a569b42b94bff42f28424f802f646", null ],
-      [ "empty", "structflecsi_1_1data_1_1particle__accessor.html#ac794457722ef0b18199d15d1b5cbcf5b", null ],
-      [ "get_iterator_from_pointer", "structflecsi_1_1data_1_1particle__accessor.html#a45133dfdff05f6ab59cbbd0d62d77bb0", null ]
+    [ "particle_accessor< T, P, M >", "structflecsi_1_1data_1_1particle__accessor.html", [
+      [ "size", "structflecsi_1_1data_1_1particle__accessor.html#a60304b65bf89363bcc3165d3cde67f86", null ],
+      [ "capacity", "structflecsi_1_1data_1_1particle__accessor.html#ad0ca5aee30a51753613c75187175e836", null ],
+      [ "empty", "structflecsi_1_1data_1_1particle__accessor.html#a644718bb2fb240de962dc3c9a1fdf0dc", null ],
+      [ "get_iterator_from_pointer", "structflecsi_1_1data_1_1particle__accessor.html#a1f77d8a887759d15315bb98767d5da8e", null ]
     ] ],
-    [ "ragged_accessor", "structflecsi_1_1data_1_1ragged__accessor.html", [
-      [ "operator[]", "structflecsi_1_1data_1_1ragged__accessor.html#a4c2dcf3db261510fcbac834fd0c6f64e", null ],
-      [ "size", "structflecsi_1_1data_1_1ragged__accessor.html#a55047b48263ea9f3c9c9725432305534", null ],
-      [ "total", "structflecsi_1_1data_1_1ragged__accessor.html#ac2a32bba60cf45f91a707698a4f19d38", null ],
-      [ "span", "structflecsi_1_1data_1_1ragged__accessor.html#ad13fff4416fccd3684d57eab47828149", null ]
+    [ "ragged_accessor< T, P, OP >", "structflecsi_1_1data_1_1ragged__accessor.html", [
+      [ "operator[]", "structflecsi_1_1data_1_1ragged__accessor.html#a9dcd4c1880266ef3b9ddf916e605f309", null ],
+      [ "size", "structflecsi_1_1data_1_1ragged__accessor.html#a0801762a3fe36fe32dca5f16e515478d", null ],
+      [ "total", "structflecsi_1_1data_1_1ragged__accessor.html#a24459a6989651251cb5a3de7619e140b", null ],
+      [ "span", "structflecsi_1_1data_1_1ragged__accessor.html#a36db50a6d2b2794e25d5811ca2240204", null ]
     ] ],
-    [ "reduction_accessor", "structflecsi_1_1data_1_1reduction__accessor.html", [
-      [ "operator[]", "structflecsi_1_1data_1_1reduction__accessor.html#a826a99f0f8604d52b495466864d5cc1e", null ],
-      [ "span", "structflecsi_1_1data_1_1reduction__accessor.html#a3035af18eab1e87b66ab5bf6f359a8e4", null ]
+    [ "reduction_accessor< R, T >", "structflecsi_1_1data_1_1reduction__accessor.html", [
+      [ "operator[]", "structflecsi_1_1data_1_1reduction__accessor.html#a48ee3a0a3c0e0f07b9afeb3ad7bd0d0a", null ],
+      [ "span", "structflecsi_1_1data_1_1reduction__accessor.html#a36db50a6d2b2794e25d5811ca2240204", null ]
     ] ],
-    [ "topology_accessor", "structflecsi_1_1data_1_1topology__accessor.html", null ],
-    [ "topology_slot", "structflecsi_1_1data_1_1topology__slot.html", [
-      [ "allocate", "structflecsi_1_1data_1_1topology__slot.html#a16bf9d27e357c3adb26fc626fdd4ff8c", null ],
-      [ "deallocate", "structflecsi_1_1data_1_1topology__slot.html#a3fd884e082e789af451e8813de17f3cc", null ],
-      [ "colors", "structflecsi_1_1data_1_1topology__slot.html#a1f2a0a549076a1c63697408fd238579e", null ]
+    [ "topology_accessor< T, Priv >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
+    [ "topology_slot< Topo >", "structflecsi_1_1data_1_1topology__slot.html", [
+      [ "allocate", "structflecsi_1_1data_1_1topology__slot.html#acd71bcf530336967c2da3c047cd4025d", null ],
+      [ "deallocate", "structflecsi_1_1data_1_1topology__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],
+      [ "colors", "structflecsi_1_1data_1_1topology__slot.html#a27c97040e58856c6f97f83aa06537a66", null ]
     ] ],
-    [ "scalar_access", "group__data.html#ga441544d078056a37bd2dde7fc41f0e7a", null ],
-    [ "layout", "group__data.html#gaa41036c3f6c4941e93acf0796841cc91", [
-      [ "raw", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91a8073d176f97e599366e7b27b9ba05980", null ],
-      [ "single", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91abef924cd5ca503ea9ace8903fb6f90c9", null ],
-      [ "dense", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91a2b8841a0a05189ce669b40797d1f68d7", null ],
-      [ "ragged", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91a78bd6e6bb774f1a020a2e6bd225d7d46", null ],
-      [ "sparse", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91a0e05922369b82caf301fe1a7933f4436", null ],
-      [ "particle", "group__data.html#ggaa41036c3f6c4941e93acf0796841cc91acf7891ebf6caa07c62145c04dec67dd3", null ]
+    [ "flecsi::data::scalar_access", "group__data.html#ga8e734b9c8f9598b220c4a3921a977851", null ],
+    [ "flecsi::data::layout", "group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a", [
+      [ "flecsi::data::raw", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5", null ],
+      [ "flecsi::data::single", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa44512857a6d1077e4462c754c0a1d11b", null ],
+      [ "flecsi::data::dense", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aae8716347cc7fdaf9fc25cc0e20c2ab26", null ],
+      [ "flecsi::data::ragged", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa35697221af7a2476da7044d38e967097", null ],
+      [ "flecsi::data::sparse", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aab78868b7a281dbe62227072695184f91", null ],
+      [ "flecsi::data::particle", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa36946d784c39daca3325ed9770954038", null ]
     ] ],
-    [ "partition_privilege_t", "group__data.html#ga4caa8bd1a2016b300456419cc056d85b", [
-      [ "na", "group__data.html#gga4caa8bd1a2016b300456419cc056d85ba1fa1ff165335cd7b360f73e131788170", null ],
-      [ "ro", "group__data.html#gga4caa8bd1a2016b300456419cc056d85ba697e369d8da1429ef374947e6d4ff78b", null ],
-      [ "wo", "group__data.html#gga4caa8bd1a2016b300456419cc056d85baeeb80a2b707174ff6b090d0f44de0ca8", null ],
-      [ "rw", "group__data.html#gga4caa8bd1a2016b300456419cc056d85ba4d9c3d3f28f1a6160144b846f8e5f418", null ]
+    [ "flecsi::partition_privilege_t", "group__data.html#ga15b90fedf9416d69fcbe4488930e0d32", [
+      [ "flecsi::na", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944", null ],
+      [ "flecsi::ro", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b", null ],
+      [ "flecsi::wo", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1", null ],
+      [ "flecsi::rw", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44", null ]
     ] ],
-    [ "privilege_count", "group__data.html#gad3ec0d3977c7912a9d094f6e611d6369", null ],
-    [ "get_privilege", "group__data.html#gaa51a3f45e4304854be7d1f9e85bf8345", null ],
-    [ "fid_counter", "group__data.html#ga3fdbaef95bfa5652714296b762bb07a3", null ],
-    [ "privilege_pack", "group__data.html#ga30d75a9f996955c9b4d5d136b6040e07", null ],
-    [ "global_topology", "group__data.html#ga2025450b30b5595ee938bbc959ecd044", null ],
-    [ "process_topology", "group__data.html#gadb953fbabaeaf109afe49ba764d39c00", null ]
+    [ "flecsi::privilege_count", "group__data.html#gad3ec0d3977c7912a9d094f6e611d6369", null ],
+    [ "flecsi::get_privilege", "group__data.html#gaa51a3f45e4304854be7d1f9e85bf8345", null ],
+    [ "flecsi::global_topology", "group__data.html#ga353309e531f79e3fc799dc706066bf93", null ],
+    [ "flecsi::process_topology", "group__data.html#gac54f2e985c94bff43579f23133a1e2be", null ],
+    [ "flecsi::fid_counter", "group__data.html#gaa50d55f0e36fa4be69f6dde531df91ce", null ],
+    [ "flecsi::privilege_pack", "group__data.html#gaad02cc235b4069cc0266309e151814f7", null ]
 ];

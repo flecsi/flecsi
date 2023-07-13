@@ -1,16 +1,16 @@
 var structflecsi_1_1topo_1_1ntree__base =
 [
     [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html", "structflecsi_1_1topo_1_1ntree__base_1_1coloring" ],
-    [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a44cba4189a4777a078c180e7661c1f32", null ],
-    [ "ptype_t", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3", [
-      [ "exclusive", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3adcd77e85e3c67740cecd5040a23d3f45", null ],
-      [ "ghost", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3a15b92a7eb7de867194bbf666543aea00", null ],
-      [ "all", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3a8f156dd9d558b9be86358173531a6f9d", null ]
+    [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2", null ],
+    [ "ptype_t", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911", [
+      [ "exclusive", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911acb67d8236df55e74bba662ac5569144a", null ],
+      [ "ghost", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911ab0ca578d7510d6a9569014ac68a70486", null ],
+      [ "all", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911a8701c301e7c87ec4d4f3aee33c6128d7", null ]
     ] ],
-    [ "ttype_t", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85", [
-      [ "preorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a51fdc641d805f5de4d241f53a4199b5e", null ],
-      [ "postorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a602a32131ff6e45b43f5ac9345878a14", null ],
-      [ "reverse_preorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85ae9434689ded45155748980a1010e6566", null ],
-      [ "reverse_postorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a24e8944d70802ade53c1d6a3f9f5cd6f", null ]
+    [ "ttype_t", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0", [
+      [ "preorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0adefb5d09673c144dc5b4dc177e278696", null ],
+      [ "postorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0a2b26810565bd469bf0fcda626669d3dc", null ],
+      [ "reverse_preorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0a8bca9a40b6155139ad60d2bf5ad370d3", null ],
+      [ "reverse_postorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0afff918bb4e1b015955c3228092fd4537", null ]
     ] ]
 ];

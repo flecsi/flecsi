@@ -1,9 +1,9 @@
 var structflecsi_1_1topo_1_1core =
 [
     [ "access", "structflecsi_1_1topo_1_1core_1_1access.html", "structflecsi_1_1topo_1_1core_1_1access" ],
-    [ "core", "structflecsi_1_1topo_1_1core.html#aff37aa7462c3bf23a83a821a52995977", null ],
-    [ "colors", "structflecsi_1_1topo_1_1core.html#a3328d936d11c7624a079d4d320b383e4", null ],
-    [ "get_region", "structflecsi_1_1topo_1_1core.html#ae49ab20fb28051ab7c50cf9e55278201", null ],
-    [ "get_partition", "structflecsi_1_1topo_1_1core.html#a9f31f21d0a56b99da137730e73d905d4", null ],
-    [ "ghost_copy", "structflecsi_1_1topo_1_1core.html#a0f571c5059b2a46a6eccc2c5c96cda8f", null ]
+    [ "core", "structflecsi_1_1topo_1_1core.html#a332009967f3592eefbce0d02f0b8aadd", null ],
+    [ "colors", "structflecsi_1_1topo_1_1core.html#a27c97040e58856c6f97f83aa06537a66", null ],
+    [ "get_region", "structflecsi_1_1topo_1_1core.html#adb06bb20c546fe7fb96ff321ae17056f", null ],
+    [ "get_partition", "structflecsi_1_1topo_1_1core.html#a64ec4b79dbdce028da11e5f453440e9a", null ],
+    [ "ghost_copy", "structflecsi_1_1topo_1_1core.html#a4609f1bc0c1a4dec3b3b9c0ac0d2f11d", null ]
 ];

@@ -1,5 +1,5 @@
 var structflecsi_1_1data_1_1borrow =
 [
-    [ "borrow", "structflecsi_1_1data_1_1borrow.html#adb0a9d3f4dc848b19dc5fc42bd3fb2e2", null ],
-    [ "size", "structflecsi_1_1data_1_1borrow.html#a06c6a3e6f79710a6ebcd09897aa7d318", null ]
+    [ "borrow", "structflecsi_1_1data_1_1borrow.html#ab84853b31902bb316874000b8e2df040", null ],
+    [ "size", "structflecsi_1_1data_1_1borrow.html#a2a49aa42c83e86a61003107ab2dc6a78", null ]
 ];

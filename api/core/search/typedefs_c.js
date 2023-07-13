@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['point',['point',['../structflecsi_1_1run_1_1control__base.html#a9931b0a6463df730e11f4f410eacb6dc',1,'flecsi::run::control_base::point()'],['../group__point.html#gab05a1475fc4e632787cb9a77831b3027',1,'flecsi::util::point()']]],
-  ['point_5ft',['point_t',['../classflecsi_1_1topo_1_1sort__entity.html#a0d687e1c13a9d3e709f279baaba8dd2d',1,'flecsi::topo::sort_entity']]],
-  ['points',['points',['../structflecsi_1_1topo_1_1narray__impl_1_1index__color.html#a55a00f7a40de1ba70c18e6cca8028f3a',1,'flecsi::topo::narray_impl::index_color']]]
+  ['point_0',['point',['../structflecsi_1_1run_1_1control__base.html#a3fd9130fc3c1cd7fad09a46d587ff208',1,'flecsi::run::control_base::point()'],['../group__point.html#ga8b861f131754ff5f8553c434a0302ca8',1,'flecsi::util::point()']]],
+  ['point_5ft_1',['point_t',['../classflecsi_1_1topo_1_1sort__entity.html#a718d09850cf1b05bd01bf2bd589b1a77',1,'flecsi::topo::sort_entity']]],
+  ['points_2',['points',['../structflecsi_1_1topo_1_1narray__impl_1_1index__color.html#aeae7c79680960768d56258fd47d61e27',1,'flecsi::topo::narray_impl::index_color']]]
 ];

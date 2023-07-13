@@ -1,11 +1,11 @@
 var group__set =
 [
-    [ "coloring", "structflecsi_1_1topo_1_1set__base_1_1coloring.html", [
-      [ "ptr", "structflecsi_1_1topo_1_1set__base_1_1coloring.html#a42952f539888cb1d4cd10bf8f5ee433a", null ],
-      [ "counts", "structflecsi_1_1topo_1_1set__base_1_1coloring.html#a708ca89436a5fcf8c0646a44a5f50ec1", null ]
+    [ "set_base::coloring", "structflecsi_1_1topo_1_1set__base_1_1coloring.html", [
+      [ "ptr", "structflecsi_1_1topo_1_1set__base_1_1coloring.html#add9af9569af79ec26dd741fb226b38ba", null ],
+      [ "counts", "structflecsi_1_1topo_1_1set__base_1_1coloring.html#a061d2852332f3eb9001600bd1ec007ca", null ]
     ] ],
-    [ "set", "structflecsi_1_1topo_1_1set.html", null ],
+    [ "set< Policy >", "structflecsi_1_1topo_1_1set.html", null ],
     [ "set_specialization", "structflecsi_1_1topo_1_1set__specialization.html", [
-      [ "mesh_type", "structflecsi_1_1topo_1_1set__specialization.html#a229af5e1fa565493ca22e4ffe2c09c8b", null ]
+      [ "mesh_type", "structflecsi_1_1topo_1_1set__specialization.html#acd56b37cb6a3b2ac5662abd84c3240fe", null ]
     ] ]
 ];

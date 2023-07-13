@@ -1,7 +1,7 @@
 var structflecsi_1_1data_1_1coloring__slot =
 [
-    [ "allocate", "structflecsi_1_1data_1_1coloring__slot.html#ae21d3548a781116626f4eacd8c7e0cae", null ],
-    [ "deallocate", "structflecsi_1_1data_1_1coloring__slot.html#a33edbaa3fe59d9413caeb3e7250c7430", null ],
-    [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a8ea1415400df01c944cc7703543dfe0a", null ],
-    [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a5d2385236113fd6ccff96647e138d547", null ]
+    [ "allocate", "structflecsi_1_1data_1_1coloring__slot.html#a8cf11cad9463cfd9fcd00a24dbe2dd30", null ],
+    [ "deallocate", "structflecsi_1_1data_1_1coloring__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],
+    [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a6706cb0ba611ec6bab66145c61c0c552", null ],
+    [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a586c841cc46dc477bd8a0c5e7ce3a00c", null ]
 ];

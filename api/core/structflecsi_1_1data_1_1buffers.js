@@ -1,6 +1,6 @@
 var structflecsi_1_1data_1_1buffers =
 [
     [ "ragged", "structflecsi_1_1data_1_1buffers_1_1ragged.html", "structflecsi_1_1data_1_1buffers_1_1ragged" ],
-    [ "Start", "structflecsi_1_1data_1_1buffers.html#a6cba27895e40d7adea6bcb7fefc96168", null ],
-    [ "Transfer", "structflecsi_1_1data_1_1buffers.html#adbdc5b08117bbb83dadf146ba94128dc", null ]
+    [ "Start", "structflecsi_1_1data_1_1buffers.html#ad5a2d7cb9cf01a62d5516788bf182239", null ],
+    [ "Transfer", "structflecsi_1_1data_1_1buffers.html#a24355280ed2f301f1a2d0c6da7334b5e", null ]
 ];

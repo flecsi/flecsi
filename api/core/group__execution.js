@@ -4,55 +4,55 @@ var group__execution =
     [ "Kernels", "group__kernel.html", "group__kernel" ],
     [ "Legion Execution", "group__legion-execution.html", "group__legion-execution" ],
     [ "MPI Execution", "group__mpi-execution.html", null ],
-    [ "future", "structflecsi_1_1future.html", null ],
+    [ "future< Return, Launch >", "structflecsi_1_1future.html", null ],
     [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", [
-      [ "wait", "structflecsi_1_1future_3_01Return_01_4.html#a983a5004cbbeaeab471de54edb026250", null ],
-      [ "get", "structflecsi_1_1future_3_01Return_01_4.html#a3be961445479447990c636234d79fa42", null ]
+      [ "wait", "structflecsi_1_1future_3_01Return_01_4.html#aa3b21853f890838c88d047d6c2786917", null ],
+      [ "get", "structflecsi_1_1future_3_01Return_01_4.html#ad660d42d6f5df2f3a2cc5bd3b66d0666", null ]
     ] ],
     [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", [
-      [ "wait", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#acff710392c57e43016345fef3bd16b9e", null ],
-      [ "get", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a436e841d851cebb3932e17e6ce63dfda", null ],
-      [ "size", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a93cd409f5e6176c189d03d6b208f8e13", null ]
+      [ "wait", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a3281fa7a58f093de0bcfd45211a1ed14", null ],
+      [ "get", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a726273048b674d5b970c95cc890f3e6f", null ],
+      [ "size", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a2a49aa42c83e86a61003107ab2dc6a78", null ]
     ] ],
-    [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", [
-      [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#acdf57f0c92e50774fa9595098e0a1f0a", null ],
-      [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a474323631eb1efa570abca542c1dfa76", null ]
+    [ "trace::guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", [
+      [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a7bab67ca137c1bbfc92e4fd1f3814a17", null ],
+      [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]
     ] ],
     [ "launch_domain", "structflecsi_1_1exec_1_1launch__domain.html", null ],
-    [ "multi", "structflecsi_1_1data_1_1multi.html", [
-      [ "components", "structflecsi_1_1data_1_1multi.html#a99e747739f421e4695d62293099ea9dd", null ]
+    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
+      [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
-    [ "partial", "structflecsi_1_1exec_1_1partial.html", null ],
-    [ "prolog", "structflecsi_1_1exec_1_1prolog.html", null ],
-    [ "task_local", "structflecsi_1_1task__local.html", [
-      [ "task_local", "structflecsi_1_1task__local.html#a9a5ffd81cdfe00f4ba4fd766b96e481b", null ],
-      [ "task_local", "structflecsi_1_1task__local.html#a1b379900073269ac7531f6461c8a6927", null ],
-      [ "operator*", "structflecsi_1_1task__local.html#ac1ea90d0337e2c87c9054a7eb6caf136", null ],
-      [ "operator->", "structflecsi_1_1task__local.html#a1c5510905c52efd187e3fbc316541402", null ]
+    [ "partial< F, AA >", "structflecsi_1_1exec_1_1partial.html", null ],
+    [ "prolog< ProcessorType >", "structflecsi_1_1exec_1_1prolog.html", null ],
+    [ "task_local< T >", "structflecsi_1_1task__local.html", [
+      [ "task_local", "structflecsi_1_1task__local.html#a1496dd6d0a4a218a8bfa6cd7cbe946c4", null ],
+      [ "task_local", "structflecsi_1_1task__local.html#a360ab9e99f23575f7d7a63d481465c99", null ],
+      [ "operator*", "structflecsi_1_1task__local.html#abfa44f22c830a36b36c2bbc7dc66505e", null ],
+      [ "operator->", "structflecsi_1_1task__local.html#ad728d8b1b343869d8f0aa27e8fadf24a", null ]
     ] ],
-    [ "task_prologue", "structflecsi_1_1exec_1_1task__prologue.html", [
-      [ "task_prologue", "structflecsi_1_1exec_1_1task__prologue.html#a6807fc1fc5fc9d31fb1b1eb629df4a9e", null ],
-      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#ae790f5c2bdb2a1ee570e9e3bb108262d", null ],
-      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#af45627bf2731112709a91008411145a0", null ]
+    [ "task_prologue< ProcessorType >", "structflecsi_1_1exec_1_1task__prologue.html", [
+      [ "task_prologue", "structflecsi_1_1exec_1_1task__prologue.html#a748d9ef35eccf5ca9c1e8bed05f5f237", null ],
+      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#acdf1fd0f60010b2525b106c5223a1d50", null ],
+      [ "visit", "structflecsi_1_1exec_1_1task__prologue.html#a8f8bdb329553f7edea9da2429f54eb6c", null ]
     ] ],
     [ "trace", "structflecsi_1_1exec_1_1trace.html", [
-      [ "trace", "structflecsi_1_1exec_1_1trace.html#a8840697be2bdef66a5a1730a455a30f3", null ],
-      [ "trace", "structflecsi_1_1exec_1_1trace.html#ace8e81bdde43844932d23974f25fb938", null ],
-      [ "trace", "structflecsi_1_1exec_1_1trace.html#a750fbe99463efeb8285c41c983eb69c0", null ],
-      [ "make_guard", "structflecsi_1_1exec_1_1trace.html#ab18f07a1bec8c5e3ea35c95963d95997", null ],
-      [ "skip", "structflecsi_1_1exec_1_1trace.html#ab9e83c3ec3391f2bc27765214e944a55", null ]
+      [ "trace", "structflecsi_1_1exec_1_1trace.html#adf6e151f76b1209e675d2f0e7c506397", null ],
+      [ "trace", "structflecsi_1_1exec_1_1trace.html#a36ac6342031cbd5227adb46047523683", null ],
+      [ "trace", "structflecsi_1_1exec_1_1trace.html#aa1fadf80a639d91215cffff967a7f268", null ],
+      [ "make_guard", "structflecsi_1_1exec_1_1trace.html#a25d79899e6b85ddcd00e81d5d0efa861", null ],
+      [ "skip", "structflecsi_1_1exec_1_1trace.html#a01920519131c2f02e69248a2d44fa113", null ]
     ] ],
-    [ "task_attributes_mask_t", "group__execution.html#ga07c32705d8518d14b232f913ebcbf543", [
-      [ "idempotent", "group__execution.html#gga07c32705d8518d14b232f913ebcbf543ad078faff8626da4336077444562063bb", null ],
-      [ "loc", "group__execution.html#gga07c32705d8518d14b232f913ebcbf543af697a0f286f7df591542adbc6cc308d2", null ],
-      [ "toc", "group__execution.html#gga07c32705d8518d14b232f913ebcbf543a440c396fea79a8ef9592221096e27dd9", null ],
-      [ "omp", "group__execution.html#gga07c32705d8518d14b232f913ebcbf543a5670c31d8b454d6e6c8569f80692c2b6", null ],
-      [ "mpi", "group__execution.html#gga07c32705d8518d14b232f913ebcbf543ae5a69974386a256600159c10e4824c00", null ]
+    [ "flecsi::task_attributes_mask_t", "group__execution.html#ga7b0ca5b879fe56b356b7c20a1f43bea4", [
+      [ "flecsi::idempotent", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744", null ],
+      [ "flecsi::loc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a42ce44086a5876a041d194b5a7df34cd", null ],
+      [ "flecsi::toc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a78779814dbb7b9d8cc85a903abc0244d", null ],
+      [ "flecsi::omp", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a4c4d94738d6aeddd4769ef627c9a6c3e", null ],
+      [ "flecsi::mpi", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c", null ]
     ] ],
-    [ "task_type_t", "group__execution.html#ga5b16d3585db308b94545bd444bd018f0", null ],
-    [ "task_processor_type_t", "group__execution.html#gadfaae585cebc58a3f6a056fd8a0b5fc5", null ],
-    [ "execute", "group__execution.html#gac6328deee00aad3aaab7e95dbd4b71f0", null ],
-    [ "make_partial", "group__execution.html#ga6eed1aeff779e2f72b5623b8ba6de0a8", null ],
-    [ "reduce", "group__execution.html#gad544135370dc72d08d7d428dd9c3a9ab", null ],
-    [ "default_accelerator", "group__execution.html#ga76d8587a5710821834574620bf1ce954", null ]
+    [ "flecsi::exec::task_type_t", "group__execution.html#gabeaf223faf48e07ca60a28618e84dfbc", null ],
+    [ "flecsi::exec::task_processor_type_t", "group__execution.html#ga51ed42a8efd5c2e288cea5721d0aa407", null ],
+    [ "flecsi::execute", "group__execution.html#gac6328deee00aad3aaab7e95dbd4b71f0", null ],
+    [ "flecsi::make_partial", "group__execution.html#ga911b4df5553894e7a2dfb6ed3792adb9", null ],
+    [ "flecsi::reduce", "group__execution.html#gad544135370dc72d08d7d428dd9c3a9ab", null ],
+    [ "flecsi::default_accelerator", "group__execution.html#ga9e9a08cdd28a4ed3b153a4b587974190", null ]
 ];

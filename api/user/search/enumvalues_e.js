@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['single',['single',['../group__data.html#ggaa41036c3f6c4941e93acf0796841cc91abef924cd5ca503ea9ace8903fb6f90c9',1,'flecsi::data']]],
-  ['sparse',['sparse',['../group__data.html#ggaa41036c3f6c4941e93acf0796841cc91a0e05922369b82caf301fe1a7933f4436',1,'flecsi::data']]]
+  ['single_0',['single',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa44512857a6d1077e4462c754c0a1d11b',1,'flecsi::data']]],
+  ['sparse_1',['sparse',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aab78868b7a281dbe62227072695184f91',1,'flecsi::data']]]
 ];

@@ -1,43 +1,49 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAXPY &mdash; FleCSI 2.2.1 documentation</title>
   
-  <title>DAXPY &mdash; FleCSI 2.2.0 documentation</title>
+
   
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
   
+
   
   
     <link rel="canonical" href="http://www.flecsi.org/src/tutorial/flaxpy.html"/>
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Poisson" href="poisson.html" />
@@ -68,7 +74,7 @@
             
             
               <div class="version">
-                Version: 2.2.0
+                Version: 2.2.1
               </div>
             
           
@@ -85,6 +91,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -92,7 +99,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
@@ -120,16 +127,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -164,11 +171,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -177,7 +186,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/src/tutorial/flaxpy.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -191,15 +200,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="daxpy">
+  <section id="daxpy">
 <h1>DAXPY<a class="headerlink" href="#daxpy" title="Permalink to this headline">¶</a></h1>
 <p>This example presents a simple but complete example of a FleCSI
 program that manipulates a distributed data structure.  Specifically,
 the program uses FleCSI to perform a parallel <a class="reference external" href="http://www.netlib.org/lapack/explore-html/de/da4/group__double__blas__level1_ga8f99d6a644d3396aa32db472e0cfc91c.html">DAXPY</a>
 (double-precision <em>a</em>⋅<em>X</em> + <em>Y</em>) vector operation.  The sequential
 C++ code looks like this:</p>
-<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-  <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
 </pre></div>
 </div>
 <p>To further demonstrate FleCSI capabilities and typical program
@@ -207,22 +216,22 @@ structure we will also allocate and initialize the distributed vectors
 before the DAXPY operation and report the sum of all elements in <em>Y</em>
 at the end, as in the following sequential code:</p>
 <div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Allocate and initialize the two vectors.</span>
-<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span> <span class="n">x</span><span class="p">(</span><span class="n">N</span><span class="p">),</span> <span class="n">y</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
-<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
-  <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x</span><span class="p">(</span><span class="n">N</span><span class="p">),</span><span class="w"> </span><span class="n">y</span><span class="p">(</span><span class="n">N</span><span class="p">);</span><span class="w"></span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
 <span class="c1">// Perform the DAXPY operation.</span>
-<span class="k">const</span> <span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">12.34</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-  <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.34</span><span class="p">;</span><span class="w"></span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
 
 <span class="c1">// Report the sum over y.</span>
-<span class="kt">double</span> <span class="n">sum</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-  <span class="n">sum</span> <span class="o">+=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;The sum over all elements in the final vector is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">sum</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The sum over all elements in the final vector is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>In the above we arbitrarily initialize <em>X</em>[<em>i</em>] ← <em>i</em> and <em>Y</em>[<em>i</em>]
@@ -238,29 +247,28 @@ typically multiple) source and header files.</p></li>
 <li><p>Some function, method, and variable names are more verbose than they
 would commonly be.</p></li>
 </ul>
-<div class="section" id="preliminaries">
+<section id="preliminaries">
 <h2>Preliminaries<a class="headerlink" href="#preliminaries" title="Permalink to this headline">¶</a></h2>
 <p>Here’s a simple <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file for building FLAXPY:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.12</span><span class="p">)</span>
-<span class="n">project</span><span class="p">(</span><span class="n">Flaxpy</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span> <span class="n">C</span><span class="p">)</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span><span class="w"> </span><span class="mf">3.12</span><span class="p">)</span><span class="w"></span>
+<span class="n">project</span><span class="p">(</span><span class="n">Flaxpy</span><span class="w"> </span><span class="n">LANGUAGES</span><span class="w"> </span><span class="n">CXX</span><span class="w"> </span><span class="n">C</span><span class="p">)</span><span class="w"></span>
 
-<span class="n">set</span><span class="p">(</span><span class="n">CXX_STANDARD_REQUIRED</span> <span class="n">ON</span><span class="p">)</span>
-<span class="n">set</span><span class="p">(</span><span class="n">CMAKE_CXX_STANDARD</span> <span class="mi">17</span><span class="p">)</span>
+<span class="n">set</span><span class="p">(</span><span class="n">CXX_STANDARD_REQUIRED</span><span class="w"> </span><span class="n">ON</span><span class="p">)</span><span class="w"></span>
+<span class="n">set</span><span class="p">(</span><span class="n">CMAKE_CXX_STANDARD</span><span class="w"> </span><span class="mi">17</span><span class="p">)</span><span class="w"></span>
 
-<span class="n">find_package</span><span class="p">(</span><span class="n">FleCSI</span> <span class="n">REQUIRED</span><span class="p">)</span>
+<span class="n">find_package</span><span class="p">(</span><span class="n">FleCSI</span><span class="w"> </span><span class="n">REQUIRED</span><span class="p">)</span><span class="w"></span>
 
-<span class="n">add_executable</span><span class="p">(</span><span class="n">flaxpy</span> <span class="n">flaxpy</span><span class="p">.</span><span class="n">cc</span><span class="p">)</span>
-<span class="n">target_link_libraries</span><span class="p">(</span><span class="n">flaxpy</span> <span class="n">FleCSI</span><span class="o">::</span><span class="n">FleCSI</span><span class="p">)</span>
+<span class="n">add_executable</span><span class="p">(</span><span class="n">flaxpy</span><span class="w"> </span><span class="n">flaxpy</span><span class="p">.</span><span class="n">cc</span><span class="p">)</span><span class="w"></span>
+<span class="n">target_link_libraries</span><span class="p">(</span><span class="n">flaxpy</span><span class="w"> </span><span class="n">FleCSI</span><span class="o">::</span><span class="n">FleCSI</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 <p>FLAXPY is implemented as a single file, <code class="docutils literal notranslate"><span class="pre">flaxpy.cc</span></code>.  We begin by
 including the header files needed to access the data model, execution
 model, and other FleCSI components:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;flecsi/data.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/flog.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/run/control.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;flecsi/topo/index.hh&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/data.hh&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/run/control.hh&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
 <p>For user convenience, we define a <code class="docutils literal notranslate"><span class="pre">--length</span></code> (abbreviation: <code class="docutils literal notranslate"><span class="pre">-l</span></code>)
@@ -274,18 +282,18 @@ example—could import.  <code class="docutils literal notranslate"><span class=
 access the vector length.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// In a larger program, this namespace would typically appear in a header file,</span>
 <span class="c1">// where the inline keywords are necessary.</span>
-<span class="k">namespace</span> <span class="n">flaxpy</span> <span class="p">{</span>
+<span class="k">namespace</span><span class="w"> </span><span class="nn">flaxpy</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 
 <span class="c1">// Let the user specify the vector length on the command line.</span>
-<span class="kr">inline</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">vector_length</span><span class="p">(</span>
-  <span class="s">&quot;Flaxpy-specific Options&quot;</span><span class="p">,</span>
-  <span class="s">&quot;length,l&quot;</span><span class="p">,</span>
-  <span class="s">&quot;Specify the length of the vectors to add.&quot;</span><span class="p">,</span>
-  <span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">}});</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vector_length</span><span class="p">(</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;Flaxpy-specific Options&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;length,l&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;Specify the length of the vectors to add.&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1000000</span><span class="p">}});</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="data-structures">
+</section>
+<section id="data-structures">
 <h2>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
 <p>FleCSI does not provide ready-to-use, distributed data-structure types.
 Rather, it provides “proto data-structure types” called <em>core topologies</em>.
@@ -311,35 +319,32 @@ the number of vector indices to assign to each <em>color</em>.
 <code class="docutils literal notranslate"><span class="pre">user</span></code> does not require that the specialization provide
 any compile-time information,
 but most other core topologies do.</p>
-<p>For FLAXPY we divide the indices as equally as possible among colors.
+<p>FleCSI provides the <code class="docutils literal notranslate"><span class="pre">equal_map</span></code> utility for dividing indices as equally as possible among colors.
 The following helper function, still within the <code class="docutils literal notranslate"><span class="pre">flaxpy</span></code> namespace,
 handles mapping <code class="docutils literal notranslate"><span class="pre">vector_length</span></code> number of indices (see
 <a class="reference internal" href="#preliminaries">Preliminaries</a> above) onto a given number of colors:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kr">inline</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span>
-<span class="n">divide_indices_among_colors</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">ncolors</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// Initially assign the same number of indices to each color.</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">min_indexes_per_color</span> <span class="o">=</span> <span class="n">vector_length</span><span class="p">.</span><span class="n">value</span><span class="p">()</span> <span class="o">/</span> <span class="n">ncolors</span><span class="p">;</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">ind_per_col</span><span class="p">(</span><span class="n">ncolors</span><span class="p">,</span> <span class="n">min_indexes_per_color</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kr">inline</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">equal_map</span><span class="w"></span>
+<span class="nf">divide_indices_among_colors</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">Color</span><span class="w"> </span><span class="n">ncolors</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="n">vector_length</span><span class="p">.</span><span class="n">value</span><span class="p">(),</span><span class="w"> </span><span class="n">ncolors</span><span class="p">};</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-  <span class="c1">// Evenly distribute the leftover indices among the first colors.</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">leftovers</span> <span class="o">=</span> <span class="n">vector_length</span><span class="p">.</span><span class="n">value</span><span class="p">()</span> <span class="o">%</span> <span class="n">ncolors</span><span class="p">;</span>
-  <span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">leftovers</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">ind_per_col</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">++</span><span class="p">;</span>
-  <span class="k">return</span> <span class="n">ind_per_col</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="c1">// Define a distributed vector type called dist_vector as a specialization</span>
 </pre></div>
 </div>
 <p>Given that helper function, constructing a specialization of <code class="docutils literal notranslate"><span class="pre">user</span></code>
 is trivial.  FLAXPY names its specialization (still within the
 <code class="docutils literal notranslate"><span class="pre">flaxpy</span></code> namespace) <code class="docutils literal notranslate"><span class="pre">dist_vector</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nl">dist_vector</span>
-  <span class="p">:</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">topo</span><span class="o">::</span><span class="n">specialization</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">topo</span><span class="o">::</span><span class="n">user</span><span class="p">,</span> <span class="n">dist_vector</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="c1">// Return the number of indices to assign to each color.</span>
-  <span class="k">static</span> <span class="n">coloring</span> <span class="n">color</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// Specify one color per process, and distribute indices accordingly.</span>
-    <span class="k">return</span> <span class="n">divide_indices_among_colors</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">processes</span><span class="p">());</span>
-  <span class="p">}</span>
-<span class="p">};</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">dist_vector</span><span class="w"></span>
+<span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">topo</span><span class="o">::</span><span class="n">specialization</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">topo</span><span class="o">::</span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="n">dist_vector</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Return the number of indices to assign to each color.</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">coloring</span><span class="w"> </span><span class="nf">color</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Specify one color per process, and distribute indices accordingly.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="nl">c</span> <span class="p">:</span><span class="w"> </span><span class="n">divide_indices_among_colors</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">processes</span><span class="p">()))</span><span class="w"></span>
+<span class="w">      </span><span class="n">ret</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Note that the specialization is responsible for choosing the number of
@@ -355,14 +360,12 @@ added outside of the <code class="docutils literal notranslate"><span class="pre
 <code class="docutils literal notranslate"><span class="pre">flaxpy.cc</span></code> uses this anonymous namespace to indicate that its
 contents are meaningful only locally and not needed by the rest of the
 application.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="p">{</span>
-
-<span class="c1">// For clarity we specify flecsi::data::layout::dense as a template</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// For clarity we specify flecsi::data::layout::dense as a template</span>
 <span class="c1">// parameter, but this is in fact the default and would normally be</span>
 <span class="c1">// omitted.</span>
-<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
-<span class="k">using</span> <span class="n">one_field</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">data</span><span class="o">::</span><span class="n">layout</span><span class="o">::</span><span class="n">dense</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="k">const</span> <span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">dist_vector</span><span class="o">&gt;</span> <span class="n">x_field</span><span class="p">,</span> <span class="n">y_field</span><span class="p">;</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span><span class="w"></span>
+<span class="k">using</span><span class="w"> </span><span class="n">one_field</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">data</span><span class="o">::</span><span class="n">layout</span><span class="o">::</span><span class="n">dense</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">dist_vector</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x_field</span><span class="p">,</span><span class="w"> </span><span class="n">y_field</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">one_field</span></code> is defined in the above to save typing,
@@ -371,66 +374,58 @@ both here and in task definitions
 <p>Specializations typically require run-time information to produce a
 usable object.  This information may not be available until a number
 of libraries (FleCSI, Legion, MPI, and the like) have initialized and
-perhaps synchronized across a distributed system.  To prevent
-applications from directly constructing an object of a specialization
-type and accessing this object before library initialization and
-synchronization have completed, FleCSI imposes a particular means of
-instantiating a specialization based on what it calls <em>slots</em>.  The
-following lines of code declare the (topology) <em>slot</em> and <em>coloring slot</em> that
-will be used within FLAXPY’s initialization action (see <a class="reference internal" href="#actions">Actions</a>
-below) to allocate distributed storage for the application’s
-distributed vector:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flaxpy</span><span class="o">::</span><span class="n">dist_vector</span><span class="o">::</span><span class="n">slot</span> <span class="n">dist_vector_slot</span><span class="p">;</span>
-<span class="n">flaxpy</span><span class="o">::</span><span class="n">dist_vector</span><span class="o">::</span><span class="n">cslot</span> <span class="n">dist_vector_cslot</span><span class="p">;</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="control-flow">
+perhaps synchronized across a distributed system.
+To allow the lifetime of these objects to be controlled properly, FleCSI imposes a particular means of instantiating a specialization based on what it calls <em>slots</em>.
+The (topology) <em>slot</em> that will be used within FLAXPY’s <a class="reference internal" href="#actions">Actions</a> are defined within the control policy (discussed next).</p>
+</section>
+<section id="control-flow">
 <h2>Control flow<a class="headerlink" href="#control-flow" title="Permalink to this headline">¶</a></h2>
 <p>Recall from the <a class="reference internal" href="control.html"><span class="doc">Control Model</span></a> section that
 a FleCSI application’s control flow is defined in terms of a
 <em>control point</em>—<em>action</em>—<em>task</em> hierarchy.
 FLAXPY’s overall control flow is illustrated in <a class="reference internal" href="#flaxpy-control"><span class="std std-numref">Fig. 9</span></a>.
-<a class="reference internal" href="#control-points">Control points</a> are drawn as white rounded rectangles;
+The control points of the <a class="reference internal" href="#control-model">Control model</a> are drawn as white rounded rectangles;
 <a class="reference internal" href="#actions">actions</a> are drawn as blue ellipses;
 and <a class="reference internal" href="#tasks">tasks</a> are drawn as green rectangles.
 As indicated by the figure, FLAXPY is a simple application
 and uses a trivial sequence of control points (no looping),
 trivial DAGs of actions (comprising a single node apiece),
 and trivial task launches (only one per action).</p>
-<div class="figure align-center" id="id2">
-<span id="flaxpy-control"></span><img alt="../../_images/flaxpy-control-model.svg" src="../../_images/flaxpy-control-model.svg" /><p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">FLAXPY control model</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
+<figure class="align-center" id="id2">
+<span id="flaxpy-control"></span><img alt="../../_images/flaxpy-control-model.svg" src="../../_images/flaxpy-control-model.svg" /><figcaption>
+<p><span class="caption-number">Fig. 9 </span><span class="caption-text">FLAXPY control model</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <p>The bulk of this section is presented in top-down fashion.
 That is, function invocations are presented
 in advance of the functions themselves.
-With the exception of the code appearing in the <a class="reference internal" href="#control-points">Control points</a> section,
+With the exception of the code appearing in the <a class="reference internal" href="#control-model">Control model</a> section,
 all of the control-flow code listed below appears in an anonymous namespace,
 again, to indicate that it is meaningful only locally
 and not needed by the rest of the application.</p>
-<div class="section" id="control-points">
-<h3>Control points<a class="headerlink" href="#control-points" title="Permalink to this headline">¶</a></h3>
+<section id="control-model">
+<h3>Control model<a class="headerlink" href="#control-model" title="Permalink to this headline">¶</a></h3>
 <p>FLAXPY defines three control points: <code class="docutils literal notranslate"><span class="pre">initialize</span></code>, <code class="docutils literal notranslate"><span class="pre">mul_add</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">finalize</span></code>.  These are introduced via an enumerated type, which
 FLAXPY calls <code class="docutils literal notranslate"><span class="pre">cp</span></code> and defines within the <code class="docutils literal notranslate"><span class="pre">flaxpy</span></code> namespace:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="k">class</span> <span class="nc">cp</span> <span class="p">{</span> <span class="n">initialize</span><span class="p">,</span> <span class="n">mul_add</span><span class="p">,</span> <span class="n">finalize</span> <span class="p">};</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="k">class</span><span class="w"> </span><span class="nc">cp</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">initialize</span><span class="p">,</span><span class="w"> </span><span class="n">mul_add</span><span class="p">,</span><span class="w"> </span><span class="n">finalize</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>FleCSI expects to be able to convert a <code class="docutils literal notranslate"><span class="pre">cp</span></code> to a string by
 dereferencing it.  This requires overloading the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator as
 follows, still within the <code class="docutils literal notranslate"><span class="pre">flaxpy</span></code> namespace:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kr">inline</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span>
-<span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="n">cp</span> <span class="n">control_point</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">switch</span><span class="p">(</span><span class="n">control_point</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="n">cp</span><span class="o">::</span><span class="nl">initialize</span><span class="p">:</span>
-      <span class="k">return</span> <span class="s">&quot;initialize&quot;</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">cp</span><span class="o">::</span><span class="nl">mul_add</span><span class="p">:</span>
-      <span class="k">return</span> <span class="s">&quot;mul_add&quot;</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">cp</span><span class="o">::</span><span class="nl">finalize</span><span class="p">:</span>
-      <span class="k">return</span> <span class="s">&quot;finalize&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">flog_fatal</span><span class="p">(</span><span class="s">&quot;invalid control point&quot;</span><span class="p">);</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kr">inline</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="n">cp</span><span class="w"> </span><span class="n">control_point</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">switch</span><span class="p">(</span><span class="n">control_point</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="nl">initialize</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;initialize&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="nl">mul_add</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;mul_add&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="nl">finalize</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;finalize&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog_fatal</span><span class="p">(</span><span class="s">&quot;invalid control point&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Once an application defines its control points
@@ -441,59 +436,64 @@ and loops can be nested.)
 FLAXPY indicates with the following code that
 <code class="docutils literal notranslate"><span class="pre">initialize</span></code> runs first,
 then <code class="docutils literal notranslate"><span class="pre">mul_add</span></code>,
-and lastly <code class="docutils literal notranslate"><span class="pre">finalize</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nl">control_policy</span> <span class="p">:</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control_base</span> <span class="p">{</span>
-  <span class="k">using</span> <span class="n">control_points_enum</span> <span class="o">=</span> <span class="n">cp</span><span class="p">;</span>
-  <span class="k">struct</span> <span class="n">node_policy</span> <span class="p">{};</span>
-  <span class="k">using</span> <span class="n">control_points</span> <span class="o">=</span>
-    <span class="n">list</span><span class="o">&lt;</span><span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">mul_add</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;&gt;</span><span class="p">;</span>
-<span class="p">};</span>
+and lastly <code class="docutils literal notranslate"><span class="pre">finalize</span></code>.
+It also defines a topology slot to hold the field data:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">control_policy</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control_base</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">control_points_enum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cp</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">struct</span> <span class="nc">node_policy</span><span class="w"> </span><span class="p">{};</span><span class="w"></span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">control_points</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+<span class="w">    </span><span class="n">list</span><span class="o">&lt;</span><span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">mul_add</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">point</span><span class="o">&lt;</span><span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;&gt;</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">dist_vector</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">dist_vector_slot</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The preceding <code class="docutils literal notranslate"><span class="pre">control_policy</span></code> class is used to define a fully
 qualified control type that implements the control policy:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">control</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control</span><span class="o">&lt;</span><span class="n">control_policy</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="n">control</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">control</span><span class="o">&lt;</span><span class="n">control_policy</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="actions">
+</section>
+<section id="actions">
 <h3>Actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h3>
 <p>Actions, implemented as C++ functions, are associated with control
 points.  The following code associates the <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code>
 action with the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> control point, the <code class="docutils literal notranslate"><span class="pre">mul_add_action</span></code>
 action with the <code class="docutils literal notranslate"><span class="pre">mul_add</span></code> control point, and the
 <code class="docutils literal notranslate"><span class="pre">finalize_action</span></code> action with the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> control point:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="p">}</span> <span class="c1">// namespace</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">initialize_action</span><span class="p">,</span><span class="w"> </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">cp</span><span class="o">::</span><span class="n">initialize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">init</span><span class="p">;</span><span class="w"></span>
+<span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">mul_add_action</span><span class="p">,</span><span class="w"> </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">cp</span><span class="o">::</span><span class="n">mul_add</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ma</span><span class="p">;</span><span class="w"></span>
+<span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">finalize_action</span><span class="p">,</span><span class="w"> </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">cp</span><span class="o">::</span><span class="n">finalize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fin</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The variables declared by the preceding code (<code class="docutils literal notranslate"><span class="pre">init</span></code>, <code class="docutils literal notranslate"><span class="pre">ma</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">fin</span></code>) are never used.  They exist only for the side effects induced
 by instantiating a <code class="docutils literal notranslate"><span class="pre">flaxpy::control::action</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code> action uses the slot and coloring slot
-defined above in <a class="reference internal" href="#data-structures">Data structures</a>
-to allocate memory for the <code class="docutils literal notranslate"><span class="pre">dist_vector</span></code> specialization.
+<p>The <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code> action uses a <em>coloring slot</em> to initialize the topology slot defined above in <a class="reference internal" href="#control-model">Control model</a>, allocating memory for the <code class="docutils literal notranslate"><span class="pre">dist_vector</span></code> specialization.
 Once this memory is allocated,
 the action launches an <code class="docutils literal notranslate"><span class="pre">initialize_vectors_task</span></code> task,
 granting each constituent point task access to a subset of <em>X</em> and <em>Y</em>
 via the <code class="docutils literal notranslate"><span class="pre">x_field</span></code> and <code class="docutils literal notranslate"><span class="pre">y_field</span></code> fields declared in <a class="reference internal" href="#data-structures">Data structures</a>.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">initialize_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">dist_vector_cslot</span><span class="p">.</span><span class="n">allocate</span><span class="p">();</span>
-  <span class="n">dist_vector_slot</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">dist_vector_cslot</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">initialize_vectors_task</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="n">x_field</span><span class="p">(</span><span class="n">dist_vector_slot</span><span class="p">),</span> <span class="n">y_field</span><span class="p">(</span><span class="n">dist_vector_slot</span><span class="p">));</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"></span>
+<span class="nf">initialize_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Declare a coloring of the distributed vector.</span>
+<span class="w">  </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">dist_vector</span><span class="o">::</span><span class="n">cslot</span><span class="w"> </span><span class="n">dist_vector_cslot</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">dist_vector_cslot</span><span class="p">.</span><span class="n">allocate</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">dist_vector_cslot</span><span class="p">.</span><span class="n">get</span><span class="p">());</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">initialize_vectors_task</span><span class="o">&gt;</span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="n">x_field</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">),</span><span class="w"> </span><span class="n">y_field</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">));</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">mul_add_action</span></code> action spawns <code class="docutils literal notranslate"><span class="pre">mul_add_task</span></code> tasks,
 passing then a scalar constant <em>a</em> directly and access to a subset of
 <em>X</em> and <em>Y</em> via <code class="docutils literal notranslate"><span class="pre">x_field</span></code> and <code class="docutils literal notranslate"><span class="pre">y_field</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">mul_add_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">const</span> <span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">12.34</span><span class="p">;</span> <span class="c1">// Arbitrary scalar value to multiply</span>
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">mul_add_task</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="n">a</span><span class="p">,</span> <span class="n">x_field</span><span class="p">(</span><span class="n">dist_vector_slot</span><span class="p">),</span> <span class="n">y_field</span><span class="p">(</span><span class="n">dist_vector_slot</span><span class="p">));</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"></span>
+<span class="nf">mul_add_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.34</span><span class="p">;</span><span class="w"> </span><span class="c1">// Arbitrary scalar value to multiply</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">mul_add_task</span><span class="o">&gt;</span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">x_field</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">),</span><span class="w"> </span><span class="n">y_field</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">));</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The third and final action, <code class="docutils literal notranslate"><span class="pre">finalize_action</span></code>, sums the elements
@@ -503,20 +503,18 @@ global reduction, the <code class="docutils literal notranslate"><span class="pr
 two actions.  <code class="docutils literal notranslate"><span class="pre">finalize_action</span></code> uses the FleCSI logging facility,
 FLOG, to output the sum.  Finally, the function deallocates the memory
 previously allocated by <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code>.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">finalize_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">double</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">reduce_y_task</span><span class="p">,</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="n">y_field</span><span class="p">(</span><span class="n">dist_vector_slot</span><span class="p">))</span>
-                 <span class="p">.</span><span class="n">get</span><span class="p">();</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;The sum over all elements in the final vector is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">sum</span>
-             <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="n">dist_vector_slot</span><span class="p">.</span><span class="n">deallocate</span><span class="p">();</span>
-  <span class="n">dist_vector_cslot</span><span class="p">.</span><span class="n">deallocate</span><span class="p">();</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"></span>
+<span class="nf">finalize_action</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">policy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">reduce_y_task</span><span class="p">,</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="w"></span>
+<span class="w">    </span><span class="n">y_field</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">dist_vector_slot</span><span class="p">))</span><span class="w"></span>
+<span class="w">                 </span><span class="p">.</span><span class="n">get</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The sum over all elements in the final vector is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">sum</span><span class="w"></span>
+<span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="tasks">
+</section>
+<section id="tasks">
 <h3>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h3>
 <p>Tasks are functions that collectively and (usually) concurrently
 process a distributed data structure.
@@ -545,26 +543,18 @@ over its subset of the distributed <em>X</em> and <em>Y</em> vectors.
 FLAXPY uses FleCSI’s <code class="docutils literal notranslate"><span class="pre">forall</span></code> macro to locally parallelize
 (e.g., using thread parallelism)
 the initialization of <em>Y</em>.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">initialize_vectors_task</span><span class="p">(</span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">x_acc</span><span class="p">,</span>
-  <span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">wo</span><span class="o">&gt;</span> <span class="n">y_acc</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// Compute our starting offset into the global vector.</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">num_indices_per_color</span> <span class="o">=</span>
-    <span class="n">flaxpy</span><span class="o">::</span><span class="n">divide_indices_among_colors</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">colors</span><span class="p">());</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">current_color</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">color</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">base</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">current_color</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">base</span> <span class="o">+=</span> <span class="n">num_indices_per_color</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-
-  <span class="c1">// Arbitrarily initialize x[i] = i and y[i] = 0.  We use a forall</span>
-  <span class="c1">// for the latter because it can run in parallel without access to</span>
-  <span class="c1">// the index variable.</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">num_local_elts</span> <span class="o">=</span>
-    <span class="n">num_indices_per_color</span><span class="p">[</span><span class="n">current_color</span><span class="p">];</span> <span class="c1">// Same as x_acc.span().size()</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_local_elts</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">x_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kt">double</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="n">i</span><span class="p">);</span>
-  <span class="n">forall</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">y_acc</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span> <span class="s">&quot;init_y&quot;</span><span class="p">)</span> <span class="p">{</span> <span class="n">elt</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">};</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"></span>
+<span class="nf">initialize_vectors_task</span><span class="p">(</span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x_acc</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">y_acc</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Arbitrarily initialize x[i] = i and y[i] = 0.  We use a forall</span>
+<span class="w">  </span><span class="c1">// for the latter because it can run in parallel without access to</span>
+<span class="w">  </span><span class="c1">// the index variable.</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x_acc</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">begin</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="nl">i</span> <span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">divide_indices_among_colors</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">colors</span><span class="p">())[</span><span class="n">flecsi</span><span class="o">::</span><span class="n">color</span><span class="p">()])</span><span class="w"></span>
+<span class="w">    </span><span class="o">*</span><span class="n">p</span><span class="o">++</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">forall</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span><span class="w"> </span><span class="n">y_acc</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;init_y&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">elt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">mul_add_task</span></code> is the simplest of FLAXPY’s three tasks
@@ -574,65 +564,65 @@ and read/write access to a subspace of <em>Y</em>.
 The task then computes
 <em>Y</em>[<em>i</em>] ← <em>a</em>⋅<em>X</em>[<em>i</em>] + <em>Y</em>[<em>i</em>]
 over its subset of the distributed <em>X</em> and <em>Y</em> vectors.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
-<span class="nf">mul_add_task</span><span class="p">(</span><span class="kt">double</span> <span class="n">a</span><span class="p">,</span>
-  <span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">ro</span><span class="o">&gt;</span> <span class="n">x_acc</span><span class="p">,</span>
-  <span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">y_acc</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">num_local_elts</span> <span class="o">=</span> <span class="n">x_acc</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">size</span><span class="p">();</span>
-  <span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_local_elts</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">y_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x_acc</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"></span>
+<span class="nf">mul_add_task</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">x_acc</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">rw</span><span class="o">&gt;</span><span class="w"> </span><span class="n">y_acc</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">num_local_elts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x_acc</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">size</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">num_local_elts</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">y_acc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x_acc</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The third and final task, <code class="docutils literal notranslate"><span class="pre">reduce_y_task</span></code>,
 computes and returns the sum of a subspace of <em>Y</em>.
-For this it requests read/write access to the subspace
+For this it requests read-only access to the subspace
 and uses FleCSI’s <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> macro to locally parallelize
 (e.g., using thread parallelism)
 the summation.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span>
-<span class="nf">reduce_y_task</span><span class="p">(</span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">rw</span><span class="o">&gt;</span> <span class="n">y_acc</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">local_sum</span> <span class="o">=</span> <span class="n">reduceall</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span>
-    <span class="n">accum</span><span class="p">,</span>
-    <span class="n">y_acc</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span>
-    <span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="p">,</span>
-    <span class="kt">double</span><span class="p">,</span>
-    <span class="s">&quot;reduce_y_task&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">accum</span><span class="p">(</span><span class="n">elt</span><span class="p">);</span>
-  <span class="p">};</span>
-  <span class="k">return</span> <span class="n">local_sum</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"></span>
+<span class="nf">reduce_y_task</span><span class="p">(</span><span class="n">one_field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">y_acc</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">local_sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduceall</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">accum</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">y_acc</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"></span>
+<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;reduce_y_task&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">accum</span><span class="p">(</span><span class="n">elt</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">local_sum</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="program-initialization">
+</section>
+</section>
+<section id="program-initialization">
 <h2>Program initialization<a class="headerlink" href="#program-initialization" title="Permalink to this headline">¶</a></h2>
 <p>FLAXPY’s <code class="docutils literal notranslate"><span class="pre">main</span></code> function, expressed outside of any namespace, is
 largely boilerplate.  It initializes FleCSI, executes the FLAXPY code
 according to the control flow defined above in <a class="reference internal" href="#control-flow">Control flow</a>, and
 finalizes FleCSI.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// Initialize the FleCSI run-time system.</span>
-  <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
-  <span class="n">status</span> <span class="o">=</span> <span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
-  <span class="k">if</span><span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">status</span> <span class="o">&lt;</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">status</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"></span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// Initialize the FleCSI run-time system.</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span><span class="w"></span>
 
-  <span class="c1">// Execute our code control point by control point.</span>
-  <span class="n">status</span> <span class="o">=</span> <span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// Execute our code control point by control point.</span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">flaxpy</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span><span class="w"></span>
 
-  <span class="c1">// Finalize the FleCSI run-time system.</span>
-  <span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-  <span class="k">return</span> <span class="n">status</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="c1">// Finalize the FleCSI run-time system.</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="usage">
+</section>
+<section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>FLAXPY can be built and run as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> tutorial/standalone/flaxpy
@@ -665,37 +655,37 @@ specialization of <code class="docutils literal notranslate"><span class="pre">u
 <code class="docutils literal notranslate"><span class="pre">tutorial/standalone/poisson/include/specialization/mesh.hh</span></code>, for
 an example of the use of <code class="docutils literal notranslate"><span class="pre">narray</span></code>.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="poisson.html" class="btn btn-neutral float-right" title="Poisson" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="parallel.html" class="btn btn-neutral float-left" title="Distributed and shared memory parallelism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="poisson.html" class="btn btn-neutral float-right" title="Poisson" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="parallel.html" class="btn btn-neutral float-left" title="Distributed and shared memory parallelism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
+        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -703,7 +693,6 @@ an example of the use of <code class="docutils literal notranslate"><span class=
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

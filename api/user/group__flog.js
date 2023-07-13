@@ -10,6 +10,6 @@ var group__flog =
     [ "fixme", "group__flog.html#gac4b562b7ae199e04d81aeb0c61553cc3", null ],
     [ "flog_fatal", "group__flog.html#gaf07e634c4f4ff8df4b69903f2b8cbf21", null ],
     [ "flog_assert", "group__flog.html#ga36f85e0c06125c963b8d5f558a823fc3", null ],
-    [ "flush", "group__flog.html#gad04850b803f20633d7cd0557521785e9", null ],
-    [ "add_output_stream", "group__flog.html#ga30a104842c480561c573bc656b9d8f4c", null ]
+    [ "flecsi::flog::flush", "group__flog.html#gad04850b803f20633d7cd0557521785e9", null ],
+    [ "flecsi::flog::add_output_stream", "group__flog.html#ga30a104842c480561c573bc656b9d8f4c", null ]
 ];

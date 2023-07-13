@@ -1,43 +1,49 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Execution Model &mdash; FleCSI 2.2.1 documentation</title>
   
-  <title>Execution Model &mdash; FleCSI 2.2.0 documentation</title>
+
   
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
   
+
   
   
     <link rel="canonical" href="http://www.flecsi.org/src/tutorial/execution.html"/>
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Data Model" href="data.html" />
@@ -68,7 +74,7 @@
             
             
               <div class="version">
-                Version: 2.2.0
+                Version: 2.2.1
               </div>
             
           
@@ -85,6 +91,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -92,7 +99,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
@@ -118,16 +125,16 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -162,11 +169,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
         
@@ -175,7 +184,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/src/tutorial/execution.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -189,7 +198,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="execution-model">
+  <section id="execution-model">
 <span id="tut-em"></span><h1>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h1>
 <p>FleCSI has two mechanisms for expressing work:</p>
 <dl class="simple">
@@ -210,11 +219,11 @@ example of using <em>forall</em> kernels in the <em>parallel</em> section of the
 tutorial.</p>
 </dd>
 </dl>
-</div>
+</section>
 <hr class="docutils" />
-<div class="section" id="tasks">
+<section id="tasks">
 <h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="example-1-single-tasks">
+<section id="example-1-single-tasks">
 <h2>Example 1: Single Tasks<a class="headerlink" href="#example-1-single-tasks" title="Permalink to this headline">¶</a></h2>
 <p>A <cite>single</cite> task launches on a single process, i.e., only one instance of
 the task is executed.
@@ -228,42 +237,42 @@ domain</cite>, e.g., an explicit <em>launch domain</em>, a <cite>topology</cite>
 Consider the following from <code class="docutils literal notranslate"><span class="pre">tutorial/3-execution/1-single-task.cc</span></code>:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Trivial task (no arguments, no return).</span>
 
-<span class="kt">void</span>
-<span class="nf">trivial</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">trivial</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Execution of the task is trivial:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a trivial task.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a trivial task.</span>
 
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">trivial</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">trivial</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span>
 </pre></div>
 </div>
 <p>A single task can return a value:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with return value.</span>
 
-<span class="kt">int</span>
-<span class="nf">with_return</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">value</span><span class="p">{</span><span class="mi">100</span><span class="p">};</span>
+<span class="kt">int</span><span class="w"></span>
+<span class="nf">with_return</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="p">{</span><span class="mi">100</span><span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The return value can be retrieved with a <cite>future</cite>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>    <span class="c1">// A future is a mechanism to access the result of an asynchronous</span>
-    <span class="c1">// operation.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// A future is a mechanism to access the result of an asynchronous</span>
+<span class="w">    </span><span class="c1">// operation.</span>
 
-    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">with_return</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">with_return</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span>
 
-    <span class="c1">// The &#39;wait()&#39; method waits for the result to become available.</span>
+<span class="w">    </span><span class="c1">// The &#39;wait()&#39; method waits for the result to become available.</span>
 
-    <span class="n">future</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
+<span class="w">    </span><span class="n">future</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span><span class="w"></span>
 
-    <span class="c1">// The &#39;get()&#39; method returns the result. Note that calling &#39;get()&#39; by</span>
-    <span class="c1">// itself will wait for the result to become available. The call to &#39;wait()&#39;</span>
-    <span class="c1">// in this example is illustrative.</span>
+<span class="w">    </span><span class="c1">// The &#39;get()&#39; method returns the result. Note that calling &#39;get()&#39; by</span>
+<span class="w">    </span><span class="c1">// itself will wait for the result to become available. The call to &#39;wait()&#39;</span>
+<span class="w">    </span><span class="c1">// in this example is illustrative.</span>
 
-    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Got value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// scope</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Got value &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
 <p>FleCSI tasks can take any valid C++ type as an argument <cite>by-value</cite>,
@@ -278,58 +287,58 @@ site.</p>
 </div>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with by-value argument.</span>
 
-<span class="kt">int</span>
-<span class="nf">with_by_value_argument</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="n">ss</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">retval</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-  <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Parameter values: &quot;</span><span class="p">;</span>
-  <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">i</span> <span class="p">:</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">retval</span> <span class="o">+=</span> <span class="n">i</span><span class="p">;</span>
-    <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// for</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"></span>
+<span class="nf">with_by_value_argument</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">retval</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Parameter values: &quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="nl">i</span> <span class="p">:</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">retval</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
 
-  <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
-<span class="p">}</span> <span class="c1">// with_by_value_argument</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">retval</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// with_by_value_argument</span>
 </pre></div>
 </div>
 <p>Execution of such a task is what you would expect:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a task that takes an argument by-value. FleCSI tasks can take any</span>
-  <span class="c1">// valid C++ type by value. However, because task data must be relocatable,</span>
-  <span class="c1">// you cannot pass pointer arguments, or arguments that contain pointers.</span>
-  <span class="c1">// Modifications made to by-value data are local to the task and will not be</span>
-  <span class="c1">// reflected at the call site.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a task that takes an argument by-value. FleCSI tasks can take any</span>
+<span class="w">  </span><span class="c1">// valid C++ type by value. However, because task data must be relocatable,</span>
+<span class="w">  </span><span class="c1">// you cannot pass pointer arguments, or arguments that contain pointers.</span>
+<span class="w">  </span><span class="c1">// Modifications made to by-value data are local to the task and will not be</span>
+<span class="w">  </span><span class="c1">// reflected at the call site.</span>
 
-  <span class="p">{</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">v</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">34</span><span class="p">};</span>
-    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">with_by_value_argument</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Sum is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// scope</span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span><span class="w"> </span><span class="mi">34</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">with_by_value_argument</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sum is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
 <p>FleCSI tasks can also be templated:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Type</span><span class="o">&gt;</span>
-<span class="n">Type</span>
-<span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span> <span class="n">t</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">Type</span> <span class="n">retval</span><span class="p">{</span><span class="n">t</span> <span class="o">+</span> <span class="n">Type</span><span class="p">(</span><span class="mi">10</span><span class="p">)};</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Returning value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">retval</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; with type &quot;</span>
-             <span class="o">&lt;&lt;</span> <span class="k">typeid</span><span class="p">(</span><span class="n">t</span><span class="p">).</span><span class="n">name</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="k">return</span> <span class="n">retval</span><span class="p">;</span>
-<span class="p">}</span> <span class="c1">// template</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Type</span><span class="o">&gt;</span><span class="w"></span>
+<span class="n">Type</span><span class="w"></span>
+<span class="n">templated_task</span><span class="p">(</span><span class="n">Type</span><span class="w"> </span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">Type</span><span class="w"> </span><span class="n">retval</span><span class="p">{</span><span class="n">t</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Type</span><span class="p">(</span><span class="mi">10</span><span class="p">)};</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Returning value &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">retval</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; with type &quot;</span><span class="w"></span>
+<span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="k">typeid</span><span class="p">(</span><span class="n">t</span><span class="p">).</span><span class="n">name</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">retval</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// template</span>
 </pre></div>
 </div>
 <p>Again, execution is straightforward:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="c1">// Execute a templated task.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Execute a templated task.</span>
 
-  <span class="p">{</span>
-    <span class="kt">double</span> <span class="n">value</span><span class="p">{</span><span class="mf">32.0</span><span class="p">};</span>
-    <span class="k">auto</span> <span class="n">future</span> <span class="o">=</span> <span class="n">execute</span><span class="o">&lt;</span><span class="n">templated_task</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
-    <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Got templated value &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="p">}</span> <span class="c1">// scope</span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">value</span><span class="p">{</span><span class="mf">32.0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">templated_task</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Got templated value &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">future</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="example-2-index-tasks">
+</section>
+<section id="example-2-index-tasks">
 <h2>Example 2: Index Tasks<a class="headerlink" href="#example-2-index-tasks" title="Permalink to this headline">¶</a></h2>
 <p>Index task is a task that is executed by several processes. It is often
 used to operate on different parts of the input data (like partitioned
@@ -338,32 +347,32 @@ mesh) asynchronously.</p>
 the <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> argument.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
 
-<span class="kt">void</span>
-<span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World from color &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">color</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; of &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">colors</span><span class="p">()</span>
-             <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">task</span><span class="p">(</span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from color &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">color</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; of &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">colors</span><span class="p">()</span><span class="w"></span>
+<span class="w">             </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
 <span class="c1">// Advance control point.</span>
 
-<span class="kt">void</span>
-<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span> <span class="n">ld</span><span class="p">{</span><span class="mi">4</span><span class="p">};</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">exec</span><span class="o">::</span><span class="n">launch_domain</span><span class="w"> </span><span class="n">ld</span><span class="p">{</span><span class="mi">4</span><span class="p">};</span><span class="w"></span>
 
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ld</span><span class="p">);</span>
-<span class="p">}</span> <span class="c1">// advance()</span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ld</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
 </pre></div>
 </div>
-<div class="section" id="launch-domains">
+<section id="launch-domains">
 <h3>Launch Domains<a class="headerlink" href="#launch-domains" title="Permalink to this headline">¶</a></h3>
 <p>Launch domain (<code class="docutils literal notranslate"><span class="pre">exec::launch_domain</span></code>) is used to define how many index
 points an index task should have. If no <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> is passed to the
 <code class="docutils literal notranslate"><span class="pre">execute</span></code> method, the default will be used. If a topology instance is
 passed the default is the number of colors that instance has.
 Otherwise, the default is to launch a single task.</p>
-</div>
-</div>
-<div class="section" id="example-3-mpi-tasks">
+</section>
+</section>
+<section id="example-3-mpi-tasks">
 <h2>Example 3: MPI Tasks<a class="headerlink" href="#example-3-mpi-tasks" title="Permalink to this headline">¶</a></h2>
 <p>MPI task is an index task that has launch domain size equal to number of
 MPI ranks and index points mapped to corresponding MPI ranks. Executing
@@ -373,50 +382,50 @@ To execute an MPI task, the second template argument to the <code class="docutil
 method should be set to <code class="docutils literal notranslate"><span class="pre">mpi</span></code>.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Task with no arguments.</span>
 
-<span class="kt">void</span>
-<span class="nf">task</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello World from process: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">process</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">task</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World from process: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">process</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
 <span class="c1">// Advance control point.</span>
 
-<span class="kt">void</span>
-<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span> <span class="o">&amp;</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="p">,</span> <span class="n">mpi</span><span class="o">&gt;</span><span class="p">();</span>
-<span class="p">}</span> <span class="c1">// advance()</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="p">,</span><span class="w"> </span><span class="n">mpi</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// advance()</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="data.html" class="btn btn-neutral float-right" title="Data Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="control.html" class="btn btn-neutral float-left" title="Control Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="data.html" class="btn btn-neutral float-right" title="Data Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="control.html" class="btn btn-neutral float-left" title="Control Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
+        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -424,7 +433,6 @@ method should be set to <code class="docutils literal notranslate"><span class="
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

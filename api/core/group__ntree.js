@@ -1,59 +1,59 @@
 var group__ntree =
 [
-    [ "access", "structflecsi_1_1topo_1_1ntree_1_1access.html", [
-      [ "hmap_t", "structflecsi_1_1topo_1_1ntree_1_1access.html#a25f82a25c504a28a47be53bc479c1dd2", null ],
-      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#a3b42bff96cf873f40e0ed438c364b5dd", null ],
-      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#a6f91f681de6347842c077ffc922440a7", null ],
-      [ "neighbors", "structflecsi_1_1topo_1_1ntree_1_1access.html#ab805da41e5d15a86e71db4555884885a", null ],
-      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#adba46568f4206b56e83b36f4ae2fca1c", null ],
-      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#a59073d6164218eb0edef32aa9f0ef4da", null ],
-      [ "bfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#a290f23b819672173474e7997e6089e9f", null ],
-      [ "dfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#a64261b952559d38c3bb707886371d49f", null ],
-      [ "exchange_boundaries", "structflecsi_1_1topo_1_1ntree_1_1access.html#a595653e5c2c864f6ab8a76aa87145902", null ],
-      [ "make_tree", "structflecsi_1_1topo_1_1ntree_1_1access.html#a5755fdfedc447d91375719110515e96d", null ],
-      [ "e_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#a6443bfb419f7663ea1510a6bf4960bb9", null ],
-      [ "n_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#ae8e4b9e32f63aabc8a7c49758e04c53d", null ],
-      [ "n_i", "structflecsi_1_1topo_1_1ntree_1_1access.html#ac3acba7ef2282f7af16bb8198aaff6cd", null ]
+    [ "ntree< Policy >::access< Priv >", "structflecsi_1_1topo_1_1ntree_1_1access.html", [
+      [ "hmap_t", "structflecsi_1_1topo_1_1ntree_1_1access.html#ac2f78e9946aa4333416d73b1d20f2611", null ],
+      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#acada545f1c9ed3868be18de27ec23fa2", null ],
+      [ "entities", "structflecsi_1_1topo_1_1ntree_1_1access.html#aa182334fed79abc5c84b9371ac7f7787", null ],
+      [ "neighbors", "structflecsi_1_1topo_1_1ntree_1_1access.html#a8f5b7e8d76bff4ee564187ed845444a1", null ],
+      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#aeab431cce67208b24b6ccfe28a3101a0", null ],
+      [ "nodes", "structflecsi_1_1topo_1_1ntree_1_1access.html#a2ec3e70c557ab1a8fb84f39e55a64062", null ],
+      [ "bfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#ac2ec308b3ff4b9fd32a8d4d46d67b1fd", null ],
+      [ "dfs", "structflecsi_1_1topo_1_1ntree_1_1access.html#acc6a7122b7cb890e974986b00ea8a798", null ],
+      [ "exchange_boundaries", "structflecsi_1_1topo_1_1ntree_1_1access.html#aa342866fc467598e6b61cd4168f1be14", null ],
+      [ "make_tree", "structflecsi_1_1topo_1_1ntree_1_1access.html#a5a88be1b0e7f4d948e1e0ed72ea41995", null ],
+      [ "e_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#aa5103b840f06fb9fe932fc1450cd8110", null ],
+      [ "n_keys", "structflecsi_1_1topo_1_1ntree_1_1access.html#a1207ee2a331ab47a3591ef498e7f9c6e", null ],
+      [ "n_i", "structflecsi_1_1topo_1_1ntree_1_1access.html#ae93065a3367ee8f3f939b4dec6de0270", null ]
     ] ],
-    [ "hcell_base_t", "classflecsi_1_1topo_1_1hcell__base__t.html", null ],
-    [ "ntree", "structflecsi_1_1topo_1_1ntree.html", null ],
+    [ "hcell_base_t< DIM, T, KEY >", "classflecsi_1_1topo_1_1hcell__base__t.html", null ],
+    [ "ntree< Policy >", "structflecsi_1_1topo_1_1ntree.html", null ],
     [ "ntree_base", "structflecsi_1_1topo_1_1ntree__base.html", [
       [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html", [
-        [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ac82ebf3eab88f243ae9b280ad6ed547f", null ],
-        [ "nparts_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae54429c97866cce3079dbbcfae86321c", null ],
-        [ "local_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa472807cf0796145d11972caa03e5c25", null ],
-        [ "global_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a131549a83b587d83236779e8fb71c34b", null ],
-        [ "entities_distribution_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a5adb570ef37e65d95c1e58f195e4502a", null ],
-        [ "local_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a847f784ecc89630e36379bc3e17219f0", null ],
-        [ "global_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa3421b773970286ba86fe9e6dbdfab1c", null ]
+        [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae28b28a4dd179c9eb32570e30f5ce4c3", null ],
+        [ "nparts_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a2d438b30d4f038e3c022d7854523f6ac", null ],
+        [ "local_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a5e6884e2d1b13163e1f29f510f36796b", null ],
+        [ "global_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae8bcad4a3cbb4f958f201b118f6ca86e", null ],
+        [ "entities_distribution_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#af19602587429181aca75fb934b72cb65", null ],
+        [ "local_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa0458f8185e57cf9f3bf31cc48a62f0e", null ],
+        [ "global_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ad7a6a634233a3e7a0626081d3706cd18", null ]
       ] ],
-      [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a44cba4189a4777a078c180e7661c1f32", null ],
-      [ "ptype_t", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3", [
-        [ "exclusive", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3adcd77e85e3c67740cecd5040a23d3f45", null ],
-        [ "ghost", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3a15b92a7eb7de867194bbf666543aea00", null ],
-        [ "all", "structflecsi_1_1topo_1_1ntree__base.html#aa911d6d3b49687d0316b10c1343706f3a8f156dd9d558b9be86358173531a6f9d", null ]
+      [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2", null ],
+      [ "ptype_t", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911", [
+        [ "exclusive", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911acb67d8236df55e74bba662ac5569144a", null ],
+        [ "ghost", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911ab0ca578d7510d6a9569014ac68a70486", null ],
+        [ "all", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911a8701c301e7c87ec4d4f3aee33c6128d7", null ]
       ] ],
-      [ "ttype_t", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85", [
-        [ "preorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a51fdc641d805f5de4d241f53a4199b5e", null ],
-        [ "postorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a602a32131ff6e45b43f5ac9345878a14", null ],
-        [ "reverse_preorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85ae9434689ded45155748980a1010e6566", null ],
-        [ "reverse_postorder", "structflecsi_1_1topo_1_1ntree__base.html#ad92e603e95ce559abc2b613d9ababf85a24e8944d70802ade53c1d6a3f9f5cd6f", null ]
+      [ "ttype_t", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0", [
+        [ "preorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0adefb5d09673c144dc5b4dc177e278696", null ],
+        [ "postorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0a2b26810565bd469bf0fcda626669d3dc", null ],
+        [ "reverse_preorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0a8bca9a40b6155139ad60d2bf5ad370d3", null ],
+        [ "reverse_postorder", "structflecsi_1_1topo_1_1ntree__base.html#a6093e8217e847bc918937063f6d19ef0afff918bb4e1b015955c3228092fd4537", null ]
       ] ]
     ] ],
-    [ "sort_entity", "classflecsi_1_1topo_1_1sort__entity.html", [
-      [ "point_t", "classflecsi_1_1topo_1_1sort__entity.html#a0d687e1c13a9d3e709f279baaba8dd2d", null ],
-      [ "key_t", "classflecsi_1_1topo_1_1sort__entity.html#a809f26abb92c3e223a6a35e0a554d3c7", null ],
-      [ "sort_entity", "classflecsi_1_1topo_1_1sort__entity.html#a310519c1c2ed5cd4f12baea746ee727f", null ],
-      [ "coordinates", "classflecsi_1_1topo_1_1sort__entity.html#a0c8c41992fd6fc41bbc5c31512a96d0b", null ],
-      [ "key", "classflecsi_1_1topo_1_1sort__entity.html#a7b887d264d1a88d3d2510117577a04f3", null ],
-      [ "id", "classflecsi_1_1topo_1_1sort__entity.html#acdc1beaa6f3475f4b224401fccca223c", null ],
-      [ "mass", "classflecsi_1_1topo_1_1sort__entity.html#aa3ad120c42dc8ab27143ae20d21c7c85", null ],
-      [ "radius", "classflecsi_1_1topo_1_1sort__entity.html#ad3d540601f6246bdc030621730985d1d", null ],
-      [ "set_coordinates", "classflecsi_1_1topo_1_1sort__entity.html#abfe455ec33f182e94b59fe4e073b8b90", null ],
-      [ "set_key", "classflecsi_1_1topo_1_1sort__entity.html#a12ddbde7e434e9f06c26c3876b9ff72e", null ],
-      [ "set_id", "classflecsi_1_1topo_1_1sort__entity.html#a63f9c08460012cf192301ce623135a40", null ],
-      [ "set_mass", "classflecsi_1_1topo_1_1sort__entity.html#afa8c35bc0edabbfab3402ace717c645a", null ],
-      [ "set_radius", "classflecsi_1_1topo_1_1sort__entity.html#aeaf13ff003b087e3f6e1e8ae29d9052b", null ],
-      [ "operator<", "classflecsi_1_1topo_1_1sort__entity.html#a58c7ce5f73ef5fcdf1cb77221e6867cc", null ]
+    [ "sort_entity< DIM, T, KEY >", "classflecsi_1_1topo_1_1sort__entity.html", [
+      [ "point_t", "classflecsi_1_1topo_1_1sort__entity.html#a718d09850cf1b05bd01bf2bd589b1a77", null ],
+      [ "key_t", "classflecsi_1_1topo_1_1sort__entity.html#a58b143bd38aa11846eade1ecdc3d55c4", null ],
+      [ "sort_entity", "classflecsi_1_1topo_1_1sort__entity.html#ae9a53c54f2675bc342530d8c923991b1", null ],
+      [ "coordinates", "classflecsi_1_1topo_1_1sort__entity.html#a50949592fa799b3e8a317f2ac661a5da", null ],
+      [ "key", "classflecsi_1_1topo_1_1sort__entity.html#ab4cf6a57ef6a1820c4f894e7c9b182f5", null ],
+      [ "id", "classflecsi_1_1topo_1_1sort__entity.html#a96961a3ffb4e080f0d9e9bfadca424b9", null ],
+      [ "mass", "classflecsi_1_1topo_1_1sort__entity.html#a9ca335a2bb6e829e1097b69336ee7162", null ],
+      [ "radius", "classflecsi_1_1topo_1_1sort__entity.html#a2973bcf6a747527ee136585687f5046b", null ],
+      [ "set_coordinates", "classflecsi_1_1topo_1_1sort__entity.html#a5869dc9552682e15f229ed71fb190497", null ],
+      [ "set_key", "classflecsi_1_1topo_1_1sort__entity.html#a3722a20d7a036a474a7b9dc64675acdc", null ],
+      [ "set_id", "classflecsi_1_1topo_1_1sort__entity.html#a85aad8c1c7150f28896c6889ba2c23f5", null ],
+      [ "set_mass", "classflecsi_1_1topo_1_1sort__entity.html#acbc81740e2d72fab6b1fe35e6359fb52", null ],
+      [ "set_radius", "classflecsi_1_1topo_1_1sort__entity.html#a11f951a499df0f94ebc4ac98465b2ea8", null ],
+      [ "operator<", "classflecsi_1_1topo_1_1sort__entity.html#a34e6dbce41cabe3103e3b43b0b0ff3d3", null ]
     ] ]
 ];

@@ -5,67 +5,73 @@ var group__runtime =
     [ "MPI Runtime", "group__mpi-runtime.html", "group__mpi-runtime" ],
     [ "arguments", "structflecsi_1_1run_1_1arguments.html", [
       [ "action", "structflecsi_1_1run_1_1arguments_1_1action.html", [
-        [ "program", "structflecsi_1_1run_1_1arguments_1_1action.html#aab34439750d298710dc772c783bc7f3f", null ],
-        [ "code", "structflecsi_1_1run_1_1arguments_1_1action.html#a4e5905ddaaa49081a2729683eef052aa", null ],
-        [ "stderr", "structflecsi_1_1run_1_1arguments_1_1action.html#a6d1ebb372dc04b994538cf94a7df7e5c", null ]
+        [ "operation", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692", [
+          [ "help", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692a2c0630fbb387d1254eea137af32d810a", null ],
+          [ "error", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692ad606e435413ea0944dd00d49e901e4ed", null ],
+          [ "run", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692a28587bd6fdb2fda96552863fb27851cd", null ],
+          [ "control_model", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692aca25388ae9408befa4bc02b7bd662720", null ],
+          [ "control_model_sorted", "structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692a2671eb8263936ce2e2bddda4671022b0", null ]
+        ] ],
+        [ "program", "structflecsi_1_1run_1_1arguments_1_1action.html#a451fb3866139bc9c8dfb5155974db964", null ],
+        [ "op", "structflecsi_1_1run_1_1arguments_1_1action.html#a6309583bede7a1153177448b1e937aaf", null ],
+        [ "stderr", "structflecsi_1_1run_1_1arguments_1_1action.html#a08850008f587692a55942617d63bd37c", null ]
       ] ],
       [ "config", "structflecsi_1_1run_1_1arguments_1_1config.html", [
         [ "log", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html", [
-          [ "tags", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#af11227f994e8a74dbc3f8fe813e3e9d1", null ],
-          [ "verbose", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#a26c55ce3d17a7c9cbdc8f8f864bf9673", null ],
-          [ "process", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#ae970a32a0193d8b7316e896a706ae918", null ]
+          [ "tags", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#a53380ed7c53b1f12d0898784a122d926", null ],
+          [ "verbose", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#a0b2caeb4b6f130be43e5a2f0267dd453", null ],
+          [ "process", "structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#a6c64012e948de537eace3d60d80da365", null ]
         ] ],
-        [ "flog", "structflecsi_1_1run_1_1arguments_1_1config.html#a7fab1be95cc92dbc29402032959de47e", null ],
-        [ "backend", "structflecsi_1_1run_1_1arguments_1_1config.html#a56efdfba0ccdf59165f150dbee65a734", null ]
+        [ "flog", "structflecsi_1_1run_1_1arguments_1_1config.html#ae3af299467b22f36444d2762fb861bc1", null ],
+        [ "backend", "structflecsi_1_1run_1_1arguments_1_1config.html#a344704c18e9d3222d9969b28bfd9137d", null ]
       ] ],
       [ "dependent", "structflecsi_1_1run_1_1arguments_1_1dependent.html", [
-        [ "kokkos", "structflecsi_1_1run_1_1arguments_1_1dependent.html#a108cad5e21234cb018cd3170dc84017a", null ]
+        [ "kokkos", "structflecsi_1_1run_1_1arguments_1_1dependent.html#aa9baf5763a8cb783f2351f96fecf97d8", null ]
       ] ],
-      [ "argv", "structflecsi_1_1run_1_1arguments.html#acf28b64c1c2d72a974be66e7595d3ed3", null ],
-      [ "arguments", "structflecsi_1_1run_1_1arguments.html#ae4b4d56a0e5b2a495a9ceab46b09a729", null ],
-      [ "unrecognized", "structflecsi_1_1run_1_1arguments.html#ac9b168b4e079155d5b5b4eb124437f5c", null ],
-      [ "act", "structflecsi_1_1run_1_1arguments.html#a3b084f961f367c2ff96473b22f10bbe6", null ],
-      [ "dep", "structflecsi_1_1run_1_1arguments.html#ae5812e08146b4bdbb6ae505d31c3f79d", null ],
-      [ "cfg", "structflecsi_1_1run_1_1arguments.html#ad4e70e75aaac52cfe8f1bcd6332f009e", null ]
+      [ "argv", "structflecsi_1_1run_1_1arguments.html#a160d399aada333714d01c9d351f93cb7", null ],
+      [ "arguments", "structflecsi_1_1run_1_1arguments.html#a8154f32ea8dabceabb9c01de4c955ada", null ],
+      [ "act", "structflecsi_1_1run_1_1arguments.html#af81d1a4e25dcf92a97cf605b0ac76c43", null ],
+      [ "dep", "structflecsi_1_1run_1_1arguments.html#a82d68cb9cb8ca600ed76aab2098ba1e1", null ],
+      [ "cfg", "structflecsi_1_1run_1_1arguments.html#a2ee09d12c5bdd69ea3bb31d2a0aa1c7d", null ]
     ] ],
     [ "context", "structflecsi_1_1run_1_1context.html", [
-      [ "start", "structflecsi_1_1run_1_1context.html#afde0e5cda9f2238447128624d7b21008", null ],
-      [ "process", "structflecsi_1_1run_1_1context.html#a81f106ea25b2a63f7a3a13eda1dd0b5c", null ],
-      [ "processes", "structflecsi_1_1run_1_1context.html#aa85a394179df7239ba3f085b567c9c7b", null ],
-      [ "threads_per_process", "structflecsi_1_1run_1_1context.html#a62b971374f246b61fd0146b024e998c1", null ],
-      [ "threads", "structflecsi_1_1run_1_1context.html#a32765795e7a7f38cec084456d79729b8", null ],
-      [ "color", "structflecsi_1_1run_1_1context.html#a24353aa459b689e0246b1fcf14218be7", null ],
-      [ "colors", "structflecsi_1_1run_1_1context.html#a374ac418fbc50ffd99644e96f991d04a", null ],
-      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#a3fd86405eed245c1e00d3d156b7bb78a", null ],
-      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#a9badfef55c971c8d1f0c991cf045a82c", null ]
+      [ "start", "structflecsi_1_1run_1_1context.html#a80c8fb3b3648e3a3882727ae7d3c1a96", null ],
+      [ "process", "structflecsi_1_1run_1_1context.html#ad2ac5459d279091d4924fca5b7b3dd72", null ],
+      [ "processes", "structflecsi_1_1run_1_1context.html#a953330354e9ef80d1d618e6ca2bca431", null ],
+      [ "threads_per_process", "structflecsi_1_1run_1_1context.html#a3e024b928726030c2ff96bb74cdfdd2d", null ],
+      [ "threads", "structflecsi_1_1run_1_1context.html#abb085bb3314b2031513ffe7cde60be9f", null ],
+      [ "color", "structflecsi_1_1run_1_1context.html#a70b93be613e775ef0ff807739ed57917", null ],
+      [ "colors", "structflecsi_1_1run_1_1context.html#a27c97040e58856c6f97f83aa06537a66", null ],
+      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#a35c970797f8248b93d94463a41e551eb", null ],
+      [ "flog_task_count", "structflecsi_1_1run_1_1context.html#aae84b0b3797754e5458165c0cff1f785", null ]
     ] ],
     [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html", [
-      [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html#a6451859f3f9f8d8e6c6ea9e55a18d43f", null ]
+      [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html#a492e68affef1a5a8977aa6d4aff03841", null ],
+      [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html#adbd041b8e886abeac4f82d7524d5fd91", null ]
     ] ],
-    [ "program_option", "structflecsi_1_1program__option.html", [
-      [ "program_option", "structflecsi_1_1program__option.html#ac16de698ef90a5c690081f7540f52106", null ],
-      [ "program_option", "structflecsi_1_1program__option.html#a9866b2fd47296e0095bf299e770539ba", null ],
-      [ "value", "structflecsi_1_1program__option.html#a31c3595a9bf760dc9bf8acc40d3b9f35", null ],
-      [ "operator ValueType", "structflecsi_1_1program__option.html#a962ce29a018852b58d7d1c50cdde714b", null ],
-      [ "has_value", "structflecsi_1_1program__option.html#a9b5cfdb6ec90c3333faf8dd7618ef600", null ]
+    [ "program_option< ValueType >", "structflecsi_1_1program__option.html", [
+      [ "program_option", "structflecsi_1_1program__option.html#a7b9e8b3a6177ddc39e1dc6130e4bc01b", null ],
+      [ "program_option", "structflecsi_1_1program__option.html#aa0ec18dfa66af6b148ea90f8876501bd", null ],
+      [ "value", "structflecsi_1_1program__option.html#acdd91e2eda8a16793328777316ee1cbc", null ],
+      [ "operator ValueType", "structflecsi_1_1program__option.html#aadf6998b9f0c89be68f384bc2b7ac308", null ],
+      [ "has_value", "structflecsi_1_1program__option.html#a78ae320e307335bd655f8767da418e36", null ]
     ] ],
-    [ "status", "group__runtime.html#gad82c680be1ec581dea8cf34fc6feb32f", [
-      [ "help", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fab8d70bac9c12376b582b548787b8d275", null ],
-      [ "control_model", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fa10aa145607390dedd1c6a37d570ab1e4", null ],
-      [ "control_model_sorted", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fafb267fa0694cf78ab8b0a8bd2b8bda0b", null ],
-      [ "clean", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32faf4a7c960d1228649907f383d01a7f88d", null ],
-      [ "command_line_error", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fa865e359d5f45962053c7b472d0eb0a92", null ],
-      [ "error", "group__runtime.html#ggad82c680be1ec581dea8cf34fc6feb32fad606f01e9e2a07aecb31fe996437b157", null ]
+    [ "flecsi::run::status", "group__runtime.html#ga8fdb6ba924648a7f04f8191b6f6a206b", [
+      [ "flecsi::run::help", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206ba2c0630fbb387d1254eea137af32d810a", null ],
+      [ "flecsi::run::control_model", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206baca25388ae9408befa4bc02b7bd662720", null ],
+      [ "flecsi::run::control_model_sorted", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206ba2671eb8263936ce2e2bddda4671022b0", null ],
+      [ "flecsi::run::clean", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206ba15c95f7671885fc8f00ce0279b3cc7fd", null ],
+      [ "flecsi::run::command_line_error", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206bae521ec631685256edf10ff262eeff979", null ]
     ] ],
-    [ "initialize", "group__runtime.html#gab7bce80856f18e3a0a0968291217247f", null ],
-    [ "start", "group__runtime.html#ga807a7550dece2dd889efa3e5ceb9763d", null ],
-    [ "finalize", "group__runtime.html#ga27eb8f8a88c3c2076b1f37791fc5998b", null ],
-    [ "option_value", "group__runtime.html#ga2f8b61e6071b2dc6e7f5ad1b937614ac", null ],
-    [ "program", "group__runtime.html#gab01206ccef82330f1d2340f6e8658d18", null ],
-    [ "process", "group__runtime.html#ga5e66474803b7f0fa447b4d1bf0820c27", null ],
-    [ "processes", "group__runtime.html#ga27beb4b04470aebc8736f63258b21554", null ],
-    [ "threads_per_process", "group__runtime.html#ga29d1ae6c43c28fb1c98f9465a40a9887", null ],
-    [ "threads", "group__runtime.html#gacf07651a8d4fd938c09346af9de4c936", null ],
-    [ "color", "group__runtime.html#ga976d1fb41bfee898ed3b5459c82c2e4c", null ],
-    [ "colors", "group__runtime.html#ga361bbda0925bf1347fa95c33db808541", null ]
+    [ "flecsi::finalize", "group__runtime.html#ga32d626626eee0bc4ade146973f6abb1c", null ],
+    [ "flecsi::initialize", "group__runtime.html#gab7bce80856f18e3a0a0968291217247f", null ],
+    [ "flecsi::start", "group__runtime.html#ga807a7550dece2dd889efa3e5ceb9763d", null ],
+    [ "flecsi::option_value", "group__runtime.html#ga2f8b61e6071b2dc6e7f5ad1b937614ac", null ],
+    [ "flecsi::program", "group__runtime.html#ga43e9187f70cd75becf3f3ade5b0f5733", null ],
+    [ "flecsi::process", "group__runtime.html#ga5e66474803b7f0fa447b4d1bf0820c27", null ],
+    [ "flecsi::processes", "group__runtime.html#ga27beb4b04470aebc8736f63258b21554", null ],
+    [ "flecsi::threads_per_process", "group__runtime.html#ga29d1ae6c43c28fb1c98f9465a40a9887", null ],
+    [ "flecsi::threads", "group__runtime.html#gacf07651a8d4fd938c09346af9de4c936", null ],
+    [ "flecsi::color", "group__runtime.html#ga976d1fb41bfee898ed3b5459c82c2e4c", null ],
+    [ "flecsi::colors", "group__runtime.html#ga361bbda0925bf1347fa95c33db808541", null ]
 ];

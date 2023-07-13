@@ -1,43 +1,49 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMake Configuration Options &mdash; FleCSI 2.2.1 documentation</title>
   
-  <title>CMake Configuration Options &mdash; FleCSI 2.2.0 documentation</title>
+
   
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
   
+
   
   
     <link rel="canonical" href="http://www.flecsi.org/src/build/options.html"/>
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial.html" />
@@ -68,7 +74,7 @@
             
             
               <div class="version">
-                Version: 2.2.0
+                Version: 2.2.1
               </div>
             
           
@@ -85,6 +91,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -92,7 +99,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../build.html">Build &amp; Install</a><ul class="current">
@@ -114,16 +121,16 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../team.html#alumni">Alumni</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -158,11 +165,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../build.html">Build &amp; Install</a> &raquo;</li>
         
@@ -171,7 +180,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/src/build/options.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -185,11 +194,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cmake-configuration-options">
+  <section id="cmake-configuration-options">
 <h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this headline">¶</a></h1>
 <p>The following set of options are available to control how FleCSI is
 built.</p>
-<div class="section" id="basic-cmake-options">
+<section id="basic-cmake-options">
 <h2>Basic CMake options<a class="headerlink" href="#basic-cmake-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><strong>BUILD_SHARED_LIBS [default: ON]</strong> <br />
@@ -205,8 +214,8 @@ Specify the flags to pass to the C++ compiler when building FleCSI.</p></li>
 <li><p><strong>CMAKE_INSTALL_PREFIX [default: /usr/local]</strong> <br />
 Specify the installation path to use when <em>make install</em> is invoked.</p></li>
 </ul>
-</div>
-<div class="section" id="flog-flecsi-logging-utility-options">
+</section>
+<section id="flog-flecsi-logging-utility-options">
 <h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p><strong>ENABLE_FLOG [default: OFF]</strong> <br />
@@ -267,8 +276,8 @@ the strip level, Flog messages that are designated <em>fatal</em> will
 generate a runtime error and will invoke <code class="docutils literal notranslate"><span class="pre">std::exit</span></code>.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="parallelization-options">
+</section>
+<section id="parallelization-options">
 <h2>Parallelization options<a class="headerlink" href="#parallelization-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_KOKKOS [default: OFF]</strong> <br />
@@ -286,8 +295,8 @@ compiler to enable language support for OpenMP.</p></li>
 Specify the backend to use. Currently, <em>legion</em> and <em>mpi</em> are
 the only valid options.</p></li>
 </ul>
-</div>
-<div class="section" id="documentation-options">
+</section>
+<section id="documentation-options">
 <h2>Documentation options<a class="headerlink" href="#documentation-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_DOCUMENTATION [default: OFF]</strong> <br />
@@ -296,7 +305,7 @@ developer-guide documentation is built. If enabled, CMake will
 generate these guides as PDFs in the <em>doc</em> subdirectory of the
 build.  To build the documentation, run</p></li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make doc
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make doc
 </pre></div>
 </div>
 <ul>
@@ -311,8 +320,8 @@ Normal Doxygen output produces many pages worth of warnings. These are
 distracting and overly verbose. As such, they are disabled by default.
 This options allows the user to turn them back on.</p></li>
 </ul>
-</div>
-<div class="section" id="miscellaneous-options">
+</section>
+<section id="miscellaneous-options">
 <h2>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_COVERAGE_BUILD [default: OFF]</strong> <br />
@@ -329,44 +338,44 @@ for checkpointing program state.</p></li>
 Enable FleCSI unit tests. If enabled, the unit test suite can be run
 by invoking:</p></li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make <span class="nb">test</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make <span class="nb">test</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><strong>FLECSI_ID_TYPE [default: std::uint32_t]</strong> <br />
 Specify the C++ type for FleCSI topologies to use for entity IDs.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../build.html" class="btn btn-neutral float-left" title="Build &amp; Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="../tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../build.html" class="btn btn-neutral float-left" title="Build &amp; Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright Copyright (C) 2016, Triad National Security, LLC
+        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -374,7 +383,6 @@ Specify the C++ type for FleCSI topologies to use for entity IDs.</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

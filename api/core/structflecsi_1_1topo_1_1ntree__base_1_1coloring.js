@@ -1,10 +1,10 @@
 var structflecsi_1_1topo_1_1ntree__base_1_1coloring =
 [
-    [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ac82ebf3eab88f243ae9b280ad6ed547f", null ],
-    [ "nparts_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae54429c97866cce3079dbbcfae86321c", null ],
-    [ "local_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa472807cf0796145d11972caa03e5c25", null ],
-    [ "global_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a131549a83b587d83236779e8fb71c34b", null ],
-    [ "entities_distribution_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a5adb570ef37e65d95c1e58f195e4502a", null ],
-    [ "local_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a847f784ecc89630e36379bc3e17219f0", null ],
-    [ "global_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa3421b773970286ba86fe9e6dbdfab1c", null ]
+    [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae28b28a4dd179c9eb32570e30f5ce4c3", null ],
+    [ "nparts_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a2d438b30d4f038e3c022d7854523f6ac", null ],
+    [ "local_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a5e6884e2d1b13163e1f29f510f36796b", null ],
+    [ "global_entities_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ae8bcad4a3cbb4f958f201b118f6ca86e", null ],
+    [ "entities_distribution_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#af19602587429181aca75fb934b72cb65", null ],
+    [ "local_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#aa0458f8185e57cf9f3bf31cc48a62f0e", null ],
+    [ "global_nodes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#ad7a6a634233a3e7a0626081d3706cd18", null ]
 ];
