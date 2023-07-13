@@ -55,9 +55,9 @@ Introduction
   src/overview
   src/build
   src/tutorial
-  src/developer-guide
   src/user-guide
   src/api
+  src/developer-guide
   src/team
 
 .. Not sure exactly why, but this seems to do what I want at the

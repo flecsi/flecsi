@@ -30,6 +30,7 @@ namespace topo {
 
 /*!
   Narray Topology.
+  Colors are assigned lexicographically; the first dimension varies fastest.
   \tparam Policy the specialization, following
    \ref narray_specialization.
 

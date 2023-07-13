@@ -44,6 +44,7 @@ void finalize();
 
     Enable comma-separated output \a tags.
     \c all enables all and is the default; \c unscoped disables all.
+    \c none disables normal Flog output entirely.
   - <tt>\--flog-verbose[=level]</tt>
 
     Enable verbose output if \a level is omitted or positive; suppress
@@ -199,7 +200,7 @@ struct program_option {
                    option_implicit value specified. If \em option_multi is
                    passed, the flag will take multiple values.
     @param check   An optional, user-defined predicate to validate the option
-                   passed by the user.
+                   passed by the user; see signature below.
 
     @code
       program_option<int> my_flag("My Section",
@@ -209,7 +210,7 @@ struct program_option {
           {option_default, 1},
           {option_implicit, 0}
         },
-        [](flecsi::any const & v) {
+        [](flecsi::any const & v, std::stringstream &) {
           const int value = flecsi::option_value<int>(v);
           return value >= 0 && value < 10;
         });
@@ -269,7 +270,7 @@ struct program_option {
     @param name  The name for the positional option.
     @param help  The help message for the option.
     @param count The number of values to consume for this positional option. If
-                 \em -1 is passed, this option will consume all remainging
+                 \em -1 is passed, this option will consume all remaining
                  values.
     @param check An optional, user-defined predicate to validate the option
                  passed by the user.

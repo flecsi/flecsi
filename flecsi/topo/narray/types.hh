@@ -836,9 +836,9 @@ operator<<(std::ostream & stream, index_color const & ic) {
 /// \addtogroup narray
 /// \{
 
-/// \if core
+/// \cond core
 /// Specialization-independent definitions.
-/// \endif
+/// \endcond
 struct narray_base {
   using axis_color = narray_impl::axis_color;
   using index_color = narray_impl::index_color;
