@@ -217,6 +217,10 @@ public:
     return tmp;
   } // operator /
 
+  constexpr auto data() {
+    return &data_;
+  }
+
 private:
   std::array<TYPE, DIMENSION> data_;
 
