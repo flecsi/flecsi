@@ -341,7 +341,7 @@ openmpi-legion-clang-cuda:
   variables:
     <<: *openmpi-cuda-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -363,7 +363,7 @@ openmpi-legion-clang-cuda-mpi:
   variables:
     <<: *openmpi-cuda-mpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -574,7 +574,7 @@ openmpi-poisson-cuda-clang:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     CXX_COMPILER: clang++
     CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
