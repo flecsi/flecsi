@@ -47,6 +47,8 @@ namespace flog {
 class state
 {
 public:
+  static constexpr std::size_t tag_bits = 1024;
+
   state(const std::vector<std::string> & active, int verbose, Color one_process)
     : verb(verbose) {
 #if defined(FLOG_ENABLE_DEBUG)
@@ -164,7 +166,7 @@ public:
     } // if
 
     const size_t id = tag_names.size();
-    assert(id < FLOG_TAG_BITS && "Tag bits overflow! Increase FLOG_TAG_BITS");
+    assert(id < tag_bits && "Tag bits overflow! Increase state::tag_bits");
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: registering tag " << tag << ": "
               << id << FLOG_COLOR_PLAIN << std::endl;
@@ -247,12 +249,12 @@ public:
     std::string tmp = message;
 
     // Make sure that the string fits within the packet size.
-    if(message.size() > FLOG_MAX_MESSAGE_SIZE) {
-      tmp.resize(FLOG_MAX_MESSAGE_SIZE - 100);
+    if(message.size() > packet_t::max_message_size) {
+      tmp.resize(packet_t::max_message_size - 100);
       std::stringstream stream;
       stream << tmp << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
-             << FLOG_MAX_MESSAGE_SIZE << " BYTES (" << message.size() << ")"
-             << FLOG_COLOR_PLAIN << std::endl;
+             << packet_t::max_message_size << " BYTES (" << message.size()
+             << ")" << FLOG_COLOR_PLAIN << std::endl;
       tmp = stream.str();
     } // if
 
@@ -287,7 +289,7 @@ private:
 
 #ifdef FLOG_ENABLE_TAGS
   static task_local<std::size_t> cur_tag;
-  std::bitset<FLOG_TAG_BITS> tag_bitset_;
+  std::bitset<tag_bits> tag_bitset_;
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
