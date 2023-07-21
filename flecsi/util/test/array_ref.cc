@@ -286,6 +286,23 @@ array_ref() {
       static_assert(sv.size() == n);
       static_assert(sv.begin() + n == sv.end());
     }
+
+    {
+      constexpr static int primes[] = {2, 3, 5, 7, 11, 13, 17},
+                           np = sizeof primes / sizeof *primes;
+      static_assert([] {
+        int twins[np]{};
+        util::transform(primes, twins, [](int i) { return i + 2; });
+        return twins[1] == primes[2];
+      }());
+      static_assert(util::partition_point(
+                      primes, [](int i) { return !(i % 2); }) == primes + 1);
+      static_assert([] {
+        int loose[std::end(primes)[-1] + 1]{};
+        util::unpack(util::iota_view(0, np), +loose, primes);
+        return loose[13] == util::binary_index(primes, 13);
+      }());
+    }
   };
 } // array_ref
 

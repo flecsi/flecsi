@@ -10,6 +10,7 @@ User Guide
 
   user-guide/cmake
   user-guide/topologies
+  user-guide/utilities
   user-guide/specializations
   user-guide/performance
   user-guide/profiling

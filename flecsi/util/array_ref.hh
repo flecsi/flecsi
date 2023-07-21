@@ -778,6 +778,60 @@ private:
   difference_type n;
 };
 
+/// A simple subset of \c std::ranges::transform from C++20.
+/// This function supports GPU execution.
+/// \param s source range
+/// \param d destination iterator
+template<class S, class D, class F>
+FLECSI_TARGET constexpr void
+transform(S && s, D d, F && f) {
+  for(auto && x : s)
+    *d = f(std::forward<decltype(x)>(x)), ++d;
+}
+
+/// A subset of \c std::ranges::partition_point from C++20.
+/// This function supports GPU execution.
+/// \param r random-access range
+/// \return an iterator to the first element for which \a f returns \c false
+template<class R, class F>
+FLECSI_TARGET constexpr auto
+partition_point(R && r, F && f) {
+  auto b = std::begin(r), e = std::end(r);
+  while(b != e) {
+    auto m = b + (e - b) / 2;
+    if(f(*m))
+      b = m + 1;
+    else
+      e = m;
+  }
+  return b;
+}
+
+/// Find the index of a value in a sorted range.
+/// This function supports GPU execution.
+/// \param r random-access range
+template<class R,
+  class T = std::remove_reference_t<decltype(*std::begin(std::declval<R>()))>>
+FLECSI_TARGET constexpr auto
+binary_index(R && r, const T & t) {
+  const auto b = std::begin(r);
+  return (partition_point)(std::forward<R>(r), [&](const auto & x) {
+    return x < t;
+  }) - b;
+}
+
+/// Copy data into given (packed) indices of a range.
+/// This function supports GPU execution.
+/// \param s source range
+/// \param d random-access destination starting iterator
+/// \param i iterator to offsets from \a d
+template<class S, class D, class I>
+FLECSI_TARGET constexpr void
+unpack(S && s, const D & d, I i) {
+  for(auto && x : std::forward<S>(s))
+    d[*i] = x, ++i;
+}
+
 /// \}
 } // namespace util
 } // namespace flecsi
