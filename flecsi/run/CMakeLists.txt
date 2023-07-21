@@ -77,11 +77,6 @@ if(ENABLE_UNIT_TESTS)
   add_test(NAME cycle COMMAND cycle ${CYCLE_FLAGS})
 endif()
 
-flecsi_add_test(flog
-  SOURCES
-    test/flog.cc
-)
-
 flecsi_add_test(program-options
   SOURCES
     test/program-options.cc
