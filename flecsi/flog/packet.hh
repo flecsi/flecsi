@@ -40,8 +40,9 @@ namespace flog {
 struct packet_t {
   static constexpr size_t sec_bytes = sizeof(time_t);
   static constexpr size_t usec_bytes = sizeof(suseconds_t);
+  static constexpr size_t max_message_size = 4096;
   static constexpr size_t packet_bytes =
-    sec_bytes + usec_bytes + FLOG_MAX_MESSAGE_SIZE;
+    sec_bytes + usec_bytes + max_message_size;
 
   packet_t(const char * msg = nullptr) {
     timeval stamp;
