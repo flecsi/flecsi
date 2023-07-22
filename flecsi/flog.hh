@@ -457,7 +457,10 @@ namespace flecsi::flog {
 template<typename T>
 auto
 to_string(T const & t) {
-  return std::move(std::stringstream() << container(t)).str();
+  // The static_cast here is necessary for gcc version <= 11.1.
+  return static_cast<std::ostringstream &&>(
+    std::ostringstream() << container(t))
+    .str();
 }
 } // namespace flecsi::flog
 

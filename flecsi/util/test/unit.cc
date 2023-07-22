@@ -12,6 +12,55 @@ using namespace flecsi;
  *----------------------------------------------------------------------------*/
 
 int
+log_driver() {
+  UNIT() {
+    {
+      std::vector<std::size_t> v;
+      for(std::size_t i{0}; i < 10; ++i) {
+        v.emplace_back(i);
+      }
+
+      EXPECT_EQ(flog::to_string(v), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
+    }
+
+    {
+      std::vector<std::vector<std::size_t>> v;
+      for(std::size_t i{0}; i < 10; ++i) {
+        v.push_back({0, 1, 2});
+      }
+
+      EXPECT_EQ(flog::to_string(v),
+        "[[0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, "
+        "1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2]]");
+    }
+
+    {
+      std::map<std::size_t, std::size_t> m;
+      for(std::size_t i{0}; i < 10; ++i) {
+        m[i] = i;
+      }
+
+      EXPECT_EQ(flog::to_string(m),
+        "{0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}");
+    }
+
+    {
+      std::map<std::size_t, std::vector<std::size_t>> m;
+      for(std::size_t i{0}; i < 10; ++i) {
+        m[i] = {0, 1, 2};
+      }
+
+      EXPECT_EQ(flog::to_string(m),
+        "{0:\n [0, 1, 2],\n 1:\n [0, 1, 2],\n 2:\n [0, 1, 2],\n 3:\n [0, 1, "
+        "2],\n 4:\n [0, 1, 2],\n 5:\n [0, 1, 2],\n 6:\n [0, 1, 2],\n 7:\n [0, "
+        "1, 2],\n 8:\n [0, 1, 2],\n 9:\n [0, 1, 2]}");
+    }
+  };
+} // flog
+
+util::unit::driver<log_driver> log_test_driver;
+
+int
 init_a() {
   flog::devel_guard guard(unit_tag);
   flog(info) << "init" << std::endl;
