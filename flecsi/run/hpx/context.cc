@@ -150,6 +150,7 @@ storage() noexcept {
 void
 reset_storage() noexcept {
   auto const * stg = storage();
+  flog_assert(stg != nullptr, "thread local storage should still exist");
   ::hpx::threads::set_thread_data(::hpx::threads::get_self_id(), 0);
   delete stg;
 }

@@ -139,9 +139,9 @@ reduce_internal(Args &&... args) {
     // task f have been satisfied.
     auto apply_delayed_prolog = [f = std::forward<decltype(f)>(f)](
                                   auto & regions_partitions, auto && params) {
-      // The bind_parameters constructor will possibly execute additional steps
-      // during destruction that require execution after the task finished
-      // running (reduction operations).
+      // The bind_parameters constructor will possibly schedule additional steps
+      // to run during destruction that require execution after the task
+      // finished running (reduction operations).
       bind_parameters<processor_type> provide_storage(
         params, regions_partitions);
 

@@ -17,6 +17,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -31,6 +32,18 @@ struct global_base;
 namespace exec {
 
 struct task_prologue_base {
+
+private:
+  // Return whether a given future may be used as a dependency for this task
+  bool may_be_used_as_dependency(::hpx::shared_future<void> const & f) {
+    auto it = std::find_if(no_dependencies.begin(),
+      no_dependencies.end(),
+      [state = ::hpx::traits::detail::get_shared_state(f)](
+        ::hpx::shared_future<void> const & future) {
+        return state == ::hpx::traits::detail::get_shared_state(future);
+      });
+    return it == no_dependencies.end();
+  }
 
 protected:
   // Those methods are "protected" because they are *only* called by
@@ -131,8 +144,11 @@ protected:
     // "read after read" dependencies are not considered here.
     // Note that it might derive from the ghost copies just above.
     const bool pending = field.future.valid() && !field.future.is_ready();
-    if(pending && (privilege_write(P) || field.dep == data::dependency::write))
+    if(pending &&
+       (privilege_write(P) || field.dep == data::dependency::write) &&
+       may_be_used_as_dependency(field.future)) {
       dependencies.push_back(field.future);
+    }
 
     // The dependencies of this task can be either "read after write" (if this
     // task reads from a field, then any known write to the same field has to
@@ -142,6 +158,7 @@ protected:
       // request future from promise only if required (once for all arguments)
       if(!future.valid()) {
         future = promise.get_future();
+        no_dependencies.push_back(future);
       }
 
       // If the task writes to the current argument then we must associate the
@@ -154,6 +171,7 @@ protected:
       // request future from promise only if required (once for all arguments)
       if(!future.valid()) {
         future = promise.get_future();
+        no_dependencies.push_back(future);
       }
 
       // If the task reads from the current argument then we must associate the
@@ -167,10 +185,12 @@ protected:
         field.future = future;
         field.dep = flecsi::data::dependency::read;
       }
-      else {
+      else if(::hpx::traits::detail::get_shared_state(field.future) !=
+              ::hpx::traits::detail::get_shared_state(future)) {
         // This read operation needs to be added to the list of dependencies
         // already existing for the given field.
         field.future = ::hpx::when_all(std::move(field.future), future).share();
+        no_dependencies.push_back(field.future);
         flog_assert(field.dep != flecsi::data::dependency::none,
           "field reference must represent a valid dependency");
       }
@@ -196,13 +216,15 @@ protected:
 
     // Any possibly valid field-future must be added as a dependency for this
     // task.
-    if(field.future.valid() && !field.future.is_ready()) {
+    if(field.future.valid() && !field.future.is_ready() &&
+       may_be_used_as_dependency(field.future)) {
       dependencies.push_back(std::move(field.future));
     }
 
     // request future from promise only if required (once for all arguments)
     if(!future.valid()) {
       future = promise.get_future();
+      no_dependencies.push_back(future);
     }
 
     // Reductions write to the current argument, thus we must associate the
@@ -307,6 +329,13 @@ private:
   // The futures that represent the dependencies of the current task on its
   // arguments
   std::vector<::hpx::shared_future<void>> dependencies;
+
+  // The futures that should not be used as dependencies as they depend on the
+  // result of this task. We have to make sure to avoid circular dependencies
+  // where the future representing the result of the current task is indirectly
+  // used as a dependency for the task. This may happen if several arguments to
+  // this task refer to the same field.
+  std::vector<::hpx::shared_future<void>> no_dependencies;
 
   // This future is used as a dependency for all arguments, if needed. It
   // is used to convey the availability of this task's result.
