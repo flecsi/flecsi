@@ -98,7 +98,14 @@ struct copy_engine : local::copy_engine {
 
     auto comm_tag = std::to_string(data_fid);
     auto p2p_gen = flecsi::run::context::instance().p2p_comm(comm_tag);
-    auto comm_gen = flecsi::run::context::instance().world_comm(comm_tag);
+
+    // Request communicator only if it is needed. Otherwise a new generation
+    // number is generated, which may cause for the communicator to hang if the
+    // generation is not subsequently 'used'.
+    run::context_t::communicator_data comm_gen;
+    if(max_local_source_idx == 0) {
+      comm_gen = flecsi::run::context::instance().world_comm(comm_tag);
+    }
 
     init_delayed_ghost_copy(field,
       [this, data_fid, comm_tag = std::move(comm_tag), comm_gen, p2p_gen]() {
@@ -118,6 +125,8 @@ struct copy_engine : local::copy_engine {
 
           if(max_local_source_idx == 0) {
             init_copy_engine([&](auto const & remote_shared_entities) {
+              flog_assert(comm_gen.first && comm_gen.second,
+                "communicator should have been initialized");
               return detail::all_to_allv(
                 [&](int r, int) -> auto & {
                   static std::vector<std::size_t> const empty;

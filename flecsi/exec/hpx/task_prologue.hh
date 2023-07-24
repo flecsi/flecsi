@@ -191,8 +191,7 @@ protected:
         // already existing for the given field.
         field.future = ::hpx::when_all(std::move(field.future), future).share();
         no_dependencies.push_back(field.future);
-        flog_assert(field.dep != flecsi::data::dependency::none,
-          "field reference must represent a valid dependency");
+        field.dep = flecsi::data::dependency::read;
       }
     }
   }
