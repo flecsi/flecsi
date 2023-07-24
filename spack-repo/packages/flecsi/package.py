@@ -61,8 +61,7 @@ class Flecsi(CMakePackage, CudaPackage, ROCmPackage):
 
     # Boost
 
-    depends_on('boost@1.79.0: cxxstd=17 +program_options +atomic '
-        '+filesystem +regex +system')
+    depends_on('boost@1.79.0: cxxstd=17 +program_options +stacktrace')
 
     # Caliper
 
