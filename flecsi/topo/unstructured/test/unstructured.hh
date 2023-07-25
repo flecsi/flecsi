@@ -233,16 +233,12 @@ struct unstructured
     using namespace topo::unstructured_impl;
 
     auto & el = s->special_.get<I>().template get<E>();
-
-    {
-      auto slm = data::launch::make(el);
-      execute<allocate_list<E>, flecsi::mpi>(
-        slm, c.idx_spaces[core::index<I>].colors);
-      el.resize();
-    }
-
-    // the launch maps need to be resized with the correct allocation
     auto slm = data::launch::make(el);
+
+    execute<allocate_list<E>, flecsi::mpi>(
+      slm, c.idx_spaces[core::index<I>].colors);
+    el.resize();
+
     execute<populate_list<E>, flecsi::mpi>(
       core::special_field(slm), c.idx_spaces[core::index<I>].colors);
   } // init_list
@@ -293,16 +289,14 @@ struct unstructured
     e2c(s).get_elements().resize();
     e2v(s).get_elements().resize();
 
-    {
-      auto lm = data::launch::make(s);
-      constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
-      constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
-      constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
-      execute<init_connectivity<NPC>, mpi>(c2v(lm), fields.c2v_connectivity);
-      execute<init_connectivity<NPE>, mpi>(e2c(lm), fields.e2c_connectivity);
-      execute<init_connectivity<NPE>, mpi>(e2v(lm), fields.e2v_connectivity);
-      execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
-    }
+    auto lm = data::launch::make(s);
+    constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
+    constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
+    constexpr PrivilegeCount NPE = privilege_count<index_space::edges>;
+    execute<init_connectivity<NPC>, mpi>(c2v(lm), fields.c2v_connectivity);
+    execute<init_connectivity<NPE>, mpi>(e2c(lm), fields.e2c_connectivity);
+    execute<init_connectivity<NPE>, mpi>(e2v(lm), fields.e2v_connectivity);
+    execute<transpose<NPC, NPV>>(c2v(s), v2c(s));
 
     init_list<index_space::cells, entity_list::owned>(s, c);
     init_list<index_space::cells, entity_list::shared>(s, c);
@@ -312,7 +306,6 @@ struct unstructured
     init_list<index_space::vertices, entity_list::ghost>(s, c);
 
     // Init the specific fields on the topology using user data
-    auto lm = data::launch::make(s);
     execute<init_vid_coords, flecsi::mpi>(
       lm, cid(lm), vid(lm), coords(lm), fields.cid, fields.id, fields.coords);
 

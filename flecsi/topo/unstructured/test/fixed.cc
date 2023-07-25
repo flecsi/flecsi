@@ -494,10 +494,8 @@ fixed_driver() {
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    {
-      auto lm = data::launch::make(mesh, rotate(mesh.colors()));
-      execute<check_pressure>(lm, pressure(lm));
-    }
+    auto lm = data::launch::make(mesh, rotate(mesh.colors()));
+    execute<check_pressure>(lm, pressure(lm));
 
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
