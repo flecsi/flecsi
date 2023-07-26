@@ -334,7 +334,7 @@ private:
         auto lid = ln(v);
         f(lid);
       }
-    }; // traverse
+    } // traverse
 
     static void ngb_color_boxes(bool diagonals,
       std::array<bool, dimension> & periodic,
@@ -377,7 +377,7 @@ private:
             color_bounds[lid].push_back(ngb_ubnds[v[k] + 1][k]);
         }
       }
-    }; // color_boxes
+    } // color_boxes
 
     /*
      *

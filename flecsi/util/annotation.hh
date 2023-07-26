@@ -296,7 +296,7 @@ public:
   }
 };
 /// \}
-}; // namespace annotation
+} // namespace annotation
 
 /// Initialize caliper annotation objects from the context name.
 #if !defined(DISABLE_CALIPER)
