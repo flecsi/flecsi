@@ -22,32 +22,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # Project.
 #------------------------------------------------------------------------------#
 
-project(FleCSI LANGUAGES CXX C)
-
-set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-#------------------------------------------------------------------------------#
-# Compiler version requirements.
-#------------------------------------------------------------------------------#
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-    message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
-  endif()
-endif()
-
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-Wno-parentheses NO_PARENTHESES)
-check_cxx_compiler_flag(-Wno-braced-scalar-init NO_BRACED_SCALAR_INIT)
-
-if(NO_PARENTHESES)
-  add_compile_options(-Wno-parentheses)
-endif()
-if(NO_BRACED_SCALAR_INIT)
-  add_compile_options(-Wno-braced-scalar-init)
-endif()
+project(FleCSI LANGUAGES NONE)
 
 #------------------------------------------------------------------------------#
 # FleCSI Version
@@ -138,6 +113,34 @@ option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
 mark_as_advanced(ENABLE_LIBRARY)
 
 if(ENABLE_LIBRARY)
+  enable_language(CXX)
+  enable_language(C)
+
+  set(CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+
+  #------------------------------------------------------------------------------#
+  # Compiler version requirements.
+  #------------------------------------------------------------------------------#
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+      message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
+    endif()
+  endif()
+
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-Wno-parentheses NO_PARENTHESES)
+  check_cxx_compiler_flag(-Wno-braced-scalar-init NO_BRACED_SCALAR_INIT)
+
+  if(NO_PARENTHESES)
+    add_compile_options(-Wno-parentheses)
+  endif()
+  if(NO_BRACED_SCALAR_INIT)
+    add_compile_options(-Wno-braced-scalar-init)
+  endif()
+
   include(FleCSI/coverage)
   include(FleCSI/legion)
   include(FleCSI/mpi)
