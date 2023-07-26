@@ -43,7 +43,7 @@ variables:
   LEGION_IBV_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=ibv"
   LEGION_MPI_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda
-  KOKKOS_CUDA: kokkos +cuda +hwloc
+  KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENABLE_UNIT_TESTS: "ON"
 
 #------------------------------------------------------------------------------#
