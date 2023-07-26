@@ -73,6 +73,7 @@ New features
   * ``partition_point`` and ``binary_index`` find values in sorted ranges.
   * ``unpack`` scatters data into a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+  * ``test`` convenience function launches unit test tasks.
 
 * Logging
 
