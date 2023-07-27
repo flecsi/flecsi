@@ -537,8 +537,6 @@ execute(ARGS &&... args) {
   return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
 } // execute
 
-/// \}
-
 /*!
   Execute a test task. This interface is provided for FleCSI's unit testing
   framework. Test tasks must return an integer that is non-zero on failure,
@@ -565,6 +563,8 @@ test(ARGS &&... args) {
   return reduce<TASK, exec::fold::sum, ATTRIBUTES>(std::forward<ARGS>(args)...)
     .get();
 } // test
+
+/// \}
 
 namespace exec {
 /// \addtogroup execution
