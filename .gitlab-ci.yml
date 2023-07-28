@@ -16,6 +16,16 @@ default:
   before_script:
    - echo "Running on $(hostname)"
 
+# project-wide warning configuration
+# these are also parsed by tools, so don't try to use variable expansion here
+.gcc_flags: &gcc_flags
+  c_flags:   -Wall -Wundef -W -Werror -Wvla
+  cxx_flags: -Wall -Wundef -W -Werror -Wvla -Wextra-semi
+
+.llvm_flags: &llvm_flags
+  c_flags: -fcolor-diagnostics -Wno-unknown-cuda-version -Wall -Wundef -W -Werror -Wvla
+  cxx_flags: -Wextra-semi -Wno-parentheses -Wno-braced-scalar-init
+
 variables:
   USE_SPACK_UPSTREAM: develop-82d41a7be
   COLOR_BLUE: '\033[1;34m'
