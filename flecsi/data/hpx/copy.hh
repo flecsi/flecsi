@@ -16,6 +16,7 @@
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/types.hh"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <optional>
@@ -39,7 +40,7 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
   result.reserve(size);
 
   for(std::size_t r = 0; r < size; ++r)
-    result.push_back(f(r, size));
+    result.push_back(f(r));
 
   return all_to_all(
     comm, std::move(result), this_site_arg(), generation_arg(generation))
@@ -51,10 +52,11 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
 template<typename Field, typename F>
 void
 init_delayed_ghost_copy(Field & field, F && delayed_ghost_copy) {
+
   if(field.future.valid() && !field.future.is_ready()) {
-    // make the field's value depend on this ghost copy operation after the
+    // make the fields' values depend on this ghost copy operation after the
     // previous operation has finished
-    field.future = field.future.then(
+    field.future = field.future.then(::hpx::launch::async,
       [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
         auto && f) mutable {
         f.get(); // propagate exceptions
@@ -68,6 +70,37 @@ init_delayed_ghost_copy(Field & field, F && delayed_ghost_copy) {
 
   // ghost copy operations are implicit write operations to the field
   field.dep = dependency::write;
+}
+
+template<typename SrcField, typename DestField, typename F>
+void
+init_delayed_ghost_copy(SrcField & src_field,
+  DestField & dest_field,
+  F && delayed_ghost_copy) {
+
+  ::hpx::future<void> future;
+  if((src_field.future.valid() && !src_field.future.is_ready()) ||
+     (dest_field.future.valid() && !dest_field.future.is_ready())) {
+    // make the fields' values depend on this ghost copy operation after the
+    // previous operation has finished
+    future = ::hpx::dataflow(
+      [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
+        auto && src_f, auto && dest_f) mutable {
+        src_f.get(); // propagate exceptions
+        dest_f.get();
+        delayed_ghost_copy();
+      },
+      src_field.future,
+      dest_field.future);
+  }
+  else {
+    // make the fields value depend on this ghost copy operation
+    future = ::hpx::async(std::forward<F>(delayed_ghost_copy));
+  }
+
+  // ghost copy operations are implicit write operations to the field
+  src_field.future = dest_field.future = future.share();
+  src_field.dep = dest_field.dep = dependency::write;
 }
 
 struct copy_engine : local::copy_engine {
@@ -89,12 +122,25 @@ struct copy_engine : local::copy_engine {
     }
   }
 
+  void use_as_dependency(::hpx::shared_future<void> const & f) {
+    auto it = std::find_if(dependencies.begin(),
+      dependencies.end(),
+      [state = ::hpx::traits::detail::get_shared_state(f)](
+        ::hpx::shared_future<void> const & future) {
+        return state == ::hpx::traits::detail::get_shared_state(future);
+      });
+    if(it == dependencies.end()) {
+      dependencies.push_back(f);
+    }
+  }
+
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) {
 
     // schedule the actual copy operation
-    auto & field = (*source.r)[data_fid];
+    auto & src_field = (*source.r)[data_fid];
+    auto & dest_field = destination[data_fid];
 
     auto comm_tag = std::to_string(data_fid);
     auto p2p_gen = flecsi::run::context::instance().p2p_comm(comm_tag);
@@ -107,7 +153,8 @@ struct copy_engine : local::copy_engine {
       comm_gen = flecsi::run::context::instance().world_comm(comm_tag);
     }
 
-    init_delayed_ghost_copy(field,
+    init_delayed_ghost_copy(src_field,
+      dest_field,
       [this, data_fid, comm_tag = std::move(comm_tag), comm_gen, p2p_gen]() {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
@@ -128,7 +175,7 @@ struct copy_engine : local::copy_engine {
               flog_assert(comm_gen.first && comm_gen.second,
                 "communicator should have been initialized");
               return detail::all_to_allv(
-                [&](int r, int) -> auto & {
+                [&](int r) -> auto & {
                   static std::vector<std::size_t> const empty;
                   auto const it = remote_shared_entities.find(r);
                   return it == remote_shared_entities.end() ? empty
@@ -158,7 +205,7 @@ struct copy_engine : local::copy_engine {
           auto src_rank = entry.first;
           ops.push_back(
             get<data_type>(comm, that_site_arg(src_rank), tag_arg(generation))
-              .then([&, &src = entry.second](auto && f) {
+              .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                 auto && data = f.get();
                 for(std::size_t i = 0, n = src.size(); i < n; ++i)
                   std::memcpy(
@@ -183,10 +230,13 @@ struct copy_engine : local::copy_engine {
         ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
       });
 
-    // this copy_engine object must be held alive at least until all ghost_copy
+    // this copy_engine object must be kept alive at least until all ghost_copy
     // operations have finished executing
-    if(field.future.valid() && !field.future.is_ready()) {
-      dependencies.push_back(field.future);
+    if(src_field.future.valid() && !src_field.future.is_ready()) {
+      use_as_dependency(src_field.future);
+    }
+    if(dest_field.future.valid() && !dest_field.future.is_ready()) {
+      use_as_dependency(dest_field.future);
     }
   }
 

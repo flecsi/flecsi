@@ -87,7 +87,7 @@ protected:
         exec::fold::wrap<R>{},
         generation_arg(generation));
 
-      return fut.then([storage](auto && fut) {
+      return fut.then(::hpx::launch::sync, [storage](auto && fut) {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 

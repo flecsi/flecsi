@@ -35,7 +35,7 @@ struct task_prologue_base {
 
 private:
   // Return whether a given future may be used as a dependency for this task
-  bool may_be_used_as_dependency(::hpx::shared_future<void> const & f) {
+  bool may_be_used_as_dependency(::hpx::shared_future<void> const & f) const {
     auto it = std::find_if(no_dependencies.begin(),
       no_dependencies.end(),
       [state = ::hpx::traits::detail::get_shared_state(f)](
