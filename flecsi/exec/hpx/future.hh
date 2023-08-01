@@ -148,6 +148,15 @@ struct future<void, exec::launch_type_t::index>
   }
 };
 
+namespace detail {
+// Helper comparing HPX futures
+inline bool
+is_same(::hpx::shared_future<void> const & lhs,
+  ::hpx::shared_future<void> const & rhs) {
+  return ::hpx::traits::detail::get_shared_state(lhs) ==
+         ::hpx::traits::detail::get_shared_state(rhs);
+}
+} // namespace detail
 } // namespace flecsi
 
 #endif // FLECSI_EXEC_HPX_FUTURE_HH

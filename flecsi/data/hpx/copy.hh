@@ -125,10 +125,7 @@ struct copy_engine : local::copy_engine {
   void use_as_dependency(::hpx::shared_future<void> const & f) {
     auto it = std::find_if(dependencies.begin(),
       dependencies.end(),
-      [state = ::hpx::traits::detail::get_shared_state(f)](
-        ::hpx::shared_future<void> const & future) {
-        return state == ::hpx::traits::detail::get_shared_state(future);
-      });
+      [&](auto const & future) { return flecsi::detail::is_same(f, future); });
     if(it == dependencies.end()) {
       dependencies.push_back(f);
     }

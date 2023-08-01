@@ -38,10 +38,7 @@ private:
   bool may_be_used_as_dependency(::hpx::shared_future<void> const & f) const {
     auto it = std::find_if(no_dependencies.begin(),
       no_dependencies.end(),
-      [state = ::hpx::traits::detail::get_shared_state(f)](
-        ::hpx::shared_future<void> const & future) {
-        return state == ::hpx::traits::detail::get_shared_state(future);
-      });
+      [&](auto const & future) { return flecsi::detail::is_same(f, future); });
     return it == no_dependencies.end();
   }
 
@@ -174,24 +171,29 @@ protected:
         no_dependencies.push_back(future);
       }
 
-      // If the task reads from the current argument then we must associate the
-      // future that represents the end of the task execution with the current
-      // argument. We have to make sure that possibly more than one read
-      // operation may have to finish before other operations are allowed to go
-      // ahead.
+      // If the task reads from the current argument then we must associate
+      // the future that represents the end of the task execution with the
+      // current argument. We have to make sure that possibly more than one
+      // read operation may have to finish before other operations are allowed
+      // to go ahead.
       if(!pending) {
         // This is either the first operation using the given field or any
         // previous operations have already finished.
         field.future = future;
         field.dep = flecsi::data::dependency::read;
       }
-      else if(::hpx::traits::detail::get_shared_state(field.future) !=
-              ::hpx::traits::detail::get_shared_state(future)) {
+      else if(!flecsi::detail::is_same(field.future, future)) {
         // This read operation needs to be added to the list of dependencies
         // already existing for the given field.
         field.future = ::hpx::when_all(std::move(field.future), future).share();
         no_dependencies.push_back(field.future);
-        field.dep = flecsi::data::dependency::read;
+
+        // Leave the dependency type unchanged. If it is currently a write
+        // dependency, then overwriting it here would cause the next task that
+        // also reads from this field only see a read dependency, leading to its
+        // unsequenced execution.
+        flog_assert(field.dep != flecsi::data::dependency::none,
+          "field reference must represent a valid dependency");
       }
     }
   }
