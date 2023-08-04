@@ -18,10 +18,6 @@ cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable flog debug mode" OFF
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEBUG)
 
-cmake_dependent_option(FLOG_ENABLE_EXTERNAL
-  "Enable messages that are defined at namespace scope" OFF "ENABLE_FLOG" ON)
-mark_as_advanced(FLOG_ENABLE_EXTERNAL)
-
 cmake_dependent_option(FLOG_ENABLE_DEVELOPER_MODE
   "Enable internal FleCSI developer messages" OFF "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEVELOPER_MODE)

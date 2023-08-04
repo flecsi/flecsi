@@ -195,22 +195,12 @@ public:
    */
 
   static std::string active_tag_name() {
-    if(!instance)
-      return "external";
     return tag_name(active_tag());
   }
 
   static bool tag_enabled() {
 #if defined(FLOG_ENABLE_TAGS)
-    // If the runtime context hasn't been initialized, return true only
-    // if the user has enabled externally-scoped messages.
-    if(!instance) {
-#if defined(FLOG_ENABLE_EXTERNAL)
-      return true;
-#else
-      return false;
-#endif
-    } // if
+    assert(instance);
 
     const std::size_t t = active_tag();
     const bool ret = instance->tag_bitset_.test(t);
