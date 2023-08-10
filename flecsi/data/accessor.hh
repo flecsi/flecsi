@@ -373,6 +373,9 @@ struct accessor<ragged, T, P>
 };
 
 /// Mutator for ragged fields.
+/// Sizes are \ref topo::repartition::resize "applied" before launching the
+/// task.  New sizes are \ref topo::with_size::growth "chosen" for the next
+/// task based on usage.
 /// Cannot be used while tracing or in a GPU task.
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
