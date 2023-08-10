@@ -20,6 +20,16 @@ Changes in v2.2.2
 
 Fixed
 ^^^^^
+* Execution
+
+  * Tasks may be declared ``noexcept``.
+    (This was fixed but not documented in 2.2.1.)
+
+* Topologies
+
+  * ``narray`` respects ``index_definition::diagonals`` being ``false``.
+    (This was fixed but not documented in 2.2.1.)
+
 * Logging
 
   * Special options like ``--control-model`` and ``--help`` work reliably.
