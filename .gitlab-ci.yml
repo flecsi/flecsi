@@ -17,7 +17,7 @@ default:
    - echo "Running on $(hostname)"
 
 variables:
-  USE_SPACK_UPSTREAM: v0.19
+  USE_SPACK_UPSTREAM: develop-82d41a7be
   COLOR_BLUE: '\033[1;34m'
   COLOR_GREEN: '\033[0;32m'
   COLOR_MAGENTA: '\033[1;35m'
@@ -26,22 +26,24 @@ variables:
   # global defaults
   GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
-  ROCM_VERSION: 4.5.2
-  CUDA_VERSION: "11.7.0"
+  ROCM_VERSION: 5.4.3
+  CUDA_VERSION: 11.8.0
   WARN: -Wall -Wundef -W -Werror
   CXX_FLAGS: ${WARN}
   C_FLAGS: ${WARN}
   PARTITIONS: general,skylake-gold,skylake-platinum
   IB_EDR_CONSTRAINT: "--constraint=ib:edr"
-  V100_CONSTRAINT: "--constraint=\"gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB|gpu1_model:Tesla_V100-SXM2-16GB\""
+  V100_CONSTRAINT: "--constraint=\"cpu_family:haswell&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
   JOB_CONSTRAINTS: "${IB_EDR_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
   LEGION_MPI: legion conduit=mpi
   LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
+  LEGION_IBV_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=ibv"
+  LEGION_MPI_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda
-  KOKKOS_CUDA: kokkos +cuda +hwloc
+  KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENABLE_UNIT_TESTS: "ON"
 
 #------------------------------------------------------------------------------#
@@ -49,48 +51,53 @@ variables:
 #------------------------------------------------------------------------------#
 .mpich: &mpich
   MPI_PROVIDER: mpich
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .mpich-debug: &mpich-debug
   MPI_PROVIDER: mpich
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi: &openmpi
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-debug: &openmpi-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL}"
 
 .openmpi-cuda: &openmpi-cuda
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-debug: &openmpi-cuda-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi: &openmpi-cuda-mpi
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-cuda-mpi-debug: &openmpi-cuda-mpi-debug
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
   VARIANTS: "+hdf5 +kokkos +cuda cuda_arch=70 ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION}"
 
 .openmpi-rocm: &openmpi-rocm
   MPI_PROVIDER: openmpi
-  VERSION: flecsi@'${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-  VARIANTS: +hdf5 +kokkos ^kokkos +hwloc +rocm amdgpu_target=gfx906
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
+  VARIANTS: "+hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION}"
+
+.openmpi-legion-rocm-mpi: &openmpi-legion-rocm-mpi
+  MPI_PROVIDER: openmpi
+  VERSION: flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
+  VARIANTS: "+hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION}"
 
 include: .gitlab/templates.yml
 
@@ -106,9 +113,9 @@ docs_and_format:check:
   needs:
     - job: docs_and_format
       artifacts: true
-    - job: tutorial:legion
-    - job: flaxpy:legion
-    - job: poisson:legion
+    - job: mpich-tutorial:legion
+    - job: mpich-flaxpy:legion
+    - job: mpich-poisson:legion
   only:
     - merge_requests
   variables:
@@ -219,7 +226,7 @@ mpich-mpi-gnu:release:
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
-tutorial:legion:
+mpich-tutorial:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
@@ -232,14 +239,13 @@ tutorial:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
     C_FLAGS: ${CXX_FLAGS}
     PARTITIONS: skylake-gold
 
-flaxpy:legion:
+mpich-flaxpy:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
@@ -252,7 +258,6 @@ flaxpy:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
@@ -260,7 +265,7 @@ flaxpy:legion:
     PARTITIONS: skylake-gold
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
-poisson:legion:
+mpich-poisson:legion:
   extends: .darwin_standalone_template
   needs:
     ["mpich-legion-gnu"]
@@ -273,7 +278,6 @@ poisson:legion:
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
-    BACKEND: legion
     CXX_COMPILER: g++
     CXX_FLAGS: "${WARN} -Wno-parentheses"
     C_COMPILER: gcc
@@ -337,7 +341,7 @@ openmpi-legion-clang-cuda:
   variables:
     <<: *openmpi-cuda-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -345,8 +349,9 @@ openmpi-legion-clang-cuda:
     C_COMPILER: clang
     C_FLAGS: ${CXX_FLAGS}
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: volta-x86,power9-rhel7
+    PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 openmpi-legion-clang-cuda-mpi:
   stage: Legion backend
@@ -358,7 +363,7 @@ openmpi-legion-clang-cuda-mpi:
   variables:
     <<: *openmpi-cuda-mpi-debug
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "clang@${CLANG_VERSION}_cuda_${CUDA_VERSION}_sm70"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: legion
     CXX_COMPILER: clang++
@@ -518,12 +523,104 @@ openmpi-mpi-rocm:
   variables:
     <<: *openmpi-rocm
     ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
-    TOOLCHAIN: "gcc@9.4.0"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     BUILD_TYPE: Debug
     BACKEND: mpi
     SPACK_INSTALL_FLECSI_BACKEND: mpi
     CXX_COMPILER: hipcc
     C_COMPILER: hipcc
     CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
-    PARTITIONS: amd-epyc-gpu
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS} --constraint=\"gpu1_model:Radeon_Instinct_MI50_32GB|gpu1_model:Radeon_VII\""
+    PARTITIONS: shared-gpu-amd-mi100
+    AMDGPU_TARGET: gfx908
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for Legion backend with OpenMPI provider,
+# and ROCM compiler toolchain.
+#------------------------------------------------------------------------------#
+
+openmpi-legion-rocm:
+  stage: Legion backend
+  extends: .darwin_build_template
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-legion-rocm-mpi
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+    BUILD_TYPE: Debug
+    BACKEND: legion
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: shared-gpu-amd-mi250
+    AMDGPU_TARGET: gfx90a
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
+# GPU standalone tests
+#------------------------------------------------------------------------------#
+
+openmpi-poisson-cuda-clang:legion:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-legion-clang-cuda"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-cuda-debug
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+    BUILD_TYPE: Debug
+    CXX_COMPILER: clang++
+    CXX_FLAGS: "${WARN} -Wno-unknown-cuda-version"
+    C_COMPILER: clang
+    C_FLAGS: ${CXX_FLAGS}
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-rocm:mpi:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-mpi-rocm"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-rocm
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+    BUILD_TYPE: Debug
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: shared-gpu-amd-mi100
+    AMDGPU_TARGET: gfx908
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
+
+openmpi-poisson-rocm:legion:
+  extends: .darwin_standalone_template
+  needs:
+    ["openmpi-legion-rocm"]
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-legion-rocm-mpi
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    ENVIRONMENT: '${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}'
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+    BUILD_TYPE: Debug
+    CXX_COMPILER: hipcc
+    C_COMPILER: hipcc
+    CMAKE_OPTIONS: -DENABLE_HDF5=ON -DENABLE_KOKKOS=on
+    PARTITIONS: shared-gpu-amd-mi250
+    AMDGPU_TARGET: gfx90a
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
