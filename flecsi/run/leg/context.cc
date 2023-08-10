@@ -5,7 +5,7 @@
 #include "flecsi/run/leg/mapper.hh"
 
 namespace flecsi {
-// These must be defined with the full execution machinery available:
+// To avoid a separate source file in data/leg:
 namespace data::leg {
 mirror::mirror(size2 s) : rects({s.first, 2}), part(rects), width(s.second) {}
 void
