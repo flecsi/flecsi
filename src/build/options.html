@@ -1,104 +1,53 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>CMake Configuration Options &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/build/options.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial.html" />
     <link rel="prev" title="Build &amp; Install" href="../build.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../../index.html">
           
-
-          
+          <a href="../../index.html">
             
-            <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
@@ -127,79 +76,37 @@
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../build.html">Build &amp; Install</a> &raquo;</li>
-        
-      <li>CMake Configuration Options</li>
-    
-    
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../build.html">Build &amp; Install</a></li>
+      <li class="breadcrumb-item active">CMake Configuration Options</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../../_sources/src/build/options.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="cmake-configuration-options">
-<h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this headline">¶</a></h1>
+<h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this heading"></a></h1>
 <p>The following set of options are available to control how FleCSI is
 built.</p>
 <section id="basic-cmake-options">
-<h2>Basic CMake options<a class="headerlink" href="#basic-cmake-options" title="Permalink to this headline">¶</a></h2>
+<h2>Basic CMake options<a class="headerlink" href="#basic-cmake-options" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>BUILD_SHARED_LIBS [default: ON]</strong> <br />
 Build shared library objects (as opposed to static).</p></li>
@@ -216,7 +123,7 @@ Specify the installation path to use when <em>make install</em> is invoked.</p><
 </ul>
 </section>
 <section id="flog-flecsi-logging-utility-options">
-<h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this headline">¶</a></h2>
+<h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this heading"></a></h2>
 <ul>
 <li><p><strong>ENABLE_FLOG [default: OFF]</strong> <br />
 This option enables support for the FleCSI logging utility (Flog).
@@ -241,10 +148,6 @@ amount of output that Flog generates: the higher the strip level,
 the fewer Flog messages will be output.  There are five strip levels
 in Flog:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Level</p></th>
 <th class="head"><p>Type</p></th>
@@ -278,7 +181,7 @@ generate a runtime error and will invoke <code class="docutils literal notransla
 </ul>
 </section>
 <section id="parallelization-options">
-<h2>Parallelization options<a class="headerlink" href="#parallelization-options" title="Permalink to this headline">¶</a></h2>
+<h2>Parallelization options<a class="headerlink" href="#parallelization-options" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_KOKKOS [default: OFF]</strong> <br />
 If enabled, support the use of <a class="reference external" href="https://kokkos.org/">Kokkos</a> for
@@ -297,7 +200,7 @@ the only valid options.</p></li>
 </ul>
 </section>
 <section id="documentation-options">
-<h2>Documentation options<a class="headerlink" href="#documentation-options" title="Permalink to this headline">¶</a></h2>
+<h2>Documentation options<a class="headerlink" href="#documentation-options" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_DOCUMENTATION [default: OFF]</strong> <br />
 This option controls whether or not the FleCSI user- and
@@ -305,7 +208,7 @@ developer-guide documentation is built. If enabled, CMake will
 generate these guides as PDFs in the <em>doc</em> subdirectory of the
 build.  To build the documentation, run</p></li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make doc
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span>doc
 </pre></div>
 </div>
 <ul>
@@ -322,7 +225,7 @@ This options allows the user to turn them back on.</p></li>
 </ul>
 </section>
 <section id="miscellaneous-options">
-<h2>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this headline">¶</a></h2>
+<h2>Miscellaneous options<a class="headerlink" href="#miscellaneous-options" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>ENABLE_COVERAGE_BUILD [default: OFF]</strong> <br />
 Enable build mode to determine the code coverage of the current set of
@@ -338,7 +241,7 @@ for checkpointing program state.</p></li>
 Enable FleCSI unit tests. If enabled, the unit test suite can be run
 by invoking:</p></li>
 </ul>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make <span class="nb">test</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -350,50 +253,33 @@ Specify the C++ type for FleCSI topologies to use for entity IDs.</p></li>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../build.html" class="btn btn-neutral float-left" title="Build &amp; Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

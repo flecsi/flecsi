@@ -30,8 +30,8 @@ var group__flog =
     [ "fixme", "group__flog.html#gac4b562b7ae199e04d81aeb0c61553cc3", null ],
     [ "flog_fatal", "group__flog.html#gaf07e634c4f4ff8df4b69903f2b8cbf21", null ],
     [ "flog_assert", "group__flog.html#ga36f85e0c06125c963b8d5f558a823fc3", null ],
-    [ "flecsi::flog::flush", "group__flog.html#gad04850b803f20633d7cd0557521785e9", null ],
-    [ "flecsi::flog::add_output_stream", "group__flog.html#ga30a104842c480561c573bc656b9d8f4c", null ],
-    [ "flecsi::flog::timestamp", "group__flog.html#ga9cc22722ac8c4723d01813179a9fd92e", null ],
-    [ "flecsi::flog::rstrip", "group__flog.html#ga82cda82e44f7ee6154b9cf25ba6e5512", null ]
+    [ "flecsi::flog::flush", "group__flog.html#gadac116554b543b7c4228c018a85882f5", null ],
+    [ "flecsi::flog::add_output_stream", "group__flog.html#ga3d2443a5648cf1f512b0feb865847020", null ],
+    [ "flecsi::flog::timestamp", "group__flog.html#ga5fb1c866b6fdd8a5cecaf45dab932c18", null ],
+    [ "flecsi::flog::rstrip", "group__flog.html#ga812a84b596e28e9f81021001713f15ed", null ]
 ];

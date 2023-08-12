@@ -202,7 +202,6 @@ var hierarchy =
       [ "specialization< user, meta< P > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< user, meta< Policy > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< narray, narray_specialization >", "structflecsi_1_1topo_1_1specialization.html", [
-        [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", null ],
         [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", null ]
       ] ],
       [ "specialization< ragged_category, ragged< T > >", "structflecsi_1_1topo_1_1specialization.html", null ],
@@ -217,14 +216,13 @@ var hierarchy =
       [ "specialization< unstructured, example >", "structflecsi_1_1topo_1_1specialization.html", [
         [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", null ]
       ] ],
-      [ "specialization< borrow_category, borrow< topo::meta< Q > > >", "structflecsi_1_1topo_1_1specialization.html", [
-        [ "borrow< topo::meta< Q > >", "structflecsi_1_1topo_1_1borrow.html", null ]
-      ] ],
-      [ "specialization< borrow_category, borrow< flecsi::topo::resize > >", "structflecsi_1_1topo_1_1specialization.html", [
-        [ "borrow< flecsi::topo::resize >", "structflecsi_1_1topo_1_1borrow.html", null ]
-      ] ],
+      [ "specialization< borrow_category, borrow< topo::meta< Q > > >", "structflecsi_1_1topo_1_1specialization.html", null ],
+      [ "specialization< borrow_category, borrow< flecsi::topo::resize > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "help", "structflecsi_1_1topo_1_1help.html", null ],
-      [ "specialization< C, D >", "structflecsi_1_1topo_1_1specialization.html", null ]
+      [ "specialization< C, D >", "structflecsi_1_1topo_1_1specialization.html", [
+        [ "borrow< topo::meta< Q > >", "structflecsi_1_1topo_1_1borrow.html", null ],
+        [ "borrow< flecsi::topo::resize >", "structflecsi_1_1topo_1_1borrow.html", null ]
+      ] ]
     ] ],
     [ "state", "classflecsi_1_1flog_1_1state.html", null ],
     [ "sub_range", "structflecsi_1_1exec_1_1sub__range.html", null ],

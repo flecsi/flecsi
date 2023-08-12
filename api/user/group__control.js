@@ -21,5 +21,5 @@ var group__control =
     ] ],
     [ "flecsi::run::control_point", "group__control.html#gaba956285b578c3aaae8ecdce24227856", null ],
     [ "flecsi::run::cycle", "group__control.html#ga9b102a76468f6aadf593bae78aeb2ea5", null ],
-    [ "flecsi::run::operator*", "group__control.html#ga30044132aae82117d2c0770ffb61195c", null ]
+    [ "flecsi::run::operator*", "group__control.html#ga89dbf463f9302cd6dedbf5209783fa2b", null ]
 ];

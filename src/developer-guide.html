@@ -1,104 +1,53 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Developer Guide &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/developer-guide.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Internal Summary" href="summary.html" />
     <link rel="prev" title="API Reference" href="api.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html">
           
-
-          
+          <a href="../index.html">
             
-            <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
@@ -145,73 +94,32 @@
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Developer Guide</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Developer Guide</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/src/developer-guide.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="developer-guide">
-<h1>Developer Guide<a class="headerlink" href="#developer-guide" title="Permalink to this headline">¶</a></h1>
+<h1>Developer Guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h1>
 <p>This documentation is intended for developers of the core FleCSI
 library.</p>
 <div class="toctree-wrapper compound">
@@ -249,13 +157,13 @@ library.</p>
 </div>
 <hr class="docutils" />
 <section id="style-guide">
-<h2>Style Guide<a class="headerlink" href="#style-guide" title="Permalink to this headline">¶</a></h2>
+<h2>Style Guide<a class="headerlink" href="#style-guide" title="Permalink to this heading"></a></h2>
 <p>Unless otherwise specified, follow the <a class="reference external" href="https://www.boost.org/development/requirements.html#Design_and_Programming">Boost “Design and Programming”
 guidelines</a> and <a class="reference external" href="https://www.boost.org/development/header.html">header guidelines</a>.  They do not address purely stylistic
 matters of indentation, spacing, and brace placement; those are addressed for
 FleCSI by <code class="docutils literal notranslate"><span class="pre">clang-format</span></code>.</p>
 <section id="exceptions">
-<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
+<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this heading"></a></h3>
 <p>Starting from the 2019 version:</p>
 <ul class="simple">
 <li><p>Optimization does matter for FleCSI, but only where the overhead it
@@ -280,7 +188,7 @@ such a file avoids the line continuations used in some displays.</p></li>
 </ul>
 </section>
 <section id="additional-rules">
-<h3>Additional Rules<a class="headerlink" href="#additional-rules" title="Permalink to this headline">¶</a></h3>
+<h3>Additional Rules<a class="headerlink" href="#additional-rules" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Class and enumeration names do not get a suffix <code class="docutils literal notranslate"><span class="pre">_t</span></code>.</p></li>
 <li><p>Header names are “absolute” (<em>i.e.</em>, begin with <code class="docutils literal notranslate"><span class="pre">flecsi/</span></code>).</p></li>
@@ -288,7 +196,7 @@ such a file avoids the line continuations used in some displays.</p></li>
 </ul>
 </section>
 <section id="directory-structure">
-<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h3>
+<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Permalink to this heading"></a></h3>
 <p>The source code for the core FleCSI infrastructure is located in the
 <em>top-level/flecsi</em> directory. For the most part, the subdirectories of
 this directory correspond to the different namespaces in the core
@@ -302,7 +210,7 @@ namespace subdirectory. By convention, developers should not create
 subdirectories within the test subdirectory.</p>
 </section>
 <section id="commits">
-<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this headline">¶</a></h3>
+<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this heading"></a></h3>
 <p>While exceptions must occasionally be made to each of the following, ideally each commit should</p>
 <ul class="simple">
 <li><p>build and pass tests (partly to support <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">bisect</span></code>)</p></li>
@@ -324,7 +232,7 @@ Those names should therefore be meaningful; in particular, to avoid confusion th
 </section>
 <hr class="docutils" />
 <section id="versioning">
-<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h2>
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this heading"></a></h2>
 <p>FleCSI uses the <a class="reference external" href="https://semver.org/">Semantic Versioning</a> system.
 Note that it defines the three kinds of releases in terms of <em>restrictions</em> on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
 We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
@@ -332,7 +240,7 @@ Even altogether new code can appear in a “patch” release if it serves to fix
 <p>There is one active, shared branch for each of the three types of release, as described below.
 Tags are used to identify releases as well as certain internal reference points for development.</p>
 <section id="branch-types">
-<h3>Branch Types<a class="headerlink" href="#branch-types" title="Permalink to this headline">¶</a></h3>
+<h3>Branch Types<a class="headerlink" href="#branch-types" title="Permalink to this heading"></a></h3>
 <dl class="simple">
 <dt>incompatible</dt><dd><p>The <em>develop</em> branch is where work on the next major release takes
 place, potentially with interface and feature changes that are
@@ -363,12 +271,12 @@ A sometimes countervailing consideration is stability: users expect that patch r
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.</p>
 </section>
 <section id="tags">
-<h3>Tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h3>
+<h3>Tags<a class="headerlink" href="#tags" title="Permalink to this heading"></a></h3>
 <p>Release tags should be created for each new release, with <em>v</em> and the
 release version, e.g., <em>v1.4.1</em>.</p>
 </section>
 <section id="flecsi-version-file-version-and-flecsi-version">
-<h3>FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code><a class="headerlink" href="#flecsi-version-file-version-and-flecsi-version" title="Permalink to this headline">¶</a></h3>
+<h3>FleCSI Version File (<code class="docutils literal notranslate"><span class="pre">.version</span></code>) and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code><a class="headerlink" href="#flecsi-version-file-version-and-flecsi-version" title="Permalink to this heading"></a></h3>
 <p>The contents of the <code class="docutils literal notranslate"><span class="pre">.version</span></code> file in the root of a FleCSI source
 checkout is used to identify the branch type and version of
 FleCSI. Given the three different branch types and tagged versioned
@@ -400,12 +308,7 @@ to its maximum 255, while the other componets are set
 to 0.</p>
 <p>The following table summarizes these rules with some examples:</p>
 <table class="docutils align-default" id="id13">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Examples of <code class="docutils literal notranslate"><span class="pre">.version</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></span><a class="headerlink" href="#id13" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Examples of <code class="docutils literal notranslate"><span class="pre">.version</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></span><a class="headerlink" href="#id13" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Source</p></th>
 <th class="head"><p>Contents of <code class="docutils literal notranslate"><span class="pre">.version</span></code></p></th>
@@ -433,7 +336,7 @@ to 0.</p>
 </table>
 </section>
 <section id="workflow">
-<h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
+<h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h3>
 <p>FleCSI development uses a <em>devel -&gt; feature -&gt; release</em> forking workflow
 that can be visualized as in <a class="reference internal" href="#branch"><span class="std std-numref">Fig. 11</span></a>. Bugfixes and features can
 be back-merged into <em>feature</em> or <em>devel</em>, as appropriate.</p>
@@ -441,14 +344,14 @@ be back-merged into <em>feature</em> or <em>devel</em>, as appropriate.</p>
 <span id="branch"></span><img alt="../_images/branch.png" src="../_images/branch.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 11 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
-types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
+types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id14" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 </section>
 <hr class="docutils" />
 <section id="published-documentation">
-<h2>Published Documentation<a class="headerlink" href="#published-documentation" title="Permalink to this headline">¶</a></h2>
+<h2>Published Documentation<a class="headerlink" href="#published-documentation" title="Permalink to this heading"></a></h2>
 <p>The <a class="reference external" href="http://www.flecsi.org/">project homepage</a> is a GitHub Pages site generated from <a class="reference external" href="https://github.com/flecsi/flecsi/tree/gh-pages">the current GitHub repository</a>.
 The <code class="docutils literal notranslate"><span class="pre">deploy-documentation</span></code> Make target sets up a repository to update it by pushing to the appropriate branch.</p>
 <blockquote>
@@ -456,43 +359,43 @@ The <code class="docutils literal notranslate"><span class="pre">deploy-document
 </section>
 <hr class="docutils" />
 <section id="spack-cheat-sheet">
-<h2>Spack Cheat Sheet<a class="headerlink" href="#spack-cheat-sheet" title="Permalink to this headline">¶</a></h2>
+<h2>Spack Cheat Sheet<a class="headerlink" href="#spack-cheat-sheet" title="Permalink to this heading"></a></h2>
 <p>To remove all cached sources:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack clean -d
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>clean<span class="w"> </span>-d
 </pre></div>
 </div>
 <p>To remove cached sources for a particular spec:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack clean -d spec
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>clean<span class="w"> </span>-d<span class="w"> </span>spec
 </pre></div>
 </div>
 <p>To uninstall all spack packages:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack uninstall -fay
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>uninstall<span class="w"> </span>-fay
 </pre></div>
 </div>
 <p>To keep temporary staging files in /tmp/<em>$USER</em>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack install --keep-stage ...
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>install<span class="w"> </span>--keep-stage<span class="w"> </span>...
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="git-cheat-sheet">
-<h2>Git Cheat Sheet<a class="headerlink" href="#git-cheat-sheet" title="Permalink to this headline">¶</a></h2>
+<h2>Git Cheat Sheet<a class="headerlink" href="#git-cheat-sheet" title="Permalink to this heading"></a></h2>
 <p>To lookup the hash referenced by a tag:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git rev-list -n <span class="m">1</span> <span class="nv">$TAG</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>rev-list<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="nv">$TAG</span>
 </pre></div>
 </div>
 <p>To get the message for an annotated tag:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git tag -nX <span class="o">(</span>X specifies lines of annotation<span class="o">)</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>tag<span class="w"> </span>-nX<span class="w"> </span><span class="o">(</span>X<span class="w"> </span>specifies<span class="w"> </span>lines<span class="w"> </span>of<span class="w"> </span>annotation<span class="o">)</span>
 </pre></div>
 </div>
 <p>To sync tags:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git fetch --prune --prune-tags
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>fetch<span class="w"> </span>--prune<span class="w"> </span>--prune-tags
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="building-for-darwin">
-<h2>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Permalink to this headline">¶</a></h2>
+<h2>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Permalink to this heading"></a></h2>
 <p>Darwin is a testbed cluster at LANL that provides a wide variety of
 node hardware configurations.  (See the <a class="reference external" href="https://darwin.lanl.gov/">LANL-internal Darwin webpage</a>.)  The FleCSI distribution provides a
 script, <code class="docutils literal notranslate"><span class="pre">tools/darwin.sh</span></code>, that automates downloading, building, and
@@ -502,7 +405,7 @@ case it will not re-download FleCSI, or as a standalone script, in
 which case it will clone the <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> repository and build from
 there.</p>
 <p>The former is the preferred approach.  From a back-end node, run</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git clone git@gitlab.lanl.gov:flecsi/flecsi.git
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>git@gitlab.lanl.gov:flecsi/flecsi.git
 <span class="gp">$ </span>flecsi/tools/darwin.sh
 </pre></div>
 </div>
@@ -528,8 +431,8 @@ libraries in <code class="docutils literal notranslate"><span class="pre">$HOME/
 Spack is already installed, conflicting modules are already loaded, or
 other aspects of the installation already have been run.</p>
 <p>Once the script completes, you can activate the FleCSI environment with</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">source</span> ~/spack/share/spack/setup-env.sh
-<span class="gp">$ </span>spack env activate flecsi-mpich
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>~/spack/share/spack/setup-env.sh
+<span class="gp">$ </span>spack<span class="w"> </span>env<span class="w"> </span>activate<span class="w"> </span>flecsi-mpich
 </pre></div>
 </div>
 <p>The complete <code class="docutils literal notranslate"><span class="pre">tools/darwin.sh</span></code> script is reproduced below.  Although
@@ -544,28 +447,28 @@ as a reference for the commands needed to get FleCSI up and running.</p>
 <span class="c1">######################################</span>
 
 <span class="c1"># Trace commands and abort on the first error.</span>
-<span class="nb">set</span> -e
-<span class="nb">set</span> -v
+<span class="nb">set</span><span class="w"> </span>-e
+<span class="nb">set</span><span class="w"> </span>-v
 
 <span class="c1"># Check if we&#39;re running from within a flecsi clone.  If not, clone</span>
 <span class="c1"># flecsi into the current directory.  In either case, cd to the</span>
 <span class="c1"># top-level flecsi directory.</span>
-<span class="nv">script_dir</span><span class="o">=</span><span class="k">$(</span>dirname <span class="k">$(</span>readlink -f <span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">))</span>
-<span class="nb">cd</span> <span class="s2">&quot;</span><span class="nv">$script_dir</span><span class="s2">&quot;</span>
-<span class="nv">repo_name</span><span class="o">=</span><span class="k">$(</span>basename -s .git <span class="k">$(</span>git config --get remote.origin.url <span class="o">||</span> <span class="nb">echo</span> not-flecsi<span class="k">))</span>
-<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$repo_name</span><span class="s2">&quot;</span> <span class="o">==</span> flecsi <span class="o">]</span> <span class="p">;</span> <span class="k">then</span>
-    <span class="nb">cd</span> <span class="k">$(</span>git rev-parse --show-toplevel<span class="k">)</span>
+<span class="nv">script_dir</span><span class="o">=</span><span class="k">$(</span>dirname<span class="w"> </span><span class="k">$(</span>readlink<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">))</span>
+<span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$script_dir</span><span class="s2">&quot;</span>
+<span class="nv">repo_name</span><span class="o">=</span><span class="k">$(</span>basename<span class="w"> </span>-s<span class="w"> </span>.git<span class="w"> </span><span class="k">$(</span>git<span class="w"> </span>config<span class="w"> </span>--get<span class="w"> </span>remote.origin.url<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>not-flecsi<span class="k">))</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$repo_name</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>flecsi<span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--show-toplevel<span class="k">)</span>
 <span class="k">else</span>
-    <span class="nb">cd</span> -
-    git clone git@gitlab.lanl.gov:flecsi/flecsi.git
-    <span class="nb">cd</span> flecsi
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>-
+<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>git@gitlab.lanl.gov:flecsi/flecsi.git
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>flecsi
 <span class="k">fi</span>
-git rev-parse HEAD
+git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
 
 <span class="c1"># Create a build subdirectory and cd to it.</span>
-<span class="nb">test</span> -d build <span class="o">&amp;&amp;</span> rm -rf build
-mkdir build
-<span class="nb">cd</span> build
+<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
 
 <span class="c1"># Define an installation directory.</span>
 <span class="nv">FLECSI_INSTALL</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/flecsi-inst&quot;</span>
@@ -575,112 +478,112 @@ mkdir build
 
 <span class="c1"># Download a version of Spack known to work with FleCSI and activate it.</span>
 <span class="nv">SPACK_VERSION</span><span class="o">=</span>v0.19
-<span class="nb">pushd</span> <span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">&quot;</span>
-<span class="k">if</span> <span class="o">[</span> ! -d spack <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-  git clone https://github.com/spack/spack.git
-  <span class="nb">cd</span> spack
-  git switch releases/<span class="nv">$SPACK_VERSION</span>
-  git rev-parse HEAD
+<span class="nb">pushd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">&quot;</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>spack<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/spack/spack.git
+<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
+<span class="w">  </span>git<span class="w"> </span>switch<span class="w"> </span>releases/<span class="nv">$SPACK_VERSION</span>
+<span class="w">  </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
 <span class="k">else</span>
-  <span class="nb">cd</span> spack
-  <span class="nb">echo</span> <span class="s2">&quot;Found existing Spack install in ~/spack&quot;</span>
-  git fetch origin
-  <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="k">$(</span>git rev-parse HEAD<span class="k">)</span><span class="s2">&quot;</span> !<span class="o">=</span> <span class="s2">&quot;</span><span class="k">$(</span>git rev-parse origin/releases/<span class="nv">$SPACK_VERSION</span><span class="k">)</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-    <span class="nb">echo</span> <span class="s2">&quot;ERROR: The current checkout does not match origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">!&quot;</span>
-    <span class="nb">echo</span>
-    <span class="nb">echo</span> <span class="s2">&quot;Please update manually with:&quot;</span>
-    <span class="nb">echo</span> <span class="s2">&quot; git -C ~/spack fetch +releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">:refs/remotes/origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-    <span class="nb">echo</span> <span class="s2">&quot; git -C ~/spack switch origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-    <span class="nb">echo</span>
-    <span class="nb">echo</span> <span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span> <span class="se">\</span>
-         <span class="s2">&quot;this Spack instance!&quot;</span>
-    <span class="nb">exit</span> <span class="m">1</span>
-  <span class="k">fi</span>
+<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Found existing Spack install in ~/spack&quot;</span>
+<span class="w">  </span>git<span class="w"> </span>fetch<span class="w"> </span>origin
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>origin/releases/<span class="nv">$SPACK_VERSION</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">!&quot;</span>
+<span class="w">    </span><span class="nb">echo</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack fetch +releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">:refs/remotes/origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack switch origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
+<span class="w">    </span><span class="nb">echo</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">         </span><span class="s2">&quot;this Spack instance!&quot;</span>
+<span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="w">  </span><span class="k">fi</span>
 <span class="k">fi</span>
-<span class="nb">set</span> +v
-<span class="nb">source</span> <span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/spack/share/spack/setup-env.sh&quot;</span>
-<span class="nb">set</span> -v
+<span class="nb">set</span><span class="w"> </span>+v
+<span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/spack/share/spack/setup-env.sh&quot;</span>
+<span class="nb">set</span><span class="w"> </span>-v
 <span class="nb">popd</span>
 
 
 <span class="c1"># Create new Spack environment and activate it</span>
-spack env remove -y flecsi-mpich <span class="o">||</span> <span class="nb">true</span>
-spack env create flecsi-mpich
-spack env activate flecsi-mpich
+spack<span class="w"> </span>env<span class="w"> </span>remove<span class="w"> </span>-y<span class="w"> </span>flecsi-mpich<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+spack<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>flecsi-mpich
+spack<span class="w"> </span>env<span class="w"> </span>activate<span class="w"> </span>flecsi-mpich
 
 <span class="c1"># Load GCC version known to work with FleCSI</span>
 <span class="c1"># and make it visible to Spack</span>
-<span class="nb">set</span> +v
-module load gcc/<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>
-spack compiler find
-<span class="nb">set</span> -v
+<span class="nb">set</span><span class="w"> </span>+v
+module<span class="w"> </span>load<span class="w"> </span>gcc/<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>
+spack<span class="w"> </span>compiler<span class="w"> </span>find
+<span class="nb">set</span><span class="w"> </span>-v
 
 <span class="c1"># ignore configuration in ~/.spack to avoid conflicts</span>
-<span class="nb">export</span> <span class="nv">SPACK_DISABLE_LOCAL_CONFIG</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SPACK_DISABLE_LOCAL_CONFIG</span><span class="o">=</span><span class="nb">true</span>
 
 <span class="c1"># allow spack to dynamically concretize packages together instead of separately.</span>
 <span class="c1"># this avoids some installation errors due to multiple python packages depending</span>
 <span class="c1"># on different versions of a dependency</span>
-spack config add concretizer:reuse:false
-spack config add packages:all:compiler:<span class="o">[</span><span class="s2">&quot;gcc@</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">]</span>
+spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>concretizer:reuse:false
+spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>packages:all:compiler:<span class="o">[</span><span class="s2">&quot;gcc@</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">]</span>
 
 <span class="c1"># add FleCSI spack package repository</span>
-spack repo add ../spack-repo
+spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>../spack-repo
 
 <span class="c1"># On Darwin we have a Spack upstream that already has prebuilt dependencies</span>
 <span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="o">=</span>/projects/flecsi-devel/gitlab/spack-upstream/<span class="nv">$SPACK_VERSION</span>
 
-<span class="k">if</span> <span class="o">[</span> -d <span class="s2">&quot;</span><span class="nv">$DARWIN_SPACK_UPSTREAM</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> -x <span class="s2">&quot;</span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="c1"># add spack upstream if accessible</span>
-  spack config add upstreams:default:install_tree:<span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/opt/spack/
-  cp <span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/etc/spack/packages.yaml <span class="nv">$HOME</span>/spack/etc/spack/
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DARWIN_SPACK_UPSTREAM</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="c1"># add spack upstream if accessible</span>
+<span class="w">  </span>spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>upstreams:default:install_tree:<span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/opt/spack/
+<span class="w">  </span>cp<span class="w"> </span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/etc/spack/packages.yaml<span class="w"> </span><span class="nv">$HOME</span>/spack/etc/spack/
 <span class="k">else</span>
-  <span class="c1"># Otherwise, load a compatible cmake and expose whatever else happens to be</span>
-  <span class="c1"># sitting around as Spack externals</span>
-  module load cmake/3.19.2
-  spack external find
+<span class="w">  </span><span class="c1"># Otherwise, load a compatible cmake and expose whatever else happens to be</span>
+<span class="w">  </span><span class="c1"># sitting around as Spack externals</span>
+<span class="w">  </span>module<span class="w"> </span>load<span class="w"> </span>cmake/3.19.2
+<span class="w">  </span>spack<span class="w"> </span>external<span class="w"> </span>find
 <span class="k">fi</span>
 
 <span class="c1"># Install FleCSI&#39;s dependencies with Spack.</span>
 <span class="c1"># This also builds a version of MPICH in Spack since the ones on Darwin do not include</span>
 <span class="c1"># an mpiexec/mpirun that works.</span>
-spack add flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span> <span class="nv">backend</span><span class="o">=</span>legion +doc +hdf5 +kokkos +flog <span class="se">\</span>
-          ^mpich@3.4.2%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>+hydra+romio~verbs <span class="nv">device</span><span class="o">=</span>ch4 <span class="se">\</span>
-          ^legion <span class="nv">network</span><span class="o">=</span>gasnet <span class="nv">conduit</span><span class="o">=</span>mpi <span class="nv">build_type</span><span class="o">=</span>Debug
-spack install -j <span class="k">$(</span>nproc<span class="k">)</span> --only dependencies
+spack<span class="w"> </span>add<span class="w"> </span>flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+doc<span class="w"> </span>+hdf5<span class="w"> </span>+kokkos<span class="w"> </span>+flog<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^mpich@3.4.2%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>+hydra+romio~verbs<span class="w"> </span><span class="nv">device</span><span class="o">=</span>ch4<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug
+spack<span class="w"> </span>install<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span>--only<span class="w"> </span>dependencies
 
 <span class="c1"># Build, test, and install FleCSI.</span>
-../tools/configure gnu legion -DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">&quot;</span>
-make <span class="nv">VERBOSE</span><span class="o">=</span><span class="m">1</span> -j <span class="k">$(</span>nproc<span class="k">)</span>
-make <span class="nb">test</span>
-make install
-<span class="nb">cd</span> ..
+../tools/configure<span class="w"> </span>gnu<span class="w"> </span>legion<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">&quot;</span>
+make<span class="w"> </span><span class="nv">VERBOSE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
+make<span class="w"> </span><span class="nb">test</span>
+make<span class="w"> </span>install
+<span class="nb">cd</span><span class="w"> </span>..
 
 <span class="c1"># Ensure the tutorial examples build properly.</span>
-<span class="nb">cd</span> tutorial
-<span class="nb">test</span> -d build <span class="o">&amp;&amp;</span> rm -rf build
-mkdir build
-<span class="nb">cd</span> build
-cmake -DFleCSI_DIR<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">/lib64/cmake/FleCSI&quot;</span> ..
-make -j <span class="k">$(</span>nproc<span class="k">)</span>
-<span class="nb">cd</span> ../..
+<span class="nb">cd</span><span class="w"> </span>tutorial
+<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-DFleCSI_DIR<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">/lib64/cmake/FleCSI&quot;</span><span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
+<span class="nb">cd</span><span class="w"> </span>../..
 
 <span class="c1"># Build complete</span>
-<span class="nb">set</span> +v
-<span class="nb">echo</span> <span class="s2">&quot;BUILD COMPLETE&quot;</span>
+<span class="nb">set</span><span class="w"> </span>+v
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;BUILD COMPLETE&quot;</span>
 <span class="nb">echo</span>
-<span class="nb">echo</span> <span class="s2">&quot;To continue working in the same Spack environment, execute the following commands:&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;To continue working in the same Spack environment, execute the following commands:&quot;</span>
 <span class="nb">echo</span>
-<span class="nb">echo</span> <span class="s2">&quot; source \$HOME/spack/share/spack/setup-env.sh&quot;</span>
-<span class="nb">echo</span> <span class="s2">&quot; spack env activate flecsi-mpich&quot;</span>
-<span class="nb">echo</span> <span class="s2">&quot; module load gcc/</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; source \$HOME/spack/share/spack/setup-env.sh&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; spack env activate flecsi-mpich&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; module load gcc/</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="nb">echo</span>
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="graphviz-notes">
-<h2>Graphviz Notes<a class="headerlink" href="#graphviz-notes" title="Permalink to this headline">¶</a></h2>
+<h2>Graphviz Notes<a class="headerlink" href="#graphviz-notes" title="Permalink to this heading"></a></h2>
 <p>FleCSI uses the <a class="reference external" href="https://graphviz.gitlab.io/_pages/pdf/libguide.pdf">libcgraph</a> interface to <a class="reference external" href="https://www.graphviz.org">Graphviz</a> to create
 control model visualizations. The <em>libcgraph</em> interface is fairly
 counterintuitive. One particular gotcha is that graph, node, and edge
@@ -694,7 +597,7 @@ file in ‘flecsi/util’ and add it there with a reasonable default.</p>
 </section>
 <hr class="docutils" />
 <section id="doxygen">
-<h2>Doxygen<a class="headerlink" href="#doxygen" title="Permalink to this headline">¶</a></h2>
+<h2>Doxygen<a class="headerlink" href="#doxygen" title="Permalink to this heading"></a></h2>
 <p>The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
 See the <a class="reference external" href="https://www.doxygen.nl/manual/">manual</a> for details, but note that members of namespaces enclosed by the <code class="docutils literal notranslate"><span class="pre">\{</span></code> and <code class="docutils literal notranslate"><span class="pre">\}</span></code> of a grouping command are not included in the group.</p>
 <p>The developers’ version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
@@ -703,17 +606,17 @@ Developers must also check for such markers to identify internal interfaces; the
 </section>
 <hr class="docutils" />
 <section id="sphinx">
-<h2>Sphinx<a class="headerlink" href="#sphinx" title="Permalink to this headline">¶</a></h2>
+<h2>Sphinx<a class="headerlink" href="#sphinx" title="Permalink to this heading"></a></h2>
 <p>Sphinx documentation is <a class="reference external" href="https://www.sphinx-doc.org/en/master">here</a>.
 The following are some examples of frequently-used elements.
 However, a good practice is to just look at the existing documentation
 to figure out how something was done.</p>
 <section id="headings">
-<h3>Headings<a class="headerlink" href="#headings" title="Permalink to this headline">¶</a></h3>
+<h3>Headings<a class="headerlink" href="#headings" title="Permalink to this heading"></a></h3>
 <p>By convention, headings are underlined with characters in the order <code class="docutils literal notranslate"><span class="pre">*+^=</span></code>.</p>
 </section>
 <section id="links">
-<h3>Links<a class="headerlink" href="#links" title="Permalink to this headline">¶</a></h3>
+<h3>Links<a class="headerlink" href="#links" title="Permalink to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>For more information look at `sphinx`__.
 
 __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
@@ -723,7 +626,7 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 <p>For more information look at <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">sphinx</a>.</p>
 </section>
 <section id="figures">
-<h3>Figures<a class="headerlink" href="#figures" title="Permalink to this headline">¶</a></h3>
+<h3>Figures<a class="headerlink" href="#figures" title="Permalink to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">_undersea</span><span class="p">:</span>
 <span class="o">..</span> <span class="n">figure</span><span class="p">::</span> <span class="n">images</span><span class="o">/</span><span class="n">undersea</span><span class="o">.</span><span class="n">png</span>
   <span class="p">:</span><span class="n">align</span><span class="p">:</span> <span class="n">center</span>
@@ -736,7 +639,7 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 <figure class="align-center" id="id15">
 <span id="undersea"></span><a class="reference internal image-reference" href="../_images/undersea.png"><img alt="../_images/undersea.png" src="../_images/undersea.png" style="width: 70%;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 12 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 12 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>You can reference the figure using its label <em>undersea</em> like:</p>
@@ -747,24 +650,24 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 <p>As can be seen in <a class="reference internal" href="#undersea"><span class="std std-numref">Fig. 12</span></a>…</p>
 </section>
 <section id="code-blocks">
-<h3>Code Blocks<a class="headerlink" href="#code-blocks" title="Permalink to this headline">¶</a></h3>
+<h3>Code Blocks<a class="headerlink" href="#code-blocks" title="Permalink to this heading"></a></h3>
 <p>Syntax highlighting for codes blocks uses <a class="reference external" href="https://pygments.org">pygments</a>, which supports
 many programming and markup languages.</p>
 <p>Here are two examples:</p>
 <section id="console">
-<h4>Console<a class="headerlink" href="#console" title="Permalink to this headline">¶</a></h4>
+<h4>Console<a class="headerlink" href="#console" title="Permalink to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.. code-block:: console
 
   $ xterm -hold -fs 10 -bg black -fg white -geometry 128x40 -e curl wttr.in
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>xterm -hold -fs <span class="m">10</span> -bg black -fg white -geometry 128x40 -e curl wttr.in
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>xterm<span class="w"> </span>-hold<span class="w"> </span>-fs<span class="w"> </span><span class="m">10</span><span class="w"> </span>-bg<span class="w"> </span>black<span class="w"> </span>-fg<span class="w"> </span>white<span class="w"> </span>-geometry<span class="w"> </span>128x40<span class="w"> </span>-e<span class="w"> </span>curl<span class="w"> </span>wttr.in
 </pre></div>
 </div>
 </section>
 <section id="c">
-<h4>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h4>
+<h4>C++<a class="headerlink" href="#c" title="Permalink to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">code</span><span class="o">-</span><span class="n">block</span><span class="p">::</span> <span class="n">cpp</span>
 
   <span class="n">template</span><span class="o">&lt;</span><span class="n">typename</span> <span class="n">Bar</span><span class="o">&gt;</span>
@@ -772,14 +675,14 @@ many programming and markup languages.</p>
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">Bar</span><span class="o">&gt;</span><span class="w"></span>
-<span class="k">using</span><span class="w"> </span><span class="n">Baz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Foo</span><span class="o">&lt;</span><span class="n">Bar</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">Bar</span><span class="o">&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">Baz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Foo</span><span class="o">&lt;</span><span class="n">Bar</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="literal-includes">
-<h3>Literal Includes<a class="headerlink" href="#literal-includes" title="Permalink to this headline">¶</a></h3>
+<h3>Literal Includes<a class="headerlink" href="#literal-includes" title="Permalink to this heading"></a></h3>
 <p>Literal includes allow you to directly include source code or other
 inputs from the actual file you are referencing. This is useful because
 any changes to the file will automatically be captured in the
@@ -793,21 +696,21 @@ documentation.</p>
 <p>This will be rendered like:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Function definition of an advance action.</span>
 
-<span class="kt">void</span><span class="w"></span>
-<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;advance&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">void</span>
+<span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;advance&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
 
 <span class="c1">// Register the advance action under the &#39;advance&#39; control point.</span>
 
-<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="w"> </span><span class="n">advance_action</span><span class="p">;</span><span class="w"></span>
+<span class="n">control</span><span class="o">::</span><span class="n">action</span><span class="o">&lt;</span><span class="n">advance</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="o">::</span><span class="n">advance</span><span class="o">&gt;</span><span class="w"> </span><span class="n">advance_action</span><span class="p">;</span>
 
 <span class="c1">// Function definition of a finalize action.</span>
 
-<span class="kt">void</span><span class="w"></span>
-<span class="nf">finalize</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;finalize&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">void</span>
+<span class="nf">finalize</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;finalize&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The included parts of the file begin with a <code class="docutils literal notranslate"><span class="pre">:start-at:</span></code> or
@@ -828,50 +731,33 @@ used, the line containing the matched string was not included.</p>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="summary.html" class="btn btn-neutral float-right" title="Internal Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="summary.html" class="btn btn-neutral float-right" title="Internal Summary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

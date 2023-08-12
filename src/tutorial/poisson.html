@@ -1,104 +1,53 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Poisson &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/tutorial/poisson.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="User Guide" href="../user-guide.html" />
     <link rel="prev" title="DAXPY" href="flaxpy.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../../index.html">
           
-
-          
+          <a href="../../index.html">
             
-            <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
@@ -132,75 +81,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
-        
-      <li>Poisson</li>
-    
-    
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Poisson</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../../_sources/src/tutorial/poisson.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="poisson">
-<h1>Poisson<a class="headerlink" href="#poisson" title="Permalink to this headline">¶</a></h1>
+<h1>Poisson<a class="headerlink" href="#poisson" title="Permalink to this heading"></a></h1>
 <p>This example is designed to be used as a template for creating
 FleCSI-based application codes and is intended as the last example in
 the tutorial. As such, this example provides the following components:</p>
@@ -214,25 +121,25 @@ example as a template for a real application, you should just change all
 occurrances of <code class="docutils literal notranslate"><span class="pre">poisson</span></code> to whatever namespace name you would like to
 use for your project.</p>
 <section id="build-system">
-<h2>Build system<a class="headerlink" href="#build-system" title="Permalink to this headline">¶</a></h2>
+<h2>Build system<a class="headerlink" href="#build-system" title="Permalink to this heading"></a></h2>
 <p>The build system uses standard CMake and is entirely defined in
 CMakeLists.txt:</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="c">#------------------------------------------------------------------------------#</span>
 
-<span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.13...3.20</span><span class="p">)</span>
+<span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.13...3.20</span><span class="p">)</span>
 
 <span class="c">#------------------------------------------------------------------------------#</span>
 <span class="c"># Set the project name.</span>
 <span class="c">#------------------------------------------------------------------------------#</span>
 
-<span class="nb">project</span><span class="p">(</span><span class="s">poisson</span> <span class="s">LANGUAGES</span> <span class="s">CXX</span> <span class="s">C</span><span class="p">)</span>
+<span class="nb">project</span><span class="p">(</span><span class="s">poisson</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="w"> </span><span class="s">C</span><span class="p">)</span>
 
 <span class="c">#------------------------------------------------------------------------------#</span>
 <span class="c"># FleCSI currently depends on C++17.</span>
 <span class="c">#------------------------------------------------------------------------------#</span>
 
-<span class="nb">set</span><span class="p">(</span><span class="s">CXX_STANDARD_REQUIRED</span> <span class="s">ON</span><span class="p">)</span>
-<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span> <span class="s">17</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CXX_STANDARD_REQUIRED</span><span class="w"> </span><span class="s">ON</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span><span class="w"> </span><span class="s">17</span><span class="p">)</span>
 
 <span class="c">#------------------------------------------------------------------------------#</span>
 <span class="c"># Find the FleCSI installation.</span>
@@ -241,38 +148,38 @@ CMakeLists.txt:</p>
 <span class="c"># and add the location to the CMAKE_PREFIX_PATH environment variable.</span>
 <span class="c">#------------------------------------------------------------------------------#</span>
 
-<span class="nb">find_package</span><span class="p">(</span><span class="s">FleCSI</span> <span class="s">REQUIRED</span><span class="p">)</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">FleCSI</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
 
 <span class="c">#------------------------------------------------------------------------------#</span>
 <span class="c"># Unit tests</span>
 <span class="c">#------------------------------------------------------------------------------#</span>
 
-<span class="nb">option</span><span class="p">(</span><span class="s">ENABLE_UNIT_TESTS</span> <span class="s2">&quot;Enable unit tests&quot;</span> <span class="s">OFF</span><span class="p">)</span>
+<span class="nb">option</span><span class="p">(</span><span class="s">ENABLE_UNIT_TESTS</span><span class="w"> </span><span class="s2">&quot;Enable unit tests&quot;</span><span class="w"> </span><span class="s">OFF</span><span class="p">)</span>
 <span class="nb">mark_as_advanced</span><span class="p">(</span><span class="s">ENABLE_UNIT_TESTS</span><span class="p">)</span>
 
 <span class="nb">if</span><span class="p">(</span><span class="s">ENABLE_UNIT_TESTS</span><span class="p">)</span>
-  <span class="nb">enable_testing</span><span class="p">()</span>
+<span class="w">  </span><span class="nb">enable_testing</span><span class="p">()</span>
 <span class="nb">endif</span><span class="p">()</span>
 
-<span class="nb">function</span><span class="p">(</span><span class="s">add_unit</span> <span class="s">name</span><span class="p">)</span>
-  <span class="nb">set</span><span class="p">(</span><span class="s">options</span><span class="p">)</span>
-  <span class="nb">set</span><span class="p">(</span><span class="s">one_value_args</span><span class="p">)</span>
-  <span class="nb">set</span><span class="p">(</span><span class="s">multi_value_args</span> <span class="s">ARGUMENTS</span><span class="p">)</span>
+<span class="nb">function</span><span class="p">(</span><span class="s">add_unit</span><span class="w"> </span><span class="s">name</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">set</span><span class="p">(</span><span class="s">options</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">set</span><span class="p">(</span><span class="s">one_value_args</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">set</span><span class="p">(</span><span class="s">multi_value_args</span><span class="w"> </span><span class="s">ARGUMENTS</span><span class="p">)</span>
 
-  <span class="nb">cmake_parse_arguments</span><span class="p">(</span><span class="s">unit</span> <span class="s2">&quot;${options}&quot;</span> <span class="s2">&quot;${one_value_args}&quot;</span>
-    <span class="s2">&quot;${multi_value_args}&quot;</span> <span class="o">${</span><span class="nv">ARGN</span><span class="o">}</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">cmake_parse_arguments</span><span class="p">(</span><span class="s">unit</span><span class="w"> </span><span class="s2">&quot;${options}&quot;</span><span class="w"> </span><span class="s2">&quot;${one_value_args}&quot;</span>
+<span class="w">    </span><span class="s2">&quot;${multi_value_args}&quot;</span><span class="w"> </span><span class="o">${</span><span class="nv">ARGN</span><span class="o">}</span><span class="p">)</span>
 
- <span class="nb">if</span><span class="p">(</span><span class="s">FleCSI_ENABLE_KOKKOS</span> <span class="s">AND</span> <span class="s">FleCSI_ENABLE_LEGION</span> <span class="s">AND</span> 
-    <span class="p">(</span><span class="s">Kokkos_ENABLE_CUDA</span> <span class="s">OR</span> <span class="s">Kokkos_ENABLE_HIP</span><span class="p">))</span>
-    <span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">UNIT_FLAGS</span> <span class="s2">&quot;--backend-args=-ll:gpu 1&quot;</span><span class="p">)</span>
- <span class="nb">endif</span><span class="p">()</span>
- 
-  <span class="nb">add_test</span><span class="p">(</span><span class="s">NAME</span> <span class="o">${</span><span class="nv">name</span><span class="o">}</span>
-  <span class="s">COMMAND</span>
-     <span class="o">${</span><span class="nv">MPIEXEC_EXECUTABLE</span><span class="o">}</span> <span class="s">-np</span> <span class="s">1</span> <span class="o">$&lt;</span><span class="nv">TARGET_FILE:${name}</span><span class="o">&gt;</span> <span class="o">${</span><span class="nv">unit_ARGUMENTS</span><span class="o">}</span> <span class="o">${</span><span class="nv">UNIT_FLAGS</span><span class="o">}</span>
-     <span class="s">WORKING_DIRECTORY</span>
-      <span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span>
-  <span class="p">)</span>
+<span class="w"> </span><span class="nb">if</span><span class="p">(</span><span class="s">FleCSI_ENABLE_KOKKOS</span><span class="w"> </span><span class="s">AND</span><span class="w"> </span><span class="s">FleCSI_ENABLE_LEGION</span><span class="w"> </span><span class="s">AND</span><span class="w"> </span>
+<span class="w">    </span><span class="p">(</span><span class="s">Kokkos_ENABLE_CUDA</span><span class="w"> </span><span class="s">OR</span><span class="w"> </span><span class="s">Kokkos_ENABLE_HIP</span><span class="p">))</span>
+<span class="w">    </span><span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span><span class="w"> </span><span class="s">UNIT_FLAGS</span><span class="w"> </span><span class="s2">&quot;--backend-args=-ll:gpu 1&quot;</span><span class="p">)</span>
+<span class="w"> </span><span class="nb">endif</span><span class="p">()</span>
+<span class="w"> </span>
+<span class="w">  </span><span class="nb">add_test</span><span class="p">(</span><span class="s">NAME</span><span class="w"> </span><span class="o">${</span><span class="nv">name</span><span class="o">}</span>
+<span class="w">  </span><span class="s">COMMAND</span>
+<span class="w">     </span><span class="o">${</span><span class="nv">MPIEXEC_EXECUTABLE</span><span class="o">}</span><span class="w"> </span><span class="s">-np</span><span class="w"> </span><span class="s">1</span><span class="w"> </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE:${name}</span><span class="o">&gt;</span><span class="w"> </span><span class="o">${</span><span class="nv">unit_ARGUMENTS</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">UNIT_FLAGS</span><span class="o">}</span>
+<span class="w">     </span><span class="s">WORKING_DIRECTORY</span>
+<span class="w">      </span><span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span>
+<span class="w">  </span><span class="p">)</span>
 
 <span class="nb">endfunction</span><span class="p">()</span>
 
@@ -294,64 +201,64 @@ will need a working knowledge of CMake. Documentation for CMake is
 <a class="reference external" href="https://cmake.org/documentation">here</a>.</p>
 </section>
 <section id="control-policy">
-<h2>Control policy<a class="headerlink" href="#control-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Control policy<a class="headerlink" href="#control-policy" title="Permalink to this heading"></a></h2>
 <p>The control policy for this example is located in
 <em>specialization/control.hh</em>. This implementation is consistent with the
 examples in <a class="reference internal" href="control.html#tut-cm"><span class="std std-ref">Control Model</span></a> Tutorial.</p>
 <figure class="align-center" id="id2">
 <img alt="../../_images/poisson.svg" src="../../_images/poisson.svg" /><figcaption>
-<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Control Policy for the Poisson Stand-Alone Application.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Control Policy for the Poisson Stand-Alone Application.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 <section id="main-function">
-<h2>Main function<a class="headerlink" href="#main-function" title="Permalink to this headline">¶</a></h2>
+<h2>Main function<a class="headerlink" href="#main-function" title="Permalink to this heading"></a></h2>
 <p>The <em>main</em> function for this example is located in <code class="docutils literal notranslate"><span class="pre">poisson.cc</span></code>.
 Unless you need to initialize additional runtimes that are not handled
 internally by FleCSI, you can likely use this file as is (with a different namespace name).</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;poisson.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;analyze.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;finalize.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;initialize.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;options.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;problem.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;solve.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;specialization/control.hh&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;state.hh&quot;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;poisson.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;analyze.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;finalize.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;initialize.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;options.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;problem.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;solve.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;specialization/control.hh&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;state.hh&quot;</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span>
 
-<span class="kt">int</span><span class="w"></span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span><span class="w"></span>
+<span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
 </section>
 <section id="building-the-poisson-application">
-<h2>Building the Poisson application<a class="headerlink" href="#building-the-poisson-application" title="Permalink to this headline">¶</a></h2>
+<h2>Building the Poisson application<a class="headerlink" href="#building-the-poisson-application" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="../build.html#build"><span class="std std-ref">Build &amp; Install</span></a> FleCSI somewhere on your system and make sure
 that the location is set in your <em>CMAKE_PREFIX_PATH</em> environement
 variable. Then, you can build this example like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>mkdir build
-<span class="gp">$ </span><span class="nb">cd</span> build
-<span class="gp">$ </span>cmake ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>build
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>build
+<span class="gp">$ </span>cmake<span class="w"> </span>..
 <span class="gp">$ </span>make
 </pre></div>
 </div>
@@ -360,50 +267,33 @@ variable. Then, you can build this example like:</p>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../user-guide.html" class="btn btn-neutral float-right" title="User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="flaxpy.html" class="btn btn-neutral float-left" title="DAXPY" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../user-guide.html" class="btn btn-neutral float-right" title="User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

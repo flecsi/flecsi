@@ -33,7 +33,7 @@ var searchData=
   ['dimensioned_5farray_3c_20t_2c_20dim_20_3e_30',['dimensioned_array&lt; T, DIM &gt;',['../classflecsi_1_1util_1_1dimensioned__array.html',1,'flecsi::util']]],
   ['dimensions_31',['dimensions',['../structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#ab08c317ac345826c08b1c88793504baa',1,'flecsi::topo::narray_impl::index_definition']]],
   ['disable_5fbuffer_32',['disable_buffer',['../classflecsi_1_1flog_1_1tee__buffer__t.html#a50da3da0d2cd5307e8e6688668efb599',1,'flecsi::flog::tee_buffer_t::disable_buffer()'],['../structflecsi_1_1flog_1_1tee__stream__t.html#a8a0a999529e744c0ade04f129758457e',1,'flecsi::flog::tee_stream_t::disable_buffer()']]],
-  ['distance_33',['distance',['../group__point.html#ga70d89ebcd1c0e976261f4b162a502b8f',1,'flecsi::util']]],
+  ['distance_33',['distance',['../group__point.html#ga102e43a65ed15e82a32f206d114cabee',1,'flecsi::util']]],
   ['domain_34',['domain',['../group__narray.html#ga2795906ed25a29b38d243fe006ef3160',1,'flecsi::topo::narray_base']]],
   ['driver_35',['driver',['../group__unit.html#ga65cf40bb16ecc97cc98c16ddf2f14a7d',1,'flecsi::util::unit']]]
 ];

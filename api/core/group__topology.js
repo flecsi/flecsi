@@ -68,5 +68,5 @@ var group__topology =
     [ "flecsi::topo::single_space", "group__topology.html#ga79b99ac85778b417db5d53fc1220fb88", [
       [ "flecsi::topo::elements", "group__topology.html#gga79b99ac85778b417db5d53fc1220fb88a06c345810971a39cef5a701bc985ce9b", null ]
     ] ],
-    [ "flecsi::topo::make_ids", "group__topology.html#ga2b4faf76c34615c9869d185ac8757d0e", null ]
+    [ "flecsi::topo::make_ids", "group__topology.html#ga4b4356b77029d580b67439a43f09555f", null ]
 ];

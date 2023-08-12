@@ -110,8 +110,8 @@ var group__data =
       [ "flecsi::wo", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1", null ],
       [ "flecsi::rw", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44", null ]
     ] ],
-    [ "flecsi::privilege_count", "group__data.html#gad3ec0d3977c7912a9d094f6e611d6369", null ],
-    [ "flecsi::get_privilege", "group__data.html#gaa51a3f45e4304854be7d1f9e85bf8345", null ],
+    [ "flecsi::privilege_count", "group__data.html#gac116a2823423c4ff8fc8dcd14e224ff5", null ],
+    [ "flecsi::get_privilege", "group__data.html#gac9271c6fbb1fdca793696943e560f670", null ],
     [ "flecsi::global_topology", "group__data.html#ga353309e531f79e3fc799dc706066bf93", null ],
     [ "flecsi::process_topology", "group__data.html#gac54f2e985c94bff43579f23133a1e2be", null ],
     [ "flecsi::fid_counter", "group__data.html#gaa50d55f0e36fa4be69f6dde531df91ce", null ],

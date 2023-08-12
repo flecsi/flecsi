@@ -64,14 +64,14 @@ var group__runtime =
       [ "flecsi::run::command_line_error", "group__runtime.html#gga8fdb6ba924648a7f04f8191b6f6a206bae521ec631685256edf10ff262eeff979", null ]
     ] ],
     [ "flecsi::finalize", "group__runtime.html#ga32d626626eee0bc4ade146973f6abb1c", null ],
-    [ "flecsi::initialize", "group__runtime.html#gab7bce80856f18e3a0a0968291217247f", null ],
-    [ "flecsi::start", "group__runtime.html#ga807a7550dece2dd889efa3e5ceb9763d", null ],
-    [ "flecsi::option_value", "group__runtime.html#ga2f8b61e6071b2dc6e7f5ad1b937614ac", null ],
-    [ "flecsi::program", "group__runtime.html#ga43e9187f70cd75becf3f3ade5b0f5733", null ],
-    [ "flecsi::process", "group__runtime.html#ga5e66474803b7f0fa447b4d1bf0820c27", null ],
-    [ "flecsi::processes", "group__runtime.html#ga27beb4b04470aebc8736f63258b21554", null ],
-    [ "flecsi::threads_per_process", "group__runtime.html#ga29d1ae6c43c28fb1c98f9465a40a9887", null ],
-    [ "flecsi::threads", "group__runtime.html#gacf07651a8d4fd938c09346af9de4c936", null ],
-    [ "flecsi::color", "group__runtime.html#ga976d1fb41bfee898ed3b5459c82c2e4c", null ],
-    [ "flecsi::colors", "group__runtime.html#ga361bbda0925bf1347fa95c33db808541", null ]
+    [ "flecsi::initialize", "group__runtime.html#ga8a93a0b7ff18031e0a9b9d938b3ae304", null ],
+    [ "flecsi::start", "group__runtime.html#ga80c8fb3b3648e3a3882727ae7d3c1a96", null ],
+    [ "flecsi::option_value", "group__runtime.html#gad58de8210a09c4582f1eeea739971294", null ],
+    [ "flecsi::program", "group__runtime.html#ga0556d87ef670da4978545c24a3ece334", null ],
+    [ "flecsi::process", "group__runtime.html#ga61ba6a8929e7e4d441487240ea166057", null ],
+    [ "flecsi::processes", "group__runtime.html#ga37ced112a4c46810db72eea960466b73", null ],
+    [ "flecsi::threads_per_process", "group__runtime.html#gaed87b7e4c43f5daa1b5bc5cb602b53fa", null ],
+    [ "flecsi::threads", "group__runtime.html#gae55fa8b4d2e60f0a05c9ace4feac9a5a", null ],
+    [ "flecsi::color", "group__runtime.html#ga51fc35923c044a8b27c9db6eb4020ad9", null ],
+    [ "flecsi::colors", "group__runtime.html#ga8201a75d28d35d62aa168890e291df65", null ]
 ];

@@ -1,105 +1,54 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Performance Effect of get() Outside of a Task &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/user-guide/blocking.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="API Reference" href="../api.html" />
     <link rel="prev" title="Performance Effect of Tracing" href="tracing.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../../index.html">
           
-
-          
+          <a href="../../index.html">
             
-            <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
@@ -127,77 +76,34 @@
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../user-guide.html">User Guide</a> &raquo;</li>
-        
-          <li><a href="performance.html">Performance Do’s and Don’ts</a> &raquo;</li>
-        
-      <li>Performance Effect of <cite>get()</cite> Outside of a Task</li>
-    
-    
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
+          <li class="breadcrumb-item"><a href="performance.html">Performance Do’s and Don’ts</a></li>
+      <li class="breadcrumb-item active">Performance Effect of <cite>get()</cite> Outside of a Task</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../../_sources/src/user-guide/blocking.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="performance-effect-of-get-outside-of-a-task">
-<h1>Performance Effect of <cite>get()</cite> Outside of a Task<a class="headerlink" href="#performance-effect-of-get-outside-of-a-task" title="Permalink to this headline">¶</a></h1>
+<h1>Performance Effect of <cite>get()</cite> Outside of a Task<a class="headerlink" href="#performance-effect-of-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
 <p>This is a weak scaling plot of
 Red-Black Gauss-Seidel iteration for Poisson’s Equation in 2D.
 The green squares are the weak scaling results when <cite>get()</cite> is used outside of a task.
@@ -206,7 +112,7 @@ scales as <span class="math notranslate nohighlight">\(\left(\texttt{nodes}\righ
 <img alt="../../_images/blocked_vs_nonblocking.png" src="../../_images/blocked_vs_nonblocking.png" />
 </section>
 <section id="forcing-bulk-synchronousity-in-your-code">
-<h1>Forcing Bulk-Synchronousity in Your Code<a class="headerlink" href="#forcing-bulk-synchronousity-in-your-code" title="Permalink to this headline">¶</a></h1>
+<h1>Forcing Bulk-Synchronousity in Your Code<a class="headerlink" href="#forcing-bulk-synchronousity-in-your-code" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>All FleCSI programs have a top-level task (TLT) from which all FleCSI tasks are launched.
@@ -222,62 +128,62 @@ prevents any other tasks to be queued up for the runtime.  This blocking forces 
 <p>This is exactly what we have done when we call <code class="docutils literal notranslate"><span class="pre">get()</span></code> on the
 <code class="docutils literal notranslate"><span class="pre">residual</span></code> future below.</p>
 <div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">Forced bulk-synchronousity anti-pattern</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span><span class="w"></span>
+<div class="code-block-caption"><span class="caption-number">Listing 3 </span><span class="caption-text">Forced bulk-synchronousity anti-pattern</span><a class="headerlink" href="#id1" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
-<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">sub</span><span class="p">{</span><span class="mi">3</span><span class="p">};</span><span class="w"></span>
-<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">sub</span><span class="p">{</span><span class="mi">3</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">trace</span><span class="w"> </span><span class="n">t</span><span class="p">;</span><span class="w">         </span><span class="c1">// trace object</span>
 <span class="n">t</span><span class="p">.</span><span class="n">skip</span><span class="p">();</span><span class="w">                     </span><span class="c1">// skip tracing first time through loop</span>
 
-<span class="k">do</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">do</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">make_guard</span><span class="p">();</span><span class="w">    </span><span class="c1">// turn tracing on for enclosing do loop</span>
-<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">red</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">black</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
-<span class="w">  </span><span class="n">ita</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">red</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">black</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">ita</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span>
 
-<span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">discrete_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span><span class="w"></span>
-<span class="w"> </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; iterations)&quot;</span><span class="w"></span>
-<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w"> </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">discrete_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="w"> </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; iterations)&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
-<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">max_iterations</span><span class="p">.</span><span class="n">value</span><span class="p">());</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">max_iterations</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="removing-bulk-synchronousity-from-your-code">
-<h1>Removing Bulk-Synchronousity from Your Code<a class="headerlink" href="#removing-bulk-synchronousity-from-your-code" title="Permalink to this headline">¶</a></h1>
+<h1>Removing Bulk-Synchronousity from Your Code<a class="headerlink" href="#removing-bulk-synchronousity-from-your-code" title="Permalink to this heading"></a></h1>
 <p>Here we pass the future to the <cite>print_residual</cite> task.  Calling <cite>get()</cite> inside
 a task is correct as it allows the runtime to continue with other tasks while
 <cite>print_residual</cite> is waiting on the reduction.</p>
 <div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-number">Listing 4 </span><span class="caption-text">Red-Black Gauss-Seidel non-blocking, no tracing</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span><span class="w"></span>
+<div class="code-block-caption"><span class="caption-number">Listing 4 </span><span class="caption-text">Red-Black Gauss-Seidel non-blocking, no tracing</span><a class="headerlink" href="#id2" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
-<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">sub</span><span class="p">{</span><span class="mi">3</span><span class="p">};</span><span class="w"></span>
-<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">sub</span><span class="p">{</span><span class="mi">3</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">trace</span><span class="w"> </span><span class="n">t</span><span class="p">;</span><span class="w">         </span><span class="c1">// trace object</span>
 <span class="n">t</span><span class="p">.</span><span class="n">skip</span><span class="p">();</span><span class="w">                     </span><span class="c1">// skip tracing first time through loop</span>
 
-<span class="k">do</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">do</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">make_guard</span><span class="p">();</span><span class="w">    </span><span class="c1">// turn tracing on for enclosing do loop</span>
-<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">red</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">black</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
-<span class="w">  </span><span class="n">ita</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">red</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">black</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">ita</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sub</span><span class="p">;</span>
 
-<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">discrete_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span><span class="w"></span>
-<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">print_residual</span><span class="o">&gt;</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">ita</span><span class="o">+</span><span class="n">sub</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">discrete_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ud</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduce</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">diff</span><span class="p">,</span><span class="w"> </span><span class="n">exec</span><span class="o">::</span><span class="n">fold</span><span class="o">::</span><span class="n">sum</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="n">Aud</span><span class="p">(</span><span class="n">m</span><span class="p">));</span>
+<span class="w">  </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">task</span><span class="o">::</span><span class="n">print_residual</span><span class="o">&gt;</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">ita</span><span class="o">+</span><span class="n">sub</span><span class="p">);</span>
 
-<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">max_iterations</span><span class="p">.</span><span class="n">value</span><span class="p">());</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="p">(</span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">max_iterations</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
 </pre></div>
 </div>
 </div>
@@ -287,68 +193,51 @@ a task is correct as it allows the runtime to continue with other tasks while
 FleCSI does not yet support futures in this way.</p>
 </div>
 <div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-number">Listing 5 </span><span class="caption-text"><cite>print_residual</cite> task</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">task::print_residual</span><span class="p">(</span><span class="n">future</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span><span class="w"></span>
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; iterations)&quot;</span><span class="w"></span>
-<span class="w">    </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">flush</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<div class="code-block-caption"><span class="caption-number">Listing 5 </span><span class="caption-text"><cite>print_residual</cite> task</span><a class="headerlink" href="#id3" title="Permalink to this code"></a></div>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">task::print_residual</span><span class="p">(</span><span class="n">future</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; iterations)&quot;</span>
+<span class="w">    </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">flush</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="when-to-call-get-outside-of-a-task">
-<h1>When to Call <cite>get()</cite> Outside of a Task<a class="headerlink" href="#when-to-call-get-outside-of-a-task" title="Permalink to this headline">¶</a></h1>
+<h1>When to Call <cite>get()</cite> Outside of a Task<a class="headerlink" href="#when-to-call-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
 <p>Basically, never call <cite>get()</cite> outside of a task.
 If you are using it in initialization once, that probably won’t hurt much.</p>
 </section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tracing.html" class="btn btn-neutral float-left" title="Performance Effect of Tracing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

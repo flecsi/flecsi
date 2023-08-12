@@ -1,104 +1,53 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Build &amp; Install &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/build.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="CMake Configuration Options" href="build/options.html" />
     <link rel="prev" title="Release Notes" href="news.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html">
           
-
-          
+          <a href="../index.html">
             
-            <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
@@ -120,73 +69,32 @@
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Build &amp; Install</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Build &amp; Install</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/src/build.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="build-install">
-<span id="build"></span><h1>Build &amp; Install<a class="headerlink" href="#build-install" title="Permalink to this headline">¶</a></h1>
+<span id="build"></span><h1>Build &amp; Install<a class="headerlink" href="#build-install" title="Permalink to this heading"></a></h1>
 <p>FleCSI can be configured to run with different distributed-memory
 runtimes, including Legion and MPI.
 FleCSI also has support for various
@@ -210,7 +118,7 @@ that can be taken to tailor FleCSI to a given system and architecture.</p>
 </div>
 <hr class="docutils" />
 <section id="requirements-prerequisites">
-<h2>Requirements &amp; Prerequisites<a class="headerlink" href="#requirements-prerequisites" title="Permalink to this headline">¶</a></h2>
+<h2>Requirements &amp; Prerequisites<a class="headerlink" href="#requirements-prerequisites" title="Permalink to this heading"></a></h2>
 <p>The following list of requirements provides a complete set of build
 options, which might not be necessary for a particular build:</p>
 <div class="admonition note">
@@ -255,7 +163,7 @@ We currently require Python 3.0 or greater.</p></li>
 </section>
 <hr class="docutils" />
 <section id="getting-the-code">
-<h2>Getting The Code<a class="headerlink" href="#getting-the-code" title="Permalink to this headline">¶</a></h2>
+<h2>Getting The Code<a class="headerlink" href="#getting-the-code" title="Permalink to this heading"></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you are a user and only want to install FleCSI, you can skip this
@@ -263,50 +171,50 @@ step and use the instructions for installing FleCSI using Spack.</p>
 </div>
 <p>Clone the <a class="reference external" href="https://github.com/flecsi/flecsi">FleCSI git repository</a> and create an out-of-source build area
 (FleCSI prohibits in-source builds):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git clone https://github.com/flecsi/flecsi.git
-<span class="gp">$ </span><span class="nb">cd</span> flecsi
-<span class="gp">$ </span>mkdir build
-<span class="gp">$ </span><span class="nb">cd</span> build
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/flecsi/flecsi.git
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>flecsi
+<span class="gp">$ </span>mkdir<span class="w"> </span>build
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>build
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="spack">
-<h2>Spack<a class="headerlink" href="#spack" title="Permalink to this headline">¶</a></h2>
+<h2>Spack<a class="headerlink" href="#spack" title="Permalink to this heading"></a></h2>
 <p>The preferred method for installing FleCSI and its dependencies is to
 use <a class="reference external" href="https://github.com/spack/spack">Spack</a>. Spack is easy
 to install and configure:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git clone https://github.com/spack/spack.git
-<span class="gp">$ </span><span class="nb">source</span> path/to/spack/repository/share/spack/setup-env.sh
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/spack/spack.git
+<span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>path/to/spack/repository/share/spack/setup-env.sh
 </pre></div>
 </div>
 <p>Once spack is installed, you can install FleCSI like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack install flecsi
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>install<span class="w"> </span>flecsi
 </pre></div>
 </div>
 <p>FleCSI supports several different versions and variants, e.g.:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack install flecsi@2 <span class="nv">backend</span><span class="o">=</span>legion +graphviz +kokkos
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>install<span class="w"> </span>flecsi@2<span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+graphviz<span class="w"> </span>+kokkos
 </pre></div>
 </div>
 <p>For a complete list of versions and variants, type:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack info flecsi
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>info<span class="w"> </span>flecsi
 </pre></div>
 </div>
 <p>More documentation and information on Spack is available <a class="reference external" href="https://spack.readthedocs.io/en/latest">here</a>.</p>
 </section>
 <hr class="docutils" />
 <section id="flecsi-developers">
-<h2>FleCSI Developers<a class="headerlink" href="#flecsi-developers" title="Permalink to this headline">¶</a></h2>
+<h2>FleCSI Developers<a class="headerlink" href="#flecsi-developers" title="Permalink to this heading"></a></h2>
 <p>If you are a developer, and would like to install only the dependencies of
 FleCSI (assuming that you will build FleCSI from source), you can use
 Spack’s <code class="docutils literal notranslate"><span class="pre">--only</span></code> option:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack install --only dependencies flecsi <span class="nv">backend</span><span class="o">=</span>legion +hdf5 ^mpich
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>install<span class="w"> </span>--only<span class="w"> </span>dependencies<span class="w"> </span>flecsi<span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+hdf5<span class="w"> </span>^mpich
 </pre></div>
 </div>
 <p>If you are developing against a particular branch of FleCSI, you can
 capture branch-specific spack dependencies by adding the FleCSI spack
 repo (before performing the above step):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack repo add path/to/flecsi/spack-repo
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>path/to/flecsi/spack-repo
 </pre></div>
 </div>
 <p>This will prepend a spack repository path to your spack configuration,
@@ -316,45 +224,45 @@ successful build.</p>
 </section>
 <hr class="docutils" />
 <section id="configuration-build">
-<h2>Configuration &amp; Build<a class="headerlink" href="#configuration-build" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration &amp; Build<a class="headerlink" href="#configuration-build" title="Permalink to this heading"></a></h2>
 <p>Example configuration: <strong>MPI</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake -DFLECSI_BACKEND<span class="o">=</span>mpi ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake<span class="w"> </span>-DFLECSI_BACKEND<span class="o">=</span>mpi<span class="w"> </span>..
 </pre></div>
 </div>
 <p>Example configuration: <strong>MPI + OpenMP</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake -DFLECSI_BACKEND<span class="o">=</span>mpi -DENABLE_OPENMP ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake<span class="w"> </span>-DFLECSI_BACKEND<span class="o">=</span>mpi<span class="w"> </span>-DENABLE_OPENMP<span class="w"> </span>..
 </pre></div>
 </div>
 <p>Example configuration: <strong>Legion</strong></p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake -DFLECSI_BACKEND<span class="o">=</span>legion ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake<span class="w"> </span>-DFLECSI_BACKEND<span class="o">=</span>legion<span class="w"> </span>..
 </pre></div>
 </div>
 <p>After configuration is complete, just use <code class="docutils literal notranslate"><span class="pre">make</span></code> to build:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make -j <span class="m">16</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span>-j<span class="w"> </span><span class="m">16</span>
 </pre></div>
 </div>
 <p>Installation uses the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> and will install FleCSI in
 the directory specified by <code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make install
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span>install
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="building-the-unit-tests">
-<h2>Building the Unit Tests<a class="headerlink" href="#building-the-unit-tests" title="Permalink to this headline">¶</a></h2>
+<h2>Building the Unit Tests<a class="headerlink" href="#building-the-unit-tests" title="Permalink to this heading"></a></h2>
 <p>To build the FleCSI unit test suite, turn on the <code class="docutils literal notranslate"><span class="pre">ENABLE_UNIT_TESTS</span></code>
 option:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake -DENABLE_UNIT_TESTS<span class="o">=</span>ON ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake<span class="w"> </span>-DENABLE_UNIT_TESTS<span class="o">=</span>ON<span class="w"> </span>..
 </pre></div>
 </div>
 <p>After building FleCSI, you can run the unit tests like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make <span class="nb">test</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="building-the-documentation-developers">
-<h2>Building the Documentation (Developers)<a class="headerlink" href="#building-the-documentation-developers" title="Permalink to this headline">¶</a></h2>
+<h2>Building the Documentation (Developers)<a class="headerlink" href="#building-the-documentation-developers" title="Permalink to this heading"></a></h2>
 <p>FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.</p>
 <p>Doxygen can be installed with most Linux package managers.  To install
@@ -362,21 +270,21 @@ Sphinx, you can install <code class="docutils literal notranslate"><span class="
 <code class="docutils literal notranslate"><span class="pre">recommonmark</span></code>, and <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code>. Your package manager should also
 have <code class="docutils literal notranslate"><span class="pre">pip3</span></code>; e.g., on Ubuntu, you can install all of these requirements
 like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo apt install doxygen
-<span class="gp">$ </span>sudo apt install python3-pip
-<span class="gp">$ </span>pip3 install Sphinx
-<span class="gp">$ </span>pip3 install recommonmark
-<span class="gp">$ </span>pip3 install sphinx_rtd_theme
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>doxygen
+<span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-pip
+<span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>Sphinx
+<span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>recommonmark
+<span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>sphinx_rtd_theme
 </pre></div>
 </div>
 <p>To enable documentation, do this:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake -DENABLE_DOCUMENTATION<span class="o">=</span>ON ..
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>cmake<span class="w"> </span>-DENABLE_DOCUMENTATION<span class="o">=</span>ON<span class="w"> </span>..
 </pre></div>
 </div>
 <p>By default, this will enable Doxygen and Sphinx. Once you have properly
 configured FleCSI, you can build the documentation like:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make doxygen
-<span class="gp">$ </span>make sphinx
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>make<span class="w"> </span>doxygen
+<span class="gp">$ </span>make<span class="w"> </span>sphinx
 </pre></div>
 </div>
 <p>Both of these targets will be built in your build directory under <code class="docutils literal notranslate"><span class="pre">doc/</span></code>:
@@ -391,50 +299,33 @@ your browser with
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="build/options.html" class="btn btn-neutral float-right" title="CMake Configuration Options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="news.html" class="btn btn-neutral float-left" title="Release Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="build/options.html" class="btn btn-neutral float-right" title="CMake Configuration Options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

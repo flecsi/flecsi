@@ -20,7 +20,7 @@ var searchData=
   ['dimension_17',['dimension',['../structflecsi_1_1topo_1_1narray__specialization.html#a99ec8be7219fc4f378b68d6719af0348',1,'flecsi::topo::narray_specialization']]],
   ['dimension_18',['Dimension',['../group__utils.html#ga0d633ccab8440bedc968dc221a91849f',1,'flecsi']]],
   ['dimensioned_5farray_19',['dimensioned_array',['../classflecsi_1_1util_1_1dimensioned__array.html#adab75a9a679ac17ab423f602752e8977',1,'flecsi::util::dimensioned_array::dimensioned_array(std::initializer_list&lt; TYPE &gt; list)'],['../classflecsi_1_1util_1_1dimensioned__array.html#a17e9ddee8c59fbe13415dd5cca219bb9',1,'flecsi::util::dimensioned_array::dimensioned_array(ARGS... args)'],['../classflecsi_1_1util_1_1dimensioned__array.html#a4eaf2769fd62853439c4e2404fcf8a5e',1,'flecsi::util::dimensioned_array::dimensioned_array(TYPE const &amp;val)'],['../classflecsi_1_1util_1_1dimensioned__array.html',1,'dimensioned_array&lt; TYPE, DIMENSION, NAMESPACE &gt;']]],
-  ['distance_20',['distance',['../group__point.html#ga70d89ebcd1c0e976261f4b162a502b8f',1,'flecsi::util']]],
+  ['distance_20',['distance',['../group__point.html#ga102e43a65ed15e82a32f206d114cabee',1,'flecsi::util']]],
   ['domain_21',['domain',['../group__narray.html#ga2795906ed25a29b38d243fe006ef3160',1,'flecsi::topo::narray_base']]],
   ['driver_22',['driver',['../group__unit.html#ga65cf40bb16ecc97cc98c16ddf2f14a7d',1,'flecsi::util::unit']]]
 ];

@@ -1,104 +1,53 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Runtime Model &mdash; FleCSI 2.2.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-
-  
-  
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
-  
-
-  
-  
     <link rel="canonical" href="http://www.flecsi.org/src/tutorial/runtime.html"/>
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Control Model" href="control.html" />
     <link rel="prev" title="Tutorial" href="../tutorial.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../../index.html">
           
-
-          
+          <a href="../../index.html">
             
-            <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
-          
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
               <div class="version">
                 Version: 2.2.1
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
@@ -132,81 +81,39 @@
 <li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">FleCSI</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../tutorial.html">Tutorial</a> &raquo;</li>
-        
-      <li>Runtime Model</li>
-    
-    
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">Runtime Model</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../../_sources/src/tutorial/runtime.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="runtime-model">
-<span id="tut-rm"></span><h1>Runtime Model<a class="headerlink" href="#runtime-model" title="Permalink to this headline">¶</a></h1>
+<span id="tut-rm"></span><h1>Runtime Model<a class="headerlink" href="#runtime-model" title="Permalink to this heading"></a></h1>
 <p>Using FleCSI requires proper initialization and configuration of the
 FleCSI runtime. These examples illustrate some of the basic steps and
 options that are available.</p>
 <hr class="docutils" />
 <section id="example-1-minimal">
-<h2>Example 1: Minimal<a class="headerlink" href="#example-1-minimal" title="Permalink to this headline">¶</a></h2>
+<h2>Example 1: Minimal<a class="headerlink" href="#example-1-minimal" title="Permalink to this heading"></a></h2>
 <p>The core FleCSI runtime has three control points: <em>initialize</em>, <em>start</em>, and
 <em>finalize</em>. These must be invoked by the user’s application code in that
 order.</p>
@@ -230,7 +137,7 @@ runtimes that FleCSI itself initialized.</p></li>
 <p>This example demonstrates a minimal use of FleCSI that just executes an
 action to print out <em>Hello World</em>. Code for this example can be found in
 <em>tutorial/1-runtime/1-minimal.cc</em>.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
 
 <span class="cm">/*</span>
 <span class="cm">  The top-level action can be any C/C++ function that takes no arguments and</span>
@@ -240,45 +147,45 @@ action to print out <em>Hello World</em>. Code for this example can be found in
 <span class="cm">  top-level action was actually executed by FleCSI. However, in a real</span>
 <span class="cm">  application, the top-level action would execute FleCSI tasks and other</span>
 <span class="cm">  functions to implement the simulation.</span>
-<span class="cm"> */</span><span class="w"></span>
+<span class="cm"> */</span>
 
-<span class="kt">int</span><span class="w"></span>
-<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="kt">int</span>
+<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// top_level_action</span>
 
 <span class="cm">/*</span>
 <span class="cm">  The main function must invoke initialize, start, and finalize on the FleCSI</span>
 <span class="cm">  runtime. Otherwise, the implementation of main is left to the user.</span>
-<span class="cm"> */</span><span class="w"></span>
+<span class="cm"> */</span>
 
-<span class="kt">int</span><span class="w"></span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
 
 <span class="w">  </span><span class="cm">/*</span>
 <span class="cm">    The status returned by FleCSI&#39;s initialize method should be inspected to</span>
 <span class="cm">    see if the end-user specified --help on the command line. FleCSI has</span>
 <span class="cm">    built-in command-line support using Boost Program Options. This is</span>
 <span class="cm">    documented in the next example.</span>
-<span class="cm">   */</span><span class="w"></span>
+<span class="cm">   */</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
 
 <span class="w">  </span><span class="cm">/*</span>
 <span class="cm">    The top-level action is passed to the start function to tell FleCSI what</span>
 <span class="cm">    it should execute.</span>
-<span class="cm">   */</span><span class="w"></span>
+<span class="cm">   */</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -303,7 +210,7 @@ Options. This is documented in the next example.</p></li>
 </section>
 <hr class="docutils" />
 <section id="example-2-program-options">
-<h2>Example 2: Program Options<a class="headerlink" href="#example-2-program-options" title="Permalink to this headline">¶</a></h2>
+<h2>Example 2: Program Options<a class="headerlink" href="#example-2-program-options" title="Permalink to this heading"></a></h2>
 <p>FleCSI supports a program options capability based on <a class="reference external" href="https://www.boost.org/doc/libs/1_63_0/doc/html/program_options.html">Boost Program
 Options</a> to simplify the creation and management of user-defined
 command-line options. The basic syntax for adding and accessing program
@@ -321,7 +228,7 @@ the flecsi::program_option constructor as an std::initializer_list.</p></li>
 <p>This section of the tutorial provides examples of how to use FleCSI’s
 program option capability.</p>
 <section id="example-program">
-<h3>Example Program<a class="headerlink" href="#example-program" title="Permalink to this headline">¶</a></h3>
+<h3>Example Program<a class="headerlink" href="#example-program" title="Permalink to this heading"></a></h3>
 <p>In this example, imagine that you have a program that takes information
 about a taxi service (The options are silly and synthetic. However they
 demonstrate the basic usage of the flecsi::program_option type.) The
@@ -375,7 +282,7 @@ next section of this tutorial). The FLOG options will only appear if
 <em>ENABLE_FLOG=ON</em> was set in your FleCSI build.</p>
 </section>
 <section id="declaring-options">
-<h3>Declaring Options<a class="headerlink" href="#declaring-options" title="Permalink to this headline">¶</a></h3>
+<h3>Declaring Options<a class="headerlink" href="#declaring-options" title="Permalink to this heading"></a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>FleCSI program options must be declared at namespace scope, i.e.,
@@ -390,16 +297,16 @@ this option, we use the following declaration:</p>
 <span class="c1">// option will have a long form --level, and a short form -l. The option will be</span>
 <span class="c1">// added under the &quot;Car Options&quot; section.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">trim</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">trim</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
 <p>First, notice that the flecsi::program_option type is templated on the
@@ -438,16 +345,16 @@ value type:</p>
 <span class="c1">// option will have a long form --transmission, and a short form -t. The option</span>
 <span class="c1">// will be added under the &quot;Car Options&quot; section.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">transmission</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">transmission</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
 <p>The only real difference is that (because the underlying type is
@@ -461,10 +368,10 @@ demonstrates the use of flecsi::option_implicit:</p>
 <span class="c1">// are invoked directly before a positional option (gets confused about</span>
 <span class="c1">// separation). We break that convention here for the sake of completeness.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child_seat</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;child-seat,c&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Request a child seat.&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">}});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child_seat</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;child-seat,c&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Request a child seat.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">}});</span>
 </pre></div>
 </div>
 <p>Providing an implicit value defines the behavior for the case that the user invokes the program with the given flag but does not assign a
@@ -486,18 +393,18 @@ code:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Add a an option to a different section, i.e., &quot;Ride Options&quot;. The enumeration</span>
 <span class="c1">// type is not enforced by the FleCSI runtime, and is mostly for convenience.</span>
 
-<span class="k">enum</span> <span class="nc">purpose_option</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">personal</span><span class="p">,</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
+<span class="k">enum</span><span class="w"> </span><span class="nc">purpose_option</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">personal</span><span class="p">,</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="p">};</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">purpose</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">purpose</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
 <p>This option demonstrates how an enumeration can be used to define
@@ -511,10 +418,10 @@ whether or not an option was passed in the next section:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Add an option with no default. This will allow us to demonstrate testing an</span>
 <span class="c1">// option with has_value().</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lightspeed</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;lightspeed&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Travel at the speed of light.&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_zero</span><span class="p">}});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lightspeed</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;lightspeed&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Travel at the speed of light.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_zero</span><span class="p">}});</span>
 </pre></div>
 </div>
 <p>The final option in this example is a positional option: i.e., it is an
@@ -523,22 +430,22 @@ argument to the program itself.</p>
 <span class="c1">// option declarations. Positional options are a replacement for required</span>
 <span class="c1">// options (in the normal boost::program_options interface).</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
 <p>Positional options are required: i.e., the program will error and print
 the usage message if a value is not passed.</p>
 </section>
 <section id="checking-using-options">
-<h3>Checking &amp; Using Options<a class="headerlink" href="#checking-using-options" title="Permalink to this headline">¶</a></h3>
+<h3>Checking &amp; Using Options<a class="headerlink" href="#checking-using-options" title="Permalink to this heading"></a></h3>
 <p>FleCSI option variables are implemented using an <em>optional</em> C++ type.
 The utility of this implementation is that <em>optional</em> already captures
 the behavior that we want from an option (i.e., it either has a value or does not).
@@ -550,23 +457,23 @@ line and on its default and implicit values.</p>
 <span class="w">  </span><span class="c1">// has_value() because it is defaulted. It is also unnecessary to check the</span>
 <span class="w">  </span><span class="c1">// value because it was declared with a validator function.</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">trim</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">100.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">trim</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">100.0</span><span class="p">;</span>
 
 <span class="w">  </span><span class="c1">// Add cost for automatic transmission.</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">transmission</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mf">200.0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">transmission</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mf">200.0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
 
 <span class="w">  </span><span class="c1">// Add cost for child seat.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">child_seat</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">50.0</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">child_seat</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">50.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
 <span class="w">  </span><span class="c1">// Deduction for business.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">purpose</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="mf">0.8</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">purpose</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="mf">0.8</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 </pre></div>
 </div>
 <p>Here, we simply need to access the value of the option using the
@@ -576,57 +483,57 @@ option has a value using the <em>has_value()</em> method:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Add cost for lightspeed. Since this option does not have a default, we need</span>
 <span class="w">  </span><span class="c1">// to check whether or not the flag was passed.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">lightspeed</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1000000.0</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">lightspeed</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1000000.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 </pre></div>
 </div>
 <p>Our one positional option works like the defaulted options (because it
 is required) and can be accessed using the <em>value()</em> method:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Do something with the positional argument.</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">read_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">read_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// Read passengers...</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span>
 
-<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_file</span><span class="p">(</span><span class="n">passenger_list</span><span class="p">.</span><span class="n">value</span><span class="p">());</span><span class="w"></span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_file</span><span class="p">(</span><span class="n">passenger_list</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">price</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">price</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Here is the full source for this tutorial example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
 
 <span class="c1">// Add an integer-valued command-line option with a default value of &#39;1&#39;. The</span>
 <span class="c1">// option will have a long form --level, and a short form -l. The option will be</span>
 <span class="c1">// added under the &quot;Car Options&quot; section.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">trim</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">trim</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add a string-valued command-line option with a default value of &quot;manual&quot;. The</span>
 <span class="c1">// option will have a long form --transmission, and a short form -t. The option</span>
 <span class="c1">// will be added under the &quot;Car Options&quot; section.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">transmission</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">transmission</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add an option that defines an implicit value. If the program is invoked with</span>
 <span class="c1">// --child-seat, the value will be true. If it is invoked without --child-seat,</span>
@@ -635,115 +542,115 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="c1">// are invoked directly before a positional option (gets confused about</span>
 <span class="c1">// separation). We break that convention here for the sake of completeness.</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child_seat</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;child-seat,c&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Request a child seat.&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">}});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child_seat</span><span class="p">(</span><span class="s">&quot;Car Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;child-seat,c&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Request a child seat.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">}});</span>
 
 <span class="c1">// Add a an option to a different section, i.e., &quot;Ride Options&quot;. The enumeration</span>
 <span class="c1">// type is not enforced by the FleCSI runtime, and is mostly for convenience.</span>
 
-<span class="k">enum</span> <span class="nc">purpose_option</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">personal</span><span class="p">,</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
+<span class="k">enum</span><span class="w"> </span><span class="nc">purpose_option</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">personal</span><span class="p">,</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="p">};</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">purpose</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">purpose</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add an option with no default. This will allow us to demonstrate testing an</span>
 <span class="c1">// option with has_value().</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lightspeed</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;lightspeed&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Travel at the speed of light.&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_zero</span><span class="p">}});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lightspeed</span><span class="p">(</span><span class="s">&quot;Ride Options&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;lightspeed&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Travel at the speed of light.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_implicit</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_zero</span><span class="p">}});</span>
 
 <span class="c1">// Add a positional option. This uses a different constructor from the previous</span>
 <span class="c1">// option declarations. Positional options are a replacement for required</span>
 <span class="c1">// options (in the normal boost::program_options interface).</span>
 
-<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="w"></span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span><span class="w"></span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
+<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
+<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// User-defined program options are available after FleCSI initialize has been</span>
 <span class="c1">// invoked.</span>
 
-<span class="kt">int</span><span class="w"></span>
-<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">price</span><span class="p">{</span><span class="mf">0.0</span><span class="p">};</span><span class="w"></span>
+<span class="kt">int</span>
+<span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">price</span><span class="p">{</span><span class="mf">0.0</span><span class="p">};</span>
 
 <span class="w">  </span><span class="c1">// Add cost for trim level. This option does not have to be checked with</span>
 <span class="w">  </span><span class="c1">// has_value() because it is defaulted. It is also unnecessary to check the</span>
 <span class="w">  </span><span class="c1">// value because it was declared with a validator function.</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">trim</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">100.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">trim</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">100.0</span><span class="p">;</span>
 
 <span class="w">  </span><span class="c1">// Add cost for automatic transmission.</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">transmission</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mf">200.0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">transmission</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mf">200.0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
 
 <span class="w">  </span><span class="c1">// Add cost for child seat.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">child_seat</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">50.0</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">child_seat</span><span class="p">.</span><span class="n">value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">50.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
 <span class="w">  </span><span class="c1">// Deduction for business.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">purpose</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="mf">0.8</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">purpose</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="mf">0.8</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
 <span class="w">  </span><span class="c1">// Add cost for lightspeed. Since this option does not have a default, we need</span>
 <span class="w">  </span><span class="c1">// to check whether or not the flag was passed.</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">lightspeed</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1000000.0</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">lightspeed</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">price</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1000000.0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
 <span class="w">  </span><span class="c1">// Do something with the positional argument.</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">read_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">read_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// Read passengers...</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span>
 
-<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_file</span><span class="p">(</span><span class="n">passenger_list</span><span class="p">.</span><span class="n">value</span><span class="p">());</span><span class="w"></span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_file</span><span class="p">(</span><span class="n">passenger_list</span><span class="p">.</span><span class="n">value</span><span class="p">());</span>
 
-<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">price</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">price</span><span class="w"> </span><span class="o">*=</span><span class="w"> </span><span class="n">passengers</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1.10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">price</span><span class="p">;</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Price: $&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Price: $&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// top_level_action</span>
 
-<span class="kt">int</span><span class="w"></span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -751,7 +658,7 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 </section>
 <hr class="docutils" />
 <section id="example-3-flog-flecsi-logging-utility">
-<h2>Example 3: FLOG (FleCSI Logging Utility)<a class="headerlink" href="#example-3-flog-flecsi-logging-utility" title="Permalink to this headline">¶</a></h2>
+<h2>Example 3: FLOG (FleCSI Logging Utility)<a class="headerlink" href="#example-3-flog-flecsi-logging-utility" title="Permalink to this heading"></a></h2>
 <p>FLOG provides users with a mechanism to print logging information to
 various stream buffers, similar to the C++ objects std::cout, std::cerr,
 and std::clog.
@@ -773,23 +680,23 @@ serializing it.
 This is an important and useful feature of FLOG.</p>
 </div>
 <section id="buffer-configuration">
-<h3>Buffer Configuration<a class="headerlink" href="#buffer-configuration" title="Permalink to this headline">¶</a></h3>
+<h3>Buffer Configuration<a class="headerlink" href="#buffer-configuration" title="Permalink to this heading"></a></h3>
 <p>By default, FLOG does not produce any output (even when enabled).
 In order to see or capture output, your application must add at least
 one output stream.
 This should be done after <code class="docutils literal notranslate"><span class="pre">flecsi::initialize</span></code> has been invoked and
 before flecsi::start.
 Consider the main function for this example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"></span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">  </span><span class="c1">// If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized</span>
 <span class="w">  </span><span class="c1">// when flecsi::initialize() is invoked.</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
 
 <span class="w">  </span><span class="c1">// In order to see or capture any output from FLOG, the user must add at least</span>
@@ -799,25 +706,25 @@ Consider the main function for this example:</p>
 
 <span class="w">  </span><span class="c1">// Add the standard log descriptor to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
 
 <span class="w">  </span><span class="c1">// Add an output file to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
 <p>The first output stream added is <a class="reference external" href="https://en.cppreference.com/w/cpp/io/clog">std::clog</a>.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Add the standard log descriptor to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The arguments to add_output_stream are:</p>
@@ -835,8 +742,8 @@ non-interactive output. The default is <em>false</em>.</p></li>
 <p>To add an output stream to a file, we can do the following:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Add an output file to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="nf">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>That’s it! For this example, FLOG is now configured to write output to
@@ -844,10 +751,10 @@ std::clog, and to <em>output.txt</em>. Next, we will see how to actually write
 output to these stream buffers.</p>
 </section>
 <section id="writing-to-buffers">
-<h3>Writing to Buffers<a class="headerlink" href="#writing-to-buffers" title="Permalink to this headline">¶</a></h3>
+<h3>Writing to Buffers<a class="headerlink" href="#writing-to-buffers" title="Permalink to this heading"></a></h3>
 <p>Output with FLOG is similar to std::cout. Consider the FLOG <em>info</em>
 object:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The value is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The value is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This works just like any of the C++ output objects. FLOG provides four
@@ -860,15 +767,15 @@ the basic output objects:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will always be generated because it is not scoped within a tag</span>
 <span class="w">  </span><span class="c1">// guard.</span>
 
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 </section>
 <section id="controlling-output-strip-levels">
-<h3>Controlling Output - Strip Levels<a class="headerlink" href="#controlling-output-strip-levels" title="Permalink to this headline">¶</a></h3>
+<h3>Controlling Output - Strip Levels<a class="headerlink" href="#controlling-output-strip-levels" title="Permalink to this heading"></a></h3>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
@@ -894,7 +801,7 @@ than 4.</p></li>
 </ul>
 </section>
 <section id="controlling-output-tag-groups">
-<h3>Controlling Output - Tag Groups<a class="headerlink" href="#controlling-output-tag-groups" title="Permalink to this headline">¶</a></h3>
+<h3>Controlling Output - Tag Groups<a class="headerlink" href="#controlling-output-tag-groups" title="Permalink to this heading"></a></h3>
 <p>Tag groups provide a mechanism to control the runtime output generated
 by FLOG. The main idea here is that developers can use FLOG to output
 information that is useful in developing or debugging a program and
@@ -904,8 +811,8 @@ development focus.</p>
 <p>To create a new tag, we use the flog::tag type:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create some tags to control output.</span>
 
-<span class="n">flog</span><span class="o">::</span><span class="n">tag</span><span class="w"> </span><span class="nf">tag1</span><span class="p">(</span><span class="s">&quot;tag1&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="n">flog</span><span class="o">::</span><span class="n">tag</span><span class="w"> </span><span class="nf">tag2</span><span class="p">(</span><span class="s">&quot;tag2&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="n">flog</span><span class="o">::</span><span class="n">tag</span><span class="w"> </span><span class="n">tag1</span><span class="p">(</span><span class="s">&quot;tag1&quot;</span><span class="p">);</span>
+<span class="n">flog</span><span class="o">::</span><span class="n">tag</span><span class="w"> </span><span class="n">tag2</span><span class="p">(</span><span class="s">&quot;tag2&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Tags take a single std::string argument that is used in the help message
@@ -921,12 +828,12 @@ the <code class="docutils literal notranslate"><span class="pre">--flog-tags</sp
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will only be generated if &#39;tag1&#39; or &#39;all&#39; is specified</span>
 <span class="w">  </span><span class="c1">// to &#39;--flog-tags&#39;.</span>
 
-<span class="w">  </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag1</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output (in tag1 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
@@ -934,19 +841,19 @@ the <code class="docutils literal notranslate"><span class="pre">--flog-tags</sp
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will only be generated if &#39;tag2&#39; or &#39;all&#39; is specified</span>
 <span class="w">  </span><span class="c1">// to &#39;--flog-tags&#39;.</span>
 
-<span class="w">  </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag2</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Trace level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">info</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Info level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warn level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">flog</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error level output (in tag2 guard)&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
 <p>You should experiment with invoking this example:</p>
 <p>Invoking this example with the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag will show the available
 tags:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./runtime-flog --help
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./runtime-flog<span class="w"> </span>--help
 </pre></div>
 </div>
 <p>which should look something like this:</p>
@@ -978,7 +885,7 @@ tags:</p>
 </div>
 <p>Invoking this example with <code class="docutils literal notranslate"><span class="pre">--flog-tags=tag1</span></code> will generate output for
 unguarded sections and for output guarded with the <em>tag1</em> tag:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./flog --flog-tags<span class="o">=</span>tag1
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./flog<span class="w"> </span>--flog-tags<span class="o">=</span>tag1
 <span class="go">[trace all p0] Trace level output</span>
 <span class="go">[info all p0] Info level output</span>
 <span class="go">[Warn all p0] Warn level output</span>
@@ -991,7 +898,7 @@ unguarded sections and for output guarded with the <em>tag1</em> tag:</p>
 </div>
 </section>
 <section id="flog-options-cmake">
-<h3>FLOG Options (CMake)<a class="headerlink" href="#flog-options-cmake" title="Permalink to this headline">¶</a></h3>
+<h3>FLOG Options (CMake)<a class="headerlink" href="#flog-options-cmake" title="Permalink to this heading"></a></h3>
 <p>Defaults for the FLOG options have been chosen in an attempt to most
 closely model the behavior one would expect from the execution and
 output of a standard MPI program.
@@ -1037,7 +944,7 @@ at an appropriate point in your application to force output.</p>
 </div>
 </section>
 <section id="flog-options-command-line">
-<h3>FLOG Options (Command-Line)<a class="headerlink" href="#flog-options-command-line" title="Permalink to this headline">¶</a></h3>
+<h3>FLOG Options (Command-Line)<a class="headerlink" href="#flog-options-command-line" title="Permalink to this heading"></a></h3>
 <p>We have already covered the <code class="docutils literal notranslate"><span class="pre">--flog-tags</span></code> option.
 There are currently two other options that control FLOG output:</p>
 <ul class="simple">
@@ -1073,7 +980,7 @@ level of output with FLOG and FleCSI.</p>
 </section>
 </section>
 <section id="example-4-caliper-annotations">
-<h2>Example 4: Caliper Annotations<a class="headerlink" href="#example-4-caliper-annotations" title="Permalink to this headline">¶</a></h2>
+<h2>Example 4: Caliper Annotations<a class="headerlink" href="#example-4-caliper-annotations" title="Permalink to this heading"></a></h2>
 <p>The <a class="reference external" href="https://software.llnl.gov/Caliper/">Caliper</a> Annotation interface in
 FleCSI is used internally to inject Caliper instrumentation throughout the code.
 This enables users to investigate runtime overhead and application performance
@@ -1100,7 +1007,7 @@ user-level threads, so additional care must be practiced when using
 annotations with this runtime.</p>
 </div>
 <section id="adding-annotations">
-<h3>Adding Annotations<a class="headerlink" href="#adding-annotations" title="Permalink to this headline">¶</a></h3>
+<h3>Adding Annotations<a class="headerlink" href="#adding-annotations" title="Permalink to this heading"></a></h3>
 <p>In addition to instrumenting FleCSI runtime overhead, the annotation interface
 can be used to add annotations to applications.  This allows users to instrument
 their code and use Caliper to collect timing data.  An annotation for a code
@@ -1111,52 +1018,52 @@ grouping for annotations.  In caliper, this can be used to filter and aggregate
 annotations using the <a class="reference external" href="http://software.llnl.gov/Caliper/calql.html">caliper query language</a>.</p>
 <p>Scope guards are used to annotate a code region.
 Consider the main function for this example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"></span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
 
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span><span class="w"></span>
-<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span><span class="w"></span>
-<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span><span class="w"></span>
+<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
 
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
 
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
 <p>A scope guard is used to annotate the top level task:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span><span class="w"></span>
-<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span><span class="w"></span>
-<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>For this region, the FleCSI execution context <code class="docutils literal notranslate"><span class="pre">annotation::execution</span></code> is
 specified along with a detail level of <code class="docutils literal notranslate"><span class="pre">annnotation::detail::low</span></code>.
 To avoid hard coding strings throughout an application, annotation regions can be
 specified using structs that inherit from <code class="docutils literal notranslate"><span class="pre">annotation::region</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">user_execution</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">context</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">name</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;User-Execution&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">user_execution</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">context</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">name</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;User-Execution&quot;</span><span class="p">;</span>
+<span class="p">};</span>
 
-<span class="k">struct</span> <span class="nc">main_region</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;main&quot;</span><span class="p">};</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">main_region</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;main&quot;</span><span class="p">};</span>
+<span class="p">};</span>
 
-<span class="k">struct</span> <span class="nc">sleeper_region</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;sleeper&quot;</span><span class="p">};</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">sleeper_region</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;sleeper&quot;</span><span class="p">};</span>
+<span class="p">};</span>
 
-<span class="k">struct</span> <span class="nc">sleeper_subtask</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;subtask&quot;</span><span class="p">};</span><span class="w"></span>
-<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="w"> </span><span class="n">detail_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">high</span><span class="p">;</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">sleeper_subtask</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">region</span><span class="o">&lt;</span><span class="n">user_execution</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="s">&quot;subtask&quot;</span><span class="p">};</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="w"> </span><span class="n">detail_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">high</span><span class="p">;</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>This first defines a new annotation context <code class="docutils literal notranslate"><span class="pre">user_execution</span></code> by inheriting
@@ -1164,16 +1071,16 @@ from <code class="docutils literal notranslate"><span class="pre">annotation::co
 regions are then defined using this context.  The first two regions use the
 default detail level of <code class="docutils literal notranslate"><span class="pre">annotation::detail::medium</span></code>.
 The main and sleeper functions are then annotated using region-based scope guards:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">sleeper_subtask</span><span class="o">&gt;</span><span class="p">(),</span><span class="w"></span>
-<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">400</span><span class="p">));</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">sleeper_subtask</span><span class="o">&gt;</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">400</span><span class="p">));</span>
 </pre></div>
 </div>
 </section>
 <section id="generating-reports">
-<h3>Generating Reports<a class="headerlink" href="#generating-reports" title="Permalink to this headline">¶</a></h3>
+<h3>Generating Reports<a class="headerlink" href="#generating-reports" title="Permalink to this heading"></a></h3>
 <p><a class="reference external" href="http://software.llnl.gov/Caliper/configuration.html">Caliper configuration files</a> can be used to generate
 configure caliper to generate reports for annotated regions of the code.  For
 example, consider the following caliper configuration file:</p>
@@ -1223,50 +1130,33 @@ file named <code class="docutils literal notranslate"><span class="pre">report.c
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="control.html" class="btn btn-neutral float-right" title="Control Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="control.html" class="btn btn-neutral float-right" title="Control Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright Copyright (C) 2016, Triad National Security, LLC.
-
-    </p>
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
   <style>
     /* Contents caption */

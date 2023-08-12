@@ -58,7 +58,7 @@ var group__unstructured =
       [ "entity_lists", "structflecsi_1_1topo_1_1unstructured__specialization.html#a9675180b45f8b8a2a916d050c9160055", null ],
       [ "entity_list", "structflecsi_1_1topo_1_1unstructured__specialization.html#a7f4724fdf4cefba1bebc9b33eeb06f16", null ]
     ] ],
-    [ "flecsi::topo::unstructured_impl::intersect_connectivity", "group__unstructured.html#gaf8e287c6b709b69685ed203fb2fca8c2", null ],
+    [ "flecsi::topo::unstructured_impl::intersect_connectivity", "group__unstructured.html#ga700d0421c6b6a0bf5fa22ce5f7d92a84", null ],
     [ "flecsi::topo::unstructured_impl::coloring_utils::color_primaries", "group__unstructured.html#gad3a2378568dad9a6361144af59b51fd3", null ],
     [ "flecsi::topo::unstructured_impl::coloring_utils::migrate_primaries", "group__unstructured.html#gaaeef22024e26ae0637e5f5d7ee739e30", null ],
     [ "flecsi::topo::unstructured_impl::coloring_utils::request_owners", "group__unstructured.html#ga3b2c84389bc92f4660f00054a93f531f", null ],

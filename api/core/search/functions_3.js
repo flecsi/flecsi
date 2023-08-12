@@ -13,5 +13,5 @@ var searchData=
   ['dimensioned_5farray_10',['dimensioned_array',['../classflecsi_1_1util_1_1dimensioned__array.html#adab75a9a679ac17ab423f602752e8977',1,'flecsi::util::dimensioned_array::dimensioned_array(std::initializer_list&lt; TYPE &gt; list)'],['../classflecsi_1_1util_1_1dimensioned__array.html#a17e9ddee8c59fbe13415dd5cca219bb9',1,'flecsi::util::dimensioned_array::dimensioned_array(ARGS... args)'],['../classflecsi_1_1util_1_1dimensioned__array.html#a4eaf2769fd62853439c4e2404fcf8a5e',1,'flecsi::util::dimensioned_array::dimensioned_array(TYPE const &amp;val)']]],
   ['dimensions_11',['dimensions',['../structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html#ab08c317ac345826c08b1c88793504baa',1,'flecsi::topo::narray_impl::index_definition']]],
   ['disable_5fbuffer_12',['disable_buffer',['../classflecsi_1_1flog_1_1tee__buffer__t.html#a50da3da0d2cd5307e8e6688668efb599',1,'flecsi::flog::tee_buffer_t::disable_buffer()'],['../structflecsi_1_1flog_1_1tee__stream__t.html#a8a0a999529e744c0ade04f129758457e',1,'flecsi::flog::tee_stream_t::disable_buffer()']]],
-  ['distance_13',['distance',['../group__point.html#ga70d89ebcd1c0e976261f4b162a502b8f',1,'flecsi::util']]]
+  ['distance_13',['distance',['../group__point.html#ga102e43a65ed15e82a32f206d114cabee',1,'flecsi::util']]]
 ];

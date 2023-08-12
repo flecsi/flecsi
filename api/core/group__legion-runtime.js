@@ -13,7 +13,7 @@ var group__legion_runtime =
       [ "create_reduction_instance", "classflecsi_1_1run_1_1mpi__mapper__t.html#a075b7ba17f76d8cf6aa651687affd3a4", null ],
       [ "find_variant", "classflecsi_1_1run_1_1mpi__mapper__t.html#a34be16e65fcd175e1ef5059b374519f4", null ]
     ] ],
-    [ "flecsi::run::mapper_registration", "group__legion-runtime.html#ga9497f8ecbaba05b20e78f4dd6da839f0", null ],
+    [ "flecsi::run::mapper_registration", "group__legion-runtime.html#ga888156213fe841362ad9168aa15176af", null ],
     [ "flecsi::run::mapper::force_rank_match", "group__legion-runtime.html#ga700b3d72d33eaae12282c4b2a8ddf4d1", null ],
     [ "flecsi::run::mapper::prefer_gpu", "group__legion-runtime.html#ga4dd0af770088ee250567fc029178faa6", null ],
     [ "flecsi::run::mapper::prefer_omp", "group__legion-runtime.html#gac13c265eed3eac3cdfe85a6bc363a6a7", null ]

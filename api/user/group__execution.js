@@ -40,8 +40,8 @@ var group__execution =
       [ "flecsi::omp", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a4c4d94738d6aeddd4769ef627c9a6c3e", null ],
       [ "flecsi::mpi", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c", null ]
     ] ],
-    [ "flecsi::execute", "group__execution.html#gac6328deee00aad3aaab7e95dbd4b71f0", null ],
-    [ "flecsi::make_partial", "group__execution.html#ga911b4df5553894e7a2dfb6ed3792adb9", null ],
-    [ "flecsi::reduce", "group__execution.html#gad544135370dc72d08d7d428dd9c3a9ab", null ],
+    [ "flecsi::execute", "group__execution.html#gae434764d0880e207c2a16b8b6485e489", null ],
+    [ "flecsi::make_partial", "group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6", null ],
+    [ "flecsi::reduce", "group__execution.html#ga7523244fc7cc96b87ebfe84c68482535", null ],
     [ "flecsi::default_accelerator", "group__execution.html#ga9e9a08cdd28a4ed3b153a4b587974190", null ]
 ];

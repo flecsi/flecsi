@@ -107,7 +107,6 @@ var hierarchy =
       [ "specialization< user, meta< P > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< user, meta< Policy > >", "structflecsi_1_1topo_1_1specialization.html", null ],
       [ "specialization< narray, narray_specialization >", "structflecsi_1_1topo_1_1specialization.html", [
-        [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", null ],
         [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", null ]
       ] ],
       [ "specialization< ragged_category, ragged< T > >", "structflecsi_1_1topo_1_1specialization.html", null ],

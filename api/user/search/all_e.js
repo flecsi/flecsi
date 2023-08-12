@@ -1,8 +1,8 @@
 var searchData=
 [
   ['p_0',['p',['../group__serial.html#ga23fb85e63b19f54698db2b7a126c5028',1,'flecsi::util::serial::cast']]],
-  ['parallel_5ffor_1',['parallel_for',['../group__kernel.html#ga5b449447d96b6ed7e7044af4396d5716',1,'flecsi::exec']]],
-  ['parallel_5freduce_2',['parallel_reduce',['../group__kernel.html#gaf8363e761f74faec9b1d2fdc5b423729',1,'flecsi::exec']]],
+  ['parallel_5ffor_1',['parallel_for',['../group__kernel.html#gadcb1280986f7e3ce32f56866e883de38',1,'flecsi::exec']]],
+  ['parallel_5freduce_2',['parallel_reduce',['../group__kernel.html#gaca59feefdea8ba70944196b24a3b8d25',1,'flecsi::exec']]],
   ['particle_3',['particle',['../group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa36946d784c39daca3325ed9770954038',1,'flecsi::data']]],
   ['particle_5faccessor_4',['particle_accessor',['../structflecsi_1_1data_1_1particle__accessor.html',1,'flecsi::data']]],
   ['particle_5faccessor_3c_20t_2c_20p_2c_20false_20_3e_5',['particle_accessor&lt; T, P, false &gt;',['../structflecsi_1_1data_1_1particle__accessor.html',1,'flecsi::data']]],
@@ -18,13 +18,13 @@ var searchData=
   ['predefined_20specializations_15',['Predefined specializations',['../group__spec.html',1,'']]],
   ['prefix_5frange_16',['prefix_range',['../structflecsi_1_1exec_1_1prefix__range.html',1,'flecsi::exec']]],
   ['privilege_5fcount_17',['privilege_count',['../structflecsi_1_1topo_1_1specialization.html#a0981a1389ffe9b9c1ca7c983fedc40d0',1,'flecsi::topo::specialization']]],
-  ['process_18',['process',['../group__runtime.html#ga5e66474803b7f0fa447b4d1bf0820c27',1,'flecsi']]],
+  ['process_18',['process',['../group__runtime.html#ga61ba6a8929e7e4d441487240ea166057',1,'flecsi']]],
   ['process_5ftopology_19',['process_topology',['../group__data.html#gac54f2e985c94bff43579f23133a1e2be',1,'flecsi']]],
-  ['processes_20',['processes',['../group__runtime.html#ga27beb4b04470aebc8736f63258b21554',1,'flecsi']]],
+  ['processes_20',['processes',['../group__runtime.html#ga37ced112a4c46810db72eea960466b73',1,'flecsi']]],
   ['product_21',['product',['../structflecsi_1_1exec_1_1fold_1_1product.html',1,'flecsi::exec::fold']]],
   ['profiling_22',['Profiling',['../group__annotation.html',1,'']]],
-  ['program_23',['program',['../group__runtime.html#ga43e9187f70cd75becf3f3ade5b0f5733',1,'flecsi']]],
+  ['program_23',['program',['../group__runtime.html#ga0556d87ef670da4978545c24a3ece334',1,'flecsi']]],
   ['program_5foption_24',['program_option',['../structflecsi_1_1program__option.html',1,'program_option&lt; ValueType &gt;'],['../structflecsi_1_1program__option.html#aa0ec18dfa66af6b148ea90f8876501bd',1,'flecsi::program_option::program_option(const char *name, const char *help, size_t count, std::function&lt; bool(boost::any const &amp;, std::stringstream &amp;ss)&gt; check=default_check)'],['../structflecsi_1_1program__option.html#a7b9e8b3a6177ddc39e1dc6130e4bc01b',1,'flecsi::program_option::program_option(const char *section, const char *flag, const char *help, std::initializer_list&lt; initializer_value &gt; values={}, std::function&lt; bool(boost::any const &amp;, std::stringstream &amp;ss)&gt; check=default_check)']]],
-  ['put_25',['put',['../structflecsi_1_1util_1_1serial_1_1convert.html#ad295c2558d83147a8313db7b71368d99',1,'flecsi::util::serial::convert::put()'],['../structflecsi_1_1util_1_1serial_1_1value.html#a7d9906f720dbfe7c14528809afd93546',1,'flecsi::util::serial::value::put()'],['../group__serial.html#ga2b97770c2c9952a9641c6d608ef610bc',1,'flecsi::util::serial::traits::put()'],['../group__serial.html#ga6aa7a82b9fe529299feb5d7f36027627',1,'flecsi::util::serial::put(P &amp;p, const TT &amp;... tt)']]],
-  ['put_5ftuple_26',['put_tuple',['../group__serial.html#ga708dfb5a7e12989d083e37c5d509d673',1,'flecsi::util::serial']]]
+  ['put_25',['put',['../structflecsi_1_1util_1_1serial_1_1convert.html#ad295c2558d83147a8313db7b71368d99',1,'flecsi::util::serial::convert::put()'],['../structflecsi_1_1util_1_1serial_1_1value.html#a7d9906f720dbfe7c14528809afd93546',1,'flecsi::util::serial::value::put()'],['../group__serial.html#ga2b97770c2c9952a9641c6d608ef610bc',1,'flecsi::util::serial::traits::put()'],['../group__serial.html#ga20eefed72b07745b243e4ea4eedef3d8',1,'flecsi::util::serial::put(P &amp;p, const TT &amp;... tt)']]],
+  ['put_5ftuple_26',['put_tuple',['../group__serial.html#ga020b9e348733861bf13cbfa2df5ad91f',1,'flecsi::util::serial']]]
 ];

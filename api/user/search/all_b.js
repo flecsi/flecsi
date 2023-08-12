@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['make_0',['make',['../group__launch.html#ga42d946efc0aef77a66c733184d34a3fe',1,'flecsi::data::launch::make(topology_slot&lt; P &gt; &amp;t)'],['../group__launch.html#ga6590a95c8b66c5291a63edfe7b449a0c',1,'flecsi::data::launch::make(topology_slot&lt; P &gt; &amp;t, const Claims &amp;c)']]],
+  ['make_0',['make',['../group__launch.html#ga19f0856c720fd6540166c426cb24d2ca',1,'flecsi::data::launch::make(topology_slot&lt; P &gt; &amp;t)'],['../group__launch.html#ga570a292e0eb7c4e3a2852daae2be1a57',1,'flecsi::data::launch::make(topology_slot&lt; P &gt; &amp;t, const Claims &amp;c)']]],
   ['make_5fguard_1',['make_guard',['../structflecsi_1_1exec_1_1trace.html#ab5eb6ab1032879300fceda594e89c325',1,'flecsi::exec::trace']]],
-  ['make_5fpartial_2',['make_partial',['../group__execution.html#ga911b4df5553894e7a2dfb6ed3792adb9',1,'flecsi']]],
+  ['make_5fpartial_2',['make_partial',['../group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6',1,'flecsi']]],
   ['map_5fbase_3',['map_base',['../structflecsi_1_1util_1_1map__base.html',1,'flecsi::util']]],
   ['map_5fbase_3c_20equal_5fmap_20_3e_4',['map_base&lt; equal_map &gt;',['../structflecsi_1_1util_1_1map__base.html',1,'flecsi::util']]],
   ['map_5fbase_3c_20offsets_20_3e_5',['map_base&lt; offsets &gt;',['../structflecsi_1_1util_1_1map__base.html',1,'flecsi::util']]],
@@ -10,10 +10,10 @@ var searchData=
   ['max_7',['max',['../structflecsi_1_1exec_1_1fold_1_1max.html',1,'flecsi::exec::fold']]],
   ['mdbase_8',['mdbase',['../structflecsi_1_1util_1_1detail_1_1mdbase.html',1,'mdbase&lt; T, D &gt;'],['../structflecsi_1_1util_1_1detail_1_1mdbase.html#a8ea307f2c46ad12a08fa466ee3105740',1,'flecsi::util::detail::mdbase::mdbase()']]],
   ['mdcolex_9',['mdcolex',['../structflecsi_1_1util_1_1mdcolex.html',1,'mdcolex&lt; T, D &gt;'],['../structflecsi_1_1topo_1_1narray_1_1access.html#aa5ce6d57355fcd7986143133f5c58a5b',1,'flecsi::topo::narray::access::mdcolex()']]],
-  ['mdiota_5fview_10',['mdiota_view',['../group__kernel.html#ga6235380f76f4c74f2bfa43421ae053e9',1,'flecsi::exec']]],
+  ['mdiota_5fview_10',['mdiota_view',['../group__kernel.html#ga79deec12cea01d954b674b6959e372f1',1,'flecsi::exec']]],
   ['mdspan_11',['mdspan',['../structflecsi_1_1util_1_1mdspan.html',1,'mdspan&lt; T, D &gt;'],['../structflecsi_1_1topo_1_1narray_1_1access.html#a753aa95b55b177c8e11846fad0acf413',1,'flecsi::topo::narray::access::mdspan()'],['../structflecsi_1_1util_1_1mdspan.html#a6928d0ea351aaa082061ec5118fb71b5',1,'flecsi::util::mdspan::mdspan()']]],
   ['meta_12',['meta',['../structflecsi_1_1run_1_1control__base.html#ab04a2120f5301df86c516f4f699126cd',1,'flecsi::run::control_base::meta()'],['../structflecsi_1_1run_1_1control.html#a0c84c11c741cae50f176fc971c322aa3',1,'flecsi::run::control::meta()']]],
-  ['midpoint_13',['midpoint',['../group__point.html#ga279ac3ba53dffc31aa0859b4b07095a2',1,'flecsi::util']]],
+  ['midpoint_13',['midpoint',['../group__point.html#ga59b51194c76121fe231bb90ceafcdcb8',1,'flecsi::util']]],
   ['min_14',['min',['../structflecsi_1_1exec_1_1fold_1_1min.html',1,'flecsi::exec::fold']]],
   ['mpi_15',['mpi',['../group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c',1,'flecsi']]],
   ['mpi_16',['MPI',['../group__mpi-utils.html',1,'']]],
