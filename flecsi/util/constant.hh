@@ -145,12 +145,19 @@ struct key_tuple : std::tuple<typename VT::type...> {
   }
 
   template<auto V>
+  static constexpr auto passthru() {
+    return keys::template index<V>;
+  };
+
+  template<auto V>
   constexpr auto & get() {
-    return std::get<keys::template index<V>>(*this);
+    constexpr auto idx = passthru<V>();
+    return std::get<idx>(*this);
   }
   template<auto V>
   constexpr const auto & get() const {
-    return std::get<keys::template index<V>>(*this);
+    constexpr auto idx = passthru<V>();
+    return std::get<idx>(*this);
   }
 }; // struct key_tuple
 
