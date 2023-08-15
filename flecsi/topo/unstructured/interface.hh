@@ -386,7 +386,11 @@ private:
     index_spaces>
     size_;
   connect_access<Policy, Privileges> connect_;
-  lists_t<accessor<special_field>, Policy> special_;
+  template<typename T>
+  static constexpr T & pass_through(T & in) {
+    return in;
+  }
+  lists_t<accessor<pass_through(special_field)>, Policy> special_;
 
 }; // struct unstructured<Policy>::access
 

@@ -546,11 +546,16 @@ struct narray<Policy>::access {
   }
 
 private:
-  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
+  template<typename T>
+  static constexpr T & pass_through(T & in) {
+    return in;
+  }
+  data::scalar_access<pass_through(narray::policy_meta_field), Priv>
+    policy_meta_;
   util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
     size_;
 
-  data::scalar_access<narray::meta_field, Priv> meta_;
+  data::scalar_access<pass_through(narray::meta_field), Priv> meta_;
 
   /*!
    Method to access global extents of index space S along

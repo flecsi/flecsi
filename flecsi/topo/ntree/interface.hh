@@ -571,19 +571,32 @@ template<Privileges Priv>
 struct ntree<Policy>::access {
   template<const auto & F>
   using accessor = data::accessor_member<F, Priv>;
+
+  template<typename T>
+  static constexpr T & pass_thru(T & in) {
+    return in;
+  };
+
+  template<typename T>
+  struct pass_thru_t {
+    using type = T;
+  };
+
+  using dummy = typename pass_thru_t<ntree<Policy>>::type;
+
   /// Entities keys
-  accessor<ntree::e_keys> e_keys;
+  accessor<pass_thru(dummy::e_keys)> e_keys;
   /// Nodes keys
-  accessor<ntree::n_keys> n_keys;
+  accessor<pass_thru(dummy::n_keys)> n_keys;
   // Entities interaction fields
-  accessor<ntree::e_i> e_i;
+  accessor<pass_thru(dummy::e_i)> e_i;
   /// Nodes interaction fields
-  accessor<ntree::n_i> n_i;
+  accessor<pass_thru(dummy::n_i)> n_i;
 
 private:
-  accessor<ntree::data_field> data_field;
-  accessor<ntree::hcells> hcells;
-  accessor<ntree::meta_field> mf;
+  accessor<pass_thru(dummy::data_field)> data_field;
+  accessor<pass_thru(dummy::hcells)> hcells;
+  accessor<pass_thru(dummy::meta_field)> mf;
 
 public:
   template<class F>
