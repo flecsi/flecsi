@@ -57,7 +57,10 @@ struct prolog : task_prologue<ProcessorType> {
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
-    std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
+    if constexpr(sizeof...(AA) > 0u) {
+      auto lambda = [&](auto &... pp) { (visit(pp, (aa)), ...); };
+      std::apply(lambda, p);
+    }
   }
 
 private:
