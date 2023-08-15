@@ -56,8 +56,8 @@ struct atomic_ref : private atomic_base {
   bool compare_exchange_strong(T & expected,
     T desired,
     std::memory_order = {}) const noexcept {
-    const std::unique_lock guard(
-      lock[reinterpret_cast<std::uintptr_t>(p) / alignof(T) % locks]);
+    const std::unique_lock guard{
+      lock[reinterpret_cast<std::uintptr_t>(p) / alignof(T) % locks]};
     const bool fail = std::memcmp(p, &expected, sizeof(T));
     std::memcpy(fail ? &expected : p, fail ? p : &desired, sizeof(T));
     return !fail;

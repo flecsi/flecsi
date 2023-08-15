@@ -129,8 +129,8 @@ reduce_internal(Args &&... args) {
 
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
-  const auto task = leg::task_id<wrap::execute,
-    (Attributes & ~mpi) | as_mask(wrap::LegionProcessor)>;
+  const auto task = leg::task_id<*&wrap::execute,
+    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
 
   const auto add = [&](auto & l) {
     for(auto & req : pro.region_requirements())

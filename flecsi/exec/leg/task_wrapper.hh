@@ -179,7 +179,7 @@ detail::register_task() {
     "Legion tasks cannot use MPI");
 
   const std::string name = util::symbol<*TASK>();
-  Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
+  Legion::TaskVariantRegistrar registrar(task_id<*&*TASK, A>, name.c_str());
   Legion::Processor::Kind kind;
   switch(processor_type) {
     case task_processor_type_t::toc:
@@ -249,7 +249,7 @@ struct task_wrapper {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(task_args, tname);
+    const param_buffers buf{task_args, tname};
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_accessors<P>(runtime, context, regions, task->futures)(task_args));
     return ann::rguard<ann::execute_task_user>(tname),
@@ -282,7 +282,7 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
 
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
-    const param_buffers buf(*p, tname);
+    const param_buffers buf{*p, tname};
     (ann::rguard<ann::execute_task_bind>(tname)),
       bind_accessors<LegionProcessor>(runtime, context, regions, task->futures)(
         *p);
