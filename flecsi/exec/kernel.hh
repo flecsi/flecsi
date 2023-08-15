@@ -166,34 +166,65 @@ struct full_range {
   }
 };
 
+template<std::size_t N, std::size_t II, class RR, class AR>
+class nested_f
+{
+  AR & ret;
+  const RR & rr;
+
+public:
+  __attribute__((host)) __attribute__((device))
+  nested_f(const RR & Rr, AR & Ret)
+    : rr(Rr), ret(Ret) {}
+  __attribute__((host)) __attribute__((device)) auto operator()(
+    range_index & i) {
+    if constexpr(II < N - 1) {
+      const auto n = rr.size(), ret = i % n;
+      i /= n;
+      return ret;
+    }
+    else {
+      return i;
+    }
+  }
+};
+
+template<class IdxSeq, class... RR>
+class mv_f;
+
+template<std::size_t... II, class... RR>
+class mv_f<std::index_sequence<II...>, RR...>
+{
+  std::tuple<RR...> my_tuple;
+  std::size_t N = sizeof...(RR);
+  std::index_sequence<II...> idx_seq;
+
+public:
+  __attribute__((host)) __attribute__((device))
+  mv_f(std::index_sequence<II...>, const RR &... tt)
+    : my_tuple(tt...) {}
+
+  __attribute__((host)) __attribute__((device)) auto operator()(
+    range_index i) const {
+    static constexpr std::size_t N = sizeof...(RR);
+    std::array<range_index, N> ret;
+    auto p = ret.end();
+    ((*--p =
+         nested_f<N, II, RR, std::array<range_index, N>>{
+           std::get<II>(my_tuple), ret}(i) +
+         std::get<II>(my_tuple).start()),
+      ...);
+    return ret;
+  }
+};
+
 template<std::size_t... II, class... RR>
 FLECSI_INLINE_TARGET auto
-mdiota_view(std::index_sequence<II...>, const RR &... rr) {
+mdiota_view(std::index_sequence<II...> ii, const RR &... rr) {
   static constexpr std::size_t N = sizeof...(RR);
   return util::transform_view(
     util::iota_view<range_index>(0, (1 * ... * rr.size())),
-    [rr...](range_index i) {
-      std::array<range_index, N> ret;
-      auto p = ret.end();
-      ((*--p =
-           [&i, &rr = rr] {
-             // capture workaround instead of [&] due to GCC bug
-             // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103876
-             if constexpr(II < N - 1) {
-               const auto n = rr.size(), ret = i % n;
-               i /= n;
-               return ret;
-             }
-             else {
-               // avoid unused-lambda-capture error due to workaround
-               (void)rr;
-               return i;
-             }
-           }() +
-           rr.start()),
-        ...);
-      return ret;
-    });
+    mv_f<std::index_sequence<II...>, RR...>{ii, rr...});
 }
 // An extra helper is needed to use II to convert full_range objects.
 template<class M, std::size_t... II, class R>
