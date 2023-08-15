@@ -395,7 +395,7 @@ struct borrow_base {
   /// The core borrow topology for a subtopology.
   /// \tparam core topology type
   template<class C>
-  using wrap = typename borrow<policy_t<C>>::core;
+  using wrap = typename topo::borrow<policy_t<C>>::core;
 
   /// Get the derived object from a \c borrow_extra specialization.
   /// \param e usually \c *this
