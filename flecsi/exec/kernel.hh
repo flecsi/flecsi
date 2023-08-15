@@ -249,8 +249,25 @@ mdiota_view(const M & m, RR... rr) {
     m, std::index_sequence_for<RR...>(), std::make_tuple(rr...));
 }
 
-/// Call a function on each element of a range, potentially in parallel.
-/// If GPU support is available, \a lambda is executed there.
+// This could be a lambda in parallel_for, but NVCC doesn't like that.
+template<class R, class F>
+struct index_wrapper {
+  R r;
+  F f;
+  FLECSI_TARGET void operator()(int i) {
+    f(r.begin()[i]);
+  }
+  FLECSI_TARGET void operator()(int i) const {
+    f(r.begin()[i]);
+  }
+};
+template<class R, class F>
+index_wrapper(R, F) -> index_wrapper<R, F>; // automatic in C++20
+
+/// This function is a wrapper for Kokkos::parallel_for that has been adapted to
+/// work with random access ranges common in FleCSI topologies. In particular,
+/// this function invokes a map from the normal kernel index space to the FleCSI
+/// index space, which may require indirection.
 /// \param p sized random-access range
 /// \param name operation name, for debugging
 template<typename Policy, typename Lambda>
@@ -261,10 +278,10 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
 #if defined(FLECSI_ENABLE_KOKKOS)
     Kokkos::parallel_for(name,
       policy_type,
-      [it = std::forward<Policy>(p).range,
-        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
-        f(it.begin()[i]);
-      });
+      // [it, f] FLECSI_TARGET(int i) {
+      //   f(it.begin()[i]);
+      // });
+      index_wrapper{it, f});
 #else
     (void)name;
     for(auto i : policy_type)
@@ -313,8 +330,25 @@ struct reduce_ref {
 };
 } // namespace detail
 
-/// Perform a reduction based on the elements of a range, potentially in
-/// parallel.  If GPU support is available, \a lambda is executed there.
+// This could be a lambda in parallel_for, but NVCC doesn't like that.
+template<class I, class F, class R, class T>
+struct index_reduce_wrapper {
+  using ref = detail::reduce_ref<R, T>;
+  I it;
+  F f;
+  FLECSI_TARGET void operator()(int i, T & tmp) {
+    f(it.begin()[i], ref{tmp});
+  }
+  FLECSI_TARGET void operator()(int i, T & tmp) const {
+    f(it.begin()[i], ref{tmp});
+  }
+};
+// Partial CTAD isn't a thing, apparently
+// template<class I, class F, class R, class T>
+// index_reduce_wrapper<R, T>(I, F) -> index_reduce_wrapper<I, F, R, T>;
+
+/// This function is a wrapper for Kokkos::parallel_reduce that has been adapted
+/// to work with random access ranges common in FleCSI topologies.
 /// \tparam R reduction operation type
 /// \tparam T data type
 /// \tparam Lambda function of an element of \a p and a function object that
@@ -328,15 +362,15 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
     auto policy_type = p.get_policy(); // before moving
     using ref = detail::reduce_ref<R, T>;
 #if defined(FLECSI_ENABLE_KOKKOS)
-    T res;
-    Kokkos::parallel_reduce(
-      name,
+    kok::wrap<R, T> result;
+    Kokkos::parallel_reduce(name,
       policy_type,
-      [it = std::forward<Policy>(p).range,
-        f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        f(it.begin()[i], ref{tmp});
-      },
-      kok::reducer_t<R, T>(res));
+      // [it, f] FLECSI_TARGET(int i, T& tmp) {
+      //   f(it.begin()[i], ref{tmp});
+      // },
+      index_reduce_wrapper<decltype(it), decltype(f), R, T>{it, f},
+      result.kokkos());
+    return result.reference();
 #else
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
