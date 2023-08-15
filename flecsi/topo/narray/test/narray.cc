@@ -47,19 +47,36 @@ field_helper(typename mesh<D>::template accessor<ro> m,
   }
 } // field_helper
 
+template<typename U>
+struct init_field_functor {
+  U c;
+  void FLECSI_TARGET operator()(auto & x) const {
+    x = c;
+  };
+};
+
 template<std::size_t D>
 void
 init_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(m, ca, [c = color()](auto & x) { x = c; });
+  auto c = color();
+  return field_helper<D>(m, ca, init_field_functor<decltype(c)>{c});
 } // init_field
+
+template<typename U>
+struct update_field_functor {
+  U c;
+  void FLECSI_TARGET operator()(auto & x) const {
+    x = pow(10, c);
+  };
+};
 
 template<std::size_t D>
 void
 update_field(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(
-    m, ca, [c = color()](auto & x) { x = std::pow(10, c); });
+  auto c = color();
+  return field_helper<D>(m, ca, update_field_functor<decltype(c)>{c});
 } // update_field
 
 template<std::size_t D>
