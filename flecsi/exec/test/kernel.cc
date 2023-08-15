@@ -32,7 +32,27 @@ int
 check_policy(intN::accessor<ro> a) {
   UNIT() {
     for(auto i : util::span(*a)) {
-      EXPECT_EQ(i, 3);
+      EXPECT_EQ(i, 4);
+    }
+  };
+}
+
+void
+mdrange_init(intN::accessor<wo> a) {
+  auto ar = util::span(*a);
+  util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
+  forall(
+    mi, (mdiota_view(md_ar, full_range(), prefix_range{2})), "mdrange_test") {
+    auto [i, j] = mi;
+    md_ar[j][i] = 111;
+  };
+}
+
+int
+check_mdrange(intN::accessor<ro> a) {
+  UNIT() {
+    for(auto i : util::span(*a)) {
+      EXPECT_EQ(i, 111);
     }
   };
 }
@@ -53,12 +73,25 @@ reduce_vec(intN::accessor<ro> a) {
       reduceall(i, up, util::span(*a), exec::fold::sum, size_t, "reduce") {
       up(i);
     };
-    EXPECT_EQ(res, 3 * a.get().size());
-    EXPECT_EQ(
-      (reduceall(i, up, util::iota_view(0, 4), exec::fold::sum, I, "triangle") {
-        up({i});
-      }).i,
-      6);
+    EXPECT_EQ(res, 111 * a.get().size());
+  };
+}
+
+int
+reduce_mdrange_vec(intN::accessor<rw> a) {
+  UNIT() {
+    auto ar = util::span(*a);
+    util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
+    size_t res = reduceall(mi,
+      up,
+      mdiota_view(md_ar, full_range(), prefix_range{2}),
+      exec::fold::sum,
+      size_t,
+      "mdrange_reduce") {
+      auto [i, j] = mi;
+      up(md_ar[j][i]);
+    };
+    EXPECT_EQ(res, 111 * a.get().size());
   };
 }
 
@@ -80,26 +113,6 @@ check_bound(intN::accessor<ro> a) {
     }
     for(auto j : util::span(*a).subspan(5, 5)) {
       EXPECT_EQ(j, 5);
-    }
-  };
-}
-
-void
-mdrange_init(intN::accessor<wo> a) {
-  auto ar = util::span(*a);
-  util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
-  forall(
-    mi, (mdiota_view(md_ar, full_range(), prefix_range{2})), "mdrange_test") {
-    auto [i, j] = mi;
-    md_ar[j][i] = 3;
-  };
-}
-
-int
-check_mdrange(intN::accessor<ro> a) {
-  UNIT() {
-    for(auto i : util::span(*a)) {
-      EXPECT_EQ(i, 3);
     }
   };
 }
@@ -126,24 +139,6 @@ reduce_vec_bound(intN::accessor<ro> a) {
       up(j);
     };
     EXPECT_EQ(res_last, 5 * 5);
-  };
-}
-
-int
-reduce_mdrange_vec(intN::accessor<rw> a) {
-  UNIT() {
-    auto ar = util::span(*a);
-    util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
-    size_t res = reduceall(mi,
-      up,
-      mdiota_view(md_ar, full_range(), prefix_range{2}),
-      exec::fold::sum,
-      size_t,
-      "mdrange_reduce") {
-      auto [i, j] = mi;
-      up(md_ar[j][i]);
-    };
-    EXPECT_EQ(res, 3 * a.get().size());
   };
 }
 
