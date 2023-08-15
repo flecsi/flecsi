@@ -520,8 +520,10 @@ private:
 
 /// A very simple emulation of std::ranges::transform_view from C++20.
 /// This class is supported for GPU execution.
+struct transform_view_tag {};
+
 template<class C, class F>
-struct transform_view {
+struct transform_view : transform_view_tag {
 private:
   C c;
   F f;
@@ -636,7 +638,9 @@ public:
   }; // struct iterator
 
   /// Wrap a container.
-  constexpr transform_view(C c, F f = {}) : c(std::move(c)), f(std::move(f)) {}
+  __attribute__((device))
+  __attribute__((host)) inline constexpr transform_view(C c, F f = {})
+    : c(std::move(c)), f(std::move(f)) {}
 
   FLECSI_INLINE_TARGET
   constexpr iterator<false> begin() noexcept {
