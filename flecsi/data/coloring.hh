@@ -22,12 +22,18 @@ template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
+  template<typename... ARGS>
+  static void emplace_helper(coloring_slot & s, ARGS &&... aa) {
+    s.coloring.emplace(Topo::color(std::forward<ARGS>(aa)...));
+  };
+
   /// Create the coloring object in an MPI task.
   /// \param args arguments to \c Topo::color
   /// \return the created \c Topo::coloring object
   template<typename... ARGS>
   color_type & allocate(ARGS &&... args) {
-    execute<task<ARGS...>, flecsi::mpi>(*this, std::forward<ARGS>(args)...);
+    execute<emplace_helper<ARGS...>, flecsi::mpi>(
+      *this, std::forward<ARGS>(args)...);
     return get();
   } // allocate
 
