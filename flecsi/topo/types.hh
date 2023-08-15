@@ -134,10 +134,11 @@ connect_send(F && f,
   S && s = {}) { // s: topology -> subtopology
   (
     [&] {
+      constexpr auto val = VT::value;
       std::size_t i = 0;
-      for(auto & a : ca.template get<VT::value>())
+      for(auto & a : ca.template get<val>())
         f(a, [&](auto & t) {
-          return cf.template get<VT::value>()[i++](std::invoke(s, t.get()));
+          return cf.template get<val>()[i++](std::invoke(s, t.get()));
         });
     }(),
     ...);
@@ -151,10 +152,11 @@ lists_send(F && f,
 {
   (
     [&] {
+      constexpr auto val = VT::value;
       std::size_t i = 0;
-      for(auto & a : la.template get<VT::value>()) {
+      for(auto & a : la.template get<val>()) {
         f(a, [&](auto & t) {
-          return lf(std::invoke(s, t.get()).template get<VT::value>()[i++]);
+          return lf(std::invoke(s, t.get()).template get<val>()[i++]);
         });
       }
     }(),
