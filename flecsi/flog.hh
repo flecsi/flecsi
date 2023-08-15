@@ -24,10 +24,6 @@
 
 #include <unistd.h>
 
-namespace flecsi {
-namespace log = flog;
-}
-
 #if defined(FLECSI_ENABLE_FLOG)
 
 namespace flecsi {
