@@ -276,6 +276,10 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
+    // nvcc does not support init capture for extended host device lambdas
+    // so use temporary variables
+    const auto it = std::forward<Policy>(p).range;
+    auto f = std::forward<Lambda>(lambda);
     Kokkos::parallel_for(name,
       policy_type,
       // [it, f] FLECSI_TARGET(int i) {
@@ -360,9 +364,10 @@ T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
-    using ref = detail::reduce_ref<R, T>;
 #if defined(FLECSI_ENABLE_KOKKOS)
     kok::wrap<R, T> result;
+    auto it = std::forward<Policy>(p).range;
+    auto f = std::forward<Lambda>(lambda);
     Kokkos::parallel_reduce(name,
       policy_type,
       // [it, f] FLECSI_TARGET(int i, T& tmp) {
