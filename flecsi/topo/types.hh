@@ -244,6 +244,13 @@ private:
   T t;
 };
 
+template<auto S>
+struct make_ids_helper {
+  auto FLECSI_INLINE_TARGET operator()(const auto & x) const {
+    return id<S>(x);
+  }
+};
+
 /// Specify an iteration over \c id objects.
 /// This function is supported for GPU execution.
 /// \tparam S index space
@@ -252,8 +259,7 @@ private:
 template<auto S, class C>
 FLECSI_INLINE_TARGET auto
 make_ids(C && c) {
-  return util::transform_view(
-    std::forward<C>(c), [](const auto & x) { return id<S>(x); });
+  return util::transform_view(std::forward<C>(c), make_ids_helper<S>{});
 }
 
 template<class T>
