@@ -317,8 +317,42 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 /// \param it variable name to introduce
 /// \param P sized random-access range
 /// \param name debugging name, convertible to \c std::string
+
+template<typename T,
+  std::enable_if_t<!std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<!std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true>
+int __helper_func();
+
+template<typename P>
+struct __ret_type {
+  P policy_;
+  typedef decltype(policy_.range.begin()[0]) type;
+};
+
+template<typename T,
+  std::enable_if_t<std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<!std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true,
+  typename T2 = typename __ret_type<T>::type>
+T2 __helper_func();
+
+template<typename T,
+  std::enable_if_t<!std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true>
+decltype(std::declval<T &&>().begin()[0]) __helper_func();
+
 #define forall(it, P, name)                                                    \
-  ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
+  ::flecsi::exec::forall_t{P, name}                                            \
+      ->*FLECSI_LAMBDA(                                                        \
+           decltype(::flecsi::exec::__helper_func<decltype((P))>()) && it)
 
 namespace detail {
 template<class R, class T>
@@ -421,9 +455,44 @@ make_reduce(P policy, std::string n) {
 /// \param T data type
 /// \param name debugging name, convertible to \c std::string
 /// \return the reduced result
-#define reduceall(it, ref, p, R, T, name)                                      \
-  ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
-                                                 auto && it, auto ref)
+
+template<typename T,
+  std::enable_if_t<!std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<!std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true>
+int __helper_func_reduce();
+
+template<typename P>
+struct __ret_type_reduce {
+  P policy_;
+  typedef decltype(policy_.range[0]) type;
+};
+
+template<typename T,
+  std::enable_if_t<std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true,
+  typename T2 = typename __ret_type_reduce<T>::type>
+T2 __helper_func_reduce();
+
+template<typename T,
+  std::enable_if_t<!std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
+    bool> = true,
+  std::enable_if_t<std::is_base_of_v<::flecsi::util::transform_view_tag,
+                     std::remove_reference_t<T>>,
+    bool> = true>
+decltype(std::declval<T &&>().begin()[0]) __helper_func_reduce();
+
+#define reduceall(it, tmp, p, R, T, name)                                      \
+  ::flecsi::exec::make_reduce<R, T>(p, name)                                   \
+      ->*FLECSI_LAMBDA(                                                        \
+           decltype(::flecsi::exec::__helper_func_reduce<decltype(p)>()) &&    \
+             it,                                                               \
+           ::flecsi::exec::detail::reduce_ref<R, T> && tmp)
 
 /// \}
 } // namespace exec
