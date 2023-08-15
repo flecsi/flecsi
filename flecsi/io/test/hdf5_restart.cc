@@ -14,8 +14,6 @@ using namespace flecsi::data;
 using mesh1d = mesh<1>;
 using ax = mesh1d::axis;
 
-mesh1d::slot m;
-
 const field<double>::definition<mesh1d> m_field_1, m_field_2;
 const field<int>::definition<mesh1d> m_field_i;
 const field<std::size_t>::definition<mesh1d> m_field_s;
@@ -110,60 +108,62 @@ check(mesh1d::accessor<ro> m,
 
 namespace {
 int
-setup() {
-  mesh1d::gcoord indices{64};
-  Color colors{4};
-  mesh1d::index_definition idef;
-  idef.axes = mesh1d::base::make_axes(colors, indices);
-  m.allocate(mesh1d::mpi_coloring(idef));
-  run::context::instance().add_topology(m);
-  return 0;
-}
-} // namespace
-
-template<bool Attach>
-int
 restart_driver() {
   UNIT() {
-    auto & mr = m_field_r1(m).get_elements();
-    mr.growth = {0, 0, 0.25, 0.5, 1};
-    execute<allocate>(mr.sizes());
-    // TODO:  figure out how to resize to the right size on a restart
-    mr.resize();
-    auto & mr2 = m_field_r2(m).get_elements();
-    mr2.growth = {0, 0, 0.25, 0.5, 1};
-    execute<allocate>(mr2.sizes());
-    mr2.resize();
+    mesh1d::slot m;
 
-    auto mf1 = m_field_1(m);
-    auto mf2 = m_field_2(m);
-    auto mfi = m_field_i(m);
-    auto mfs = m_field_s(m);
-    auto mfr1 = m_field_r1(m);
-    auto mfr2 = m_field_r2(m);
+    {
+      mesh1d::gcoord indices{64};
+      Color colors{4};
+      mesh1d::index_definition idef;
+      idef.axes = mesh1d::base::make_axes(colors, indices);
+      m.allocate(mesh1d::mpi_coloring(idef));
+      run::context::instance().add_topology(m);
+    }
 
-    execute<init>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
+    const auto check_attach = [&m](bool Attach) {
+      UNIT() {
+        auto & mr = m_field_r1(m).get_elements();
+        mr.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate>(mr.sizes());
+        // TODO:  figure out how to resize to the right size on a restart
+        mr.resize();
+        auto & mr2 = m_field_r2(m).get_elements();
+        mr2.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate>(mr2.sizes());
+        mr2.resize();
 
-    // Legion backend doesn't support N-to-M yet - use 1 rank/file
-    // MPI backend supports N-to-M restarts - use 2 ranks/file
-    io::io_interface iif(FLECSI_BACKEND == FLECSI_BACKEND_legion ? 1 : 2);
-    auto filename =
-      std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
-    iif.checkpoint_all_fields(filename, Attach);
+        auto mf1 = m_field_1(m);
+        auto mf2 = m_field_2(m);
+        auto mfi = m_field_i(m);
+        auto mfs = m_field_s(m);
+        auto mfr1 = m_field_r1(m);
+        auto mfr2 = m_field_r2(m);
 
-    execute<clear>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
-    iif.recover_all_fields(filename, Attach);
+        execute<init>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
 
-    EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
+        // Legion backend doesn't support N-to-M yet - use 1 rank/file
+        // MPI backend supports N-to-M restarts - use 2 ranks/file
+        io::io_interface iif(FLECSI_BACKEND == FLECSI_BACKEND_legion ? 1 : 2);
+        auto filename =
+          std::string{"hdf5_restart"} + (Attach ? "_w" : "_wo") + ".dat";
+        iif.checkpoint_all_fields(filename, Attach);
+
+        execute<clear>(m, mf1, mf2, mfi, mfs, mfr1, mfr2);
+        iif.recover_all_fields(filename, Attach);
+
+        EXPECT_EQ(test<check>(m, mf1, mf2, mfi, mfs, mfr1, mfr2), 0);
+      };
+    };
+
+    // for MPI:  run test once, since attach flag is ignored.
+    // for Legion:  run test twice, once with and once without attach.
+    EXPECT_EQ(check_attach(true), 0);
+#if defined(FLECSI_ENABLE_LEGION)
+    EXPECT_EQ(check_attach(false), 0);
+#endif
   };
-
-  return 0;
 }
 
-util::unit::initialization<setup> init_mesh;
-// for MPI:  run test once, since attach flag is ignored.
-// for Legion:  run test twice, once with and once without attach.
-util::unit::driver<restart_driver<true>> driver_w;
-#if defined(FLECSI_ENABLE_LEGION)
-util::unit::driver<restart_driver<false>> driver_wo;
-#endif
+util::unit::driver<restart_driver> driver;
+} // namespace

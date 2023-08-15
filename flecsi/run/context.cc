@@ -36,7 +36,7 @@ call::action<do_call, call_policy::single> phone;
 
 } // namespace
 
-arguments::arguments(int argc, char ** argv) {
+arguments::arguments(int argc, char ** argv) : act() {
   act.program = argv[0] ? argv[0] : "";
   act.program = act.program.substr(act.program.rfind('/') + 1);
   cfg.backend.push_back(act.program);

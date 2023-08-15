@@ -142,7 +142,7 @@ Otherwise, the ``definition`` recursively registers appropriate underlying field
 These types are defined in ``field.hh`` (but, as a principal name used by application code, ``field`` appears directly in the ``flecsi`` namespace).
 
 Topology objects are also caller-only; those at the top level are created by the class template ``topology_slot``.
-It defers the initialization of the topology instance, allowing it to be defined as a non-local variable if desired by application code.
+It defers the initialization of the topology instance, allowing it to be used as a member of a control policy object and be initialized by an action.
 It also provides a second phase of initialization that can be used to launch tasks operating on the new topology object.
 Because it operates entirely on dependent types, its header ``topology_slot.hh`` includes nothing but ``flog.hh``.
 

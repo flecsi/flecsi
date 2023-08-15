@@ -12,7 +12,7 @@
 using namespace flecsi;
 
 void
-poisson::action::solve(control_policy &) {
+poisson::action::solve(control_policy & cp) {
   util::annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
@@ -37,13 +37,14 @@ poisson::action::solve(control_policy &) {
       util::annotation::detail::low>
       aguard("poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red, default_accelerator>(m, ud(m), fd(m));
-      execute<task::black, default_accelerator>(m, ud(m), fd(m));
+      execute<task::red, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
+      execute<task::black, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
     } // for
     ita += sub;
 
-    execute<task::discrete_operator>(m, ud(m), Aud(m));
-    auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+    execute<task::discrete_operator>(cp.m, ud(cp.m), Aud(cp.m));
+    auto residual =
+      reduce<task::diff, exec::fold::sum>(cp.m, fd(cp.m), Aud(cp.m));
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;

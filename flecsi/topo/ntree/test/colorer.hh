@@ -318,8 +318,7 @@ private:
       recvoffsets[i] *= sizeof(type_t);
       assert(recvoffsets[i] >= 0);
     } // for
-    std::vector<MPI_Status> status(size);
-    std::vector<MPI_Request> request(size);
+    mpi::auto_requests request(size);
     for(int i = 0; i < size; ++i) {
       if(sendcount[i] != 0) {
         char * start = (char *)&(sendbuffer[0]);
@@ -329,7 +328,7 @@ private:
           i,
           0,
           MPI_COMM_WORLD,
-          &request[i]));
+          request()));
       }
     }
     for(int i = 0; i < size; ++i) {
@@ -341,10 +340,7 @@ private:
           i,
           MPI_ANY_TAG,
           MPI_COMM_WORLD,
-          &status[i]));
-      }
-      if(sendcount[i] != 0) {
-        test(MPI_Wait(&request[i], &status[i]));
+          MPI_STATUS_IGNORE));
       }
     } // for
   } // mpi_alltoallv_p2p

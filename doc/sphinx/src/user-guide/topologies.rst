@@ -169,14 +169,16 @@ Users are allowed to add addtional named instances of the global or index topolo
 
   using namespace flecsi;
 
-  topo::global::slot pair;
-  topo::index::slot hydro_indices;
-
-  void initialize() {  // called from the top-level action
+  int top_level() {
+    topo::global::slot pair;
+    topo::index::slot hydro_indices;
     pair.allocate(2);
     hydro_indices.allocate(42);
+    // ...
   }
 
 Note the different interpretations of the sizes: ``pair`` doesn't have colors and holds 2 field values, while ``hydro_indices`` has 42 colors with one field value each.
+
+Coloring slots can be populated only within the top-level action; the lifetime of topologies must be limited to its duration.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

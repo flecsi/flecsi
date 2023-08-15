@@ -78,6 +78,8 @@ struct runtime {
   }
 };
 
+void finalize();
+
 /*!
   Perform FleCSI <code>\ref runtime</code> initialization (which see).
   If \em dependent is true, this call
@@ -111,7 +113,7 @@ initialize(int argc, char ** argv, bool dependent = true) {
   if(c) {
     if(!ctx.process())
       std::cerr << args.act.stderr;
-    run::dependent.reset(); // because clients can skip finalize
+    finalize();
   }
   return c;
 }
@@ -257,7 +259,7 @@ public:
                    option_implicit value specified. If \em option_multi is
                    passed, the flag will take multiple values.
     @param check   An optional, user-defined predicate to validate the option
-                   passed by the user.
+                   passed by the user; see signature below.
 
     @code
       program_option<int> my_flag("My Section",
@@ -267,7 +269,7 @@ public:
           {option_default, 1},
           {option_implicit, 0}
         },
-        [](int value) {
+        [](int value, std::stringstream &) {
           return value >= 0 && value < 10;
         });
     @endcode
@@ -326,7 +328,7 @@ public:
     @param name  The name for the positional option.
     @param help  The help message for the option.
     @param count The number of values to consume for this positional option. If
-                 \em -1 is passed, this option will consume all remainging
+                 \em -1 is passed, this option will consume all remaining
                  values.
     @param check An optional, user-defined predicate to validate the option
                  passed by the user.

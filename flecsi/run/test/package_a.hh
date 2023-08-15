@@ -6,6 +6,9 @@
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 
+namespace cycle {
+namespace common {
+namespace ns1 {
 namespace package_a {
 
 //----------------------------------------------------------------------------//
@@ -134,5 +137,8 @@ finalize(control_policy &) {
 inline control::action<finalize, cp::finalization> finalize_action;
 
 } // namespace package_a
+} // namespace ns1
+} // namespace common
+} // namespace cycle
 
 #endif

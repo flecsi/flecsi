@@ -12,10 +12,6 @@
 /// \cond core
 /// \addtogroup flog
 /// \{
-#define _flog_util_stringify(s) #s
-#define _flog_stringify(s) _flog_util_stringify(s)
-#define _flog_concat(a, b) a##b
-
 #define FLOG_COLOR_BLACK flecsi::flog::detail::use_color("\033[0;30m")
 #define FLOG_COLOR_DKGRAY flecsi::flog::detail::use_color("\033[1;30m")
 #define FLOG_COLOR_RED flecsi::flog::detail::use_color("\033[0;31m")

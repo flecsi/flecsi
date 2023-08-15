@@ -324,8 +324,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
 }; // struct fixed_mesh
 
-fixed_mesh::slot mesh;
-
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
 const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
@@ -476,6 +474,7 @@ rotate(Color n) {
 int
 fixed_driver() {
   UNIT() {
+    fixed_mesh::slot mesh;
     mesh.allocate(fixed_mesh::mpi_coloring());
 
     execute<init_mesh_ids>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh));
@@ -491,10 +490,8 @@ fixed_driver() {
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    {
-      auto lm = data::launch::make(mesh, rotate(mesh.colors()));
-      execute<check_pressure>(lm, pressure(lm));
-    }
+    auto lm = data::launch::make(mesh, rotate(mesh.colors()));
+    execute<check_pressure>(lm, pressure(lm));
 
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));

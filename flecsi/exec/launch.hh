@@ -159,10 +159,10 @@ struct launch_domain {
   Color size_;
 };
 
-/// \if core
+/// \cond core
 /// A simple version of C++20's \c bind_front that can be an argument to a
 /// task template.
-/// \endif
+/// \endcond
 template<auto & F, class... AA>
 struct partial : std::tuple<AA...> {
   using Base = typename partial::tuple;

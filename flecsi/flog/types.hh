@@ -26,6 +26,7 @@ namespace flog {
 struct config {
   /// Tags to enable (perhaps including "all").
   /// Populated from \c \--flog-tags option.
+  /// Empty if that option's argument is "none".
   std::vector<std::string> tags;
   /// Verbosity level (suppresses decorations if negative).  Populated
   /// from \c \--flog-verbose option.
