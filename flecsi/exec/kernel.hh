@@ -119,7 +119,7 @@ template<typename Range>
 struct range_policy : range_base, policy_tag {
   range_policy(Range r) : range(std::move(r)) {}
 
-  auto get_policy() {
+  FLECSI_INLINE_TARGET auto get_policy() {
     return Policy(0, range.size());
   }
   Range range;
@@ -140,7 +140,7 @@ struct sub_range {
     return beg;
   }
 
-  auto get(range_index) const {
+  FLECSI_INLINE_TARGET auto get(range_index) const {
     return *this;
   }
 };
@@ -154,7 +154,7 @@ struct prefix_range {
   FLECSI_INLINE_TARGET auto start() const {
     return 0;
   }
-  auto get(range_index) const {
+  FLECSI_INLINE_TARGET auto get(range_index) const {
     return *this;
   }
 };
