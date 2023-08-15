@@ -483,8 +483,11 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
   using index_spaces = typename Q::index_spaces;
 
   template<index_space S>
-  static constexpr PrivilegeCount privilege_count =
-    Q::template privilege_count<S>;
+  static constexpr auto passthru() {
+    return Q::template privilege_count<S>;
+  };
+  template<index_space S>
+  static constexpr PrivilegeCount privilege_count = passthru<S>();
 
   static TopologyType id() = delete; // prevent ineffectual field registration
 };

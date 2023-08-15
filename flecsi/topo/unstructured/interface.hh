@@ -141,13 +141,18 @@ private:
   }
   // clang-format on
 
+  template<index_space S>
+  static constexpr auto passthru() {
+    return Policy::template privilege_count<S>;
+  };
+
   /*
     Construct copy plan for the given index space S.
    */
 
   template<index_space S>
   data::copy_plan make_copy_plan(unstructured_base::coloring const & c) {
-    constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
+    constexpr PrivilegeCount NP = passthru<S>();
 
     destination_intervals intervals;
     source_pointers pointers;

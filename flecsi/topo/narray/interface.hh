@@ -120,6 +120,11 @@ private:
     init_policy_meta(c);
   }
 
+  template<index_space S>
+  static constexpr auto passthru() {
+    return Policy::template privilege_count<S>;
+  };
+
   /*!
    Method to create copy plans for entities of an index-space.
    @param colors  The number of colors
@@ -156,8 +161,8 @@ private:
 
     auto ptrs_task = [&points](auto f) {
       auto lm = data::launch::make(f.topology());
-      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(
-        lm(f), points);
+      constexpr auto val = passthru<S>();
+      execute<set_ptrs<val>, mpi>(lm(f), points, comm);
     };
     // clang-format on
 
