@@ -11,7 +11,7 @@ const intN::definition<topo::index> array_field;
 
 void
 modify(intN::accessor<wo> a) {
-  forall(i, util::span(*a), "modify") { i = 3; };
+  forall(i, range_policy(util::span(*a)), "modify") { i = 3; };
 }
 
 int
@@ -25,9 +25,7 @@ check(intN::accessor<ro> a) {
 
 void
 modify_policy(intN::accessor<wo> a) {
-  forall(i, flecsi::exec::range_policy(util::span(*a)), "modify_policy") {
-    i = 3;
-  };
+  forall(i, range_policy(util::span(*a)), "modify_policy") { i = 4; };
 }
 
 int
@@ -66,10 +64,10 @@ reduce_vec(intN::accessor<ro> a) {
 
 void
 modify_bound(intN::accessor<wo> a) {
-  forall(j, util::substring_view(util::span(*a), 0, 5), "modify_first") {
+  forall(j, (range_policy(util::span(*a).subspan(0, 5))), "modify_first") {
     j = 2;
   };
-  forall(j, util::substring_view(util::span(*a), 5, 5), "modify_last") {
+  forall(j, (range_policy(util::span(*a).subspan(5, 5))), "modify_last") {
     j = 5;
   };
 }
