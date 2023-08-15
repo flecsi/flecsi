@@ -192,8 +192,15 @@ private:
       ...);
   }
 
+  typedef void sm_t(typename field<util::key_array<meta_data, index_spaces>,
+                      data::single>::template accessor<wo> m,
+    narray_base::coloring const & c);
+
   static void set_policy_meta(typename field<typename Policy::meta_data,
     data::single>::template accessor<wo>) {}
+
+  typedef void spm_t(typename field<typename Policy::meta_data,
+    data::single>::template accessor<wo>);
 
   /// Initialization for user policy meta_data.
   /// Executes a mpi task "set_policy_meta" which
