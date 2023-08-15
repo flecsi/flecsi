@@ -860,6 +860,8 @@ struct accessor<sparse, T, P>
   static_assert(!privilege_discard(P),
     "sparse accessor requires read permission");
 
+  accessor() = delete;
+
 private:
   using Field = field<T, sparse>;
   using FieldBase = typename Field::base_type;
