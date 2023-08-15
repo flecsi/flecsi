@@ -220,11 +220,11 @@ maybe_static() {
     else if constexpr(is_same_v<TYPE, bool>)
       return MPI_CXX_BOOL;
   }
-  else if constexpr(is_same_v<TYPE, complex<float>>)
+  else if constexpr(is_same_v<TYPE, std::complex<float>>)
     return MPI_CXX_FLOAT_COMPLEX;
-  else if constexpr(is_same_v<TYPE, complex<double>>)
+  else if constexpr(is_same_v<TYPE, std::complex<double>>)
     return MPI_CXX_DOUBLE_COMPLEX;
-  else if constexpr(is_same_v<TYPE, complex<long double>>)
+  else if constexpr(is_same_v<TYPE, std::complex<long double>>)
     return MPI_CXX_LONG_DOUBLE_COMPLEX;
   else if constexpr(is_same_v<TYPE, byte>)
     return MPI_BYTE;
