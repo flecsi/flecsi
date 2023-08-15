@@ -14,15 +14,15 @@ print_refc(const flecsi::util::span<const char> & arr) {
 }
 
 using namespace flecsi;
-using flecsi::util::span;
+// using flecsi::util::span;
 
 int
 array_ref() {
   UNIT() {
-    using refd = span<const double>;
-    using refc = span<const char>;
-    using reff = span<const float>;
-    using refi = span<const int>;
+    using refd = flecsi::util::span<const double>;
+    using refc = flecsi::util::span<const char>;
+    using reff = flecsi::util::span<const float>;
+    using refi = flecsi::util::span<const int>;
 
     UNIT_CAPTURE() << std::endl;
 
@@ -95,9 +95,10 @@ array_ref() {
     EXPECT_EQ(g.begin(), &ints[0]);
     EXPECT_EQ(g.end(), &ints[0] + ints.size());
 
-    span<double> sd(plain_array);
+    flecsi::util::span<double> sd(plain_array);
     EXPECT_EQ(refd(sd).data(), sd.data()); // conversion from non-const span
-    EXPECT_EQ(refd(span<double>()).size(), 0u); // ...from rvalue span
+    EXPECT_EQ(
+      refd(flecsi::util::span<double>()).size(), 0u); // ...from rvalue span
 
     // ------------------------
     // substr
@@ -217,24 +218,24 @@ array_ref() {
       // from * and length
       const std::size_t length = 9;
       int ints[length] = {1, 9, 2, 8, 3, 7, 4, 6, 5};
-      const span a(&ints[0], length);
+      const flecsi::util::span a(&ints[0], length);
       UNIT_CAPTURE() << a.front() << '\n';
       UNIT_CAPTURE() << a.back() << '\n' << std::endl;
 
       // from T [n]
-      const span b(ints);
+      const flecsi::util::span b(ints);
       UNIT_CAPTURE() << b.front() << '\n';
       UNIT_CAPTURE() << b.back() << '\n' << std::endl;
 
       // from std::vector
       std::vector<int> ivec(10, 1); // 10 1s
-      const span c(ivec);
+      const flecsi::util::span c(ivec);
       UNIT_CAPTURE() << c.front() << '\n';
       UNIT_CAPTURE() << c.back() << '\n' << std::endl;
 
       // from std::array
       const std::array<int, 2> iarr = {{10, 20}};
-      const span d(iarr);
+      const flecsi::util::span d(iarr);
       UNIT_CAPTURE() << d.front() << '\n';
       UNIT_CAPTURE() << d.back() << '\n';
     }
@@ -281,7 +282,7 @@ array_ref() {
     {
       static short four[4];
       constexpr int i = 1, n = 2;
-      constexpr util::substring_view sv((util::span(four)), i, n);
+      constexpr flecsi::util::substring_view sv{(util::span(four)), i, n};
       static_assert(&*sv.begin() == four + i);
       static_assert(sv.size() == n);
       static_assert(sv.begin() + n == sv.end());
