@@ -115,8 +115,16 @@ struct ntree_base {
     a[1] = data::points::make(i == 0 ? i : i - 1, 0);
     a[2] = data::points::make(i == n - 1 ? i : i + 1, 0);
   }
-  template<auto * F> // work around Clang 10.0.1 bug with auto&
-  static constexpr auto task = [](auto f) { execute<*F>(f); };
+
+  // workaround for nv bug 3427326
+  template<auto * F>
+  struct task {
+    template<typename T>
+    void operator()(T f) {
+      execute<*F>(f);
+    };
+  };
+
 }; // struct ntree_base
 
 /// \}

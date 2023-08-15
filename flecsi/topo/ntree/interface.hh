@@ -113,8 +113,8 @@ public:
         part.template get<tree_data>(),
         // Avoid initializer-list constructor:
         data::copy_plan::Sizes(c.nparts_, 1),
-        task<set_dests>,
-        task<set_ptrs>,
+        task<set_dests>(),
+        task<set_ptrs>(),
         util::constant<tree_data>()),
       buf([] {
         const auto p = processes();
