@@ -545,7 +545,7 @@ inline constexpr bool can_dumpstack =
                     "`$ export FLECSI_BACKTRACE=1`.")                          \
                << std::endl;                                                   \
     }                                                                          \
-    std::cerr << _sstream.str() << std::endl;                                  \
+    std::cerr << _sstream.rdbuf() << std::endl;                                \
     std::abort();                                                              \
   } /* scope */
 

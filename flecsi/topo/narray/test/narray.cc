@@ -74,7 +74,6 @@ print_field(typename mesh<D>::template accessor<ro> m,
       ss << c[i] << "   ";
     } // for
     ss << std::endl;
-    flog(warn) << ss.str() << std::endl;
   }
   else if constexpr(D == 2) {
     for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::domain::all>();
@@ -85,7 +84,6 @@ print_field(typename mesh<D>::template accessor<ro> m,
       } // for
       ss << std::endl;
     } // for
-    flog(warn) << ss.str() << std::endl;
   }
   else {
     for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::domain::all>();
@@ -101,8 +99,8 @@ print_field(typename mesh<D>::template accessor<ro> m,
       ss << std::endl;
     } // for
     ss << std::endl;
-    flog(warn) << ss.str() << std::endl;
   }
+  flog(warn) << ss.rdbuf() << std::endl;
 
 } // print_field
 
@@ -699,7 +697,7 @@ print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, na> tf) {
     ss << "]\n\n";
   }
 
-  flog(info) << ss.str() << std::endl;
+  flog(info) << ss.rdbuf() << std::endl;
 } // print_rf
 
 template<std::size_t D>
@@ -844,7 +842,7 @@ coloring_driver() {
       for(auto p : avpc) {
         ss << p << std::endl;
       } // for
-      flog(warn) << ss.str() << std::endl;
+      flog(warn) << ss.rdbuf() << std::endl;
     };
 
     print_colorings();

@@ -251,11 +251,11 @@ public:
     // Make sure that the string fits within the packet size.
     if(message.size() > packet_t::max_message_size) {
       tmp.resize(packet_t::max_message_size - 100);
-      std::stringstream stream;
+      std::ostringstream stream;
       stream << tmp << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
              << packet_t::max_message_size << " BYTES (" << message.size()
              << ")" << FLOG_COLOR_PLAIN << std::endl;
-      tmp = stream.str();
+      tmp = std::move(stream).str();
     } // if
 
     std::lock_guard<std::mutex> guard(packets_mutex_);
