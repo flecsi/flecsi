@@ -246,20 +246,18 @@ public:
   }
 
   void buffer_output(std::string const & message) {
-    std::string tmp = message;
-
     // Make sure that the string fits within the packet size.
     if(message.size() > packet_t::max_message_size) {
-      tmp.resize(packet_t::max_message_size - 100);
       std::ostringstream stream;
-      stream << tmp << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
+      stream << std::string_view(message).substr(
+                  0, packet_t::max_message_size - 100)
+             << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
              << packet_t::max_message_size << " BYTES (" << message.size()
              << ")" << FLOG_COLOR_PLAIN << std::endl;
-      tmp = std::move(stream).str();
+      buffer(std::move(stream).str());
     } // if
-
-    std::lock_guard<std::mutex> guard(packets_mutex_);
-    packets_.push_back({tmp.c_str()});
+    else
+      buffer(message);
   }
 
   std::vector<packet_t> & packets() {
@@ -295,6 +293,10 @@ private:
   static inline std::vector<std::string> tag_names;
 
 #if defined(FLOG_ENABLE_MPI)
+  void buffer(const std::string & s) {
+    std::lock_guard<std::mutex> guard(packets_mutex_);
+    packets_.push_back({s.c_str()});
+  }
   void send_to_one(bool last);
 
   Color one_process_, process_, processes_;
