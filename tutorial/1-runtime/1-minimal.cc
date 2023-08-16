@@ -1,5 +1,5 @@
 #include <flecsi/execution.hh>
-#include <flecsi/run/control.hh>
+#include <flecsi/runtime.hh>
 
 /*
   The top-level action can be any C/C++ function that takes no arguments and

@@ -32,6 +32,7 @@ Deprecated
   * ``program`` |mdash| use ``run::arguments``
   * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::main``
   * ``option_value`` and needing one in a ``program_option`` validation function |mdash| accept the option type instead
+  * ``flecsi/run/control.hh`` |mdash| use ``flecsi/runtime.hh``
 
 * Data
 
@@ -40,10 +41,18 @@ Deprecated
 * Topologies
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
+  * ``flecsi/topo/narray/interface.hh``, ``flecsi/topo/narray/coloring_utils.hh`` |mdash| use ``flecsi/topology.hh``
 
 * Utilities
 
   * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
+  * ``flecsi/util/annotation.hh``, ``flecsi/util/array_ref.hh``,
+    ``flecsi/util/color_map.hh``, ``flecsi/util/common.hh``,
+    ``flecsi/util/dag.hh``, ``flecsi/util/demangle.hh``,
+    ``flecsi/util/dimensioned_array.hh``, ``flecsi/util/mpi.hh``,
+    ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
+    ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
+    ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
 
 New features
 ^^^^^^^^^^^^

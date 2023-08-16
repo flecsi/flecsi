@@ -5,6 +5,7 @@
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/runtime.hh"
 
 namespace cycle {
 namespace common {

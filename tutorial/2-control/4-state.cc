@@ -1,7 +1,7 @@
 #include "4-state.hh"
 
 #include "flecsi/flog.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 
 using namespace state;
 

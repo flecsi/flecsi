@@ -2,7 +2,7 @@
 #define FLECSI_RUN_TEST_CYCLE_CONTROL_HH
 
 #include "flecsi/flog.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 
 enum cp {
   init_internal,

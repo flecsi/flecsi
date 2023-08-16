@@ -10,6 +10,15 @@ The topology layer provides several core FleCSI topology
 types, along with utilities designed to aid in the creation of
 application specialization libraries.
 
+The API consists of the following headers:
+
+* [flecsi/data.hh](@ref data)
+* [flecsi/runtime.hh](@ref runtime)
+* [flecsi/execution.hh](@ref execution)
+* [flecsi/flog.hh](@ref flog)
+* [flecsi/topology.hh](@ref topology)
+* [flecsi/utilities.hh](@ref utils)
+
 \if core
 \warning This version includes internal interfaces.
 Specialization and application developers should use only the interfaces documented in the [user API reference](../user/index.html), as there is no guarantee that those that appear only here will remain stable, _e.g._, a type or interface may simply

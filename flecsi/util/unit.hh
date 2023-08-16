@@ -6,7 +6,7 @@
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 #include "flecsi/util/unit/types.hh"
 
 #include <tuple>

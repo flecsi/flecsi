@@ -1,5 +1,4 @@
-#include "flecsi/run/backend.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 
 namespace po = boost::program_options;
 
