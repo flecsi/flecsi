@@ -181,7 +181,6 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
   };
 }
 
-unstructured::slot mesh;
 field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
 field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
@@ -194,6 +193,7 @@ unstructured_driver() {
     "two-cell.msh"};
   UNIT() {
     for(auto f : files) {
+      unstructured::slot mesh;
       unstructured::init fields;
       flog(info) << "testing mesh: " << f << std::endl;
       mesh.allocate(unstructured::mpi_coloring(f, fields), fields);

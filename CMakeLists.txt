@@ -276,11 +276,7 @@ if(ENABLE_LIBRARY)
   if(ENABLE_BOOST)
     flecsi_enable_boost(FleCSI
     COMPONENTS
-      atomic
-      filesystem
       program_options
-      regex
-      system
     )
   endif()
 

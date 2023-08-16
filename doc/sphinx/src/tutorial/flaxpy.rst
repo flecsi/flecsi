@@ -169,21 +169,9 @@ both here and in task definitions
 Specializations typically require run-time information to produce a
 usable object.  This information may not be available until a number
 of libraries (FleCSI, Legion, MPI, and the like) have initialized and
-perhaps synchronized across a distributed system.  To prevent
-applications from directly constructing an object of a specialization
-type and accessing this object before library initialization and
-synchronization have completed, FleCSI imposes a particular means of
-instantiating a specialization based on what it calls *slots*.  The
-following line declares the (topology) *slot* that
-will be used within FLAXPY's initialization action (see `Actions`_
-below) to allocate distributed storage for the application's
-distributed vector:
-
-.. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
-   :language: cpp
-   :start-at: _slot
-   :end-at: _
-
+perhaps synchronized across a distributed system.
+To allow the lifetime of these objects to be controlled properly, FleCSI imposes a particular means of instantiating a specialization based on what it calls *slots*.
+The (topology) *slot* that will be used within FLAXPY's `Actions`_ are defined within the control policy (discussed next).
 
 Control flow
 ++++++++++++
@@ -192,7 +180,7 @@ Recall from the :doc:`control` section that
 a FleCSI application's control flow is defined in terms of a
 *control point*—*action*—*task* hierarchy.
 FLAXPY's overall control flow is illustrated in :numref:`flaxpy_control`.
-`Control points`_ are drawn as white rounded rectangles;
+The control points of the `Control model`_ are drawn as white rounded rectangles;
 `actions <Actions_>`_ are drawn as blue ellipses;
 and `tasks <Tasks_>`_ are drawn as green rectangles.
 As indicated by the figure, FLAXPY is a simple application
@@ -209,14 +197,14 @@ and trivial task launches (only one per action).
 The bulk of this section is presented in top-down fashion.
 That is, function invocations are presented
 in advance of the functions themselves.
-With the exception of the code appearing in the `Control points`_ section,
+With the exception of the code appearing in the `Control model`_ section,
 all of the control-flow code listed below appears in an anonymous namespace,
 again, to indicate that it is meaningful only locally
 and not needed by the rest of the application.
 
 
-Control points
---------------
+Control model
+-------------
 
 FLAXPY defines three control points: ``initialize``, ``mul_add``, and
 ``finalize``.  These are introduced via an enumerated type, which
@@ -244,7 +232,8 @@ and loops can be nested.)
 FLAXPY indicates with the following code that
 ``initialize`` runs first,
 then ``mul_add``,
-and lastly ``finalize``:
+and lastly ``finalize``.
+It also defines a topology slot to hold the field data:
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp

@@ -29,6 +29,7 @@ namespace topo {
 
 /*!
   Narray Topology.
+  Colors are assigned lexicographically; the first dimension varies fastest.
   \tparam Policy the specialization, following
    \ref narray_specialization.
 
@@ -92,7 +93,11 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
 private:
-  using meta_data = util::key_array<axis_color, axes>;
+  // Structural information about one color.
+  struct meta_data {
+    util::key_array<axis_color, axes> axcol;
+    bool diagonals;
+  };
 
   template<auto... Value, std::size_t... Index>
   narray(const coloring & c,
@@ -167,16 +172,21 @@ private:
     data::multi<typename field<util::key_array<meta_data, index_spaces>,
       data::single>::template accessor<wo>> mm,
     narray_base::coloring const & c) {
-    const auto ma = mm.accessors();
-    auto copy_meta_data = [](meta_data & md, const index_color & idxco) {
-      std::copy(idxco.axis_colors.begin(), idxco.axis_colors.end(), md.begin());
-    };
-    for(auto i = ma.size(); i--;) {
-      std::size_t index{0};
-      (copy_meta_data(ma[i]->template get<Value>(),
-         c.idx_colorings[index++].process_coloring()[i]),
-        ...);
-    }
+    std::size_t index{0};
+    ((
+       [&] {
+         const auto ma = mm.accessors();
+         const auto & idxco = c.idx_colorings[index].process_coloring();
+         for(auto i = ma.size(); i--;) {
+           auto & md = ma[i]->template get<Value>();
+           std::copy(idxco[i].axis_colors.begin(),
+             idxco[i].axis_colors.end(),
+             md.axcol.begin());
+           md.diagonals = c.idx_colorings[index].diagonals;
+         }
+       }(),
+       ++index),
+      ...);
   }
 
   static void set_policy_meta(typename field<typename Policy::meta_data,
@@ -220,7 +230,7 @@ private:
 
       A lbnds, ubnds, strs;
       for(Dimension i = 0; i < dimension; i++) {
-        strs[i] = md[i].extent();
+        strs[i] = md.axcol[i].extent();
       }
 
       // Loop over the receiving colors and receive the data for all boxes
@@ -257,7 +267,7 @@ private:
 
       A lbnds, ubnds, strs;
       for(Dimension i = 0; i < dimension; i++) {
-        strs[i] = md[i].extent();
+        strs[i] = md.axcol[i].extent();
       }
 
       std::map<Color, std::vector<int>> color_bounds;
@@ -299,13 +309,14 @@ private:
       A color_strs, center_color, bdepth;
       std::array<bool, dimension> periodic;
       for(Dimension i = 0; i < dimension; i++) {
-        color_strs[i] = md[i].colors;
-        center_color[i] = md[i].color_index;
-        bdepth[i] = md[i].bdepth;
-        periodic[i] = md[i].periodic;
+        color_strs[i] = md.axcol[i].colors;
+        center_color[i] = md.axcol[i].color_index;
+        bdepth[i] = md.axcol[i].bdepth;
+        periodic[i] = md.axcol[i].periodic;
       }
 
-      ngb_color_boxes(periodic,
+      ngb_color_boxes(md.diagonals,
+        periodic,
         bdepth,
         color_strs,
         center_color,
@@ -324,7 +335,8 @@ private:
       }
     }; // traverse
 
-    static void ngb_color_boxes(std::array<bool, dimension> & periodic,
+    static void ngb_color_boxes(bool diagonals,
+      std::array<bool, dimension> & periodic,
       A & bdepth,
       A & color_strs,
       A & center_color,
@@ -334,7 +346,7 @@ private:
 
       using nview = flecsi::topo::narray_impl::neighbors_view<dimension>;
       narray_impl::linearize<dimension> ln{color_strs};
-      for(auto && v : nview()) {
+      for(auto && v : nview(diagonals)) {
         A color_indices;
         for(Dimension k = 0; k < dimension; ++k) {
           color_indices[k] = center_color[k] + v[k];
@@ -396,7 +408,7 @@ private:
 
       // fill out the indices of the ngb colors
       int p = 0;
-      for(auto & ax : md) {
+      for(auto & ax : md.axcol) {
         auto ci = ax.color_index;
 
         if(send) {
@@ -770,7 +782,7 @@ private:
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET const axis_color & get_axis() const {
-    return meta_->template get<S>().template get<A>();
+    return meta_->template get<S>().axcol.template get<A>();
   }
 }; // struct narray<Policy>::access
 

@@ -232,9 +232,9 @@ struct field_reference : convert_tag {
     return field_reference<T2, L2, Topo, Space>(fid_, *topology_);
   }
 
-  /// \if core
+  /// \cond core
   /// Use this reference and return it.
-  /// \endif
+  /// \endcond
   template<class F>
   const field_reference & use(F && f) const {
     std::forward<F>(f)(*this);

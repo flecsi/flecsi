@@ -76,12 +76,9 @@ if(ENABLE_UNIT_TESTS)
   target_link_libraries(cycle FleCSI)
   target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
+  _flecsi_get_unit_test_backend_flags(CYCLE_FLAGS)
+  add_test(NAME cycle COMMAND cycle ${CYCLE_FLAGS})
 endif()
-
-flecsi_add_test(flog
-  SOURCES
-    test/flog.cc
-)
 
 flecsi_add_test(program-options
   SOURCES

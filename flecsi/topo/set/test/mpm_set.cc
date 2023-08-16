@@ -6,8 +6,6 @@
 
 using namespace flecsi;
 
-unstructured::slot mesh_underlying;
-
 struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
   static constexpr unsigned int dimension = 2;
 
@@ -24,8 +22,6 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
     return c;
   }
 };
-
-spec_setopo_t::slot spec_setopo;
 
 struct Particle {
   double pressure;
@@ -93,6 +89,9 @@ int
 set_driver() {
 
   UNIT() {
+    unstructured::slot mesh_underlying;
+    spec_setopo_t::slot spec_setopo;
+
     unstructured::init fields;
     mesh_underlying.allocate(
       unstructured::mpi_coloring("simple2d-16x16.msh", fields), fields);

@@ -17,6 +17,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <regex>
 #include <sstream>
 #include <vector>
 
@@ -35,11 +36,19 @@ struct node : NodePolicy, std::list<node<NodePolicy> const *> {
 
   template<typename... Args>
   node(std::string const & label, Args &&... args)
-    : NodePolicy(std::forward<Args>(args)...), label_(label) {
+    : NodePolicy(std::forward<Args>(args)...),
+      label_(util::strip_return_type(util::strip_parameter_list(label))) {
     const void * address = static_cast<const void *>(this);
     std::stringstream ss;
     ss << address;
     identifier_ = ss.str();
+
+    // strip unit test wrapper
+    constexpr char wrapper_pfx[] = "flecsi::util::unit::action";
+    if(label_.rfind(wrapper_pfx, 0) == 0) {
+      auto pos = label_.rfind("(", label_.rfind(","));
+      label_ = label_.substr(sizeof(wrapper_pfx), pos - sizeof(wrapper_pfx));
+    }
   }
 
   std::string const & identifier() const {
@@ -146,9 +155,40 @@ struct dag : std::vector<dag_impl::node<NodePolicy> *> {
   void add(graphviz & gv, const char * color = "#c5def5") const {
     std::map<uintptr_t, Agnode_t *> node_map;
 
-    for(auto n : *this) {
+    // Find the common leading scopes of the nodes under this dag.
+    std::string cmmn;
+    if(this->size()) {
+      auto get_ns = [](const std::string & text) -> std::string {
+        std::regex nsreg("^[\\w:]+");
+        std::smatch match;
+        if(std::regex_search(text, match, nsreg)) {
+          auto pos = match.str().rfind("::");
+          if(pos != std::string::npos) {
+            return text.substr(0, pos);
+          }
+        }
+        return "";
+      };
 
-      auto * node = gv.add_node(n->identifier().c_str(), n->label().c_str());
+      auto is_ident = [](const char c) { return std::isalnum(c) || c == '_'; };
+
+      auto n = this->begin();
+      cmmn = get_ns((*n++)->label());
+      for(; n != this->end(); ++n) {
+        auto current = (*n)->label();
+        while(cmmn.size() && (!(current.rfind(cmmn, 0) == 0) ||
+                               is_ident(current[cmmn.length()]))) {
+          cmmn = get_ns(cmmn);
+        } // while
+      } // for
+      cmmn = cmmn.size() ? cmmn + "::" : cmmn;
+    } // if
+
+    for(auto n : *this) {
+      // Strip the common leading substring.
+      std::string label = n->label().substr(cmmn.length());
+
+      auto * node = gv.add_node(n->identifier().c_str(), label.c_str());
       node_map[uintptr_t(n)] = node;
 
       gv.set_node_attribute(node, "color", "black");

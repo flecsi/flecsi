@@ -58,21 +58,41 @@ factor(std::size_t np) {
 template<Dimension D>
 struct neighbors_view {
   using S = short;
+  bool diagonals;
+
+  explicit neighbors_view(bool diag) : diagonals{diag} {}
+
   struct iterator {
     using M = std::array<S, D>;
-
-    iterator() : iterator(-1) {}
-    explicit iterator(S s) : iterator(s, std::make_index_sequence<D - 1>()) {}
+    iterator(bool diag, S f, S s)
+      : iterator(diag, f, s, std::make_index_sequence<D - 1>()) {}
 
     const M & operator*() const {
       return m;
     }
 
     iterator & operator++() {
-      for(Dimension d = 0; ++m[d] == 2 && ++d < D; m[d - 1] = -1)
-        ;
-      if(m == M())
-        m[0] = 1; // skip origin; note that std::none_of is actually faster
+      if(diagonals) {
+        for(Dimension d = 0; ++m[d] == 2 && ++d < D; m[d - 1] = -1)
+          ;
+        if(m == M())
+          m[0] = 1; // skip origin; note that std::none_of is actually faster
+      }
+      else {
+        if(idx < D) {
+          std::swap(m[D - idx - 1], m[D - idx]);
+        }
+        else if(idx == D) {
+          m[0] = 1;
+        }
+        else if(idx > D && idx < 2 * D) {
+          std::swap(m[idx - D], m[idx - D - 1]);
+        }
+        else if(idx == 2 * D) {
+          m[D - 1] = 0;
+        }
+        idx++;
+      }
       return *this;
     }
     iterator operator++(int) {
@@ -90,16 +110,19 @@ struct neighbors_view {
 
   private:
     template<std::size_t... II>
-    iterator(S last, std::index_sequence<II...>) : m{(void(II), -1)..., last} {}
-
+    iterator(bool diag, S first, S last, std::index_sequence<II...>)
+      : diagonals{diag}, m{(void(II), first)..., last} {}
+    std::size_t idx = 1;
+    bool diagonals;
     M m;
   };
 
   iterator begin() const {
-    return {};
+    return (diagonals) ? iterator(diagonals, -1, -1)
+                       : iterator(diagonals, 0, -1);
   }
   iterator end() const {
-    return iterator(2);
+    return (diagonals) ? iterator(diagonals, -1, 2) : iterator(diagonals, 0, 0);
   }
 };
 
@@ -738,6 +761,7 @@ template<Dimension D>
 std::vector<std::vector<Color>>
 peers(index_definition idef) {
   using A = std::array<int, D>;
+
   using nview = flecsi::topo::narray_impl::neighbors_view<D>;
 
   A color_bnd, color_strs, axes_bdepths, color_indices;
@@ -759,7 +783,7 @@ peers(index_definition idef) {
     std::vector<Color> ngb_colors;
 
     // Loop over neighbors of a color
-    for(auto && nv : nview()) {
+    for(auto && nv : nview(idef.diagonals)) {
       A indices_mo;
       for(Dimension d = 0; d < D; ++d) {
         indices_mo[d] = color_indices[d] + nv[d];
@@ -909,9 +933,31 @@ struct narray_base {
     Create a vector of axis definitions with default settings (hdepth=0,
     bdepth=0, periodic=false, etc) for the given extents and number of colors.
 
-    The method first finds the distribution of colors per axis.
+    The method takes as input the distribution of colors over axes.
     Then, the end offsets for each color per axis is computed and used to
     initialize each axis's definition object.
+
+    @param color_dist distribution of colors per axis
+    @param indices number of entities per axis
+
+    \return vector of axis definitions
+   */
+  static std::vector<axis_definition> make_axes(const colors & color_dist,
+    const gcoord & indices) {
+    std::vector<axis_definition> axes;
+    for(std::size_t d = 0; d < indices.size(); d++) {
+      flecsi::util::equal_map em{indices[d], color_dist[d]};
+      axes.push_back({em});
+    }
+    return axes;
+  } // make_axes
+
+  /*!
+    Choose a breakdown of colors per axis and construct axis definitions.
+    \see make_axes(const narray_impl::colors & color_dist, const
+    narray_impl::gcoord
+    &), #distribute
+
 
     @param num_colors total number of colors
     @param indices number of entities per axis
@@ -920,13 +966,8 @@ struct narray_base {
    */
   static std::vector<axis_definition> make_axes(Color num_colors,
     const gcoord & indices) {
-    std::vector<axis_definition> axes;
-    auto colors = distribute(num_colors, indices);
-    for(std::size_t d = 0; d < indices.size(); d++) {
-      flecsi::util::equal_map em{indices[d], colors[d]};
-      axes.push_back({em});
-    }
-    return axes;
+    const auto & colors = distribute(num_colors, indices);
+    return make_axes(colors, indices);
   } // make_axes
 
   static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {

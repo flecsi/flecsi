@@ -26,17 +26,9 @@ cmake_dependent_option(FLOG_ENABLE_DEVELOPER_MODE
   "Enable internal FleCSI developer messages" OFF "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEVELOPER_MODE)
 
-set(FLOG_TAG_BITS "1024" CACHE STRING
-  "Select the number of bits to use for tag groups")
-mark_as_advanced(FLOG_TAG_BITS)
-
 set(FLOG_SERIALIZATION_INTERVAL "100" CACHE STRING
   "Select the frequency of message serialization in number of tasks")
 mark_as_advanced(FLOG_SERIALIZATION_INTERVAL)
-
-set(FLOG_MAX_MESSAGE_SIZE "4096" CACHE STRING
-  "Select the max message size (larger will be truncated)")
-mark_as_advanced(FLOG_MAX_MESSAGE_SIZE)
 
 if(ENABLE_FLOG)
   set(FLOG_STRIP_LEVELS 0 1 2 3 4)

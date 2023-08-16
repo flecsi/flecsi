@@ -11,8 +11,6 @@ template<typename T>
 using single = field<T, data::single>;
 const single<double>::definition<global> gfield;
 
-topo::global::slot gtopo;
-
 void
 init(double v, single<double>::accessor<wo> gv) {
   gv = v;
@@ -25,6 +23,7 @@ print(single<double>::accessor<ro> gv) {
 
 void
 advance(control_policy &) {
+  topo::global::slot gtopo;
   gtopo.allocate(1);
   const auto v = gfield(gtopo);
   execute<init>(42.0, v);

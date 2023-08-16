@@ -1,4 +1,4 @@
-from spack import *
+from spack.package import *
 # Spack's import hook doesn't support "from spack.pkg.builtin import legion":
 from spack.pkg.builtin.legion import Legion
 
@@ -6,19 +6,4 @@ class Legion(Legion):
     """
     Additional named versions for Legion.
     """
-    version('ctrl-rep-15', commit='435183796d7c8b6ac1035a6f7af480ded750f67d')
-    version('ctrl-rep-14', commit='7fa0d1776769e47f62fc45a9476234ce465b77e2')
-    version('ctrl-rep-13', commit='36851ec77ea6a317ba72a730e3df2e0bb0a0d586')
-    version('ctrl-rep-12', commit='d6dcae252b5e96cb5d82ad26fc4de4c32e16f476')
-    version('ctrl-rep-11', commit='2923ea7808142bc315dbc4d8f2e65b4859410dd2')
-    version('ctrl-rep-10', commit='f03d00e7d595885040d5c7491160a22fc1dd5ff5')
-    version('ctrl-rep-9', commit='181e63ad4187fbd9a96761ab3a52d93e157ede20')
-    version('ctrl-rep-8', commit='207041b9900ff5adbe13f5b323e82e4d46f38e9c')
-    version('ctrl-rep-7', commit='363fcbaa27a5239c2e2528309a5333ca6f97425e')
-    version('ctrl-rep-6', commit='095be5c6e8d36a6ddb235fd079bc6e9b8d37baeb')
-    version('ctrl-rep-5', commit='a204dced578258246ea0933293f4017058bc4bf5')
-    version('ctrl-rep-4', commit='b66083076016c63ea8398fdb89c237880fcb0173')
-    version('ctrl-rep-3', commit='572576b312509e666f2d72fafdbe9d968b1a6ac3')
-    version('ctrl-rep-2', commit='96682fd8aae071ecd30a3ed5f481a9d84457a4b6')
-    version('ctrl-rep-1', commit='a03671b21851d5f0d3f63210343cb61a630f4405')
-    version('ctrl-rep-0', commit='177584e77036c9913d8a62e33b55fa784748759c')
+    version("cr-16", commit="45afa8e658ae06cb19d8f0374de699b7fe4a197c")

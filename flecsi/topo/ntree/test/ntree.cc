@@ -190,8 +190,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
 using ntree_t = topo::ntree<sph_ntree_t>;
 
-sph_ntree_t::slot sph_ntree;
-
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   density;
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
@@ -277,6 +275,7 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
 
 int
 ntree_driver() {
+  sph_ntree_t::slot sph_ntree;
 
   std::vector<sph_ntree_t::ent_t> ents;
   sph_ntree.allocate(

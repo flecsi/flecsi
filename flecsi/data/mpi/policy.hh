@@ -552,22 +552,6 @@ struct copy_engine {
 
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
-    std::vector<MPI_Request> requests;
-    requests.reserve(ghost_entities.size() + shared_entities.size());
-
-    std::vector<std::vector<std::byte>> recv_buffers;
-    for(const auto & [src_rank, ghost_indices] : ghost_entities) {
-      recv_buffers.emplace_back(ghost_indices.size() * type_size);
-      requests.resize(requests.size() + 1);
-      test(MPI_Irecv(recv_buffers.back().data(),
-        int(recv_buffers.back().size()),
-        MPI_BYTE,
-        int(src_rank),
-        0,
-        MPI_COMM_WORLD,
-        &requests.back()));
-    }
-
     auto gather_copy = [type_size](std::byte * dst,
                          const std::byte * src,
                          const std::vector<std::size_t> & src_indices) {
@@ -600,66 +584,80 @@ struct copy_engine {
     };
 #endif
 
-    std::vector<std::vector<std::byte>> send_buffers;
-    for(const auto & [dst_rank, shared_indices] : shared_entities) {
-      requests.resize(requests.size() + 1);
-      auto n_elements = shared_indices.size();
-      auto n_bytes = n_elements * type_size;
-      send_buffers.emplace_back(n_bytes);
+    std::vector<std::vector<std::byte>> recv_buffers;
+
+    {
+      std::vector<std::vector<std::byte>> send_buffers;
+      util::mpi::auto_requests requests(
+        ghost_entities.size() + shared_entities.size());
+
+      for(const auto & [src_rank, ghost_indices] : ghost_entities) {
+        recv_buffers.emplace_back(ghost_indices.size() * type_size);
+        test(MPI_Irecv(recv_buffers.back().data(),
+          int(recv_buffers.back().size()),
+          MPI_BYTE,
+          int(src_rank),
+          0,
+          MPI_COMM_WORLD,
+          requests()));
+      }
+
+      for(const auto & [dst_rank, shared_indices] : shared_entities) {
+        auto n_elements = shared_indices.size();
+        auto n_bytes = n_elements * type_size;
+        send_buffers.emplace_back(n_bytes);
 
 #if defined(FLECSI_ENABLE_KOKKOS)
-      // We can not capture shared_indices in the overloaded lambda inside
-      // std::visit directly
-      const auto & src_indices = shared_indices;
-      std::visit(
-        overloaded{[&](mpi::detail::host_view & src) {
-                     gather_copy(
-                       send_buffers.back().data(), src.data(), src_indices);
-                   },
-          [&](mpi::detail::device_view & src) {
-            // copy shared indices from host to device
-            auto shared_indices_device_view =
-              device_copy(src_indices, "shared indices");
+        // We can not capture shared_indices in the overloaded lambda inside
+        // std::visit directly
+        const auto & src_indices = shared_indices;
+        std::visit(
+          overloaded{[&](mpi::detail::host_view & src) {
+                       gather_copy(
+                         send_buffers.back().data(), src.data(), src_indices);
+                     },
+            [&](mpi::detail::device_view & src) {
+              // copy shared indices from host to device
+              auto shared_indices_device_view =
+                device_copy(src_indices, "shared indices");
 
-            // allocate gather buffer on device
-            auto gather_buffer_device_view =
-              Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-                "gather", n_bytes};
+              // allocate gather buffer on device
+              auto gather_buffer_device_view =
+                Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
+                  "gather", n_bytes};
 
-            // copy shared values to gather buffer on device in parallel, for
-            // each element
-            Kokkos::parallel_for(
-              n_elements, KOKKOS_LAMBDA(const auto & i) {
-                // Yes, memcpy is supported on device as long as there is no
-                // std:: qualifier.
-                memcpy(gather_buffer_device_view.data() + i * type_size,
-                  src.data() + shared_indices_device_view[i] * type_size,
-                  type_size);
-              });
+              // copy shared values to gather buffer on device in parallel, for
+              // each element
+              Kokkos::parallel_for(
+                n_elements, KOKKOS_LAMBDA(const auto & i) {
+                  // Yes, memcpy is supported on device as long as there is no
+                  // std:: qualifier.
+                  memcpy(gather_buffer_device_view.data() + i * type_size,
+                    src.data() + shared_indices_device_view[i] * type_size,
+                    type_size);
+                });
 
-            // copy gathered shared values to send_buffer on host to be sent
-            // through MPI.
-            Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-              mpi::detail::host_view{send_buffers.back().data(), n_bytes},
-              gather_buffer_device_view);
-          }},
-        source_view);
+              // copy gathered shared values to send_buffer on host to be sent
+              // through MPI.
+              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+                mpi::detail::host_view{send_buffers.back().data(), n_bytes},
+                gather_buffer_device_view);
+            }},
+          source_view);
 #else
-      gather_copy(
-        send_buffers.back().data(), source_storage.data(), shared_indices);
+        gather_copy(
+          send_buffers.back().data(), source_storage.data(), shared_indices);
 #endif
 
-      test(MPI_Isend(send_buffers.back().data(),
-        int(send_buffers.back().size()),
-        MPI_BYTE,
-        int(dst_rank),
-        0,
-        MPI_COMM_WORLD,
-        &requests.back()));
+        test(MPI_Isend(send_buffers.back().data(),
+          int(send_buffers.back().size()),
+          MPI_BYTE,
+          int(dst_rank),
+          0,
+          MPI_COMM_WORLD,
+          requests()));
+      }
     }
-
-    std::vector<MPI_Status> status(requests.size());
-    test(MPI_Waitall(int(requests.size()), requests.data(), status.data()));
 
     // copy from intermediate receive buffer to destination storage
     auto recv_buffer = recv_buffers.begin();

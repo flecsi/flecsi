@@ -39,7 +39,7 @@ protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {
-    single.fut = make_ready_future(index.result);
+    single = future<R>::make(index.result);
   }
 
   // Note: due to how visitor() is implemented in prolog.hh the first
@@ -107,27 +107,23 @@ protected:
     if(run::context::instance().process() != 0)
       std::fill(storage.begin(), storage.end(), R::template identity<T>);
 
-    reductions.push_back([storage] {
-      MPI_Request request;
+    reductions.push_back([storage](MPI_Request * r) {
       util::mpi::test(MPI_Iallreduce(MPI_IN_PLACE,
         storage.begin(),
         storage.size(),
         flecsi::util::mpi::type<T>(),
         exec::fold::wrap<R, T>::op,
         MPI_COMM_WORLD,
-        &request));
-      return request;
+        r));
     });
   }
 
 public:
   ~task_prologue() {
-    std::vector<MPI_Request> requests;
+    util::mpi::auto_requests r(reductions.size());
     for(auto & f : reductions) {
-      requests.push_back(f());
+      f(r());
     }
-    util::mpi::test(
-      MPI_Waitall(requests.size(), requests.data(), MPI_STATUS_IGNORE));
   }
 
 private:
@@ -140,7 +136,7 @@ private:
     return true;
   }
 
-  std::vector<std::function<MPI_Request()>> reductions;
+  std::vector<std::function<void(MPI_Request *)>> reductions;
 
 }; // struct task_prologue
 } // namespace exec
