@@ -266,7 +266,7 @@
     - *darwin_clang_format_init
     - *print_diff_format_info
     - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
-    - cmake -DENABLE_LIBRARY=OFF -DENABLE_DOCUMENTATION=ON -DENABLE_FORMAT=ON -DClangFormat_VERSION=${FORMAT_VERSION} -B ${CI_PROJECT_DIR}/state/build -S .
+    - cmake -DENABLE_LIBRARY=OFF -DENABLE_DOCUMENTATION=ON -DENABLE_FORMAT=ON -DCLANG_FORMAT_VERSION=${FORMAT_VERSION} -B ${CI_PROJECT_DIR}/state/build -S .
     - cd ${CI_PROJECT_DIR}/state/build
     - fail=0
     - |

@@ -38,11 +38,11 @@ mark_as_advanced(ENABLE_FORMAT)
 if(ENABLE_FORMAT)
   include(FleCSI/format)
 
-  set(ClangFormat_VERSION "13...<14" CACHE STRING
+  set(CLANG_FORMAT_VERSION "13...<14" CACHE STRING
       "Set the required version (major[.minor[.patch]]) of clang-format")
-  mark_as_advanced(ClangFormat_VERSION)
+  mark_as_advanced(CLANG_FORMAT_VERSION)
 
-  flecsi_add_format_target(${PROJECT_NAME} ${PROJECT_SOURCE_DIR} "${ClangFormat_VERSION}")
+  flecsi_add_format_target(${PROJECT_NAME} ${PROJECT_SOURCE_DIR} "${CLANG_FORMAT_VERSION}")
 endif()
 
 #------------------------------------------------------------------------------#
