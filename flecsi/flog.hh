@@ -250,7 +250,7 @@ inline void
 add_output_stream(std::string const & label,
   std::ostream & stream,
   bool colorize = false) {
-  state::instance.value().config_stream().add_buffer(label, stream, colorize);
+  state::instance().config_stream().add_buffer(label, stream, colorize);
 } // add_output_stream
 
 /*
@@ -398,7 +398,7 @@ private:
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define FLOG_RESET ::flecsi::flog::state::instance.reset
+#define FLOG_RESET() ::flecsi::flog::state::reset_instance()
 
 #else // FLECSI_ENABLE_FLOG
 

@@ -125,8 +125,8 @@ public:
 #endif // FLOG_ENABLE_MPI
   } // finalize
 
-  static int verbose() {
-    return instance ? instance->verb : 0;
+  int verbose() {
+    return verb;
   }
 
   /*!
@@ -200,10 +200,8 @@ public:
 
   static bool tag_enabled() {
 #if defined(FLOG_ENABLE_TAGS)
-    assert(instance);
-
     const std::size_t t = active_tag();
-    const bool ret = instance->tag_bitset_.test(t);
+    const bool ret = instance().tag_bitset_.test(t);
 
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: tag " << t << " is "
@@ -268,12 +266,26 @@ public:
   }
 #endif
 
-  static std::optional<state> instance;
+  static state & instance() {
+    return instance_.value();
+  }
+
+  static void reset_instance() {
+    instance_.reset();
+  }
+
+  static void set_instance(const std::vector<std::string> & active,
+    int verbose,
+    Color one_process) {
+    instance_.emplace(active, verbose, one_process);
+  }
 
 private:
   int verb;
 
   tee_stream_t stream_;
+
+  static std::optional<state> instance_;
 
 #ifdef FLOG_ENABLE_TAGS
   static task_local<std::size_t> cur_tag;
@@ -298,7 +310,7 @@ private:
 #endif
 
 }; // class state
-inline std::optional<state> state::instance;
+inline std::optional<state> state::instance_;
 
 /// \}
 } // namespace flog

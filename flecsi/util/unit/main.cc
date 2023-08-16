@@ -13,7 +13,7 @@ main(int argc, char ** argv) {
     return status < flecsi::run::status::clean ? 0 : status;
   } // if
 
-  flog::state::instance->config_stream().add_buffer("flog", std::clog, true);
+  flog::state::instance().config_stream().add_buffer("flog", std::clog, true);
 
   status = flecsi::start(control::execute);
 

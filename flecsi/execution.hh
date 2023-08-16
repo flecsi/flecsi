@@ -403,7 +403,7 @@ inline void
 flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
   flecsi::exec::reduce_internal<flog::state::gather, void, flecsi::mpi>(
-    *flog::state::instance);
+    flog::state::instance());
   flecsi::run::context::instance().flog_task_count() = 0;
 #endif
 } // flush
