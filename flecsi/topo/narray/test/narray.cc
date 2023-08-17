@@ -1125,16 +1125,15 @@ narray_driver() {
 
     {
       // 2D Mesh
-      auto test_2d = [](mesh2d::gcoord && ind,
-                       mesh2d::coord && hdepth,
-                       mesh2d::coord && bdepth,
-                       std::array<bool, 2> && periodic,
+      auto test_2d = [](const mesh2d::gcoord & indices,
+                       const mesh2d::coord & hdepth,
+                       const mesh2d::coord & bdepth,
+                       std::array<bool, 2> periodic,
                        bool diagonals,
                        bool full_ghosts,
                        int sz,
                        bool full_verify) {
         UNIT() {
-          mesh2d::gcoord indices{ind};
           mesh2d::index_definition idef;
           idef.axes = topo::narray_utils::make_axes(processes(), indices);
           int i = 0;
@@ -1190,22 +1189,22 @@ narray_driver() {
 
     {
       // 3D
-      auto test_3d = [](topo::narray_impl::colors && color_dist,
-                       mesh3d::gcoord && ind,
-                       mesh3d::coord && hdepth,
-                       mesh3d::coord && bdepth,
-                       std::array<bool, 3> && periodic,
+      auto test_3d = [](topo::narray_impl::colors color_dist,
+                       const mesh3d::gcoord & indices,
+                       const mesh3d::coord & hdepth,
+                       const mesh3d::coord & bdepth,
+                       std::array<bool, 3> periodic,
                        bool diagonals,
                        bool full_ghosts,
                        int sz,
                        bool full_verify) {
         UNIT() {
-          mesh3d::gcoord indices{ind};
           mesh3d::index_definition idef;
-          if((color_dist.size() == 1) && (color_dist[0] == processes()))
-            idef.axes = topo::narray_utils::make_axes(processes(), indices);
-          else
-            idef.axes = topo::narray_utils::make_axes(color_dist, indices);
+          idef.axes = topo::narray_utils::make_axes(
+            color_dist.empty()
+              ? topo::narray_utils::distribute(processes(), indices)
+              : std::move(color_dist),
+            indices);
           int i = 0;
           for(auto & a : idef.axes) {
             a.hdepth = hdepth[i];
@@ -1259,7 +1258,7 @@ narray_driver() {
         }; // unit
       };
 
-      test_3d({processes()},
+      test_3d({},
         {4, 4, 4},
         {
           1,
