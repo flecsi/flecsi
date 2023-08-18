@@ -20,8 +20,6 @@ mirror::extend(field<std::size_t, single>::accessor<ro> r,
 
 namespace run {
 
-using namespace boost::program_options;
-
 /*----------------------------------------------------------------------------*
   Legion top-level task.
  *----------------------------------------------------------------------------*/

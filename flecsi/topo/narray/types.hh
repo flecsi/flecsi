@@ -23,8 +23,6 @@ namespace narray_impl {
 /// \addtogroup narray
 /// \{
 
-enum axes : Dimension { x_axis, y_axis, z_axis };
-
 using coord = std::vector<util::id>;
 using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;

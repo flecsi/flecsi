@@ -5,8 +5,6 @@
 #include <Kokkos_Core.hpp>
 #endif
 
-using namespace boost::program_options;
-
 namespace flecsi::run {
 
 dependencies_guard::dependencies_guard(arguments::dependent & d)

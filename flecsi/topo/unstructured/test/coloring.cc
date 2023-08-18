@@ -34,7 +34,7 @@ parmetis_coloring() {
           ss << r << " ";
         }
         ss << std::endl;
-        flog_devel(info) << ss.str();
+        flog_devel(info) << ss.rdbuf();
       } // scope
 
       cu.migrate_primaries();
@@ -69,7 +69,7 @@ parmetis_coloring() {
             ss << r << " ";
           }
           ss << std::endl;
-          flog_devel(info) << ss.str();
+          flog_devel(info) << ss.rdbuf();
         } // scope
 
         cu.migrate_primaries();

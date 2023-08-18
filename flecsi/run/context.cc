@@ -28,7 +28,7 @@ struct backend_arg {
 };
 } // namespace
 
-arguments::arguments(int argc, char ** argv) : act() {
+arguments::arguments(int argc, char ** argv) : cfg() {
   act.program = argv[0] ? argv[0] : "";
   act.program = act.program.substr(act.program.rfind('/') + 1);
   cfg.backend.push_back(act.program);
@@ -220,8 +220,8 @@ arguments::getopt(int argc, char ** argv) {
           stderr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED
                  << "invalid argument for '" << dash << name << "' option!!!"
                  << std::endl
-                 << FLOG_COLOR_LTRED << (ss.str().empty() ? "" : " => ")
-                 << ss.str() << FLOG_COLOR_PLAIN << std::endl
+                 << FLOG_COLOR_LTRED << (ss.rdbuf()->in_avail() ? " => " : "")
+                 << ss.rdbuf() << FLOG_COLOR_PLAIN << std::endl
                  << std::endl;
 
           usage();

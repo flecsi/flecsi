@@ -74,7 +74,6 @@ print_field(typename mesh<D>::template accessor<ro> m,
       ss << c[i] << "   ";
     } // for
     ss << std::endl;
-    flog(warn) << ss.str() << std::endl;
   }
   else if constexpr(D == 2) {
     for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::domain::all>();
@@ -85,7 +84,6 @@ print_field(typename mesh<D>::template accessor<ro> m,
       } // for
       ss << std::endl;
     } // for
-    flog(warn) << ss.str() << std::endl;
   }
   else {
     for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::domain::all>();
@@ -101,8 +99,8 @@ print_field(typename mesh<D>::template accessor<ro> m,
       ss << std::endl;
     } // for
     ss << std::endl;
-    flog(warn) << ss.str() << std::endl;
   }
+  flog(warn) << ss.rdbuf() << std::endl;
 
 } // print_field
 
@@ -699,7 +697,7 @@ print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, na> tf) {
     ss << "]\n\n";
   }
 
-  flog(info) << ss.str() << std::endl;
+  flog(info) << ss.rdbuf() << std::endl;
 } // print_rf
 
 template<std::size_t D>
@@ -844,7 +842,7 @@ coloring_driver() {
       for(auto p : avpc) {
         ss << p << std::endl;
       } // for
-      flog(warn) << ss.str() << std::endl;
+      flog(warn) << ss.rdbuf() << std::endl;
     };
 
     print_colorings();
@@ -1127,16 +1125,15 @@ narray_driver() {
 
     {
       // 2D Mesh
-      auto test_2d = [](mesh2d::gcoord && ind,
-                       mesh2d::coord && hdepth,
-                       mesh2d::coord && bdepth,
-                       std::array<bool, 2> && periodic,
+      auto test_2d = [](const mesh2d::gcoord & indices,
+                       const mesh2d::coord & hdepth,
+                       const mesh2d::coord & bdepth,
+                       std::array<bool, 2> periodic,
                        bool diagonals,
                        bool full_ghosts,
                        int sz,
                        bool full_verify) {
         UNIT() {
-          mesh2d::gcoord indices{ind};
           mesh2d::index_definition idef;
           idef.axes = topo::narray_utils::make_axes(processes(), indices);
           int i = 0;
@@ -1192,22 +1189,22 @@ narray_driver() {
 
     {
       // 3D
-      auto test_3d = [](topo::narray_impl::colors && color_dist,
-                       mesh3d::gcoord && ind,
-                       mesh3d::coord && hdepth,
-                       mesh3d::coord && bdepth,
-                       std::array<bool, 3> && periodic,
+      auto test_3d = [](topo::narray_impl::colors color_dist,
+                       const mesh3d::gcoord & indices,
+                       const mesh3d::coord & hdepth,
+                       const mesh3d::coord & bdepth,
+                       std::array<bool, 3> periodic,
                        bool diagonals,
                        bool full_ghosts,
                        int sz,
                        bool full_verify) {
         UNIT() {
-          mesh3d::gcoord indices{ind};
           mesh3d::index_definition idef;
-          if((color_dist.size() == 1) && (color_dist[0] == processes()))
-            idef.axes = topo::narray_utils::make_axes(processes(), indices);
-          else
-            idef.axes = topo::narray_utils::make_axes(color_dist, indices);
+          idef.axes = topo::narray_utils::make_axes(
+            color_dist.empty()
+              ? topo::narray_utils::distribute(processes(), indices)
+              : std::move(color_dist),
+            indices);
           int i = 0;
           for(auto & a : idef.axes) {
             a.hdepth = hdepth[i];
@@ -1261,7 +1258,7 @@ narray_driver() {
         }; // unit
       };
 
-      test_3d({processes()},
+      test_3d({},
         {4, 4, 4},
         {
           1,

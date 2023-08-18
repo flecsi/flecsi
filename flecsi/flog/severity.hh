@@ -17,9 +17,9 @@ namespace flog {
 
 inline std::string
 verbose(const char * file, int line) {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << timestamp() << " " << rstrip<'/'>(file) << ":" << line << " ";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 #if defined(FLOG_ENABLE_MPI)

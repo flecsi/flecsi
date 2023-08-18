@@ -47,11 +47,9 @@ struct message {
     if(clean_) {
       auto str = ss_.str();
       if(str.back() == '\n') {
-        str = str.substr(0, str.size() - 1);
-        str += FLOG_COLOR_PLAIN;
-        str += '\n';
-        ss_.str(std::string{});
-        ss_ << str;
+        str.pop_back();
+        ss_.str(std::move(str));
+        ss_ << FLOG_COLOR_PLAIN << '\n';
       }
       else {
         ss_ << FLOG_COLOR_PLAIN;
@@ -60,13 +58,13 @@ struct message {
 
 #if defined(FLOG_ENABLE_MPI)
     if(state::instance) {
-      state::instance->buffer_output(ss_.str());
+      state::instance->buffer_output(std::move(ss_).str());
     }
     else {
-      std::cout << ss_.str();
+      std::cout << ss_.rdbuf();
     } // if
 #else
-    std::cout << ss_.str();
+    std::cout << ss_.rdbuf();
 #endif // FLOG_ENABLE_MPI
   }
 

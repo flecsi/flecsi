@@ -15,6 +15,16 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v2.2.2
++++++++++++++++++
+
+Fixed
+^^^^^
+* Logging
+
+  * Special options like ``--control-model`` and ``--help`` work reliably.
+    (This was documented but not actually implemented in 2.2.1.)
+
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++
 
@@ -25,7 +35,6 @@ Fixed
   * Control policy objects are value-initialized by ``run::control::execute``.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
-  * Special options like ``--control-model`` and ``--help`` don't produce spurious error messages as a side effect.
   * Control-model graphs are labeled with the program name.
   * Control model output strips parameters, return values, wrappers, and common
     namespaces from actions for better readability.
