@@ -382,7 +382,10 @@ struct axis_definition {
   /// \showinitializer
   util::id bdepth = 0;
 
-  /// specify whether axis is periodic
+  /// Whether the axis is periodic.
+  /// The boundary index points for a periodic axis are copied as ghosts from
+  /// the other end of the axis.  There must be a positive number of them;
+  /// they are not categorized as ghost points.
   /// \showinitializer
   bool periodic = false;
 
