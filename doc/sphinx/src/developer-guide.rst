@@ -303,8 +303,8 @@ Building for Darwin
 +++++++++++++++++++
 
 Darwin is a testbed cluster at LANL that provides a wide variety of
-node hardware configurations.  (See the `LANL-internal Darwin webpage
-<https://darwin.lanl.gov/>`_.)  The FleCSI distribution provides a
+node hardware configurations.
+The FleCSI distribution provides a
 script, ``tools/darwin.sh``, that automates downloading, building, and
 installing FleCSI and all of its dependencies.  The script can be run
 either from a checked-out version of the FleCSI repository, in which
