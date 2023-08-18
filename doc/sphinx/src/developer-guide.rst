@@ -150,7 +150,7 @@ release
   - **2.1** (release)
 
 In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
-The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
 A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 

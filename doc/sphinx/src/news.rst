@@ -66,7 +66,7 @@ Possible incompatibilities
 
   * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
 
-* Utilties
+* Utilities
 
   * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 
