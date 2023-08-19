@@ -99,6 +99,8 @@ accelerator_config([[maybe_unused]] run::config & c) {
 #elif defined(KOKKOS_ENABLE_OPENMP) && defined(REALM_USE_OPENMP)
   c.legion = {"", "-ll:ocpu", "1", "-ll:onuma", "0"};
 #endif
+#elif FLECSI_BACKEND == FLECSI_BACKEND_hpx
+  c.hpx = {"hpx.ignore_batch_env!=1", "hpx.os_threads!=4"};
 #endif
 }
 
