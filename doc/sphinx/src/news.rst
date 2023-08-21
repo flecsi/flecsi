@@ -78,8 +78,6 @@ New features
 * Logging
 
   * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
-  * FLOG configuration can be set at runtime via new command-line options ``--flog-color``, ``--flog-serialization-interval``,
-    and ``--flog-strip-level``.
 
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++
