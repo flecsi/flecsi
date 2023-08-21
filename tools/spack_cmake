@@ -1,0 +1,210 @@
+#!/usr/bin/env -S spack python
+# -*- python -*-
+#
+# Utility script to configure CMake using a Spack spec
+#
+# This script concretizes a given spec and runs CMake with the necessary
+# options as specified in the Spack package.
+#
+# The .gitlab-ci.yml in the project source directory is parsed and searched for
+# .gcc_flags or .llvm_flags sections. These may contain values for c_flags,
+# cxx_flags. CMAKE_CXX_FLAGS and CMAKE_C_FLAGS are then assembled and passed to
+# CMake as follows:
+#  - CMAKE_C_FLAGS="{c_flags}"
+#  - CMAKE_CXX_FLAGS="{CMAKE_C_FLAGS} {cxx_flags}"
+#
+# These serve as defaults, but these and all other CMake options can be
+# overwritten by specifying CMake options after --.
+#
+# The -c/--compiler-only option allows to suppress project-specific CMake
+# options, which will only include the selection of the compiler, compiler
+# flags, and user specified options. This is useful for building dependent
+# projects that require the same compiler settings as a given spec.
+#
+# If this script is run in an activated environment, the provided spec is be
+# compared to that environment. If no compiler was specified, the spec defaults
+# to using the same compiler as the environment.
+#
+# Any incompatible differences between the spec and the environment are
+# reported as warnings. If the -i/--inherit option is passed, the provided spec
+# is compared to the environment root specs, and the first compatible root is
+# selected. The variants of the provided spec are therefore extended with the
+# ones defined in the selected root.
+#
+# By default, this script works out-of-the box if you run it from within the
+# source directory or from a build directory that is a child of the source
+# directory.
+#
+#  - When launched from the source directory, it will simply create a 'build' folder
+#    and configure it.
+#
+#  - When launched from any other build directory that is a child of the source
+#    directory, it will use that build directory and locate the source folder.
+#
+#  - For any other launch location, the current directory is assumed to be the
+#    build directory, unless it is overridden using the -B <path> option, and you
+#    must specify the source directory with -S <path>
+#
+import os
+import sys
+import yaml
+import argparse
+
+COLOR_RESET = "\033[m"
+COLOR_INFO = "\033[1;36m"
+COLOR_ERROR = "\033[1;31m"
+COLOR_WARNING = "\033[1;33m"
+COLOR_HEADER = "\033[1;30m"
+
+
+def header(msg, file=sys.stdout):
+    print(f"{COLOR_HEADER}{msg}{COLOR_RESET}", file=sys.stderr)
+
+
+def info(msg):
+    print(f"{COLOR_INFO}INFO: {msg}{COLOR_RESET}", file=sys.stderr)
+
+
+def warning(msg):
+    print(f"{COLOR_WARNING}WARNING: {msg}{COLOR_RESET}", file=sys.stderr)
+
+
+def error(msg):
+    print(f"{COLOR_ERROR}ERROR: {msg}{COLOR_RESET}", file=sys.stderr)
+    sys.exit(1)
+
+
+main_args = sys.argv[1:]
+user_cmake_args = []
+
+if "--" in sys.argv:
+    divider = sys.argv.index("--")
+    main_args = sys.argv[1:divider]
+    user_cmake_args = sys.argv[divider + 1:]
+
+# first assumption, we're in the source directory
+source_dir = os.getcwd()
+binary_dir = "build"
+
+while source_dir != "/" and not os.path.exists(os.path.join(source_dir, "CMakeLists.txt")):
+    # now assume we're in a build folder, try to find source_dir as parent
+    binary_dir = "."
+    source_dir = os.path.dirname(source_dir)
+
+parser = argparse.ArgumentParser(
+    usage="spack_cmake [-h] [-B BINARY_DIR] [-S SOURCE_DIR] [-c|--compiler-only] [-i|--inherit] spec [-- CMAKE_OPTIONS]"
+)
+parser.add_argument("-B", "--binary_dir", default=binary_dir)
+parser.add_argument("-S", "--source_dir", default=source_dir)
+parser.add_argument("-c", "--compiler-only", action="store_true",
+                    help="Only generate CMake compiler options")
+parser.add_argument("-i", "--inherit", action="store_true",
+                    help="Inherit variants from Spack environment")
+parser.add_argument("spec", nargs="+")
+args = parser.parse_args(main_args)
+
+source_dir = args.source_dir
+binary_dir = args.binary_dir
+
+# check final source_dir location
+if not os.path.exists(os.path.join(source_dir, "CMakeLists.txt")):
+    error("Couldn't find source directory. Please specify with -S <path>!")
+
+active_env = spack.environment.active_environment()
+app_spec = spack.spec.Spec(" ".join(args.spec))
+
+if active_env:
+    def unwrap(x, zero_msg, ambiguous_msg, zero=error, ambiguous=error):
+        if not x: zero(zero_msg)
+        if len(x) > 1: ambiguous(ambiguous_msg)
+        return next(iter(x))
+
+
+    if args.inherit:
+        app_spec = unwrap({r for _, r in active_env.concretized_specs() if r.satisfies(app_spec)},
+                          "No compatible spec in environment", "Choice of compatible spec is ambiguous")
+        info(f"Reusing environment spec for {app_spec.name}")
+    else:
+        roots = {r for _, r in active_env.concretized_specs() if r.satisfies(app_spec.name)}
+        compilers = {r.compiler for r in roots}
+
+        if app_spec.compiler:
+            if not any(c.satisfies(app_spec.compiler) for c in compilers):
+                warning(f"Compilers used in environment not compatible with spec!\n")
+                header("environment:")
+                for c in compilers: print(f"{c}\n", file=sys.stderr)
+                header("spec:")
+                print(f"{app_spec.compiler}\n", file=sys.stderr)
+        else:
+            app_spec.compiler = unwrap(compilers, "No compatible environment compiler available",
+                                       "Choice of environment compiler is ambiguous")
+
+        info("Concretizing...")
+        app_spec.concretize()
+
+        for dep in app_spec.dependencies():
+            if not any(dep.name in r for r in roots):
+                warning(f"Missing dependency {dep.name} in environment!\n\n{dep.short_spec}")
+            else:
+                selected = unwrap({r[dep.name] for r in roots if dep.name in r},
+                                  f"Missing dependency {dep.name} in environment!\n\n{dep.short_spec}",
+                                  f"Dependency {dep.name} is ambiguous in environment!\n", zero=warning,
+                                  ambiguous=warning)
+                if not selected.satisfies(dep):
+                    warning(f"{dep.name} in environment not compatible with provided spec!\n")
+                    header("environment:")
+                    print(f"{selected.short_spec}\n", file=sys.stderr)
+                    header("spec:")
+                    print(f"{dep.short_spec}\n", file=sys.stderr)
+else:
+    if args.inherit: error("No active environment found to inherit from!")
+
+print(f"{COLOR_INFO}{app_spec.short_spec}{COLOR_RESET}")
+app_spec.concretize()
+app = app_spec.package
+
+if app_spec.satisfies("^hip"):
+    # Needed, so hipcc is set
+    app_spec["hip"].package.setup_dependent_package(None, None)
+
+compiler = spack.compilers.compiler_for_spec(app_spec.compiler, app_spec.architecture)
+compiler_args = [f"-DCMAKE_CXX_COMPILER={compiler.cxx}", f"-DCMAKE_C_COMPILER={compiler.cc}"]
+
+if compiler.name == "gcc":
+    compiler_family = "gcc"
+else:
+    # assume anything else is LLVM-based
+    compiler_family = "llvm"
+
+dir_args = ["-B", binary_dir, "-S", source_dir]
+
+# find .gitlab-ci.yml in source dir or parent source dir
+options_dir = source_dir
+options_file = os.path.join(options_dir, ".gitlab-ci.yml")
+while options_dir != "/" and not os.path.exists(options_file):
+    options_dir = os.path.dirname(options_dir)
+    options_file = os.path.join(options_dir, ".gitlab-ci.yml")
+
+if os.path.exists(options_file):
+    # load project settings, adding default CMake options for each compiler family
+    with open(options_file, "r") as f:
+        project_options = yaml.safe_load(f)
+
+    # apply CMake options for compiler family
+    flags = project_options[f".{compiler_family}_flags"]
+    c_flags = flags.get("c_flags", "").split()
+    cxx_flags = c_flags + flags.get("cxx_flags", "").split()
+    project_args = [f"-DCMAKE_C_FLAGS={' '.join(c_flags)}", f"-DCMAKE_CXX_FLAGS={' '.join(cxx_flags)}"]
+else:
+    project_args = []
+
+app_args = app.cmake_args()
+if args.compiler_only:
+    app_args = [x for x in app_args if
+                any(n in x for n in ("CMAKE_CXX_COMPILER", "CMAKE_C_COMPILER"))]
+
+cmake_args = compiler_args + project_args + app_args + user_cmake_args + dir_args
+
+cmake = os.path.join(app_spec["cmake"].prefix, "bin", "cmake")
+print(cmake, *cmake_args, flush=True)
+os.execl(cmake, cmake, *cmake_args)

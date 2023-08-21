@@ -20,7 +20,7 @@ class colorer
   // Number of octets used communications
   static const size_t noct = 256 * 1024;
 
-  colorer(){};
+  colorer() {}
 
 public:
   /**

@@ -91,7 +91,7 @@ public:
   /*!
     Destructor
    */
-  virtual ~mpi_mapper_t(){};
+  virtual ~mpi_mapper_t() {}
 
   /* This is the method to choose default Layout constraints.
      FleCSI is currently uses SOA ordering, which is different from

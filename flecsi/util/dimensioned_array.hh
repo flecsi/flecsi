@@ -82,7 +82,7 @@ public:
 
   static constexpr Dimension size() {
     return DIMENSION;
-  }; // size
+  } // size
 
   operator std::array<TYPE, DIMENSION>() {
     return data_;
@@ -147,53 +147,55 @@ public:
     return *this;                                                              \
   }
 
-  //--------------------------------------------------------------------------//
-  //! Addition/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator(+=);
+  // clang-format off
 
   //--------------------------------------------------------------------------//
   //! Addition/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator_type(+=);
+  define_operator(+=)
+
+  //--------------------------------------------------------------------------//
+  //! Addition/Assignment operator.
+  //--------------------------------------------------------------------------//
+
+  define_operator_type(+=)
 
   //--------------------------------------------------------------------------//
   //! Subtraction/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator(-=);
+  define_operator(-=)
 
   //--------------------------------------------------------------------------//
   //! Subtraction/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator_type(-=);
+  define_operator_type(-=)
 
   //--------------------------------------------------------------------------//
   //! Multiplication/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator(*=);
+  define_operator(*=)
 
   //--------------------------------------------------------------------------//
   //! Multiplication/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator_type(*=);
+  define_operator_type(*=)
 
   //--------------------------------------------------------------------------//
   //! Division/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator(/=);
+  define_operator(/=)
 
   //--------------------------------------------------------------------------//
   //! Division/Assignment operator.
   //--------------------------------------------------------------------------//
 
-  define_operator_type(/=);
+  define_operator_type(/=)
 
   //--------------------------------------------------------------------------//
   //! Equality operator
@@ -202,6 +204,8 @@ public:
   constexpr bool operator==(const dimensioned_array & da) {
     return this->data_ == da.data_;
   }
+
+  // clang-format on
 
   //! \brief Division operator involving a constant.
   //! \param[in] val The constant on the right hand side of the operator.
