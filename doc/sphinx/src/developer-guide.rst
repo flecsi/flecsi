@@ -150,7 +150,7 @@ release
   - **2.1** (release)
 
 In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
-The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
 A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 
@@ -240,7 +240,7 @@ be back-merged into *feature* or *devel*, as appropriate.
 Published Documentation
 +++++++++++++++++++++++
 The `project homepage`__ is a GitHub Pages site generated from `the current GitHub repository`__.
-The ``deploy-documentation`` Make target sets up a repository to update it by pushing to the appropriate branch.
+The ``deploy-docs`` Make target sets up a repository to update it by pushing to the appropriate branch.
 
   __ http://www.flecsi.org/
   __ https://github.com/flecsi/flecsi/tree/gh-pages
@@ -303,8 +303,8 @@ Building for Darwin
 +++++++++++++++++++
 
 Darwin is a testbed cluster at LANL that provides a wide variety of
-node hardware configurations.  (See the `LANL-internal Darwin webpage
-<https://darwin.lanl.gov/>`_.)  The FleCSI distribution provides a
+node hardware configurations.
+The FleCSI distribution provides a
 script, ``tools/darwin.sh``, that automates downloading, building, and
 installing FleCSI and all of its dependencies.  The script can be run
 either from a checked-out version of the FleCSI repository, in which

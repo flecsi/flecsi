@@ -18,7 +18,7 @@ init(canon::accessor<ro> t, field<double>::accessor<wo> p) {
 } // init
 
 void
-copy(field<double>::accessor<ro> src, field<double>::accessor<rw> dest) {
+copy(field<double>::accessor<ro> src, field<double>::accessor<wo> dest) {
   auto s = src.span();
   std::copy(s.begin(), s.end(), dest.span().begin());
 }

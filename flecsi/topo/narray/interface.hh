@@ -657,7 +657,9 @@ protected:
 
   /*!
      Method returning the global id of a logical index of an index space
-     S along axis A. This function is \ref topology
+     \a S along axis \a A.  If \a logical_id refers to a boundary point, it is
+     treated as periodic.
+     This function is \ref topology
      "host-accessible". \sa meta_data, axis_color
   */
   template<index_space S, axis A>

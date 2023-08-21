@@ -20,6 +20,16 @@ Changes in v2.2.2
 
 Fixed
 ^^^^^
+* Execution
+
+  * Tasks may be declared ``noexcept``.
+    (This was fixed but not documented in 2.2.1.)
+
+* Topologies
+
+  * ``narray`` respects ``index_definition::diagonals`` being ``false``.
+    (This was fixed but not documented in 2.2.1.)
+
 * Logging
 
   * Special options like ``--control-model`` and ``--help`` work reliably.
@@ -56,7 +66,7 @@ Possible incompatibilities
 
   * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
 
-* Utilties
+* Utilities
 
   * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 

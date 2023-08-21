@@ -9,6 +9,7 @@ User Guide
   :caption: User Guide:
 
   user-guide/cmake
+  user-guide/programming
   user-guide/topologies
   user-guide/specializations
   user-guide/performance
