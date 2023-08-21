@@ -28,6 +28,7 @@ default:
 
 variables:
   USE_SPACK_UPSTREAM: develop-82d41a7be
+  DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: '\033[1;34m'
   COLOR_GREEN: '\033[0;32m'
   COLOR_MAGENTA: '\033[1;35m'
@@ -86,6 +87,31 @@ docs_and_format:check:
     - merge_requests
   variables:
     JOB_CONSTRAINTS: ""
+
+#------------------------------------------------------------------------------#
+# Test developer tools
+#
+# Will first create a minimal copy of the Spack upstream checkout in
+# $TMPDIR/spack to avoid cloning from GitHub.
+#------------------------------------------------------------------------------#
+
+tools:
+  stage: Canary
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  script:
+    - export HOME=$TMPDIR
+    - module load git
+    - |
+      rsync -rpl \
+        --include="lib/spack/**" \
+        --exclude-from=${DARWIN_SPACK_UPSTREAM}/.gitignore \
+        ${DARWIN_SPACK_UPSTREAM}/ $TMPDIR/spack/
+    - git -C $TMPDIR/spack reset --hard
+    - git -C $TMPDIR/spack clean -x -f -d
+    - tools/darwin.sh
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for default settings.
