@@ -120,16 +120,6 @@ if(ENABLE_LIBRARY)
   set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_EXTENSIONS OFF)
 
-  #------------------------------------------------------------------------------#
-  # Compiler version requirements.
-  #------------------------------------------------------------------------------#
-
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-      message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
-    endif()
-  endif()
-
   include(FleCSI/coverage)
   include(FleCSI/legion)
   include(FleCSI/mpi)
