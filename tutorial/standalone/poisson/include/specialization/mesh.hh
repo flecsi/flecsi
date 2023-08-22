@@ -66,10 +66,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       else if constexpr(DM == logical) {
         return B::template size<mesh::vertices, A, base::domain::logical>();
       }
-      else if(DM == all) {
+      else if constexpr(DM == all) {
         return B::template size<mesh::vertices, A, base::domain::all>();
       }
-      else if(DM == global) {
+      else if constexpr(DM == global) {
         return B::template size<mesh::vertices, A, base::domain::global>();
       }
     }
@@ -90,7 +90,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       else if constexpr(DM == logical) {
         return B::template range<mesh::vertices, A, base::domain::logical>();
       }
-      else if(DM == all) {
+      else if constexpr(DM == all) {
         return B::template range<mesh::vertices, A, base::domain::all>();
       }
     }
