@@ -18,6 +18,12 @@ Release Notes
 Changes in v2.2.2
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
+
 Fixed
 ^^^^^
 * Execution
