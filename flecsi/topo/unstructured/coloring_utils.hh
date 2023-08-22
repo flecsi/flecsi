@@ -950,65 +950,63 @@ coloring_utils<MD>::close_vertices() {
       auto & primary_pcd = primary_pcdata[lco];
       auto & offsets = vertex_pcdata[lco].offsets;
 
-      if(cd_.colors > 1) {
-        // Go through the shared primaries and look for ghosts. Some of these
-        // may be on the local processor, i.e., we don't need to request
-        // remote information about them.
-        for(const auto & [d, pe] : primary.peers) {
-          for(auto lid : pe.shared) {
-            auto sgid = primary_pcd.all[lid];
-            for(auto v : cnns.e2v[cnns.m2p.at(sgid)]) {
-              auto vit = v2co_.find(v);
-              flog_assert(vit != v2co_.end(), "invalid vertex id");
-              auto gco = vit->second;
+      // Go through the shared primaries and look for ghosts. Some of these
+      // may be on the local processor, i.e., we don't need to request
+      // remote information about them.
+      for(const auto & [d, pe] : primary.peers) {
+        for(auto lid : pe.shared) {
+          auto sgid = primary_pcd.all[lid];
+          for(auto v : cnns.e2v[cnns.m2p.at(sgid)]) {
+            auto vit = v2co_.find(v);
+            flog_assert(vit != v2co_.end(), "invalid vertex id");
+            auto gco = vit->second;
 
-              if(gco == co) {
-                vertex_pcd.shared.insert(v);
-                vertex_pcd.dependents[v].insert(d);
-                vertex_pcd.owned.emplace_back(v);
-              }
-              else {
-                vertex_pcd.ghost.emplace_back(v);
-                if(!ours(gco)) {
-                  // The ghost is remote: add to remote requests.
-                  remote.emplace_back(v);
-                } // if
-              } // if
-            } // for
-          } // for
-        } // for
-
-        // Go through the ghost primaries and look for ghosts. Some of these
-        // may also be on the local processor.
-        for(auto & [c, pe] : primary.peers) {
-          for(auto [rid, lid] : pe.ghost) {
-            auto egid = primary_pcd.all[lid];
-
-            for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
-              auto vit = v2co_.find(v);
-
-              // Add dependents through ghosts.
-              if(vertex_pcd.shared.count(v) && vdeps_.count(egid)) {
-                auto deps = vdeps_.at(egid);
-                deps.erase(co);
-                vertex_pcd.dependents[v].insert(deps.begin(), deps.end());
-              } // if
-
-              if(vit != v2co_.end()) {
-                auto gco = vit->second;
-                if(gco != co) {
-                  vertex_pcd.ghost.emplace_back(v);
-                } // if
-              }
-              else {
+            if(gco == co) {
+              vertex_pcd.shared.insert(v);
+              vertex_pcd.dependents[v].insert(d);
+              vertex_pcd.owned.emplace_back(v);
+            }
+            else {
+              vertex_pcd.ghost.emplace_back(v);
+              if(!ours(gco)) {
                 // The ghost is remote: add to remote requests.
-                vertex_pcd.ghost.emplace_back(v);
                 remote.emplace_back(v);
               } // if
-            } // for
+            } // if
           } // for
-        }
-      } // if
+        } // for
+      } // for
+
+      // Go through the ghost primaries and look for ghosts. Some of these
+      // may also be on the local processor.
+      for(auto & [c, pe] : primary.peers) {
+        for(auto [rid, lid] : pe.ghost) {
+          auto egid = primary_pcd.all[lid];
+
+          for(auto v : cnns.e2v[cnns.m2p.at(egid)]) {
+            auto vit = v2co_.find(v);
+
+            // Add dependents through ghosts.
+            if(vertex_pcd.shared.count(v) && vdeps_.count(egid)) {
+              auto deps = vdeps_.at(egid);
+              deps.erase(co);
+              vertex_pcd.dependents[v].insert(deps.begin(), deps.end());
+            } // if
+
+            if(vit != v2co_.end()) {
+              auto gco = vit->second;
+              if(gco != co) {
+                vertex_pcd.ghost.emplace_back(v);
+              } // if
+            }
+            else {
+              // The ghost is remote: add to remote requests.
+              vertex_pcd.ghost.emplace_back(v);
+              remote.emplace_back(v);
+            } // if
+          } // for
+        } // for
+      }
 
       for(auto lid : primary.exclusive()) {
         auto egid = primary_pcd.all[lid];
