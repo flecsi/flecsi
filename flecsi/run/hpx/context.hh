@@ -11,6 +11,7 @@
 #include "flecsi/run/local/context.hh"
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <utility>
 
@@ -88,7 +89,38 @@ private:
 namespace flecsi {
 namespace detail {
 
-using task_local_data = std::map<void *, void *>;
+struct task_local_data {
+
+  auto begin() {
+    return data.begin();
+  }
+  auto end() {
+    return data.end();
+  }
+
+  template<typename T>
+  auto emplace(void * key) {
+    return data.emplace(key, new T());
+  }
+
+  auto find(void * key) noexcept {
+    return data.find(key);
+  }
+
+  constexpr bool outermost() const noexcept {
+#if HPX_VERSION_FULL >= 0x011000
+    return count == 1;
+#else
+    return true;
+#endif
+  }
+
+  std::map<void *, void *> data;
+
+#if HPX_VERSION_FULL >= 0x011000
+  std::int16_t count = 1;
+#endif
+};
 
 // manage task local storage for this task
 void create_storage();
@@ -98,9 +130,9 @@ void reset_storage() noexcept;
 template<typename T>
 void
 add(void * key) {
-  [[maybe_unused]] auto p = storage()->emplace(key, new T());
-  flog_assert(
-    p.second, "task local storage element should not have been created yet");
+  [[maybe_unused]] auto p = storage()->emplace<T>(key);
+  flog_assert(p.second || !storage()->outermost(),
+    "task local storage element should not have been created yet");
 }
 
 template<typename T>
@@ -110,8 +142,10 @@ erase(void * key) noexcept {
   auto it = stg->find(key);
   flog_assert(
     it != stg->end(), "task local storage element should have been created");
-  delete static_cast<T *>((*it).second);
-  (*it).second = nullptr;
+  if(stg->outermost()) {
+    delete static_cast<T *>((*it).second);
+    (*it).second = nullptr;
+  }
 }
 
 template<typename T>
