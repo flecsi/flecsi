@@ -802,10 +802,10 @@ struct detail::base<narray> {
 /// Example specialization which is not really implemented.
 struct narray_specialization : specialization<narray, narray_specialization> {
 
-  /// Enumeration of the axes, they should be
-  /// consistent with the dimension of mesh.
+  /// Axis enumeration.
   enum axis { x, y };
   /// Axes to store.
+  /// Must have as many elements as \c dimension.
   /// The format is\code
   /// has<x, y, ..>
   /// \endcode
