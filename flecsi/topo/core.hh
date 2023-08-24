@@ -168,7 +168,8 @@ struct specialization_base {
   /// It must be \a B or inherit from it without adding any data members.
   /// Instances of it will be value-initialized and should default-initialize
   /// \a B.
-  /// \tparam B core topology interface
+  /// \tparam B core topology interface (a specialization of \c access from
+  ///   the appropriate core topology)
   template<class B>
   using interface = B;
   /// \}
