@@ -816,7 +816,7 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 
   /// Specialization-specific data to store once per color.
   struct meta_data {};
-}
+};
 #endif
 
 /// \}
