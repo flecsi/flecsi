@@ -813,6 +813,9 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 
   /// mesh dimension
   static constexpr Dimension dimension = 2;
+
+  /// Specialization-specific data to store once per color.
+  struct meta_data {};
 }
 #endif
 
