@@ -7,7 +7,6 @@
 
 # Trace commands and abort on the first error.
 set -e
-set -v
 
 # Check if we're running from within a flecsi clone.  If not, clone
 # flecsi into the current directory.  In either case, cd to the
@@ -23,11 +22,6 @@ else
     cd flecsi
 fi
 git rev-parse HEAD
-
-# Create a build subdirectory and cd to it.
-test -d build && rm -rf build
-mkdir build
-cd build
 
 # Define an installation directory.
 FLECSI_INSTALL="$HOME/flecsi-inst"
@@ -82,9 +76,7 @@ else
     fi
   fi
 fi
-set +v
 source "$HOME/spack/share/spack/setup-env.sh"
-set -v
 popd
 
 
@@ -95,10 +87,8 @@ spack env activate flecsi-mpich
 
 # Load GCC version known to work with FleCSI
 # and make it visible to Spack
-set +v
 module load gcc/${GCC_VERSION}
 spack compiler find
-set -v
 
 # ignore configuration in ~/.spack to avoid conflicts
 export SPACK_DISABLE_LOCAL_CONFIG=true
@@ -110,7 +100,7 @@ spack config add concretizer:reuse:false
 spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
 
 # add FleCSI spack package repository
-spack repo add ../spack-repo
+spack repo add spack-repo
 
 # On Darwin we have a Spack upstream that already has prebuilt dependencies
 DARWIN_SPACK_UPSTREAM=/projects/flecsi-devel/gitlab/spack-upstream/$SPACK_VERSION
@@ -129,7 +119,7 @@ fi
 # Install FleCSI's dependencies with Spack.
 # This also builds a version of MPICH in Spack since the ones on Darwin do not include
 # an mpiexec/mpirun that works.
-spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +hdf5 +kokkos +flog \
+spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +graphviz +hdf5 +kokkos +flog \
           ^mpich%gcc@${GCC_VERSION}+hydra device=ch4 netmod=ucx \
           ^legion network=gasnet conduit=mpi build_type=Debug
 spack install -j $(nproc) --only dependencies
@@ -138,10 +128,11 @@ spack install -j $(nproc) --only dependencies
 
 # configure FleCSI, inheriting (-i) the its configuration from the Spack environment
 test -d build && rm -rf build
-../tools/spack_cmake -i flecsi -- -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"
-cmake --build build -j $(nproc)
+tools/spack_cmake -i -t flecsi -- -DCMAKE_INSTALL_PREFIX="$FLECSI_INSTALL"
+cd build
+cmake --build . -j $(nproc)
 ctest
-cmake --build build --target install
+cmake --build . --target install
 cd ..
 
 # Ensure the tutorial examples build properly.
@@ -154,10 +145,8 @@ test -d build && rm -rf build
 # configure tutorial examples with the same compiler and compiler flags as flecsi
 ../tools/spack_cmake -c -i flecsi
 cmake --build build -j $(nproc)
-cd ..
 
 # Build complete
-set +v
 echo "BUILD COMPLETE"
 echo
 echo "To continue working in the same Spack environment, execute the following commands:"
