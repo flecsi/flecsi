@@ -92,10 +92,14 @@ while source_dir != "/" and not os.path.exists(os.path.join(source_dir, "CMakeLi
     source_dir = os.path.dirname(source_dir)
 
 parser = argparse.ArgumentParser(
-    usage="spack_cmake [-h] [-B BINARY_DIR] [-S SOURCE_DIR] [-c|--compiler-only] [-i|--inherit] spec [-- CMAKE_OPTIONS]"
+    usage="spack_cmake [-h] [-B BINARY_DIR] [-S SOURCE_DIR]\n"
+          "                   [-c|--compiler-only] [-i|--inherit] [-t|--test]\n"
+          "                   spec [-- CMAKE_OPTIONS]"
 )
 parser.add_argument("-B", "--binary_dir", default=binary_dir)
 parser.add_argument("-S", "--source_dir", default=source_dir)
+parser.add_argument("-t", "--test", action="store_true",
+                    help="Enable testing")
 parser.add_argument("-c", "--compiler-only", action="store_true",
                     help="Only generate CMake compiler options")
 parser.add_argument("-i", "--inherit", action="store_true",
@@ -162,6 +166,7 @@ else:
 print(f"{COLOR_INFO}{app_spec.short_spec}{COLOR_RESET}")
 app_spec.concretize()
 app = app_spec.package
+app.run_tests = args.test
 
 if app_spec.satisfies("^hip"):
     # Needed, so hipcc is set
