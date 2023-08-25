@@ -45,8 +45,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   static constexpr Dimension dimension = Policy::dimension;
 
-  /// This type is the topology accessor base type "B"
-  /// from which specialization interface type is derived.
   template<Privileges>
   struct access;
 
@@ -486,10 +484,9 @@ struct borrow_extra<narray<P>> : borrow_sizes<P> {
   using borrow_extra::borrow_sizes::borrow_sizes;
 };
 
-/*----------------------------------------------------------------------------*
-  Narray Access.
- *----------------------------------------------------------------------------*/
+/// Topology interface base.
 /// This class is supported for GPU execution.
+/// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
