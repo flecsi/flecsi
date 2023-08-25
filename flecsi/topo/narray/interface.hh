@@ -573,9 +573,9 @@ private:
   /*!
      Method to access logical lower/upper bounds of index space S
      along axis A.
+     This function is \ref topology "host-accessible".
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
-     This function is \ref topology "host-accessible".
     */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
@@ -585,9 +585,9 @@ private:
   /*!
     Method to access extended lower/upper bounds of index space
     S along axis A.
+    This function is \ref topology "host-accessible".
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
-    This function is \ref topology "host-accessible".
    */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
@@ -695,8 +695,8 @@ protected:
   /*!
      Method to return an iterator over the extents of the index-space S along
      axis A for domain DM.
-     \tparam DM not \c domain::global
      This function is \ref topology "host-accessible".
+     \tparam DM not \c domain::global
    */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
