@@ -106,6 +106,12 @@ struct vector { // for *v functions
 
 struct init {
   init(int & argc, char **& argv) {
+#if defined(GASNET_CONDUIT_IBV) || defined(GASNET_CONDUIT_UCX)
+    // work around GASNet issues during application cleanup:
+    // See line 149 of mpi_interop.cc as of Legion version 23.06.0
+    setenv("GASNET_CATCH_EXIT", "0", 0);
+#endif
+
     // The MPI backend always requires this, as does the Legion backend with
     // the MPI GASNet conduit, and it's become very common, so just use it:
     int provided;
