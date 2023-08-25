@@ -16,6 +16,11 @@ default:
   before_script:
    - echo "Running on $(hostname)"
 
+.darwin_job:
+  id_tokens:
+    SITE_ID_TOKEN:
+      aud: https://gitlab.lanl.gov
+
 # project-wide warning configuration
 # these are also parsed by tools, so don't try to use variable expansion here
 .gcc_flags: &gcc_flags
@@ -76,7 +81,7 @@ include: .gitlab/templates.yml
 #------------------------------------------------------------------------------#
 
 docs_and_format:check:
-  extends: .check_docs_and_format_template
+  extends: [.darwin_job, .check_docs_and_format_template]
   needs:
     - job: docs_and_format
       artifacts: true
@@ -96,6 +101,7 @@ docs_and_format:check:
 #------------------------------------------------------------------------------#
 
 tools:
+  extends: [.darwin_job]
   stage: Canary
   needs: []
   dependencies: []
@@ -119,7 +125,7 @@ tools:
 
 mpich-defaults:
   stage: Legion backend
-  extends: .darwin_defaults_build_template
+  extends: [.darwin_job, .darwin_defaults_build_template]
   needs: []
   dependencies: []
   only:
@@ -135,7 +141,7 @@ mpich-defaults:
 
 mpich-legion-gnu:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -148,7 +154,7 @@ mpich-legion-gnu:
 
 mpich-legion-gnu:release:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   rules:
@@ -166,7 +172,7 @@ mpich-legion-gnu:release:
 
 mpich-mpi-gnu:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -177,7 +183,7 @@ mpich-mpi-gnu:
 
 mpich-mpi-gnu:release:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   rules:
@@ -194,7 +200,7 @@ mpich-mpi-gnu:release:
 #------------------------------------------------------------------------------#
 
 mpich-tutorial:legion:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["mpich-legion-gnu"]
   only:
@@ -207,7 +213,7 @@ mpich-tutorial:legion:
     PARTITIONS: skylake-gold
 
 mpich-flaxpy:legion:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["mpich-legion-gnu"]
   only:
@@ -221,7 +227,7 @@ mpich-flaxpy:legion:
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 mpich-poisson:legion:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["mpich-legion-gnu"]
   only:
@@ -241,7 +247,7 @@ mpich-poisson:legion:
 
 openmpi-legion-gnu:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -252,7 +258,7 @@ openmpi-legion-gnu:
 
 openmpi-legion-gnu:release:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   rules:
@@ -270,7 +276,7 @@ openmpi-legion-gnu:release:
 
 openmpi-legion-clang-cuda:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -284,7 +290,7 @@ openmpi-legion-clang-cuda:
 
 openmpi-legion-clang-cuda-mpi:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -303,7 +309,7 @@ openmpi-legion-clang-cuda-mpi:
 
 openmpi-mpi-gnu:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   dependencies: []
   needs: []
   only:
@@ -314,7 +320,7 @@ openmpi-mpi-gnu:
 
 openmpi-mpi-gnu:release:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   rules:
@@ -333,7 +339,7 @@ openmpi-mpi-gnu:release:
 
 mpich-legion-clang:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -350,7 +356,7 @@ mpich-legion-clang:
 
 mpich-mpi-clang:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -381,7 +387,7 @@ docs_and_format:
 
 openmpi-mpi-clang:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -397,7 +403,7 @@ openmpi-mpi-clang:
 
 openmpi-mpi-rocm:
   stage: MPI backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -417,7 +423,7 @@ openmpi-mpi-rocm:
 
 openmpi-legion-rocm:
   stage: Legion backend
-  extends: .darwin_build_template
+  extends: [.darwin_job, .darwin_build_template]
   needs: []
   dependencies: []
   only:
@@ -435,7 +441,7 @@ openmpi-legion-rocm:
 #------------------------------------------------------------------------------#
 
 openmpi-poisson-cuda-clang:legion:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["openmpi-legion-clang-cuda"]
   only:
@@ -448,7 +454,7 @@ openmpi-poisson-cuda-clang:legion:
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-poisson-rocm:mpi:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["openmpi-mpi-rocm"]
   only:
@@ -461,7 +467,7 @@ openmpi-poisson-rocm:mpi:
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 openmpi-poisson-rocm:legion:
-  extends: .darwin_standalone_template
+  extends: [.darwin_job, .darwin_standalone_template]
   needs:
     ["openmpi-legion-rocm"]
   only:
