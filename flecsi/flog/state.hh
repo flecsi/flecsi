@@ -48,6 +48,7 @@ class state
 {
 public:
   static constexpr std::size_t tag_bits = 1024;
+  static constexpr Color all_processes = -1;
 
   state(const std::vector<std::string> & active, int verbose, Color one_process)
     : verb(verbose) {
@@ -225,6 +226,10 @@ public:
   }
 
 #if defined(FLOG_ENABLE_MPI)
+  bool active_process() const {
+    return one_process_ == all_processes || one_process_ == process_;
+  }
+
   Color one_process() const {
     return one_process_;
   }

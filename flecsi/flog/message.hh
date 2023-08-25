@@ -32,10 +32,13 @@ struct message {
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: log_message_t constructor " << file
               << " " << line << FLOG_COLOR_PLAIN << std::endl;
 #endif
+    if(!state::instance().active_process())
+      ss_.clear(std::ios_base::badbit);
   }
 
   ~message() {
-    if(Policy::strip() || !state::tag_enabled()) {
+    if(Policy::strip() || !state::tag_enabled() ||
+       !state::instance().active_process()) {
       return;
     } // if
 
