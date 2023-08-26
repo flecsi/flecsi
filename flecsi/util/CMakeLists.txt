@@ -16,6 +16,7 @@ set(util_HEADERS
   function_traits.hh
   geometry/filling_curve.hh
   geometry/point.hh
+  geometry/kdtree.hh
   crs.hh
   parmetis.hh
   graphviz.hh
@@ -147,12 +148,8 @@ flecsi_add_test(set_utils
 # geometry
 #------------------------------------------------------------------------------#
 
-flecsi_add_test(point
-  SOURCES geometry/test/point.cc
-)
-
-flecsi_add_test(filling_curve
-  SOURCES geometry/test/filling_curve.cc
+flecsi_add_test(geometry
+  SOURCES test/geometry.cc
 )
 
 #------------------------------------------------------------------------------#
