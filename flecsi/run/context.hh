@@ -225,8 +225,8 @@ protected:
 public:
   void check_config(arguments::action & a) const {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-    const Color p = flog::state::instance().one_process();
-    if(p + 1 && p >= processes_) {
+    const Color p = flog::state::instance().source_process();
+    if(p != flog::state::all_processes && p >= processes_) {
       std::ostringstream stderr;
       stderr << a.program << ": flog process " << p << " does not exist with "
              << processes_ << " processes\n";

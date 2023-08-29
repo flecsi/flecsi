@@ -50,7 +50,9 @@ public:
   static constexpr std::size_t tag_bits = 1024;
   static constexpr Color all_processes = -1;
 
-  state(const std::vector<std::string> & active, int verbose, Color one_process)
+  state(const std::vector<std::string> & active,
+    int verbose,
+    Color source_process)
     : verb(verbose) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: initializing runtime"
@@ -104,7 +106,7 @@ public:
       processes_ = np;
     }
 
-    one_process_ = one_process;
+    source_process_ = source_process;
 
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
@@ -227,11 +229,11 @@ public:
 
 #if defined(FLOG_ENABLE_MPI)
   bool active_process() const {
-    return one_process_ == all_processes || one_process_ == process_;
+    return source_process_ == all_processes || source_process_ == process_;
   }
 
-  Color one_process() const {
-    return one_process_;
+  Color source_process() const {
+    return source_process_;
   }
 
   Color process() const {
@@ -281,8 +283,8 @@ public:
 
   static void set_instance(const std::vector<std::string> & active,
     int verbose,
-    Color one_process) {
-    instance_.emplace(active, verbose, one_process);
+    Color source_process) {
+    instance_.emplace(active, verbose, source_process);
   }
 
 private:
@@ -306,7 +308,7 @@ private:
   }
   void send_to_one(bool last);
 
-  Color one_process_, process_, processes_;
+  Color source_process_, process_, processes_;
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
   std::condition_variable avail;
