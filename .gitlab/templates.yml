@@ -79,14 +79,6 @@
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
     - module load cuda/${CUDA_VERSION}
-    - export CC=gcc  # default C compiler
-    - export CXX=g++ # default C++ compiler
-    - |-
-      if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
-        echo "Adding linker flags to avoid CUDA linker issue on power9 nodes"
-        export CXX_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${CXX_FLAGS} -Wno-unused-command-line-argument"
-        export C_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${C_FLAGS} -Wno-unused-command-line-argument"
-      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment

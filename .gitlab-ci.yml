@@ -208,7 +208,6 @@ mpich-tutorial:legion:
   only:
     - merge_requests
   variables:
-    <<: *gcc_flags
     LABEL: tutorial
     STDIR: tutorial
     BUILD_TYPE: Debug
@@ -221,7 +220,6 @@ mpich-flaxpy:legion:
   only:
     - merge_requests
   variables:
-    <<: *gcc_flags
     LABEL: standalone
     STDIR: tutorial/standalone/flaxpy
     BUILD_TYPE: Debug
@@ -235,7 +233,6 @@ mpich-poisson:legion:
   only:
     - merge_requests
   variables:
-    <<: *gcc_flags
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
