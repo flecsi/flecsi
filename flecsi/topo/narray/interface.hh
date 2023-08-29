@@ -33,9 +33,7 @@ namespace topo {
   Colors are assigned lexicographically; the first dimension varies fastest.
   \tparam Policy the specialization, following
    \ref narray_specialization.
-
-  \sa topo::specialization, topo::topology
- *----------------------------------------------------------------------------*/
+  */
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
@@ -47,9 +45,6 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   static constexpr Dimension dimension = Policy::dimension;
 
-  /// This type is the topology accessor base type "B"
-  /// from which specialization interface type is derived.
-  /// \sa core
   template<Privileges>
   struct access;
 
@@ -489,10 +484,9 @@ struct borrow_extra<narray<P>> : borrow_sizes<P> {
   using borrow_extra::borrow_sizes::borrow_sizes;
 };
 
-/*----------------------------------------------------------------------------*
-  Narray Access.
- *----------------------------------------------------------------------------*/
+/// Topology interface base.
 /// This class is supported for GPU execution.
+/// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
@@ -539,7 +533,6 @@ private:
   /*!
    Method to access global extents of index space S along
    axis A. This function is \ref topology "host-accessible".
-    \sa meta_data, axis_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
@@ -551,7 +544,6 @@ private:
    coordinate offset of the local mesh w.r.t the global mesh of index
    space S along axis A.
    This function is \ref topology "host-accessible".
-    \sa meta_data, axis_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
@@ -572,7 +564,6 @@ private:
   /*!
     Method to access local extents of all axes of index space S.
     This function is \ref topology "host-accessible".
-    \sa meta_data, axis_color
    */
   template<index_space S>
   FLECSI_INLINE_TARGET auto extents() const {
@@ -582,10 +573,9 @@ private:
   /*!
      Method to access logical lower/upper bounds of index space S
      along axis A.
+     This function is \ref topology "host-accessible".
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
-     This function is \ref topology "host-accessible".
-     \sa meta_data, axis_color
     */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
@@ -595,10 +585,9 @@ private:
   /*!
     Method to access extended lower/upper bounds of index space
     S along axis A.
+    This function is \ref topology "host-accessible".
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
-    This function is \ref topology "host-accessible".
-    \sa meta_data, axis_color
    */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
@@ -615,7 +604,6 @@ protected:
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
    This function is \ref topology "host-accessible".
-   \sa meta_data, axis_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
@@ -626,7 +614,6 @@ protected:
    Method to check if an axis of the local mesh is incident on the upper
    bound of the corresponding axis of the global mesh.
    This function is \ref topology "host-accessible".
-   \sa meta_data, axis_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
@@ -637,7 +624,6 @@ protected:
    Method to check if axis A of index-space S is in between the lower and upper
    bound along axis A of the global domain.
    This function is \ref topology "host-accessible".
-   \sa meta_data, axis_color
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
@@ -648,7 +634,7 @@ protected:
      Method to check if the partition returned by the coloring is degenerate.
      This method checks if the axis A is incident on both the lower and upper
      bound of the global domain. This function is \ref topology
-     "host-accessible". \sa meta_data, axis_color
+     "host-accessible".
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
@@ -660,7 +646,7 @@ protected:
      \a S along axis \a A.  If \a logical_id refers to a boundary point, it is
      treated as periodic.
      This function is \ref topology
-     "host-accessible". \sa meta_data, axis_color
+     "host-accessible".
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
@@ -670,7 +656,6 @@ protected:
   /*!
     Method to return size of \c S along \c A for \a DM.
     This function is \ref topology "host-accessible".
-    \sa enum domain
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto size() const {
@@ -710,8 +695,8 @@ protected:
   /*!
      Method to return an iterator over the extents of the index-space S along
      axis A for domain DM.
-     \tparam DM not \c domain::global
      This function is \ref topology "host-accessible".
+     \tparam DM not \c domain::global
    */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
@@ -746,7 +731,6 @@ protected:
   /*!
     Method to return an offset of \c S along \c A for \a DM.
     This function is \ref topology "host-accessible".
-    \sa enum domain
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET util::gid offset() const {
@@ -802,10 +786,10 @@ struct detail::base<narray> {
 /// Example specialization which is not really implemented.
 struct narray_specialization : specialization<narray, narray_specialization> {
 
-  /// Enumeration of the axes, they should be
-  /// consistent with the dimension of mesh.
+  /// Axis enumeration.
   enum axis { x, y };
   /// Axes to store.
+  /// Must have as many elements as \c dimension.
   /// The format is\code
   /// has<x, y, ..>
   /// \endcode
@@ -813,7 +797,10 @@ struct narray_specialization : specialization<narray, narray_specialization> {
 
   /// mesh dimension
   static constexpr Dimension dimension = 2;
-}
+
+  /// Specialization-specific data to store once per color.
+  struct meta_data {};
+};
 #endif
 
 /// \}

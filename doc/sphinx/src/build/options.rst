@@ -116,10 +116,8 @@ Documentation options
   Doxygen-style interface documentation from the FleCSI source code
   (``make doxygen``, which becomes a dependency of ``make doc``).
 
-* **ENABLE_DOXYGEN_WARN [default: OFF]** |br|
-  Normal Doxygen output produces many pages worth of warnings. These are
-  distracting and overly verbose. As such, they are disabled by default.
-  This options allows the user to turn them back on.
+* **ENABLE_DOXYGEN_WARN** |br|
+  This **deprecated** option is ignored for compatibility.
 
 Miscellaneous options
 ---------------------
