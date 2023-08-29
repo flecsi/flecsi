@@ -131,11 +131,6 @@ like this:
      --Xbackend arg                        Pass single argument to the backend.
                                            This option can be passed multiple
                                            times.
-     --flog-color [=arg(=1)] (=1)          Enable color output.
-     --flog-serialization-interval arg (=100)
-                                           Frequency of message serialization in
-                                           number of tasks.
-     --flog-strip-level arg (=0)           Set FLOG strip level (0-4)
      --flog-tags arg (=all)                Enable the specified output tags, e.g.,
                                            --flog-tags=tag1,tag2. Use
                                            '--flog-tags=all' to show all output,
@@ -431,8 +426,8 @@ Controlling Output - Strip Levels
   If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
   compiled out: i.e., there is no runtime overhead.
 
-The strip level is a command-line option ``--flog-strip-level`` that can
-be specified at runtime.
+The strip level is a runtime configuration option set via
+``flog::config::strip_level``.
 
 Valid strip levels are *[0-4]*. The default strip level is *0* (most
 verbose). Depending on the strip level, FLOG limits the type of messages
@@ -520,11 +515,6 @@ which should look something like this:
      --Xbackend arg                        Pass single argument to the backend.
                                            This option can be passed multiple
                                            times.
-     --flog-color [=arg(=1)] (=1)          Enable color output.
-     --flog-serialization-interval arg (=100)
-                                           Frequency of message serialization in
-                                           number of tasks.
-     --flog-strip-level arg (=0)           Set FLOG strip level (0-4)
      --flog-tags arg (=all)                Enable the specified output tags, e.g.,
                                            --flog-tags=tag1,tag2. Use
                                            '--flog-tags=all' to show all output,
@@ -573,10 +563,10 @@ As stated in the preceding sections, FLOG buffers and serializes output
 to avoid collisions from different threads.
 As a safeguard, FleCSI's default settings flush these buffers
 periodically, so as to avoid memory capacity issues.
-The FLOG command-line option ``--flog-serialization-interval`` defines
+The FLOG runtime configuration option ``serialization_interval``  defines
 this behavior:
 
-* ``--flog-serialization-interval`` |br|
+* ``flog::config::serialization_interval`` |br|
   The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
   tasks executed: i.e., if the serialization interval is set to 300,
@@ -591,7 +581,7 @@ this behavior:
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
   However, overly aggressive settings, e.g.,
-  ``--flog-serialization-interval=1`` could force complete serialization
+  ``serialization_interval=1`` could force complete serialization
   of your application.
   This can be beneficial for debugging, but should not be used for
   actual simulation runs.
@@ -604,17 +594,11 @@ force FleCSI to serialize and flush output.
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
-  for ``--flog-serialization-interval`` and to use ``flecsi::flog::flush()``
+  for ``serialization_interval`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
-
-We have already covered the ``--flog-tags`` and ``--flog-strip-level``
-options. There are currently three other options that control FLOG output:
-
-* *--flog-color* |br|
-  This option controls whether coloring is enabled for FLOG messages
-  By default, colors are activated ``1`` and can be disabled with ``0`` |br|
-  *(default: 1)*
+We have already covered the ``--flog-tags`` option. There are currently two
+other options that control FLOG output:
 
 * *--flog-verbose* |br|
   This option controls how much additional information is output with
@@ -646,6 +630,8 @@ options. There are currently three other options that control FLOG output:
   In general, some experimentation is necessary to achieve the desired
   level of output with FLOG and FleCSI.
 
+Finally, the ``flog::config::color`` runtime configuration option controls
+whether coloring is enabled for FLOG messages.
 
 Example 4: Caliper Annotations
 ++++++++++++++++++++++++++++++

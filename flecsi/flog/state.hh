@@ -132,15 +132,15 @@ public:
 
   static unsigned & serialization_interval() {
     return instance ? instance->serialization_interval_
-                    : default_serialization_interval;
+                    : config::default_serialization_interval;
   }
 
   static bool & color_output() {
-    return instance ? instance->color_output_ : default_color_output;
+    return instance ? instance->color_output_ : config::default_color_output;
   }
 
   static int & strip_level() {
-    return instance ? instance->strip_level_ : default_strip_level;
+    return instance ? instance->strip_level_ : config::default_strip_level;
   }
 
   /*!
@@ -310,15 +310,6 @@ private:
 #endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
-  static inline unsigned default_serialization_interval =
-    FLOG_SERIALIZATION_INTERVAL;
-
-#ifdef FLOG_ENABLE_COLOR_OUTPUT
-  static inline bool default_color_output = true;
-#else
-  static inline bool default_color_output = false;
-#endif
-  static inline int default_strip_level = FLOG_STRIP_LEVEL;
 
 #if defined(FLOG_ENABLE_MPI)
   void send_to_one(bool last);
