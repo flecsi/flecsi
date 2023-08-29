@@ -168,22 +168,19 @@
     - *darwin_setup_hip
     - section start build_noflog "Build without FLOG"
     - *darwin_print_build_info
-    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF -DENABLE_UNIT_TESTS=OFF ${CMAKE_OPTIONS}
+    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF ${CMAKE_OPTIONS}
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
     - section end build_noflog
-    - |
-      if [ "${ENABLE_UNIT_TESTS}" = "ON" ] ; then
-        section start build "Build with FLOG"
-        cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
-        cmake --build . -j $(nproc)
-        section end build
-        section start test "Test"
-        export GASNET_BACKTRACE=1
-        export CTEST_OUTPUT_ON_FAILURE=1
-        ctest --output-junit tests.xml
-        section end test
-      fi
+    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+    - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
+    - cmake --build . -j $(nproc)
+    - section end build
+    - section start test "Test"
+    - export GASNET_BACKTRACE=1
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - ctest --output-junit tests.xml
+    - section end test
     - section start install "Install"
     - cmake --build . --target install
     - section end install
