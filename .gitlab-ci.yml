@@ -15,6 +15,10 @@ default:
     - darwin-slurm-shared
   before_script:
    - echo "Running on $(hostname)"
+   - section() { echo $'\e[0K'"section_$1:$(date +%s):$2"$'\r\e[0K'"${3+${COLOR_CYAN}$3${COLOR_PLAIN}}"; }
+   - header() { echo "${COLOR_MAGENTA}$1${COLOR_PLAIN}"; }
+   - value() { echo $'\t'"${COLOR_BLUE}$1:"" $2${COLOR_PLAIN}"; }
+   - variable() { value "${1:0:1}$(tr A-Z a-z <<<${1:1})" "${!1}"; }
 
 .darwin_job:
   id_tokens:
@@ -34,11 +38,10 @@ default:
 variables:
   USE_SPACK_UPSTREAM: develop-82d41a7be
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
-  COLOR_BLUE: '\033[1;34m'
-  COLOR_GREEN: '\033[0;32m'
-  COLOR_MAGENTA: '\033[1;35m'
-  COLOR_CYAN: '\033[1;36m'
-  COLOR_PLAIN: '\033[0m'
+  COLOR_BLUE: "\e[1;34m"
+  COLOR_MAGENTA: "\e[1;35m"
+  COLOR_CYAN: "\e[1;36m"
+  COLOR_PLAIN: "\e[0m"
   # global defaults
   GCC_VERSION: 11.1.0
   CLANG_VERSION: 13.0.1
