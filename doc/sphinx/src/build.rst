@@ -42,7 +42,7 @@ options, which might not be necessary for a particular build:
 * **C++17 compliant compiler** |br|
   At the current time, FleCSI has been tested with GNU and Clang
   C++ compilers. |br|
-  *CI: gcc 9.4.0, clang 13.0.1*
+  *CI: gcc 11.1.0, clang 13.0.1*
 
 * **Doxygen** |br|
   Doxygen is only required to build the interface documentation.

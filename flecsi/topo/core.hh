@@ -131,20 +131,20 @@ struct specialization_base {
 
   /// A connectivity specification.
   /// \tparam V input index space
-  /// \tparam T see \c to
+  /// \tparam T a \c to list
   template<auto V, class T>
   using from = util::key_type<V, T>;
   /// A special-entities specification.
   /// \tparam V subject index space
-  /// \tparam T see \c has
+  /// \tparam T a \c has list
   template<auto V, class T>
   using entity = util::key_type<V, T>;
-  /// Entity lists.
-  /// \tparam V entity list enumerators
+  /// A list of enumerators for which to store data.
+  /// \tparam V often index spaces
   template<auto... V>
   using has = util::constants<V...>;
-  /// Output index spaces.
-  /// \tparam V index spaces
+  /// A list of index spaces to use as output.
+  /// \tparam V enumerators
   template<auto... V>
   using to = util::constants<V...>;
   /// Container.
@@ -168,7 +168,8 @@ struct specialization_base {
   /// It must be \a B or inherit from it without adding any data members.
   /// Instances of it will be value-initialized and should default-initialize
   /// \a B.
-  /// \tparam B core topology interface
+  /// \tparam B core topology interface (a specialization of \c access from
+  ///   the appropriate core topology)
   template<class B>
   using interface = B;
   /// \}

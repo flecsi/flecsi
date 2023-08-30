@@ -332,8 +332,8 @@ Once these are known, the task initializes
 *X*\ [*i*] ← *i* and *Y*\ [*i*] ← 0
 over its subset of the distributed *X* and *Y* vectors.
 FLAXPY uses FleCSI's ``forall`` macro to locally parallelize
-(e.g., using thread parallelism)
 the initialization of *Y*.
+(This example works with thread parallelism but not on a GPU, since one field would be accessed on the host and the other on the device.)
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp

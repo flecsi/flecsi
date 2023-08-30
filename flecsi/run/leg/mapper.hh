@@ -91,7 +91,7 @@ public:
   /*!
     Destructor
    */
-  virtual ~mpi_mapper_t(){};
+  virtual ~mpi_mapper_t() {}
 
   /* This is the method to choose default Layout constraints.
      FleCSI is currently uses SOA ordering, which is different from
@@ -623,8 +623,7 @@ mapper_registration(Legion::Machine machine,
   for(std::set<Legion::Processor>::const_iterator it = local_procs.begin();
       it != local_procs.end();
       it++) {
-    mpi_mapper_t * mapper = new mpi_mapper_t(machine, rt, *it);
-    rt->replace_default_mapper(mapper, *it);
+    rt->replace_default_mapper(new mpi_mapper_t(machine, rt, *it), *it);
   }
 } // mapper registration
 

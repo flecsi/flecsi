@@ -5,7 +5,7 @@
 #include "flecsi/run/leg/mapper.hh"
 
 namespace flecsi {
-// These must be defined with the full execution machinery available:
+// To avoid a separate source file in data/leg:
 namespace data::leg {
 mirror::mirror(size2 s) : rects({s.first, 2}), part(rects), width(s.second) {}
 void
@@ -19,8 +19,6 @@ mirror::extend(field<std::size_t, single>::accessor<ro> r,
 } // namespace data::leg
 
 namespace run {
-
-using namespace boost::program_options;
 
 /*----------------------------------------------------------------------------*
   Legion top-level task.

@@ -23,8 +23,6 @@ namespace narray_impl {
 /// \addtogroup narray
 /// \{
 
-enum axes : Dimension { x_axis, y_axis, z_axis };
-
 using coord = std::vector<util::id>;
 using gcoord = std::vector<util::gid>;
 using hypercube = std::array<coord, 2>;
@@ -137,9 +135,9 @@ struct traverse {
     iterator(M lower_bnds, M upper_bnds, M bnds, I i)
       : iterator(lower_bnds, upper_bnds, bnds) {
       m[D - 1] = i;
-    };
+    }
     iterator(M lower_bnds, M upper_bnds, M bnds)
-      : lbnds(lower_bnds), ubnds(upper_bnds), m(bnds){};
+      : lbnds(lower_bnds), ubnds(upper_bnds), m(bnds) {}
 
     const M & operator*() const {
       return m;
@@ -175,7 +173,7 @@ struct traverse {
   iterator end() const {
     return iterator(lbnds, ubnds, lbnds, ubnds[D - 1]);
   }
-  traverse(M lower_bnds, M upper_bnds) : lbnds(lower_bnds), ubnds(upper_bnds){};
+  traverse(M lower_bnds, M upper_bnds) : lbnds(lower_bnds), ubnds(upper_bnds) {}
 };
 
 template<Dimension D, typename I = int>
@@ -407,7 +405,10 @@ struct axis_definition {
   /// \showinitializer
   util::id bdepth = 0;
 
-  /// specify whether axis is periodic
+  /// Whether the axis is periodic.
+  /// The boundary index points for a periodic axis are copied as ghosts from
+  /// the other end of the axis.  There must be a positive number of them;
+  /// they are not categorized as ghost points.
   /// \showinitializer
   bool periodic = false;
 

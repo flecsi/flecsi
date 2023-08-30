@@ -11,9 +11,7 @@ namespace simple {
 
 enum class cp { initialize, advance, finalize };
 
-// Define labels for the control points. Here we use function call operator
-// overloading of the '*' operator. This approach is safer than defining a satic
-// array of string literals because it is type-safe, and it allows error
+// Define labels for the control points.  Using a function allows error
 // checking.
 
 inline const char *

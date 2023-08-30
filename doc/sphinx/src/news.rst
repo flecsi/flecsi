@@ -79,6 +79,32 @@ New features
 
   * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
 
+Changes in v2.2.2
++++++++++++++++++
+
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
+
+Fixed
+^^^^^
+* Execution
+
+  * Tasks may be declared ``noexcept``.
+    (This was fixed but not documented in 2.2.1.)
+
+* Topologies
+
+  * ``narray`` respects ``index_definition::diagonals`` being ``false``.
+    (This was fixed but not documented in 2.2.1.)
+
+* Logging
+
+  * Special options like ``--control-model`` and ``--help`` work reliably.
+    (This was documented but not actually implemented in 2.2.1.)
+
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++
 
@@ -89,7 +115,6 @@ Fixed
   * Control policy objects are value-initialized by ``run::control::execute``.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
-  * Special options like ``--control-model`` and ``--help`` don't produce spurious error messages as a side effect.
   * Control-model graphs are labeled with the program name.
   * Control model output strips parameters, return values, wrappers, and common
     namespaces from actions for better readability.
@@ -111,7 +136,7 @@ Possible incompatibilities
 
   * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
 
-* Utilties
+* Utilities
 
   * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 

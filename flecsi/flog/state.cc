@@ -34,33 +34,63 @@ state::send_to_one(bool last) {
   std::lock_guard guard(packets_mutex_);
 
   std::vector<int> sizes(process_ ? 0 : processes_), offsets(sizes);
-  std::vector<std::byte> data = util::serial::put_tuple(packets_), buffer;
+  std::vector<std::byte> data, buffer;
 
-  const int bytes = data.size();
+  if(active_process())
+    data = util::serial::put_tuple(packets_);
 
-  test(MPI_Gather(
-    &bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
+  int bytes = data.size();
 
-  int sum{0};
+  if(one_process_ == 0) {
+    buffer = std::move(data);
+  }
+  else if(one_process_ == all_processes) {
+    test(MPI_Gather(
+      &bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
+    int sum{0};
 
-  if(process_ == 0) {
-    for(Color p = 0; p < processes_; ++p) {
-      offsets[p] = sum;
-      sum += sizes[p];
-    } // for
+    if(process_ == 0) {
+      for(Color p = 0; p < processes_; ++p) {
+        offsets[p] = sum;
+        sum += sizes[p];
+      } // for
 
-    buffer.resize(sum);
-  } // if
+      buffer.resize(sum);
+    } // if
 
-  test(MPI_Gatherv(data.data(),
-    bytes,
-    MPI_CHAR,
-    buffer.data(),
-    sizes.data(),
-    offsets.data(),
-    MPI_CHAR,
-    0,
-    MPI_COMM_WORLD));
+    test(MPI_Gatherv(data.data(),
+      bytes,
+      MPI_CHAR,
+      buffer.data(),
+      sizes.data(),
+      offsets.data(),
+      MPI_CHAR,
+      0,
+      MPI_COMM_WORLD));
+  }
+  else {
+    if(process_ == 0) {
+      test(MPI_Recv(&bytes,
+        1,
+        MPI_INT,
+        one_process_,
+        0,
+        MPI_COMM_WORLD,
+        MPI_STATUS_IGNORE));
+      buffer.resize(bytes);
+      test(MPI_Recv(buffer.data(),
+        bytes,
+        MPI_CHAR,
+        one_process_,
+        0,
+        MPI_COMM_WORLD,
+        MPI_STATUS_IGNORE));
+    }
+    else if(process_ == one_process_) {
+      test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD));
+      test(MPI_Send(data.data(), bytes, MPI_CHAR, 0, 0, MPI_COMM_WORLD));
+    }
+  }
 
   packets_.clear();
 
@@ -68,7 +98,7 @@ state::send_to_one(bool last) {
 
     for(Color p = 0; p < processes_; ++p) {
 
-      if(!(one_process_ + 1) || p == one_process_) {
+      if(one_process_ == all_processes || p == one_process_) {
         auto remote_packets =
           util::serial::get1<std::vector<packet_t>>(buffer.data() + offsets[p]);
 

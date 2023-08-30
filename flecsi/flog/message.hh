@@ -32,10 +32,13 @@ struct message {
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: log_message_t constructor " << file
               << " " << line << FLOG_COLOR_PLAIN << std::endl;
 #endif
+    if(!state::instance().active_process())
+      ss_.clear(std::ios_base::badbit);
   }
 
   ~message() {
-    if(Policy::strip() || !state::tag_enabled()) {
+    if(Policy::strip() || !state::tag_enabled() ||
+       !state::instance().active_process()) {
       return;
     } // if
 
@@ -47,11 +50,9 @@ struct message {
     if(clean_) {
       auto str = ss_.str();
       if(str.back() == '\n') {
-        str = str.substr(0, str.size() - 1);
-        str += FLOG_COLOR_PLAIN;
-        str += '\n';
-        ss_.str(std::string{});
-        ss_ << str;
+        str.pop_back();
+        ss_.str(std::move(str));
+        ss_ << FLOG_COLOR_PLAIN << '\n';
       }
       else {
         ss_ << FLOG_COLOR_PLAIN;
@@ -59,14 +60,10 @@ struct message {
     } // if
 
 #if defined(FLOG_ENABLE_MPI)
-    if(state::instance) {
-      state::instance->buffer_output(ss_.str());
-    }
-    else {
-      std::cout << ss_.str();
-    } // if
+    assert(state::instance);
+    state::instance().buffer_output(std::move(ss_).str());
 #else
-    std::cout << ss_.str();
+    std::cout << ss_.rdbuf();
 #endif // FLOG_ENABLE_MPI
   }
 
@@ -95,7 +92,8 @@ struct message {
    */
 
   message & format() {
-    clean_ = state::verbose() >= 0 && Policy::format(ss_, file_, line_, devel_);
+    clean_ = state::instance().verbose() >= 0 &&
+             Policy::format(ss_, file_, line_, devel_);
     return *this;
   }
 
