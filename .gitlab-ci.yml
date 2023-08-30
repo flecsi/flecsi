@@ -25,16 +25,6 @@ default:
     SITE_ID_TOKEN:
       aud: https://gitlab.lanl.gov
 
-# project-wide warning configuration
-# these are also parsed by tools, so don't try to use variable expansion here
-.gcc_flags: &gcc_flags
-  c_flags: -Wall -Wundef -W -Werror -Wvla
-  cxx_flags: -Wextra-semi -Wno-parentheses
-
-.llvm_flags: &llvm_flags
-  c_flags: -fcolor-diagnostics -Wno-unknown-cuda-version -Wall -Wundef -W -Werror -Wvla
-  cxx_flags: -Wextra-semi -Wno-parentheses -Wno-braced-scalar-init
-
 variables:
   USE_SPACK_UPSTREAM: develop-82d41a7be
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"

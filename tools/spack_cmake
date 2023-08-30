@@ -6,12 +6,12 @@
 # This script concretizes a given spec and runs CMake with the necessary
 # options as specified in the Spack package.
 #
-# The .gitlab-ci.yml in the project source directory is parsed and searched for
-# .gcc_flags or .llvm_flags sections. These may contain values for c_flags,
-# cxx_flags. CMAKE_CXX_FLAGS and CMAKE_C_FLAGS are then assembled and passed to
-# CMake as follows:
+# The options.json in the project source directory is parsed and searched for
+# gcc or llvm sections. These may contain values for c_flags, cxx_flags.
+# CMAKE_CXX_FLAGS and CMAKE_C_FLAGS are then assembled and passed to CMake as
+# follows:
 #  - CMAKE_C_FLAGS="{c_flags}"
-#  - CMAKE_CXX_FLAGS="{CMAKE_C_FLAGS} {cxx_flags}"
+#  - CMAKE_CXX_FLAGS="{c_flags} {cxx_flags}"
 #
 # These serve as defaults, but these and all other CMake options can be
 # overwritten by specifying CMake options after --.
@@ -47,7 +47,7 @@
 #
 import os
 import sys
-import yaml
+import json
 import argparse
 
 COLOR_RESET = "\033[m"
@@ -183,20 +183,21 @@ else:
 
 dir_args = ["-B", binary_dir, "-S", source_dir]
 
-# find .gitlab-ci.yml in source dir or parent source dir
+# find options.json in source dir or parent source dir
 options_dir = source_dir
-options_file = os.path.join(options_dir, ".gitlab-ci.yml")
+options_file = os.path.join(options_dir, "options.json")
 while options_dir != "/" and not os.path.exists(options_file):
     options_dir = os.path.dirname(options_dir)
-    options_file = os.path.join(options_dir, ".gitlab-ci.yml")
+    options_file = os.path.join(options_dir, "options.json")
 
 if os.path.exists(options_file):
     # load project settings, adding default CMake options for each compiler family
     with open(options_file, "r") as f:
-        project_options = yaml.safe_load(f)
+        project_options = json.load(f)
+
+    flags = project_options.get(compiler_family, {})
 
     # apply CMake options for compiler family
-    flags = project_options[f".{compiler_family}_flags"]
     c_flags = flags.get("c_flags", "").split()
     cxx_flags = c_flags + flags.get("cxx_flags", "").split()
     project_args = [f"-DCMAKE_C_FLAGS={' '.join(c_flags)}", f"-DCMAKE_CXX_FLAGS={' '.join(cxx_flags)}"]
