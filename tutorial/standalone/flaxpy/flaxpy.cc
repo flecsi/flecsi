@@ -85,14 +85,13 @@ namespace {
 // For clarity we specify flecsi::data::layout::dense as a template
 // parameter, but this is in fact the default and would normally be
 // omitted.
-template<typename T>
-using one_field = flecsi::field<T, flecsi::data::layout::dense>;
-const one_field<double>::definition<flaxpy::dist_vector> x_field, y_field;
+using one_field = flecsi::field<double, flecsi::data::layout::dense>;
+const one_field::definition<flaxpy::dist_vector> x_field, y_field;
 
 // Define a task that initializes the elements of the distributed vector.
 void
-initialize_vectors_task(one_field<double>::accessor<flecsi::wo> x_acc,
-  one_field<double>::accessor<flecsi::wo> y_acc) {
+initialize_vectors_task(one_field::accessor<flecsi::wo> x_acc,
+  one_field::accessor<flecsi::wo> y_acc) {
   // Arbitrarily initialize x[i] = i and y[i] = 0.  We use a forall
   // for the latter because it can run in parallel without access to
   // the index variable.
@@ -114,8 +113,8 @@ initialize_action(flaxpy::control_policy & policy) {
 // Define a task that assigns Y <- a*X + Y.
 void
 mul_add_task(double a,
-  one_field<double>::accessor<flecsi::ro> x_acc,
-  one_field<double>::accessor<flecsi::rw> y_acc) {
+  one_field::accessor<flecsi::ro> x_acc,
+  one_field::accessor<flecsi::rw> y_acc) {
   std::size_t num_local_elts = x_acc.span().size();
   for(std::size_t i = 0; i < num_local_elts; ++i)
     y_acc[i] += a * x_acc[i];
@@ -131,7 +130,7 @@ mul_add_action(flaxpy::control_policy & policy) {
 
 // Define a task that adds up all values of Y and returns the sum.
 double
-reduce_y_task(one_field<double>::accessor<flecsi::ro> y_acc) {
+reduce_y_task(one_field::accessor<flecsi::ro> y_acc) {
   auto local_sum = reduceall(elt,
     accum,
     y_acc.span(),

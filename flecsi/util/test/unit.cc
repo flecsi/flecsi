@@ -63,10 +63,10 @@ int
 init_a() {
   flog::devel_guard guard(unit_tag);
   flog(info) << "init" << std::endl;
-  auto current = flog::state::strip_level();
+  auto &sl = flog::state::instance().strip_level(), current = sl;
 
   for(int i = 0; i < 5; ++i) {
-    flog::state::strip_level() = i;
+    sl = i;
 
     flog(trace) << "trace (strip level " << i << ")" << std::endl;
     flog(info) << "info (strip level " << i << ")" << std::endl;
@@ -74,13 +74,13 @@ init_a() {
     flog(error) << "error (strip level " << i << ")" << std::endl;
   }
 
-  flog::state::strip_level() = current;
+  sl = current;
 
-  auto color = flog::state::color_output();
+  auto & color = flog::state::instance().color_output();
   flog(info) << "COLOR OUTPUT: " << (color ? "true" : "false") << std::endl;
-  flog::state::color_output() = !color;
+  color = !color;
   flog(info) << "COLOR OUTPUT: " << (!color ? "true" : "false") << std::endl;
-  flog::state::color_output() = color;
+  color = !color;
 
   return 0;
 }

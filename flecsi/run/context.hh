@@ -210,7 +210,7 @@ protected:
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
-    flog::state::instance.emplace(c.flog);
+    flog::state::set_instance(c.flog);
 #else
     (void)c;
 #endif
@@ -218,14 +218,14 @@ protected:
 
   ~context() {
 #if defined(FLECSI_ENABLE_FLOG)
-    flog::state::instance.reset();
+    flog::state::reset_instance();
 #endif
   }
 
 public:
   void check_config(arguments::action & a) const {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-    const Color p = flog::state::instance->one_process();
+    const Color p = flog::state::instance().one_process();
     if(p + 1 && p >= processes_) {
       std::ostringstream stderr;
       stderr << a.program << ": flog process " << p << " does not exist with "

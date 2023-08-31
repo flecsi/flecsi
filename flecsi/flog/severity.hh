@@ -17,13 +17,13 @@ namespace flog {
 
 inline std::string
 verbose(const char * file, int line) {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << timestamp() << " " << rstrip<'/'>(file) << ":" << line << " ";
-  return ss.str();
+  return std::move(ss).str();
 }
 
 #if defined(FLOG_ENABLE_MPI)
-#define process_stamp " p" << state::instance->process()
+#define process_stamp " p" << state::instance().process()
 #else
 #define process_stamp ""
 #endif
@@ -47,7 +47,7 @@ struct utility {
 
 struct trace {
   static bool strip() {
-    return flog::state::strip_level() > 0;
+    return flog::state::instance().strip_level() > 0;
   }
 
   static bool
@@ -55,7 +55,7 @@ struct trace {
     std::string label = devel ? "(devel) " : "";
 
     ss << FLOG_OUTPUT_CYAN("[trace ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::verbose())
+    if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
@@ -72,7 +72,7 @@ struct trace {
 
 struct info {
   static bool strip() {
-    return flog::state::strip_level() > 1;
+    return flog::state::instance().strip_level() > 1;
   }
 
   static bool
@@ -80,7 +80,7 @@ struct info {
     std::string label = devel ? "(devel) " : "";
 
     ss << FLOG_OUTPUT_GREEN("[info ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::verbose())
+    if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
@@ -97,7 +97,7 @@ struct info {
 
 struct warn {
   static bool strip() {
-    return flog::state::strip_level() > 2;
+    return flog::state::instance().strip_level() > 2;
   }
 
   static bool
@@ -105,7 +105,7 @@ struct warn {
     std::string label = devel ? "(devel) " : "";
 
     ss << FLOG_OUTPUT_BROWN("[warn ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::verbose())
+    if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);
@@ -122,7 +122,7 @@ struct warn {
 
 struct error {
   static bool strip() {
-    return flog::state::strip_level() > 3;
+    return flog::state::instance().strip_level() > 3;
   }
 
   static bool
@@ -130,7 +130,7 @@ struct error {
     std::string label = devel ? "(devel) " : "";
 
     ss << FLOG_OUTPUT_RED("[ERROR ") << FLOG_OUTPUT_PURPLE(label);
-    if(state::verbose())
+    if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
     ss << FLOG_OUTPUT_GREEN(process_stamp);

@@ -260,8 +260,7 @@ The name of the enumeration (*cp*) is arbitrary.
 However, it is useful to make it concise because it will be used in the
 application code.
 
-In addition to the enumeration itself, we also define an operator
-overload of the ``* operator`` (function call operator overloading):
+In addition to the enumeration itself, we also overload the ``*`` operator:
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp

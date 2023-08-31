@@ -48,6 +48,7 @@ class state
 {
 public:
   static constexpr std::size_t tag_bits = 1024;
+  static constexpr Color all_processes = -1;
 
   state(const config & cfg)
     : verb(cfg.verbose), serialization_interval_(cfg.serialization_interval),
@@ -126,21 +127,20 @@ public:
 #endif // FLOG_ENABLE_MPI
   } // finalize
 
-  static int verbose() {
-    return instance ? instance->verb : 0;
+  int verbose() {
+    return verb;
   }
 
-  static unsigned & serialization_interval() {
-    return instance ? instance->serialization_interval_
-                    : config::default_serialization_interval;
+  unsigned & serialization_interval() {
+    return serialization_interval_;
   }
 
-  static bool & color_output() {
-    return instance ? instance->color_output_ : config::default_color_output;
+  bool & color_output() {
+    return color_output_;
   }
 
-  static int & strip_level() {
-    return instance ? instance->strip_level_ : config::default_strip_level;
+  int & strip_level() {
+    return strip_level_;
   }
 
   /*!
@@ -209,25 +209,13 @@ public:
    */
 
   static std::string active_tag_name() {
-    if(!instance)
-      return "external";
     return tag_name(active_tag());
   }
 
   static bool tag_enabled() {
 #if defined(FLOG_ENABLE_TAGS)
-    // If the runtime context hasn't been initialized, return true only
-    // if the user has enabled externally-scoped messages.
-    if(!instance) {
-#if defined(FLOG_ENABLE_EXTERNAL)
-      return true;
-#else
-      return false;
-#endif
-    } // if
-
     const std::size_t t = active_tag();
-    const bool ret = instance->tag_bitset_.test(t);
+    const bool ret = instance().tag_bitset_.test(t);
 
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: tag " << t << " is "
@@ -251,6 +239,10 @@ public:
   }
 
 #if defined(FLOG_ENABLE_MPI)
+  bool active_process() const {
+    return one_process_ == all_processes || one_process_ == process_;
+  }
+
   Color one_process() const {
     return one_process_;
   }
@@ -260,20 +252,18 @@ public:
   }
 
   void buffer_output(std::string const & message) {
-    std::string tmp = message;
-
     // Make sure that the string fits within the packet size.
     if(message.size() > packet_t::max_message_size) {
-      tmp.resize(packet_t::max_message_size - 100);
-      std::stringstream stream;
-      stream << tmp << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
+      std::ostringstream stream;
+      stream << std::string_view(message).substr(
+                  0, packet_t::max_message_size - 100)
+             << FLOG_COLOR_LTRED << " OUTPUT BUFFER TRUNCATED TO "
              << packet_t::max_message_size << " BYTES (" << message.size()
              << ")" << FLOG_COLOR_PLAIN << std::endl;
-      tmp = stream.str();
+      buffer(std::move(stream).str());
     } // if
-
-    std::lock_guard<std::mutex> guard(packets_mutex_);
-    packets_.push_back({tmp.c_str()});
+    else
+      buffer(message);
   }
 
   std::vector<packet_t> & packets() {
@@ -294,7 +284,17 @@ public:
   }
 #endif
 
-  static std::optional<state> instance;
+  static state & instance() {
+    return instance_.value();
+  }
+
+  static void reset_instance() {
+    instance_.reset();
+  }
+
+  static void set_instance(const config & c) {
+    instance_.emplace(c);
+  }
 
 private:
   int verb;
@@ -304,6 +304,8 @@ private:
 
   tee_stream_t stream_;
 
+  static std::optional<state> instance_;
+
 #ifdef FLOG_ENABLE_TAGS
   static task_local<std::size_t> cur_tag;
   std::bitset<tag_bits> tag_bitset_;
@@ -312,6 +314,10 @@ private:
   static inline std::vector<std::string> tag_names;
 
 #if defined(FLOG_ENABLE_MPI)
+  void buffer(const std::string & s) {
+    std::lock_guard<std::mutex> guard(packets_mutex_);
+    packets_.push_back({s.c_str()});
+  }
   void send_to_one(bool last);
 
   Color one_process_, process_, processes_;
@@ -323,7 +329,7 @@ private:
 #endif
 
 }; // class state
-inline std::optional<state> state::instance;
+inline std::optional<state> state::instance_;
 
 /// \}
 
@@ -331,7 +337,7 @@ namespace detail {
 
 inline const char *
 use_color(const char * c) {
-  return state::color_output() ? c : "";
+  return state::instance().color_output() ? c : "";
 }
 
 } // namespace detail

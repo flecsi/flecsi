@@ -126,8 +126,8 @@ Launch Domains
 
 Launch domain (``exec::launch_domain``) is used to define how many index
 points an index task should have. If no ``launch_domain`` is passed to the
-``execute`` method, the default will be used. If a topology instance is
-passed the default is the number of colors that instance has.
+``execute`` method, the default will be used.
+If the task uses a field or topology accessor, the default is the number of colors of the topology used.
 Otherwise, the default is to launch a single task.
 
 
