@@ -293,12 +293,12 @@ public:
     using namespace Legion::Mapping;
     using namespace mapper;
 
-    if(task.tag & prefer_gpu && !local_gpus.empty()) {
+    if(task.tag == prefer_gpu && !local_gpus.empty()) {
       output.chosen_variant = find_variant(
         ctx, task.task_id, gpu_variants, Legion::Processor::TOC_PROC);
       output.target_procs.push_back(task.target_proc);
     }
-    else if(task.tag & prefer_omp && !local_omps.empty()) {
+    else if(task.tag == prefer_omp && !local_omps.empty()) {
       output.chosen_variant = find_variant(
         ctx, task.task_id, omp_variants, Legion::Processor::OMP_PROC);
       output.target_procs = local_omps;
@@ -318,7 +318,7 @@ public:
       //     DefaultMapper::default_policy_select_target_memory(
       //       ctx, task.target_proc, task.regions[0]);
 
-      if(task.tag & prefer_gpu && !local_gpus.empty())
+      if(task.tag == prefer_gpu && !local_gpus.empty())
         target_mem = local_framebuffer;
       else
         target_mem = local_sysmem;
