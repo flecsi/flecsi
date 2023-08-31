@@ -53,6 +53,7 @@ variables:
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   VERSION: "flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+  DEFAULT_TEST_TIMEOUT: 600
 
 #------------------------------------------------------------------------------#
 # Common build variants
