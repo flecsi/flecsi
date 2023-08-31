@@ -743,7 +743,7 @@ struct index_definition {
 
       make(co, s.second, dimension - 1);
     } // for
-    return make_pair(points, intervals);
+    return make_pair(std::move(points), std::move(intervals));
   }
 
   /// \endcond
