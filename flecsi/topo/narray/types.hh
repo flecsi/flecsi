@@ -312,15 +312,6 @@ struct index_color {
   /// Coloring information for each axis
   std::vector<axis_color> axis_colors;
 
-  /// Offsets on the remote color.
-  using points = std::map<Color,
-    std::vector<std::pair</* local ghost offset, remote shared offset */
-      std::size_t,
-      std::size_t>>>;
-
-  /// Local ghost intervals.
-  using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
-
   Color color() const {
     auto pr = axis_colors[0].colors;
     Color c = 0;
@@ -548,16 +539,24 @@ struct index_definition {
     return idxco;
   } // make_color
 
+  /// Offsets on the remote color.
+  using points = std::map<Color,
+    std::vector<std::pair</* local ghost offset, remote shared offset */
+      std::size_t,
+      std::size_t>>>;
+
+  /// Local ghost intervals.
+  using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+
   /*!
     Compute the ghost points and intervals for a given process coloring
     @param idxco index color
     \return ghost points and intervals for the given coloring
   */
-  std::pair<index_color::points, index_color::intervals> ghosts(
-    const index_color & idxco) const {
+  std::pair<points, intervals> ghosts(const index_color & idxco) const {
     const auto dimension = dimensions();
-    index_color::points points;
-    index_color::intervals intervals;
+    points points;
+    intervals intervals;
 
     /*
       Here, we compose the intervals from each sub-dimension to form
@@ -922,9 +921,8 @@ struct narray_base {
   */
   static void idx_itvls(index_definition const & idef,
     std::vector<std::size_t> & num_intervals,
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
-    std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
+    std::vector<index_definition::intervals> & intervals,
+    std::vector<index_definition::points> & points,
     MPI_Comm const & comm) {
     std::vector<std::size_t> local_itvls;
     for(const auto & idxco : idef.process_coloring(comm)) {

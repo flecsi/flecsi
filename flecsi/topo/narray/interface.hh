@@ -133,10 +133,8 @@ private:
     idef.check_ghosts();
 
     std::vector<std::size_t> num_intervals(colors, 0);
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> intervals;
-    std::vector<
-      std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>>>
-      points;
+    std::vector<index_definition::intervals> intervals;
+    std::vector<index_definition::points> points;
 
     // The intervals encode local ghost
     // intervals, whereas points capture the  local offset and corresponding
