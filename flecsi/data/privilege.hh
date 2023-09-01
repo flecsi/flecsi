@@ -144,7 +144,7 @@ inline constexpr Privileges privilege_cat = [] {
   // Check for overflow:
   (void)privilege_empty<privilege_count(A) + privilege_count(B)>;
   const auto e = privilege_empty<privilege_count(B)>;
-  return A * e | B & e - 1;
+  return A * e | (B & (e - 1));
 }();
 
 constexpr partition_privilege_t
