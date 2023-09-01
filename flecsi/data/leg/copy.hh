@@ -35,10 +35,6 @@ struct mirror {
     return part;
   }
 
-  halves::core & get_rects() { // for multi-accessors
-    return rects;
-  }
-
   static constexpr const field_id_t & fid = halves::field.fid;
 
 private:
@@ -87,8 +83,6 @@ struct prefixes : private leg::mirror,
   Legion::LogicalRegion get_first_subregion() const {
     return get_first_subregion(prt);
   }
-
-  using mirror::get_rects;
 
 private:
   static Legion::LogicalRegion get_first_subregion(
