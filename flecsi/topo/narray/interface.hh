@@ -283,9 +283,7 @@ private:
           concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
         }()))...}},
-      plan_{{make_copy_plan<CI>(c.colors(),
-        c.idx_colorings[index<CI>],
-        part_[index<CI>])...}},
+      plan_{{make_copy_plan<CI>(c.colors(), c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::core(
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
     auto lm = data::launch::make(this->meta);
@@ -354,9 +352,7 @@ private:
    @param p partition
   */
   template<index_space S>
-  data::copy_plan make_copy_plan(Color colors,
-    index_definition const & idef,
-    repartitioned & p) {
+  data::copy_plan make_copy_plan(Color colors, index_definition const & idef) {
 
     std::vector<std::size_t> num_intervals(colors, 0);
     std::vector<typename meta_data::intervals> intervals;
@@ -386,7 +382,7 @@ private:
     };
     // clang-format on
 
-    return {*this, p, num_intervals, dest_task, ptrs_task, util::constant<S>()};
+    return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
   }
 
   template<auto... Value> // index_spaces

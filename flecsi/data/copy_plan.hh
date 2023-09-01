@@ -44,7 +44,6 @@ struct copy_plan {
     class D,
     class F>
   copy_plan(C<P> & t,
-    prefixes & p,
     const Sizes & ndests,
     D && dests, // function of a field reference for intervals
     F && src, // similarly for source points
@@ -52,16 +51,14 @@ struct copy_plan {
     : dest_ptrs_(ndests),
       // In this first case we use a subtopology to create the
       // destination partition which supposed to be contiguous
-      dest_(p,
+      dest_(t.template get_region<S>(),
         dest_ptrs_,
-        detail::intervals::field(dest_ptrs_).use(std::forward<D>(dests)).fid(),
-        incomplete),
+        detail::intervals::field(dest_ptrs_).use(std::forward<D>(dests)).fid()),
       // From the pointers we feed in the destination partition
       // we create the source partition
-      src_partition_(p,
+      src_partition_(t.template get_region<S>(),
         dest_,
-        pointers<P, S>(t).use(std::forward<F>(src)).fid(),
-        incomplete),
+        pointers<P, S>(t).use(std::forward<F>(src)).fid()),
       engine(src_partition_, dest_, pointers<P, S>.fid) {}
 
   void issue_copy(const field_id_t & data_fid) const {
@@ -262,7 +259,6 @@ private:
         return ret;
       }()),
       cp(
-        *this,
         *this,
         copy_plan::Sizes(c.size(), 1),
         [&](auto f) {

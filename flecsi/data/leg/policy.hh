@@ -14,8 +14,6 @@
 namespace flecsi {
 namespace data {
 
-struct prefixes;
-
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
 
 constexpr auto
@@ -255,48 +253,28 @@ struct partition : leg::partition_base { // instead of "using partition ="
 };
 
 namespace leg {
-template<bool C = false> // make columns instead
 struct rows : partition {
-  explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
-
-  // this constructor will create partition by rows with s.first being number
-  // of colors and s.second the max size of the rows
-  rows(const Legion::LogicalRegion & reg, size2 s)
-    : partition(reg,
-        partition_rows(reg,
-          shared_index_space(run().create_index_space(ctx(),
-            Legion::Rect<1>(0, upper(C ? s.second : s.first)))),
-          upper(C ? s.first : s.second))) {}
+  explicit rows(const region & reg)
+    : rows(reg, run().get_index_space_domain(reg.get_index_space()).hi()) {}
 
 private:
-  shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
-    Legion::IndexSpace color_space,
-    Legion::coord_t hi) {
-    // The type-erased version assumes a square transformation matrix
-    return named(run().create_partition_by_restriction(
-                   ctx(),
-                   Legion::IndexSpaceT<2>(reg.get_index_space()),
-                   Legion::IndexSpaceT<1>(color_space),
-                   [&] {
-                     Legion::Transform<2, 1> ret;
-                     ret.rows[C].x = 1;
-                     ret.rows[!C].x = 0;
-                     return ret;
-                   }(),
-                   {{0, 0}, {C ? hi : 0, C ? 0 : hi}},
-                   DISJOINT_COMPLETE_KIND),
-      (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
-  }
-
-public:
-  void update(const Legion::LogicalRegion & reg) {
-    Legion::DomainPoint hi =
-      run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, get_color_space(), hi[!C]);
-
-    logical_partition = log(reg, ip);
-    index_partition = std::move(ip);
-  }
+  // The type-erased version assumes a square transformation matrix.
+  rows(const region & reg, Legion::DomainPoint hi)
+    : partition(reg.logical_region,
+        named(run().create_partition_by_restriction(
+                ctx(),
+                Legion::IndexSpaceT<2>(reg.get_index_space()),
+                Legion::IndexSpaceT<1>(shared_index_space(
+                  run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0])))),
+                [&] {
+                  Legion::Transform<2, 1> ret;
+                  ret.rows[0].x = 1;
+                  ret.rows[1].x = 0;
+                  return ret;
+                }(),
+                {{0, 0}, {0, hi[1]}},
+                DISJOINT_COMPLETE_KIND),
+          (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str())) {}
 };
 
 /// Common dependent partitioning facility.
@@ -309,11 +287,6 @@ struct partition : data::partition {
     field_id_t fid,
     completeness cpt = incomplete)
     : partition(reg.logical_region, reg.get_index_space(), src, fid, cpt) {}
-
-  partition(prefixes & reg,
-    const data::partition & src,
-    field_id_t fid,
-    completeness cpt = {});
 
   partition remake(const data::partition & src,
     field_id_t fid,
@@ -448,8 +421,7 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-using rows = leg::rows<>;
-using leg::borrow;
+using leg::rows, leg::borrow;
 
 } // namespace data
 } // namespace flecsi
