@@ -4,7 +4,7 @@
 #ifndef FLECSI_RUN_CONTROL_HH
 #define FLECSI_RUN_CONTROL_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"

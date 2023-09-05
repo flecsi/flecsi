@@ -4,7 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 #define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/leg/bind_accessors.hh"

@@ -4,7 +4,7 @@
 #ifndef FLECSI_UTIL_GRAPHVIZ_HH
 #define FLECSI_UTIL_GRAPHVIZ_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/util/common.hh" // FILE
 

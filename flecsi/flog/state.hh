@@ -4,7 +4,7 @@
 #ifndef FLECSI_LOG_STATE_HH
 #define FLECSI_LOG_STATE_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #if defined(FLECSI_ENABLE_FLOG)
 

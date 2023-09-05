@@ -4,7 +4,7 @@
 #ifndef FLECSI_RUN_LEG_MAPPER_HH
 #define FLECSI_RUN_LEG_MAPPER_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "../backend.hh"
 

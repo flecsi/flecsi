@@ -4,7 +4,7 @@
 #ifndef FLECSI_UTIL_PARMETIS_HH
 #define FLECSI_UTIL_PARMETIS_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/crs.hh"

@@ -4,7 +4,7 @@
 #ifndef FLECSI_DATA_BACKEND_HH
 #define FLECSI_DATA_BACKEND_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include <cstddef>
 #include <utility>

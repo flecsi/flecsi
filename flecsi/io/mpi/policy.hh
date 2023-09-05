@@ -10,7 +10,7 @@
 #include <ostream>
 #include <string>
 
-#include "flecsi-config.h"
+#include "flecsi-config.hh"
 
 #if !defined(FLECSI_ENABLE_MPI)
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!

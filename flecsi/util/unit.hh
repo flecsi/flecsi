@@ -4,7 +4,7 @@
 #ifndef FLECSI_UTIL_UNIT_HH
 #define FLECSI_UTIL_UNIT_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #if !defined(FLECSI_ENABLE_FLOG)
 #error FLOG must be enabled to enable unit tests.

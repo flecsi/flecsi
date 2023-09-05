@@ -4,7 +4,7 @@
 #ifndef FLECSI_RUN_POINT_WALKER_HH
 #define FLECSI_RUN_POINT_WALKER_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"

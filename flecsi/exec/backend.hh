@@ -5,7 +5,7 @@
 #define FLECSI_EXEC_BACKEND_HH
 
 #include "flecsi/exec/task_attributes.hh"
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include <cstddef>
 

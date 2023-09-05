@@ -4,7 +4,7 @@
 #ifndef FLECSI_RUN_MPI_CONTEXT_HH
 #define FLECSI_RUN_MPI_CONTEXT_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #if !defined(FLECSI_ENABLE_MPI)
 #error FLECSI_ENABLE_MPI not defined! This file depends on MPI!

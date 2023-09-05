@@ -1,4 +1,4 @@
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog/packet.hh"

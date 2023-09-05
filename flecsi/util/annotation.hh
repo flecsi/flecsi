@@ -4,7 +4,7 @@
 #ifndef FLECSI_UTIL_ANNOTATION_HH
 #define FLECSI_UTIL_ANNOTATION_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #if FLECSI_CALIPER_DETAIL != FLECSI_CALIPER_DETAIL_none
 #include <caliper/Annotation.h>

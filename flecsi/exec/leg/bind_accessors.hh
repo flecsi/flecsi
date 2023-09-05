@@ -4,7 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 #define FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/data/field.hh"
 #include "flecsi/data/topology.hh"

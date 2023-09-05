@@ -4,7 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_FUTURE_HH
 #define FLECSI_EXEC_LEG_FUTURE_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/exec/launch.hh"
 

@@ -4,7 +4,7 @@
 #ifndef FLECSI_LOG_SEVERITY_HH
 #define FLECSI_LOG_SEVERITY_HH
 
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/flog/utils.hh"
 

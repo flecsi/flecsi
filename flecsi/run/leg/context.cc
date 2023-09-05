@@ -1,4 +1,4 @@
-#include <flecsi-config.h>
+#include <flecsi-config.hh>
 
 #include "flecsi/data.hh"
 #include "flecsi/run/leg/context.hh"
