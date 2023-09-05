@@ -197,7 +197,7 @@ int
 use_map(data::multi<short_part::accessor<ro>> ma,
   data::multi<intN::mutator<wo>> mm) {
   UNIT() {
-    const auto p = processes(), nc = std::max(p / process_fraction, {1}),
+    const auto p = processes(), nc = std::max(p / process_fraction, 1u),
                c = color();
     EXPECT_EQ(colors(), nc);
     const auto ac = ma.components();
@@ -278,7 +278,7 @@ index_driver() {
     execute<allocate>(arag(a).get_elements().sizes());
 
     auto lm = launch::make(
-      a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
+      a, launch::robin(a.colors(), std::max(np / process_fraction, 1u)));
     EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
     EXPECT_EQ(test<check_map>(arag(a)), 0);
   };

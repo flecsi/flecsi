@@ -144,7 +144,7 @@ private:
   template<index_space S>
   static constexpr auto passthru() {
     return Policy::template privilege_count<S>;
-  };
+  }
 
   /*
     Construct copy plan for the given index space S.

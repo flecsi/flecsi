@@ -246,7 +246,7 @@ private:
 
 template<auto S>
 struct make_ids_helper {
-  auto FLECSI_INLINE_TARGET operator()(const auto & x) const {
+  auto FLECSI_INLINE_TARGET operator()(const util::id & x) const {
     return id<S>(x);
   }
 };

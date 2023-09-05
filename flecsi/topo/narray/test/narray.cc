@@ -50,9 +50,10 @@ field_helper(typename mesh<D>::template accessor<ro> m,
 template<typename U>
 struct init_field_functor {
   U c;
-  void FLECSI_TARGET operator()(auto & x) const {
+  template<typename T>
+  void FLECSI_TARGET operator()(T & x) const {
     x = c;
-  };
+  }
 };
 
 template<std::size_t D>
@@ -66,9 +67,10 @@ init_field(typename mesh<D>::template accessor<ro> m,
 template<typename U>
 struct update_field_functor {
   U c;
-  void FLECSI_TARGET operator()(auto & x) const {
+  template<typename T>
+  void FLECSI_TARGET operator()(T & x) const {
     x = pow(10, c);
-  };
+  }
 };
 
 template<std::size_t D>

@@ -147,7 +147,7 @@ struct key_tuple : std::tuple<typename VT::type...> {
   template<auto V>
   static constexpr auto passthru() {
     return keys::template index<V>;
-  };
+  }
 
   template<auto V>
   constexpr auto & get() {

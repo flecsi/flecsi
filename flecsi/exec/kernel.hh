@@ -169,15 +169,24 @@ struct full_range {
 template<std::size_t N, std::size_t II, class RR, class AR>
 class nested_f
 {
-  AR & ret;
+
   const RR & rr;
+  AR & ret;
 
 public:
+  nested_f() = delete;
+
+#ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
+#endif
   nested_f(const RR & Rr, AR & Ret)
-    : rr(Rr), ret(Ret) {}
-  __attribute__((host)) __attribute__((device)) auto operator()(
-    range_index & i) {
+    : rr(Rr), ret(Ret) {
+  }
+#ifdef __CUDACC__ // NV
+  __attribute__((host)) __attribute__((device))
+#endif
+  auto
+  operator()(range_index & i) {
     if constexpr(II < N - 1) {
       const auto n = rr.size(), ret = i % n;
       i /= n;
@@ -200,12 +209,18 @@ class mv_f<std::index_sequence<II...>, RR...>
   std::index_sequence<II...> idx_seq;
 
 public:
+#ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
+#endif
   mv_f(std::index_sequence<II...>, const RR &... tt)
-    : my_tuple(tt...) {}
+    : my_tuple(tt...) {
+  }
 
-  __attribute__((host)) __attribute__((device)) auto operator()(
-    range_index i) const {
+#ifdef __CUDACC__ // NV
+  __attribute__((host)) __attribute__((device))
+#endif
+  auto
+  operator()(range_index i) const {
     static constexpr std::size_t N = sizeof...(RR);
     std::array<range_index, N> ret;
     auto p = ret.end();
@@ -221,7 +236,6 @@ public:
 template<std::size_t... II, class... RR>
 FLECSI_INLINE_TARGET auto
 mdiota_view(std::index_sequence<II...> ii, const RR &... rr) {
-  static constexpr std::size_t N = sizeof...(RR);
   return util::transform_view(
     util::iota_view<range_index>(0, (1 * ... * rr.size())),
     mv_f<std::index_sequence<II...>, RR...>{ii, rr...});
@@ -412,6 +426,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
     return result.reference();
 #else
     (void)name;
+    using ref = detail::reduce_ref<R, T>;
     T res = detail::identity_traits<R>::template value<T>;
     ref r{res};
     for(auto i : policy_type)
@@ -456,6 +471,7 @@ make_reduce(P policy, std::string n) {
 /// \param name debugging name, convertible to \c std::string
 /// \return the reduced result
 
+#ifdef __CUDACC__
 template<typename T,
   std::enable_if_t<!std::is_base_of_v<policy_tag, std::remove_reference_t<T>>,
     bool> = true,
@@ -493,6 +509,13 @@ decltype(std::declval<T &&>().begin()[0]) __helper_func_reduce();
            decltype(::flecsi::exec::__helper_func_reduce<decltype(p)>()) &&    \
              it,                                                               \
            ::flecsi::exec::detail::reduce_ref<R, T> && tmp)
+#else
+
+#define reduceall(it, ref, p, R, T, name)                                      \
+  ::flecsi::exec::make_reduce<R, T>(p, name)->*FLECSI_LAMBDA(                  \
+                                                 auto && it, auto ref)
+
+#endif
 
 /// \}
 } // namespace exec

@@ -123,7 +123,7 @@ private:
   template<index_space S>
   static constexpr auto passthru() {
     return Policy::template privilege_count<S>;
-  };
+  }
 
   /*!
    Method to create copy plans for entities of an index-space.
@@ -162,7 +162,7 @@ private:
     auto ptrs_task = [&points](auto f) {
       auto lm = data::launch::make(f.topology());
       constexpr auto val = passthru<S>();
-      execute<set_ptrs<val>, mpi>(lm(f), points, comm);
+      execute<set_ptrs<val>, mpi>(lm(f), points);
     };
     // clang-format on
 

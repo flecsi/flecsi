@@ -575,7 +575,7 @@ struct ntree<Policy>::access {
   template<typename T>
   static constexpr T & pass_thru(T & in) {
     return in;
-  };
+  }
 
   template<typename T>
   struct pass_thru_t {

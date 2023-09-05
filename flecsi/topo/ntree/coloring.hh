@@ -122,7 +122,7 @@ struct ntree_base {
     template<typename T>
     void operator()(T f) {
       execute<*F>(f);
-    };
+    }
   };
 
 }; // struct ntree_base

@@ -25,7 +25,7 @@ struct coloring_slot {
   template<typename... ARGS>
   static void emplace_helper(coloring_slot & s, ARGS &&... aa) {
     s.coloring.emplace(Topo::color(std::forward<ARGS>(aa)...));
-  };
+  }
 
   /// Create the coloring object in an MPI task.
   /// \param args arguments to \c Topo::color

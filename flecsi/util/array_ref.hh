@@ -638,9 +638,12 @@ public:
   }; // struct iterator
 
   /// Wrap a container.
-  __attribute__((device))
-  __attribute__((host)) inline constexpr transform_view(C c, F f = {})
-    : c(std::move(c)), f(std::move(f)) {}
+#ifdef __CUDACC__ // NV
+  __attribute__((device)) __attribute__((host))
+#endif
+  inline constexpr transform_view(C c, F f = {})
+    : c(std::move(c)), f(std::move(f)) {
+  }
 
   FLECSI_INLINE_TARGET
   constexpr iterator<false> begin() noexcept {

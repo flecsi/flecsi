@@ -485,7 +485,7 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
   template<index_space S>
   static constexpr auto passthru() {
     return Q::template privilege_count<S>;
-  };
+  }
   template<index_space S>
   static constexpr PrivilegeCount privilege_count = passthru<S>();
 
