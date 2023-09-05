@@ -79,14 +79,6 @@
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
     - module load cuda/${CUDA_VERSION}
-    - export CC=gcc  # default C compiler
-    - export CXX=g++ # default C++ compiler
-    - |-
-      if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
-        echo "Adding linker flags to avoid CUDA linker issue on power9 nodes"
-        export CXX_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${CXX_FLAGS} -Wno-unused-command-line-argument"
-        export C_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${C_FLAGS} -Wno-unused-command-line-argument"
-      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
@@ -168,22 +160,19 @@
     - *darwin_setup_hip
     - section start build_noflog "Build without FLOG"
     - *darwin_print_build_info
-    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF -DENABLE_UNIT_TESTS=OFF ${CMAKE_OPTIONS}
+    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF ${CMAKE_OPTIONS}
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
     - section end build_noflog
-    - |
-      if [ "${ENABLE_UNIT_TESTS}" = "ON" ] ; then
-        section start build "Build with FLOG"
-        cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
-        cmake --build . -j $(nproc)
-        section end build
-        section start test "Test"
-        export GASNET_BACKTRACE=1
-        export CTEST_OUTPUT_ON_FAILURE=1
-        ctest --output-junit tests.xml
-        section end test
-      fi
+    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+    - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
+    - cmake --build . -j $(nproc)
+    - section end build
+    - section start test "Test"
+    - export GASNET_BACKTRACE=1
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - ctest --timeout ${DEFAULT_TEST_TIMEOUT} --output-junit tests.xml
+    - section end test
     - section start install "Install"
     - cmake --build . --target install
     - section end install
@@ -320,11 +309,11 @@
     - spack arch
     - *darwin_setup_hip
     - *print_build_standalone_info
-    - spack python ${CI_PROJECT_DIR}/tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build-${LABEL} -S ${CI_PROJECT_DIR}/${STDIR} -c -i flecsi -- -DENABLE_UNIT_TESTS=ON
+    - spack python ${CI_PROJECT_DIR}/tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build-${LABEL} -S ${CI_PROJECT_DIR}/${STDIR} -c -i flecsi -- -DENABLE_UNIT_TESTS=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
     - cd ${CI_PROJECT_DIR}/state/build-${LABEL}
     - cmake --build .
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - ctest
+    - ctest --timeout ${DEFAULT_TEST_TIMEOUT}
 
 #------------------------------------------------------------------------------#
 # check_format_template
