@@ -179,9 +179,9 @@ struct container {
 
 // Unfortunately, std::tuple<int> is not trivially copyable, so check more:
 template<class T>
-constexpr bool bit_assignable_v =
-  std::is_trivially_copy_assignable_v<T> ||
-  std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>;
+constexpr bool bit_assignable_v = std::is_trivially_copy_assignable_v<T> ||
+                                  (std::is_copy_assignable_v<T> &&
+                                    std::is_trivially_copy_constructible_v<T>);
 template<class T>
 constexpr bool bit_copyable_v =
   std::is_default_constructible_v<T> && bit_assignable_v<T>;
