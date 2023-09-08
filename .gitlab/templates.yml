@@ -44,7 +44,7 @@
     - spack config add concretizer:unify:when_possible
     - spack config add concretizer:reuse:false
     - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
-    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
+    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler doxygen
     - spack install -j $(nproc)
     - section end python_env_init
 
