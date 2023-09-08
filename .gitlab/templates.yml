@@ -28,7 +28,6 @@
 # Create a clean spack environment on Darwin
 #------------------------------------------------------------------------------#
 .aux_darwin_print_env_info:
-  stage: Environment
   script: &darwin_print_env_info
     - |
       header "Creating Build Environment"
@@ -151,7 +150,6 @@
       fi
 
 .darwin_build_template:
-  stage: Build + Unit Tests
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
