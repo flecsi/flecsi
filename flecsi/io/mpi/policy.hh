@@ -12,10 +12,6 @@
 
 #include "flecsi-config.hh"
 
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
 #if !defined(H5_HAVE_PARALLEL)
 #error H5_HAVE_PARALLEL not defined! This file depends on parallel HDF5!
 #endif

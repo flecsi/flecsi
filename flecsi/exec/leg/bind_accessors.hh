@@ -12,10 +12,6 @@
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
 
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
 #include <legion.h>
 
 #include <memory>

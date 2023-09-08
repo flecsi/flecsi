@@ -4,13 +4,7 @@
 #ifndef FLECSI_UTIL_GRAPHVIZ_HH
 #define FLECSI_UTIL_GRAPHVIZ_HH
 
-#include <flecsi-config.hh>
-
 #include "flecsi/util/common.hh" // FILE
-
-#if !defined(FLECSI_ENABLE_GRAPHVIZ)
-#error FLECSI_ENABLE_GRAPHVIZ not defined! This file depends on Graphviz!
-#endif
 
 #include <graphviz/cgraph.h>
 

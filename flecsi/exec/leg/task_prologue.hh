@@ -11,10 +11,6 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
 #include <legion.h>
 
 namespace flecsi {

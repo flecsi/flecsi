@@ -11,10 +11,6 @@
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/util/demangle.hh"
 
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
 #include <mpi.h>
 
 #include <memory>
