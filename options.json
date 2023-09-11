@@ -5,6 +5,6 @@
   },
   "llvm": {
     "c_flags": "-fcolor-diagnostics -Wno-unknown-cuda-version -Wall -Wundef -W -Werror -Wvla",
-    "cxx_flags": "-Wextra-semi -Wno-braced-scalar-init"
+    "cxx_flags": "-Wextra-semi"
   }
 }
