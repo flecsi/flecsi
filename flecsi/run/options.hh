@@ -204,6 +204,8 @@ private:
 
 }; // struct program_option
 
+/// \}
+
 } // namespace flecsi
 
 #endif
