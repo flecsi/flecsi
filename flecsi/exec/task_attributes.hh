@@ -5,6 +5,11 @@
 #define FLECSI_EXEC_TASK_ATTRIBUTES_HH
 
 #include "flecsi/util/bitutils.hh"
+#include <flecsi-config.h>
+
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+#include <realm_defines.h>
+#endif
 
 namespace flecsi {
 /// \addtogroup execution
