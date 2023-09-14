@@ -142,16 +142,14 @@ being the indices, with a particular instance being defined by its size.
 The index topology also has an implicit coloring that
 assigns each index of the topology's indices to its own color: i.e.,
 index 0 is assigned to color 0, etc. This simple example illustrates the
-definition of a coloring:
+definition of a coloring.
 
 .. admonition:: Definition
 
   A coloring is a description of how the indices of an index space
   should be divided into partitions or colors.
 
-The *size* of the default index topology instance is taken from the
-number of processes with which the FleCSI runtime was launched. This is
-a special case. In general, there is no implied size for a coloring, and
+In general, there is no implied size for a coloring, and
 no association with the details of a particular execution space, i.e.,
 the number of processes.  A coloring only describes how to divide the
 indices of an index space into partitions (or colors in FleCSI's
@@ -163,7 +161,7 @@ nomenclature).
   different from the way that many people think about MPI, where a rank
   is statically mapped to a particular process.
 
-Users are allowed to add addtional named instances of the global or index topologies:
+Given a coloring (which in these two simple cases can be just an integer), topology instances can be created:
 
 .. code-block:: cpp
 
@@ -179,6 +177,6 @@ Users are allowed to add addtional named instances of the global or index topolo
 
 Note the different interpretations of the sizes: ``pair`` doesn't have colors and holds 2 field values, while ``hydro_indices`` has 42 colors with one field value each.
 
-Coloring slots can be populated only within the top-level action; the lifetime of topologies must be limited to its duration.
+Note also that the lifetime of topology instances must be limited to the top-level action (achieved here by making the slots local variables in it).
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
