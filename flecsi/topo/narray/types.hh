@@ -390,8 +390,9 @@ struct index_definition {
   /// \showinitializer
   bool diagonals = false;
 
-  /// whether to create a copy plan
-  /// \showinitializer
+  /// Unused.
+  /// \deprecated Omit the initialization (and \e assign \c full_ghosts if
+  ///   needed).
   bool create_plan = true;
 
   /// whether to use include full ghost information for auxiliaries

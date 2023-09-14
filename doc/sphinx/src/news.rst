@@ -24,6 +24,10 @@ Deprecated
 
   * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
 
+* Topologies
+
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
+
 Fixed
 ^^^^^
 * Execution
