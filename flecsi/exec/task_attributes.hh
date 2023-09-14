@@ -4,8 +4,8 @@
 #ifndef FLECSI_EXEC_TASK_ATTRIBUTES_HH
 #define FLECSI_EXEC_TASK_ATTRIBUTES_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/util/bitutils.hh"
-#include <flecsi-config.h>
 
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <realm_defines.h>

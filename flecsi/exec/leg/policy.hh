@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_POLICY_HH
 #define FLECSI_EXEC_LEG_POLICY_HH
 
-#include <flecsi-config.hh>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"

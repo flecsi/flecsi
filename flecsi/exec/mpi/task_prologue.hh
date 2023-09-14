@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 #define FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 
-#include <flecsi-config.hh>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/mpi/future.hh"

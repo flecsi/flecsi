@@ -4,7 +4,7 @@
 #ifndef FLECSI_TOPO_SET_TYPES_HH
 #define FLECSI_TOPO_SET_TYPES_HH
 
-#include <flecsi-config.hh>
+#include "flecsi/config.hh"
 
 #include <cstddef>
 

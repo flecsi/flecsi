@@ -294,12 +294,12 @@ if(ENABLE_LIBRARY)
   # Configure header.
   #----------------------------------------------------------------------------#
 
-  configure_file(${PROJECT_SOURCE_DIR}/config/flecsi-config.hh.in
-    ${CMAKE_BINARY_DIR}/flecsi-config.hh @ONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/flecsi/config.hh.in
+    ${CMAKE_BINARY_DIR}/flecsi/config.hh @ONLY)
 
   install(
-    FILES ${CMAKE_BINARY_DIR}/flecsi-config.hh
-    DESTINATION include
+    FILES ${CMAKE_BINARY_DIR}/flecsi/config.hh
+    DESTINATION include/flecsi
   )
 
   #----------------------------------------------------------------------------#

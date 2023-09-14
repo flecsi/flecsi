@@ -4,8 +4,7 @@
 #ifndef FLECSI_UTIL_COLOR_MAP_HH
 #define FLECSI_UTIL_COLOR_MAP_HH
 
-#include <flecsi-config.hh>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"

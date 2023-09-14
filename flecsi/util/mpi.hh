@@ -4,8 +4,7 @@
 #ifndef FLECSI_UTIL_MPI_HH
 #define FLECSI_UTIL_MPI_HH
 
-#include <flecsi-config.hh>
-
+#include "flecsi/config.hh"
 #include "flecsi/util/array_ref.hh" // span
 #include "flecsi/util/serialize.hh"
 

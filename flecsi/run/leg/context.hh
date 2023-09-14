@@ -4,8 +4,7 @@
 #ifndef FLECSI_RUN_LEG_CONTEXT_HH
 #define FLECSI_RUN_LEG_CONTEXT_HH
 
-#include <flecsi-config.hh>
-
+#include "flecsi/config.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/mpi.hh"
 

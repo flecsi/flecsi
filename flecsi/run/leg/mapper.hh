@@ -4,9 +4,8 @@
 #ifndef FLECSI_RUN_LEG_MAPPER_HH
 #define FLECSI_RUN_LEG_MAPPER_HH
 
-#include <flecsi-config.hh>
-
 #include "../backend.hh"
+#include "flecsi/config.hh"
 
 #include <legion.h>
 #include <legion/legion_mapping.h>

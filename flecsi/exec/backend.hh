@@ -4,8 +4,8 @@
 #ifndef FLECSI_EXEC_BACKEND_HH
 #define FLECSI_EXEC_BACKEND_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include <flecsi-config.hh>
 
 #include <cstddef>
 

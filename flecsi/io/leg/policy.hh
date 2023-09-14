@@ -16,8 +16,7 @@
 #include <hdf5.h>
 #include <legion.h>
 
-#include "flecsi-config.hh"
-
+#include "flecsi/config.hh"
 #include "flecsi/data.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/leg/policy.hh"

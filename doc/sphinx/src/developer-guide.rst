@@ -182,7 +182,7 @@ tagged release
 
 
 FleCSI uses the information in ``.version`` to define
-``FLECSI_VERSION`` in its ``flecsi-config.hh`` header. This constant
+``FLECSI_VERSION`` in its ``flecsi/config.hh`` header. This constant
 encodes the major, minor and patch version of FleCSI in a single
 integer value.
 
