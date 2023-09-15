@@ -330,58 +330,20 @@ struct projection : Legion::ProjectionFunctor, borrow_base {
   bool is_exclusive() const override {
     return false;
   }
-  Legion::LogicalRegion project(const Legion::Mappable * m,
-    unsigned r,
-    Legion::LogicalPartition p,
-    const Legion::DomainPoint & i) override {
-    const auto & o = static_cast<const Claim *>(
-      get_req(*m, r).get_projection_args(nullptr))[i.get_color()];
+  bool is_functional() const override {
+    return true;
+  }
+  Legion::LogicalRegion project(Legion::LogicalPartition p,
+    const Legion::DomainPoint & i,
+    const Legion::Domain &,
+    const void * args,
+    std::size_t) override {
+    const auto & o = static_cast<const Claim *>(args)[i.get_color()];
     return o == nil ? Legion::LogicalRegion::NO_REGION
                     : runtime->get_logical_subregion_by_color(p, o);
   }
 
   static const Legion::ProjectionID id;
-
-private:
-  // When is July 123rd?
-  template<class... VV>
-  static auto & calendar(unsigned i, const VV &... vv) {
-    decltype((vv.data(), ...)) ret;
-    const bool found = ([&] {
-      const unsigned n = vv.size();
-      const bool here = i < n;
-      if(here)
-        ret = &vv[i];
-      else
-        i -= n;
-      return here;
-    }() || ...);
-    if(found)
-      return *ret;
-    flog_fatal("RegionRequirement index out of range");
-  }
-
-  static const Legion::RegionRequirement & get_req(const Legion::Mappable & m,
-    unsigned i) {
-    switch(m.get_mappable_type()) {
-      case LEGION_TASK_MAPPABLE:
-        return m.as_task()->regions[i];
-      case LEGION_COPY_MAPPABLE: {
-        const auto & c = *m.as_copy();
-        return calendar(i,
-          c.src_requirements,
-          c.dst_requirements,
-          c.src_indirect_requirements,
-          c.dst_indirect_requirements);
-      }
-      case LEGION_INLINE_MAPPABLE:
-        return m.as_inline()->requirement;
-      case LEGION_FILL_MAPPABLE:
-        return m.as_fill()->requirement;
-      default:
-        flog_fatal("unknown Mappable type");
-    }
-  }
 };
 inline const Legion::ProjectionID projection::id = [] {
   const auto ret = Legion::Runtime::generate_static_projection_id();
