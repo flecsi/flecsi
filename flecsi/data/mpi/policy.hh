@@ -354,6 +354,9 @@ struct region {
     return p->size();
   }
 
+  void partition_notify() {}
+  void partition_notify(field_id_t) {}
+
   region_impl & operator*() {
     return *p;
   }

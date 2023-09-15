@@ -178,7 +178,10 @@ struct region {
 
         return named(
           r.create_logical_region(c, index_space, field_space), name);
-      }()) {}
+      }()) {
+    for(const auto & fi : fs)
+      fields.insert(fi->fid);
+  }
 
   // Retain value semantics:
   region(region &&) = default;
@@ -197,7 +200,23 @@ struct region {
     return size2(p[0] + 1, p[1] + 1);
   }
 
+  void partition_notify() {
+    reset(fields);
+  }
+  void partition_notify(field_id_t f) {
+    reset({f});
+  }
+
   shared_logical_region logical_region;
+
+private:
+  using Fields = std::set<Legion::FieldID>;
+
+  void reset(const Fields & s) {
+    run().reset_equivalence_sets(ctx(), logical_region, logical_region, s);
+  }
+
+  Fields fields;
 };
 
 struct partition_base {
