@@ -39,9 +39,9 @@ variables:
   CUDA_VERSION: 11.8.0
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
-  IB_EDR_CONSTRAINT: "--constraint=ib:edr"
-  V100_CONSTRAINT: "--constraint=\"cpu_family:haswell&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
-  JOB_CONSTRAINTS: "${IB_EDR_CONSTRAINT}"
+  IB_CONSTRAINT: "--constraint=\"(ib:edr|ib:hdr)\""
+  V100_CONSTRAINT: "--constraint=\"(cpu_family:haswell|cpu_family:cascadelake)&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
+  JOB_CONSTRAINTS: "${IB_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
   LEGION_MPI: legion conduit=mpi
@@ -288,7 +288,7 @@ openmpi-legion-clang-cuda-mpi:
   variables:
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
-    PARTITIONS: volta-x86,power9-rhel7
+    PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
