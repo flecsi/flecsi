@@ -4,7 +4,7 @@
 #ifndef FLECSI_LOG_UTILS_HH
 #define FLECSI_LOG_UTILS_HH
 
-#include <flecsi-config.h>
+#include "flecsi/config.hh"
 
 #include <ctime>
 #include <string>

@@ -10,7 +10,7 @@
 
 .darwin_archive_spack_env:
   script: &darwin_archive_spack_env
-    - if [ -n "$ARCHIVE_SPACK_ENV" ]; then echo -e "${COLOR_MAGENTA}Archiving Spack Environment${COLOR_PLAIN}" && cd $TMPDIR && mksquashfs spack ${CI_PROJECT_DIR}/state/spack.sqfs; fi
+    - if [ -n "$ARCHIVE_SPACK_ENV" ]; then header "Archiving Spack Environment" && cd $TMPDIR && mksquashfs spack ${CI_PROJECT_DIR}/state/spack.sqfs; fi
 
 #------------------------------------------------------------------------------#
 # darwin_restore_spack_env
@@ -28,25 +28,24 @@
 # Create a clean spack environment on Darwin
 #------------------------------------------------------------------------------#
 .aux_darwin_print_env_info:
-  stage: Environment
   script: &darwin_print_env_info
     - |
-      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Version: ${VERSION}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Variants: ${VARIANTS}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Toolchain: ${TOOLCHAIN}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+      header "Creating Build Environment"
+      variable ENVIRONMENT
+      variable VERSION
+      variable VARIANTS
+      variable TOOLCHAIN
+      variable PARTITIONS
 
 .darwin_python_env_init:
   script: &darwin_python_env_init
-    - echo -e "\e[0Ksection_start:`date +%s`:python_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Adding Python dependencies${COLOR_PLAIN}"
+    - section start "python_env_init[collapsed=true]" "Adding Python dependencies"
     - spack config add concretizer:unify:when_possible
     - spack config add concretizer:reuse:false
     - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
-    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
+    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler doxygen
     - spack install -j $(nproc)
-    - echo -e "\e[0Ksection_end:`date +%s`:python_env_init\r\e[0K"
+    - section end python_env_init
 
 .darwin_clang_format_init:
   script: &darwin_clang_format_init
@@ -79,18 +78,10 @@
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
     - module load cuda/${CUDA_VERSION}
-    - export CC=gcc  # default C compiler
-    - export CXX=g++ # default C++ compiler
-    - |-
-      if [ "$(spack arch)" = "linux-rhel7-power9le" ] ; then
-        echo "Adding linker flags to avoid CUDA linker issue on power9 nodes"
-        export CXX_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${CXX_FLAGS} -Wno-unused-command-line-argument"
-        export C_FLAGS="-Wl,-u,cuIpcOpenMemHandle_v2 -Wall ${C_FLAGS} -Wno-unused-command-line-argument"
-      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
-    - export SPACK_ENVIRONMENT=`echo -e "darwin-${ENVIRONMENT}" | sed 's,\.,-,g'`
+    - export SPACK_ENVIRONMENT=`echo "darwin-${ENVIRONMENT}" | sed 's,\.,-,g'`
 
 #------------------------------------------------------------------------------#
 # darwin_env_init
@@ -99,7 +90,7 @@
 #------------------------------------------------------------------------------#
 .darwin_env_init:
   script: &darwin_env_init
-    - echo -e "\e[0Ksection_start:`date +%s`:spack_env_init[collapsed=true]\r\e[0K${COLOR_CYAN}Creating Spack environment${COLOR_PLAIN}"
+    - section start "spack_env_init[collapsed=true]" "Creating Spack environment"
     - *darwin_env_create
     - *darwin_print_env_info
     - *darwin_env_shell
@@ -110,16 +101,16 @@
     - spack env activate ${SPACK_ENVIRONMENT}
     - spack config add upstreams:default:install_tree:${DARWIN_SPACK_UPSTREAM}/opt/spack/
     - spack repo add spack-repo
-    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_init\r\e[0K"
+    - section end spack_env_init
 
 .darwin_env_spack_install_flecsi_deps:
   script: &darwin_env_spack_install_flecsi_deps
-    - echo -e "\e[0Ksection_start:`date +%s`:spack_env_install_flecsi_deps[collapsed=true]\r\e[0K${COLOR_CYAN}Installing FleCSI dependencies${COLOR_PLAIN}"
-    - echo -e "spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
+    - section start "spack_env_install_flecsi_deps[collapsed=true]" "Installing FleCSI dependencies"
+    - echo "spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
     - spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}
     - spack install -j $(nproc) --only dependencies
     - spack find -v
-    - echo -e "\e[0Ksection_end:`date +%s`:spack_env_install_flecsi_deps\r\e[0K"
+    - section end spack_env_install_flecsi_deps
 
 #------------------------------------------------------------------------------#
 # darwin_build_template
@@ -137,11 +128,11 @@
 .aux_darwin_print_build_info:
   script: &darwin_print_build_info
     - |-
-      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Extra CMake Options: ${CMAKE_OPTIONS}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Spack arch: $(spack arch)${COLOR_PLAIN}"
+      header "Creating Build Environment"
+      variable ENVIRONMENT
+      variable PARTITIONS
+      value "Extra CMake Options" "${CMAKE_OPTIONS}"
+      value "Spack arch" "$(spack arch)"
 
 .darwin_setup_hip:
   script: &darwin_setup_hip
@@ -155,38 +146,34 @@
         export HIP_CLANG_PATH=/opt/rocm-${ROCM_VERSION}/llvm/bin
         export HIP_COMPILER=clang
         export PATH=/opt/rocm-${ROCM_VERSION}/bin:$PATH
-        echo -e "${COLOR_MAGENTA}Using Darwin HIP installation at: ${ROCM_PATH}${COLOR_PLAIN}"
+        header "Using Darwin HIP installation at: ${ROCM_PATH}"
       fi
 
 .darwin_build_template:
-  stage: Build + Unit Tests
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
     - if [ -f /usr/bin/nvidia-smi ] ; then nvidia-smi || true; fi
     - spack env activate ${SPACK_ENVIRONMENT}
     - *darwin_setup_hip
-    - echo -e "\e[0Ksection_start:`date +%s`:build_noflog\r\e[0K${COLOR_CYAN}Build without FLOG${COLOR_PLAIN}"
+    - section start build_noflog "Build without FLOG"
     - *darwin_print_build_info
-    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF -DENABLE_UNIT_TESTS=OFF ${CMAKE_OPTIONS}
+    - spack python tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build -S . -i flecsi -- -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -DENABLE_FLOG=OFF ${CMAKE_OPTIONS}
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
-    - echo -e "\e[0Ksection_end:`date +%s`:build_noflog\r\e[0K"
-    - |
-      if [ "${ENABLE_UNIT_TESTS}" = "ON" ] ; then
-        echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
-        cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
-        cmake --build . -j $(nproc)
-        echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
-        echo -e "\e[0Ksection_start:`date +%s`:test\r\e[0K${COLOR_CYAN}Test${COLOR_PLAIN}"
-        export GASNET_BACKTRACE=1
-        export CTEST_OUTPUT_ON_FAILURE=1
-        ctest --output-junit tests.xml
-        echo -e "\e[0Ksection_end:`date +%s`:test\r\e[0K"
-      fi
-    - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
+    - section end build_noflog
+    - section start build "Build with FLOG"
+    - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
+    - cmake --build . -j $(nproc)
+    - section end build
+    - section start test "Test"
+    - export GASNET_BACKTRACE=1
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - ctest --timeout ${DEFAULT_TEST_TIMEOUT} --output-junit tests.xml
+    - section end test
+    - section start install "Install"
     - cmake --build . --target install
-    - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
+    - section end install
     - *darwin_archive_spack_env
   artifacts:
     expire_in: 2 weeks
@@ -212,9 +199,9 @@
 .aux_darwin_print_defaults_build_info:
   script: &darwin_print_defaults_build_info
     - |-
-      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+      header "Creating Build Environment"
+      variable ENVIRONMENT
+      variable PARTITIONS
       which gcc
       which cc
       spack arch
@@ -224,16 +211,16 @@
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
     - *darwin_print_defaults_build_info
-    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build${COLOR_PLAIN}"
+    - section start build "Build"
     - which gcc
     - which cc
     - cmake -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}/state/install -B ${CI_PROJECT_DIR}/state/build -S .
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
-    - echo -e "\e[0Ksection_end:`date +%s`:build\r\e[0K"
-    - echo -e "\e[0Ksection_start:`date +%s`:install\r\e[0K${COLOR_CYAN}Install${COLOR_PLAIN}"
+    - section end build
+    - section start install "Install"
     - cmake --build . --target install
-    - echo -e "\e[0Ksection_end:`date +%s`:install\r\e[0K"
+    - section end install
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -255,8 +242,8 @@
 .aux_print_diff_format_info:
   script: &print_diff_format_info
     - |-
-      echo -e "${COLOR_MAGENTA}Checking Formatting${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Version (clang-format): ${FORMAT_VERSION}${COLOR_PLAIN}"
+      header "Checking Formatting"
+      value "Version (clang-format)" "${FORMAT_VERSION}"
 
 .darwin_docs_and_format_template:
   script:
@@ -264,7 +251,7 @@
     - *darwin_python_env_init
     - *darwin_clang_format_init
     - *print_diff_format_info
-    - echo -e "\e[0Ksection_start:`date +%s`:docs\r\e[0K${COLOR_CYAN}Build Documentation${COLOR_PLAIN}"
+    - section start docs "Build Documentation"
     - cmake -DENABLE_LIBRARY=OFF -DENABLE_DOCUMENTATION=ON -DENABLE_FORMAT=ON -DCLANG_FORMAT_VERSION=${FORMAT_VERSION} -B ${CI_PROJECT_DIR}/state/build -S .
     - cd ${CI_PROJECT_DIR}/state/build
     - fail=0
@@ -273,15 +260,15 @@
         touch ${CI_PROJECT_DIR}/state/docs-passed;
       else fail=$?
       fi
-    - echo -e "\e[0Ksection_end:`date +%s`:docs\r\e[0K"
-    - echo -e "\e[0Ksection_start:`date +%s`:format\r\e[0K${COLOR_CYAN}Check Formatting${COLOR_PLAIN}"
+    - section end docs
+    - section start format "Check Formatting"
     - |
       if cmake --build . --target format && cd ${CI_PROJECT_DIR} && git diff --exit-code --compact-summary; then
         touch ${CI_PROJECT_DIR}/state/format-passed;
       else fail=$?
       fi
     - date
-    - echo -e "\e[0Ksection_end:`date +%s`:format\r\e[0K"
+    - section end format
     - exit $fail
   artifacts:
     expire_in: 2 weeks
@@ -303,11 +290,11 @@
 .aux_print_build_standalone_info:
   script: &print_build_standalone_info
     - |-
-      echo -e "${COLOR_MAGENTA}Creating Build Environment${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Environment: ${ENVIRONMENT}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Label: ${LABEL}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Source Directory: ${STDIR}${COLOR_PLAIN}"
-      echo -e "\t${COLOR_BLUE}Partitions: ${PARTITIONS}${COLOR_PLAIN}"
+      header "Creating Build Environment"
+      variable ENVIRONMENT
+      variable LABEL
+      value "Source Directory" "${STDIR}"
+      variable PARTITIONS
 
 .darwin_standalone_template:
   stage: Standalone
@@ -320,11 +307,11 @@
     - spack arch
     - *darwin_setup_hip
     - *print_build_standalone_info
-    - spack python ${CI_PROJECT_DIR}/tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build-${LABEL} -S ${CI_PROJECT_DIR}/${STDIR} -c -i flecsi -- -DENABLE_UNIT_TESTS=ON
+    - spack python ${CI_PROJECT_DIR}/tools/spack_cmake -B ${CI_PROJECT_DIR}/state/build-${LABEL} -S ${CI_PROJECT_DIR}/${STDIR} -c -i flecsi -- -DENABLE_UNIT_TESTS=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
     - cd ${CI_PROJECT_DIR}/state/build-${LABEL}
     - cmake --build .
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - ctest
+    - ctest --timeout ${DEFAULT_TEST_TIMEOUT}
 
 #------------------------------------------------------------------------------#
 # check_format_template

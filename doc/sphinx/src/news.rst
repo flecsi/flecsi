@@ -100,6 +100,10 @@ Fixed
   * ``narray`` respects ``index_definition::diagonals`` being ``false``.
     (This was fixed but not documented in 2.2.1.)
 
+* Legion backend
+
+  * ``omp`` tasks now work in builds with GPU support.
+
 * Logging
 
   * Special options like ``--control-model`` and ``--help`` work reliably.

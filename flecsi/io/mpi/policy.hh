@@ -10,16 +10,11 @@
 #include <ostream>
 #include <string>
 
-#include "flecsi-config.h"
-
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
 #if !defined(H5_HAVE_PARALLEL)
 #error H5_HAVE_PARALLEL not defined! This file depends on parallel HDF5!
 #endif
 
+#include "flecsi/config.hh"
 #include "flecsi/data/mpi/policy.hh"
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/run/context.hh"

@@ -3,8 +3,8 @@
 // All rights reserved
 //----------------------------------------------------------------------------//
 
-#ifndef FLECSI_CONFIG_H
-#define FLECSI_CONFIG_H
+#ifndef FLECSI_CONFIG_HH
+#define FLECSI_CONFIG_HH
 
 /// \defgroup config Configuration
 /// FleCSI Configuration
@@ -52,6 +52,10 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
     #cmakedefine COMPACTED_STORAGE_SORT
   #endif
 
+#endif
+
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+#include <realm_defines.h>
 #endif
 
 //----------------------------------------------------------------------------//

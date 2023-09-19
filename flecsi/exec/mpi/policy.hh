@@ -13,10 +13,6 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
 
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
 #include <mpi.h>
 
 #include <type_traits>

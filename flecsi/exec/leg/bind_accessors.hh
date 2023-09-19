@@ -4,17 +4,12 @@
 #ifndef FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 #define FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 

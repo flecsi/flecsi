@@ -4,7 +4,7 @@
 #ifndef FLECSI_LOG_STATE_HH
 #define FLECSI_LOG_STATE_HH
 
-#include <flecsi-config.h>
+#include "flecsi/config.hh"
 
 #if defined(FLECSI_ENABLE_FLOG)
 
@@ -105,7 +105,7 @@ public:
       processes_ = np;
     }
 
-    one_process_ = static_cast<Color>(cfg.process);
+    source_process_ = static_cast<Color>(cfg.process);
 
     if(process_ == 0) {
       flusher_thread_ = std::thread(&state::flush_packets, std::ref(*this));
@@ -240,11 +240,11 @@ public:
 
 #if defined(FLOG_ENABLE_MPI)
   bool active_process() const {
-    return one_process_ == all_processes || one_process_ == process_;
+    return source_process_ == all_processes || source_process_ == process_;
   }
 
-  Color one_process() const {
-    return one_process_;
+  Color source_process() const {
+    return source_process_;
   }
 
   Color process() const {
@@ -320,7 +320,7 @@ private:
   }
   void send_to_one(bool last);
 
-  Color one_process_, process_, processes_;
+  Color source_process_, process_, processes_;
   std::thread flusher_thread_;
   std::mutex packets_mutex_;
   std::condition_variable avail;

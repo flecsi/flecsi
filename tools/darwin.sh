@@ -88,7 +88,6 @@ spack env activate flecsi-mpich
 # Load GCC version known to work with FleCSI
 # and make it visible to Spack
 module load gcc/${GCC_VERSION}
-spack compiler find
 
 # ignore configuration in ~/.spack to avoid conflicts
 export SPACK_DISABLE_LOCAL_CONFIG=true
@@ -109,19 +108,19 @@ if [ -d "$DARWIN_SPACK_UPSTREAM" ] && [ -x "${DARWIN_SPACK_UPSTREAM}" ]; then
   # add spack upstream if accessible
   spack config add upstreams:default:install_tree:${DARWIN_SPACK_UPSTREAM}/opt/spack/
   cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/{compilers.yaml,packages.yaml} $HOME/spack/etc/spack/
+  cp ${DARWIN_SPACK_UPSTREAM}/bin/mpiexec $HOME/spack/bin/
 else
   # Otherwise, load a compatible cmake and expose whatever else happens to be
   # sitting around as Spack externals
   module load cmake/3.19.2
+  spack compiler find
   spack external find
 fi
 
 # Install FleCSI's dependencies with Spack.
-# This also builds a version of MPICH in Spack since the ones on Darwin do not include
-# an mpiexec/mpirun that works.
 spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +graphviz +hdf5 +kokkos +flog \
-          ^mpich%gcc@${GCC_VERSION}+hydra device=ch4 netmod=ucx \
-          ^legion network=gasnet conduit=mpi build_type=Debug
+          ^legion network=gasnet conduit=mpi build_type=Debug \
+          ^mpich
 spack install -j $(nproc) --only dependencies
 
 # Build, test, and install FleCSI.

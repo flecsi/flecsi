@@ -4,16 +4,11 @@
 #ifndef FLECSI_EXEC_LEG_TASK_PROLOGUE_HH
 #define FLECSI_EXEC_LEG_TASK_PROLOGUE_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 

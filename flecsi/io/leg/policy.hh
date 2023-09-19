@@ -16,12 +16,7 @@
 #include <hdf5.h>
 #include <legion.h>
 
-#include "flecsi-config.h"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
+#include "flecsi/config.hh"
 #include "flecsi/data.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/leg/policy.hh"

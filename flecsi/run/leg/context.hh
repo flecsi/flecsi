@@ -4,14 +4,9 @@
 #ifndef FLECSI_RUN_LEG_CONTEXT_HH
 #define FLECSI_RUN_LEG_CONTEXT_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/mpi.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 

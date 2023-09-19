@@ -1,8 +1,6 @@
-#include <flecsi-config.h>
-
+#include "flecsi/flog/state.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/flog/packet.hh"
-#include "flecsi/flog/state.hh"
 #include "flecsi/flog/utils.hh"
 #include "flecsi/util/mpi.hh"
 
@@ -41,10 +39,10 @@ state::send_to_one(bool last) {
 
   int bytes = data.size();
 
-  if(one_process_ == 0) {
+  if(source_process_ == 0) {
     buffer = std::move(data);
   }
-  else if(one_process_ == all_processes) {
+  else if(source_process_ == all_processes) {
     test(MPI_Gather(
       &bytes, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD));
     int sum{0};
@@ -73,7 +71,7 @@ state::send_to_one(bool last) {
       test(MPI_Recv(&bytes,
         1,
         MPI_INT,
-        one_process_,
+        source_process_,
         0,
         MPI_COMM_WORLD,
         MPI_STATUS_IGNORE));
@@ -81,12 +79,12 @@ state::send_to_one(bool last) {
       test(MPI_Recv(buffer.data(),
         bytes,
         MPI_CHAR,
-        one_process_,
+        source_process_,
         0,
         MPI_COMM_WORLD,
         MPI_STATUS_IGNORE));
     }
-    else if(process_ == one_process_) {
+    else if(process_ == source_process_) {
       test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD));
       test(MPI_Send(data.data(), bytes, MPI_CHAR, 0, 0, MPI_COMM_WORLD));
     }
@@ -98,7 +96,7 @@ state::send_to_one(bool last) {
 
     for(Color p = 0; p < processes_; ++p) {
 
-      if(one_process_ == all_processes || p == one_process_) {
+      if(source_process_ == all_processes || p == source_process_) {
         auto remote_packets =
           util::serial::get1<std::vector<packet_t>>(buffer.data() + offsets[p]);
 
