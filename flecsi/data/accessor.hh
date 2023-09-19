@@ -381,50 +381,60 @@ struct accessor<ragged, T, P>
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
   : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
+  static_assert(std::is_nothrow_move_constructible_v<T>,
+    "the data type should not throw from a move constructor.");
+  static_assert(std::is_nothrow_move_assignable_v<T>,
+    "the data type should not throw from a move assignment.");
+  static_assert(std::is_nothrow_destructible_v<T>,
+    "the data type should not throw from a destructor.");
+
   using base_type = ragged_accessor<T, P>;
   using size_type = typename base_type::size_type;
 
-private:
-  using base_row = typename base_type::row;
-  using base_size = typename base_row::size_type;
-
-public:
   struct Overflow {
-    base_size del;
+    size_type del;
     std::vector<T> buffer;
   };
+
   using TaskBuffer = std::vector<Overflow>;
 
 private:
+  using base_row = typename base_type::row;
+  using span_iterator = typename base_row::iterator; // T*
+  using buffer_iterator = typename std::vector<T>::iterator;
+
+  // Simple wrapper for basic access to a row and its overflow buffer.
+  // Additionally provides a public interface for certain vector-like operations
+  // on the span.
   struct raw_row {
-    using size_type = base_size;
+    using size_type = mutator::size_type;
 
     base_row span;
     Overflow * overflow;
 
-    T & operator[](size_type i) const {
-      const auto b = brk();
-      if(i < b)
-        return span[i];
-      i -= b;
-      flog_assert(i < overflow->buffer.size(), "index out of range");
-      return overflow->buffer[i];
+    T & operator[](size_type i) const noexcept {
+      assert(i < size() && "index out of range");
+      return i < span.size() ? span[i] : overflow->buffer[i - span.size()];
     }
 
-    size_type brk() const noexcept {
+    size_type size() const noexcept {
+      return active_size() + overflow->buffer.size();
+    }
+
+    auto active_end() const noexcept {
+      return span.end() - overflow->del;
+    }
+
+    auto active_size() const noexcept {
       return span.size() - overflow->del;
     }
-    size_type size() const noexcept {
-      return brk() + overflow->buffer.size();
-    }
 
-    void destroy(size_type skip = 0) const {
-      std::destroy(span.begin() + skip, span.begin() + brk());
-    }
-  };
+  }; // struct raw_row
 
 public:
-  /// A row handle.
+  /// A row handle.  Provides the \c std::vector interface, with the important
+  /// difference that there is no guarantee of contiguity between memory
+  /// locations.
   struct row : util::with_index_iterator<const row>, private raw_row {
     using value_type = T;
     using typename raw_row::size_type;
@@ -435,255 +445,249 @@ public:
 
     /// \name std::vector operations
     /// \{
+
     void assign(size_type count, const T & value) const {
       clear();
       resize(count, value);
     }
+
     template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
     void assign(I first, I last) const {
-      for(clear(); overflow->del && first != last; ++first)
-        push_span(*first);
-      overflow->buffer.assign(std::move(first), std::move(last));
+      clear();
+      insert(this->begin(), first, last);
     }
+
     void assign(std::initializer_list<T> ilist) const {
       assign(ilist.begin(), ilist.end());
     }
 
     using raw_row::operator[];
-    T & front() const {
+
+    T & front() const noexcept {
+      assert(size() > 0 && "cannot access the front of an empty row");
       return *this->begin();
     }
-    T & back() const {
+
+    T & back() const noexcept {
+      assert(size() > 0 && "cannot access the back of an empty row");
       return this->end()[-1];
     }
 
     using raw_row::size;
+
     bool empty() const noexcept {
-      return !this->size();
+      return this->size() == 0;
     }
+
     size_type max_size() const noexcept {
       return overflow->buffer.max_size();
     }
+
     size_type capacity() const noexcept {
-      // We can't count the span and the vector, since the client might remove
-      // all the elements from the span and then add to the vector up to our
-      // return value.  The strange result is
-      // that size() can be greater than capacity(), but that just means that
-      // every operation might invalidate everything.
-      const auto c = overflow->buffer.capacity();
-      return overflow->buffer.empty() ? std::max(span.size(), c) : c;
+      return span.size() + overflow->buffer.capacity();
     }
+
     void reserve(size_type n) const {
-      if(!overflow->buffer.empty() || n > span.size())
-        overflow->buffer.reserve(n);
+      if(n > span.size()) {
+        overflow->buffer.reserve(n - span.size());
+      }
     }
-    void shrink_to_fit() const { // repacks into span; only basic guarantee
-      const size_type mv = std::min(overflow->buffer.size(), overflow->del);
-      const auto b = overflow->buffer.begin(), e = b + mv;
-      std::uninitialized_move(b, e, span.end());
-      overflow->del -= mv;
-      if(mv || overflow->buffer.size() < overflow->buffer.capacity())
-        decltype(overflow->buffer)(
-          std::move_iterator(e), std::move_iterator(overflow->buffer.end()))
-          .swap(overflow->buffer);
+
+    void shrink_to_fit() const {
+      // The span is always "shrunk to fit"
+      overflow->buffer.shrink_to_fit();
     }
 
     void clear() const noexcept {
-      overflow->buffer.clear();
-      for(auto n = brk(); n--;)
-        pop_span();
+      erase(this->begin(), this->end());
     }
-    iterator insert(iterator pos, const T & value) const {
-      return put(pos, value);
-    }
-    iterator insert(iterator pos, T && value) const {
-      return put(pos, std::move(value));
-    }
-    iterator insert(iterator pos, size_type count, const T & value) const {
-      const auto b = brki();
-      auto & a = overflow->buffer;
-      if(pos < b) {
-        const size_type
-          // used elements assigned from value:
-          filla = std::min(count, b.index() - pos.index()),
-          fillx = count - filla, // other spaces to fill
-          fillc = std::min(
-            fillx, overflow->del), // slack spaces constructed from value
-          fillo = fillx - fillc, // overflow copies of value
-          // slack spaces move-constructed from used elements:
-          mvc = std::min(overflow->del - fillc, filla);
 
-        // Perform the moves and fills mostly in reverse order.
-        T *const s0 = span.data(), *const ip = s0 + pos.index(),
-                 *const bp = s0 + b.index();
-        // FIXME: Is there a way to do just one shift?
-        a.insert(
-          a.begin(), fillo, value); // first to reduce the volume of shifting
-        a.insert(a.begin() + fillo, bp - (filla - mvc), bp);
-        std::uninitialized_move_n(
-          bp - filla, mvc, std::uninitialized_fill_n(bp, fillc, value));
-        overflow->del -= fillc + mvc; // before copies that might throw
-        std::fill(ip, std::move_backward(ip, bp - filla, bp), value);
-      }
-      else {
-        if(pos == b)
-          for(; count && overflow->del; --count) // fill in the gap
-            push_span(value);
-        a.insert(a.begin(), count, value);
-      }
+    iterator insert(iterator pos, const T & value) const {
+      return emplace(pos, value);
+    }
+
+    iterator insert(iterator pos, T && value) const {
+      return emplace(pos, std::move(value));
+    }
+
+    iterator insert(iterator pos, size_type count, const T & value) const {
+      assert(pos <= this->end() && "cannot insert beyond end of the row");
+      auto const middle = this->end();
+      { // scope to unwind push_back calls if we fail partway through
+        auto guard = get_exception_guard();
+        size_type const scount = std::min(count, overflow->del);
+        size_type const bcount = count - scount;
+        std::uninitialized_fill_n(active_end(), scount, value);
+        overflow->del -= scount;
+        overflow->buffer.insert(overflow->buffer.end(), bcount, value);
+        guard.reset = false;
+      } // end of unwinding scope
+      std::rotate(pos, middle, this->end());
       return pos;
     }
+
     template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
     iterator insert(iterator pos, I first, I last) const {
-      // FIXME: use size when available
-      for(iterator j = pos; first != last; ++first, ++j)
-        insert(j, *first);
+      assert(pos <= this->end() && "cannot insert beyond end of the row");
+      auto const middle = this->end();
+      { // scope to unwind push_back calls if we fail partway through
+        auto guard = get_exception_guard();
+        for(; (first != last) && (overflow->del > 0); ++first) {
+          emplace_back_span(*first);
+        }
+        overflow->buffer.insert(overflow->buffer.end(), first, last);
+        guard.reset = false;
+      } // end of unwinding scope
+      std::rotate(pos, middle, this->end());
       return pos;
     }
+
     iterator insert(iterator pos, std::initializer_list<T> ilist) const {
       return insert(pos, ilist.begin(), ilist.end());
     }
+
     template<class... AA>
     iterator emplace(iterator pos, AA &&... aa) const {
-      return put<true>(pos, std::forward<AA>(aa)...);
-    }
-    iterator erase(iterator pos) const noexcept {
-      const auto b = brki();
-      if(pos < b) {
-        std::move(pos + 1, b, pos);
-        pop_span();
-      }
-      else
-        overflow->buffer.erase(overflow->buffer.begin() + (pos - b));
+      assert(pos <= this->end() && "cannot insert beyond end of the row");
+      auto const middle = this->end();
+      emplace_back(std::forward<AA>(aa)...);
+      std::rotate(pos, middle, this->end());
       return pos;
     }
+
+    iterator erase(iterator pos) const noexcept {
+      return erase(pos, pos + 1);
+    }
+
     iterator erase(iterator first, iterator last) const noexcept {
-      const auto b = brki();
-      if(first < b) {
-        if(last == first)
-          ;
-        else if(last <= b) {
-          std::move(last, b, first);
-          for(auto n = last - first; n--;)
-            pop_span();
-        }
-        else {
-          erase(b, last);
-          erase(first, b);
-        }
+      assert(first <= last && "range reversed");
+      assert(
+        last.index() <= size() && "cannot erase beyond the end of the row");
+      if(first.index() >= span.size()) {
+        // entirely in buffer
+        overflow->buffer.erase(buffer_iter(first), buffer_iter(last));
       }
-      else {
-        const auto ab = overflow->buffer.begin();
-        overflow->buffer.erase(ab + (first - b), ab + (last - b));
+      else if(first != last) { // first std::move would fail
+        bool const erase_buffer = (last.index() >= span.size());
+        auto const sfirst = span_iter(first);
+        auto const slast = erase_buffer ? span.end() : span_iter(last);
+        size_type const span_erase_count = slast - sfirst;
+        auto const new_end = active_end() - span_erase_count;
+        auto const transfer_first =
+          erase_buffer ? buffer_iter(last) : overflow->buffer.begin();
+        size_type const transfer_count = std::min<size_type>(
+          span_erase_count, overflow->buffer.end() - transfer_first);
+        auto const transfer_last = transfer_first + transfer_count;
+        std::move(slast, active_end(), sfirst);
+        std::move(transfer_first, transfer_last, new_end);
+        std::destroy(new_end + transfer_count, active_end());
+        overflow->del += span_erase_count - transfer_count;
+        overflow->buffer.erase(overflow->buffer.begin(), transfer_last);
       }
       return first;
     }
+
     void push_back(const T & t) const {
       emplace_back(t);
     }
+
     void push_back(T && t) const {
       emplace_back(std::move(t));
     }
+
     template<class... AA>
     T & emplace_back(AA &&... aa) const {
-      return !overflow->del || !overflow->buffer.empty()
-               ? overflow->buffer.emplace_back(std::forward<AA>(aa)...)
-               : push_span(std::forward<AA>(aa)...);
+      if(overflow->del > 0) {
+        emplace_back_span(std::forward<AA>(aa)...);
+      }
+      else {
+        // case 2: append to buffer
+        overflow->buffer.emplace_back(std::forward<AA>(aa)...);
+      }
+      return back();
     }
+
     void pop_back() const noexcept {
-      if(overflow->buffer.empty())
-        pop_span();
-      else
-        overflow->buffer.pop_back();
+      erase(this->end() - 1);
     }
+
     void resize(size_type count) const {
-      extend(count);
+      resize_(count);
     }
+
     void resize(size_type count, const T & value) const {
-      extend(count, value);
+      resize_(count, value);
     }
     /// \}
 
     // No swap: it would swap the handles, not the contents
 
   private:
-    using raw_row::brk;
+    using raw_row::active_end;
+    using raw_row::active_size;
     using raw_row::overflow;
     using raw_row::span;
 
-    auto brki() const noexcept {
-      return this->begin() + brk();
-    }
-    template<bool Destroy = false, class... AA>
-    iterator put(iterator i, AA &&... aa) const {
-      static_assert(Destroy || sizeof...(AA) == 1);
-      const auto b = brki();
-      auto & a = overflow->buffer;
-      if(i < b) {
-        auto & last = span[brk() - 1];
-        if(overflow->del)
-          push_span(std::move(last));
-        else
-          a.insert(a.begin(), std::move(last));
-        std::move_backward(i, b - 1, b);
-        if constexpr(Destroy) {
-          auto * p = &*i;
-          p->~T();
-          new(p) T(std::forward<AA>(aa)...);
+    // Allows us to unwind any appends if an exception occurs, without using
+    // try/catch blocks (which aren't allowed on GPUs).
+    struct exception_guard {
+      const row & r;
+      size_type initial_size;
+      bool reset{true};
+      ~exception_guard() {
+        if(reset) {
+          r.resize(initial_size);
         }
-        else
-          *i = (std::forward<AA>(aa), ...);
       }
-      else if(i == b && overflow->del)
-        push_span(std::forward<AA>(aa)...);
-      else {
-        const auto j = a.begin() + (i - b);
-        if constexpr(Destroy)
-          a.emplace(j, std::forward<AA>(aa)...);
-        else
-          a.insert(j, std::forward<AA>(aa)...);
-      }
-      return i;
-    }
-    template<class... U> // {} or {const T&}
-    void extend(size_type n, U &&... u) const {
-      auto sz = this->size();
-      if(n <= sz) {
-        while(sz-- > n)
-          pop_back();
-      }
-      else {
-        // We can reduce the reservation because we're only appending:
-        if(const auto sc = overflow->buffer.empty() ? span.size() : brk();
-           n > sc)
-          overflow->buffer.reserve(n - sc);
+    };
 
-        struct cleanup {
-          const row & r;
-          size_type sz0;
-          bool fail = true;
-          ~cleanup() {
-            if(fail)
-              r.resize(sz0);
-          }
-        } guard = {*this, sz};
-
-        while(sz++ < n)
-          emplace_back(std::forward<U>(u)...);
-        guard.fail = false;
-      }
+    auto get_exception_guard() const {
+      return exception_guard{*this, size()};
     }
+
+    /// Translates a row::iterator to a span iterator.  Changes the type from
+    /// row::iterator to the iterator type expected by the span.
+    auto span_iter(iterator iter) const noexcept {
+      assert(iter.index() < span.size());
+      return span.begin() + iter.index();
+    }
+
+    /// Translates a row::iterator to a buffer iterator.  Changes the type from
+    /// row::iterator to the iterator type expected by the buffer, and shifts
+    /// by span.size() to account for the fact that some elements are in the
+    /// span instead of the buffer.
+    auto buffer_iter(iterator iter) const noexcept {
+      assert(iter.index() >= span.size());
+      return overflow->buffer.begin() + (iter.index() - span.size());
+    }
+
     template<class... AA>
-    T & push_span(AA &&... aa) const {
-      auto & ret = *new(&span[brk()]) T(std::forward<AA>(aa)...);
+    void emplace_back_span(AA &&... aa) const {
+      assert(overflow->del > 0 && "no space to add new elements");
+      new(&*active_end()) T(std::forward<AA>(aa)...);
       --overflow->del;
-      return ret;
     }
-    void pop_span() const noexcept {
-      ++overflow->del;
-      span[brk()].~T();
+
+    // We know this is only ever called with no arguments or `T const &`
+    template<class... AA>
+    void resize_(size_type count, AA const &... aa) const {
+      static_assert(
+        sizeof...(AA) <= 1, "resize_ can take only 0 or 1 arguments");
+      if(count < size()) {
+        erase(this->begin() + count, this->end());
+      }
+      else {
+        auto guard = get_exception_guard();
+        std::size_t num_add = count - size();
+        for(; (overflow->del > 0) && (num_add > 0); --num_add) {
+          emplace_back_span(aa...);
+        }
+        overflow->buffer.resize(overflow->buffer.size() + num_add, aa...);
+        guard.reset = false;
+      }
     }
-  };
+
+  }; // struct row
 
   mutator(const base_type & b, const topo::resize::policy & p)
     : acc(b), grow(p) {}
@@ -722,75 +726,116 @@ public:
       over->resize(acc.size()); // no-op on caller side
   }
 
+  /// \cond core
+  /*! Repack the data within the raw layout.  Shrink the storage for each row
+   * that got shorter. Expand the storage for each row that got longer.
+   * Rearrange data to fit into the new layout, taking care not to overwrite
+   * something that's not yet been relocated.
+   *
+   * The total number of elements across all rows is allowed to change, but the
+   * total memory required is not allowed to increase.  That is, the slack space
+   * at the end of the raw layout can increase or decrease, but if you run out
+   * of slack space at the end of the raw layout then the commit operation fails
+   * because there's not enough memory allocated for the new layout.
+   */
   void commit() const {
-    // To move each element before overwriting it, we propagate moves outward
-    // from each place where the movement switches from rightward to leftward.
-    const auto all = acc.get_base().span();
-    const size_type n = size();
-    if(!n) // code below caches the current row
-      return;
-    // Read and write cursors.  It would be possible, if ugly, to run cursors
-    // backwards for the rightward-moving portions and do without the stack.
-    size_type is = 0, id = 0;
-    base_size js = 0, jd = 0;
-    raw_row rs = raw_get(is), rd = raw_get(id);
-    struct work {
-      void operator()() const {
-        if(assign)
-          *w = std::move(*r);
-        else
-          new(w) T(std::move(*r));
+    const auto all = acc.get_base().span(); // the raw layout as a span
+    const size_type num_rows = size();
+    // Compute new endpoints
+    std::vector<size_type> new_endpoints;
+    new_endpoints.reserve(num_rows);
+    {
+      size_type end = 0;
+      for(size_type irow{0}; irow < num_rows; ++irow) {
+        new_endpoints.push_back(end += raw_get(irow).size());
       }
-      T *r, *w;
-      bool assign;
-    };
-    std::stack<work> stk;
-    const auto back = [&stk] {
-      for(; !stk.empty(); stk.pop())
-        stk.top()();
-    };
-    for(;; ++js, ++jd) {
-      while(js == rs.size()) { // js indexes the split row
-        if(++is == n)
-          break;
-        rs = raw_get(is);
-        js = 0;
-      }
-      if(is == n)
-        break;
-      while(
-        jd == rd.span.size()) { // jd indexes the span (including slack space)
-        if(++id == n)
-          break; // we can write off the end of the last
-        else
-          rd = raw_get(id);
-        jd = 0;
-      }
-      const auto r = &rs[js], w = rd.span.data() + jd;
-      flog_assert(w != all.end(),
-        "ragged entries for last " << n - is << " rows overrun allocation for "
-                                   << all.size() << " entries");
-      if(r != w)
-        stk.push({r, w, jd < rd.brk()});
-      // Perform this move, and any already queued, if it's not to the right.
-      // Offset real elements by one position to come after insertions.
-      if(rs.span.data() + std::min(js + 1, rs.brk()) > w)
-        back();
+      assert(end <= all.size() &&
+             "Not enough storage to commit changes for ragged mutator.");
     }
-    back();
-    if(jd < rd.brk())
-      rd.destroy(jd);
-    while(++id < n)
-      raw_get(id).destroy();
-    auto & off = acc.get_offsets();
-    base_size delta = 0; // may be "negative"; aliasing is implausible
-    for(is = 0; is < n; ++is) {
-      auto & ov = (*over)[is];
-      off(is) += delta += ov.buffer.size() - ov.del;
-      ov.buffer.clear();
+    // Get old endpoints
+    auto & old_endpoints = acc.get_offsets();
+    // I keep getting off-by-one errors due to the structure of the endpoints
+    // arrays, so wrap them
+    auto new_offsets = [&new_endpoints](size_type const irow) {
+      return irow == 0 ? 0 : new_endpoints[irow - 1];
+    };
+    auto old_offsets = [&old_endpoints](size_type const irow) {
+      return irow == 0 ? 0 : old_endpoints[irow - 1];
+    };
+    // Define row shift operations
+    auto shift_row = [&all](auto const old_offset,
+                       auto const num_active,
+                       auto const new_offset,
+                       auto left) {
+      auto const shift_distance =
+        left ? old_offset - new_offset : new_offset - old_offset;
+      auto const min_length = std::min(shift_distance, num_active);
+      auto const old_first = all.begin() + old_offset;
+      auto const old_last = old_first + num_active;
+      if constexpr(left) {
+        auto const split = old_first + min_length;
+        std::uninitialized_move(old_first, split, old_first - shift_distance);
+        std::move(split, old_last, split - shift_distance);
+        std::destroy(old_last - min_length, old_last);
+      }
+      else {
+        auto const split = old_last - min_length;
+        std::uninitialized_move(split, old_last, split + shift_distance);
+        std::move_backward(old_first, split, old_first + shift_distance);
+        std::destroy(old_first, old_first + min_length);
+      }
+    };
+    // Shift the existing span data within the raw layout (neglecting buffers
+    // for the moment)
+    for(size_type irow{0}; irow < num_rows; /*advancement handled below*/) {
+      auto const new_offset = new_offsets(irow);
+      auto const old_offset = old_offsets(irow);
+      if(new_offset == old_offset) { // This row stays put
+        ++irow;
+      }
+      else if(new_offset < old_offset) { // This row shifts left
+        shift_row(old_offset,
+          raw_get(irow).active_size(),
+          new_offset,
+          std::bool_constant<true>());
+        ++irow;
+      }
+      else { // This row begins a shift-right block
+        // Find the end of this shift-right block (may include up to last row)
+        // -- A shift-left or stay-put block implies that there's enough space
+        //    at the end of this block for all the shift-right operations to
+        //    happen.
+        size_type irow_end{irow};
+        while((++irow_end < num_rows) &&
+              (new_offsets(irow_end) > old_offsets(irow_end)))
+          ;
+        // Shift
+        for(size_type j{irow_end - 1}; j >= irow; --j) {
+          shift_row(old_offsets(j),
+            raw_get(j).active_size(),
+            new_offsets(j),
+            std::bool_constant<false>());
+        }
+        // Advance to the next non-shift-right row
+        irow = irow_end;
+      }
     }
+    // Store buffers
+    for(size_type irow{0}; irow < num_rows; ++irow) {
+      auto & overflow = (*over)[irow];
+      std::uninitialized_move(overflow.buffer.begin(),
+        overflow.buffer.end(),
+        all.begin() + (new_offsets(irow + 1) - overflow.buffer.size()));
+      overflow.buffer.clear();
+      overflow.del = 0;
+    }
+    // Update endpoints
+    std::copy(
+      new_endpoints.begin(), new_endpoints.end(), old_endpoints.span().begin());
+    // Set new size for later resizing of backing storage
     sz = grow(acc.total(), all.size());
-  }
+  } // commit()
+  /// \endcond
 
 private:
   raw_row raw_get(size_type i) const {
@@ -801,7 +846,7 @@ private:
   topo::resize::accessor<wo> sz;
   topo::resize::policy grow;
   TaskBuffer * over = nullptr;
-};
+}; // struct mutator<ragged, T, P>
 
 // Many compilers incorrectly require the 'template' for a base class.
 
