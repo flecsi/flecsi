@@ -215,7 +215,6 @@ mpich-flaxpy:legion:
     STDIR: tutorial/standalone/flaxpy
     BUILD_TYPE: Debug
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 mpich-poisson:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -228,7 +227,6 @@ mpich-poisson:legion:
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
     PARTITIONS: skylake-gold
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -454,7 +452,6 @@ openmpi-poisson-rocm:mpi:
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
     PARTITIONS: shared-gpu-amd-mi100
-    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 openmpi-poisson-rocm:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
