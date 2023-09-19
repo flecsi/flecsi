@@ -7,10 +7,6 @@
 #include "flecsi/config.hh"
 #include "flecsi/util/bitutils.hh"
 
-#if FLECSI_BACKEND == FLECSI_BACKEND_legion
-#include <realm_defines.h>
-#endif
-
 namespace flecsi {
 /// \addtogroup execution
 /// \{

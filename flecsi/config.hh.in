@@ -54,6 +54,10 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 
 #endif
 
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+#include <realm_defines.h>
+#endif
+
 //----------------------------------------------------------------------------//
 // Mapper options
 //----------------------------------------------------------------------------//
