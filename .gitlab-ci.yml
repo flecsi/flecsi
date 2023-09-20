@@ -40,7 +40,8 @@ variables:
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   IB_CONSTRAINT: "--constraint=\"(ib:edr|ib:hdr)\""
-  V100_CONSTRAINT: "--constraint=\"(cpu_family:haswell|cpu_family:cascadelake)&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
+  ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:cascadelake)"
+  V100_CONSTRAINT: "--constraint=\"${ARCH_CONSTRAINT}&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
   JOB_CONSTRAINTS: "${IB_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
@@ -273,6 +274,7 @@ openmpi-legion-clang-cuda:
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
+    ARCH_CONSTRAINT: "cpu_family:cascadelake"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -439,6 +441,7 @@ openmpi-poisson-cuda-clang:legion:
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
     PARTITIONS: volta-x86
+    ARCH_CONSTRAINT: "cpu_family:cascadelake"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-poisson-rocm:mpi:
