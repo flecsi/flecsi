@@ -4,7 +4,7 @@
 #ifndef FLECSI_RUN_BACKEND_HH
 #define FLECSI_RUN_BACKEND_HH
 
-#include <flecsi-config.h>
+#include "flecsi/config.hh"
 
 //----------------------------------------------------------------------------//
 // This section works with the build system to select the correct backend

@@ -4,8 +4,7 @@
 #ifndef FLECSI_UTIL_DAG_HH
 #define FLECSI_UTIL_DAG_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/flog.hh"
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)

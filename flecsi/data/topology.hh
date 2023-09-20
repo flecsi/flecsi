@@ -89,8 +89,9 @@ struct region : region_base {
     // writing to ghosts, or reading from them without also writing to shared,
     // clears the dirty bit, and otherwise writing to shared sets it.
     // Otherwise, it retains its value (and we don't copy).
-    return (privilege_write(g) || !sw && gr ? dirty.erase(i)
-                                            : sw && !dirty.insert(i).second) &&
+    return (privilege_write(g) || (!sw && gr)
+               ? dirty.erase(i)
+               : sw && !dirty.insert(i).second) &&
            gr;
   }
 

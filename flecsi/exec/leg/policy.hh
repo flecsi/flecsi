@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_POLICY_HH
 #define FLECSI_EXEC_LEG_POLICY_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"
@@ -20,10 +19,6 @@
 #include <functional>
 #include <memory>
 #include <type_traits>
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 
@@ -135,7 +130,7 @@ reduce_internal(Args &&... args) {
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
-    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
+    (Attributes & ~mpi) | as_mask(wrap::LegionProcessor)>;
 
   const auto add = [&](auto & l) {
     for(auto & req : pro.region_requirements())
