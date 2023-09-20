@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_FIELD_HH
@@ -7,14 +7,17 @@
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/target.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
 
 namespace flecsi {
 namespace topo {
+struct with_cleanup; // defined in terms of cleanup
+
 template<class>
 struct ragged; // defined in terms of field
-}
+} // namespace topo
 
 namespace data {
 /// \addtogroup data
@@ -42,7 +45,58 @@ template<class P>
 struct mapping;
 }
 
+// Each field can have a destructor (for individual field values) registered
+// that is invoked when the field is recreated or the region is destroyed.
+struct cleanup {
+  using function = std::function<void()>;
+
+  void operator()(field_id_t f, function d) {
+    fields.insert_or_assign(f, std::move(d));
+  }
+
+private:
+  struct finalizer {
+    finalizer(function f) noexcept : f(std::move(f)) {}
+    finalizer(finalizer && o) noexcept {
+      f.swap(o.f); // guarantee o.f is empty
+    }
+    ~finalizer() {
+      if(f)
+        f();
+    }
+    finalizer & operator=(finalizer o) noexcept {
+      f.swap(o.f);
+      return *this;
+    }
+
+  private:
+    function f;
+  };
+
+  std::map<field_id_t, finalizer> fields;
+};
+
 namespace detail {
+template<class T, auto S, class = void> // core topology type
+struct cleanup {
+  static data::cleanup & get(T & t) {
+    return t.template get_partition<S>().cleanup;
+  }
+};
+template<class T, auto S>
+struct cleanup<T,
+  S,
+  std::enable_if_t<std::is_base_of_v<topo::with_cleanup, T>>> {
+  static data::cleanup & get(T & t) {
+    return t.cleanup;
+  }
+};
+template<auto S, class T>
+data::cleanup &
+get_cleanup(T & t) {
+  return cleanup<T, S>::get(t);
+}
+
 template<class, layout>
 struct field_base {};
 template<class, layout, class Topo, typename Topo::index_space>
@@ -52,7 +106,7 @@ struct field_register;
 template<class T, class Topo, typename Topo::index_space Space>
 struct field_register<T, raw, Topo, Space> {
   explicit field_register(field_id_t i) : fid(i) {
-    run::context::instance().add_field_info<Topo, Space, T>(i);
+    run::context::add_field_info<Topo, Space, T>(i);
   }
   field_register() : field_register(fid_counter()) {}
   field_id_t fid;
@@ -84,10 +138,10 @@ struct particle : particle_base {
   particle(size_type s, size_type p, size_type n) : free{p, n}, skip(s) {}
   // This class is indestructible; we run T's destructor when necessary.
   template<class... AA>
-  link emplace(AA &&... aa) {
+  FLECSI_INLINE_TARGET link emplace(AA &&... aa) {
     struct guard {
-      guard(particle & p) : p(p), ret(p.free) {}
-      ~guard() {
+      FLECSI_INLINE_TARGET guard(particle & p) : p(p), ret(p.free) {}
+      FLECSI_INLINE_TARGET ~guard() {
         if(fail)
           p.free = ret;
       }
@@ -122,13 +176,20 @@ struct particle : particle_base {
 };
 } // namespace detail
 
-template<class Topo>
-struct field_reference_t : convert_tag {
+/// Identifies a field on a particular topology instance.
+/// Declare a task parameter as an \c accessor to use the field.
+/// \tparam T data type (merely for type safety)
+/// \tparam L data layout (similarly)
+/// \tparam Space topology-relative index space
+template<class T, layout L, class Topo, typename Topo::index_space Space>
+struct field_reference : convert_tag {
+  using value_type = T;
   using Topology = Topo;
   using topology_t = typename Topo::core;
+  static constexpr auto space = Space;
 
   // construct references just from field IDs.
-  field_reference_t(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
+  field_reference(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
   field_id_t fid() const {
     return fid_;
@@ -136,26 +197,6 @@ struct field_reference_t : convert_tag {
   topology_t & topology() const {
     return *topology_;
   } // topology_identifier
-
-private:
-  field_id_t fid_;
-  topology_t * topology_;
-
-}; // struct field_reference
-
-/// Identifies a field on a particular topology instance.
-/// Declare a task parameter as an \c accessor to use the field.
-/// \tparam T data type (merely for type safety)
-/// \tparam L data layout (similarly)
-/// \tparam Space topology-relative index space
-template<class T, layout L, class Topo, typename Topo::index_space Space>
-struct field_reference : field_reference_t<Topo> {
-  using Base = typename field_reference::field_reference_t; // TIP: dependent
-  using value_type = T;
-  static constexpr auto space = Space;
-
-  using Base::Base;
-  explicit field_reference(const Base & b) : Base(b) {}
 
   // Some of these types vary across topologies:
   template<class S>
@@ -168,37 +209,44 @@ struct field_reference : field_reference_t<Topo> {
   }
 
   auto & get_region() const {
-    return get_region(this->topology());
+    return get_region(*topology_);
   }
   auto & get_partition() const {
-    return get_partition(this->topology());
+    return get_partition(*topology_);
   }
 
-  auto & get_ragged() const {
+  /// Get the dynamic element storage (for resizing it).
+  /// \return \c topo::repartition
+  /// \note \p L must be \c ragged or \c sparse.
+  auto & get_elements() const {
+    static_assert(L == ragged || L == sparse, "not a dynamic field");
     // A ragged_partition<...>::core, or borrowing of same:
-    return this->topology().ragged.template get<Space>()[this->fid()];
+    return topology_->ragged.template get<Space>()[fid_];
+  }
+  void cleanup(std::function<void()> f) const {
+    detail::get_cleanup<Space> (*topology_)(fid_, std::move(f));
   }
 
   template<layout L2, class T2 = T> // TODO: allow only safe casts
   auto cast() const {
-    return field_reference<T2, L2, Topo, Space>(*this);
+    return field_reference<T2, L2, Topo, Space>(fid_, *topology_);
   }
 
-  /// \if core
+  /// \cond core
   /// Use this reference and return it.
-  /// \endif
+  /// \endcond
   template<class F>
   const field_reference & use(F && f) const {
     std::forward<F>(f)(*this);
     return *this;
   }
 
-  static field_reference from_id(field_id_t f, typename Base::topology_t & t) {
-    return {f, t};
-  }
+private:
+  field_id_t fid_;
+  topology_t * topology_;
 };
 
-/// Identifies a field on a \c\ref mapping.
+/// Identifies a field on a \c launch::mapping.
 /// Declare a task parameter as a `multi<accessor<...>>` to use the field.
 template<class T, layout L, class Topo, typename Topo::index_space S>
 struct multi_reference : convert_tag {
@@ -214,8 +262,8 @@ struct multi_reference : convert_tag {
   }
 
   // i indexes into the depth of the map rather than being a color directly.
-  auto data(Color i) const {
-    return field_reference<T, L, typename Map::Borrow, S>::from_id(f, map()[i]);
+  field_reference<T, L, typename Map::Borrow, S> data(Color i) const {
+    return {f, map()[i]};
   }
 
 private:
@@ -274,6 +322,11 @@ struct field : data::detail::field_base<T, L> {
   /// A field registration.
   /// Instances may be freely copied; they must all be created before any
   /// instance of \a Topo.
+  ///
+  /// \warning
+  /// Field definitions are typically declared \c const. If placed in a header
+  /// make sure to declare them as <tt>inline const</tt> to avoid breaking ODR.
+  ///
   /// \tparam Topo (specialized) topology type
   /// \tparam Space index space
   template<class Topo, typename Topo::index_space Space = Topo::default_space()>
@@ -394,6 +447,7 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
 namespace detail {
 template<class T>
 struct scalar_value;
+struct host_only {};
 } // namespace detail
 
 /// \}

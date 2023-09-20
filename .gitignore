@@ -1,9 +1,11 @@
 # exclude CMake build folders
 /build
 /tutorial/build
+/tutorial/standalone/flaxpy/build
+/tutorial/standalone/poisson/build
 
 # exclude compiled Python files due to Spack repo
 *.pyc
 
-# exclude generated images in the documentation
-doc/sphinx/src/tutorial/images/flaxpy-control-model.svg
+# exclude generated images appearing in the documentation
+doc/sphinx/src/tutorial/images/*.svg

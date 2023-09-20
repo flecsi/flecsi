@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <chrono>
 #include <thread>
 
@@ -90,4 +87,4 @@ annotation_driver() {
   };
 } // annotation_driver
 
-unit::driver<annotation_driver> driver;
+util::unit::driver<annotation_driver> driver;

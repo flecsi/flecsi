@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/util/unit.hh"
@@ -86,7 +83,6 @@ drop(int n, const std::string & s) {
 int
 index_task(exec::launch_domain) {
   UNIT("TASK") {
-    flog(info) << "program: " << program() << std::endl;
     flog(info) << "processes: " << processes() << std::endl;
     flog(info) << "process: " << process() << std::endl;
     // flog(info) << "threads per process: " << threads_per_process() <<
@@ -138,10 +134,8 @@ reduction(field<reduction_type>::accessor<ro> v,
 } // reduce_task
 
 using arr = topo::array<void>;
-arr::slot arr_s;
 const field<reduction_type>::definition<arr> arr_f;
 
-topo::global::slot gl_arr_s;
 const field<reduction_type>::definition<topo::global> gl_arr_f;
 
 int
@@ -189,10 +183,12 @@ task_driver() {
     auto np = processes();
     const int vpp = 5;
     // Array of initial values per color
+    arr::slot arr_s;
     arr_s.allocate(arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
     flecsi::execute<init_array>(arr_vals);
     // Reduction
+    topo::global::slot gl_arr_s;
     gl_arr_s.allocate(vpp);
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
@@ -225,4 +221,4 @@ task_driver() {
   };
 } // task_driver
 
-flecsi::unit::driver<task_driver> driver;
+util::unit::driver<task_driver> driver;

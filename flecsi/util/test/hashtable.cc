@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
-// All rights reserved.
-
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/util/array_ref.hh"
@@ -96,4 +93,4 @@ hashtable_driver() {
   }; // UNIT
 } // ntree_driver
 
-flecsi::unit::driver<hashtable_driver> driver;
+unit::driver<hashtable_driver> driver;

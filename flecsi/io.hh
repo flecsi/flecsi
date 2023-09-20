@@ -1,10 +1,7 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_IO_HH
 #define FLECSI_IO_HH
 
-#include "io/backend.hh"
+#include "flecsi/io/backend.hh"
 
 /// \cond core
 namespace flecsi::io {

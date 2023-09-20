@@ -1,15 +1,9 @@
-/*
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef POISSON_SPECIALIZATION_MESH_HH
 #define POISSON_SPECIALIZATION_MESH_HH
 
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/topo/narray/coloring_utils.hh>
-#include <flecsi/topo/narray/interface.hh>
 
 #include "types.hh"
 
@@ -29,9 +23,11 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   enum boundary { low, high };
 
   using coord = base::coord;
+  using gcoord = base::gcoord;
   using colors = base::colors;
   using hypercube = base::hypercube;
-  using coloring_definition = base::coloring_definition;
+  using axis_definition = base::axis_definition;
+  using index_definition = base::index_definition;
 
   struct meta_data {
     double xdelta;
@@ -53,8 +49,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, domain DM = interior>
     std::size_t size() {
       if constexpr(DM == interior) {
-        const bool low = B::template is_low<index_space::vertices, A>();
-        const bool high = B::template is_high<index_space::vertices, A>();
+        const bool low = B::template is_low<mesh::vertices, A>();
+        const bool high = B::template is_high<mesh::vertices, A>();
 
         if(low && high) { /* degenerate */
           return size<A, logical>() - 2;
@@ -67,104 +63,83 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
         }
       }
       else if constexpr(DM == logical) {
-        return B::template size<index_space::vertices, A, B::domain::logical>();
+        return B::template size<mesh::vertices, A, base::domain::logical>();
       }
-      else if(DM == all) {
-        return B::template size<index_space::vertices, A, B::domain::all>();
+      else if constexpr(DM == all) {
+        return B::template size<mesh::vertices, A, base::domain::all>();
       }
-      else if(DM == global) {
-        return B::template size<index_space::vertices, A, B::domain::global>();
+      else if constexpr(DM == global) {
+        return B::template size<mesh::vertices, A, base::domain::global>();
       }
     }
 
     template<axis A>
-    std::size_t global_id(std::size_t i) const {
-      return B::template global_id<index_space::vertices, A>(i);
+    FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
+      return B::template global_id<mesh::vertices, A>(i);
     }
 
     template<axis A, domain DM = interior>
-    auto vertices() {
+    FLECSI_INLINE_TARGET auto vertices() const {
       if constexpr(DM == interior) {
-        const bool low = B::template is_low<index_space::vertices, A>();
-        const bool high = B::template is_high<index_space::vertices, A>();
-        const std::size_t start =
-          B::template logical<index_space::vertices, A, 0>();
-        const std::size_t end =
-          B::template logical<index_space::vertices, A, 1>();
-
-        return flecsi::topo::make_ids<index_space::vertices>(
-          flecsi::util::iota_view<flecsi::util::id>(start + low, end - high));
+        // The outermost layer is either ghosts or fixed boundaries:
+        return flecsi::topo::make_ids<mesh::vertices>(
+          flecsi::util::iota_view<flecsi::util::id>(
+            1, B::template size<mesh::vertices, A, base::domain::all>() - 1));
       }
       else if constexpr(DM == logical) {
-        return B::
-          template range<index_space::vertices, A, B::domain::logical>();
+        return B::template range<mesh::vertices, A, base::domain::logical>();
       }
-      else if(DM == all) {
-        return B::template range<index_space::vertices, A, B::domain::all>();
+      else if constexpr(DM == all) {
+        return B::template range<mesh::vertices, A, base::domain::all>();
       }
     }
 
     template<axis A>
-    auto red(std::size_t row) {
-      const bool low = B::template is_low<index_space::vertices, A>();
-      const bool high = B::template is_high<index_space::vertices, A>();
-      const std::size_t start =
-        B::template logical<index_space::vertices, A, 0>();
-      const std::size_t end =
-        B::template logical<index_space::vertices, A, 1>();
-      const std::size_t rng = (end - high) - (start + low);
-      const bool parity = (0 == global_id<A>(start + low) % 2);
-
-      // clang-format off
-      const std::size_t pts =
-        (0 == rng % 2) ? // even number of red and black points
-          rng / 2 :
-          parity == (0 == row % 2) ? // more red than black
-            (rng + 1) / 2 :
-            (rng - 1) / 2; // fewer red than black
-      // clang-format on
-
-      return flecsi::topo::make_stride_ids<index_space::vertices, 2>(
-        flecsi::util::iota_view<flecsi::util::id>(0, pts),
-        start + low,
-        (row + parity) % 2);
+    FLECSI_INLINE_TARGET auto red(std::size_t row) const {
+      // The checkerboard extends across colors.  The (boundary) point with
+      // global ID (0,0) is red; row is local, and 0 in the space of the
+      // stride_view is the first interior vertex.
+      return flecsi::util::stride_view(vertices<A>(),
+        2,
+        (global_id<(A == x_axis ? y_axis : x_axis)>(row) + global_id<A>(1)) %
+          2);
     }
 
     template<axis A>
-    auto black(std::size_t row) {
+    FLECSI_INLINE_TARGET auto black(std::size_t row) const {
       return red<A>(row + 1);
     }
 
-    double xdelta() {
-      return (*(this->policy_meta_)).xdelta;
+    void set_geometry(double x, double y) { // available if writable
+      this->policy_meta() = {x, y};
     }
 
-    double ydelta() {
-      return (*(this->policy_meta_)).ydelta;
+    FLECSI_INLINE_TARGET double xdelta() const {
+      return this->policy_meta().xdelta;
     }
 
-    double dxdy() {
+    FLECSI_INLINE_TARGET double ydelta() const {
+      return this->policy_meta().ydelta;
+    }
+
+    FLECSI_INLINE_TARGET double dxdy() const {
       return xdelta() * ydelta();
     }
 
     template<axis A>
-    double value(std::size_t i) {
-      return (A == x_axis ? xdelta() : ydelta()) *
-             (B::template offset<index_space::vertices,
-                A,
-                B::domain::global>() +
-               i);
+    FLECSI_INLINE_TARGET double value(std::size_t i) const {
+      return (A == x_axis ? xdelta() : ydelta()) * global_id<A>(i);
     }
 
     template<axis A, boundary BD>
     bool is_boundary(std::size_t i) {
 
       auto const loff =
-        B::template offset<index_space::vertices, A, B::domain::logical>();
+        B::template offset<mesh::vertices, A, base::domain::logical>();
       auto const lsize =
-        B::template size<index_space::vertices, A, B::domain::logical>();
-      const bool l = B::template is_low<index_space::vertices, A>();
-      const bool h = B::template is_high<index_space::vertices, A>();
+        B::template size<mesh::vertices, A, base::domain::logical>();
+      const bool l = B::template is_low<mesh::vertices, A>();
+      const bool h = B::template is_high<mesh::vertices, A>();
 
       if(l && h) { /* degenerate */
         if constexpr(BD == boundary::low) {
@@ -196,33 +171,18 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     } // is_boundary
   }; // struct interface
 
-  static auto distribute(std::size_t np, std::vector<std::size_t> indices) {
-    return flecsi::topo::narray_utils::distribute(np, indices);
-  } // distribute
-
   /*--------------------------------------------------------------------------*
     Color Method.
    *--------------------------------------------------------------------------*/
 
-  static coloring color(colors axis_colors, coord axis_extents) {
-    coord hdepths{1, 1};
-    coord bdepths{0, 0};
-    std::vector<bool> periodic{false, false};
-    coloring_definition cd{
-      axis_colors, axis_extents, hdepths, bdepths, periodic};
+  static coloring color(std::size_t num_colors, gcoord axis_extents) {
+    index_definition idef;
+    idef.axes = base::make_axes(num_colors, axis_extents);
+    for(auto & a : idef.axes) {
+      a.hdepth = 1;
+    }
 
-    auto [nc, ne, pcs, partitions] =
-      flecsi::topo::narray_utils::color(cd, MPI_COMM_WORLD);
-
-    flog_assert(nc == flecsi::processes(),
-      "current implementation is restricted to 1-to-1 mapping");
-
-    coloring c;
-    c.comm = MPI_COMM_WORLD;
-    c.colors = nc;
-    c.idx_colorings.emplace_back(std::move(pcs));
-    c.partitions.emplace_back(std::move(partitions));
-    return c;
+    return {{idef}};
   } // color
 
   /*--------------------------------------------------------------------------*
@@ -232,14 +192,9 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   using grect = std::array<std::array<double, 2>, 2>;
 
   static void set_geometry(mesh::accessor<flecsi::rw> sm, grect const & g) {
-    meta_data & md = sm.policy_meta_;
-    double xdelta =
-      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1);
-    double ydelta =
-      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1);
-
-    md.xdelta = xdelta;
-    md.ydelta = ydelta;
+    sm.set_geometry(
+      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1),
+      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1));
   }
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,

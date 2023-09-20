@@ -1,18 +1,159 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
-#include "fixed.hh"
-
 #include "flecsi/data.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/interface.hh"
+#include "flecsi/topo/unstructured/types.hh"
+#include "flecsi/util/color_map.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/unit.hh"
 
 #include <algorithm>
+#include <vector>
 
 using namespace flecsi;
+
+namespace ftui = topo::unstructured_impl;
+
+// clang-format off
+namespace {
+
+constexpr Color ncolors = 4;
+constexpr std::size_t num_cells = 4 * 4, num_vertices = 5 * 5;
+
+const std::vector<std::vector<util::gid>> cell_l2g {
+  {2, 3, 6, 7, 1, 5, 9, 10, 11},
+  {0, 1, 4, 5, 2, 6, 8,  9, 10},
+  {10, 11, 14, 15, 5, 6, 7, 9, 13},
+  {8, 9, 12, 13, 4, 5, 6, 10, 14}
+};
+
+const std::vector<std::vector<util::gid>> vertex_l2g {
+  { 2,  3,  4,  7,  8,  9, 12, 13, 14,  1,  6, 11, 16, 17, 18, 19},
+  { 0,  1,  5,  6, 10, 11,  2,  3,  7,  8, 12, 13, 15, 16, 17, 18},
+  {17, 18, 19, 22, 23, 24,  6,  7,  8,  9, 11, 12, 13, 14, 16, 21},
+  {15, 16, 20, 21,  5,  6,  7,  8, 10, 11, 12, 13, 17, 18, 22, 23},
+};
+
+const std::vector<util::crs> local_connectivity {
+  {{util::equal_map(9 * 4, 9)}, {
+    // owned
+    0, 1, 4, 3,
+    1, 2, 5, 4,
+    3, 4, 7, 6,
+    4, 5, 8, 7,
+    // ghost
+    9, 0, 3, 10,
+    10, 3, 6, 11,
+    11, 6, 13, 12,
+    6, 7, 14, 13,
+    7, 8, 15, 14
+  }},
+  {{util::equal_map(9 * 4, 9)}, {
+    // owned
+    0, 1, 3, 2,
+    1, 6, 8, 3,
+    2, 3, 5, 4,
+    3, 8, 10, 5,
+    // ghost
+    6, 7, 9, 8,
+    8, 9, 11, 10,
+    4, 5, 13, 12,
+    5, 10, 14, 13,
+    10, 11, 15, 14
+  }},
+  {{util::equal_map(9 * 4, 9)}, {
+    // owned
+    11, 12, 1, 0,
+    12, 13, 2, 1,
+    0, 1, 4, 3,
+    1, 2, 5, 4,
+    // ghost
+    6, 7, 11, 10,
+    7, 8, 12, 11,
+    8, 9, 13, 12,
+    10, 11, 0, 14,
+    14, 0, 3, 15
+  }},
+  {{util::equal_map(9 * 4, 9)}, {
+    // owned
+    8, 9, 1, 0,
+    9, 10, 12, 1,
+    0, 1, 3, 2,
+    1, 12, 14, 3,
+    // ghost
+    4, 5, 9, 8,
+    5, 6, 10, 9,
+    6, 7, 11, 10,
+    10, 11, 13, 12,
+    12, 13, 15, 14
+  }}
+};
+
+
+const std::vector<std::size_t> num_intervals {1, 1, 1, 1};
+
+const util::id local_owned_cells = 4;
+
+const std::vector<std::map<Color, ftui::peer_entities>> local_peer_cells {
+  { // color, {shared, ghost (theirs, ours)}
+    {1, {{0, 2}, {{1, 4}, {3, 5}}}},
+    {2, {{2, 3}, {{0, 7}, {1, 8}}}},
+    {3, {{2   }, {{1, 6}        }}},
+  },
+  {
+    {0, {{1, 3}, {{0, 4}, {2, 5}}}},
+    {2, {{3   }, {{0, 8}        }}},
+    {3, {{2, 3}, {{0, 6}, {1, 7}}}},
+  },
+  {
+    {0, {{0, 1}, {{2, 5}, {3, 6}}}},
+    {1, {{0   }, {{3, 4}        }}},
+    {3, {{0, 2}, {{1, 7}, {3, 8}}}}
+  },
+  {
+    {0, {{1   }, {{2, 6}        }}},
+    {1, {{0, 1}, {{2, 4}, {3, 5}}}},
+    {2, {{1, 3}, {{0, 7}, {2, 8}}}}
+  }
+};
+
+const std::vector<util::id> local_owned_vertices {9, 6, 6, 4};
+
+const std::vector<std::map<Color, ftui::peer_entities>> local_peer_vertices {
+  { // color, {shared, ghost (theirs, ours)}
+    {1, {{0, 1, 3, 4, 6, 7}, {{1,  9}, {3, 10}, {5, 11}}}},
+    {2, {{3, 4, 5, 6, 7, 8}, {{0, 13}, {1, 14}, {2, 15}}}},
+    {3, {{3, 4, 6, 7},       {{1, 12}}}},
+  },
+  {
+    {0, {{1, 3, 5   }, {{0,  6}, {1,  7}, {3, 8}, {4, 9}, {6, 10}, {7, 11}}}},
+    {2, {{3, 5      }, {{0, 14}, {1, 15}                                  }}},
+    {3, {{2, 3, 4, 5}, {{0, 12}, {1, 13}                                  }}},
+  },
+  {
+    {0, {{0, 1, 2   }, {{3, 7}, {4, 8}, {5, 9}, {6, 11}, {7, 12}, {8, 13}}}},
+    {1, {{0, 1      }, {{3, 6}, {5, 10}                                  }}},
+    {3, {{0, 1, 3, 4}, {{1, 14}, {3, 15}                                 }}}
+  },
+  {
+    {0, {{1   }, {{3,  6}, {4,  7}, {6, 10}, {7, 11}}}},
+    {1, {{0, 1}, {{2,  4}, {3,  5}, {4,  8}, {5,  9}}}},
+    {2, {{1, 3}, {{0, 12}, {1, 13}, {3, 14}, {4, 15}}}}
+  }
+};
+
+util::id num_ghosts(const std::map<Color, ftui::peer_entities> & peers) {
+  util::id cnt = 0;
+  for(const auto & [c, sh] : peers) {
+    cnt += static_cast<util::id>(sh.ghost.size());
+  }
+  return cnt;
+}
+
+}
+
+// clang-format on
 
 struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
@@ -31,6 +172,12 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   template<auto>
   static constexpr PrivilegeCount privilege_count = 3;
+
+  static const inline flecsi::field<std::size_t>::definition<fixed_mesh, cells>
+    cid;
+  static const inline flecsi::field<std::size_t>::definition<fixed_mesh,
+    vertices>
+    vid;
 
   /*--------------------------------------------------------------------------*
     Interface
@@ -85,103 +232,68 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
    *--------------------------------------------------------------------------*/
 
   static coloring color() {
-    flog_assert(processes() == fixed::colors, "color to process mismatch");
+    flog_assert(processes() == ncolors, "color to process mismatch");
 
     // clang-format off
     return {
-      MPI_COMM_WORLD,
-      fixed::colors,
-      /* process_colors */
-      { /* over global processes */
-        std::vector<Color>{ 0 },
-        std::vector<Color>{ 1 },
-        std::vector<Color>{ 2 },
-        std::vector<Color>{ 3 }
-      },
-      /* num_peers */
-      { /* over global colors */
-        3, 3, 3, 3
-      },
-      /* peers */
+      /* number of global colors */
+      ncolors,
       { /* over index spaces */
-        { /* cell peers */
-          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        {
+          { /* cell peers */
+            { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+          },
+          { /* cell partitions */
+            local_owned_cells + num_ghosts(local_peer_cells[0]),
+            local_owned_cells + num_ghosts(local_peer_cells[1]),
+            local_owned_cells + num_ghosts(local_peer_cells[2]),
+            local_owned_cells + num_ghosts(local_peer_cells[3])
+          },
+          num_cells,
+          { /* over process colors */
+            {
+
+              local_owned_cells + num_ghosts(local_peer_cells[process()]),
+              local_peer_cells[process()],
+
+              /* cnx_allocs */
+              {
+                0,
+                local_connectivity[process()].values.size()
+              }
+            }
+          },
+          num_intervals
         },
-        { /* vertex peers */
-          { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+        {
+          { /* vertex peers */
+            { 1, 2, 3 }, { 0, 2, 3}, { 0, 1, 3}, { 0, 1, 2}
+          },
+          { /* vertex partitions */
+            local_owned_vertices[0] + num_ghosts(local_peer_vertices[0]),
+            local_owned_vertices[1] + num_ghosts(local_peer_vertices[1]),
+            local_owned_vertices[2] + num_ghosts(local_peer_vertices[2]),
+            local_owned_vertices[3] + num_ghosts(local_peer_vertices[3])
+          },
+          num_vertices,
+          { /* over process colors */
+            {
+
+              local_owned_vertices[process()] + num_ghosts(local_peer_vertices[process()]),
+              local_peer_vertices[process()],
+
+              /* cnx_allocs */
+              {
+                /* for allocation only, replaced by using cell connectivity transpose */
+                local_connectivity[process()].values.size(),
+                0
+              }
+            }
+          },
+          num_intervals
         }
       },
-      {
-        {
-          fixed::cells[0].all.size(),
-          fixed::cells[1].all.size(),
-          fixed::cells[2].all.size(),
-          fixed::cells[3].all.size()
-        },
-        {
-          fixed::vertices[0].all.size(),
-          fixed::vertices[1].all.size(),
-          fixed::vertices[2].all.size(),
-          fixed::vertices[3].all.size()
-        }
-      },
-      { /* over index spaces */
-        { /* over process colors */
-          base::process_coloring{
-
-            /* color */
-            process(),
-
-            /* entities */
-            fixed::num_cells,
-
-            /* coloring */
-            fixed::cells[process()],
-
-            /* peers */
-            fixed::peers[process()],
-
-            /* cnx_allocs */
-            {
-              0,
-              fixed::connectivity[process()][0].indices.size()
-            },
-
-            /* cnx_colorings */
-            {
-              {},
-              fixed::connectivity[process()][0]
-            }
-          }
-        },
-        {
-          base::process_coloring{
-
-            /* color */
-            process(),
-
-            /* entities */
-            fixed::num_vertices,
-
-            /* coloring */
-            fixed::vertices[process()],
-
-            /* peers */
-            fixed::peers[process()],
-
-            /* cnx_allocs */
-            {
-              fixed::connectivity[process()][0].indices.size(),
-              0
-            },
-
-            /* cnx_colorings */
-            {
-              {} /* use cell connectivity transpose */
-            }
-          }
-        }
-      }
+      {3, 3, 3, 3} 
     };
     // clang-format on
   } // color
@@ -192,45 +304,19 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
   static void init_cnx(field<util::id, data::ragged>::mutator<wo, wo, na>) {}
 
-  static void init_c2v(
-    data::multi<field<util::id, data::ragged>::mutator<wo, wo, na>> mc2v,
-    std::vector<base::process_coloring> const & prc_clrngs,
-    std::vector<std::map<std::size_t, std::size_t>> const & vmaps) {
-    auto pcs = prc_clrngs.begin();
-    auto vms = vmaps.begin();
-    for(auto & c2v : mc2v.accessors()) {
-      auto const & pc = *pcs++;
-      auto const & vm = *vms++;
-      std::size_t off{0};
-
-      auto const & cnx = pc.cnx_colorings[core::index<fixed_mesh::vertices>];
-
-      for(std::size_t c{0}; c < cnx.offsets.size() - 1; ++c) {
-        const std::size_t start = cnx.offsets[off];
-        const std::size_t size = cnx.offsets[off + 1] - start;
-
-        c2v[c].resize(size);
-
-        for(std::size_t i{0}; i < size; ++i) {
-          c2v[c][i] = vm.at(cnx.indices[start + i]);
-        } // for
-
-        ++off;
-      } // for
-    } // for
-  } // init_c2v
-
   static void initialize(data::topology_slot<fixed_mesh> & s,
-    coloring const & c) {
+    coloring const &) {
     auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
     auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
-    auto const & vmaps = s->reverse_map<fixed_mesh::vertices>();
 
     execute<init_cnx>(c2v(s));
     execute<init_cnx>(v2c(s));
 
     auto lm = data::launch::make(s);
-    execute<init_c2v, mpi>(c2v(lm), c.idx_spaces[fixed_mesh::cells], vmaps);
+    execute<topo::unstructured_impl::init_connectivity<privilege_count<cells>>,
+      mpi>(
+      c2v(lm), std::vector<flecsi::util::crs>{local_connectivity[process()]});
+
     constexpr PrivilegeCount NPC = privilege_count<index_space::cells>;
     constexpr PrivilegeCount NPV = privilege_count<index_space::vertices>;
     execute<topo::unstructured_impl::transpose<NPC, NPV>>(c2v(s), v2c(s));
@@ -238,15 +324,12 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
 }; // struct fixed_mesh
 
-fixed_mesh::slot mesh;
-fixed_mesh::cslot coloring;
-
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
 const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
 // Exercise the std::vector-like interface:
 int
-permute(topo::connect_field::mutator<rw, rw, na> m) {
+permute(topo::connect_field::mutator<rw, rw, wo> m) {
   UNIT("TASK") {
     return;
     const auto && r = m[0];
@@ -273,6 +356,20 @@ permute(topo::connect_field::mutator<rw, rw, na> m) {
     // BUG: remove
     r.clear();
   };
+}
+
+void
+init_mesh_ids(fixed_mesh::accessor<ro, ro, ro> m,
+  field<util::gid>::accessor<wo, wo, wo> cids,
+  field<util::gid>::accessor<wo, wo, wo> vids) {
+  flog(warn) << __func__ << std::endl;
+
+  for(auto c : m.cells()) {
+    cids[c] = cell_l2g[color()][c];
+  }
+  for(auto v : m.vertices()) {
+    vids[v] = vertex_l2g[color()][v];
+  }
 }
 
 void
@@ -330,50 +427,57 @@ void
 check_density(fixed_mesh::accessor<ro, ro, ro> m,
   field<double>::accessor<ro, ro, ro> d) {
   flog(warn) << __func__ << std::endl;
-  std::stringstream ss;
+  auto clr = color();
   for(auto c : m.vertices()) {
-    ss << d[c] << " ";
+    unsigned int v = d[c];
+    flog_assert(v == clr, "invalid pressure");
   }
-  flog(info) << ss.str() << std::endl;
 }
 
-void
-print(fixed_mesh::accessor<ro, ro, ro> m,
-  field<util::id>::accessor<ro, ro, ro> cids,
-  field<util::id>::accessor<ro, ro, ro> vids) {
+int
+verify_mesh(fixed_mesh::accessor<ro, ro, ro> m,
+  field<util::gid>::accessor<ro, ro, ro> cids,
+  field<util::gid>::accessor<ro, ro, ro> vids) {
+  UNIT("TASK") {
+    auto & out = UNIT_CAPTURE();
 
-  std::stringstream ss;
-  for(auto c : m.cells()) {
-    ss << "cell(" << cids[c] << "," << c << "): ";
-    for(auto v : m.vertices(c)) {
-      ss << vids[v] << " ";
+    for(auto c : m.cells()) {
+      out << "cell(" << cids[c] << "," << c << "):";
+      for(auto v : m.vertices(c)) {
+        out << " " << vids[v];
+      }
+      out << "\n";
     }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
+    out << "\n";
 
-  ss.str("");
-  for(auto v : m.vertices()) {
-    ss << "vertex(" << vids[v] << "," << v << "): ";
-    for(auto c : m.cells(v)) {
-      ss << cids[c] << " ";
+    for(auto v : m.vertices()) {
+      out << "vertex(" << vids[v] << "," << v << "):";
+      for(auto c : m.cells(v)) {
+        out << " " << cids[c];
+      }
+      out << "\n";
     }
-    ss << std::endl;
-  }
-  flog(info) << ss.str() << std::endl;
+    out << "\n";
+    EXPECT_TRUE(
+      UNIT_EQUAL_BLESSED("fixed_" + std::to_string(color()) + ".blessed"));
+  };
 }
 
-static bool
-rotate(topo::claims::Field::accessor<wo> a, Color, Color n) {
-  a = topo::claims::row((color() + (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n);
-  return false;
+static data::launch::Claims
+rotate(Color n) {
+  data::launch::Claims ret(n);
+  for(Color i = 0; i < n; ++i)
+    ret[(i + n - (FLECSI_BACKEND != FLECSI_BACKEND_mpi)) % n].push_back(i);
+  return ret;
 }
 
 int
 fixed_driver() {
   UNIT() {
-    coloring.allocate();
-    mesh.allocate(coloring.get());
+    fixed_mesh::slot mesh;
+    mesh.allocate(fixed_mesh::mpi_coloring());
+
+    execute<init_mesh_ids>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh));
 
     EXPECT_EQ(
       test<permute>(
@@ -381,23 +485,18 @@ fixed_driver() {
           mesh)),
       0);
 
-    auto const & cids = mesh->forward_map<fixed_mesh::cells>();
-    auto const & vids = mesh->forward_map<fixed_mesh::vertices>();
-    execute<print>(mesh, cids(mesh), vids(mesh));
+    EXPECT_EQ(
+      test<verify_mesh>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)), 0);
 
     execute<init_pressure>(mesh, pressure(mesh));
     execute<update_pressure, default_accelerator>(mesh, pressure(mesh));
-    {
-      auto lm = data::launch::make<rotate>(mesh, mesh->colors());
-      execute<check_pressure>(lm, pressure(lm));
-    }
+    auto lm = data::launch::make(mesh, rotate(mesh.colors()));
+    execute<check_pressure>(lm, pressure(lm));
 
-#if 1
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
     execute<check_density>(mesh, density(mesh));
-#endif
   };
 } // unstructured_driver
 
-flecsi::unit::driver<fixed_driver> driver;
+util::unit::driver<fixed_driver> driver;

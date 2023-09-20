@@ -1,11 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_IO_BACKEND_HH
 #define FLECSI_IO_BACKEND_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/topo/index.hh"

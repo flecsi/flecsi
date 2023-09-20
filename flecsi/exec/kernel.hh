@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_KERNEL_HH
@@ -120,25 +120,136 @@ public:
 
 struct policy_tag {};
 
-struct range_base {
 #if defined(FLECSI_ENABLE_KOKKOS)
-  using Policy = Kokkos::RangePolicy<>;
-  using index = Policy::member_type;
+template<class... PP>
+using policy_type = Kokkos::RangePolicy<Kokkos::IndexType<util::id>, PP...>;
+#endif
+
+template<typename Range, int T = 0, int B = 0>
+struct range_policy : policy_tag {
+  range_policy(Range r) : range(std::move(r)) {}
+#if defined(FLECSI_ENABLE_KOKKOS)
+  using Policy = std::conditional_t<T == 0 && B == 0,
+    policy_type<>,
+    policy_type<Kokkos::LaunchBounds<T, B>>>;
+  using index = typename Policy::member_type;
 #else
-  typedef util::counter_t index;
+  typedef util::id index;
   using Policy = util::iota_view<index>;
 #endif
-};
-
-template<typename Range>
-struct range_policy : range_base, policy_tag {
-  range_policy(Range r) : range(std::move(r)) {}
-
   auto get_policy() {
     return Policy(0, range.size());
   }
   Range range;
 };
+
+using range_index = range_policy<int>::index;
+
+/// This function supports to fine-tune the number of blocks and threads
+/// for GPU execution.
+/// \tparam T maximum number of threads per block
+/// \tparam B minimum number of blocks per grid
+/// \param range sized random-access range
+/// \return Policy object constructed with parameters \c T and \c B for the
+/// sized random-access range \c range.
+template<int T, int B, class Range>
+auto
+threads(Range range) {
+  return range_policy<Range, T, B>(std::move(range));
+}
+
+/// This class computes subinterval of a range based on the starting and ending
+/// indices provided.
+struct sub_range {
+  /// starting index which is inclusive
+  range_index beg;
+  /// ending index which is exclusive
+  range_index end;
+  FLECSI_INLINE_TARGET auto size() const {
+    return end - beg;
+  }
+
+  FLECSI_INLINE_TARGET auto start() const {
+    return beg;
+  }
+
+  auto get(range_index) const {
+    return *this;
+  }
+};
+/// This class computes the range based on the prefix specified
+struct prefix_range {
+  /// size of the range
+  range_index size_len;
+  FLECSI_INLINE_TARGET auto size() const {
+    return size_len;
+  }
+  FLECSI_INLINE_TARGET auto start() const {
+    return 0;
+  }
+  auto get(range_index) const {
+    return *this;
+  }
+};
+/// This class computes full range size if prefix or subinterval of the range is
+/// not specified
+struct full_range {
+  auto get(range_index n) const {
+    return prefix_range{n};
+  }
+};
+
+template<std::size_t... II, class... RR>
+FLECSI_INLINE_TARGET auto
+mdiota_view(std::index_sequence<II...>, const RR &... rr) {
+  static constexpr std::size_t N = sizeof...(RR);
+  return util::transform_view(
+    util::iota_view<range_index>(0, (1 * ... * rr.size())),
+    [rr...](range_index i) {
+      std::array<range_index, N> ret;
+      auto p = ret.end();
+      ((*--p =
+           [&i, &rr = rr] {
+             // capture workaround instead of [&] due to GCC bug
+             // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103876
+             if constexpr(II < N - 1) {
+               const auto n = rr.size(), ret = i % n;
+               i /= n;
+               return ret;
+             }
+             else {
+               // avoid unused-lambda-capture error due to workaround
+               (void)rr;
+               return i;
+             }
+           }() +
+           rr.start()),
+        ...);
+      return ret;
+    });
+}
+// An extra helper is needed to use II to convert full_range objects.
+template<class M, std::size_t... II, class R>
+FLECSI_INLINE_TARGET auto
+mdiota_view(const M & m, std::index_sequence<II...> ii, const R & rt) {
+  return mdiota_view(ii, [m, rt] { // pass ranges least-significant first
+    constexpr auto J = sizeof...(II) - 1 - II;
+    return std::get<J>(rt).get(m.length(J));
+  }()...);
+}
+
+/// Compute the Cartesian product of several intervals of integers.
+/// @param m mdspan or mdcolex object
+/// \param rr \c full_range, \c prefix_range, or \c sub_range objects for each
+///   dimension
+/// \return sized random-access range of \c std::array objects, each with one
+/// index of type \c range_index for each argument in \a rr
+template<class M, class... RR>
+auto
+mdiota_view(const M & m, RR... rr) {
+  return mdiota_view(
+    m, std::index_sequence_for<RR...>(), std::make_tuple(rr...));
+}
 
 /// This function is a wrapper for Kokkos::parallel_for that has been adapted to
 /// work with random access ranges common in FleCSI topologies. In particular,
@@ -203,6 +314,7 @@ struct reduce_ref {
 
 /// This function is a wrapper for Kokkos::parallel_reduce that has been adapted
 /// to work with random access ranges common in FleCSI topologies.
+/// \tparam R reduction operation type
 /// \param p sized random-access range
 
 template<class R, class T, typename Policy, typename Lambda>
@@ -255,12 +367,13 @@ make_reduce(P policy, std::string n) {
   return {std::move(policy), n};
 }
 
-/// A parallel reduction loop.  Follow with a compound statement and `;`.
+/// A parallel reduction loop.
+/// Follow with a compound statement to form an expression.
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
 /// \param it variable name to introduce for elements
-/// \param ref variable name to introduce for storing results: call it to add
-///   a value to the reduction
+/// \param ref variable name to introduce for storing results; call it with
+///   each value participating in the reduction
 /// \param p sized random-access range
 /// \param R reduction operation type
 /// \param T data type

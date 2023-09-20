@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_CRS_HH
@@ -6,6 +6,7 @@
 
 #include "flecsi/flog.hh"
 #include "flecsi/util/array_ref.hh"
+#include "flecsi/util/color_map.hh"
 #include "flecsi/util/serialize.hh"
 
 #include <algorithm>
@@ -13,6 +14,7 @@
 #include <ostream>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace util {
 /// \addtogroup utils
@@ -24,94 +26,103 @@ as(std::vector<U> const & v) {
   return {v.begin(), v.end()};
 } // as
 
-/// Efficient storage for a sequence of sequences of integers.
+/// Efficient (compressed-row) storage for a sequence of sequences of
+/// integers.  There are no constraints on the size or contents of either
+/// the sequences or sequences of sequences: sequences can be different
+/// sizes, can have overlapping values, can include values in any order,
+/// and can hold duplicate values.
+///
+/// This type is a random-access range of \c span objects.  Because the \c
+/// offsets and \c values fields must be kept in sync they are best treated
+/// as read-only.  Use the \c add_row methods to modify those fields in a
+/// consistent manner.
 struct crs : util::with_index_iterator<const crs> {
-  using span = util::span<const std::size_t>;
-
-  /// The beginning of each row in \c indices, including a trailing value that
-  /// is the end of the last row.
-  std::vector<std::size_t> offsets;
+  /// The rows in \c values.
+  util::offsets offsets;
   /// The concatenated rows.
-  std::vector<std::size_t> indices;
+  std::vector<util::gid> values;
 
+  /// Create an empty sequence of sequences.
+  crs() = default;
+
+  crs(util::offsets os, std::vector<util::gid> vs)
+    : offsets(std::move(os)), values(std::move(vs)) {}
+
+  /// Append onto the \c crs (via data copy) a row of values pointed to by
+  /// a beginning and an ending iterator.
   template<class InputIt>
   void add_row(InputIt first, InputIt last) {
-    if(offsets.empty())
-      offsets.emplace_back(0);
-    offsets.emplace_back(offsets.back() + std::distance(first, last));
-    indices.insert(indices.end(), first, last);
+    offsets.push_back(std::distance(first, last));
+    values.insert(values.end(), first, last);
   }
 
+  /// Append onto the \c crs (via data copy) a row of values.
   template<class U>
   void add_row(std::initializer_list<U> init) {
     add_row(init.begin(), init.end());
   }
 
-  void add_row(std::vector<std::size_t> const & v) {
-    add_row(v.begin(), v.end());
+  /// Append onto the \c crs (via data copy) a row of values acquired by
+  /// traversing a range.
+  template<typename Range>
+  void add_row(Range const & it) {
+    add_row(it.begin(), it.end());
   }
 
+  /// Return the number of rows.
   std::size_t size() const {
-    flog_assert(!offsets.empty(), "attempted to call entries on empty object");
-    return offsets.size() - 1;
+    return offsets.size();
   }
 
+  /// Discard all data (\c offsets and \c values).
   void clear() {
     offsets.clear();
-    indices.clear();
+    values.clear();
   }
 
-  span operator[](std::size_t i) const {
-    flog_assert(offsets.size() - 1 > i, "invalid span index");
-    const std::size_t begin = offsets[i];
-    const std::size_t end = offsets[i + 1];
-    return span(&indices[begin], &indices[end]);
+  /// Return a row.
+  /// \return substring of \c values
+  /// \{
+  util::span<const util::gid> operator[](std::size_t i) const {
+    return const_cast<crs &>(*this)[i];
   }
+  util::span<util::gid> operator[](std::size_t i) {
+    const auto r = offsets[i];
+    return {values.data() + *r.begin(), r.size()};
+  }
+  /// \}
 }; // struct crs
 
-struct dcrs : crs {
-  std::vector<std::size_t> distribution;
-
-  std::size_t colors() {
-    return distribution.size() - 1;
+inline std::string
+expand(crs const & graph) {
+  std::stringstream stream;
+  std::size_t r{0};
+  for(const auto row : graph) {
+    stream << r++ << ": <";
+    bool first = true;
+    for(const std::size_t i : row) {
+      if(first)
+        first = false;
+      else
+        stream << ",";
+      stream << i;
+    }
+    stream << ">" << std::endl;
   }
-
-  void clear() {
-    crs::clear();
-    distribution.clear();
-  }
-}; // struct dcrs
-
-template<typename FI, typename T>
-auto
-distribution_offset(FI const & distribution, T index) {
-  auto it = std::upper_bound(distribution.begin(), distribution.end(), index);
-  flog_assert(it != distribution.end(), "index out of range");
-  return std::distance(distribution.begin(), it) - 1;
-} // distribution_offset
+  return stream.str();
+}
 
 inline std::ostream &
 operator<<(std::ostream & stream, crs const & graph) {
-  stream << "offsets: ";
-  for(auto o : graph.offsets) {
+  stream << "crs offsets: ";
+  for(auto o : graph.offsets.ends())
+    stream << o << " ";
+  stream << "\n\ncrs indices: ";
+  for(auto o : graph.values) {
     stream << o << " ";
   }
-  stream << std::endl;
-
-  stream << "indices: ";
-  for(auto o : graph.indices) {
-    stream << o << " ";
-  }
+  stream << "\n\ncrs expansion:\n" << expand(graph) << std::endl;
   return stream << std::endl;
-} // operator<<
-
-inline std::ostream &
-operator<<(std::ostream & stream, dcrs const & graph) {
-  stream << "distribution: ";
-  for(auto o : graph.distribution) {
-    stream << o << " ";
-  }
-  return stream << std::endl << static_cast<const crs &>(graph);
 } // operator<<
 
 /// \}
@@ -122,20 +133,7 @@ struct util::serial::traits<util::crs> {
   using type = util::crs;
   template<class P>
   static void put(P & p, const type & c) {
-    serial::put(p, c.offsets, c.indices);
-  }
-  static type get(const std::byte *& p) {
-    const cast r{p};
-    return type{{}, r, r};
-  }
-};
-
-template<>
-struct util::serial::traits<util::dcrs> {
-  using type = util::dcrs;
-  template<class P>
-  static void put(P & p, const type & d) {
-    serial::put(p, static_cast<util::crs const &>(d), d.distribution);
+    serial::put(p, c.offsets, c.values);
   }
   static type get(const std::byte *& p) {
     const cast r{p};
@@ -144,5 +142,6 @@ struct util::serial::traits<util::dcrs> {
 };
 
 } // namespace flecsi
+/// \endcond
 
 #endif

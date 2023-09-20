@@ -1,11 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_LEG_POLICY_HH
 #define FLECSI_EXEC_LEG_POLICY_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/launch.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/exec/leg/reduction_wrapper.hh"
@@ -21,10 +20,6 @@
 #include <memory>
 #include <type_traits>
 
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
 #include <legion.h>
 
 namespace flecsi {
@@ -37,20 +32,19 @@ namespace exec {
 /// \ingroup execution
 /// \{
 namespace detail {
-
-// Remove const from under a reference, if there is one.
-template<class T>
-struct nonconst_ref {
-  using type = T;
-};
-
-template<class T>
-struct nonconst_ref<const T &> {
-  using type = T &;
-};
-
-template<class T>
-using nonconst_ref_t = typename nonconst_ref<T>::type;
+template<class P, class A>
+decltype(auto)
+convert_argument(A && a) {
+  const auto gen = [&a]() -> decltype(auto) {
+    return exec::replace_argument<P>(std::forward<A>(a));
+  };
+  using PD = std::decay_t<P>;
+  if constexpr(std::is_same_v<std::decay_t<decltype(gen())>, PD>)
+    return gen();
+  else
+    // This backend only must perform implicit conversions early:
+    return [&gen]() -> PD { return gen(); }();
+}
 
 template<class T>
 constexpr bool mpi_accessor = false;
@@ -58,16 +52,9 @@ template<data::layout L, class T, Privileges P>
 constexpr bool mpi_accessor<data::accessor<L, T, P>> = !data::portable_v<T>;
 
 // Construct a tuple of converted arguments (or references to existing
-// arguments where possible).  Note that is_constructible_v<const
-// float&,const double&> is true, so we have to check
-// is_constructible_v<float&,double&> instead.
+// arguments where possible).
 template<bool M, class... PP, class... AA>
-std::conditional_t<M,
-  std::tuple<PP...>,
-  std::tuple<std::conditional_t<
-    std::is_constructible_v<nonconst_ref_t<PP> &, nonconst_ref_t<AA>>,
-    const PP &,
-    std::decay_t<PP>>...>>
+auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
   if constexpr(!M) {
     static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
@@ -75,7 +62,8 @@ make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
     static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
       "only MPI tasks can accept accessors for non-portable fields");
   }
-  return {exec::replace_argument<PP>(std::forward<AA>(aa))...};
+  return std::tuple<decltype(convert_argument<PP>(std::forward<AA>(aa)))...>(
+    convert_argument<PP>(std::forward<AA>(aa))...);
 }
 
 template<bool M, class P, class... AA>
@@ -89,7 +77,7 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using namespace Legion;
-  using traits_t = util::function_traits<decltype(F)>;
+  using traits_t = util::function_t<F>;
   using return_t = typename traits_t::return_type;
   using param_tuple = typename traits_t::arguments_type;
 
@@ -111,19 +99,27 @@ reduce_internal(Args &&... args) {
                   processor_type == task_processor_type_t::loc ||
                   processor_type == task_processor_type_t::omp || mpi_task,
     "Unknown launch type");
-  const auto domain_size =
-    launch_size<Attributes, param_tuple>(std::forward<Args>(args)...);
+  const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
+  // We do not generate a separate task_wrapper specialization for each set of
+  // argument types, so they must be erased here (via either serialization or
+  // context_t::mpi_params).  Since an MPI task can use references to the
+  // original arguments, we have to provide references, which in turn requires
+  // separate storage for any objects created by argument conversions (absent
+  // excessive variadic aggregate gymnastics to create lifetime-extended
+  // temporaries).
   auto params =
     detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
   prolog<mask_to_processor_type(Attributes)> pro(params, args...);
+  std::conditional_t<mpi_task, param_tuple, decltype(params) &&> mpi_params(
+    std::move(params));
 
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
     // MPI tasks must be invoked collectively from one task on each rank.
     // We therefore can transmit merely a pointer to a tuple of the arguments.
     // The TaskArgument must be identical on every shard, so use the context.
-    flecsi_context.mpi_params = &params;
+    flecsi_context.mpi_params = &mpi_params;
   }
   else {
     buf = std::apply(
@@ -134,7 +130,7 @@ reduce_internal(Args &&... args) {
   using wrap = leg::task_wrapper<F, processor_type>;
   // Replace the MPI "processor type" with an actual flag:
   const auto task = leg::task_id<wrap::execute,
-    Attributes & ~mpi | as_mask(wrap::LegionProcessor)>;
+    (Attributes & ~mpi) | as_mask(wrap::LegionProcessor)>;
 
   const auto add = [&](auto & l) {
     for(auto & req : pro.region_requirements())
@@ -155,10 +151,7 @@ reduce_internal(Args &&... args) {
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    {
-      flog::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing single task" << std::endl;
-    }
+    flog_devel(info) << "Executing single task" << std::endl;
 
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
     add(launcher);
@@ -167,10 +160,7 @@ reduce_internal(Args &&... args) {
       legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
-    {
-      flog::devel_guard guard(execution_tag);
-      flog_devel(info) << "Executing index task" << std::endl;
-    }
+    flog_devel(info) << "Executing index task" << std::endl;
 
     LegionRuntime::Arrays::Rect<1> launch_bounds(
       LegionRuntime::Arrays::Point<1>(0),

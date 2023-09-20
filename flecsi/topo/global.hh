@@ -1,9 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_GLOBAL_HH
 #define FLECSI_TOPO_GLOBAL_HH
 
+#include "flecsi/data/field.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/topo/core.hh"
 
@@ -20,7 +21,7 @@ struct global_base {
 };
 
 template<class P>
-struct global_category : global_base, data::region {
+struct global_category : global_base, data::region, with_cleanup {
   global_category(const coloring & c)
     : region(data::make_region<P>({1, c.size})) {}
 };
@@ -39,7 +40,7 @@ struct detail::base<global_category> {
   default-constructing it produces a size of 1.
  */
 struct global : specialization<global_category, global> {
-  /// A \c cslot can be initialized from an integer size.
+  /// An \c mpi_coloring can be initialized from an integer size.
   static coloring color(util::id n) {
     return n;
   }

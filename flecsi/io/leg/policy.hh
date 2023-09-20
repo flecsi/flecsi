@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_IO_LEG_POLICY_HH
@@ -16,12 +16,7 @@
 #include <hdf5.h>
 #include <legion.h>
 
-#include "flecsi-config.h"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
+#include "flecsi/config.hh"
 #include "flecsi/data.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/leg/policy.hh"
@@ -45,6 +40,7 @@ checkpoint_task(const Legion::Task * task,
   const std::vector<Legion::PhysicalRegion> & regions,
   Legion::Context ctx,
   Legion::Runtime * runtime) {
+  using F = hdf5::file;
 
   const int point = task->index_point.point_data[0];
 
@@ -55,11 +51,11 @@ checkpoint_task(const Legion::Task * task,
   const auto fname =
     util::serial::get<std::string>(task_args) + std::to_string(point);
 
-  hdf5 checkpoint_file({});
+  F checkpoint_file({});
   if constexpr(A) {
     if constexpr(W) {
       // create files and datasets
-      checkpoint_file = hdf5::create(fname);
+      checkpoint_file = F::create(fname);
       for(unsigned int rid = 0; rid < regions.size(); rid++) {
         const auto & rr = task->regions[rid];
         Legion::Rect<2> rect =
@@ -76,7 +72,7 @@ checkpoint_task(const Legion::Task * task,
     }
   }
   else
-    checkpoint_file = (W ? hdf5::create : hdf5::open)(fname);
+    checkpoint_file = (W ? F::create : F::open)(fname);
 
   for(unsigned int rid = 0; rid < regions.size(); rid++) {
     auto & rr = task->regions[rid];
@@ -158,26 +154,17 @@ checkpoint_task(const Legion::Task * task,
           Legion::coord_t,
           Realm::AffineAccessor<char, 2, Legion::coord_t>>
           acc_fid(pr, fid, item_size);
-        auto * const dset_data = acc_fid.ptr(rect.lo);
-        hid_t dataset_id =
-          H5Dopen2(checkpoint_file.hdf5_file_id, name.c_str(), H5P_DEFAULT);
-        if(dataset_id < 0) {
-          flog(error) << "H5Dopen2 failed: " << dataset_id << std::endl;
-          H5Fclose(checkpoint_file.hdf5_file_id);
-          assert(0);
-        }
         [] {
           if constexpr(W)
             return H5Dwrite;
           else
             return H5Dread;
-        }()(dataset_id,
-          hdf5_type(item_size),
+        }()(hdf5::dataset(checkpoint_file.hdf5_file_id, name.c_str()),
+          hdf5::datatype::bytes(item_size),
           H5S_ALL,
           H5S_ALL,
           H5P_DEFAULT,
-          dset_data);
-        H5Dclose(dataset_id);
+          acc_fid.ptr(rect.lo));
       });
     }
   }
@@ -195,7 +182,7 @@ struct io_interface {
           data::leg::ctx(), file_color_bounds);
       }()),
       launch_partition(data::leg::run().create_equal_partition(data::leg::ctx(),
-        process_topology->index_space,
+        process_topology->get_index_space(),
         launch_space)) {}
 
   template<bool W = true> // whether to write or read the file
@@ -270,9 +257,8 @@ private:
     return fsm;
   }
 
-private:
-  data::leg::unique_index_space launch_space;
-  data::leg::unique_index_partition launch_partition;
+  data::leg::shared_index_space launch_space;
+  data::leg::shared_index_partition launch_partition;
 };
 
 /// \}

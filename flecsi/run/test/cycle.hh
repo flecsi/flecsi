@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_RUN_TEST_CYCLE_CONTROL_HH
 #define FLECSI_RUN_TEST_CYCLE_CONTROL_HH
 
@@ -53,22 +50,17 @@ struct control_policy : flecsi::run::control_base {
 
   struct node_policy {};
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-  template<auto CP>
-  using meta_point = flecsi::run::meta_point<CP>;
-
-  static bool subcycle_control() {
+  static bool subcycle_control(control_policy &) {
     if(substep % 3 < 2) {
       flog(info) << "substep: " << substep % 3 << std::endl;
     } // if
     return substep++ % 3 < 2;
   }
 
-  using subcycle = flecsi::run::cycle<subcycle_control,
-    control_point<control_points_enum::advance_subcycle>>;
+  using subcycle =
+    cycle<subcycle_control, point<control_points_enum::advance_subcycle>>;
 
-  static bool cycle_control() {
+  static bool cycle_control(control_policy &) {
     if(step++ < 2) {
       flog(info) << "step: " << step << std::endl;
       return true;
@@ -76,19 +68,18 @@ struct control_policy : flecsi::run::control_base {
     return false;
   }
 
-  using cycle = flecsi::run::cycle<cycle_control,
-    meta_point<control_points_enum::advance_internal>,
-    control_point<control_points_enum::advance>,
+  using main_cycle = cycle<cycle_control,
+    meta<control_points_enum::advance_internal>,
+    point<control_points_enum::advance>,
     subcycle,
-    control_point<control_points_enum::analyze>,
-    control_point<control_points_enum::io>,
-    control_point<control_points_enum::mesh>>;
+    point<control_points_enum::analyze>,
+    point<control_points_enum::io>,
+    point<control_points_enum::mesh>>;
 
-  using control_points =
-    std::tuple<meta_point<control_points_enum::init_internal>,
-      control_point<control_points_enum::initialization>,
-      cycle,
-      control_point<control_points_enum::finalization>>;
+  using control_points = list<meta<control_points_enum::init_internal>,
+    point<control_points_enum::initialization>,
+    main_cycle,
+    point<control_points_enum::finalization>>;
 };
 
 using control = flecsi::run::control<control_policy>;

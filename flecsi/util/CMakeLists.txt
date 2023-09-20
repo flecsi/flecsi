@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 #------------------------------------------------------------------------------#
 # Add header files. Note that these will be "exported" to the parent
 # scope below.
@@ -19,6 +16,7 @@ set(util_HEADERS
   function_traits.hh
   geometry/filling_curve.hh
   geometry/point.hh
+  geometry/kdtree.hh
   crs.hh
   parmetis.hh
   graphviz.hh
@@ -77,7 +75,7 @@ if(MSVC)
   set(array_ref_blessed_input test/array_ref.blessed.msvc)
 endif()
 
-add_unit(array_ref
+flecsi_add_test(array_ref
   SOURCES
     test/array_ref.cc
   INPUTS
@@ -95,7 +93,7 @@ if(MSVC)
   set(common_blessed_input test/common.blessed.msvc)
 endif()
 
-add_unit(common
+flecsi_add_test(common
   SOURCES
     test/common.cc
   INPUTS
@@ -108,20 +106,20 @@ add_unit(common
 # color_map
 #------------------------------------------------------------------------------#
 
-add_unit(color_map
+flecsi_add_test(color_map
   SOURCES
     test/color_map.cc
-  THREADS 3
+  PROCS 3
 )
 
 #------------------------------------------------------------------------------#
 # unit
 #------------------------------------------------------------------------------#
 
-add_unit(unit
+flecsi_add_test(unit
   SOURCES
     test/unit.cc
-  THREADS
+  PROCS
     1 2 4
   ARGUMENTS "--flog-process=-1"
 )
@@ -130,7 +128,7 @@ add_unit(unit
 # serialize
 #------------------------------------------------------------------------------#
 
-add_unit(serialize
+flecsi_add_test(serialize
   SOURCES
     test/serialize.cc
 )
@@ -139,7 +137,7 @@ add_unit(serialize
 # set_utils
 #------------------------------------------------------------------------------#
 
-add_unit(set_utils
+flecsi_add_test(set_utils
   SOURCES
     test/set_utils.cc
   INPUTS
@@ -150,19 +148,15 @@ add_unit(set_utils
 # geometry
 #------------------------------------------------------------------------------#
 
-add_unit(point
-  SOURCES geometry/test/point.cc
-)
-
-add_unit(filling_curve
-  SOURCES geometry/test/filling_curve.cc
+flecsi_add_test(geometry
+  SOURCES test/geometry.cc
 )
 
 #------------------------------------------------------------------------------#
 # hashtable
 #------------------------------------------------------------------------------#
 
-add_unit(hashtable
+flecsi_add_test(hashtable
   SOURCES
     test/hashtable.cc
 )
@@ -172,10 +166,10 @@ add_unit(hashtable
 #------------------------------------------------------------------------------#
 # This test is currently unreliable.
 if(NOT CALIPER_DETAIL STREQUAL "none")
-add_unit(annotation
+flecsi_add_test(annotation
   SOURCES
   test/annotation.cc
-  THREADS
+  PROCS
   3 4
 )
 endif()

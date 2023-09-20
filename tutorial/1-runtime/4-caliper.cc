@@ -1,10 +1,8 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <chrono>
 #include <thread>
 
 #include <flecsi/execution.hh>
+#include <flecsi/run/control.hh>
 #include <flecsi/util/annotation.hh>
 
 using namespace flecsi;
@@ -31,9 +29,8 @@ void
 sleeper() {
   annotation::rguard<sleeper_region> guard;
 
-  annotation::begin<sleeper_subtask>();
-  std::this_thread::sleep_for(std::chrono::milliseconds(400));
-  annotation::end<sleeper_subtask>();
+  annotation::rguard<sleeper_subtask>(),
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
 }
@@ -48,21 +45,15 @@ top_level_action() {
   return 0;
 }
 
+// main
 int
 main(int argc, char * argv[]) {
   annotation::rguard<main_region> main_guard;
 
-  auto status = flecsi::initialize(argc, argv);
-
-  if(status != flecsi::run::status::success) {
-    return status == flecsi::run::status::help ? 0 : status;
-  }
-
-  status = (annotation::guard<annotation::execution, annotation::detail::low>(
-              "top-level-task"),
-    flecsi::start(top_level_action));
-
-  flecsi::finalize();
-
-  return status;
+  run::arguments args(argc, argv);
+  const run::dependencies_guard dg(args.dep);
+  const runtime run(args.cfg);
+  return (annotation::guard<annotation::execution, annotation::detail::low>(
+            "top-level-task"),
+    run.main<run::call>(args.act, top_level_action));
 } // main

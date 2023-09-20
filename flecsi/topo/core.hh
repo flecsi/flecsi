@@ -1,9 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_CORE_HH
 #define FLECSI_TOPO_CORE_HH
 
+#include "flecsi/data/field.hh" // cleanup
 #include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
@@ -61,6 +62,10 @@ using base_t = typename detail::base<T>::type;
 template<class T>
 using policy_t = typename detail::policy<T>::type;
 
+struct with_cleanup {
+  data::cleanup cleanup;
+};
+
 #ifdef DOXYGEN
 /// An example topology base that is not really implemented.
 struct core_base {
@@ -94,7 +99,7 @@ struct core : core_base { // with_ragged<P> is often another base class
   template<typename P::index_space>
   data::region & get_region();
 
-  /// Find the partition for a field.
+  /// Find the partition for an index space.
   /// \return a \c repartition if appropriate
   /// \note As a special case, the global topology does not define this.
   template<typename P::index_space>
@@ -104,7 +109,6 @@ struct core : core_base { // with_ragged<P> is often another base class
   /// Required only if multiple privileges are used.
   /// \tparam T data type
   /// \tparam L use to trigger special copies for dynamic fields
-  /// \tparam Topo \c P, generally
   /// \tparam S use to identify relevant copy plan
   /// \param f to deduce the above as well as for the field ID
   template<class T, data::layout L, typename P::index_space S>
@@ -127,20 +131,20 @@ struct specialization_base {
 
   /// A connectivity specification.
   /// \tparam V input index space
-  /// \tparam T see \c to
+  /// \tparam T a \c to list
   template<auto V, class T>
   using from = util::key_type<V, T>;
   /// A special-entities specification.
   /// \tparam V subject index space
-  /// \tparam T see \c has
+  /// \tparam T a \c has list
   template<auto V, class T>
   using entity = util::key_type<V, T>;
-  /// Entity lists.
-  /// \tparam V entity list enumerators
+  /// A list of enumerators for which to store data.
+  /// \tparam V often index spaces
   template<auto... V>
   using has = util::constants<V...>;
-  /// Output index spaces.
-  /// \tparam V index spaces
+  /// A list of index spaces to use as output.
+  /// \tparam V enumerators
   template<auto... V>
   using to = util::constants<V...>;
   /// Container.
@@ -154,14 +158,18 @@ struct specialization_base {
   /// \{
 
   /// The index space type.
+  /// Must be valid as a template parameter type.  Typically an enumeration;
+  /// the enumerator values are unimportant (so long as they are distinct).
   using index_space = single_space;
   /// The set of index spaces, wrapped in \c has.
+  /// \note Other values (_e.g._, enumerators) of \c index_space are unused.
   using index_spaces = has<elements>;
   /// The topology interface type.
   /// It must be \a B or inherit from it without adding any data members.
   /// Instances of it will be value-initialized and should default-initialize
   /// \a B.
-  /// \tparam B core topology interface
+  /// \tparam B core topology interface (a specialization of \c access from
+  ///   the appropriate core topology)
   template<class B>
   using interface = B;
   /// \}
@@ -184,12 +192,38 @@ struct specialization : specialization_base {
   // This is just core::coloring, but core is incomplete here.
   using coloring = typename base::coloring; ///< The coloring type.
 
-  // NB: nested classes would prevent template argument deduction.
+  // NB: a nested class would prevent template argument deduction.
 
   /// The slot type for declaring topology instances.
   using slot = data::topology_slot<D>;
   /// The slot type for holding a \c coloring object.
-  using cslot = data::coloring_slot<D>;
+  /// \deprecated Use \c mpi_coloring.
+  using cslot [[deprecated("use mpi_coloring")]] = data::coloring_slot<D>;
+  /// Constructs a \c coloring in an MPI task.
+  /// \note \a D must define\code
+  /// static coloring color(/* ... */);
+  /// \endcode
+  struct mpi_coloring {
+    /// Create the coloring object.
+    /// \param aa arguments to \c D::color
+    template<class... AA>
+    explicit mpi_coloring(AA &&... aa) {
+      slot.emplace(std::forward<AA>(aa)...);
+    }
+
+    /// Get the resulting coloring.
+    /// \{
+    operator coloring &() {
+      return slot.get();
+    }
+    operator const coloring &() const {
+      return slot.get();
+    }
+    /// \}
+
+  private:
+    data::coloring_slot<D> slot;
+  };
 
   /// The topology accessor to use as a parameter to receive a \c slot.
   /// \tparam Priv the appropriate number of privileges

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_LEG_REDUCTION_WRAPPER_HH
@@ -8,7 +8,6 @@
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/demangle.hh"
-#include <flecsi/flog.hh>
 
 #include <legion.h>
 
@@ -99,9 +98,6 @@ namespace fold {
 /// \addtogroup legion-execution
 /// \{
 
-inline util::counter<Legion::ReductionOpID(MAX_APPLICATION_REDUCTION_ID)>
-  reduction_counter(0);
-
 // Adapts our interface to Legion's.
 template<class R, class T>
 struct custom_wrap {
@@ -130,20 +126,13 @@ struct custom_wrap {
 
 private:
   static void init() {
-    {
-      flog::devel_guard guard(reduction_wrapper_tag);
-      flog_devel(info) << "registering reduction operation " << util::type<R>()
-                       << " for " << util::type<T>() << std::endl;
-    }
-
-    // Register the operation with the Legion runtime
     Legion::Runtime::register_reduction_op<custom_wrap>(REDOP_ID);
   }
 
 public:
-  // NB: 0 is reserved by Legion.
   static inline const Legion::ReductionOpID REDOP_ID =
-    (run::context::instance().register_init(init), reduction_counter());
+    (run::context::register_init(init),
+      Legion::Runtime::generate_static_reduction_id());
 };
 
 namespace detail {

@@ -1,0 +1,88 @@
+#------------------------------------------------------------------------------#
+# Copyright (C) 2016, Triad National Security, LLC
+# All rights reserved
+#------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------#
+# FleCSI options.
+#------------------------------------------------------------------------------#
+@FLECSI_CONFIG_CODE@
+
+#------------------------------------------------------------------------------#
+# FLOG options.
+#------------------------------------------------------------------------------#
+@FLOG_CONFIG_CODE@
+
+#------------------------------------------------------------------------------#
+# Add FleCSI CMake modules
+#------------------------------------------------------------------------------#
+get_filename_component(FleCSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+if(NOT FLECSI_CMAKE)
+  get_filename_component(FleCSI_CMAKE_BASE_DIR "${FleCSI_CMAKE_DIR}" DIRECTORY)
+  message(STATUS "Found FleCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
+    ${FleCSI_CMAKE_BASE_DIR})
+  list(APPEND CMAKE_MODULE_PATH ${FleCSI_CMAKE_BASE_DIR})
+  set(FLECSI_UNIT_MAIN ${FleCSI_CMAKE_DIR}/unit-main.cc)
+  set(FLECSI_CMAKE TRUE)
+endif()
+
+#------------------------------------------------------------------------------#
+# Handle TPLs
+#------------------------------------------------------------------------------#
+
+if(@ENABLE_BOOST@)
+  find_package(Boost REQUIRED @BOOST_COMPONENTS@)
+endif()
+
+if(@ENABLE_MPI@)
+  find_package(Threads REQUIRED)
+  if(@ENABLE_MPI_CXX_BINDINGS@)
+    find_package(MPI COMPONENTS C MPICXX REQUIRED)
+  else()
+    find_package(MPI COMPONENTS C CXX REQUIRED)
+  endif()
+endif()
+
+if(@ENABLE_OPENMP@)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+endif()
+
+set(preserve_PMT ${PARMETIS_TEST_RUNS})
+set(PARMETIS_TEST_RUNS TRUE)
+find_package(ParMETIS @PARMETIS_VERSION@ REQUIRED)
+set(PARMETIS_TEST_RUNS ${preserve_PMT})
+
+if(@ENABLE_HDF5@)
+  find_package(HDF5 REQUIRED)
+endif()
+
+if(@ENABLE_LEGION@)
+  find_package(Legion REQUIRED)
+endif()
+
+if(@ENABLE_HPX@)
+  find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
+endif()
+
+
+if(@ENABLE_KOKKOS@)
+  find_package(Kokkos COMPONENTS separable_compilation REQUIRED)
+endif()
+
+if(NOT "@CALIPER_DETAIL@" STREQUAL "none")
+  find_package(caliper REQUIRED)
+endif()
+
+if(@ENABLE_GRAPHVIZ@)
+  find_package(Graphviz REQUIRED)
+endif()
+
+
+#------------------------------------------------------------------------------#
+# FleCSI library dependencies (contains definitions for IMPORTED targets)
+#------------------------------------------------------------------------------#
+
+if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
+  include(${FleCSI_CMAKE_DIR}/FleCSITargets.cmake)
+endif()

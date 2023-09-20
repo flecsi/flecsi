@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_2_SUBCYCLE_HH
 #define TUTORIAL_2_CONTROL_2_SUBCYCLE_HH
 
@@ -51,30 +48,25 @@ struct control_policy : flecsi::run::control_base {
     Define a subcycle control function.
    */
 
-  static bool subcycle_control() {
-    return control::instance().substep()++ % 3 < 2;
+  static bool subcycle_control(control_policy & policy) {
+    return policy.substep()++ % 3 < 2;
   }
 
-  static bool cycle_control() {
-    return control::instance().step()++ < 5;
+  static bool cycle_control(control_policy & policy) {
+    return policy.step()++ < 5;
   }
-
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
 
   /*
     Define a subcycle type.
    */
 
-  using subcycle = flecsi::run::cycle<subcycle_control,
-    control_point<cp::advance>,
-    control_point<cp::advance2>>;
+  using subcycle =
+    cycle<subcycle_control, point<cp::advance>, point<cp::advance2>>;
 
-  using cycle =
-    flecsi::run::cycle<cycle_control, subcycle, control_point<cp::analyze>>;
+  using main_cycle = cycle<cycle_control, subcycle, point<cp::analyze>>;
 
-  using control_points = std::
-    tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
 
 private:
   size_t substep_{0};

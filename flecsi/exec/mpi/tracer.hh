@@ -11,12 +11,16 @@ struct trace {
   inline guard make_guard();
 
   trace() {}
-  explicit trace(bool) {}
-  explicit trace(id_t, bool = true) {}
+  explicit trace(id_t) {}
 
   trace(trace &&) = default;
 
   void skip() {}
+
+public:
+  static bool is_tracing() {
+    return false;
+  }
 
 private:
   void start() {}

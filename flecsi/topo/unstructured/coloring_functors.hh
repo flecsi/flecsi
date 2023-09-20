@@ -1,10 +1,11 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_UNSTRUCTURED_COLORING_FUNCTORS_HH
 #define FLECSI_TOPO_UNSTRUCTURED_COLORING_FUNCTORS_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/crs.hh"
 
@@ -18,375 +19,188 @@ namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
 
-template<typename Definition>
-struct pack_cells {
-  pack_cells(Definition const & md, std::vector<std::size_t> const & dist)
-    : md_(md), dist_(dist) {}
+using entity_kind = std::size_t;
 
-  auto operator()(int rank, int) const {
-    util::crs e2v;
+template<typename D>
+auto
+pack_definitions(D const & md, entity_kind id, const util::equal_map & dist) {
+  return [&, id](Color rank) {
+    util::crs e2v; // entity to vertex graph
 
-    for(size_t i{dist_[rank]}; i < dist_[rank + 1]; ++i) {
-      e2v.add_row(md_.entities(Definition::dimension(), 0, i));
+    for(const std::size_t i : dist[rank]) {
+      e2v.add_row(md.entities(id, 0, i));
     } // for
 
     return e2v;
-  } // operator(int, int)
+  };
+}
 
-private:
-  Definition const & md_;
-  std::vector<std::size_t> const & dist_;
-}; // struct pack_cells
-
-template<typename Definition>
-struct pack_vertices {
-  pack_vertices(Definition const & md, std::vector<std::size_t> const & dist)
-    : md_(md), dist_(dist) {}
-
-  auto operator()(int rank, int) const {
-    std::vector<typename Definition::point> vertices;
-    vertices.reserve(dist_[rank + 1] - dist_[rank]);
-
-    for(size_t i{dist_[rank]}; i < dist_[rank + 1]; ++i) {
-      vertices.emplace_back(md_.vertex(i));
+template<typename T>
+auto
+pack_field(const util::equal_map & dist, const std::vector<T> & field) {
+  return [&](Color rank) {
+    std::vector<std::pair<std::size_t, T>> field_pack;
+    const auto dr = dist[rank];
+    field_pack.reserve(dr.size());
+    for(const std::size_t i : dr) {
+      field_pack.emplace_back(i, field[i]);
     } // for
-
-    return vertices;
-  } // operator(int, int)
-
-private:
-  Definition const & md_;
-  std::vector<std::size_t> const & dist_;
-}; // struct pack_vertices
+    return field_pack;
+  };
+}
 
 /*
   Send partial vertex-to-cell connectivity information to the rank that owns
   the vertex in the naive vertex distribution.
  */
 
-struct vertex_referencers {
-  vertex_referencers(
-    std::map<std::size_t, std::vector<std::size_t>> const & vertex2cell,
-    std::vector<std::size_t> const & dist,
-    int rank)
-    : size_(dist.size() - 1) {
-    references_.resize(size_);
-    for(auto v : vertex2cell) {
-      auto r = util::distribution_offset(dist, v.first);
-      if(r != rank) {
-        for(auto c : v.second) {
-          references_[r][v.first].emplace_back(c);
-        } // for
-      } // if
-    } // for
-  } // vertex_refernces
-
-  auto & operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return references_[rank];
-  } // operator(int, int)
-
-private:
-  const int size_;
-  std::vector<std::map<std::size_t, std::vector<std::size_t>>> references_;
-}; // struct vertex_referencers
+inline auto
+vertex_referencers(
+  std::map<util::gid, std::vector<util::gid>> const & vertex2cell,
+  const util::equal_map & dist,
+  int rank) {
+  std::vector<std::map<util::gid, std::vector<util::gid>>> ret(dist.size());
+  for(auto & v : vertex2cell) {
+    auto r = dist.bin(v.first);
+    if(int(r) != rank) {
+      for(auto c : v.second) {
+        ret[r][v.first].emplace_back(c);
+      } // for
+    } // if
+  } // for
+  return ret;
+}
 
 /*
   Send full vertex-to-cell connectivity information to all ranks that reference
   one of our vertices.
  */
 
-struct cell_connectivity {
-  cell_connectivity(std::vector<std::vector<std::size_t>> const & vertices,
-    std::map<std::size_t, std::vector<std::size_t>> const & connectivity,
-    std::vector<std::size_t> const & dist,
-    int rank)
-    : size_(dist.size() - 1), connectivity_(size_) {
+inline auto
+entity_connectivity(std::vector<std::vector<util::gid>> const & vertices,
+  std::map<util::gid, std::vector<util::gid>> const & connectivity,
+  const util::equal_map & dist,
+  int rank) {
+  std::vector<std::map<util::gid, std::vector<util::gid>>> ret(dist.size());
 
-    int ro{0};
-    for(auto r : vertices) {
-      if(ro != rank) {
-        for(auto v : r) {
-          connectivity_[ro][v] = connectivity.at(v);
+  int ro{0};
+  for(auto & r : vertices) {
+    if(ro != rank) {
+      for(auto v : r) {
+        ret[ro][v] = connectivity.at(v);
+      } // for
+    } // for
+    ++ro;
+  } // for
+  return ret;
+} // entity_connectivity
+
+/*
+  Move entity connectivity information to the colors that own them.
+ */
+
+inline auto
+move_primaries(const util::offsets & dist,
+  Color colors,
+  std::vector<Color> const & index_colors,
+  util::crs && e2v,
+  std::map<util::gid, std::vector<util::gid>> && v2e,
+  int rank) {
+  return [&,
+           rank,
+           e2v = std::move(e2v),
+           v2e = std::move(v2e),
+           em = util::equal_map(colors, dist.size())](Color r) {
+    std::vector<std::tuple<std::pair<Color, util::gid>, std::vector<util::gid>>>
+      cell_pack;
+    std::map<util::gid, std::vector<util::gid>> v2e_pack;
+
+    for(std::size_t i{0}; i < dist[rank].size(); ++i) {
+      if(em.bin(index_colors[i]) == r) {
+        const auto j = dist(rank) + i;
+        const std::pair<Color, util::gid> info{index_colors[i], j};
+        cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
+
+        /*
+          If we have full connectivity information, we pack it up
+          and send it. We do not send information that is potentially,
+          or actually incomplete because additional communication
+          will be required to resolve it regardless.
+         */
+
+        for(auto const & v : e2v[i]) {
+          v2e_pack.try_emplace(v, v2e.at(v));
         } // for
-      } // for
-      ++ro;
-    } // for
-  } // cell_connectivity
-
-  auto & operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return connectivity_[rank];
-  } // operator(int, int)
-
-private:
-  const int size_;
-  std::vector<std::map<std::size_t, std::vector<std::size_t>>> connectivity_;
-}; // struct cell_connectivity
-
-/*
-  Send cells to colors that own them.
- */
-
-struct distribute_cells {
-  distribute_cells(util::dcrs const & naive,
-    Color colors,
-    std::vector<Color> const & index_colors,
-    int rank)
-    : size_(naive.distribution.size() - 1) {
-    util::color_map cm(size_, colors, naive.distribution.back());
-
-    for(std::size_t r{0}; r < std::size_t(size_); ++r) {
-      std::vector<std::array<std::size_t, 2>> indices;
-
-      for(std::size_t i{0}; i < naive.size(); ++i) {
-        if(cm.process(index_colors[i]) == r) {
-          indices.push_back({index_colors[i] /* color of this index */,
-            naive.distribution[rank] + i /* index global id */});
-        } // if
-      } // for
-
-      cells_.emplace_back(indices);
-    } // for
-  } // distribute_cells
-
-  auto & operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return cells_[rank];
-  }
-
-private:
-  const int size_;
-  std::vector<std::vector<std::array<std::size_t, 2>>> cells_;
-}; // struct distribute_cells
-
-/*
-  Move cells to the colors that own them.
- */
-
-struct migrate_cells {
-  // clang-format off
-  using return_type =
-    std::tuple<
-      std::vector</* over cells */
-        std::tuple<
-          std::array<std::size_t, 2> /* color, mesh id> */,
-          std::vector<std::size_t> /* cell definition (vertex mesh ids) */
-        >
-      >,
-      std::map</* over vertices */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* vertex-to-cell connectivity */
-      >,
-      std::map</* over cells */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* cell-to-cell connectivity */
-      >
-    >;
-  // clang-format on
-
-  migrate_cells(util::dcrs const & naive,
-    Color colors,
-    std::vector<Color> const & index_colors,
-    util::crs & e2v,
-    std::map<std::size_t, std::vector<std::size_t>> & v2c,
-    std::map<std::size_t, std::vector<std::size_t>> & c2c,
-    int rank)
-    : size_(naive.distribution.size() - 1) {
-    util::color_map cm(size_, colors, naive.distribution.back());
-
-    for(std::size_t r{0}; r < std::size_t(size_); ++r) {
-      std::vector<
-        std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
-        cell_pack;
-      std::map<std::size_t, std::vector<std::size_t>> v2c_pack;
-      std::map<std::size_t, std::vector<std::size_t>> c2c_pack;
-
-      for(std::size_t i{0}; i < naive.size(); ++i) {
-        if(cm.process(index_colors[i]) == r) {
-          const std::array<std::size_t, 2> info{
-            index_colors[i], naive.distribution[rank] + i};
-          cell_pack.push_back(std::make_tuple(info, to_vector(e2v[i])));
-
-          /*
-            If we have full connectivity information, we pack it up
-            and send it. We do not send information that is potentially,
-            or actually incomplete because additional communication
-            will be required to resolve it regardless.
-           */
-
-          for(auto const & v : e2v[i]) {
-            v2c_pack[v] = v2c[v];
-          } // for
-
-          c2c_pack[naive.distribution[rank] + i] =
-            c2c[naive.distribution[rank] + i];
-
-          /*
-            Remove information that we are migrating. We can't remove
-            vertex-to-cell information until the loop over ranks is done.
-           */
-
-          c2c.erase(i);
-        } // if
-      } // for
-
-      packs_.emplace_back(std::make_tuple(cell_pack, v2c_pack, c2c_pack));
+      } // if
     } // for
 
-    e2v.clear();
-    c2c.clear();
-    v2c.clear();
-  } // migrate_cells
+    return std::make_pair(std::move(cell_pack), std::move(v2e_pack));
+  };
+} // move_primaries
 
-  const return_type & operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return packs_[rank];
-  }
-
-private:
-  const int size_;
-  std::vector<return_type> packs_;
-}; // struct migrate_cells
-
-struct communicate_entities {
-  // clang-format off
-  using return_type =
-    std::tuple<
+inline auto
+communicate_entities(std::vector<std::vector<util::gid>> const & entities,
+  std::unordered_map<util::gid, std::set<Color>> const & deps,
+  std::unordered_map<util::gid, Color> const & colors,
+  util::crs const & e2v,
+  std::map<util::gid, std::vector<util::gid>> const & v2e,
+  std::map<util::gid, util::id> const & m2p) {
+  return [&](std::size_t i) {
+    std::map<Color,
       std::vector</* over entities */
-        std::tuple<
-          std::array<std::size_t, 2> /* color, mesh id> */,
-          std::vector<std::size_t> /* entity definition (vertex mesh ids) */
-        >
-      >,
-      std::map</* over vertices */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* vertex-to-entity connectivity */
-      >,
-      std::map</* over entities */
-        std::size_t, /* mesh id */
-        std::vector<std::size_t> /* entity-to-entity connectivity */
+        std::tuple<util::gid,
+          std::vector<util::gid> /* entity definition (vertex mesh ids) */,
+          std::set<Color> /* dependents */
+          >>>
+      entity_pack;
+    std::map</* over vertices */
+      util::gid, /* mesh id */
+      std::vector<util::gid> /* vertex-to-entity connectivity */
       >
-    >;
-  // clang-format on
+      v2e_pack;
 
-  communicate_entities(std::vector<std::vector<std::size_t>> const & entities,
-    std::unordered_map<std::size_t, Color> const & colors,
-    util::crs const & e2v,
-    std::map<std::size_t, std::vector<std::size_t>> const & v2e,
-    std::map<std::size_t, std::vector<std::size_t>> const & e2e,
-    std::map<std::size_t, std::size_t> const & m2p)
-    : size_(entities.size()) {
-    for(auto re : entities) {
-      std::vector<
-        std::tuple<std::array<std::size_t, 2>, std::vector<std::size_t>>>
-        entity_pack;
-      std::map<std::size_t, std::vector<std::size_t>> v2e_pack;
-      std::map<std::size_t, std::vector<std::size_t>> e2e_pack;
+    for(auto c : entities[i]) {
+      entity_pack[colors.at(c)].push_back(std::make_tuple(c,
+        to_vector(e2v[m2p.at(c)]),
+        deps.count(c) ? deps.at(c) : std::set<Color>{}));
 
-      for(auto c : re) {
-        const std::array<std::size_t, 2> info{colors.at(c), c};
-        entity_pack.push_back(std::make_tuple(info, to_vector(e2v[m2p.at(c)])));
-
-        for(auto const & v : e2v[m2p.at(c)]) {
-          v2e_pack[v] = v2e.at(v);
-        } // for
-
-        e2e_pack[c] = e2e.at(c);
+      for(auto const & v : e2v[m2p.at(c)]) {
+        v2e_pack[v] = v2e.at(v);
       } // for
-
-      packs_.emplace_back(std::make_tuple(entity_pack, v2e_pack, e2e_pack));
     } // for
-  } // communicate_entities
 
-  const return_type & operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return packs_[rank];
-  }
+    return std::make_pair(std::move(entity_pack), std::move(v2e_pack));
+  };
+} // communicate_entities
 
-private:
-  const int size_;
-  std::vector<return_type> packs_;
-}; // struct communicate_entities
+inline auto
+rank_coloring(const util::equal_map & pdist,
+  std::unordered_map<util::gid, Color> const & v2co) {
+  std::vector<std::vector<std::pair<util::gid, Color>>> ret(pdist.size());
+  for(auto const & v : v2co) {
+    ret[pdist.bin(v.first)].push_back({v.first, v.second});
+  } // for
+  return ret;
+} // rank_coloring
 
-#if 0
-template<typename Definition>
-struct communicate_coordinates {
-  using return_type = 
-
-private:
-  std::vector<return_type> packs_;
-}; // struct communicate_coordinates
-#endif
-
-struct vertex_coloring {
-
-  vertex_coloring(std::vector<std::size_t> const & pdist,
-    std::unordered_map<std::size_t, Color> const & v2co)
-    : size_(pdist.size() - 1), vertices_(size_) {
-
-    for(auto const & v : v2co) {
-      std::size_t r{std::numeric_limits<std::size_t>::max()};
-      for(std::size_t i{0}; i < std::size_t(size_); ++i) {
-        if(v.first < pdist[i + 1]) {
-          r = i;
-          break;
-        } // if
-      } // for
-
-      vertices_[r].emplace_back(std::array<std::size_t, 2>{v.first, v.second});
+template<typename T>
+auto
+move_field(std::size_t size,
+  Color colors,
+  const std::vector<Color> & index_colors,
+  const std::vector<T> & field) {
+  return [&index_colors, &field, em = util::equal_map(colors, size)](int rank) {
+    std::vector<T> field_pack;
+    int i = 0;
+    for(const auto & v : index_colors) {
+      if(int(em.bin(v)) == rank) {
+        field_pack.push_back(field[i]);
+      } // if
+      ++i;
     } // for
-  } // vertex_coloring
-
-  auto operator()(int rank, int) const {
-    flog_assert(rank < size_, "invalid rank");
-    return vertices_[rank];
-  }
-
-private:
-  const int size_;
-  std::vector<std::vector<std::array<std::size_t, 2>>> vertices_;
-}; // struct vertex_coloring
-
-template<typename Definition>
-struct migrate_vertices {
-
-  using return_type = std::vector</* over vertices */
-    std::tuple<std::array<std::size_t, 2> /* color, mesh id */,
-      typename Definition::point /* coordinates */
-      >>;
-
-  migrate_vertices(std::vector<std::size_t> dist,
-    Color colors,
-    std::vector<Color> const & index_colors,
-    std::vector<typename Definition::point> & vertices,
-    int rank)
-    : size_(dist.size() - 1) {
-    util::color_map cm(size_, colors, dist.back());
-
-    for(std::size_t r{0}; r < std::size_t(size_); ++r) {
-      return_type vertex_pack;
-      for(std::size_t i{0}; i < dist[rank + 1] - dist[rank]; ++i) {
-        if(cm.process(index_colors[i]) == r) {
-          const std::array<std::size_t, 2> info{
-            index_colors[i], dist[rank] + i};
-          vertex_pack.push_back(std::make_tuple(info, vertices[i]));
-        } // if
-      } // for
-
-      packs_.emplace_back(vertex_pack);
-    } // for
-  } // migrate_vertices
-
-  return_type operator()(int rank, int) const {
-    flog_assert(std::size_t(rank) < size_, "invalid rank");
-    return packs_[rank];
-  }
-
-private:
-  std::size_t size_;
-  std::vector<return_type> packs_;
-}; // struct migrate_vertices
+    return field_pack;
+  };
+}
 
 } // namespace unstructured_impl
 } // namespace topo

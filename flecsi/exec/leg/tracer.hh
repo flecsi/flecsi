@@ -9,11 +9,12 @@ namespace flecsi::exec {
 struct trace {
 
   struct guard;
-  using id_t = int;
+  using id_t = Legion::TraceID;
 
   inline guard make_guard();
 
-  explicit trace() : trace(g_id_++) {}
+  trace()
+    : trace(Legion::Runtime::get_runtime()->generate_dynamic_trace_id()) {}
   explicit trace(id_t id) : id_(id), skip_(false) {}
 
   trace(trace &&) = default;
@@ -25,6 +26,8 @@ struct trace {
 private:
   void start() {
     if(!skip_) {
+      if(tracing)
+        flog_fatal("Trace already running: traces cannot be overlapping");
       // Call Legion tracing tool
       Legion::Runtime::get_runtime()->begin_trace(
         Legion::Runtime::get_context(),
@@ -33,6 +36,7 @@ private:
         false, // static_trace  = false
         NULL // std::set<RegionTreeID> *managed = NULL
       );
+      tracing = true;
     }
   }
 
@@ -40,15 +44,22 @@ private:
     if(!skip_) {
       Legion::Runtime::get_runtime()->end_trace(
         Legion::Runtime::get_context(), id_);
+      tracing = false;
     }
     else {
       skip_ = false;
     }
   }
 
-  static inline id_t g_id_ = 0;
+public:
+  static bool is_tracing() {
+    return tracing;
+  }
+
+private:
   id_t id_;
   bool skip_;
+  static inline bool tracing = false;
 
 }; // struct trace
 

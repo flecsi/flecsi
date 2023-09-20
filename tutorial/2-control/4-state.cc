@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "4-state.hh"
 
 #include "flecsi/flog.hh"
@@ -8,53 +5,43 @@
 
 using namespace state;
 
-int
-allocate() {
+void
+allocate(control_policy & policy) {
   flog(info) << "allocate" << std::endl;
 
-  /*
-    Call a method of the control policy to allocate an array of size 10.
-   */
+  // Call a method of the control policy to allocate an array of size 10.
 
-  control::policy().allocate_values(10);
-
-  return 0;
+  policy.allocate_values(10);
 }
 control::action<allocate, cp::allocate> allocate_action;
 
-int
-initialize() {
+void
+initialize(control_policy & policy) {
   flog(info) << "initialize" << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and initialize.
-   */
+  // Access the array through the 'values()' method, and initialize.
 
-  size_t * const values = control::policy().values();
+  control_policy::int_custom & values = policy.values();
 
-  for(size_t i{0}; i < 10; ++i) {
+  for(std::size_t i{0}; i < 10; ++i) {
     values[i] = 20 - i;
   } // for
 
-  control::policy().steps() = 5;
-
-  return 0;
+  policy.steps() = 5;
 }
 control::action<initialize, cp::initialize> initialize_action;
 
-int
-advance() {
+void
+advance(control_policy & policy) {
   std::stringstream ss;
 
-  ss << "advance " << control::policy().step() << std::endl;
+  ss << "advance " << policy.step() << std::endl;
 
-  /*
-    Access the array through the 'values()' method, and modify.
-   */
+  // Access the array through the 'values()' method, and modify.
 
-  size_t * const values = control::policy().values();
+  control_policy::int_custom & values = policy.values();
 
-  for(size_t i{0}; i < 10; ++i) {
+  for(std::size_t i{0}; i < 10; ++i) {
     ss << values[i] << " ";
     values[i] = values[i] + 1;
   } // for
@@ -62,38 +49,24 @@ advance() {
   ss << std::endl;
 
   flog(info) << ss.str();
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;
 
-int
-finalize() {
+void
+finalize(control_policy & policy) {
   flog(info) << "finalize" << std::endl;
 
-  /*
-    Deallocate the array using the control policy interface.
-   */
+  // Deallocate the array using the control policy interface.
 
-  control::policy().deallocate_values();
-
-  return 0;
+  policy.deallocate_values();
 }
 control::action<finalize, cp::finalize> finalize_action;
 
 int
 main(int argc, char ** argv) {
-  auto status = flecsi::initialize(argc, argv);
-  status = control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  }
-
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-
-  status = flecsi::start(control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  return run.main<control>(args.act);
 } // main

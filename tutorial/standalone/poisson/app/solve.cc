@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #include "solve.hh"
 #include "options.hh"
 #include "poisson.hh"
@@ -12,12 +7,13 @@
 
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
+#include <flecsi/util/annotation.hh>
 
 using namespace flecsi;
 
-int
-poisson::action::solve() {
-  annotation::rguard<solve_region> guard;
+void
+poisson::action::solve(control_policy & cp) {
+  util::annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{100};
@@ -36,19 +32,22 @@ poisson::action::solve() {
   t.skip();
   do {
     auto g = t.make_guard();
+    // Annotation to time each cycle of the poisson solve
+    util::annotation::guard<util::annotation::execution,
+      util::annotation::detail::low>
+      aguard("poisson-cycle");
     for(std::size_t i{0}; i < sub; ++i) {
-      execute<task::red>(m, ud(m), fd(m));
-      execute<task::black>(m, ud(m), fd(m));
+      execute<task::red, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
+      execute<task::black, default_accelerator>(cp.m, ud(cp.m), fd(cp.m));
     } // for
     ita += sub;
 
-    execute<task::discrete_operator>(m, ud(m), Aud(m));
-    auto residual = reduce<task::diff, exec::fold::sum>(m, fd(m), Aud(m));
+    execute<task::discrete_operator>(cp.m, ud(cp.m), Aud(cp.m));
+    auto residual =
+      reduce<task::diff, exec::fold::sum>(cp.m, fd(cp.m), Aud(cp.m));
     err = std::sqrt(residual.get());
     flog(info) << "residual: " << err << " (" << ita << " iterations)"
                << std::endl;
     flog::flush();
   } while(err > error_tol.value() && ita < max_iterations.value());
-
-  return 0;
 } // solve

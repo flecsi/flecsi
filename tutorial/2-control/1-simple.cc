@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "1-simple.hh"
 
 #include "flecsi/execution.hh"
@@ -8,85 +5,49 @@
 
 using namespace simple;
 
-/*
-  Function definition of an initialize action.
- */
+// Function definition of an initialize action.
 
-int
-initialize() {
+void
+initialize(control_policy &) {
   flog(info) << "initialize" << std::endl;
-  return 0;
 }
 
-/*
-  Register the initialize action under the 'initialize' control point.
- */
+// Register the initialize action under the 'initialize' control point.
 
 control::action<initialize, cp::initialize> initialize_action;
 
-/*
-  Function definition of an advance action.
- */
+// Function definition of an advance action.
 
-int
-advance() {
+void
+advance(control_policy &) {
   flog(info) << "advance" << std::endl;
-  return 0;
 }
 
-/*
-  Register the advance action under the 'advance' control point.
- */
+// Register the advance action under the 'advance' control point.
 
 control::action<advance, cp::advance> advance_action;
 
-/*
-  Function definition of a finalize action.
- */
+// Function definition of a finalize action.
 
-int
-finalize() {
+void
+finalize(control_policy &) {
   flog(info) << "finalize" << std::endl;
-  return 0;
 }
 
-/*
-  Register the finalize action under the 'finalize' control point.
- */
+// Register the finalize action under the 'finalize' control point.
 
 control::action<finalize, cp::finalize> finalize_action;
 
-/*
-  The main function is similar to previous examples, but with the addition of
-  logic to check control-model options.
- */
+// The main function is similar to previous examples, but with the addition of
+// logic to check control-model options.
 
 int
 main(int argc, char ** argv) {
-  auto status = flecsi::initialize(argc, argv);
-
-  /*
-    The check_options() method checks to see if any control-model options were
-    specified on the command line, and handles them appropriately.
-   */
-
-  status = control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  }
-
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-
-  /*
-    Pass the control model's 'execute' method to start. FleCSI will invoke
-    the execute function after runtime initialization. This will, in turn,
-    execute all of the cycles, and actions of the control model.
-   */
-
-  status = flecsi::start(control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  // Run the control model.  control::execute will, in turn,
+  // execute all of the cycles, and actions of the control model.
+  return run.main<control>(args.act);
 } // main

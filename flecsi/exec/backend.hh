@@ -1,11 +1,11 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_BACKEND_HH
 #define FLECSI_EXEC_BACKEND_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/exec/task_attributes.hh"
-#include <flecsi-config.h>
 
 #include <cstddef>
 

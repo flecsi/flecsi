@@ -1,37 +1,27 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_RUN_LEG_CONTEXT_HH
 #define FLECSI_RUN_LEG_CONTEXT_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/run/context.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
+#include "flecsi/util/mpi.hh"
 
 #include <legion.h>
-
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
-#include <mpi.h>
 
 #include <functional>
 #include <map>
 #include <string_view>
 #include <unordered_map>
 
-namespace flecsi::run {
+namespace flecsi {
+namespace run {
 /// \defgroup legion-runtime Legion Runtime
 /// State for and control of the Legion runtime.
 /// \ingroup runtime
 /// \{
 
-inline constexpr Legion::TaskID FLECSI_TOP_LEVEL_TASK_ID = 0;
 namespace mapper {
 /// \addtogroup legion-runtime
 /// \{
@@ -40,7 +30,7 @@ namespace mapper {
 /// Flags used to request custom mapper features.
 /// \{
 
-constexpr Legion::MappingTagID
+inline constexpr Legion::MappingTagID
   force_rank_match = 0x00001000, ///< Put colors on corresponding MPI ranks.
 #if 0
   compacted_storage = 0x00002000, ///< Combine exclusive, shared, and ghosts.
@@ -61,6 +51,13 @@ using task = R(const Legion::Task *,
   Legion::Runtime *);
 }
 
+struct dependencies_guard : util::mpi::init {
+  dependencies_guard(arguments::dependent &);
+
+private:
+  dependencies_guard(int, char **);
+};
+
 struct context_t : context {
 
   /*
@@ -74,61 +71,13 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  void finalize();
+  context_t(const arguments::config &);
 
   /*
     Documentation for this interface is in the top-level context type.
    */
 
   int start(const std::function<int()> &);
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  void clear() {} // clear
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color process() const {
-    return context::process_;
-  } // process
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color processes() const {
-    return context::processes_;
-  } // processes
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color threads_per_process() const {
-    return context::threads_per_process_;
-  } // threads_per_process
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
-  Color threads() const {
-    return context::threads_;
-  } // threads
 
   /*
     Documentation for this interface is in the top-level context type.
@@ -187,31 +136,6 @@ struct context_t : context {
   }
 
   /*!
-    Set the distributed-memory domain.
-   */
-
-  void set_all_processes(const LegionRuntime::Arrays::Rect<1> & all_processes) {
-    all_processes_ = all_processes;
-  } // all_processes
-
-  /*!
-     Return the distributed-memory domain.
-   */
-
-  const LegionRuntime::Arrays::Rect<1> & all_processes() const {
-    return all_processes_;
-  } // all_processes
-
-  /*!
-    Connect with the MPI runtime.
-
-    @param ctx The Legion runtime context.
-    @param runtime The Legion task runtime pointer.
-   */
-
-  void connect_with_mpi(Legion::Context & ctx, Legion::Runtime * runtime);
-
-  /*!
     Handoff to MPI from Legion.
    */
   void mpi_handoff() {
@@ -226,11 +150,17 @@ struct context_t : context {
     handshake_.legion_wait_on_mpi();
   }
 
+  static Legion::LocalVariableID local_variable() {
+    return next_var++;
+  }
+
 private:
   /*--------------------------------------------------------------------------*
     Runtime data.
    *--------------------------------------------------------------------------*/
 
+  static inline Legion::LocalVariableID next_var;
+  arguments::argv argv;
   const std::function<int()> * top_level_action_ = nullptr;
 
   /*--------------------------------------------------------------------------*
@@ -239,10 +169,45 @@ private:
 
   std::function<void()> mpi_task_;
   Legion::MPILegionHandshake handshake_;
-  LegionRuntime::Arrays::Rect<1> all_processes_;
 };
 
 /// \}
-} // namespace flecsi::run
+} // namespace run
+
+template<class T>
+struct task_local : run::task_local_base {
+  task_local() : var(run::context_t::local_variable()) {}
+
+  T & operator*() noexcept {
+    return Run::has_context() ? *Run::get_runtime()->get_local_task_variable<T>(
+                                  Run::get_context(), var)
+                              : *mpi;
+  }
+  T * operator->() noexcept {
+    return &**this;
+  }
+
+private:
+  using Run = Legion::Runtime;
+
+  void emplace() override {
+    if(Run::has_context())
+      Run::get_runtime()->set_local_task_variable(
+        Run::get_context(), var, new T(), [](void * p) {
+          delete static_cast<T *>(p);
+        });
+    else
+      mpi.emplace();
+  }
+  void reset() noexcept override {
+    if(!Run::has_context())
+      mpi.reset();
+  }
+
+  std::optional<T> mpi;
+  Legion::LocalVariableID var;
+};
+
+} // namespace flecsi
 
 #endif

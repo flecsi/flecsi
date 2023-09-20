@@ -1,11 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 #define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/leg/bind_accessors.hh"
 #include "flecsi/exec/leg/future.hh"
@@ -17,18 +16,16 @@
 #include "flecsi/util/serialize.hh"
 #include <flecsi/flog.hh>
 
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
 #include <legion.h>
 
+#include <regex>
 #include <string>
 #include <utility>
 
 namespace flecsi {
 
 inline flog::devel_tag task_wrapper_tag("task_wrapper");
+inline flog::tag task_names_tag("task_names");
 
 // Task parameter serialization (needed only for Legion):
 namespace data {
@@ -148,9 +145,6 @@ namespace exec::leg {
 using run::leg::task;
 
 namespace detail {
-inline util::counter<LEGION_MAX_APPLICATION_TASK_ID> task_counter(
-  run::FLECSI_TOP_LEVEL_TASK_ID);
-
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
@@ -168,18 +162,16 @@ struct tuple_get<std::tuple<TT...>> {
 /*!
   Arbitrary index for each task.
 
-  @tparam F          Legion task function.
+  @tparam F Legion task function.
   @tparam A task attributes mask
  */
 
 template<auto & F, TaskAttributes A = loc | leaf>
 // 'extern' works around GCC bug #96523
-extern const Legion::TaskID
-  task_id = (run::context::instance().register_init(detail::register_task<
-               typename util::function_traits<decltype(F)>::return_type,
-               F,
-               A>),
-    detail::task_counter());
+extern const Legion::TaskID task_id =
+  (run::context::register_init(
+     detail::register_task<typename util::function_t<F>::return_type, F, A>),
+    Legion::Runtime::generate_static_task_id());
 
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void
@@ -188,10 +180,44 @@ detail::register_task() {
   static_assert(processor_type != task_processor_type_t::mpi,
     "Legion tasks cannot use MPI");
 
-  const std::string name = util::symbol<*TASK>();
+  std::string name = util::symbol<*TASK>();
+
   {
-    flog::devel_guard guard(task_wrapper_tag);
-    flog_devel(info) << "registering pure Legion task " << name << std::endl;
+    flog::guard guard(task_names_tag);
+
+    // extract wrapped task
+    constexpr char wrapper_prefix[] = "flecsi::exec::leg::task_wrapper<";
+    if(name.rfind(wrapper_prefix, 0) == 0) {
+      auto wrap_end = name.rfind(", (flecsi::exec::task_processor_type_t)");
+      name = name.substr(
+        sizeof(wrapper_prefix) - 1, wrap_end - sizeof(wrapper_prefix) + 1);
+    }
+
+    // replace known layouts
+    const std::array<std::string, 6> layouts = {
+      "raw", "single", "dense", "ragged", "sparse", "particle"};
+    std::regex layout_regex{
+      "(^|[^\\w:_])flecsi::data::accessor<\\(flecsi::data::layout\\)(\\d+)"};
+    std::smatch m;
+
+    while(std::regex_search(name, m, layout_regex)) {
+      name.replace(m[0].first,
+        m[0].second,
+        std::string(m[1]) + "flecsi::data::accessor<" +
+          layouts[std::stoi(m[2])]);
+    }
+
+    std::string sig = name;
+    name = util::strip_return_type(util::strip_parameter_list(name));
+
+    // hash signature and attach to short name
+    std::stringstream ss;
+    ss << name << " # ";
+    ss << std::hex << std::hash<std::string>{}(sig);
+    name = ss.str();
+
+    // allows dumping out full signatures mappping via "task_names" tag
+    flog(info) << "Registering task \"" << name << "\": " << sig << "\n";
   }
 
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
@@ -229,16 +255,6 @@ detail::register_task() {
   } // if
 }
 
-// A trivial wrapper for nullary functions.
-template<auto & F>
-auto
-verb(const Legion::Task *,
-  const std::vector<Legion::PhysicalRegion> &,
-  Legion::Context,
-  Legion::Runtime *) {
-  return F();
-}
-
 /*!
  The task_wrapper type provides execution
  functions for user and MPI tasks.
@@ -250,7 +266,7 @@ verb(const Legion::Task *,
 template<auto & F, task_processor_type_t P>
 struct task_wrapper {
 
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 
@@ -278,6 +294,7 @@ struct task_wrapper {
     (ann::rguard<ann::execute_task_bind>(tname),
       bind_accessors<P>(runtime, context, regions, task->futures)(task_args));
     return ann::rguard<ann::execute_task_user>(tname),
+           run::task_local_base::guard(),
            apply(F, std::forward<param_tuple>(task_args));
   } // execute_user_task
 
@@ -285,7 +302,7 @@ struct task_wrapper {
 
 template<auto & F>
 struct task_wrapper<F, task_processor_type_t::mpi> {
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 

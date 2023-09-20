@@ -34,17 +34,15 @@ struct control_policy {
   }
 
   static bool step_control() {
-    return control::instance().step()++ < 5;
+    return control::state().step()++ < 5;
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  template<cp P>
+  using p = flecsi::run::control_point<P>;
 
-  using cycle = flecsi::run::
-    cycle<step_control, control_point<cp::two>, control_point<cp::three>>;
+  using main_cycle = flecsi::run::cycle<step_control, p<cp::two>, p<cp::three>>;
 
-  using control_points =
-    std::tuple<control_point<cp::one>, cycle, control_point<cp::four>>;
+  using control_points = util::types<p<cp::one>, main_cycle, p<cp::four>>;
 
 private:
   size_t step_{0};

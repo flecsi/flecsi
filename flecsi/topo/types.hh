@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_TOPO_UTILITY_TYPES_HH
@@ -6,16 +6,18 @@
 
 #include "flecsi/data/field.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/topo/index.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/constant.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <type_traits>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \addtogroup topology
 /// \{
+/// \cond core
 using connect_field = field<util::id, data::ragged>;
 
 namespace detail {
@@ -24,9 +26,9 @@ template<class, class>
 struct connect;
 
 /*!
-  Connectivity information for the given specialization policy \emph{P} for the
-  given key_types in \emph{VT}. This data structure adds ragged fields to the
-  specialized user type to store connectivity informaiton for each
+  Connectivity fields for the given specialization and specified entity kinds.
+  This data structure adds ragged fields to the
+  specialized user type to store connectivity information for each
   user-specified connectivity.
 
   @tparam P  A core topology specialization policy.
@@ -239,80 +241,34 @@ struct id {
 private:
   T t;
 };
+/// \endcond
 
 /// Specify an iteration over \c id objects.
+/// This function is supported for GPU execution.
 /// \tparam S index space
 /// \param c range of integers
-/// \return a range of \c id<S> objects, perhaps lifetime-bound to \a c
+/// \return a range of \c id\<S\> objects
 template<auto S, class C>
 FLECSI_INLINE_TARGET auto
 make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
+/// \anchor make_ids
 
-namespace stride_impl {
-template<auto N>
-struct table {
-  using type = decltype(N);
-  table(type left) {
-    static_assert(std::is_integral_v<type>, "N must be an integral type");
-    for(type i{0}; i < N; ++i) {
-      data_[i] = (left + i) % N;
-    }
-  }
-  type operator[](type i) const {
-    flog_assert(i < N, "invalid index");
-    return data_[i];
-  }
-
-private:
-  // replace with gpu-supported std::array
-  type data_[N];
-};
-
-/*!
-  Adaptor for creating strided iterators over contiguous array types.
- */
-
-template<auto S, auto N>
-struct stride {
-  using type = decltype(N);
-  stride(type o, type c) : t_(o), o_(o), c_(c) {
-    flog_assert(c < N, "invalid color");
-  }
-  auto operator()(const type i) const {
-    return id<S>(o_ + t_[c_] + i * N);
-  }
-
-private:
-  table<N> t_;
-  type o_, c_;
-};
-} // namespace stride_impl
-
-/*!
-  Make a strided array iterator.
-
-  @tparam S The index space.
-  @tparam N The number of stride colors.
-  @tparam V The conainer type.
-
-  @param v A container instance.
-  @param o The offset at which to start.
-  @param c The color.
- */
-
-template<auto S, auto N, class V>
-FLECSI_INLINE_TARGET auto
-make_stride_ids(V && v, decltype(N) o, decltype(N) c) {
-  return util::transform_view(
-    std::forward<V>(v), stride_impl::stride<S, N>(o, c));
+template<class T>
+void
+concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
+  auto g = util::mpi::all_gatherv(v, comm);
+  v.clear();
+  v.reserve(total);
+  for(auto & g1 : g)
+    for(auto & t : g1)
+      v.push_back(std::move(t));
 }
 
 /// \}
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif

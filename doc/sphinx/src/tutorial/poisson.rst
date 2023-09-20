@@ -50,10 +50,10 @@ The control policy for this example is located in
 *specialization/control.hh*. This implementation is consistent with the
 examples in :ref:`TUT-CM` Tutorial.
 
-.. figure:: images/standalone.png
+.. figure:: images/poisson.svg
    :align: center
 
-   Control Policy for Stand-Alone Application.
+   Control Policy for the Poisson Stand-Alone Application.
 
 Main function
 +++++++++++++

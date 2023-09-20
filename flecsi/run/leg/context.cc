@@ -1,29 +1,11 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
-#include <flecsi-config.h>
-
-#include "flecsi/data.hh"
 #include "flecsi/run/leg/context.hh"
+#include "flecsi/data.hh"
 #include "flecsi/run/leg/mapper.hh"
 
 namespace flecsi {
-// These must be defined with the full execution machinery available:
+// To avoid a separate source file in data/leg:
 namespace data::leg {
-mirror::mirror(size2 s)
-  : rects({s.first, 2}), columns({2, 1}),
-    part(rects,
-      columns,
-      halves::field(columns)
-        .use([s](auto f) { execute<fill>(f, s.first); })
-        .fid(),
-      complete),
-    width(s.second) {}
-void
-mirror::fill(halves::Field::accessor<wo> a, size_t c) {
-  const Legion::coord_t clr = color();
-  a[0] = {{0, clr}, {upper(c), clr}};
-}
+mirror::mirror(size2 s) : rects({s.first, 2}), part(rects), width(s.second) {}
 void
 mirror::extend(field<std::size_t, single>::accessor<ro> r,
   halves::Field::accessor<wo> w,
@@ -36,8 +18,6 @@ mirror::extend(field<std::size_t, single>::accessor<ro> r,
 
 namespace run {
 
-using namespace boost::program_options;
-
 /*----------------------------------------------------------------------------*
   Legion top-level task.
  *----------------------------------------------------------------------------*/
@@ -45,23 +25,18 @@ using namespace boost::program_options;
 void
 top_level_task(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
-  Legion::Context ctx,
-  Legion::Runtime * runtime) {
+  Legion::Context,
+  Legion::Runtime *) {
 
   context_t & context_ = context_t::instance();
 
-  /*
-    Initialize MPI interoperability.
-   */
-
-  context_.connect_with_mpi(ctx, runtime);
   context_.mpi_wait();
   /*
     Invoke the FleCSI runtime top-level action.
    */
 
-  detail::data_guard(),
-    context_.exit_status() = (*context_.top_level_action_)();
+  detail::data_guard(), task_local_base::guard(),
+    Legion::Runtime::set_return_code((*context_.top_level_action_)());
 
   /*
     Finish up Legion runtime and fall back out to MPI.
@@ -70,65 +45,12 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-//----------------------------------------------------------------------------//
-// Implementation of context_t::initialize.
-//----------------------------------------------------------------------------//
+context_t::context_t(const arguments::config & c)
+  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.backend) {}
 
-int
-context_t::initialize(int argc, char ** argv, bool dependent) {
-  using util::mpi::test;
-
-  if(dependent) {
-    int version, subversion;
-    test(MPI_Get_version(&version, &subversion));
-
-#if defined(GASNET_CONDUIT_MPI)
-    if(version == 3 && subversion > 0) {
-      int provided;
-      test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
-
-      if(provided < MPI_THREAD_MULTIPLE) {
-        std::cerr << "Your implementation of MPI does not support "
-                     "MPI_THREAD_MULTIPLE which is required for use of the "
-                     "GASNet MPI conduit with the Legion-MPI Interop!"
-                  << std::endl;
-        std::abort();
-      } // if
-    }
-    else {
-      // Initialize the MPI runtime
-      test(MPI_Init(&argc, &argv));
-    } // if
-#else
-    test(MPI_Init(&argc, &argv));
-#endif
-  } // if
-
-  std::tie(context::process_, context::processes_) = util::mpi::info();
-
-  auto status = context::initialize_generic(argc, argv, dependent);
-
-  if(status != success && dependent) {
-    test(MPI_Finalize());
-  } // if
-
-  return status;
-} // initialize
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::finalize.
-//----------------------------------------------------------------------------//
-
-void
-context_t::finalize() {
-  context::finalize_generic();
-
-#ifndef GASNET_CONDUIT_MPI
-  if(context::initialize_dependent_) {
-    util::mpi::test(MPI_Finalize());
-  } // if
-#endif
-} // finalize
+dependencies_guard::dependencies_guard(arguments::dependent & d)
+  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(int mc, char ** mv) : init(mc, mv) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
@@ -149,6 +71,7 @@ context_t::start(const std::function<int()> & action) {
     Setup Legion top-level task.
    */
 
+  const TaskID FLECSI_TOP_LEVEL_TASK_ID = Runtime::generate_static_task_id();
   Runtime::set_top_level_task_id(FLECSI_TOP_LEVEL_TASK_ID);
 
   {
@@ -182,48 +105,11 @@ context_t::start(const std::function<int()> & action) {
 
   context::start();
 
-  /*
-    Legion command-line arguments.
-   */
-
-  std::vector<char *> largv;
-  largv.push_back(argv_[0]);
-
-  auto iss = std::istringstream{backend_};
-  std::vector<std::string> lsargv(std::istream_iterator<std::string>{iss},
-    std::istream_iterator<std::string>());
-
-  for(auto & arg : lsargv) {
-    largv.push_back(&arg[0]);
-  } // for
-
   // FIXME: This needs to be gotten from Legion
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_ * context::threads_per_process_;
 
-  /*
-    Start Legion runtime.
-   */
-
-  {
-    flog::devel_guard("context");
-
-    std::stringstream stream;
-
-    stream << "Starting Legion runtime" << std::endl;
-    stream << "\targc: " << largv.size() << std::endl;
-    stream << "\targv: ";
-
-    for(auto opt : largv) {
-      stream << opt << " ";
-    } // for
-
-    stream << std::endl;
-
-    flog_devel(info) << stream.str();
-  } // scope
-
-  Runtime::start(largv.size(), largv.data(), true);
+  Runtime::start(argv.size(), arguments::pointers(argv).data(), true);
 
   while(true) {
     test(MPI_Barrier(MPI_COMM_WORLD));
@@ -232,27 +118,12 @@ context_t::start(const std::function<int()> & action) {
     test(MPI_Barrier(MPI_COMM_WORLD));
     if(!mpi_task_)
       break;
-    mpi_task_();
+    task_local_base::guard(), mpi_task_();
     mpi_task_ = nullptr;
   }
 
-  Legion::Runtime::wait_for_shutdown();
-
-  return context::exit_status();
+  return Legion::Runtime::wait_for_shutdown();
 } // context_t::start
-
-//----------------------------------------------------------------------------//
-// Implementation of context_t::connect_with_mpi.
-//----------------------------------------------------------------------------//
-
-void
-context_t::connect_with_mpi(Legion::Context &, Legion::Runtime *) {
-  LegionRuntime::Arrays::Rect<1> launch_bounds(
-    LegionRuntime::Arrays::Point<1>(0),
-    LegionRuntime::Arrays::Point<1>(processes_ - 1));
-
-  context_t::instance().set_all_processes(launch_bounds);
-} // context_t::connect_with_mpi
 
 } // namespace run
 } // namespace flecsi

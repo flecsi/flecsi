@@ -1,15 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_4_DATA_CANONICAL_HH
 #define TUTORIAL_4_DATA_CANONICAL_HH
 
+#include <flecsi/data.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/topo/unstructured/interface.hh>
 
-using namespace flecsi;
-
-struct canon : topo::specialization<topo::unstructured, canon> {
+struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
   enum index_space { vertices, cells };
   using index_spaces = has<cells, vertices>;
   using connectivities = list<>;
@@ -24,7 +19,7 @@ struct canon : topo::specialization<topo::unstructured, canon> {
     }
 
     template<index_space From>
-    auto cells(topo::id<From> from) {
+    auto cells(flecsi::topo::id<From> from) {
       return B::template entities<index_space::cells>(from);
     }
 
@@ -39,66 +34,46 @@ struct canon : topo::specialization<topo::unstructured, canon> {
 
     // clang-format off
     return {
-      MPI_COMM_WORLD,
-      1, /* colors */
-      /* process_colors */
-      { /* over global processes */
-        std::vector<Color>{ 0 }
-      },
-      /* color_peers */
-      {
-        0
-      },
-      /* peers */
-      {
-        {{}},
-        {{}}
-      },
+      /* number of colors */
+      1,
       { /* over index spaces */
-        { /* cells over global number of colors */
-          4 /* partition size */
+        {
+          /* peers */
+          {{}},
+          { /* cells over global number of colors */
+            4 /* partition size */
+          },
+          4,
+          { /* cells over process colors */
+            {
+              4, /* entities */
+              {}, /* peers */
+              {} /* cnx_allocs */
+            }
+          },
+          {1}
         },
-        { /* vertices over global number of colors */
-          2 /* partition size */
+        {
+          /* peers */
+          {{}},
+          { /* vertices over global number of colors */
+            2 /* partition size */
+          },
+          2,
+          { /* vertices over process colors */
+            {
+              2, /* entities */
+              {}, /* peers */
+              {} /* cnx_allocs */
+            }
+          },
+          {1}
         }
       },
-      { /* over index spaces */
-        { /* cells over process colors */
-          base::process_coloring{
-            0,
-            4,
-            { /* index_coloring */
-              {0, 1, 2, 3}, /* all */
-              {0, 1, 2, 3}, /* owned */
-              {0, 1, 2, 3}, /* exclusive */
-              {}, /* shared */
-              {} /* ghost */
-            },
-            {}, /* peers */
-            {}, /* cnx_allocs */
-            {} /* cnx_colorings */
-          }
-        },
-        { /* vertices over process colors */
-          base::process_coloring{
-            0,
-            2,
-            { /* index_coloring */
-              {0, 1}, /* all */
-              {0, 1}, /* owned */
-              {0, 1}, /* exclusive */
-              {}, /* shared */
-              {} /* ghost */
-            },
-            {}, /* peers */
-            {}, /* cnx_allocs */
-            {} /* cnx_colorings */
-          }
-        }
-      }
+      /* number of peers per color over all index spaces */
+      {0}
     };
     // clang-format on
-    return {};
   } // color
 };
 

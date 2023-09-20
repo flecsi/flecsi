@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_COPY_PLAN_HH
@@ -314,72 +314,81 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
   /// Type ragged is used to create actual buffers for setting up
   /// the data to be sent. It includes setting up buffers for both
   /// send and receive data.
+  /// Each iteration should start sending data from the beginning:
+  /// \c operator() will ignore data that has already been sent.
   struct ragged {
     /*!
-        This constructor is invoked multiple times, in particular
-        to resume communication after the first send.
+      Prepare an object for writing.
+
+      \param b send buffer (for destination color)
+      \param first whether this is the first round of communication
     */
-    explicit ragged(Buffer & b) : skip(b.off), w(b) {}
+    explicit ragged(Buffer & b, bool first = false)
+      : skip(first ? b.off = 0 : b.off), w(b) {}
 
     /*! Operator to communicate field data
 
-     @param rag input accessor or mutator to the ragged field that needs
-    to be communication.
+     \param rag accessor or mutator for the ragged field to be communicated
      @param i the index i over the topology index-space of the field, e.g.,
               cell i for an unstructured topology specialization with cells.
+     \param sent set whenever any data is sent, indicating that another
+       iteration of \c buffers_category::xfer is required to receive it
 
      \return boolean indicating that row data can be fitted in the buffer.
     */
-    template<class R> // accessor or mutator
-    bool operator()(const R & rag, std::size_t i) {
+    template<class R>
+    bool operator()(const R & rag, std::size_t i, bool & sent) {
+      const auto full = [&] {
+        flog_assert(sent, "no data fits");
+        return false;
+      };
       const auto row = rag[i];
       const auto n = row.size();
-      auto & b = w.get_buffer();
-      if(skip < n) {
-        // Each row's record is its index, the number of elements remaining to
-        // write in it (which might not all fit), and then the elements.
-        // The first row is prefixed with a flag to indicate resumption.
-        if(!b.len && !w(!!skip) || !w(i) || !w(n - skip))
-          return false;
+      if(skip > n)
+        skip -= n + 1;
+      else {
+        auto & b = w.get_buffer();
+        // Each row's record comprises the number of elements remaining to
+        // write in it and then as many of those as fit.  The first row is
+        // prefixed with the number of complete rows sent and a flag to
+        // indicate a further partial row.  (Rarely, the same row is sent more
+        // than once, so its index would be insufficient to synchronize.)
+        if(!b.len && !(w(rows) && w(!!skip)))
+          return full();
+        if(skip)
+          --skip, --b.off;
+        if(!w(n - skip))
+          return full();
+        ++b.off;
         for(auto s = std::exchange(skip, 0); s < n; ++s)
-          if(w(row[s]))
+          if(w(row[s])) {
             ++b.off;
-          else {
-            flog_assert(b.len > 3, "no data fits");
-            return false;
+            sent = true;
           }
+          else
+            return full();
       }
-      else
-        skip -= n;
+      ++rows;
       return true;
     }
 
-    /*! This method should be invoked for the first use in each (send)
-       communication.
-
-        @param b reference to the input buffer. The passed
-        buffer should point to the correct index in the list of all buffers
-        created for sending and receiving data.
-    */
-    static ragged truncate(Buffer & b) {
-      b.off = 0;
-      return ragged(b);
-    }
-
     /*! The method to read received data.
+      An appropriate subrange of \a ghost is used on each call.
 
        @param rag The mutator to the ragged field
        @param b The buffer where the data is received
-       @param f The function object encoding "remote/shared index -> local/ghost
-       index map"
+       \param ghost range of local (ghost) indices
     */
-    template<class R, class F>
-    static void read(const R & rag, const Buffer & b, F && f) {
+    template<class M, class R>
+    static void read(const M & rag, const Buffer & b, R && ghost) {
       Buffer::reader r{&b};
-      flog_assert(r, "empty message");
+      if(!r) // resumption information exists only if any rows were sent
+        return;
+      const auto e = ghost.end();
+      auto g = std::next(std::forward<R>(ghost).begin(), r.get<std::size_t>());
       bool resume = r();
-      while(r) {
-        const auto row = rag[f(r.get<std::size_t>())];
+      for(; g != e; ++g) {
+        const auto row = rag[*g];
         if(!r)
           break; // in case the write stopped mid-record
         if(resume)
@@ -391,11 +400,14 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         while(r && n--)
           row.push_back(r());
       }
+      flog_assert(!r, "too many ghost rows");
     }
 
   private:
-    // Just count linearly (many ghost visitors will be sequential anyway):
-    std::size_t skip;
+    // We simply count elements sent, since many ghost visitors will be
+    // sequential anyway.  To avoid ambiguity for empty rows, we also count
+    // the size of a row as an element.
+    std::size_t rows = 0, skip;
     Buffer::writer w;
   };
 };

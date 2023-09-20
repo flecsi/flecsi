@@ -1,9 +1,6 @@
-#  Copyright (c) 2016, Los Alamos National Security, LLC
-#  All rights reserved.
-
 include(CMakeDependentOption)
 
-option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" OFF)
+option(ENABLE_FLOG "Enable FleCSI Logging Utility (FLOG)" ON)
 
 cmake_dependent_option(FLOG_ENABLE_COLOR_OUTPUT
   "Enable colorized flog logging" ON "ENABLE_FLOG" OFF)
@@ -21,25 +18,13 @@ cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable flog debug mode" OFF
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEBUG)
 
-cmake_dependent_option(FLOG_ENABLE_EXTERNAL
-  "Enable messages that are defined at namespace scope" OFF "ENABLE_FLOG" ON)
-mark_as_advanced(FLOG_ENABLE_EXTERNAL)
-
 cmake_dependent_option(FLOG_ENABLE_DEVELOPER_MODE
   "Enable internal FleCSI developer messages" OFF "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEVELOPER_MODE)
 
-set(FLOG_TAG_BITS "1024" CACHE STRING
-  "Select the number of bits to use for tag groups")
-mark_as_advanced(FLOG_TAG_BITS)
-
 set(FLOG_SERIALIZATION_INTERVAL "100" CACHE STRING
   "Select the frequency of message serialization in number of tasks")
 mark_as_advanced(FLOG_SERIALIZATION_INTERVAL)
-
-set(FLOG_SERIALIZATION_THRESHOLD "1024" CACHE STRING
-  "Select the threshold size in number of messages")
-mark_as_advanced(FLOG_SERIALIZATION_THRESHOLD)
 
 if(ENABLE_FLOG)
   set(FLOG_STRIP_LEVELS 0 1 2 3 4)
@@ -57,5 +42,5 @@ endif()
 
 if(FLOG_ENABLE_MPI)
   find_package(Threads)
-  list(APPEND TPL_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(FleCSI PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()

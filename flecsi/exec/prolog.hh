@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // Backend-independent task argument handling.
 
 #ifndef FLECSI_EXEC_PROLOG_HH
@@ -48,7 +51,9 @@ protected:
 */
 template<task_processor_type_t ProcessorType>
 struct prolog : task_prologue<ProcessorType> {
-  // Note that accessors here may be empty versions made to be serialized.
+  // Note that accessors here may be empty versions made to be serialized and
+  // that the arguments have been moved from (which doesn't matter for the
+  // relevant types).
   template<class P, class... AA>
   prolog(P & p, AA &... aa) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
@@ -63,6 +68,11 @@ private:
   }
 
   using task_prologue<ProcessorType>::visit; // for raw accessors, futures, etc.
+
+  static void visit(data::detail::host_only &, decltype(nullptr)) {
+    static_assert(ProcessorType != flecsi::exec::task_processor_type_t::toc,
+      "accessor type is supported only on host");
+  }
 
   template<class P, class A>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p, A && a) {

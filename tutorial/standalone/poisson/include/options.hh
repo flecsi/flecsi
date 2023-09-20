@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #ifndef POISSON_OPTIONS_HH
 #define POISSON_OPTIONS_HH
 

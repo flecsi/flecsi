@@ -1,6 +1,3 @@
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-
 #------------------------------------------------------------------------------#
 # Add header files. Note that these will be "exported" to the parent
 # scope below.
@@ -12,7 +9,6 @@ set(topo_HEADERS
   global.hh
   index.hh
   size.hh
-  narray/coloring_utils.hh
   narray/interface.hh
   narray/types.hh
   ntree/coloring.hh
@@ -54,76 +50,173 @@ set(topo_SOURCES
 
 # index -----------------------------------------------------------------------#
 
-add_unit(index
+flecsi_add_test(index
   SOURCES
     test/index.cc
-  THREADS 2
+  PROCS 2
   )
 
 # unstructured ---------------------------------------------------------------#
 
-add_unit(coloring
+flecsi_add_test(coloring
   SOURCES
     unstructured/test/coloring.cc
     unstructured/test/simple_definition.hh
   INPUTS
     unstructured/test/simple2d-16x16.msh
-    unstructured/test/simple2d-8x8.msh
-  THREADS 5
+    unstructured/test/coloring_5.5.0.blessed
+    unstructured/test/coloring_5.5.1.blessed
+    unstructured/test/coloring_5.5.2.blessed
+    unstructured/test/coloring_5.5.3.blessed
+    unstructured/test/coloring_5.5.4.blessed
+    unstructured/test/coloring_5.2.0.blessed
+    unstructured/test/coloring_5.2.1.blessed
+    unstructured/test/coloring_1.5.0.blessed
+    unstructured/test/coloring_1.5.1.blessed
+    unstructured/test/coloring_1.5.2.blessed
+    unstructured/test/coloring_1.5.3.blessed
+    unstructured/test/coloring_1.5.4.blessed
+  PROCS 5
 )
 
-add_unit(closure
-  SOURCES
-    unstructured/test/closure.cc
-    unstructured/test/simple_definition.hh
-    unstructured/test/ugm_definition.hh
-  INPUTS
-    unstructured/test/simple2d-16x16.msh
-    unstructured/test/simple2d-8x8.msh
-    unstructured/test/bunny.ugm
-  THREADS 2
-)
-
-set(UTHREADS 4)
+set(UPROCS 4)
 if(FLECSI_BACKEND STREQUAL "legion")
-  set(UTHREADS 1 2 4 6)
+  set(UPROCS 1 2 4 6)
 endif()
 
-add_unit(unstructured
+flecsi_add_test(unstructured
   SOURCES
     unstructured/test/simple_definition.hh
+    unstructured/test/unstructured.hh
     unstructured/test/unstructured.cc
   INPUTS
+    unstructured/test/simple2d-3x3.msh
     unstructured/test/simple2d-8x8.msh
-  THREADS ${UTHREADS}
+    unstructured/test/single-cell.msh
+    unstructured/test/two-cell.msh
+    unstructured/test/disconnected.msh
+    unstructured/test/unstructured_disconnected_entities_1_0.blessed
+    unstructured/test/unstructured_disconnected_entities_1_1.blessed
+    unstructured/test/unstructured_disconnected_entities_1_2.blessed
+    unstructured/test/unstructured_disconnected_entities_1_3.blessed
+    unstructured/test/unstructured_disconnected_entities_2_0.blessed
+    unstructured/test/unstructured_disconnected_entities_2_1.blessed
+    unstructured/test/unstructured_disconnected_entities_2_2.blessed
+    unstructured/test/unstructured_disconnected_entities_2_3.blessed
+    unstructured/test/unstructured_disconnected_entities_4_0.blessed
+    unstructured/test/unstructured_disconnected_entities_4_1.blessed
+    unstructured/test/unstructured_disconnected_entities_4_2.blessed
+    unstructured/test/unstructured_disconnected_entities_4_3.blessed
+    unstructured/test/unstructured_disconnected_entities_6_0.blessed
+    unstructured/test/unstructured_disconnected_entities_6_1.blessed
+    unstructured/test/unstructured_disconnected_entities_6_2.blessed
+    unstructured/test/unstructured_disconnected_entities_6_3.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_1_0.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_1_1.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_1_2.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_1_3.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_0.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_1.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_2.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_2_3.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_4_0.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_4_1.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_4_2.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_4_3.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_6_0.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_6_1.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_6_2.blessed
+    unstructured/test/unstructured_simple2d-8x8_entities_6_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_1_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_2_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_4_3.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_0.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_1.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_2.blessed
+    unstructured/test/unstructured_simple2d-3x3_entities_6_3.blessed
+    unstructured/test/unstructured_single-cell_entities_1_0.blessed
+    unstructured/test/unstructured_single-cell_entities_1_1.blessed
+    unstructured/test/unstructured_single-cell_entities_1_2.blessed
+    unstructured/test/unstructured_single-cell_entities_1_3.blessed
+    unstructured/test/unstructured_single-cell_entities_2_0.blessed
+    unstructured/test/unstructured_single-cell_entities_2_1.blessed
+    unstructured/test/unstructured_single-cell_entities_2_2.blessed
+    unstructured/test/unstructured_single-cell_entities_2_3.blessed
+    unstructured/test/unstructured_single-cell_entities_4_0.blessed
+    unstructured/test/unstructured_single-cell_entities_4_1.blessed
+    unstructured/test/unstructured_single-cell_entities_4_2.blessed
+    unstructured/test/unstructured_single-cell_entities_4_3.blessed
+    unstructured/test/unstructured_single-cell_entities_6_0.blessed
+    unstructured/test/unstructured_single-cell_entities_6_1.blessed
+    unstructured/test/unstructured_single-cell_entities_6_2.blessed
+    unstructured/test/unstructured_single-cell_entities_6_3.blessed
+    unstructured/test/unstructured_two-cell_entities_1_0.blessed
+    unstructured/test/unstructured_two-cell_entities_1_1.blessed
+    unstructured/test/unstructured_two-cell_entities_1_2.blessed
+    unstructured/test/unstructured_two-cell_entities_1_3.blessed
+    unstructured/test/unstructured_two-cell_entities_2_0.blessed
+    unstructured/test/unstructured_two-cell_entities_2_1.blessed
+    unstructured/test/unstructured_two-cell_entities_2_2.blessed
+    unstructured/test/unstructured_two-cell_entities_2_3.blessed
+    unstructured/test/unstructured_two-cell_entities_4_0.blessed
+    unstructured/test/unstructured_two-cell_entities_4_1.blessed
+    unstructured/test/unstructured_two-cell_entities_4_2.blessed
+    unstructured/test/unstructured_two-cell_entities_4_3.blessed
+    unstructured/test/unstructured_two-cell_entities_6_0.blessed
+    unstructured/test/unstructured_two-cell_entities_6_1.blessed
+    unstructured/test/unstructured_two-cell_entities_6_2.blessed
+    unstructured/test/unstructured_two-cell_entities_6_3.blessed
+  PROCS ${UPROCS}
 )
 
-add_unit(fixed
+flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
-  THREADS 4
+  INPUTS
+    unstructured/test/fixed_0.blessed
+    unstructured/test/fixed_1.blessed
+    unstructured/test/fixed_2.blessed
+    unstructured/test/fixed_3.blessed
+  PROCS 4
+)
+
+flecsi_add_test(set
+  SOURCES
+    unstructured/test/unstructured.hh
+    set/test/mpm_set.cc
+  INPUTS
+    unstructured/test/simple2d-16x16.msh
+  PROCS 4
 )
 
 # narray ----------------------------------------------------------------------#
 
-add_unit(narray
+flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
-    narray/test/narray_tasks.hh
-  THREADS 4
+  PROCS 4
 )
 
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_BACKEND STREQUAL "legion")
-  add_unit(ntree_policy
+  flecsi_add_test(ntree_policy
     SOURCES ntree/test/ntree.cc
     INPUTS ntree/test/coordinates.blessed
-    THREADS 4
+    PROCS 4
   )
 endif()
 
-add_unit(ntree_geometry
+flecsi_add_test(ntree_geometry
   SOURCES ntree/test/geometry.cc
 )

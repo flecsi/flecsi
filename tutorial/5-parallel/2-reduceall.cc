@@ -5,16 +5,13 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include "canonical.hh"
+#include "../4-data/canonical.hh"
 #include "control.hh"
 
 // this tutorial is based on a 04-data/3-dence.cc tutorial example
 // here we will add several forall / parallel_for interfaces
 
 using namespace flecsi;
-
-canon::slot canonical;
-canon::cslot coloring;
 
 const field<double>::definition<canon, canon::cells> pressure;
 
@@ -55,10 +52,10 @@ print(canon::accessor<ro> t, field<double>::accessor<ro> p) {
   } // for
 } // print
 
-int
-advance() {
-  coloring.allocate("test.txt");
-  canonical.allocate(coloring.get());
+void
+advance(control_policy &) {
+  canon::slot canonical;
+  canonical.allocate(canon::mpi_coloring("test.txt"));
 
   auto pf = pressure(canonical);
 
@@ -68,7 +65,5 @@ advance() {
   execute<reduce2, default_accelerator>(canonical, pf);
   // cpu_task
   execute<print>(canonical, pf);
-
-  return 0;
 }
 control::action<advance, cp::advance> advance_action;

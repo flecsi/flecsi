@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_TOPOLOGY_HH
@@ -30,7 +30,7 @@ struct region_base {
   /// \param s total size (perhaps much larger than what is allocated)
   /// \param f fields to define (not all of which need be allocated)
   /// \param n optional name for debugging
-  region(size2 s, const fields & f, const char * n = nullptr);
+  region_base(size2 s, const fields & f, const char * n = nullptr);
 
   /// Get (bounding) size.
   size2 size() const;
@@ -55,22 +55,12 @@ struct rows : partition {
   explicit rows(region_base &);
 };
 
-// A set of prefixes of some rows in a region_base.
-// Often each is shared with a data::prefixes object (from copy.hh).
-struct borrow : partition {
-  // A prefix is represented by a backend-specific type:
-  static auto make(prefixes_base::row,
-    std::size_t r = color()); // "constructor"
-  using Value = decltype(make({}));
-  static std::size_t get_row(const Value &); // "accessor"
-  static prefixes_base::row get_size(const Value &);
-
-  // Derives row choices from the single Value object (if any) in each row of
-  // the argument partition.
-  borrow(region_base &,
-    const partition &,
-    field_id_t,
-    completeness = incomplete);
+/// A selection of rows, typically of a \c data::prefixes object.
+struct borrow : borrow_base {
+  /// Select rows (or no row for \c nil).
+  borrow(Claims);
+  /// Get the number of selections (not the number of \e available rows).
+  Color size() const;
 };
 #endif
 
@@ -81,17 +71,11 @@ struct region : region_base {
   template<class Topo, typename Topo::index_space S>
   region(size2 s, util::key_type<S, Topo>)
     : region_base(s,
-        run::context::instance().get_field_info_store<Topo, S>(),
+        run::context::field_info_store<Topo, S>(),
         (util::type<Topo>() + '[' +
           std::to_string(static_cast<std::underlying_type_t<decltype(S)>>(S)) +
           ']')
           .c_str()) {}
-
-  template<class D>
-  void cleanup(field_id_t f, D d) {
-    // We assume that creating the objects will be successful:
-    destroy.insert_or_assign(f, std::move(d));
-  }
 
   // Return whether a copy is needed.
   template<Privileges P>
@@ -105,8 +89,9 @@ struct region : region_base {
     // writing to ghosts, or reading from them without also writing to shared,
     // clears the dirty bit, and otherwise writing to shared sets it.
     // Otherwise, it retains its value (and we don't copy).
-    return (privilege_write(g) || !sw && gr ? dirty.erase(i)
-                                            : sw && !dirty.insert(i).second) &&
+    return (privilege_write(g) || (!sw && gr)
+               ? dirty.erase(i)
+               : sw && !dirty.insert(i).second) &&
            gr;
   }
 
@@ -131,28 +116,6 @@ struct region : region_base {
   }
 
 private:
-  // Each field can have a destructor (for individual field values) registered
-  // that is invoked when the field is recreated or the region is destroyed.
-  struct finalizer {
-    template<class F>
-    finalizer(F f) : f(std::move(f)) {}
-    finalizer(finalizer && o) noexcept {
-      f.swap(o.f); // guarantee o.f is empty
-    }
-    ~finalizer() {
-      if(f)
-        f();
-    }
-    finalizer & operator=(finalizer o) noexcept {
-      f.swap(o.f);
-      return *this;
-    }
-
-  private:
-    std::function<void()> f;
-  };
-
-  std::map<field_id_t, finalizer> destroy;
   std::set<field_id_t> dirty;
 };
 
