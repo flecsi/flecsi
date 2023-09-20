@@ -162,7 +162,7 @@
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
     - section end build_noflog
-    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+    - section start build "Build with FLOG"
     - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
     - cmake --build . -j $(nproc)
     - section end build
