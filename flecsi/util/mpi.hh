@@ -4,14 +4,9 @@
 #ifndef FLECSI_UTIL_MPI_HH
 #define FLECSI_UTIL_MPI_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/util/array_ref.hh" // span
 #include "flecsi/util/serialize.hh"
-
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
 
 #include <complex>
 #include <cstddef> // byte

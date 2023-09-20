@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_BUFFERS_HH
 #define FLECSI_EXEC_BUFFERS_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_accessor.hh"

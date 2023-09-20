@@ -4,8 +4,7 @@
 #ifndef FLECSI_RUN_CONTEXT_HH
 #define FLECSI_RUN_CONTEXT_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"

@@ -1,8 +1,6 @@
-#include <flecsi-config.h>
-
+#include "flecsi/flog/state.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/flog/packet.hh"
-#include "flecsi/flog/state.hh"
 #include "flecsi/flog/utils.hh"
 #include "flecsi/util/mpi.hh"
 

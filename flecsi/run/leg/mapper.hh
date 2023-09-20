@@ -4,13 +4,8 @@
 #ifndef FLECSI_RUN_LEG_MAPPER_HH
 #define FLECSI_RUN_LEG_MAPPER_HH
 
-#include <flecsi-config.h>
-
 #include "../backend.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
+#include "flecsi/config.hh"
 
 #include <legion.h>
 #include <legion/legion_mapping.h>

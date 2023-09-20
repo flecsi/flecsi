@@ -294,12 +294,12 @@ if(ENABLE_LIBRARY)
   # Configure header.
   #----------------------------------------------------------------------------#
 
-  configure_file(${PROJECT_SOURCE_DIR}/config/flecsi-config.h.in
-    ${CMAKE_BINARY_DIR}/flecsi-config.h @ONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/flecsi/config.hh.in
+    ${CMAKE_BINARY_DIR}/flecsi/config.hh @ONLY)
 
   install(
-    FILES ${CMAKE_BINARY_DIR}/flecsi-config.h
-    DESTINATION include
+    FILES ${CMAKE_BINARY_DIR}/flecsi/config.hh
+    DESTINATION include/flecsi
   )
 
   #----------------------------------------------------------------------------#
@@ -325,7 +325,7 @@ if(ENABLE_LIBRARY)
       "${FLOG_CONFIG_CODE}\nset(${_variableName} \"${${_variableName}}\")")
   endforeach()
 
-  configure_file(${PROJECT_SOURCE_DIR}/config/FleCSIConfig.cmake.in
+  configure_file(${PROJECT_SOURCE_DIR}/cmake/FleCSI/FleCSIConfig.cmake.in
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake @ONLY)
 
   install(
@@ -371,6 +371,9 @@ if(ENABLE_LIBRARY)
     DIRECTORY
      ${PROJECT_SOURCE_DIR}/cmake/FleCSI
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake
+    FILES_MATCHING
+    PATTERN "*"
+    PATTERN "*.cmake.in" EXCLUDE
   )
 
   install(

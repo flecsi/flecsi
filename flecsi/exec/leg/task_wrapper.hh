@@ -4,8 +4,7 @@
 #ifndef FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 #define FLECSI_EXEC_LEG_TASK_WRAPPER_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/buffers.hh"
 #include "flecsi/exec/leg/bind_accessors.hh"
 #include "flecsi/exec/leg/future.hh"
@@ -16,10 +15,6 @@
 #include "flecsi/util/function_traits.hh"
 #include "flecsi/util/serialize.hh"
 #include <flecsi/flog.hh>
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 

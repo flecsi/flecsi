@@ -28,7 +28,6 @@
 # Create a clean spack environment on Darwin
 #------------------------------------------------------------------------------#
 .aux_darwin_print_env_info:
-  stage: Environment
   script: &darwin_print_env_info
     - |
       header "Creating Build Environment"
@@ -44,7 +43,7 @@
     - spack config add concretizer:unify:when_possible
     - spack config add concretizer:reuse:false
     - spack config add packages:all:compiler:["gcc@${GCC_VERSION}"]
-    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler
+    - spack add cmake py-sphinx py-sphinx-rtd-theme py-recommonmark graphviz +poppler doxygen
     - spack install -j $(nproc)
     - section end python_env_init
 
@@ -151,7 +150,6 @@
       fi
 
 .darwin_build_template:
-  stage: Build + Unit Tests
   script:
     - *darwin_env_init
     - *darwin_env_spack_install_flecsi_deps
@@ -164,7 +162,7 @@
     - cd ${CI_PROJECT_DIR}/state/build
     - cmake --build . -j $(nproc)
     - section end build_noflog
-    - echo -e "\e[0Ksection_start:`date +%s`:build\r\e[0K${COLOR_CYAN}Build with FLOG${COLOR_PLAIN}"
+    - section start build "Build with FLOG"
     - cmake -DENABLE_FLOG=ON -DENABLE_UNIT_TESTS=ON .
     - cmake --build . -j $(nproc)
     - section end build

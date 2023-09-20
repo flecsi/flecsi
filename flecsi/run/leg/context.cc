@@ -1,7 +1,5 @@
-#include <flecsi-config.h>
-
-#include "flecsi/data.hh"
 #include "flecsi/run/leg/context.hh"
+#include "flecsi/data.hh"
 #include "flecsi/run/leg/mapper.hh"
 
 namespace flecsi {
