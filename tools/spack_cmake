@@ -49,6 +49,7 @@ import os
 import sys
 import json
 import argparse
+from spack.util.environment import EnvironmentModifications
 
 COLOR_RESET = "\033[m"
 COLOR_INFO = "\033[1;36m"
@@ -174,6 +175,16 @@ if app_spec.satisfies("^hip"):
 
 compiler = spack.compilers.compiler_for_spec(app_spec.compiler, app_spec.architecture)
 compiler_args = [f"-DCMAKE_CXX_COMPILER={compiler.cxx}", f"-DCMAKE_C_COMPILER={compiler.cc}"]
+
+if app_spec.satisfies("^kokkos"):
+    # Needed so kokkos_cxx is set (e.g. to nvcc_wrapper) and can be used in cmake_args()
+    app_spec["kokkos"].package.module.spack_cxx = compiler.cxx
+    if app_spec.satisfies("^kokkos-nvcc-wrapper"):
+        env = EnvironmentModifications()
+        app_spec["kokkos-nvcc-wrapper"].package.setup_dependent_build_environment(env, app_spec)
+        app_spec["kokkos-nvcc-wrapper"].package.setup_dependent_package(None, None)
+        env.apply_modifications()
+    app_spec["kokkos"].package.setup_dependent_package(None, None)
 
 if compiler.name == "gcc":
     compiler_family = "gnu"
