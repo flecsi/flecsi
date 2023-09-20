@@ -30,9 +30,9 @@ protected:
   int_t value_;
 
 public:
-  filling_curve() : value_(0) {}
+  constexpr filling_curve() : value_(0) {}
 
-  filling_curve(int_t value) : value_(value) {}
+  constexpr filling_curve(int_t value) : value_(value) {}
 
   // Max depth possible for this key
   static std::size_t max_depth() {
@@ -171,6 +171,9 @@ public:
   explicit operator int_t() const {
     return value_;
   }
+  constexpr operator DERIVED() const {
+    return DERIVED(value_);
+  }
 }; // class filling_curve
 
 // output for filling_curve using output_ function defined in the class
@@ -195,8 +198,9 @@ class hilbert_curve : public filling_curve<DIM, T, hilbert_curve<DIM, T>>
   using filling_curve<DIM, T, hilbert_curve>::bits_;
 
 public:
-  hilbert_curve() : filling_curve<DIM, T, hilbert_curve>() {}
-  hilbert_curve(const int_t & id) : filling_curve<DIM, T, hilbert_curve>(id) {}
+  constexpr hilbert_curve() : filling_curve<DIM, T, hilbert_curve>() {}
+  constexpr hilbert_curve(const int_t & id)
+    : filling_curve<DIM, T, hilbert_curve>(id) {}
   hilbert_curve(const std::array<point_t, 2> & range, const point_t & p)
     : hilbert_curve(range,
         p,
@@ -418,8 +422,9 @@ class morton_curve : public filling_curve<DIM, T, morton_curve<DIM, T>>
   using filling_curve<DIM, T, morton_curve>::bits_;
 
 public:
-  morton_curve() : filling_curve<DIM, T, morton_curve>() {}
-  morton_curve(const int_t & id) : filling_curve<DIM, T, morton_curve>(id) {}
+  constexpr morton_curve() : filling_curve<DIM, T, morton_curve>() {}
+  constexpr morton_curve(const int_t & id)
+    : filling_curve<DIM, T, morton_curve>(id) {}
   morton_curve(const std::array<point_t, 2> & range, const point_t & p)
     : morton_curve(range, p, filling_curve<DIM, T, morton_curve>::max_depth_) {}
   ~morton_curve() = default;
@@ -507,5 +512,26 @@ public:
 }; // class morton
 
 } // namespace flecsi
+
+namespace std {
+template<flecsi::Dimension DIM, typename T>
+struct numeric_limits<flecsi::morton_curve<DIM, T>> {
+  static constexpr flecsi::morton_curve<DIM, T> min() {
+    return flecsi::morton_curve<DIM, T>::min();
+  }
+  static constexpr flecsi::morton_curve<DIM, T> max() {
+    return flecsi::morton_curve<DIM, T>::max();
+  }
+};
+template<flecsi::Dimension DIM, typename T>
+struct numeric_limits<flecsi::hilbert_curve<DIM, T>> {
+  static constexpr flecsi::hilbert_curve<DIM, T> min() {
+    return flecsi::hilbert_curve<DIM, T>::min();
+  }
+  static constexpr flecsi::hilbert_curve<DIM, T> max() {
+    return flecsi::hilbert_curve<DIM, T>::max();
+  }
+};
+} // namespace std
 
 #endif

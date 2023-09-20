@@ -26,6 +26,7 @@ set(util_HEADERS
   serialize.hh
   set_intersection.hh
   set_utils.hh
+  sort.hh
   target.hh
   type_traits.hh
   types.hh

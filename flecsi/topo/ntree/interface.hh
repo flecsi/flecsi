@@ -12,6 +12,7 @@
 #include "flecsi/topo/ntree/coloring.hh"
 #include "flecsi/topo/ntree/types.hh"
 #include "flecsi/util/hashtable.hh"
+#include "flecsi/util/sort.hh"
 
 #include <fstream>
 #include <iomanip>
@@ -243,10 +244,20 @@ private:
     }
   }
 
+  static void exchange_boundaries(
+    typename Policy::template accessor<rw, na> t) {
+    t.exchange_boundaries();
+  }
+
   // ---------------------------- Top tree construction -----------------------
 public:
   /// Build the local tree and share the top part of the tree
   static void make_tree(typename Policy::slot & ts) {
+
+    // Sort entities
+    util::sort(e_keys(ts))();
+
+    flecsi::execute<exchange_boundaries>(ts);
 
     auto cs = ts->colors();
     ts->cp_data_tree.issue_copy(data_field.fid);
