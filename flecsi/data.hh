@@ -6,12 +6,7 @@
 
 #include "flecsi/data/map.hh"
 #include "flecsi/data/topology_accessor.hh"
-#include "flecsi/topo/global.hh"
-#include "flecsi/topo/index.hh"
-#include "flecsi/topo/narray/interface.hh"
-#include "flecsi/topo/ntree/interface.hh"
-#include "flecsi/topo/set/interface.hh"
-#include "flecsi/topo/unstructured/interface.hh"
+#include "flecsi/topology.hh" // for compatibility
 #include <flecsi/data/accessor.hh>
 #include <flecsi/data/coloring.hh>
 #include <flecsi/data/privilege.hh>
@@ -20,6 +15,10 @@ namespace flecsi {
 /// \defgroup data Data Model
 /// Defining topology instances and fields.
 /// \code#include "flecsi/data.hh"\endcode
+///
+/// The inclusion of \ref topology "flecsi/topology.hh" by this header is
+/// \b deprecated.
+///
 /// \{
 
 /*!

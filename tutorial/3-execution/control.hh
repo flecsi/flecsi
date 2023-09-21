@@ -2,7 +2,7 @@
 #define TUTORIAL_3_EXECUTION_CONTROL_HH
 
 #include <flecsi/flog.hh>
-#include <flecsi/run/control.hh>
+#include <flecsi/runtime.hh>
 
 enum class cp { advance };
 

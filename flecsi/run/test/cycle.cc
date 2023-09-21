@@ -2,7 +2,7 @@
 #include "package_b.hh"
 #include "package_c.hh"
 
-#include "flecsi/execution.hh"
+#include "flecsi/runtime.hh"
 
 int
 main(int argc, char ** argv) {

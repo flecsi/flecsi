@@ -2,7 +2,7 @@
 #define TUTORIAL_2_CONTROL_2_SUBCYCLE_HH
 
 #include "flecsi/flog.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 
 namespace cycle {
 

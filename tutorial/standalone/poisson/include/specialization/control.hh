@@ -4,7 +4,7 @@
 #include "mesh.hh"
 
 #include <flecsi/flog.hh>
-#include <flecsi/run/control.hh>
+#include <flecsi/runtime.hh>
 
 namespace poisson {
 

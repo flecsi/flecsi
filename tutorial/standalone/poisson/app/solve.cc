@@ -7,7 +7,7 @@
 
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/util/annotation.hh>
+#include <flecsi/utilities.hh>
 
 using namespace flecsi;
 

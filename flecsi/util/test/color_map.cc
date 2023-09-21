@@ -1,6 +1,5 @@
-#include "flecsi/util/color_map.hh"
-#include "flecsi/util/mpi.hh"
-#include "flecsi/util/unit.hh"
+#include "flecsi/runtime.hh"
+#include "flecsi/utilities.hh"
 
 using namespace flecsi;
 

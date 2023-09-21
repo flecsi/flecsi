@@ -205,8 +205,8 @@ CMake files to allow using it in your own applications.
 
   .. code-block:: cpp
 
-     #include <flecsi/util/unit.hh>
      #include <flecsi/data.hh>
+     #include <flecsi/utilities.hh>
 
      using namespace flecsi;
 

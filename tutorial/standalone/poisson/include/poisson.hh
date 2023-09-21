@@ -2,7 +2,7 @@
 #define POISSON_POISSON_HH
 
 #include <flecsi/execution.hh>
-#include <flecsi/util/annotation.hh>
+#include <flecsi/utilities.hh>
 
 struct main_region
   : flecsi::util::annotation::region<flecsi::util::annotation::execution> {

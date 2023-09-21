@@ -2,6 +2,7 @@ set(run_HEADERS
   backend.hh
   context.hh
   control.hh
+  init.hh
   options.hh
   types.hh
 )

@@ -24,8 +24,7 @@ namespace flecsi {
 using Dimension = unsigned short;
 
 namespace util {
-/// \defgroup utils Utilities
-/// Non-domain-specific infrastructure.
+/// \addtogroup utils
 /// \{
 
 /// Local (color-specific) topology entity ID type.

@@ -2,7 +2,7 @@
 #define TUTORIAL_2_CONTROL_1_SIMPLE_HH
 
 #include "flecsi/flog.hh"
-#include "flecsi/run/control.hh"
+#include "flecsi/runtime.hh"
 
 namespace simple {
 

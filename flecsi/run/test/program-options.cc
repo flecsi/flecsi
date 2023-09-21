@@ -1,5 +1,5 @@
+#include "flecsi/runtime.hh"
 #include "flecsi/util/unit.hh"
-#include <flecsi/execution.hh>
 
 flecsi::program_option<int> po("Custom Options",
   "value,v",

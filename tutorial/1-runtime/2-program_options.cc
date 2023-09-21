@@ -1,5 +1,5 @@
 #include <flecsi/execution.hh>
-#include <flecsi/run/control.hh>
+#include <flecsi/runtime.hh>
 
 // Add an integer-valued command-line option with a default value of '1'. The
 // option will have a long form --level, and a short form -l. The option will be

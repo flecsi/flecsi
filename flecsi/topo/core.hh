@@ -19,21 +19,7 @@ struct topology_accessor; // avoid circularity via launch.hh
 } // namespace data
 
 namespace topo {
-/// \defgroup topology Topologies
-/// Generic topology categories and tools for specializing them.
-/// \note In a \c toc task, certain metadata provided by topology accessors is
-///   \e host-accessible, which means that if the topology accessor is
-///   read-only it can be accessed within or outside of a kernel in the task.
-///   (The metadata might be used with another accessor that is not
-///   read-only.)
-///
-/// \code#include "flecsi/data.hh"\endcode
-/// \warning The material in this section and its subsections other than
-///   \ref spec is of interest
-///   only to developers of topology specializations.  Application developers
-///   should consult the documentation for the specializations they are using,
-///   which may refer back to this document (occasionally even to small,
-///   specific parts of this section).
+/// \addtogroup topology
 /// \{
 
 /// The default, trivial index-space type used by specializations.

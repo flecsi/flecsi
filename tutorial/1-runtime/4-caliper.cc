@@ -2,8 +2,8 @@
 #include <thread>
 
 #include <flecsi/execution.hh>
-#include <flecsi/run/control.hh>
-#include <flecsi/util/annotation.hh>
+#include <flecsi/runtime.hh>
+#include <flecsi/utilities.hh>
 
 using namespace flecsi;
 using namespace flecsi::util;

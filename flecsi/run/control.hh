@@ -5,8 +5,9 @@
 #define FLECSI_RUN_CONTROL_HH
 
 #include "flecsi/config.hh"
-#include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
+#include "flecsi/run/init.hh"
+#include "flecsi/run/options.hh"
 #include "flecsi/run/types.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/dag.hh"

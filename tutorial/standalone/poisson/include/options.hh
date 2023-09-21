@@ -1,7 +1,7 @@
 #ifndef POISSON_OPTIONS_HH
 #define POISSON_OPTIONS_HH
 
-#include "flecsi/execution.hh"
+#include <flecsi/runtime.hh>
 
 #include <limits>
 

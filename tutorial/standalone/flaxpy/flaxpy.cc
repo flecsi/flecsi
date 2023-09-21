@@ -6,7 +6,7 @@
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
-#include <flecsi/run/control.hh>
+#include <flecsi/runtime.hh>
 
 // In a larger program, this namespace would typically appear in a header file,
 // where the inline keywords are necessary.
