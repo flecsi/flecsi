@@ -69,6 +69,12 @@ struct copy_plan {
     engine(data_fid);
   }
 
+  // Return the field id of pointers
+  template<class T, typename T::index_space S>
+  static field_id_t get_field_id() {
+    return pointers<T, S>.fid;
+  }
+
 private:
   detail::intervals::core dest_ptrs_;
   intervals dest_;

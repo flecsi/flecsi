@@ -9,6 +9,9 @@
 
 using namespace flecsi;
 
+using arr = topo::array<void>;
+const field<int>::definition<arr> arr_f;
+
 struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static constexpr unsigned int dimension = 3;
   using key_int_t = uint64_t;
@@ -51,7 +54,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  static void init_fields(sph_ntree_t::accessor<wo, na> t,
+  static void init_fields(sph_ntree_t::accessor<wo, wo> t,
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
     for(std::size_t i = 0; i < ents.size(); ++i) {
@@ -62,7 +65,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
       t.e_keys(i) = ents[i].key();
       t.e_i(i).mass = ents[i].mass();
     }
-    t.exchange_boundaries();
   } // init_fields
 
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
@@ -273,23 +275,57 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
   }
 }
 
+// Sort testing tasks
+void
+init_array_task(field<int>::accessor<wo> v) {
+  std::iota(v.span().begin(), v.span().end(), 0);
+  auto rng = std::default_random_engine{};
+  std::shuffle(v.span().begin(), v.span().end(), rng);
+}
+
+auto
+check_sort_task(typename field<int>::accessor<ro> v) {
+  bool sorted = std::is_sorted(v.span().begin(), v.span().end());
+  std::tuple<int, int, bool> rt = {v[0], v.span().back(), sorted};
+  return rt;
+}
+
 int
 ntree_driver() {
-  sph_ntree_t::slot sph_ntree;
+  UNIT("NTREE") {
+    sph_ntree_t::slot sph_ntree;
 
-  std::vector<sph_ntree_t::ent_t> ents;
-  sph_ntree.allocate(
-    sph_ntree_t::mpi_coloring("coordinates.blessed", ents), ents);
+    {
+      std::vector<sph_ntree_t::ent_t> ents;
+      sph_ntree_t::mpi_coloring coloring("coordinates.blessed", ents);
+      sph_ntree.allocate(coloring, ents);
+    }
 
-  auto d = density(sph_ntree);
+    auto d = density(sph_ntree);
 
-  flecsi::execute<init_density>(sph_ntree, d);
-  flecsi::execute<print_density>(sph_ntree, d);
-  flecsi::execute<check_neighbors>(sph_ntree);
+    flecsi::execute<init_density>(sph_ntree, d);
+    flecsi::execute<print_density>(sph_ntree, d);
+    flecsi::execute<check_neighbors>(sph_ntree);
 
-  flecsi::execute<move_entities>(sph_ntree);
-  // sph_ntree_t::update(sph_ntree);
+    flecsi::execute<move_entities>(sph_ntree);
+    // sph_ntree_t::update(sph_ntree);
 
-  return 0;
+    // Sort utility testing
+    // Sort/shuffle an array multiple times
+    arr::slot arr_s;
+    arr_s.allocate(arr::coloring(4, 100));
+
+    util::sort s(arr_f(arr_s));
+
+    for(int i = 0; i < 10; ++i) {
+      flecsi::execute<init_array_task>(arr_f(arr_s));
+      s();
+      auto fm = flecsi::execute<check_sort_task>(arr_f(arr_s));
+      EXPECT_TRUE(std::get<2>(fm.get(process())));
+      for(unsigned int p = 0; p < processes() - 1; ++p) {
+        EXPECT_LE(std::get<0>(fm.get(p)), std::get<1>(fm.get(p + 1)));
+      }
+    }
+  };
 } // ntree_driver
 util::unit::driver<ntree_driver> driver;

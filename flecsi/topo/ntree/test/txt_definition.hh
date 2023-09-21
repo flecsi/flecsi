@@ -5,7 +5,8 @@
 #include <set>
 #include <vector>
 
-#include "colorer.hh"
+#include "flecsi/util/mpi.hh"
+#include "flecsi/util/sort.hh"
 
 template<typename KEY, int DIM>
 class txt_definition
@@ -15,22 +16,19 @@ public:
   using key_t = KEY;
   using point_t = flecsi::util::point<double, DIM>;
   using ent_t = flecsi::topo::sort_entity<DIM, double, key_t>;
-  using colorer_t = tree_colorer::colorer<ent_t, key_t, DIM>;
+  using range_t = std::array<point_t, 2>;
 
   txt_definition(const std::string & filename) {
     const auto [rank, size] = flecsi::util::mpi::info();
     read_entities_(filename);
     // Compute the range
-    colorer_t::mpi_compute_range(entities_, range_);
+    mpi_compute_range(entities_, range_);
     // Generate the keys
     for(size_t i = 0; i < entities_.size(); ++i) {
       entities_[i].set_key(key_t(range_, entities_[i].coordinates()));
     }
 
     nlocal_entities_ = entities_.size();
-    // Distribute the particles among the ranks
-    colorer_t::mpi_qsort(entities_, nglobal_entities_);
-
     if(rank == 0)
       flog(info) << rank << ": Range: " << range_[0] << ";" << range_[1]
                  << std::endl;
@@ -57,6 +55,27 @@ public:
   }
 
 private:
+  void mpi_compute_range(const std::vector<ent_t> & ents, range_t & range) {
+
+    // Compute the local range
+    range[0] = range[1] = ents.front().coordinates();
+
+    for(size_t i = 1; i < ents.size(); ++i) {
+      for(int d = 0; d < dim; ++d) {
+        range[1][d] =
+          std::max(range[1][d], ents[i].coordinates()[d] + ents[i].radius());
+        range[0][d] =
+          std::min(range[0][d], ents[i].coordinates()[d] - ents[i].radius());
+      }
+    }
+    // Do the MPI Reduction
+    flecsi::util::mpi::test(MPI_Allreduce(
+      MPI_IN_PLACE, &(range[1][0]), dim, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD));
+    flecsi::util::mpi::test(MPI_Allreduce(
+      MPI_IN_PLACE, &(range[0][0]), dim, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD));
+
+  } // mpi_compute_range
+
   void read_entities_(const std::string & filename) {
     const auto [rank, size] = flecsi::util::mpi::info();
     // For now read all particles?
@@ -141,7 +160,7 @@ private:
     myfile.close();
   }
 
-  std::array<point_t, 2> range_;
+  range_t range_;
   std::vector<ent_t> entities_;
   size_t nglobal_entities_;
   size_t nlocal_entities_;
