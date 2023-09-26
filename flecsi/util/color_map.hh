@@ -88,42 +88,43 @@ struct offsets : map_base<offsets> {
   offsets() = default;
   /// Construct a partition from specified endpoints.
   /// The first substring starts at an implicit 0.
-  offsets(storage e) : end(std::move(e)) {}
+  offsets(storage e) : endpoints(std::move(e)) {}
   /// Convert an equal mapping.
   offsets(const equal_map & em) {
-    end.reserve(em.size());
+    endpoints.reserve(em.size());
     for(Color c = 1; c <= em.size(); ++c)
-      end.push_back(em(c));
+      endpoints.push_back(em(c));
   }
 
   Color size() const {
-    return end.size();
+    return endpoints.size();
   }
 
   Color bin(std::size_t i) const {
-    return std::upper_bound(end.begin(), end.end(), i) - end.begin();
+    return std::upper_bound(endpoints.begin(), endpoints.end(), i) -
+           endpoints.begin();
   }
 
   std::size_t operator()(Color c) const {
-    return c ? end[c - 1] : 0;
+    return c ? endpoints[c - 1] : 0;
   }
 
   void clear() {
-    end.clear();
+    endpoints.clear();
   }
   void reserve(Color b) {
-    end.reserve(b);
+    endpoints.reserve(b);
   }
   void push_back(std::size_t n) {
-    end.push_back(total() + n);
+    endpoints.push_back(total() + n);
   }
 
   const storage & ends() const {
-    return end;
+    return endpoints;
   }
 
 private:
-  storage end;
+  storage endpoints;
 };
 
 template<>

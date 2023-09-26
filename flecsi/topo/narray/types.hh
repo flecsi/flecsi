@@ -489,6 +489,24 @@ struct index_definition {
   }
 
   /*!
+    Check that the ghosts are consistent with the coloring.
+   */
+  void check_ghosts() const {
+    // Ensure that each color is wide enough to fill its neighbors' ghost cells.
+    for(const auto & ax : axes) {
+      const auto depth =
+        ax.periodic ? std::max(ax.hdepth, ax.bdepth) : ax.hdepth;
+      for(auto const & color_slab : ax.colormap) {
+        if(color_slab.size() < depth) {
+          throw std::invalid_argument(
+            "Halo or periodic boundary width is larger than "
+            "neighboring color.");
+        }
+      }
+    }
+  }
+
+  /*!
     Create a coloring for the given color (as defined by color_indices).
 
     @param color_indices indices of the given color w.r.t the grid of colors in
