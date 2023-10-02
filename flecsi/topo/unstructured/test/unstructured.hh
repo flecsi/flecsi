@@ -93,7 +93,6 @@ struct unstructured
     auto edges(flecsi::topo::id<F> from) const {
       return B::template entities<index_space::edges>(from);
     }
-
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
