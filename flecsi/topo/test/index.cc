@@ -1,10 +1,9 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/unit.hh"
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
+
+#include <atomic>
 
 using namespace flecsi;
 using namespace flecsi::data;
@@ -17,7 +16,7 @@ struct Noisy {
   static std::size_t value() {
     return color() + 1;
   }
-  static inline std::size_t count;
+  static inline std::atomic<std::size_t> count;
 };
 
 using double_field = field<double, single>;
@@ -100,23 +99,26 @@ assign(double_field::accessor<wo> p,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) { // must be an MPI task
+reset(noisy::accessor<wo>) { // must be an MPI task for correct total
   return Noisy::count;
 }
 void
-use_ptr(field<int *>::accessor<wo>) {} // so too this
+use_ptr(field<int *>::accessor<wo>) {} // must be an MPI task
 
 // The unnamed mutator still allocates according to the growth policy.
 void
 ragged_start(intN::accessor<ro> v, intN::mutator<wo>, buffers::Start mv) {
   assert(mv.span().size() == 2u);
-  buffers::ragged::truncate(mv[0])(v, 0);
+  bool sent = false;
+  buffers::ragged(mv[0], true)(v, 0, sent);
 }
 
 int
 ragged_xfer(intN::accessor<ro> v, intN::mutator<rw> g, buffers::Transfer mv) {
-  buffers::ragged::read(g, mv[1], [](std::size_t) { return 0; });
-  return !buffers::ragged{mv[0]}(v, 0);
+  buffers::ragged::read(g, mv[1], util::iota_view(0, 1));
+  bool sent = false;
+  buffers::ragged{mv[0]}(v, 0, sent);
+  return sent;
 }
 
 int
@@ -195,7 +197,8 @@ int
 use_map(data::multi<short_part::accessor<ro>> ma,
   data::multi<intN::mutator<wo>> mm) {
   UNIT() {
-    const auto p = processes(), nc = p / process_fraction, c = color();
+    const auto p = processes(), nc = std::max(p / process_fraction, {1}),
+               c = color();
     EXPECT_EQ(colors(), nc);
     const auto ac = ma.components();
     EXPECT_EQ(ac.size(), p / nc + (c < p % nc));
@@ -234,7 +237,7 @@ index_driver() {
 
     Noisy::count = 0;
     constexpr static auto alloc = [](auto f) {
-      auto & p = f.get_ragged();
+      auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
     };
@@ -245,7 +248,7 @@ index_driver() {
     const auto noise = noisy_field(process_topology);
     alloc(verts);
     alloc(vfrac);
-    ghost.get_ragged().growth = {processes() + 1};
+    ghost.get_elements().growth = {processes() + 1};
     execute<irows>(verts);
     execute<irows>(verts); // to make new size visible
     EXPECT_EQ(test<drows>(vfrac), 0);
@@ -273,52 +276,16 @@ index_driver() {
     a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
     { // TODO: automatic resizing
-      auto & p = arag(a).get_ragged();
+      auto & p = arag(a).get_elements();
       execute<allocate>(p.sizes());
       p.resize();
     }
 
-    auto lm = launch::make<launch::robin>(a, np / process_fraction);
+    auto lm = launch::make(
+      a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
     EXPECT_EQ(test<use_map>(particles(lm), arag(lm)), 0);
     EXPECT_EQ(test<check_map>(arag(a)), 0);
   };
 } // index
 
-flecsi::unit::driver<index_driver> driver;
-
-struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
-
-  typedef int t_type;
-
-  static coloring color() {
-
-    return {0, std::vector<std::size_t>(processes(), 3)};
-  }
-};
-
-spec_setopo_t::slot spec_setopo;
-spec_setopo_t::cslot coloring;
-
-const field<double>::definition<spec_setopo_t> pressure;
-
-int
-init_set(field<double>::accessor<wo> p) {
-  UNIT() { p[2] = 3; };
-} // init_set
-
-int
-set_driver() {
-
-  UNIT() {
-
-    coloring.allocate();
-    spec_setopo.allocate(coloring.get());
-
-    auto d = pressure(spec_setopo);
-
-    EXPECT_EQ(flecsi::test<init_set>(d), 0);
-  };
-
-} // set_driver
-
-flecsi::unit::driver<set_driver> driver1;
+util::unit::driver<index_driver> driver;

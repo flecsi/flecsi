@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_HASHTABLE_HH
@@ -19,12 +19,13 @@ class hashtableIterator
 {
   using ht_t = hashtable<KEY, TYPE, HASH>;
   using ht_type_t = typename ht_t::pair_t;
+  using key_t = KEY;
 
 private:
   ht_type_t * ptr_;
   const ht_t * h_;
 
-  friend struct hashtable<KEY, TYPE, HASH>;
+  friend hashtable<KEY, TYPE, HASH>;
   hashtableIterator(ht_type_t * p, const ht_t * h) : ptr_(p), h_(h) {}
 
 public:
@@ -178,7 +179,6 @@ public:
 
 }; // class hashtable
 
-/// \}
 } // namespace util
 } // namespace flecsi
 

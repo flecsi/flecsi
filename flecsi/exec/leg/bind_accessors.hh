@@ -1,20 +1,15 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 #define FLECSI_EXEC_LEG_BIND_ACCESSORS_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/demangle.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 
@@ -62,6 +57,9 @@ private:
   template<typename D, Privileges P>
   void visit(data::accessor<data::raw, D, P> & accessor) {
     auto & reg = regions_[region++];
+    // For incomplete launch maps:
+    if(!reg.get_logical_region().exists())
+      return;
 
     const Legion::UnsafeFieldAccessor<D,
       data::leg::region_dimensions,
@@ -92,7 +90,8 @@ private:
   void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
     const auto dom = legion_runtime_->get_index_space_domain(
       legion_context_, reg.get_logical_region().get_index_space());
-    const auto r = dom.get_rect<data::leg::region_dimensions>();
+    // Note: Apple clang version 14.0.0 wants keyword "template" here.
+    const auto r = dom.template get_rect<data::leg::region_dimensions>();
 
     if(!dom.empty())
       acc.bind(util::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
@@ -112,18 +111,7 @@ private:
   // resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s) {
-    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
-      return;
-#elif defined(__HIPCC__)
-      HIP_ASSERT(hipMemcpy(s.host, s.device, sizeof(T), hipMemcpyDeviceToHost));
-      return;
-#else
-      flog_assert(false, "Cuda should be enabled when using toc task");
-#endif
-    }
-    *s.host = *s.device;
+    s.template copy<ProcessorType>();
   }
 
   /*--------------------------------------------------------------------------*

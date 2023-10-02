@@ -1,11 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_RUN_CONTEXT_HH
 #define FLECSI_RUN_CONTEXT_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"
@@ -14,14 +13,11 @@
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-#include <Kokkos_Core.hpp>
-#endif
-
 #include <cstddef>
 #include <cstdlib> // getenv
 #include <functional>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -53,15 +49,105 @@ namespace run {
 
 struct context_t; // supplied by backend
 
-enum status : int {
-  success,
-  help,
-  control_model,
-  control_model_sorted,
-  clean, // greater than this implies an error
-  command_line_error,
-  error // add specific error modes
-}; // initialization_codes
+/// Exit status returned by initialization code.
+/// \deprecated Used only with \c initialize.
+/// \see flecsi::initialize
+/// \see flecsi::run::control::check_status
+enum /* [[deprecated]] would warn for internal usage */ status : int {
+  success, /// successful initialization
+  help, /// user requested usage help
+  control_model, /// print out control model graph in dot format
+  control_model_sorted, /// print out sorted control model graph in dot format
+  clean, /// any value greater than this implies an error
+  command_line_error /// error parsing command line
+};
+
+/// The results of parsing command-line options defined by FleCSI.
+struct arguments {
+  /// A command line.
+  using argv = std::vector<std::string>;
+
+  /// Specification of operation to be performed.
+  struct action {
+    /// Program name.
+    std::string program;
+    /// Operation mode.
+    enum operation {
+      help, ///< Exit with a usage message.
+      error, ///< Exit with a command-line error message.
+      run, ///< \ref control::invoke "Invoke" the control model.
+      control_model, ///< Write the control model graph.
+      control_model_sorted ///< Write the sequence of actions.
+    }
+    /// Operation selected, populated from \c \--control-model or
+    /// \c \--control-model-sorted options.
+    op;
+    std::string stderr; ///< Error text from initialization.
+
+    run::status status() const {
+      switch(op) {
+        case run:
+          return success;
+        case help:
+          return run::help;
+        case control_model:
+          return run::control_model;
+        case control_model_sorted:
+          return run::control_model_sorted;
+        default:
+          return command_line_error;
+      }
+    }
+  } act; ///< Operation to perform.
+  /// Specification for initializing underlying libraries.
+  struct dependent {
+#ifdef FLECSI_ENABLE_MPI
+    argv mpi; ///< Command line for MPI.
+#endif
+#ifdef FLECSI_ENABLE_KOKKOS
+    argv kokkos; ///< Command line for Kokkos.
+#endif
+  } dep; ///< Underlying initialization arguments.
+  /// Specification of options for FleCSI.
+  struct config {
+#ifdef FLECSI_ENABLE_FLOG
+    flecsi::flog::config flog; ///< Flog options, if that feature is enabled.
+#endif
+    /// Command line for FleCSI backend.  Some backends ignore it.
+    /// Populated from \c \--Xbackend and \c \--backend-args options.
+    argv backend;
+  } cfg; ///< FleCSI options.
+
+  /// Parse a command line.
+  /// \note \c dep contains only the program name.
+  arguments(int, char **);
+
+  static std::vector<char *> pointers(argv & v) {
+    std::vector<char *> ret;
+    ret.reserve(v.size());
+    for(auto & s : v)
+      ret.push_back(s.data());
+    return ret;
+  }
+
+private:
+  action::operation getopt(int, char **);
+};
+
+#ifdef DOXYGEN // implemented per-backend
+/// RAII guard for initializing/finalizing FleCSI dependencies.
+/// Which are included depends on configuration.
+/// Only one guard can exist at a time.
+/// \warning Some libraries cannot ever be reinitialized.
+struct dependencies_guard {
+  /// Construct the guard, possibly mutating argument values.
+  dependencies_guard(arguments::dependent &);
+  /// Immovable.
+  dependencies_guard(dependencies_guard &&) = delete;
+};
+#endif
+
+/// \cond core
 
 struct index_space_info_t {
   const data::region * region;
@@ -78,316 +164,80 @@ struct index_space_info_t {
 struct context {
   using field_info_store_t = data::fields;
 
-  /*--------------------------------------------------------------------------*
-    Deleted contructor and assignment interfaces.
-   *--------------------------------------------------------------------------*/
-
-  context(const context &) = delete;
-  context & operator=(const context &) = delete;
   context(context &&) = delete;
-  context & operator=(context &&) = delete;
-
-  /*
-    Meyer's singleton instance.
-   */
 
   static inline context_t & instance();
-
-  bool initialized() {
-    return initialized_;
-  }
 
   /*--------------------------------------------------------------------------*
     Program options interface.
    *--------------------------------------------------------------------------*/
 
-  boost::program_options::positional_options_description &
+  static boost::program_options::positional_options_description &
   positional_description() {
     return positional_desc_;
   }
 
-  std::map<std::string, std::string> & positional_help() {
+  static std::map<std::string, std::string> & positional_help() {
     return positional_help_;
   }
 
-  boost::program_options::options_description & hidden_options() {
+  static boost::program_options::options_description & hidden_options() {
     return hidden_options_;
   }
 
-  std::map<std::string,
+  static std::map<std::string,
     std::pair<bool,
       std::function<bool(boost::any const &, std::stringstream & ss)>>> &
   option_checks() {
     return option_checks_;
   }
 
-  std::vector<char *> & argv() {
-    return argv_;
-  }
-
-  std::string const & program() {
-    return program_;
-  }
-
-  auto & descriptions_map() {
+  static auto & descriptions_map() {
     return descriptions_map_;
-  }
-
-  std::vector<std::string> const & unrecognized_options() {
-    flog_assert(initialized_,
-      "unitialized program options -> "
-      "invoke flecsi::initialize_program_options");
-    return unrecognized_options_;
   }
 
   /*--------------------------------------------------------------------------*
     Runtime interface.
    *--------------------------------------------------------------------------*/
-
-  inline int initialize_generic(int argc, char ** argv, bool dependent) {
+protected:
+  context(const arguments::config & c, Color np, Color proc)
+    : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
       std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
       sleep(n);
     }
 
-    initialize_dependent_ = dependent;
-
-    // Save command-line arguments
-    for(auto i(0); i < argc; ++i) {
-      argv_.push_back(argv[i]);
-    } // for
-
-    program_ = argv[0];
-    program_ = program_.substr(program_.rfind('/') + 1);
-
-    boost::program_options::options_description master("Basic Options");
-    master.add_options()("help,h", "Print this message and exit.");
-
-    // Add externally-defined descriptions to the main description
-    for(auto & od : descriptions_map_) {
-      if(od.first != "FleCSI Options") {
-        master.add(od.second);
-      } // if
-    } // for
-
-    boost::program_options::options_description flecsi_desc =
-      descriptions_map_.count("FleCSI Options")
-        ? descriptions_map_["FleCSI Options"]
-        : boost::program_options::options_description("FleCSI Options");
-
-    flecsi_desc.add_options()("backend-args",
-      boost::program_options::value(&backend_)->default_value(""),
-      "Pass arguments to the backend. The single argument is a quoted "
-      "string of backend-specific options.");
 #if defined(FLECSI_ENABLE_FLOG)
-    // Add FleCSI options
-    flecsi_desc.add_options() // clang-format off
-      (
-        "flog-tags",
-        boost::program_options::value(&flog_tags_)
-          ->default_value("all"),
-        "Enable the specified output tags, e.g., --flog-tags=tag1,tag2."
-        " Use '--flog-tags=all' to show all output, and "
-        " '--flog-tags=unscoped' to show only unguarded output."
-      )
-      (
-        "flog-verbose",
-        boost::program_options::value(&flog_verbose_)
-          ->implicit_value(1)
-          ->default_value(0),
-        "Enable verbose output. Passing '-1' will strip any additional"
-        " decorations added by flog and will only output the user's message."
-      )
-      (
-        "flog-process",
-        boost::program_options::value(&flog_output_process_)->default_value(0),
-        "Restrict output to the specified process id. The default is process 0."
-        " Use '--flog_process=-1' to enable all processes."
-      ); // clang-format on
+    flog::state::set_instance(c.flog);
+#else
+    (void)c;
 #endif
+  }
 
-    // Make an options description to hold all options. This is useful
-    // to exlude hidden options from help.
-    boost::program_options::options_description all("All Options");
-    all.add(master);
-    all.add(flecsi_desc);
-    all.add(hidden_options_);
-
-    boost::program_options::parsed_options parsed =
-      boost::program_options::command_line_parser(argc, argv)
-        .options(all)
-        .positional(positional_desc_)
-        .allow_unregistered()
-        .run();
-
-    auto print_usage = [this](std::string program,
-                         auto const & master,
-                         auto const & flecsi) {
-      if(process_ == 0) {
-        std::cout << "Usage: " << program << " ";
-
-        size_t positional_count = positional_desc_.max_total_count();
-        size_t max_label_chars = std::numeric_limits<size_t>::min();
-
-        for(size_t i{0}; i < positional_count; ++i) {
-          std::cout << "<" << positional_desc_.name_for_position(i) << "> ";
-
-          const size_t size = positional_desc_.name_for_position(i).size();
-          max_label_chars = size > max_label_chars ? size : max_label_chars;
-        } // for
-
-        max_label_chars += 2;
-
-        std::cout << std::endl << std::endl;
-
-        if(positional_count) {
-          std::cout << "Positional Options:" << std::endl;
-
-          for(size_t i{0}; i < positional_desc_.max_total_count(); ++i) {
-            auto const & name = positional_desc_.name_for_position(i);
-            auto help = positional_help_.at(name);
-            std::cout << "  " << name << " ";
-            std::cout << std::string(max_label_chars - name.size() - 2, ' ');
-
-            if(help.size() > 78 - max_label_chars) {
-              std::string first = help.substr(
-                0, help.substr(0, 78 - max_label_chars).find_last_of(' '));
-              std::cout << first << std::endl;
-              help =
-                help.substr(first.size() + 1, help.size() - first.size() + 1);
-
-              while(help.size() > 78 - max_label_chars) {
-                std::string part = help.substr(
-                  0, help.substr(0, 78 - max_label_chars).find_last_of(' '));
-                std::cout << std::string(max_label_chars + 1, ' ') << part
-                          << std::endl;
-                help = help.substr(part.size() + 1, help.size() - part.size());
-              } // while
-
-              std::cout << std::string(max_label_chars + 1, ' ') << help
-                        << std::endl;
-            }
-            else {
-              std::cout << help << std::endl;
-            } // if
-
-          } // for
-
-          std::cout << std::endl;
-        } // if
-
-        std::cout << master << std::endl;
-        std::cout << flecsi << std::endl;
-
+  ~context() {
 #if defined(FLECSI_ENABLE_FLOG)
-        auto const & tm = flog::state::instance().tag_map();
-
-        if(tm.size()) {
-          std::cout << "Available FLOG Tags (FleCSI Logging Utility):"
-                    << std::endl;
-        } // if
-
-        for(auto t : tm) {
-          std::cout << "  " << t.first << std::endl;
-        } // for
+    flog::state::reset_instance();
 #endif
-      } // if
-    }; // print_usage
+  }
 
-    try {
-      boost::program_options::variables_map vm;
-      boost::program_options::store(parsed, vm);
-
-      if(vm.count("help")) {
-        print_usage(program_, master, flecsi_desc);
-        return status::help;
-      } // if
-      if(vm.count("control-model")) {
-        return status::control_model;
-      } // if
-      if(vm.count("control-model-sorted")) {
-        return status::control_model_sorted;
-      } // if
-
-      boost::program_options::notify(vm);
-
-      // Call option check methods
-      for(auto const & [name, boost_any] : vm) {
-        auto const & ita = option_checks_.find(name);
-        if(ita != option_checks_.end()) {
-          auto [positional, check] = ita->second;
-
-          std::stringstream ss;
-          if(!check(boost_any.value(), ss)) {
-            if(process_ == 0) {
-              std::string dash = positional ? "" : "--";
-              std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED
-                        << "invalid argument for '" << dash << name
-                        << "' option!!!" << std::endl
-                        << FLOG_COLOR_LTRED << (ss.str().empty() ? "" : " => ")
-                        << ss.str() << FLOG_COLOR_PLAIN << std::endl
-                        << std::endl;
-            } // if
-
-            print_usage(program_, master, flecsi_desc);
-            return status::help;
-          } // if
-        } // if
-      } // for
+public:
+  void check_config(arguments::action & a) const {
+#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
+    const Color p = flog::state::instance().source_process();
+    if(p != flog::state::all_processes && p >= processes_) {
+      std::ostringstream stderr;
+      stderr << a.program << ": flog process " << p << " does not exist with "
+             << processes_ << " processes\n";
+      a.stderr += std::move(stderr).str();
+      a.op = a.error;
     }
-    catch(boost::program_options::error & e) {
-      std::string error(e.what());
-
-      auto pos = error.find("--");
-      if(pos != std::string::npos) {
-        error.replace(pos, 2, "");
-      } // if
-
-      std::cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error
-                << "!!!" << FLOG_COLOR_PLAIN << std::endl
-                << std::endl;
-      print_usage(program_, master, flecsi_desc);
-      return status::command_line_error;
-    } // try
-
-    unrecognized_options_ = boost::program_options::collect_unrecognized(
-      parsed.options, boost::program_options::include_positional);
-
-#if defined(FLECSI_ENABLE_FLOG)
-    if(flog::state::instance().initialize(
-         flog_tags_, flog_verbose_, flog_output_process_)) {
-      return status::error;
-    } // if
+#else
+    (void)a;
 #endif
-
-    initialized_ = true;
-
-    return status::success;
-  } // initialize_generic
-
-  inline void finalize_generic() {
-#if defined(FLECSI_ENABLE_FLOG)
-    flog::state::instance().finalize();
-#endif
-
-  } // finalize_generic
+  }
 
 #ifdef DOXYGEN // these functions are implemented per-backend
-  /*
-    Documented in execution.hh
-   */
-
-  int initialize(int argc, char ** argv, bool dependent);
-
-  /*!
-    Perform FleCSI runtime finalization. If FleCSI was initialized with
-    the \em dependent flag set to true, FleCSI will also finalize any runtimes
-    on which it depends.
-   */
-
-  void finalize();
-
   /*!
     Start the FleCSI runtime.
 
@@ -397,36 +247,46 @@ struct context {
             being failure.
    */
 
-  int start(const std::function<int(int, char **)> & action);
+  int start(const std::function<int()> & action);
+#endif
 
   /*!
     Return the current process id.
    */
 
-  Color process() const;
+  Color process() const {
+    return process_;
+  }
 
   /*!
     Return the number of processes.
    */
 
-  Color processes() const;
+  Color processes() const {
+    return processes_;
+  }
 
   /*!
     Return the number of threads per process.
    */
 
-  Color threads_per_process() const;
+  Color threads_per_process() const {
+    return threads_per_process_;
+  }
 
   /*!
     Return the number of execution instances with which the runtime was
     invoked. In this context a \em thread is defined as an instance of
     execution, and does not imply any other properties. This interface can be
     used to determine the full subscription of the execution instances of the
-    running process that invokded the FleCSI runtime.
+    running process that invoked the FleCSI runtime.
    */
 
-  Color threads() const;
+  Color threads() const {
+    return threads_;
+  }
 
+#ifdef DOXYGEN
   /*!
     Return the current task depth within the execution hierarchy. The
     top-level task has depth \em 0. This interface is primarily intended
@@ -436,7 +296,7 @@ struct context {
   static int task_depth();
 
   /*!
-    Get the color of this process.
+    Get the color of the current point task.
    */
 
   Color color() const;
@@ -448,15 +308,7 @@ struct context {
   Color colors() const;
 #endif
 
-  /*!
-    Return the exit status of the FleCSI runtime.
-   */
-
-  int & exit_status() {
-    return exit_status_;
-  }
-
-  void register_init(void callback()) {
+  static void register_init(void callback()) {
     init_registry.push_back(callback);
   }
 
@@ -473,7 +325,9 @@ struct context {
     \param id field ID
    */
   template<class Topo, typename Topo::index_space Index, typename Field>
-  void add_field_info(field_id_t id) {
+  static void add_field_info(field_id_t id) {
+    if(topology_ids_.count(Topo::id()))
+      flog_fatal("Cannot add fields on an allocated topology");
     constexpr std::size_t NIndex = Topo::index_spaces::size;
     topology_field_info_map_.try_emplace(Topo::id(), NIndex)
       .first->second[Topo::index_spaces::template index<Index>]
@@ -482,22 +336,23 @@ struct context {
   } // add_field_information
 
   /*!
-    Return the stored field info for the given topology type and layout.
-    Const version.
+    Return the stored field info for the given topology type and layout
+    (\c const version).
 
     \tparam Topo topology type
     \tparam Index topology-relative index space
    */
   template<class Topo, typename Topo::index_space Index = Topo::default_space()>
-  field_info_store_t const & get_field_info_store() const {
+  static field_info_store_t const & field_info_store() {
     static const field_info_store_t empty;
+    topology_ids_.insert(Topo::id());
 
     auto const & tita = topology_field_info_map_.find(Topo::id());
     if(tita == topology_field_info_map_.end())
       return empty;
 
     return tita->second[Topo::index_spaces::template index<Index>];
-  } // get_field_info_store
+  } // field_info_store
 
   /*--------------------------------------------------------------------------*
     Index space interface.
@@ -517,10 +372,10 @@ struct context {
    *--------------------------------------------------------------------------*/
 
   /*!
-    Return the count of executed tasks. Const version.
+    Return the count of executed tasks (\c const version).
    */
 
-  size_t const & flog_task_count() const {
+  unsigned const & flog_task_count() const {
     return flog_task_count_;
   } // flog_task_count
 
@@ -528,12 +383,13 @@ struct context {
     Return the count of executed tasks.
    */
 
-  size_t & flog_task_count() {
+  unsigned & flog_task_count() {
     return flog_task_count_;
   } // flog_task_count
 
+  static std::optional<context_t> ctx;
+
 protected:
-  context() = default;
   // Invoke initialization callbacks.
   // Call from hiding function in derived classses.
   void start() {
@@ -541,24 +397,12 @@ protected:
       ro();
   }
 
-#ifdef DOXYGEN
-  /*!
-    Clear the runtime state of the context.
-
-    Notes:
-      - This does not clear objects that cannot be serialized, e.g.,
-        std::function objects.
-   */
-
-  void clear();
-#endif
-
 private:
   template<class Topo, typename Topo::index_space Index, typename Instance>
   void add_fields(Instance & slot) {
     index_space_info_vector_.push_back({&slot.template get_region<Index>(),
       &slot.template get_partition<Index>(),
-      get_field_info_store<Topo, Index>(),
+      field_info_store<Topo, Index>(),
       util::type<Topo>() + '[' + std::to_string(Index) + ']'});
   } // add_fields
 
@@ -574,14 +418,18 @@ private:
                      typename Topo::core>) {
         (
           [&] {
-            for(const auto fip :
-              get_field_info_store<topo::ragged<Topo>, Index>()) {
+            for(const auto & fip :
+              field_info_store<topo::ragged<Topo>, Index>()) {
               auto & t = slot->ragged.template get<Index>()[fip->fid];
-              index_space_info_vector_.push_back({&t.get_region(),
-                &t.get_partition(),
-                {fip},
-                util::type<Topo>() + "::ragged[" + std::to_string(Index) +
-                  ']'});
+              // Clang doesn't like "t.space" as a constant expression:
+              constexpr auto space =
+                std::remove_reference_t<decltype(t)>::space;
+              index_space_info_vector_.push_back(
+                {&t.template get_region<space>(),
+                  &t.template get_partition<space>(),
+                  {fip},
+                  util::type<Topo>() + "::ragged[" + std::to_string(Index) +
+                    ']'});
             }
           }(),
           ...);
@@ -594,41 +442,28 @@ private:
    *--------------------------------------------------------------------------*/
 
 protected:
-  std::string program_;
-  std::vector<char *> argv_;
-  std::string backend_;
-
-  std::string flog_tags_;
-  int flog_verbose_;
-  int64_t flog_output_process_;
-
-  bool initialize_dependent_ = true;
-
   // Option Descriptions
-  std::map<std::string, boost::program_options::options_description>
+  static inline std::map<std::string,
+    boost::program_options::options_description>
     descriptions_map_;
 
   // Positional options
-  boost::program_options::positional_options_description positional_desc_;
-  boost::program_options::options_description hidden_options_;
-  std::map<std::string, std::string> positional_help_;
+  static inline boost::program_options::positional_options_description
+    positional_desc_;
+  static inline boost::program_options::options_description hidden_options_;
+  static inline std::map<std::string, std::string> positional_help_;
 
   // Validation functions
-  std::map<std::string,
+  static inline std::map<std::string,
     std::pair<bool,
       std::function<bool(boost::any const &, std::stringstream & ss)>>>
     option_checks_;
-
-  std::vector<std::string> unrecognized_options_;
 
   /*--------------------------------------------------------------------------*
     Basic runtime data members.
    *--------------------------------------------------------------------------*/
 
-  bool initialized_ = false;
   Color process_, processes_, threads_per_process_, threads_;
-
-  int exit_status_ = 0;
 
   /*--------------------------------------------------------------------------*
     Field data members.
@@ -638,8 +473,12 @@ protected:
     This type allows storage of runtime field information per topology type.
    */
 
-  std::unordered_map<TopologyType, std::vector<field_info_store_t>>
+  static inline std::unordered_map<TopologyType,
+    std::vector<field_info_store_t>>
     topology_field_info_map_;
+
+  /// Set of topology types for which field definitions have been used
+  static inline std::set<TopologyType> topology_ids_;
 
   /*--------------------------------------------------------------------------*
     Index space data members.
@@ -651,11 +490,42 @@ protected:
     Task count.
    *--------------------------------------------------------------------------*/
 
-  size_t flog_task_count_ = 0;
+  unsigned flog_task_count_ = 0;
 
 private:
-  std::vector<void (*)()> init_registry;
+  static inline std::vector<void (*)()> init_registry;
 }; // struct context
+
+struct task_local_base {
+  struct guard {
+    guard() {
+      for(auto * p : all)
+        p->emplace();
+    }
+    ~guard() {
+      for(auto * p : all)
+        p->reset();
+    }
+  };
+
+  task_local_base() {
+    all.push_back(this);
+  }
+  task_local_base(task_local_base &&) = delete;
+
+protected:
+  ~task_local_base() {
+    all.erase(std::find(all.begin(), all.end(), this));
+  }
+
+private:
+  static inline std::vector<task_local_base *> all;
+
+  virtual void emplace() = 0;
+  virtual void reset() noexcept = 0;
+};
+
+/// \endcond
 
 /// \}
 } // namespace run

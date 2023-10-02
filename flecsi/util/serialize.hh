@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_SERIALIZE_HH
@@ -179,9 +179,9 @@ struct container {
 
 // Unfortunately, std::tuple<int> is not trivially copyable, so check more:
 template<class T>
-constexpr bool bit_assignable_v =
-  std::is_trivially_copy_assignable_v<T> ||
-  std::is_copy_assignable_v<T> && std::is_trivially_copy_constructible_v<T>;
+constexpr bool bit_assignable_v = std::is_trivially_copy_assignable_v<T> ||
+                                  (std::is_copy_assignable_v<T> &&
+                                    std::is_trivially_copy_constructible_v<T>);
 template<class T>
 constexpr bool bit_copyable_v =
   std::is_default_constructible_v<T> && bit_assignable_v<T>;
@@ -236,23 +236,21 @@ struct traits<std::array<T, N>,
       serial::put(p, e);
     }
   }
+
+private:
   template<std::size_t... I>
   static type make_array(const std::byte *& p, std::index_sequence<I...>) {
     return {(void(I), serial::get<T>(p))...};
   }
+
+public:
   static type get(const std::byte *& p) {
     return make_array(p, std::make_index_sequence<N>());
   }
 };
 template<class T>
-struct traits<std::vector<T>> {
+struct traits<std::vector<T>> : detail::container<std::vector<T>> {
   using type = std::vector<T>;
-  template<class P>
-  static void put(P & p, const type & v) {
-    serial::put(p, v.size());
-    for(auto & t : v)
-      serial::put(p, t);
-  }
   static type get(const std::byte *& p) {
     return get_vector<T>(p);
   }

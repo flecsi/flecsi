@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_3_ACTIONS_HH
 #define TUTORIAL_2_CONTROL_3_ACTIONS_HH
 
@@ -9,81 +6,71 @@
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 
-using namespace dependencies;
+// Register several actions under control point one.
 
-/*
-  Register several actions under control point one.
- */
-
-int
-package_a() {
+inline void
+package_a(dependencies::control_policy &) {
   flog(info) << "package_a" << std::endl;
-  return 0;
 }
-control::action<package_a, cp::cp1> package_a_action;
+inline dependencies::control::action<package_a, dependencies::cp::cp1>
+  package_a_action;
 
-int
-package_b() {
+inline void
+package_b(dependencies::control_policy &) {
   flog(info) << "package_b" << std::endl;
-  return 0;
 }
-control::action<package_b, cp::cp1> package_b_action;
+inline dependencies::control::action<package_b, dependencies::cp::cp1>
+  package_b_action;
 
-int
-package_c() {
+inline void
+package_c(dependencies::control_policy &) {
   flog(info) << "package_c" << std::endl;
-  return 0;
 }
-control::action<package_c, cp::cp1> package_c_action;
+inline dependencies::control::action<package_c, dependencies::cp::cp1>
+  package_c_action;
 
-int
-package_d() {
+inline void
+package_d(dependencies::control_policy &) {
   flog(info) << "package_d" << std::endl;
-  return 0;
 }
-control::action<package_d, cp::cp1> package_d_action;
+inline dependencies::control::action<package_d, dependencies::cp::cp1>
+  package_d_action;
 
-/*
-  Register several actions under control point two.
- */
+// Register several actions under control point two.
 
-int
-package_e() {
+inline void
+package_e(dependencies::control_policy &) {
   flog(info) << "package_e" << std::endl;
-  return 0;
 }
-control::action<package_e, cp::cp2> package_e_action;
+inline dependencies::control::action<package_e, dependencies::cp::cp2>
+  package_e_action;
 
-int
-package_f() {
+inline void
+package_f(dependencies::control_policy &) {
   flog(info) << "package_f" << std::endl;
-  return 0;
 }
-control::action<package_f, cp::cp2> package_f_action;
+inline dependencies::control::action<package_f, dependencies::cp::cp2>
+  package_f_action;
 
-int
-package_g() {
+inline void
+package_g(dependencies::control_policy &) {
   flog(info) << "package_g" << std::endl;
-  return 0;
 }
-control::action<package_g, cp::cp2> package_g_action;
+inline dependencies::control::action<package_g, dependencies::cp::cp2>
+  package_g_action;
 
-/*
-  Add dependencies a -> b, b -> d, and a -> d, i.e.,
-  b depends on a, d depends on b, and d depends on a.
- */
+// Add dependencies a -> b, b -> d, and a -> d, i.e.,
+// b depends on a, d depends on b, and d depends on a.
 
-const auto dep_ba = package_b_action.add(package_a_action);
-const auto dep_db = package_d_action.add(package_b_action);
-const auto dep_da = package_d_action.add(package_a_action);
+inline const auto dep_ba = package_b_action.add(package_a_action);
+inline const auto dep_db = package_d_action.add(package_b_action);
+inline const auto dep_da = package_d_action.add(package_a_action);
 
-/*
-  Add dependencies e -> f, e -> g, and f -> g, i.e., f depends on e,
-  g depends on e, and g depends on f.
- */
+// Add dependencies e -> f, e -> g, and f -> g, i.e., f depends on e,
+// g depends on e, and g depends on f.
 
-const auto dep_fe = package_f_action.add(package_e_action);
-const auto dep_ge = package_g_action.add(package_e_action);
-const auto dep_gf = package_g_action.add(package_f_action);
+inline const auto dep_fe = package_f_action.add(package_e_action);
+inline const auto dep_ge = package_g_action.add(package_e_action);
+inline const auto dep_gf = package_g_action.add(package_f_action);
 
 #endif

@@ -1,9 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_TASK_ATTRIBUTES_HH
 #define FLECSI_EXEC_TASK_ATTRIBUTES_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/util/bitutils.hh"
 
 namespace flecsi {
@@ -41,7 +42,7 @@ enum task_attributes_mask_t : TaskAttributes {
 }; // task_attributes_mask_t
 
 /// \c toc if support for it is available, otherwise \c loc.
-constexpr auto default_accelerator =
+inline constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
 #elif defined(REALM_USE_OPENMP)
@@ -76,8 +77,7 @@ enum class task_processor_type_t : size_t {
 }; // task_processor_type_t
 
 // Bits for representing task attributes
-constexpr size_t task_attributes_bits = 8;
-constexpr size_t task_type_bits = 3;
+inline constexpr size_t task_attributes_bits = 8, task_type_bits = 3;
 
 constexpr auto
 as_mask(task_type_t t) {
@@ -87,7 +87,7 @@ as_mask(task_type_t t) {
 constexpr auto
 as_mask(task_processor_type_t t) {
   return static_cast<task_attributes_mask_t>(
-    1 << task_type_bits + static_cast<TaskAttributes>(t));
+    1 << (task_type_bits + static_cast<TaskAttributes>(t)));
 }
 
 inline task_type_t

@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #include "problem.hh"
 #include "poisson.hh"
 #include "state.hh"
@@ -13,19 +8,19 @@
 
 using namespace flecsi;
 
-int
-poisson::action::problem() {
-  annotation::rguard<problem_region> guard;
-  execute<task::eggcarton>(m, ud(m), fd(m), sd(m), Aud(m));
-  execute<task::io, flecsi::mpi>(m, ud(m), "init");
-  execute<task::io, flecsi::mpi>(m, sd(m), "actual");
+void
+poisson::action::problem(control_policy & cp) {
+  util::annotation::rguard<problem_region> guard;
+  execute<task::eggcarton, default_accelerator>(
+    cp.m, ud(cp.m), fd(cp.m), sd(cp.m), Aud(cp.m));
+  execute<task::io, flecsi::mpi>(cp.m, ud(cp.m), "init");
+  execute<task::io, flecsi::mpi>(cp.m, sd(cp.m), "actual");
 
   // This can be used for debugging
 #if 0
-  execute<task::redblack>(m, test(m));
-  execute<task::print>(m, test(m));
+  execute<task::redblack>(cp.m, test(cp.m));
+  execute<task::print>(cp.m, test(cp.m));
 #endif
 
   flog::flush();
-  return 0;
 } // problem

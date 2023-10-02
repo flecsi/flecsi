@@ -1,16 +1,11 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_LEG_FUTURE_HH
 #define FLECSI_EXEC_LEG_FUTURE_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/exec/launch.hh"
-
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
 
 #include <legion.h>
 

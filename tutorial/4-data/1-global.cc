@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
@@ -14,8 +11,6 @@ template<typename T>
 using single = field<T, data::single>;
 const single<double>::definition<global> gfield;
 
-topo::global::slot gtopo;
-
 void
 init(double v, single<double>::accessor<wo> gv) {
   gv = v;
@@ -26,13 +21,12 @@ print(single<double>::accessor<ro> gv) {
   flog(trace) << "global value: " << gv << std::endl;
 }
 
-int
-advance() {
+void
+advance(control_policy &) {
+  topo::global::slot gtopo;
   gtopo.allocate(1);
   const auto v = gfield(gtopo);
   execute<init>(42.0, v);
   execute<print>(v);
-
-  return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

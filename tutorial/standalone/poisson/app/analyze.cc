@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #include "analyze.hh"
 #include "poisson.hh"
 #include "state.hh"
@@ -15,12 +10,12 @@
 
 using namespace flecsi;
 
-int
-poisson::action::analyze() {
-  annotation::rguard<analyze_region> guard;
-  double sum = reduce<task::diff, exec::fold::sum>(m, ud(m), sd(m)).get();
-  sum = execute<task::scale>(m, sum).get();
+void
+poisson::action::analyze(control_policy & cp) {
+  util::annotation::rguard<analyze_region> guard;
+  double sum =
+    reduce<task::diff, exec::fold::sum>(cp.m, ud(cp.m), sd(cp.m)).get();
+  sum = execute<task::scale>(cp.m, sum).get();
   const double l2 = sqrt(sum);
   flog(info) << "l2 error: " << l2 << std::endl;
-  return 0;
 } // analyze

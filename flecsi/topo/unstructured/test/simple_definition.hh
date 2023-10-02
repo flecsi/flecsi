@@ -1,10 +1,8 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 #define FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/util/crs.hh"
 
 #include <fstream>
@@ -65,21 +63,15 @@ public:
   simple_definition(const simple_definition &) = delete;
   simple_definition & operator=(const simple_definition &) = delete;
 
-  std::size_t num_entities(Dimension dimension) const {
-    flog_assert(dimension == 0 || dimension == 2, "invalid dimension");
-    return dimension == 0 ? num_vertices_ : num_cells_;
-  }
-
-  util::crs const & entities(Dimension from_dim, Dimension to_dim) const {
-    flog_assert(from_dim == 2, "invalid dimension " << from_dim);
-    flog_assert(to_dim == 0, "invalid dimension " << to_dim);
-    return e2v_;
+  std::size_t num_entities(entity_kind k) const {
+    flog_assert(k == 0 || k == 2, "invalid entity kind");
+    return k == 0 ? num_vertices_ : num_cells_;
   }
 
   std::vector<size_t>
-  entities(Dimension from_dim, Dimension to_dim, std::size_t entity_id) const {
-    flog_assert(from_dim == 2, "invalid dimension " << from_dim);
-    flog_assert(to_dim == 0, "invalid dimension " << to_dim);
+  entities(entity_kind from, entity_kind to, std::size_t entity_id) const {
+    flog_assert(from == 2, "invalid entity kind " << from);
+    flog_assert(to == 0, "invalid entity kind " << to);
 
     std::string line;
     std::vector<size_t> ids;
@@ -108,6 +100,20 @@ public:
     return ids;
   } // vertices
 
+  template<typename T>
+  void make_entity(entity_kind k,
+    std::size_t,
+    std::vector<T> const & vertices,
+    util::crs & entities) const {
+    flog_assert(k == 1, "invalid entity kind(" << k << ")");
+
+    const T * last = &vertices.back();
+    for(auto & v : vertices) {
+      entities.add_row({*last, v});
+      last = &v;
+    }
+  } // make_entity
+
   /*
     Return the vertex with the given id.
 
@@ -135,6 +141,11 @@ public:
 
     return v;
   } // vertex
+
+  // Mimic a field on the vertex.
+  std::size_t vertex_field(std::size_t id) const {
+    return id;
+  }
 
 private:
   mutable std::ifstream file_;

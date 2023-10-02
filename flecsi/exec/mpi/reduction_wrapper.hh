@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_MPI_REDUCTION_WRAPPER_HH
@@ -44,8 +44,7 @@ private:
 
 public:
   // NB: The real initialization is in the callback.
-  static inline MPI_Op op =
-    (run::context::instance().register_init(init), MPI_Op());
+  static inline MPI_Op op = (run::context::register_init(init), MPI_Op());
 };
 
 template<class>

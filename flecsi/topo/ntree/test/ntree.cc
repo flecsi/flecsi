@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
-// All rights reserved.
-
 #include "flecsi/data.hh"
 #include "flecsi/topo/ntree/interface.hh"
 #include "flecsi/topo/ntree/types.hh"
@@ -193,9 +190,6 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
 using ntree_t = topo::ntree<sph_ntree_t>;
 
-sph_ntree_t::slot sph_ntree;
-sph_ntree_t::cslot coloring;
-
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   density;
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
@@ -236,7 +230,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
       assert(f != s_id.end());
       f->second = true;
     }
-#if DEBUG
+#ifdef DEBUG
     for(auto a : s_id)
       assert(a.second == true);
 #endif
@@ -279,18 +273,13 @@ move_entities(sph_ntree_t::accessor<rw, na> t) {
   }
 }
 
-void
-make_tree(sph_ntree_t::accessor<rw> t) {
-  t.make_tree();
-  t.graphviz_draw(0);
-} // make_tree
-
 int
 ntree_driver() {
+  sph_ntree_t::slot sph_ntree;
 
   std::vector<sph_ntree_t::ent_t> ents;
-  coloring.allocate("coordinates.blessed", ents);
-  sph_ntree.allocate(coloring.get(), ents);
+  sph_ntree.allocate(
+    sph_ntree_t::mpi_coloring("coordinates.blessed", ents), ents);
 
   auto d = density(sph_ntree);
 
@@ -303,4 +292,4 @@ ntree_driver() {
 
   return 0;
 } // ntree_driver
-flecsi::unit::driver<ntree_driver> driver;
+util::unit::driver<ntree_driver> driver;

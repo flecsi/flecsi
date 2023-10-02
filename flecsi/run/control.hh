@@ -1,11 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_RUN_CONTROL_HH
 #define FLECSI_RUN_CONTROL_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/types.hh"
@@ -40,18 +39,17 @@ inline program_option<bool> control_model_sorted_option("FleCSI Options",
   {{flecsi::option_implicit, true}, {flecsi::option_zero}});
 #endif
 
+/// A control point for application use.
+/// \tparam CP control point enumerator
+/// \deprecated Use \c control_base::point.
 template<auto CP>
 using control_point = run_impl::control_point<CP>;
-
-/// A control point for specialization use.
-/// \tparam CP control point enumerator
-template<auto CP>
-using meta_point = run_impl::meta_point<CP>;
 
 /*!
   A control-flow cycle.
   \tparam P tested before each iteration
   \tparam CP \c control_point or \c cycle types
+  \deprecated Use \c control_base::cycle.
  */
 template<bool (*P)(), typename... CP>
 using cycle = run_impl::cycle<P, CP...>;
@@ -61,18 +59,35 @@ using cycle = run_impl::cycle<P, CP...>;
  */
 
 struct control_base {
-  /// Called before executing.  If the value returned is not \c success,
-  /// \c run and \c finalize are skipped.
-  /// \return exit status
-  int initialize() {
-    return success;
-  }
-  /// Called after executing.
-  /// \param run exit status from running
-  /// \return exit status
-  int finalize(int run) {
-    return run;
-  }
+  /// A control point for application use.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using point = run_impl::control_point<CP>;
+
+  /// A control point for specialization use.
+  /// \tparam CP control point enumerator
+  template<auto CP>
+  using meta = run_impl::meta_point<CP>;
+
+  /// A control-flow cycle.
+  /// \tparam P of type `bool (*)(user_policy&)` tested before each iteration,
+  /// where `user_policy` inherits from control_base.  This provides access to
+  /// the control policy instance during policy execution.
+  /// \tparam CP \c point or \c cycle types
+  template<auto P, typename... CP>
+  using cycle = run_impl::cycle<P, CP...>;
+
+  /// Type for specifying control points
+  /// \tparam TT pack of \c point, \c meta, or \c cycle
+  template<class... TT>
+  using list = util::types<TT...>;
+
+  /*!
+    Exception class for control points.
+  */
+  struct exception {
+    int code; /// status code
+  };
 };
 
 #ifdef DOXYGEN
@@ -83,8 +98,8 @@ struct control_policy : control_base {
   /// The labels for the control-flow graph.
   enum control_points_enum {};
   /// The control-flow graph.
-  /// Each element is a \c control_point or a \c cycle.
-  using control_points = std::tuple<>;
+  /// Each element is a \c control_base::point or a \c control_base::cycle.
+  using control_points = list<>;
   /// Base class for control point objects.
   struct node_policy {};
 };
@@ -105,29 +120,33 @@ inline const char * operator*(control_policy::control_points_enum);
   can be written to a graphviz file that can be compiled and viewed using
   the \em dot program.
 
-  \tparam ControlPolicy policy type like \c control_policy
+  \tparam P policy type like \c control_policy
  */
 
 template<typename P>
-struct control : P {
+struct control {
 
-  using target_type = int (*)();
+  using policy_type = P;
+
+  static constexpr bool is_control_base_policy =
+    std::is_base_of_v<control_base, P>;
+
+  using target_type =
+    std::conditional_t<is_control_base_policy, void (*)(P &), int (*)()>;
 
 private:
-  friend P;
-
   using control_points = run_impl::to_types_t<P>;
   using control_points_enum = typename P::control_points_enum;
   using node_policy = typename P::node_policy;
 
-  using point_walker = run_impl::point_walker<control<P>>;
+  using point_walker = run_impl::point_walker<control>;
   friend point_walker;
 
-  using init_walker = run_impl::init_walker<control<P>>;
+  using init_walker = run_impl::init_walker<control>;
   friend init_walker;
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  using point_writer = run_impl::point_writer<control<P>>;
+  using point_writer = run_impl::point_writer<control>;
   friend point_writer;
 #endif
 
@@ -141,8 +160,11 @@ private:
     control_node(target_type target, Args &&... args)
       : node_policy(std::forward<Args>(args)...), target_(target) {}
 
-    int execute() const {
-      return target_();
+    std::conditional_t<is_control_base_policy, void, int> execute(P * p) const {
+      if constexpr(is_control_base_policy)
+        target_(*p);
+      else
+        return target_();
     }
 
   private:
@@ -166,16 +188,10 @@ private:
     Initialize the control point dags. This is necessary in order to
     assign labels in the case that no actions are registered at one
     or more control points.
-   */
-
+  */
   control() {
     run_impl::walk<control_points>(init_walker(registry_));
   }
-
-  /*
-    The singleton instance is private, and should only be accessed by internal
-    types.
-   */
 
   static control & instance() {
     static control c;
@@ -184,8 +200,7 @@ private:
 
   /*
     Return the dag at the given control point.
-   */
-
+  */
   dag & control_point_dag(control_points_enum cp) {
     registry_.try_emplace(cp, *cp);
     return registry_[cp];
@@ -193,8 +208,7 @@ private:
 
   /*
     Return a map of the sorted dags under each control point.
-   */
-
+  */
   sorted_type sort() const {
     sorted_type sorted;
     for(auto & d : registry_) {
@@ -205,63 +219,58 @@ private:
 
   /*
     Run the control model.
-   */
-
-  int run() const {
+  */
+  int run(P * p) const {
     int status{flecsi::run::status::success};
-    run_impl::walk<control_points>(point_walker(sort(), status));
+    run_impl::walk<control_points>(point_walker(sort(), status, p));
     return status;
   } // run
 
   /*
     Output a graph of the control model.
-   */
-
+  */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  int write() const {
-    flecsi::util::graphviz gv;
+  void write(const std::string & p) const {
+    flecsi::util::graphviz gv(p + " control model");
     point_writer::write(registry_, gv);
-    std::string file = program() + "-control-model.dot";
+    std::string file = p + "-control-model.dot";
     gv.write(file);
-    return flecsi::run::status::control_model;
   } // write
 
-  int write_sorted() const {
-    flecsi::util::graphviz gv;
+  void write_sorted(const std::string & p) const {
+    flecsi::util::graphviz gv(p + " actions");
     point_writer::write_sorted(sort(), gv);
-    std::string file = program() + "-control-model-sorted.dot";
+    std::string file = p + "-control-model-sorted.dot";
     gv.write(file);
-    return flecsi::run::status::control_model_sorted;
   } // write_sorted
 #endif
 
   dag_map registry_;
+  std::conditional_t<is_control_base_policy, std::nullptr_t, P> policy_;
 
 public:
-  /*!
-    Return the user's control policy.
-
-    @return The singleton instance of the user's control policy type. Users can
-            add arbitrary data members and interfaces to this type that can be
-            to store control state information.
-   */
-
-  static P & policy() {
-    return instance();
-  }
   /// Return the control policy object.
-  /// \deprecated use #policy
+  /// It is default-initialized when the control points are created and
+  /// destroyed at the end of the program.
+  /// This function cannot be used if \c P inherits from \c control_base.
+  /// \deprecated derive \c P from \c control_base and use the parameter
+  ///   passed to each action
   static P & state() {
-    return policy();
+    static_assert(!is_control_base_policy);
+    return instance().policy_;
   }
 
   /*!
     The action type provides a mechanism to add execution elements to the
     FleCSI control model.
 
-    @tparam T  The execution target.
+    \tparam T function to call, of type `void(P&)` if \c P inherits from
+      \c control_base and `int()` otherwise
     @tparam CP The control point under which this action is executed.
     @tparam M  Boolean indicating whether or not the action is a meta action.
+               This is intended for specialization developers; application
+               developers should omit this parameter (defaulting it to
+               \c false).
    */
 
   template<target_type T, control_points_enum CP, bool M = false>
@@ -274,7 +283,7 @@ public:
       Add a function to be executed under the specified control point.
 
       @param args   A variadic list of arguments that are forwarded to the
-                    user-defined node type, as spcified in the control policy.
+                    user-defined node type, as specified in the control policy
      */
 
     template<typename... Args>
@@ -294,11 +303,8 @@ public:
     /*!
       Add a dependency on the given action.
 
+      \tparam V must be the same as \a ControlPoint
       @param from The upstream node in the dependency.
-
-      @note It is illegal to add depencdencies between actions under
-            different  control  points. Attempting to do so will result
-            in a compile-time error.
      */
 
     template<target_type U, control_points_enum V>
@@ -308,14 +314,6 @@ public:
         "points");
       node_.push_back(&from.node_);
       return {};
-    }
-
-    /*!
-     */
-
-    template<target_type F>
-    void push_back(action<F, CP, M> const & from) {
-      node_.push_back(&from.node_);
     }
 
   protected:
@@ -331,30 +329,55 @@ public:
   /*!
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
-    valid ordering, and executes the actions.
+    valid ordering, and executes the actions.  If the policy `P` inherits from
+    `control_base`, an object of type \c P is initialized from \a aa and
+    destroyed before this function returns.
+    \c control_base::exception can be thrown for early
+    termination.
+    \param aa only if inheriting from \c control_base
+    \return code from a thrown \c control_base::exception or the
+    bitwise or of return values of executed actions.
    */
-
-  static int execute() {
-    if constexpr(std::is_base_of_v<control_base, P>) {
-      const int r = instance().initialize();
-      return r == success ? instance().finalize(instance().run()) : r;
+  template<class... AA>
+  static int invoke(AA &&... aa) {
+    if constexpr(is_control_base_policy) {
+      try {
+        P pol(std::forward<AA>(aa)...);
+        return instance().run(&pol);
+      }
+      catch(control_base::exception e) {
+        return e.code;
+      }
     }
     else {
-      return instance().run();
+      static_assert(!sizeof...(aa), "arguments allowed only with control_base");
+      return instance().run(nullptr);
     }
-  } // execute
+  }
+  /// Call \c #invoke with no arguments.
+  /// \deprecated Use \c invoke directly or call \c runtime::main.
+  [[deprecated("use invoke")]] static int execute() {
+    return invoke();
+  }
 
   /*!
     Process control model command-line options.
+    \param s initialization status from \c initialize
+    \return status of control model output if requested, else \a s
+    \deprecated Use \c runtime::main.
+    \see arguments::action::operation
    */
-
-  static int check_status(int s) {
+  [[deprecated("use flecsi::runtime")]] static int check_status(int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
+    // If a confused client calls this without having called initialize,
+    // argv0 will be empty, which is a mild form of failure.
     switch(s) {
       case flecsi::run::status::control_model:
-        return instance().write();
+        write_graph(argv0);
+        break;
       case flecsi::run::status::control_model_sorted:
-        return instance().write_sorted();
+        write_actions(argv0);
+        break;
       default:
         break;
     } // switch
@@ -362,7 +385,40 @@ public:
     return s;
   } // check_status
 
+#ifdef FLECSI_ENABLE_GRAPHVIZ
+  static void write_graph(const std::string & p) {
+    instance().write(p);
+  }
+  static void write_actions(const std::string & p) {
+    instance().write_sorted(p);
+  }
+#endif
 }; // struct control
+
+struct call_policy : control_base {
+  enum control_points_enum { single };
+  using control_points = list<point<single>>;
+  struct node_policy {};
+
+  template<class F>
+  explicit call_policy(F && f) : f(std::forward<F>(f)) {}
+  int operator()() const {
+    return f();
+  }
+
+private:
+  std::function<int()> f;
+};
+
+inline const char *
+operator*(call_policy::control_points_enum) {
+  return "single";
+}
+
+/// A trivial control model that calls a single function.
+/// Its control policy object can be constructed from any callable with the
+/// signature `int()`.
+using call = control<call_policy>;
 
 /// \}
 } // namespace run

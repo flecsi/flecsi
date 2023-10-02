@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_PRIVILEGE_HH
@@ -17,8 +17,11 @@ using Privileges = unsigned;
 using PrivilegeCount = unsigned short;
 
 /*!
-  Enumeration for specifying access privleges for data that are passed
+  Access privileges for data passed
   to FleCSI tasks.
+
+  Each field must be initialized with \c wo privileges (perhaps combined with
+  \c na).  Any use of such privileges produces default-initialized values.
 
   Ghost data is updated only when read access to it is requested.
   Writes to shared data are never propagated to ghost data for which the same
@@ -28,7 +31,7 @@ using PrivilegeCount = unsigned short;
 enum partition_privilege_t : Privileges {
   na = 0b00, ///< no access: defer consistency update
   ro = 0b01, ///< read-only
-  wo = 0b10, ///< write-only: data uninitialized; consistency updates discarded
+  wo = 0b10, ///< write-only: consistency updates discarded
   rw = 0b11 ///< read-write
 }; // enum partition_privilege_t
 
@@ -141,7 +144,7 @@ inline constexpr Privileges privilege_cat = [] {
   // Check for overflow:
   (void)privilege_empty<privilege_count(A) + privilege_count(B)>;
   const auto e = privilege_empty<privilege_count(B)>;
-  return A * e | B & e - 1;
+  return A * e | (B & (e - 1));
 }();
 
 constexpr partition_privilege_t
@@ -151,6 +154,10 @@ privilege_merge(Privileges p) {
          : privilege_read(p)  ? ro
                               : na;
 }
+
+template<partition_privilege_t O, partition_privilege_t G, PrivilegeCount N>
+inline constexpr auto privilege_ghost_repeat =
+  privilege_cat<privilege_repeat<O, N - (N > 1)>, privilege_repeat<G, (N > 1)>>;
 
 /// \endcond
 /// \}

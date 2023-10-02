@@ -1,9 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_FIELD_INFO_HH
 #define FLECSI_DATA_FIELD_INFO_HH
 
+#include "flecsi/config.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/types.hh"
 

@@ -1,14 +1,11 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_LEG_POLICY_HH
 #define FLECSI_DATA_LEG_POLICY_HH
 
-#if !defined(FLECSI_ENABLE_LEGION)
-#error FLECSI_ENABLE_LEGION not defined! This file depends on Legion!
-#endif
-
 #include "flecsi/run/leg/mapper.hh"
+#include "flecsi/util/array_ref.hh"
 
 #include <legion.h>
 
@@ -20,6 +17,7 @@ namespace data {
 struct prefixes;
 
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
+
 constexpr auto
 partitionKind(disjointness dis, completeness cpt) {
   return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
@@ -39,6 +37,7 @@ constexpr inline std::size_t region_dimensions = 2;
 
 inline auto &
 run() {
+  // NB: the optional argument here is for only internal Legion testing.
   return *Legion::Runtime::get_runtime();
 }
 inline auto
@@ -68,19 +67,22 @@ destroy(Legion::LogicalRegion r) {
 }
 
 template<class T>
-struct unique_handle {
-  unique_handle() = default;
-  unique_handle(T t) : h(t) {}
-  unique_handle(unique_handle && u) noexcept : h(std::exchange(u.h, {})) {}
+struct shared_handle {
+  shared_handle() = default;
+  shared_handle(T t) : h(t) {}
+  shared_handle(const shared_handle & s) noexcept : h(s.h) {
+    run().create_shared_ownership(ctx(), h);
+  }
+  shared_handle(shared_handle && s) noexcept : h(std::exchange(s.h, {})) {}
   // Prevent erroneous conversion through T constructor:
   template<class U>
-  unique_handle(unique_handle<U> &&) = delete;
-  ~unique_handle() {
+  shared_handle(const shared_handle<U> &) = delete;
+  ~shared_handle() {
     if(ctx()) // does the Legion Context still exist?
       destroy(h);
   }
-  unique_handle & operator=(unique_handle u) noexcept {
-    std::swap(h, u.h);
+  shared_handle & operator=(shared_handle s) noexcept {
+    std::swap(h, s.h);
     return *this;
   }
   explicit operator bool() {
@@ -89,15 +91,18 @@ struct unique_handle {
   operator T() const {
     return h;
   }
+  const T * operator->() const {
+    return &h;
+  }
 
 private:
   T h;
 };
 
-using unique_index_space = unique_handle<Legion::IndexSpace>;
-using unique_index_partition = unique_handle<Legion::IndexPartition>;
-using unique_field_space = unique_handle<Legion::FieldSpace>;
-using unique_logical_region = unique_handle<Legion::LogicalRegion>;
+using shared_index_space = shared_handle<Legion::IndexSpace>;
+using shared_index_partition = shared_handle<Legion::IndexPartition>;
+using shared_field_space = shared_handle<Legion::FieldSpace>;
+using shared_logical_region = shared_handle<Legion::LogicalRegion>;
 
 using rect = Legion::Rect<2>;
 
@@ -125,12 +130,12 @@ name(const T & t, const char * def = nullptr) {
 template<class T>
 auto
 named0(const T & t, const char * n) {
-  unique_handle ret(t);
+  shared_handle ret(t);
   if(n)
     run().attach_name(t, n);
   return ret;
 }
-// Avoid non-type-erased unique_handle specializations:
+// Avoid non-type-erased shared_handle specializations:
 inline auto
 named(const Legion::IndexSpace & s, const char * n) {
   return named0(s, n);
@@ -152,37 +157,52 @@ named(const Legion::LogicalPartition & p, const char * n) {
 
 struct region {
   region(size2 s, const fields & fs, const char * name = nullptr)
-    : index_space(named(run().create_index_space(ctx(),
-                          rect({0, 0}, {upper(s.first), upper(s.second)})),
-        name)),
-      field_space([&fs] { // TIP: IIFE (q.v.) allows statements here
+    : logical_region([&] { // TIP: IIFE (q.v.) allows statements here
         auto & r = run();
         const auto c = ctx();
-        unique_field_space ret = r.create_field_space(c);
-        Legion::FieldAllocator allocator = r.create_field_allocator(c, ret);
+        shared_index_space index_space(
+          named(r.create_index_space(
+                  c, rect({0, 0}, {upper(s.first), upper(s.second)})),
+            name));
+        shared_field_space field_space(r.create_field_space(c));
+        Legion::FieldAllocator allocator =
+          r.create_field_allocator(c, field_space);
         for(auto const & fi : fs) {
           allocator.allocate_field(fi->type_size, fi->fid);
-          r.attach_name(ret, fi->fid, fi->name.c_str());
+          r.attach_name(field_space, fi->fid, fi->name.c_str());
         }
-        return ret;
-      }()),
-      logical_region(
-        named(run().create_logical_region(ctx(), index_space, field_space),
-          name)) {}
+
+        return named(
+          r.create_logical_region(c, index_space, field_space), name);
+      }()) {}
+
+  // Retain value semantics:
+  region(region &&) = default;
+  region & operator=(region &&) & = default;
+
+  Legion::IndexSpace get_index_space() const {
+    return logical_region->get_index_space();
+  }
+
+  Legion::FieldSpace get_field_space() const {
+    return logical_region->get_field_space();
+  }
 
   size2 size() const {
-    const auto p = run().get_index_space_domain(index_space).hi();
+    const auto p = run().get_index_space_domain(get_index_space()).hi();
     return size2(p[0] + 1, p[1] + 1);
   }
 
-  unique_index_space index_space;
-  unique_field_space field_space;
-  unique_logical_region logical_region;
+  shared_logical_region logical_region;
 };
 
 struct partition_base {
-  unique_index_partition index_partition;
+  shared_index_partition index_partition;
   Legion::LogicalPartition logical_partition;
+
+  // Retain value semantics:
+  partition_base(partition_base &&) = default;
+  partition_base & operator=(partition_base &&) & = default;
 
   Legion::IndexSpace get_color_space() const {
     return run().get_index_partition_color_space_name(index_partition);
@@ -204,7 +224,7 @@ struct partition_base {
   }
 
 protected:
-  partition_base(const Legion::LogicalRegion & r, unique_index_partition ip)
+  partition_base(const Legion::LogicalRegion & r, shared_index_partition ip)
     : index_partition(std::move(ip)),
       logical_partition(log(r, index_partition)) {}
 
@@ -229,22 +249,22 @@ struct partition : leg::partition_base { // instead of "using partition ="
 };
 
 namespace leg {
-
-struct with_color { // for initialization order
-  unique_index_space color_space;
-};
-struct rows : with_color, partition {
+template<bool C = false> // make columns instead
+struct rows : partition {
   explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
 
   // this constructor will create partition by rows with s.first being number
   // of colors and s.second the max size of the rows
   rows(const Legion::LogicalRegion & reg, size2 s)
-    : with_color{run().create_index_space(ctx(),
-        Legion::Rect<1>(0, upper(s.first)))},
-      partition(reg, partition_rows(reg, upper(s.second))) {}
+    : partition(reg,
+        partition_rows(reg,
+          shared_index_space(run().create_index_space(ctx(),
+            Legion::Rect<1>(0, upper(C ? s.second : s.first)))),
+          upper(C ? s.first : s.second))) {}
 
 private:
-  unique_index_partition partition_rows(const Legion::LogicalRegion & reg,
+  shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
+    Legion::IndexSpace color_space,
     Legion::coord_t hi) {
     // The type-erased version assumes a square transformation matrix
     return named(run().create_partition_by_restriction(
@@ -253,11 +273,11 @@ private:
                    Legion::IndexSpaceT<1>(color_space),
                    [&] {
                      Legion::Transform<2, 1> ret;
-                     ret.rows[0].x = 1;
-                     ret.rows[1].x = 0;
+                     ret.rows[C].x = 1;
+                     ret.rows[!C].x = 0;
                      return ret;
                    }(),
-                   {{0, 0}, {0, hi}},
+                   {{0, 0}, {C ? hi : 0, C ? 0 : hi}},
                    DISJOINT_COMPLETE_KIND),
       (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
   }
@@ -266,7 +286,7 @@ public:
   void update(const Legion::LogicalRegion & reg) {
     Legion::DomainPoint hi =
       run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, hi[1]);
+    auto ip = partition_rows(reg, get_color_space(), hi[!C]);
 
     logical_partition = log(reg, ip);
     index_partition = std::move(ip);
@@ -282,7 +302,7 @@ struct partition : data::partition {
     const data::partition & src,
     field_id_t fid,
     completeness cpt = incomplete)
-    : partition(reg.logical_region, reg.index_space, src, fid, cpt) {}
+    : partition(reg.logical_region, reg.get_index_space(), src, fid, cpt) {}
 
   partition(prefixes & reg,
     const data::partition & src,
@@ -301,8 +321,6 @@ struct partition : data::partition {
   }
 
 private:
-  // We document that src must outlive this partitioning, although Legion is
-  // said to support deleting its color space before our partition using it.
   partition(const Legion::LogicalRegion & reg,
     const Legion::IndexSpace & is,
     const data::partition & src,
@@ -325,28 +343,107 @@ private:
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 
-struct borrow : partition<true, false> {
-  using Value = rect;
+// Stateless "functors" avoid holding onto memory indefinitely.
+struct projection : Legion::ProjectionFunctor, borrow_base {
+  unsigned get_depth() const override {
+    return 0;
+  }
+  bool is_exclusive() const override {
+    return false;
+  }
+  Legion::LogicalRegion project(const Legion::Mappable * m,
+    unsigned r,
+    Legion::LogicalPartition p,
+    const Legion::DomainPoint & i) override {
+    const auto & o = static_cast<const Claim *>(
+      get_req(*m, r).get_projection_args(nullptr))[i.get_color()];
+    return o == nil ? Legion::LogicalRegion::NO_REGION
+                    : runtime->get_logical_subregion_by_color(p, o);
+  }
 
-  static Value make(prefixes_base::row r,
-    std::size_t c = run::context::instance().color()) {
-    const Legion::coord_t i = c;
-    return {{i, 0}, {i, upper(r)}};
-  }
-  static std::size_t get_row(const Value & v) {
-    return v.lo[0];
-  }
-  static prefixes_base::row get_size(const Value & v) {
-    return bound(v.hi[1]);
+  static const Legion::ProjectionID id;
+
+private:
+  // When is July 123rd?
+  template<class... VV>
+  static auto & calendar(unsigned i, const VV &... vv) {
+    decltype((vv.data(), ...)) ret;
+    const bool found = ([&] {
+      const unsigned n = vv.size();
+      const bool here = i < n;
+      if(here)
+        ret = &vv[i];
+      else
+        i -= n;
+      return here;
+    }() || ...);
+    if(found)
+      return *ret;
+    flog_fatal("RegionRequirement index out of range");
   }
 
-  using partition::partition;
+  static const Legion::RegionRequirement & get_req(const Legion::Mappable & m,
+    unsigned i) {
+    switch(m.get_mappable_type()) {
+      case LEGION_TASK_MAPPABLE:
+        return m.as_task()->regions[i];
+      case LEGION_COPY_MAPPABLE: {
+        const auto & c = *m.as_copy();
+        return calendar(i,
+          c.src_requirements,
+          c.dst_requirements,
+          c.src_indirect_requirements,
+          c.dst_indirect_requirements);
+      }
+      case LEGION_INLINE_MAPPABLE:
+        return m.as_inline()->requirement;
+      case LEGION_FILL_MAPPABLE:
+        return m.as_fill()->requirement;
+      default:
+        flog_fatal("unknown Mappable type");
+    }
+  }
+};
+inline const Legion::ProjectionID projection::id = [] {
+  const auto ret = Legion::Runtime::generate_static_projection_id();
+  Legion::Runtime::preregister_projection_functor(ret, new projection);
+  return ret;
+}();
+
+struct borrow : borrow_base {
+  borrow(Claims c) : sz(c.size()) {
+    // Avoid storing identity sequences:
+    if(!std::equal(c.begin(), c.end(), util::iota_view({}, sz).begin()))
+      c.swap(this->c);
+  }
+
+  Color size() const {
+    return sz;
+  }
+
+  static Legion::ProjectionID projection(const borrow * b) {
+    return b && !b->c.empty() ? leg::projection::id : def_proj;
+  }
+  static void attach(Legion::RegionRequirement & r, const borrow * b) {
+    if(b)
+      b->attach(r);
+  }
+
+private:
+  void attach(Legion::RegionRequirement & r) const {
+    if(!c.empty())
+      r.set_projection_args(c.data(), c.size() * sizeof c.front());
+  }
+
+  Color sz;
+  Claims c; // if non-trivial
 };
 /// \}
 } // namespace leg
 
 using region_base = leg::region;
-using leg::rows, leg::borrow;
+using rows = leg::rows<>;
+using leg::borrow;
 
 } // namespace data
 } // namespace flecsi

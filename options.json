@@ -1,0 +1,10 @@
+{
+  "gnu": {
+    "c_flags": "-Wall -Wundef -W -Werror -Wvla",
+    "cxx_flags": "-Wextra-semi"
+  },
+  "llvm": {
+    "c_flags": "-fcolor-diagnostics -Wno-unknown-cuda-version -Wall -Wundef -W -Werror -Wvla",
+    "cxx_flags": "-Wextra-semi"
+  }
+}

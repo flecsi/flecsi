@@ -1,3 +1,6 @@
+// Copyright (C) 2016, Triad National Security, LLC
+// All rights reserved.
+
 // Topology components used for storing sizes of other topologies.
 
 #ifndef FLECSI_TOPO_SIZE_HH
@@ -12,8 +15,13 @@ namespace flecsi::topo {
 /// \addtogroup topology
 /// \{
 
-// A subtopology for storing/updating row sizes of a partition.
+/// \if core
+/// A subtopology for storing/updating row sizes of a partition.
+/// \else
+/// Types for resizing partitions.
+/// \endif
 struct resize : specialization<column, resize> {
+  /// \link flecsi::field `field`\endlink for storing sizes.
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
   template<partition_privilege_t P>
@@ -62,19 +70,18 @@ struct resize : specialization<column, resize> {
 // Now that resize is complete:
 inline const resize::Field::definition<resize> resize::field;
 
-// To control initialization order:
-struct with_size {
+/// Size information for a partition.
+struct with_size { // separate to control initialization order
   explicit with_size(Color n, const resize::policy & p = {})
     : sz(n), growth(p) {}
+  /// Access the sizes.
+  /// \return field reference for \c resize::Field
   auto sizes() {
     return resize::field(sz);
   }
   resize::core sz;
+  /// Automatic growth control.
   resize::policy growth;
-  // For compatibility with borrow_category:
-  const resize::policy & grow() const {
-    return growth;
-  }
 };
 
 /// \}

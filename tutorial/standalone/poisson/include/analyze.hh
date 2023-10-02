@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #ifndef POISSON_ANALYZE_HH
 #define POISSON_ANALYZE_HH
 
@@ -11,7 +6,7 @@
 namespace poisson {
 namespace action {
 
-int analyze();
+void analyze(control_policy &);
 inline control::action<analyze, cp::analyze> analyze_action;
 
 } // namespace action

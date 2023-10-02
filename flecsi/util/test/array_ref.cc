@@ -270,6 +270,15 @@ array_ref() {
     EXPECT_EQ(tv.end()[-1], &b.back());
 
     {
+      constexpr util::iota_view iv(0, 10);
+      constexpr auto s0 = stride_view(iv, 3), s1 = stride_view(iv, 3, 1);
+      static_assert(s0.size() == 4);
+      static_assert(s0[1] == 3);
+      static_assert(s1.size() == 3);
+      static_assert(s1[2] == 7);
+    }
+
+    {
       static short four[4];
       constexpr int i = 1, n = 2;
       constexpr util::substring_view sv((util::span(four)), i, n);
@@ -277,7 +286,24 @@ array_ref() {
       static_assert(sv.size() == n);
       static_assert(sv.begin() + n == sv.end());
     }
+
+    {
+      constexpr static int primes[] = {2, 3, 5, 7, 11, 13, 17},
+                           np = sizeof primes / sizeof *primes;
+      static_assert([] {
+        int twins[np]{};
+        util::transform(primes, twins, [](int i) { return i + 2; });
+        return twins[1] == primes[2];
+      }());
+      static_assert(util::partition_point(
+                      primes, [](int i) { return !(i % 2); }) == primes + 1);
+      static_assert([] {
+        int loose[std::end(primes)[-1] + 1]{};
+        util::unpack(util::iota_view(0, np), +loose, primes);
+        return loose[13] == util::binary_index(primes, 13);
+      }());
+    }
   };
 } // array_ref
 
-flecsi::unit::driver<array_ref> driver;
+util::unit::driver<array_ref> driver;

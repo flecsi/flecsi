@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #ifndef POISSON_STATE_HH
 #define POISSON_STATE_HH
 
@@ -18,7 +13,6 @@ inline const field<double>::definition<mesh, mesh::vertices> sd;
 inline const field<double>::definition<mesh, mesh::vertices> Aud;
 
 inline mesh::slot m;
-inline mesh::cslot coloring;
 
 } // namespace poisson
 

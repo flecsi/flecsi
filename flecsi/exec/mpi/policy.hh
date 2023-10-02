@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_MPI_POLICY_HH
@@ -13,13 +13,8 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/function_traits.hh"
 
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
-
 #include <mpi.h>
 
-#include <future>
 #include <type_traits>
 #include <utility> // forward
 
@@ -53,7 +48,7 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
   using util::mpi::test;
-  using Traits = util::function_traits<decltype(F)>;
+  using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
 
   // replace arguments in args, for example, field_reference -> accessor.
@@ -76,6 +71,9 @@ reduce_internal(Args &&... args) {
   // the fields is also done in the prolog.
   const prolog<mask_to_processor_type(Attributes)> pr(params, args...);
 
+  run::context_t::depth_guard rg;
+  run::task_local_base::guard tlg;
+
   // Different kinds of task invocation with flecsi::execute():
   // 1. domain_size is a std::monostate: a single task launch. On a single
   //    rank (0) of our choice, we apply F to ARGS. Given the return type R of
@@ -94,8 +92,8 @@ reduce_internal(Args &&... args) {
   //    index>.get(j) to get the return value on any rank j. This implies an
   //    Allgather is needed.
   //
-  const auto ds =
-    launch_size<Attributes, decltype(params)>(std::forward<Args>(args)...);
+  const auto ds = launch_size<Attributes, decltype(params)>(args...);
+  const auto task = [&params] { return std::apply(F, std::move(params)); };
   util::annotation::rguard<util::annotation::execute_task_user> ann{task_name};
   if constexpr(std::is_same_v<decltype(ds), const std::monostate>) {
     const bool root = !flecsi::run::context::instance().process();
@@ -103,36 +101,23 @@ reduce_internal(Args &&... args) {
     if constexpr(std::is_void_v<R>) {
       // void return type, just invoke, no return value to broadcast
       if(root) {
-        std::apply(F, std::move(params));
+        task();
       }
       return future<void>{};
     }
     else {
-      auto ret = std::make_unique<R>();
-      if(root) {
-        *ret = std::apply(F, std::move(params));
-      }
-
-      auto request = std::make_unique<MPI_Request>();
+      auto ret = future<R>::make(task, root);
 
       // Initiate Ibroadcast to broadcast the result from root to the rest of
       // ranks
-      test(MPI_Ibcast(ret.get(),
+      test(MPI_Ibcast(ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
         0,
         MPI_COMM_WORLD,
-        request.get()));
+        ret->request()));
 
-      // return future<R, launch_type::single> where clients on every rank
-      // will get the same value when calling .get().
-      return async(
-        // We will wait for the completion of the non-blocking Bcast in the
-        // async task.
-        [ret = std::move(ret), request = std::move(request)]() {
-          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
-          return *ret;
-        });
+      return ret;
     }
   }
   else {
@@ -145,38 +130,28 @@ reduce_internal(Args &&... args) {
       // A real reduce operation, every rank needs to be able to access the
       // same result through future<R>::get().
       // 1. Call the F, get the local return value
-      auto ret = std::make_unique<R>(std::apply(F, std::move(params)));
+      auto ret = future<R>::make(task, true);
 
       // 2. Reduce the local return values with the Reduction (using its
       // corresponding MPI_Op created by register_reduction<>()).
-      auto request = std::make_unique<MPI_Request>();
       test(MPI_Iallreduce(MPI_IN_PLACE,
-        ret.get(),
+        ret->data(),
         1,
         flecsi::util::mpi::type<R>(),
         flecsi::exec::fold::wrap<Reduction, R>::op,
         MPI_COMM_WORLD,
-        request.get()));
+        ret->request()));
 
-      // 3. Put the reduced value in a future<R, single> (since there is only
-      // one final value) and return it.
-      return async(
-        // We will wait for the completion of the non-blocking Allreduce in the
-        // async task.
-        [ret = std::move(ret), request = std::move(request)]() {
-          util::mpi::test(MPI_Wait(request.get(), MPI_STATUS_IGNORE));
-          return *ret;
-        });
+      return ret;
     }
     else if constexpr(!std::is_void_v<R>)
       // There is an Allgather happening in the constructor of future<R, index>
       // where the results from ranks are redistributed such that clients on
       // every rank i can get the return value of rank j by calling get(j).
-      return future<R, exec::launch_type_t::index>{
-        std::apply(F, std::move(params))};
+      return future<R, exec::launch_type_t::index>{task()};
     else {
       // index launch of void functions, e.g. printf("hello world");
-      std::apply(F, std::move(params));
+      task();
       return future<void, exec::launch_type_t::index>{};
     }
   }

@@ -1,0 +1,16 @@
+{
+"process": 0,
+"color": 0,
+"exclusive_cells_local": [2,3,4,7,8,9,12,13,14],
+"exclusive_cells_global": [5,6,7,13,14,15,21,22,23],
+"shared_cells_local": [1,6,11,16,17,18,19],
+"shared_cells_global": [4,12,20,28,29,30,31],
+"ghost_cells_local": [0,5,10,15,20,21,22,23,24],
+"ghost_cells_global": [3,11,19,27,35,36,37,38,39],
+"exclusive_vertices_local": [3,4,5,9,10,11,15,16,17],
+"exclusive_vertices_global": [6,7,8,15,16,17,24,25,26],
+"shared_vertices_local": [1,2,7,8,13,14,19,20,21,22,23,25,26,27,28,29],
+"shared_vertices_global": [4,5,13,14,22,23,31,32,33,34,35,40,41,42,43,44],
+"ghost_vertices_local": [0,6,12,18,24,30,31,32,33,34,35],
+"ghost_vertices_global": [3,12,21,30,39,48,49,50,51,52,53]
+}

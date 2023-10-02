@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/data.hh>
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
@@ -12,8 +9,6 @@ using namespace flecsi;
 template<typename T>
 using single = field<T, data::single>;
 const single<std::size_t>::definition<topo::index> ifield;
-
-topo::index::slot custom_topology;
 
 void
 init(single<std::size_t>::accessor<wo> iv) {
@@ -28,14 +23,12 @@ print(single<std::size_t>::accessor<ro> iv) {
               << colors() << ")" << std::endl;
 }
 
-int
-advance() {
-
+void
+advance(control_policy &) {
+  topo::index::slot custom_topology;
   custom_topology.allocate(4);
 
   execute<init>(ifield(custom_topology));
   execute<print>(ifield(custom_topology));
-
-  return 0;
-}
+} // advance()
 control::action<advance, cp::advance> advance_action;

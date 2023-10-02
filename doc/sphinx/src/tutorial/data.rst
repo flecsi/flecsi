@@ -11,6 +11,12 @@ FleCSI provides a data model that integrates with the task and kernel
 abstractions to provide easy registration and access to various data
 types with automatic dependency tracking.
 
+.. sidebar:: Field definitions in headers
+
+   Declaring field definitions as ``const`` namespace members gives them
+   internal linkage. When putting them in headers make sure to declare them
+   as ``inline const`` to avoid breaking the One-Definition Rule (ODR).
+
 Example 1: Global data
 ++++++++++++++++++++++
 
@@ -20,13 +26,18 @@ is natural to use the ``data::single`` layout.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 13-17
+  :start-at: template<typename T>
+  :end-at: const single<double>::definition<global> gfield;
 
+To create a topology instance, declare a *topology slot* and then use ``allocate`` with an argument appropriate to the topology called a *coloring*.
+In general, a coloring describes the structure of a topology and its distribution among colors.
+The global topology is a special case that does not actually use colors; its "coloring" is simply a count of values for each field.
 Writing to a global field requires a single task launch.
 
 .. literalinclude:: ../../../../tutorial/4-data/1-global.cc
   :language: cpp
-  :lines: 19-37
+  :start-at: void
+  :end-at: // advance()
 
 Example 2: Index data 
 +++++++++++++++++++++
@@ -35,7 +46,8 @@ A field on an ``index`` topology stores one value for each color.
 
 .. literalinclude:: ../../../../tutorial/4-data/2-index.cc
   :language: cpp
-  :lines: 12-40
+  :start-at: using namespace flecsi;
+  :end-at: // advance()
 
 Example 3: Dense data
 +++++++++++++++++++++
@@ -46,19 +58,21 @@ of the `canonical` topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 16-16
+  :start-at: const field<double>::definition<canon, canon::cells> pressure;
+  :end-at: const field<double>::definition<canon, canon::cells> pressure;
 
 One can access the field inside of the FleCSI task by passing
 topology and field accessors with `access permissions` (wo/rw/ro).  
 The ``canonical`` topology is a very simple specialization of the ``unstructured`` core topology.
-It illustrates the use of a *coloring slot*, which applies a specialization-defined rule for specifying a *coloring*: the run-time information for constructing a topology distributed over colors.
+It illustrates the use of a *coloring slot*, which applies a specialization-defined rule for specifying a coloring in a similar fashion to a topology slot.
 Here, a file is the source of the mesh (for purposes of illustration).
 The resulting coloring is used to initialize two meshes ``canonical`` and ``cp``, and the ``copy`` task operates on both of them at once using a low-level accessor.
 The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a parameter that provides access to the structure of the mesh via the ``entities`` function.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
-  :lines: 18-53
+  :start-at: void
+  :end-at: // advance()
 
 ----
 

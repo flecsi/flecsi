@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_2_CYCLE_HH
 #define TUTORIAL_2_CONTROL_2_CYCLE_HH
 
@@ -33,44 +30,30 @@ struct control_policy : flecsi::run::control_base {
 
   using control = flecsi::run::control<control_policy>;
 
-  /*
-    Define a function to access the step_ data member.
-   */
+  // Define a function to access the step_ data member.
 
   size_t & step() {
     return step_;
   }
 
-  /*
-    The core FleCSI control model inherits from the control policy, so that
-    any data members defined in your policy are carried with the control
-    policy instance, and can be accessed through a static interface.
-   */
+  // Cycle predicates are passed the policy object.
 
-  static bool cycle_control() {
-    return control::instance().step()++ < 5;
+  static bool cycle_control(control_policy & policy) {
+    return policy.step()++ < 5;
   }
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  // A cycle type. Cycles are similar to the control_points tuple, with the
+  // addition of a predicate function that controls termination of the cycle.
 
-  /*
-    The cycle type. Cycles are similar to the control_points tuple, with the
-    addition of a predicate function that controls termination of the cycle.
-   */
+  using main_cycle =
+    cycle<cycle_control, point<cp::advance>, point<cp::analyze>>;
 
-  using cycle = flecsi::run::cycle<cycle_control,
-    control_point<cp::advance>,
-    control_point<cp::analyze>>;
+  // The control_points list type takes the cycle as one of its
+  // elements. Valid types for the control_points tuple are, therefore,
+  // either typeified enumeration values, or cycles.
 
-  /*
-    The control_points tuple type takes the cycle as one of its
-    elements. Valid types for the control_points tuple are, therefore,
-    either typeified enumeration values, or cycles.
-   */
-
-  using control_points = std::
-    tuple<control_point<cp::initialize>, cycle, control_point<cp::finalize>>;
+  using control_points =
+    list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
 
 private:
   size_t step_{0};

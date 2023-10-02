@@ -1,7 +1,4 @@
 #------------------------------------------------------------------------------#
-# Copyright (c) 2016, Triad National Security, LLC
-# All rights reserved
-#------------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.13...3.20)
 
@@ -46,12 +43,18 @@ function(add_unit name)
   cmake_parse_arguments(unit "${options}" "${one_value_args}"
     "${multi_value_args}" ${ARGN})
 
+ if(FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND 
+    (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
+    list(APPEND UNIT_FLAGS "--backend-args=-ll:gpu 1")
+ endif()
+ 
   add_test(NAME ${name}
-    COMMAND
-      $<TARGET_FILE:${name}> ${unit_ARGUMENTS}
-    WORKING_DIRECTORY
+  COMMAND
+     ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 $<TARGET_FILE:${name}> ${unit_ARGUMENTS} ${UNIT_FLAGS}
+     WORKING_DIRECTORY
       ${CMAKE_BINARY_DIR}
   )
+
 endfunction()
 
 #------------------------------------------------------------------------------#

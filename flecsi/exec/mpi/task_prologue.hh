@@ -1,19 +1,14 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 #define FLECSI_EXEC_MPI_TASK_PROLOGUE_HH
 
-#include <flecsi-config.h>
-
+#include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/util/demangle.hh"
-
-#if !defined(FLECSI_ENABLE_MPI)
-#error FLECSI_ENABLE_MPI not defined! This file depends on MPI!
-#endif
 
 #include <mpi.h>
 
@@ -22,7 +17,9 @@
 namespace flecsi {
 namespace topo {
 struct global_base;
-}
+template<class>
+struct borrow_category;
+} // namespace topo
 
 namespace exec {
 
@@ -37,7 +34,7 @@ protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {
-    single.fut = make_ready_future(index.result);
+    single = future<R>::make(index.result);
   }
 
   // Note: due to how visitor() is implemented in prolog.hh the first
@@ -45,13 +42,7 @@ protected:
   // resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
-#if defined(__NVCC__) || defined(__CUDACC__)
-    if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
-      cudaMemcpy(s.host, s.device, sizeof(T), cudaMemcpyDeviceToHost);
-      return;
-    }
-#endif
-    *s.host = *s.device;
+    s.template copy<ProcessorType>();
   }
 
   template<typename T,
@@ -83,6 +74,8 @@ protected:
     else
       reg.ghost_copy<P>(ref);
 
+    if(!get_selected(t))
+      return;
     // Now bind the ExecutionSpace storage to the accessor. This will also
     // trigger a host <-> device copy if needed.
     const auto storage = [&]() -> auto & {
@@ -109,31 +102,36 @@ protected:
     if(run::context::instance().process() != 0)
       std::fill(storage.begin(), storage.end(), R::template identity<T>);
 
-    reductions.push_back([storage] {
-      MPI_Request request;
+    reductions.push_back([storage](MPI_Request * r) {
       util::mpi::test(MPI_Iallreduce(MPI_IN_PLACE,
         storage.begin(),
         storage.size(),
         flecsi::util::mpi::type<T>(),
         exec::fold::wrap<R, T>::op,
         MPI_COMM_WORLD,
-        &request));
-      return request;
+        r));
     });
   }
 
 public:
   ~task_prologue() {
-    std::vector<MPI_Request> requests;
+    util::mpi::auto_requests r(reductions.size());
     for(auto & f : reductions) {
-      requests.push_back(f());
+      f(r());
     }
-    util::mpi::test(
-      MPI_Waitall(requests.size(), requests.data(), MPI_STATUS_IGNORE));
   }
 
 private:
-  std::vector<std::function<MPI_Request()>> reductions;
+  template<class P>
+  static bool get_selected(const topo::borrow_category<P> & b) {
+    return b.get_projection().selected();
+  }
+  template<class T>
+  static bool get_selected(const T &) {
+    return true;
+  }
+
+  std::vector<std::function<void(MPI_Request *)>> reductions;
 
 }; // struct task_prologue
 } // namespace exec

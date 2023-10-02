@@ -1,10 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_UNIT_TYPES_HH
 #define FLECSI_UTIL_UNIT_TYPES_HH
 
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 
@@ -63,13 +63,24 @@ struct state_t {
 
     if(result_) {
       std::stringstream stream;
-      stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
+      if(label_ == "TEST") {
+        stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
+      }
+      else {
+        stream << FLOG_OUTPUT_RED(label_ << " FAILED " << name_) << std::endl;
+      }
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
     else {
-      flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
-                    << FLOG_COLOR_PLAIN << std::endl;
+      if(label_ == "TEST") {
+        flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
+                      << FLOG_COLOR_PLAIN << std::endl;
+      }
+      else {
+        flog(utility) << FLOG_OUTPUT_GREEN(label_ << " PASSED " << name_)
+                      << FLOG_COLOR_PLAIN << std::endl;
+      }
     } // if
   } // process
 
@@ -182,9 +193,9 @@ label_default(std::string s) {
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
+/// Optionally, provide an expression convertible to \c std::string to label
+/// the test results (along with \c __func__); the default is "TEST".
 #define UNIT(...)                                                              \
-  ::flecsi::flog::state::instance().config_stream().add_buffer(                \
-    "flog", std::clog, true);                                                  \
   ::flecsi::util::unit::state_t auto_unit_state(                               \
     __func__, label_default({__VA_ARGS__}));                                   \
   return auto_unit_state->*[&]() -> void
@@ -202,8 +213,8 @@ label_default(std::string s) {
 /// \name Assertion macros
 /// \{
 
-#define ASSERT_TRUE(c) CHECK(return, test<true>, c, #c)
-#define EXPECT_TRUE(c) CHECK(, test<false>, c, #c)
+#define ASSERT_TRUE(c) CHECK(return, test<true>, !!(c), #c)
+#define EXPECT_TRUE(c) CHECK(, test<false>, !!(c), #c)
 
 #define ASSERT_FALSE(c) ASSERT_TRUE(!(c))
 #define EXPECT_FALSE(c) EXPECT_TRUE(!(c))
@@ -316,7 +327,6 @@ label_default(std::string s) {
 #define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 
-/// \}
 /// \}
 
 #endif

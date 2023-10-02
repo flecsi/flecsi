@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #ifndef TUTORIAL_2_CONTROL_3_DEPENDENCIES_HH
 #define TUTORIAL_2_CONTROL_3_DEPENDENCIES_HH
 
@@ -29,11 +26,7 @@ struct control_policy : flecsi::run::control_base {
 
   using control = flecsi::run::control<control_policy>;
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
-
-  using control_points =
-    std::tuple<control_point<cp::cp1>, control_point<cp::cp2>>;
+  using control_points = list<point<cp::cp1>, point<cp::cp2>>;
 };
 
 using control = flecsi::run::control<control_policy>;

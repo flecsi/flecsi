@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include "flecsi/util/set_utils.hh"
 #include "flecsi/util/set_intersection.hh"
 #include "flecsi/util/unit.hh"
@@ -124,4 +121,4 @@ set_utils() {
   };
 } // set_utils
 
-flecsi::unit::driver<set_utils> driver;
+flecsi::util::unit::driver<set_utils> driver;

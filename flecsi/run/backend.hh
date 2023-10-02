@@ -1,10 +1,10 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_RUN_BACKEND_HH
 #define FLECSI_RUN_BACKEND_HH
 
-#include <flecsi-config.h>
+#include "flecsi/config.hh"
 
 //----------------------------------------------------------------------------//
 // This section works with the build system to select the correct backend
@@ -26,11 +26,12 @@
 #endif // FLECSI_BACKEND
 
 namespace flecsi::run {
+inline std::optional<dependencies_guard> dependent;
 // Now that the backend's context_t is complete:
+inline std::optional<context_t> context::ctx;
 context_t &
 context::instance() {
-  static context_t context;
-  return context;
+  return *ctx;
 } // instance
 } // namespace flecsi::run
 

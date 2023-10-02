@@ -1,42 +1,91 @@
-// Copyright (c) 2016, Triad National Security, LLC
-// All rights reserved.
-
 #include <flecsi/util/unit.hh>
 
 using namespace flecsi;
 
 /*----------------------------------------------------------------------------*
   These test the unit test control model, as well as the different
-  trace levels. To actually test the trace levels, you must do several
-  cmake configurations that change the strip level (FLOG_STRIP_LEVEL).
+  trace levels.
 
   The control model has control points: "initialization", "driver", and
   "finalization".
  *----------------------------------------------------------------------------*/
 
 int
-init_a() {
-  flog::devel_guard guard(unit_tag);
-  flog(info) << "init a" << std::endl;
+log_driver() {
+  UNIT() {
+    {
+      std::vector<std::size_t> v;
+      for(std::size_t i{0}; i < 10; ++i) {
+        v.emplace_back(i);
+      }
 
-  flog(trace) << "trace (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(info) << "info (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(warn) << "warn (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  flog(error) << "error (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
-  return 0;
-}
+      EXPECT_EQ(flog::to_string(v), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
+    }
 
-unit::initialization<init_a> ia_action;
+    {
+      std::vector<std::vector<std::size_t>> v;
+      for(std::size_t i{0}; i < 10; ++i) {
+        v.push_back({0, 1, 2});
+      }
+
+      EXPECT_EQ(flog::to_string(v),
+        "[[0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, "
+        "1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2],\n [0, 1, 2]]");
+    }
+
+    {
+      std::map<std::size_t, std::size_t> m;
+      for(std::size_t i{0}; i < 10; ++i) {
+        m[i] = i;
+      }
+
+      EXPECT_EQ(flog::to_string(m),
+        "{0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}");
+    }
+
+    {
+      std::map<std::size_t, std::vector<std::size_t>> m;
+      for(std::size_t i{0}; i < 10; ++i) {
+        m[i] = {0, 1, 2};
+      }
+
+      EXPECT_EQ(flog::to_string(m),
+        "{0:\n [0, 1, 2],\n 1:\n [0, 1, 2],\n 2:\n [0, 1, 2],\n 3:\n [0, 1, "
+        "2],\n 4:\n [0, 1, 2],\n 5:\n [0, 1, 2],\n 6:\n [0, 1, 2],\n 7:\n [0, "
+        "1, 2],\n 8:\n [0, 1, 2],\n 9:\n [0, 1, 2]}");
+    }
+  };
+} // flog
+
+util::unit::driver<log_driver> log_test_driver;
 
 int
-init_b() {
+init_a() {
   flog::devel_guard guard(unit_tag);
-  flog(info) << "init b" << std::endl;
+  flog(info) << "init" << std::endl;
+  auto &sl = flog::state::instance().strip_level(), current = sl;
+
+  for(int i = 0; i < 5; ++i) {
+    sl = i;
+
+    flog(trace) << "trace (strip level " << i << ")" << std::endl;
+    flog(info) << "info (strip level " << i << ")" << std::endl;
+    flog(warn) << "warn (strip level " << i << ")" << std::endl;
+    flog(error) << "error (strip level " << i << ")" << std::endl;
+  }
+
+  sl = current;
+
+  auto & color = flog::state::instance().color_output();
+  flog(info) << "COLOR OUTPUT: " << (color ? "true" : "false") << std::endl;
+  color = !color;
+  flog(info) << "COLOR OUTPUT: " << (!color ? "true" : "false") << std::endl;
+  color = !color;
+
   return 0;
 }
 
-unit::initialization<init_b> ib_action;
-const auto ab = ib_action.add(ia_action);
+util::unit::initialization<init_a> ia_action;
 
 int
 test1() {
@@ -50,7 +99,7 @@ test1() {
   };
 }
 
-unit::driver<test1> test1_driver;
+util::unit::driver<test1> test1_driver;
 
 int
 test2() {
@@ -62,7 +111,7 @@ test2() {
   };
 }
 
-unit::driver<test2> test2_driver;
+util::unit::driver<test2> test2_driver;
 
 int
 finalization() {
@@ -71,7 +120,7 @@ finalization() {
   return 0;
 }
 
-unit::finalization<finalization> f_action;
+util::unit::finalization<finalization> f_action;
 
 /*----------------------------------------------------------------------------*
   This tests task execution in the unit test framework.
@@ -127,4 +176,4 @@ dag() {
   }; // UNIT
 } // dag
 
-flecsi::unit::driver<dag> driver;
+util::unit::driver<dag> driver;

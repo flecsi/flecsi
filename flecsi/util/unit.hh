@@ -1,14 +1,8 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_UTIL_UNIT_HH
 #define FLECSI_UTIL_UNIT_HH
-
-#include <flecsi-config.h>
-
-#if !defined(FLECSI_ENABLE_FLOG)
-#error FLOG must be enabled to enable unit tests.
-#endif
 
 #include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
@@ -17,10 +11,10 @@
 
 #include <tuple>
 
-namespace flecsi {
-namespace unit {
+namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
+/// Output is via \ref flog.
 /// \ingroup utils
 /// \{
 
@@ -45,42 +39,55 @@ operator*(test_control_points cp) {
 
 struct control_policy : flecsi::run::control_base {
 
+  control_policy() : status(0x0) {}
+
+  ~control_policy() noexcept(false) {
+    throw exception{status};
+  }
+
   using control_points_enum = test_control_points;
 
   struct node_policy {};
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  using control_points = list<point<control_points_enum::initialization>,
+    point<control_points_enum::driver>,
+    point<control_points_enum::finalization>>;
 
-  using control_points =
-    std::tuple<control_point<control_points_enum::initialization>,
-      control_point<control_points_enum::driver>,
-      control_point<control_points_enum::finalization>>;
+  int status;
 }; // struct control_policy
 
-using control = flecsi::run::control<flecsi::unit::control_policy>;
+using control = flecsi::run::control<control_policy>;
 
+template<int (&F)(), test_control_points cp>
+class action
+{
+private:
+  static void wrap(control_policy & p) {
+    p.status |= F();
+  }
+  control::action<wrap, cp> act;
+};
+
+using target_type = int (&)();
 /// A test initialization registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the function to call
-template<control::target_type Target>
-using initialization =
-  control::action<Target, test_control_points::initialization>;
+template<target_type Target>
+using initialization = action<Target, test_control_points::initialization>;
 
 /// A test registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the test function to call
-template<control::target_type Target>
-using driver = control::action<Target, test_control_points::driver>;
+template<target_type Target>
+using driver = action<Target, test_control_points::driver>;
 
 /// A test finalization registration.
 /// Declare a non-local variable of this type for each function.
 /// \tparam Target the function to call
-template<control::target_type Target>
-using finalization = control::action<Target, test_control_points::finalization>;
+template<target_type Target>
+using finalization = action<Target, test_control_points::finalization>;
 
 /// \}
-} // namespace unit
-} // namespace flecsi
+} // namespace flecsi::util::unit
 
 #endif

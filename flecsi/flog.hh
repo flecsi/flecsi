@@ -1,18 +1,18 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_FLOG_HH
 #define FLECSI_FLOG_HH
 
-#include <flecsi-config.h>
+#include "flecsi/config.hh"
 
 #if defined(FLECSI_ENABLE_FLOG)
-#include "flecsi/log/message.hh"
-#include "flecsi/log/severity.hh"
-#include "flecsi/log/tag_scope.hh"
+#include "flecsi/flog/message.hh"
+#include "flecsi/flog/severity.hh"
+#include "flecsi/flog/tag_scope.hh"
 #endif
 
-#include "flecsi/log/utils.hh"
+#include "flecsi/flog/utils.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -30,106 +30,155 @@ namespace flecsi {
 namespace flog {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
+/// If disabled at configuration time, no output is produced.
 /// \code#include "flecsi/flog.hh"\endcode
 /// \{
 
 namespace detail {
 template<class, class = void>
 struct stream;
+
+struct output {
+  explicit output(std::ostream & o, unsigned short i = 0) : o(&o), i(i) {}
+  std::ostream & operator*() const {
+    return *o;
+  }
+  std::ostream * operator->() const {
+    return o;
+  }
+  void indent() const {
+    o->width(i);
+    *o << "";
+  }
+  template<class T>
+  const output & operator()(const T & t) const {
+    stream<T>::put(*this, t);
+    return *this;
+  }
+  output nest() const {
+    return output(*o, i + 1);
+  }
+
+private:
+  std::ostream * o;
+  unsigned short i;
+};
+template<bool NL>
+struct sequence {
+  sequence(const output & o0, char b, char e) : o(o0.nest()), e(e) {
+    *o << b;
+  }
+  ~sequence() noexcept(false) {
+    *o << e;
+  }
+  const output & operator()(char s = ',') {
+    if(first)
+      first = false;
+    else {
+      *o << s;
+      if(NL) {
+        *o << '\n';
+        o.indent();
+      }
+      else
+        *o << ' ';
+    }
+    return o;
+  }
+
+private:
+  output o;
+  char e;
+  bool first = true;
+};
+
+template<class, class = const bool>
+constexpr bool is_compound_v = true;
 template<class T>
-std::ostream &
-put(std::ostream & o, const T & t, std::string indt = "") {
-  stream<T>::put(o, t, indt);
-  return o;
-}
+constexpr bool is_compound_v<T, decltype(stream<T>::compound)> =
+  stream<T>::compound;
+template<class C>
+using container_sequence = sequence<is_compound_v<typename C::value_type>>;
 
 template<class T>
 struct stream<T,
   decltype(void(std::declval<std::ostream &>() << std::declval<const T &>()))> {
-  static void put(std::ostream & o, const T & t, std::string indt = "") {
-    o << indt << t;
+  static constexpr bool compound = false;
+  static void put(const output & o, const T & t) {
+    *o << t;
   }
 };
+template<class R>
+void
+put_range(container_sequence<R> s, const R & r) {
+  for(const auto & x : r)
+    s()(x);
+}
+template<class M>
+void
+put_map(const output & o, const M & m) {
+  container_sequence<M> s(o, '{', '}');
+  for(const auto & [k, v] : m) {
+    s()(k);
+    s(':')(v);
+  }
+}
 template<class T, std::size_t N>
 struct stream<std::array<T, N>> {
-  static void
-  put(std::ostream & o, std::array<T, N> const & c, std::string indt = "") {
-    std::size_t i{0};
-    o << indt << "<";
-    for(auto & t : c) {
-      o << t;
-      if(++i < c.size())
-        o << ", ";
-    }
-    o << ">";
+  static constexpr bool compound = is_compound_v<T>;
+  static void put(const output & o, std::array<T, N> const & a) {
+    put_range({o, '<', '>'}, a);
   }
 };
 template<typename T1, typename T2>
 struct stream<std::pair<T1, T2>> {
-  static void
-  put(std::ostream & o, std::pair<T1, T2> const & p, std::string indt = "") {
-    detail::put(detail::put(o << indt << '<', p.first) << ", ", p.second)
-      << ">\n";
+  static constexpr bool compound = is_compound_v<T1> || is_compound_v<T2>;
+  static void put(const output & o, std::pair<T1, T2> const & p) {
+    sequence<compound> s(o, '<', '>');
+    s()(p.first);
+    s()(p.second);
   }
 };
 template<typename... TT>
 struct stream<std::tuple<TT...>> {
-  static void
-  put(std::ostream & o, std::tuple<TT...> const & p, std::string indt = "") {
+  static constexpr bool compound = (is_compound_v<TT> || ...);
+  static void put(const output & o, std::tuple<TT...> const & p) {
     std::apply(
       [&](TT const &... arg) {
-        o << indt << "<";
-        std::size_t n{0};
-        (detail::put(o << (n++ ? ", " : ""), arg), ...);
-        o << ">\n";
+        sequence<compound> s(o, '<', '>');
+        (s()(arg), ...);
       },
       p);
   }
 };
 template<template<typename, typename> typename C, typename T, typename A>
 struct stream<C<T, A>> {
-  static void put(std::ostream & o, C<T, A> const & c, std::string indt = "") {
-    std::size_t i{0};
-    for(auto & t : c)
-      detail::put(o << indt << i++ << ":\n", t, indt + "  ") << '\n';
+  static void put(const output & o, C<T, A> const & c) {
+    put_range({o, '[', ']'}, c);
   }
 };
 template<typename K, typename V>
 struct stream<std::map<K, V>> {
-  static void
-  put(std::ostream & o, const std::map<K, V> & m, std::string indt = "") {
-    for(auto & [k, v] : m)
-      detail::put(detail::put(o, k) << ":\n", v, indt + "  ") << '\n';
+  static void put(const output & o, const std::map<K, V> & m) {
+    put_map(o, m);
   }
 };
 template<typename K, typename V>
 struct stream<std::unordered_map<K, V>> {
-  static void put(std::ostream & o,
-    const std::unordered_map<K, V> & m,
-    std::string indt = "") {
-    for(auto & [k, v] : m)
-      detail::put(detail::put(o, k) << ":\n", v, indt + "  ") << '\n';
+  static void put(const output & o, const std::unordered_map<K, V> & m) {
+    put_map(o, m);
   }
 };
 template<typename T>
 struct stream<std::set<T>> {
-  static void
-  put(std::ostream & o, const std::set<T> & s, std::string indt = "") {
-    o << indt << "{";
-    for(auto & e : s)
-      detail::put(o << "\n", e, indt + "  ");
-    o << "\n" << indt << "}";
+  static void put(const output & o, const std::set<T> & s) {
+    put_range({o, '{', '}'}, s);
   }
 };
 template<typename T>
 struct stream<std::unordered_set<T>> {
-  static void put(std::ostream & o,
-    const std::unordered_set<T> & s,
-    std::string indt = "") {
-    o << indt << "{";
-    for(auto & e : s)
-      detail::put(o << "\n", e, indt + "  ");
-    o << "\n" << indt << "}";
+  static void put(const output & o, const std::unordered_set<T> & s) {
+    put_range({o, '{', '}'}, s);
   }
 };
 } // namespace detail
@@ -140,18 +189,20 @@ struct guard;
   Create a tag group to enable/disable output using guards.
 
   @param label The name of the tag.
+  \warning Tag variables must not be templated.
  */
 
 struct tag {
   friend guard;
 
   tag(const char * label) : label_(label) {
-    state::instance().register_tag(label);
+    state::register_tag(label);
   }
 
 private:
   std::string label_;
 }; // struct tag
+const inline tag unscoped_tag("unscoped");
 
 /*!
   Create a guard to control output of flog output within the scope of the
@@ -161,8 +212,7 @@ private:
  */
 
 struct guard {
-  guard(tag const & t)
-    : scope_(state::instance().lookup_tag(t.label_.c_str())) {}
+  guard(tag const & t) : scope_(state::lookup_tag(t.label_.c_str())) {}
 
 private:
   tag_scope_t scope_;
@@ -207,7 +257,7 @@ template<class T>
 struct container {
   container(const T & t) : t(t) {}
   friend std::ostream & operator<<(std::ostream & o, const container & c) {
-    return detail::put(o, c.t);
+    return *detail::output(o)(c.t);
   }
 
 private:
@@ -343,12 +393,19 @@ private:
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define __flog_internal_wait_on_flusher() usleep(FLOG_PACKET_FLUSH_INTERVAL)
+#define FLOG_RESET() ::flecsi::flog::state::reset_instance()
 
 #else // FLECSI_ENABLE_FLOG
 
 namespace flecsi {
 namespace flog {
+
+namespace detail {
+inline const char *
+use_color(const char *) {
+  return "";
+}
+} // namespace detail
 
 struct tag {
   tag(const char *) {}
@@ -368,7 +425,7 @@ add_output_stream(std::string const &, std::ostream &, bool = false) {}
 
 template<class T>
 struct container {
-  container(T &) {}
+  container(const T &) {}
   friend std::ostream & operator<<(std::ostream & o, const container &) {
     return o;
   }
@@ -376,9 +433,6 @@ struct container {
 
 } // namespace flog
 } // namespace flecsi
-
-#define flog_initialize(active)
-#define flog_finalize()
 
 #define flog(severity)                                                         \
   if(true) {                                                                   \
@@ -397,7 +451,7 @@ struct container {
 #define flog_warn(message)
 #define flog_error(message)
 
-#define __flog_internal_wait_on_flusher()
+#define FLOG_RESET()
 
 #endif // FLECSI_ENABLE_FLOG
 
@@ -405,7 +459,10 @@ namespace flecsi::flog {
 template<typename T>
 auto
 to_string(T const & t) {
-  return std::move(std::stringstream() << container(t)).str();
+  // The static_cast here is necessary for gcc version <= 11.1.
+  return static_cast<std::ostringstream &&>(
+    std::ostringstream() << container(t))
+    .str();
 }
 } // namespace flecsi::flog
 
@@ -415,7 +472,9 @@ to_string(T const & t) {
 
 #define fixme() flog(warn)
 
+#if !defined(NDEBUG)
 #include <boost/stacktrace.hpp>
+#endif
 
 namespace flecsi {
 namespace flog {
@@ -436,11 +495,21 @@ dumpstack() {
 #endif
 } // dumpstack
 
+inline constexpr bool can_dumpstack =
+#ifdef NDEBUG
+  false
+#else
+  true
+#endif
+  ;
+
 } // namespace flog
 } // namespace flecsi
 
 /*!
   Throw a runtime exception with the provided message.
+  If \c FLECSI_BACKTRACE is set in the environment and \c NDEBUG is not
+  defined, produce a backtrace.
 
   @param message The stream message to be printed.
 
@@ -466,19 +535,19 @@ dumpstack() {
              << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
-    __flog_internal_wait_on_flusher();                                         \
+    FLOG_RESET();                                                              \
     const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
     if(dump != nullptr) {                                                      \
       ::flecsi::flog::dumpstack();                                             \
     }                                                                          \
-    else {                                                                     \
+    else if(::flecsi::flog::can_dumpstack) {                                   \
       _sstream << FLOG_OUTPUT_YELLOW(                                          \
                     "For a full stack trace, set "                             \
                     "FLECSI_BACKTRACE in your environment, e.g.,\n"            \
                     "`$ export FLECSI_BACKTRACE=1`.")                          \
                << std::endl;                                                   \
     }                                                                          \
-    std::cerr << _sstream.str() << std::endl;                                  \
+    std::cerr << _sstream.rdbuf() << std::endl;                                \
     std::abort();                                                              \
   } /* scope */
 

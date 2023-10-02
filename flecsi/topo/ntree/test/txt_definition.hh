@@ -1,6 +1,3 @@
-// Copyright (c) 2016, Los Alamos National Security, LLC
-// All rights reserved.
-
 #ifndef FLECSI_TOPO_NTREE_TEST_TXT_DEFINITION_HH
 #define FLECSI_TOPO_NTREE_TEST_TXT_DEFINITION_HH
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Triad National Security, LLC
+// Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
 #ifndef FLECSI_DATA_COLORING_HH
@@ -13,26 +13,26 @@ namespace data {
 /// \addtogroup data
 /// \{
 
-/// A coloring object, constructed on request.
-/// \tparam Topo specialization that defines\code
-/// static coloring color(/* ... */);
-/// \endcode
+/// A \link topo::specialization::mpi_coloring `mpi_coloring`\endlink object,
+/// constructed on request.
 /// \note Usually accessed as \c Topo::cslot.
+/// \deprecated Use \c mpi_coloring directly.
 template<class Topo>
 struct coloring_slot {
   using color_type = typename Topo::coloring;
 
-  /// Create the coloring object in an MPI task.
-  /// \param args arguments to \c Topo::color
+  /// Create the \c mpi_coloring.
   /// \return the created \c Topo::coloring object
   template<typename... ARGS>
-  color_type & allocate(ARGS &&... args) {
-    constexpr auto f = [](coloring_slot & s, ARGS &&... aa) {
-      s.coloring.emplace(Topo::color(std::forward<ARGS>(aa)...));
-    };
-    execute<*f, flecsi::mpi>(*this, std::forward<ARGS>(args)...);
+  [[deprecated("use mpi_coloring")]] color_type & allocate(ARGS &&... args) {
+    emplace(std::forward<ARGS>(args)...);
     return get();
   } // allocate
+
+  template<class... AA>
+  void emplace(AA &&... aa) { // not deprecated
+    execute<task<AA...>, flecsi::mpi>(*this, std::forward<AA>(aa)...);
+  }
 
   /// Destroy the coloring object.
   void deallocate() {
@@ -49,6 +49,11 @@ struct coloring_slot {
   }
 
 private:
+  template<class... AA>
+  static void task(coloring_slot & s, AA &&... aa) {
+    s.coloring.emplace(Topo::color(std::forward<AA>(aa)...));
+  }
+
   std::optional<color_type> coloring;
 };
 

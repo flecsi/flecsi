@@ -1,8 +1,3 @@
-/*----------------------------------------------------------------------------*
-  Copyright (c) 2020 Triad National Security, LLC
-  All rights reserved
- *----------------------------------------------------------------------------*/
-
 #include "tasks/init.hh"
 
 #include <cmath>
@@ -27,7 +22,7 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
 
   flog(info) << "dxdy: " << m.dxdy() << std::endl;
 
-  for(auto j : m.vertices<mesh::y_axis, mesh::logical>()) {
+  forall(j, (m.vertices<mesh::y_axis, mesh::logical>()), "init_eggcarton") {
     const double y = m.value<mesh::y_axis>(j);
     for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
       const double x = m.value<mesh::x_axis>(i);
@@ -37,7 +32,7 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
       Au[j][i] = 0.0;
       u[j][i] = 0.0;
     } // for
-  } // for
+  }; // forall
 } // eggcarton
 
 void
@@ -45,11 +40,11 @@ poisson::task::constant(mesh::accessor<ro> m,
   field<double>::accessor<wo, na> fa,
   double value) {
   auto f = m.mdspan<mesh::vertices>(fa);
-  for(auto j : m.vertices<mesh::y_axis, mesh::logical>()) {
+  forall(j, (m.vertices<mesh::y_axis, mesh::logical>()), "init_constant") {
     for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
       f[j][i] = value;
     } // for
-  } // for
+  }; // forall
 }
 
 void

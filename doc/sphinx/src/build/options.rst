@@ -33,50 +33,48 @@ Flog (FleCSI logging utility) options
 
 * **ENABLE_FLOG [default: OFF]** |br|
   This option enables support for the FleCSI logging utility (Flog).
-  By default, it also activates the Flog unit tests in the build
-  system.
+  When *OFF*, functions in the ``flog`` namespace
+  and the ``flog`` macros
+  remain defined but produce no output.
 
 * **FLOG_ENABLE_COLOR_OUTPUT [default: OFF]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-color`` command-line option. See also :doc:`../tutorial/runtime`.
+
   Produce colorized Flog output instead of using the output device's
   default colors.
 
-* **FLOG_ENABLE_DEBUG [default: OFF]** |br|
-  Enable Flog debug mode.  This causes Flog to output ``FLOG: …``
-  messages describing its internal operations.  This is intended for
-  use by developers to debug Flog itself.
-
-* **FLOG_ENABLE_DEVELOPER_MODE [default: OFF]** |br|
-  Enable internal FleCSI developer messages in the form of a
-  ``flog_devel(severity)`` output stream.
-
-* **FLOG_ENABLE_EXTERNAL [default: ON]** |br|
-  Enable support for messages defined at namespace scope.
-
-* **FLOG_ENABLE_MPI [default: ON]** |br|
-  Include MPI support in Flog.
-
-* **FLOG_ENABLE_TAGS [default: ON]** |br|
-  Enable tag groups in Flog.  Tag groups enable the programmer to
-  "guard" sets of messages with a tag and the user to select which
-  tags should be enabled or disabled.  This gives the user the ability
-  to control the types of information a program should output.
-
 * **FLOG_SERIALIZATION_INTERVAL [default: 100]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-serialization-interval`` command-line option. See also
+     :doc:`../tutorial/runtime`.
+
   The Flog serialization interval specifies the number of task
   executions after which FleCSI should check for buffered output to
   process.  It should be set to a value that balances output
   timeliness (lower = more timely output) against performance (higher
   = less overhead from the requisite global reduction).
 
-* **FLOG_SERIALIZATION_THRESHOLD [default: 1024]** |br|
-  The Flog serialization threshold specifies the number of messages
-  that must have accumulated before output will be collected to a
-  single process and written to the output streams.  It should be set
-  to a value that balances output timeliness (lower = more timely
-  output) against performance (higher = less overhead from the
-  requisite global reduction and from writing the output).
+* **FLOG_SERIALIZATION_THRESHOLD** |br|
+
+  .. warning::
+
+     This interface is deprecated and not used anymore.
 
 * **FLOG_STRIP_LEVEL [default: 0]** |br|
+
+  .. warning::
+
+     This interface is deprecated. It can now be configured at runtime using
+     the ``--flog-strip-level`` command-line option. See also
+     :doc:`../tutorial/runtime`.
+
   Set the Flog strip level, which should an integer from 0 to 4.  Like
   tag groups, strip levels are a mechanism for the user to control the
   amount of output that Flog generates: the higher the strip level,
@@ -100,10 +98,6 @@ Flog (FleCSI logging utility) options
   the strip level, Flog messages that are designated *fatal* will
   generate a runtime error and will invoke ``std::exit``.
 
-* **FLOG_TAG_BITS [default: 1024]** |br|
-  Specify the number of bits to use for tag groups.  This corresponds
-  to the maximum number of tag groups a program can define.
-
 Parallelization options
 -----------------------
 
@@ -121,7 +115,7 @@ Parallelization options
   parallelism.  The appropriate flags will be passed to the C++
   compiler to enable language support for OpenMP.
 
-* **FLECSI_BACKEND [default: mpi]** |br|
+* **FLECSI_BACKEND [default: legion]** |br|
   Specify the backend to use. Currently, *legion* and *mpi* are
   the only valid options.
 
@@ -145,10 +139,8 @@ Documentation options
   Doxygen-style interface documentation from the FleCSI source code
   (``make doxygen``, which becomes a dependency of ``make doc``).
 
-* **ENABLE_DOXYGEN_WARN [default: OFF]** |br|
-  Normal Doxygen output produces many pages worth of warnings. These are
-  distracting and overly verbose. As such, they are disabled by default.
-  This options allows the user to turn them back on.
+* **ENABLE_DOXYGEN_WARN** |br|
+  This **deprecated** option is ignored for compatibility.
 
 Miscellaneous options
 ---------------------
@@ -166,12 +158,6 @@ Miscellaneous options
   If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
   for checkpointing program state.
 
-* **ENABLE_PARMETIS [default: OFF]** |br|
-  Use the `ParMETIS
-  <http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview>`_ graph
-  partitioner for distributing mesh data in the `unstructured`
-  topology.
-
 * **ENABLE_UNIT_TESTS [default: OFF]** |br|
   Enable FleCSI unit tests. If enabled, the unit test suite can be run
   by invoking:
@@ -179,9 +165,6 @@ Miscellaneous options
 .. code-block:: console
 
   $ make test
-
-* **FLECSI_COUNTER_TYPE [default: int32_t]** |br|
-  Specify the C++ type for FleCSI to use for loop and iterator values.
 
 * **FLECSI_ID_TYPE [default: std::uint32_t]** |br|
   Specify the C++ type for FleCSI topologies to use for entity IDs.

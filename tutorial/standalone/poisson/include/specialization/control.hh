@@ -1,9 +1,7 @@
-/*
-   Copyright (c) 2016, Triad National Security, LLC
-   All rights reserved.
-                                                                              */
 #ifndef POISSON_SPECIALIZATION_CONTROL_HH
 #define POISSON_SPECIALIZATION_CONTROL_HH
+
+#include "mesh.hh"
 
 #include <flecsi/flog.hh>
 #include <flecsi/run/control.hh>
@@ -34,13 +32,12 @@ struct control_policy : flecsi::run::control_base {
 
   using control = flecsi::run::control<control_policy>;
 
-  template<auto CP>
-  using control_point = flecsi::run::control_point<CP>;
+  using control_points = list<point<cp::initialize>,
+    point<cp::solve>,
+    point<cp::analyze>,
+    point<cp::finalize>>;
 
-  using control_points = std::tuple<control_point<cp::initialize>,
-    control_point<cp::solve>,
-    control_point<cp::analyze>,
-    control_point<cp::finalize>>;
+  mesh::slot m;
 }; // struct control_policy
 
 using control = flecsi::run::control<control_policy>;

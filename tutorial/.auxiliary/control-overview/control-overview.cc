@@ -112,7 +112,6 @@ actionY() {
 
 control::action<actionY, cp::four> action_y;
 
-#if 1
 int
 actionN() {
   flog(info) << __FUNCTION__ << std::endl;
@@ -122,24 +121,14 @@ actionN() {
 control::action<actionN, cp::two> action_n;
 const auto dep_na = action_n.add(action_a);
 const auto dep_bn = action_b.add(action_n);
-#endif
 
 // Main
 
 int
 main(int argc, char ** argv) {
-  auto status = flecsi::initialize(argc, argv);
-  status = control::check_status(status);
-
-  if(status != flecsi::run::status::success) {
-    return status < flecsi::run::status::clean ? 0 : status;
-  }
-
+  flecsi::run::arguments args(argc, argv);
+  const flecsi::run::dependencies_guard dg(args.dep);
+  const flecsi::runtime run(args.cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-
-  status = flecsi::start(control::execute);
-
-  flecsi::finalize();
-
-  return status;
+  return run.main<control>(args.act);
 } // main
