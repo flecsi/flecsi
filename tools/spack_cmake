@@ -176,7 +176,7 @@ compiler = spack.compilers.compiler_for_spec(app_spec.compiler, app_spec.archite
 compiler_args = [f"-DCMAKE_CXX_COMPILER={compiler.cxx}", f"-DCMAKE_C_COMPILER={compiler.cc}"]
 
 if compiler.name == "gcc":
-    compiler_family = "gcc"
+    compiler_family = "gnu"
 else:
     # assume anything else is LLVM-based
     compiler_family = "llvm"
