@@ -58,11 +58,11 @@ state::send_to_one(bool last) {
 
     test(MPI_Gatherv(data.data(),
       bytes,
-      MPI_CHAR,
+      MPI_BYTE,
       buffer.data(),
       sizes.data(),
       offsets.data(),
-      MPI_CHAR,
+      MPI_BYTE,
       0,
       MPI_COMM_WORLD));
   }
@@ -78,7 +78,7 @@ state::send_to_one(bool last) {
       buffer.resize(bytes);
       test(MPI_Recv(buffer.data(),
         bytes,
-        MPI_CHAR,
+        MPI_BYTE,
         source_process_,
         0,
         MPI_COMM_WORLD,
@@ -86,7 +86,7 @@ state::send_to_one(bool last) {
     }
     else if(process_ == source_process_) {
       test(MPI_Send(&bytes, 1, MPI_INT, 0, 0, MPI_COMM_WORLD));
-      test(MPI_Send(data.data(), bytes, MPI_CHAR, 0, 0, MPI_COMM_WORLD));
+      test(MPI_Send(data.data(), bytes, MPI_BYTE, 0, 0, MPI_COMM_WORLD));
     }
   }
 
