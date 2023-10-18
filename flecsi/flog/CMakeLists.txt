@@ -1,6 +1,5 @@
 set(flog_HEADERS
   message.hh
-  packet.hh
   severity.hh
   state.hh
   tag_scope.hh
