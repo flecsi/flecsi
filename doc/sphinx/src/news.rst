@@ -44,6 +44,7 @@ Fixed
 
   * Special options like ``--control-model`` and ``--help`` work reliably.
     (This was documented but not actually implemented in 2.2.1.)
+  * FLOG messages are now variable size and are no longer truncated.
 
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++
