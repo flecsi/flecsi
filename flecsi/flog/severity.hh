@@ -8,6 +8,7 @@
 #include "flecsi/flog/utils.hh"
 
 #include <sstream>
+#include <thread>
 
 namespace flecsi {
 namespace flog {

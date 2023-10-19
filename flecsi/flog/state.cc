@@ -1,6 +1,5 @@
 #include "flecsi/flog/state.hh"
 #include "flecsi/execution.hh"
-#include "flecsi/flog/packet.hh"
 #include "flecsi/flog/utils.hh"
 #include "flecsi/util/mpi.hh"
 
@@ -119,7 +118,7 @@ state::flush_packets() {
     std::sort(packets_.begin(), packets_.end());
 
     for(auto & p : packets_) {
-      stream_ << p.message();
+      stream_ << p.second;
     } // for
 
     packets_.clear();
