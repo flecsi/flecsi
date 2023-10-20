@@ -90,9 +90,19 @@ The *rows* of that rectangle, one per color, are often considered separately.
 
 To support memory allocations that vary among rows or over time, fields are accessed via a *partition*, which is simply a prefix of each row of a region.
 (Often, the length of each such prefix is itself stored in a field that is accessed via a preexisting partition.)
+See :numref:`regions` for a visual depiction of regions, prefixes, and partitions.
 Several partitions may exist for a single region, although it is common for there to be just one or else just one at any time.
 All access the same field values, which survive as long as the region does.
 The backends are expected to allocate memory only as necessary for partitions that are actually used with a given field.
+
+.. _regions:
+.. figure:: images/region_partition_prefix.png
+
+  Diagram illustrating a region, prefix, and partition.  Regions are merely logical entities,
+  whereas actual memory allocations are managed through partitions.  Partitions are a collection of
+  prefixes, one for each color.  A prefix always begins at index point 0 of its color.
+
+-----
 
 Each topology is a fixed-size set of *index spaces* (*e.g.*, the cells, vertices, and faces of a mesh), each of which is backed by a region (and a partition).
 Often, other regions and partitions are included, organized into *subtopologies* that handle common kinds of data like the count of mesh elements.

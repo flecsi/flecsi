@@ -49,6 +49,7 @@ import os
 import sys
 import json
 import argparse
+from spack.util.environment import EnvironmentModifications
 
 COLOR_RESET = "\033[m"
 COLOR_INFO = "\033[1;36m"
@@ -107,8 +108,8 @@ parser.add_argument("-i", "--inherit", action="store_true",
 parser.add_argument("spec", nargs="+")
 args = parser.parse_args(main_args)
 
-source_dir = args.source_dir
-binary_dir = args.binary_dir
+source_dir = os.path.abspath(args.source_dir)
+binary_dir = os.path.abspath(args.binary_dir)
 
 # check final source_dir location
 if not os.path.exists(os.path.join(source_dir, "CMakeLists.txt")):
@@ -175,8 +176,18 @@ if app_spec.satisfies("^hip"):
 compiler = spack.compilers.compiler_for_spec(app_spec.compiler, app_spec.architecture)
 compiler_args = [f"-DCMAKE_CXX_COMPILER={compiler.cxx}", f"-DCMAKE_C_COMPILER={compiler.cc}"]
 
+if app_spec.satisfies("^kokkos"):
+    # Needed so kokkos_cxx is set (e.g. to nvcc_wrapper) and can be used in cmake_args()
+    app_spec["kokkos"].package.module.spack_cxx = compiler.cxx
+    if app_spec.satisfies("^kokkos-nvcc-wrapper"):
+        env = EnvironmentModifications()
+        app_spec["kokkos-nvcc-wrapper"].package.setup_dependent_build_environment(env, app_spec)
+        app_spec["kokkos-nvcc-wrapper"].package.setup_dependent_package(None, None)
+        env.apply_modifications()
+    app_spec["kokkos"].package.setup_dependent_package(None, None)
+
 if compiler.name == "gcc":
-    compiler_family = "gcc"
+    compiler_family = "gnu"
 else:
     # assume anything else is LLVM-based
     compiler_family = "llvm"

@@ -8,20 +8,25 @@
 # Trace commands and abort on the first error.
 set -e
 
-# Check if we're running from within a flecsi clone.  If not, clone
-# flecsi into the current directory.  In either case, cd to the
-# top-level flecsi directory.
+# Clone flecsi into the current directory unless the script was run
+# from what looks like a flecsi clone.
 script_dir=$(dirname $(readlink -f "$0"))
 cd "$script_dir"
-repo_name=$(basename -s .git $(git config --get remote.origin.url || echo not-flecsi))
-if [ "$repo_name" == flecsi ] ; then
-    cd $(git rev-parse --show-toplevel)
+if [ -d ../flecsi ] ; then
+    cd ..
 else
     cd -
     git clone git@gitlab.lanl.gov:flecsi/flecsi.git
     cd flecsi
 fi
-git rev-parse HEAD
+
+# Log where we came from in Git in case this is needed for troubleshooting.
+(
+    set +e
+    git config --get remote.origin.url 2>/dev/null || \
+      echo "${0}: Directory $(pwd) does not appear to have come from Git" 1>&2
+    git rev-parse HEAD 2>/dev/null
+)
 
 # Define an installation directory.
 FLECSI_INSTALL="$HOME/flecsi-inst"
