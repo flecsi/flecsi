@@ -108,8 +108,8 @@ parser.add_argument("-i", "--inherit", action="store_true",
 parser.add_argument("spec", nargs="+")
 args = parser.parse_args(main_args)
 
-source_dir = args.source_dir
-binary_dir = args.binary_dir
+source_dir = os.path.abspath(args.source_dir)
+binary_dir = os.path.abspath(args.binary_dir)
 
 # check final source_dir location
 if not os.path.exists(os.path.join(source_dir, "CMakeLists.txt")):
