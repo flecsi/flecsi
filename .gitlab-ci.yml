@@ -360,7 +360,7 @@ mpich-mpi-clang:
 #------------------------------------------------------------------------------#
 docs_and_format:
   stage: Canary
-  extends: .darwin_docs_and_format_template
+  extends: [.ascgit_job, .darwin_docs_and_format_template]
   needs: []
   dependencies: []
   only:
