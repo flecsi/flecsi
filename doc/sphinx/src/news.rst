@@ -80,7 +80,7 @@ New features
 
   * ``transform`` applies a transformation functor to a range.
   * ``partition_point`` and ``binary_index`` find values in sorted ranges.
-  * ``unpack`` scatters data into a range.
+  * ``permutation_view`` accesses a subset of a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
   * ``test`` convenience function launches unit test tasks.
   * ``sort`` provides a distributed sort and load balancing for an index space with multiple fields. 

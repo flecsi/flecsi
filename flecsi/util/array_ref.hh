@@ -820,16 +820,19 @@ binary_index(R && r, const T & t) {
   }) - b;
 }
 
-/// Copy data into given (packed) indices of a range.
+/// A view of a (partial) permutation of a range.  Elements need not be sorted
+/// (though see also \c #binary_index) and may be repeated (with caution for
+/// the resulting aliasing).
+///
 /// This function supports GPU execution.
-/// \param s source range
-/// \param d random-access destination starting iterator
-/// \param i iterator to offsets from \a d
-template<class S, class D, class I>
-FLECSI_TARGET constexpr void
-unpack(S && s, const D & d, I i) {
-  for(auto && x : std::forward<S>(s))
-    d[*i] = x, ++i;
+/// \param b random-access starting iterator
+/// \param r range of offsets from \a b
+/// \return view of selected elements, random access iff \c R is
+template<class B, class R>
+FLECSI_TARGET constexpr auto
+permutation_view(B b, R r) {
+  return transform_view(std::move(r),
+    [b = std::move(b)](const auto & i) -> decltype(auto) { return *(b + i); });
 }
 
 /// \}

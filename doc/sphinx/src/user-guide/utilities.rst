@@ -14,4 +14,4 @@ It is common that some subset of a prefix of the whole numbers needs to be treat
 The indices into the output range can serve as local (or packed) IDs for the subset.
 ``util::partition_point`` can be applied to a sorted range of such indices or structures to efficiently find the position or data for a particular index.
 ``util::binary_index`` (which does not reflect a standard-library feature) is a convenience for the case of finding the position of an index in a range of just indices (*e.g.*, finding the local ID for a global ID).
-``util::unpack`` stores a dense range of data in another range sparsely, at the positions selected by yet another range of indices.
+``util::permutation_view`` represents the subset of a range selected by indices stored in another range.
