@@ -10,6 +10,7 @@
 #include "flecsi/flog/utils.hh"
 
 #include <iostream>
+#include <sstream>
 
 /// \cond core
 namespace flecsi {
