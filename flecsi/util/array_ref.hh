@@ -720,8 +720,9 @@ stride_view(R && r,
 /// \endcond
 
 /// A view of part of a range.  Analogous to a combination of
-/// This class is supported for GPU execution.
 /// \c std::take_view and \c std::drop_view from C++20.
+///
+/// This class is supported for GPU execution.
 template<class R>
 struct substring_view {
   using iterator = decltype(std::begin(std::declval<R>()));
