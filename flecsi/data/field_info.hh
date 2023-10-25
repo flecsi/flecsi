@@ -40,7 +40,7 @@ using fields = std::vector<std::shared_ptr<field_info_t>>;
 
 //----------------------------------------------------------------------------//
 // This value is used by the Legion backend to automatically
-// assign task and field ids. The current maximum value that is allowed
+// assign field ids. The current maximum value that is allowed
 // in legion_config.h is 1<<20.
 //
 // We are reserving 4096 places for internal use.
