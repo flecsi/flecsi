@@ -25,7 +25,7 @@ The top-level action runs once on each process and must perform the same sequenc
 (In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)
 
 In the common case where the top-level action invokes the actions associated with a control model, they are executed serially.
-Tasks, however, are asynchronous: ``flecsi::execute`` may return before they complete and point tasks from multiple task launches may run in parallel.
+Tasks, however, are asynchronous: ``flecsi::execute`` may return before they complete and point tasks from multiple task launches may run out of order or in parallel.
 
 The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
 Because the threads may be pooled, they provide only the `parallel forward progress guarantee <https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress>`_ (invalidating certain collective operations).
