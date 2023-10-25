@@ -286,6 +286,14 @@ public:
     return threads_;
   }
 
+  /*!
+    Return map containing the short and full signature of all registered tasks.
+   */
+
+  auto & task_names() {
+    return task_names_;
+  }
+
 #ifdef DOXYGEN
   /*!
     Return the current task depth within the execution hierarchy. The
@@ -464,6 +472,7 @@ protected:
    *--------------------------------------------------------------------------*/
 
   Color process_, processes_, threads_per_process_, threads_;
+  std::map<std::string, std::string> task_names_;
 
   /*--------------------------------------------------------------------------*
     Field data members.

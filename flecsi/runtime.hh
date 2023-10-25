@@ -132,6 +132,18 @@ colors() {
   return run::context::instance().colors();
 }
 
+/*!
+  Return the mapping of shortened FleCSI task signatures to their full function
+  signatures. Shortened names may be used by FleCSI to register tasks in some
+  backends and provide more user-friendly names for debugging purposes. This map
+  is empty if no such shortening took place.
+ */
+
+inline const std::map<std::string, std::string> &
+task_names() {
+  return run::context::instance().task_names();
+}
+
 /// \}
 
 } // namespace flecsi
