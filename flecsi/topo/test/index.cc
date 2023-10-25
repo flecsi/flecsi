@@ -275,11 +275,7 @@ index_driver() {
     trivial_array::slot a;
     a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
-    { // TODO: automatic resizing
-      auto & p = arag(a).get_elements();
-      execute<allocate>(p.sizes());
-      p.resize();
-    }
+    execute<allocate>(arag(a).get_elements().sizes());
 
     auto lm = launch::make(
       a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));
