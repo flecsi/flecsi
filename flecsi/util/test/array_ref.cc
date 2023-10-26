@@ -298,8 +298,9 @@ array_ref() {
       static_assert(util::partition_point(
                       primes, [](int i) { return !(i % 2); }) == primes + 1);
       static_assert([] {
-        int loose[std::end(primes)[-1] + 1]{};
-        util::unpack(util::iota_view(0, np), +loose, primes);
+        int loose[std::end(primes)[-1] + 1]{}, i = 0;
+        for(auto & l : util::permutation_view(+loose, util::span(primes)))
+          l = i++;
         return loose[13] == util::binary_index(primes, 13);
       }());
     }
