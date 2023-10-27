@@ -104,7 +104,7 @@ protected:
         // Cast to Legion::ReductionOpID due to missing definition of REDOP_ID
         // in legion_redop.h
         Legion::ReductionOpID(fold::wrap<R, T>::REDOP_ID),
-        EXCLUSIVE,
+        LEGION_EXCLUSIVE,
         lr)
       .add_field(r.fid());
   } // visit

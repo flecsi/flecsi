@@ -373,13 +373,13 @@ using mpi::rows, mpi::prefixes;
 struct borrow : borrow_base {
   borrow(Claims c) {
     auto & ctx = run::context::instance();
-    flog_assert(c.size() == ctx.processes(),
-      "sorry: MPI backend needs one selection per process");
+    if(c.size() != ctx.processes())
+      flog_fatal("MPI backend limited: one selection per process needed");
     auto p = ctx.process();
     const Claim i = c[p];
     sel = i != nil;
-    flog_assert(!sel || i == p,
-      "sorry: MPI backend does not implement cross-color access");
+    if(sel && i != p)
+      flog_fatal("MPI backend limited: no cross-color access");
   }
 
   Color size() const {

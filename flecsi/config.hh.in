@@ -33,27 +33,6 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #cmakedefine FLECSI_ENABLE_MPI
 #cmakedefine FLECSI_ENABLE_LEGION
 
-//----------------------------------------------------------------------------//
-// Enable Legion thread-local storage interface
-//----------------------------------------------------------------------------//
-
-#if defined(FLECSI_ENABLE_LEGION)
-  #if !defined(LEGION_USE_CMAKE)
-    #define LEGION_USE_CMAKE
-  #endif
-  #if !defined(REALM_USE_CMAKE)
-    #define REALM_USE_CMAKE
-  #endif
-
-  #if !defined(MAPPER_COMPACTION)
-    #cmakedefine MAPPER_COMPACTION
-  #endif
-  #if !defined(COMPACTED_STORAGE_SORT)
-    #cmakedefine COMPACTED_STORAGE_SORT
-  #endif
-
-#endif
-
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <realm_defines.h>
 #endif

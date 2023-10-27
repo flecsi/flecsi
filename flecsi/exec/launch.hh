@@ -103,8 +103,9 @@ struct launch_combine {
       if constexpr(!std::is_same_v<U, std::nullptr_t>) {
         static_assert(std::is_same_v<T, U>, "implied launch types conflict");
         if constexpr(!std::is_same_v<T, std::monostate>)
-          flog_assert(t == c.t,
-            "implied launch sizes " << t << " and " << c.t << " conflict");
+          if(t != c.t)
+            flog_fatal(
+              "implied launch sizes " << t << " and " << c.t << " conflict");
       }
       return *this;
     }
