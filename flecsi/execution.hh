@@ -208,8 +208,13 @@ namespace flog {
 inline void
 flush() {
 #if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-  flecsi::exec::reduce_internal<flog::state::gather, void, flecsi::mpi>(
-    flog::state::instance());
+  auto & s = flog::state::instance();
+  if(s.source_process() == 0 || (s.active_process() && s.processes() == 1)) {
+    flog::state::gather(s); // no MPI communication needed
+  }
+  else {
+    flecsi::exec::reduce_internal<flog::state::gather, void, flecsi::mpi>(s);
+  }
   flecsi::run::context::instance().flog_task_count() = 0;
 #endif
 } // flush
