@@ -54,34 +54,5 @@ on how to use the GUI.
 
    FleCSI shortens the registered task names to ``function_name # <HASH>`` when
    passing them to Legion.  The matching full function signatures can be obtained
-   through console output when using the ``task_names`` FLOG tag.
-
-   Here is the corresponding FLOG output for the cycle test, which shows the
-   matching task name for task selected in the above screenshot.
-
-   .. code-block:: console
-      :emphasize-lines: 12-13
-
-       $ ./flecsi/run/cycle --flog-tags="task_names"
-       [info task_names p0 t22423465937280]
-       Registering task "flecsi::flog::state::gather # aa152dae82f8075": flecsi::flog::state::gather(flecsi::flog::state&)
-       [info task_names p0 t22423465937280]
-       Registering task "flecsi::data::launch::claims::fill # 70edb28d0eab812a": flecsi::data::launch::claims::fill(flecsi::data::accessor<single, unsigned long, 6u>, std::vector<unsigned long, std::allocator<unsigned long> > const&)
-       [info task_names p0 t22423465937280]
-       Registering task "flecsi::data::leg::mirror::fill # ad6d0ac86bafa94e": flecsi::data::leg::mirror::fill(flecsi::data::accessor<dense, Realm::Rect<2, long long>, 6u>, unsigned long)
-       [info task_names p0 t22423465937280]
-       Registering task "flecsi::data::leg::mirror::extend # 5894dedd432085e1": flecsi::data::leg::mirror::extend(flecsi::data::accessor<single, unsigned long, 5u>, flecsi::data::accessor<dense, Realm::Rect<2, long long>, 6u>, unsigned long)
-       [info task_names p0 t22423465937280]
-       Registering task "flecsi::topo::repartition::fill<flecsi::exec::partial<flecsi::topo::zero::function(unsigned long)> > # 87c228c62d22e85": void flecsi::topo::repartition::fill<flecsi::exec::partial<flecsi::topo::zero::function(unsigned long)> >(flecsi::data::accessor<single, unsigned long, 6u>, flecsi::exec::partial<flecsi::topo::zero::function(unsigned long)>)
-       [info task_names p0 t22423465937280]
-       Registering task "package_a::task1 # c4a16aad39aa38f9": package_a::task1()
-       [info task_names p0 t22423465937280]
-       Registering task "package_a::task2 # b74688b67b9bef74": package_a::task2()
-       [info task_names p0 t22423465937280]
-       Registering task "package_a::subcycle_task # 4b1b91905f6a4066": package_a::subcycle_task()
-       [info task_names p0 t22423465937280]
-       Registering task "package_a::task3 # 4610615862f4ba54": package_a::task3()
-       [info task_names p0 t22423465937280]
-       Registering task "package_a::task4 # 252b076a8768514b": package_a::task4()
-       [info task_names p0 t22423465937280]
-       Registering task "package_b::subcycle_task # 1e864126eab03245": package_b::subcycle_task()
+   from `flecsi::task_names()`, which returns a mapping of the shortened function
+   signature to its full signature.

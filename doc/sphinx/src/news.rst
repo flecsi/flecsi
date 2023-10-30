@@ -63,6 +63,7 @@ New features
   * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
   * ``run::call`` is a trivial predefined control model.
   * ``program_option`` validation functions can accept the option value directly.
+  * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
 
 * Topologies
 
