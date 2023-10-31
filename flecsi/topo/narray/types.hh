@@ -364,7 +364,7 @@ struct axis_definition {
 
   /// Whether the axis is periodic.
   /// The boundary index points for a periodic axis are copied as ghosts from
-  /// the other end of the axis.  There must be a positive number of them;
+  /// the other end of the axis and must match the ghost points in number, but
   /// they are not categorized as ghost points.
   /// \showinitializer
   bool periodic = false;
