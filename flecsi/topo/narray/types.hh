@@ -171,11 +171,8 @@ struct linearize {
  Type to store the coloring information for one axis of one color.
  */
 struct axis_color {
-  /// the number of colors on this axis
-  Color colors;
-
-  /// the index of this color along this axis
-  util::id color_index;
+  Color colors, ///< the number of colors on this axis
+    color_index; ///< the index of this color along this axis
 
   /// the extent of this color
   util::gid global_extent;
@@ -277,29 +274,21 @@ struct axis_color {
   /// The index intervals for ghosts of neighboring colors along this axis
   /// @return vector of pairs storing the owner color and its ghost interval
   auto ghost_intervals() const {
+    if(periodic && bdepth != hdepth)
+      flog_fatal("periodic boundary depth must match halo depth");
+
     std::vector</* over intervals */
       std::pair<std::size_t, /* owner color */
         std::pair<std::size_t, std::size_t> /* interval */
         >>
       gi;
 
-    auto log0 = logical<0>(), log1 = logical<1>(), tot = extent();
-    auto lo = is_low(), hi = is_high();
-
     if(hdepth) {
-      if(!lo)
-        gi.push_back({color_index - 1, {0, log0}});
-      if(!hi)
-        gi.push_back({color_index + 1, {log1, tot}});
-
-      if(periodic) {
-        flog_assert(
-          bdepth != 0, "boundary depth must be non-zero for periodic axes");
-        if(lo)
-          gi.push_back({colors - 1, {0, log0}});
-        if(hi)
-          gi.push_back({0, {log1, tot}});
-      }
+      const auto lo = is_low(), hi = is_high();
+      if(periodic || !lo)
+        gi.push_back({(lo ? colors : color_index) - 1, {0, logical<0>()}});
+      if(periodic || !hi)
+        gi.push_back({hi ? 0 : color_index + 1, {logical<1>(), extent()}});
     }
     return gi;
   }

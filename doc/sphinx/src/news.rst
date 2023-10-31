@@ -35,6 +35,7 @@ Fixed
 
   * ``narray`` respects ``index_definition::diagonals`` being ``false``.
     (This was fixed but not documented in 2.2.1.)
+  * ``narray`` requires equal boundary and halo depths for periodic axes (differing values never worked reliably).
 
 * Legion backend
 

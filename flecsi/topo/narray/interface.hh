@@ -44,6 +44,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using id = util::id;
 
   static constexpr Dimension dimension = Policy::dimension;
+  static_assert(dimension == axes::size);
 
   template<Privileges>
   struct access;
@@ -175,9 +176,10 @@ private:
          const auto & idxco = c.idx_colorings[index].process_coloring();
          for(auto i = ma.size(); i--;) {
            auto & md = ma[i]->template get<Value>();
-           std::copy(idxco[i].axis_colors.begin(),
-             idxco[i].axis_colors.end(),
-             md.axcol.begin());
+           auto & ac = idxco[i].axis_colors;
+           if(ac.size() != dimension)
+             flog_fatal("need " << dimension << " axes, not " << ac.size());
+           std::copy(ac.begin(), ac.end(), md.axcol.begin());
            md.diagonals = c.idx_colorings[index].diagonals;
          }
        }(),

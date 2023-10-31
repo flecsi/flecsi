@@ -202,43 +202,35 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
       using ax = mesh2d::axis;
 
       // check range
-      std::set<util::id> xlogical[4] = {
-        {2, 3, 4, 5}, {1, 2, 3, 4}, {2, 3, 4, 5}, {1, 2, 3, 4}};
-      std::set<util::id> xextended[4] = {{0, 1, 2, 3, 4, 5},
-        {1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5},
-        {1, 2, 3, 4, 5, 6}};
-      std::set<util::id> xall[4] = {{0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6}};
-      std::set<util::id> xboundary_low[4] = {{0, 1}, {}, {0, 1}, {}};
-      std::set<util::id> xboundary_high[4] = {{}, {5, 6}, {}, {5, 6}};
+      std::set<util::id> xlogical = {1, 2, 3, 4};
+      std::set<util::id> xextended[4] = {
+        {0, 1, 2, 3, 4}, {1, 2, 3, 4, 5}, {0, 1, 2, 3, 4}, {1, 2, 3, 4, 5}};
+      std::set<util::id> xall = {0, 1, 2, 3, 4, 5, 6};
+      std::set<util::id> xboundary_low[4] = {{0}, {}, {0}, {}};
+      std::set<util::id> xboundary_high[4] = {{}, {5}, {}, {5}};
       std::set<util::id> xghost_low[4] = {{}, {0}, {}, {0}};
-      std::set<util::id> xghost_high[4] = {{6}, {}, {6}, {}};
+      std::set<util::id> xghost_high[4] = {{5}, {}, {5}, {}};
 
-      std::set<util::id> ylogical[4] = {
-        {1, 2, 3, 4}, {1, 2, 3, 4}, {2, 3, 4, 5}, {2, 3, 4, 5}};
-      std::set<util::id> yextended[4] = {
-        {0, 1, 2, 3, 4}, {0, 1, 2, 3, 4}, {2, 3, 4, 5, 6}, {2, 3, 4, 5, 6}};
-      std::set<util::id> yall[4] = {{0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6},
-        {0, 1, 2, 3, 4, 5, 6}};
-      std::set<util::id> yboundary_low[4] = {{0}, {0}, {}, {}};
-      std::set<util::id> yboundary_high[4] = {{}, {}, {6}, {6}};
+      std::set<util::id> ylogical = {2, 3, 4, 5};
+      std::set<util::id> yextended[4] = {{0, 1, 2, 3, 4, 5},
+        {0, 1, 2, 3, 4, 5},
+        {2, 3, 4, 5, 6, 7},
+        {2, 3, 4, 5, 6, 7}};
+      std::set<util::id> yall = {0, 1, 2, 3, 4, 5, 6, 7};
+      std::set<util::id> yboundary_low[4] = {{0, 1}, {0, 1}, {}, {}};
+      std::set<util::id> yboundary_high[4] = {{}, {}, {6, 7}, {6, 7}};
       std::set<util::id> yghost_low[4] = {{}, {}, {0, 1}, {0, 1}};
-      std::set<util::id> yghost_high[4] = {{5, 6}, {5, 6}, {}, {}};
+      std::set<util::id> yghost_high[4] = {{6, 7}, {6, 7}, {}, {}};
 
       const int rank = process();
       const auto s = [](auto && r) {
         return std::set<util::id>(r.begin(), r.end());
       };
 
-      EXPECT_EQ(s(m.template range<ax::x_axis>()), xlogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis>()), xlogical);
       EXPECT_EQ(
         s(m.template range<ax::x_axis, r::extended>()), xextended[rank]);
-      EXPECT_EQ(s(m.template range<ax::x_axis, r::all>()), xall[rank]);
+      EXPECT_EQ(s(m.template range<ax::x_axis, r::all>()), xall);
       EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_low>()),
         xboundary_low[rank]);
       EXPECT_EQ(s(m.template range<ax::x_axis, r::boundary_high>()),
@@ -248,10 +240,10 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
       EXPECT_EQ(
         s(m.template range<ax::x_axis, r::ghost_high>()), xghost_high[rank]);
 
-      EXPECT_EQ(s(m.template range<ax::y_axis>()), ylogical[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis>()), ylogical);
       EXPECT_EQ(
         s(m.template range<ax::y_axis, r::extended>()), yextended[rank]);
-      EXPECT_EQ(s(m.template range<ax::y_axis, r::all>()), yall[rank]);
+      EXPECT_EQ(s(m.template range<ax::y_axis, r::all>()), yall);
       EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_low>()),
         yboundary_low[rank]);
       EXPECT_EQ(s(m.template range<ax::y_axis, r::boundary_high>()),
@@ -350,25 +342,22 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
 
       auto c = m.template mdspan<topo::elements>(ca);
 
-      auto chk =
-        [&c](std::set<util::id> & ybnd, std::set<util::id> & xbnd, int r) {
-          bool iseq = true;
-          for(auto j : ybnd) {
-            for(auto i : xbnd) {
-              iseq = iseq && (c[j][i] == size_t(std::pow(10, r)));
-            }
+      auto chk = [&c](const std::set<util::id> & ybnd,
+                   const std::set<util::id> & xbnd,
+                   int r) {
+        bool iseq = true;
+        for(auto j : ybnd) {
+          for(auto i : xbnd) {
+            iseq = iseq && (c[j][i] == size_t(std::pow(10, r)));
           }
-          return iseq;
-        };
+        }
+        return iseq;
+      };
 
-      EXPECT_EQ(
-        chk(ylogical[rank], xghost_low[rank], ngb_ranks[rank][3]), true);
-      EXPECT_EQ(
-        chk(ylogical[rank], xghost_high[rank], ngb_ranks[rank][5]), true);
-      EXPECT_EQ(
-        chk(yghost_low[rank], xlogical[rank], ngb_ranks[rank][1]), true);
-      EXPECT_EQ(
-        chk(yghost_high[rank], xlogical[rank], ngb_ranks[rank][7]), true);
+      EXPECT_EQ(chk(ylogical, xghost_low[rank], ngb_ranks[rank][3]), true);
+      EXPECT_EQ(chk(ylogical, xghost_high[rank], ngb_ranks[rank][5]), true);
+      EXPECT_EQ(chk(yghost_low[rank], xlogical, ngb_ranks[rank][1]), true);
+      EXPECT_EQ(chk(yghost_high[rank], xlogical, ngb_ranks[rank][7]), true);
 
       EXPECT_EQ(
         chk(yghost_low[rank], xghost_low[rank], ngb_ranks[rank][0]), true);
@@ -1182,7 +1171,7 @@ narray_driver() {
         }; // unit
       };
 
-      test_2d({8, 8}, {1, 2}, {2, 1}, {true, true}, true, true, 100, true);
+      test_2d({8, 8}, {1, 2}, {1, 2}, {true, true}, true, true, 100, true);
       test_2d({8, 8}, {1, 1}, {1, 1}, {true, true}, false, true, 3, false);
 
     } // scope
