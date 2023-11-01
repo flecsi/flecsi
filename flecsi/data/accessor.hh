@@ -391,7 +391,7 @@ private:
 public:
   struct Overflow {
     base_size del;
-    std::vector<T> add;
+    std::vector<T> buffer;
   };
   using TaskBuffer = std::vector<Overflow>;
 
@@ -399,27 +399,27 @@ private:
   struct raw_row {
     using size_type = base_size;
 
-    base_row s;
-    Overflow * o;
+    base_row span;
+    Overflow * overflow;
 
     T & operator[](size_type i) const {
       const auto b = brk();
       if(i < b)
-        return s[i];
+        return span[i];
       i -= b;
-      flog_assert(i < o->add.size(), "index out of range");
-      return o->add[i];
+      flog_assert(i < overflow->buffer.size(), "index out of range");
+      return overflow->buffer[i];
     }
 
     size_type brk() const noexcept {
-      return s.size() - o->del;
+      return span.size() - overflow->del;
     }
     size_type size() const noexcept {
-      return brk() + o->add.size();
+      return brk() + overflow->buffer.size();
     }
 
     void destroy(size_type skip = 0) const {
-      std::destroy(s.begin() + skip, s.begin() + brk());
+      std::destroy(span.begin() + skip, span.begin() + brk());
     }
   };
 
@@ -435,18 +435,18 @@ public:
 
     /// \name std::vector operations
     /// \{
-    void assign(size_type n, const T & t) const {
+    void assign(size_type count, const T & value) const {
       clear();
-      resize(n, t);
+      resize(count, value);
     }
     template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
-    void assign(I a, I b) const {
-      for(clear(); o->del && a != b; ++a)
-        push_span(*a);
-      o->add.assign(std::move(a), std::move(b));
+    void assign(I first, I last) const {
+      for(clear(); overflow->del && first != last; ++first)
+        push_span(*first);
+      overflow->buffer.assign(std::move(first), std::move(last));
     }
-    void assign(std::initializer_list<T> l) const {
-      assign(l.begin(), l.end());
+    void assign(std::initializer_list<T> ilist) const {
+      assign(ilist.begin(), ilist.end());
     }
 
     using raw_row::operator[];
@@ -462,7 +462,7 @@ public:
       return !this->size();
     }
     size_type max_size() const noexcept {
-      return o->add.max_size();
+      return overflow->buffer.max_size();
     }
     size_type capacity() const noexcept {
       // We can't count the span and the vector, since the client might remove
@@ -470,111 +470,113 @@ public:
       // return value.  The strange result is
       // that size() can be greater than capacity(), but that just means that
       // every operation might invalidate everything.
-      const auto c = o->add.capacity();
-      return o->add.empty() ? std::max(s.size(), c) : c;
+      const auto c = overflow->buffer.capacity();
+      return overflow->buffer.empty() ? std::max(span.size(), c) : c;
     }
     void reserve(size_type n) const {
-      if(!o->add.empty() || n > s.size())
-        o->add.reserve(n);
+      if(!overflow->buffer.empty() || n > span.size())
+        overflow->buffer.reserve(n);
     }
     void shrink_to_fit() const { // repacks into span; only basic guarantee
-      const size_type mv = std::min(o->add.size(), o->del);
-      const auto b = o->add.begin(), e = b + mv;
-      std::uninitialized_move(b, e, s.end());
-      o->del -= mv;
-      if(mv || o->add.size() < o->add.capacity())
-        decltype(o->add)(
-          std::move_iterator(e), std::move_iterator(o->add.end()))
-          .swap(o->add);
+      const size_type mv = std::min(overflow->buffer.size(), overflow->del);
+      const auto b = overflow->buffer.begin(), e = b + mv;
+      std::uninitialized_move(b, e, span.end());
+      overflow->del -= mv;
+      if(mv || overflow->buffer.size() < overflow->buffer.capacity())
+        decltype(overflow->buffer)(
+          std::move_iterator(e), std::move_iterator(overflow->buffer.end()))
+          .swap(overflow->buffer);
     }
 
     void clear() const noexcept {
-      o->add.clear();
+      overflow->buffer.clear();
       for(auto n = brk(); n--;)
         pop_span();
     }
-    iterator insert(iterator i, const T & t) const {
-      return put(i, t);
+    iterator insert(iterator pos, const T & value) const {
+      return put(pos, value);
     }
-    iterator insert(iterator i, T && t) const {
-      return put(i, std::move(t));
+    iterator insert(iterator pos, T && value) const {
+      return put(pos, std::move(value));
     }
-    iterator insert(iterator i, size_type n, const T & t) const {
+    iterator insert(iterator pos, size_type count, const T & value) const {
       const auto b = brki();
-      auto & a = o->add;
-      if(i < b) {
+      auto & a = overflow->buffer;
+      if(pos < b) {
         const size_type
-          // used elements assigned from t:
-          filla = std::min(n, b.index() - i.index()),
-          fillx = n - filla, // other spaces to fill
-          fillc = std::min(fillx, o->del), // slack spaces constructed from t
-          fillo = fillx - fillc, // overflow copies of t
+          // used elements assigned from value:
+          filla = std::min(count, b.index() - pos.index()),
+          fillx = count - filla, // other spaces to fill
+          fillc = std::min(
+            fillx, overflow->del), // slack spaces constructed from value
+          fillo = fillx - fillc, // overflow copies of value
           // slack spaces move-constructed from used elements:
-          mvc = std::min(o->del - fillc, filla);
+          mvc = std::min(overflow->del - fillc, filla);
 
         // Perform the moves and fills mostly in reverse order.
-        T *const s0 = s.data(), *const ip = s0 + i.index(),
+        T *const s0 = span.data(), *const ip = s0 + pos.index(),
                  *const bp = s0 + b.index();
         // FIXME: Is there a way to do just one shift?
-        a.insert(a.begin(), fillo, t); // first to reduce the volume of shifting
+        a.insert(
+          a.begin(), fillo, value); // first to reduce the volume of shifting
         a.insert(a.begin() + fillo, bp - (filla - mvc), bp);
         std::uninitialized_move_n(
-          bp - filla, mvc, std::uninitialized_fill_n(bp, fillc, t));
-        o->del -= fillc + mvc; // before copies that might throw
-        std::fill(ip, std::move_backward(ip, bp - filla, bp), t);
+          bp - filla, mvc, std::uninitialized_fill_n(bp, fillc, value));
+        overflow->del -= fillc + mvc; // before copies that might throw
+        std::fill(ip, std::move_backward(ip, bp - filla, bp), value);
       }
       else {
-        if(i == b)
-          for(; n && o->del; --n) // fill in the gap
-            push_span(t);
-        a.insert(a.begin(), n, t);
+        if(pos == b)
+          for(; count && overflow->del; --count) // fill in the gap
+            push_span(value);
+        a.insert(a.begin(), count, value);
       }
-      return i;
+      return pos;
     }
     template<class I, class = std::enable_if_t<!std::is_integral_v<I>>>
-    iterator insert(iterator i, I a, I b) const {
+    iterator insert(iterator pos, I first, I last) const {
       // FIXME: use size when available
-      for(iterator j = i; a != b; ++a, ++j)
-        insert(j, *a);
-      return i;
+      for(iterator j = pos; first != last; ++first, ++j)
+        insert(j, *first);
+      return pos;
     }
-    iterator insert(iterator i, std::initializer_list<T> l) const {
-      return insert(i, l.begin(), l.end());
+    iterator insert(iterator pos, std::initializer_list<T> ilist) const {
+      return insert(pos, ilist.begin(), ilist.end());
     }
     template<class... AA>
-    iterator emplace(iterator i, AA &&... aa) const {
-      return put<true>(i, std::forward<AA>(aa)...);
+    iterator emplace(iterator pos, AA &&... aa) const {
+      return put<true>(pos, std::forward<AA>(aa)...);
     }
-    iterator erase(iterator i) const noexcept {
+    iterator erase(iterator pos) const noexcept {
       const auto b = brki();
-      if(i < b) {
-        std::move(i + 1, b, i);
+      if(pos < b) {
+        std::move(pos + 1, b, pos);
         pop_span();
       }
       else
-        o->add.erase(o->add.begin() + (i - b));
-      return i;
+        overflow->buffer.erase(overflow->buffer.begin() + (pos - b));
+      return pos;
     }
-    iterator erase(iterator i, iterator j) const noexcept {
+    iterator erase(iterator first, iterator last) const noexcept {
       const auto b = brki();
-      if(i < b) {
-        if(j == i)
+      if(first < b) {
+        if(last == first)
           ;
-        else if(j <= b) {
-          std::move(j, b, i);
-          for(auto n = j - i; n--;)
+        else if(last <= b) {
+          std::move(last, b, first);
+          for(auto n = last - first; n--;)
             pop_span();
         }
         else {
-          erase(b, j);
-          erase(i, b);
+          erase(b, last);
+          erase(first, b);
         }
       }
       else {
-        const auto ab = o->add.begin();
-        o->add.erase(ab + (i - b), ab + (j - b));
+        const auto ab = overflow->buffer.begin();
+        overflow->buffer.erase(ab + (first - b), ab + (last - b));
       }
-      return i;
+      return first;
     }
     void push_back(const T & t) const {
       emplace_back(t);
@@ -584,21 +586,21 @@ public:
     }
     template<class... AA>
     T & emplace_back(AA &&... aa) const {
-      return !o->del || !o->add.empty()
-               ? o->add.emplace_back(std::forward<AA>(aa)...)
+      return !overflow->del || !overflow->buffer.empty()
+               ? overflow->buffer.emplace_back(std::forward<AA>(aa)...)
                : push_span(std::forward<AA>(aa)...);
     }
     void pop_back() const noexcept {
-      if(o->add.empty())
+      if(overflow->buffer.empty())
         pop_span();
       else
-        o->add.pop_back();
+        overflow->buffer.pop_back();
     }
-    void resize(size_type n) const {
-      extend(n);
+    void resize(size_type count) const {
+      extend(count);
     }
-    void resize(size_type n, const T & t) const {
-      extend(n, t);
+    void resize(size_type count, const T & value) const {
+      extend(count, value);
     }
     /// \}
 
@@ -606,8 +608,8 @@ public:
 
   private:
     using raw_row::brk;
-    using raw_row::o;
-    using raw_row::s;
+    using raw_row::overflow;
+    using raw_row::span;
 
     auto brki() const noexcept {
       return this->begin() + brk();
@@ -616,10 +618,10 @@ public:
     iterator put(iterator i, AA &&... aa) const {
       static_assert(Destroy || sizeof...(AA) == 1);
       const auto b = brki();
-      auto & a = o->add;
+      auto & a = overflow->buffer;
       if(i < b) {
-        auto & last = s[brk() - 1];
-        if(o->del)
+        auto & last = span[brk() - 1];
+        if(overflow->del)
           push_span(std::move(last));
         else
           a.insert(a.begin(), std::move(last));
@@ -632,7 +634,7 @@ public:
         else
           *i = (std::forward<AA>(aa), ...);
       }
-      else if(i == b && o->del)
+      else if(i == b && overflow->del)
         push_span(std::forward<AA>(aa)...);
       else {
         const auto j = a.begin() + (i - b);
@@ -652,8 +654,9 @@ public:
       }
       else {
         // We can reduce the reservation because we're only appending:
-        if(const auto sc = o->add.empty() ? s.size() : brk(); n > sc)
-          o->add.reserve(n - sc);
+        if(const auto sc = overflow->buffer.empty() ? span.size() : brk();
+           n > sc)
+          overflow->buffer.reserve(n - sc);
 
         struct cleanup {
           const row & r;
@@ -672,13 +675,13 @@ public:
     }
     template<class... AA>
     T & push_span(AA &&... aa) const {
-      auto & ret = *new(&s[brk()]) T(std::forward<AA>(aa)...);
-      --o->del;
+      auto & ret = *new(&span[brk()]) T(std::forward<AA>(aa)...);
+      --overflow->del;
       return ret;
     }
     void pop_span() const noexcept {
-      ++o->del;
-      s[brk()].~T();
+      ++overflow->del;
+      span[brk()].~T();
     }
   };
 
@@ -755,14 +758,15 @@ public:
       }
       if(is == n)
         break;
-      while(jd == rd.s.size()) { // jd indexes the span (including slack space)
+      while(
+        jd == rd.span.size()) { // jd indexes the span (including slack space)
         if(++id == n)
           break; // we can write off the end of the last
         else
           rd = raw_get(id);
         jd = 0;
       }
-      const auto r = &rs[js], w = rd.s.data() + jd;
+      const auto r = &rs[js], w = rd.span.data() + jd;
       flog_assert(w != all.end(),
         "ragged entries for last " << n - is << " rows overrun allocation for "
                                    << all.size() << " entries");
@@ -770,7 +774,7 @@ public:
         stk.push({r, w, jd < rd.brk()});
       // Perform this move, and any already queued, if it's not to the right.
       // Offset real elements by one position to come after insertions.
-      if(rs.s.data() + std::min(js + 1, rs.brk()) > w)
+      if(rs.span.data() + std::min(js + 1, rs.brk()) > w)
         back();
     }
     back();
@@ -782,8 +786,8 @@ public:
     base_size delta = 0; // may be "negative"; aliasing is implausible
     for(is = 0; is < n; ++is) {
       auto & ov = (*over)[is];
-      off(is) += delta += ov.add.size() - ov.del;
-      ov.add.clear();
+      off(is) += delta += ov.buffer.size() - ov.del;
+      ov.buffer.clear();
     }
     sz = grow(acc.total(), all.size());
   }
