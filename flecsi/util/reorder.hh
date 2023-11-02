@@ -19,8 +19,8 @@ namespace util {
 //! \param [in] order_end   The end iterator for the order array
 //! \param [in,out] v The begin iterator for the value array
 //! \deprecated Unused.
-[[deprecated]] template<typename order_iterator, typename value_iterator>
-void
+template<typename order_iterator, typename value_iterator>
+[[deprecated]] void
 reorder(const order_iterator order_begin,
   const order_iterator order_end,
   const value_iterator v) {
@@ -50,8 +50,8 @@ reorder(const order_iterator order_begin,
 //! \param [in,out] order_end   The end iterator for the order array
 //! \param [in,out] v The begin iterator for the value array
 //! \deprecated Unused.
-[[deprecated]] template<typename order_iterator, typename value_iterator>
-void
+template<typename order_iterator, typename value_iterator>
+[[deprecated]] void
 reorder_destructive(const order_iterator order_begin,
   const order_iterator order_end,
   const value_iterator v) {
