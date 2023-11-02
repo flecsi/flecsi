@@ -247,6 +247,10 @@ public:
     return process_;
   }
 
+  Color processes() const {
+    return processes_;
+  }
+
   void buffer_output(std::string message) {
     std::lock_guard<std::mutex> guard(packets_mutex_);
     packets_.emplace_back(clock::now(), std::move(message));

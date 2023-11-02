@@ -52,6 +52,7 @@ struct message {
       if(str.back() == '\n') {
         str.pop_back();
         ss_.str(std::move(str));
+        ss_.seekp(0, ss_.end);
         ss_ << FLOG_COLOR_PLAIN << '\n';
       }
       else {
