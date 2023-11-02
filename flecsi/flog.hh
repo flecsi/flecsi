@@ -398,8 +398,6 @@ private:
   ::flecsi::flog::message<flecsi::flog::error>(__FILE__, __LINE__).format()    \
     << stream
 
-#define FLOG_RESET() ::flecsi::flog::state::reset_instance()
-
 #else // FLECSI_ENABLE_FLOG
 
 namespace flecsi {
@@ -455,8 +453,6 @@ struct container {
 #define flog_info(message)
 #define flog_warn(message)
 #define flog_error(message)
-
-#define FLOG_RESET()
 
 #endif // FLECSI_ENABLE_FLOG
 
@@ -520,7 +516,8 @@ inline constexpr bool can_dumpstack =
 
   @note Fatal level severity log entires are not disabled by tags or
         by the ENABLE_FLOG or FLOG_STRIP_LEVEL build options, i.e.,
-        they are always active.
+        they are always active.  Nor do they use Flog's output streams,
+        because they cannot be aggregated across processes.
 
   @b Usage
   @code
@@ -540,7 +537,6 @@ inline constexpr bool can_dumpstack =
              << FLOG_OUTPUT_YELLOW(::flecsi::flog::rstrip<'/'>(__FILE__)       \
                                    << ":" << __LINE__ << " ")                  \
              << FLOG_OUTPUT_LTRED(message) << std::endl;                       \
-    FLOG_RESET();                                                              \
     const char * dump = std::getenv("FLECSI_BACKTRACE");                       \
     if(dump != nullptr) {                                                      \
       ::flecsi::flog::dumpstack();                                             \

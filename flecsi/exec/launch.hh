@@ -15,11 +15,14 @@
 #include <variant> // monostate
 
 namespace flecsi {
-namespace data { // these have semantics for exec/
+namespace data {
+// Types inherit from these tags to indicate their task execution semantics.
+
 struct bind_tag {}; // must be recognized as a task parameter
-// Provides a send member function that accepts a function to call with a
-// (subsidiary) task parameter and another function to call to transform the
-// corresponding task argument (used only on the caller side).
+// A task parameter that provides a member function send to decompose itself
+// into lower-level types.  Its one argument is a backend-specific callback
+// that accepts a (subsidiary) task parameter and another function to call to
+// transform the corresponding task argument (used only on the caller side).
 struct send_tag {};
 } // namespace data
 
@@ -103,8 +106,9 @@ struct launch_combine {
       if constexpr(!std::is_same_v<U, std::nullptr_t>) {
         static_assert(std::is_same_v<T, U>, "implied launch types conflict");
         if constexpr(!std::is_same_v<T, std::monostate>)
-          flog_assert(t == c.t,
-            "implied launch sizes " << t << " and " << c.t << " conflict");
+          if(t != c.t)
+            flog_fatal(
+              "implied launch sizes " << t << " and " << c.t << " conflict");
       }
       return *this;
     }

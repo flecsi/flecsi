@@ -251,11 +251,10 @@ mdiota_view(const M & m, RR... rr) {
     m, std::index_sequence_for<RR...>(), std::make_tuple(rr...));
 }
 
-/// This function is a wrapper for Kokkos::parallel_for that has been adapted to
-/// work with random access ranges common in FleCSI topologies. In particular,
-/// this function invokes a map from the normal kernel index space to the FleCSI
-/// index space, which may require indirection.
+/// Call a function on each element of a range, potentially in parallel.
+/// If GPU support is available, \a lambda is executed there.
 /// \param p sized random-access range
+/// \param name operation name, for debugging
 template<typename Policy, typename Lambda>
 void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
@@ -312,11 +311,14 @@ struct reduce_ref {
 };
 } // namespace detail
 
-/// This function is a wrapper for Kokkos::parallel_reduce that has been adapted
-/// to work with random access ranges common in FleCSI topologies.
+/// Perform a reduction based on the elements of a range, potentially in
+/// parallel.  If GPU support is available, \a lambda is executed there.
 /// \tparam R reduction operation type
+/// \tparam T data type
+/// \tparam Lambda function of an element of \a p and a function object that
+///   calls the latter with each value participating in the reduction
 /// \param p sized random-access range
-
+/// \param name operation name, for debugging
 template<class R, class T, typename Policy, typename Lambda>
 T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
