@@ -303,7 +303,7 @@ intersect(const KDTree<DIM> & k1,
   int i1,
   int i2,
   std::vector<A2> & candidates) {
-  std::vector<long> c1, c2;
+  const auto rec = [&](int i, int j) { intersect(k1, k2, i, j, candidates); };
   if(k1.sbox[i1].intersects(k2.sbox[i2])) {
     // We don't want to test every leaf of one tree against some large
     // safety box of the other tree that might intersect them even though
@@ -312,37 +312,25 @@ intersect(const KDTree<DIM> & k1,
     auto l2 = k2.linkp[i2];
 
     if(l1 <= 0) { // box 1 is a leaf
-      if(l2 <= 0) {
+      if(l2 <= 0) // so is box 2
         candidates.push_back({-l1, -l2});
-        return; // so is box 2
+      else {
+        // split only the non-leaf:
+        rec(i1, l2);
+        rec(i1, l2 + 1);
       }
-
-      // can't split the leaf
-      c1.push_back(i1);
-
-      // but split the other
-      c2.push_back(l2);
-      c2.push_back(l2 + 1);
     }
     else {
       // split box 1
-      c1.push_back(l1);
-      c1.push_back(l1 + 1);
-
-      // and box 2 if possible
-      if(l2 <= 0) {
-        c2.push_back(i2);
-      }
-      else {
-        c2.push_back(l2);
-        c2.push_back(l2 + 1);
-      }
-    }
-
-    for(auto & ii : c1) {
-      for(auto & jj : c2) {
-        intersect(k1, k2, ii, jj, candidates);
-      }
+      for(long d = 0; d < 2; ++d)
+        // and box 2 if possible
+        if(l2 <= 0) {
+          rec(l1 + d, i2);
+        }
+        else {
+          rec(l1 + d, l2);
+          rec(l1 + d, l2 + 1);
+        }
     }
   }
 }

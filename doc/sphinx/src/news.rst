@@ -99,6 +99,14 @@ Deprecated
 
   * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
 
+* Topologies
+
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
+
+* Utilities
+
+  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
+
 Fixed
 ^^^^^
 * Execution
@@ -110,6 +118,7 @@ Fixed
 
   * ``narray`` respects ``index_definition::diagonals`` being ``false``.
     (This was fixed but not documented in 2.2.1.)
+  * ``narray`` requires equal boundary and halo depths for periodic axes (differing values never worked reliably).
 
 * Legion backend
 

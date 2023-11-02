@@ -194,11 +194,8 @@ struct linearize {
  Type to store the coloring information for one axis of one color.
  */
 struct axis_color {
-  /// the number of colors on this axis
-  Color colors;
-
-  /// the index of this color along this axis
-  util::id color_index;
+  Color colors, ///< the number of colors on this axis
+    color_index; ///< the index of this color along this axis
 
   /// the extent of this color
   util::gid global_extent;
@@ -300,29 +297,21 @@ struct axis_color {
   /// The index intervals for ghosts of neighboring colors along this axis
   /// @return vector of pairs storing the owner color and its ghost interval
   auto ghost_intervals() const {
+    if(periodic && bdepth != hdepth)
+      flog_fatal("periodic boundary depth must match halo depth");
+
     std::vector</* over intervals */
       std::pair<std::size_t, /* owner color */
         std::pair<std::size_t, std::size_t> /* interval */
         >>
       gi;
 
-    auto log0 = logical<0>(), log1 = logical<1>(), tot = extent();
-    auto lo = is_low(), hi = is_high();
-
     if(hdepth) {
-      if(!lo)
-        gi.push_back({color_index - 1, {0, log0}});
-      if(!hi)
-        gi.push_back({color_index + 1, {log1, tot}});
-
-      if(periodic) {
-        flog_assert(
-          bdepth != 0, "boundary depth must be non-zero for periodic axes");
-        if(lo)
-          gi.push_back({colors - 1, {0, log0}});
-        if(hi)
-          gi.push_back({0, {log1, tot}});
-      }
+      const auto lo = is_low(), hi = is_high();
+      if(periodic || !lo)
+        gi.push_back({(lo ? colors : color_index) - 1, {0, logical<0>()}});
+      if(periodic || !hi)
+        gi.push_back({hi ? 0 : color_index + 1, {logical<1>(), extent()}});
     }
     return gi;
   }
@@ -334,15 +323,6 @@ struct axis_color {
 struct index_color {
   /// Coloring information for each axis
   std::vector<axis_color> axis_colors;
-
-  /// Offsets on the remote color.
-  using points = std::map<Color,
-    std::vector<std::pair</* local ghost offset, remote shared offset */
-      std::size_t,
-      std::size_t>>>;
-
-  /// Local ghost intervals.
-  using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
 
   Color color() const {
     auto pr = axis_colors[0].colors;
@@ -407,7 +387,7 @@ struct axis_definition {
 
   /// Whether the axis is periodic.
   /// The boundary index points for a periodic axis are copied as ghosts from
-  /// the other end of the axis.  There must be a positive number of them;
+  /// the other end of the axis and must match the ghost points in number, but
   /// they are not categorized as ghost points.
   /// \showinitializer
   bool periodic = false;
@@ -433,8 +413,9 @@ struct index_definition {
   /// \showinitializer
   bool diagonals = false;
 
-  /// whether to create a copy plan
-  /// \showinitializer
+  /// Unused.
+  /// \deprecated Omit the initialization (and \e assign \c full_ghosts if
+  ///   needed).
   bool create_plan = true;
 
   /// whether to use include full ghost information for auxiliaries
@@ -571,16 +552,24 @@ struct index_definition {
     return idxco;
   } // make_color
 
+  /// Offsets on the remote color.
+  using points = std::map<Color,
+    std::vector<std::pair</* local ghost offset, remote shared offset */
+      std::size_t,
+      std::size_t>>>;
+
+  /// Local ghost intervals.
+  using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+
   /*!
     Compute the ghost points and intervals for a given process coloring
     @param idxco index color
     \return ghost points and intervals for the given coloring
   */
-  std::pair<index_color::points, index_color::intervals> ghosts(
-    const index_color & idxco) const {
+  std::pair<points, intervals> ghosts(const index_color & idxco) const {
     const auto dimension = dimensions();
-    index_color::points points;
-    index_color::intervals intervals;
+    points points;
+    intervals intervals;
 
     /*
       Here, we compose the intervals from each sub-dimension to form
@@ -767,7 +756,7 @@ struct index_definition {
 
       make(co, s.second, dimension - 1);
     } // for
-    return make_pair(points, intervals);
+    return make_pair(std::move(points), std::move(intervals));
   }
 
   /// \endcond
@@ -1009,9 +998,8 @@ struct narray_base {
   */
   static void idx_itvls(index_definition const & idef,
     std::vector<std::size_t> & num_intervals,
-    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
-    std::vector<std::map<Color,
-      std::vector<std::pair<std::size_t, std::size_t>>>> & points,
+    std::vector<index_definition::intervals> & intervals,
+    std::vector<index_definition::points> & points,
     MPI_Comm const & comm) {
     std::vector<std::size_t> local_itvls;
     for(const auto & idxco : idef.process_coloring(comm)) {

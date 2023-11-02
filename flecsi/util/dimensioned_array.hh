@@ -8,21 +8,14 @@
 #include <cassert>
 #include <cmath>
 #include <ostream>
+#include <type_traits>
 
 namespace flecsi {
 namespace util {
-/// \ingroup utils
-
-template<typename... CONDITIONS>
-struct and_ : std::true_type {};
-
-template<typename CONDITION, typename... CONDITIONS>
-struct and_<CONDITION, CONDITIONS...>
-  : std::conditional<CONDITION::value, and_<CONDITIONS...>, std::false_type>::
-      type {}; // struct and_
 
 template<typename TARGET, typename... TARGETS>
-using are_type = and_<std::is_same<TARGETS, TARGET>...>;
+using are_type =
+  std::integral_constant<bool, (std::is_same_v<TARGETS, TARGET> && ...)>;
 
 //----------------------------------------------------------------------------//
 //! Enumeration for axes.
