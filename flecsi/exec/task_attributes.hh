@@ -41,7 +41,11 @@ enum task_attributes_mask_t : TaskAttributes {
   mpi = 0x40
 }; // task_attributes_mask_t
 
-/// \c toc if support for it is available, otherwise \c loc.
+/// The task attribute to use for tasks that use the
+/// \ref kernel "on-node parallelism interface".  Defined as \c toc or \c omp
+/// if support for one of those is available, otherwise \c loc.
+/// \warning Using \c toc causes field data to be placed on the device, so
+///   that it is accessible \e only via the parallelism interface.
 inline constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc

@@ -67,6 +67,7 @@ private:
 
 /*!
   Basic DAG type.
+  \deprecated Unneeded for other interfaces.
  */
 
 template<typename NodePolicy>

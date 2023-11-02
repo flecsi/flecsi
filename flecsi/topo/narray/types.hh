@@ -364,7 +364,7 @@ struct axis_definition {
 
   /// Whether the axis is periodic.
   /// The boundary index points for a periodic axis are copied as ghosts from
-  /// the other end of the axis.  There must be a positive number of them;
+  /// the other end of the axis and must match the ghost points in number, but
   /// they are not categorized as ghost points.
   /// \showinitializer
   bool periodic = false;
@@ -390,8 +390,9 @@ struct index_definition {
   /// \showinitializer
   bool diagonals = false;
 
-  /// whether to create a copy plan
-  /// \showinitializer
+  /// Unused.
+  /// \deprecated Omit the initialization (and \e assign \c full_ghosts if
+  ///   needed).
   bool create_plan = true;
 
   /// whether to use include full ghost information for auxiliaries

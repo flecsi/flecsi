@@ -24,6 +24,14 @@ Deprecated
 
   * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
 
+* Topologies
+
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
+
+* Utilities
+
+  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
+
 Fixed
 ^^^^^
 * Execution
