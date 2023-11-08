@@ -639,9 +639,12 @@ public:
 
   /// Wrap a container.
 #ifdef __CUDACC__ // NV
-  __attribute__((device)) __attribute__((host))
+  __attribute__((device)) __attribute__((host)) inline
 #endif
-  inline constexpr transform_view(C c, F f = {})
+#ifdef __HIPCC__
+    FLECSI_INLINE_TARGET
+#endif
+    constexpr transform_view(C c, F f = {})
     : c(std::move(c)), f(std::move(f)) {
   }
 

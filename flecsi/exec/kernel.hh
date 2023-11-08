@@ -179,14 +179,20 @@ public:
 #ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
 #endif
+#ifdef __HIPCC__
+  FLECSI_INLINE_TARGET
+#endif
   nested_f(const RR & Rr, AR & Ret)
     : rr(Rr), ret(Ret) {
   }
 #ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
 #endif
-  auto
-  operator()(range_index & i) {
+#ifdef __HIPCC__
+  FLECSI_INLINE_TARGET
+#endif
+    auto
+    operator()(range_index & i) {
     if constexpr(II < N - 1) {
       const auto n = rr.size(), ret = i % n;
       i /= n;
@@ -212,6 +218,9 @@ public:
 #ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
 #endif
+#ifdef __HIPCC__
+  FLECSI_INLINE_TARGET
+#endif
   mv_f(std::index_sequence<II...>, const RR &... tt)
     : my_tuple(tt...) {
   }
@@ -219,8 +228,11 @@ public:
 #ifdef __CUDACC__ // NV
   __attribute__((host)) __attribute__((device))
 #endif
-  auto
-  operator()(range_index i) const {
+#ifdef __HIPCC__
+  FLECSI_INLINE_TARGET
+#endif
+    auto
+    operator()(range_index i) const {
     static constexpr std::size_t N = sizeof...(RR);
     std::array<range_index, N> ret;
     auto p = ret.end();
@@ -413,7 +425,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
 #if defined(FLECSI_ENABLE_KOKKOS)
-    kok::wrap<R, T> result;
+    T res;
     auto it = std::forward<Policy>(p).range;
     auto f = std::forward<Lambda>(lambda);
     Kokkos::parallel_reduce(name,
@@ -422,8 +434,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
       //   f(it.begin()[i], ref{tmp});
       // },
       index_reduce_wrapper<decltype(it), decltype(f), R, T>{it, f},
-      result.kokkos());
-    return result.reference();
+      kok::reducer_t<R, T>(res));
 #else
     (void)name;
     using ref = detail::reduce_ref<R, T>;
