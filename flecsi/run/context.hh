@@ -126,9 +126,10 @@ struct arguments {
 
   static std::vector<char *> pointers(argv & v) {
     std::vector<char *> ret;
-    ret.reserve(v.size());
+    ret.reserve(v.size() + 1);
     for(auto & s : v)
       ret.push_back(s.data());
+    ret.push_back(nullptr);
     return ret;
   }
 
