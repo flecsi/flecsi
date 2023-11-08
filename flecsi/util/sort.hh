@@ -641,10 +641,10 @@ public:
       intervals_fh, fm_min.get(), fm_max.get());
 
     int iterations = std::log(std::log(sort_base::colors) / epsilon);
-    flog_trace("#iterations: " << iterations << std::endl;);
+    flog_devel(info) << "#iterations: " << iterations << std::endl;
 
     std::size_t tsizes = fm_tsizes.get();
-    flog_trace("#entities: " << tsizes << std::endl;);
+    flog_devel(info) << "#entities: " << tsizes << std::endl;
 
     // Compute splitters
     for(int i = 0; i < iterations; ++i) {
@@ -674,8 +674,8 @@ public:
       // Allocate histogram
       // Should not allocate but resize.
       sort::hist_g_s.allocate(totalprobes + 1);
-      flog_trace(
-        "iteration " << i << " #probes: " << totalprobes << std::endl;);
+      flog_devel(info) << "iteration " << i << " #probes: " << totalprobes
+                       << std::endl;
       auto hist_fh = sort::hist_g_f(sort::hist_g_s);
       execute<sort::init_hist_task>(hist_fh);
 
