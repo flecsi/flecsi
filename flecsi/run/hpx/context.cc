@@ -102,7 +102,8 @@ context_t::world_comm(std::string name) {
       return ::hpx::collectives::create_communicator(
         std::forward<decltype(args)>(args)...);
     });
-  comm.first.set_info(processes_, process_);
+  comm.first.set_info(hpx::collectives::num_sites_arg(processes_),
+    hpx::collectives::this_site_arg(process_));
   return comm;
 }
 
