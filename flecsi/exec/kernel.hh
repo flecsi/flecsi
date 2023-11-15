@@ -74,10 +74,6 @@ private:
   mutable T t;
 };
 
-// Kokkos's built-in reducers are just as effective as ours for generic
-// types, although we can't provide Kokkos::reduction_identity in terms of
-// our interface in C++17 because it has no extra template parameter via
-// which to apply SFINAE.
 template<class>
 struct reducer; // undefined
 template<>
@@ -102,7 +98,9 @@ struct reducer<fold::product> {
 };
 
 template<class R, class T>
-struct wrap<R, T, decltype(void(reducer<R>()))> {
+struct wrap<R,
+  T,
+  decltype(Kokkos::reduction_identity<T>(), void(reducer<R>()))> {
 private:
   T t;
   typename reducer<R>::template type<T> native{t};

@@ -49,6 +49,10 @@ Fixed
 
   * ``omp`` tasks now work in builds with GPU support.
 
+* On-node parallelism
+
+  * Kokkos reductions work on types without a ``Kokkos::reduction_identity``.
+
 * Logging
 
   * Special options like ``--control-model`` and ``--help`` work reliably.
