@@ -63,7 +63,7 @@ struct wrap {
 
   FLECSI_INLINE_TARGET
   result_view_type view() const {
-    return &t;
+    return result_view_type(&t);
   }
 
   wrap & kokkos() {
