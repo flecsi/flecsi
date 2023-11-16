@@ -34,50 +34,34 @@ namespace exec {
 #if defined(FLECSI_ENABLE_KOKKOS)
 namespace kok {
 
-template<class R, class T, class = void>
+template<class R, class T>
 struct wrap {
   using reducer = wrap;
   using value_type = T;
   using result_view_type = Kokkos::View<value_type, Kokkos::HostSpace>;
 
+  wrap(T & t) : v(&t) {} // like the built-in reducers
+
   FLECSI_INLINE_TARGET
-  void join(T & a, const T & b) const {
+  static void join(T & a, const T & b) {
     a = R::combine(a, b);
   }
 
   FLECSI_INLINE_TARGET
-  void join(volatile T & a, const volatile T & b) const {
-    a = R::combine(a, b);
+  static void init(T & v) {
+    new(&v) T(detail::identity_traits<R>::template value<T>);
   }
 
-  FLECSI_INLINE_TARGET
-  void init(T & v) const {
-    v = detail::identity_traits<R>::template value<T>;
-  }
-
-  // Also useful to read the value!
-  FLECSI_INLINE_TARGET
-  T & reference() const {
-    return t;
-  }
-
+  // Kokkos doesn't actually use 'reference' from ReducerConcept.
   FLECSI_INLINE_TARGET
   result_view_type view() const {
-    return &t;
-  }
-
-  wrap & kokkos() {
-    return *this;
+    return v;
   }
 
 private:
-  mutable T t;
+  result_view_type v;
 };
 
-// Kokkos's built-in reducers are just as effective as ours for generic
-// types, although we can't provide Kokkos::reduction_identity in terms of
-// our interface in C++17 because it has no extra template parameter via
-// which to apply SFINAE.
 template<class>
 struct reducer; // undefined
 template<>
@@ -101,20 +85,19 @@ struct reducer<fold::product> {
   using type = Kokkos::Prod<T>;
 };
 
-template<class R, class T>
-struct wrap<R, T, decltype(void(reducer<R>()))> {
-private:
-  T t;
-  typename reducer<R>::template type<T> native{t};
-
-public:
-  const T & reference() const {
-    return t;
-  }
-  auto & kokkos() {
-    return native;
-  }
+template<class R, class T, class = void>
+struct reducer_trait {
+  using type = wrap<R, T>;
 };
+template<class R, class T>
+struct reducer_trait<R,
+  T,
+  decltype(Kokkos::reduction_identity<T>(), void(reducer<R>()))> {
+  using type = typename reducer<R>::template type<T>;
+};
+
+template<class R, class T>
+using reducer_t = typename reducer_trait<R, T>::type;
 } // namespace kok
 #endif
 
@@ -326,7 +309,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
     auto policy_type = p.get_policy(); // before moving
     using ref = detail::reduce_ref<R, T>;
 #if defined(FLECSI_ENABLE_KOKKOS)
-    kok::wrap<R, T> result;
+    T res;
     Kokkos::parallel_reduce(
       name,
       policy_type,
@@ -334,16 +317,15 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
         f(it.begin()[i], ref{tmp});
       },
-      result.kokkos());
-    return result.reference();
+      kok::reducer_t<R, T>(res));
 #else
     (void)name;
     T res = detail::identity_traits<R>::template value<T>;
     ref r{res};
     for(auto i : policy_type)
       lambda(p.range.begin()[i], r);
-    return res;
 #endif
+    return res;
   }
   else {
     return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),

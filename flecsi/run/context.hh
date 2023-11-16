@@ -101,9 +101,7 @@ struct arguments {
   } act; ///< Operation to perform.
   /// Specification for initializing underlying libraries.
   struct dependent {
-#ifdef FLECSI_ENABLE_MPI
     argv mpi; ///< Command line for MPI.
-#endif
 #ifdef FLECSI_ENABLE_KOKKOS
     argv kokkos; ///< Command line for Kokkos.
 #endif
@@ -124,9 +122,10 @@ struct arguments {
 
   static std::vector<char *> pointers(argv & v) {
     std::vector<char *> ret;
-    ret.reserve(v.size());
+    ret.reserve(v.size() + 1);
     for(auto & s : v)
       ret.push_back(s.data());
+    ret.push_back(nullptr);
     return ret;
   }
 

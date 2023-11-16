@@ -181,20 +181,16 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
 
   if(FLECSI_BACKEND STREQUAL "mpi")
-    set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
   elseif(FLECSI_BACKEND STREQUAL "legion")
-    set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
   elseif(FLECSI_BACKEND STREQUAL "hpx")
-    set(ENABLE_MPI ON CACHE BOOL "Enable MPI" FORCE)
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
   endif()
 
-  mark_as_advanced(ENABLE_MPI ENABLE_LEGION ENABLE_HPX)
+  mark_as_advanced(ENABLE_LEGION ENABLE_HPX)
 
   option(ENABLE_BOOST "Enable Boost" ON)
-  option(ENABLE_MPI "Enable MPI" OFF)
   option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
   option(ENABLE_HDF5 "Enable HDF5" OFF)
   option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
@@ -229,9 +225,7 @@ if(ENABLE_LIBRARY)
     flecsi_enable_legion(FleCSI)
   endif()
 
-  if(ENABLE_MPI)
-    flecsi_enable_mpi(FleCSI ${ENABLE_MPI_CXX_BINDINGS})
-  endif()
+  flecsi_enable_mpi(FleCSI ${ENABLE_MPI_CXX_BINDINGS})
 
   flecsi_enable_parmetis(FleCSI)
 

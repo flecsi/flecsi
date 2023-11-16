@@ -313,6 +313,9 @@ private:
 template<typename Policy>
 template<Privileges Privileges>
 struct unstructured<Policy>::access {
+  // For unstructured_base::bounding_box, which can't use the specialization's
+  // interface.
+  friend unstructured_base;
   template<class F>
   void send(F && f) {
     std::size_t i = 0;

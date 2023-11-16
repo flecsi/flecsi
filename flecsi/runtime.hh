@@ -114,7 +114,8 @@ threads() {
 
 /*!
   Return the color of the current execution instance. This function is only
-  valid if invoked from within a task.
+  valid if invoked from within a non MPI task. For MPI task, use \c #process,
+  which in that case equals to the color used from any topology.
  */
 
 inline Color
@@ -124,7 +125,9 @@ color() {
 
 /*!
   Return the number of colors of the current task invocation. This function is
-  only valid if invoked from within a task.
+  only valid if invoked from within a non MPI task. For MPI task, use \c
+  #processes which in that case equals to the number of colors used from any
+  topology.
  */
 
 inline Color

@@ -12,16 +12,12 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<typename TARGET, typename... TARGETS>
 using are_type =
   std::integral_constant<bool, (std::is_same_v<TARGETS, TARGET> && ...)>;
-
-//----------------------------------------------------------------------------//
-//! Enumeration for axes.
-//----------------------------------------------------------------------------//
-
-enum class axis : Dimension { x = 0, y = 1, z = 2 };
 
 //----------------------------------------------------------------------------//
 //! The dimensioned_array type provides a general base for defining
@@ -288,6 +284,7 @@ operator<<(std::ostream & stream,
   return stream;
 } // operator <<
 
+/// \}
 } // namespace util
 } // namespace flecsi
 

@@ -3,9 +3,12 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/topo/unstructured/interface.hh"
+#include "flecsi/topo/unstructured/types.hh"
+#include "flecsi/util/geometry/kdtree.hh"
 #include "flecsi/util/unit.hh"
 
 #include <iostream>
+#include <limits>
 #include <set>
 #include <string>
 
@@ -234,3 +237,125 @@ unstructured_driver() {
 } // unstructured_driver
 
 util::unit::driver<unstructured_driver> driver;
+
+// Geometric Rendezvous
+int
+verify_overlap(data::multi<unstructured::accessor<ro, ro, ro>> src_meshes,
+  data::multi<field<unstructured::point>::accessor<ro, ro, ro>> src_coords,
+  unstructured::accessor<ro, ro, ro> trg_mesh,
+  field<unstructured::point>::accessor<ro, ro, ro> trg_coords) {
+  UNIT("VERIFY_OVERLAP") {
+
+    using ft =
+      typename field<unstructured::point>::template accessor<ro, ro, ro>;
+    using mt = typename unstructured::accessor<ro, ro, ro>;
+
+    std::vector<std::vector<Color>> ref_colors = {
+      {0, 1}, {1, 3}, {0, 1, 2, 3}, {0, 2}};
+    std::vector<Color> src_co;
+
+    const auto co = src_coords.components();
+    auto fs = co.begin();
+    auto src_box = util::BBox<2>::empty();
+
+    for(auto [clr, m] : src_meshes.components()) {
+      src_co.emplace_back(clr);
+      auto [clr2, coords] = *fs++;
+      src_box += unstructured::base::bounding_box<unstructured::cells,
+        unstructured::owned,
+        unstructured::vertices,
+        mt,
+        ft>(m, coords);
+    }
+
+    auto trg_box = unstructured::base::bounding_box<unstructured::cells,
+      unstructured::owned,
+      unstructured::vertices,
+      mt,
+      ft>(trg_mesh, trg_coords);
+
+    auto c = color();
+    ASSERT_EQ(ref_colors[c].size(), src_co.size());
+    int i = 0;
+    for(auto & sc : src_co)
+      EXPECT_EQ(ref_colors[c][i++], sc);
+
+    for(Dimension d = 0; d < 2; ++d) {
+      EXPECT_TRUE((src_box.lower[d] <= trg_box.lower[d] &&
+                   trg_box.upper[d] <= src_box.upper[d]));
+    }
+  };
+}
+
+void
+mesh_setup(std::string file, unstructured::slot & mesh) {
+  unstructured::init fields;
+  mesh.allocate(unstructured::mpi_coloring(file, fields), fields);
+}
+
+int
+geomrz_driver() {
+  UNIT() {
+    // Since ParMetis returns a different partition for the same number of
+    // colors based on the number of ranks(np 1 vs np > 1), we skip the test for
+    // one rank runs.
+    if((processes() == 1) || (FLECSI_BACKEND == FLECSI_BACKEND_mpi))
+      return;
+
+    std::string src_file = "simple2d-8x8.msh";
+    std::string trg_file = "simple2d-3x3.msh";
+    unstructured::slot src_mesh, trg_mesh;
+
+    flog(info) << "Loading source mesh: " << src_file << std::endl;
+    mesh_setup(src_file, src_mesh);
+
+    flog(info) << "\n\nLoading target mesh: " << src_file << std::endl;
+    mesh_setup(trg_file, trg_mesh);
+
+    using ft =
+      typename field<unstructured::point>::template accessor<ro, ro, ro>;
+    using mt = typename unstructured::accessor<ro, ro, ro>;
+    // Find bounding boxes of each mesh
+    auto get_boxes = [](unstructured::slot & mesh) {
+      auto box_ft =
+        execute<unstructured::base::bounding_box<unstructured::cells,
+          unstructured::owned,
+          unstructured::vertices,
+          mt,
+          ft>>(mesh, unstructured::coords(mesh));
+      std::vector<util::BBox<2>> boxes;
+      for(Color c = 0; c < box_ft.size(); ++c) {
+        boxes.push_back(box_ft.get(c));
+      }
+      return boxes;
+    };
+
+    auto src_boxes = get_boxes(src_mesh);
+    auto trg_boxes = get_boxes(trg_mesh);
+
+    // construct kdtree
+    util::KDTree<2> src_tree(src_boxes);
+    util::KDTree<2> trg_tree(trg_boxes);
+
+    // search two kdtrees
+    std::map<long, std::vector<long>> candidates_map;
+    util::intersect<2>(src_tree, trg_tree, candidates_map);
+
+    // launch maps
+    data::launch::Claims cmap(trg_mesh.colors());
+    for(std::size_t c = 0; c < trg_mesh.colors(); ++c) {
+      if(auto v = candidates_map.find(c); v != candidates_map.end()) {
+        cmap[c].assign(v->second.begin(), v->second.end());
+      }
+    }
+
+    // verify overlap
+    auto lm = data::launch::make(src_mesh, cmap);
+    EXPECT_EQ(
+      test<verify_overlap>(
+        lm, unstructured::coords(lm), trg_mesh, unstructured::coords(trg_mesh)),
+      0);
+  };
+} // geometric rendezvous driver
+
+util::unit::driver<geomrz_driver> grz_driver;
