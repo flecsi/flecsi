@@ -21,7 +21,7 @@ namespace run {
 
 /*!
  The mpi_mapper_t - is a custom mapper that handles mpi-legion
- interoperability in FLeCSI
+ interoperability in FleCSI
 */
 
 class mpi_mapper_t : public Legion::Mapping::DefaultMapper
@@ -142,12 +142,12 @@ public:
   }
 
   /*!
-   Specialization of the default_policy_select_instance_region methid for
+   Specialization of the default_policy_select_instance_region method for
    FleCSI. In case of FleCSI we want exact region that has been requested to be
    created. This is different from Default mapper which will map Parent region,
    if it exists.
 
-   @param req Reqion requirement for witch instance is going to be allocated
+   @param req Region requirement for which instance is going to be allocated
   */
   virtual Legion::LogicalRegion default_policy_select_instance_region(
     Legion::Mapping::MapperContext,
@@ -263,7 +263,7 @@ public:
   } // create_instance
 
   /*!
-   Specialization of the map_task funtion for FLeCSI.
+   Specialization of the map_task funtion for FleCSI.
 
    The function has some FleCSI-specific features:
 
@@ -579,14 +579,14 @@ private:
                     GC_NEVER_PRIORITY,
                     true,
                     &instance_size);
-    flog_assert(res, "FLeCSI mapper failed to allocate instance");
+    flog_assert(res, "FleCSI mapper failed to allocate instance");
     report_size(task, indx, instance_size);
     return result;
   }
 
   Realm::Machine machine;
 
-  // the map of the locac intances that have been already created
+  // the map of the local intances that have been already created
   // the first key is the pair of Logical region and Memory that is
   // used as an identifier for the instance, second key is fid
   typedef std::map<std::set<Legion::FieldID>, Legion::Mapping::PhysicalInstance>
@@ -608,7 +608,7 @@ protected:
 
 /*!
  mapper_registration is used to replace DefaultMapper with mpi_mapper_t in
- FLeCSI
+ FleCSI
  */
 
 inline void
