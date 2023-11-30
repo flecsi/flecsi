@@ -52,7 +52,7 @@ struct wrap {
 
   FLECSI_INLINE_TARGET
   void init(T & v) const {
-    v = detail::identity_traits<R>::template value<T>;
+    new(&v) T(detail::identity_traits<R>::template value<T>);
   }
 
   // Also useful to read the value!
