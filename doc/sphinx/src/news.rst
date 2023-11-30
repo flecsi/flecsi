@@ -51,7 +51,7 @@ Fixed
 
 * On-node parallelism
 
-  * Kokkos reductions work on types without a ``Kokkos::reduction_identity``.
+  * Custom reductions and reduced types work with Kokkos.
 
 * Logging
 

@@ -39,6 +39,15 @@ check_policy(intN::accessor<ro> a) {
   };
 }
 
+struct I {
+  int i;
+  FLECSI_INLINE_TARGET I operator+(I o) const {
+    return {i + o.i};
+  }
+};
+template<>
+constexpr I flecsi::exec::fold::sum::identity<I>{};
+
 int
 reduce_vec(intN::accessor<ro> a) {
   UNIT() {
@@ -47,6 +56,11 @@ reduce_vec(intN::accessor<ro> a) {
       up(i);
     };
     EXPECT_EQ(res, 3 * a.get().size());
+    EXPECT_EQ(
+      (reduceall(i, up, util::iota_view(0, 4), exec::fold::sum, I, "triangle") {
+        up({i});
+      }).i,
+      6);
   };
 }
 
