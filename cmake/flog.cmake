@@ -11,7 +11,7 @@ cmake_dependent_option(FLOG_ENABLE_TAGS "Enable tag groups" ON
 mark_as_advanced(FLOG_ENABLE_TAGS)
 
 cmake_dependent_option(FLOG_ENABLE_MPI "Enable flog MPI support" ON
-  "ENABLE_FLOG;ENABLE_MPI" OFF)
+  "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_MPI)
 
 cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable flog debug mode" OFF

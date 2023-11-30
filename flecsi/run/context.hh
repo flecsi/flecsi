@@ -99,9 +99,7 @@ struct arguments {
   } act; ///< Operation to perform.
   /// Specification for initializing underlying libraries.
   struct dependent {
-#ifdef FLECSI_ENABLE_MPI
     argv mpi; ///< Command line for MPI.
-#endif
 #ifdef FLECSI_ENABLE_KOKKOS
     argv kokkos; ///< Command line for Kokkos.
 #endif
