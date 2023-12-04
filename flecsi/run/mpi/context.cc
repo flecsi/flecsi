@@ -12,18 +12,13 @@ dependencies_guard::dependencies_guard(arguments::dependent & d)
 dependencies_guard::dependencies_guard(arguments::dependent & d,
   int mc,
   char ** mv)
-  : mpi(mc, mv) {
+  : mpi(mc, mv)
 #ifdef FLECSI_ENABLE_KOKKOS
-  [](int kc, char ** kv) { Kokkos::initialize(kc, kv); }(
-    d.kokkos.size(), arguments::pointers(d.kokkos).data());
-#else
+    ,
+    kokkos(d.kokkos)
+#endif
+{
   (void)d;
-#endif
-}
-dependencies_guard::~dependencies_guard() {
-#ifdef FLECSI_ENABLE_KOKKOS
-  Kokkos::finalize();
-#endif
 }
 
 context_t::context_t(const arguments::config & c)

@@ -40,9 +40,6 @@ arguments::arguments(int argc, char ** argv) : cfg() {
   act.program = act.program.substr(act.program.rfind('/') + 1);
   cfg.backend.push_back(act.program);
   dep.mpi.push_back(act.program);
-#ifdef FLECSI_ENABLE_KOKKOS
-  dep.kokkos.push_back(act.program);
-#endif
   act.op = getopt(argc, argv); // also populates act.stderr
 }
 

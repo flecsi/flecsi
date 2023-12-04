@@ -10,6 +10,10 @@
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+#include <Kokkos_Core.hpp> // InitializationSettings
+#endif
+
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 
@@ -102,8 +106,12 @@ struct arguments {
   /// Specification for initializing underlying libraries.
   struct dependent {
     argv mpi; ///< Command line for MPI.
-#ifdef FLECSI_ENABLE_KOKKOS
-    argv kokkos; ///< Command line for Kokkos.
+#if defined(FLECSI_ENABLE_KOKKOS) && !defined(FLECSI_ENABLE_LEGION)
+    /// Configuration for Kokkos.  Present only if support for it is enabled
+    /// and Legion is not in use (since it initializes Kokkos itself).
+    /// \see [Kokkos
+    /// documentation](https://kokkos.github.io/kokkos-core-wiki/API/core/initialize_finalize/InitializationSettings.html)
+    Kokkos::InitializationSettings kokkos;
 #endif
   } dep; ///< Underlying initialization arguments.
   /// Specification of options for FleCSI.

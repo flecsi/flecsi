@@ -21,12 +21,14 @@ namespace run {
 
 struct dependencies_guard {
   dependencies_guard(arguments::dependent &);
-  ~dependencies_guard();
 
 private:
   dependencies_guard(arguments::dependent &, int, char **);
 
   util::mpi::init mpi;
+#ifdef FLECSI_ENABLE_KOKKOS
+  Kokkos::ScopeGuard kokkos;
+#endif
 };
 
 struct context_t : context {
