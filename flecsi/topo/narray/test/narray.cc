@@ -205,7 +205,7 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
       std::set<util::id> xlogical = {1, 2, 3, 4};
       std::set<util::id> xextended[4] = {
         {0, 1, 2, 3, 4}, {1, 2, 3, 4, 5}, {0, 1, 2, 3, 4}, {1, 2, 3, 4, 5}};
-      std::set<util::id> xall = {0, 1, 2, 3, 4, 5, 6};
+      std::set<util::id> xall = {0, 1, 2, 3, 4, 5};
       std::set<util::id> xboundary_low[4] = {{0}, {}, {0}, {}};
       std::set<util::id> xboundary_high[4] = {{}, {5}, {}, {5}};
       std::set<util::id> xghost_low[4] = {{}, {0}, {}, {0}};
@@ -254,10 +254,10 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         s(m.template range<ax::y_axis, r::ghost_high>()), yghost_high[rank]);
 
       // check sizes
-      std::size_t xsizes_ex[4][8] = {{4, 6, 7, 2, 0, 0, 1, 8},
-        {4, 6, 7, 0, 2, 1, 0, 8},
-        {4, 6, 7, 2, 0, 0, 1, 8},
-        {4, 6, 7, 0, 2, 1, 0, 8}};
+      std::size_t xsizes_ex[4][8] = {{4, 5, 6, 1, 0, 0, 1, 8},
+        {4, 5, 6, 0, 1, 1, 0, 8},
+        {4, 5, 6, 1, 0, 0, 1, 8},
+        {4, 5, 6, 0, 1, 1, 0, 8}};
 
       std::size_t xsizes[] = {m.template size<ax::x_axis>(),
         m.template size<ax::x_axis, r::extended>(),
@@ -272,10 +272,10 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         EXPECT_EQ(xsizes[i], xsizes_ex[process()][i]);
       };
 
-      std::size_t ysizes_ex[4][8] = {{4, 5, 7, 1, 0, 0, 2, 8},
-        {4, 5, 7, 1, 0, 0, 2, 8},
-        {4, 5, 7, 0, 1, 2, 0, 8},
-        {4, 5, 7, 0, 1, 2, 0, 8}};
+      std::size_t ysizes_ex[4][8] = {{4, 6, 8, 2, 0, 0, 2, 8},
+        {4, 6, 8, 2, 0, 0, 2, 8},
+        {4, 6, 8, 0, 2, 2, 0, 8},
+        {4, 6, 8, 0, 2, 2, 0, 8}};
 
       std::size_t ysizes[] = {m.template size<ax::y_axis>(),
         m.template size<ax::y_axis, r::extended>(),
@@ -291,9 +291,9 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
       }
 
       // check offsets
-      std::size_t xoffsets_ex[4][8] = {{2, 0, 0, 0, 6, 0, 6, 0},
+      std::size_t xoffsets_ex[4][8] = {{1, 0, 0, 0, 5, 0, 5, 0},
         {1, 1, 0, 1, 5, 0, 5, 4},
-        {2, 0, 0, 0, 6, 0, 6, 0},
+        {1, 0, 0, 0, 5, 0, 5, 0},
         {1, 1, 0, 1, 5, 0, 5, 4}};
 
       std::size_t xoffsets[] = {m.template offset<ax::x_axis>(),
@@ -309,8 +309,8 @@ check_mesh_field(typename mesh<D>::template accessor<ro> m,
         EXPECT_EQ(xoffsets[i], xoffsets_ex[process()][i]);
       }
 
-      std::size_t yoffsets_ex[4][8] = {{1, 0, 0, 0, 5, 0, 5, 0},
-        {1, 0, 0, 0, 5, 0, 5, 0},
+      std::size_t yoffsets_ex[4][8] = {{2, 0, 0, 0, 6, 0, 6, 0},
+        {2, 0, 0, 0, 6, 0, 6, 0},
         {2, 2, 0, 2, 6, 0, 6, 4},
         {2, 2, 0, 2, 6, 0, 6, 4}};
 
@@ -751,161 +751,6 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
   };
 }
 
-int
-coloring_driver() {
-  UNIT() {
-    // 9x9x9 with 3x3x1 colors, extend x-axis, full_ghosts: no
-    //
-    // 0   1   2   3   (3)  4   5   6   (6)  7   8   9
-    // +---+---+---+    +---+---+---+    +---+---+---+
-    // | 0 | 1 | 2 |    | 3 | 4 | 5 |    | 6 | 7 | 8 |
-    // +---+---+---+    +---+---+---+    +---+---+---+
-
-    mesh3d::gcoord indices{9, 9, 9};
-
-    mesh3d::index_definition idef;
-    idef.axes = topo::narray_utils::make_axes(9, indices);
-    for(auto & a : idef.axes) {
-      a.hdepth = 1;
-    }
-
-    auto coloring = idef.process_coloring();
-    auto adef = idef;
-    adef.axes[0].auxiliary = true;
-    adef.full_ghosts = false;
-    auto avpc = adef.process_coloring();
-
-    mesh3d::gcoord global;
-    std::map<Color, mesh3d::gcoord> extents, offset;
-    std::map<Color, mesh3d::coord> logical_low, logical_high;
-    std::map<Color, mesh3d::coord> extended_low, extended_high;
-
-    global = {10, 9, 9};
-
-    for(Color c = 0; c < 9; ++c) {
-      extents[c] = {4, 3, 9};
-      extended_high[c] = logical_high[c] = {4, 3, 9};
-    }
-
-    offset[0] = {0, 0, 0};
-    offset[1] = {4, 0, 0};
-    offset[2] = {7, 0, 0};
-    offset[3] = {0, 3, 0};
-    offset[4] = {4, 3, 0};
-    offset[5] = {7, 3, 0};
-    offset[6] = {0, 6, 0};
-    offset[7] = {4, 6, 0};
-    offset[8] = {7, 6, 0};
-
-    extended_low[0] = logical_low[0] = {0, 0, 0};
-    extended_low[1] = logical_low[1] = {1, 0, 0};
-    extended_low[2] = logical_low[2] = {1, 0, 0};
-    extended_low[3] = logical_low[3] = {0, 0, 0};
-    extended_low[4] = logical_low[4] = {1, 0, 0};
-    extended_low[5] = logical_low[5] = {1, 0, 0};
-    extended_low[6] = logical_low[6] = {0, 0, 0};
-    extended_low[7] = logical_low[7] = {1, 0, 0};
-    extended_low[8] = logical_low[8] = {1, 0, 0};
-
-    for(auto & p : avpc) {
-      auto c = p.color();
-      for(Dimension axis = 0; axis < 3; ++axis) {
-        auto & axco = p.axis_colors[axis];
-        EXPECT_EQ(axco.global(), global[axis]);
-        EXPECT_EQ(axco.extent(), extents[c][axis]);
-        EXPECT_EQ(axco.offset(), offset[c][axis]);
-        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
-        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
-        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
-        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
-      }
-    }
-
-    auto print_colorings = [&]() {
-      std::stringstream ss;
-      ss << "primary" << std::endl;
-      for(auto p : coloring) {
-        ss << p << std::endl;
-      } // for
-      ss << "auxiliary" << std::endl;
-      for(auto p : avpc) {
-        ss << p << std::endl;
-      } // for
-      flog(warn) << ss.rdbuf() << std::endl;
-    };
-
-    print_colorings();
-
-    // 9x9x9 with 3x3x1 colors, extend x-axis, full_ghosts: yes
-    //
-    // 0   1   2   3   4   (2) (3)  4   5   6  (7)  (5) (6)  7   8   9
-    // +---+---+---+ ~ +    + ~ +---+---+---+ ~ +    + ~ +---+---+---+
-    // | 0 | 1 | 2 |(3)|    |(2)| 3 | 4 | 5 |(6)|    |(5)| 6 | 7 | 8 |
-    // +---+---+---+ ~ +    + ~ +---+---+---+ ~ +    + ~ +---+---+---+
-
-    adef.full_ghosts = true;
-    avpc = adef.process_coloring();
-
-    extents[0] = {5, 4, 9};
-    extents[1] = {6, 4, 9};
-    extents[2] = {5, 4, 9};
-    extents[3] = {5, 5, 9};
-    extents[4] = {6, 5, 9};
-    extents[5] = {5, 5, 9};
-    extents[6] = {5, 4, 9};
-    extents[7] = {6, 4, 9};
-    extents[8] = {5, 4, 9};
-
-    offset[0] = {0, 0, 0};
-    offset[1] = {4, 0, 0};
-    offset[2] = {7, 0, 0};
-    offset[3] = {0, 3, 0};
-    offset[4] = {4, 3, 0};
-    offset[5] = {7, 3, 0};
-    offset[6] = {0, 6, 0};
-    offset[7] = {4, 6, 0};
-    offset[8] = {7, 6, 0};
-
-    extended_low[0] = logical_low[0] = {0, 0, 0};
-    extended_low[1] = logical_low[1] = {2, 0, 0};
-    extended_low[2] = logical_low[2] = {2, 0, 0};
-    extended_low[3] = logical_low[3] = {0, 1, 0};
-    extended_low[4] = logical_low[4] = {2, 1, 0};
-    extended_low[5] = logical_low[5] = {2, 1, 0};
-    extended_low[6] = logical_low[6] = {0, 1, 0};
-    extended_low[7] = logical_low[7] = {2, 1, 0};
-    extended_low[8] = logical_low[8] = {2, 1, 0};
-
-    extended_high[0] = logical_high[0] = {4, 3, 9};
-    extended_high[1] = logical_high[1] = {5, 3, 9};
-    extended_high[2] = logical_high[2] = {5, 3, 9};
-    extended_high[3] = logical_high[3] = {4, 4, 9};
-    extended_high[4] = logical_high[4] = {5, 4, 9};
-    extended_high[5] = logical_high[5] = {5, 4, 9};
-    extended_high[6] = logical_high[6] = {4, 4, 9};
-    extended_high[7] = logical_high[7] = {5, 4, 9};
-    extended_high[8] = logical_high[8] = {5, 4, 9};
-
-    for(auto & p : avpc) {
-      auto c = p.color();
-      for(Dimension axis = 0; axis < 3; ++axis) {
-        auto & axco = p.axis_colors[axis];
-        EXPECT_EQ(axco.global(), global[axis]);
-        EXPECT_EQ(axco.extent(), extents[c][axis]);
-        EXPECT_EQ(axco.offset(), offset[c][axis]);
-        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
-        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
-        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
-        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
-      }
-    }
-
-    print_colorings();
-  };
-}
-
-util::unit::driver<coloring_driver> cd;
-
 const field<std::size_t>::definition<mesh1d> f1;
 field<int, data::ragged>::definition<mesh1d> rf1;
 const field<std::size_t>::definition<mesh2d> f2;
@@ -1094,91 +939,187 @@ narray_driver() {
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
-      execute<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
-        m1, rf1(m1), sz, idef.diagonals);
+      EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
+                  m1, rf1(m1), sz, idef.diagonals)),
+        0);
       execute<print_rf<1>>(m1, rf1(m1));
-      execute<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
-        m1, rf1(m1), sz, idef.diagonals);
+      EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
+                  m1, rf1(m1), sz, idef.diagonals)),
+        0);
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy
       execute<value_rewrite_rf<1, mesh1d::domain::logical>>(m1, rf1(m1));
-      auto res = test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_low>>(
-        m1, rf1(m1));
-      EXPECT_EQ(res, 0);
-      res = test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_high>>(
-        m1, rf1(m1));
-      EXPECT_EQ(res, 0);
+      EXPECT_EQ((test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_low>>(
+                  m1, rf1(m1))),
+        0);
+      EXPECT_EQ((test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_high>>(
+                  m1, rf1(m1))),
+        0);
 
     } // scope
 
     {
       // 2D Mesh
-      auto test_2d = [](const mesh2d::gcoord & indices,
+      auto test_2d = [&](const mesh2d::gcoord & indices,
                        const mesh2d::coord & hdepth,
                        const mesh2d::coord & bdepth,
                        std::array<bool, 2> periodic,
+                       std::array<bool, 2> auxiliary,
                        bool diagonals,
                        bool full_ghosts,
                        int sz,
-                       bool full_verify) {
-        UNIT() {
-          mesh2d::index_definition idef;
-          idef.axes = topo::narray_utils::make_axes(processes(), indices);
-          int i = 0;
-          for(auto & a : idef.axes) {
-            a.hdepth = hdepth[i];
-            a.bdepth = bdepth[i];
-            a.periodic = periodic[i];
-            ++i;
-          }
-          idef.diagonals = diagonals;
-          idef.full_ghosts = full_ghosts;
+                       bool full_verify,
+                       bool print_info) {
+        mesh2d::index_definition idef;
+        idef.axes = topo::narray_utils::make_axes(processes(), indices);
+        int i = 0;
+        for(auto & a : idef.axes) {
+          a.hdepth = hdepth[i];
+          a.bdepth = bdepth[i];
+          a.periodic = periodic[i];
+          a.auxiliary = auxiliary[i];
+          ++i;
+        }
+        idef.diagonals = diagonals;
+        idef.full_ghosts = full_ghosts;
 
-          // create and allocate mesh slot
-          mesh2d::slot m2;
-          {
-            mesh2d::cslot coloring2;
-            coloring2.allocate(idef);
-            m2.allocate(coloring2.get());
-          }
+        // create and allocate mesh slot
+        mesh2d::slot m2;
+        {
+          mesh2d::cslot coloring2;
+          coloring2.allocate(idef);
+          m2.allocate(coloring2.get());
+        }
 
-          execute<init_field<2>, default_accelerator>(m2, f2(m2));
+        execute<init_field<2>, default_accelerator>(m2, f2(m2));
 
-          if(full_verify) {
-            execute<print_field<2>>(m2, f2(m2));
-            execute<update_field<2>, default_accelerator>(m2, f2(m2));
-            execute<print_field<2>>(m2, f2(m2));
-            EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
-          }
+        if(print_info)
+          execute<print_field<2>>(m2, f2(m2));
 
-          // ragged field
-          auto & tf = rf2(m2).get_elements();
-          tf.growth = {0, 0, 0.25, 0.5, 1};
-          execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
+        if(full_verify) {
+          execute<print_field<2>>(m2, f2(m2));
+          execute<update_field<2>, default_accelerator>(m2, f2(m2));
+          execute<print_field<2>>(m2, f2(m2));
+          EXPECT_EQ(test<check_mesh_field<2>>(m2, f2(m2)), 0);
+        }
 
-          execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
-            m2, rf2(m2), sz, idef.diagonals);
+        // ragged field
+        auto & tf = rf2(m2).get_elements();
+        tf.growth = {0, 0, 0.25, 0.5, 1};
+        execute<allocate_field<2>>(f2(m2), tf.sizes(), sz);
 
-          if(!full_verify)
-            execute<print_rf<2>>(m2, rf2(m2));
+        execute<init_verify_rf<2, mesh2d::domain::logical, false>>(
+          m2, rf2(m2), sz, idef.diagonals);
 
-          execute<init_verify_rf<2, mesh2d::domain::all, true>>(
-            m2, rf2(m2), sz, idef.diagonals);
+        if(print_info)
+          execute<print_rf<2>>(m2, rf2(m2));
 
-          if(!full_verify)
-            execute<print_rf<2>>(m2, rf2(m2));
-        }; // unit
+        EXPECT_EQ((test<init_verify_rf<2, mesh2d::domain::all, true>>(
+                    m2, rf2(m2), sz, idef.diagonals)),
+          0);
+
+        if(print_info)
+          execute<print_rf<2>>(m2, rf2(m2));
       };
 
-      test_2d({8, 8}, {1, 2}, {1, 2}, {true, true}, true, true, 100, true);
-      test_2d({8, 8}, {1, 1}, {1, 1}, {true, true}, false, true, 3, false);
+      // Primary cells: diagonals variation, full ghosts on, though here full
+      // ghosts don't have any meaning.
+      test_2d({8, 8},
+        {1, 2},
+        {1, 2},
+        {true, true},
+        {false, false},
+        true,
+        true,
+        100,
+        true,
+        false);
+      test_2d({8, 8},
+        {1, 1},
+        {1, 1},
+        {true, true},
+        {false, false},
+        false,
+        true,
+        3,
+        false,
+        true);
+
+      // Aux verts: diagonals on, full ghosts true
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {true, true},
+        true,
+        true,
+        3,
+        false,
+        false);
+
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {true, true},
+        true,
+        false,
+        3,
+        false,
+        false);
+
+      // Aux x-edges: diagonals on, full ghosts true
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {true, false},
+        true,
+        true,
+        3,
+        false,
+        false);
+
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {true, false},
+        true,
+        false,
+        3,
+        false,
+        false);
+
+      // Aux y-edges: diagonals on, full ghosts true
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {false, true},
+        true,
+        true,
+        3,
+        false,
+        false);
+
+      test_2d({8, 8},
+        {2, 2},
+        {0, 0},
+        {false, false},
+        {false, true},
+        true,
+        false,
+        3,
+        false,
+        false);
 
     } // scope
 
     {
       // 3D
-      auto test_3d = [](topo::narray_impl::colors color_dist,
+      auto test_3d = [&](topo::narray_impl::colors color_dist,
                        const mesh3d::gcoord & indices,
                        const mesh3d::coord & hdepth,
                        const mesh3d::coord & bdepth,
@@ -1187,64 +1128,62 @@ narray_driver() {
                        bool full_ghosts,
                        int sz,
                        bool full_verify) {
-        UNIT() {
-          mesh3d::index_definition idef;
-          idef.axes = topo::narray_utils::make_axes(
-            color_dist.empty()
-              ? topo::narray_utils::distribute(processes(), indices)
-              : std::move(color_dist),
-            indices);
-          int i = 0;
-          for(auto & a : idef.axes) {
-            a.hdepth = hdepth[i];
-            a.bdepth = bdepth[i];
-            a.periodic = periodic[i];
-            ++i;
-          }
-          idef.diagonals = diagonals;
-          idef.full_ghosts = full_ghosts;
+        mesh3d::index_definition idef;
+        idef.axes = topo::narray_utils::make_axes(
+          color_dist.empty()
+            ? topo::narray_utils::distribute(processes(), indices)
+            : std::move(color_dist),
+          indices);
+        int i = 0;
+        for(auto & a : idef.axes) {
+          a.hdepth = hdepth[i];
+          a.bdepth = bdepth[i];
+          a.periodic = periodic[i];
+          ++i;
+        }
+        idef.diagonals = diagonals;
+        idef.full_ghosts = full_ghosts;
 
-          // create and allocate mesh slot
-          mesh3d::slot m3;
-          {
-            mesh3d::cslot coloring3;
-            coloring3.allocate(idef);
-            m3.allocate(coloring3.get());
-          }
+        // create and allocate mesh slot
+        mesh3d::slot m3;
+        {
+          mesh3d::cslot coloring3;
+          coloring3.allocate(idef);
+          m3.allocate(coloring3.get());
+        }
 
-          execute<init_field<3>, default_accelerator>(m3, f3(m3));
+        execute<init_field<3>, default_accelerator>(m3, f3(m3));
 
-          if(full_verify) {
-            execute<print_field<3>>(m3, f3(m3));
-            execute<update_field<3>, default_accelerator>(m3, f3(m3));
-            execute<print_field<3>>(m3, f3(m3));
-            EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
-          }
+        if(full_verify) {
+          execute<print_field<3>>(m3, f3(m3));
+          execute<update_field<3>, default_accelerator>(m3, f3(m3));
+          execute<print_field<3>>(m3, f3(m3));
+          EXPECT_EQ(test<check_mesh_field<3>>(m3, f3(m3)), 0);
+        }
 
-          // ragged field
-          auto & tf = rf3(m3).get_elements();
+        // ragged field
+        auto & tf = rf3(m3).get_elements();
 
-          // The usual growth policy (with lo = 0.25) will not work for this
-          // particular problem setup since the number of cells initialized
-          // (2*2*4 = 16) is much less than the quarter of the capacity (which
-          // is 192), reducing the lo value from quarter to a tenth of the
-          // capacity ensures that the correct size is maintained.
-          tf.growth = {0, 0, 0.1, 0.5, 1};
-          execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
+        // The usual growth policy (with lo = 0.25) will not work for this
+        // particular problem setup since the number of cells initialized
+        // (2*2*4 = 16) is much less than the quarter of the capacity (which
+        // is 192), reducing the lo value from quarter to a tenth of the
+        // capacity ensures that the correct size is maintained.
+        tf.growth = {0, 0, 0.1, 0.5, 1};
+        execute<allocate_field<3>>(f3(m3), tf.sizes(), sz);
 
-          execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
-            m3, rf3(m3), sz, idef.diagonals);
+        execute<init_verify_rf<3, mesh3d::domain::logical, false>>(
+          m3, rf3(m3), sz, idef.diagonals);
 
-          if(!full_verify)
-            execute<print_rf<3>>(m3, rf3(m3));
+        if(!full_verify)
+          execute<print_rf<3>>(m3, rf3(m3));
 
-          execute<init_verify_rf<3, mesh3d::domain::all, true>>(
-            m3, rf3(m3), sz, idef.diagonals);
+        EXPECT_EQ((test<init_verify_rf<3, mesh3d::domain::all, true>>(
+                    m3, rf3(m3), sz, idef.diagonals)),
+          0);
 
-          if(!full_verify)
-            execute<print_rf<3>>(m3, rf3(m3));
-
-        }; // unit
+        if(!full_verify)
+          execute<print_rf<3>>(m3, rf3(m3));
       };
 
       test_3d({},
@@ -1301,3 +1240,183 @@ narray_driver() {
 } // narray_driver
 
 util::unit::driver<narray_driver> nd;
+
+/// Coloring testing
+int
+coloring_driver() {
+  UNIT() {
+    // 9x9x9 with 3x3x1 colors, extend x-axis and y-axis, full_ghosts: no
+    //
+    // 0   1   2   3   (3)  4   5   6   (6)  7   8   9
+    // +---+---+---+    +---+---+---+    +---+---+---+
+    // | 0 | 1 | 2 |    | 3 | 4 | 5 |    | 6 | 7 | 8 |
+    // +---+---+---+    +---+---+---+    +---+---+---+
+
+    mesh3d::gcoord indices{9, 9, 9};
+
+    mesh3d::index_definition idef;
+    idef.axes = topo::narray_utils::make_axes(9, indices);
+    for(auto & a : idef.axes) {
+      a.hdepth = 1;
+    }
+
+    auto coloring = idef.process_coloring();
+
+    // Create definition for an auxiliary index space
+    auto adef = idef;
+    adef.axes[0].auxiliary = true;
+    adef.axes[1].auxiliary = true;
+    adef.full_ghosts = false;
+    auto avpc = adef.process_coloring();
+
+    mesh3d::gcoord global;
+    std::map<Color, mesh3d::gcoord> extents, offset;
+    std::map<Color, mesh3d::coord> logical_low, logical_high;
+    std::map<Color, mesh3d::coord> extended_low, extended_high;
+
+    global = {10, 10, 9};
+
+    for(Color c = 0; c < 9; ++c) {
+      extents[c] = {4, 4, 9};
+      extended_high[c] = logical_high[c] = {4, 4, 9};
+    }
+
+    offset[0] = {0, 0, 0};
+    offset[1] = {4, 0, 0};
+    offset[2] = {7, 0, 0};
+    offset[3] = {0, 4, 0};
+    offset[4] = {4, 4, 0};
+    offset[5] = {7, 4, 0};
+    offset[6] = {0, 7, 0};
+    offset[7] = {4, 7, 0};
+    offset[8] = {7, 7, 0};
+
+    extended_low[0] = logical_low[0] = {0, 0, 0};
+    extended_low[1] = logical_low[1] = {1, 0, 0};
+    extended_low[2] = logical_low[2] = {1, 0, 0};
+    extended_low[3] = logical_low[3] = {0, 1, 0};
+    extended_low[4] = logical_low[4] = {1, 1, 0};
+    extended_low[5] = logical_low[5] = {1, 1, 0};
+    extended_low[6] = logical_low[6] = {0, 1, 0};
+    extended_low[7] = logical_low[7] = {1, 1, 0};
+    extended_low[8] = logical_low[8] = {1, 1, 0};
+
+    for(auto & p : avpc) {
+      auto c = p.color();
+      for(Dimension axis = 0; axis < 3; ++axis) {
+        auto & axco = p.axis_colors[axis];
+        EXPECT_EQ(axco.global(), global[axis]);
+        EXPECT_EQ(axco.extent(), extents[c][axis]);
+        EXPECT_EQ(axco.offset(), offset[c][axis]);
+        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
+        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
+        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
+        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
+      }
+    }
+
+    auto print_colorings = [&]() {
+      std::stringstream ss;
+      ss << "primary, full_ghosts : " << idef.full_ghosts << std::endl;
+      for(auto p : coloring) {
+        ss << p << std::endl;
+      } // for
+      ss << "auxiliary, full_ghosts : " << adef.full_ghosts << std::endl;
+      for(auto p : avpc) {
+        ss << p << std::endl;
+      } // for
+      flog(warn) << ss.rdbuf() << std::endl;
+    };
+
+    print_colorings();
+
+    // 9x9x9 with 3x3x1 colors, extend x-axis, full_ghosts: yes
+    //
+    // 0   1   2   3  (4) (5)
+    // +---+---+---+ ~ + ~ +
+    // | 0 | 1 | 2 |(3)|(4)|
+    // +---+---+---+ ~ + ~ +
+
+    //
+    // (1) (2) (3)  4   5   6  (7) (8)
+    //  + ~ + ~ +---+---+---+ ~ + ~ +
+    //  |(1)|(2)| 3 | 4 | 5 |(6)|(7)|
+    //  + ~ + ~ +---+---+---+ ~ + ~ +
+
+    //
+    // (4) (5) (6)  7   8   9
+    //  + ~ + ~ +---+---+---+
+    //  |(4)|(5)| 6 | 7 | 8 |
+    //  + ~ + ~ +---+---+---+
+
+    // Change the halo depths for the primary index space
+    for(auto & a : idef.axes) {
+      a.hdepth = 2;
+    }
+
+    coloring = idef.process_coloring();
+    adef = idef;
+    adef.axes[0].auxiliary = true;
+    adef.full_ghosts = true;
+    avpc = adef.process_coloring();
+
+    global = {10, 9, 9};
+    extents[0] = {6, 5, 9};
+    extents[1] = {8, 5, 9};
+    extents[2] = {6, 5, 9};
+    extents[3] = {6, 7, 9};
+    extents[4] = {8, 7, 9};
+    extents[5] = {6, 7, 9};
+    extents[6] = {6, 5, 9};
+    extents[7] = {8, 5, 9};
+    extents[8] = {6, 5, 9};
+
+    offset[0] = {0, 0, 0};
+    offset[1] = {4, 0, 0};
+    offset[2] = {7, 0, 0};
+    offset[3] = {0, 3, 0};
+    offset[4] = {4, 3, 0};
+    offset[5] = {7, 3, 0};
+    offset[6] = {0, 6, 0};
+    offset[7] = {4, 6, 0};
+    offset[8] = {7, 6, 0};
+
+    extended_low[0] = logical_low[0] = {0, 0, 0};
+    extended_low[1] = logical_low[1] = {3, 0, 0};
+    extended_low[2] = logical_low[2] = {3, 0, 0};
+    extended_low[3] = logical_low[3] = {0, 2, 0};
+    extended_low[4] = logical_low[4] = {3, 2, 0};
+    extended_low[5] = logical_low[5] = {3, 2, 0};
+    extended_low[6] = logical_low[6] = {0, 2, 0};
+    extended_low[7] = logical_low[7] = {3, 2, 0};
+    extended_low[8] = logical_low[8] = {3, 2, 0};
+
+    extended_high[0] = logical_high[0] = {4, 3, 9};
+    extended_high[1] = logical_high[1] = {6, 3, 9};
+    extended_high[2] = logical_high[2] = {6, 3, 9};
+    extended_high[3] = logical_high[3] = {4, 5, 9};
+    extended_high[4] = logical_high[4] = {6, 5, 9};
+    extended_high[5] = logical_high[5] = {6, 5, 9};
+    extended_high[6] = logical_high[6] = {4, 5, 9};
+    extended_high[7] = logical_high[7] = {6, 5, 9};
+    extended_high[8] = logical_high[8] = {6, 5, 9};
+
+    for(auto & p : avpc) {
+      auto c = p.color();
+      for(Dimension axis = 0; axis < 3; ++axis) {
+        auto & axco = p.axis_colors[axis];
+        EXPECT_EQ(axco.global(), global[axis]);
+        EXPECT_EQ(axco.extent(), extents[c][axis]);
+        EXPECT_EQ(axco.offset(), offset[c][axis]);
+        EXPECT_EQ(axco.logical<0>(), logical_low[c][axis]);
+        EXPECT_EQ(axco.logical<1>(), logical_high[c][axis]);
+        EXPECT_EQ(axco.extended<0>(), extended_low[c][axis]);
+        EXPECT_EQ(axco.extended<1>(), extended_high[c][axis]);
+      }
+    }
+
+    print_colorings();
+  };
+}
+
+util::unit::driver<coloring_driver> cd;
