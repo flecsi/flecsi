@@ -12,6 +12,8 @@
 
 namespace flecsi {
 namespace util {
+/// \addtogroup utils
+/// \{
 
 template<typename TARGET, typename... TARGETS>
 using are_type =
@@ -282,6 +284,7 @@ operator<<(std::ostream & stream,
   return stream;
 } // operator <<
 
+/// \}
 } // namespace util
 } // namespace flecsi
 
