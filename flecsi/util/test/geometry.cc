@@ -10,20 +10,22 @@ using point_1d_t = util::point<double, 1>;
 using point_2d_t = util::point<double, 2>;
 using point_3d_t = util::point<double, 3>;
 
+enum class axis : Dimension { x = 0, y = 1, z = 2 };
+
 int
 point_sanity() {
   UNIT() {
     constexpr point_1d_t a1{-1.0};
-    static_assert(-1.0 == a1[util::axis::x]);
+    static_assert(-1.0 == a1[axis::x]);
 
     constexpr point_2d_t a2{3.0, 0.0};
-    static_assert(3.0 == a2[util::axis::x]);
-    static_assert(0.0 == a2[util::axis::y]);
+    static_assert(3.0 == a2[axis::x]);
+    static_assert(0.0 == a2[axis::y]);
 
     constexpr point_3d_t a3{3.0, 0.0, -1.0};
-    static_assert(3.0 == a3[util::axis::x]);
-    static_assert(0.0 == a3[util::axis::y]);
-    static_assert(-1.0 == a3[util::axis::z]);
+    static_assert(3.0 == a3[axis::x]);
+    static_assert(0.0 == a3[axis::y]);
+    static_assert(-1.0 == a3[axis::z]);
   };
 } // point_sanity
 
