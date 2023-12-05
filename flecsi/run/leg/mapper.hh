@@ -51,7 +51,9 @@ public:
       machine(machine) {
     using namespace Legion;
     using namespace Legion::Mapping;
-
+    // Auto-enable 'memoize' (set to 'false' by default in the DefaultMapper)
+    // there is no more need to specify '-dm:memoize' at runtime
+    memoize = true;
     // Get our local memories
     {
       Machine::MemoryQuery sysmem_query(machine);
