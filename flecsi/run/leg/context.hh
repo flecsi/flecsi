@@ -53,9 +53,6 @@ using task = R(const Legion::Task *,
 
 struct dependencies_guard : util::mpi::init {
   dependencies_guard(arguments::dependent &);
-
-private:
-  dependencies_guard(int, char **);
 };
 
 struct context_t : context {
