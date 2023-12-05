@@ -72,10 +72,9 @@ if(ENABLE_UNIT_TESTS)
     test/package_b.hh
     test/package_c.hh)
   target_link_libraries(cycle FleCSI)
-  target_include_directories(cycle PRIVATE ${CMAKE_BINARY_DIR})
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
   _flecsi_get_unit_test_backend_flags(CYCLE_FLAGS)
-  add_test(NAME cycle COMMAND cycle ${CYCLE_FLAGS})
+  _flecsi_add_mpi_test(cycle TARGET cycle ARGUMENTS ${CYCLE_FLAGS})
 endif()
 
 flecsi_add_test(program-options

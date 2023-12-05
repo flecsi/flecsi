@@ -55,13 +55,38 @@ function(flecsi_test_link_libraries)
   target_link_libraries(flecsi-unit-main PUBLIC ${ARGN})
 endfunction()
 
+function(_flecsi_add_mpi_test name)
+  set(one_value_args TARGET PROCS WORKING_DIRECTORY)
+  set(multi_value_args ARGUMENTS)
+  cmake_parse_arguments(test "" "${one_value_args}"
+    "${multi_value_args}" ${ARGN})
+
+  if(NOT test_TARGET)
+    message(FATAL_ERROR "You must specify a test target via TARGET")
+  endif()
+
+  if(NOT test_PROCS)
+    set(test_PROCS 1)
+  endif()
+
+  if(NOT test_WORKING_DIRECTORY)
+    get_target_property(test_WORKING_DIRECTORY ${test_TARGET} BINARY_DIR)
+  endif()
+
+  add_test(
+    NAME "${name}"
+    COMMAND
+      ${MPIEXEC_EXECUTABLE}
+      ${MPIEXEC_PREFLAGS}
+      ${MPIEXEC_NUMPROC_FLAG} ${test_PROCS}
+      $<TARGET_FILE:${test_TARGET}>
+      ${MPIEXEC_POSTFLAGS}
+      ${test_ARGUMENTS}
+    WORKING_DIRECTORY "${test_WORKING_DIRECTORY}"
+  )
+endfunction()
+
 function(flecsi_add_test name)
-
-  #----------------------------------------------------------------------------#
-  # Enable new behavior for in-list if statements.
-  #----------------------------------------------------------------------------#
-
-  cmake_policy(SET CMP0057 NEW)
 
   if(NOT FLECSI_ENABLE_TESTING)
     return()
@@ -74,7 +99,7 @@ function(flecsi_add_test name)
   #----------------------------------------------------------------------------#
 
   set(options)
-  set(one_value_args POLICY)
+  set(one_value_args)
   set(multi_value_args
     SOURCES INPUTS PROCS LIBRARIES DEFINES ARGUMENTS TESTLABELS
   )
@@ -94,17 +119,6 @@ function(flecsi_add_test name)
   endif()
 
   #----------------------------------------------------------------------------#
-  # Make sure that MPI_LANGUAGE is set.
-  # This is not a standard variable set by FindMPI, but we might set it.
-  #
-  # Right now, the MPI policy only works with C/C++.
-  #----------------------------------------------------------------------------#
-
-  if(NOT MPI_LANGUAGE)
-    set(MPI_LANGUAGE C)
-  endif()
-
-  #----------------------------------------------------------------------------#
   # Set output directory information.
   #----------------------------------------------------------------------------#
 
@@ -112,40 +126,6 @@ function(flecsi_add_test name)
       set(_TEST_PREFIX)
   else()
       set(_TEST_PREFIX "${PROJECT_NAME}:")
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # Check to see if the user has specified a backend and process it.
-  #----------------------------------------------------------------------------#
-
-  if(FleCSI_BACKEND STREQUAL "mpi")
-
-    set(unit_policy_flags ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
-    set(unit_policy_includes ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
-    set(unit_policy_libraries ${MPI_${MPI_LANGUAGE}_LIBRARIES})
-    set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
-    set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
-    set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
-
-  elseif(FleCSI_BACKEND STREQUAL "legion")
-
-    set(unit_policy_flags ${Legion_CXX_FLAGS}
-      ${MPI_${MPI_LANGUAGE}_COMPILE_FLAGS})
-    set(unit_policy_includes ${Legion_INCLUDE_DIRS}
-      ${MPI_${MPI_LANGUAGE}_INCLUDE_PATH})
-    set(unit_policy_libraries ${Legion_LIBRARIES} ${Legion_LIB_FLAGS}
-      ${MPI_${MPI_LANGUAGE}_LIBRARIES})
-    set(unit_policy_exec ${MPIEXEC})
-    set(unit_policy_exec_procs ${MPIEXEC_NUMPROC_FLAG})
-    set(unit_policy_exec_preflags ${MPIEXEC_PREFLAGS})
-    set(unit_policy_exec_postflags ${MPIEXEC_POSTFLAGS})
-
-  else()
-
-    message(WARNING "invalid backend")
-    return()
-
   endif()
 
   #----------------------------------------------------------------------------#
@@ -157,36 +137,11 @@ function(flecsi_add_test name)
       "You must specify unit test source files using SOURCES")
   endif()
 
-  #----------------------------------------------------------------------------#
-  # Set file properties for FleCSI language files.
-  #----------------------------------------------------------------------------#
-
-  foreach(source ${unit_SOURCES})
-    # Identify FleCSI language source files and add the appropriate
-    # language and compiler flags to properties.
-
-    get_filename_component(_EXT ${source} EXT)
-
-    if("${_EXT}" STREQUAL ".fcc")
-      set_source_files_properties(${source} PROPERTIES LANGUAGE CXX
-    )
-    endif()
-  endforeach()
-
-  add_executable(${name}
-    ${unit_SOURCES}
-  )
+  add_executable(${name} ${unit_SOURCES})
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} ${name})
 
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${_OUTPUT_DIR})
-
-  if(unit_policy_flags)
-    set( unit_policy_list ${unit_policy_flags} )
-    separate_arguments(unit_policy_list)
-
-    target_compile_options(${name} PRIVATE ${unit_policy_list})
-  endif()
 
   #----------------------------------------------------------------------------#
   # Set the folder property for VS and XCode
@@ -202,10 +157,6 @@ function(flecsi_add_test name)
   #----------------------------------------------------------------------------#
   # Check for defines.
   #----------------------------------------------------------------------------#
-
-  if(unit_policy_defines)
-    target_compile_definitions(${name} PRIVATE ${unit_policy_defines})
-  endif()
 
   if(unit_DEFINES)
     target_compile_definitions(${name} PRIVATE ${unit_DEFINES})
@@ -239,25 +190,9 @@ function(flecsi_add_test name)
   endif()
 
   target_link_libraries(${name} PRIVATE flecsi-unit-main)
-  target_link_libraries(${name} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-
-  if(unit_policy_libraries)
-    target_link_libraries(${name} PRIVATE ${unit_policy_libraries})
-  endif()
-
-
-  target_include_directories(${name} PRIVATE ${CMAKE_BINARY_DIR})
-
-  if(unit_policy_includes)
-      target_include_directories(${name}
-          PRIVATE ${unit_policy_includes})
-  endif()
 
   #----------------------------------------------------------------------------#
   # Check for procs
-  #
-  # If found, replace the semi-colons with pipes to avoid list
-  # interpretation.
   #----------------------------------------------------------------------------#
 
   if(NOT unit_PROCS)
@@ -271,56 +206,20 @@ function(flecsi_add_test name)
 
   _flecsi_get_unit_test_backend_flags(UNIT_FLAGS)
 
-  if(${proc_instances} GREATER 1)
+  if(${proc_instances} EQUAL 1)
+    set(unit_NAMES "${_TEST_PREFIX}${name}")
+  else()
+    set(unit_NAMES)
     foreach(instance ${unit_PROCS})
-      add_test(
-        NAME
-          "${_TEST_PREFIX}${name}_${instance}"
-        COMMAND
-          ${unit_policy_exec}
-          ${unit_policy_exec_preflags}
-          ${unit_policy_exec_procs} ${instance}
-          $<TARGET_FILE:${name}>
-          ${unit_ARGUMENTS}
-          ${unit_policy_exec_postflags}
-          ${UNIT_FLAGS}
-        WORKING_DIRECTORY ${_OUTPUT_DIR}
-      )
-
-      set_tests_properties("${_TEST_PREFIX}${name}_${instance}"
-        PROPERTIES LABELS "${unit_TESTLABELS}"
-      )
+      list(APPEND unit_NAMES "${_TEST_PREFIX}${name}_${instance}")
     endforeach()
-  else()
-    if(unit_policy_exec)
-      add_test(
-        NAME
-          "${_TEST_PREFIX}${name}"
-        COMMAND
-          ${unit_policy_exec}
-          ${unit_policy_exec_procs}
-          ${unit_PROCS}
-          ${unit_policy_exec_preflags}
-          $<TARGET_FILE:${name}>
-          ${unit_ARGUMENTS}
-          ${unit_policy_exec_postflags}
-          ${UNIT_FLAGS}
-        WORKING_DIRECTORY ${_OUTPUT_DIR}
-      )
-  else()
-      add_test(
-        NAME
-          "${_TEST_PREFIX}${name}"
-        COMMAND
-          $<TARGET_FILE:${name}>
-          ${UNIT_FLAGS}
-        WORKING_DIRECTORY ${_OUTPUT_DIR}
-      )
-    endif()
-
-    set_tests_properties("${_TEST_PREFIX}${name}" PROPERTIES
-      LABELS "${unit_TESTLABELS}")
-
   endif()
 
+  foreach(test procs IN ZIP_LISTS unit_NAMES unit_PROCS)
+    _flecsi_add_mpi_test("${test}" TARGET ${name} PROCS ${procs}
+      ARGUMENTS ${unit_ARGUMENTS} ${UNIT_FLAGS}
+      WORKING_DIRECTORY ${_OUTPUT_DIR}
+    )
+    set_tests_properties("${test}" PROPERTIES LABELS "${unit_TESTLABELS}")
+  endforeach()
 endfunction()
