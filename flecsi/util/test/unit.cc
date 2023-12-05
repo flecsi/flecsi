@@ -76,7 +76,7 @@ init_a() {
 
   sl = current;
 
-  auto & color = flog::state::instance().color_output();
+  bool color = flog::state::color_output();
   flog(info) << "COLOR OUTPUT: " << (color ? "true" : "false") << std::endl;
   color = !color;
   flog(info) << "COLOR OUTPUT: " << (!color ? "true" : "false") << std::endl;
