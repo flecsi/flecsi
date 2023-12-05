@@ -57,21 +57,21 @@ struct unstructured
   template<class B>
   struct interface : B {
 
-    auto cells() {
+    auto cells() const {
       return B::template entities<index_space::cells>();
     }
 
     template<typename B::entity_list L>
-    auto cells() {
+    auto cells() const {
       return B::template special_entities<index_space::cells, L>();
     }
 
     template<index_space F>
-    auto cells(flecsi::topo::id<F> from) {
+    auto cells(flecsi::topo::id<F> from) const {
       return B::template entities<index_space::cells>(from);
     }
 
-    auto vertices() {
+    auto vertices() const {
       return B::template entities<index_space::vertices>();
     }
 
@@ -81,11 +81,11 @@ struct unstructured
     }
 
     template<typename B::entity_list L>
-    auto vertices() {
+    auto vertices() const {
       return B::template special_entities<index_space::vertices, L>();
     }
 
-    auto edges() {
+    auto edges() const {
       return B::template entities<index_space::edges>();
     }
 
@@ -93,7 +93,6 @@ struct unstructured
     auto edges(flecsi::topo::id<F> from) const {
       return B::template entities<index_space::edges>(from);
     }
-
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
