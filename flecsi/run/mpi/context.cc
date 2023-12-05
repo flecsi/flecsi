@@ -25,7 +25,7 @@ context_t::context_t(const arguments::config & c)
 //----------------------------------------------------------------------------//
 
 int
-context_t::start(const std::function<int()> & action) {
+context_t::start(const std::function<int()> & action, bool) {
   context::start();
 
   context::threads_per_process_ = 1;

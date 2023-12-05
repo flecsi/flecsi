@@ -67,7 +67,7 @@ initialize(int argc, char ** argv, bool dependent = true) {
  */
 [[deprecated("use flecsi::runtime")]] inline int
 start(const std::function<int()> & action) {
-  return run::context::instance().start(action);
+  return run::context::instance().start(action, false);
 }
 
 /*!

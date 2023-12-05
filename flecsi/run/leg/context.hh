@@ -74,7 +74,7 @@ struct context_t : context {
     Documentation for this interface is in the top-level context type.
    */
 
-  int start(const std::function<int()> &);
+  int start(const std::function<int()> &, bool);
 
   /*
     Documentation for this interface is in the top-level context type.

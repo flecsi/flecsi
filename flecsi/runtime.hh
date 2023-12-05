@@ -62,7 +62,8 @@ struct runtime {
         break;
 #endif
       case A::run:
-        return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); });
+        return ctx.start(
+          [&] { return C::invoke(std::forward<AA>(aa)...); }, true);
       case A::help:
         break;
       default:

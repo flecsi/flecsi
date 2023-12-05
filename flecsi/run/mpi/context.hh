@@ -41,7 +41,7 @@ struct context_t : context {
     Documnetation for this interface is in the top-level context type.
    */
 
-  int start(const std::function<int()> &);
+  int start(const std::function<int()> &, bool);
 
   /*
     Documnetation for this interface is in the top-level context type.

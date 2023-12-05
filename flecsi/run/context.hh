@@ -249,12 +249,13 @@ public:
     Start the FleCSI runtime.
 
     @param action The top-level action FleCSI should execute.
+    \param check_args trap unrecognized backend configuration arguments
 
     @return An integer with \em 0 being success, and any other value
             being failure.
    */
 
-  int start(const std::function<int()> & action);
+  int start(const std::function<int()> & action, bool check_args);
 #endif
 
   /*!
