@@ -284,6 +284,10 @@ if(ENABLE_LIBRARY)
   target_link_libraries(FleCSI PUBLIC ${CMAKE_DL_LIBS})
 
   if(MSVC)
+    target_compile_definitions(FleCSI PUBLIC
+      _CRT_SECURE_NO_WARNINGS
+      _SCL_SECURE_NO_WARNINGS
+      NOMINMAX)
     # Avoid ABI incompatibilities for Debug builds
     target_compile_options(FleCSI PUBLIC $<$<CONFIG:Debug>:/MDd /RTC1>)
   endif()
