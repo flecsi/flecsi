@@ -148,56 +148,104 @@ CMake files to allow using it in your own applications.
 
 ``FleCSI/unit``
   Adds the ``flecsi_enable_testing`` macro, which turns on CMake's
-  testing capabilities through ``ctest`` and defines ``unit_tests`` and
-  ``test`` targets.
+  testing capabilities through ``ctest`` and adds a ``test`` target.
+
+  The ``test`` target will run ``ctest``, executing all added tests.
 
   While you can define your own test executables manually with
   `add_test
   <https://cmake.org/cmake/help/latest/command/add_test.html>`_, this
-  CMake file also defines its own ``flecsi_add_test`` function for
-  writing tests based on FleCSI Unit Test framework.
+  CMake file also defines its own ``flecsi_add_test`` and
+  ``flecsi_add_target_test`` functions.
+
+  ``flecsi_add_test`` is for writing tests based on
+  FleCSI Unit Test framework and has the following signature:
 
   .. code-block:: cmake
 
-     flecsi_add_test(test-name                           # name of target
+     flecsi_add_test(test-name                           # name of test and target
                      SOURCES src1 src2 ... srcN          # list of source files
-	             INPUTS in1 in2 ... inN              # list of input files
-	             LIBRARIES lib1 lib2 ... libN        # libraries linked to test target
-	             DEFINES define1 define2 ... defineN # defines added to test target
-	             ARGUMENTS  arg1 arg2 ... argN       # command arguments
-	             TESTLABELS label1 label2 ... labelN # labels added to test target
-	             PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
-	            )
+                     LIBRARIES lib1 lib2 ... libN        # libraries linked to test target
+                     DEFINES define1 define2 ... defineN # defines added to test target
+                     INPUTS in1 in2 ... inN              # list of input files
+                     ARGUMENTS  arg1 arg2 ... argN       # command arguments
+                     TESTLABELS label1 label2 ... labelN # labels added to test target
+                     PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
+                     LAUNCHER app                        # launcher application for entire command-line
+                     LAUNCHER_ARGUMENTS arg1 ... argN    # arguments passed to launcher
+	   )
 
   ``flecsi_add_test`` will take the sources files in ``SOURCES`` and
   compile them together with a predefined ``main()`` function. It will
-  also link to any ``LIBRARIES`` and add ``DEFINES`` as compile
-  definitions.
+  link to FleCSI and any specified ``LIBRARIES``, and add ``DEFINES``
+  as compile definitions.
 
-  If the test uses input files, they can be specified as
-  ``INPUTS``. This ensures they are copied to the execution folder.
+  If the test uses input files, they can be specified as list of files in
+  ``INPUTS``. This ensures they are copied to the execution folder of the test.
 
   Command-line arguments are passed via the ``ARGUMENTS`` option. You
   can also control the number of MPI processes with ``PROCS``. If you
   provide more than one value in ``PROCS``, this will define one
-  target per value with a name ``<target-name>_<value>``.
+  test per value with a name ``<test-name>_<value>``.
 
   .. note::
 
-     Targets added with ``flecsi_add_test`` will be run with GPU
+     Tests added with ``flecsi_add_test`` will be run with GPU
      support if appropriate.
 
+  The final command-line of each test is assembled from these arguments into the following format:
+
+  .. code-block:: shell
+
+     ${MPIEXEC_EXECUTABLE} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG} ${PROCS} ${TARGET} ${MPIEXEC_POSTFLAGS} ${BACKEND_ARGUMENTS} ${ARGUMENTS}
+
+  The ``MPIEXEC_*`` cache variables are defined via the CMake
+  `FindMPI module <https://cmake.org/cmake/help/latest/module/FindMPI.html#usage-of-mpiexec>`_,
+  while ``BACKEND_ARGUMENTS`` are defaults provided for each FleCSI backend.
+
+  In some cases you may wish to pass this entire command-line to a launcher
+  command along with some launcher specific arguments. A typical application of
+  this is a wrapper that executes the command-line, captures relevant
+  information and presents some analysis result. This can be achieved via the
+  ``LAUNCHER`` and ``LAUNCHER_ARGUMENTS`` options and turns the complete test
+  command-line into:
+
+  .. code-block:: shell
+
+     ${LAUNCHER} ${LAUNCHER_ARGS} ${FULL_TEST_COMMAND_LINE}
 
   ``TESTLABELS`` can be added to your test to allow filtering based on
   label when using ``ctest``.
 
-  The ``unit_tests`` target only builds unit tests (and its dependencies) added
-  via ``flecsi_add_test``. Its name can be customized with the
+  The first of these tests creates a ``unit_tests`` target which collects all
+  of the unit tests defined via ``flecsi_add_test``. Using this target will build all of
+  these tests and their dependencies.
+
+  Its name can be customized with the
   ``flecsi_set_unit_tests_target_name(name)`` macro, prior to calling
   ``flecsi_enable_testing``.
 
-  The ``test`` target is defined by CMake itself and will run ``ctest``,
-  executing all added tests.
+  ``flecsi_add_target_test`` allows defining a test using an existing target.
+  This is useful for defining regression/run tests of complete FleCSI
+  applications. The function signature is similar to ``flecsi_add_test`` and
+  supports all its operations, but doesn't use ``SOURCES``, ``LIBRARIES`` and
+  ``DEFINES``.  Instead, it requires the name of an existing target. By default,
+  it will look for a target with the same name as the test name. A target with
+  a different name can be specified via the TARGET option.
+  Given that these tests typically are not unit tests, they
+  are not automatically added to the ``unit_tests`` target as dependencies.
+
+  .. code-block:: cmake
+
+     flecsi_add_target_test(test-name                           # name of test (and of existing target)
+                            TARGET name                         # name of an existing target
+                            INPUTS in1 in2 ... inN              # list of input files
+                            ARGUMENTS  arg1 arg2 ... argN       # command arguments
+                            TESTLABELS label1 label2 ... labelN # labels added to test target
+                            PROCS nprocs1 nprocs2 ... nprocsN   # number(s) of MPI processes
+                            LAUNCHER app                        # launcher application for entire command-line
+                            LAUNCHER_ARGUMENTS arg1 ... argN    # arguments passed to launcher
+	   )
 
   **Usage:**
 
