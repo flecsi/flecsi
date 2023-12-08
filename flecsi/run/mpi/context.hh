@@ -20,7 +20,7 @@ namespace run {
 /// \{
 
 struct dependencies_guard {
-  dependencies_guard(arguments::dependent &);
+  dependencies_guard(arguments::dependent = {});
 
 private:
   util::mpi::init mpi;

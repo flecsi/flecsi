@@ -7,7 +7,7 @@
 
 namespace flecsi::run {
 
-dependencies_guard::dependencies_guard(arguments::dependent & d)
+dependencies_guard::dependencies_guard(arguments::dependent d)
   : mpi(d.mpi.size(), arguments::pointers(d.mpi).data())
 #ifdef FLECSI_ENABLE_KOKKOS
     ,

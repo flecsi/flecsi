@@ -48,7 +48,7 @@ top_level_task(const Legion::Task *,
 context_t::context_t(const arguments::config & c)
   : context(c, util::mpi::size(), util::mpi::rank()), argv(c.backend) {}
 
-dependencies_guard::dependencies_guard(arguments::dependent & d)
+dependencies_guard::dependencies_guard(arguments::dependent d)
   : init(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
 
 //----------------------------------------------------------------------------//
