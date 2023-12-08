@@ -57,6 +57,17 @@ public:
     maxEqual(upper, rhs.upper);
   }
 
+  // Return an empty BBox.
+  constexpr static auto empty() {
+    using nl = std::numeric_limits<double>;
+    point_t lo, hi;
+    for(Dimension d = 0; d < DIM; ++d) {
+      lo[d] = nl::max();
+      hi[d] = nl::lowest();
+    }
+    return BBox{lo, hi};
+  }
+
   //  These two vectors are the upper and lower corners of the box.
   point_t lower, upper;
 

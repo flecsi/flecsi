@@ -11,6 +11,7 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
+#include "flecsi/util/geometry/kdtree.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 
@@ -383,6 +384,33 @@ struct unstructured_base {
     } // send
 
   }; // struct ragged_impl
+
+  /// \cond core
+  /*!
+    This method computes the bounding box from cell vertices.
+    It allows computing bbox for owned/shared/ghost part
+    through the template parameter EL. This method can be used
+    as a task to obtain the bounding box of a mesh topology instance.
+
+    \tparam C  Index space for cells
+    \tparam EL Entity list (owned/shared/ghost) enum type
+    \tparam V  Index space for vertices
+    \param  mesh Mesh accessor
+    \param  coords Coordinate field accessor
+    \return a \c util::BBox with the bounding box of the mesh.
+   */
+  template<auto C, auto EL, auto V, typename M, typename F>
+  static auto bounding_box(M mesh, F coords) {
+    const auto D = std::tuple_size<typename F::value_type>::value;
+    auto box = flecsi::util::BBox<D>::empty();
+    for(auto c : mesh.template special_entities<C, EL>()) {
+      for(auto v : mesh.template entities<V>(c)) {
+        box += coords[v];
+      }
+    }
+    return box;
+  }
+  /// \endcond
 
 }; // struct unstructured_base
 

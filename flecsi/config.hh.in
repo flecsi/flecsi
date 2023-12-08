@@ -30,7 +30,6 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // External runtimes
 //----------------------------------------------------------------------------//
 
-#cmakedefine FLECSI_ENABLE_MPI
 #cmakedefine FLECSI_ENABLE_LEGION
 
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
