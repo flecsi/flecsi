@@ -30,10 +30,10 @@ struct config {
   std::vector<std::string> tags;
   /// Verbosity level (suppresses decorations if negative).  Populated
   /// from \c \--flog-verbose option.
-  int verbose,
-    /// Process from which to produce output, or -1 for all.
-    /// Populated from \c \--flog-process option.
-    process;
+  int verbose = 0,
+      /// Process from which to produce output, or -1 for all.
+      /// Populated from \c \--flog-process option.
+    process = 0;
   /// Frequency of message serialization in number of tasks.
   unsigned serialization_interval = FLOG_SERIALIZATION_INTERVAL;
   /// Enable color output.
