@@ -49,6 +49,7 @@ top_level_action() {
 
 int
 main(int argc, char ** argv) {
+  std::ofstream log_file; // to outlive runtime
   run::arguments args(argc, argv);
   const run::dependencies_guard dg(args.dep);
   // If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized
@@ -66,7 +67,7 @@ main(int argc, char ** argv) {
 
   // Add an output file to FLOG's buffers.
 
-  std::ofstream log_file("output.txt");
+  log_file.open("output.txt");
   flog::add_output_stream("log file", log_file);
 
   return run.main<run::call>(args.act, top_level_action);

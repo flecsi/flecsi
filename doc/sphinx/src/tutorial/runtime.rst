@@ -389,6 +389,10 @@ To add an output stream to a file, we can do the following:
   :start-at: // Add an output file to FLOG's buffers.
   :end-at: log::add_output_stream("log file", log_file);
 
+.. important::
+
+  Note that the ``std::ofstream`` is created (though not opened) before the ``flecsi::runtime`` object so that it is destroyed only after all logging is completed.
+
 That's it! For this example, FLOG is now configured to write output to
 std::clog, and to *output.txt*. Next, we will see how to actually write
 output to these stream buffers.
