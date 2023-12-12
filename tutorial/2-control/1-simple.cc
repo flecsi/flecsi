@@ -42,12 +42,11 @@ control::action<finalize, cp::finalize> finalize_action;
 // logic to check control-model options.
 
 int
-main(int argc, char ** argv) {
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+main() {
+  const flecsi::run::dependencies_guard dg;
+  const flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
-  // Run the control model.  control::execute will, in turn,
+  // Run the control model.  control::invoke will, in turn,
   // execute all of the cycles, and actions of the control model.
-  return run.main<control>(args.act);
+  return run.control<control>();
 } // main

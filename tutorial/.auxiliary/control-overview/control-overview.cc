@@ -125,10 +125,11 @@ const auto dep_bn = action_b.add(action_n);
 // Main
 
 int
-main(int argc, char ** argv) {
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+main() {
+  const flecsi::run::dependencies_guard dg;
+  const flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
-  return run.main<control>(args.act);
+  control::write_graph("example", "model.dot");
+  control::write_actions("example", "actions.dot");
+  return run.control<control>();
 } // main

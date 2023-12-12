@@ -23,15 +23,13 @@ top_level_action() {
  */
 
 int
-main(int argc, char ** argv) {
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+main() {
+  const flecsi::run::dependencies_guard dg;
   /*
     flecsi::run::call means to call the single function given as an argument to
     run.main.  (Multiple functions will be covered in later examples.)
     It will be skipped if, say, --help was passed as an argument; FleCSI's
     command-line support is documented in the next example.
    */
-  return run.main<flecsi::run::call>(args.act, top_level_action);
+  return flecsi::runtime().control<flecsi::run::call>(top_level_action);
 } // main

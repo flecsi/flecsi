@@ -45,11 +45,11 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-context_t::context_t(const arguments::config & c)
-  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.backend) {}
+context_t::context_t(const config & c)
+  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.legion) {}
 
-dependencies_guard::dependencies_guard(arguments::dependent d)
-  : init(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
+dependencies_guard::dependencies_guard(dependencies_config d)
+  : init(d.mpi.size(), pointers(d.mpi).data()) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
@@ -110,7 +110,7 @@ context_t::start(const std::function<int()> & action, bool check_args) {
 
   {
     int argc = argv.size();
-    auto args = arguments::pointers(argv);
+    auto args = pointers(argv);
     auto p = args.data();
     Runtime::initialize(&argc, &p, true); // can be done with start after cr-16
     if(check_args && argc > 1)

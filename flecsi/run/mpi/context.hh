@@ -20,7 +20,7 @@ namespace run {
 /// \{
 
 struct dependencies_guard {
-  dependencies_guard(arguments::dependent = {});
+  dependencies_guard(dependencies_config = {});
 
 private:
   util::mpi::init mpi;
@@ -29,13 +29,15 @@ private:
 #endif
 };
 
+struct config : config_base {};
+
 struct context_t : context {
 
   //--------------------------------------------------------------------------//
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(const arguments::config &);
+  context_t(const config &);
 
   /*!
     Documnetation for this interface is in the top-level context type.

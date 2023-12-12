@@ -52,7 +52,14 @@ using task = R(const Legion::Task *,
 }
 
 struct dependencies_guard : util::mpi::init {
-  dependencies_guard(arguments::dependent = {});
+  dependencies_guard(dependencies_config = {});
+};
+
+struct config : config_base {
+  argv legion;
+  argv * backend() & {
+    return &legion;
+  }
 };
 
 struct context_t : context {
@@ -68,7 +75,7 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(const arguments::config &);
+  context_t(const config &);
 
   /*
     Documentation for this interface is in the top-level context type.
@@ -157,7 +164,7 @@ private:
    *--------------------------------------------------------------------------*/
 
   static inline Legion::LocalVariableID next_var;
-  arguments::argv argv;
+  run::argv argv;
   const std::function<int()> * top_level_action_ = nullptr;
 
   /*--------------------------------------------------------------------------*

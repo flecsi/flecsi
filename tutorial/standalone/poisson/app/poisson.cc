@@ -15,9 +15,14 @@ int
 main(int argc, char ** argv) {
   flecsi::util::annotation::rguard<main_region> main_guard;
 
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+  flecsi::getopt()(argc, argv);
+  const flecsi::run::dependencies_guard dg;
+  flecsi::run::config cfg{};
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion &&                                 \
+  (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP))
+  cfg.legion = {"", "-ll:gpu", "1"};
+#endif
+  const flecsi::runtime run(cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
-  return run.main<poisson::control>(args.act);
+  return run.control<poisson::control>();
 } // main

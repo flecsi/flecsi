@@ -47,13 +47,12 @@ top_level_action() {
 
 // main
 int
-main(int argc, char * argv[]) {
+main() {
   annotation::rguard<main_region> main_guard;
 
-  run::arguments args(argc, argv);
-  const run::dependencies_guard dg(args.dep);
-  const runtime run(args.cfg);
+  const run::dependencies_guard dg;
+  const runtime run;
   return (annotation::guard<annotation::execution, annotation::detail::low>(
             "top-level-task"),
-    run.main<run::call>(args.act, top_level_action));
+    run.control<run::call>(top_level_action));
 } // main

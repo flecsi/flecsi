@@ -7,7 +7,6 @@
 #include "flecsi/config.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/run/init.hh"
-#include "flecsi/run/options.hh"
 #include "flecsi/run/types.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/dag.hh"
@@ -25,20 +24,6 @@ namespace run {
 /// \{
 
 inline flog::devel_tag control_tag("control");
-
-#if defined(FLECSI_ENABLE_GRAPHVIZ)
-inline program_option<bool> control_model_option("FleCSI Options",
-  "control-model",
-  "Output a dot file of the control model. This can be processed into a pdf "
-  "using the dot command, like:\n\033[0;36m$ dot -Tpdf input.dot > "
-  "output.pdf\033[0m",
-  {{flecsi::option_implicit, true}, {flecsi::option_zero}});
-
-inline program_option<bool> control_model_sorted_option("FleCSI Options",
-  "control-model-sorted",
-  "Output a dot file of the sorted control model actions.",
-  {{flecsi::option_implicit, true}, {flecsi::option_zero}});
-#endif
 
 /// A control point for application use.
 /// \tparam CP control point enumerator
@@ -231,17 +216,15 @@ private:
     Output a graph of the control model.
   */
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  void write(const std::string & p) const {
-    flecsi::util::graphviz gv(p + " control model");
+  void write(std::string_view p, const char * file) const {
+    flecsi::util::graphviz gv(std::string(p) + " control model");
     point_writer::write(registry_, gv);
-    std::string file = p + "-control-model.dot";
     gv.write(file);
   } // write
 
-  void write_sorted(const std::string & p) const {
-    flecsi::util::graphviz gv(p + " actions");
+  void write_sorted(std::string_view p, const char * file) const {
+    flecsi::util::graphviz gv(std::string(p) + " actions");
     point_writer::write_sorted(sort(), gv);
-    std::string file = p + "-control-model-sorted.dot";
     gv.write(file);
   } // write_sorted
 #endif
@@ -356,7 +339,7 @@ public:
     }
   }
   /// Call \c #invoke with no arguments.
-  /// \deprecated Use \c invoke directly or call \c runtime::main.
+  /// \deprecated Use \c invoke directly or call \c runtime::control.
   [[deprecated("use invoke")]] static int execute() {
     return invoke();
   }
@@ -365,8 +348,8 @@ public:
     Process control model command-line options.
     \param s initialization status from \c initialize
     \return status of control model output if requested, else \a s
-    \deprecated Use \c runtime::main.
-    \see arguments::action::operation
+    \deprecated Call \c #write_graph or \c #write_actions as needed.
+    \see \c #status
    */
   [[deprecated("use flecsi::runtime")]] static int check_status(int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
@@ -374,10 +357,10 @@ public:
     // argv0 will be empty, which is a mild form of failure.
     switch(s) {
       case flecsi::run::status::control_model:
-        write_graph(argv0);
+        write_graph(argv0, (argv0 + "-control-model.dot").c_str());
         break;
       case flecsi::run::status::control_model_sorted:
-        write_actions(argv0);
+        write_actions(argv0, (argv0 + "-control-model-sorted.dot").c_str());
         break;
       default:
         break;
@@ -387,11 +370,17 @@ public:
   } // check_status
 
 #ifdef FLECSI_ENABLE_GRAPHVIZ
-  static void write_graph(const std::string & p) {
-    instance().write(p);
+  /// Write a Dot graph of control points and actions.
+  /// \param p program name for graph title
+  /// \param f output file
+  static void write_graph(std::string_view p, const char * f) {
+    instance().write(p, f);
   }
-  static void write_actions(const std::string & p) {
-    instance().write_sorted(p);
+  /// Write a Dot graph of the sorted sequence of actions.
+  /// \param p program name for graph title
+  /// \param f output file
+  static void write_actions(std::string_view p, const char * f) {
+    instance().write_sorted(p, f);
   }
 #endif
 }; // struct control

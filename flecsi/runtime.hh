@@ -6,6 +6,7 @@
 
 #include "flecsi/run/backend.hh"
 #include "flecsi/run/control.hh"
+#include "flecsi/run/options.hh"
 
 namespace flecsi {
 
@@ -26,7 +27,7 @@ struct runtime {
   ///
   /// As a debugging aid, if the \c FLECSI_SLEEP environment variable is set
   /// to an integer, wait for that number of seconds.
-  explicit runtime(const run::arguments::config & c) {
+  explicit runtime(const run::config & c = {}) {
     auto & r = run::context::ctx;
     flog_assert(!r, "runtime already initialized");
     r.emplace(c);
@@ -37,39 +38,14 @@ struct runtime {
     run::context::ctx.reset();
   }
 
-  /// Perform the \ref run::arguments::action::operation "operation"
-  /// indicated by a command line.
+  /// Execute a control model.
   /// \tparam C control model
   /// \param aa arguments for \link run::control::invoke `C::invoke`\endlink
-  ///   (if it is called)
   /// \return resulting exit code
-  /// \warning The return value does not in general match that from
-  ///   \c initialize or \c start.
   template<class C, class... AA>
-  int main(run::arguments::action a, AA &&... aa) const {
-    using A = decltype(a);
+  int control(AA &&... aa) const {
     auto & ctx = run::context::instance();
-    ctx.check_config(a);
-    if(!ctx.process())
-      std::cerr << a.stderr;
-    switch(a.op) {
-#ifdef FLECSI_ENABLE_GRAPHVIZ
-      case A::control_model:
-        C::write_graph(a.program);
-        break;
-      case A::control_model_sorted:
-        C::write_actions(a.program);
-        break;
-#endif
-      case A::run:
-        return ctx.start(
-          [&] { return C::invoke(std::forward<AA>(aa)...); }, true);
-      case A::help:
-        break;
-      default:
-        return 1;
-    }
-    return 0;
+    return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); }, true);
   }
 };
 

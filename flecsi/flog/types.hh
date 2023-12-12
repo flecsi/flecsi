@@ -25,14 +25,10 @@ namespace flog {
 /// Specification for Flog operation.
 struct config {
   /// Tags to enable (perhaps including "all").
-  /// Populated from \c \--flog-tags option.
-  /// Empty if that option's argument is "none".
-  std::vector<std::string> tags;
-  /// Verbosity level (suppresses decorations if negative).  Populated
-  /// from \c \--flog-verbose option.
+  std::vector<std::string> tags{"all"};
+  /// Verbosity level (suppresses decorations if negative).
   int verbose = 0,
       /// Process from which to produce output, or -1 for all.
-      /// Populated from \c \--flog-process option.
     process = 0;
   /// Frequency of message serialization in number of tasks.
   unsigned serialization_interval = FLOG_SERIALIZATION_INTERVAL;
