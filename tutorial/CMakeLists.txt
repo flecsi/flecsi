@@ -197,25 +197,25 @@ add_unit(execution-mpi-task)
 
 add_executable(data-global
   4-data/1-global.cc
-  4-data/main.cc
-  4-data/control.hh
+  3-execution/main.cc
+  3-execution/control.hh
 )
 target_link_libraries(data-global FleCSI::FleCSI)
 add_unit(data-global)
 
 add_executable(data-index
   4-data/2-index.cc
-  4-data/main.cc
-  4-data/control.hh
+  3-execution/main.cc
+  3-execution/control.hh
 )
 target_link_libraries(data-index FleCSI::FleCSI)
 add_unit(data-index)
 
 add_executable(data-dense
   4-data/3-dense.cc
-  4-data/main.cc
+  3-execution/main.cc
   4-data/canonical.hh
-  4-data/control.hh
+  3-execution/control.hh
 )
 target_link_libraries(data-dense FleCSI::FleCSI)
 add_unit(data-dense)
@@ -226,8 +226,8 @@ add_unit(data-dense)
 
 add_executable(parallel-forall
   5-parallel/1-forall.cc
-  5-parallel/main.cc
-  5-parallel/control.hh
+  3-execution/main.cc
+  3-execution/control.hh
   4-data/canonical.hh
 )
 target_link_libraries(parallel-forall FleCSI::FleCSI)
@@ -235,8 +235,8 @@ add_unit(parallel-forall)
 
 add_executable(parallel-reduceall
   5-parallel/2-reduceall.cc
-  5-parallel/main.cc
-  5-parallel/control.hh
+  3-execution/main.cc
+  3-execution/control.hh
   4-data/canonical.hh
 )
 target_link_libraries(parallel-reduceall FleCSI::FleCSI)

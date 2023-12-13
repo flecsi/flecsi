@@ -5,8 +5,8 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
+#include "../3-execution/control.hh"
 #include "../4-data/canonical.hh"
-#include "control.hh"
 
 // this tutorial is based on a 4-data/3-dense.cc tutorial example
 
