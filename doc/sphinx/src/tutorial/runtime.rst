@@ -151,11 +151,8 @@ Declaring Options
 
 .. note::
 
-  FleCSI program options must be declared at namespace scope, i.e.,
-  outside of any function, class, or enum class. This is not a problem! It
-  is often convenient to declare them in a header file (in which case,
-  they must also be declared *inline*) or directly before the *main*
-  function.  We use the latter for this example simply for conciseness.
+  FleCSI program options must be created before calling ``flecsi::initialize`` (and must survive through all uses of their value).
+  It is often convenient to declare them in a namespace in a header file (in which case, they must also be declared ``inline``).
 
 Let's consider the first *Car Options* option: ``--level``. To declare
 this option, we use the following declaration:
