@@ -195,6 +195,9 @@ label_default(std::string s) {
 /// generally appear alone in a function that returns \c int.
 /// Optionally, provide an expression convertible to \c std::string to label
 /// the test results (along with \c __func__); the default is "TEST".
+///
+/// \note The `ASSERT`/`EXPECT` macros can be used in a lambda defined inside
+///   the compound statement with `[&]`.
 #define UNIT(...)                                                              \
   ::flecsi::util::unit::state_t auto_unit_state(                               \
     __func__, label_default({__VA_ARGS__}));                                   \
@@ -231,7 +234,8 @@ label_default(std::string s) {
 
 /// \name Assertion macros
 /// Macros that begin with \c ASSERT are identical to their \c EXPECT
-/// counterparts except that they abandon the current \c UNIT on failure
+/// counterparts except that they abandon the current \c UNIT (or innermost
+/// lambda within it) on failure
 /// (usually to avoid subsequent undefined behavior).
 /// \{
 
