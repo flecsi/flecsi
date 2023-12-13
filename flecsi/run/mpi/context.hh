@@ -37,31 +37,15 @@ struct context_t : context {
 
   context_t(const arguments::config &);
 
-  /*!
-    Documnetation for this interface is in the top-level context type.
-   */
-
   int start(const std::function<int()> &);
-
-  /*
-    Documnetation for this interface is in the top-level context type.
-   */
 
   static int task_depth() {
     return depth;
   } // task_depth
 
-  /*
-    Documnetation for this interface is in the top-level context type.
-   */
-
   Color color() const {
     return process_;
   }
-
-  /*
-    Documnetation for this interface is in the top-level context type.
-   */
 
   Color colors() const {
     return processes_;
