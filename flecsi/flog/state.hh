@@ -139,8 +139,16 @@ public:
     return serialization_interval_;
   }
 
-  bool & color_output() {
-    return color_output_;
+  /*!
+    Return \c true if ANSI color support for messages was requested.  Note
+    that this is a \c static method.  If the (singleton) \ref state has not
+    yet been constructed, return the compile-time default colorization flag
+    \c FLOG_ENABLE_COLOR_OUTPUT.  Otherwise, return the value specified
+    at run time by \ref config.color.
+  */
+  static bool color_output() {
+    return instance_.has_value() ? instance_.value().color_output_
+                                 : bool(FLOG_ENABLE_COLOR_OUTPUT);
   }
 
   int & strip_level() {
@@ -334,7 +342,7 @@ namespace detail {
 
 inline const char *
 use_color(const char * c) {
-  return state::instance().color_output() ? c : "";
+  return state::color_output() ? c : "";
 }
 
 } // namespace detail
