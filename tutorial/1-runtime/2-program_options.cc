@@ -81,8 +81,7 @@ flecsi::program_option<std::string> passenger_list("passenger-list",
              : (ss << "file(" << value << ") has invalid suffix") && false;
   });
 
-// User-defined program options are available after FleCSI initialize has been
-// invoked.
+// User-defined program options are available after getopt has been invoked.
 
 int
 top_level_action() {
@@ -135,8 +134,14 @@ top_level_action() {
 
 int
 main(int argc, char ** argv) {
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
-  return run.main<flecsi::run::call>(args.act, top_level_action);
+  const flecsi::getopt g;
+  try {
+    g(argc, argv);
+  }
+  catch(const std::logic_error & e) {
+    std::cerr << e.what() << '\n' << g.usage(argc ? argv[0] : "");
+    return 1;
+  }
+  const flecsi::run::dependencies_guard dg;
+  return flecsi::runtime().control<flecsi::run::call>(top_level_action);
 } // main

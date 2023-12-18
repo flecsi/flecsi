@@ -11,6 +11,11 @@ using namespace flecsi;
 flog::tag tag1("tag1");
 flog::tag tag2("tag2");
 
+flecsi::program_option<std::string> tag("Logging",
+  "flog",
+  "Specify the flog tag to enable.",
+  {{flecsi::option_default, "all"}});
+
 int
 top_level_action() {
 
@@ -22,8 +27,7 @@ top_level_action() {
   flog(warn) << "Warn level output" << std::endl;
   flog(error) << "Error level output" << std::endl;
 
-  // This output will only be generated if 'tag1' or 'all' is specified
-  // to '--flog-tags'.
+  // This output will appear only if 'tag1' is enabled.
 
   {
     flog::guard guard(tag1);
@@ -33,8 +37,7 @@ top_level_action() {
     flog(error) << "Error level output (in tag1 guard)" << std::endl;
   } // scope
 
-  // This output will only be generated if 'tag2' or 'all' is specified
-  // to '--flog-tags'.
+  // This output will be generated only if 'tag2' is enabled.
 
   {
     flog::guard guard(tag2);
@@ -49,11 +52,14 @@ top_level_action() {
 
 int
 main(int argc, char ** argv) {
-  run::arguments args(argc, argv);
-  const run::dependencies_guard dg(args.dep);
+  std::ofstream log_file; // to outlive runtime
+  flecsi::getopt()(argc, argv);
+  const run::dependencies_guard dg;
   // If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized
   // when the runtime is created.
-  const runtime run(args.cfg);
+  run::config cfg;
+  cfg.flog.tags = {tag};
+  const runtime run(cfg);
 
   // In order to see or capture any output from FLOG, the user must add at least
   // one output stream. The function flog::add_output_stream provides an
@@ -66,8 +72,8 @@ main(int argc, char ** argv) {
 
   // Add an output file to FLOG's buffers.
 
-  std::ofstream log_file("output.txt");
+  log_file.open("output.txt");
   flog::add_output_stream("log file", log_file);
 
-  return run.main<run::call>(args.act, top_level_action);
+  return run.control<run::call>(top_level_action);
 } // main

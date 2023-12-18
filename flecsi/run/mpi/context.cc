@@ -7,26 +7,17 @@
 
 namespace flecsi::run {
 
-dependencies_guard::dependencies_guard(arguments::dependent & d)
-  : dependencies_guard(d, d.mpi.size(), arguments::pointers(d.mpi).data()) {}
-dependencies_guard::dependencies_guard(arguments::dependent & d,
-  int mc,
-  char ** mv)
-  : mpi(mc, mv) {
+dependencies_guard::dependencies_guard(dependencies_config d)
+  : mpi(d.mpi.size(), pointers(d.mpi).data())
 #ifdef FLECSI_ENABLE_KOKKOS
-  [](int kc, char ** kv) { Kokkos::initialize(kc, kv); }(
-    d.kokkos.size(), arguments::pointers(d.kokkos).data());
-#else
+    ,
+    kokkos(d.kokkos)
+#endif
+{
   (void)d;
-#endif
-}
-dependencies_guard::~dependencies_guard() {
-#ifdef FLECSI_ENABLE_KOKKOS
-  Kokkos::finalize();
-#endif
 }
 
-context_t::context_t(const arguments::config & c)
+context_t::context_t(const config & c)
   : context(c, util::mpi::size(), util::mpi::rank()) {}
 
 //----------------------------------------------------------------------------//
@@ -34,7 +25,7 @@ context_t::context_t(const arguments::config & c)
 //----------------------------------------------------------------------------//
 
 int
-context_t::start(const std::function<int()> & action) {
+context_t::start(const std::function<int()> & action, bool) {
   context::start();
 
   context::threads_per_process_ = 1;

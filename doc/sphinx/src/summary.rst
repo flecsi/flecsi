@@ -209,12 +209,12 @@ Levels
 
 The execution of a FleCSI-based application is divided into three levels:
 
-#. The outer program calls ``initialize`` and then ``start`` on the FleCSI context.
-#. The synchronous callback passed to ``start`` is the *top-level action*, which creates topologies and executes tasks.
+#. The outer program creates a ``flecsi::runtime`` object and calls ``control`` on it.
+#. The control model executed by ``control`` creates topologies and executes tasks.
 #. The tasks perform all field access (including some needed during topology creation).
 
-The first two are executed as normal `SPMD <https://en.wikipedia.org/wiki/SPMD>`_ jobs; only the top-level action can launch tasks.
-(With Legion, it is the top-level *task*, but we reserve that word for the leaf tasks.)
+The first two are executed as normal `SPMD <https://en.wikipedia.org/wiki/SPMD>`_ jobs; only the control model can launch tasks.
+(With Legion, the control model executes in the top-level *task*, but we reserve that word for the leaf tasks.)
 When arguments that describe data across multiple colors (*e.g.*, field references) are passed to a task, an *index launch* takes place that executes an instance of the task (a *point task*) for each color.
 (Often, there are the same number of colors as MPI ranks.)
 Otherwise, a *single launch* of the task is performed, which can be useful for custom I/O operations.
@@ -264,9 +264,9 @@ The backend-specific implementations are in ``*/future.hh``.
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
 
-Tasks and the top-level action cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
+Tasks and the control model cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
 For cases where such communication is needed (*e.g.*, to use an MPI-based library), a task can be executed as an *MPI task* via the optional template argument to ``execute``/``reduce``.
-Like the top-level action, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
+Like the control model, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
 Because the call is not made in an ordinary task context, ``context_t::color`` must not be used by an MPI task; ``context_t::process``, which is always available, has the desired meaning in that context.
 
 Because the execution of an MPI task has largely the same semantics as an ordinary function call, arbitrary arguments may be passed to it.

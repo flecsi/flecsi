@@ -22,17 +22,6 @@ macro(_flecsi_define_unit_tests_target)
   endif()
 endmacro()
 
-macro(_flecsi_get_unit_test_backend_flags flag_variable)
-  if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND
-     (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP))
-   list(APPEND ${flag_variable} "--backend-args=-ll:gpu 1")
-  endif()
-
-  if (FleCSI_ENABLE_KOKKOS AND FleCSI_ENABLE_LEGION AND Kokkos_ENABLE_OPENMP AND Legion_USE_OpenMP)
-    list(APPEND ${flag_variable} "--backend-args=-ll:ocpu 1 -ll:onuma 0")
-  endif()
-endmacro()
-
 macro(flecsi_enable_testing)
   if(NOT FleCSI_ENABLE_FLOG)
     message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
@@ -204,8 +193,6 @@ function(flecsi_add_test name)
   #----------------------------------------------------------------------------#
   list(LENGTH unit_PROCS proc_instances)
 
-  _flecsi_get_unit_test_backend_flags(UNIT_FLAGS)
-
   if(${proc_instances} EQUAL 1)
     set(unit_NAMES "${_TEST_PREFIX}${name}")
   else()
@@ -217,7 +204,7 @@ function(flecsi_add_test name)
 
   foreach(test procs IN ZIP_LISTS unit_NAMES unit_PROCS)
     _flecsi_add_mpi_test("${test}" TARGET ${name} PROCS ${procs}
-      ARGUMENTS ${unit_ARGUMENTS} ${UNIT_FLAGS}
+      ARGUMENTS ${unit_ARGUMENTS}
       WORKING_DIRECTORY ${_OUTPUT_DIR}
     )
     set_tests_properties("${test}" PROPERTIES LABELS "${unit_TESTLABELS}")

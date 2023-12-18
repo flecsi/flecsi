@@ -10,6 +10,10 @@
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"
 
+#if defined(FLECSI_ENABLE_KOKKOS)
+#include <Kokkos_Core.hpp> // InitializationSettings
+#endif
+
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 
@@ -62,85 +66,56 @@ enum /* [[deprecated]] would warn for internal usage */ status : int {
   command_line_error /// error parsing command line
 };
 
-/// The results of parsing command-line options defined by FleCSI.
-struct arguments {
-  /// A command line.
-  using argv = std::vector<std::string>;
+/// A command line.
+using argv = std::vector<std::string>;
 
-  /// Specification of operation to be performed.
-  struct action {
-    /// Program name.
-    std::string program;
-    /// Operation mode.
-    enum operation {
-      help, ///< Exit with a usage message.
-      error, ///< Exit with a command-line error message.
-      run, ///< \ref control::invoke "Invoke" the control model.
-      control_model, ///< Write the control model graph.
-      control_model_sorted ///< Write the sequence of actions.
-    }
-    /// Operation selected, populated from \c \--control-model or
-    /// \c \--control-model-sorted options.
-    op;
-    std::string stderr; ///< Error text from initialization.
+inline std::vector<char *>
+pointers(argv & v) {
+  std::vector<char *> ret;
+  ret.reserve(v.size() + 1);
+  for(auto & s : v)
+    ret.push_back(s.data());
+  ret.push_back(nullptr);
+  return ret;
+}
 
-    run::status status() const {
-      switch(op) {
-        case run:
-          return success;
-        case help:
-          return run::help;
-        case control_model:
-          return run::control_model;
-        case control_model_sorted:
-          return run::control_model_sorted;
-        default:
-          return command_line_error;
-      }
-    }
-  } act; ///< Operation to perform.
-  /// Specification for initializing underlying libraries.
-  struct dependent {
-    argv mpi; ///< Command line for MPI.
-#ifdef FLECSI_ENABLE_KOKKOS
-    argv kokkos; ///< Command line for Kokkos.
+/// Specification for initializing underlying libraries.
+struct dependencies_config {
+  argv mpi; ///< Command line for MPI.
+#if defined(FLECSI_ENABLE_KOKKOS) && !defined(FLECSI_ENABLE_LEGION)
+  /// Configuration for Kokkos.  Present only if support for it is enabled
+  /// and Legion is not in use (since it initializes Kokkos itself).
+  /// \see [Kokkos
+  /// documentation](https://kokkos.github.io/kokkos-core-wiki/API/core/initialize_finalize/InitializationSettings.html)
+  Kokkos::InitializationSettings kokkos;
 #endif
-  } dep; ///< Underlying initialization arguments.
-  /// Specification of options for FleCSI.
-  struct config {
+};
+
+/// Specification of options for FleCSI.
+struct config_base {
 #ifdef FLECSI_ENABLE_FLOG
-    flecsi::flog::config flog; ///< Flog options, if that feature is enabled.
+  flecsi::flog::config flog; ///< Flog options, if that feature is enabled.
 #endif
-    /// Command line for FleCSI backend.  Some backends ignore it.
-    /// Populated from \c \--Xbackend and \c \--backend-args options.
-    argv backend;
-  } cfg; ///< FleCSI options.
 
-  /// Parse a command line.
-  /// \note \c dep contains only the program name.
-  arguments(int, char **);
-
-  static std::vector<char *> pointers(argv & v) {
-    std::vector<char *> ret;
-    ret.reserve(v.size() + 1);
-    for(auto & s : v)
-      ret.push_back(s.data());
-    ret.push_back(nullptr);
-    return ret;
+  argv * backend() & { // overridden by Legion
+    return nullptr;
   }
-
-private:
-  action::operation getopt(int, char **);
 };
 
 #ifdef DOXYGEN // implemented per-backend
+/// Backend-specific options.
+struct config : config_base {
+  /// Command line for Legion, if using it.
+  argv legion;
+};
+
 /// RAII guard for initializing/finalizing FleCSI dependencies.
 /// Which are included depends on configuration.
 /// Only one guard can exist at a time.
 /// \warning Some libraries cannot ever be reinitialized.
 struct dependencies_guard {
-  /// Construct the guard, possibly mutating argument values.
-  dependencies_guard(arguments::dependent &);
+  /// Construct the guard.
+  dependencies_guard(dependencies_config = {});
   /// Immovable.
   dependencies_guard(dependencies_guard &&) = delete;
 };
@@ -199,7 +174,7 @@ struct context {
     Runtime interface.
    *--------------------------------------------------------------------------*/
 protected:
-  context(const arguments::config & c, Color np, Color proc)
+  context(const config_base & c, Color np, Color proc)
     : process_(proc), processes_(np) {
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
@@ -221,32 +196,18 @@ protected:
   }
 
 public:
-  void check_config(arguments::action & a) const {
-#if defined(FLECSI_ENABLE_FLOG) && defined(FLOG_ENABLE_MPI)
-    const Color p = flog::state::instance().source_process();
-    if(p != flog::state::all_processes && p >= processes_) {
-      std::ostringstream stderr;
-      stderr << a.program << ": flog process " << p << " does not exist with "
-             << processes_ << " processes\n";
-      a.stderr += std::move(stderr).str();
-      a.op = a.error;
-    }
-#else
-    (void)a;
-#endif
-  }
-
 #ifdef DOXYGEN // these functions are implemented per-backend
   /*!
     Start the FleCSI runtime.
 
     @param action The top-level action FleCSI should execute.
+    \param check_args trap unrecognized backend configuration arguments
 
     @return An integer with \em 0 being success, and any other value
             being failure.
    */
 
-  int start(const std::function<int()> & action);
+  int start(const std::function<int()> & action, bool check_args);
 #endif
 
   /*!

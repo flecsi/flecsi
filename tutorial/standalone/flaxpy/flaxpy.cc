@@ -165,10 +165,10 @@ flaxpy::control::action<finalize_action, flaxpy::cp::finalize> fin;
 int
 main(int argc, char ** argv) {
   // Initialize the FleCSI run-time system.
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+  flecsi::getopt()(argc, argv);
+  const flecsi::run::dependencies_guard dg;
+  const flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
   // Execute our code control point by control point.
-  return run.main<flaxpy::control>(args.act);
+  return run.control<flaxpy::control>();
 }

@@ -45,19 +45,18 @@ top_level_task(const Legion::Task *,
   context_.mpi_handoff();
 } // top_level_task
 
-context_t::context_t(const arguments::config & c)
-  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.backend) {}
+context_t::context_t(const config & c)
+  : context(c, util::mpi::size(), util::mpi::rank()), argv(c.legion) {}
 
-dependencies_guard::dependencies_guard(arguments::dependent & d)
-  : dependencies_guard(d.mpi.size(), arguments::pointers(d.mpi).data()) {}
-dependencies_guard::dependencies_guard(int mc, char ** mv) : init(mc, mv) {}
+dependencies_guard::dependencies_guard(dependencies_config d)
+  : init(d.mpi.size(), pointers(d.mpi).data()) {}
 
 //----------------------------------------------------------------------------//
 // Implementation of context_t::start.
 //----------------------------------------------------------------------------//
 
 int
-context_t::start(const std::function<int()> & action) {
+context_t::start(const std::function<int()> & action, bool check_args) {
   using namespace Legion;
   using util::mpi::test;
 
@@ -109,7 +108,15 @@ context_t::start(const std::function<int()> & action) {
   context::threads_per_process_ = 1;
   context::threads_ = context::processes_ * context::threads_per_process_;
 
-  Runtime::start(argv.size(), arguments::pointers(argv).data(), true);
+  {
+    int argc = argv.size();
+    auto args = pointers(argv);
+    auto p = args.data();
+    Runtime::initialize(&argc, &p, true); // can be done with start after cr-16
+    if(check_args && argc > 1)
+      flog_fatal("unrecognized Legion option: " << p[1]);
+    Runtime::start(argc, p, true);
+  }
 
   while(true) {
     test(MPI_Barrier(MPI_COMM_WORLD));

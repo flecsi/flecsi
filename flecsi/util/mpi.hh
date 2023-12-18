@@ -102,7 +102,7 @@ struct vector { // for *v functions
 } // namespace detail
 
 struct init {
-  init(int & argc, char **& argv) {
+  init(int argc, char ** argv) {
 #if defined(GASNET_CONDUIT_IBV) || defined(GASNET_CONDUIT_UCX)
     // work around GASNet issues during application cleanup:
     // See line 149 of mpi_interop.cc as of Legion version 23.06.0
@@ -115,6 +115,8 @@ struct init {
     test(MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided));
     if(provided < MPI_THREAD_MULTIPLE)
       flog_fatal("MPI_THREAD_MULTIPLE unavailable");
+    if(argc > 1)
+      flog_fatal("unrecognized MPI option: " << argv[1]);
   }
   init(init &&) = delete;
   ~init() {

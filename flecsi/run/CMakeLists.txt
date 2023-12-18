@@ -77,8 +77,7 @@ if(ENABLE_UNIT_TESTS)
     PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   target_link_libraries(cycle FleCSI)
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
-  _flecsi_get_unit_test_backend_flags(CYCLE_FLAGS)
-  _flecsi_add_mpi_test(cycle TARGET cycle ARGUMENTS ${CYCLE_FLAGS})
+  _flecsi_add_mpi_test(cycle TARGET cycle)
 endif()
 
 flecsi_add_test(program-options

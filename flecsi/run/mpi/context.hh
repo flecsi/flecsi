@@ -20,14 +20,16 @@ namespace run {
 /// \{
 
 struct dependencies_guard {
-  dependencies_guard(arguments::dependent &);
-  ~dependencies_guard();
+  dependencies_guard(dependencies_config = {});
 
 private:
-  dependencies_guard(arguments::dependent &, int, char **);
-
   util::mpi::init mpi;
+#ifdef FLECSI_ENABLE_KOKKOS
+  Kokkos::ScopeGuard kokkos;
+#endif
 };
+
+struct config : config_base {};
 
 struct context_t : context {
 
@@ -35,13 +37,13 @@ struct context_t : context {
   //  Runtime.
   //--------------------------------------------------------------------------//
 
-  context_t(const arguments::config &);
+  context_t(const config &);
 
   /*!
     Documnetation for this interface is in the top-level context type.
    */
 
-  int start(const std::function<int()> &);
+  int start(const std::function<int()> &, bool);
 
   /*
     Documnetation for this interface is in the top-level context type.

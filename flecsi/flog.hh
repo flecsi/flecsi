@@ -13,6 +13,7 @@
 #endif
 
 #include "flecsi/flog/utils.hh"
+#include "flecsi/util/array_ref.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -235,6 +236,15 @@ struct devel_guard {
 };
 #endif
 
+/// Get all defined tags.
+/// \return a range of \c std::string objects
+inline auto
+tags() {
+  // This inefficiently copies the whole map, but it's only for help output.
+  return util::transform_view(
+    state::tag_map(), [](auto & p) -> auto & { return p.first; });
+}
+
 /*!
   Add an output stream to FLOG.
 
@@ -422,6 +432,11 @@ struct devel_tag {
 struct devel_guard {
   devel_guard(devel_tag const &) {}
 };
+
+inline auto
+tags() {
+  return std::vector<std::string>();
+}
 
 inline void
 add_output_stream(std::string const &, std::ostream &, bool = false) {}

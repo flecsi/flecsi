@@ -4,6 +4,8 @@
 #ifndef FLECSI_RUN_OPTIONS_HH
 #define FLECSI_RUN_OPTIONS_HH
 
+#include "flecsi/run/context.hh"
+
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 #include <boost/program_options.hpp>
@@ -235,6 +237,29 @@ private:
   boost::optional<ValueType> value_{};
 
 }; // struct program_option
+
+/// Command-line parser.
+/// The options defined by \c #initialize are not recognized.
+struct getopt {
+  /// Collect \c program_option objects.
+  explicit getopt() : getopt({}) {}
+  explicit getopt(run::config *); // lifetime-bound to argument
+
+  /// Parse command-line arguments.
+  /// Populate \c program_option objects with the results.
+  /// \exception std::logic_error if parsing fails
+  void operator()(int, char **) const;
+  auto parse(int, char **) const;
+
+  /// Return a string describing \c program_option objects.
+  /// \param program name
+  std::string usage(std::string_view p) const;
+
+private:
+  using desc = boost::program_options::options_description;
+  desc basic{"Basic Options"}, all{"All Options"};
+  std::optional<desc> flecsi;
+};
 
 /// \}
 

@@ -3,11 +3,25 @@
 #include "package_c.hh"
 
 #include "flecsi/runtime.hh"
+#include "flecsi/util/unit.hh"
 
 int
-main(int argc, char ** argv) {
+main() {
+  flecsi::run::argv argv{""}; // Boost doesn't like argc==0
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+  {
+    flecsi::run::config cfg;
+    flecsi::util::unit::accelerator_config(cfg);
+    if(auto i = cfg.legion.begin(), e = cfg.legion.end(); i != e)
+      while(++i != e) {
+        argv.push_back("--Xbackend");
+        argv.push_back(std::move(*i));
+      }
+  }
+#endif
 
-  auto status = flecsi::initialize(argc, argv);
+  auto status =
+    flecsi::initialize(argv.size(), flecsi::run::pointers(argv).data());
   status = control::check_status(status);
 
   if(status != flecsi::run::status::success) {

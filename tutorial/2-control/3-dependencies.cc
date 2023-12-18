@@ -14,10 +14,9 @@ const auto dep_ca = package_c_action.add(package_a_action);
 const auto dep_dc = package_d_action.add(package_c_action);
 
 int
-main(int argc, char ** argv) {
-  flecsi::run::arguments args(argc, argv);
-  const flecsi::run::dependencies_guard dg(args.dep);
-  const flecsi::runtime run(args.cfg);
+main() {
+  const flecsi::run::dependencies_guard dg;
+  const flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
-  return run.main<control>(args.act);
+  return run.control<control>();
 } // main
