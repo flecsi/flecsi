@@ -327,37 +327,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 const field<int>::definition<fixed_mesh, fixed_mesh::cells> pressure;
 const field<double>::definition<fixed_mesh, fixed_mesh::vertices> density;
 
-// Exercise the std::vector-like interface:
-int
-permute(topo::connect_field::mutator<rw, rw, wo> m) {
-  UNIT("TASK") {
-    return;
-    const auto && r = m[0];
-    const auto n = r.size();
-    const auto p = &r.front();
-    ASSERT_GT(n, 1u);
-    EXPECT_EQ(p + 1, &r[1]);
-    r.push_back(101);
-    r.pop_back();
-    EXPECT_NE(&r.end()[-2] + 1, &r.back()); // the latter is in the overflow
-    EXPECT_GT(r.size(), r.capacity());
-
-    // Intermediate sizes can exceed the capacity of the underlying raw field:
-    r.insert(r.begin(), 100, 3);
-    EXPECT_EQ(r.end()[-1], 101u);
-    EXPECT_EQ(r[0], r[99]);
-
-    r.erase(r.begin(), r.begin() + 100);
-    r.pop_back();
-    EXPECT_EQ(r.size(), n);
-    EXPECT_NE(&r.front(), p);
-    // TODO: test shrink_to_fit
-
-    // BUG: remove
-    r.clear();
-  };
-}
-
 void
 init_mesh_ids(fixed_mesh::accessor<ro, ro, ro> m,
   field<util::gid>::accessor<wo, wo, wo> cids,
@@ -482,12 +451,6 @@ fixed_driver() {
     }
 
     execute<init_mesh_ids>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh));
-
-    EXPECT_EQ(
-      test<permute>(
-        mesh->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>()(
-          mesh)),
-      0);
 
     EXPECT_EQ(
       test<verify_mesh>(mesh, fixed_mesh::cid(mesh), fixed_mesh::vid(mesh)), 0);
