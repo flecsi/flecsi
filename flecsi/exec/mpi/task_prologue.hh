@@ -61,14 +61,23 @@ protected:
     // from the device side first.
     if constexpr(glob) {
       if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
-        // This is a special case of ghost_copy thus we need the storage
-        // in HostSpace rather than ExecutionSpace.
-        auto host_storage = t->template get_storage<T>(f);
-        util::mpi::test(MPI_Bcast(host_storage.data(),
-          host_storage.size(),
-          flecsi::util::mpi::type<T>(),
-          0,
-          MPI_COMM_WORLD));
+        const auto bcast = [&](auto root) {
+          // This is a special case of ghost_copy thus we need the storage
+          // in HostSpace rather than ExecutionSpace.
+          auto host_storage = t->template get_storage<T,
+            exec::task_processor_type_t::loc,
+            (root ? partition_privilege_t::ro : partition_privilege_t::wo)>(f);
+          util::mpi::test(MPI_Bcast(const_cast<T *>(host_storage.data()),
+            host_storage.size(),
+            flecsi::util::mpi::type<T>(),
+            0,
+            MPI_COMM_WORLD));
+        };
+
+        if(flecsi::run::context::instance().process())
+          bcast(std::false_type());
+        else
+          bcast(std::true_type());
       }
     }
     else
@@ -85,7 +94,7 @@ protected:
         // The partition controls how much memory is allocated.
         return t.template get_partition<Space>();
     }
-    ().template get_storage<T, ProcessorType>(f);
+    ().template get_storage<T, ProcessorType, privilege_merge(P)>(f);
     accessor.bind(storage);
   } // visit generic topology
 
@@ -95,7 +104,9 @@ protected:
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
     const field_id_t f = ref.fid();
     const auto storage =
-      ref.topology()->template get_storage<T, ProcessorType>(f);
+      ref.topology()
+        ->template get_storage<T, ProcessorType, partition_privilege_t::rw>(f);
+
     accessor.bind(storage);
 
     // Reset the storage to identity on all processes except 0
