@@ -28,6 +28,19 @@ struct topology_slot : convert_tag {
   using core = typename Topo::core;
   using coloring = typename Topo::coloring;
 
+  /// Construct without a topology.
+  topology_slot() = default;
+
+  /// Movable.
+  topology_slot(topology_slot && slot) noexcept {
+    data.swap(slot.data);
+  }
+
+  topology_slot & operator=(topology_slot slot) & noexcept {
+    data.swap(slot.data);
+    return *this;
+  }
+
   /// Create the topology.
   /// \param coloring_reference coloring (perhaps from an \link
   ///   topo::specialization::mpi_coloring `mpi_coloring`\endlink)
@@ -46,6 +59,11 @@ struct topology_slot : convert_tag {
   void deallocate() {
     data.reset();
   } // deallocate
+
+  /// Return whether or not this slot is allocated.
+  bool is_allocated() const {
+    return data.has_value();
+  }
 
   core & get() {
     flog_assert(data, "topology not allocated");

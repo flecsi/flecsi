@@ -78,6 +78,7 @@ New features
   * ``unstructured::special_field`` is the field definition for special-entity lists.
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
+  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
 
 * Legion backend
 
