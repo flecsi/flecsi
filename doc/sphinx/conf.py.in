@@ -11,12 +11,7 @@ extensions = [
 templates_path = ['_templates']
 
 # Source suffixes
-source_suffix = [ '.rst', '.md' ]
-
-# This is required for parsing markdown files and non-native file types
-source_parsers = {
-    '.md': 'recommonmark.parser.CommonMarkParser'
-}
+source_suffix = [ '.rst' ]
 
 # Master toctree document
 master_doc = 'index'
