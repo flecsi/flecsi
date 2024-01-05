@@ -257,9 +257,11 @@ initialize(int argc, char ** argv, bool dependent) {
 #endif
     if(vm.count("help"))
       usage(run::help);
-    else if(vm.count("control-model"))
+    else if(vm.count("control-model") ? vm["control-model"].as<bool>() : false)
       ret = run::control_model;
-    else if(vm.count("control-model-sorted"))
+    else if(vm.count("control-model-sorted")
+              ? vm["control-model-sorted"].as<bool>()
+              : false)
       ret = run::control_model_sorted;
   }
   catch(po::error & e) {
