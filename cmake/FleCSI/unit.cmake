@@ -12,7 +12,9 @@ endmacro()
 # if no name is set, use default name "unit_tests"
 #------------------------------------------------------------------------------#
 
-macro(_flecsi_define_unit_tests_target)
+macro(flecsi_enable_testing)
+  enable_testing()
+
   if(NOT DEFINED FLECSI_UNIT_TESTS_TARGET)
     set(FLECSI_UNIT_TESTS_TARGET unit_tests)
   endif()
@@ -20,29 +22,9 @@ macro(_flecsi_define_unit_tests_target)
   if(NOT TARGET ${FLECSI_UNIT_TESTS_TARGET})
     add_custom_target(${FLECSI_UNIT_TESTS_TARGET} ALL)
   endif()
-endmacro()
 
-macro(flecsi_enable_testing)
-  enable_testing()
-  _flecsi_define_unit_tests_target()
   set(FLECSI_ENABLE_TESTING ON)
 endmacro()
-
-function(_flecsi_define_unit_main_target)
-  if(NOT FleCSI_ENABLE_FLOG)
-    message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
-  endif()
-
-  if(NOT TARGET flecsi-unit-main)
-    add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
-    target_link_libraries(flecsi-unit-main PUBLIC FleCSI::FleCSI)
-  endif()
-endfunction()
-
-function(flecsi_test_link_libraries)
-  _flecsi_define_unit_main_target()
-  target_link_libraries(flecsi-unit-main PUBLIC ${ARGN})
-endfunction()
 
 function(_flecsi_get_test_output_dir OUTPUT_DIR)
   get_filename_component(_SOURCE_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -71,7 +53,14 @@ function(flecsi_add_test name)
     message(FATAL_ERROR "You must specify unit test source files using SOURCES")
   endif()
 
-  _flecsi_define_unit_main_target()
+  if(NOT FleCSI_ENABLE_FLOG)
+    message(FATAL_ERROR "Unit tests require FleCSI with FLOG enabled")
+  endif()
+
+  if(NOT TARGET flecsi-unit-main)
+    add_library(flecsi-unit-main OBJECT ${FLECSI_UNIT_MAIN})
+    target_link_libraries(flecsi-unit-main PUBLIC FleCSI::FleCSI)
+  endif()
 
   add_executable(${name} ${unit_SOURCES})
   target_link_libraries(${name} PRIVATE flecsi-unit-main)
