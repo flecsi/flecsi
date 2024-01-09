@@ -127,7 +127,7 @@ context_t::termination_detection() {
       // we need to wait until all HPX threads (except the current one plus all
       // background threads) have exited
       return tm.get_thread_count() >
-             std::int64_t(tm.get_background_thread_count() + 1);
+             static_cast<std::int64_t>(tm.get_background_thread_count() + 1);
     },
     "termination_detection");
 }

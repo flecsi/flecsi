@@ -102,7 +102,6 @@ reduce_internal(Args &&... args) {
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
 
-  // replace arguments in args, for example, field_reference -> accessor.
   constexpr auto processor_type = mask_to_processor_type(Attributes);
   constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
   static_assert(processor_type == task_processor_type_t::toc ||
@@ -110,6 +109,7 @@ reduce_internal(Args &&... args) {
                   processor_type == task_processor_type_t::omp || mpi_task,
     "Unknown launch type");
 
+  // replace arguments in args, for example, field_reference -> accessor.
   auto params =
     detail::make_parameters<mpi_task, typename Traits::arguments_type>(
       std::forward<Args>(args)...);
@@ -129,6 +129,13 @@ reduce_internal(Args &&... args) {
   // The prolog will calculate dependencies between tasks based on the
   // attributes associated with the arguments.
   prolog<processor_type> bound_params(params, args...);
+
+  // Drain all current tasks before scheduling a flecsi::mpi task (the prolog
+  // handling may schedule additional tasks, like ghost-copy operations that
+  // should finish running as well).
+  if constexpr(mpi_task) {
+    flecsi::run::context::instance().termination_detection();
+  }
 
   // 'delay' wraps the given task f such that its execution can be postponed
   // until all dependencies have been satisfied. The dependencies are derived
@@ -233,19 +240,11 @@ template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
 auto
 reduce_internal(Args &&... args) {
 
-  constexpr bool mpi_task =
-    mask_to_processor_type(Attributes) == exec::task_processor_type_t::mpi;
-
-  if constexpr(mpi_task) {
-    // wait for all current tasks to finish executing before running the MPI
-    // task
-    flecsi::run::context::instance().termination_detection();
-  }
-
   auto result = detail::reduce_internal<F, Reduction, Attributes>(
     std::forward<Args>(args)...);
 
-  if constexpr(mpi_task) {
+  if constexpr(mask_to_processor_type(Attributes) ==
+               exec::task_processor_type_t::mpi) {
     // MPI tasks are always synchronous
     result.wait();
   }

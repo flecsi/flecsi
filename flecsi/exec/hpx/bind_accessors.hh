@@ -39,7 +39,7 @@ using region_or_partition =
 template<task_processor_type_t ProcessorType>
 struct bind_accessors {
 
-  bind_accessors(std::vector<region_or_partition> & regions_partitions)
+  explicit bind_accessors(std::vector<region_or_partition> & regions_partitions)
     : argument(0), regions_partitions(regions_partitions) {}
 
 protected:

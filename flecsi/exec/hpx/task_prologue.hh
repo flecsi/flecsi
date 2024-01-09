@@ -150,7 +150,8 @@ protected:
     // The dependencies of this task can be either "read after write" (if this
     // task reads from a field, then any known write to the same field has to
     // finish first), and "write after read" (if this task writes to a field,
-    // then all known reads from the field have to finish before the write).
+    // then all known reads from the field have to finish before the write
+    // operation).
     if constexpr(privilege_write(P)) {
       // request future from promise only if required (once for all arguments)
       if(!future.valid()) {
@@ -295,7 +296,7 @@ public:
           auto finalize = param_buffers(params, task_name);
 
           // rethrow exceptions propagated from dependencies
-          for(auto && f : deps)
+          for(auto && f : std::forward<decltype(deps)>(deps))
             f.get();
 
           // invoke actual task, 'regions_partitions' needs to outlive the task

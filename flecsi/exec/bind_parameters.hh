@@ -45,7 +45,7 @@ template<task_processor_type_t ProcessorType>
 struct bind_parameters : bind_accessors<ProcessorType> {
 
   template<class A, class... Args>
-  bind_parameters(A & a, Args &&... args)
+  explicit bind_parameters(A & a, Args &&... args)
     : bind_accessors<ProcessorType>(std::forward<Args>(args)...) {
     util::annotation::rguard<util::annotation::execute_bind_parameters> ann;
     std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
