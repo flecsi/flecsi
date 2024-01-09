@@ -77,7 +77,6 @@
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
-    - module load cuda/${CUDA_VERSION}
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment

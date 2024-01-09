@@ -35,7 +35,7 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 GCC_VERSION=11.1.0
 
 # Download a version of Spack known to work with FleCSI and activate it.
-SPACK_VERSION=develop-82d41a7be
+SPACK_VERSION=develop-0e9c8838
 
 if [[ "${SPACK_VERSION}" =~ "develop-" ]]; then
   SPACK_COMMIT=$(echo $SPACK_VERSION | cut -d- -f2)
@@ -57,7 +57,7 @@ else
   git fetch origin
 
   if [[ "${SPACK_VERSION}" =~ "develop-" ]]; then
-    if [ "$(_TMP=$(git rev-parse HEAD); echo ${_TMP:0:9})" != "${SPACK_COMMIT}" ]; then
+    if [ "$(_TMP=$(git rev-parse HEAD); echo ${_TMP:0:8})" != "${SPACK_COMMIT}" ]; then
       echo "ERROR: The current checkout does not match ${SPACK_COMMIT}!"
       echo
       echo "Please update manually with:"
