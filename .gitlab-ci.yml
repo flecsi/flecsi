@@ -399,10 +399,10 @@ openmpi-mpi-rocm:
   only:
     - merge_requests
   variables:
-    AMDGPU_TARGET: gfx908
+    AMDGPU_TARGET: gfx90a
     VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    PARTITIONS: shared-gpu-amd-mi100
+    PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -454,7 +454,8 @@ openmpi-poisson-rocm:mpi:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
-    PARTITIONS: shared-gpu-amd-mi100
+    PARTITIONS: shared-gpu-amd-mi250
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 openmpi-poisson-rocm:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
