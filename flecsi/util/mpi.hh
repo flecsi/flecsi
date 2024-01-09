@@ -116,10 +116,10 @@ struct init {
   }
   init(init &&) = delete;
   ~init() {
-#ifndef GASNET_CONDUIT_MPI
-    test(MPI_Finalize());
-#endif
+    if(finalize)
+      test(MPI_Finalize());
   }
+  static inline bool finalize = true; // for GASNet compatibility
 };
 
 struct comm {

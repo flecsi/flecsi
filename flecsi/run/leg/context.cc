@@ -110,6 +110,9 @@ context_t::start(const std::function<int()> & action) {
   context::threads_ = context::processes_ * context::threads_per_process_;
 
   Runtime::start(argv.size(), arguments::pointers(argv).data(), true);
+#ifdef GASNET_CONDUIT_MPI
+  util::mpi::init::finalize = false;
+#endif
 
   while(true) {
     test(MPI_Barrier(MPI_COMM_WORLD));
