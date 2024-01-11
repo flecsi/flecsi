@@ -215,12 +215,15 @@ if os.path.exists(options_file):
 else:
     project_args = []
 
+accepted_std_args = ("-G", "Unix Makefiles", "Ninja", "CMAKE_BUILD_TYPE", "CMAKE_INTERPROCEDURAL_OPTIMIZATION")
+std_args = [] if args.compiler_only else [x for x in app.builder.std_cmake_args if any(n in x for n in accepted_std_args)]
+
 app_args = app.cmake_args()
 if args.compiler_only:
     app_args = [x for x in app_args if
                 any(n in x for n in ("CMAKE_CXX_COMPILER", "CMAKE_C_COMPILER"))]
 
-cmake_args = compiler_args + project_args + app_args + user_cmake_args + dir_args
+cmake_args = std_args + compiler_args + project_args + app_args + user_cmake_args + dir_args
 
 cmake = os.path.join(app_spec["cmake"].prefix, "bin", "cmake")
 print(cmake, *cmake_args, flush=True)
