@@ -71,6 +71,15 @@ getopt::getopt(run::config * init) {
       po::value<run::backend_arg::single>(),
       "Pass single argument to the backend. This option can be passed "
       "multiple times.");
+#if defined(FLECSI_ENABLE_GRAPHVIZ)
+    flecsi_desc.add_options()("control-model",
+      po::bool_switch(),
+      "Output a dot file of the control model. This can be processed into a "
+      "pdf using the dot command, like:\n\033[0;36m$ dot -Tpdf input.dot > "
+      "output.pdf\033[0m")("control-model-sorted",
+      po::bool_switch(),
+      "Output a dot file of the sorted control model actions.");
+#endif
 #if defined(FLECSI_ENABLE_FLOG)
     // Add FleCSI options
     flecsi_desc.add_options() // clang-format off
@@ -248,10 +257,9 @@ initialize(int argc, char ** argv, bool dependent) {
 #endif
     if(vm.count("help"))
       usage(run::help);
-    else if(vm.count("control-model") && vm["control-model"].as<bool>())
+    else if(vm.count("control-model"))
       ret = run::control_model;
-    else if(vm.count("control-model-sorted") &&
-            vm["control-model-sorted"].as<bool>())
+    else if(vm.count("control-model-sorted"))
       ret = run::control_model_sorted;
   }
   catch(po::error & e) {
