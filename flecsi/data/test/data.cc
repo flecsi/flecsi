@@ -146,8 +146,10 @@ ragged_mutator_driver() {
 
     // Test erase
     // -- erase(iterator pos)
-    auto it = m[1].begin() + 3;
-    EXPECT_EQ(&*it, &m[1][3]);
+    auto row_m1 = m[1];
+    ASSERT_GT(row_m1.size(), 3);
+    auto it = row_m1.begin() + 3;
+    EXPECT_EQ(&*it, &row_m1[3]);
     EXPECT_EQ(&*it, &memory[6]);
     m[1].erase(it);
     std::vector<std::size_t> expected_values{3, 4, 5, 7, 8};
