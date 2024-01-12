@@ -276,7 +276,6 @@ openmpi-legion-clang-cuda:
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
-    V100_ARCH_CONSTRAINT: "cpu_family:cascadelake"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -445,7 +444,7 @@ openmpi-poisson-cuda-clang:legion:
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
     PARTITIONS: volta-x86
-    V100_ARCH_CONSTRAINT: "cpu_family:cascadelake"
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-poisson-rocm:mpi:
