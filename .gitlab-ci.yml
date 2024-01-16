@@ -26,7 +26,7 @@ default:
       aud: https://asc-git.lanl.gov
 
 variables:
-  USE_SPACK_UPSTREAM: develop-82d41a7be
+  USE_SPACK_UPSTREAM: develop-0e9c8838
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: "\e[1;34m"
   COLOR_MAGENTA: "\e[1;35m"
@@ -34,23 +34,24 @@ variables:
   COLOR_PLAIN: "\e[0m"
   # global defaults
   GCC_VERSION: 11.1.0
-  CLANG_VERSION: 13.0.1
-  ROCM_VERSION: 5.4.3
-  CUDA_VERSION: 11.8.0
+  CLANG_VERSION: 16.0.6
+  ROCM_VERSION: 5.7.1
+  CUDA_VERSION: 12.2.1
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
-  IB_CONSTRAINT: "--constraint=\"(ib:edr|ib:hdr)\""
-  ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:cascadelake)"
-  V100_CONSTRAINT: "--constraint=\"${ARCH_CONSTRAINT}&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
+  GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
+  V100_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:cascadelake)"
+  V100_CONSTRAINT: "--constraint=\"${V100_ARCH_CONSTRAINT}&(gpu1_model:Tesla_V100S-PCIE-32GB|gpu1_model:Tesla_V100-PCIE-32GB)\""
+  IB_CONSTRAINT: "--constraint=\"${GENERAL_ARCH_CONSTRAINT}&(ib:edr|ib:hdr)\""
   JOB_CONSTRAINTS: "${IB_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
   LEGION_IBV: legion conduit=ibv
   LEGION_MPI: legion conduit=mpi
   LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
-  LEGION_IBV_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=ibv"
-  LEGION_MPI_ROCM: "legion%rocmcc@${ROCM_VERSION} conduit=mpi"
-  KOKKOS_SERIAL: kokkos ~cuda
+  LEGION_IBV_ROCM: "legion+rocm conduit=ibv"
+  LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
+  KOKKOS_SERIAL: kokkos ~cuda ~rocm
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   VERSION: "flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
@@ -271,10 +272,10 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} ^openmpi"
+    CLANG_VERSION: 13.0.1
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
-    ARCH_CONSTRAINT: "cpu_family:cascadelake"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -286,7 +287,8 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} ^openmpi"
+    CLANG_VERSION: 13.0.1
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -399,10 +401,10 @@ openmpi-mpi-rocm:
   only:
     - merge_requests
   variables:
-    AMDGPU_TARGET: gfx908
+    AMDGPU_TARGET: gfx90a
     VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    PARTITIONS: shared-gpu-amd-mi100
+    PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -437,11 +439,12 @@ openmpi-poisson-cuda-clang:legion:
   only:
     - merge_requests
   variables:
+    CLANG_VERSION: 13.0.1
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
     PARTITIONS: volta-x86
-    ARCH_CONSTRAINT: "cpu_family:cascadelake"
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
 openmpi-poisson-rocm:mpi:
@@ -454,7 +457,8 @@ openmpi-poisson-rocm:mpi:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
-    PARTITIONS: shared-gpu-amd-mi100
+    PARTITIONS: shared-gpu-amd-mi250
+    SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
 
 openmpi-poisson-rocm:legion:
   extends: [.ascgit_job, .darwin_standalone_template]

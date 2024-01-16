@@ -222,8 +222,8 @@ FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.
 
 Doxygen can be installed with most Linux package managers.  To install
-Sphinx, you can install ``pip3`` and use it to install ``Sphinx``,
-``recommonmark``, and ``sphinx_rtd_theme``. Your package manager should also
+Sphinx, you can install ``pip3`` and use it to install ``Sphinx``
+and ``sphinx_rtd_theme``. Your package manager should also
 have ``pip3``; e.g., on Ubuntu, you can install all of these requirements
 like:
 
@@ -232,7 +232,6 @@ like:
   $ sudo apt install doxygen
   $ sudo apt install python3-pip
   $ pip3 install Sphinx
-  $ pip3 install recommonmark
   $ pip3 install sphinx_rtd_theme
 
 To enable documentation, do this:

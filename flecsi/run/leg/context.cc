@@ -113,6 +113,9 @@ context_t::start(const std::function<int()> & action, bool check_args) {
     auto args = pointers(argv);
     auto p = args.data();
     Runtime::initialize(&argc, &p, true); // can be done with start after cr-16
+#ifdef GASNET_CONDUIT_MPI
+    util::mpi::init::finalize = false;
+#endif
     if(check_args && argc > 1)
       flog_fatal("unrecognized Legion option: " << p[1]);
     Runtime::start(argc, p, true);

@@ -647,4 +647,8 @@ file named ``report.cali``::
 The output represents collected timings for annotations in the
 ``User-Execution`` annotation context.
 
+.. caution::
+  For Caliper versions below v2.10, you need to replace all the ``duration.ns`` statements by ``duration``
+  in the configuration file.
+
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
