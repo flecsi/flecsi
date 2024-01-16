@@ -9,6 +9,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/util/constant.hh"
 #include "flecsi/util/demangle.hh"
+#include "flecsi/util/mpi.hh"
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -217,6 +218,11 @@ protected:
   ~context() {
 #if defined(FLECSI_ENABLE_FLOG)
     flog::state::reset_instance();
+#endif
+#if defined(REALM_USE_GASNETEX)
+    // ensure all MPI calls have completed on all ranks, prior to letting the
+    // runtime shutdown on any rank when using GASNET
+    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
 #endif
   }
 
