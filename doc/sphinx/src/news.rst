@@ -56,6 +56,11 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
+* Build
+
+  * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
+  * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
+
 * Runtime
 
   * ``runtime`` represents FleCSI initialization as an object.

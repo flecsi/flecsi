@@ -10,16 +10,6 @@ set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
 #------------------------------------------------------------------------------#
-# Compiler version requirements.
-#------------------------------------------------------------------------------#
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-    message(FATAL_ERROR "Version 9.0 of gnu compilers required!")
-  endif()
-endif()
-
-#------------------------------------------------------------------------------#
 # FleCSI
 #------------------------------------------------------------------------------#
 
@@ -42,32 +32,16 @@ endif()
 
 option(ENABLE_UNIT_TESTS "Enable unit tests" OFF)
 mark_as_advanced(ENABLE_UNIT_TESTS)
+include(FleCSI/unit)
 
 if(ENABLE_UNIT_TESTS)
-  enable_testing()
+  flecsi_enable_testing()
 endif()
 
 function(add_unit name)
-  set(options)
-  set(one_value_args)
-  set(multi_value_args ARGUMENTS)
-
-  cmake_parse_arguments(unit "${options}" "${one_value_args}"
-    "${multi_value_args}" ${ARGN})
-
-  # adds explicit single process mpiexec command to avoid errors
-  # when running in some OpenMPI/SLURM environments
-  set(TEST_LAUNCHER ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1)
-
-  add_test(NAME ${name}
-    COMMAND
-      ${TEST_LAUNCHER} $<TARGET_FILE:${name}> ${unit_ARGUMENTS}
-    WORKING_DIRECTORY
-      ${CMAKE_BINARY_DIR}
-  )
+  target_link_libraries(${name} PRIVATE FleCSI::FleCSI)
+  flecsi_add_target_test(${name} ${ARGN})
 endfunction()
-
-include_directories(${PROJECT_SOURCE_DIR})
 
 #------------------------------------------------------------------------------#
 # 1-runtime
@@ -76,13 +50,11 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_executable(runtime-minimal
   1-runtime/1-minimal.cc
 )
-target_link_libraries(runtime-minimal FleCSI::FleCSI)
 add_unit(runtime-minimal)
 
 add_executable(runtime-program_options
   1-runtime/2-program_options.cc
 )
-target_link_libraries(runtime-program_options FleCSI::FleCSI)
 file(TOUCH ${CMAKE_BINARY_DIR}/input.txt)
 add_unit(runtime-program_options
   ARGUMENTS
@@ -92,12 +64,10 @@ add_unit(runtime-program_options
 add_executable(runtime-flog
   1-runtime/3-flog.cc
 )
-target_link_libraries(runtime-flog FleCSI::FleCSI)
 add_unit(runtime-flog)
 
 add_executable(runtime-caliper
   1-runtime/4-caliper.cc)
-target_link_libraries(runtime-caliper FleCSI::FleCSI)
 add_unit(runtime-caliper)
 
 #------------------------------------------------------------------------------#
@@ -108,14 +78,12 @@ add_executable(control-simple
   2-control/1-simple.cc
   2-control/1-simple.hh
 )
-target_link_libraries(control-simple FleCSI::FleCSI)
 add_unit(control-simple)
 
 add_executable(control-cycle
   2-control/2-cycle.cc
   2-control/2-cycle.hh
 )
-target_link_libraries(control-cycle FleCSI::FleCSI)
 add_unit(control-cycle)
 
 add_executable(control-subcycle
@@ -123,7 +91,6 @@ add_executable(control-subcycle
   2-control/2-subcycle.hh
 )
 target_compile_definitions(control-subcycle PUBLIC SUBCYCLE)
-target_link_libraries(control-subcycle FleCSI::FleCSI)
 add_unit(control-subcycle)
 
 add_executable(control-dependencies
@@ -131,14 +98,12 @@ add_executable(control-dependencies
   2-control/3-actions.hh
   2-control/3-dependencies.hh
 )
-target_link_libraries(control-dependencies FleCSI::FleCSI)
 add_unit(control-dependencies)
 
 add_executable(control-state
   2-control/4-state.cc
   2-control/4-state.hh
 )
-target_link_libraries(control-state FleCSI::FleCSI)
 add_unit(control-state)
 
 if(ENABLE_DEVELOPER_MODE)
@@ -172,7 +137,6 @@ add_executable(execution-single-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-single-task FleCSI::FleCSI)
 add_unit(execution-single-task)
 
 add_executable(execution-index-task
@@ -180,7 +144,6 @@ add_executable(execution-index-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-index-task FleCSI::FleCSI)
 add_unit(execution-index-task)
 
 add_executable(execution-mpi-task
@@ -188,7 +151,6 @@ add_executable(execution-mpi-task
   3-execution/control.hh
   3-execution/main.cc
 )
-target_link_libraries(execution-mpi-task FleCSI::FleCSI)
 add_unit(execution-mpi-task)
 
 #------------------------------------------------------------------------------#
@@ -200,7 +162,6 @@ add_executable(data-global
   4-data/main.cc
   4-data/control.hh
 )
-target_link_libraries(data-global FleCSI::FleCSI)
 add_unit(data-global)
 
 add_executable(data-index
@@ -208,7 +169,6 @@ add_executable(data-index
   4-data/main.cc
   4-data/control.hh
 )
-target_link_libraries(data-index FleCSI::FleCSI)
 add_unit(data-index)
 
 add_executable(data-dense
@@ -217,7 +177,6 @@ add_executable(data-dense
   4-data/canonical.hh
   4-data/control.hh
 )
-target_link_libraries(data-dense FleCSI::FleCSI)
 add_unit(data-dense)
 
 #------------------------------------------------------------------------------#
@@ -230,7 +189,6 @@ add_executable(parallel-forall
   5-parallel/control.hh
   4-data/canonical.hh
 )
-target_link_libraries(parallel-forall FleCSI::FleCSI)
 add_unit(parallel-forall)
 
 add_executable(parallel-reduceall
@@ -239,6 +197,5 @@ add_executable(parallel-reduceall
   5-parallel/control.hh
   4-data/canonical.hh
 )
-target_link_libraries(parallel-reduceall FleCSI::FleCSI)
 add_unit(parallel-reduceall)
 

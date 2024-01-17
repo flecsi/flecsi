@@ -60,11 +60,6 @@ set(run_SOURCES
 # Unit tests.
 #------------------------------------------------------------------------------#
 
-#------------------------------------------------------------------------------#
-# Note: The cycle test does not use the 'flecsi_add_test' interface because it 
-# is meant to test different low-level control model features.
-#------------------------------------------------------------------------------#
-
 if(ENABLE_UNIT_TESTS)
   add_executable(cycle
     test/cycle.cc
@@ -77,7 +72,7 @@ if(ENABLE_UNIT_TESTS)
     PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
   target_link_libraries(cycle FleCSI)
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
-  _flecsi_add_mpi_test(cycle TARGET cycle)
+  flecsi_add_target_test(cycle)
 endif()
 
 flecsi_add_test(program-options
