@@ -149,15 +149,17 @@ protected:
 
 template<class Topo, typename Topo::index_space S>
 struct ragged_partitioned
-  : data::region,
-    detail::ragged_partitions<
+  : detail::ragged_partitions<
       ragged_partition<Topo::template privilege_count<S>>> {
   explicit ragged_partitioned(Color r)
-    : region({r, data::logical_size}, util::key_type<S, ragged<Topo>>()) {
+    : reg(new data::region({r, data::logical_size},
+        util::key_type<S, ragged<Topo>>())) {
     for(const auto & fi : run::context::field_info_store<ragged<Topo>, S>())
-      this->part.try_emplace(fi->fid, *this);
+      this->part.try_emplace(fi->fid, *reg);
   }
-  ragged_partitioned(ragged_partitioned &&) = delete; // we store 'this'
+
+private:
+  std::unique_ptr<data::region> reg;
 };
 
 namespace detail {
