@@ -184,6 +184,14 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
   };
 }
 
+void
+mesh_setup(std::string file, unstructured::slot & mesh) {
+  unstructured::cslot coloring;
+  unstructured::init fields;
+  coloring.allocate(file, fields);
+  mesh.allocate(coloring.get(), fields);
+}
+
 field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
 field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
@@ -198,12 +206,7 @@ unstructured_driver() {
     for(auto f : files) {
       unstructured::slot mesh;
       flog(info) << "testing mesh: " << f << std::endl;
-      {
-        unstructured::cslot coloring;
-        unstructured::init fields;
-        coloring.allocate(f, fields);
-        mesh.allocate(coloring.get(), fields);
-      }
+      mesh_setup(f, mesh);
 
       {
         EXPECT_EQ(test<verify_entities>(
@@ -289,14 +292,6 @@ verify_overlap(data::multi<unstructured::accessor<ro, ro, ro>> src_meshes,
                    trg_box.upper[d] <= src_box.upper[d]));
     }
   };
-}
-
-void
-mesh_setup(std::string file, unstructured::slot & mesh) {
-  unstructured::cslot coloring;
-  unstructured::init fields;
-  coloring.allocate(file, fields);
-  mesh.allocate(coloring.get(), fields);
 }
 
 int
