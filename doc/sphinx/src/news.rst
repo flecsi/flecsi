@@ -42,7 +42,7 @@ Deprecated
 * Topologies
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
-  * ``flecsi/topo/narray/interface.hh``, ``flecsi/topo/narray/coloring_utils.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
 
 * Utilities
 
