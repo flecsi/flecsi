@@ -138,9 +138,10 @@ parameters:
   an argument, and an implicit value must be provided. If multi is
   specified, the option takes multiple values.
 
-* *check ([](flecsi::any const &, std::stringstream & ss...)* |br|
+* *check ([](int, std::stringstream & ss) {...})* |br|
   An optional, user-defined predicate to validate the value passed by
   the user.
+  The first argument is of the option's type.
 
 The next option ``--transmission`` is similar but uses a ``std::string``
 value type:
