@@ -183,14 +183,14 @@ as ``(major << 16) | (minor << 8) | patch``.
 
 On **release branches** both major and minor version components are
 set to the release version, however, the patch version component is set
-to its maximul value 255.
+to its maximal value 255.
 
 On **feature branches** only the major version component is set to the
 version value, while the minor version component is set to its maximum
 255 and the patch version component is set to 0.
 
 Finally, on the **develop branch**, the major version component is set
-to its maximum 255, while the other componets are set
+to its maximum 255, while the other components are set
 to 0.
 
 The following table summarizes these rules with some examples:

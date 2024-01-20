@@ -8,8 +8,7 @@
 #include "../4-data/canonical.hh"
 #include "control.hh"
 
-// this tutorial is based on a 04-data/3-dence.cc tutorial example
-// here we will add several forall / parallel_for interfaces
+// this tutorial is based on a 4-data/3-dense.cc tutorial example
 
 using namespace flecsi;
 
