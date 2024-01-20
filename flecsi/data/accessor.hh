@@ -797,7 +797,7 @@ public:
         shift_row(old_offset,
           raw_get(irow).active_size(),
           new_offset,
-          std::bool_constant<true>());
+          std::true_type());
         ++irow;
       }
       else { // This row begins a shift-right block
@@ -814,7 +814,7 @@ public:
           shift_row(old_offsets(j),
             raw_get(j).active_size(),
             new_offsets(j),
-            std::bool_constant<false>());
+            std::false_type());
         }
         // Advance to the next non-shift-right row
         irow = irow_end;
