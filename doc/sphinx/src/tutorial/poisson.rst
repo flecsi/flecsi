@@ -17,7 +17,7 @@ the tutorial. As such, this example provides the following components:
 
 We discuss each of these individually. However, in general, to use this
 example as a template for a real application, you should just change all
-occurrances of ``poisson`` to whatever namespace name you would like to
+occurrences of ``poisson`` to whatever namespace name you would like to
 use for your project.
 
 Build system
@@ -69,7 +69,7 @@ Building the Poisson application
 ++++++++++++++++++++++++++++++++
 
 :ref:`build` FleCSI somewhere on your system and make sure
-that the location is set in your *CMAKE_PREFIX_PATH* environement
+that the location is set in your ``CMAKE_PREFIX_PATH`` environment
 variable. Then, you can build this example like:
 
 .. code-block:: console

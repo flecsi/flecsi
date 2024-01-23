@@ -460,6 +460,6 @@ fixed_driver() {
     execute<update_density, default_accelerator>(mesh, density(mesh));
     execute<check_density>(mesh, density(mesh));
   };
-} // unstructured_driver
+}
 
 util::unit::driver<fixed_driver> driver;

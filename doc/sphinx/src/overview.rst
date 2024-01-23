@@ -65,7 +65,7 @@ It is also divided into *User Guide* and *Developer Guide* sections.
 
 All users should read the *User Guide* documentation and work
 through the tutorials, as these describe the runtime, control,
-execution, and data models that define the FLeCSI programming model.
+execution, and data models that define the FleCSI programming model.
 Users who are interested in developing FleCSI specializations should
 also read the *Developer Guide*. Finally, FleCSI core developers should
 read the *Core Guide*.
@@ -85,7 +85,7 @@ The release notes advertise new features and bug fixes, announce deprecations, a
 Namespaces
 ++++++++++
 
-FlecSI uses C++ namespaces to identify interfaces that are intended for
+FleCSI uses C++ namespaces to identify interfaces that are intended for
 different user types:
 
 * **flecsi** |br|
@@ -101,7 +101,7 @@ different user types:
 * **flecsi::X** |br|
   The types and functions defined in *flecsi::X* namespaces, where *X*
   is nested within *flecsi*, e.g., *flecsi::topology*, should only be
-  used by specialzation and core developers.
+  used by specialization and core developers.
 
 * **flecsi::X::Y** |br|
   The types and functions defined in *flecsi::X::Y* namespaces are

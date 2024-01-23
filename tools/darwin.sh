@@ -113,7 +113,6 @@ if [ -d "$DARWIN_SPACK_UPSTREAM" ] && [ -x "${DARWIN_SPACK_UPSTREAM}" ]; then
   # add spack upstream if accessible
   spack config add upstreams:default:install_tree:${DARWIN_SPACK_UPSTREAM}/opt/spack/
   cp ${DARWIN_SPACK_UPSTREAM}/etc/spack/{compilers.yaml,packages.yaml} $HOME/spack/etc/spack/
-  cp ${DARWIN_SPACK_UPSTREAM}/bin/mpiexec $HOME/spack/bin/
 else
   # Otherwise, load a compatible cmake and expose whatever else happens to be
   # sitting around as Spack externals

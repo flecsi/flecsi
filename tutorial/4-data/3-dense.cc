@@ -2,8 +2,8 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
+#include "../3-execution/control.hh"
 #include "canonical.hh"
-#include "control.hh"
 
 using namespace flecsi;
 

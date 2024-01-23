@@ -112,8 +112,7 @@ struct config : config_base {
 
 /// RAII guard for initializing/finalizing FleCSI dependencies.
 /// Which are included depends on configuration.
-/// Only one guard can exist at a time.
-/// \warning Some libraries cannot ever be reinitialized.
+/// Only one guard can ever exist.
 struct dependencies_guard {
   /// Construct the guard.
   dependencies_guard(dependencies_config = {});

@@ -14,6 +14,8 @@
 namespace flecsi::util::unit {
 /// \defgroup unit Unit Testing
 /// Unit test framework much like Google Test but with task support.
+/// Each \a Target is a function with signature `int()`; if any returns a
+/// non-zero value, so does the process built with \c flecsi_add_test.
 /// Output is via \ref flog.
 /// \ingroup utils
 /// \{

@@ -77,25 +77,13 @@ struct context_t : context {
 
   context_t(const config &);
 
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
-
   int start(const std::function<int()> &, bool);
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
 
   static int task_depth() {
     return Legion::Runtime::get_runtime()
       ->get_current_task(Legion::Runtime::get_context())
       ->get_depth();
   } // task_depth
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
 
   static Color color() {
     flog_assert(
@@ -104,10 +92,6 @@ struct context_t : context {
       ->get_current_task(Legion::Runtime::get_context())
       ->index_point.point_data[0];
   } // color
-
-  /*
-    Documentation for this interface is in the top-level context type.
-   */
 
   static Color colors() {
     flog_assert(
