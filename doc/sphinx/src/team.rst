@@ -268,7 +268,7 @@ Navamita Ray
     Navamita is a staff scientist in the co-design team in CCS-7 with
     expertise in meshing technologies and numerical methods.
     At LANL, she has been involved in designing and developing mesh data
-    structures for advanced programming runtimes targeting hetergeneous
+    structures for advanced programming runtimes targeting heterogeneous
     architectures for exascale computing.
     She is also working on next generation libraries for conservative
     data remapping to link LANL applications.
@@ -482,7 +482,7 @@ Wei Wu
       *Los Alamos National Laboratory*
 
       Wei is a computer scientist whose research is focused on runtime
-      systems and programing models for heterogeneous systems.
+      systems and programming models for heterogeneous systems.
       He has worked on a variety of task-based runtime systems, such as
       Legion and PaRSEC.
       He was also a member of the Open MPI team, developing CUDA-aware

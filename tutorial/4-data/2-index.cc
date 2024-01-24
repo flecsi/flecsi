@@ -2,7 +2,7 @@
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-#include "control.hh"
+#include "../3-execution/control.hh"
 
 using namespace flecsi;
 
