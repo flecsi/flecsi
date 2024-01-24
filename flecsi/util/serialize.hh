@@ -175,6 +175,8 @@ struct container {
   }
 };
 } // namespace detail
+
+/// \}
 } // namespace serial
 
 // Unfortunately, std::tuple<int> is not trivially copyable, so check more:
@@ -187,6 +189,9 @@ constexpr bool bit_copyable_v =
   std::is_default_constructible_v<T> && bit_assignable_v<T>;
 
 namespace serial {
+/// \addtogroup serial
+/// \{
+
 template<class T>
 struct traits<T, std::enable_if_t<bit_copyable_v<T>>> {
   static_assert(!std::is_pointer_v<T>, "Cannot serialize pointers");

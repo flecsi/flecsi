@@ -403,7 +403,8 @@ struct detail::base<unstructured> {
 
 #ifdef DOXYGEN
 /// Example specialization which is not really implemented.
-struct unstructured_specialization : specialization<unstructured, example> {
+struct unstructured_specialization
+  : specialization<unstructured, unstructured_specialization> {
   /// Connectivity information to store.
   /// The format is\code
   /// list<from<cells, to<vertices, edges>>>,

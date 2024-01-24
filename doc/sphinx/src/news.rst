@@ -131,6 +131,7 @@ Fixed
 * Legion backend
 
   * ``omp`` tasks now work in builds with GPU support.
+  * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
 
 * On-node parallelism
 
