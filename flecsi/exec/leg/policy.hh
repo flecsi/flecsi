@@ -174,8 +174,10 @@ reduce_internal(Args &&... args) {
     launcher.point_futures.assign(
       pro.future_maps().begin(), pro.future_maps().end());
 
-    if(mpi_task)
+    if(mpi_task) {
       launcher.tag = run::mapper::force_rank_match;
+      legion_runtime->issue_execution_fence(legion_context).wait();
+    }
 
     if constexpr(!std::is_void_v<Reduction>) {
       flog_devel(info) << "executing reduction logic for "
