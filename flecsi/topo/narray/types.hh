@@ -30,6 +30,8 @@ using interval = std::pair<std::size_t, std::size_t>;
 using colors = std::vector<Color>;
 
 /// \cond core
+
+// Generate all selections from {-1,0,1} other than all 0s.
 template<Dimension D>
 struct neighbors_view {
   using S = short;
@@ -78,6 +80,8 @@ struct neighbors_view {
   }
 };
 
+// Generate multi-indices in a hyperrectangle.
+// The first index varies fastest.
 template<Dimension D, typename I = util::id>
 struct traverse {
   using M = std::array<I, D>;
