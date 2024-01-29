@@ -5,6 +5,7 @@ User Guide
   :caption: User Guide:
 
   user-guide/programming
+  user-guide/data-model
   user-guide/topologies
   user-guide/utilities
   user-guide/specializations
