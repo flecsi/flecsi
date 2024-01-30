@@ -16,7 +16,7 @@ if [ -d ../flecsi ] ; then
     cd ..
 else
     cd -
-    git clone git@gitlab.lanl.gov:flecsi/flecsi.git
+    git clone ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
     cd flecsi
 fi
 
