@@ -308,7 +308,7 @@ The former is the preferred approach.  From a back-end node, run
 
 .. code-block:: console
 
-  $ git clone git@gitlab.lanl.gov:flecsi/flecsi.git
+  $ git clone ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
   $ flecsi/tools/darwin.sh
 
 The script performs the following operations:
