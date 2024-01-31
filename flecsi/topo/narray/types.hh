@@ -426,15 +426,6 @@ struct index_definition {
     return nc;
   }
 
-  /// Number of indices in index space
-  util::gid indices() const {
-    util::gid indices{1};
-    for(const auto & ax : axes) {
-      indices *= ax.colormap.total();
-    } // for
-    return indices;
-  }
-
   /*!
    * Return a coloring for the current MPI rank on the given
    * communicator
