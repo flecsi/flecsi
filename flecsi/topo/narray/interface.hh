@@ -42,6 +42,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using id = util::id;
+  static_assert(index_spaces::size, "no index spaces");
 
   static constexpr Dimension dimension = Policy::dimension;
   static_assert(dimension == axes::size);
