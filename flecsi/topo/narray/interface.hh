@@ -333,9 +333,10 @@ private:
     }
 
     template<typename F>
-    static void traverse(A & lbnds, A & ubnds, A & strs, F f) {
+    static void
+    traverse(const A & lbnds, const A & ubnds, const A & strs, F f) {
       using tb = narray_impl::traverse<dimension>;
-      narray_impl::linearize<dimension> ln{strs};
+      const narray_impl::linearize<dimension> ln{strs};
       for(auto && v : tb(lbnds, ubnds)) {
         auto lid = ln(v);
         if(f(lid))
@@ -344,15 +345,15 @@ private:
     } // traverse
 
     static void ngb_color_boxes(bool diagonals,
-      std::array<bool, dimension> & periodic,
-      A & bdepth,
-      A & color_strs,
-      A & center_color,
-      A2 & ngb_lbnds,
-      A2 & ngb_ubnds,
+      const std::array<bool, dimension> & periodic,
+      const A & bdepth,
+      const A & color_strs,
+      const A & center_color,
+      const A2 & ngb_lbnds,
+      const A2 & ngb_ubnds,
       Bounds & color_bounds) {
       using nview = flecsi::topo::narray_impl::neighbors_view<dimension>;
-      narray_impl::linearize<dimension> ln{color_strs};
+      const narray_impl::linearize<dimension> ln{color_strs};
       for(auto && v : nview(diagonals)) {
         A color_indices;
         for(Dimension k = 0; k < dimension; ++k) {

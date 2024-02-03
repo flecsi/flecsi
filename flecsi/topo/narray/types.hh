@@ -158,7 +158,7 @@ struct linearize {
   using M = std::array<I, D>;
   M strs;
 
-  I operator()(M indices) {
+  I operator()(M indices) const {
     I lid = indices[D - 1];
     for(Dimension k = D - 1; k--;) {
       lid = lid * strs[k] + indices[k];
