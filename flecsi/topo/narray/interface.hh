@@ -81,8 +81,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   void ghost_copy(
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
-      using Impl =
-        ragged_impl<Space, Type, Policy::template privilege_count<Space>>;
+      using Impl = ragged_impl<Space, Type>;
       buffers_.template get<Space>().template xfer<Impl::start, Impl::xfer>(
         f, meta_field(this->meta));
     }
@@ -203,13 +202,14 @@ private:
   }
 
   /// Ragged communication routines
-  template<typename Policy::index_space Space, typename T, PrivilegeCount N>
+  template<typename Policy::index_space Space, typename T>
   struct ragged_impl {
     using A = std::array<int, dimension>;
     using A2 = std::array<A, 3>;
 
     using Bounds = std::map<Color, std::vector<int>>;
 
+    static constexpr PrivilegeCount N = Policy::template privilege_count<Space>;
     using fa = typename field<T,
       data::ragged>::template accessor1<privilege_ghost_repeat<ro, na, N>>;
 
