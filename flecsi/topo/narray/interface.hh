@@ -515,7 +515,7 @@ struct narray<Policy>::access {
   FLECSI_INLINE_TARGET auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
-    return util::mdspan(s.data(), extents<S>());
+    return util::mdspan(s.data(), check_extents<S>(s));
   }
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
@@ -524,7 +524,8 @@ struct narray<Policy>::access {
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
-    return util::mdcolex(a.span().data(), extents<S>());
+    const auto s = a.span();
+    return util::mdcolex(s.data(), check_extents<S>(s));
   }
 
   template<class F>
@@ -546,6 +547,16 @@ private:
     size_;
 
   data::scalar_access<narray::meta_field, Priv> meta_;
+
+  template<index_space S, class C>
+  auto check_extents(const C & c) const {
+    const auto e = extents<S>();
+    const auto sz = std::apply([](auto... ii) { return (util::gid(ii) * ...); },
+      static_cast<const typename decltype(e)::array &>(e));
+    flog_assert(
+      sz == c.size(), "field has size " << c.size() << ", not " << sz);
+    return e;
+  }
 
   /*!
    Method to access global extents of index space S along
