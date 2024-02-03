@@ -208,6 +208,8 @@ private:
     using A = std::array<int, dimension>;
     using A2 = std::array<A, 3>;
 
+    using Bounds = std::map<Color, std::vector<int>>;
+
     using fa = typename field<T,
       data::ragged>::template accessor1<privilege_ghost_repeat<ro, na, N>>;
 
@@ -218,18 +220,20 @@ private:
       data::single>::template accessor<ro>;
 
     static void start(fa v, mfa mf, data::buffers::Start mv) {
-      send(v, mf, true, mv);
+      Bounds b;
+      get_ngb_color_bounds(true, mf->template get<Space>(), b);
+      send(v, mf, true, mv, b);
     } // start
 
     static int xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) {
       // get the meta data for the index space
       meta_data md = mf->template get<Space>();
-      std::map<Color, std::vector<int>> color_bounds;
+      Bounds color_bounds;
       get_ngb_color_bounds(false, md, color_bounds);
 
       // The start of receive buffer id depends on the number
       // of sent buffers.
-      std::map<Color, std::vector<int>> color_bounds_send;
+      Bounds color_bounds_send;
       get_ngb_color_bounds(true, md, color_bounds_send);
 
       A lbnds, ubnds, strs;
@@ -262,12 +266,14 @@ private:
       }
 
       // resume transfer if data was not fully packed during start
-      return send(g, mf, false, mv);
+      return send(g, mf, false, mv, color_bounds_send);
     } // xfer
 
   private:
+    // color_bounds could be computed, but xfer already needs it.
     template<typename F, typename B>
-    static bool send(F f, mfa mf, bool first, B mv) {
+    static bool
+    send(F f, mfa mf, bool first, B mv, const Bounds & color_bounds) {
       // get the meta data for the index space
       meta_data md = mf->template get<Space>();
       bool sent = false;
@@ -276,9 +282,6 @@ private:
       for(Dimension i = 0; i < dimension; i++) {
         strs[i] = md.axcol[i].extent();
       }
-
-      std::map<Color, std::vector<int>> color_bounds;
-      get_ngb_color_bounds(true, md, color_bounds);
 
       int p = 0;
       for(auto & [c, v] : color_bounds) {
@@ -300,8 +303,8 @@ private:
     } // send
 
     static void get_ngb_color_bounds(bool send,
-      meta_data & md,
-      std::map<Color, std::vector<int>> & color_bounds) {
+      const meta_data & md,
+      Bounds & color_bounds) {
 
       // For each axis, store the neigh color ids, and the
       // lower and upper bounds for sending/receiving data
@@ -347,7 +350,7 @@ private:
       A & center_color,
       A2 & ngb_lbnds,
       A2 & ngb_ubnds,
-      std::map<Color, std::vector<int>> & color_bounds) {
+      Bounds & color_bounds) {
       using nview = flecsi::topo::narray_impl::neighbors_view<dimension>;
       narray_impl::linearize<dimension> ln{color_strs};
       for(auto && v : nview(diagonals)) {
@@ -411,8 +414,10 @@ private:
      *                             h      logical      h
      *
      * */
-    static void
-    axes_bounds(bool send, meta_data & md, A2 & ngb_lbnds, A2 & ngb_ubnds) {
+    static void axes_bounds(bool send,
+      const meta_data & md,
+      A2 & ngb_lbnds,
+      A2 & ngb_ubnds) {
       // fill out the indices of the ngb colors
       int p = 0;
       for(auto & ax : md.axcol) {
