@@ -87,6 +87,7 @@ struct control_policy : control_base {
   /// Each element is a \c control_base::point or a \c control_base::cycle.
   using control_points = list<>;
   /// Base class for control point objects.
+  /// Non-empty node policies are \b deprecated.
   struct node_policy {};
 };
 
@@ -246,7 +247,10 @@ public:
 
   /*!
     The action type provides a mechanism to add execution elements to the
-    FleCSI control model.
+    FleCSI control model.  The \c P::node_policy structure that gets
+    instantiated was intended originally for sharing of data across actions.
+    This usage is deprecated, and \c P::node_policy now should be defined as an
+    empty \c struct.
 
     \tparam T function to call, of type `void(P&)` if \c P inherits from
       \c control_base and `int()` otherwise
@@ -265,13 +269,24 @@ public:
 
     /*!
       Add a function to be executed under the specified control point.
+     */
+
+    action() : node_(util::symbol<*T>(), T) {
+      static_assert(M == run_impl::is_meta<control_points>(CP),
+        "you cannot use this interface for internal control points!");
+      instance().control_point_dag(CP).push_back(&node_);
+    }
+
+    /*!
+      Add a function to be executed under the specified control point.
+      \deprecated Use the argument-less constructor.
 
       @param args   A variadic list of arguments that are forwarded to the
                     user-defined node type, as specified in the control policy
      */
 
     template<typename... Args>
-    action(Args &&... args)
+    [[deprecated("actions should not take arguments")]] action(Args &&... args)
       : node_(util::symbol<*T>(), T, std::forward<Args>(args)...) {
       static_assert(M == run_impl::is_meta<control_points>(CP),
         "you cannot use this interface for internal control points!");
@@ -310,20 +325,13 @@ public:
   template<target_type T, control_points_enum CP>
   using meta = action<T, CP, true>;
 
-  /*!
-    Execute the control model. This method does a topological sort of the
-    actions under each of the control points to determine a non-unique, but
-    valid ordering, and executes the actions.  If the policy `P` inherits from
-    `control_base`, an object of type \c P is initialized from \a aa and
-    destroyed before this function returns.
-    \c control_base::exception can be thrown for early
-    termination.
-    \param aa only if inheriting from \c control_base
-    \return code from a thrown \c control_base::exception or the
-    bitwise or of return values of executed actions.
-   */
+private:
+  // Perform all the work for invoke.
+  // The reason for this factorization is so execute and invoke can
+  // complain differently about a non-empty node_policy (via a
+  // deprecation warning and a static_assert, respectively).
   template<class... AA>
-  static int invoke(AA &&... aa) {
+  static int do_invoke(AA &&... aa) {
     if constexpr(is_control_base_policy) {
       try {
         P pol(std::forward<AA>(aa)...);
@@ -338,10 +346,34 @@ public:
       return instance().run(nullptr);
     }
   }
-  /// Call \c #invoke with no arguments.
-  /// \deprecated Use \c invoke directly or call \c runtime::control.
+
+public:
+  /*!
+    Execute the control model. This method does a topological sort of the
+    actions under each of the control points to determine a non-unique, but
+    valid ordering, and executes the actions.  If the policy `P` inherits from
+    `control_base`, an object of type \c P is initialized from \a aa and
+    destroyed before this function returns.
+    \c control_base::exception can be thrown for early
+    termination.
+    The control policy must define an empty \c node_policy,
+    or the code will fail to compile.
+    \param aa only if inheriting from \c control_base
+    \return code from a thrown \c control_base::exception or the
+    bitwise or of return values of executed actions.
+   */
+  template<class... AA>
+  static int invoke(AA &&... aa) {
+    static_assert(std::is_empty_v<typename policy_type::node_policy>,
+      "node_policy must be empty");
+    return do_invoke(std::forward<AA>(aa)...);
+  }
+
+  /// Perform the same operation as \c #invoke with no arguments
+  /// but do not abort compilation if \c node_policy is non-empty.
+  /// \deprecated Call \c #invoke directly or use \c runtime::control.
   [[deprecated("use invoke")]] static int execute() {
-    return invoke();
+    return do_invoke();
   }
 
   /*!

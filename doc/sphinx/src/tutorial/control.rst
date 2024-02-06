@@ -291,11 +291,12 @@ This type is used in the control interface for declaring actions:
   :start-at: // Capture the control points enumeration type
   :end-at: using control_points_enum = cp
 
-The next type is the *node_policy*. Each set of actions under a control
-point forms a DAG.
-Specifying a non-trivial node policy allows the user to add additional
-interfaces and data to an action.
-In this simple example, the node type is empty:
+The next type is the node policy.
+This must be empty: ``struct node_policy {};``.
+As the inline comments below indicate,
+*node_policy* originally was conceived
+as a means of supplying additional interfaces and data to an action
+but is now deprecated.
 
 .. literalinclude:: ../../../../tutorial/2-control/1-simple.hh
   :language: cpp

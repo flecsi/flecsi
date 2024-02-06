@@ -44,6 +44,8 @@ struct runtime {
   /// \return resulting exit code
   template<class C, class... AA>
   int control(AA &&... aa) const {
+    static_assert(std::is_empty_v<typename C::policy_type::node_policy>,
+      "node_policy must be empty");
     auto & ctx = run::context::instance();
     return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); }, true);
   }
