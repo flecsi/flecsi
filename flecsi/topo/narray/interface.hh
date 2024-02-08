@@ -409,10 +409,6 @@ private:
 
   static void set_policy_meta(typename field<typename Policy::meta_data,
     data::single>::template accessor<wo>) {}
-
-  /// Initialization for user policy meta_data.
-  /// Executes a mpi task "set_policy_meta" which
-  /// copies the relevant user-define meta data as part of the topology.
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta>(policy_meta_field(this->meta));
   }
