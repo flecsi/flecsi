@@ -156,9 +156,9 @@ struct stream<std::tuple<TT...>> {
       p);
   }
 };
-template<template<typename, typename> typename C, typename T, typename A>
-struct stream<C<T, A>> {
-  static void put(const output & o, C<T, A> const & c) {
+template<typename T>
+struct stream<std::vector<T>> {
+  static void put(const output & o, std::vector<T> const & c) {
     put_range({o, '[', ']'}, c);
   }
 };
