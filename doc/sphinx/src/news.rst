@@ -49,6 +49,7 @@ Fixed
 
   * ``omp`` tasks now work in builds with GPU support.
   * MPI tasks properly wait on previously launched tasks.
+  * Launches of zero point tasks succeed (vacuously).
   * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
 
 * On-node parallelism

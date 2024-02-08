@@ -162,14 +162,10 @@ reduce_internal(Args &&... args) {
   else {
     flog_devel(info) << "Executing index task" << std::endl;
 
-    LegionRuntime::Arrays::Rect<1> launch_bounds(
-      LegionRuntime::Arrays::Point<1>(0),
-      LegionRuntime::Arrays::Point<1>(domain_size - 1));
-    Domain launch_domain = Domain::from_rect<1>(launch_bounds);
-
-    Legion::ArgumentMap arg_map;
-    Legion::IndexLauncher launcher(
-      task, launch_domain, TaskArgument(buf.data(), buf.size()), arg_map);
+    IndexTaskLauncher launcher(task,
+      Domain::from_rect<1>({0, static_cast<coord_t>(domain_size) - 1}),
+      {buf.data(), buf.size()},
+      {});
     add(launcher);
     launcher.point_futures.assign(
       pro.future_maps().begin(), pro.future_maps().end());
