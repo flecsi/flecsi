@@ -385,7 +385,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
       if(!r) // resumption information exists only if any rows were sent
         return;
       const auto e = ghost.end();
-      auto g = std::next(std::forward<R>(ghost).begin(), r.get<std::size_t>());
+      auto g = std::next(ghost.begin(), r.get<std::size_t>());
       bool resume = r();
       for(; g != e; ++g) {
         const auto row = rag[*g];
