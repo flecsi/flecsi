@@ -300,17 +300,6 @@ template<Dimension DIM>
 void
 intersect(const KDTree<DIM> & k1,
   const KDTree<DIM> & k2,
-  std::vector<A2> & candidates) {
-  intersect(k1, k2, 0, 0, candidates);
-  std::sort(candidates.begin(), candidates.end(), [](A2 & a1, A2 & a2) {
-    return a1[1] < a2[1];
-  });
-}
-
-template<Dimension DIM>
-void
-intersect(const KDTree<DIM> & k1,
-  const KDTree<DIM> & k2,
   int i1,
   int i2,
   std::vector<A2> & candidates) {
