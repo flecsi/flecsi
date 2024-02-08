@@ -176,7 +176,7 @@ reduce_internal(Args &&... args) {
 
     if(mpi_task) {
       launcher.tag = run::mapper::force_rank_match;
-      legion_runtime->issue_execution_fence(legion_context).wait();
+      legion_runtime->issue_execution_fence(legion_context);
     }
 
     if constexpr(!std::is_void_v<Reduction>) {
