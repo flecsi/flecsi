@@ -192,6 +192,9 @@ else:
     # assume anything else is LLVM-based
     compiler_family = "llvm"
 
+if app_spec.satisfies("+kokkos ^kokkos+wrapper"):
+    compiler_family = "nvcc"
+
 dir_args = ["-B", binary_dir, "-S", source_dir]
 
 # find options.json in source dir or parent source dir

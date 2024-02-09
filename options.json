@@ -6,5 +6,9 @@
   "llvm": {
     "c_flags": "-fcolor-diagnostics -Wno-unknown-cuda-version -Wall -Wundef -W -Werror -Wvla",
     "cxx_flags": "-Wextra-semi"
+  },
+  "nvcc": {
+    "c_flags": "-Wall -W -Werror -Wvla",
+    "cxx_flags": "-Wextra-semi"
   }
 }
