@@ -278,62 +278,50 @@ KDTree<DIM>::KDTree(const boxes & sboxp)
   }
 }
 
-using A2 = std::array<long, 2>;
-
 template<Dimension DIM>
-void
-intersect(const KDTree<DIM> & k1,
-  const KDTree<DIM> & k2,
-  std::map<long, std::vector<long>> & candidates) {
-  std::vector<A2> cnds;
-  intersect(k1, k2, 0, 0, cnds);
-  // add to map
-  for(auto & c : cnds)
-    candidates[c[1]].push_back(c[0]);
+auto
+intersect(const KDTree<DIM> & k1, const KDTree<DIM> & k2) {
+  std::map<long, std::vector<long>> ret;
 
-  // sort map entries
-  for(auto & c : candidates)
-    std::sort(c.second.begin(), c.second.end());
-}
+  const auto rec = [&](auto & f, int i1, int i2) -> void {
+    if(k1.sbox[i1].intersects(k2.sbox[i2])) {
+      // We don't want to test every leaf of one tree against some large
+      // safety box of the other tree that might intersect them even though
+      // most of its contents do not, so split both trees simultaneously.
+      auto l1 = k1.linkp[i1];
+      auto l2 = k2.linkp[i2];
 
-template<Dimension DIM>
-void
-intersect(const KDTree<DIM> & k1,
-  const KDTree<DIM> & k2,
-  int i1,
-  int i2,
-  std::vector<A2> & candidates) {
-  const auto rec = [&](int i, int j) { intersect(k1, k2, i, j, candidates); };
-  if(k1.sbox[i1].intersects(k2.sbox[i2])) {
-    // We don't want to test every leaf of one tree against some large
-    // safety box of the other tree that might intersect them even though
-    // most of its contents do not, so split both trees simultaneously.
-    auto l1 = k1.linkp[i1];
-    auto l2 = k2.linkp[i2];
-
-    if(l1 <= 0) { // box 1 is a leaf
-      if(l2 <= 0) // so is box 2
-        candidates.push_back({-l1, -l2});
+      if(l1 <= 0) { // box 1 is a leaf
+        if(l2 <= 0) // so is box 2
+          ret[-l2].push_back(-l1);
+        else {
+          // split only the non-leaf:
+          f(f, i1, l2);
+          f(f, i1, l2 + 1);
+        }
+      }
       else {
-        // split only the non-leaf:
-        rec(i1, l2);
-        rec(i1, l2 + 1);
+        // split box 1
+        for(long d = 0; d < 2; ++d)
+          // and box 2 if possible
+          if(l2 <= 0) {
+            f(f, l1 + d, i2);
+          }
+          else {
+            f(f, l1 + d, l2);
+            f(f, l1 + d, l2 + 1);
+          }
       }
     }
-    else {
-      // split box 1
-      for(long d = 0; d < 2; ++d)
-        // and box 2 if possible
-        if(l2 <= 0) {
-          rec(l1 + d, i2);
-        }
-        else {
-          rec(l1 + d, l2);
-          rec(l1 + d, l2 + 1);
-        }
-    }
-  }
+  };
+
+  rec(rec, 0, 0);
+  for(auto & [_, v] : ret)
+    std::sort(v.begin(), v.end());
+
+  return ret;
 }
+
 } // namespace util
 } // namespace flecsi
 #endif

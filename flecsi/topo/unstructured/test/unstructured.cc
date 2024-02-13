@@ -339,8 +339,7 @@ geomrz_driver() {
     util::KDTree<2> trg_tree(trg_boxes);
 
     // search two kdtrees
-    std::map<long, std::vector<long>> candidates_map;
-    util::intersect<2>(src_tree, trg_tree, candidates_map);
+    const auto candidates_map = util::intersect(src_tree, trg_tree);
 
     // launch maps
     data::launch::Claims cmap(trg_mesh.colors());
