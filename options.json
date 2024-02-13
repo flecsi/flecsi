@@ -8,7 +8,7 @@
     "cxx_flags": "-Wextra-semi"
   },
   "nvcc": {
-    "c_flags": "-Wall -W -Werror -Wvla",
+    "c_flags": "-W -Wvla",
     "cxx_flags": "-Wextra-semi"
   }
 }
