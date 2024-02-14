@@ -710,32 +710,8 @@ protected:
    */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
-    if constexpr(DM == domain::logical) {
-      return make_ids<S>(
-        util::iota_view<util::id>(logical<S, A, 0>(), logical<S, A, 1>()));
-    }
-    else if constexpr(DM == domain::extended) {
-      return make_ids<S>(
-        util::iota_view<util::id>(extended<S, A, 0>(), extended<S, A, 1>()));
-    }
-    else if constexpr(DM == domain::all) {
-      return make_ids<S>(util::iota_view<util::id>(0, extent<S, A>()));
-    }
-    else if constexpr(DM == domain::boundary_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
-    }
-    else if constexpr(DM == domain::boundary_high) {
-      return make_ids<S>(util::iota_view<util::id>(
-        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
-    }
-    else if constexpr(DM == domain::ghost_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
-    }
-    else {
-      static_assert(DM == domain::ghost_high, "invalid domain identifier");
-      return make_ids<S>(util::iota_view<util::id>(
-        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
-    }
+    const auto o = offset<S, A, DM>();
+    return make_ids<S>(util::iota_view<util::id>(o, o + size<S, A, DM>()));
   }
 
   /*!
