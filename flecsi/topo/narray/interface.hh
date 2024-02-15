@@ -766,11 +766,6 @@ protected:
   }
 
 private:
-  template<axis A>
-  FLECSI_TARGET static constexpr std::uint32_t to_idx() {
-    return axes::template index<A>;
-  }
-
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET const axis_color & get_axis() const {
     return meta_->template get<S>().axcol.template get<A>();

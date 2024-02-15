@@ -411,10 +411,7 @@ struct index_definition {
 
   /// Dimensions of index space
   Dimension dimensions() const {
-    const Dimension dimensions = axes.size();
-    flog_assert(dimensions < 17,
-      "current implementation is limited to 16 dimensions (uint32_t)");
-    return dimensions;
+    return axes.size();
   }
 
   /// Number of colors in index space
