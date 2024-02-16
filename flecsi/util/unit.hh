@@ -49,8 +49,6 @@ struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = test_control_points;
 
-  struct node_policy {};
-
   using control_points = list<point<control_points_enum::initialization>,
     point<control_points_enum::driver>,
     point<control_points_enum::finalization>>;

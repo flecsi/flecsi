@@ -74,12 +74,13 @@ struct control_base {
   struct exception {
     int code; /// status code
   };
+
+  struct node_policy {};
 };
 
 #ifdef DOXYGEN
 /// An example control policy that is not really implemented.
-/// Inheriting from \c control_base is optional,
-/// but not doing so is \b deprecated.
+/// Inheriting from \c control_base is required for using \c control::invoke.
 struct control_policy : control_base {
   /// The labels for the control-flow graph.
   enum control_points_enum {};
@@ -87,7 +88,7 @@ struct control_policy : control_base {
   /// Each element is a \c control_base::point or a \c control_base::cycle.
   using control_points = list<>;
   /// Base class for control point objects.
-  /// Non-empty node policies are \b deprecated.
+  /// Optional; must not be defined if \c control::invoke is used.
   struct node_policy {};
 };
 
@@ -351,26 +352,32 @@ public:
   /*!
     Execute the control model. This method does a topological sort of the
     actions under each of the control points to determine a non-unique, but
-    valid ordering, and executes the actions.  If the policy `P` inherits from
-    `control_base`, an object of type \c P is initialized from \a aa and
+    valid ordering, and executes the actions.  An object of type \c P is
+    initialized from \a aa and passed to each action; it is
     destroyed before this function returns.
     \c control_base::exception can be thrown for early
     termination.
-    The control policy must define an empty \c node_policy,
+    The control policy must inherit from \c control_base and
+    must not define a \c node_policy,
     or the code will fail to compile.
-    \param aa only if inheriting from \c control_base
-    \return code from a thrown \c control_base::exception or the
-    bitwise or of return values of executed actions.
+    \return code from a thrown \c control_base::exception or 0
    */
   template<class... AA>
   static int invoke(AA &&... aa) {
-    static_assert(std::is_empty_v<typename policy_type::node_policy>,
-      "node_policy must be empty");
+    static_assert(
+      is_control_base_policy, "control policy must inherit from control_base");
+    static_assert(std::is_same_v<typename policy_type::node_policy,
+                    control_base::node_policy>,
+      "control policy must not define node_policy");
     return do_invoke(std::forward<AA>(aa)...);
   }
 
-  /// Perform the same operation as \c #invoke with no arguments
-  /// but do not abort compilation if \c node_policy is non-empty.
+  /// Perform the same operation as \c #invoke with no arguments.
+  /// \c P need not inherit from \c control_base, if it does not, no object of
+  /// it is created and actions are called with no arguments.
+  /// \c P may define \c node_policy.
+  /// \return `invoke()` if \c P inherits from \c control_base, otherwise the
+  ///   bitwise or of return values of executed actions
   /// \deprecated Call \c #invoke directly or use \c runtime::control.
   [[deprecated("use invoke")]] static int execute() {
     return do_invoke();
@@ -420,7 +427,6 @@ public:
 struct call_policy : control_base {
   enum control_points_enum { single };
   using control_points = list<point<single>>;
-  struct node_policy {};
 
   template<class F>
   explicit call_policy(F && f) : f(std::forward<F>(f)) {}

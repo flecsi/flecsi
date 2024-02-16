@@ -25,7 +25,6 @@ operator*(cp control_point) {
 
 struct control_policy {
   using control_points_enum = cp;
-  struct node_policy {};
 
   using control = flecsi::run::control<control_policy>;
 

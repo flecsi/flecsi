@@ -40,14 +40,6 @@ struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
 
-  // The actions that are added under each control point are used to form a
-  // directed acyclic graph (DAG).  As originally conceived, node_policy served
-  // as a mechanism for the user to add interfaces and data that are available
-  // from and carried with the action.  This is no longer supported; to avoid a
-  // silent change of behavior, node_policy must be empty.
-
-  struct node_policy {};
-
   // The control_points list defines the actual control points as typeified
   // integers derived from the control point identifiers from the user-defined
   // enumeration.
