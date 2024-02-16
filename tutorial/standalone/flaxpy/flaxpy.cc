@@ -63,7 +63,6 @@ operator*(cp control_point) {
 // first, then "mul_add", and finally "finalize".
 struct control_policy : flecsi::run::control_base {
   using control_points_enum = cp;
-  struct node_policy {};
   using control_points =
     list<point<cp::initialize>, point<cp::mul_add>, point<cp::finalize>>;
 

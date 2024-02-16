@@ -30,8 +30,8 @@ Deprecated
 
   * ``initialize``, ``start``, ``finalize``, ``run::status``, and ``control::check_status`` |mdash| use ``runtime`` and, optionally, ``getopt``
   * ``program`` |mdash| use ``argv`` directly
-  * Use of a control policy's ``node_policy`` type |mdash| use a trivial, empty ``node_policy``
-  * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::control`` with ``run::control_base`` and a trivial, empty ``node_policy``
+  * Use of a control policy's ``node_policy`` type |mdash| remove it
+  * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::control`` with ``run::control_base`` and not ``node_policy``
   * ``option_value`` and needing one in a ``program_option`` validation function |mdash| accept the option type instead
   * ``flecsi/run/control.hh`` |mdash| use ``flecsi/runtime.hh``
 
