@@ -180,8 +180,21 @@ struct axis_color {
   /// number of boundary layers to be added to the domain of axis
   util::id bdepth;
 
-  /// halo depth (or number of ghost layers) of axis
-  util::id hdepth;
+  /// halo depths (or number of ghost layers) for
+  /// low end of the axis.
+  util::id hdepth_lo;
+
+  /// halo depths (or number of ghost layers) for
+  /// high end of the axis.
+  util::id hdepth_hi;
+
+  /// shared depths (or number of shared layers) for
+  /// low end of the axis.
+  util::id sdepth_lo;
+
+  /// shared depths (or number of shared layers) for
+  /// high end of the axis.
+  util::id sdepth_hi;
 
   /// global offsets of this color
   std::array<util::gid, 2> offsets;
@@ -189,10 +202,6 @@ struct axis_color {
   /// specify whether the axis is periodic
   /// \showinitializer
   bool periodic = false;
-
-  /// specify whether the axis is extended for auxiliary
-  /// \showinitializer
-  bool auxiliary = false;
 
   /// Whether the current color is at the low end of the axis.
   /// This function is supported for GPU execution.
@@ -240,7 +249,7 @@ struct axis_color {
   /// defines a range [0, extent[.
   /// This function is supported for GPU execution.
   FLECSI_INLINE_TARGET util::id extent() const {
-    return logical<1>() + (is_high() ? bdepth : hdepth);
+    return logical<1>() + (is_high() ? bdepth : hdepth_hi);
   }
 
   /// The logical entities, i.e., the entities for this color without
@@ -249,8 +258,7 @@ struct axis_color {
   template<std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
     static_assert(P == 0 || P == 1);
-    auto halo_low = hdepth + auxiliary;
-    auto log0 = (is_low() ? bdepth : halo_low);
+    auto log0 = (is_low() ? bdepth : hdepth_lo);
     return log0 + P * (offsets[1] - offsets[0]);
   }
 
@@ -274,22 +282,18 @@ struct axis_color {
   /// The index intervals for ghosts of neighboring colors along this axis
   /// @return vector of pairs storing the owner color and its ghost interval
   auto ghost_intervals() const {
-    if(periodic && bdepth != hdepth)
-      flog_fatal("periodic boundary depth must match halo depth");
-
     std::vector</* over intervals */
       std::pair<std::size_t, /* owner color */
         std::pair<std::size_t, std::size_t> /* interval */
         >>
       gi;
 
-    if(hdepth) {
-      const auto lo = is_low(), hi = is_high();
-      if(periodic || !lo)
-        gi.push_back({(lo ? colors : color_index) - 1, {0, logical<0>()}});
-      if(periodic || !hi)
-        gi.push_back({hi ? 0 : color_index + 1, {logical<1>(), extent()}});
-    }
+    const auto lo = is_low(), hi = is_high();
+    if((periodic || (!lo)) && hdepth_lo)
+      gi.push_back({(lo ? colors : color_index) - 1, {0, logical<0>()}});
+    if((periodic || (!hi)) && hdepth_hi)
+      gi.push_back({hi ? 0 : color_index + 1, {logical<1>(), extent()}});
+
     return gi;
   }
 };
@@ -395,7 +399,11 @@ struct index_definition {
   ///   needed).
   bool create_plan = true;
 
-  /// whether to use include full ghost information for auxiliaries
+  /// Whether to include full ghost information for auxiliaries.
+  /// When true, all the auxiliaries surrounding needed primary entities
+  /// (owned and ghost) are included. If false, only auxiliaries
+  /// completely surrounded by needed primaries are included.
+  /// For primary entities, this flag has no effect.
   /// \showinitializer
   bool full_ghosts = true;
 
@@ -435,6 +443,12 @@ struct index_definition {
    */
   std::vector<index_color> process_coloring(
     MPI_Comm comm = MPI_COMM_WORLD) const {
+    // Check boundary and halo depth compatibility for periodic axes.
+    for(const auto & axis : axes) {
+      if(axis.periodic && axis.bdepth != axis.hdepth)
+        flog_fatal("periodic boundary depth must match halo depth");
+    }
+
     auto [rank, size] = util::mpi::info(comm);
 
     /*
@@ -487,6 +501,38 @@ struct index_definition {
     }
   }
 
+  auto auxiliary_halo_depth(const Dimension axis, bool lo, bool hi) const {
+    util::id hdepth_lo = lo ? 0 : axes[axis].hdepth;
+    util::id hdepth_hi = hi ? 0 : axes[axis].hdepth;
+    util::id shared_lo = lo ? 0 : axes[axis].hdepth;
+    util::id shared_hi = hi ? 0 : axes[axis].hdepth;
+
+    if(axes[axis].periodic) {
+      hdepth_lo = hdepth_hi = axes[axis].hdepth;
+      shared_lo = shared_hi = axes[axis].hdepth;
+    }
+
+    // Adjust the lower and higher halo and shared depths to
+    // appropriate values to cover the ghost primary entities.
+    if(axes[axis].auxiliary) {
+      if(full_ghosts) {
+        hdepth_lo = lo ? 0 : hdepth_lo + 1;
+        hdepth_hi = hi ? 0 : hdepth_hi;
+        shared_lo = lo ? 0 : shared_lo;
+        shared_hi = hi ? 0 : shared_hi + 1;
+      }
+      else {
+        hdepth_lo = lo ? 0 : hdepth_lo;
+        hdepth_hi = hi ? 0 : hdepth_hi - 1;
+        shared_lo = lo ? 0 : shared_lo - 1;
+        shared_hi = hi ? 0 : shared_hi;
+      }
+    }
+
+    return std::make_pair(std::make_pair(hdepth_lo, hdepth_hi),
+      std::make_pair(shared_lo, shared_hi));
+  } // auxiliary_halo_depth
+
   /*!
     Create a coloring for the given color (as defined by color_indices).
 
@@ -504,6 +550,7 @@ struct index_definition {
       auto ci = color_indices[axis];
       const util::offsets & em = ax.colormap;
       const bool lo = (ci == 0);
+      const bool hi = (ci == em.size() - 1);
       const util::gid ex = ax.auxiliary;
 
       // primary coloring
@@ -516,14 +563,19 @@ struct index_definition {
         offset_high += 1;
       }
 
+      // obtain adjusted halo depths based on the type of index-space
+      auto hdepths = auxiliary_halo_depth(axis, lo, hi);
+
       idxco.axis_colors.push_back({em.size(),
         ci,
         em.total() + ex,
         ax.bdepth,
-        full_ghosts ? ax.hdepth : 0,
+        hdepths.first.first,
+        hdepths.first.second,
+        hdepths.second.first,
+        hdepths.second.second,
         {offset_low, offset_high},
-        ax.periodic,
-        ax.auxiliary});
+        ax.periodic});
     } // for
 
     return idxco;
@@ -771,16 +823,32 @@ peers(index_definition idef) {
     for(auto && nv : nview(idef.diagonals)) {
       A indices_mo;
       for(Dimension d = 0; d < D; ++d) {
+        bool lo = (color_indices[d] == 0);
+        bool hi = (color_indices[d] == color_strs[d] - 1);
+
         indices_mo[d] = color_indices[d] + nv[d];
         // if boundary depth, add the correct ngb color
         if(axes_periodic[d]) {
-          if((indices_mo[d] == -1) && (color_indices[d] == 0) &&
-             axes_bdepths[d])
+          if((indices_mo[d] == -1) && lo && axes_bdepths[d])
             indices_mo[d] = color_strs[d] - 1;
-          if((indices_mo[d] == color_strs[d]) &&
-             (color_indices[d] == color_strs[d] - 1) && axes_bdepths[d])
+          if((indices_mo[d] == color_strs[d]) && hi && axes_bdepths[d])
             indices_mo[d] = 0;
         }
+
+        auto hdepths = idef.auxiliary_halo_depth(d, lo, hi);
+
+        // If the axis is auxiliary, then nothing to send to the left color
+        // when halo on left is 1.
+        if(idef.axes[d].auxiliary &&
+           ((nv[d] == -1) && !(hdepths.first.first - 1)))
+          indices_mo[d] = -1;
+
+        // If axis is not auxiliary, then nothing to send to left or right
+        // color if no halo.
+        if(!idef.axes[d].auxiliary &&
+           (((nv[d] == -1) && !hdepths.first.first) ||
+             ((nv[d] == 1) && !hdepths.first.second)))
+          indices_mo[d] = -1;
       }
 
       bool valid_ngb = true;
@@ -815,18 +883,14 @@ peers(index_definition idef) {
 
 inline std::ostream &
 operator<<(std::ostream & stream, axis_color const & ac) {
-  stream << "global_extent\n"
-         << ac.global_extent << '\n'
-         << "bdepth\n"
-         << ac.bdepth << '\n'
-         << "hdepth\n"
-         << flog::container{ac.hdepth} << '\n'
-         << "offsets\n"
-         << flog::container{ac.offsets} << '\n'
-         << "periodic\n"
-         << (ac.periodic ? "true" : "false") << '\n'
-         << "auxiliary\n"
-         << (ac.auxiliary ? "true" : "false") << '\n';
+  stream << "  global_extent : " << ac.global_extent << '\n'
+         << "  bdepth : " << ac.bdepth << '\n'
+         << "  hdepth_lo : " << ac.hdepth_lo << '\n'
+         << "  hdepth_hi : " << ac.hdepth_hi << '\n'
+         << "  sdepth_lo : " << ac.sdepth_lo << '\n'
+         << "  sdepth_hi : " << ac.sdepth_hi << '\n'
+         << "  offsets : " << flog::container{ac.offsets} << '\n'
+         << "  periodic : " << (ac.periodic ? "true" : "false") << '\n';
   return stream;
 } // operator<<
 
