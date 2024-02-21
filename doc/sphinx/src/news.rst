@@ -56,6 +56,10 @@ Fixed
 
   * Custom reductions and reduced types work with Kokkos.
 
+* Utilities
+
+  * ``one_to_alli`` no longer triggers a race condition.
+
 * Logging
 
   * Special options like ``--control-model`` and ``--help`` work reliably.

@@ -504,9 +504,9 @@ one_to_alli(F && f, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   if(!rank) {
     auto ret = f(0, size);
     const auto n = size - 1;
+    std::vector<M> val;
     auto_requests areq;
-    auto & req = areq.v;
-    std::vector<M> val; // parallel to req
+    auto & req = areq.v; // parallel to val
     std::vector<int> done(n);
     std::stack<int> free; // inactive requests
     std::size_t used = 0;
