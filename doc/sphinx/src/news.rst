@@ -44,6 +44,7 @@ Fixed
   * ``narray`` respects ``index_definition::diagonals`` being ``false``.
     (This was fixed but not documented in 2.2.1.)
   * ``narray`` requires equal boundary and halo depths for periodic axes (differing values never worked reliably).
+  * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
 
 * Legion backend
 

@@ -19,6 +19,10 @@
 
 namespace flecsi {
 namespace data {
+// The "infinite" size used for resizable regions (backend-specific because it
+// depends on Legion::coord_t for the Legion backend)
+constexpr inline util::id logical_size = std::numeric_limits<util::id>::max();
+
 namespace mpi {
 /// \defgroup mpi-data MPI Data
 /// Direct data storage.
