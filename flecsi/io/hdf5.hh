@@ -94,7 +94,7 @@ struct plist : detail::unique<H5Pclose> {
 namespace detail {
 // An RAII HDF5 file handle.
 struct file : unique<H5Fclose> {
-  file() = default;
+  file() {}
   file(const char * f, bool create) : file(f, create, H5P_DEFAULT) {}
 #ifdef H5_HAVE_PARALLEL
   file(const char * f, MPI_Comm comm, bool create)
