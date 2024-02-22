@@ -37,6 +37,7 @@ variables:
   CLANG_VERSION: 16.0.6
   ROCM_VERSION: 5.7.1
   CUDA_VERSION: 12.2.1
+  CUDA_VERSION_NVCC: 12.2.1
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
@@ -53,6 +54,7 @@ variables:
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
+  KOKKOS_CUDA_NVCC: kokkos%gcc@${GCC_VERSION} +cuda +wrapper
   VERSION: "flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
@@ -293,6 +295,22 @@ openmpi-legion-clang-cuda-mpi:
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
 
+openmpi-legion-nvcc-cuda:
+  stage: Legion backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=legion build_type=Debug +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA_NVCC} ^cuda@${CUDA_VERSION_NVCC} ^openmpi"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+
+
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,
 # and GNU compiler toolchain. Intentionally does NOT use Kokkos to also test
@@ -443,6 +461,20 @@ openmpi-poisson-cuda-clang:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
+    PARTITIONS: volta-x86
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-cuda-nvcc:legion:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["openmpi-legion-nvcc-cuda"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug 
     PARTITIONS: volta-x86
     V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
