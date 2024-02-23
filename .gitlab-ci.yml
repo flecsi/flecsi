@@ -37,7 +37,7 @@ variables:
   CLANG_VERSION: 16.0.6
   ROCM_VERSION: 5.7.1
   CUDA_VERSION: 12.2.1
-  CUDA_VERSION_NVCC: 12.2.1
+  CUDA_VERSION_NVCC: 12.3.1
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
