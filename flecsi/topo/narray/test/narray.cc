@@ -341,11 +341,13 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
-      std::size_t sz2 = (V && (!diagonals) && m.check_diag_bounds(v)) ? 0 : sz;
-      ASSERT_TRUE(check_sz(tf, lid, sz2));
-      for(std::size_t n = 0; n < sz2; ++n) {
+      // Some but not all diagonal neighbors send auxiliaries, so don't check
+      // for arrival from them:
+      ASSERT_TRUE(
+        check_sz(tf, lid, sz) || (!diagonals && m.check_diag_bounds(v)));
+      // Check correctness for all neighbors:
+      for(auto n = tf[lid].size(); n--;)
         EXPECT_TRUE(check(tf[lid][n], (int)(gid * 10000 + n)));
-      }
     }
   };
 }
@@ -831,55 +833,6 @@ util::unit::driver<narray_driver> nd;
 
 /// Coloring testing
 
-template<typename coloring>
-int
-verify_colors(std::string name, coloring & pcs) {
-  UNIT() {
-    std::string output_file = "coloring_" + name + "_" +
-                              std::to_string(processes()) + "_" +
-                              std::to_string(process()) + ".blessed";
-    std::stringstream out;
-    std::vector<std::size_t> color, extents;
-    std::vector<std::string> global, extent, offset, logical, extended;
-
-    auto seq = [](const auto & c) {
-      std::stringstream ss;
-      ss << flog::container{c};
-      return ss.str();
-    };
-
-    for(const auto & pc : pcs) {
-      std::vector<std::size_t> g, e, o;
-      std::vector<std::string> log, ext;
-      color.push_back(pc.color());
-      extents.push_back(pc.extents());
-      for(const topo::narray_impl::axis_color & axco : pc.axis_colors) {
-        g.push_back(axco.global());
-        e.push_back(axco.extent());
-        o.push_back(axco.offset());
-        log.push_back(seq(std::vector{axco.logical<0>(), axco.logical<1>()}));
-        ext.push_back(seq(std::vector{axco.extended<0>(), axco.extended<1>()}));
-      }
-      global.emplace_back(seq(g));
-      extent.emplace_back(seq(e));
-      offset.emplace_back(seq(o));
-      logical.emplace_back(seq(log));
-      extended.emplace_back(seq(ext));
-    }
-
-    out << "color: " << flog::container{color} << "\n";
-    out << "extents: " << flog::container{extents} << "\n";
-    out << "global: " << flog::container{global} << "\n";
-    out << "extent: " << flog::container{extent} << "\n";
-    out << "offset: " << flog::container{offset} << "\n";
-    out << "logical: " << flog::container{logical} << "\n";
-    out << "extended: " << flog::container{extended} << "\n";
-
-    UNIT_CAPTURE() << out.rdbuf();
-    EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
-  };
-}
-
 int
 coloring_driver() {
   UNIT() {
@@ -887,34 +840,80 @@ coloring_driver() {
 
     mesh3d::index_definition idef;
     idef.axes = topo::narray_utils::make_axes(9, indices);
-    for(auto & a : idef.axes) {
+    topo::narray_impl::linearize<3, Color> glin;
+    for(Dimension d = 0; d < 3; ++d) {
+      auto & a = idef.axes[d];
+      glin.strs[d] = a.colormap.size();
       a.hdepth = 1;
     }
+    const auto cc = idef.process_colors();
 
-    auto coloring = idef.process_coloring();
-    EXPECT_EQ(verify_colors("primary_9x9x9_3x3x1", coloring), 0);
+    const auto verify = [&](const std::string & name,
+                          const mesh3d::index_definition & id) {
+      std::string output_file = "coloring_" + name + "_" +
+                                std::to_string(processes()) + "_" +
+                                std::to_string(process()) + ".blessed";
+      std::stringstream out;
+      std::vector<std::size_t> color;
+      std::vector<std::string> global, extent, offset, logical, extended;
+
+      auto seq = [](const auto & c) {
+        std::stringstream ss;
+        ss << flog::container{c};
+        return ss.str();
+      };
+
+      for(const auto & c3 : cc) {
+        std::vector<std::size_t> g, e, o;
+        std::vector<std::string> log, ext;
+        color.push_back(glin({c3[0], c3[1], c3[2]}));
+        for(Dimension d = 0; d < 3; ++d) {
+          const auto axco = id.make_axis(d, c3[d]);
+          g.push_back(axco.global());
+          e.push_back(axco.extent());
+          o.push_back(axco.offset());
+          log.push_back(seq(std::vector{axco.logical<0>(), axco.logical<1>()}));
+          ext.push_back(
+            seq(std::vector{axco.extended<0>(), axco.extended<1>()}));
+        }
+        global.emplace_back(seq(g));
+        extent.emplace_back(seq(e));
+        offset.emplace_back(seq(o));
+        logical.emplace_back(seq(log));
+        extended.emplace_back(seq(ext));
+      }
+
+      out << "color: " << flog::container{color} << "\n";
+      out << "global: " << flog::container{global} << "\n";
+      out << "extent: " << flog::container{extent} << "\n";
+      out << "offset: " << flog::container{offset} << "\n";
+      out << "logical: " << flog::container{logical} << "\n";
+      out << "extended: " << flog::container{extended} << "\n";
+
+      UNIT_CAPTURE() << out.rdbuf();
+      EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
+    };
+
+    verify("primary_9x9x9_3x3x1", idef);
 
     // Create definition for an auxiliary index space
     auto adef = idef;
     adef.axes[0].auxiliary = true;
     adef.axes[1].auxiliary = true;
     adef.full_ghosts = false;
-    auto avpc = adef.process_coloring();
 
-    EXPECT_EQ(verify_colors("aux_xy_9x9x9_3x3x1", avpc), 0);
+    verify("aux_xy_9x9x9_3x3x1", adef);
 
     // Change the halo depths for the primary index space
     for(auto & a : idef.axes) {
       a.hdepth = 2;
     }
 
-    coloring = idef.process_coloring();
     adef = idef;
     adef.axes[0].auxiliary = true;
     adef.full_ghosts = true;
-    avpc = adef.process_coloring();
 
-    EXPECT_EQ(verify_colors("aux_x_9x9x9_3x3x1_fg", avpc), 0);
+    verify("aux_x_9x9x9_3x3x1_fg", adef);
   };
 }
 
