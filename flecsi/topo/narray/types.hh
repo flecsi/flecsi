@@ -174,25 +174,25 @@ struct axis_color {
   Color colors, ///< the number of colors on this axis
     color_index; ///< the index of this color along this axis
 
-  /// the extent of this color
+  /// Total size of this axis, not counting boundary points.
   util::gid global_extent;
 
   /// number of boundary layers to be added to the domain of axis
   util::id bdepth;
 
-  /// halo depths (or number of ghost layers) for
+  /// Halo depth (or number of ghost layers) for
   /// low end of the axis.
   util::id hdepth_lo;
 
-  /// halo depths (or number of ghost layers) for
+  /// Halo depth (or number of ghost layers) for
   /// high end of the axis.
   util::id hdepth_hi;
 
-  /// shared depths (or number of shared layers) for
+  /// Shared depth (or number of shared layers) for
   /// low end of the axis.
   util::id sdepth_lo;
 
-  /// shared depths (or number of shared layers) for
+  /// Shared depth (or number of shared layers) for
   /// high end of the axis.
   util::id sdepth_hi;
 
@@ -263,12 +263,12 @@ struct axis_color {
   }
 
   /// The extended entities, i.e., the logical entities including boundary
-  /// padding. The boundary depth can be computed like:
+  /// padding. The boundary depth can be computed like:\code
   ///   boundary_depth_low = logical<0>() - extended<0>();
-  ///   boundary_depth_high = extended<1>() - logical<1>();
-  /// The ghost depth can be computed like:
+  ///   boundary_depth_high = extended<1>() - logical<1>();\endcode
+  /// The ghost depth can be computed like:\code
   ///   halo_depth_low = extended<0>();
-  ///   halo_depth_high = extent() - extended<1>();
+  ///   halo_depth_high = extent() - extended<1>();\endcode
   /// This function is supported for GPU execution.
   template<std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
