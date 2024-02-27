@@ -11,6 +11,8 @@
 #include <legion/legion_mapping.h>
 #include <mappers/default_mapper.h>
 
+#include <iomanip>
+
 namespace flecsi {
 
 inline flog::devel_tag legion_mapper_tag("legion_mapper");
@@ -570,7 +572,7 @@ private:
     std::size_t indx,
     const std::vector<Legion::LogicalRegion> & regions) const {
     Legion::Mapping::PhysicalInstance result;
-    std::size_t instance_size;
+    std::size_t instance_size = 0;
     bool created, res = runtime->find_or_create_physical_instance(ctx,
                     target_mem,
                     layout_constraints,
@@ -581,7 +583,10 @@ private:
                     GC_NEVER_PRIORITY,
                     true,
                     &instance_size);
-    flog_assert(res, "FleCSI mapper failed to allocate instance");
+    if(!res)
+      flog_fatal("FleCSI mapper failed to allocate instance of size "
+                 << instance_size << " in memory " << target_mem << " for task "
+                 << std::quoted(task.get_task_name()));
     report_size(task, indx, instance_size);
     return result;
   }
