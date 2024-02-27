@@ -303,7 +303,7 @@ public:
     else {
       output.chosen_variant = find_variant(
         ctx, task.task_id, cpu_variants, Legion::Processor::LOC_PROC);
-      output.target_procs.push_back(local_proc);
+      output.target_procs.resize(1, local_proc);
     }
 
     output.chosen_instances.resize(task.regions.size());
