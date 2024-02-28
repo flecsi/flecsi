@@ -402,7 +402,7 @@ openmpi-mpi-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
@@ -422,7 +422,7 @@ openmpi-legion-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^boost%rocmcc@${ROCM_VERSION} ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
