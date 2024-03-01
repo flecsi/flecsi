@@ -265,6 +265,29 @@ concatenate(std::vector<T> & v, Color total, MPI_Comm comm) {
       v.push_back(std::move(t));
 }
 
+// Describe a sorted range of integers as a union of intervals
+// (a sort of run-length encoding), as to make a data::copy_plan.
+template<class R>
+std::vector<data::subrow>
+rle(const R & r) {
+  std::vector<data::subrow> ret;
+  std::size_t start = 0, last = 0;
+  const auto out = [&] {
+    if(start != last)
+      ret.emplace_back(start, last);
+  };
+  for(const auto i : r)
+    if(i == last)
+      ++last;
+    else {
+      out();
+      start = i;
+      last = i + 1;
+    }
+  out();
+  return ret;
+}
+
 /// \}
 } // namespace topo
 } // namespace flecsi
