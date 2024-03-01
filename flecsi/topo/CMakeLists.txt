@@ -12,7 +12,6 @@ set(topo_HEADERS
   narray/interface.hh
   narray/types.hh
   ntree/coloring.hh
-  ntree/geometry.hh
   ntree/interface.hh
   ntree/types.hh
   set/interface.hh
@@ -210,13 +209,10 @@ flecsi_add_test(narray
 # ntree -----------------------------------------------------------------------#
 
 if(FLECSI_BACKEND STREQUAL "legion")
-  flecsi_add_test(ntree_policy
+  flecsi_add_test(ntree
     SOURCES ntree/test/ntree.cc
     INPUTS ntree/test/coordinates.blessed
     PROCS 4
   )
 endif()
 
-flecsi_add_test(ntree_geometry
-  SOURCES ntree/test/geometry.cc
-)

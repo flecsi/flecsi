@@ -2,6 +2,7 @@
 #include "flecsi/execution.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/topo/unstructured/test/unstructured.hh"
+#include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace flecsi;

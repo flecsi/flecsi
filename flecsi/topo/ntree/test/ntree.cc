@@ -1,7 +1,7 @@
 #include "flecsi/data.hh"
 #include "flecsi/topo/ntree/interface.hh"
 #include "flecsi/topo/ntree/types.hh"
-#include "flecsi/util/geometry/filling_curve.hh"
+#include "flecsi/util/geometry/filling_curve_key.hh"
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
 
@@ -15,30 +15,25 @@ const field<int>::definition<arr> arr_f;
 struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   static constexpr unsigned int dimension = 3;
   using key_int_t = uint64_t;
-  using key_t = morton_curve<dimension, key_int_t>;
+  using key_t = util::morton_key<dimension, key_int_t>;
 
   using index_space = flecsi::topo::ntree_base::index_space;
   using index_spaces = flecsi::topo::ntree_base::index_spaces;
   using ttype_t = flecsi::topo::ntree_base::ttype_t;
 
-  struct key_t_hasher {
-    std::size_t operator()(const key_t & k) const noexcept {
-      return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
-    }
-  };
+  static std::size_t hash(const key_t & k) {
+    return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
+  }
 
   template<auto>
   static constexpr std::size_t privilege_count = 2;
 
-  using hash_f = key_t_hasher;
-
-  using ent_t = flecsi::topo::sort_entity<dimension, double, key_t>;
+  using ent_t = sort_entity<dimension, double, key_t>;
   using node_t = flecsi::topo::node<dimension, double, key_t>;
 
   using point_t = util::point<double, dimension>;
 
-  struct interaction_nodes {
-    int id;
+  struct node_data {
     point_t coordinates;
     double mass;
     double radius;
@@ -46,9 +41,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   // Problem: this contains the color which should not
   // depend on the topology user
-  struct interaction_entities {
-    int id;
-    std::size_t color;
+  struct entity_data {
     point_t coordinates;
     double mass;
     double radius;
@@ -58,12 +51,12 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     const std::vector<sph_ntree_t::ent_t> & ents) {
     auto c = process();
     for(std::size_t i = 0; i < ents.size(); ++i) {
-      t.e_i(i).coordinates = ents[i].coordinates();
-      t.e_i(i).radius = ents[i].radius();
-      t.e_i(i).color = c;
-      t.e_i(i).id = ents[i].id();
-      t.e_keys(i) = ents[i].key();
-      t.e_i(i).mass = ents[i].mass();
+      t.e_i(i).coordinates = ents[i].coordinates_;
+      t.e_i(i).radius = ents[i].radius_;
+      t.e_colors(i) = c;
+      t.e_ids(i) = ents[i].id_;
+      t.e_keys(i) = ents[i].key_;
+      t.e_i(i).mass = ents[i].mass_;
     }
   } // init_fields
 
@@ -83,43 +76,20 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   static coloring color(const std::string & name, std::vector<ent_t> & ents) {
     txt_definition<key_t, dimension> hd(name);
-    const int size = processes(), rank = process();
+    const int size = processes();
+    util::id hmap_size = 1 << 20;
+    coloring c(size, hmap_size);
 
-    coloring c(size);
-
-    c.global_entities_ = hd.global_num_entities();
-    c.entities_distribution_.resize(size);
+    c.entities_sizes_.resize(size);
     for(int i = 0; i < size; ++i)
-      c.entities_distribution_[i] = hd.distribution();
-    c.entities_offset_.resize(size);
+      c.entities_sizes_[i] = hd.distribution();
 
     ents = hd.entities();
 
-    std::ostringstream oss;
-    if(rank == 0)
-      oss << "Ents Offset: ";
-
-    for(int i = 0; i < size; ++i) {
-      c.entities_offset_[i] = c.entities_distribution_[i];
-      if(rank == 0)
-        oss << c.entities_offset_[i] << " ; ";
-    }
-
-    if(rank == 0)
-      flog(info) << oss.str() << std::endl;
-
-    c.local_nodes_ = c.local_entities_ + 20;
-    c.global_nodes_ = c.global_entities_;
-    c.nodes_offset_ = c.entities_offset_;
-    std::for_each(c.nodes_offset_.begin(),
-      c.nodes_offset_.end(),
-      [](std::size_t & d) { d += 10; });
-
-    c.global_sizes_.resize(4);
-    c.global_sizes_[0] = c.global_entities_;
-    c.global_sizes_[1] = c.global_nodes_;
-    c.global_sizes_[2] = c.global_hmap_;
-    c.global_sizes_[3] = c.nparts_;
+    c.nodes_sizes_ = c.entities_sizes_;
+    std::for_each(c.nodes_sizes_.begin(),
+      c.nodes_sizes_.end(),
+      [](util::id & d) { d += 10; });
 
     return c;
   } // color
@@ -164,28 +134,10 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     }
   } // compute_centroid
 
-  static bool intersect_entity_node(const interaction_entities & ie,
-    const interaction_nodes & in) {
-    double dist = distance(in.coordinates, ie.coordinates);
-    if(dist <= in.radius + ie.radius)
-      return true;
-    return false;
-  }
-
-  static bool intersect_node_node(const interaction_nodes & in1,
-    const interaction_nodes & in2) {
+  template<typename T1, typename T2>
+  static bool intersect(const T1 & in1, const T2 & in2) {
     double dist = distance(in1.coordinates, in2.coordinates);
-    if(dist <= in1.radius + in2.radius)
-      return true;
-    return false;
-  }
-
-  static bool intersect_entity_entity(const interaction_entities & ie1,
-    const interaction_entities & ie2) {
-    double dist = distance(ie1.coordinates, ie2.coordinates);
-    if(dist <= ie1.radius + ie2.radius)
-      return true;
-    return false;
+    return dist <= in1.radius + in2.radius;
   }
 
 }; // sph_ntree_t
@@ -194,8 +146,6 @@ using ntree_t = topo::ntree<sph_ntree_t>;
 
 const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
   density;
-const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
-  pressure;
 
 void
 check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
@@ -215,7 +165,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
   // Check neighbors of entities
   for(auto e : t.entities()) {
     std::vector<std::pair<std::size_t, bool>> s_id; // stencil ids
-    std::size_t eid = t.e_i(e).id;
+    std::size_t eid = t.e_ids(e);
     // Compute stencil based on id
     int line = eid / 7;
     int col = eid % 7;
@@ -227,7 +177,7 @@ check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
           s_id.push_back(std::make_pair(l * 7 + c, false));
     }
     for(auto n : t.neighbors(e)) {
-      std::size_t n_id = t.e_i[n].id;
+      std::size_t n_id = t.e_ids[n];
       auto f = std::find(s_id.begin(), s_id.end(), std::make_pair(n_id, false));
       assert(f != s_id.end());
       f->second = true;
@@ -252,17 +202,17 @@ print_density(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<ro, ro>) {
   std::cout << color() << " Print id exclusive: ";
   for(auto a : t.entities()) {
-    std::cout << t.e_i[a].id << " - ";
+    std::cout << t.e_ids[a] << " - ";
   }
   std::cout << std::endl;
   std::cout << color() << " Print id ghosts : ";
   for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
-    std::cout << t.e_i[a].id << " - ";
+    std::cout << t.e_ids[a] << " - ";
   }
   std::cout << std::endl;
   std::cout << color() << " Print id all : ";
-  for(auto a : t.e_i.span()) {
-    std::cout << a.id << " - ";
+  for(auto id : t.e_ids.span()) {
+    std::cout << id << " - ";
   }
   std::cout << std::endl;
 }
@@ -308,7 +258,6 @@ ntree_driver() {
     flecsi::execute<check_neighbors>(sph_ntree);
 
     flecsi::execute<move_entities>(sph_ntree);
-    // sph_ntree_t::update(sph_ntree);
 
     // Sort utility testing
     // Sort/shuffle an array multiple times

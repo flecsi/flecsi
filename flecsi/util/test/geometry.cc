@@ -1,4 +1,4 @@
-#include "flecsi/util/geometry/filling_curve.hh"
+#include "flecsi/util/geometry/filling_curve_key.hh"
 #include "flecsi/util/geometry/kdtree.hh"
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
@@ -37,17 +37,17 @@ point_distance() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
     double d = distance(a1, b1);
-    ASSERT_EQ(3.0, d) << "Distance calculation failed";
+    EXPECT_EQ(3.0, d) << "Distance calculation failed";
 
     point_2d_t a2{1.0, 2.0};
     point_2d_t b2{4.0, 6.0};
     d = distance(a2, b2);
-    ASSERT_EQ(5.0, d) << "Distance calculation failed";
+    EXPECT_EQ(5.0, d) << "Distance calculation failed";
 
     point_3d_t a3{1.0, 2.0, -1.0};
     point_3d_t b3{4.0, 6.0, -1.0 - std::sqrt(11.0)};
     d = distance(a3, b3);
-    ASSERT_EQ(6.0, d) << "Distance calculation failed";
+    EXPECT_EQ(6.0, d) << "Distance calculation failed";
   };
 } // point_distance
 
@@ -59,20 +59,20 @@ point_midpoint() {
     point_1d_t a1{1.0};
     point_1d_t b1{4.0};
     point_1d_t c1 = midpoint(a1, b1);
-    ASSERT_EQ(2.5, c1[0]) << "Midpoint calculation failed";
+    EXPECT_EQ(2.5, c1[0]) << "Midpoint calculation failed";
 
     point_2d_t a2{1.0, 2.0};
     point_2d_t b2{4.0, 6.0};
     point_2d_t c2 = midpoint(a2, b2);
-    ASSERT_EQ(2.5, c2[0]) << "Midpoint calculation failed";
-    ASSERT_EQ(4.0, c2[1]) << "Midpoint calculation failed";
+    EXPECT_EQ(2.5, c2[0]) << "Midpoint calculation failed";
+    EXPECT_EQ(4.0, c2[1]) << "Midpoint calculation failed";
 
     point_3d_t a3{1.0, 2.0, -1.0};
     point_3d_t b3{4.0, 6.0, -4.0};
     point_3d_t c3 = midpoint(a3, b3);
-    ASSERT_EQ(2.5, c3[0]) << "Midpoint calculation failed";
-    ASSERT_EQ(4.0, c3[1]) << "Midpoint calculation failed";
-    ASSERT_EQ(-2.5, c3[2]) << "Midpoint calculation failed";
+    EXPECT_EQ(2.5, c3[0]) << "Midpoint calculation failed";
+    EXPECT_EQ(4.0, c3[1]) << "Midpoint calculation failed";
+    EXPECT_EQ(-2.5, c3[2]) << "Midpoint calculation failed";
   };
 } // point_midpoint
 
@@ -81,13 +81,13 @@ util::unit::driver<point_midpoint> point_midpoint_driver;
 // Filling Curve Tests
 using point_t = util::point<double, 3>;
 using range_t = std::array<point_t, 2>;
-using hc = hilbert_curve<3, uint64_t>;
-using mc = morton_curve<3, uint64_t>;
+using hc = util::hilbert_key<3, uint64_t>;
+using mc = util::morton_key<3, uint64_t>;
 
 using point_2d = util::point<double, 2>;
 using range_2d = std::array<point_2d, 2>;
-using hc_2d = hilbert_curve<2, uint64_t>;
-using mc_2d = morton_curve<2, uint64_t>;
+using hc_2d = util::hilbert_key<2, uint64_t>;
+using mc_2d = util::morton_key<2, uint64_t>;
 
 int
 hilbert_sanity() {
@@ -111,12 +111,12 @@ hilbert_sanity() {
     flog(info) << "Min    : " << hc3 << std::endl;
     flog(info) << "Max    : " << hc4 << std::endl;
     flog(info) << "root   : " << hc5 << std::endl;
-    ASSERT_TRUE(1 == static_cast<uint64_t>(hc5));
+    EXPECT_EQ(1, hc5.value());
 
     while(hc4 != hc5) {
       hc4.pop();
     }
-    ASSERT_TRUE(hc5 == hc4);
+    EXPECT_EQ(hc5, hc4);
   };
 } // hilbert_sanity
 
@@ -138,11 +138,10 @@ hilbert_2d_rnd() {
 
     for(int i = 0; i < 4; ++i) {
       hcs_2d[i] = hc_2d(rge, pts[i]);
-      point_2d inv;
-      hcs_2d[i].coordinates(rge, inv);
+      point_2d inv = hcs_2d[i].coordinates(rge);
       double dist = distance(pts[i], inv);
       flog(info) << pts[i] << " " << hcs_2d[i] << " = " << inv << std::endl;
-      ASSERT_TRUE(dist < 1.0e-4);
+      EXPECT_LT(dist, 1.0e-4);
     }
   };
 } // hilbert_2d_rnd
@@ -170,8 +169,7 @@ hilbert_3d_rnd() {
 
     for(int i = 0; i < 8; ++i) {
       hcs[i] = hc(range, points[i]);
-      point_t inv;
-      hcs[i].coordinates(range, inv);
+      point_t inv = hcs[i].coordinates(range);
       // double dist = distance(points[i], inv);
       flog(info) << points[i] << " " << hcs[i] << " = " << inv << std::endl;
       // ASSERT_TRUE(dist < 1.0e-3);
@@ -182,9 +180,8 @@ hilbert_3d_rnd() {
       point_t pt((double)rand() / (double)RAND_MAX,
         (double)rand() / (double)RAND_MAX,
         (double)rand() / (double)RAND_MAX);
-      point_t inv;
       hc h(range, pt);
-      h.coordinates(range, inv);
+      point_t inv = h.coordinates(range);
       // double dist = distance(pt, inv);
       flog(info) << pt << " = " << h << " = " << inv << std::endl;
       // ASSERT_TRUE(dist < 1.0e-4);
@@ -214,12 +211,12 @@ morton_sanity() {
     flog(info) << "Min    : " << hc3 << std::endl;
     flog(info) << "Max    : " << hc4 << std::endl;
     flog(info) << "root   : " << hc5 << std::endl;
-    ASSERT_TRUE(1 == static_cast<uint64_t>(hc5));
+    EXPECT_EQ(1, hc5.value());
 
     while(hc4 != hc5) {
       hc4.pop();
     }
-    ASSERT_TRUE(hc5 == hc4);
+    EXPECT_EQ(hc5, hc4);
   };
 }
 
@@ -241,23 +238,21 @@ morton_2d_rnd() {
 
     for(int i = 0; i < 4; ++i) {
       mcs_2d[i] = mc_2d(rge, pts[i]);
-      point_2d inv;
-      mcs_2d[i].coordinates(rge, inv);
+      point_2d inv = mcs_2d[i].coordinates(rge);
       double dist = distance(pts[i], inv);
       flog(info) << pts[i] << " " << mcs_2d[i] << " = " << inv << std::endl;
-      ASSERT_TRUE(dist < 1.0e-4);
+      EXPECT_LT(dist, 1.0e-4);
     }
 
     // rnd
     for(int i = 0; i < 20; ++i) {
       point_2d pt(
         (double)rand() / (double)RAND_MAX, (double)rand() / (double)RAND_MAX);
-      point_2d inv;
       mc_2d h(rge, pt);
-      h.coordinates(rge, inv);
+      point_2d inv = h.coordinates(rge);
       double dist = distance(pt, inv);
       flog(info) << pt << " = " << h << " = " << inv << std::endl;
-      ASSERT_TRUE(dist < 1.0e-4);
+      EXPECT_LT(dist, 1.0e-4);
     }
   };
 } // morton_2d_rnd
@@ -285,11 +280,10 @@ morton_3d_rnd() {
 
     for(int i = 0; i < 8; ++i) {
       mcs[i] = mc(range, points[i]);
-      point_t inv;
-      mcs[i].coordinates(range, inv);
+      point_t inv = mcs[i].coordinates(range);
       double dist = distance(points[i], inv);
       flog(info) << points[i] << " " << mcs[i] << " = " << inv << std::endl;
-      ASSERT_TRUE(dist < 1.0e-4);
+      EXPECT_LT(dist, 1.0e-4);
     }
 
     // rnd
@@ -297,12 +291,11 @@ morton_3d_rnd() {
       point_t pt((double)rand() / (double)RAND_MAX,
         (double)rand() / (double)RAND_MAX,
         (double)rand() / (double)RAND_MAX);
-      point_t inv;
       mc h(range, pt);
-      h.coordinates(range, inv);
+      point_t inv = h.coordinates(range);
       double dist = distance(pt, inv);
       flog(info) << pt << " = " << h << " = " << inv << std::endl;
-      ASSERT_TRUE(dist < 1.0e-4);
+      EXPECT_LT(dist, 1.0e-4);
     }
   };
 } // morton_3d_rnd
