@@ -5,8 +5,38 @@
 #include <set>
 #include <vector>
 
+#include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/sort.hh"
+
+// This structure is used to store temporary information between a file and the
+// N-Tree topology. It depends of the specialization or the use case. A similar
+// structure is used in the N-Tree tutorial due to the similarity of the
+// specializations.
+template<flecsi::Dimension DIM, typename T, class KEY>
+struct sort_entity {
+  using point_t = flecsi::util::point<T, DIM>;
+  using key_t = KEY;
+  using type_t = T;
+
+  sort_entity() {}
+  bool operator<(const sort_entity & s) const {
+    return std::tie(key_, id_) < std::tie(s.key_, s.id_);
+  }
+
+  key_t key_;
+  int64_t id_;
+  point_t coordinates_;
+  type_t mass_;
+  type_t radius_;
+}; // class sort_entity
+
+template<flecsi::Dimension DIM, typename T, class KEY>
+std::ostream &
+operator<<(std::ostream & os, const sort_entity<DIM, T, KEY> & e) {
+  os << " Key: " << e.key_ << " Id: " << e.id_;
+  return os;
+}
 
 template<typename KEY, int DIM>
 class txt_definition
@@ -15,7 +45,7 @@ public:
   const int dim = DIM;
   using key_t = KEY;
   using point_t = flecsi::util::point<double, DIM>;
-  using ent_t = flecsi::topo::sort_entity<DIM, double, key_t>;
+  using ent_t = sort_entity<DIM, double, key_t>;
   using range_t = std::array<point_t, 2>;
 
   txt_definition(const std::string & filename) {
@@ -25,7 +55,7 @@ public:
     mpi_compute_range(entities_, range_);
     // Generate the keys
     for(size_t i = 0; i < entities_.size(); ++i) {
-      entities_[i].set_key(key_t(range_, entities_[i].coordinates()));
+      entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
     }
 
     nlocal_entities_ = entities_.size();
@@ -58,14 +88,14 @@ private:
   void mpi_compute_range(const std::vector<ent_t> & ents, range_t & range) {
 
     // Compute the local range
-    range[0] = range[1] = ents.front().coordinates();
+    range[0] = range[1] = ents.front().coordinates_;
 
     for(size_t i = 1; i < ents.size(); ++i) {
       for(int d = 0; d < dim; ++d) {
         range[1][d] =
-          std::max(range[1][d], ents[i].coordinates()[d] + ents[i].radius());
+          std::max(range[1][d], ents[i].coordinates_[d] + ents[i].radius_);
         range[0][d] =
-          std::min(range[0][d], ents[i].coordinates()[d] - ents[i].radius());
+          std::min(range[0][d], ents[i].coordinates_[d] - ents[i].radius_);
       }
     }
     // Do the MPI Reduction
@@ -130,7 +160,7 @@ private:
         myfile >> p[j];
       }
       if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].set_coordinates(p);
+        entities_[k++].coordinates_ = p;
     }
 
     // Radius
@@ -139,7 +169,7 @@ private:
       double r;
       myfile >> r;
       if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].set_radius(r);
+        entities_[k++].radius_ = r;
     }
 
     // Mass
@@ -148,13 +178,13 @@ private:
       double m;
       myfile >> m;
       if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].set_mass(m);
+        entities_[k++].mass_ = m;
     }
 
     k = 0;
     for(size_t i = 0; i < nglobal_entities_; ++i) {
       if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].set_id(i);
+        entities_[k++].id_ = i;
     }
 
     myfile.close();
@@ -164,8 +194,8 @@ private:
   std::vector<ent_t> entities_;
   size_t nglobal_entities_;
   size_t nlocal_entities_;
-  std::vector<size_t> distribution_;
-  std::vector<size_t> offset_;
+  std::vector<flecsi::util::id> distribution_;
+  std::vector<flecsi::util::id> offset_;
 
 }; // class txt_definition
 

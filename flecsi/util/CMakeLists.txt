@@ -14,7 +14,7 @@ set(util_HEADERS
   demangle.hh
   dimensioned_array.hh
   function_traits.hh
-  geometry/filling_curve.hh
+  geometry/filling_curve_key.hh
   geometry/point.hh
   geometry/kdtree.hh
   crs.hh

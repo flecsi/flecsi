@@ -199,3 +199,15 @@ add_executable(parallel-reduceall
 )
 add_unit(parallel-reduceall)
 
+#------------------------------------------------------------------------------#
+# 6-ntree
+#------------------------------------------------------------------------------#
+
+add_executable(ntree
+  6-topology/ntree.cc
+  6-topology/sph_physics.cc
+  6-topology/sph_physics.hh
+  6-topology/ntree_sph.hh
+)
+add_unit(ntree)
+

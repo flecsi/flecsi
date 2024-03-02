@@ -1,218 +1,205 @@
 // Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef FLECSI_UTIL_GEOMETRY_FILLING_CURVE_HH
-#define FLECSI_UTIL_GEOMETRY_FILLING_CURVE_HH
+#ifndef FLECSI_UTIL_GEOMETRY_FILLING_CURVE_KEY_HH
+#define FLECSI_UTIL_GEOMETRY_FILLING_CURVE_KEY_HH
 
 #include "flecsi/util/geometry/point.hh"
+#include <climits>
 
-namespace flecsi {
+namespace flecsi::util {
+/// \ingroup utils
+/// \defgroup fillingcurves Filling Curves
+/// Space-filling curve, key generators
+/// \{
 
-// Space filling curve
+/// Space filling curve keys generator, CRTP base
+/// \tparam DIM The spatial dimension for the filling curve (1, 2 or 3
+/// supported)
+/// \tparam T The integer type used to represent the keys. The type
+/// is used as a bit-field.
+/// \tparam DERIVED derived class (see below for requirements)
 template<Dimension DIM, typename T, class DERIVED>
-class filling_curve
+class filling_curve_key
 {
   // Dimension of the curve, 1D, 2D or 3D
   static constexpr Dimension dimension = DIM;
-  // Integer type used to represent the key
+
+public:
+  /// Integer type used to represent the key
   using int_t = T;
-  // Geometric point to represent coordinates
-  // \todo Template double type
-  using point_t = util::point<double, dimension>;
 
 protected:
   static constexpr std::size_t bits_ =
-    sizeof(int_t) * 8; // Maximum number of bits for representation
+    sizeof(int_t) * CHAR_BIT; // Maximum number of bits for representation
   static constexpr std::size_t max_depth_ =
     (bits_ - 1) / dimension; // Maximum depth reachable regarding the size of
                              // the memory word used
+  static constexpr std::size_t leading_zeros =
+    bits_ - (max_depth_ * dimension + 1);
 
+  /// Value of the filling curve key.
+  /// int_t is used as a bit-field to represent the filling curve key.
   int_t value_;
 
+  ~filling_curve_key() = default;
+
 public:
-  constexpr filling_curve() : value_(0) {}
+  /// Default constructor: create an invalid key containing only zeros.
+  constexpr filling_curve_key() : value_(0) {}
 
-  constexpr filling_curve(int_t value) : value_(value) {}
+  /// Construct a key from an integer of type int_t
+  constexpr explicit filling_curve_key(int_t value) : value_(value) {}
 
-  // Max depth possible for this key
-  static std::size_t max_depth() {
+  /// Max depth possible for this type of key
+  static constexpr std::size_t max_depth() {
     return max_depth_;
   }
-  // Smallest value possible at max_depth
+  /// Smallest value possible at max_depth
   static constexpr DERIVED min() {
     return DERIVED(int_t(1) << max_depth_ * dimension);
   }
-  // Biggest value possible at max_depth
+  /// Biggest value possible at max_depth
   static constexpr DERIVED max() {
     int_t id = ~static_cast<int_t>(0);
-    for(std::size_t i = max_depth_ * dimension + 1; i < bits_; ++i) {
-      id ^= int_t(1) << i;
-    } // for
+    id >>= bits_ - (max_depth_ * dimension + 1);
     return DERIVED(id);
   }
-  // Get the root key (depth 0)
+  /// Get the root key (depth 0)
   static constexpr DERIVED root() {
     return DERIVED(int_t(1));
   }
-  // Get the null id = 0 (no root)
-  static constexpr DERIVED null() {
-    return DERIVED(0);
-  }
-  // Check if value_ is null
-  constexpr bool is_null() const {
-    return value_ == int_t(0);
-  }
-  // Find the depth of the current key
+  /// Find the depth of the current key
   std::size_t depth() const {
-    int_t id = value_;
-    std::size_t d = 0;
-    while(id >>= dimension)
-      ++d;
-    return d;
+    return max_depth_ - (__builtin_clz(value_) - leading_zeros) / dimension;
   }
-  // Push bits onto the end of this key
-  void push(int_t bits) {
+  /// Push bits onto the end of this key
+  auto push(int_t bits) const {
+    auto ret = *this;
     assert(bits < int_t(1) << dimension);
-    value_ <<= dimension;
-    value_ |= bits;
+    ret.value_ <<= dimension;
+    ret.value_ |= bits;
+    return DERIVED(ret.value_);
   }
-  // Pop the last bits of the key
-  void pop() {
+  /// Pop last bits and return its value
+  int_t pop() {
     assert(depth() > 0);
+    int_t popped = last_value();
     value_ >>= dimension;
+    return popped;
   }
-  // Search for the conflicting depth between key_a and key_b
-  static int conflict_depth(filling_curve key_a, filling_curve key_b) {
-    int conflict = max_depth_;
-    while(key_a != key_b) {
-      key_a.pop();
-      key_b.pop();
-      --conflict;
-    } // while
-    return conflict;
+  /// Return the last bits of the key
+  int_t last_value() const {
+    return value_ & ((1 << dimension) - 1);
   }
-  // Pop last bits and return its value
-  int pop_value() {
-    assert(depth() > 0);
-    int poped = 0;
-    poped = static_cast<int>(value_ & ((1 << (dimension)) - 1));
-    assert(poped < (1 << dimension));
-    value_ >>= dimension;
-    return poped;
-  }
-  // Return the last bits of the key
-  int last_value() {
-    int poped = 0;
-    poped = static_cast<int>(value_ & ((1 << (dimension)) - 1));
-    return poped;
-  }
-  // Pop the depth d bits from the end of this key
+  /// Pop the depth d bits from the end of this key
   void pop(std::size_t d) {
     value_ >>= d * dimension;
   }
-  // Return the parent of this key (depth - 1)
-  constexpr filling_curve parent() const {
+  /// Return the parent of this key (depth - 1)
+  constexpr filling_curve_key parent() const {
     return DERIVED(value_ >> dimension);
   }
-  // Truncate this key until it is of depth \p to_depth
-  void truncate(std::size_t to_depth) {
-    std::size_t d = depth();
-    if(d < to_depth) {
-      return;
-    }
-    value_ >>= (d - to_depth) * dimension;
-  }
-  // Output a key using oct in 3d and poping values for 2 and 1D
-  void output_(std::ostream & ostr) const {
-    if(dimension == 3) {
-      ostr << std::oct << value_ << std::dec;
+  /// Display a key, starting from the root (1), grouping the bits in digits.
+  /// The digits are composed of 1, 2, 3 bits matching the dimension used for
+  /// the key.
+  friend std::ostream & operator<<(std::ostream & ostr,
+    const filling_curve_key & fc) {
+    if constexpr(dimension == 3) {
+      auto iosflags = ostr.setf(std::ios::oct, std::ios::basefield);
+      ostr << fc.value_;
+      ostr.flags(iosflags);
     }
     else {
       std::string output;
-      filling_curve id = *this;
-      int poped;
-      while(id != root()) {
-        poped = id.pop_value();
-        output.insert(0, std::to_string(poped));
-      } // while
+      filling_curve_key id = fc;
+      while(id != root())
+        output.insert(0, std::to_string(id.pop()));
       output.insert(output.begin(), '1');
       ostr << output.c_str();
     } // if else
+    return ostr;
   }
-  // Get the value associated to this key
+  /// Get the value associated to this key
   int_t value() const {
     return value_;
   }
-  // Convert this key to coordinates in range.
-  void coordinates(const std::array<point_t, 2> &, point_t &) {}
-  // Compute the range of a branch from its key
-  // The space is recursively decomposed regarding the dimension
-  std::array<point_t, 2> range(const std::array<point_t, 2> &) {
-    return std::array<point_t, 2>{};
-  }
-  constexpr bool operator==(const filling_curve & bid) const {
+
+  /// \name Relational and equality operators
+  /// \{
+  /// Equality operator
+  /// \return true if the other key has the same value
+  constexpr bool operator==(const filling_curve_key & bid) const {
     return value_ == bid.value_;
   }
-  constexpr bool operator<=(const filling_curve & bid) const {
+  /// Less than or equal to operator
+  /// \return true if this key is less or equal than the other
+  constexpr bool operator<=(const filling_curve_key & bid) const {
     return value_ <= bid.value_;
   }
-  constexpr bool operator>=(const filling_curve & bid) const {
+  /// Greater than or equal to operator
+  /// \return true if the other key is less or equal than this
+  constexpr bool operator>=(const filling_curve_key & bid) const {
     return value_ >= bid.value_;
   }
-  constexpr bool operator>(const filling_curve & bid) const {
+  /// Greater than operator
+  /// \return true if the other key is less than this
+  constexpr bool operator>(const filling_curve_key & bid) const {
     return value_ > bid.value_;
   }
-  constexpr bool operator<(const filling_curve & bid) const {
+  /// Less than operator
+  /// \return true if this key is less than the other
+  constexpr bool operator<(const filling_curve_key & bid) const {
     return value_ < bid.value_;
   }
-  constexpr bool operator!=(const filling_curve & bid) const {
+  /// Inequality operator
+  /// \return true if the two keys have different values
+  constexpr bool operator!=(const filling_curve_key & bid) const {
     return value_ != bid.value_;
   }
-  explicit operator int_t() const {
-    return value_;
-  }
-  constexpr operator DERIVED() const {
-    return DERIVED(value_);
-  }
-}; // class filling_curve
+  /// \}
+}; // class filling_curve_key
 
-// output for filling_curve using output_ function defined in the class
-template<Dimension D, typename T, class DER>
-std::ostream &
-operator<<(std::ostream & ostr, const filling_curve<D, T, DER> & k) {
-  k.output_(ostr);
-  return ostr;
-}
+#ifdef DOXYGEN
 
-// Hilbert-Peano space filling curve
+/// Example implementation of filling curve derived from the
+/// filling_curve_key CRTP. This class is not really implemented.
 template<Dimension DIM, typename T>
-class hilbert_curve : public filling_curve<DIM, T, hilbert_curve<DIM, T>>
+struct my_key : filling_curve_key<DIM, T, my_key<DIM, T>> {
+  /// Construct a key based on a key value.
+  explicit my_key(T it);
+};
+
+#endif
+
+/// Point on a Hilbert-Peano space filling curve.
+template<Dimension DIM, typename T>
+class hilbert_key : public filling_curve_key<DIM, T, hilbert_key<DIM, T>>
 {
-  using int_t = T;
+public:
+  using typename hilbert_key::filling_curve_key::int_t;
+  /// Point type to represent coordinates.
+  using point_t = flecsi::util::point<double, DIM>;
+
+private:
   static constexpr Dimension dimension = DIM;
   using coord_t = std::array<int_t, dimension>;
-  using point_t = flecsi::util::point<double, dimension>;
-
-  using filling_curve<DIM, T, hilbert_curve>::value_;
-  using filling_curve<DIM, T, hilbert_curve>::max_depth_;
-  using filling_curve<DIM, T, hilbert_curve>::bits_;
+  using hilbert_key::filling_curve_key::bits_;
+  using hilbert_key::filling_curve_key::filling_curve_key;
+  using hilbert_key::filling_curve_key::max_depth_;
+  using hilbert_key::filling_curve_key::value_;
 
 public:
-  constexpr hilbert_curve() : filling_curve<DIM, T, hilbert_curve>() {}
-  constexpr hilbert_curve(const int_t & id)
-    : filling_curve<DIM, T, hilbert_curve>(id) {}
-  hilbert_curve(const std::array<point_t, 2> & range, const point_t & p)
-    : hilbert_curve(range,
-        p,
-        filling_curve<DIM, T, hilbert_curve>::max_depth_) {}
-  ~hilbert_curve() = default;
-
-  // Hilbert key is always generated to the max_depth_ and then truncated
-  // otherwise the key will not be the same
-  hilbert_curve(const std::array<point_t, 2> & range,
+  /// Create a Hilbert key at a specific depth.
+  /// For Hilbert key, they key is generated to the max_depth_ and then
+  /// truncated
+  /// \param range The bounding box of the overall domain
+  /// \param p The point that the key will represent in the \p range
+  /// \param depth The depth at which to generate the key.
+  hilbert_key(const std::array<point_t, 2> & range,
     const point_t & p,
-    const std::size_t depth) {
-    *this = filling_curve<DIM, T, hilbert_curve>::min();
+    const std::size_t depth = max_depth_) {
+    *this = hilbert_key::min();
     assert(depth <= max_depth_);
     std::array<int_t, dimension> coords;
     const int_t max_val = (int_t(1) << (bits_ - 1) / dimension) - 1;
@@ -250,7 +237,10 @@ public:
     value_ >>= (max_depth_ - depth) * dimension;
   }
 
-  void coordinates(const std::array<point_t, 2> & range, point_t & p) {
+  /// Convert this key to coordinates in range.
+  /// \param range The bounding box of the overall domain
+  point_t coordinates(const std::array<point_t, 2> & range) {
+    point_t p;
     int_t key = value_;
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
@@ -283,11 +273,8 @@ public:
       p[j] =
         min + scale * static_cast<double>(coords[j]) / (int_t(1) << max_depth_);
     } // for
+    return p;
   }
-
-  std::array<point_t, 2> range(const std::array<point_t, 2> &) {
-    return std::array<point_t, 2>{};
-  } // range
 
 private:
   void rotation2d(const int_t & n,
@@ -407,33 +394,33 @@ private:
   }
 }; // class hilbert
 
-// Morton space filling curve (Z ordering)
+/// Point on a Morton space filling curve.
 template<Dimension DIM, typename T>
-class morton_curve : public filling_curve<DIM, T, morton_curve<DIM, T>>
+class morton_key : public filling_curve_key<DIM, T, morton_key<DIM, T>>
 {
 
-  using int_t = T;
+public:
+  using typename morton_key::filling_curve_key::int_t;
+  /// Point type to represent coordinates.
+  using point_t = flecsi::util::point<double, DIM>;
+
+private:
   static constexpr Dimension dimension = DIM;
   using coord_t = std::array<int_t, dimension>;
-  using point_t = flecsi::util::point<double, dimension>;
-
-  using filling_curve<DIM, T, morton_curve>::value_;
-  using filling_curve<DIM, T, morton_curve>::max_depth_;
-  using filling_curve<DIM, T, morton_curve>::bits_;
+  using morton_key::filling_curve_key::bits_;
+  using morton_key::filling_curve_key::filling_curve_key;
+  using morton_key::filling_curve_key::max_depth_;
+  using morton_key::filling_curve_key::value_;
 
 public:
-  constexpr morton_curve() : filling_curve<DIM, T, morton_curve>() {}
-  constexpr morton_curve(const int_t & id)
-    : filling_curve<DIM, T, morton_curve>(id) {}
-  morton_curve(const std::array<point_t, 2> & range, const point_t & p)
-    : morton_curve(range, p, filling_curve<DIM, T, morton_curve>::max_depth_) {}
-  ~morton_curve() = default;
-
-  // Morton key can be generated directly up to the right depth
-  morton_curve(const std::array<point_t, 2> & range,
+  /// Create a Morton key at a specific depth.
+  /// \param range The bounding box of the overall domain
+  /// \param p The point that the key will represent in the \p range
+  /// \param depth The depth at which to generate the key.
+  morton_key(const std::array<point_t, 2> & range,
     const point_t & p,
-    const std::size_t depth) {
-    *this = filling_curve<DIM, T, morton_curve>::min();
+    const std::size_t depth = max_depth_) {
+    *this = morton_key::min();
     assert(depth <= max_depth_);
     std::array<int_t, dimension> coords;
     const int_t max_val = (int_t(1) << (bits_ - 1) / dimension) - 1;
@@ -453,9 +440,12 @@ public:
       } // for
       ++k;
     } // for
-  } // morton_curve
+  } // morton_key
 
-  void coordinates(const std::array<point_t, 2> & range, point_t & p) {
+  /// Convert this key to coordinates in range.
+  /// range The bounding box of the overall domain
+  point_t coordinates(const std::array<point_t, 2> & range) {
+    point_t p;
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
     int_t id = value_;
@@ -474,15 +464,19 @@ public:
       coords[j] <<= max_depth_ - d;
       p[j] = min + scale * static_cast<double>(coords[j]) / m;
     } // for
+    return p;
   } //  coordinates
 
+  /// Compute the bounding box of a branch from its key in the overall domain
+  /// The space is recursively decomposed regarding the dimension
+  /// \param range The bounding box of the overall domain
   std::array<point_t, 2> range(const std::array<point_t, 2> & range) {
     // The result range
     std::array<point_t, 2> result;
     result[0] = range[0];
     result[1] = range[1];
     // Copy the key
-    int_t root = filling_curve<DIM, T, morton_curve>::root().value_;
+    int_t root = morton_key::root().value_;
     // Extract x,y and z
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
@@ -511,25 +505,29 @@ public:
   } // range
 }; // class morton
 
-} // namespace flecsi
+/// \}
 
+} // namespace flecsi::util
+
+// We need to specify the numeric_limits in order to use the filling curves with
+// the distributed sort utility
 namespace std {
 template<flecsi::Dimension DIM, typename T>
-struct numeric_limits<flecsi::morton_curve<DIM, T>> {
-  static constexpr flecsi::morton_curve<DIM, T> min() {
-    return flecsi::morton_curve<DIM, T>::min();
+struct numeric_limits<flecsi::util::morton_key<DIM, T>> {
+  static constexpr flecsi::util::morton_key<DIM, T> min() {
+    return flecsi::util::morton_key<DIM, T>::min();
   }
-  static constexpr flecsi::morton_curve<DIM, T> max() {
-    return flecsi::morton_curve<DIM, T>::max();
+  static constexpr flecsi::util::morton_key<DIM, T> max() {
+    return flecsi::util::morton_key<DIM, T>::max();
   }
 };
 template<flecsi::Dimension DIM, typename T>
-struct numeric_limits<flecsi::hilbert_curve<DIM, T>> {
-  static constexpr flecsi::hilbert_curve<DIM, T> min() {
-    return flecsi::hilbert_curve<DIM, T>::min();
+struct numeric_limits<flecsi::util::hilbert_key<DIM, T>> {
+  static constexpr flecsi::util::hilbert_key<DIM, T> min() {
+    return flecsi::util::hilbert_key<DIM, T>::min();
   }
-  static constexpr flecsi::hilbert_curve<DIM, T> max() {
-    return flecsi::hilbert_curve<DIM, T>::max();
+  static constexpr flecsi::util::hilbert_key<DIM, T> max() {
+    return flecsi::util::hilbert_key<DIM, T>::max();
   }
 };
 } // namespace std

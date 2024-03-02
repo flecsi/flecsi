@@ -19,7 +19,6 @@ struct htype_t {
 };
 
 using pair_t = std::pair<hkey_t, htype_t>;
-
 using hmap_t = hashtable<hkey_t, htype_t>;
 
 int

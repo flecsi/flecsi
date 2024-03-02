@@ -70,6 +70,7 @@ more advanced FleCSI concepts.
   tutorial/execution
   tutorial/data
   tutorial/parallel
+  tutorial/ntree
   tutorial/flaxpy
   tutorial/poisson
 

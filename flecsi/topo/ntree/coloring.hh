@@ -7,7 +7,6 @@
 #include <map>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace topo {
 /// \addtogroup ntree
@@ -34,22 +33,41 @@ struct ntree_base {
     reverse_postorder ///< Reverse post-ordered DFS traversal
   };
 
+  /// Ntree coloring
+  struct coloring {
+
+    ///  Build a coloring based on the number of colors \p nparts
+    coloring(Color nparts, util::id hmap_size)
+      : nparts_(nparts), local_hmap_(hmap_size) {}
+
+    /// Number of colors
+    Color nparts_;
+    /// Entities distribution: number of entities per color
+    std::vector<util::id> entities_sizes_;
+    /// Nodes distribution: number of nodes per color
+    std::vector<util::id> nodes_sizes_;
+
+    /// Size of the hashtable on each color
+    util::id local_hmap_;
+  }; // struct coloring
+
+protected:
   using ent_id = topo::id<entities>;
   using node_id = topo::id<nodes>;
 
   struct ent_node {
-    std::size_t ents;
-    std::size_t nodes;
+    util::id ents;
+    util::id nodes;
   };
 
   struct meta_type {
     std::size_t max_depth;
     ent_node local, ghosts, top_tree;
-    std::size_t nents_recv;
+    util::id nents_recv;
   };
 
   struct en_size {
-    std::vector<std::size_t> ent, node;
+    std::vector<util::id> ent, node;
   };
 
   struct color_id {
@@ -58,48 +76,7 @@ struct ntree_base {
     std::size_t from_color;
   };
 
-  /// Ntree coloring
-  struct coloring {
-
-    ///  Build a coloring based on the number of colors \p nparts
-    coloring(Color nparts)
-      : nparts_(nparts), global_hmap_(nparts * local_hmap_),
-        hmap_offset_(nparts, local_hmap_), tdata_offset_(nparts, 3),
-        cdata_offset_(nparts, 100), meta_offset_(nparts, 1),
-        comms_offset_(nparts, nparts) {}
-
-    /// Number of colors
-    Color nparts_;
-
-    /// Number of local entities
-    std::size_t local_entities_;
-    /// Number of global entities
-    std::size_t global_entities_;
-    /// Entities distribution: number of entities per color
-    std::vector<std::size_t> entities_distribution_;
-    std::vector<std::size_t> entities_offset_;
-
-    /// Number of local nodes
-    std::size_t local_nodes_;
-    /// Number of global nodes
-    std::size_t global_nodes_;
-    std::vector<std::size_t> nodes_offset_;
-
-    static constexpr size_t local_hmap_ = 1 << 15;
-    std::size_t global_hmap_;
-    std::vector<std::size_t> hmap_offset_;
-    std::vector<std::size_t> tdata_offset_;
-
-    // cdata
-    std::vector<std::size_t> cdata_offset_;
-    std::vector<std::size_t> global_sizes_;
-
-    std::vector<std::size_t> meta_offset_;
-
-    std::vector<std::size_t> comms_offset_;
-  }; // struct coloring
-
-  static std::size_t allocate(const std::vector<std::size_t> & arr,
+  static std::size_t allocate(const std::vector<util::id> & arr,
     const std::size_t & i) {
     return arr[i];
   }
@@ -123,6 +100,5 @@ struct ntree_base {
 
 } // namespace topo
 } // namespace flecsi
-/// \endcond
 
 #endif

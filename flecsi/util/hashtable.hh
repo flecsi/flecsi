@@ -11,7 +11,14 @@
 namespace flecsi {
 namespace util {
 
-template<class KEY, class TYPE, class HASH = std::hash<KEY>>
+template<typename KEY>
+struct default_hash {
+  static std::size_t hash(const KEY & k) {
+    return std::hash<KEY>{}(k);
+  }
+};
+
+template<class KEY, class TYPE, class HASH = default_hash<KEY>>
 struct hashtable;
 
 template<class KEY, class TYPE, class HASH>
@@ -65,15 +72,12 @@ public:
   // Type stored with the key
   using type_t = TYPE;
   using pair_t = std::pair<key_t, type_t>;
-  // Hasher
-  using hash_f = HASH;
 
   // Iterator
   using pointer = pair_t *;
   using iterator = hashtableIterator<KEY, TYPE, HASH>;
 
 private:
-  std::size_t nelements_;
   constexpr static std::size_t modulo_ = 334214459;
   util::span<pair_t> span_;
 
@@ -83,16 +87,12 @@ private:
 public:
   hashtable(const util::span<pair_t> & span) {
     span_ = span;
-    nelements_ = 0;
-    for(auto it = this->begin(); it != this->end(); ++it) {
-      ++nelements_;
-    }
   }
 
   // Find a value in the hashtable
   // While the value or a null key is not found we keep looping
-  iterator find(const key_t & key) {
-    std::size_t h = hash_f()(key) % span_.size();
+  iterator find(const key_t & key) const {
+    std::size_t h = HASH::hash(key) % span_.size();
     pointer ptr = span_.data() + h;
     std::size_t iter = 0;
     while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
@@ -110,8 +110,8 @@ public:
   // This function tries to find the first available position in case of
   // conflict using modulo method.
   template<typename... ARGS>
-  iterator insert(const key_t & key, ARGS &&... args) {
-    std::size_t h = hash_f()(key) % span_.size();
+  iterator insert(const key_t & key, ARGS &&... args) const {
+    std::size_t h = HASH::hash(key) % span_.size();
     pointer ptr = span_.data() + h;
     std::size_t iter = 0;
     while(ptr->first != key && ptr->first != key_t{} && iter != max_find_) {
@@ -125,7 +125,6 @@ public:
                   << std::endl;
       return end();
     }
-    ++nelements_;
     ptr = new(ptr) pair_t(key, {std::forward<ARGS>(args)...});
     return iterator(ptr, this);
   }
@@ -150,10 +149,8 @@ public:
 
   // Clear all keys frrom the table
   void clear() {
-    nelements_ = 0;
-    for(auto & a : *this) {
-      a.first = key_t{};
-    }
+    const auto v = std::make_pair(key_t{}, type_t{});
+    std::fill(span_.begin(), span_.end(), v);
   }
 
   constexpr iterator begin() const noexcept {
@@ -168,8 +165,9 @@ public:
   }
 
   // Number of elements currently stored in the hashtable
-  constexpr std::size_t size() const noexcept {
-    return nelements_;
+  // This computation is linear in time and should be used for debug only
+  constexpr std::size_t count_entries() const noexcept {
+    return std::distance(this->begin(), this->end());
   }
 
   // Check if the hashtable doesnt hold any non-null elements

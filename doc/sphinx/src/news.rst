@@ -80,6 +80,7 @@ New features
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
   * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
+  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend.
 
 * Legion backend
 
@@ -92,7 +93,7 @@ New features
   * ``permutation_view`` accesses a subset of a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
   * ``test`` convenience function launches unit test tasks.
-  * ``sort`` provides a distributed sort and load balancing for an index space with multiple fields. 
+  * ``sort`` provides a distributed sort and load balancing for an index space with multiple fields.
 
 * Logging
 
