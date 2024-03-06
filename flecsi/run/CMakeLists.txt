@@ -1,68 +1,24 @@
-set(run_HEADERS
+flecsi_headers(
   backend.hh
   context.hh
   control.hh
   options.hh
   types.hh
 )
-
-set(run_SOURCES
-  context.cc
-)
+flecsi_sources(context.cc)
 
 if(FLECSI_BACKEND STREQUAL "legion")
-
-  set(run_HEADERS
-    ${run_HEADERS}
+  flecsi_headers(
     leg/context.hh
     leg/mapper.hh
   )
-
-  set(run_SOURCES
-    ${run_SOURCES}
-    leg/context.cc
-  )
-
+  flecsi_sources(leg/context.cc)
 elseif(FLECSI_BACKEND STREQUAL "mpi")
-
-  set(run_HEADERS
-    ${run_HEADERS}
+  flecsi_headers(
     mpi/context.hh
   )
-
-  set(run_SOURCES
-    ${run_SOURCES}
-    mpi/context.cc
-  )
-
+  flecsi_sources(mpi/context.cc)
 endif()
-
-#------------------------------------------------------------------------------#
-# Export header list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(run_HEADERS
-  ${run_HEADERS}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Export source list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(run_SOURCES
-  ${run_SOURCES}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Unit tests.
-#------------------------------------------------------------------------------#
-
-#------------------------------------------------------------------------------#
-# Note: The cycle test does not use the 'flecsi_add_test' interface because it 
-# is meant to test different low-level control model features.
-#------------------------------------------------------------------------------#
 
 if(ENABLE_UNIT_TESTS)
   add_executable(cycle

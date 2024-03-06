@@ -1,9 +1,4 @@
-#------------------------------------------------------------------------------#
-# Add header files. Note that these will be "exported" to the parent
-# scope below.
-#------------------------------------------------------------------------------#
-
-set(util_HEADERS
+flecsi_headers(
   annotation.hh
   array_ref.hh
   bitutils.hh
@@ -19,7 +14,6 @@ set(util_HEADERS
   geometry/kdtree.hh
   crs.hh
   parmetis.hh
-  graphviz.hh
   hashtable.hh
   mpi.hh
   reorder.hh
@@ -29,37 +23,20 @@ set(util_HEADERS
   target.hh
   type_traits.hh
   types.hh
-  unit.hh
-  unit/output.hh
-  unit/types.hh
 )
+flecsi_sources(demangle.cc)
 
-#------------------------------------------------------------------------------#
-# Add source files. Note that these will be "exported" to the parent
-# scope below.
-#------------------------------------------------------------------------------#
+if(ENABLE_FLOG)
+  flecsi_headers(
+    unit.hh
+    unit/output.hh
+    unit/types.hh
+  )
+endif()
 
-set(util_SOURCES
-  demangle.cc
-)
-
-#------------------------------------------------------------------------------#
-# Export header list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(util_HEADERS
-  ${util_HEADERS}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Export source list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(util_SOURCES
-  ${util_SOURCES}
-  PARENT_SCOPE
-)
+if(ENABLE_GRAPHVIZ)
+  flecsi_headers(graphviz.hh)
+endif()
 
 ################################################################################
 # Unit tests.

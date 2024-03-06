@@ -16,14 +16,12 @@
 #------------------------------------------------------------------------------#
 # Add FleCSI CMake modules
 #------------------------------------------------------------------------------#
-get_filename_component(FleCSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-
 if(NOT FLECSI_CMAKE)
-  get_filename_component(FleCSI_CMAKE_BASE_DIR "${FleCSI_CMAKE_DIR}" DIRECTORY)
+  get_filename_component(FleCSI_CMAKE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
   message(STATUS "Found FleCSI CMake Modules (Appending CMAKE_MODULE_PATH): "
     ${FleCSI_CMAKE_BASE_DIR})
   list(APPEND CMAKE_MODULE_PATH ${FleCSI_CMAKE_BASE_DIR})
-  set(FLECSI_UNIT_MAIN ${FleCSI_CMAKE_DIR}/unit-main.cc)
+  set(FLECSI_UNIT_MAIN ${CMAKE_CURRENT_LIST_DIR}/unit-main.cc)
   set(FLECSI_CMAKE TRUE)
 endif()
 
@@ -82,5 +80,5 @@ endif()
 #------------------------------------------------------------------------------#
 
 if(NOT TARGET FleCSI AND NOT FleCSI_BINARY_DIR)
-  include(${FleCSI_CMAKE_DIR}/FleCSITargets.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/FleCSITargets.cmake)
 endif()
