@@ -382,7 +382,6 @@ if(ENABLE_LIBRARY)
   set_target_properties(FleCSI
     PROPERTIES
       VERSION ${FleCSI_VERSION}
-      SOVERSION ${FleCSI_VERSION_MAJOR}
   )
 
   include(CMakePackageConfigHelpers)
