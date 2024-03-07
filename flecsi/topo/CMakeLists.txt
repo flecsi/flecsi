@@ -1,9 +1,4 @@
-#------------------------------------------------------------------------------#
-# Add header files. Note that these will be "exported" to the parent
-# scope below.
-#------------------------------------------------------------------------------#
-
-set(topo_HEADERS
+flecsi_headers(
   color.hh
   core.hh
   global.hh
@@ -22,38 +17,13 @@ set(topo_HEADERS
   types.hh
 )
 
-set(topo_SOURCES
-)
-
-#------------------------------------------------------------------------------#
-# Export header list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(topo_HEADERS
-  ${topo_HEADERS}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Export source list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(topo_SOURCES
-  ${topo_SOURCES}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Unit tests.
-#------------------------------------------------------------------------------#
-
 # index -----------------------------------------------------------------------#
 
 flecsi_add_test(index
   SOURCES
     test/index.cc
   PROCS 2
-  )
+)
 
 # unstructured ---------------------------------------------------------------#
 
@@ -203,6 +173,31 @@ flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
     narray/test/narray.hh
+  INPUTS
+    narray/test/mesh_1d_4_0.blessed
+    narray/test/mesh_1d_4_1.blessed
+    narray/test/mesh_1d_4_2.blessed
+    narray/test/mesh_1d_4_3.blessed
+    narray/test/mesh_2d_4_0.blessed
+    narray/test/mesh_2d_4_1.blessed
+    narray/test/mesh_2d_4_2.blessed
+    narray/test/mesh_2d_4_3.blessed
+    narray/test/mesh_3d_4_0.blessed
+    narray/test/mesh_3d_4_1.blessed
+    narray/test/mesh_3d_4_2.blessed
+    narray/test/mesh_3d_4_3.blessed
+    narray/test/coloring_aux_xy_9x9x9_3x3x1_4_0.blessed
+    narray/test/coloring_aux_xy_9x9x9_3x3x1_4_1.blessed
+    narray/test/coloring_aux_xy_9x9x9_3x3x1_4_2.blessed
+    narray/test/coloring_aux_xy_9x9x9_3x3x1_4_3.blessed
+    narray/test/coloring_aux_x_9x9x9_3x3x1_fg_4_0.blessed
+    narray/test/coloring_aux_x_9x9x9_3x3x1_fg_4_1.blessed
+    narray/test/coloring_aux_x_9x9x9_3x3x1_fg_4_2.blessed
+    narray/test/coloring_aux_x_9x9x9_3x3x1_fg_4_3.blessed
+    narray/test/coloring_primary_9x9x9_3x3x1_4_0.blessed
+    narray/test/coloring_primary_9x9x9_3x3x1_4_1.blessed
+    narray/test/coloring_primary_9x9x9_3x3x1_4_2.blessed
+    narray/test/coloring_primary_9x9x9_3x3x1_4_3.blessed
   PROCS 4
 )
 

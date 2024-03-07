@@ -1,14 +1,12 @@
-set(flog_HEADERS
+flecsi_headers(
   message.hh
   severity.hh
   state.hh
   tag_scope.hh
   types.hh
   utils.hh
-  PARENT_SCOPE
 )
 
-set(flog_SOURCES
+flecsi_sources(
   state.cc
-  PARENT_SCOPE
 )

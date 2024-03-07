@@ -10,7 +10,7 @@
 #
 #------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.23)
 
 #------------------------------------------------------------------------------#
 # Add local module path.
@@ -113,12 +113,20 @@ option(ENABLE_LIBRARY "Enable build of FleCSI library" ON)
 mark_as_advanced(ENABLE_LIBRARY)
 
 if(ENABLE_LIBRARY)
+  #----------------------------------------------------------------------------#
+  # Build shared libraries by default
+  #----------------------------------------------------------------------------#
+  option(BUILD_SHARED_LIBS "Build shared libs" ON)
+  mark_as_advanced(BUILD_SHARED_LIBS)
+
   enable_language(CXX)
   enable_language(C)
 
   set(CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_EXTENSIONS OFF)
+
+  include(GNUInstallDirs)
 
   include(FleCSI/coverage)
   include(FleCSI/legion)
@@ -131,12 +139,16 @@ if(ENABLE_LIBRARY)
   include(FleCSI/kokkos)
   include(FleCSI/boost)
   include(FleCSI/caliper)
-  include(FleCSI/library)
 
   add_library(FleCSI)
   add_library(FleCSI::FleCSI ALIAS FleCSI)
 
-  target_include_directories(FleCSI PUBLIC $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+  target_include_directories(FleCSI
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
   #----------------------------------------------------------------------------#
   # Add option for setting entity id type
@@ -293,7 +305,7 @@ if(ENABLE_LIBRARY)
 
   install(
     FILES ${CMAKE_BINARY_DIR}/flecsi/config.hh
-    DESTINATION include/flecsi
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/flecsi
   )
 
   #----------------------------------------------------------------------------#
@@ -324,7 +336,7 @@ if(ENABLE_LIBRARY)
 
   install(
     FILES ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/FleCSIConfig.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
   )
 
   #----------------------------------------------------------------------------#
@@ -342,15 +354,58 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
   # FleCSI library.
   #----------------------------------------------------------------------------#
+  add_subdirectory(flecsi)
 
-  add_library_target(FleCSI flecsi
-    EXPORT_TARGET
+  #----------------------------------------------------------------------------#
+  # Install
+  #----------------------------------------------------------------------------#
+  install(TARGETS FleCSI
+    EXPORT
       FleCSITargets
-    VERSION
-      ${FleCSI_VERSION}
-    NAMESPACE
-      FleCSI
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}
+    FILE_SET public_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/flecsi
   )
+
+  install(EXPORT FleCSITargets
+    FILE
+      FleCSITargets.cmake
+    NAMESPACE
+      FleCSI::
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
+  )
+
+  #----------------------------------------------------------------------------#
+  # Version
+  #----------------------------------------------------------------------------#
+  set_target_properties(FleCSI
+    PROPERTIES
+      VERSION ${FleCSI_VERSION}
+  )
+
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/FleCSIConfigVersion.cmake
+    VERSION ${FleCSI_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FleCSIConfigVersion.cmake
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}/cmake/${target}
+  )
+
+  #----------------------------------------------------------------------------#
+  # Local export
+  #----------------------------------------------------------------------------#
+  export(EXPORT FleCSITargets
+    FILE
+      ${CMAKE_BINARY_DIR}/FleCSITargets.cmake
+    NAMESPACE
+      FleCSI::
+  )
+
+  export(PACKAGE FleCSI)
 
   #----------------------------------------------------------------------------#
   # Tools
@@ -364,7 +419,7 @@ if(ENABLE_LIBRARY)
   install(
     DIRECTORY
      ${PROJECT_SOURCE_DIR}/cmake/FleCSI
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
     FILES_MATCHING
     PATTERN "*"
     PATTERN "*.cmake.in" EXCLUDE
@@ -377,14 +432,16 @@ if(ENABLE_LIBRARY)
       ${PROJECT_SOURCE_DIR}/cmake/FindClangFormat.cmake
       ${PROJECT_SOURCE_DIR}/cmake/FindSphinx.cmake
       ${PROJECT_SOURCE_DIR}/cmake/FindGraphviz.cmake
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
   )
 
-  install(
-    FILES ${FLECSI_UNIT_MAIN}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBDIR}/cmake/FleCSI
-    RENAME unit-main.cc
-  )
+  if(ENABLE_FLOG)
+    install(
+      FILES ${FLECSI_UNIT_MAIN}
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
+      RENAME unit-main.cc
+    )
+  endif()
 
   #----------------------------------------------------------------------------#
   # HPX extra.

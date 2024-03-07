@@ -139,14 +139,9 @@
   script: &darwin_setup_hip
     - |
       if [[ "${CI_JOB_NAME}" =~ "rocm" ]]; then
-        export ROCMINFO_PATH=/opt/rocm-${ROCM_VERSION}/bin
-        export ROCM_PATH=/opt/rocm-${ROCM_VERSION}
-        export HSA_PATH=/opt/rocm-${ROCM_VERSION}/hsa
-        export DEVICE_LIB_PATH=/opt/rocm-${ROCM_VERSION}/amdgcn/bitcode/
-        export HIP_PLATFORM=amd
-        export HIP_CLANG_PATH=/opt/rocm-${ROCM_VERSION}/llvm/bin
-        export HIP_COMPILER=clang
-        export PATH=/opt/rocm-${ROCM_VERSION}/bin:$PATH
+        module load rocm/${ROCM_VERSION}
+        export HIPCC_COMPILE_FLAGS_APPEND="--gcc-install-dir=/projects/opt/centos8/x86_64/gcc/${GCC_VERSION}/lib/gcc/x86_64-pc-linux-gnu/${GCC_VERSION}"
+        export HIPCC_LINK_FLAGS_APPEND="${HIPCC_COMPILE_FLAGS_APPEND}"
         header "Using Darwin HIP installation at: ${ROCM_PATH}"
       fi
 

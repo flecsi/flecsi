@@ -225,16 +225,24 @@ private:
       std::map<Color, std::vector<int>> color_bounds;
       get_ngb_color_bounds(false, md, color_bounds);
 
+      // The start of receive buffer id depends on the number
+      // of sent buffers.
+      std::map<Color, std::vector<int>> color_bounds_send;
+      get_ngb_color_bounds(true, md, color_bounds_send);
+
       A lbnds, ubnds, strs;
       for(Dimension i = 0; i < dimension; i++) {
         strs[i] = md.axcol[i].extent();
       }
 
       // Loop over the receiving colors and receive the data for all boxes
-      int bufid = color_bounds.size();
+      int bufid = color_bounds_send.size();
       for(auto & [c, v] : color_bounds) {
         std::vector<int> lids;
-        auto get_lids = [&](int lid) { lids.push_back(lid); };
+        auto get_lids = [&](int lid) {
+          lids.push_back(lid);
+          return false;
+        };
 
         int nboxes = v.size() / (2 * dimension);
         // get lids of all boxes
@@ -273,10 +281,7 @@ private:
       int p = 0;
       for(auto & [c, v] : color_bounds) {
         auto b = data::buffers::ragged{mv[p++], first};
-        auto send_data = [&](int lid) {
-          if(!b(f, lid, sent))
-            return;
-        };
+        auto send_data = [&](int lid) { return !b(f, lid, sent); };
 
         int nboxes = v.size() / (2 * dimension);
         // send each box
@@ -328,7 +333,8 @@ private:
       narray_impl::linearize<dimension> ln{strs};
       for(auto && v : tb(lbnds, ubnds)) {
         auto lid = ln(v);
-        f(lid);
+        if(f(lid))
+          break;
       }
     } // traverse
 
@@ -340,7 +346,6 @@ private:
       A2 & ngb_lbnds,
       A2 & ngb_ubnds,
       std::map<Color, std::vector<int>> & color_bounds) {
-
       using nview = flecsi::topo::narray_impl::neighbors_view<dimension>;
       narray_impl::linearize<dimension> ln{color_strs};
       for(auto && v : nview(diagonals)) {
@@ -355,6 +360,10 @@ private:
                (center_color[k] == color_strs[k] - 1) && bdepth[k])
               color_indices[k] = 0;
           }
+          // if axis is auxiliary, add neighbor colors if only something has to
+          // be communicated.
+          if(ngb_ubnds[v[k] + 1][k] == ngb_lbnds[v[k] + 1][k])
+            color_indices[k] = -1;
         }
 
         bool valid_ngb = true;
@@ -402,7 +411,6 @@ private:
      * */
     static void
     axes_bounds(bool send, meta_data & md, A2 & ngb_lbnds, A2 & ngb_ubnds) {
-
       // fill out the indices of the ngb colors
       int p = 0;
       for(auto & ax : md.axcol) {
@@ -411,9 +419,9 @@ private:
         if(send) {
           ngb_lbnds[0][p] = ax.template logical<0>();
           ngb_lbnds[1][p] = ax.template logical<0>();
-          ngb_lbnds[2][p] = ax.template logical<1>() - ax.hdepth;
+          ngb_lbnds[2][p] = ax.template logical<1>() - ax.sdepth_hi;
 
-          ngb_ubnds[0][p] = ngb_lbnds[0][p] + ax.hdepth;
+          ngb_ubnds[0][p] = ngb_lbnds[0][p] + ax.sdepth_lo;
           ngb_ubnds[1][p] = ax.template logical<1>();
           ngb_ubnds[2][p] = ax.template logical<1>();
 
@@ -432,9 +440,9 @@ private:
           ngb_lbnds[1][p] = ax.template logical<0>();
           ngb_lbnds[2][p] = ax.template logical<1>();
 
-          ngb_ubnds[0][p] = ax.hdepth;
+          ngb_ubnds[0][p] = ax.hdepth_lo;
           ngb_ubnds[1][p] = ax.template logical<1>();
-          ngb_ubnds[2][p] = ax.template logical<1>() + ax.hdepth;
+          ngb_ubnds[2][p] = ax.template logical<1>() + ax.hdepth_hi;
 
           // bdepths
           if((ci == 0) && ax.bdepth) {
@@ -701,32 +709,8 @@ protected:
    */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
-    if constexpr(DM == domain::logical) {
-      return make_ids<S>(
-        util::iota_view<util::id>(logical<S, A, 0>(), logical<S, A, 1>()));
-    }
-    else if constexpr(DM == domain::extended) {
-      return make_ids<S>(
-        util::iota_view<util::id>(extended<S, A, 0>(), extended<S, A, 1>()));
-    }
-    else if constexpr(DM == domain::all) {
-      return make_ids<S>(util::iota_view<util::id>(0, extent<S, A>()));
-    }
-    else if constexpr(DM == domain::boundary_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
-    }
-    else if constexpr(DM == domain::boundary_high) {
-      return make_ids<S>(util::iota_view<util::id>(
-        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
-    }
-    else if constexpr(DM == domain::ghost_low) {
-      return make_ids<S>(util::iota_view<util::id>(0, size<S, A, DM>()));
-    }
-    else {
-      static_assert(DM == domain::ghost_high, "invalid domain identifier");
-      return make_ids<S>(util::iota_view<util::id>(
-        logical<S, A, 1>(), logical<S, A, 1>() + size<S, A, DM>()));
-    }
+    const auto o = offset<S, A, DM>();
+    return make_ids<S>(util::iota_view<util::id>(o, o + size<S, A, DM>()));
   }
 
   /*!

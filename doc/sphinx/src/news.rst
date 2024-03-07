@@ -129,15 +129,22 @@ Fixed
   * ``narray`` respects ``index_definition::diagonals`` being ``false``.
     (This was fixed but not documented in 2.2.1.)
   * ``narray`` requires equal boundary and halo depths for periodic axes (differing values never worked reliably).
+  * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
 
 * Legion backend
 
   * ``omp`` tasks now work in builds with GPU support.
+  * MPI tasks properly wait on previously launched tasks.
+  * Launches of zero point tasks succeed (vacuously).
   * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
 
 * On-node parallelism
 
   * Custom reductions and reduced types work with Kokkos.
+
+* Utilities
+
+  * ``one_to_alli`` no longer triggers a race condition.
 
 * Logging
 

@@ -1,4 +1,4 @@
-set(run_HEADERS
+flecsi_headers(
   backend.hh
   context.hh
   control.hh
@@ -6,59 +6,20 @@ set(run_HEADERS
   options.hh
   types.hh
 )
-
-set(run_SOURCES
-  context.cc
-)
+flecsi_sources(context.cc)
 
 if(FLECSI_BACKEND STREQUAL "legion")
-
-  set(run_HEADERS
-    ${run_HEADERS}
+  flecsi_headers(
     leg/context.hh
     leg/mapper.hh
   )
-
-  set(run_SOURCES
-    ${run_SOURCES}
-    leg/context.cc
-  )
-
+  flecsi_sources(leg/context.cc)
 elseif(FLECSI_BACKEND STREQUAL "mpi")
-
-  set(run_HEADERS
-    ${run_HEADERS}
+  flecsi_headers(
     mpi/context.hh
   )
-
-  set(run_SOURCES
-    ${run_SOURCES}
-    mpi/context.cc
-  )
-
+  flecsi_sources(mpi/context.cc)
 endif()
-
-#------------------------------------------------------------------------------#
-# Export header list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(run_HEADERS
-  ${run_HEADERS}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Export source list to parent scope.
-#------------------------------------------------------------------------------#
-
-set(run_SOURCES
-  ${run_SOURCES}
-  PARENT_SCOPE
-)
-
-#------------------------------------------------------------------------------#
-# Unit tests.
-#------------------------------------------------------------------------------#
 
 if(ENABLE_UNIT_TESTS)
   add_executable(cycle

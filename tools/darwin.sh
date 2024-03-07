@@ -16,7 +16,7 @@ if [ -d ../flecsi ] ; then
     cd ..
 else
     cd -
-    git clone git@gitlab.lanl.gov:flecsi/flecsi.git
+    git clone ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
     cd flecsi
 fi
 
@@ -35,7 +35,7 @@ FLECSI_INSTALL="$HOME/flecsi-inst"
 GCC_VERSION=11.1.0
 
 # Download a version of Spack known to work with FleCSI and activate it.
-SPACK_VERSION=develop-0e9c8838
+SPACK_VERSION=$(echo $(grep USE_SPACK_UPSTREAM: .gitlab-ci.yml | cut -d: -f2))
 
 if [[ "${SPACK_VERSION}" =~ "develop-" ]]; then
   SPACK_COMMIT=$(echo $SPACK_VERSION | cut -d- -f2)

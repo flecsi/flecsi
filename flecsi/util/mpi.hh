@@ -541,49 +541,43 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
     ++it;
     {
       const auto n = size - 1;
+      std::vector<M> val;
       auto_requests areq;
-      auto & req = areq.v;
-      {
-        std::vector<M> val; // parallel to req
-        std::vector<int> done(n);
-        std::stack<int> free; // inactive requests
-        std::size_t used = 0;
-        for(int r = 1; r < size; ++r, ++it) {
-          const int i = [&] {
-            if(free.empty()) {
-              val.emplace_back(it);
-              return int(req.size()); // created below
-            }
-            else {
-              const auto ret = free.top();
-              free.pop();
-              val[ret] = M(it);
-              return ret;
-            }
-          }();
-          {
-            const auto & v = val[i];
-            if(i == int(req.size()))
-              req.emplace_back();
-            // Discourage buffering (at the cost of needless synchronization):
-            test(
-              MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
-            used += v.bytes();
+      auto & req = areq.v; // parallel to val
+      std::vector<int> done(n);
+      std::stack<int> free; // inactive requests
+      std::size_t used = 0;
+      for(int r = 1; r < size; ++r, ++it) {
+        const int i = [&] {
+          if(free.empty()) {
+            val.emplace_back(it);
+            return int(req.size()); // created below
           }
-          while(used > mem) {
-            int count;
-            test(MPI_Waitsome(req.size(),
-              req.data(),
-              &count,
-              done.data(),
-              MPI_STATUSES_IGNORE));
-            // Clear data for completed sends:
-            for(auto j : util::span(done).first(count)) {
-              auto & w = val[j];
-              used -= w.bytes();
-              w.reset();
-              free.push(j);
-            }
+          else {
+            const auto ret = free.top();
+            free.pop();
+            val[ret] = M(it);
+            return ret;
+          }
+        }();
+        {
+          const auto & v = val[i];
+          if(i == int(req.size()))
+            req.emplace_back();
+          // Discourage buffering (at the cost of needless synchronization):
+          test(MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+          used += v.bytes();
+        }
+        while(used > mem) {
+          int count;
+          test(MPI_Waitsome(
+            req.size(), req.data(), &count, done.data(), MPI_STATUSES_IGNORE));
+          // Clear data for completed sends:
+          for(auto j : util::span(done).first(count)) {
+            auto & w = val[j];
+            used -= w.bytes();
+            w.reset();
+            free.push(j);
           }
         }
       }
