@@ -123,11 +123,13 @@ struct io_interface {
         int item_size = fp->type_size;
         std::string field_name = region_name + " field " + std::to_string(fid);
 
-        const auto data = isd.partition->get_raw_storage(fid, item_size);
+        const auto data = isd.partition->get_raw_storage<(
+          W ? partition_privilege_t::ro : partition_privilege_t::wo)>(
+          fid, item_size);
+
         hsize_t size = data.size() / item_size;
-        void * buffer = data.data();
         checkpoint_field<W>(
-          checkpoint_file, field_name, buffer, size, item_size);
+          checkpoint_file, field_name, data.data(), size, item_size);
       }
       idx++;
     }

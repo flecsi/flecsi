@@ -113,6 +113,11 @@ privilege_write(Privileges pack) noexcept {
   return false;
 }
 
+// Return const qualified T if not writing
+template<typename T, partition_privilege_t AccessPrivilege>
+using privilege_const =
+  std::conditional_t<privilege_write(AccessPrivilege), T, const T>;
+
 // Return whether the privileges destroy any existing data.
 constexpr bool
 privilege_discard(Privileges pack) noexcept {
