@@ -23,10 +23,7 @@ endif()
 if(ENABLE_UNIT_TESTS)
   add_executable(cycle
     test/cycle.cc
-    test/cycle.hh
-    test/package_a.hh
-    test/package_b.hh
-    test/package_c.hh)
+    test/cycle.hh)
   target_link_libraries(cycle FleCSI)
   add_dependencies(${FLECSI_UNIT_TESTS_TARGET} cycle)
   _flecsi_get_unit_test_backend_flags(CYCLE_FLAGS)
