@@ -350,8 +350,9 @@ range(T && t, int n) {
 }
 template<class F>
 struct make_range<F, decltype(void(std::declval<F &>()(1, 1)))> {
-  [[deprecated("remove second parameter or pass a range")]] static auto
-  get(F && f, int n) {
+  // for backward compatibility:
+  // caller should remove second parameter or pass a range.
+  static auto get(F && f, int n) {
     // NB: we assume that f is not a temporary in the immediate caller.
     return range([&f, n](int r) -> decltype(auto) { return f(r, n); }, n);
   }
