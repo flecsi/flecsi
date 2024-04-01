@@ -26,17 +26,17 @@ default:
       aud: https://asc-git.lanl.gov
 
 variables:
-  USE_SPACK_UPSTREAM: develop-742e2fc7
+  USE_SPACK_UPSTREAM: develop-b81d7d0a
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: "\e[1;34m"
   COLOR_MAGENTA: "\e[1;35m"
   COLOR_CYAN: "\e[1;36m"
   COLOR_PLAIN: "\e[0m"
   # global defaults
-  GCC_VERSION: 11.1.0
-  CLANG_VERSION: 16.0.6
+  GCC_VERSION: 12.2.0
+  CLANG_VERSION: 17.0.6
   ROCM_VERSION: 5.7.1
-  CUDA_VERSION: 12.2.1
+  CUDA_VERSION: 12.4.0
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
@@ -53,7 +53,6 @@ variables:
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
-  VERSION: "flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
 

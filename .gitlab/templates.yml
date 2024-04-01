@@ -34,7 +34,6 @@
     - |
       header "Creating Build Environment"
       variable ENVIRONMENT
-      variable VERSION
       variable VARIANTS
       variable TOOLCHAIN
       variable PARTITIONS
@@ -107,8 +106,8 @@
 .darwin_env_spack_install_flecsi_deps:
   script: &darwin_env_spack_install_flecsi_deps
     - section start "spack_env_install_flecsi_deps[collapsed=true]" "Installing FleCSI dependencies"
-    - echo "spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
-    - spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}
+    - echo "spack add flecsi %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
+    - spack add flecsi %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}
     - spack install -j $(nproc) --only dependencies
     - spack find -v
     - section end spack_env_install_flecsi_deps
@@ -122,7 +121,6 @@
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   PARTITIONS:    Darwin cluster partitions
-#   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants
 #------------------------------------------------------------------------------#
 
@@ -189,7 +187,6 @@
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   PARTITION:    Darwin cluster partition
-#   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants
 #------------------------------------------------------------------------------#
 
