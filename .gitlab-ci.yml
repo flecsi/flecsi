@@ -271,7 +271,6 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
@@ -286,7 +285,6 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
@@ -438,7 +436,6 @@ openmpi-poisson-cuda-clang:legion:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
