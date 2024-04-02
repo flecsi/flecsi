@@ -76,6 +76,7 @@
   script: &darwin_env_shell
     - export SPACK_DISABLE_LOCAL_CONFIG=true
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
+    - export SPACK_SKIP_MODULES=true
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
 
