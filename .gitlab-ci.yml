@@ -35,7 +35,7 @@ variables:
   # global defaults
   GCC_VERSION: 12.2.0
   CLANG_VERSION: 17.0.6
-  ROCM_VERSION: 5.7.1
+  ROCM_VERSION: 6.0.2
   CUDA_VERSION: 12.4.0
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
