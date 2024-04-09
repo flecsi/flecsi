@@ -383,7 +383,7 @@ struct unstructured_base {
    */
   template<auto C, auto EL, auto V, typename M, typename F>
   static auto bounding_box(M mesh, F coords) {
-    const auto D = std::tuple_size<typename F::value_type>::value;
+    const auto D = F::value_type::size();
     auto box = flecsi::util::BBox<D>::empty();
     for(auto c : mesh.template special_entities<C, EL>()) {
       for(auto v : mesh.template entities<V>(c)) {

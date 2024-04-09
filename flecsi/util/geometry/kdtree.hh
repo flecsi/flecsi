@@ -90,8 +90,8 @@ private:
 template<Dimension DIM>
 int
 max_component(util::point<double, DIM> & pnt) {
-  return std::max_element(pnt.data()->begin(), pnt.data()->end()) -
-         pnt.data()->begin();
+  return std::max_element(pnt.begin(), pnt.end()) -
+         pnt.begin();
 }
 
 template<Dimension DIM>

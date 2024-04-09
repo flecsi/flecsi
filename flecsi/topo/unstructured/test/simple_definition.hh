@@ -4,6 +4,7 @@
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
 #include "flecsi/util/crs.hh"
+#include "flecsi/util/geometry/point.hh"
 
 #include <fstream>
 #include <iterator>
@@ -19,7 +20,7 @@ namespace unstructured_impl {
 class simple_definition
 {
 public:
-  using point = std::array<double, 2>;
+  using point = util::point<double, 2>;
   static constexpr Dimension dimension() {
     return 2;
   }
