@@ -491,8 +491,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
 
 template<std::size_t D>
 int
-test_mesh(const std::string name,
-  topo::narray_impl::colors color_dist,
+test_mesh(topo::narray_impl::colors color_dist,
   const typename mesh<D>::gcoord & indices,
   const typename mesh<D>::coord & hdepth,
   const typename mesh<D>::coord & bdepth,
@@ -501,7 +500,7 @@ test_mesh(const std::string name,
   bool diagonals,
   bool full_ghosts,
   std::size_t sz,
-  bool full_verify,
+  const char * verify,
   bool print_info,
   const field<std::size_t>::definition<mesh<D>> & f,
   field<int, data::ragged>::definition<mesh<D>> & rf) {
@@ -535,11 +534,11 @@ test_mesh(const std::string name,
     if(print_info)
       execute<print_field<D>>(m, f(m));
 
-    if(full_verify) {
+    if(verify) {
       execute<print_field<D>>(m, f(m));
       execute<update_field<D>>(m, f(m));
       execute<print_field<D>>(m, f(m));
-      EXPECT_EQ(test<check_mesh_field<D>>(name, m, f(m)), 0);
+      EXPECT_EQ(test<check_mesh_field<D>>(verify, m, f(m)), 0);
     }
 
     // ragged field
@@ -640,8 +639,7 @@ narray_driver() {
       // 2D Mesh
       // Primary cells: diagonals variation, full ghosts on, though here full
       // ghosts don't have any meaning.
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {1, 2},
         {1, 2},
@@ -650,13 +648,12 @@ narray_driver() {
         true,
         true,
         100,
-        true,
+        "2d",
         false,
         f2,
         rf2);
 
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {1, 1},
         {1, 1},
@@ -665,14 +662,13 @@ narray_driver() {
         false,
         true,
         3,
-        false,
+        nullptr,
         true,
         f2,
         rf2);
 
       // Aux verts: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -681,13 +677,12 @@ narray_driver() {
         true,
         true,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
 
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -696,14 +691,13 @@ narray_driver() {
         true,
         false,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
 
       // Aux x-edges: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -712,13 +706,12 @@ narray_driver() {
         true,
         true,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
 
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -727,14 +720,13 @@ narray_driver() {
         true,
         false,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
 
       // Aux y-edges: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -743,13 +735,12 @@ narray_driver() {
         true,
         true,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
 
-      test_mesh<2>("2d",
-        {},
+      test_mesh<2>({},
         {8, 8},
         {2, 2},
         {0, 0},
@@ -758,7 +749,7 @@ narray_driver() {
         true,
         false,
         3,
-        false,
+        nullptr,
         false,
         f2,
         rf2);
@@ -766,8 +757,7 @@ narray_driver() {
 
     {
       // 3D
-      test_mesh<3>("3d",
-        {},
+      test_mesh<3>({},
         {4, 4, 4},
         {
           1,
@@ -780,12 +770,11 @@ narray_driver() {
         true,
         true,
         100,
-        true,
+        "3d",
         false,
         f3,
         rf3);
-      test_mesh<3>("3d",
-        {2, 2, 1},
+      test_mesh<3>({2, 2, 1},
         {4, 4, 2},
         {
           1,
@@ -798,7 +787,7 @@ narray_driver() {
         false,
         true,
         3,
-        false,
+        nullptr,
         false,
         f3,
         rf3);
