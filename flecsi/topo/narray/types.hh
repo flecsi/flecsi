@@ -173,6 +173,10 @@ struct axis_color {
   /// \showinitializer
   bool periodic = false;
 
+  /// specify whether the axis is extended for auxiliary
+  /// \showinitializer
+  bool auxiliary = false;
+
   /// Whether the current color is at the low end of the axis.
   FLECSI_INLINE_TARGET bool is_low() const {
     return color_index == 0;
@@ -237,17 +241,17 @@ struct axis_color {
   /// end can come first if an entity is shared with both neighbors.
   /// \tparam P 0 or 1 for beginning or end
   template<short P>
-  FLECSI_INLINE_TARGET util::id exclusive() const {
-    return logical<P>() + (halo<P>() ? (P ? -halo_up : halo_down) : 0);
+  FLECSI_INLINE_TARGET util::id exclusive(bool skin = false) const {
+    return logical<P>() + (halo<P>() ? (P ? -halo_up : down(skin)) : 0);
   }
 
   /// The beginning or end index of the domain entities, including logical and
   /// ghost entities.
   /// \tparam P 0 or 1 for beginning or end
   template<short P>
-  FLECSI_INLINE_TARGET util::id ghost() const {
+  FLECSI_INLINE_TARGET util::id ghost(bool skin = false) const {
     if constexpr(P)
-      return logical<P>() + ghost_thickness<P>();
+      return logical<P>() + ghost_thickness<P>(skin);
     else
       return boundary_thickness<P>();
   }
@@ -284,8 +288,11 @@ private:
     return halo<P>() ? 0 : bdepth;
   }
   template<short P>
-  FLECSI_INLINE_TARGET util::id ghost_thickness() const {
-    return halo<P>() ? (P ? halo_down : halo_up) : 0;
+  FLECSI_INLINE_TARGET util::id ghost_thickness(bool skin = false) const {
+    return halo<P>() ? (P ? down(skin) : halo_up) : 0;
+  }
+  FLECSI_INLINE_TARGET util::id down(bool skin) const {
+    return skin ? 1 : halo_down;
   }
 };
 
@@ -341,7 +348,8 @@ struct axis_definition {
       hdepth ? hdepth - (auxiliary && !full) : 0,
       hdepth + (auxiliary && full),
       {colormap(c), c == colormap.size() - 1 ? top : colormap(c + 1)},
-      periodic};
+      periodic,
+      auxiliary};
     ret.check_halo();
     return ret;
   }

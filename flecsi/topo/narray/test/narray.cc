@@ -29,11 +29,11 @@ field_helper(typename mesh<D>::template accessor<ro> m,
   }
 } // field_helper
 
-template<std::size_t D>
+// Initialize even the ghosts: with !diagonals, some are never copied.
 void
-init_field(typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(m, ca, [c = color()](auto & x) { x = c; });
+init_field(field<std::size_t>::accessor<wo, wo> ca) {
+  const auto s = ca.span();
+  std::fill(s.begin(), s.end(), color());
 } // init_field
 
 template<std::size_t D>
@@ -529,7 +529,7 @@ test_mesh(topo::narray_impl::colors color_dist,
       m.allocate(coloring.get());
     }
 
-    execute<init_field<D>>(m, f(m));
+    execute<init_field>(f(m));
 
     if(print_info)
       execute<print_field<D>>(m, f(m));
@@ -591,7 +591,7 @@ narray_driver() {
         coloring1.allocate(idef);
         m1.allocate(coloring1.get());
       }
-      execute<init_field<1>>(m1, f1(m1));
+      execute<init_field>(f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<update_field<1>>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
@@ -726,15 +726,15 @@ narray_driver() {
         nullptr,
         false);
 
-      // Aux y-edges: diagonals on, full ghosts true
+      // Aux y-edges: diagonals != full ghosts
       test({2, 2},
         {0, 0},
         {false, false},
         {false, true},
-        true,
+        false,
         true,
         3,
-        nullptr,
+        "diag",
         false);
 
       test({2, 2},

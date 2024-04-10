@@ -98,7 +98,7 @@ private:
     using Colors = std::array<Color, dimension>;
 
     util::key_array<axis_color, axes> axcol;
-    bool diagonals;
+    bool diagonals, full_ghosts;
 
     // Dynamically-sized parameter type for client convenience.
     static meta_data make(const index_definition & idef,
@@ -109,6 +109,7 @@ private:
       for(Dimension d = 0; d < dimension; ++d)
         ret.axcol[d] = idef.make_axis(d, ci[d]);
       ret.diagonals = idef.diagonals;
+      ret.full_ghosts = idef.full_ghosts;
       return ret;
     }
 
@@ -133,9 +134,28 @@ private:
     std::vector<message> traffic(bool send = true) const {
       std::vector<message> ret;
       for(const auto off : nview()) {
+        bool skin[dimension]{};
+        if(!diagonals) {
+          Dimension taxi = 0;
+          for(Dimension d = 0; d < dimension; ++d)
+            if(off[d])
+              ++taxi;
+          if(taxi > 1) {
+            // We can still need to communicate with some diagonal neighbors
+            // those auxiliaries incident on another color's primaries.
+            if(full_ghosts)
+              for(Dimension d = 0; d < dimension; ++d)
+                if((skin[d] =
+                       axcol[d].auxiliary && (send ? -1 : 1) * off[d] > 0))
+                  --taxi;
+            if(taxi > 1)
+              continue;
+          }
+        }
         auto & msg = ret.emplace_back();
         msg.neighbor = off;
         auto o = off.begin();
+        const bool * sk = skin;
         auto lo = msg.region.first.begin(), hi = msg.region.second.begin();
         for(const axis_color & ax : axcol) {
           const auto log0 = ax.logical<0>(), log1 = ax.logical<1>();
@@ -144,14 +164,15 @@ private:
           *lo = *o < 0 ? send ? log0 : ax.ghost<0>()
                 : *o ? send ? ax.exclusive<1>() : log1
                        : log0;
-          *hi = *o < 0 ? send ? ax.exclusive<0>() : log0
-                : *o   ? send ? log1 : ax.ghost<1>()
+          *hi = *o < 0 ? send ? ax.exclusive<0>(*sk) : log0
+                : *o   ? send ? log1 : ax.ghost<1>(*sk)
                        : log1;
           if(*lo++ == *hi++) {
             ret.pop_back(); // region empty
             break;
           }
           ++o;
+          ++sk;
         }
       }
       return ret;
