@@ -92,6 +92,15 @@ public:
    */
   virtual ~mpi_mapper_t() {}
 
+  void select_task_options(const Legion::Mapping::MapperContext ctx,
+    const Legion::Task & task,
+    Legion::Mapping::Mapper::TaskOptions & output) override {
+    DefaultMapper::select_task_options(ctx, task, output);
+    // make sure the input provided to `map_task` includes all the valid
+    // instances that the runtime knows
+    output.valid_instances = true;
+  }
+
   /* This is the method to choose default Layout constraints.
      FleCSI is currently uses SOA ordering, which is different from
      the one in Default Mapper
@@ -102,7 +111,7 @@ public:
     const Legion::RegionRequirement & req,
     Legion::Mapping::DefaultMapper::MappingKind mapping_kind,
     bool /* constraint */,
-    bool & force_new_instances) {
+    bool & force_new_instances) override {
 
     if((req.privilege == LEGION_REDUCE) && (mapping_kind != COPY_MAPPING)) {
       // Always make new reduction instances
@@ -159,7 +168,7 @@ public:
     const Legion::RegionRequirement & req,
     const Legion::LayoutConstraintSet &,
     bool /* force_new_instances */,
-    bool) {
+    bool) override {
     return req.region;
   } // default_policy_select_instance_region
 
@@ -183,24 +192,6 @@ public:
     using namespace Legion;
     using namespace Legion::Mapping;
 
-    // check if instance was already created and stored in the
-    // local_instances_ map. If it is, use already created instance.
-    const std::pair<Legion::LogicalRegion, Legion::Memory> key1(
-      task.regions[indx].region, target_mem);
-    auto & key2 = task.regions[indx].privilege_fields;
-    instance_map_t::const_iterator finder1 = local_instances_.find(key1);
-    if(finder1 != local_instances_.end()) {
-      const field_instance_map_t & innerMap = finder1->second;
-      field_instance_map_t::const_iterator finder2 = innerMap.find(key2);
-      if(finder2 != innerMap.end()) {
-        for(size_t j = 0; j < 3; j++) {
-          output.chosen_instances[indx + j].clear();
-          output.chosen_instances[indx + j].push_back(finder2->second);
-        } // for
-        return;
-      } // if
-    } // if
-
     // creating physical instance for the compacted storaged
     flog_assert(task.regions.size() > indx + 2,
       "ERROR:: wrong number of regions passed to the task wirth \
@@ -209,10 +200,9 @@ public:
     flog_assert((task.regions[indx].region.exists()),
       "ERROR:: pasing not existing REGION to the mapper");
 
-    Legion::Mapping::PhysicalInstance & result = local_instances_[key1][key2];
     // compacting region requirements for exclusive, shared and ghost into one
     // instance
-    result = get_instance(ctx,
+    Legion::Mapping::PhysicalInstance result = get_instance(ctx,
       task,
       target_mem,
       layout_constraints,
@@ -227,12 +217,6 @@ public:
   } // create_compacted_instance
 #endif
 
-  /*!
-   This function will create regular PhysicalInstance for a task.
-   It will first check already created instances (checking
-   local_instances_) and create a new one only if it wasn't already created in
-   requested memory space
-  */
   void create_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
@@ -246,24 +230,8 @@ public:
     if(!r.exists()) // for incomplete launch maps
       return;
 
-    // check if instance was already created and stored in the
-    // local_instamces_ map
-    const std::pair<Legion::LogicalRegion, Legion::Memory> key1(r, target_mem);
-    auto key2 = task.regions[indx].privilege_fields;
-    instance_map_t::const_iterator finder1 = local_instances_.find(key1);
-    if(finder1 != local_instances_.end()) {
-      const field_instance_map_t & innerMap = finder1->second;
-      field_instance_map_t::const_iterator finder2 = innerMap.find(key2);
-      if(finder2 != innerMap.end()) {
-        output.chosen_instances[indx].clear();
-        output.chosen_instances[indx].push_back(finder2->second);
-        return;
-      } // if
-    } // if
-
     output.chosen_instances[indx].push_back(
-      local_instances_[key1][key2] =
-        get_instance(ctx, task, target_mem, layout_constraints, indx, {r}));
+      get_instance(ctx, task, target_mem, layout_constraints, indx, {r}));
   } // create_instance
 
   /*!
@@ -285,8 +253,8 @@ public:
 
   virtual void map_task(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
-    const Legion::Mapping::Mapper::MapTaskInput &,
-    Legion::Mapping::Mapper::MapTaskOutput & output) {
+    const Legion::Mapping::Mapper::MapTaskInput & input,
+    Legion::Mapping::Mapper::MapTaskOutput & output) override {
 
     using namespace Legion;
     using namespace Legion::Mapping;
@@ -339,8 +307,44 @@ public:
         missing_fields);
 
       for(size_t indx = 0; indx < task.regions.size(); indx++) {
+        // Check to see if any of the valid instances satisfy this requirement
+        std::vector<Legion::Mapping::PhysicalInstance> valid_instances;
+        for(auto & vi : input.valid_instances[indx])
+          if(vi.get_location() == target_mem)
+            valid_instances.push_back(vi);
 
-        // Filling out "layout_constraints" with the defaults
+        std::set<FieldID> valid_missing_fields;
+        runtime->filter_instances(ctx,
+          task,
+          indx,
+          output.chosen_variant,
+          valid_instances,
+          valid_missing_fields);
+        if(!runtime->acquire_and_filter_instances(ctx, valid_instances))
+          flog_fatal(
+            "FleCSI mapper failed to acquire valid instances in map_task");
+        missing_fields[indx] = valid_missing_fields;
+        output.chosen_instances[indx] = valid_instances;
+
+        if(missing_fields[indx].empty()) {
+#if 0 // this block is only used for compacted instances
+          if(task.regions[indx].tag == mapper::exclusive_lr){
+            for(size_t j = 1; j < 3; j++)
+              output.chosen_instances[indx + j] = valid_instances; 
+            indx = indx + 2;
+          }
+#endif
+          continue;
+        }
+        // We could not find valid instances that totally satisfy the
+        // requirement. We need to create instances
+
+        if(task.regions[indx].privilege == REDUCE) {
+          create_reduction_instance(
+            ctx, task, output, target_mem, indx, valid_missing_fields);
+          continue;
+        }
+        // Filling out the "layout_constraints"
         Legion::LayoutConstraintSet layout_constraints;
         // No specialization
         layout_constraints.add_constraint(Legion::SpecializedConstraint());
@@ -348,36 +352,29 @@ public:
         // Constrained for the target memory kind
         layout_constraints.add_constraint(
           Legion::MemoryConstraint(target_mem.kind()));
-        // Have all the field for the instance available
-        std::vector<Legion::FieldID> all_fields;
-        for(auto fid : task.regions[indx].privilege_fields) {
-          all_fields.push_back(fid);
-        } // for
-        layout_constraints.add_constraint(
-          Legion::FieldConstraint(all_fields, true));
 
-        // creating physical instance for the reduction task
-        if(task.regions[indx].privilege == REDUCE) {
-          create_reduction_instance(
-            ctx, task, output, target_mem, indx, missing_fields);
-        }
 #if 0 // this block is only used for compacted instances
-        else if(task.regions[indx].tag == mapper::exclusive_lr) {
-
-          create_compacted_instance(
-            ctx, task, output, target_mem, layout_constraints, indx);
+        if(task.regions[indx].tag == mapper::exclusive_lr) {
+            std::vector<Legion::FieldID> all_fields;
+            for(auto fid : task.regions[indx].privilege_fields) {
+              all_fields.push_back(fid);
+            } // for
+            layout_constraints.add_constraint(
+              Legion::FieldConstraint(all_fields, true));
+            create_compacted_instance(
+              ctx, task, output, target_mem, layout_constraints, indx);
           indx = indx + 2;
+          continue;
         }
 #endif
-        else {
-          create_instance(
-            ctx, task, output, target_mem, layout_constraints, indx);
-        } // end if
+        // We need to create a new instance containing the missing fields
+        layout_constraints.add_constraint(
+          Legion::FieldConstraint(missing_fields[indx], true));
+        create_instance(
+          ctx, task, output, target_mem, layout_constraints, indx);
       } // end for
 
     } // end if
-
-    runtime->acquire_instances(ctx, output.chosen_instances);
 
   } // map_task
 
@@ -391,7 +388,7 @@ public:
   virtual void slice_task(const Legion::Mapping::MapperContext,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::SliceTaskInput & input,
-    Legion::Mapping::Mapper::SliceTaskOutput & output) {
+    Legion::Mapping::Mapper::SliceTaskOutput & output) override {
 
     using namespace Legion;
     using namespace mapper;
@@ -458,7 +455,7 @@ public:
   virtual void map_copy(const Legion::Mapping::MapperContext ctx,
     const Legion::Copy & copy,
     const Legion::Mapping::Mapper::MapCopyInput & input,
-    Legion::Mapping::Mapper::MapCopyOutput & output) {
+    Legion::Mapping::Mapper::MapCopyOutput & output) override {
     DefaultMapper::map_copy(ctx, copy, input, output);
 
     // currently our copy_plans are reused which is why we
@@ -497,7 +494,7 @@ private:
     Legion::Mapping::Mapper::MapTaskOutput & output,
     const Legion::Memory & target_mem,
     const size_t & idx,
-    std::vector<std::set<Legion::FieldID>> & missing_fields) {
+    std::set<Legion::FieldID> & missing_fields) {
 
     Legion::Processor target_proc = output.target_procs[0];
     bool needs_field_constraint_check = false;
@@ -512,7 +509,7 @@ private:
          target_mem,
          task.regions[idx],
          idx,
-         missing_fields[idx],
+         missing_fields,
          layout_constraints,
          needs_field_constraint_check,
          output.chosen_instances[idx],
@@ -583,18 +580,6 @@ private:
   }
 
   Realm::Machine machine;
-
-  // the map of the local intances that have been already created
-  // the first key is the pair of Logical region and Memory that is
-  // used as an identifier for the instance, second key is fid
-  typedef std::map<std::set<Legion::FieldID>, Legion::Mapping::PhysicalInstance>
-    field_instance_map_t;
-
-  typedef std::map<std::pair<Legion::LogicalRegion, Legion::Memory>,
-    field_instance_map_t>
-    instance_map_t;
-
-  instance_map_t local_instances_;
 
 protected:
   std::map<Legion::TaskID, Legion::VariantID> cpu_variants;
