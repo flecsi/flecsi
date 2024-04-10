@@ -637,11 +637,34 @@ narray_driver() {
 
     {
       // 2D Mesh
+      const auto test = [&](const mesh<2>::coord & hdepth,
+                          const mesh<2>::coord & bdepth,
+                          std::array<bool, 2> periodic,
+                          std::array<bool, 2> auxiliary,
+                          bool diagonals,
+                          bool full_ghosts,
+                          std::size_t sz,
+                          const char * verify,
+                          bool print_info) {
+        EXPECT_EQ(test_mesh<2>({},
+                    {8, 8},
+                    hdepth,
+                    bdepth,
+                    periodic,
+                    auxiliary,
+                    diagonals,
+                    full_ghosts,
+                    sz,
+                    verify,
+                    print_info,
+                    f2,
+                    rf2),
+          0);
+      };
+
       // Primary cells: diagonals variation, full ghosts on, though here full
       // ghosts don't have any meaning.
-      test_mesh<2>({},
-        {8, 8},
-        {1, 2},
+      test({1, 2},
         {1, 2},
         {true, true},
         {false, false},
@@ -649,13 +672,9 @@ narray_driver() {
         true,
         100,
         "2d",
-        false,
-        f2,
-        rf2);
+        false);
 
-      test_mesh<2>({},
-        {8, 8},
-        {1, 1},
+      test({1, 1},
         {1, 1},
         {true, true},
         {false, false},
@@ -663,14 +682,10 @@ narray_driver() {
         true,
         3,
         nullptr,
-        true,
-        f2,
-        rf2);
+        true);
 
       // Aux verts: diagonals on, full ghosts true
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, true},
@@ -678,13 +693,9 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
 
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, true},
@@ -692,14 +703,10 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
 
       // Aux x-edges: diagonals on, full ghosts true
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, false},
@@ -707,13 +714,9 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
 
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, false},
@@ -721,14 +724,10 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
 
       // Aux y-edges: diagonals on, full ghosts true
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {false, true},
@@ -736,13 +735,9 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
 
-      test_mesh<2>({},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {false, true},
@@ -750,47 +745,42 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false,
-        f2,
-        rf2);
+        false);
     } // scope
 
     {
       // 3D
-      test_mesh<3>({},
-        {4, 4, 4},
-        {
-          1,
-          1,
-          1,
-        },
-        {1, 1, 1},
-        {true, true, true},
-        {false, false, false},
-        true,
-        true,
-        100,
-        "3d",
-        false,
-        f3,
-        rf3);
-      test_mesh<3>({2, 2, 1},
+      const auto test = [&](topo::narray_impl::colors color_dist,
+                          const mesh<3>::gcoord & indices,
+                          const mesh<3>::coord & bdepth,
+                          std::array<bool, 3> periodic,
+                          bool diagonals,
+                          std::size_t sz,
+                          const char * verify) {
+        EXPECT_EQ(test_mesh<3>(color_dist,
+                    indices,
+                    {1, 1, 1},
+                    bdepth,
+                    periodic,
+                    {false, false, false},
+                    diagonals,
+                    true,
+                    sz,
+                    verify,
+                    false,
+                    f3,
+                    rf3),
+          0);
+      };
+
+      test({}, {4, 4, 4}, {1, 1, 1}, {true, true, true}, true, 100, "3d");
+      test({2, 2, 1},
         {4, 4, 2},
-        {
-          1,
-          1,
-          1,
-        },
         {0, 0, 0},
         {false, false, false},
-        {false, false, false},
         false,
-        true,
         3,
-        nullptr,
-        false,
-        f3,
-        rf3);
+        nullptr);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
