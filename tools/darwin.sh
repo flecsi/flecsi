@@ -32,7 +32,7 @@ fi
 FLECSI_INSTALL="$HOME/flecsi-inst"
 
 # Set GCC version we're going to use
-GCC_VERSION=11.1.0
+GCC_VERSION=$(echo $(grep GCC_VERSION: .gitlab-ci.yml | cut -d: -f2))
 
 # Download a version of Spack known to work with FleCSI and activate it.
 SPACK_VERSION=$(echo $(grep USE_SPACK_UPSTREAM: .gitlab-ci.yml | cut -d: -f2))
@@ -116,7 +116,7 @@ if [ -d "$DARWIN_SPACK_UPSTREAM" ] && [ -x "${DARWIN_SPACK_UPSTREAM}" ]; then
 else
   # Otherwise, load a compatible cmake and expose whatever else happens to be
   # sitting around as Spack externals
-  module load cmake/3.19.2
+  module load cmake/3.26.3
   spack compiler find
   spack external find
 fi

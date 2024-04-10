@@ -100,7 +100,7 @@ checkpoint_task(const Legion::Task * task,
         ctx, field_lr.get_index_space(), field_lr.get_field_space());
 
       Legion::AttachLauncher hdf5_attach_launcher(
-        EXTERNAL_HDF5_FILE, attach_lr, attach_lr);
+        LEGION_EXTERNAL_HDF5_FILE, attach_lr, attach_lr);
       std::map<Legion::FieldID, const char *> field_map;
       // We need to create a map with C pointers to field names -
       // the Legion interface requires this.  But we also need for
@@ -116,10 +116,21 @@ checkpoint_task(const Legion::Task * task,
         field_map.emplace(fid, field_names.back().c_str());
       });
 
-      hdf5_attach_launcher.attach_hdf5(
-        fname.c_str(), field_map, LEGION_FILE_READ_WRITE);
+      std::vector<Legion::FieldID> fields;
+      fields.reserve(field_map.size());
+      for(const auto & f : field_map) {
+        fields.push_back(f.first);
+      }
+
+      Realm::ExternalHDF5Resource resource(
+        fname.c_str(), LEGION_FILE_READ_WRITE);
+      hdf5_attach_launcher.external_resource = &resource;
+      hdf5_attach_launcher.field_files = field_map;
+      hdf5_attach_launcher.initialize_constraints(
+        true /*column major*/, true /*soa*/, fields);
+      hdf5_attach_launcher.privilege_fields.insert(
+        fields.begin(), fields.end());
       attach_pr = runtime->attach_external_resource(ctx, hdf5_attach_launcher);
-      // cp_pr.wait_until_valid();
 
       Legion::CopyLauncher copy_launcher1;
       const Legion::LogicalRegion &src = W ? field_lr : attach_lr,
@@ -128,9 +139,9 @@ checkpoint_task(const Legion::Task * task,
         Legion::RegionRequirement(src, LEGION_READ_ONLY, LEGION_EXCLUSIVE, src),
         Legion::RegionRequirement(
           dest, LEGION_WRITE_DISCARD, LEGION_EXCLUSIVE, dest));
-      for(const auto & fn : field_map) {
-        copy_launcher1.add_src_field(0, fn.first);
-        copy_launcher1.add_dst_field(0, fn.first);
+      for(const auto fid : fields) {
+        copy_launcher1.add_src_field(0, fid);
+        copy_launcher1.add_dst_field(0, fid);
       }
       runtime->issue_copy_operation(ctx, copy_launcher1);
 

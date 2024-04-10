@@ -163,7 +163,7 @@ reduce_internal(Args &&... args) {
     flog_devel(info) << "Executing index task" << std::endl;
 
     IndexTaskLauncher launcher(task,
-      Domain::from_rect<1>({0, static_cast<coord_t>(domain_size) - 1}),
+      Domain(0, static_cast<coord_t>(domain_size) - 1),
       {buf.data(), buf.size()},
       {});
     add(launcher);
