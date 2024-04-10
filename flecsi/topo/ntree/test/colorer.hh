@@ -183,12 +183,10 @@ private:
     // the master.
     size_t maxnsamples = noct / sizeof(std::pair<key_t, int64_t>);
     int64_t nvalues = ents.size();
-    size_t nsample = maxnsamples * ((double)nvalues / (double)nents);
-    if(nvalues < (int64_t)nsample) {
-      nsample = nvalues;
-    }
+    const int nsample =
+      std::min<int>(nvalues, maxnsamples * (double(nvalues) / nents));
 
-    for(size_t i = 0; i < nsample; ++i) {
+    for(int i = 0; i < nsample; ++i) {
       int64_t position = (nvalues / (nsample + 1.)) * (i + 1.);
       keys_sample.push_back(
         std::make_pair(ents[position].key(), ents[position].id()));

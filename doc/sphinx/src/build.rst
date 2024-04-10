@@ -37,12 +37,12 @@ options, which might not be necessary for a particular build:
 
 * **Boost** |br|
   We require *program_options* and *stacktrace*. |br|
-  *CI: 1.79.0*
+  *CI: 1.84.0*
 
 * **C++17 compliant compiler** |br|
   At the current time, FleCSI has been tested with GNU and Clang
   C++ compilers. |br|
-  *CI: gcc 11.1.0, clang 13.0.1*
+  *CI: gcc 12.2.0, clang 17.0.6*
 
 * **Doxygen** |br|
   Doxygen is only required to build the interface documentation.
@@ -53,28 +53,28 @@ options, which might not be necessary for a particular build:
 * **MPI** |br|
   The MPI implementation must have support
   for *MPI_THREAD_MULTIPLE*. |br|
-  *CI: mpich 3.4.2, openmpi 4.1.2*
+  *CI: mpich 4.1.2, openmpi 5.0.2*
 
 * **Legion** |br|
-  We are currently using the most up-to-date version of the control
-  replication branch. |br|
-  *CI: control_replication branch*
+  Requires Legion with control replication. |br|
+  *CI: 24.03.0*
+
+* **Kokkos** |br|
+  *CI: 4.2.01*
 
 * **parMETIS/METIS** |br|
   *CI: 4.0.3 (parMETIS), 5.1.0 (METIS)*
 
 * **CMake** |br|
-  We currently require CMake version 3.12 or greater. |br|
-  *CI: 3.20.1*
+  We currently require CMake version 3.23 or greater. |br|
+  *CI: 3.27.9*
 
 * **Sphinx** |br|
-  Sphinx is only required to build the web-based documentation. We are
-  currently using Sphinx 5.0.2. We also require the Sphinx RTD Theme
-  (using version 1.0.0). These can be installed on most Linux systems
-  using pip.
+  Sphinx is only required to build the web-based documentation. We also require the Sphinx RTD Theme.
+  *CI: 6.2.1*
 
 * **Python** |br|
-  We currently require Python 3.0 or greater.
+  The documentation build requires Python 3.9 or greater.
 
 ----
 

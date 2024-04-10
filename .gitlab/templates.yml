@@ -34,7 +34,6 @@
     - |
       header "Creating Build Environment"
       variable ENVIRONMENT
-      variable VERSION
       variable VARIANTS
       variable TOOLCHAIN
       variable PARTITIONS
@@ -77,6 +76,7 @@
   script: &darwin_env_shell
     - export SPACK_DISABLE_LOCAL_CONFIG=true
     - export SPACK_USER_CACHE_PATH=$TMPDIR/spack-local
+    - export SPACK_SKIP_MODULES=true
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
 
@@ -107,9 +107,9 @@
 .darwin_env_spack_install_flecsi_deps:
   script: &darwin_env_spack_install_flecsi_deps
     - section start "spack_env_install_flecsi_deps[collapsed=true]" "Installing FleCSI dependencies"
-    - echo "spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
-    - spack add ${VERSION} %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}
-    - spack install -j $(nproc) --only dependencies
+    - echo "spack add flecsi %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}"
+    - spack add flecsi %${TOOLCHAIN} ${VARIANTS} ${ARCH_DEPS}
+    - spack install -j $(nproc) --fresh --only dependencies
     - spack find -v
     - section end spack_env_install_flecsi_deps
 
@@ -122,7 +122,6 @@
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   PARTITIONS:    Darwin cluster partitions
-#   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants
 #------------------------------------------------------------------------------#
 
@@ -140,7 +139,7 @@
     - |
       if [[ "${CI_JOB_NAME}" =~ "rocm" ]]; then
         module load rocm/${ROCM_VERSION}
-        export HIPCC_COMPILE_FLAGS_APPEND="--gcc-install-dir=/projects/opt/centos8/x86_64/gcc/${GCC_VERSION}/lib/gcc/x86_64-pc-linux-gnu/${GCC_VERSION}"
+        export HIPCC_COMPILE_FLAGS_APPEND="--gcc-install-dir=/projects/opt/rhel8/x86_64/gcc/${GCC_VERSION}/lib/gcc/x86_64-pc-linux-gnu/${GCC_VERSION}"
         export HIPCC_LINK_FLAGS_APPEND="${HIPCC_COMPILE_FLAGS_APPEND}"
         header "Using Darwin HIP installation at: ${ROCM_PATH}"
       fi
@@ -189,7 +188,6 @@
 #   ENVIRONMENT:  The target environment from the flecsi gitlab-ci project,
 #                 e.g., one of the primary branches, such as 'devel', or '1.4'.
 #   PARTITION:    Darwin cluster partition
-#   VERSION:  The version of FleCSI to use for spack build.
 #   VARIANTS: Spack variants
 #------------------------------------------------------------------------------#
 

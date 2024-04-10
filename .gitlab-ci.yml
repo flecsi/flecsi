@@ -26,17 +26,17 @@ default:
       aud: https://asc-git.lanl.gov
 
 variables:
-  USE_SPACK_UPSTREAM: develop-742e2fc7
+  USE_SPACK_UPSTREAM: develop-b81d7d0a
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: "\e[1;34m"
   COLOR_MAGENTA: "\e[1;35m"
   COLOR_CYAN: "\e[1;36m"
   COLOR_PLAIN: "\e[0m"
   # global defaults
-  GCC_VERSION: 11.1.0
-  CLANG_VERSION: 16.0.6
-  ROCM_VERSION: 5.7.1
-  CUDA_VERSION: 12.2.1
+  GCC_VERSION: 12.2.0
+  CLANG_VERSION: 17.0.6
+  ROCM_VERSION: 6.0.2
+  CUDA_VERSION: 12.4.0
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
@@ -53,7 +53,6 @@ variables:
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
-  VERSION: "flecsi@${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
 
@@ -272,7 +271,6 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
@@ -287,7 +285,6 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
@@ -439,7 +436,6 @@ openmpi-poisson-cuda-clang:legion:
   only:
     - merge_requests
   variables:
-    CLANG_VERSION: 13.0.1
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
