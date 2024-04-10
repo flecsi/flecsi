@@ -226,6 +226,30 @@ Julien Loiseau
 
 |clearboth|
 
+Maxim Moraru
+^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/maxim.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Maxim is a computational scientist in the Co-Design team with a
+      background in High-Performance Computing. His research 
+      interests include high-speed communication, runtime systems, 
+      and machine learning models. He is currently working on 
+      implementing mapping strategies for optimizing FleCSI’s 
+      mapper. 
+
+|clearboth|
+
 Scott Pakin
 ^^^^^^^^^^^
 

@@ -49,6 +49,7 @@ import os
 import sys
 import json
 import argparse
+import spack
 from spack.util.environment import EnvironmentModifications
 
 COLOR_RESET = "\033[m"

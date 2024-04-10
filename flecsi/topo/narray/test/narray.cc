@@ -362,7 +362,7 @@ check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
   UNIT() {
     constexpr static auto x = mesh1d::axis::x_axis;
     using D = mesh1d::domain;
-    std::size_t last, total = 0;
+    std::size_t last = 0, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
       auto sz = m.size<x, D::global>(), off = m.offset<x, D::global>();
       if(total) {

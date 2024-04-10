@@ -392,7 +392,7 @@ if(ENABLE_LIBRARY)
   )
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FleCSIConfigVersion.cmake
     DESTINATION
-      ${CMAKE_INSTALL_LIBDIR}/cmake/${target}
+      ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
   )
 
   #----------------------------------------------------------------------------#

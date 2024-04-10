@@ -90,8 +90,7 @@ private:
   void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
     const auto dom = legion_runtime_->get_index_space_domain(
       legion_context_, reg.get_logical_region().get_index_space());
-    // Note: Apple clang version 14.0.0 wants keyword "template" here.
-    const auto r = dom.template get_rect<data::leg::region_dimensions>();
+    const Legion::Rect<data::leg::region_dimensions> r(dom);
 
     if(!dom.empty())
       acc.bind(util::span(aa.ptr(Legion::Domain::DomainPointIterator(dom).p),
