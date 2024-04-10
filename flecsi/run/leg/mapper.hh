@@ -442,46 +442,15 @@ public:
       default:
         // We've already been control replicated, so just divide our points
         // over the local processors, depending on which kind we prefer
-        if(task.tag == prefer_gpu && !local_gpus.empty()) {
-          unsigned local_gpu_index = 0;
-          for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
-            TaskSlice slice;
-            slice.domain = Domain(itr.p, itr.p);
-            slice.proc = local_gpus[local_gpu_index++];
-            if(local_gpu_index == local_gpus.size())
-              local_gpu_index = 0;
-            slice.recurse = false;
-            slice.stealable = false;
-            output.slices.push_back(slice);
-          }
-        }
-        else if(task.tag == prefer_omp && !local_omps.empty()) {
-          unsigned local_omp_index = 0;
-          for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
-            TaskSlice slice;
-            slice.domain = Domain(itr.p, itr.p);
-            slice.proc = local_omps[local_omp_index++];
-            if(local_omp_index == local_omps.size())
-              local_omp_index = 0;
-            slice.recurse = false;
-            slice.stealable = false;
-            output.slices.push_back(slice);
-          }
-        }
-        else {
-          // Opt for our cpus instead of our OpenMP processors
-          unsigned local_cpu_index = 0;
-          for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
-            TaskSlice slice;
-            slice.domain = Domain(itr.p, itr.p);
-            slice.proc = local_cpus[local_cpu_index++];
-            if(local_cpu_index == local_cpus.size())
-              local_cpu_index = 0;
-            slice.recurse = false;
-            slice.stealable = false;
-            output.slices.push_back(slice);
-          }
-        }
+        if(task.tag == prefer_gpu && !local_gpus.empty())
+          distribute_index_points_accross_local_procs(
+            input, output, local_gpus);
+        else if(task.tag == prefer_omp && !local_omps.empty())
+          distribute_index_points_accross_local_procs(
+            input, output, local_omps);
+        else
+          distribute_index_points_accross_local_procs(
+            input, output, local_cpus);
     }
 
   } // slice_task
@@ -498,6 +467,28 @@ public:
   } // map_copy
 
 private:
+  /*
+    Distribute the index points of a domain across the processors provided in
+    `local_procs` in a round robin way
+  */
+  static void distribute_index_points_accross_local_procs(
+    const Legion::Mapping::Mapper::SliceTaskInput & input,
+    Legion::Mapping::Mapper::SliceTaskOutput & output,
+    const std::vector<Legion::Processor> & local_procs) {
+    using namespace Legion;
+    using namespace mapper;
+    unsigned local_index = 0;
+    for(Domain::DomainPointIterator itr(input.domain); itr; itr++) {
+      TaskSlice slice;
+      slice.domain = Domain(itr.p, itr.p);
+      slice.proc = local_procs[local_index];
+      local_index = (local_index + 1) % local_procs.size();
+      slice.recurse = false;
+      slice.stealable = false;
+      output.slices.push_back(slice);
+    }
+  }
+
   /*!
    This function will create PhysicalInstance for Reduction task
   */
