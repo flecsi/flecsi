@@ -98,7 +98,7 @@ private:
     using Colors = std::array<Color, dimension>;
 
     util::key_array<axis_color, axes> axcol;
-    bool diagonals, full_ghosts;
+    bool diagonals;
 
     // Dynamically-sized parameter type for client convenience.
     static meta_data make(const index_definition & idef,
@@ -109,20 +109,19 @@ private:
       for(Dimension d = 0; d < dimension; ++d)
         ret.axcol[d] = idef.make_axis(d, ci[d]);
       ret.diagonals = idef.diagonals;
-      ret.full_ghosts = idef.full_ghosts;
       return ret;
     }
 
     coord extent() const {
       coord ret;
       for(Dimension d = 0; d < dimension; ++d)
-        ret[d] = axcol[d].extent();
+        ret[d] = axcol[d]().extent();
       return ret;
     }
     Colors colors() const {
       Colors ret;
       for(Dimension d = 0; d < dimension; ++d)
-        ret[d] = axcol[d].colors;
+        ret[d] = axcol[d].ax.colors;
       return ret;
     }
 
@@ -143,36 +142,35 @@ private:
           if(taxi > 1) {
             // We can still need to communicate with some diagonal neighbors
             // those auxiliaries incident on another color's primaries.
-            if(full_ghosts)
-              for(Dimension d = 0; d < dimension; ++d)
-                if((skin[d] =
-                       axcol[d].auxiliary && (send ? -1 : 1) * off[d] > 0))
-                  --taxi;
+            for(Dimension d = 0; d < dimension; ++d) {
+              auto & ax = axcol[d].ax;
+              if((skin[d] = ax.auxiliary && ax.full_ghosts &&
+                            (send ? -1 : 1) * off[d] > 0))
+                --taxi;
+            }
             if(taxi > 1)
               continue;
           }
         }
         auto & msg = ret.emplace_back();
         msg.neighbor = off;
-        auto o = off.begin();
-        const bool * sk = skin;
         auto lo = msg.region.first.begin(), hi = msg.region.second.begin();
-        for(const axis_color & ax : axcol) {
-          const auto log0 = ax.logical<0>(), log1 = ax.logical<1>();
+        for(Dimension d = 0; d < dimension; ++d) {
+          const short o = off[d];
+          const axis_layout al = axcol[d](skin[d]);
+          const auto log0 = al.logical<0>(), log1 = al.logical<1>();
           // Each bound of the communication region has a case each for lower
           // neighbors, upper neighbors, and peer neighbors.
-          *lo = *o < 0 ? send ? log0 : ax.ghost<0>()
-                : *o ? send ? ax.exclusive<1>() : log1
-                       : log0;
-          *hi = *o < 0 ? send ? ax.exclusive<0>(*sk) : log0
-                : *o   ? send ? log1 : ax.ghost<1>(*sk)
-                       : log1;
+          *lo = o < 0 ? send ? log0 : al.ghost<0>()
+                : o ? send ? al.exclusive<1>() : log1
+                      : log0;
+          *hi = o < 0 ? send ? al.exclusive<0>() : log0
+                : o   ? send ? log1 : al.ghost<1>()
+                      : log1;
           if(*lo++ == *hi++) {
             ret.pop_back(); // region empty
             break;
           }
-          ++o;
-          ++sk;
         }
       }
       return ret;
@@ -210,7 +208,7 @@ private:
         coord roff;
         for(Dimension d = 0; d < dimension; ++d) {
           const short c = ngh[d];
-          const axis_color &ax = md.axcol[d], r = idef.make_axis(d, src[d]);
+          const axis_layout ax = md.axcol[d](), r = idef.make_axis(d, src[d])();
           remote.strs[d] = r.extent();
           // Choose a corresponding pair of local indices to compute delta:
           roff[d] = c < 0 ? r.logical<1>() - ax.logical<0>()
@@ -275,7 +273,7 @@ private:
             auto & total = partitions.emplace_back(1);
             Dimension d = 0;
             for(const auto i : ci)
-              total *= idef.make_axis(d++, i).extent();
+              total *= idef.make_axis(d++, i)().extent();
           }
           concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
@@ -599,7 +597,7 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return get_axis<S, A>().global();
+    return get_axis<S, A>().ax.global_extent;
   }
 
   /*!
@@ -610,12 +608,12 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
-    return get_axis<S, A>().offset();
+    return get_axis<S, A>().offset;
   }
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::id extent() const {
-    return get_axis<S, A>().extent();
+    return get_axis<S, A>()().extent();
   }
 
   template<index_space S, auto... A>
@@ -642,7 +640,7 @@ private:
     */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
-    return get_axis<S, A>().template logical<P>();
+    return get_axis<S, A>()().template logical<P>();
   }
 
   /*!
@@ -656,9 +654,9 @@ private:
   FLECSI_INLINE_TARGET util::id extended() const {
     const axis_color & a = get_axis<S, A>();
     if constexpr(P == 0) {
-      return a.is_low() ? 0 : a.logical<P>();
+      return a.low() ? 0 : a().logical<P>();
     }
-    return a.is_high() ? a.extent() : a.logical<P>();
+    return a.high() ? a().extent() : a().logical<P>();
   }
 
 protected:
@@ -674,7 +672,7 @@ protected:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
-    return get_axis<S, A>().is_low();
+    return get_axis<S, A>().low();
   }
 
   /*!
@@ -684,7 +682,7 @@ protected:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
-    return get_axis<S, A>().is_high();
+    return get_axis<S, A>().high();
   }
 
   /*!

@@ -848,12 +848,12 @@ coloring_driver() {
         color.push_back(glin({c3[0], c3[1], c3[2]}));
         for(Dimension d = 0; d < 3; ++d) {
           const auto axco = id.make_axis(d, c3[d]);
-          g.push_back(axco.global());
-          e.push_back(axco.extent());
-          o.push_back(axco.offset());
-          log.push_back(seq(std::vector{axco.logical<0>(), axco.logical<1>()}));
-          ext.push_back(
-            seq(std::vector{axco.extended<0>(), axco.extended<1>()}));
+          const auto al = axco();
+          g.push_back(axco.ax.global_extent);
+          e.push_back(al.extent());
+          o.push_back(axco.offset);
+          log.push_back(seq(std::vector{al.logical<0>(), al.logical<1>()}));
+          ext.push_back(seq(std::vector{al.extended<0>(), al.extended<1>()}));
         }
         global.emplace_back(seq(g));
         extent.emplace_back(seq(e));

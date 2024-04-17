@@ -149,111 +149,56 @@ struct linearize {
 };
 
 /*!
- Type to store the coloring information for one axis of one color.
+ The layout of one axis of one color.
  This class is supported for GPU execution.
  */
-struct axis_color {
-  Color colors, ///< the number of colors on this axis
-    color_index; ///< the index of this color along this axis
-
-  /// Total size of this axis, not counting boundary points.
-  util::gid global_extent;
-
-  /// number of boundary layers to be added to the domain of axis
-  util::id bdepth;
-
-  /// Depth of halos sent in each direction along the axis.
-  /// This is meaningful even at one end of a non-periodic axis.
-  util::id halo_up, halo_down;
-
-  /// global offsets of this color
-  std::array<util::gid, 2> offsets;
-
-  /// specify whether the axis is periodic
-  /// \showinitializer
-  bool periodic = false;
-
-  /// specify whether the axis is extended for auxiliary
-  /// \showinitializer
-  bool auxiliary = false;
-
-  /// Whether the current color is at the low end of the axis.
-  FLECSI_INLINE_TARGET bool is_low() const {
-    return color_index == 0;
-  }
-
-  /// Whether the color is at the high end of the axis.
-  FLECSI_INLINE_TARGET bool is_high() const {
-    return color_index == (colors - 1);
-  }
-
-  Color color_step(Color d) const {
-    return (color_index + colors + d) % colors;
-  }
-
-  /// The global extent of this axis.
-  FLECSI_INLINE_TARGET util::gid global() const {
-    return global_extent;
-  }
-
-  /// The global index for a given logical index on the local axis.
-  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
-    util::gid id;
-    const util::gid sa = logical<0>(), ea = logical<1>();
-    if(is_high() && i >= ea) // periodic high
-      id = i - ea;
-    else if(is_low() && i < sa) { // periodic low
-      id = global() - sa + i;
-    }
-    else {
-      id = offset() + i - sa;
-    }
-    return id;
-  }
-
-  /// The global coordinate offset of the local axis.
-  /// Local to global id translation can be computed with this.
-  FLECSI_INLINE_TARGET util::gid offset() const {
-    return offsets[0];
-  }
+struct axis_layout {
+  FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
+    util::id log,
+    util::id halo_up, // depth of points communicated upward
+    util::id halo_down,
+    util::id unused, // ghosts, because of diagonal position
+    bool lo,
+    bool hi)
+    : bdy{lo ? bdepth : 0, hi ? bdepth : unused}, gh{lo ? 0 : halo_up,
+                                                    hi ? 0 : halo_down},
+      log(log), shr{lo ? 0 : halo_down, hi ? 0 : halo_up} {}
 
   /// The local extent of this color. This is the full size including
   /// boundary depth, and ghosts. The "extent" coordinate implicitly
   /// defines a range [0, extent[.
   FLECSI_INLINE_TARGET util::id extent() const {
-    return logical<1>() + (halo<1>() ? halo_down : bdepth);
+    return both(bdy) + both(gh) + log;
   }
 
   /// The beginning or end index of the logical entities, i.e., the entities
   /// for this color without
   /// boundary padding or ghosts.
-  /// \tparam P 0 or 1 for beginning or end
-  template<std::size_t P>
+  /// \tparam E 0 or 1 for beginning or end
+  template<short E>
   FLECSI_INLINE_TARGET util::id logical() const {
-    static_assert(P == 0 || P == 1);
-    auto log0 = halo<0>() ? halo_up : bdepth;
-    return log0 + P * (offsets[1] - offsets[0]);
+    static_assert(E == 0 || E == 1);
+    return bdy[0] + gh[0] + E * log;
   }
 
   /// The beginning or end of the exclusive logical entities (_i.e._, that are
   /// not ghosts elsewhere).
   /// Really the end and beginning of the shared entities on each side; the
   /// end can come first if an entity is shared with both neighbors.
-  /// \tparam P 0 or 1 for beginning or end
-  template<short P>
-  FLECSI_INLINE_TARGET util::id exclusive(bool skin = false) const {
-    return logical<P>() + (halo<P>() ? (P ? -halo_up : down(skin)) : 0);
+  /// \tparam E 0 or 1 for beginning or end
+  template<short E>
+  FLECSI_INLINE_TARGET util::id exclusive() const {
+    static_assert(E == 0 || E == 1);
+    return bdy[0] + gh[0] + (E ? log - shr[1] : shr[0]);
   }
 
   /// The beginning or end index of the domain entities, including logical and
   /// ghost entities.
-  /// \tparam P 0 or 1 for beginning or end
-  template<short P>
-  FLECSI_INLINE_TARGET util::id ghost(bool skin = false) const {
-    if constexpr(P)
-      return logical<P>() + ghost_thickness<P>(skin);
-    else
-      return boundary_thickness<P>();
+  /// \tparam E 0 or 1 for beginning or end
+  template<short E>
+  FLECSI_INLINE_TARGET util::id ghost() const {
+    static_assert(E == 0 || E == 1);
+    return bdy[0] + E * (both(gh) + log);
   }
 
   /// The extended entities, i.e., the logical entities including boundary
@@ -263,36 +208,82 @@ struct axis_color {
   /// The ghost depth can be computed like:\code
   ///   halo_depth_low = extended<0>();
   ///   halo_depth_high = extent() - extended<1>();\endcode
-  template<std::size_t P>
+  /// \tparam E 0 or 1 for beginning or end
+  template<short E>
   FLECSI_INLINE_TARGET util::id extended() const {
-    if constexpr(P)
-      return logical<P>() + boundary_thickness<P>();
-    else
-      return ghost_thickness<P>();
+    static_assert(E == 0 || E == 1);
+    return gh[0] + E * (log + bdy[1]);
   }
 
   void check_halo() const {
-    const auto log = offsets[1] - offsets[0];
-    if((halo<0>() && halo_down > log) || (halo<1>() && halo_up > log))
+    if(std::max(shr[0], shr[1]) > log)
       throw std::invalid_argument("halo depth larger than logical color depth");
   }
 
 private:
-  template<short P>
-  FLECSI_INLINE_TARGET bool halo() const { // otherwise boundary
-    return !(P ? is_high() : is_low()) || periodic;
+  FLECSI_INLINE_TARGET static util::id both(const util::id (&a)[2]) {
+    return a[0] + a[1];
   }
 
-  template<short P>
-  FLECSI_INLINE_TARGET util::id boundary_thickness() const {
-    return halo<P>() ? 0 : bdepth;
+  util::id bdy[2], gh[2], log, // these are all disjoint
+    shr[2];
+};
+
+/// Information about the layout of an entire axis.
+/// \note Unlike in the user interface, here the ghosts copied from the other
+///   end of a \c periodic axis are considered to be a halo, not a boundary.
+struct axis {
+  Color colors; ///< The number of subdivisions for colors.
+  util::gid global_extent; ///< The total number of index points.
+  util::id bdepth, ///< The depth of boundary at each end (0 if periodic).
+    hdepth; ///< The depth of (primary) halos where they appear.
+  bool periodic, ///< Whether the axis is periodic.
+    auxiliary, ///< Whether the entities are delimiters (in this dimension).
+    /// Whether an auxiliary ghost exists even if one of its adjacent primary
+    /// entities is absent on a color.
+    full_ghosts;
+};
+/// High-level information about one axis of one color.
+struct axis_color {
+  axis ax;
+  Color color;
+  util::id logical;
+  util::gid offset;
+
+  /// Whether the current color is at the low end of the axis.
+  FLECSI_INLINE_TARGET bool low() const {
+    return !color;
   }
-  template<short P>
-  FLECSI_INLINE_TARGET util::id ghost_thickness(bool skin = false) const {
-    return halo<P>() ? (P ? down(skin) : halo_up) : 0;
+  /// Whether the color is at the high end of the axis.
+  FLECSI_INLINE_TARGET bool high() const {
+    return color == ax.colors - 1;
   }
-  FLECSI_INLINE_TARGET util::id down(bool skin) const {
-    return skin ? 1 : halo_down;
+
+  Color color_step(Color d) const {
+    return (color + ax.colors + d) % ax.colors;
+  }
+
+  /// The global index for a given logical index on the local axis.
+  FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
+    const auto al = (*this)();
+    const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
+    return low() && i < l0     ? ax.global_extent - l0 + i
+           : high() && i >= l1 ? i - l1
+                               : offset + i - l0;
+  }
+
+  // skin indicates the communication with diagonal neighbor colors of
+  // auxiliaries associated with non-diagonal primaries.
+  FLECSI_INLINE_TARGET axis_layout operator()(bool skin = false) const {
+    const util::id halo_down = ax.hdepth + (ax.auxiliary && ax.full_ghosts);
+    assert(!skin || halo_down);
+    return {ax.bdepth,
+      logical,
+      ax.hdepth ? ax.hdepth - (ax.auxiliary && !ax.full_ghosts) : 0,
+      skin ? 1 : halo_down,
+      skin ? halo_down - 1 : 0,
+      low() && !ax.periodic,
+      high() && !ax.periodic};
   }
 };
 
@@ -339,18 +330,24 @@ struct axis_definition {
   /// \showinitializer
   bool auxiliary = false;
 
+  bool extra() const {
+    return auxiliary && !periodic;
+  }
+
   axis_color operator()(Color c, bool full) const {
-    const util::gid top = colormap.total() + (auxiliary && !periodic);
-    axis_color ret{colormap.size(),
+    const util::gid o = colormap(c);
+    axis_color ret{{colormap.size(),
+                     colormap.total() + extra(),
+                     periodic ? 0 : bdepth, // bdepth meaningless when periodic
+                     hdepth,
+                     periodic,
+                     auxiliary,
+                     full},
       c,
-      top,
-      periodic ? 0 : bdepth, // forced to be same as hdepth
-      hdepth ? hdepth - (auxiliary && !full) : 0,
-      hdepth + (auxiliary && full),
-      {colormap(c), c == colormap.size() - 1 ? top : colormap(c + 1)},
-      periodic,
-      auxiliary};
-    ret.check_halo();
+      static_cast<util::id>(colormap(c + 1) - o) +
+        (c == colormap.size() - 1 && extra()),
+      o};
+    ret().check_halo();
     return ret;
   }
 };
@@ -447,6 +444,7 @@ struct index_definition {
 /// \endcond
 struct narray_base {
   using axis_color = narray_impl::axis_color;
+  using axis_layout = narray_impl::axis_layout;
   using coord = narray_impl::coord;
   using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
