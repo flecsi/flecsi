@@ -122,8 +122,9 @@ else
 fi
 
 # Install FleCSI's dependencies with Spack.
+# Note: cxxstd is only needed for legion@master. Remove once no longer needed.
 spack add flecsi%gcc@${GCC_VERSION} backend=legion +doc +graphviz +hdf5 +kokkos +flog \
-          ^legion network=gasnet conduit=mpi build_type=Debug \
+          ^legion network=gasnet cxxstd=17 conduit=mpi build_type=Debug \
           ^mpich
 spack install -j $(nproc) --only dependencies
 
