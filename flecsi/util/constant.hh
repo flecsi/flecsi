@@ -62,6 +62,33 @@ public:
     std::make_index_sequence<size>());
 };
 
+namespace detail {
+// filter a set of index spaces (i.e. constants)
+// omit index spaces for which privilege count is 1
+template<typename, class>
+struct privilege_filter; // undefined
+template<typename P, auto... VV>
+struct privilege_filter<P, util::constants<VV...>> {
+  using filtered_tuple = decltype(std::tuple_cat(
+    std::conditional_t<P::template privilege_count<VV> != 1,
+      std::tuple<util::constant<VV>>,
+      std::tuple<>>()...));
+};
+
+// unpack a tuple of util::constants
+template<class>
+struct unpack_from_tuple; // undefined
+template<auto... VV>
+struct unpack_from_tuple<std::tuple<util::constant<VV>...>> {
+  using unpacked = util::constants<VV...>;
+};
+} // namespace detail
+// copy_spaces := index spaces for which privilege_count != 1
+template<typename P>
+using to_copy_spaces =
+  typename detail::unpack_from_tuple<typename detail::privilege_filter<P,
+    typename P::index_spaces>::filtered_tuple>::unpacked;
+
 template<class, class>
 struct key_array;
 
