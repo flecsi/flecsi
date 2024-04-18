@@ -103,6 +103,12 @@ New features
 Changes in v2.2.2
 +++++++++++++++++
 
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Topologies
+
+  * ``narray`` auxiliaries between two colors are owned by the upper color.
+
 Deprecated
 ^^^^^^^^^^
 * Build
@@ -126,9 +132,14 @@ Fixed
 
 * Topologies
 
-  * ``narray`` respects ``index_definition::diagonals`` being ``false``.
-    (This was fixed but not documented in 2.2.1.)
-  * ``narray`` requires equal boundary and halo depths for periodic axes (differing values never worked reliably).
+  * ``narray``
+
+    * ``index_definition::diagonals`` being ``false`` works.
+      (This was fixed but not documented in 2.2.1.)
+    * Periodic axies require equal boundary and halo depths (differing values never worked reliably).
+    * Auxiliary axes support ``full_ghosts`` and ``periodic`` properly.
+
+  * ``unstructured`` supports ``num_intervals`` of 0.
   * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
 
 * Legion backend

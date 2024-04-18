@@ -182,6 +182,10 @@ flecsi_add_test(narray
     narray/test/mesh_2d_4_1.blessed
     narray/test/mesh_2d_4_2.blessed
     narray/test/mesh_2d_4_3.blessed
+    narray/test/mesh_diag_4_0.blessed
+    narray/test/mesh_diag_4_1.blessed
+    narray/test/mesh_diag_4_2.blessed
+    narray/test/mesh_diag_4_3.blessed
     narray/test/mesh_3d_4_0.blessed
     narray/test/mesh_3d_4_1.blessed
     narray/test/mesh_3d_4_2.blessed

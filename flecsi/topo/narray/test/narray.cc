@@ -29,11 +29,11 @@ field_helper(typename mesh<D>::template accessor<ro> m,
   }
 } // field_helper
 
-template<std::size_t D>
+// Initialize even the ghosts: with !diagonals, some are never copied.
 void
-init_field(typename mesh<D>::template accessor<ro> m,
-  field<std::size_t>::accessor<wo, na> ca) {
-  return field_helper<D>(m, ca, [c = color()](auto & x) { x = c; });
+init_field(field<std::size_t>::accessor<wo, wo> ca) {
+  const auto s = ca.span();
+  std::fill(s.begin(), s.end(), color());
 } // init_field
 
 template<std::size_t D>
@@ -341,11 +341,13 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
-      std::size_t sz2 = (V && (!diagonals) && m.check_diag_bounds(v)) ? 0 : sz;
-      ASSERT_TRUE(check_sz(tf, lid, sz2));
-      for(std::size_t n = 0; n < sz2; ++n) {
+      // Some but not all diagonal neighbors send auxiliaries, so don't check
+      // for arrival from them:
+      ASSERT_TRUE(
+        check_sz(tf, lid, sz) || (!diagonals && m.check_diag_bounds(v)));
+      // Check correctness for all neighbors:
+      for(auto n = tf[lid].size(); n--;)
         EXPECT_TRUE(check(tf[lid][n], (int)(gid * 10000 + n)));
-      }
     }
   };
 }
@@ -489,8 +491,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
 
 template<std::size_t D>
 int
-test_mesh(const std::string name,
-  topo::narray_impl::colors color_dist,
+test_mesh(topo::narray_impl::colors color_dist,
   const typename mesh<D>::gcoord & indices,
   const typename mesh<D>::coord & hdepth,
   const typename mesh<D>::coord & bdepth,
@@ -499,7 +500,7 @@ test_mesh(const std::string name,
   bool diagonals,
   bool full_ghosts,
   std::size_t sz,
-  bool full_verify,
+  const char * verify,
   bool print_info,
   const field<std::size_t>::definition<mesh<D>> & f,
   field<int, data::ragged>::definition<mesh<D>> & rf) {
@@ -524,16 +525,16 @@ test_mesh(const std::string name,
     typename mesh<D>::slot m;
     m.allocate(typename mesh<D>::mpi_coloring(idef));
 
-    execute<init_field<D>>(m, f(m));
+    execute<init_field>(f(m));
 
     if(print_info)
       execute<print_field<D>>(m, f(m));
 
-    if(full_verify) {
+    if(verify) {
       execute<print_field<D>>(m, f(m));
       execute<update_field<D>>(m, f(m));
       execute<print_field<D>>(m, f(m));
-      EXPECT_EQ(test<check_mesh_field<D>>(name, m, f(m)), 0);
+      EXPECT_EQ(test<check_mesh_field<D>>(verify, m, f(m)), 0);
     }
 
     // ragged field
@@ -582,7 +583,7 @@ narray_driver() {
       idef.full_ghosts = true;
 
       m1.allocate(mesh1d::mpi_coloring(idef));
-      execute<init_field<1>>(m1, f1(m1));
+      execute<init_field>(f1(m1));
       execute<print_field<1>>(m1, f1(m1));
       execute<update_field<1>>(m1, f1(m1));
       execute<print_field<1>>(m1, f1(m1));
@@ -628,170 +629,150 @@ narray_driver() {
 
     {
       // 2D Mesh
+      const auto test = [&](const mesh<2>::coord & hdepth,
+                          const mesh<2>::coord & bdepth,
+                          std::array<bool, 2> periodic,
+                          std::array<bool, 2> auxiliary,
+                          bool diagonals,
+                          bool full_ghosts,
+                          std::size_t sz,
+                          const char * verify,
+                          bool print_info) {
+        EXPECT_EQ(test_mesh<2>({},
+                    {8, 8},
+                    hdepth,
+                    bdepth,
+                    periodic,
+                    auxiliary,
+                    diagonals,
+                    full_ghosts,
+                    sz,
+                    verify,
+                    print_info,
+                    f2,
+                    rf2),
+          0);
+      };
+
       // Primary cells: diagonals variation, full ghosts on, though here full
       // ghosts don't have any meaning.
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {1, 2},
+      test({1, 2},
         {1, 2},
         {true, true},
         {false, false},
         true,
         true,
         100,
-        true,
-        false,
-        f2,
-        rf2);
+        "2d",
+        false);
 
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {1, 1},
+      test({1, 1},
         {1, 1},
         {true, true},
         {false, false},
         false,
         true,
         3,
-        false,
-        true,
-        f2,
-        rf2);
+        nullptr,
+        true);
 
       // Aux verts: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, true},
         true,
         true,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        nullptr,
+        false);
 
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, true},
         true,
         false,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        nullptr,
+        false);
 
       // Aux x-edges: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, false},
         true,
         true,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        nullptr,
+        false);
 
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {true, false},
         true,
         false,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        nullptr,
+        false);
 
-      // Aux y-edges: diagonals on, full ghosts true
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      // Aux y-edges: diagonals != full ghosts
+      test({2, 2},
         {0, 0},
         {false, false},
         {false, true},
-        true,
+        false,
         true,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        "diag",
+        false);
 
-      test_mesh<2>("2d",
-        {},
-        {8, 8},
-        {2, 2},
+      test({2, 2},
         {0, 0},
         {false, false},
         {false, true},
         true,
         false,
         3,
-        false,
-        false,
-        f2,
-        rf2);
+        nullptr,
+        false);
     } // scope
 
     {
       // 3D
-      test_mesh<3>("3d",
-        {},
-        {4, 4, 4},
-        {
-          1,
-          1,
-          1,
-        },
-        {1, 1, 1},
-        {true, true, true},
-        {false, false, false},
-        true,
-        true,
-        100,
-        true,
-        false,
-        f3,
-        rf3);
-      test_mesh<3>("3d",
-        {2, 2, 1},
+      const auto test = [&](topo::narray_impl::colors color_dist,
+                          const mesh<3>::gcoord & indices,
+                          const mesh<3>::coord & bdepth,
+                          std::array<bool, 3> periodic,
+                          bool diagonals,
+                          std::size_t sz,
+                          const char * verify) {
+        EXPECT_EQ(test_mesh<3>(color_dist,
+                    indices,
+                    {1, 1, 1},
+                    bdepth,
+                    periodic,
+                    {false, false, false},
+                    diagonals,
+                    true,
+                    sz,
+                    verify,
+                    false,
+                    f3,
+                    rf3),
+          0);
+      };
+
+      test({}, {4, 4, 4}, {1, 1, 1}, {true, true, true}, true, 100, "3d");
+      test({2, 2, 1},
         {4, 4, 2},
-        {
-          1,
-          1,
-          1,
-        },
         {0, 0, 0},
         {false, false, false},
-        {false, false, false},
         false,
-        true,
         3,
-        false,
-        false,
-        f3,
-        rf3);
+        nullptr);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
@@ -819,55 +800,6 @@ util::unit::driver<narray_driver> nd;
 
 /// Coloring testing
 
-template<typename coloring>
-int
-verify_colors(std::string name, coloring & pcs) {
-  UNIT() {
-    std::string output_file = "coloring_" + name + "_" +
-                              std::to_string(processes()) + "_" +
-                              std::to_string(process()) + ".blessed";
-    std::stringstream out;
-    std::vector<std::size_t> color, extents;
-    std::vector<std::string> global, extent, offset, logical, extended;
-
-    auto seq = [](const auto & c) {
-      std::stringstream ss;
-      ss << flog::container{c};
-      return ss.str();
-    };
-
-    for(const auto & pc : pcs) {
-      std::vector<std::size_t> g, e, o;
-      std::vector<std::string> log, ext;
-      color.push_back(pc.color());
-      extents.push_back(pc.extents());
-      for(const topo::narray_impl::axis_color & axco : pc.axis_colors) {
-        g.push_back(axco.global());
-        e.push_back(axco.extent());
-        o.push_back(axco.offset());
-        log.push_back(seq(std::vector{axco.logical<0>(), axco.logical<1>()}));
-        ext.push_back(seq(std::vector{axco.extended<0>(), axco.extended<1>()}));
-      }
-      global.emplace_back(seq(g));
-      extent.emplace_back(seq(e));
-      offset.emplace_back(seq(o));
-      logical.emplace_back(seq(log));
-      extended.emplace_back(seq(ext));
-    }
-
-    out << "color: " << flog::container{color} << "\n";
-    out << "extents: " << flog::container{extents} << "\n";
-    out << "global: " << flog::container{global} << "\n";
-    out << "extent: " << flog::container{extent} << "\n";
-    out << "offset: " << flog::container{offset} << "\n";
-    out << "logical: " << flog::container{logical} << "\n";
-    out << "extended: " << flog::container{extended} << "\n";
-
-    UNIT_CAPTURE() << out.rdbuf();
-    EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
-  };
-}
-
 int
 coloring_driver() {
   UNIT() {
@@ -875,34 +807,80 @@ coloring_driver() {
 
     mesh3d::index_definition idef;
     idef.axes = mesh3d::base::make_axes(9, indices);
-    for(auto & a : idef.axes) {
+    topo::narray_impl::linearize<3, Color> glin;
+    for(Dimension d = 0; d < 3; ++d) {
+      auto & a = idef.axes[d];
+      glin.strs[d] = a.colormap.size();
       a.hdepth = 1;
     }
+    const auto cc = idef.process_colors();
 
-    auto coloring = idef.process_coloring();
-    EXPECT_EQ(verify_colors("primary_9x9x9_3x3x1", coloring), 0);
+    const auto verify = [&](const std::string & name,
+                          const mesh3d::index_definition & id) {
+      std::string output_file = "coloring_" + name + "_" +
+                                std::to_string(processes()) + "_" +
+                                std::to_string(process()) + ".blessed";
+      std::stringstream out;
+      std::vector<std::size_t> color;
+      std::vector<std::string> global, extent, offset, logical, extended;
+
+      auto seq = [](const auto & c) {
+        std::stringstream ss;
+        ss << flog::container{c};
+        return ss.str();
+      };
+
+      for(const auto & c3 : cc) {
+        std::vector<std::size_t> g, e, o;
+        std::vector<std::string> log, ext;
+        color.push_back(glin({c3[0], c3[1], c3[2]}));
+        for(Dimension d = 0; d < 3; ++d) {
+          const auto axco = id.make_axis(d, c3[d]);
+          const auto al = axco();
+          g.push_back(axco.ax.global_extent);
+          e.push_back(al.extent());
+          o.push_back(axco.offset);
+          log.push_back(seq(std::vector{al.logical<0>(), al.logical<1>()}));
+          ext.push_back(seq(std::vector{al.extended<0>(), al.extended<1>()}));
+        }
+        global.emplace_back(seq(g));
+        extent.emplace_back(seq(e));
+        offset.emplace_back(seq(o));
+        logical.emplace_back(seq(log));
+        extended.emplace_back(seq(ext));
+      }
+
+      out << "color: " << flog::container{color} << "\n";
+      out << "global: " << flog::container{global} << "\n";
+      out << "extent: " << flog::container{extent} << "\n";
+      out << "offset: " << flog::container{offset} << "\n";
+      out << "logical: " << flog::container{logical} << "\n";
+      out << "extended: " << flog::container{extended} << "\n";
+
+      UNIT_CAPTURE() << out.rdbuf();
+      EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
+    };
+
+    verify("primary_9x9x9_3x3x1", idef);
 
     // Create definition for an auxiliary index space
     auto adef = idef;
     adef.axes[0].auxiliary = true;
     adef.axes[1].auxiliary = true;
     adef.full_ghosts = false;
-    auto avpc = adef.process_coloring();
 
-    EXPECT_EQ(verify_colors("aux_xy_9x9x9_3x3x1", avpc), 0);
+    verify("aux_xy_9x9x9_3x3x1", adef);
 
     // Change the halo depths for the primary index space
     for(auto & a : idef.axes) {
       a.hdepth = 2;
     }
 
-    coloring = idef.process_coloring();
     adef = idef;
     adef.axes[0].auxiliary = true;
     adef.full_ghosts = true;
-    avpc = adef.process_coloring();
 
-    EXPECT_EQ(verify_colors("aux_x_9x9x9_3x3x1_fg", avpc), 0);
+    verify("aux_x_9x9x9_3x3x1_fg", adef);
   };
 }
 

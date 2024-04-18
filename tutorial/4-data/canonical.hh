@@ -51,7 +51,7 @@ struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
               {} /* cnx_allocs */
             }
           },
-          {1}
+          {0}
         },
         {
           /* peers */
@@ -67,7 +67,7 @@ struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
               {} /* cnx_allocs */
             }
           },
-          {1}
+          {0}
         }
       },
       /* number of peers per color over all index spaces */

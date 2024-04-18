@@ -41,6 +41,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using id = util::id;
+  static_assert(index_spaces::size, "no index spaces");
 
   static constexpr Dimension dimension = Policy::dimension;
   static_assert(dimension == axes::size);
@@ -79,8 +80,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   void ghost_copy(
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
-      using Impl =
-        ragged_impl<Space, Type, Policy::template privilege_count<Space>>;
+      using Impl = ragged_impl<Space, Type>;
       buffers_.template get<Space>().template xfer<Impl::start, Impl::xfer>(
         f, meta_field(this->meta));
     }
@@ -89,10 +89,174 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   }
 
 private:
+  using coord = std::array<util::id, dimension>;
+  using hypercube = std::pair<coord, coord>;
+  using nview = narray_impl::neighbors_view<dimension>;
   // Structural information about one color.
   struct meta_data {
+    using Colors = std::array<Color, dimension>;
+
     util::key_array<axis_color, axes> axcol;
     bool diagonals;
+
+    // Dynamically-sized parameter type for client convenience.
+    static meta_data make(const index_definition & idef,
+      const narray_impl::colors & ci) {
+      if(ci.size() != dimension)
+        flog_fatal("need " << dimension << " axes, not " << ci.size());
+      meta_data ret;
+      for(Dimension d = 0; d < dimension; ++d)
+        ret.axcol[d] = idef.make_axis(d, ci[d]);
+      ret.diagonals = idef.diagonals;
+      return ret;
+    }
+
+    coord extent() const {
+      coord ret;
+      for(Dimension d = 0; d < dimension; ++d)
+        ret[d] = axcol[d]().extent();
+      return ret;
+    }
+    Colors colors() const {
+      Colors ret;
+      for(Dimension d = 0; d < dimension; ++d)
+        ret[d] = axcol[d].ax.colors;
+      return ret;
+    }
+
+    struct message {
+      typename nview::value_type neighbor;
+      hypercube region; // ghost or shared
+    };
+    // NB: periodicity can give the same neighbor more than once.
+    std::vector<message> traffic(bool send = true) const {
+      std::vector<message> ret;
+      for(const auto off : nview()) {
+        bool skin[dimension]{};
+        if(!diagonals) {
+          Dimension taxi = 0;
+          for(Dimension d = 0; d < dimension; ++d)
+            if(off[d])
+              ++taxi;
+          if(taxi > 1) {
+            // We can still need to communicate with some diagonal neighbors
+            // those auxiliaries incident on another color's primaries.
+            for(Dimension d = 0; d < dimension; ++d) {
+              auto & ax = axcol[d].ax;
+              if((skin[d] = ax.auxiliary && ax.full_ghosts &&
+                            (send ? -1 : 1) * off[d] > 0))
+                --taxi;
+            }
+            if(taxi > 1)
+              continue;
+          }
+        }
+        auto & msg = ret.emplace_back();
+        msg.neighbor = off;
+        auto lo = msg.region.first.begin(), hi = msg.region.second.begin();
+        for(Dimension d = 0; d < dimension; ++d) {
+          const short o = off[d];
+          const axis_layout al = axcol[d](skin[d]);
+          const auto log0 = al.logical<0>(), log1 = al.logical<1>();
+          // Each bound of the communication region has a case each for lower
+          // neighbors, upper neighbors, and peer neighbors.
+          *lo = o < 0 ? send ? log0 : al.ghost<0>()
+                : o ? send ? al.exclusive<1>() : log1
+                      : log0;
+          *hi = o < 0 ? send ? al.exclusive<0>() : log0
+                : o   ? send ? log1 : al.ghost<1>()
+                      : log1;
+          if(*lo++ == *hi++) {
+            ret.pop_back(); // region empty
+            break;
+          }
+        }
+      }
+      return ret;
+    }
+
+    Colors neighbor(typename nview::value_type off) const {
+      Colors ret;
+      for(Dimension d = 0; d < dimension; ++d)
+        ret[d] = axcol[d].color_step(off[d]);
+      return ret;
+    }
+
+    using points = std::map<Color,
+      std::vector<std::pair</* local ghost offset, remote shared offset */
+        std::size_t,
+        std::size_t>>>;
+
+    using intervals = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    // The index_definition provides the layout of other colors to compute
+    // shared offsets.
+    static std::pair<points, intervals> ghosts(const index_definition & idef,
+      const narray_impl::colors & ci) {
+      using narray_impl::linearize;
+      const auto md = make(idef, ci);
+
+      const linearize<dimension> local{md.extent()};
+      const linearize<dimension, Color> global{md.colors()};
+
+      points points;
+      std::vector<std::size_t> ghost;
+      for(const auto & [ngh, reg] : md.traffic(false)) {
+        const auto src = md.neighbor(ngh);
+        linearize<dimension> remote;
+        coord roff;
+        for(Dimension d = 0; d < dimension; ++d) {
+          const short c = ngh[d];
+          const axis_layout ax = md.axcol[d](), r = idef.make_axis(d, src[d])();
+          remote.strs[d] = r.extent();
+          // Choose a corresponding pair of local indices to compute delta:
+          roff[d] = c < 0 ? r.logical<1>() - ax.logical<0>()
+                    : c   ? r.logical<0>() - ax.logical<1>() // "negative"
+                          : 0;
+        }
+        auto & pts = points[global(src)];
+        for(coord g = reg.first;;) {
+          coord s = g;
+          for(Dimension d = 0; d < dimension; ++d)
+            s[d] += roff[d];
+          pts.emplace_back(ghost.emplace_back(local(g)), remote(s));
+          // Advance odometer:
+          auto it = g.begin(), e = g.end();
+          auto b = reg.first.begin(), u = reg.second.begin();
+          for(; it != e && ++*it == *u; *it++ = *b++, ++u)
+            ;
+          if(it == e)
+            break;
+        }
+      }
+
+      std::sort(ghost.begin(), ghost.end());
+      return {std::move(points), rle(ghost)};
+    }
+
+    static std::vector<std::vector<Color>> peers( // send graph
+      const index_definition & idef) {
+      narray_impl::linearize<dimension, Color> global;
+      for(Dimension k = 0; k < dimension; ++k) {
+        global.strs[k] = idef.axes[k].colormap.size();
+      }
+
+      std::vector<std::vector<Color>> peer;
+      peer.reserve(idef.colors());
+
+      // Loop over all colors
+      for(auto && v : narray_impl::traverse<dimension>({}, global.strs)) {
+        auto & cc = peer.emplace_back();
+        const auto md = make(idef, {v.begin(), v.end()});
+        for(const auto & msg : md.traffic())
+          cc.push_back(global(md.neighbor(msg.neighbor)));
+        // Periodicity denies both ordering and uniqueness:
+        std::sort(cc.begin(), cc.end());
+        cc.erase(std::unique(cc.begin(), cc.end()), cc.end());
+      }
+
+      return peer;
+    }
   };
 
   template<auto... Value, std::size_t... Index>
@@ -102,9 +266,13 @@ private:
     : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
       part_{{make_repartitioned<Policy, Value>(c.colors(),
         make_partial<idx_size>([&]() {
+          auto & idef = c.idx_colorings[Index];
           std::vector<std::size_t> partitions;
-          for(const auto & idxco : c.idx_colorings[Index].process_coloring()) {
-            partitions.push_back(idxco.extents());
+          for(const auto & ci : idef.process_colors()) {
+            auto & total = partitions.emplace_back(1);
+            Dimension d = 0;
+            for(const auto i : ci)
+              total *= idef.make_axis(d++, i)().extent();
           }
           concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
@@ -112,12 +280,52 @@ private:
       plan_{{make_copy_plan<Value>(c.colors(),
         c.idx_colorings[Index],
         part_[Index])...}},
-      buffers_{{data::buffers::core(
-        narray_impl::peers<dimension>(c.idx_colorings[Index]))...}} {
+      buffers_{
+        {data::buffers::core(meta_data::peers(c.idx_colorings[Index]))...}} {
     auto lm = data::launch::make(this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     init_policy_meta(c);
   }
+
+  /*!
+   Method to compute the local ghost "intervals" and "points" which store map of
+   local ghost offset to remote/shared offset. This method is called by the
+   "make_copy_plan" method in the derived topology to create the copy plan
+   objects.
+
+   @param idef index definition
+   @param[out] num_intervals vector of number of ghost intervals, over all
+   colors, this vector is assumed to be sized correctly (all colors)
+   @param[out] intervals  vector of local ghost intervals, over process colors
+   @param[out] points vector of maps storing (local ghost offset, remote shared
+   offset) for a shared color, over process colors
+  */
+  static void idx_itvls(index_definition const & idef,
+    std::vector<std::size_t> & num_intervals,
+    std::vector<typename meta_data::intervals> & intervals,
+    std::vector<typename meta_data::points> & points,
+    MPI_Comm const & comm) {
+    std::vector<std::size_t> local_itvls;
+    for(const auto & c : idef.process_colors(comm)) {
+      auto [pts, itvls] = meta_data::ghosts(idef, c);
+      local_itvls.emplace_back(itvls.size());
+      intervals.emplace_back(std::move(itvls));
+      points.emplace_back(std::move(pts));
+    }
+
+    /*
+      Gather global interval sizes.
+     */
+
+    auto global_itvls = util::mpi::all_gatherv(local_itvls, comm);
+
+    auto it = num_intervals.begin();
+    for(const auto & pv : global_itvls) {
+      for(auto i : pv) {
+        *it++ = i;
+      }
+    }
+  } // idx_itvls
 
   /*!
    Method to create copy plans for entities of an index-space.
@@ -130,11 +338,9 @@ private:
     index_definition const & idef,
     repartitioned & p) {
 
-    idef.check_ghosts();
-
     std::vector<std::size_t> num_intervals(colors, 0);
-    std::vector<index_definition::intervals> intervals;
-    std::vector<index_definition::points> points;
+    std::vector<typename meta_data::intervals> intervals;
+    std::vector<typename meta_data::points> points;
 
     // The intervals encode local ghost
     // intervals, whereas points capture the  local offset and corresponding
@@ -172,15 +378,10 @@ private:
     ((
        [&] {
          const auto ma = mm.accessors();
-         const auto & idxco = c.idx_colorings[index].process_coloring();
-         for(auto i = ma.size(); i--;) {
-           auto & md = ma[i]->template get<Value>();
-           auto & ac = idxco[i].axis_colors;
-           if(ac.size() != dimension)
-             flog_fatal("need " << dimension << " axes, not " << ac.size());
-           std::copy(ac.begin(), ac.end(), md.axcol.begin());
-           md.diagonals = c.idx_colorings[index].diagonals;
-         }
+         const auto & idef = c.idx_colorings[index];
+         auto it = ma.begin();
+         for(const auto & ci : idef.process_colors())
+           (*it++)->template get<Value>() = meta_data::make(idef, ci);
        }(),
        ++index),
       ...);
@@ -201,11 +402,14 @@ private:
   }
 
   /// Ragged communication routines
-  template<typename Policy::index_space Space, typename T, PrivilegeCount N>
+  template<typename Policy::index_space Space, typename T>
   struct ragged_impl {
-    using A = std::array<int, dimension>;
-    using A2 = std::array<A, 3>;
+    using A = coord;
 
+    // Sorted to match the order created by meta_data::peers.
+    using Bounds = std::map<Color, std::vector<hypercube>>;
+
+    static constexpr PrivilegeCount N = Policy::template privilege_count<Space>;
     using fa = typename field<T,
       data::ragged>::template accessor1<privilege_ghost_repeat<ro, na, N>>;
 
@@ -216,43 +420,32 @@ private:
       data::single>::template accessor<ro>;
 
     static void start(fa v, mfa mf, data::buffers::Start mv) {
-      send(v, mf, true, mv);
+      send(
+        v, mf, true, mv, get_ngb_color_bounds(true, mf->template get<Space>()));
     } // start
 
     static int xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) {
       // get the meta data for the index space
       meta_data md = mf->template get<Space>();
-      std::map<Color, std::vector<int>> color_bounds;
-      get_ngb_color_bounds(false, md, color_bounds);
 
       // The start of receive buffer id depends on the number
       // of sent buffers.
-      std::map<Color, std::vector<int>> color_bounds_send;
-      get_ngb_color_bounds(true, md, color_bounds_send);
+      const Bounds color_bounds_send = get_ngb_color_bounds(true, md);
 
-      A lbnds, ubnds, strs;
-      for(Dimension i = 0; i < dimension; i++) {
-        strs[i] = md.axcol[i].extent();
-      }
+      const auto strs = md.extent();
 
       // Loop over the receiving colors and receive the data for all boxes
       int bufid = color_bounds_send.size();
-      for(auto & [c, v] : color_bounds) {
+      for(auto & [c, v] : get_ngb_color_bounds(false, md)) {
         std::vector<int> lids;
         auto get_lids = [&](int lid) {
           lids.push_back(lid);
           return false;
         };
 
-        int nboxes = v.size() / (2 * dimension);
         // get lids of all boxes
-        for(int k = nboxes - 1; k >= 0; --k) {
-          for(Dimension d = 0; d < dimension; ++d) {
-            lbnds[d] = v[2 * dimension * k + d];
-            ubnds[d] = v[2 * dimension * k + dimension + d];
-          }
-          traverse(lbnds, ubnds, strs, get_lids);
-        }
+        for(auto i = v.rbegin(), e = v.rend(); i != e; ++i)
+          traverse(i->first, i->second, strs, get_lids);
 
         // receive
         data::buffers::ragged::read(g, mv[bufid], lids);
@@ -260,205 +453,52 @@ private:
       }
 
       // resume transfer if data was not fully packed during start
-      return send(g, mf, false, mv);
+      return send(g, mf, false, mv, color_bounds_send);
     } // xfer
 
   private:
+    // color_bounds could be computed, but xfer already needs it.
     template<typename F, typename B>
-    static bool send(F f, mfa mf, bool first, B mv) {
+    static bool
+    send(F f, mfa mf, bool first, B mv, const Bounds & color_bounds) {
       // get the meta data for the index space
       meta_data md = mf->template get<Space>();
       bool sent = false;
 
-      A lbnds, ubnds, strs;
-      for(Dimension i = 0; i < dimension; i++) {
-        strs[i] = md.axcol[i].extent();
-      }
-
-      std::map<Color, std::vector<int>> color_bounds;
-      get_ngb_color_bounds(true, md, color_bounds);
+      const auto strs = md.extent();
 
       int p = 0;
       for(auto & [c, v] : color_bounds) {
         auto b = data::buffers::ragged{mv[p++], first};
         auto send_data = [&](int lid) { return !b(f, lid, sent); };
 
-        int nboxes = v.size() / (2 * dimension);
-        // send each box
-        for(int k = 0; k < nboxes; ++k) {
-          for(Dimension d = 0; d < dimension; ++d) {
-            lbnds[d] = v[2 * dimension * k + d];
-            ubnds[d] = v[2 * dimension * k + dimension + d];
-          }
-          traverse(lbnds, ubnds, strs, send_data);
-        }
+        for(auto & h : v)
+          traverse(h.first, h.second, strs, send_data);
       }
 
       return sent;
     } // send
 
-    static void get_ngb_color_bounds(bool send,
-      meta_data & md,
-      std::map<Color, std::vector<int>> & color_bounds) {
+    static Bounds get_ngb_color_bounds(bool send, const meta_data & md) {
+      const narray_impl::linearize<dimension, Color> global{md.colors()};
 
-      // For each axis, store the neigh color ids, and the
-      // lower and upper bounds for sending/receiving data
-      A2 ngb_lbnds, ngb_ubnds;
-      axes_bounds(send, md, ngb_lbnds, ngb_ubnds);
-
-      // Obtain the set of boxes (lower, upper bounds) that will
-      // be sent to a particular color in a map
-      A color_strs, center_color, bdepth;
-      std::array<bool, dimension> periodic;
-      for(Dimension i = 0; i < dimension; i++) {
-        color_strs[i] = md.axcol[i].colors;
-        center_color[i] = md.axcol[i].color_index;
-        bdepth[i] = md.axcol[i].bdepth;
-        periodic[i] = md.axcol[i].periodic;
-      }
-
-      ngb_color_boxes(md.diagonals,
-        periodic,
-        bdepth,
-        color_strs,
-        center_color,
-        ngb_lbnds,
-        ngb_ubnds,
-        color_bounds);
+      Bounds ret;
+      for(const auto & [ngh, reg] : md.traffic(send))
+        ret[global(md.neighbor(ngh))].push_back(reg);
+      return ret;
     }
 
     template<typename F>
-    static void traverse(A & lbnds, A & ubnds, A & strs, F f) {
+    static void
+    traverse(const A & lbnds, const A & ubnds, const A & strs, F f) {
       using tb = narray_impl::traverse<dimension>;
-      narray_impl::linearize<dimension> ln{strs};
+      const narray_impl::linearize<dimension> ln{strs};
       for(auto && v : tb(lbnds, ubnds)) {
         auto lid = ln(v);
         if(f(lid))
           break;
       }
     } // traverse
-
-    static void ngb_color_boxes(bool diagonals,
-      std::array<bool, dimension> & periodic,
-      A & bdepth,
-      A & color_strs,
-      A & center_color,
-      A2 & ngb_lbnds,
-      A2 & ngb_ubnds,
-      std::map<Color, std::vector<int>> & color_bounds) {
-      using nview = flecsi::topo::narray_impl::neighbors_view<dimension>;
-      narray_impl::linearize<dimension> ln{color_strs};
-      for(auto && v : nview(diagonals)) {
-        A color_indices;
-        for(Dimension k = 0; k < dimension; ++k) {
-          color_indices[k] = center_color[k] + v[k];
-          // if boundary depth, add the correct ngb color
-          if(periodic[k]) {
-            if((color_indices[k] == -1) && (center_color[k] == 0) && bdepth[k])
-              color_indices[k] = color_strs[k] - 1;
-            if((color_indices[k] == color_strs[k]) &&
-               (center_color[k] == color_strs[k] - 1) && bdepth[k])
-              color_indices[k] = 0;
-          }
-          // if axis is auxiliary, add neighbor colors if only something has to
-          // be communicated.
-          if(ngb_ubnds[v[k] + 1][k] == ngb_lbnds[v[k] + 1][k])
-            color_indices[k] = -1;
-        }
-
-        bool valid_ngb = true;
-        for(Dimension k = 0; k < dimension; ++k) {
-          if((color_indices[k] == -1) || (color_indices[k] == color_strs[k]))
-            valid_ngb = false;
-        }
-
-        if(valid_ngb) {
-          // get color id
-          auto lid = ln(color_indices);
-
-          for(Dimension k = 0; k < dimension; ++k)
-            color_bounds[lid].push_back(ngb_lbnds[v[k] + 1][k]);
-          for(Dimension k = 0; k < dimension; ++k)
-            color_bounds[lid].push_back(ngb_ubnds[v[k] + 1][k]);
-        }
-      }
-    } // color_boxes
-
-    /*
-     *
-     * In this method, we figure out:
-     * 1) Left side color, lower and upper bounds along the axis which will
-     * either be sent or received 2) Center color which is itself, logical lower
-     * and upper bounds of this color to send or receive data from lower/upper
-     * colors abutting this color 3) Right side color, lower and upper bounds
-     * along the axis
-     *
-     * For example, for a color in the middle of the partition with halo layers
-     * on both sides along an axis A:
-     *
-     *                      Left color      center         Right color
-     *   Axis            |-------------|--------------|--------------|
-     *
-     *  Sending bounds to left         |----|
-     *                                   h
-     *  Sending bounds to lower/upper  |-------------|
-     *                                  logical
-     *  Sending bounds to right                 |----|
-     *                                            h
-     *  Receiving bounds         |----|--------------|----|
-     *                             h      logical      h
-     *
-     * */
-    static void
-    axes_bounds(bool send, meta_data & md, A2 & ngb_lbnds, A2 & ngb_ubnds) {
-      // fill out the indices of the ngb colors
-      int p = 0;
-      for(auto & ax : md.axcol) {
-        auto ci = ax.color_index;
-
-        if(send) {
-          ngb_lbnds[0][p] = ax.template logical<0>();
-          ngb_lbnds[1][p] = ax.template logical<0>();
-          ngb_lbnds[2][p] = ax.template logical<1>() - ax.sdepth_hi;
-
-          ngb_ubnds[0][p] = ngb_lbnds[0][p] + ax.sdepth_lo;
-          ngb_ubnds[1][p] = ax.template logical<1>();
-          ngb_ubnds[2][p] = ax.template logical<1>();
-
-          // bdepths
-          if((ci == 0) && ax.bdepth) {
-            ngb_ubnds[0][p] = ax.template logical<0>() + ax.bdepth;
-          }
-
-          if((ci == ax.colors - 1) && ax.bdepth) {
-            ngb_lbnds[2][p] = ax.template logical<1>() - ax.bdepth;
-            ngb_ubnds[2][p] = ax.template logical<1>();
-          }
-        }
-        else {
-          ngb_lbnds[0][p] = 0;
-          ngb_lbnds[1][p] = ax.template logical<0>();
-          ngb_lbnds[2][p] = ax.template logical<1>();
-
-          ngb_ubnds[0][p] = ax.hdepth_lo;
-          ngb_ubnds[1][p] = ax.template logical<1>();
-          ngb_ubnds[2][p] = ax.template logical<1>() + ax.hdepth_hi;
-
-          // bdepths
-          if((ci == 0) && ax.bdepth) {
-            ngb_lbnds[0][p] = 0;
-            ngb_ubnds[0][p] = ax.bdepth;
-          }
-
-          if((ci == ax.colors - 1) && ax.bdepth) {
-            ngb_lbnds[2][p] = ax.template logical<1>();
-            ngb_ubnds[2][p] = ax.template logical<1>() + ax.bdepth;
-          }
-        }
-        ++p;
-      }
-    }
-
   }; // struct ragged_impl
 
   /*--------------------------------------------------------------------------*
@@ -507,7 +547,7 @@ struct narray<Policy>::access {
   FLECSI_INLINE_TARGET auto mdspan(
     data::accessor<data::dense, T, P> const & a) const {
     auto const s = a.span();
-    return util::mdspan(s.data(), extents<S>());
+    return util::mdspan(s.data(), check_extents<S>(s));
   }
   /// Create a Fortran-like view of a field.
   /// This function is \ref topology "host-accessible", although the values in
@@ -516,7 +556,8 @@ struct narray<Policy>::access {
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdcolex(
     data::accessor<data::dense, T, P> const & a) const {
-    return util::mdcolex(a.span().data(), extents<S>());
+    const auto s = a.span();
+    return util::mdcolex(s.data(), check_extents<S>(s));
   }
 
   template<class F>
@@ -539,13 +580,23 @@ private:
 
   data::scalar_access<narray::meta_field, Priv> meta_;
 
+  template<index_space S, class C>
+  auto check_extents(const C & c) const {
+    const auto e = extents<S>();
+    const auto sz = std::apply([](auto... ii) { return (util::gid(ii) * ...); },
+      static_cast<const typename decltype(e)::array &>(e));
+    flog_assert(
+      sz == c.size(), "field has size " << c.size() << ", not " << sz);
+    return e;
+  }
+
   /*!
    Method to access global extents of index space S along
    axis A. This function is \ref topology "host-accessible".
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return get_axis<S, A>().global();
+    return get_axis<S, A>().ax.global_extent;
   }
 
   /*!
@@ -556,12 +607,12 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
-    return get_axis<S, A>().offset();
+    return get_axis<S, A>().offset;
   }
 
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::id extent() const {
-    return get_axis<S, A>().extent();
+    return get_axis<S, A>()().extent();
   }
 
   template<index_space S, auto... A>
@@ -588,7 +639,7 @@ private:
     */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
-    return get_axis<S, A>().template logical<P>();
+    return get_axis<S, A>()().template logical<P>();
   }
 
   /*!
@@ -600,7 +651,11 @@ private:
    */
   template<index_space S, axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
-    return get_axis<S, A>().template extended<P>();
+    const axis_color & a = get_axis<S, A>();
+    if constexpr(P == 0) {
+      return a.low() ? 0 : a().logical<P>();
+    }
+    return a.high() ? a().extent() : a().logical<P>();
   }
 
 protected:
@@ -616,7 +671,7 @@ protected:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
-    return get_axis<S, A>().is_low();
+    return get_axis<S, A>().low();
   }
 
   /*!
@@ -626,7 +681,7 @@ protected:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
-    return get_axis<S, A>().is_high();
+    return get_axis<S, A>().high();
   }
 
   /*!
@@ -747,11 +802,6 @@ protected:
   }
 
 private:
-  template<axis A>
-  FLECSI_TARGET static constexpr std::uint32_t to_idx() {
-    return axes::template index<A>;
-  }
-
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET const axis_color & get_axis() const {
     return meta_->template get<S>().axcol.template get<A>();
