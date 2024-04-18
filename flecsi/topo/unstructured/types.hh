@@ -119,25 +119,7 @@ struct index_color {
   }
 
   auto ghost_intervals() const {
-    std::vector<data::subrow> intervals;
-    auto gs = ghosts();
-    auto g = gs.begin();
-    std::size_t begin = g == gs.end() ? 0 : *g, run = 0;
-    for(; g != gs.end(); ++g) {
-      if(!run || *g != begin + run) {
-        if(run) {
-          intervals.emplace_back(std::make_pair(begin, begin + run));
-          begin = *g;
-        }
-        run = 1;
-      }
-      else {
-        ++run;
-      }
-    } // for
-
-    intervals.emplace_back(std::make_pair(begin, begin + run));
-    return intervals;
+    return rle(ghosts());
   }
 
   /// \endcond
