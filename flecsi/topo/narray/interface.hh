@@ -39,6 +39,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
+  using copy_spaces = util::to_copy_spaces<Policy>;
+
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using id = util::id;
@@ -59,11 +61,14 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
           return c;
         }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>()) {}
+        copy_spaces()) {}
 
   Color colors() const {
     return part_.front().colors();
   }
+
+  template<index_space S>
+  static constexpr std::size_t index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -82,8 +87,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
       using Impl = ragged_impl<Space, Type>;
-      buffers_.template get<Space>().template xfer<Impl::start, Impl::xfer>(
-        f, meta_field(this->meta));
+      ragged_buffers_.template get<Space>()
+        .template xfer<Impl::start, Impl::xfer>(f, meta_field(this->meta));
     }
     else
       plan_.template get<Space>().issue_copy(f.fid());
@@ -260,14 +265,14 @@ private:
     }
   };
 
-  template<auto... Value, std::size_t... Index>
+  template<auto... Value, auto... CI>
   narray(const coloring & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>)
+    util::constants<Value...>,
+    util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
       part_{{make_repartitioned<Policy, Value>(c.colors(),
         make_partial<idx_size>([&]() {
-          auto & idef = c.idx_colorings[Index];
+          auto & idef = c.idx_colorings[index<Value>];
           std::vector<std::size_t> partitions;
           for(const auto & ci : idef.process_colors()) {
             auto & total = partitions.emplace_back(1);
@@ -278,14 +283,28 @@ private:
           concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
         }()))...}},
-      plan_{{make_copy_plan<Value>(c.colors(),
-        c.idx_colorings[Index],
-        part_[Index])...}},
-      buffers_{
-        {data::buffers::core(meta_data::peers(c.idx_colorings[Index]))...}} {
+      plan_{{make_copy_plan<CI>(c.colors(),
+        c.idx_colorings[index<CI>],
+        part_[index<CI>])...}},
+      ragged_buffers_{{data::buffers::core(
+        meta_data::peers(c.idx_colorings[index<CI>]))...}} {
     auto lm = data::launch::make(this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     init_policy_meta(c);
+    (
+      [&] { // Sanity checks for indexes spaces for which privilege count is 1
+        if(Policy::template privilege_count<Value> == 1) {
+          if(c.idx_colorings[index<Value>].full_ghosts)
+            throw std::invalid_argument(
+              "Privilege count is 1 but `full_ghosts` is set to `true`");
+          for(auto & axis_def : c.idx_colorings[index<Value>].axes)
+            if(axis_def.hdepth != 0)
+              throw std::invalid_argument(
+                "Privilege count is 1 but `axis_definition::hdepth` are "
+                "non-zero");
+        }
+      }(),
+      ...);
   }
 
   /*!
@@ -519,14 +538,8 @@ private:
 
   // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
-
-  // index-space specific copy plans
-  util::key_array<data::copy_plan, index_spaces> plan_;
-
-  // This key_array of buffers core objects are needed to transfer
-  // ragged data. We have a key array over index_spaces because
-  // each index_space possibly may have a different communication graph.
-  util::key_array<data::buffers::core, index_spaces> buffers_;
+  util::key_array<data::copy_plan, copy_spaces> plan_;
+  util::key_array<data::buffers::core, copy_spaces> ragged_buffers_;
 }; // struct narray
 
 template<class P>
