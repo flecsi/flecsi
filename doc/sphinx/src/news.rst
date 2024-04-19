@@ -86,6 +86,7 @@ New features
   * ``unstructured::special_field`` is the field definition for special-entity lists.
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
+  * The names ``axis_definition`` and ``index_definition`` are available in ``narray_base``.
   * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend

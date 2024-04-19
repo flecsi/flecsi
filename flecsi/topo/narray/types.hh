@@ -475,7 +475,9 @@ struct narray_base {
   using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
+  /// The type for specifying an axis for a coloring.
   using axis_definition = narray_impl::axis_definition;
+  /// The type for specifying an index space for a coloring.
   using index_definition = narray_impl::index_definition;
 
   /*!
