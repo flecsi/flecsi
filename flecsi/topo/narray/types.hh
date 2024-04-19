@@ -267,9 +267,13 @@ struct axis {
 };
 /// High-level information about one axis of one color.
 struct axis_color {
+  /// Color-independent information.
   narray_impl::axis axis;
+  /// The color index along the axis.
   Color color;
+  /// The number of logical index points.
   util::id logical;
+  /// The position of the first logical index point on the global axis.
   util::gid offset;
 
   /// Whether the current color is at the low end of the axis.
@@ -285,7 +289,7 @@ struct axis_color {
     return (color + axis.colors + d) % axis.colors;
   }
 
-  /// The global index for a given logical index on the local axis.
+  /// The global index for a given local index.
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
