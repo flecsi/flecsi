@@ -99,3 +99,5 @@ texinfo_documents = [
      author, 'FleCSI', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+nitpicky = True

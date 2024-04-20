@@ -76,7 +76,7 @@ function(flecsi_add_sphinx_target name)
   endif()
 
   add_custom_target(${name}
-    COMMAND ${SPHINX_EXECUTABLE} -nqW -c
+    COMMAND ${SPHINX_EXECUTABLE} -qW -c
       ${sphx_OUTPUT}/.sphinx
       ${sphx_CONFIG}
       ${sphx_OUTPUT}
@@ -86,7 +86,7 @@ function(flecsi_add_sphinx_target name)
     ${sphx_OUTPUT}/.sphinx/conf.py)
 
   add_custom_target(${FLECSI_SPHINX_TARGET}-${name}
-    COMMAND Sphinx::Sphinx -nqW -c
+    COMMAND Sphinx::Sphinx -qW -c
       ${sphx_OUTPUT}/.sphinx
       ${sphx_CONFIG}
       ${sphx_OUTPUT}
