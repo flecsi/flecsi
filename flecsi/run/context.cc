@@ -130,12 +130,12 @@ getopt::parse(int argc, char ** argv) const {
       std::stringstream ss;
       if(!check(boost_any.value(), ss)) {
         std::ostringstream err;
-        err << "invalid argument for '" << (positional ? "" : "--") << name
-            << "' option";
+        err << FLOG_COLOR_RED << "invalid argument for '"
+            << (positional ? "" : "--") << name << "' option";
         if(ss.rdbuf()->in_avail())
-          err << " (" << FLOG_COLOR_LTRED << ss.rdbuf() << FLOG_COLOR_RED
-              << ')';
-        throw po::invalid_option_value(std::move(err).str());
+          err << " (" << ss.rdbuf() << ')';
+        err << FLOG_COLOR_PLAIN;
+        throw po::error(std::move(err).str());
       } // if
     } // if
   } // for
