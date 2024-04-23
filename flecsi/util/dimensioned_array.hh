@@ -18,6 +18,7 @@ namespace util {
 template<typename TARGET, typename... TARGETS>
 using convertible_type =
   std::bool_constant<(std::is_convertible_v<TARGETS, TARGET> && ...)>;
+
 //----------------------------------------------------------------------------//
 //! The dimensioned_array type provides a general base for defining
 //! contiguous array types that have a specific dimension.
@@ -34,36 +35,44 @@ template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
 class dimensioned_array : public std::array<TYPE, DIMENSION>
 {
 public:
-  using base = std::array<TYPE, DIMENSION>;
+  using base = typename dimensioned_array::array;
   dimensioned_array() = default;
 
   //--------------------------------------------------------------------------//
   //! Initializer list constructor.
   //--------------------------------------------------------------------------//
-  constexpr dimensioned_array(std::initializer_list<TYPE> list) {
+  constexpr dimensioned_array(std::initializer_list<TYPE> list) : base{} {
     assert(list.size() == DIMENSION && "dimension size mismatch");
     auto p = list.begin();
-    for(auto& x : *this)
-      x = *p++; // std::copy isn't constexpr until C++20 
+    for(auto & x : *this)
+      x = *p++; // std::copy isn't constexpr until C++20
   } // dimensioned_array
+
   //--------------------------------------------------------------------------//
   //! Variadic constructor.
   //--------------------------------------------------------------------------//
 
   template<typename... ARGS,
     typename = std::enable_if_t<sizeof...(ARGS) == DIMENSION &&
-                                       convertible_type<TYPE, ARGS...>::value>>
-  constexpr dimensioned_array(ARGS... args)
-    : dimensioned_array{args...} {} 
+                                convertible_type<TYPE, ARGS...>::value>>
+  constexpr dimensioned_array(ARGS... args) : base{args...} {}
 
   //--------------------------------------------------------------------------//
   //! Constructor (fill with given value).
   //--------------------------------------------------------------------------//
 
   constexpr dimensioned_array(TYPE const & val) {
-    for(auto& x : *this)
-      x = val; 
+    for(auto & x : *this)
+      x = val;
   } // dimensioned_array
+
+  constexpr base & get_base() {
+    return *this;
+  }
+
+  constexpr const base & get_base() const {
+    return *this;
+  }
 
   //--------------------------------------------------------------------------//
   //! Return the size of the array.
@@ -80,7 +89,7 @@ public:
 
   template<typename ENUM_TYPE>
   constexpr TYPE & operator[](ENUM_TYPE e) {
-    return dimensioned_array::data()[static_cast<Dimension>(e)];
+    return get_base()[static_cast<Dimension>(e)];
   } // operator []
 
   //--------------------------------------------------------------------------//
@@ -90,7 +99,7 @@ public:
 
   template<typename ENUM_TYPE>
   constexpr TYPE const & operator[](ENUM_TYPE e) const {
-    return dimensioned_array::data()[static_cast<Dimension>(e)];
+    return get_base()[static_cast<Dimension>(e)];
   } // operator []
 
   //--------------------------------------------------------------------------//
@@ -99,10 +108,21 @@ public:
 
   constexpr dimensioned_array & operator=(const TYPE & val) {
     for(Dimension i = 0; i < DIMENSION; i++) {
-      dimensioned_array::data()[i] = val;
+      get_base()[i] = val;
     } // for
     return *this;
   } // operator =
+
+  //! \brief Division operator involving a constant.
+  //! \param[in] val The constant on the right hand side of the operator.
+  //! \return A reference to the current object.
+  constexpr dimensioned_array operator/(TYPE val) {
+    assert(val && "dividing by zero ? ");
+    dimensioned_array tmp(*this);
+    tmp /= val;
+
+    return tmp;
+  }
 
   //--------------------------------------------------------------------------//
   // Macro to avoid code replication.
@@ -111,7 +131,7 @@ public:
 #define define_operator(op)                                                    \
   constexpr dimensioned_array & operator op(dimensioned_array const & rhs) {   \
     for(Dimension i = 0; i < DIMENSION; i++) {                                 \
-      dimensioned_array::data()[i] op rhs[i];                                  \
+      get_base()[i] op rhs[i];                                                 \
     } /* for */                                                                \
                                                                                \
     return *this;                                                              \
@@ -124,7 +144,7 @@ public:
 #define define_operator_type(op)                                               \
   constexpr dimensioned_array & operator op(TYPE val) {                        \
     for(Dimension i = 0; i < DIMENSION; i++) {                                 \
-      dimensioned_array::data()[i] op val;                                     \
+      get_base()[i] op val;                                                    \
     } /* for */                                                                \
                                                                                \
     return *this;                                                              \
@@ -180,19 +200,7 @@ public:
 
   define_operator_type(/=)
 
-    // clang-format on
-
-    //! \brief Division operator involving a constant.
-    //! \param[in] val The constant on the right hand side of the operator.
-    //! \return A reference to the current object.
-    constexpr dimensioned_array
-    operator/(TYPE val) {
-    assert(val && "dividing by zero ? ");
-    dimensioned_array tmp(*this);
-    tmp /= val;
-
-    return tmp;
-  } // operator /
+  // clang-format on
 }; // class dimensioned_array
 
 //----------------------------------------------------------------------------//

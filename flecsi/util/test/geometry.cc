@@ -22,14 +22,14 @@ point_sanity() {
     static_assert(3.0 == a2[axis::x]);
     static_assert(0.0 == a2[axis::y]);
 
-    float v1 = 3, v2 = 0;  
-    point_2d_t b2(v1, v2); 
+    float v1 = 3, v2 = 0;
+    point_2d_t b2(v1, v2);
 
-    b2 -= a2; 
+    b2 -= a2;
     ASSERT_EQ(b2[axis::x], 0.0);
     ASSERT_EQ(b2[axis::y], 0.0);
 
-    b2 -= 1.0; 
+    b2 -= 1.0;
     ASSERT_EQ(b2[axis::x], -1.0);
     ASSERT_EQ(b2[axis::y], -1.0);
 
