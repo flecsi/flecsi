@@ -40,6 +40,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Data
+
+  * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
+
 * Execution
 
   * Tasks may be declared ``noexcept``.
@@ -55,7 +59,6 @@ Fixed
     * Auxiliary axes support ``full_ghosts`` and ``periodic`` properly.
 
   * ``unstructured`` supports ``num_intervals`` of 0.
-  * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
 
 * Legion backend
 
