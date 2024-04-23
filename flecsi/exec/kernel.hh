@@ -128,6 +128,8 @@ struct range_policy : policy_tag {
 
 using range_index = range_policy<int>::index;
 
+/// \cond core
+
 /// This function supports to fine-tune the number of blocks and threads
 /// for GPU execution.
 /// \tparam T maximum number of threads per block
@@ -140,6 +142,7 @@ auto
 threads(Range range) {
   return range_policy<Range, T, B>(std::move(range));
 }
+/// \endcond
 
 /// This class computes subinterval of a range based on the starting and ending
 /// indices provided.
