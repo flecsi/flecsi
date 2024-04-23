@@ -1,8 +1,8 @@
 // Copyright (C) 2016, Triad National Security, LLC
 // All rights reserved.
 
-#ifndef FLECSI_RUN_POINT_WALKER_HH
-#define FLECSI_RUN_POINT_WALKER_HH
+#ifndef FLECSI_RUN_TYPES_HH
+#define FLECSI_RUN_TYPES_HH
 
 #include "flecsi/config.hh"
 #include "flecsi/flog.hh"
