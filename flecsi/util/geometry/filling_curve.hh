@@ -6,6 +6,9 @@
 
 #include "flecsi/util/geometry/point.hh"
 
+#include <algorithm>
+#include <string>
+
 namespace flecsi {
 
 // Space filling curve
@@ -130,13 +133,12 @@ public:
     else {
       std::string output;
       filling_curve id = *this;
-      int poped;
       while(id != root()) {
-        poped = id.pop_value();
-        output.insert(0, std::to_string(poped));
+        output.push_back('0' + id.pop_value());
       } // while
-      output.insert(output.begin(), '1');
-      ostr << output.c_str();
+      output.push_back('1');
+      std::reverse(output.begin(), output.end());
+      ostr << output;
     } // if else
   }
   // Get the value associated to this key
