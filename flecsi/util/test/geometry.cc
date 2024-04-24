@@ -342,8 +342,7 @@ kdtree() {
       util::KDTree<2> trg_tree(trg_boxes);
 
       // search two kdtrees
-      std::map<long, std::vector<long>> candidates_map;
-      util::intersect<2>(src_tree, trg_tree, candidates_map);
+      const auto candidates_map = util::intersect(src_tree, trg_tree);
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5},
@@ -361,7 +360,7 @@ kdtree() {
       };
 
       for(int i = 0; i < ntrg * ntrg; ++i)
-        EXPECT_EQ(s(candidates_map[i]), ref_candidates[i]);
+        EXPECT_EQ(s(candidates_map.at(i)), ref_candidates[i]);
 
       // list the candidates
       std::cout << "Candidates Map :\n";
@@ -406,8 +405,7 @@ kdtree() {
       util::KDTree<3> trg_tree(trg_boxes);
 
       // search two kdtrees
-      std::map<long, std::vector<long>> candidates_map;
-      util::intersect<3>(src_tree, trg_tree, candidates_map);
+      const auto candidates_map = util::intersect(src_tree, trg_tree);
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5, 16, 17, 20, 21},
@@ -434,7 +432,7 @@ kdtree() {
       };
 
       for(int i = 0; i < ntrg * ntrg * ntrg; ++i) {
-        EXPECT_EQ(s(candidates_map[i]), ref(i));
+        EXPECT_EQ(s(candidates_map.at(i)), ref(i));
       }
     }
   };

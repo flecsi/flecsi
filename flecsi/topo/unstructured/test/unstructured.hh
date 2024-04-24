@@ -1,3 +1,6 @@
+#ifndef FLECSI_TOPO_UNSTRUCTURED_TEST_UNSTRUCTURED_HH
+#define FLECSI_TOPO_UNSTRUCTURED_TEST_UNSTRUCTURED_HH
+
 #include "flecsi/data.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/unstructured/coloring_utils.hh"
@@ -310,3 +313,5 @@ struct unstructured
 
   } // initialize
 }; // struct unstructured
+
+#endif

@@ -8,6 +8,7 @@
 
 #include <graphviz/cgraph.h>
 
+#include <memory>
 #include <stdexcept>
 #include <utility>
 
@@ -29,17 +30,11 @@ class graphviz
   }
 
 public:
-  ~graphviz() {
-    if(graph_ != nullptr) {
-      agclose(graph_);
-    } // if
-  } // ~graphviz
-
   explicit graphviz(const std::string & name) : graphviz(name.c_str()) {}
   explicit graphviz(const char * name)
     : graph_(agopen(cc(name), Agdirected, nullptr)) {
     const auto a = [&](int k, const char * n, const char * v) {
-      agattr(graph_, k, cc(n), cc(v));
+      agattr(g(), k, cc(n), cc(v));
     };
 
     a(AGRAPH, "nodesep", ".5");
@@ -67,16 +62,15 @@ public:
     a(AGEDGE, "arrowhead", "normal");
     a(AGEDGE, "arrowtail", "normal");
   }
-  graphviz(graphviz && g) : graph_(std::exchange(g.graph_, {})) {}
 
   explicit operator bool() const {
-    return graph_;
+    return g();
   }
 
   /// Add a node to the graph.
   /// \param label if non-null, be used for the display name of the node.
   Agnode_t * add_node(const char * name, const char * label = nullptr) {
-    Agnode_t * node = agnode(graph_, cc(name), ag_create);
+    Agnode_t * node = agnode(g(), cc(name), ag_create);
 
     if(label != nullptr) {
       agset(node, cc("label"), cc(label));
@@ -86,7 +80,7 @@ public:
   } // add_node
 
   Agnode_t * node(const char * name) const {
-    return agnode(graph_, cc(name), ag_access);
+    return agnode(g(), cc(name), ag_access);
   } // node
 
   /// Set a node attribute.
@@ -97,7 +91,7 @@ public:
 
   /// Add an edge to the graph.
   Agedge_t * add_edge(Agnode_t * parent, Agnode_t * child) {
-    return agedge(graph_, parent, child, nullptr, ag_create);
+    return agedge(g(), parent, child, nullptr, ag_create);
   } // add_edge
 
   void
@@ -110,13 +104,21 @@ public:
   } // write
 
   void write(const char * name) const {
-    if(agwrite(graph_, FILE(name, "w")))
+    if(agwrite(g(), FILE(name, "w")))
       throw std::runtime_error("could not write graph");
   } // write
 
 private:
-  Agraph_t * graph_;
+  Agraph_t * g() const {
+    return graph_.get();
+  }
 
+  struct Close {
+    void operator()(Agraph_t * p) {
+      agclose(p);
+    }
+  };
+  std::unique_ptr<Agraph_t, Close> graph_;
 }; // class graphviz
 
 /// \}

@@ -184,6 +184,14 @@ verify_rf(unstructured::accessor<ro, ro, ro> m,
   };
 }
 
+void
+mesh_setup(std::string file, unstructured::slot & mesh) {
+  unstructured::cslot coloring;
+  unstructured::init fields;
+  coloring.allocate(file, fields);
+  mesh.allocate(coloring.get(), fields);
+}
+
 field<int, data::ragged>::definition<unstructured, unstructured::cells> rcf;
 field<int, data::ragged>::definition<unstructured, unstructured::vertices> rvf;
 
@@ -198,12 +206,7 @@ unstructured_driver() {
     for(auto f : files) {
       unstructured::slot mesh;
       flog(info) << "testing mesh: " << f << std::endl;
-      {
-        unstructured::cslot coloring;
-        unstructured::init fields;
-        coloring.allocate(f, fields);
-        mesh.allocate(coloring.get(), fields);
-      }
+      mesh_setup(f, mesh);
 
       {
         EXPECT_EQ(test<verify_entities>(
@@ -291,14 +294,6 @@ verify_overlap(data::multi<unstructured::accessor<ro, ro, ro>> src_meshes,
   };
 }
 
-void
-mesh_setup(std::string file, unstructured::slot & mesh) {
-  unstructured::cslot coloring;
-  unstructured::init fields;
-  coloring.allocate(file, fields);
-  mesh.allocate(coloring.get(), fields);
-}
-
 int
 geomrz_driver() {
   UNIT() {
@@ -344,8 +339,7 @@ geomrz_driver() {
     util::KDTree<2> trg_tree(trg_boxes);
 
     // search two kdtrees
-    std::map<long, std::vector<long>> candidates_map;
-    util::intersect<2>(src_tree, trg_tree, candidates_map);
+    const auto candidates_map = util::intersect(src_tree, trg_tree);
 
     // launch maps
     data::launch::Claims cmap(trg_mesh.colors());
