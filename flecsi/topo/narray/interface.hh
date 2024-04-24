@@ -670,6 +670,7 @@ private:
 
 protected:
   /// Get the specialization's metadata.
+  /// \host.
   FLECSI_INLINE_TARGET auto & policy_meta() const {
     return *policy_meta_;
   }

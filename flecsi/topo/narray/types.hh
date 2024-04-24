@@ -302,7 +302,7 @@ struct axis_definition {
   /// \showinitializer
   util::id hdepth = 0;
 
-  /// number of boundary layers to be added to the domain of axis
+  /// Number of boundary layers to be added at each end of the axis.
   /// \showinitializer
   util::id bdepth = 0;
 
