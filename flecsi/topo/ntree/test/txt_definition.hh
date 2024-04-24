@@ -11,7 +11,7 @@ template<typename KEY, int DIM>
 class txt_definition
 {
 public:
-  const int dim = DIM;
+  static constexpr int dim = DIM;
   using key_t = KEY;
   using point_t = flecsi::util::point<double, DIM>;
   using ent_t = flecsi::topo::sort_entity<DIM, double, key_t>;
