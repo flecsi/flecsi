@@ -544,14 +544,14 @@ struct borrow_extra<narray<P>> : borrow_sizes<P> {
 };
 
 /// Topology interface base.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
-  /// This function is \ref topology "host-accessible", although the values in
+  /// \host, although the values in
   /// \a a are typically not.
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdspan(
@@ -560,7 +560,7 @@ struct narray<Policy>::access {
     return util::mdspan(s.data(), check_extents<S>(s));
   }
   /// Create a Fortran-like view of a field.
-  /// This function is \ref topology "host-accessible", although the values in
+  /// \host, although the values in
   /// \a a are typically not.
   /// \return \c util::mdcolex
   template<index_space S, typename T, Privileges P>
@@ -602,7 +602,7 @@ private:
 
   /*!
    Method to access global extents of index space S along
-   axis A. This function is \ref topology "host-accessible".
+   axis A.  \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
@@ -613,7 +613,7 @@ private:
    Method to access global offset of the local mesh i.e., the global
    coordinate offset of the local mesh w.r.t the global mesh of index
    space S along axis A.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
@@ -633,7 +633,7 @@ private:
 
   /*!
     Method to access local extents of all axes of index space S.
-    This function is \ref topology "host-accessible".
+    \host.
    */
   template<index_space S>
   FLECSI_INLINE_TARGET auto extents() const {
@@ -643,7 +643,7 @@ private:
   /*!
      Method to access logical lower/upper bounds of index space S
      along axis A.
-     This function is \ref topology "host-accessible".
+     \host.
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
@@ -655,7 +655,7 @@ private:
   /*!
     Method to access extended lower/upper bounds of index space
     S along axis A.
-    This function is \ref topology "host-accessible".
+    \host.
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
@@ -677,7 +677,7 @@ protected:
   /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
@@ -687,7 +687,7 @@ protected:
   /*!
    Method to check if an axis of the local mesh is incident on the upper
    bound of the corresponding axis of the global mesh.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
@@ -697,7 +697,7 @@ protected:
   /*!
    Method to check if axis A of index-space S is in between the lower and upper
    bound along axis A of the global domain.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
@@ -707,8 +707,7 @@ protected:
   /*!
      Method to check if the partition returned by the coloring is degenerate.
      This method checks if the axis A is incident on both the lower and upper
-     bound of the global domain. This function is \ref topology
-     "host-accessible".
+     bound of the global domain.  \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
@@ -719,8 +718,7 @@ protected:
      Method returning the global id of a logical index of an index space
      \a S along axis \a A.  If \a logical_id refers to a boundary point, it is
      treated as periodic.
-     This function is \ref topology
-     "host-accessible".
+     \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
@@ -729,7 +727,7 @@ protected:
 
   /*!
     Method to return size of \c S along \c A for \a DM.
-    This function is \ref topology "host-accessible".
+    \host.
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto size() const {
@@ -769,7 +767,7 @@ protected:
   /*!
      Method to return an iterator over the extents of the index-space S along
      axis A for domain DM.
-     This function is \ref topology "host-accessible".
+     \host.
      \tparam DM not \c domain::global
    */
   template<index_space S, axis A, domain DM>
@@ -780,7 +778,7 @@ protected:
 
   /*!
     Method to return an offset of \c S along \c A for \a DM.
-    This function is \ref topology "host-accessible".
+    \host.
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET util::gid offset() const {

@@ -96,7 +96,7 @@ struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
 // All accessors are ultimately implemented in terms of those for the raw
 // layout, minimizing the amount of backend-specific code required.
 
-/// Accessor for a single value. This class is supported for GPU execution.
+/// Accessor for a single value.  \gpu.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using value_type = DATA_TYPE;
@@ -193,7 +193,7 @@ private:
 };
 
 /// Accessor for potentially uninitialized memory.
-/// This class is supported for GPU execution.
+/// \gpu.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
 struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
   using value_type = DATA_TYPE;
@@ -222,7 +222,7 @@ private:
 }; // struct accessor
 
 /// Accessor for ordinary fields.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
 template<class T, Privileges P>
 struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
@@ -267,7 +267,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 // The offsets privileges are separate because they are writable for mutators
 // but read-only for even writable accessors.
 
-/// Accessor for ragged fields. This class is supported for GPU execution.
+/// Accessor for ragged fields.  \gpu.
 /// \tparam P if write-only, rows do not change size but their elements are
 ///   reinitialized
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
@@ -850,7 +850,7 @@ private:
 
 // Many compilers incorrectly require the 'template' for a base class.
 
-/// Accessor for sparse fields. This class is supported for GPU execution.
+/// Accessor for sparse fields.  \gpu.
 /// \tparam P cannot be write-only
 /// \see \link ragged_accessor the base class\endlink
 template<class T, Privileges P>
@@ -1152,7 +1152,7 @@ private:
   base_type rag;
 };
 
-/// Accessor for particle fields. This class is supported for GPU execution.
+/// Accessor for particle fields.  \gpu.
 /// Provides bidirectional iterators over the existing particles.
 /// \tparam P if write-only, particles are not created or destroyed but they
 ///   are reinitialized
@@ -1312,7 +1312,7 @@ struct accessor<particle, T, P> : particle_accessor<T, P, false> {
 };
 
 /// Mutator for particle fields.
-/// This class is supported for GPU execution however it is not thread-safe.
+/// \gpu; however, insertions and deletions are not thread-safe.
 /// Iterators are invalidated only if their particle is removed.
 /// \tparam P if write-only, all particles are discarded
 template<class T, Privileges P>

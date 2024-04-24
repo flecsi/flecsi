@@ -150,7 +150,7 @@ struct linearize {
 
 /*!
  The layout of one axis of one color.
- This class is supported for GPU execution.
+ \gpu.
  */
 struct axis_layout {
   FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
