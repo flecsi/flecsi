@@ -1495,6 +1495,8 @@ private:
 };
 } // namespace detail
 
+/// \cond core
+
 /// Metadata provided with this type is made available on the host if
 /// read-only even if fields are stored on a device.  Use `*sa` or `sa->` to
 /// access it.
@@ -1503,6 +1505,8 @@ template<const auto & F, Privileges P>
 using scalar_access = std::conditional_t<privilege_merge(P) == ro,
   detail::scalar_access<F>,
   accessor_member<F, P>>;
+
+/// \endcond
 
 /// A sequence of accessors obtained from a \c launch::mapping.
 /// Pass a \c multi_reference or \c mapping to a task that accepts one.
