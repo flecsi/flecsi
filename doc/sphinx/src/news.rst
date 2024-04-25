@@ -73,6 +73,10 @@ New features
   * ``program_option`` validation functions can accept the option value directly.
   * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
 
+* Data
+
+  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
+
 * Topologies
 
   * ``specialization::mpi_coloring`` creates a coloring eagerly.
@@ -80,7 +84,6 @@ New features
   * ``unstructured::special_field`` is the field definition for special-entity lists.
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
-  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
   * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend
