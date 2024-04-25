@@ -4,84 +4,58 @@
 #include "flecsi/flog.hh"
 #include "flecsi/run/control.hh"
 
-enum cp {
-  init_internal,
-  initialization,
-  advance_internal,
-  advance,
-  advance_subcycle,
-  analyze,
-  io,
-  mesh,
-  finalization
-};
+namespace example {
+
+enum class cp { spec_init, one, two, three, four };
 
 inline const char *
 operator*(cp control_point) {
   switch(control_point) {
-    case init_internal:
-      return "init internal";
-    case initialization:
-      return "initialize";
-    case advance_internal:
-      return "advance internal";
-    case advance:
-      return "advance";
-    case advance_subcycle:
-      return "advance_subcycle";
-    case analyze:
-      return "analyze";
-    case io:
-      return "io";
-    case mesh:
-      return "mesh";
-    case finalization:
-      return "finalize";
+    case cp::spec_init:
+      return "Meta control point";
+    case cp::one:
+      return "Control point 1";
+    case cp::two:
+      return "Control point 2";
+    case cp::three:
+      return "Control point 3";
+    case cp::four:
+      return "Control point 4";
   }
   flog_fatal("invalid control point");
 }
 
-inline int step{0};
-inline int substep{0};
-
-struct control_policy : flecsi::run::control_base {
-
+struct control_policy {
   using control_points_enum = cp;
-
   struct node_policy {};
 
-  static bool subcycle_control(control_policy &) {
-    if(substep % 3 < 2) {
-      flog(info) << "substep: " << substep % 3 << std::endl;
-    } // if
-    return substep++ % 3 < 2;
+  using control = flecsi::run::control<control_policy>;
+
+  std::size_t & step() {
+    return step_;
   }
 
-  using subcycle =
-    cycle<subcycle_control, point<control_points_enum::advance_subcycle>>;
-
-  static bool cycle_control(control_policy &) {
-    if(step++ < 2) {
-      flog(info) << "step: " << step << std::endl;
-      return true;
-    }
-    return false;
+  static bool step_control() {
+    return control::state().step()++ < 5;
   }
 
-  using main_cycle = cycle<cycle_control,
-    meta<control_points_enum::advance_internal>,
-    point<control_points_enum::advance>,
-    subcycle,
-    point<control_points_enum::analyze>,
-    point<control_points_enum::io>,
-    point<control_points_enum::mesh>>;
+  template<cp P>
+  using p = flecsi::run::control_point<P>;
 
-  using control_points = list<meta<control_points_enum::init_internal>,
-    point<control_points_enum::initialization>,
-    main_cycle,
-    point<control_points_enum::finalization>>;
+  using main_cycle = flecsi::run::cycle<step_control, p<cp::two>, p<cp::three>>;
+
+  using control_points =
+    flecsi::util::types<flecsi::run::control_base::meta<cp::spec_init>,
+      p<cp::one>,
+      main_cycle,
+      p<cp::four>>;
+
+private:
+  std::size_t step_{0};
 };
 
 using control = flecsi::run::control<control_policy>;
+
+} // namespace example
 
 #endif

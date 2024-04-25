@@ -188,7 +188,7 @@ struct point_walker {
     else {
       // This is a cycle -> create a new control point walker to recurse
       // the cycle.
-      auto test = [this]() {
+      auto test = [&]() {
         if constexpr(P::is_control_base_policy)
           return ElementType::predicate(*policy_);
         else
