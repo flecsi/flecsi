@@ -75,7 +75,7 @@ void finalize();
  */
 
 inline int
-initialize(int argc, char ** argv, bool dependent = true) {
+initialize(int argc, const char * const * argv, bool dependent = true) {
   run::arguments args(argc, argv);
   argv0 = args.act.program;
   const auto make = [](auto & o, auto & x) -> auto & {

@@ -28,7 +28,7 @@ struct backend_arg {
 };
 } // namespace
 
-arguments::arguments(int argc, char ** argv) : cfg() {
+arguments::arguments(int argc, const char * const * argv) : cfg() {
   act.program = argv[0] ? argv[0] : "";
   act.program = act.program.substr(act.program.rfind('/') + 1);
   cfg.backend.push_back(act.program);
@@ -40,7 +40,7 @@ arguments::arguments(int argc, char ** argv) : cfg() {
 }
 
 arguments::action::operation
-arguments::getopt(int argc, char ** argv) {
+arguments::getopt(int argc, const char * const * argv) {
   po::options_description master("Basic Options");
   master.add_options()("help,h", "Print this message and exit.");
 
