@@ -121,7 +121,7 @@ struct arguments {
 
   /// Parse a command line.
   /// \note \c dep contains only the program name.
-  arguments(int, char **);
+  arguments(int, const char * const *);
 
   static std::vector<char *> pointers(argv & v) {
     std::vector<char *> ret;
@@ -133,7 +133,7 @@ struct arguments {
   }
 
 private:
-  action::operation getopt(int, char **);
+  action::operation getopt(int, const char * const *);
 };
 
 #ifdef DOXYGEN // implemented per-backend
