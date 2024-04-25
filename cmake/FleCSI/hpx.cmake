@@ -6,7 +6,6 @@ macro(flecsi_enable_hpx target)
 
   find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 
-  target_compile_definitions(${target} PUBLIC ENABLE_HPX)
   target_include_directories(${target} SYSTEM PUBLIC ${HPX_INCLUDE_DIRS})
   target_link_libraries(${target} PUBLIC ${HPX_LIBRARIES})
 
