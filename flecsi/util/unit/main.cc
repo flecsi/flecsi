@@ -4,8 +4,14 @@
 using namespace flecsi;
 using flecsi::util::unit::control;
 
+namespace {
+const control::action<util::unit::control_policy::exit,
+  util::unit::test_control_points::exit>
+  exit;
+
 program_option<int>
   flog_process("Testing", "flog-process", "Process which should log.");
+} // namespace
 
 int
 main(int argc, char ** argv) {

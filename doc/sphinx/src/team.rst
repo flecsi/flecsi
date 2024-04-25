@@ -250,6 +250,27 @@ Maxim Moraru
 
 |clearboth|
 
+Max Ortner
+^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftsideW
+
+     .. image:: team/max.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Max is a post-bachelor on the CCS-7 Co-Design Team. 
+      He has broad interests in physics (from QFT to General Relativity) and computer science,
+      specifically highly performant, low-level graphics systems and scientific data handling 
+      with MPI I/O.
+      Currently, he maintains and develops features related to efficient memory usage for FleCSI.
+
 Scott Pakin
 ^^^^^^^^^^^
 

@@ -110,7 +110,7 @@ getopt::getopt(run::config * init) {
 }
 
 auto
-getopt::parse(int argc, char ** argv) const {
+getopt::parse(int argc, const char * const * argv) const {
   using run::context;
   po::parsed_options parsed = po::command_line_parser(argc, argv)
                                 .options(all)
@@ -143,7 +143,7 @@ getopt::parse(int argc, char ** argv) const {
   return vm;
 }
 void
-getopt::operator()(int argc, char ** argv) const {
+getopt::operator()(int argc, const char * const * argv) const {
   parse(argc, argv);
 }
 
@@ -221,7 +221,7 @@ getopt::usage(std::string_view p) const {
 }
 
 int
-initialize(int argc, char ** argv, bool dependent) {
+initialize(int argc, const char * const * argv, bool dependent) {
   {
     std::string_view p;
     if(argv[0])

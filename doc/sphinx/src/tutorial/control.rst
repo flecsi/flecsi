@@ -508,7 +508,7 @@ methods and some private data:
 .. literalinclude:: ../../../../tutorial/2-control/4-state.hh
    :language: cpp
    :start-at: std::size_t & step() {
-   :end-at: using control = flecsi::run::control<control_policy>;
+   :end-before: };
 
 .. important::
 

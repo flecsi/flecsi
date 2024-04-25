@@ -75,18 +75,11 @@ function(flecsi_add_sphinx_target name)
     string(REPLACE .dot .svg generated_svg_files "${source_dot_files}")
   endif()
 
-  add_custom_target(${name}
-    COMMAND ${SPHINX_EXECUTABLE} -nqW -c
-      ${sphx_OUTPUT}/.sphinx
-      ${sphx_CONFIG}
-      ${sphx_OUTPUT}
-  )
-
   configure_file(${sphx_CONFIG}/conf.py.in
     ${sphx_OUTPUT}/.sphinx/conf.py)
 
   add_custom_target(${FLECSI_SPHINX_TARGET}-${name}
-    COMMAND Sphinx::Sphinx -nqW -c
+    COMMAND Sphinx::Sphinx -qW -c
       ${sphx_OUTPUT}/.sphinx
       ${sphx_CONFIG}
       ${sphx_OUTPUT}

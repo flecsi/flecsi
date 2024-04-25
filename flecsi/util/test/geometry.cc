@@ -22,6 +22,33 @@ point_sanity() {
     static_assert(3.0 == a2[axis::x]);
     static_assert(0.0 == a2[axis::y]);
 
+    float v1 = 3, v2 = 0;
+    point_2d_t b2(v1, v2);
+
+    b2 -= a2;
+    ASSERT_EQ(b2[axis::x], 0.0);
+    ASSERT_EQ(b2[axis::y], 0.0);
+
+    b2 -= 1.0;
+    ASSERT_EQ(b2[axis::x], -1.0);
+    ASSERT_EQ(b2[axis::y], -1.0);
+
+    b2 += a2;
+    ASSERT_EQ(b2[axis::x], 2.0);
+    ASSERT_EQ(b2[axis::y], -1.0);
+
+    b2 += 2;
+    ASSERT_EQ(b2[axis::x], 4.0);
+    ASSERT_EQ(b2[axis::y], 1.0);
+
+    b2 *= a2;
+    ASSERT_EQ(b2[axis::x], 12.0);
+    ASSERT_EQ(b2[axis::y], 0.0);
+
+    b2 *= 4;
+    ASSERT_EQ(b2[axis::x], 48.0);
+    ASSERT_EQ(b2[axis::y], 0.0);
+
     constexpr point_3d_t a3{3.0, 0.0, -1.0};
     static_assert(3.0 == a3[axis::x]);
     static_assert(0.0 == a3[axis::y]);
@@ -335,8 +362,7 @@ kdtree() {
       util::KDTree<2> trg_tree(trg_boxes);
 
       // search two kdtrees
-      std::map<long, std::vector<long>> candidates_map;
-      util::intersect<2>(src_tree, trg_tree, candidates_map);
+      const auto candidates_map = util::intersect(src_tree, trg_tree);
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5},
@@ -354,7 +380,7 @@ kdtree() {
       };
 
       for(int i = 0; i < ntrg * ntrg; ++i)
-        EXPECT_EQ(s(candidates_map[i]), ref_candidates[i]);
+        EXPECT_EQ(s(candidates_map.at(i)), ref_candidates[i]);
 
       // list the candidates
       std::cout << "Candidates Map :\n";
@@ -399,8 +425,7 @@ kdtree() {
       util::KDTree<3> trg_tree(trg_boxes);
 
       // search two kdtrees
-      std::map<long, std::vector<long>> candidates_map;
-      util::intersect<3>(src_tree, trg_tree, candidates_map);
+      const auto candidates_map = util::intersect(src_tree, trg_tree);
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5, 16, 17, 20, 21},
@@ -427,7 +452,7 @@ kdtree() {
       };
 
       for(int i = 0; i < ntrg * ntrg * ntrg; ++i) {
-        EXPECT_EQ(s(candidates_map[i]), ref(i));
+        EXPECT_EQ(s(candidates_map.at(i)), ref(i));
       }
     }
   };

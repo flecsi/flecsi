@@ -38,6 +38,7 @@ struct unstructured : unstructured_base,
 
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
+  using copy_spaces = util::to_copy_spaces<Policy>;
 
   template<Privileges>
   struct access;
@@ -54,7 +55,8 @@ struct unstructured : unstructured_base,
               << " sizes for " << index_spaces::size << " index spaces");
           return c;
         }(),
-        index_spaces()) {}
+        index_spaces(),
+        copy_spaces()) {}
 
   Color colors() const {
     return part_.front().colors();
@@ -79,7 +81,7 @@ struct unstructured : unstructured_base,
       auto const & cg = cgraph_.template get<S>();
       auto const & cg_sh = cgraph_shared_.template get<S>();
       constexpr PrivilegeCount N = Policy::template privilege_count<S>;
-      buffers_.template get<S>()
+      ragged_buffers_.template get<S>()
         .template xfer<ragged_impl<Type, N>::start, ragged_impl<Type, N>::xfer>(
           f, cg(ctopo_), cg_sh(ctopo_));
     }
@@ -123,9 +125,9 @@ private:
    */
 
   // clang-format off
-  template<auto... VV>
+  template<auto... VV, auto... CI>
   unstructured(unstructured_base::coloring const & c,
-    util::constants<VV...> /* index spaces to deduce pack */)
+    util::constants<VV...>, util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(c.colors),
       with_meta<Policy>(c.colors),
       ctopo_(c.color_peers),
@@ -139,14 +141,36 @@ private:
       special_(c.colors),
       /* all data members need to be initialized before make_copy_plan */
       plan_{
-        {
-        make_copy_plan<VV>(c)...
+        { 
+        // make a copy plan only for index spaces != 1
+        make_copy_plan<CI>(c)...
         }
       },
-      buffers_ {{data::buffers::core(c.idx_spaces[index<VV>].peers)...}}
+      ragged_buffers_{{data::buffers::core(c.idx_spaces[index<CI>].peers)...}}
 
   {
     allocate_connectivities(c, connect_);
+    // Sanity checks for indexes spaces for which privilege count is 1
+    ([&]{ 
+      if(Policy::template privilege_count<VV> == 1) {
+        // check that each element of coloring::index_space::peers is empty
+        for(auto & comm_peers : c.idx_spaces[index<VV>].peers)
+          if(!comm_peers.empty())
+            throw std::invalid_argument(
+              "Privilege count is 1 but `coloring::index_space::peers` "
+              "are not empty");
+        // check that each element of num_intervals is 0
+        for(std::size_t nb_of_ghost_intervals : c.idx_spaces[index<VV>].num_intervals)
+          if(nb_of_ghost_intervals != 0)
+            throw std::invalid_argument("Privilege count is 1 but the elements "
+                                        "of `num_intervals` are non-zero");
+        // check that index_color::peers is empty
+        for(auto & index_color : c.idx_spaces[index<VV>].colors)
+          if(!index_color.peers.empty())
+            throw std::invalid_argument(
+              "Privilege count is 1 but `index_color::peers` are not empty");
+      }
+    }(), ...);
   }
   // clang-format on
 
@@ -275,12 +299,8 @@ private:
   util::key_array<repartitioned, index_spaces> part_;
   lists<Policy> special_;
   // Initializing this depends on the above:
-  util::key_array<data::copy_plan, index_spaces> plan_;
-
-  // This key_array of buffers core objects are needed to transfer
-  // ragged data. We have a key array over index_spaces because
-  // each index_space possibly may have a different communication graph.
-  util::key_array<data::buffers::core, index_spaces> buffers_;
+  util::key_array<data::copy_plan, copy_spaces> plan_;
+  util::key_array<data::buffers::core, copy_spaces> ragged_buffers_;
 
 }; // struct unstructured
 
@@ -308,7 +328,7 @@ private:
 };
 
 /// Topology interface base.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Privileges>
@@ -336,7 +356,7 @@ protected:
 
   /*!
     Return an index space as a range.
-    This function is \ref topology "host-accessible".
+    \host.
 
     \return range of \c id\<IndexSpace\> values
    */

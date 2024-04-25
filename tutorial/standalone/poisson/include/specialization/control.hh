@@ -29,8 +29,6 @@ struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
 
-  using control = flecsi::run::control<control_policy>;
-
   using control_points = list<point<cp::initialize>,
     point<cp::solve>,
     point<cp::analyze>,

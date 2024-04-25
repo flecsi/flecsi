@@ -7,6 +7,9 @@
 #include "flecsi/util/geometry/point.hh"
 #include <climits>
 
+#include <algorithm>
+#include <string>
+
 namespace flecsi::util {
 /// \ingroup utils
 /// \defgroup fillingcurves Filling Curves
@@ -114,9 +117,10 @@ public:
       std::string output;
       filling_curve_key id = fc;
       while(id != root())
-        output.insert(0, std::to_string(id.pop()));
-      output.insert(output.begin(), '1');
-      ostr << output.c_str();
+        output.push_back('0' + id.pop());
+      output.push_back('1');
+      std::reverse(output.begin(), output.end());
+      ostr << output;
     } // if else
     return ostr;
   }

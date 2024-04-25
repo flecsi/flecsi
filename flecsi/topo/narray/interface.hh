@@ -38,6 +38,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
+  using copy_spaces = util::to_copy_spaces<Policy>;
+
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using id = util::id;
@@ -58,11 +60,14 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
           return c;
         }(),
         index_spaces(),
-        std::make_index_sequence<index_spaces::size>()) {}
+        copy_spaces()) {}
 
   Color colors() const {
     return part_.front().colors();
   }
+
+  template<index_space S>
+  static constexpr std::size_t index = index_spaces::template index<S>;
 
   template<index_space S>
   data::region & get_region() {
@@ -81,8 +86,8 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
       using Impl = ragged_impl<Space, Type>;
-      buffers_.template get<Space>().template xfer<Impl::start, Impl::xfer>(
-        f, meta_field(this->meta));
+      ragged_buffers_.template get<Space>()
+        .template xfer<Impl::start, Impl::xfer>(f, meta_field(this->meta));
     }
     else
       plan_.template get<Space>().issue_copy(f.fid());
@@ -259,14 +264,14 @@ private:
     }
   };
 
-  template<auto... Value, std::size_t... Index>
+  template<auto... Value, auto... CI>
   narray(const coloring & c,
-    util::constants<Value...> /* index spaces to deduce pack */,
-    std::index_sequence<Index...>)
+    util::constants<Value...>,
+    util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
       part_{{make_repartitioned<Policy, Value>(c.colors(),
         make_partial<idx_size>([&]() {
-          auto & idef = c.idx_colorings[Index];
+          auto & idef = c.idx_colorings[index<Value>];
           std::vector<std::size_t> partitions;
           for(const auto & ci : idef.process_colors()) {
             auto & total = partitions.emplace_back(1);
@@ -277,14 +282,28 @@ private:
           concatenate(partitions, c.colors(), MPI_COMM_WORLD);
           return partitions;
         }()))...}},
-      plan_{{make_copy_plan<Value>(c.colors(),
-        c.idx_colorings[Index],
-        part_[Index])...}},
-      buffers_{
-        {data::buffers::core(meta_data::peers(c.idx_colorings[Index]))...}} {
+      plan_{{make_copy_plan<CI>(c.colors(),
+        c.idx_colorings[index<CI>],
+        part_[index<CI>])...}},
+      ragged_buffers_{{data::buffers::core(
+        meta_data::peers(c.idx_colorings[index<CI>]))...}} {
     auto lm = data::launch::make(this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
     init_policy_meta(c);
+    (
+      [&] { // Sanity checks for indexes spaces for which privilege count is 1
+        if(Policy::template privilege_count<Value> == 1) {
+          if(c.idx_colorings[index<Value>].full_ghosts)
+            throw std::invalid_argument(
+              "Privilege count is 1 but `full_ghosts` is set to `true`");
+          for(auto & axis_def : c.idx_colorings[index<Value>].axes)
+            if(axis_def.hdepth != 0)
+              throw std::invalid_argument(
+                "Privilege count is 1 but `axis_definition::hdepth` are "
+                "non-zero");
+        }
+      }(),
+      ...);
   }
 
   /*!
@@ -389,10 +408,6 @@ private:
 
   static void set_policy_meta(typename field<typename Policy::meta_data,
     data::single>::template accessor<wo>) {}
-
-  /// Initialization for user policy meta_data.
-  /// Executes a mpi task "set_policy_meta" which
-  /// copies the relevant user-define meta data as part of the topology.
   void init_policy_meta(narray_base::coloring const &) {
     execute<set_policy_meta>(policy_meta_field(this->meta));
   }
@@ -518,14 +533,8 @@ private:
 
   // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
-
-  // index-space specific copy plans
-  util::key_array<data::copy_plan, index_spaces> plan_;
-
-  // This key_array of buffers core objects are needed to transfer
-  // ragged data. We have a key array over index_spaces because
-  // each index_space possibly may have a different communication graph.
-  util::key_array<data::buffers::core, index_spaces> buffers_;
+  util::key_array<data::copy_plan, copy_spaces> plan_;
+  util::key_array<data::buffers::core, copy_spaces> ragged_buffers_;
 }; // struct narray
 
 template<class P>
@@ -534,14 +543,14 @@ struct borrow_extra<narray<P>> : borrow_sizes<P> {
 };
 
 /// Topology interface base.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Priv>
 struct narray<Policy>::access {
   ///  This method provides a mdspan of the field underlying data.
   ///  It can be used to create data views with the shape appropriate to S.
-  /// This function is \ref topology "host-accessible", although the values in
+  /// \host, although the values in
   /// \a a are typically not.
   template<index_space S, typename T, Privileges P>
   FLECSI_INLINE_TARGET auto mdspan(
@@ -550,7 +559,7 @@ struct narray<Policy>::access {
     return util::mdspan(s.data(), check_extents<S>(s));
   }
   /// Create a Fortran-like view of a field.
-  /// This function is \ref topology "host-accessible", although the values in
+  /// \host, although the values in
   /// \a a are typically not.
   /// \return \c util::mdcolex
   template<index_space S, typename T, Privileges P>
@@ -592,7 +601,7 @@ private:
 
   /*!
    Method to access global extents of index space S along
-   axis A. This function is \ref topology "host-accessible".
+   axis A.  \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
@@ -603,7 +612,7 @@ private:
    Method to access global offset of the local mesh i.e., the global
    coordinate offset of the local mesh w.r.t the global mesh of index
    space S along axis A.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
@@ -623,7 +632,7 @@ private:
 
   /*!
     Method to access local extents of all axes of index space S.
-    This function is \ref topology "host-accessible".
+    \host.
    */
   template<index_space S>
   FLECSI_INLINE_TARGET auto extents() const {
@@ -633,7 +642,7 @@ private:
   /*!
      Method to access logical lower/upper bounds of index space S
      along axis A.
-     This function is \ref topology "host-accessible".
+     \host.
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
@@ -645,7 +654,7 @@ private:
   /*!
     Method to access extended lower/upper bounds of index space
     S along axis A.
-    This function is \ref topology "host-accessible".
+    \host.
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
@@ -660,6 +669,7 @@ private:
 
 protected:
   /// Get the specialization's metadata.
+  /// \host.
   FLECSI_INLINE_TARGET auto & policy_meta() const {
     return *policy_meta_;
   }
@@ -667,7 +677,7 @@ protected:
   /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
@@ -677,7 +687,7 @@ protected:
   /*!
    Method to check if an axis of the local mesh is incident on the upper
    bound of the corresponding axis of the global mesh.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
@@ -687,7 +697,7 @@ protected:
   /*!
    Method to check if axis A of index-space S is in between the lower and upper
    bound along axis A of the global domain.
-   This function is \ref topology "host-accessible".
+   \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
@@ -697,8 +707,7 @@ protected:
   /*!
      Method to check if the partition returned by the coloring is degenerate.
      This method checks if the axis A is incident on both the lower and upper
-     bound of the global domain. This function is \ref topology
-     "host-accessible".
+     bound of the global domain.  \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
@@ -709,8 +718,7 @@ protected:
      Method returning the global id of a logical index of an index space
      \a S along axis \a A.  If \a logical_id refers to a boundary point, it is
      treated as periodic.
-     This function is \ref topology
-     "host-accessible".
+     \host.
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
@@ -719,7 +727,7 @@ protected:
 
   /*!
     Method to return size of \c S along \c A for \a DM.
-    This function is \ref topology "host-accessible".
+    \host.
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto size() const {
@@ -759,7 +767,7 @@ protected:
   /*!
      Method to return an iterator over the extents of the index-space S along
      axis A for domain DM.
-     This function is \ref topology "host-accessible".
+     \host.
      \tparam DM not \c domain::global
    */
   template<index_space S, axis A, domain DM>
@@ -770,7 +778,7 @@ protected:
 
   /*!
     Method to return an offset of \c S along \c A for \a DM.
-    This function is \ref topology "host-accessible".
+    \host.
   */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET util::gid offset() const {
