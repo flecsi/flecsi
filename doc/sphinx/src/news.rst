@@ -93,7 +93,6 @@ New features
   * ``permutation_view`` accesses a subset of a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
   * ``test`` convenience function launches unit test tasks.
-  * ``sort`` provides a distributed sort and load balancing for an index space with multiple fields.
 
 * Logging
 
