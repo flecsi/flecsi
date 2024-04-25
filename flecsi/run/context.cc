@@ -229,7 +229,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
     argv0 = p.substr(p.rfind('/') + 1);
   }
 
-  run::config cfg{};
+  run::config cfg;
   if(auto * const p = cfg.backend())
     p->push_back(argv0);
 
