@@ -396,7 +396,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
         else
           row.clear();
         std::size_t n = r();
-        row.reserve(row.size() + n); // this may overallocate temporarily
+        row.reserve(row.size() + n);
         while(r && n--)
           row.push_back(r());
       }

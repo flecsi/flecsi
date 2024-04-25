@@ -320,7 +320,7 @@ private:
 };
 
 /// Topology interface base.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \see specialization_base::interface
 template<typename Policy>
 template<Privileges Privileges>
@@ -348,7 +348,7 @@ protected:
 
   /*!
     Return an index space as a range.
-    This function is \ref topology "host-accessible".
+    \host.
 
     \return range of \c id\<IndexSpace\> values
    */

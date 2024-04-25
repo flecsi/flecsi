@@ -25,6 +25,9 @@ PREDEFINED = FLECSI_ENABLE_FLOG \
              DOXYGEN \
              FLECSI_TARGET= \
              FLECSI_INLINE_TARGET=
+ALIASES += gpu{1}="This \1 is supported for GPU execution"
+ALIASES += gpu="\gpu{class}"
+ALIASES += host="This function is \ref topology \"host-accessible\""
 WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-@name@.out
 
 @INCLUDE = @PROJECT_SOURCE_DIR@/doc/doxygen/common.conf

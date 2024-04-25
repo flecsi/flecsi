@@ -243,7 +243,7 @@ private:
 };
 
 /// Specify an iteration over \c id objects.
-/// This function is supported for GPU execution.
+/// \gpu{function}
 /// \tparam S index space
 /// \param c range of integers
 /// \return a range of \c id\<S\> objects
