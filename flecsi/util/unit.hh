@@ -23,7 +23,8 @@ namespace flecsi::util::unit {
 enum class test_control_points {
   initialization,
   driver,
-  finalization
+  finalization,
+  exit
 }; // enum test_control_points
 
 inline const char *
@@ -35,6 +36,8 @@ operator*(test_control_points cp) {
       return "driver";
     case test_control_points::finalization:
       return "finalization";
+    case test_control_points::exit:
+      return "exit";
   }
   flog_fatal("invalid unit test control point");
 }
@@ -43,15 +46,16 @@ struct control_policy : flecsi::run::control_base {
 
   control_policy() : status(0x0) {}
 
-  ~control_policy() noexcept(false) {
-    throw exception{status};
-  }
-
   using control_points_enum = test_control_points;
 
   using control_points = list<point<control_points_enum::initialization>,
     point<control_points_enum::driver>,
-    point<control_points_enum::finalization>>;
+    point<control_points_enum::finalization>,
+    point<control_points_enum::exit>>;
+
+  static void exit(control_policy & p) {
+    throw exception{p.status};
+  }
 
   int status;
 }; // struct control_policy

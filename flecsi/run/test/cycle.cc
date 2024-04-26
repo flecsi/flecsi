@@ -1,13 +1,132 @@
-#include "package_a.hh"
-#include "package_b.hh"
-#include "package_c.hh"
-
-#include "flecsi/runtime.hh"
+#include "cycle.hh"
+#include "flecsi/flog.hh"
+#include "flecsi/run/options.hh"
 #include "flecsi/util/unit.hh"
 
+using namespace example;
+
+// Control Point 1
+
 int
-main() {
-  flecsi::run::argv argv{""}; // Boost doesn't like argc==0
+actionX() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionX, cp::one> action_x;
+
+// Control Point 2
+
+int
+actionA() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionA, cp::two> action_a;
+
+int
+actionB() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionB, cp::two> action_b;
+
+int
+actionC() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionC, cp::two> action_c;
+
+int
+actionD() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionD, cp::two> action_d;
+
+int
+actionE() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionE, cp::two> action_e;
+
+int
+actionF() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionF, cp::three> action_f;
+
+const auto dep_ba = action_b.add(action_a);
+const auto dep_ca = action_c.add(action_a);
+const auto dep_db = action_d.add(action_b);
+const auto dep_ec = action_e.add(action_c);
+const auto dep_ed = action_e.add(action_d);
+
+// Control Point 3
+
+int
+actionG() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionG, cp::three> action_g;
+
+int
+actionH() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionH, cp::three> action_h;
+
+int
+actionI() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionI, cp::three> action_i;
+
+const auto dep_gf = action_g.add(action_f);
+const auto dep_hf = action_h.add(action_f);
+const auto dep_ig = action_i.add(action_g);
+const auto dep_ih = action_i.add(action_h);
+
+// Control Point 4
+
+int
+actionY() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionY, cp::four> action_y;
+
+int
+actionN() {
+  flog(info) << __FUNCTION__ << std::endl;
+  return 0;
+}
+
+control::action<actionN, cp::two> action_n;
+const auto dep_na = action_n.add(action_a);
+const auto dep_bn = action_b.add(action_n);
+
+// Main
+
+int
+main(int argc, char ** argv0) {
+  flecsi::run::argv argv(argv0, argv0 + argc);
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
   {
     flecsi::run::config cfg;
@@ -26,7 +145,7 @@ main() {
 
   if(status != flecsi::run::status::success) {
     return status < flecsi::run::status::clean ? 0 : status;
-  } // if
+  }
 
   flecsi::flog::add_output_stream("clog", std::clog, true);
 

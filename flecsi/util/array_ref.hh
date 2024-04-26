@@ -25,7 +25,7 @@ namespace util {
 
 /// A workalike for std::span from C++20 (only dynamic-extent, without ranges
 /// support).
-/// This class is supported for GPU execution.
+/// \gpu.
 template<class T>
 struct span {
   using element_type = T;
@@ -152,7 +152,7 @@ to_vector(span<T> s) {
 
 namespace detail {
 /// A multi-dimensional view of an array.
-/// This class is supported for GPU execution.
+/// \gpu.
 template<class T, Dimension D>
 struct mdbase {
   static_assert(D > 0);
@@ -226,7 +226,7 @@ template<class T, std::size_t D>
 mdcolex(T *, std::array<std::size_t, D>) -> mdcolex<T, D>;
 
 /// A small, approximate subset of mdspan as proposed for C++23.
-/// This class is supported for GPU execution.
+/// \gpu.
 /// \tparam D dimension
 template<class T, unsigned short D>
 struct mdspan : detail::mdbase<T, D> {
@@ -260,7 +260,7 @@ mdspan(T *, std::array<U, D>) -> mdspan<T, D>;
 /// \cond core
 
 /// A very simple emulation of std::ranges::iota_view from C++20.
-/// This class is supported for GPU execution.
+/// \gpu.
 template<class I>
 struct iota_view {
   static_assert(!std::is_const_v<I>, "integer type must not be qualified");
@@ -519,7 +519,7 @@ private:
 };
 
 /// A very simple emulation of std::ranges::transform_view from C++20.
-/// This class is supported for GPU execution.
+/// \gpu.
 template<class C, class F>
 struct transform_view {
 private:
@@ -722,7 +722,7 @@ stride_view(R && r,
 /// A view of part of a range.  Analogous to a combination of
 /// \c std::take_view and \c std::drop_view from C++20.
 ///
-/// This class is supported for GPU execution.
+/// \gpu.
 template<class R>
 struct substring_view {
   using iterator = decltype(std::begin(std::declval<R>()));

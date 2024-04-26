@@ -69,7 +69,7 @@ inline std::string argv0;
     also use \c #getopt.
  */
 [[deprecated("use flecsi::runtime and perhaps flecsi::getopt")]] int
-initialize(int argc, char ** argv, bool dependent = true);
+initialize(int argc, const char * const * argv, bool dependent = true);
 
 /*!
   Perform FleCSI runtime start. This causes the runtime to begin execution

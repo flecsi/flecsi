@@ -250,8 +250,8 @@ struct getopt {
   /// Parse command-line arguments.
   /// Populate \c program_option objects with the results.
   /// \exception std::logic_error if parsing fails
-  void operator()(int, char **) const;
-  auto parse(int, char **) const;
+  void operator()(int, const char * const *) const;
+  auto parse(int, const char * const *) const;
 
   /// Return a string describing \c program_option objects.
   /// \param program name

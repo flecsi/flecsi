@@ -54,8 +54,6 @@ struct control_policy : flecsi::run::control_base {
 
   using control_points_enum = cp;
 
-  using control = flecsi::run::control<control_policy>;
-
   static bool cycle_control(control_policy & policy) {
     return policy.step()++ < policy.steps();
   }

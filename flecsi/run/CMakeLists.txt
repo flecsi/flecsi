@@ -24,10 +24,7 @@ endif()
 if(ENABLE_UNIT_TESTS)
   add_executable(cycle
     test/cycle.cc
-    test/cycle.hh
-    test/package_a.hh
-    test/package_b.hh
-    test/package_c.hh)
+    test/cycle.hh)
   # This file exercises the old interface for main.
   set_source_files_properties(test/cycle.cc
     PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
