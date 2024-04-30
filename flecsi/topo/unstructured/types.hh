@@ -9,6 +9,7 @@
 #include "flecsi/data/topology.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/topo/types.hh"
 #include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
 #include "flecsi/util/geometry/kdtree.hh"
