@@ -452,16 +452,187 @@ public:
 
   } // slice_task
 
+  /*
+   * map_copy: similar to DefaultMapper::map_copy
+   * except that we set `compute_preimages` to true
+   * and try to reuse the existing instances for the indirections
+   */
   virtual void map_copy(const Legion::Mapping::MapperContext ctx,
     const Legion::Copy & copy,
     const Legion::Mapping::Mapper::MapCopyInput & input,
     Legion::Mapping::Mapper::MapCopyOutput & output) override {
-    DefaultMapper::map_copy(ctx, copy, input, output);
+
+    bool has_unrestricted = false;
+    for(unsigned idx = 0; idx < copy.src_requirements.size(); idx++) {
+      auto & output_src = output.src_instances[idx];
+      auto & output_dst = output.dst_instances[idx];
+      auto & copy_src_req = copy.src_requirements[idx];
+      auto & copy_dst_req = copy.dst_requirements[idx];
+
+      // Try to reuse existing instances
+      output_src = input.src_instances[idx];
+      if(!output_src.empty())
+        runtime->acquire_and_filter_instances(ctx, output_src);
+
+      // According to Legion documention: for the indirections and reductions we
+      // need to create an actual physical instance
+      if((copy_dst_req.privilege == LEGION_REDUCE) ||
+         (idx < copy.src_indirect_requirements.size()) ||
+         (idx < copy.dst_indirect_requirements.size())) {
+        if(!copy_src_req.is_restricted())
+          create_copy_instance<true /*is src*/>(
+            ctx, copy, copy_src_req, idx, output_src);
+        // else: do nothing (if restricted we can not create a new instance)
+      }
+      // Do a virtual mapping instead of creating new instances
+      // We can use this optimization only for copies without indirections
+      else
+        output_src.push_back(
+          Legion::Mapping::PhysicalInstance::get_virtual_instance());
+
+      // Try to reuse existing instances
+      output_dst = input.dst_instances[idx];
+      if(!output_dst.empty())
+        runtime->acquire_and_filter_instances(ctx, output_dst);
+      if(!copy_dst_req.is_restricted())
+        has_unrestricted = true;
+    }
+    // If the instances are unrestricted we can create copies of them
+    if(has_unrestricted) {
+      for(unsigned idx = 0; idx < copy.dst_requirements.size(); idx++) {
+        auto & output_dst = output.dst_instances[idx];
+        auto & copy_dst_req = copy.dst_requirements[idx];
+        // Try to reuse existing instances
+        output_dst = input.dst_instances[idx];
+        if(!copy_dst_req.is_restricted())
+          create_copy_instance<false /*is src*/>(
+            ctx, copy, copy_dst_req, idx, output_dst);
+      }
+    }
+    // Gather copy
+    if(!copy.src_indirect_requirements.empty()) {
+      for(unsigned idx = 0; idx < copy.src_indirect_requirements.size();
+          idx++) {
+        auto & input_src_indirect = input.src_indirect_instances[idx];
+        auto & output_src_indirect = output.src_indirect_instances[idx];
+        // Try to reuse existing instances
+        if(!input_src_indirect.empty())
+          output_src_indirect = input_src_indirect[0];
+        else if(!copy.src_indirect_requirements[idx].is_restricted()) {
+          std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
+          create_copy_instance<false /*is src*/>(ctx,
+            copy,
+            copy.src_indirect_requirements[idx],
+            idx,
+            temp_instances);
+          assert(!temp_instances.empty());
+          output_src_indirect = temp_instances[0];
+        }
+      }
+    }
+    // Scatter copy
+    // The role of the code below is to keep the mapper general
+    // Currently, it will never be executed since FleCSI does not perform
+    // scatter operations
+    if(!copy.dst_indirect_requirements.empty()) {
+      for(unsigned idx = 0; idx < copy.dst_indirect_requirements.size();
+          idx++) {
+        auto & input_dst_indirect = input.dst_indirect_instances[idx];
+        auto & output_dst_indirect = output.dst_indirect_instances[idx];
+        // Try to reuse existing instances
+        if(!input_dst_indirect.empty())
+          output_dst_indirect = input_dst_indirect[0];
+        else if(!copy.dst_indirect_requirements[idx].is_restricted()) {
+          std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
+          create_copy_instance<false /*is src*/>(ctx,
+            copy,
+            copy.dst_indirect_requirements[idx],
+            idx,
+            temp_instances);
+          assert(!temp_instances.empty());
+          output_dst_indirect = temp_instances[0];
+        }
+      }
+    }
 
     // currently our copy_plans are reused which is why we
     // want the gather copies to be optimized for repeated use.
     output.compute_preimages = true;
   } // map_copy
+
+  /*
+   * create_copy_instance : similar to
+   * DefaultMapper::default_create_copy_instance except that we create compact
+   * instances if the index space involved in the copy is sparse
+   */
+  template<bool IS_SRC>
+  void create_copy_instance(Legion::Mapping::MapperContext ctx,
+    const Legion::Copy & copy,
+    const Legion::RegionRequirement & req,
+    unsigned idx,
+    std::vector<Legion::Mapping::PhysicalInstance> & instances)
+  //--------------------------------------------------------------------------
+  {
+    using namespace Legion;
+    using namespace Legion::Mapping;
+    // See if we have all the fields covered
+    std::set<FieldID> missing_fields = req.privilege_fields;
+    for(auto & phys_instance : instances) {
+      phys_instance.remove_space_fields(missing_fields);
+      if(missing_fields.empty())
+        return;
+    }
+    // If we still have missing fields, we need to make an instance
+    Memory target_memory = default_policy_select_target_memory(
+      ctx, copy.parent_task->current_proc, req);
+    bool force_new_instances = false;
+    LayoutConstraintID our_layout_id =
+      default_policy_select_layout_constraints(ctx,
+        target_memory,
+        req,
+        COPY_MAPPING,
+        false /*needs check*/,
+        force_new_instances);
+    LayoutConstraintSet creation_constraints =
+      runtime->find_layout_constraints(ctx, our_layout_id);
+    creation_constraints.add_constraint(
+      FieldConstraint(missing_fields, false /*contig*/, false /*inorder*/));
+    // if the domain is sparse, we create a compacted instance (otherwise the
+    // memory consumption will be extremely high)
+    Legion::Domain req_domain =
+      runtime->get_index_space_domain(ctx, req.region.get_index_space());
+    if(IS_SRC && !req_domain.dense())
+      creation_constraints.add_constraint(
+        Legion::SpecializedConstraint(LEGION_COMPACT_SPECIALIZE));
+
+    instances.emplace_back();
+    size_t footprint = 0;
+    if(!default_make_instance(ctx,
+         target_memory,
+         creation_constraints,
+         instances.back(),
+         COPY_MAPPING,
+         force_new_instances,
+         true /*meets*/,
+         req,
+         &footprint)) {
+      // If we failed to make it that is bad
+      flog_fatal("FleCSI mapper failed allocation of"
+                 << footprint << " bytes for "
+                 << (IS_SRC ? "source" : "destination") << " region requirement"
+                 << idx
+                 << "of explicit "
+                    "region-to-region copy operation in task "
+                 << copy.parent_task->get_task_name() << "(ID"
+                 << copy.parent_task->get_unique_id() << ") in memory "
+                 << target_memory.id << " for processor "
+                 << copy.parent_task->current_proc.id
+                 << ". This means the working set of your "
+                    "application is too big for the allotted "
+                    "capacity of the given memory. You can ask Realm "
+                    "to allocate more memory, or find a bigger machine.");
+    }
+  } // create_copy_instance
 
 private:
   /*
