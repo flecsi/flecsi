@@ -11,6 +11,7 @@
 #include "flecsi/topo/core.hh" // base
 #include "flecsi/topo/ntree/coloring.hh"
 #include "flecsi/topo/ntree/types.hh"
+#include "flecsi/util/gpu_containers.hh"
 #include "flecsi/util/hashtable.hh"
 #include "flecsi/util/sort.hh"
 
@@ -73,6 +74,7 @@ struct ntree : ntree_base, with_meta<Policy> {
 
 private:
   constexpr static unsigned int dimension = Policy::dimension;
+  constexpr static unsigned int max_neighbors = Policy::max_neighbors;
   using key_t = typename Policy::key_t;
 
   using type_t = double;
@@ -201,7 +203,7 @@ private:
   /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;
 
-  static hmap_t map(
+  FLECSI_INLINE_TARGET static hmap_t map(
     typename field<std::pair<key_t, hcell_t>>::template accessor<rw, na>
       hcells) {
     using pair_t = std::pair<key_t, hcell_t>;
@@ -1025,11 +1027,19 @@ public:
 
   /// Hashing table type
   using hmap_t = util::hashtable<ntree::key_t, ntree::hcell_t, Policy>;
+#ifdef FLECSI_DEVICE_CODE
+  using vector_type =
+    util::vector<id<index_space::entities>, Policy::max_neighbors>;
+  using queue_type = util::queue<hcell_t *, 1000>;
+#else
+  using vector_type = std::vector<id<index_space::entities>>;
+  using queue_type = std::queue<hcell_t *>;
+#endif
 
   // In order to avoid complexifying the hashtable class and since this usage is
   // strictly internal, we are using a const_cast to get an unprotected access
   // to the field.
-  hmap_t map() const {
+  FLECSI_INLINE_TARGET hmap_t map() const {
     using pair_t = std::pair<key_t, hcell_t>;
     return hmap_t(util::span<pair_t>(
       const_cast<pair_t *>(hcells.span().data()), hcells.span().size()));
@@ -1037,8 +1047,9 @@ public:
 
   // Standard traversal function
   template<typename F, typename HT>
-  void traversal(hcell_t * hcell, F && f, HT && hmap) const {
-    std::queue<hcell_t *> tqueue;
+  FLECSI_INLINE_TARGET void
+  traversal(hcell_t * hcell, F && f, HT && hmap) const {
+    queue_type tqueue;
     tqueue.push(hcell);
     while(!tqueue.empty()) {
       hcell_t * cur = tqueue.front();
@@ -1147,7 +1158,7 @@ public:
 
   /// Return a range of all entities of a \c ntree_base::ptype_t
   template<ptype_t PT = ptype_t::exclusive>
-  auto entities() {
+  FLECSI_INLINE_TARGET auto entities() {
     if constexpr(PT == ptype_t::exclusive) {
       return make_ids<index_space::entities>(
         util::iota_view<util::id>(0, meta_field->local.ents));
@@ -1187,10 +1198,10 @@ public:
 
   /// Get entities interacting with an entity.
   /// This function uses the interaction functions featured in the policy.
-  std::vector<id<index_space::entities>> neighbors(
-    const id<index_space::entities> & ent_id) const {
+  FLECSI_INLINE_TARGET
+  auto neighbors(const id<index_space::entities> & ent_id) const {
     auto hmap = map();
-    std::vector<id<index_space::entities>> ids;
+    vector_type ids;
     // Perform tree traversal to find neighbors
     traversal(
       &hmap.at(key_t::root()),
@@ -1458,6 +1469,9 @@ struct ntree_specialization : specialization<ntree, ntree_specialization> {
   struct entity_data {};
   /// Struct containing data for nodes to compute interactions
   struct node_data {};
+  /// Maximum number of neighbors per entities. This is used to compute
+  /// neighbors list on GPU architectures.
+  constexpr static unsigned int max_neighbors = 42;
 
   /// \name Intersection Functions
   /// Function computing interation between entity-entity, entity-node and

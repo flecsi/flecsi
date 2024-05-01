@@ -52,7 +52,7 @@ ceil_div(T a, T b) {
 
 //! P.O.D.
 template<typename T>
-inline T
+constexpr T
 square(const T & a) {
   return a * a;
 }

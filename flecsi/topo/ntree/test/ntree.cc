@@ -9,6 +9,21 @@
 
 using namespace flecsi;
 
+using ngb_array_t = std::array<std::pair<util::id, bool>, 13>;
+constexpr std::array<std::pair<int, int>, 13> stencil = {{{2, 0},
+  {1, 0},
+  {0, 0},
+  {-1, 0},
+  {-2, 0},
+  {0, 2},
+  {0, 1},
+  {0, -1},
+  {0, -2},
+  {1, 1},
+  {1, -1},
+  {-1, 1},
+  {-1, -1}}};
+
 using arr = topo::array<void>;
 const field<int>::definition<arr> arr_f;
 
@@ -21,9 +36,13 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   using index_spaces = flecsi::topo::ntree_base::index_spaces;
   using ttype_t = flecsi::topo::ntree_base::ttype_t;
 
-  static std::size_t hash(const key_t & k) {
+  FLECSI_INLINE_TARGET static std::size_t hash(const key_t & k) {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
+
+  // This is the max number of neighbors per entities (itself included).
+  // This is only used to run the neighbors search on GPU architectures.
+  static constexpr unsigned int max_neighbors = 13;
 
   template<auto>
   static constexpr std::size_t privilege_count = 2;
@@ -135,7 +154,7 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   } // compute_centroid
 
   template<typename T1, typename T2>
-  static bool intersect(const T1 & in1, const T2 & in2) {
+  FLECSI_INLINE_TARGET static bool intersect(const T1 & in1, const T2 & in2) {
     double dist = distance(in1.coordinates, in2.coordinates);
     return dist <= in1.radius + in2.radius;
   }
@@ -144,70 +163,91 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
 using ntree_t = topo::ntree<sph_ntree_t>;
 
-const field<double>::definition<sph_ntree_t, sph_ntree_t::base::entities>
-  density;
+const field<flecsi::util::id>::definition<sph_ntree_t,
+  sph_ntree_t::base::entities>
+  id_check;
 
-void
+FLECSI_INLINE_TARGET
+ngb_array_t::iterator
+find(ngb_array_t::iterator it,
+  ngb_array_t::iterator end,
+  const std::pair<util::id, bool> & v) {
+  for(; it != end; ++it) {
+    if(*it == v)
+      break;
+  }
+  return it;
+}
+
+FLECSI_INLINE_TARGET
+bool
+verify_neighbors(flecsi::topo::id<flecsi::topo::ntree_base::entities> e,
+  sph_ntree_t::accessor<rw, ro> t) {
+
+  ngb_array_t s_id;
+  for(auto & v : s_id) {
+    v.first = 0;
+    v.second = true;
+  }
+  int idx = 0;
+
+  for(auto s : stencil) {
+    int l = t.e_ids(e) / 7 + s.first;
+    int c = t.e_ids(e) % 7 + s.second;
+    if(l >= 0 && l < 7 && c >= 0 && c < 7) {
+      s_id[idx].first = l * 7 + c;
+      s_id[idx++].second = false;
+    }
+  }
+
+  for(auto n : t.neighbors(e)) {
+    auto f = find(
+      s_id.begin(), s_id.end(), std::pair<util::id, bool>(t.e_ids[n], false));
+    assert(f != s_id.end());
+    f->second = true;
+  }
+  for(auto a : s_id)
+    if(!a.second)
+      return false;
+  return true;
+}
+
+int
 check_neighbors(sph_ntree_t::accessor<rw, ro> t) {
-  std::vector<std::pair<int, int>> stencil = {{2, 0},
-    {1, 0},
-    {0, 0},
-    {-1, 0},
-    {-2, 0},
-    {0, 2},
-    {0, 1},
-    {0, -1},
-    {0, -2},
-    {1, 1},
-    {1, -1},
-    {-1, 1},
-    {-1, -1}};
-  // Check neighbors of entities
-  for(auto e : t.entities()) {
-    std::vector<std::pair<std::size_t, bool>> s_id; // stencil ids
-    std::size_t eid = t.e_ids(e);
-    // Compute stencil based on id
-    int line = eid / 7;
-    int col = eid % 7;
-    for(int i = 0; i < static_cast<int>(stencil.size()); ++i) {
-      int l = line + stencil[i].first;
-      int c = col + stencil[i].second;
-      if(l >= 0 && l < 7)
-        if(c >= 0 && c < 7)
-          s_id.push_back(std::make_pair(l * 7 + c, false));
-    }
-    for(auto n : t.neighbors(e)) {
-      std::size_t n_id = t.e_ids[n];
-      auto f = std::find(s_id.begin(), s_id.end(), std::make_pair(n_id, false));
-      assert(f != s_id.end());
-      f->second = true;
-    }
-#ifdef DEBUG
-    for(auto a : s_id)
-      assert(a.second == true);
-#endif
-  }
+  UNIT("CHECK_NEIGHBORS") {
+    // Check neighbors of entities
+    for(auto e : t.entities())
+      EXPECT_TRUE(verify_neighbors(e, t));
+  };
 }
 
 void
-init_density(sph_ntree_t::accessor<ro, na> t,
-  field<double>::accessor<wo, na> p) {
-  for(auto a : t.entities()) {
-    p[a] = t.e_i[a].mass * t.e_i[a].radius;
-  }
+check_neighbors_accelerator(sph_ntree_t::accessor<rw, ro> t) {
+  forall(e, t.entities(), "test_gpu") {
+    [[maybe_unused]] auto v = verify_neighbors(e, t);
+    assert(v);
+  };
 }
 
 void
-print_density(sph_ntree_t::accessor<ro, na> t,
-  field<double>::accessor<ro, ro>) {
+init_ids(sph_ntree_t::accessor<ro, na> t,
+  field<flecsi::util::id>::accessor<wo, na> p) {
+  forall(a, t.entities(), "Initialize") { p[a] = t.e_ids(a); };
+}
+
+void
+print_ids(sph_ntree_t::accessor<ro, ro> t,
+  field<flecsi::util::id>::accessor<ro, ro> d) {
   std::cout << color() << " Print id exclusive: ";
   for(auto a : t.entities()) {
-    std::cout << t.e_ids[a] << " - ";
+    std::cout << t.e_ids[a] << "=" << d(a) << " - ";
+    assert(t.e_ids[a] == d(a));
   }
   std::cout << std::endl;
   std::cout << color() << " Print id ghosts : ";
   for(auto a : t.entities<sph_ntree_t::base::ptype_t::ghost>()) {
-    std::cout << t.e_ids[a] << " - ";
+    std::cout << t.e_ids[a] << "=" << d(a) << " - ";
+    assert(t.e_ids[a] == d(a));
   }
   std::cout << std::endl;
   std::cout << color() << " Print id all : ";
@@ -219,10 +259,10 @@ print_density(sph_ntree_t::accessor<ro, na> t,
 
 void
 move_entities(sph_ntree_t::accessor<rw, na> t) {
-  for(auto a : t.entities()) {
+  forall(a, t.entities(), "Move entities") {
     // Add 1 on z coordinate
     t.e_i[a].coordinates[2] += 1;
-  }
+  };
 }
 
 // Sort testing tasks
@@ -251,13 +291,15 @@ ntree_driver() {
       sph_ntree.allocate(coloring, ents);
     }
 
-    auto d = density(sph_ntree);
+    auto d = id_check(sph_ntree);
 
-    flecsi::execute<init_density>(sph_ntree, d);
-    flecsi::execute<print_density>(sph_ntree, d);
-    flecsi::execute<check_neighbors>(sph_ntree);
+    flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
+    flecsi::execute<print_ids>(sph_ntree, d);
+    EXPECT_EQ(test<check_neighbors>(sph_ntree), 0);
+    flecsi::execute<check_neighbors_accelerator, default_accelerator>(
+      sph_ntree);
 
-    flecsi::execute<move_entities>(sph_ntree);
+    flecsi::execute<move_entities, default_accelerator>(sph_ntree);
 
     // Sort utility testing
     // Sort/shuffle an array multiple times

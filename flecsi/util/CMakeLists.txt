@@ -12,6 +12,7 @@ flecsi_headers(
   geometry/filling_curve_key.hh
   geometry/point.hh
   geometry/kdtree.hh
+  gpu_containers.hh
   crs.hh
   parmetis.hh
   hashtable.hh

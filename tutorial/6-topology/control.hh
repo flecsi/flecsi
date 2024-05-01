@@ -38,6 +38,7 @@ struct control_policy : flecsi::run::control_base {
   sph_ntree_t::slot sph_ntree;
   std::size_t max_iterations = 100;
   std::size_t step = 0;
+  std::size_t intv = 100;
 
   using control_points_enum = cp;
 
@@ -47,8 +48,7 @@ struct control_policy : flecsi::run::control_base {
   using main_cycle =
     cycle<cycle_control, point<cp::iterate>, point<cp::output>>;
 
-  using control_points =
-    list<point<cp::initialize>, main_cycle, point<cp::finalize>>;
+  using control_points = list<point<cp::initialize>, main_cycle>;
 };
 
 using control = flecsi::run::control<control_policy>;

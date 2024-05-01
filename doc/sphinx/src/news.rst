@@ -54,6 +54,7 @@ Deprecated
     ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
     ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
     ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
+  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 New features
 ^^^^^^^^^^^^
