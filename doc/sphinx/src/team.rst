@@ -212,7 +212,7 @@ Li-Ta (Ollie) Lo
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CCS-3 Information Sciences** |br|
       *Los Alamos National Laboratory*
 
       Li-Ta Lo is currently a computer scientist with the Data Science
