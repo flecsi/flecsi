@@ -717,7 +717,6 @@ public:
       execute<sort::set_pointers_task>(f, copy_fh, meta_fh);
     };
     data::copy_plan cp(tt,
-      tt.template get_partition<space>(),
       data::copy_plan::Sizes(sort_base::colors, 1),
       dest,
       src,

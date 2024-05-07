@@ -14,101 +14,45 @@ namespace leg {
 /// \addtogroup legion-data
 /// \{
 
-// Legion performs better with regions partitioned (completely) into disjoint
-// subregions.  This internal topology stores two rectangles for each row;
-// memory is allocated only for the first.
-struct halves : topo::specialization<topo::color, halves> {
-  using Field = flecsi::field<rect>;
-  static const Field::definition<halves> field;
+struct used : topo::specialization<topo::column, used> {
+  using Field = flecsi::field<rect, single>;
+  static const Field::definition<used> field;
 };
-inline const halves::Field::definition<halves> halves::field;
+inline const used::Field::definition<used> used::field;
 
-// Produces pairs of abutting rectangles from single size inputs.
-struct mirror {
-  explicit mirror(size2 region);
+// Produces rectangles from sizes.
+struct with_used {
+  explicit with_used(Color n) : rects(n) {}
 
-  // Convert a prefixes_base::Field into a halves::Field.
-  // Return the resulting two-subspace used/unused partition.
+  // Convert a prefixes_base::Field into a used::Field.
   template<class F>
-  const auto & convert(F f) {
-    execute<extend>(f, halves::field(rects), width);
-    return part;
-  }
-
-  halves::core & get_rects() { // for multi-accessors
+  const data::partition & convert(F f) {
+    execute<extend>(f, used::field(rects));
     return rects;
   }
 
-  static constexpr const field_id_t & fid = halves::field.fid;
+  static constexpr const field_id_t & fid = used::field.fid;
 
 private:
   static void extend(prefixes_base::Field::accessor<ro>,
-    halves::Field::accessor<wo>,
-    std::size_t width);
+    used::Field::accessor<wo>);
 
-  halves::core rects; // n rows, each with its left and right rectangles
-  rows<true> part;
-  std::size_t width;
+  used::core rects;
 };
-
-struct with_partition {
-  partition<> prt;
-}; // for initialization order
 /// \}
 } // namespace leg
 
-// Use inheritance to initialize mirror early:
-struct prefixes : private leg::mirror,
-                  private leg::with_partition,
-                  rows,
-                  prefixes_base {
+// Use inheritance to initialize with_used early:
+struct prefixes : private leg::with_used, leg::partition<>, prefixes_base {
   template<class F>
   prefixes(region & reg, F f)
-    : mirror(reg.size()),
-      with_partition{{reg, convert(std::move(f)), fid, complete}},
-      rows(
-        [&] {
-          auto r = get_first_subregion();
-          const auto n =
-            leg::name(reg.logical_region, "?") + std::string(1, '!');
-          leg::run().attach_name(r, n.c_str());
-          leg::run().attach_name(r.get_index_space(), n.c_str());
-          return r;
-        }(),
-        reg.size()) {}
+    : with_used(reg.size().first), partition(reg, convert(std::move(f)), fid) {}
 
   template<class F>
   void update(F f) {
-    auto p = prt.remake(convert(std::move(f)), fid, complete);
-    rows::update(get_first_subregion(p));
-    prt = std::move(p);
-  }
-
-  Legion::LogicalRegion get_first_subregion() const {
-    return get_first_subregion(prt);
-  }
-
-  using mirror::get_rects;
-
-private:
-  static Legion::LogicalRegion get_first_subregion(
-    const leg::partition<> & prt) {
-    return leg::run().get_logical_subregion_by_color(prt.logical_partition, 0);
+    static_cast<partition &>(*this) = remake(convert(std::move(f)), fid);
   }
 };
-
-// specialization of the partition constructor for prefixes being passed as a
-// first argument
-template<bool R, bool D>
-leg::partition<R, D>::partition(prefixes & reg,
-  const data::partition & src,
-  field_id_t fid,
-  completeness cpt)
-  : partition(reg.get_first_subregion(),
-      reg.get_first_subregion().get_index_space(),
-      src,
-      fid,
-      cpt) {}
 
 struct intervals : leg::partition<> {
   using Value = leg::rect;
