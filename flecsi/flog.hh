@@ -223,18 +223,6 @@ private:
   tag_scope_t scope_;
 }; // struct guard
 
-#if defined(FLOG_ENABLE_DEVELOPER_MODE)
-using devel_tag = tag;
-using devel_guard = guard;
-#else
-struct devel_tag {
-  devel_tag(const char *) {}
-};
-struct devel_guard {
-  devel_guard(devel_tag const &) {}
-};
-#endif
-
 /*!
   Add an output stream to FLOG.
 
@@ -298,25 +286,6 @@ private:
   true && /* implicitly converts remainder to bool */                          \
     ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)        \
       .format()
-
-#if defined(FLOG_ENABLE_DEVELOPER_MODE)
-
-#define flog_devel(severity)                                                   \
-  /* MACRO IMPLEMENTATION */                                                   \
-                                                                               \
-  true &&                                                                      \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)  \
-      .format()
-
-#else
-
-#define flog_devel(severity)                                                   \
-  if(true) {                                                                   \
-  }                                                                            \
-  else                                                                         \
-    std::cerr
-
-#endif // FLOG_ENABLE_DEVELOPER_MODE
 
 /*!
   Method style interface for trace level severity log entries.
@@ -409,12 +378,6 @@ struct tag {
 struct guard {
   guard(tag const &) {}
 };
-struct devel_tag {
-  devel_tag(const char *) {}
-};
-struct devel_guard {
-  devel_guard(devel_tag const &) {}
-};
 
 inline void
 add_output_stream(std::string const &, std::ostream &, bool = false) {}
@@ -431,12 +394,6 @@ struct container {
 } // namespace flecsi
 
 #define flog(severity)                                                         \
-  if(true) {                                                                   \
-  }                                                                            \
-  else                                                                         \
-    std::cerr
-
-#define flog_devel(severity)                                                   \
   if(true) {                                                                   \
   }                                                                            \
   else                                                                         \

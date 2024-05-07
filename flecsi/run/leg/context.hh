@@ -109,11 +109,6 @@ struct context_t : context {
    */
 
   void mpi_call(std::function<void()> mpi_task) {
-    {
-      flog::devel_guard guard(context_tag);
-      flog_devel(info) << "In mpi_call" << std::endl;
-    }
-
     mpi_task_ = std::move(mpi_task);
     mpi_handoff();
     mpi_wait();

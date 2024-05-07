@@ -13,9 +13,6 @@
 #include <flecsi/flog.hh>
 
 namespace flecsi {
-
-inline flog::devel_tag unit_tag("unit");
-
 namespace util {
 namespace unit {
 /// \addtogroup unit
@@ -59,8 +56,6 @@ struct state_t {
   state_t(state_t &&) = delete;
 
   ~state_t() {
-    flog::devel_guard guard(unit_tag);
-
     if(result_) {
       std::stringstream stream;
       if(label_ == "TEST") {

@@ -14,9 +14,6 @@
 #include <iomanip>
 
 namespace flecsi {
-
-inline flog::devel_tag legion_mapper_tag("legion_mapper");
-
 namespace run {
 /// \addtogroup legion-runtime
 /// \{
@@ -206,7 +203,6 @@ public:
       task,
       target_mem,
       layout_constraints,
-      indx,
       {task.regions[indx].region,
         task.regions[indx + 1].region,
         task.regions[indx + 2].region});
@@ -231,7 +227,7 @@ public:
       return;
 
     output.chosen_instances[indx].push_back(
-      get_instance(ctx, task, target_mem, layout_constraints, indx, {r}));
+      get_instance(ctx, task, target_mem, layout_constraints, {r}));
   } // create_instance
 
   /*!
@@ -707,28 +703,11 @@ private:
     return variant[task_id] = variants.at(0);
   }
 
-  static void report_size(const Legion::Task & task,
-    std::size_t indx,
-    std::size_t instance_size) {
-    flog_devel(info) << "task " << task.get_task_name()
-                     << " allocates physical instance with size "
-                     << instance_size << " for the region requirement #" << indx
-                     << std::endl;
-
-    if(instance_size > 1000000000) {
-      flog_devel(error)
-        << "task " << task.get_task_name()
-        << " is trying to allocate physical instance with the size > than 1 Gb("
-        << instance_size << " )"
-        << " for the region requirement # " << indx << std::endl;
-    } // if
-  }
   Legion::Mapping::PhysicalInstance get_instance(
     const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
-    std::size_t indx,
     const std::vector<Legion::LogicalRegion> & regions) const {
     Legion::Mapping::PhysicalInstance result;
     std::size_t instance_size = 0;
@@ -746,7 +725,6 @@ private:
       flog_fatal("FleCSI mapper failed to allocate instance of size "
                  << instance_size << " in memory " << target_mem << " for task "
                  << std::quoted(task.get_task_name()));
-    report_size(task, indx, instance_size);
     return result;
   }
 

@@ -62,7 +62,6 @@ util::unit::driver<log_driver> log_test_driver;
 
 int
 init_a() {
-  flog::devel_guard guard(unit_tag);
   flog(info) << "init" << std::endl;
 
   flog(trace) << "trace (strip level " << FLOG_STRIP_LEVEL << ")" << std::endl;
@@ -81,7 +80,6 @@ test1() {
     ASSERT_EQ(0, 0);
     EXPECT_EQ(0, 0);
 
-    flog::devel_guard guard(unit_tag);
     flog(info) << "THIS IS SOME LOG INFO FOR A TEST" << std::endl;
   };
 }
@@ -102,7 +100,6 @@ util::unit::driver<test2> test2_driver;
 
 int
 finalization() {
-  flog::devel_guard guard(unit_tag);
   flog(info) << "finalize" << std::endl;
   return 0;
 }

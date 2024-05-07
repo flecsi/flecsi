@@ -19,8 +19,6 @@ namespace flecsi {
 /// \addtogroup legion-execution
 /// \{
 
-inline flog::devel_tag bind_accessors_tag("bind_accessors");
-
 namespace exec::leg {
 
 /*!
@@ -119,13 +117,7 @@ private:
 
   template<typename D>
   static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
-    D &) {
-    {
-      flog::devel_guard guard(bind_accessors_tag);
-      flog_devel(info) << "No setup for parameter of type " << util::type<D>()
-                       << std::endl;
-    }
-  } // visit
+    D &) {} // visit
 
   Legion::Runtime * legion_runtime_;
   Legion::Context & legion_context_;

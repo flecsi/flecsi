@@ -11,9 +11,6 @@
 #include <flecsi/flog.hh>
 
 namespace flecsi {
-
-inline flog::devel_tag reduction_wrapper_tag("reduction_wrapper");
-
 namespace exec {
 namespace fold {
 /// \addtogroup mpi-execution
@@ -32,12 +29,6 @@ private:
   }
 
   static void init() {
-    {
-      flog::devel_guard guard(reduction_wrapper_tag);
-      flog_devel(info) << "registering reduction operation " << util::type<R>()
-                       << " for " << util::type<T>() << std::endl;
-    } // scope
-
     // Create the operator and register it with the runtime
     util::mpi::test(MPI_Op_create(apply, true, &op));
   }
