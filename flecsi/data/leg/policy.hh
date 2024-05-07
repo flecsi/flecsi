@@ -14,8 +14,6 @@
 namespace flecsi {
 namespace data {
 
-struct prefixes;
-
 enum disjointness { compute = 0, disjoint = 1, aliased = 2 };
 
 constexpr auto
@@ -180,7 +178,10 @@ struct region {
 
         return named(
           r.create_logical_region(c, index_space, field_space), name);
-      }()) {}
+      }()) {
+    for(const auto & fi : fs)
+      fields.insert(fi->fid);
+  }
 
   // Retain value semantics:
   region(region &&) = default;
@@ -199,7 +200,23 @@ struct region {
     return size2(p[0] + 1, p[1] + 1);
   }
 
+  void partition_notify() {
+    reset(fields);
+  }
+  void partition_notify(field_id_t f) {
+    reset({f});
+  }
+
   shared_logical_region logical_region;
+
+private:
+  using Fields = std::set<Legion::FieldID>;
+
+  void reset(const Fields & s) {
+    run().reset_equivalence_sets(ctx(), logical_region, logical_region, s);
+  }
+
+  Fields fields;
 };
 
 struct partition_base {
@@ -255,48 +272,28 @@ struct partition : leg::partition_base { // instead of "using partition ="
 };
 
 namespace leg {
-template<bool C = false> // make columns instead
 struct rows : partition {
-  explicit rows(const region & reg) : rows(reg.logical_region, reg.size()) {}
-
-  // this constructor will create partition by rows with s.first being number
-  // of colors and s.second the max size of the rows
-  rows(const Legion::LogicalRegion & reg, size2 s)
-    : partition(reg,
-        partition_rows(reg,
-          shared_index_space(run().create_index_space(ctx(),
-            Legion::Rect<1>(0, upper(C ? s.second : s.first)))),
-          upper(C ? s.first : s.second))) {}
+  explicit rows(const region & reg)
+    : rows(reg, run().get_index_space_domain(reg.get_index_space()).hi()) {}
 
 private:
-  shared_index_partition partition_rows(const Legion::LogicalRegion & reg,
-    Legion::IndexSpace color_space,
-    Legion::coord_t hi) {
-    // The type-erased version assumes a square transformation matrix
-    return named(run().create_partition_by_restriction(
-                   ctx(),
-                   Legion::IndexSpaceT<2>(reg.get_index_space()),
-                   Legion::IndexSpaceT<1>(color_space),
-                   [&] {
-                     Legion::Transform<2, 1> ret;
-                     ret.rows[C].x = 1;
-                     ret.rows[!C].x = 0;
-                     return ret;
-                   }(),
-                   {{0, 0}, {C ? hi : 0, C ? 0 : hi}},
-                   DISJOINT_COMPLETE_KIND),
-      (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str());
-  }
-
-public:
-  void update(const Legion::LogicalRegion & reg) {
-    Legion::DomainPoint hi =
-      run().get_index_space_domain(reg.get_index_space()).hi();
-    auto ip = partition_rows(reg, get_color_space(), hi[!C]);
-
-    logical_partition = log(reg, ip);
-    index_partition = std::move(ip);
-  }
+  // The type-erased version assumes a square transformation matrix.
+  rows(const region & reg, Legion::DomainPoint hi)
+    : partition(reg.logical_region,
+        named(run().create_partition_by_restriction(
+                ctx(),
+                Legion::IndexSpaceT<2>(reg.get_index_space()),
+                Legion::IndexSpaceT<1>(shared_index_space(
+                  run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0])))),
+                [&] {
+                  Legion::Transform<2, 1> ret;
+                  ret.rows[0].x = 1;
+                  ret.rows[1].x = 0;
+                  return ret;
+                }(),
+                {{0, 0}, {0, hi[1]}},
+                DISJOINT_COMPLETE_KIND),
+          (name(reg.get_index_space(), "?") + std::string(1, '=')).c_str())) {}
 };
 
 /// Common dependent partitioning facility.
@@ -309,11 +306,6 @@ struct partition : data::partition {
     field_id_t fid,
     completeness cpt = incomplete)
     : partition(reg.logical_region, reg.get_index_space(), src, fid, cpt) {}
-
-  partition(prefixes & reg,
-    const data::partition & src,
-    field_id_t fid,
-    completeness cpt = {});
 
   partition remake(const data::partition & src,
     field_id_t fid,
@@ -357,58 +349,20 @@ struct projection : Legion::ProjectionFunctor, borrow_base {
   bool is_exclusive() const override {
     return false;
   }
-  Legion::LogicalRegion project(const Legion::Mappable * m,
-    unsigned r,
-    Legion::LogicalPartition p,
-    const Legion::DomainPoint & i) override {
-    const auto & o = static_cast<const Claim *>(
-      get_req(*m, r).get_projection_args(nullptr))[i.get_color()];
+  bool is_functional() const override {
+    return true;
+  }
+  Legion::LogicalRegion project(Legion::LogicalPartition p,
+    const Legion::DomainPoint & i,
+    const Legion::Domain &,
+    const void * args,
+    std::size_t) override {
+    const auto & o = static_cast<const Claim *>(args)[i.get_color()];
     return o == nil ? Legion::LogicalRegion::NO_REGION
                     : runtime->get_logical_subregion_by_color(p, o);
   }
 
   static const Legion::ProjectionID id;
-
-private:
-  // When is July 123rd?
-  template<class... VV>
-  static auto & calendar(unsigned i, const VV &... vv) {
-    decltype((vv.data(), ...)) ret;
-    const bool found = ([&] {
-      const unsigned n = vv.size();
-      const bool here = i < n;
-      if(here)
-        ret = &vv[i];
-      else
-        i -= n;
-      return here;
-    }() || ...);
-    if(found)
-      return *ret;
-    flog_fatal("RegionRequirement index out of range");
-  }
-
-  static const Legion::RegionRequirement & get_req(const Legion::Mappable & m,
-    unsigned i) {
-    switch(m.get_mappable_type()) {
-      case LEGION_TASK_MAPPABLE:
-        return m.as_task()->regions[i];
-      case LEGION_COPY_MAPPABLE: {
-        const auto & c = *m.as_copy();
-        return calendar(i,
-          c.src_requirements,
-          c.dst_requirements,
-          c.src_indirect_requirements,
-          c.dst_indirect_requirements);
-      }
-      case LEGION_INLINE_MAPPABLE:
-        return m.as_inline()->requirement;
-      case LEGION_FILL_MAPPABLE:
-        return m.as_fill()->requirement;
-      default:
-        flog_fatal("unknown Mappable type");
-    }
-  }
 };
 inline const Legion::ProjectionID projection::id = [] {
   const auto ret = Legion::Runtime::generate_static_projection_id();
@@ -448,8 +402,7 @@ private:
 } // namespace leg
 
 using region_base = leg::region;
-using rows = leg::rows<>;
-using leg::borrow;
+using leg::rows, leg::borrow;
 
 } // namespace data
 } // namespace flecsi

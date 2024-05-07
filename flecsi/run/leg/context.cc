@@ -5,14 +5,11 @@
 namespace flecsi {
 // To avoid a separate source file in data/leg:
 namespace data::leg {
-mirror::mirror(size2 s) : rects({s.first, 2}), part(rects), width(s.second) {}
 void
-mirror::extend(field<std::size_t, single>::accessor<ro> r,
-  halves::Field::accessor<wo> w,
-  std::size_t width) {
+with_used::extend(field<std::size_t, single>::accessor<ro> r,
+  used::Field::accessor<wo> w) {
   const Legion::coord_t c = color();
-  w[0] = {{c, 0}, {c, upper(r)}};
-  w[1] = {{c, static_cast<Legion::coord_t>(r)}, {c, upper(width)}};
+  w = {{c, 0}, {c, upper(r)}};
 }
 } // namespace data::leg
 

@@ -216,7 +216,6 @@ private:
     // clang-format on
 
     return {*this,
-      part_.template get<S>(),
       c.idx_spaces[index<S>].num_intervals,
       dest_task,
       ptrs_task,
