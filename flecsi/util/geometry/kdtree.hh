@@ -16,26 +16,36 @@
 #include <stack>
 #include <vector>
 
+/// \cond core
 namespace flecsi {
 namespace util {
+/// \ingroup utils
+/// \defgroup kdtree KDTree
+/// KDTree based search utilities.
+/// Possible use case is finding overlap between multiple meshes.
+/// \{
 
+/*!
+ The bounding box type that is used by KDTree as input.
+ */
 template<Dimension DIM>
 class BBox
 {
 public:
-  // Geometric point to represent coordinates
+  /// Geometric point to represent coordinates
   using point_t = util::point<double, DIM>;
 
-  // Size of the box
+  /// Size of the box
   constexpr point_t size() const {
     return upper - lower;
   }
-  // Centroid
+
+  /// Centroid
   constexpr point_t center() const {
     return (lower + upper) / 2;
   }
 
-  // Determine if the two bounding boxes intersect.
+  /// Determine if the two bounding boxes intersect.
   constexpr bool intersects(const BBox & box) const {
     for(Dimension d = 0; d < DIM; ++d) {
       if(upper[d] < box.lower[d] || lower[d] > box.upper[d])
@@ -44,20 +54,20 @@ public:
     return true;
   }
 
-  // Extend box as needed to contain a point.
+  /// Extend box as needed to contain a point.
   constexpr BBox & operator+=(const point_t & p) {
     minEqual(lower, p);
     maxEqual(upper, p);
     return *this;
   }
 
-  // Union rhs into this BBox.
+  /// Union rhs into this BBox.
   constexpr void operator+=(const BBox & rhs) {
     minEqual(lower, rhs.lower);
     maxEqual(upper, rhs.upper);
   }
 
-  // Return an empty BBox.
+  /// Return an empty BBox.
   constexpr static auto empty() {
     using nl = std::numeric_limits<double>;
     point_t lo, hi;
@@ -68,7 +78,7 @@ public:
     return BBox{lo, hi};
   }
 
-  //  These two vectors are the upper and lower corners of the box.
+  ///  The upper and lower corners of the box.
   point_t lower, upper;
 
 private:
@@ -87,39 +97,48 @@ private:
   }
 };
 
+// Find the index of a point with maximum component.
 template<Dimension DIM>
 int
 max_component(util::point<double, DIM> & pnt) {
   return std::max_element(pnt.begin(), pnt.end()) - pnt.begin();
 }
 
+/*!
+ A k-d tree for efficiently finding intersections between shapes.
+ */
 template<Dimension DIM>
 struct KDTree {
   // To store node info
   struct TNode {
+    // Current root
     int cur_root;
+    // minimum index into the array of sorted keys
     int imin;
+    // maximum index into the array of sorted keys
     int imax;
+    // cutting direction at the current node
     int icut;
   };
 
   using point_t = util::point<double, DIM>;
+  /// Type alias for a vector of Bounding Boxes
   using boxes = std::vector<BBox<DIM>>;
+
   KDTree(const boxes &);
 
   boxes sbox;
   std::vector<long> linkp;
 };
 
-/****************************************************************************/
-/* Purpose        :KDTREE takes the set of Safety Boxes and                 */
-/*                 produces a k-D tree that is stored in the array LINKP.   */
-/*                 Leaf nodes in LINKP each coincide with exactly one       */
-/*                 Safety Box.  For each node in the k-D tree,              */
-/*                 there is a corresponding Safety Box which is just        */
-/*                 big enough to contain all the Safety Boxes ``under''     */
-/*                 the node.                                                */
-/****************************************************************************/
+/*!
+ KDTREE constructor which takes the set of Safety Boxes and
+ produces a k-D tree that is stored in the array LINKP. Leaf nodes
+ in LINKP each coincide with exactly one Safety Box.  For each node
+ in the k-D tree, there is a corresponding Safety Box which is just
+ big enough to contain all the Safety Boxes "under" the node.
+ \param sboxp vector of safety boxes
+*/
 
 template<Dimension DIM>
 KDTree<DIM>::KDTree(const boxes & sboxp)
@@ -277,6 +296,15 @@ KDTree<DIM>::KDTree(const boxes & sboxp)
   }
 }
 
+/*!
+ Compute the intersection between two KDTrees. A possible
+ use case is finding the overlap between multiple distributed meshes .
+ \param k1 first kdtree
+ \param k2 second kdtree
+ \return mapping from the leaves of the first kdtree to vectors
+ of intersecting leaves in the second kdtree.
+ \relates KDTree
+ */
 template<Dimension DIM>
 auto
 intersect(const KDTree<DIM> & k1, const KDTree<DIM> & k2) {
@@ -320,7 +348,9 @@ intersect(const KDTree<DIM> & k1, const KDTree<DIM> & k2) {
 
   return ret;
 }
-
+/// \}
 } // namespace util
 } // namespace flecsi
+/// \endcond
+
 #endif
