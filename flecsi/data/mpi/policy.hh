@@ -354,6 +354,9 @@ struct region {
     return p->size();
   }
 
+  void partition_notify() {}
+  void partition_notify(field_id_t) {}
+
   region_impl & operator*() {
     return *p;
   }
@@ -400,11 +403,6 @@ private:
 
 protected:
   partition(region & r) : r(&*r) {}
-
-  region_impl & get_base() const {
-    return *r;
-  }
-
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
 };
@@ -452,8 +450,6 @@ struct prefixes : data::partition, prefixes_base {
   size_t size() const {
     return nelems;
   }
-
-  using partition::get_base;
 };
 /// \}
 } // namespace mpi
@@ -494,13 +490,13 @@ struct intervals {
     return r;
   }
 
-  intervals(prefixes & pre,
+  intervals(region_base & r,
     const partition & p,
     field_id_t fid, // The field id for the metadata in the region in p.
     completeness = incomplete)
-    : r(&pre.get_base()) {
+    : r(&*r) {
     // Called by upper layer, supplied with a region and a partition. There are
-    // two regions involved. The region for `r` stores real field data
+    // two regions involved. The region `r` has the storage for real field data
     // (e.g. density, pressure etc.) as the destination of the ghost copy. It
     // also contains the pairs of (rank, index) of shared entities on remote
     // peers. The region and associated storage in the partition `p` contains
@@ -560,8 +556,11 @@ struct points {
     return {r, i};
   }
 
-  points(prefixes & p, const intervals &, field_id_t, completeness = incomplete)
-    : r(&p.get_base()) {}
+  points(region_base & r,
+    const intervals &,
+    field_id_t,
+    completeness = incomplete)
+    : r(&*r) {}
 
 private:
   // The region `r` contains field data of shared entities on this rank as

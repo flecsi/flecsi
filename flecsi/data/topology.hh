@@ -34,6 +34,11 @@ struct region_base {
 
   /// Get (bounding) size.
   size2 size() const;
+
+  /// Optimize the change to a new typical partitioning.
+  void partition_notify();
+  /// Optimize a partitioning change for a single field.
+  void partition_notify(field_id_t);
 };
 
 /// Base class storing a prefix of each row in a \c region_base.

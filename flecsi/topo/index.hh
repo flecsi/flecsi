@@ -21,8 +21,13 @@ function(std::size_t) {
 inline constexpr auto partial = make_partial<function>();
 } // namespace zero
 
+// Clang insists on virtual destructors even without delete:
+struct virtual_base {
+  virtual ~virtual_base() = default;
+};
+
 /// A partition with a field for dynamically resizing it.
-struct repartition : with_size, data::prefixes, with_cleanup {
+struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   // Construct a partition with an initial size.
   // f is passed as a task argument, so it must be serializable;
   // consider using make_partial.
@@ -75,9 +80,18 @@ private:
   static void fill(resize::Field::accessor<wo> a, F f) {
     a = std::move(f)(run::context::instance().color());
   }
+
+  virtual void resized() {}
 };
 
-using repartitioned = data::partitioned<repartition>;
+struct repartitioned : data::partitioned<repartition> {
+  using partitioned::partitioned;
+
+private:
+  void resized() override {
+    partition_notify();
+  }
+};
 
 template<class T, typename T::index_space S = T::default_space(), class F>
 repartitioned
@@ -87,10 +101,11 @@ make_repartitioned(Color r, F f) {
 
 // Stores the flattened elements of the ragged fields on an index space.
 struct ragged_partition_base : repartition {
-  using coloring = data::region &;
+  using coloring = std::pair<data::region *, field_id_t>;
   static constexpr single_space space = elements; // for run::context
 
-  ragged_partition_base(coloring c) : repartition(c), reg(&c) {}
+  ragged_partition_base(coloring c)
+    : repartition(*c.first), reg(c.first), fid(c.second) {}
 
   template<single_space>
   data::region & get_region() const {
@@ -103,6 +118,11 @@ struct ragged_partition_base : repartition {
 
 private:
   data::region * reg; // note the address stability assumption
+  field_id_t fid;
+
+  void resized() override {
+    reg->partition_notify(fid);
+  }
 };
 template<class>
 struct ragged_partition_category : ragged_partition_base {
@@ -155,7 +175,7 @@ struct ragged_partitioned
     : reg(new data::region({r, data::logical_size},
         util::key_type<S, ragged<Topo>>())) {
     for(const auto & fi : run::context::field_info_store<ragged<Topo>, S>())
-      this->part.try_emplace(fi->fid, *reg);
+      this->part.try_emplace(fi->fid, std::pair{reg.get(), fi->fid});
   }
 
 private:
@@ -252,7 +272,7 @@ protected:
 template<class P>
 struct array_category : array_base, repartitioned {
   explicit array_category(const coloring & c)
-    : partitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {}
+    : repartitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {}
 
   using repartition::access;
 };
