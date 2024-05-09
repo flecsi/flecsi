@@ -15,6 +15,10 @@
 #include "flecsi/util/hashtable.hh"
 #include "flecsi/util/sort.hh"
 
+#if defined(FLECSI_ENABLE_GRAPHVIZ)
+#include "flecsi/util/graphviz.hh"
+#endif
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -1354,79 +1358,89 @@ public:
     return ids;
   } // dfs
 
+#if defined(FLECSI_ENABLE_GRAPHVIZ)
   /// Output a representation of the ntree using graphviz.
-  /// The output files are formatted as: process()_tag.gz
+  /// The output files are formatted as: process()_tag.gv
   /// \param tag Tag for these files names
-  void graphviz_draw(std::string tag) {
-    std::ostringstream fname;
-    fname << std::setfill('0') << std::setw(3) << process() << "_" << tag
-          << ".gv";
-    std::ofstream output(std::move(fname).str());
-    output << "digraph G {\nforcelabels=true;\n";
-
-    std::map<bool, std::pair<std::string, std::string>> completeness{
-      {true, {"complete", "octagon"}},
-      {false, {"incomplete", "doubleoctagon"}}};
-    std::map<bool, std::pair<std::string, std::string>> locality{
-      {true, {"local", "blue"}}, {false, {"non_local", "red"}}};
+  void graphviz_draw(const std::string & tag) const {
+    util::graphviz gv("G");
+    static constexpr std::pair<const char *, const char *> completeness[] = {
+      {"incomplete", "doubleoctagon"},
+      { "complete",
+        "octagon" }};
+    static constexpr std::pair<const char *, const char *> locality[] = {
+      {"local", "blue"},
+      { "non_local",
+        "red" }};
 
     // Print a legend
     for(bool i : {true, false}) {
       for(bool j : {true, false}) {
-        std::string name =
-          completeness.at(j).first + '_' + locality.at(i).first + "_node";
-        output << name << " [label=<" << name
-               << "<br/><FONT POINT-SIZE=\"10\">c(color)</FONT>>, "
-                  "xlavel=\"#child\"]\n";
-        output << name << " [shape=" << completeness.at(j).second
-               << ", color=" << locality.at(i).second << "]\n";
+        std::string name = std::string(completeness[j].first) + '_' +
+                           locality[i].first + "_node";
+        auto node = gv.add_node(name.c_str(),
+          gv.html_label(
+            (name + "<br/><FONT POINT-SIZE='10'>c(color)</FONT>").c_str()));
+        gv.set_node_attribute(node, "xlabel", "#child");
+        gv.set_node_attribute(node, "shape", completeness[j].second);
+        gv.set_node_attribute(node, "color", locality[i].second);
       }
-      std::string name = locality.at(i).first + "_entity";
-      output << name << " [label=<" << name
-             << "<br/><FONT "
-                "POINT-SIZE=\"10\">c(color)</FONT>>, xlavel=\"1\"]\n";
-      output << name << " [shape=circle, color=" << locality.at(i).second
-             << "]\n";
+      std::string name = std::string(locality[i].first) + "_entity";
+      auto node = gv.add_node(name.c_str(),
+        gv.html_label(
+          (name + "<br/><FONT POINT-SIZE=\"10\">c(color)</FONT>").c_str()));
+      gv.set_node_attribute(node, "xlabel", "index");
+      gv.set_node_attribute(node, "shape", "circle");
+      gv.set_node_attribute(node, "color", locality[i].second);
     }
 
-    std::stack<hcell_t *> stk;
+    std::queue<std::pair<hcell_t *, Agnode_t *>> stk;
     auto hmap = map();
-    stk.push(&(hmap.find(key_t::root())->second));
+    stk.push(std::pair(&(hmap.find(key_t::root())->second), nullptr));
 
     while(!stk.empty()) {
-      hcell_t * cur = stk.top();
+      auto [cur, parent] = stk.front();
       stk.pop();
+      std::stringstream ss_name, ss_label, ss_xlabel;
+      ss_name << cur->key();
+      Agnode_t * node;
       if(cur->is_node()) {
-        output << cur->key() << " [label=<" << cur->key()
-               << "<br/><FONT POINT-SIZE=\"10\"> c(" << cur->color()
-               << ")</FONT>>,xlabel=\"" << n_i[cur->idx()].coordinates << "/"
-               << n_i[cur->idx()].radius << "\"]\n";
-        output << cur->key()
-               << " [shape=" << completeness.at(cur->is_complete()).second
-               << ",color=" << locality.at(cur->is_local()).second << "]\n";
+        ss_label << cur->key() << "<br/><FONT POINT-SIZE=\"10\"> c("
+                 << cur->color() << ")</FONT>";
+        ss_xlabel << cur->nchildren();
+        node = gv.add_node(
+          ss_name.str().c_str(), gv.html_label(ss_label.str().c_str()));
+        gv.set_node_attribute(node, "xlabel", ss_xlabel.str().c_str());
+        gv.set_node_attribute(
+          node, "shape", completeness[cur->is_complete()].second);
+        gv.set_node_attribute(node, "color", locality[cur->is_local()].second);
         // Add the child to the stack and add for display
         for(std::size_t i = 0; i < nchildren_; ++i) {
           auto it = hmap.find(cur->key().push(i));
           if(it != hmap.end()) {
-            stk.push(&it->second);
-            output << cur->key() << "->" << it->second.key() << std::endl;
+            stk.push(std::pair(&it->second, node));
           }
         }
       }
       else {
-        output << cur->key() << " [label=<" << cur->key()
-               << "<br/><FONT POINT-SIZE=\"10\"> c(" << cur->color() << ") id("
-               << e_ids[cur->idx()] << ") idx(" << cur->idx()
-               << ")</FONT>>,xlabel=\"" << e_i[cur->idx()].coordinates << "/"
-               << e_i[cur->idx()].radius << "\"]\n";
-        output << cur->key()
-               << " [shape=circle,color=" << locality.at(cur->is_local()).second
-               << "]\n";
+        ss_label << cur->key() << "<br/><FONT POINT-SIZE=\"10\"> c("
+                 << cur->color() << ")</FONT>";
+        ss_xlabel << cur->idx();
+        node = gv.add_node(
+          ss_name.str().c_str(), gv.html_label(ss_label.str().c_str()));
+        gv.set_node_attribute(node, "xlabel", ss_xlabel.str().c_str());
+        gv.set_node_attribute(node, "shape", "circle");
+        gv.set_node_attribute(node, "color", locality[cur->is_local()].second);
       }
+      if(parent != nullptr)
+        gv.add_edge(parent, node);
     } // while
-    output << "}\n";
-    output.close();
+    std::ostringstream fname;
+    fname << std::setfill('0') << std::setw(3) << process() << "_" << tag
+          << ".gv";
+    gv.write(std::move(fname).str());
   }
+#endif
 
 }; // namespace topo
 
