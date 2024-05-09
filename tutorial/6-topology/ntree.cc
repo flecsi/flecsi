@@ -84,12 +84,12 @@ initialize_action(sph::control_policy & cp) {
 
 int
 output_task(sph_ntree_t::accessor<ro, na> t,
-  field<double>::accessor<rw, na> rho,
-  field<double>::accessor<rw, na> p,
-  field<double>::accessor<rw, na> v,
-  field<double>::accessor<rw, na> u,
-  field<double>::accessor<rw, na> dudt,
-  field<double>::accessor<rw, na> dvdt,
+  field<double>::accessor<ro, na> rho,
+  field<double>::accessor<ro, na> p,
+  field<double>::accessor<ro, na> v,
+  field<double>::accessor<ro, na> u,
+  field<double>::accessor<ro, na> dudt,
+  field<double>::accessor<ro, na> dvdt,
   int nfile,
   int intv) {
   if(nfile % intv == 0) {

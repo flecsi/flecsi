@@ -901,11 +901,16 @@ public:
       entities_ptrs_task,
       util::constant<entities>());
 
-    ts->cp_entities->issue_copy(e_keys.fid);
-    ts->cp_entities->issue_copy(e_i.fid);
-    ts->cp_entities->issue_copy(e_colors.fid);
-    ts->cp_entities->issue_copy(e_ids.fid);
+    // Fake initialization for the new ghosts
+    for(auto & f :
+      run::context::instance().field_info_store<Policy, entities>()) {
+      auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
+        f->fid, ts.get());
+      execute<fake_initialize>(fr);
+    }
   }
+
+  static void fake_initialize(field<std::byte, data::raw>::accessor<rw, na>) {}
 
   //------------------------------ reset tree ---------------------------------
 private:
