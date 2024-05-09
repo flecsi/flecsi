@@ -1,7 +1,7 @@
 CMake for FleCSI client applications
 ####################################
 
-The FleCSI installation provides mutliple CMake files to support
+The FleCSI installation provides multiple CMake files to support
 writing new software.  While the ``FleCSI`` CMake package is used to
 build software on top of FleCSI, the additional CMake files
 provide common CMake code and macros for adding dependencies, building
@@ -69,7 +69,7 @@ documentation system for your own projects.
    which is a Git repository URL. Running the target checks out the
    ``gh-pages`` branch of that repository, clears it and puts the
    result of all documentation targets into it.  Files are only added,
-   but **not** commited or pushed. These are left as manual steps.
+   but **not** committed or pushed. These are left as manual steps.
 
 ``FleCSI/sphinx``
   Adds the ``flecsi_set_sphinx_target_name`` macro, which is used to

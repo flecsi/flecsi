@@ -42,7 +42,7 @@ Fixed
 ^^^^^
 * Data
 
-  * The size of one color of an index space can exceed :math:`2^32` (if FLECSI_ID_TYPE is configured approprately).
+  * The size of one color of an index space can exceed :math:`2^{32}` (if FLECSI_ID_TYPE is configured approprately).
 
 * Execution
 
