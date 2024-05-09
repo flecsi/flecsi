@@ -16,7 +16,6 @@
 #include <stack>
 #include <vector>
 
-/// \cond core
 namespace flecsi {
 namespace util {
 /// \ingroup utils
@@ -349,6 +348,5 @@ KDTree<DIM>::intersect(const KDTree & k) const {
 }
 } // namespace util
 } // namespace flecsi
-/// \endcond
 
 #endif
