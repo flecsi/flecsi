@@ -44,7 +44,7 @@ stream(const T & t, const char * what) {
 template<class T>
 struct not_fn { // default-constructed std::not_fn
   template<class... AA>
-  bool operator()(AA &&... aa) const {
+  FLECSI_TARGET bool operator()(AA &&... aa) const {
     return !T()(std::forward<AA>(aa)...);
   }
 };
@@ -153,14 +153,23 @@ private:
 
 struct string_compare {
   using not_fn = detail::not_fn<string_compare>;
-  bool operator()(const char * lhs, const char * rhs) const {
+  FLECSI_TARGET bool operator()(const char * lhs, const char * rhs) const {
     if(lhs == nullptr) {
       return rhs == nullptr;
     }
     if(rhs == nullptr) {
       return false;
     }
-    return strcmp(lhs, rhs) == 0;
+    return my_strcmp(lhs, rhs) == 0;
+  }
+  FLECSI_TARGET int my_strcmp(const char * lhs, const char * rhs) const {
+    for(; *lhs == *rhs; ++lhs, ++rhs) {
+      if(*lhs == '\0') {
+        return 0;
+      }
+    }
+    auto to_uc = [](const char * s) -> unsigned char { return *s; };
+    return to_uc(lhs) < to_uc(rhs) ? -1 : 1;
   }
 };
 
@@ -176,6 +185,85 @@ struct string_case_compare {
     return strcasecmp(lhs, rhs) == 0;
   }
 };
+
+// Provides the core of a GPU-capable unit test.  Intended to be used through
+// the GPU_UNIT macro.  The state_t class (used through the UNIT macro) is
+// preferred when running on the CPU, as it has more capabilities.  However,
+// state_t/UNIT does not run on GPUs, so portable code needs to use
+// gpu_state_t/GPU_UNIT instead.
+class gpu_state_t
+{
+public:
+  FLECSI_TARGET gpu_state_t(const char * const name) : name_{name} {}
+  template<class F>
+  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
+    std::forward<F>(f)();
+    return result_;
+  }
+  FLECSI_TARGET ~gpu_state_t() {
+    printf("%sTEST %s %s%s\n",
+      (result_ == 0) ? FLOG_COLOR_LTGREEN : FLOG_COLOR_LTRED,
+      (result_ == 0) ? "PASSED" : "FAILED",
+      name_,
+      FLOG_COLOR_PLAIN);
+  }
+  template<class Comparator, bool A, class T1, class T2>
+  FLECSI_TARGET bool compare(const T1 & value1,
+    const T2 & value2,
+    const char * string1,
+    const char * op,
+    const char * string2,
+    const char * suffix,
+    const char * file,
+    int line) {
+    const bool ret = Comparator()(value1, value2);
+    if(!ret) {
+      printf("%s FAILED%s: '(%s)%s(%s)%s' at %s%s:%d%s\n",
+        A ? FLOG_COLOR_LTRED "ASSERT" : FLOG_COLOR_YELLOW "EXPECT",
+        FLOG_COLOR_PLAIN,
+        string1,
+        op,
+        string2,
+        suffix,
+        FLOG_COLOR_BROWN,
+        file,
+        line,
+        FLOG_COLOR_PLAIN);
+      result_ = 1;
+    }
+    return ret;
+  }
+  template<bool A>
+  FLECSI_TARGET bool
+  test(bool value, const char * string, const char * file, int line) {
+    if(!value) {
+      printf("%s FAILED%s: '%s' at %s%s:%d%s\n",
+        A ? FLOG_COLOR_LTRED "ASSERT" : FLOG_COLOR_YELLOW "EXPECT",
+        FLOG_COLOR_PLAIN,
+        string,
+        FLOG_COLOR_BROWN,
+        file,
+        line,
+        FLOG_COLOR_PLAIN);
+      result_ = 1;
+    }
+    return value;
+  }
+  // For compatibility with state_t and ASSERT/EXPECT macros
+  // -- Originally designed to allow the user to stream additional information
+  //    into error messages.
+  // -- Since std::ostream does not work on GPUs, for GPU_UNIT this returns the
+  //    gpu_state_t instance itself (to help indicate where to look if the user
+  //    tries to stream into this and gets a compiler error).
+  FLECSI_TARGET const gpu_state_t & stringstream() {
+    return *this;
+  }
+  FLECSI_TARGET void operator>>=(const gpu_state_t &) {}
+
+private:
+  int result_ = 0;
+  const char * name_;
+}; // gpu_state_t
 
 /// \}
 } // namespace unit
@@ -202,6 +290,25 @@ label_default(std::string s) {
   ::flecsi::util::unit::state_t auto_unit_state(                               \
     __func__, label_default({__VA_ARGS__}));                                   \
   return auto_unit_state->*[&]() -> void
+
+/// \cond core
+/// Alternative to UNIT that works on both CPU and GPU.  GPU_UNIT does not
+/// support all features available through UNIT.
+/// - GPU_UNIT() does not accept a custom label.
+/// - GPU_UNIT does not work with the following macros:
+///   - ASSERT_STRCASEEQ and EXPECT_STRCASEEQ
+///   - ASSERT_STRCASENE and EXPECT_STRCASENE
+///   - UNIT_CAPTURE
+///   - UNIT_DUMP
+///   - UNIT_BLESSED
+///   - UNIT_WRITE
+///   - UNIT_ASSERT and UNIT_EXPECT
+/// - You cannot stream additional information into the tests using << the way
+///   you can with UNIT.
+#define GPU_UNIT()                                                             \
+  ::flecsi::util::unit::gpu_state_t auto_unit_state(__func__);                 \
+  return auto_unit_state->*[&]() -> void
+/// \endcond
 
 #define UNIT_TYPE(name) ::flecsi::util::demangle((name))
 

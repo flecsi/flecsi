@@ -163,4 +163,74 @@ dag() {
   }; // UNIT
 } // dag
 
-util::unit::driver<dag> driver;
+/*----------------------------------------------------------------------------*
+  This tests GPU_UNIT
+ *----------------------------------------------------------------------------*/
+
+FLECSI_TARGET int
+no_failures() {
+  GPU_UNIT() {
+    ASSERT_GT(42, 3.14);
+    ASSERT_GE('x', 'x');
+    EXPECT_LE(1 + 2 + 3, 7);
+    EXPECT_LT(12, 20);
+    ASSERT_TRUE(5 < 6);
+    char str[] = "FleCSI";
+    EXPECT_STREQ(str, "FleCSI");
+    ASSERT_STRNE(str, "flecsi");
+  };
+}
+
+FLECSI_TARGET int
+expect_failure(int & counter) {
+  GPU_UNIT() {
+    EXPECT_GT(1.0, 1.0);
+    ++counter; // ensure the expect didn't exit early
+  };
+}
+
+FLECSI_TARGET int
+assert_failure(int & counter) {
+  GPU_UNIT() {
+    ASSERT_GT('a', 'a' + 1);
+    ++counter; // ensure the assert actually exited early
+  };
+}
+
+FLECSI_TARGET int
+gpu_unit_test() {
+  GPU_UNIT() {
+    EXPECT_EQ(no_failures(), 0);
+    int counter{0};
+    EXPECT_EQ(assert_failure(counter), 1);
+    EXPECT_EQ(counter, 0);
+    EXPECT_EQ(expect_failure(counter), 1);
+    EXPECT_EQ(counter, 1);
+  };
+}
+
+int
+launch_gpu_unit() {
+  using flecsi::exec::parallel_reduce;
+  using flecsi::exec::fold::sum;
+  using flecsi::util::iota_view;
+  const int num_threads{1};
+  return parallel_reduce<sum, int>(
+    iota_view<int>(0, num_threads),
+    FLECSI_LAMBDA(auto &&, auto op) { op(gpu_unit_test()); },
+    "run all tests");
+}
+
+/*----------------------------------------------------------------------------*
+  Driver for tests of the unit testing framework
+ *----------------------------------------------------------------------------*/
+
+int
+unit_test_framework() {
+  UNIT() {
+    EXPECT_EQ((test<launch_gpu_unit, default_accelerator>()), 0);
+    EXPECT_EQ(dag(), 0);
+  };
+}
+
+util::unit::driver<unit_test_framework> driver;
