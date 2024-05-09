@@ -139,19 +139,7 @@ public:
     // deciding to optimize for minimizing memory usage instead
     // of avoiding Write-After-Read (WAR) dependences
     force_new_instances = false;
-    std::vector<Legion::DimensionKind> ordering;
-    ordering.push_back(Legion::DimensionKind::DIM_Y);
-    ordering.push_back(Legion::DimensionKind::DIM_X);
-    ordering.push_back(Legion::DimensionKind::DIM_F); // SOA
-    Legion::OrderingConstraint ordering_constraint(
-      ordering, true /*contiguous*/);
-    Legion::LayoutConstraintSet layout_constraint;
-    layout_constraint.add_constraint(ordering_constraint);
-
-    // Do the registration
-    Legion::LayoutConstraintID result =
-      runtime->register_layout(ctx, layout_constraint);
-    return result;
+    return soa_constraint_id;
   }
 
   /*!
@@ -290,14 +278,6 @@ public:
       else
         target_mem = local_sysmem;
 
-      // creating ordering constraint (SOA )
-      std::vector<Legion::DimensionKind> ordering;
-      ordering.push_back(Legion::DimensionKind::DIM_Y);
-      ordering.push_back(Legion::DimensionKind::DIM_X);
-      ordering.push_back(Legion::DimensionKind::DIM_F); // SOA
-      Legion::OrderingConstraint ordering_constraint(
-        ordering, true /*contiguous*/);
-
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
       runtime->filter_instances(ctx,
@@ -348,7 +328,7 @@ public:
         Legion::LayoutConstraintSet layout_constraints;
         // No specialization
         layout_constraints.add_constraint(Legion::SpecializedConstraint());
-        layout_constraints.add_constraint(ordering_constraint);
+        layout_constraints.add_constraint(soa_constraint);
         // Constrained for the target memory kind
         layout_constraints.add_constraint(
           Legion::MemoryConstraint(target_mem.kind()));
@@ -586,15 +566,8 @@ public:
     Memory target_memory = default_policy_select_target_memory(
       ctx, copy.parent_task->current_proc, req);
     bool force_new_instances = false;
-    LayoutConstraintID our_layout_id =
-      default_policy_select_layout_constraints(ctx,
-        target_memory,
-        req,
-        COPY_MAPPING,
-        false /*needs check*/,
-        force_new_instances);
-    LayoutConstraintSet creation_constraints =
-      runtime->find_layout_constraints(ctx, our_layout_id);
+    LayoutConstraintSet creation_constraints;
+    creation_constraints.add_constraint(soa_constraint);
     creation_constraints.add_constraint(
       FieldConstraint(missing_fields, false /*contig*/, false /*inorder*/));
     // if the domain is sparse, we create a compacted instance (otherwise the
@@ -758,6 +731,20 @@ protected:
   std::map<Legion::TaskID, Legion::VariantID> omp_variants;
 
   Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
+
+  // used consistently
+  static inline const Legion::OrderingConstraint soa_constraint = {
+    {Legion::DimensionKind::DIM_Y,
+      Legion::DimensionKind::DIM_X,
+      Legion::DimensionKind::DIM_F},
+    true /*contiguous*/
+  };
+  // preregister the ordering contraint
+  static inline const Legion::LayoutConstraintID soa_constraint_id = [] {
+    Legion::LayoutConstraintRegistrar registrar;
+    registrar.add_constraint(soa_constraint);
+    return Legion::Runtime::preregister_layout(registrar);
+  }();
 };
 
 /*!
