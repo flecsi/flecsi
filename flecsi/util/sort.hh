@@ -232,8 +232,7 @@ protected:
   // meaningless but the total number of elements correspond to the size of
   // changes.span().
   static void sort_others_task(
-    typename field<std::byte,
-      data::raw>::template accessor1<privilege_repeat<rw, PC>> values,
+    field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>> values,
     field<std::size_t>::accessor<ro> changes,
     const std::size_t size) {
     index_sort(values.span().data(), changes.span(), size);
@@ -244,8 +243,7 @@ protected:
   // meaningless but the total number of elements correspond to the size of
   // changes.span().
   static void reorder_other_task(
-    typename field<std::byte,
-      data::raw>::template accessor1<privilege_repeat<rw, PC>> values,
+    field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>> values,
     field<std::size_t>::accessor<ro> changes,
     const std::size_t size) {
     auto ptr = values.span().data();
