@@ -10,14 +10,6 @@
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/serialize.hh"
 
-// This will need to support different kind of constructors for
-// src vs dst
-// indirect vs direct
-// indirect: range vs points
-
-// indirect (point), direct
-// indirect (point), indirect => mesh
-
 /// \cond core
 namespace flecsi {
 
