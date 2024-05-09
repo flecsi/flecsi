@@ -108,13 +108,6 @@ struct io_interface {
     auto & context = run::context::instance();
     auto & isd_vector = context.get_index_space_info();
 
-    {
-      flog::devel_guard guard(io_tag);
-      flog_devel(info) << (W ? "Checkpoint" : "Recover")
-                       << " data to HDF5 file " << file_name << " regions size "
-                       << isd_vector.size() << std::endl;
-    }
-
     int idx = 0;
     for(auto & isd : isd_vector) {
       std::string region_name = "region " + std::to_string(idx);

@@ -4,8 +4,6 @@
 
 using namespace flecsi;
 
-flog::devel_tag task_tag("task");
-
 using reduction_type = std::uint64_t;
 
 template<task_attributes_mask_t P, exec::task_processor_type_t T>
@@ -43,14 +41,12 @@ namespace hydro {
 template<typename TYPE>
 void
 simple(TYPE arg) {
-  flog::devel_guard guard(task_tag);
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
 template<class T, class F>
 void
 seq(const T & s, F f) {
-  flog::devel_guard guard(task_tag);
   [&](auto && log) {
     bool first = true;
     for(auto & x : s) {
@@ -71,8 +67,6 @@ mpi(int * p) {
 }
 
 } // namespace hydro
-
-flog::devel_tag color_tag("color");
 
 namespace {
 auto
@@ -149,15 +143,6 @@ task_driver() {
 
       auto process = c.process();
       auto processes = c.processes();
-      auto tpp = c.threads_per_process();
-
-      {
-        flog::devel_guard guard(color_tag);
-        flog(info) << "(raw)" << std::endl
-                   << "\tprocess: " << process << std::endl
-                   << "\tprocesses: " << processes << std::endl
-                   << "\tthreads_per_process: " << tpp << std::endl;
-      }
 
       ASSERT_EQ(processes, 4u);
       ASSERT_LT(process, processes);

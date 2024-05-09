@@ -42,8 +42,6 @@ struct ragged;
 struct with_ragged_base;
 } // namespace topo
 
-inline flog::devel_tag context_tag("context");
-
 namespace run {
 /// \addtogroup runtime
 /// \{

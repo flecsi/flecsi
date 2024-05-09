@@ -23,8 +23,6 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
-inline flog::devel_tag control_tag("control");
-
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
 inline program_option<bool> control_model_option("FleCSI Options",
   "control-model",

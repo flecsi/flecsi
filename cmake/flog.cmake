@@ -18,10 +18,6 @@ cmake_dependent_option(FLOG_ENABLE_DEBUG "Enable flog debug mode" OFF
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_DEBUG)
 
-cmake_dependent_option(FLOG_ENABLE_DEVELOPER_MODE
-  "Enable internal FleCSI developer messages" OFF "ENABLE_FLOG" OFF)
-mark_as_advanced(FLOG_ENABLE_DEVELOPER_MODE)
-
 set(FLOG_SERIALIZATION_INTERVAL "100" CACHE STRING
   "Select the frequency of message serialization in number of tasks")
 mark_as_advanced(FLOG_SERIALIZATION_INTERVAL)

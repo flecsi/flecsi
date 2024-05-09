@@ -18,7 +18,6 @@
 
 /// \cond core
 namespace flecsi {
-inline flog::devel_tag io_tag("io");
 
 namespace io::hdf5 {
 /// \addtogroup io
@@ -108,11 +107,7 @@ struct file : unique<H5Fclose> {
 private:
   file(const char * f, bool create, hid_t pl)
     : unique(create ? test<H5Fcreate>(f, H5F_ACC_TRUNC, H5P_DEFAULT, pl)
-                    : test<H5Fopen>(f, H5F_ACC_RDWR, pl)) {
-    flog::devel_guard guard(io_tag);
-    flog_devel(info) << (create ? "create" : "open") << " HDF5 file " << f
-                     << " file_id " << *this << std::endl;
-  }
+                    : test<H5Fopen>(f, H5F_ACC_RDWR, pl)) {}
 };
 } // namespace detail
 

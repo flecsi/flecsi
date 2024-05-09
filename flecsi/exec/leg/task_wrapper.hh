@@ -23,8 +23,6 @@
 
 namespace flecsi {
 
-inline flog::devel_tag task_wrapper_tag("task_wrapper");
-
 // Task parameter serialization (needed only for Legion):
 namespace data {
 template<class, Privileges, Privileges>
@@ -239,10 +237,6 @@ struct task_wrapper {
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
     Legion::Runtime * runtime) {
-    {
-      flog::devel_guard guard(task_wrapper_tag);
-      flog_devel(info) << "In execute_user_task" << std::endl;
-    }
 
     // Unpack task arguments
     auto task_args = detail::tuple_get<param_tuple>::get(*task);
@@ -271,10 +265,6 @@ struct task_wrapper<F, task_processor_type_t::mpi> {
     const std::vector<Legion::PhysicalRegion> & regions,
     Legion::Context context,
     Legion::Runtime * runtime) {
-    {
-      flog::devel_guard guard(task_wrapper_tag);
-      flog_devel(info) << "In execute_mpi_task" << std::endl;
-    }
 
     flog_assert(!task->arglen, "unexpected task arguments");
     auto & c = run::context::instance();
