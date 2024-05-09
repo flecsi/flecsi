@@ -107,7 +107,7 @@ The backends are expected to allocate memory only as necessary for partitions th
 Each topology is a fixed-size set of *index spaces* (*e.g.*, the cells, vertices, and faces of a mesh), each of which is backed by a region (and a partition).
 Often, other regions and partitions are included, organized into *subtopologies* that handle common kinds of data like the count of mesh elements.
 
-The classes ``region_base`` and ``partition`` are entry points.
+The classes ``region_base`` and ``partition`` (and the concrete ``rows`` and ``prefixes`` derived from the latter) are entry points.
 Most other entry points for data handling concern *copy engines*, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion's support for overlapping partitions as a means of transferring data.)
 Each is defined in terms of a field whose value at a destination of the copy is its source index point.
