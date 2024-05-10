@@ -177,8 +177,10 @@ CMake files to allow using it in your own applications.
   If the test uses input files, they can be specified as
   ``INPUTS``. This ensures they are copied to the execution folder.
 
-  Command-line arguments are passed via the ``ARGUMENTS`` option. You
-  can also control the number of MPI processes with ``PROCS``. If you
+  The ``ARGUMENTS`` option can be used to supply user-defined
+  :ref:`command-line options <program_options>`.
+
+  You can also control the number of MPI processes with ``PROCS``. If you
   provide more than one value in ``PROCS``, this will define one
   target per value with a name ``<target-name>_<value>``.
 
