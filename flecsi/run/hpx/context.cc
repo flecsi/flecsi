@@ -28,8 +28,10 @@ int
 context_t::start(std::function<int()> const & action, bool) {
 
   ::hpx::init_params params;
+  // HPX doesn't know its own options for some reason, so we have to use a !:
   params.cfg = {// allocate at least two cores
     "hpx.force_min_os_threads!=2",
+    "hpx.handle_signals!=0",
     // call the below on every process
     "hpx.run_hpx_main!=1"};
   params.cfg.insert(params.cfg.end(),
