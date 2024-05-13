@@ -159,6 +159,7 @@ mpich-hpx-gnu:
   variables:
     VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz +kokkos ^${KOKKOS_SERIAL} ^mpich ^hpx build_type=Debug"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
   stage: Legion backend
@@ -248,6 +249,47 @@ mpich-poisson:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
   needs:
     ["mpich-legion-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+#------------------------------------------------------------------------------#
+# Tutorial tests for HPX backend with MPICH provider,
+# and GNU compiler toolchain.
+#------------------------------------------------------------------------------#
+
+mpich-tutorial:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: tutorial
+    STDIR: tutorial
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-flaxpy:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/flaxpy
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
   only:
     - merge_requests
   variables:
