@@ -40,6 +40,7 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   /// Apply sizes stored in the field.
   void resize() {
     update(sizes());
+    resized();
   }
 
   template<class F>
