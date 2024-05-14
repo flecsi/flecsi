@@ -492,9 +492,15 @@ public:
         auto & input_src_indirect = input.src_indirect_instances[idx];
         auto & output_src_indirect = output.src_indirect_instances[idx];
         // Try to reuse existing instances
-        if(!input_src_indirect.empty())
+        bool can_reuse_instance = false;
+        if(!input_src_indirect.empty()) {
           output_src_indirect = input_src_indirect[0];
-        else if(!copy.src_indirect_requirements[idx].is_restricted()) {
+          can_reuse_instance =
+            runtime->acquire_instance(ctx, output_src_indirect);
+        }
+        // We could not find a valid existing instance --> create a new one
+        if(!can_reuse_instance &&
+           !copy.src_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
           create_copy_instance<false /*is src*/>(ctx,
             copy,
@@ -516,9 +522,15 @@ public:
         auto & input_dst_indirect = input.dst_indirect_instances[idx];
         auto & output_dst_indirect = output.dst_indirect_instances[idx];
         // Try to reuse existing instances
-        if(!input_dst_indirect.empty())
+        bool can_reuse_instance = false;
+        if(!input_dst_indirect.empty()) {
           output_dst_indirect = input_dst_indirect[0];
-        else if(!copy.dst_indirect_requirements[idx].is_restricted()) {
+          can_reuse_instance =
+            runtime->acquire_instance(ctx, output_dst_indirect);
+        }
+        // We could not find a valid existing instance --> create a new one
+        if(!can_reuse_instance &&
+           !copy.dst_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
           create_copy_instance<false /*is src*/>(ctx,
             copy,
