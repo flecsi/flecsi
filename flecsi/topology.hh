@@ -29,7 +29,9 @@
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/interface.hh"
+#if defined(FLECSI_ENABLE_LEGION)
 #include "flecsi/topo/ntree/interface.hh"
+#endif
 #include "flecsi/topo/set/interface.hh"
 #include "flecsi/topo/unstructured/interface.hh"
 
