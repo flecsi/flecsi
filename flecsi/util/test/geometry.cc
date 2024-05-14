@@ -341,13 +341,12 @@ int
 kdtree() {
   UNIT() {
     { // 2D
-      // generate two sets of boxes
-      std::vector<util::BBox<2>> src_boxes, trg_boxes;
       int nsrc = 4, ntrg = 3;
 
       using point_t = util::point<double, 2>;
 
-      auto add_boxes = [](int N, std::vector<util::BBox<2>> & boxes) {
+      auto get_boxes = [](int N) {
+        std::vector<util::BBox<2>> boxes;
         point_t lo, hi;
         double h = 1.0 / N;
         for(int i = 0; i < N; ++i) {
@@ -359,17 +358,11 @@ kdtree() {
             boxes.push_back({lo, hi});
           }
         }
+        return boxes;
       };
 
-      add_boxes(nsrc, src_boxes);
-      add_boxes(ntrg, trg_boxes);
-
-      // construct kdtree
-      util::KDTree<2> src_tree(src_boxes);
-      util::KDTree<2> trg_tree(trg_boxes);
-
-      // search two kdtrees
-      const auto candidates_map = util::intersect(src_tree, trg_tree);
+      const auto candidates_map =
+        util::KDTree<2>(get_boxes(ntrg)).intersect(get_boxes(nsrc));
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5},
@@ -400,13 +393,12 @@ kdtree() {
     }
 
     { // 3D
-      // generate two sets of boxes
-      std::vector<util::BBox<3>> src_boxes, trg_boxes;
       int nsrc = 4, ntrg = 3;
 
       using point_t = util::point<double, 3>;
 
-      auto add_boxes = [](int N, std::vector<util::BBox<3>> & boxes) {
+      auto get_boxes = [](int N) {
+        std::vector<util::BBox<3>> boxes;
         point_t lo, hi;
         double h = 1.0 / N;
         for(int i = 0; i < N; ++i) {
@@ -422,17 +414,11 @@ kdtree() {
             }
           }
         }
+        return boxes;
       };
 
-      add_boxes(nsrc, src_boxes);
-      add_boxes(ntrg, trg_boxes);
-
-      // construct kdtree
-      util::KDTree<3> src_tree(src_boxes);
-      util::KDTree<3> trg_tree(trg_boxes);
-
-      // search two kdtrees
-      const auto candidates_map = util::intersect(src_tree, trg_tree);
+      const auto candidates_map =
+        util::KDTree<3>(get_boxes(ntrg)).intersect(get_boxes(nsrc));
 
       // reference
       std::set<long> ref_candidates[9] = {{0, 1, 4, 5, 16, 17, 20, 21},
