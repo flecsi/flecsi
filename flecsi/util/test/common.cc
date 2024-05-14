@@ -74,12 +74,8 @@ common() {
       // these functions, without checking for particular results.
       EXPECT_NE(flecsi::util::demangle("foo"), "");
 
-      auto str_demangle = UNIT_TTYPE(int);
       auto str_type = flecsi::util::type<int>();
-
-      EXPECT_NE(str_demangle, "");
       EXPECT_NE(str_type, "");
-      EXPECT_EQ(str_demangle, str_type);
 
       const auto sym = flecsi::util::symbol<common>();
 #ifdef __GNUG__

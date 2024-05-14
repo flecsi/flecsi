@@ -305,10 +305,6 @@ label_default(std::string s) {
   return auto_unit_state->*[&]() -> void
 /// \endcond
 
-#define UNIT_TYPE(name) ::flecsi::util::demangle((name))
-
-#define UNIT_TTYPE(type) ::flecsi::util::demangle(typeid(type).name())
-
 #define CHECK(ret, f, ...)                                                     \
   if(auto_unit_state.f(__VA_ARGS__, __FILE__, __LINE__))                       \
     ;                                                                          \
