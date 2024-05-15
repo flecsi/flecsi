@@ -34,7 +34,7 @@ public:
   explicit graphviz(const char * name)
     : graph_(agopen(cc(name), Agdirected, nullptr)) {
     const auto a = [&](int k, const char * n, const char * v) {
-      agattr(g(), k, cc(n), cc(v));
+      agattr(g(), k, cc(n), v);
     };
 
     a(AGRAPH, "nodesep", ".5");
@@ -73,7 +73,7 @@ public:
     Agnode_t * node = agnode(g(), cc(name), ag_create);
 
     if(label != nullptr) {
-      agset(node, cc("label"), cc(label));
+      agset(node, cc("label"), label);
     } // if
 
     return node;
@@ -86,7 +86,7 @@ public:
   /// Set a node attribute.
   void
   set_node_attribute(Agnode_t * node, const char * attr, const char * value) {
-    agset(node, cc(attr), cc(value));
+    agset(node, cc(attr), value);
   } // set_node_attribute
 
   /// Add an edge to the graph.
@@ -96,7 +96,7 @@ public:
 
   void
   set_edge_attribute(Agedge_t * edge, const char * attr, const char * value) {
-    agset(edge, cc(attr), cc(value));
+    agset(edge, cc(attr), value);
   } // set_edge_attribute
 
   void write(const std::string & name) const {
