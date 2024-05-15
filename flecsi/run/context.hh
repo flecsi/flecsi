@@ -130,7 +130,7 @@ struct arguments {
   }
 
 private:
-  action::operation getopt(int, const char * const *);
+  [[nodiscard]] action::operation getopt(int, const char * const *);
 };
 
 #ifdef DOXYGEN // implemented per-backend
@@ -266,7 +266,7 @@ public:
             being failure.
    */
 
-  int start(const std::function<int()> & action);
+  [[nodiscard]] int start(const std::function<int()> & action);
 #endif
 
   /*!

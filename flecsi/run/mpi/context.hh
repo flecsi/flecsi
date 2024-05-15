@@ -37,7 +37,7 @@ struct context_t : context {
 
   context_t(const arguments::config &);
 
-  int start(const std::function<int()> &);
+  [[nodiscard]] int start(const std::function<int()> &);
 
   static int task_depth() {
     return depth;

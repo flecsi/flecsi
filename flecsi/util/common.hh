@@ -65,7 +65,7 @@ struct counter {
 
   constexpr explicit counter(type l) : last(l) {}
 
-  const type & operator()() {
+  [[nodiscard]] const type & operator()() {
     assert(last < M && "counter overflow");
     return ++last;
   }

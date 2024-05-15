@@ -475,7 +475,7 @@ public:
 
     using raw_row::size;
 
-    bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
       return this->size() == 0;
     }
 
@@ -1017,7 +1017,7 @@ public:
       return r.end();
     }
 
-    bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
       return r.empty();
     }
     size_type size() const noexcept {
@@ -1251,7 +1251,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
     return this->span().size();
   }
   /// Test whether any particles exist.
-  FLECSI_INLINE_TARGET bool empty() const {
+  [[nodiscard]] FLECSI_INLINE_TARGET bool empty() const {
     return !size();
   }
 

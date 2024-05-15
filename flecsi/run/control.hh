@@ -218,7 +218,7 @@ private:
   /*
     Run the control model.
   */
-  int run(P * p) const {
+  [[nodiscard]] int run(P * p) const {
     int status{flecsi::run::status::success};
     run_impl::walk<control_points>(point_walker(sort(), status, p));
     return status;
@@ -274,7 +274,7 @@ public:
    */
 
   template<target_type T, control_points_enum CP, bool M = false>
-  struct action {
+  struct [[nodiscard]] action {
 
     template<target_type, control_points_enum, bool>
     friend struct action;
@@ -337,7 +337,7 @@ public:
     bitwise or of return values of executed actions.
    */
 
-  static int execute() {
+  [[nodiscard]] static int execute() {
     if constexpr(is_control_base_policy) {
       try {
         P pol = P();
@@ -358,7 +358,7 @@ public:
     \return status of control model output if requested, else \a s
    */
 
-  static int check_status(int s) {
+  [[nodiscard]] static int check_status(int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     switch(s) {
       case flecsi::run::status::control_model:

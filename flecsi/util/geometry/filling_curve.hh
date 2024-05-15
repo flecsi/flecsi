@@ -95,7 +95,7 @@ public:
     return conflict;
   }
   // Pop last bits and return its value
-  int pop_value() {
+  [[nodiscard]] int pop_value() {
     assert(depth() > 0);
     int poped = 0;
     poped = static_cast<int>(value_ & ((1 << (dimension)) - 1));

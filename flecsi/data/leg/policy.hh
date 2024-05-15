@@ -132,7 +132,7 @@ name(const T & t, const char * def = nullptr) {
            : def;
 }
 template<class T>
-auto
+[[nodiscard]] auto
 named0(const T & t, const char * n) {
   shared_handle ret(t);
   if(n)
@@ -140,19 +140,19 @@ named0(const T & t, const char * n) {
   return ret;
 }
 // Avoid non-type-erased shared_handle specializations:
-inline auto
+[[nodiscard]] inline auto
 named(const Legion::IndexSpace & s, const char * n) {
   return named0(s, n);
 }
-inline auto
+[[nodiscard]] inline auto
 named(const Legion::IndexPartition & p, const char * n) {
   return named0(p, n);
 }
-inline auto
+[[nodiscard]] inline auto
 named(const Legion::LogicalRegion & r, const char * n) {
   return named0(r, n);
 }
-inline auto
+[[nodiscard]] inline auto
 named(const Legion::LogicalPartition & p, const char * n) {
   if(n)
     run().attach_name(p, n);

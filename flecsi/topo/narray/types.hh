@@ -52,7 +52,7 @@ struct neighbors_view {
         m[0] = 1; // skip origin; note that std::none_of is actually faster
       return *this;
     }
-    iterator operator++(int) {
+    [[nodiscard]] iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
@@ -108,7 +108,7 @@ struct traverse {
       return *this;
     }
 
-    iterator operator++(int) {
+    [[nodiscard]] iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;

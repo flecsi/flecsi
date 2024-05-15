@@ -21,7 +21,7 @@ struct future<R> {
     get();
   }
 
-  R & get(bool = false) {
+  [[nodiscard]] R & get(bool = false) {
     return (*fut)();
   }
 
@@ -75,8 +75,8 @@ struct future<R, exec::launch_type_t::index> {
     this->request = {}; // this-> avoids Clang bug #62818
   }
 
-  std::conditional_t<std::is_same_v<R, bool>, R, R &> get(Color index = 0,
-    bool = false) {
+  [[nodiscard]] std::conditional_t<std::is_same_v<R, bool>, R, R &>
+  get(Color index = 0, bool = false) {
     wait();
     return results.at(index);
   }

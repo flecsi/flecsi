@@ -47,7 +47,7 @@ option_value(any const & v) {
  */
 
 template<typename ValueType>
-struct program_option {
+struct [[nodiscard]] program_option {
 
   struct initializer_value
     : public std::pair<option_attribute, boost::optional<ValueType>> {

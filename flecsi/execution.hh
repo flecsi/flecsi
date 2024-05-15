@@ -74,7 +74,7 @@ void finalize();
           a value of 1 is equivalent to flecsi::run::status::help.
  */
 
-inline int
+[[nodiscard]] inline int
 initialize(int argc, const char * const * argv, bool dependent = true) {
   run::arguments args(argc, argv);
   argv0 = args.act.program;
@@ -108,7 +108,7 @@ initialize(int argc, const char * const * argv, bool dependent = true) {
           flecsi::run::status.
  */
 
-inline int
+[[nodiscard]] inline int
 start(const std::function<int()> & action) {
   return run::context::instance().start(action);
 }
@@ -281,7 +281,7 @@ template<auto & Task,
   class Reduction,
   TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
   typename... Args>
-auto
+[[nodiscard]] auto
 reduce(Args &&... args) {
   using namespace exec;
 
@@ -321,7 +321,7 @@ execute(ARGS &&... args) {
 template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
-int
+[[nodiscard]] int
 test(ARGS &&... args) {
   return reduce<TASK, exec::fold::sum, ATTRIBUTES>(std::forward<ARGS>(args)...)
     .get();

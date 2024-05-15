@@ -22,7 +22,7 @@ using pair_t = std::pair<hkey_t, htype_t>;
 
 using hmap_t = hashtable<hkey_t, htype_t>;
 
-int
+[[nodiscard]] int
 assign(span<pair_t> & span_ht) {
   hmap_t hmap(span_ht);
   int error = 0;
@@ -58,7 +58,7 @@ check(span<pair_t> & span_ht) {
   return error;
 } // check
 
-int
+[[nodiscard]] int
 empty(span<pair_t> & span_ht) {
   hmap_t hmap(span_ht);
   hmap.clear();
