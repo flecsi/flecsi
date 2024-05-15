@@ -1,5 +1,6 @@
 #include "tasks/io.hh"
 
+#include <fstream>
 #include <sstream>
 
 using namespace flecsi;

@@ -134,9 +134,7 @@ public:
    */
   constexpr type_t & at(const key_t & k) {
     auto f = find(k);
-    if(f == end()) {
-      assert(false && "Key out of range.");
-    }
+    assert(f != end() && "Key out of range.");
     return f->second;
   }
 

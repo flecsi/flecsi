@@ -28,7 +28,7 @@ using arr = topo::array<void>;
 const field<int>::definition<arr> arr_f;
 
 struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
-  static constexpr unsigned int dimension = 3;
+  static constexpr flecsi::Dimension dimension = 3;
   using key_int_t = uint64_t;
   using key_t = util::morton_key<dimension, key_int_t>;
 
@@ -40,9 +40,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
 
-  // This is the max number of neighbors per entities (itself included).
-  // This is only used to run the neighbors search on GPU architectures.
-  static constexpr unsigned int max_neighbors = 13;
+  // In this test we only have one iteration and one stencil of 13 neighbors
+  // exactly.
+  static constexpr util::id max_neighbors = 13;
 
   template<auto>
   static constexpr std::size_t privilege_count = 2;

@@ -2,7 +2,6 @@
 #define TUTORIAL_6_TOPOLOGY_CONTROL_HH
 
 #include "ntree_sph.hh"
-#include <flecsi/run/control.hh>
 
 namespace sph {
 

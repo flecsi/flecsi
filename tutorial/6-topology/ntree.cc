@@ -92,7 +92,7 @@ output_task(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<rw, na> dvdt,
   int nfile,
   int intv) {
-  if(nfile == 0 || nfile % intv == 0) {
+  if(nfile % intv == 0) {
     std::ofstream file("output_sodtube_" + std::to_string(nfile) + '_' +
                        std::to_string(process()) + ".dat");
     file << "x rho p v u dudt dvdt\n";
@@ -101,7 +101,9 @@ output_task(sph_ntree_t::accessor<ro, na> t,
            << v[e] << ' ' << u[e] << ' ' << dudt[e] << ' ' << dvdt[e] << '\n';
     }
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-    t.graphviz_draw(nfile);
+    std::ostringstream oss;
+    oss << std::setw(3) << std::setfill('0') << nfile;
+    t.graphviz_draw(oss.str());
 #endif
   }
   return 0;
@@ -109,7 +111,7 @@ output_task(sph_ntree_t::accessor<ro, na> t,
 
 void
 merge_output(sph::control_policy & cp) {
-  if(process() == 0 && (cp.step == 0 || cp.step % cp.intv == 0)) {
+  if(process() == 0 && cp.step % cp.intv == 0) {
     std::ostringstream filename;
     filename << "output_sodtube_" << std::setfill('0') << std::setw(4)
              << cp.step << ".dat";

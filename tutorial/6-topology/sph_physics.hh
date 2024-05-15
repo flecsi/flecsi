@@ -1,8 +1,7 @@
 #ifndef TUTORIAL_6_TOPOLOGY_SPH_PHYSICS_HH
 #define TUTORIAL_6_TOPOLOGY_SPH_PHYSICS_HH
 
-#include <flecsi/exec/kernel.hh>
-#include <flecsi/runtime.hh>
+#include <flecsi/execution.hh>
 
 namespace sph {
 

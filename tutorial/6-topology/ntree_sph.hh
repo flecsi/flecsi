@@ -4,12 +4,10 @@
 #ifndef TUTORIAL_6_TOPOLOGY_NTREE_SPH_HH
 #define TUTORIAL_6_TOPOLOGY_NTREE_SPH_HH
 
-#include "flecsi/data.hh"
-#include "flecsi/topo/ntree/interface.hh"
-#include "flecsi/topo/ntree/types.hh"
-#include "flecsi/util/geometry/filling_curve_key.hh"
-#include "flecsi/util/geometry/point.hh"
 #include "sph_physics.hh"
+#include <flecsi/data.hh>
+#include <flecsi/topology.hh>
+#include <flecsi/utilities.hh>
 
 // Sort entities used to create the initial ntree
 template<flecsi::Dimension DIM, typename T, class KEY>
@@ -34,8 +32,8 @@ struct sph_ntree_t
   : flecsi::topo::specialization<flecsi::topo::ntree, sph_ntree_t> {
 
   //-------------------- Base policy inputs --------------------- //
-  static constexpr unsigned int dimension = 1;
-  static constexpr unsigned int max_neighbors = 32;
+  static constexpr flecsi::Dimension dimension = 1;
+  static constexpr flecsi::util::id max_neighbors = 32;
   using key_int_t = uint64_t;
   using key_t = flecsi::util::morton_key<dimension, key_int_t>;
   // In this hashing function we use the low bits (less than 22) to scatter the

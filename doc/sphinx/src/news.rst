@@ -81,7 +81,7 @@ New features
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
   * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
-  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend.
+  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend
 
