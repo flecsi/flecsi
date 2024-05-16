@@ -9,7 +9,6 @@
 #if defined(FLECSI_ENABLE_FLOG)
 #include "flecsi/flog/message.hh"
 #include "flecsi/flog/severity.hh"
-#include "flecsi/flog/tag_scope.hh"
 #endif
 
 #include "flecsi/flog/utils.hh"
@@ -20,6 +19,7 @@
 #include <set>
 #include <sstream>
 #include <unordered_set>
+#include <utility> // exchange
 #include <vector>
 
 #include <unistd.h>
@@ -188,8 +188,6 @@ struct stream<std::unordered_set<T>> {
 };
 } // namespace detail
 
-struct guard;
-
 /*!
   Create a tag group to enable/disable output using guards.
 
@@ -198,14 +196,14 @@ struct guard;
  */
 
 struct tag {
-  friend guard;
+  tag(const char * label) : id(state::register_tag(label)) {}
 
-  tag(const char * label) : label_(label) {
-    state::register_tag(label);
+  std::size_t operator+() const {
+    return id;
   }
 
 private:
-  std::string label_;
+  std::size_t id;
 }; // struct tag
 const inline tag unscoped_tag("unscoped");
 
@@ -217,10 +215,18 @@ const inline tag unscoped_tag("unscoped");
  */
 
 struct guard {
-  guard(tag const & t) : scope_(state::lookup_tag(t.label_.c_str())) {}
+  guard(const tag & t) : prev(std::exchange(state::active_tag(), +t)) {
+#if defined(FLOG_ENABLE_DEBUG)
+    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: activating tag " << tag
+              << FLOG_COLOR_PLAIN << std::endl;
+#endif
+  }
+  ~guard() {
+    state::active_tag() = prev;
+  }
 
 private:
-  tag_scope_t scope_;
+  std::size_t prev;
 }; // struct guard
 
 /*!

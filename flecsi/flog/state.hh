@@ -219,17 +219,6 @@ public:
 #endif // FLOG_ENABLE_TAGS
   } // tag_enabled
 
-  static std::size_t lookup_tag(const char * tag) {
-    if(tag_map_.find(tag) == tag_map_.end()) {
-      std::cerr << FLOG_COLOR_YELLOW << "FLOG: !!!WARNING " << tag
-                << " has not been registered. Ignoring this group..."
-                << FLOG_COLOR_PLAIN << std::endl;
-      return 0;
-    } // if
-
-    return tag_map_[tag];
-  }
-
 #if defined(FLOG_ENABLE_MPI)
   using clock = std::chrono::system_clock;
   using packet_t = std::pair<std::chrono::time_point<clock>, std::string>;
