@@ -8,12 +8,12 @@ const field<bool>::definition<sph_ntree_t> is_wall;
 
 void
 density_task(sph_ntree_t::accessor<ro, ro> t,
-  field<double>::accessor<wo, ro> rho) {
+  field<double>::accessor<wo, na> rho) {
   sph::density(t, rho.span());
 }
 
 void
-eos_task(sph_ntree_t::accessor<ro, ro> t,
+eos_task(sph_ntree_t::accessor<ro, na> t,
   field<double>::accessor<wo, na> p,
   field<double>::accessor<ro, na> rho,
   field<double>::accessor<ro, na> u) {
@@ -37,7 +37,7 @@ dudt_task(sph_ntree_t::accessor<ro, ro> t,
   field<double>::accessor<ro, ro> rho,
   field<double>::accessor<ro, ro> p,
   field<double>::accessor<ro, ro> u,
-  field<bool>::accessor<ro, ro> is_w) {
+  field<bool>::accessor<rw, ro> is_w) {
   sph::dudt(
     t, v.span(), rho.span(), p.span(), u.span(), is_w.span(), dudt.span());
 }
@@ -54,12 +54,12 @@ init_sodtube_task(sph_ntree_t::accessor<ro, na> t,
 } // init_sodtube_task
 
 void
-advance_task(sph_ntree_t::accessor<rw, wo> t,
-  field<double>::accessor<rw, wo> v,
-  field<double>::accessor<ro, ro> dvdt,
-  field<double>::accessor<rw, wo> u,
-  field<double>::accessor<ro, ro> dudt,
-  field<bool>::accessor<ro, wo> is_w) {
+advance_task(sph_ntree_t::accessor<rw, na> t,
+  field<double>::accessor<rw, na> v,
+  field<double>::accessor<ro, na> dvdt,
+  field<double>::accessor<rw, na> u,
+  field<double>::accessor<ro, na> dudt,
+  field<bool>::accessor<ro, na> is_w) {
   sph::advance(t, v.span(), dvdt.span(), u.span(), dudt.span(), is_w.span());
 }
 
@@ -82,37 +82,42 @@ initialize_action(sph::control_policy & cp) {
   flecsi::execute<init_sodtube_task>(cp.sph_ntree, rho, p, v, u, is_w);
 }
 
-void
-output_task(sph_ntree_t::accessor<ro, ro> t,
-  field<double>::accessor<ro, ro> rho,
-  field<double>::accessor<ro, ro> p,
-  field<double>::accessor<ro, ro> v,
-  field<double>::accessor<ro, ro> u,
-  field<double>::accessor<ro, ro> dudt,
-  field<double>::accessor<ro, ro> dvdt,
-  int nfile) {
-  std::ofstream file("output_sodtube_" + std::to_string(nfile) + '_' +
-                     std::to_string(process()) + ".dat");
-  file << "x rho p v u dudt dvdt\n";
-  for(auto e : t.entities()) {
-    file << t.e_i[e].coordinates[0] << ' ' << rho[e] << ' ' << p[e] << ' '
-         << v[e] << ' ' << u[e] << ' ' << dudt[e] << ' ' << dvdt[e] << '\n';
-  }
+int
+output_task(sph_ntree_t::accessor<ro, na> t,
+  field<double>::accessor<ro, na> rho,
+  field<double>::accessor<ro, na> p,
+  field<double>::accessor<ro, na> v,
+  field<double>::accessor<ro, na> u,
+  field<double>::accessor<ro, na> dudt,
+  field<double>::accessor<ro, na> dvdt,
+  int nfile,
+  int intv) {
+  if(nfile % intv == 0) {
+    std::ofstream file("output_sodtube_" + std::to_string(nfile) + '_' +
+                       std::to_string(process()) + ".dat");
+    file << "x rho p v u dudt dvdt\n";
+    for(auto e : t.entities()) {
+      file << t.e_i[e].coordinates[0] << ' ' << rho[e] << ' ' << p[e] << ' '
+           << v[e] << ' ' << u[e] << ' ' << dudt[e] << ' ' << dvdt[e] << '\n';
+    }
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
-  // This allows to draw a representation of the N-Tree using graphviz.
-  t.graphviz_draw(nfile);
+    std::ostringstream oss;
+    oss << std::setw(3) << std::setfill('0') << nfile;
+    t.graphviz_draw(oss.str());
 #endif
+  }
+  return 0;
 }
 
 void
-merge_output(int mi) {
-  for(int i = 0; i < mi; i += 100) {
+merge_output(sph::control_policy & cp) {
+  if(process() == 0 && cp.step % cp.intv == 0) {
     std::ostringstream filename;
-    filename << "output_sodtube_" << std::setfill('0') << std::setw(4) << i
-             << ".dat";
+    filename << "output_sodtube_" << std::setfill('0') << std::setw(4)
+             << cp.step << ".dat";
     std::ofstream file(std::move(filename).str());
     for(unsigned int c = 0; c < processes(); ++c) {
-      std::string fname = "output_sodtube_" + std::to_string(i) + '_' +
+      std::string fname = "output_sodtube_" + std::to_string(cp.step) + '_' +
                           std::to_string(c) + ".dat";
       file << std::ifstream(fname).rdbuf();
       std::remove(fname.c_str());
@@ -141,29 +146,22 @@ iterate_action(sph::control_policy & cp) {
 
 void
 output_action(sph::control_policy & cp) {
-  if(cp.step % 100 == 0) {
-    auto rho = density(cp.sph_ntree);
-    auto p = pressure(cp.sph_ntree);
-    auto u = energy(cp.sph_ntree);
-    auto v = velocity(cp.sph_ntree);
-    auto dvdt = acceleration(cp.sph_ntree);
-    auto dudt = d_energy(cp.sph_ntree);
+  auto rho = density(cp.sph_ntree);
+  auto p = pressure(cp.sph_ntree);
+  auto u = energy(cp.sph_ntree);
+  auto v = velocity(cp.sph_ntree);
+  auto dvdt = acceleration(cp.sph_ntree);
+  auto dudt = d_energy(cp.sph_ntree);
 
-    flecsi::execute<output_task>(
-      cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step);
-  }
-}
-
-void
-finalize_action(sph::control_policy & cp) {
-  if(process() == 0)
-    merge_output(cp.max_iterations);
+  auto f = flecsi::execute<output_task>(
+    cp.sph_ntree, rho, p, v, u, dudt, dvdt, cp.step, cp.intv);
+  f.wait();
+  merge_output(cp);
 }
 
 sph::control::action<initialize_action, sph::cp::initialize> init;
 sph::control::action<iterate_action, sph::cp::iterate> it;
 sph::control::action<output_action, sph::cp::output> out;
-sph::control::action<finalize_action, sph::cp::finalize> fin;
 
 int
 main(int argc, char ** argv) {

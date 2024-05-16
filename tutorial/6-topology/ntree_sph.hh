@@ -4,12 +4,10 @@
 #ifndef TUTORIAL_6_TOPOLOGY_NTREE_SPH_HH
 #define TUTORIAL_6_TOPOLOGY_NTREE_SPH_HH
 
-#include "flecsi/data.hh"
-#include "flecsi/topo/ntree/interface.hh"
-#include "flecsi/topo/ntree/types.hh"
-#include "flecsi/util/geometry/filling_curve_key.hh"
-#include "flecsi/util/geometry/point.hh"
 #include "sph_physics.hh"
+#include <flecsi/data.hh>
+#include <flecsi/topology.hh>
+#include <flecsi/utilities.hh>
 
 // Sort entities used to create the initial ntree
 template<flecsi::Dimension DIM, typename T, class KEY>
@@ -34,13 +32,14 @@ struct sph_ntree_t
   : flecsi::topo::specialization<flecsi::topo::ntree, sph_ntree_t> {
 
   //-------------------- Base policy inputs --------------------- //
-  static constexpr unsigned int dimension = 1;
+  static constexpr flecsi::Dimension dimension = 1;
+  static constexpr flecsi::util::id max_neighbors = 32;
   using key_int_t = uint64_t;
   using key_t = flecsi::util::morton_key<dimension, key_int_t>;
   // In this hashing function we use the low bits (less than 22) to scatter the
   // leaves but gather the roots. This is particularly efficient since the roots
   // are accessed more often during the neighbor search.
-  static std::size_t hash(const key_t & k) {
+  FLECSI_INLINE_TARGET static std::size_t hash(const key_t & k) {
     return static_cast<std::size_t>(k.value() & ((1 << 22) - 1));
   }
   template<auto>
@@ -68,7 +67,7 @@ struct sph_ntree_t
   // In this implementation the interactions are computed using spheres.
   // If the two spheres are in contact, there is an interaction.
   template<typename T1, typename T2>
-  static bool intersect(const T1 & in1, const T2 & in2) {
+  FLECSI_INLINE_TARGET static bool intersect(const T1 & in1, const T2 & in2) {
     return distance(in1.coordinates, in2.coordinates) <=
            in1.radius + in2.radius;
   } // intersect

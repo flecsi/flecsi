@@ -6,9 +6,6 @@ flecsi_headers(
   size.hh
   narray/interface.hh
   narray/types.hh
-  ntree/coloring.hh
-  ntree/interface.hh
-  ntree/types.hh
   set/interface.hh
   unstructured/coloring_functors.hh
   unstructured/coloring_utils.hh
@@ -16,6 +13,14 @@ flecsi_headers(
   unstructured/types.hh
   types.hh
 )
+
+if(FLECSI_BACKEND STREQUAL "legion")
+  flecsi_headers(
+    ntree/coloring.hh
+    ntree/interface.hh
+    ntree/types.hh
+  )
+endif()  
 
 # index -----------------------------------------------------------------------#
 

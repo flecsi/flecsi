@@ -1,7 +1,7 @@
 #ifndef TUTORIAL_6_TOPOLOGY_SPH_PHYSICS_HH
 #define TUTORIAL_6_TOPOLOGY_SPH_PHYSICS_HH
 
-#include <flecsi/runtime.hh>
+#include <flecsi/execution.hh>
 
 namespace sph {
 
@@ -17,11 +17,56 @@ const inline double rho_l = 0.125;
 const inline double rho_h = 1.;
 } // namespace constants
 
-double kernel(double r, double h);
-double grad_kernel(double rij, double h);
-double mu(double r, double v, double hab);
-double sound_speed(double u);
-double viscosity(double r, double v, double rho_ab, double hab, double cs);
+FLECSI_INLINE_TARGET double
+kernel(double r, double h) {
+  const auto q = r / h;
+  const double sigma = constants::sigma / h;
+  double result = 0.;
+  if(q < 0)
+    ;
+  else if(q < 1)
+    result = sigma * (1. - 1.5 * q * q + .75 * q * q * q);
+  else if(q <= 2)
+    result = sigma * (.25 * (2 - q) * (2 - q) * (2 - q));
+  assert(result >= 0.);
+  return result;
+}
+
+FLECSI_INLINE_TARGET double
+grad_kernel(double rij, double h) {
+  const auto r = std::abs(rij);
+  const auto q = r / h;
+  const double sigma = constants::sigma / (h * h);
+  double result = 0.;
+  if(q < 0)
+    ;
+  else if(q < 1)
+    result = sigma * (-3 * q + 9. / 4. * q * q) * rij;
+  else if(q <= 2)
+    result = sigma * (-.75 * (2 - q) * (2 - q)) * rij;
+  return result;
+}
+
+FLECSI_INLINE_TARGET double
+mu(double r, double v, double hab) {
+  const double eps = constants::epsilon * hab * hab;
+  return hab * r * v / (r * r + eps);
+}
+
+FLECSI_INLINE_TARGET double
+sound_speed(double u) {
+  return std::sqrt(constants::gamma * (constants::gamma - 1.) * u);
+}
+
+FLECSI_INLINE_TARGET double
+viscosity(double r, double v, double rho_ab, double hab, double cs) {
+  double visc = 0.;
+  if(r * v < 0) {
+    auto m = mu(r, v, hab);
+    visc = (-constants::alpha * cs * m + constants::beta * m * m) / rho_ab;
+  }
+  return visc;
+}
 
 template<typename T>
 void
@@ -29,9 +74,9 @@ eos(T & t,
   flecsi::util::span<const double> rho,
   flecsi::util::span<const double> u,
   flecsi::util::span<double> p) {
-  for(auto e : t.entities()) {
+  forall(e, t.entities(), "compute EOS") {
     p[e] = (constants::gamma - 1) * rho[e] * u[e];
-  }
+  };
 }
 
 template<typename T>
@@ -39,7 +84,7 @@ void
 init_base(T & e, std::size_t global_nents, std::size_t offset) {
   const double h = 1. / static_cast<double>(global_nents);
   for(std::size_t i = 0; i < e.size(); ++i) {
-    e[i].radius_ = h;
+    e[i].radius_ = 2 * h + h / 4.;
     e[i].coordinates_ = h * (offset + i);
     e[i].id_ = offset + i;
     e[i].mass_ =
@@ -55,7 +100,7 @@ init_physics(T & t,
   flecsi::util::span<double> p,
   flecsi::util::span<double> u,
   flecsi::util::span<bool> is_w) {
-  for(auto a : t.entities()) {
+  forall(a, t.entities(), "Init Physics") {
     v[a] = 0.;
     if(t.e_i[a].coordinates[0] < 0.5) {
       rho[a] = 1.0;
@@ -68,14 +113,14 @@ init_physics(T & t,
     u[a] = p[a] / ((constants::gamma - 1) * rho[a]);
     is_w[a] =
       !((t.e_i(a).coordinates[0] > 0.05) && (t.e_i(a).coordinates[0] < 0.95));
-  }
+  };
 }
 
 // Compute density
 template<typename T>
 void
 density(T && t, flecsi::util::span<double> rho) {
-  for(auto e : t.entities()) {
+  forall(e, t.entities(), "density") {
     rho[e] = 0;
     for(auto n : t.neighbors(e)) {
       const double h = (t.e_i[e].radius + t.e_i[n].radius) * 0.5;
@@ -83,7 +128,7 @@ density(T && t, flecsi::util::span<double> rho) {
         std::abs(t.e_i[e].coordinates[0] - t.e_i[n].coordinates[0]);
       rho[e] += t.e_i[n].mass * kernel(x, h);
     }
-  }
+  };
 } // density
 
 template<typename T>

@@ -48,22 +48,23 @@ public:
 
   hcell_base_t(const key_t & key) : key_(key) {}
 
-  key_t key() const {
+  constexpr key_t key() const {
     return key_;
   }
 
-  size_t ent_idx() const {
+  constexpr std::size_t ent_idx() const {
     assert(is_ent_);
     assert(!is_node_);
     return idx_;
   }
-  size_t node_idx() const {
+
+  constexpr std::size_t node_idx() const {
     assert(!is_ent_);
     assert(is_node_);
     return idx_;
   }
 
-  size_t idx() const {
+  std::size_t idx() const {
     return idx_;
   }
 
@@ -101,11 +102,11 @@ public:
   void add_child(const int & c) {
     type_ |= (1 << c);
   }
-  bool is_ent() const {
+  constexpr bool is_ent() const {
     return is_ent_;
   }
 
-  bool is_node() const {
+  constexpr bool is_node() const {
     return is_node_;
   }
 
@@ -113,11 +114,11 @@ public:
     return type_;
   }
 
-  bool has_child(std::size_t c) const {
+  constexpr bool has_child(std::size_t c) const {
     return type_ & (1 << c);
   }
 
-  bool has_child() const {
+  constexpr bool has_child() const {
     return type_ & CHILD_MASK;
   }
 

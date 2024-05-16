@@ -1,3 +1,4 @@
+#include "flecsi/util/hashtable.hh"
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/util/array_ref.hh"

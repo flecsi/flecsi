@@ -31,6 +31,7 @@
 #include "flecsi/util/dag.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/dimensioned_array.hh"
+#include "flecsi/util/geometry/filling_curve_key.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/reorder.hh"
 #include "flecsi/util/serialize.hh"

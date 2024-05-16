@@ -29,15 +29,37 @@ class graphviz
     return const_cast<char *>(s);
   }
 
+  struct agstr {
+    agstr(Agraph_t * g, const char * s) : g(g), s(s) {}
+    agstr(agstr && a) noexcept : s(std::exchange(a.s, {})) {}
+    ~agstr() {
+      if(s && agstrfree(g, s) != 0)
+        flog_fatal("CGraph couldnt free const char* " << s);
+    }
+    agstr & operator=(agstr a) & noexcept {
+      std::swap(g, a.g);
+      std::swap(s, a.s);
+      return *this;
+    }
+    operator const char *() const {
+      return s;
+    }
+
+  private:
+    Agraph_t * g;
+    const char * s;
+  };
+
 public:
   explicit graphviz(const std::string & name) : graphviz(name.c_str()) {}
   explicit graphviz(const char * name)
     : graph_(agopen(cc(name), Agdirected, nullptr)) {
     const auto a = [&](int k, const char * n, const char * v) {
-      agattr(g(), k, cc(n), cc(v));
+      agattr(g(), k, cc(n), v);
     };
 
     a(AGRAPH, "nodesep", ".5");
+    a(AGRAPH, "forcelabels", "true");
 
     // set default node attributes
     a(AGNODE, "label", "");
@@ -47,6 +69,7 @@ public:
     a(AGNODE, "style", "");
     a(AGNODE, "fillcolor", "lightgrey");
     a(AGNODE, "fontcolor", "black");
+    a(AGNODE, "xlabel", "");
 
     // set default edge attributes
     a(AGEDGE, "dir", "forward");
@@ -73,7 +96,7 @@ public:
     Agnode_t * node = agnode(g(), cc(name), ag_create);
 
     if(label != nullptr) {
-      agset(node, cc("label"), cc(label));
+      agset(node, cc("label"), label);
     } // if
 
     return node;
@@ -86,7 +109,7 @@ public:
   /// Set a node attribute.
   void
   set_node_attribute(Agnode_t * node, const char * attr, const char * value) {
-    agset(node, cc(attr), cc(value));
+    agset(node, cc(attr), value);
   } // set_node_attribute
 
   /// Add an edge to the graph.
@@ -96,7 +119,7 @@ public:
 
   void
   set_edge_attribute(Agedge_t * edge, const char * attr, const char * value) {
-    agset(edge, cc(attr), cc(value));
+    agset(edge, cc(attr), value);
   } // set_edge_attribute
 
   void write(const std::string & name) const {
@@ -107,6 +130,11 @@ public:
     if(agwrite(g(), FILE(name, "w")))
       throw std::runtime_error("could not write graph");
   } // write
+
+  /// Convert a label to HTML
+  agstr html_label(const char * label) {
+    return {g(), agstrdup_html(g(), label)};
+  }
 
 private:
   Agraph_t * g() const {

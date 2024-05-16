@@ -33,7 +33,7 @@ private:
   const ht_t * h_;
 
   friend hashtable<KEY, TYPE, HASH>;
-  hashtableIterator(ht_type_t * p, const ht_t * h) : ptr_(p), h_(h) {}
+  constexpr hashtableIterator(ht_type_t * p, const ht_t * h) : ptr_(p), h_(h) {}
 
 public:
   ht_type_t & operator*() const {
@@ -47,11 +47,11 @@ public:
     return *this;
   }
 
-  bool operator==(const hashtableIterator & iter) const {
+  constexpr bool operator==(const hashtableIterator & iter) const {
     return this->ptr_ == iter.ptr_;
   }
 
-  bool operator!=(const hashtableIterator & iter) const {
+  constexpr bool operator!=(const hashtableIterator & iter) const {
     return this->ptr_ != iter.ptr_;
   }
 
@@ -85,13 +85,13 @@ private:
   constexpr static std::size_t max_find_ = 10;
 
 public:
-  hashtable(const util::span<pair_t> & span) {
+  constexpr hashtable(const util::span<pair_t> & span) {
     span_ = span;
   }
 
   // Find a value in the hashtable
   // While the value or a null key is not found we keep looping
-  iterator find(const key_t & key) const {
+  constexpr iterator find(const key_t & key) const {
     std::size_t h = HASH::hash(key) % span_.size();
     pointer ptr = span_.data() + h;
     std::size_t iter = 0;
@@ -132,18 +132,16 @@ public:
   /**
    * @brief Return a reference to the object with corresponding key
    */
-  type_t & at(const key_t & k) {
+  constexpr type_t & at(const key_t & k) {
     auto f = find(k);
-    if(f == end()) {
-      throw std::out_of_range("Key out of range.");
-    }
+    assert(f != end() && "Key out of range.");
     return f->second;
   }
 
   /**
    * @brief Return a const reference to the object with corresponding key
    */
-  const type_t & at(const key_t & k) const {
+  constexpr const type_t & at(const key_t & k) const {
     return const_cast<hashtable &>(*this).at(k);
   }
 

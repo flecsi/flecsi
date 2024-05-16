@@ -29,6 +29,15 @@
 /// \see FLECSI_TARGET
 #define FLECSI_INLINE_TARGET KOKKOS_INLINE_FUNCTION
 
+#ifdef DOXYGEN
+/// Specify if the code is being built on GPU.
+#define FLECSI_DEVICE_CODE
+#endif
+
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#define FLECSI_DEVICE_CODE
+#endif
+
 #endif // FLECSI_ENABLE_KOKKOS
 
 //----------------------------------------------------------------------------//

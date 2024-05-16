@@ -77,7 +77,7 @@ public:
     return max_depth_ - (__builtin_clz(value_) - leading_zeros) / dimension;
   }
   /// Push bits onto the end of this key
-  auto push(int_t bits) const {
+  constexpr auto push(int_t bits) const {
     auto ret = *this;
     assert(bits < int_t(1) << dimension);
     ret.value_ <<= dimension;
@@ -125,7 +125,7 @@ public:
     return ostr;
   }
   /// Get the value associated to this key
-  int_t value() const {
+  constexpr int_t value() const {
     return value_;
   }
 

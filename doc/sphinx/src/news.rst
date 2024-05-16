@@ -54,6 +54,7 @@ Deprecated
     ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
     ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
     ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
+  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 New features
 ^^^^^^^^^^^^
@@ -80,7 +81,7 @@ New features
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
   * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
-  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend.
+  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend
 

@@ -16,9 +16,9 @@ namespace topo {
 struct ntree_base {
 
   /// Index spaces used for the ntree topology
-  enum index_space { entities, nodes, hashmap, tree_data, meta, comms };
+  enum index_space { entities, nodes, hashmap, tree_data, comms };
   using index_spaces =
-    util::constants<entities, nodes, hashmap, tree_data, meta, comms>;
+    util::constants<entities, nodes, hashmap, tree_data, comms>;
   /// Parallel types for nodes and entities.
   enum ptype_t {
     exclusive, ///< Owned data.
@@ -62,7 +62,9 @@ protected:
 
   struct meta_type {
     std::size_t max_depth;
-    ent_node local, ghosts, top_tree;
+    ent_node local;
+    util::id ghosts;
+    util::id top_tree;
     util::id nents_recv;
   };
 

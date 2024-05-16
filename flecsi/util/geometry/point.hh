@@ -40,7 +40,7 @@ operator*(TYPE const val, point<TYPE, DIMENSION> const & p) {
 /// \tparam TYPE      The type to use to represent coordinate values.
 /// \tparam DIMENSION The dimension of the point.
 template<typename TYPE, Dimension DIMENSION>
-TYPE
+constexpr TYPE
 distance(point<TYPE, DIMENSION> const & a, point<TYPE, DIMENSION> const & b) {
   TYPE sum(0);
   for(Dimension d = 0; d < DIMENSION; ++d) {
