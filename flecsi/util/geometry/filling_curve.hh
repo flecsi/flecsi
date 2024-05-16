@@ -295,10 +295,7 @@ private:
         coords[0] = n - 1 - coords[0];
         coords[1] = n - 1 - coords[1];
       }
-      // Swap X-Y
-      int t = coords[0];
-      coords[0] = coords[1];
-      coords[1] = t;
+      std::swap(coords[0], coords[1]);
     }
   }
 
