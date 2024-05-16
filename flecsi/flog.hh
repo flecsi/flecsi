@@ -221,6 +221,7 @@ struct guard {
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
   }
+  guard(guard &&) = delete;
   ~guard() {
     state::active_tag() = prev;
   }
@@ -383,6 +384,7 @@ struct tag {
 };
 struct guard {
   guard(tag const &) {}
+  guard(guard &&) = delete;
 };
 
 inline void

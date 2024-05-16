@@ -57,6 +57,7 @@ struct context_t : context {
     depth_guard() {
       ++depth;
     }
+    depth_guard(depth_guard &&) = delete;
     ~depth_guard() {
       --depth;
     }

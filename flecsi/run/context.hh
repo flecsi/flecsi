@@ -497,6 +497,7 @@ struct task_local_base {
       for(auto * p : all)
         p->emplace();
     }
+    guard(guard &&) = delete;
     ~guard() {
       for(auto * p : all)
         p->reset();

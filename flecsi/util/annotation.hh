@@ -268,6 +268,7 @@ public:
   guard(Arg && a) {
     ctx::template begin_eager<severity>(std::forward<Arg>(a));
   }
+  guard(guard &&) = delete;
   ~guard() {
     ctx::template end<severity>();
   }
@@ -291,6 +292,7 @@ public:
   rguard(Arg &&... a) {
     region_begin<reg>(std::forward<Arg>(a)...);
   }
+  rguard(rguard &&) = delete;
   ~rguard() {
     region_end<reg>();
   }
