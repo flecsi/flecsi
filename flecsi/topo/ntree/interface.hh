@@ -195,7 +195,7 @@ private:
   // Add the top tree to the local tree.
   // First step is to load the top tree entities and nodes.
   // The new sizes are then returned to create the copy plan for the top tree.
-  static auto make_tree_distributed_task(
+  static void make_tree_distributed_task(
     typename Policy::template accessor<rw, na> t,
     const std::vector<hcell_t> & v) {
     t.add_boundaries(v);
