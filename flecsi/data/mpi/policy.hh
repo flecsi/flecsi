@@ -393,11 +393,6 @@ struct partition {
       AccessPrivilege>(fid, nelems * item_size);
   }
 
-  template<topo::single_space>
-  partition & get_partition() {
-    return *this;
-  }
-
 private:
   region_impl * r;
 
@@ -413,6 +408,11 @@ protected:
 // forward declarations
 struct partition : mpi::partition { // instead of "using partition ="
   using mpi::partition::partition;
+
+  template<topo::single_space>
+  partition & get_partition() {
+    return *this;
+  }
 };
 
 namespace mpi {

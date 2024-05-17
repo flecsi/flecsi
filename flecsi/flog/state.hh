@@ -18,6 +18,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <functional>
+#include <iomanip>
 #include <optional>
 #include <string>
 #include <thread>
@@ -75,6 +76,9 @@ public:
     // constexpr string creation.
 
     for(auto & tag : active) {
+#ifdef FLOG_ENABLE_DEBUG
+      std::cerr << "FLOG: active tag " << std::quoted(tag) << '\n';
+#endif
       if(tag == "all")
         tag_bitset_.set();
       else if(tag_map_.find(tag) != tag_map_.end()) {
@@ -86,11 +90,6 @@ public:
                   << std::endl;
       }
     }
-
-#if defined(FLOG_ENABLE_DEBUG)
-    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: active tags (" << active << ")"
-              << FLOG_COLOR_PLAIN << std::endl;
-#endif
 #else
     (void)active;
 #endif // FLOG_ENABLE_TAGS
@@ -219,17 +218,6 @@ public:
     return true;
 #endif // FLOG_ENABLE_TAGS
   } // tag_enabled
-
-  static std::size_t lookup_tag(const char * tag) {
-    if(tag_map_.find(tag) == tag_map_.end()) {
-      std::cerr << FLOG_COLOR_YELLOW << "FLOG: !!!WARNING " << tag
-                << " has not been registered. Ignoring this group..."
-                << FLOG_COLOR_PLAIN << std::endl;
-      return 0;
-    } // if
-
-    return tag_map_[tag];
-  }
 
 #if defined(FLOG_ENABLE_MPI)
   using clock = std::chrono::system_clock;

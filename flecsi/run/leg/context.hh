@@ -73,7 +73,7 @@ struct context_t : context {
 
   context_t(const arguments::config &);
 
-  int start(const std::function<int()> &);
+  [[nodiscard]] int start(const std::function<int()> &);
 
   static int task_depth() {
     return Legion::Runtime::get_runtime()
@@ -129,7 +129,7 @@ struct context_t : context {
     handshake_.legion_wait_on_mpi();
   }
 
-  static Legion::LocalVariableID local_variable() {
+  [[nodiscard]] static Legion::LocalVariableID local_variable() {
     return next_var++;
   }
 

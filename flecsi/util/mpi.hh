@@ -297,7 +297,7 @@ struct future {
   T * data() {
     return &t;
   }
-  MPI_Request * request() {
+  [[nodiscard]] MPI_Request * request() {
     return req();
   }
 

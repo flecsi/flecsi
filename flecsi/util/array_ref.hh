@@ -284,7 +284,7 @@ struct iota_view {
       ++i;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
+    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
@@ -293,7 +293,7 @@ struct iota_view {
       --i;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
+    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;
@@ -430,7 +430,7 @@ public:
     ++i;
     return *this;
   }
-  FLECSI_INLINE_TARGET index_iterator operator++(int) {
+  [[nodiscard]] FLECSI_INLINE_TARGET index_iterator operator++(int) {
     index_iterator ret = *this;
     ++*this;
     return ret;
@@ -439,7 +439,7 @@ public:
     --i;
     return *this;
   }
-  FLECSI_INLINE_TARGET index_iterator operator--(int) {
+  [[nodiscard]] FLECSI_INLINE_TARGET index_iterator operator--(int) {
     index_iterator ret = *this;
     --*this;
     return ret;
@@ -552,7 +552,7 @@ public:
       ++p;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
+    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator++(int) {
       const iterator ret = *this;
       ++*this;
       return ret;
@@ -561,7 +561,7 @@ public:
       --p;
       return *this;
     }
-    FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
+    [[nodiscard]] FLECSI_INLINE_TARGET constexpr iterator operator--(int) {
       const iterator ret = *this;
       --*this;
       return ret;

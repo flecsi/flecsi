@@ -134,7 +134,7 @@ struct buffers_base {
         return *b;
       }
       template<class T>
-      bool operator()(const T & t) { // false if full
+      [[nodiscard]] bool operator()(const T & t) { // false if full
         std::size_t o = p - b->data.data();
         util::serial::put(o, t);
         const bool ret = o <= size;
@@ -333,7 +333,7 @@ struct buffers : topo::specialization<detail::buffers_category, buffers> {
      \return boolean indicating that row data can be fitted in the buffer.
     */
     template<class R>
-    bool operator()(const R & rag, std::size_t i, bool & sent) {
+    [[nodiscard]] bool operator()(const R & rag, std::size_t i, bool & sent) {
       const auto full = [&] {
         flog_assert(sent, "no data fits");
         return false;
