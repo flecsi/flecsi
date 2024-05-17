@@ -212,7 +212,7 @@ struct axis_layout {
   template<short E>
   FLECSI_INLINE_TARGET util::id extended() const {
     static_assert(E == 0 || E == 1);
-    return gh[0] + E * (log + bdy[1]);
+    return gh[0] + E * (both(bdy) + log);
   }
 
   void check_halo() const {
