@@ -203,7 +203,7 @@ add_unit(parallel-reduceall)
 # 6-ntree
 #------------------------------------------------------------------------------#
 
-if(FLECSI_BACKEND STREQUAL "legion")
+if(FleCSI_BACKEND STREQUAL "legion")
   add_executable(ntree
     6-topology/ntree.cc
     6-topology/sph_physics.hh
