@@ -234,7 +234,7 @@ private:
 ///   end of a \c periodic axis are considered to be a halo, not a boundary.
 struct axis {
   Color colors; ///< The number of subdivisions for colors.
-  util::gid global_extent; ///< The total number of index points.
+  util::gid extent; ///< The total number of index points.
   util::id bdepth, ///< The depth of boundary at each end (0 if periodic).
     hdepth; ///< The depth of (primary) halos where they appear.
   bool periodic, ///< Whether the axis is periodic.
@@ -267,7 +267,7 @@ struct axis_color {
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
-    return low() && i < l0     ? ax.global_extent - l0 + i
+    return low() && i < l0     ? ax.extent - l0 + i
            : high() && i >= l1 ? i - l1
                                : offset + i - l0;
   }
