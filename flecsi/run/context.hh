@@ -74,7 +74,7 @@ struct arguments {
     enum operation {
       help, ///< Exit with a usage message.
       error, ///< Exit with a command-line error message.
-      run, ///< \ref control::invoke "Invoke" the control model.
+      run, ///< \ref control::execute "Execute" the control model.
       control_model, ///< Write the control model graph.
       control_model_sorted ///< Write the sequence of actions.
     } op; ///< Operation selected.

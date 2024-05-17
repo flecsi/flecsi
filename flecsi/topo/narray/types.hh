@@ -181,7 +181,7 @@ struct axis_layout {
     return bdy[0] + gh[0] + E * log;
   }
 
-  /// The beginning or end of the exclusive logical entities (_i.e._, that are
+  /// The beginning or end of the exclusive logical entities (_i.e.,_ that are
   /// not ghosts elsewhere).
   /// Really the end and beginning of the shared entities on each side; the
   /// end can come first if an entity is shared with both neighbors.

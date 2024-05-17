@@ -229,10 +229,6 @@ public:
       and avoids creating a new instance if possible;
 
    3) It has logic on how to create compacted instances;
-
-    @param ctx Mapper Context
-    @param task Legion's task
-    @param output Output information about task mapping
    */
 
   virtual void map_task(const Legion::Mapping::MapperContext ctx,
