@@ -189,13 +189,11 @@ struct stream<std::unordered_set<T>> {
 } // namespace detail
 
 /*!
-  Create a tag group to enable/disable output using guards.
-
-  @param label The name of the tag.
+  A tag for labeling output to enable.
   \warning Tag variables must not be templated.
  */
-
 struct tag {
+  /// Create a tag.
   tag(const char * label) : id(state::register_tag(label)) {}
 
   std::size_t operator+() const {
@@ -208,13 +206,10 @@ private:
 const inline tag unscoped_tag("unscoped");
 
 /*!
-  Create a guard to control output of flog output within the scope of the
-  guard.
-
-  @param t The tag group that should enable/disable output.
+  Scope guard for categorizing output.
  */
-
 struct guard {
+  /// Create a guard to enable a \c tag.
   guard(const tag & t) : prev(std::exchange(state::active_tag(), +t)) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: activating tag " << tag

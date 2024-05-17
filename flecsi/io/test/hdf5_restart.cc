@@ -57,8 +57,6 @@ clear(mesh1d::accessor<ro> m,
   field<double>::accessor<wo, na> mf2,
   field<int>::accessor<wo, na> mfi,
   field<std::size_t>::accessor<wo, na> mfs,
-  // TODO:  in attach mode, this fails if I change "accessor" to "mutator"
-  //        - why?
   field<int, ragged>::accessor<rw, na> mfr1,
   field<int, ragged>::accessor<rw, na> mfr2) {
   for(auto i : m.range<ax::x_axis>()) {

@@ -132,16 +132,13 @@ struct KDTree {
   overlap intersect(const KDTree &) const;
 
 private:
-  boxes sbox;
+  boxes sbox; // including internal nodes
   std::vector<long> linkp;
 };
+/// \}
 
 /*!
- KDTREE constructor which takes the set of Safety Boxes and
- produces a k-D tree that is stored in the array LINKP. Leaf nodes
- in LINKP each coincide with exactly one Safety Box.  For each node
- in the k-D tree, there is a corresponding Safety Box which is just
- big enough to contain all the Safety Boxes "under" the node.
+ Construct the tree from leaf bounding boxes.
  \param sboxp vector of safety boxes
 */
 
@@ -350,7 +347,6 @@ KDTree<DIM>::intersect(const KDTree & k) const {
 
   return ret;
 }
-/// \}
 } // namespace util
 } // namespace flecsi
 /// \endcond

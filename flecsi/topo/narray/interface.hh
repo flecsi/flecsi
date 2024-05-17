@@ -349,7 +349,6 @@ private:
    Method to create copy plans for entities of an index-space.
    @param colors  The number of colors
    @param idef index definition
-   @param p partition
   */
   template<index_space S>
   data::copy_plan make_copy_plan(Color colors, index_definition const & idef) {
