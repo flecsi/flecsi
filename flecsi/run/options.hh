@@ -59,7 +59,7 @@ option_value(any const & v) {
  */
 
 template<typename ValueType>
-struct program_option {
+struct [[nodiscard]] program_option {
   static const ValueType & unwrap(const boost::any & a) {
     return boost::any_cast<const boost::optional<ValueType> &>(a).value();
   }

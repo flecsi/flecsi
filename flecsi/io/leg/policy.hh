@@ -81,16 +81,6 @@ checkpoint_task(const Legion::Task * task,
       auto & field_set = rr.privilege_fields;
       for(Legion::FieldID i : field_set)
         g(i, m.at(i));
-
-      {
-        flog::devel_guard guard(io_tag);
-        flog_devel(info) << (W ? "Checkpoint" : "Recover")
-                         << " data to HDF5 file " << (A ? "" : "no ")
-                         << "attach " << fname << " region_id " << rid
-                         << " (dataset(fid) size= " << field_set.size() << ")"
-                         << " field_size_map_vector(regions) size "
-                         << field_size_map_vector.size() << std::endl;
-      }
     };
 
     if constexpr(A) {
@@ -235,13 +225,6 @@ struct io_interface {
         checkpoint_launcher.region_requirements[idx].add_field(it.first);
       }
       idx++;
-    }
-
-    {
-      flog::devel_guard guard(io_tag);
-      flog_devel(info) << "Start " << (W ? "checkpoint" : "recover") << " file "
-                       << file_name << " regions size " << isd_vector.size()
-                       << std::endl;
     }
 
     Legion::FutureMap fumap =

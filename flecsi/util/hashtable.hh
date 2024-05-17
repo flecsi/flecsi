@@ -169,7 +169,7 @@ public:
   }
 
   // Check if the hashtable doesnt hold any non-null elements
-  constexpr bool empty() const noexcept {
+  [[nodiscard]] constexpr bool empty() const noexcept {
     return begin() == end();
   }
 

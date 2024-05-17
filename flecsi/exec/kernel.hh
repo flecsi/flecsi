@@ -306,7 +306,7 @@ struct reduce_ref {
 /// \param p sized random-access range
 /// \param name operation name, for debugging
 template<class R, class T, typename Policy, typename Lambda>
-T
+[[nodiscard]] T
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
@@ -340,7 +340,7 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
 template<class Policy, class R, class T>
 struct reduceall_t {
   template<typename Lambda>
-  T operator->*(Lambda lambda) && {
+  [[nodiscard]] T operator->*(Lambda lambda) && {
     return parallel_reduce<R, T>(std::move(policy_), std::move(lambda), name_);
   }
 

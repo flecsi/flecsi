@@ -5,7 +5,6 @@
 #define FLECSI_TOPO_CORE_HH
 
 #include "flecsi/data/field.hh" // cleanup
-#include "flecsi/data/field_info.hh" // TopologyType
 #include "flecsi/data/privilege.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/util/constant.hh"
@@ -37,8 +36,6 @@ template<template<class> class C, class P>
 struct policy<C<P>> {
   using type = P;
 };
-
-inline TopologyType next_id;
 } // namespace detail
 
 // To obtain the base class without instantiating a core topology type:
@@ -215,12 +212,6 @@ struct specialization : specialization_base {
   /// \tparam Priv the appropriate number of privileges
   template<partition_privilege_t... Priv>
   using accessor = data::topology_accessor<D, privilege_pack<Priv...>>;
-
-  // Use functions because these are needed during non-local initialization:
-  static TopologyType id() {
-    static auto ret = detail::next_id++;
-    return ret;
-  }
 
   /// \name Defaults
   /// May be overridden by policy.

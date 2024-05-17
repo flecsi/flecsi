@@ -1,7 +1,7 @@
 CMake for FleCSI client applications
 ####################################
 
-The FleCSI installation provides mutliple CMake files to support
+The FleCSI installation provides multiple CMake files to support
 writing new software.  While the ``FleCSI`` CMake package is used to
 build software on top of FleCSI, the additional CMake files
 provide common CMake code and macros for adding dependencies, building
@@ -69,7 +69,7 @@ documentation system for your own projects.
    which is a Git repository URL. Running the target checks out the
    ``gh-pages`` branch of that repository, clears it and puts the
    result of all documentation targets into it.  Files are only added,
-   but **not** commited or pushed. These are left as manual steps.
+   but **not** committed or pushed. These are left as manual steps.
 
 ``FleCSI/sphinx``
   Adds the ``flecsi_set_sphinx_target_name`` macro, which is used to
@@ -183,8 +183,10 @@ CMake files to allow using it in your own applications.
   If the test uses input files, they can be specified as list of files in
   ``INPUTS``. This ensures they are copied to the execution folder of the test.
 
-  Command-line arguments are passed via the ``ARGUMENTS`` option. You
-  can also control the number of MPI processes with ``PROCS``. If you
+  The ``ARGUMENTS`` option can be used to supply user-defined
+  :ref:`command-line options <program_options>`.
+
+  You can also control the number of MPI processes with ``PROCS``. If you
   provide more than one value in ``PROCS``, this will define one
   test per value with a name ``<test-name>_<value>``.
 

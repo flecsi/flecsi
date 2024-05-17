@@ -1,6 +1,5 @@
 #include "cycle.hh"
 #include "flecsi/flog.hh"
-#include "flecsi/run/options.hh"
 #include "flecsi/util/unit.hh"
 
 using namespace example;

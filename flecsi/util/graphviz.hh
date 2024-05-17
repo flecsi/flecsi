@@ -28,6 +28,10 @@ class graphviz
   static auto cc(const char * s) {
     return const_cast<char *>(s);
   }
+  static void set(void * o, const char * a, const char * v) {
+    if(agset(o, cc(a), v))
+      throw std::runtime_error(std::string("no such attribute: ") + a);
+  }
 
   struct agstr {
     agstr(Agraph_t * g, const char * s) : g(g), s(s) {}
@@ -96,7 +100,7 @@ public:
     Agnode_t * node = agnode(g(), cc(name), ag_create);
 
     if(label != nullptr) {
-      agset(node, cc("label"), label);
+      set(node, "label", label);
     } // if
 
     return node;
@@ -109,7 +113,7 @@ public:
   /// Set a node attribute.
   void
   set_node_attribute(Agnode_t * node, const char * attr, const char * value) {
-    agset(node, cc(attr), value);
+    set(node, attr, value);
   } // set_node_attribute
 
   /// Add an edge to the graph.
@@ -119,7 +123,7 @@ public:
 
   void
   set_edge_attribute(Agedge_t * edge, const char * attr, const char * value) {
-    agset(edge, cc(attr), value);
+    set(edge, attr, value);
   } // set_edge_attribute
 
   void write(const std::string & name) const {

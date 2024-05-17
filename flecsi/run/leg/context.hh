@@ -77,7 +77,7 @@ struct context_t : context {
 
   context_t(const config &);
 
-  int start(const std::function<int()> &, bool);
+  [[nodiscard]] int start(const std::function<int()> &, bool);
 
   static int task_depth() {
     return Legion::Runtime::get_runtime()
@@ -113,11 +113,6 @@ struct context_t : context {
    */
 
   void mpi_call(std::function<void()> mpi_task) {
-    {
-      flog::devel_guard guard(context_tag);
-      flog_devel(info) << "In mpi_call" << std::endl;
-    }
-
     mpi_task_ = std::move(mpi_task);
     mpi_handoff();
     mpi_wait();
@@ -138,7 +133,7 @@ struct context_t : context {
     handshake_.legion_wait_on_mpi();
   }
 
-  static Legion::LocalVariableID local_variable() {
+  [[nodiscard]] static Legion::LocalVariableID local_variable() {
     return next_var++;
   }
 

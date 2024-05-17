@@ -23,9 +23,6 @@
 #include <legion.h>
 
 namespace flecsi {
-
-inline flog::devel_tag execution_tag("execution");
-
 namespace exec {
 /// \defgroup legion-execution Legion Execution
 /// Potentially remote task execution.
@@ -80,9 +77,6 @@ reduce_internal(Args &&... args) {
   using traits_t = util::function_t<F>;
   using return_t = typename traits_t::return_type;
   using param_tuple = typename traits_t::arguments_type;
-
-  // This will guard the entire method
-  flog::devel_guard guard(execution_tag);
 
   // Get the FleCSI runtime context
   auto & flecsi_context = run::context::instance();
@@ -151,8 +145,6 @@ reduce_internal(Args &&... args) {
   };
 
   if constexpr(std::is_same_v<decltype(domain_size), const std::monostate>) {
-    flog_devel(info) << "Executing single task" << std::endl;
-
     TaskLauncher launcher(task, TaskArgument(buf.data(), buf.size()));
     add(launcher);
 
@@ -160,8 +152,6 @@ reduce_internal(Args &&... args) {
       legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
-    flog_devel(info) << "Executing index task" << std::endl;
-
     IndexTaskLauncher launcher(task,
       Domain(0, static_cast<coord_t>(domain_size) - 1),
       {buf.data(), buf.size()},
@@ -176,9 +166,6 @@ reduce_internal(Args &&... args) {
     }
 
     if constexpr(!std::is_void_v<Reduction>) {
-      flog_devel(info) << "executing reduction logic for "
-                       << util::type<Reduction>() << std::endl;
-
       auto ret = future<return_t, launch_type_t::single>{
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};

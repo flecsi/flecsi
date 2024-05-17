@@ -107,7 +107,7 @@ The backends are expected to allocate memory only as necessary for partitions th
 Each topology is a fixed-size set of *index spaces* (*e.g.*, the cells, vertices, and faces of a mesh), each of which is backed by a region (and a partition).
 Often, other regions and partitions are included, organized into *subtopologies* that handle common kinds of data like the count of mesh elements.
 
-The classes ``region_base`` and ``partition`` are entry points.
+The classes ``region_base`` and ``partition`` (and the concrete ``rows`` and ``prefixes`` derived from the latter) are entry points.
 Most other entry points for data handling concern *copy engines*, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion's support for overlapping partitions as a means of transferring data.)
 Each is defined in terms of a field whose value at a destination of the copy is its source index point.
@@ -287,7 +287,7 @@ The basic responsibility of a (core) topology type is to provide access to field
 The client machinery for task launches is backend-specific but not topology-specific; it uses a common interface specified by documentation-only example in ``core.hh``.
 The interface also enables specializations to be defined; the core topology class template accepts the specialization as a template parameter (but neither inherits from the other as in the `CRTP <https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern>`_).
 
-By inheriting from ``specialization``, a topology type is assigned an ID (for field registration), becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
+By inheriting from ``specialization``, a topology type gets some simple default options, becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
 In turn, the topology type can specify index spaces, provide a factory function for coloring objects, extend the core ``access`` type, and supply other category-specific parameters, as also presented in ``core.hh``.
 The coloring *type*, however, is defined by the category (independent of specialization).
 

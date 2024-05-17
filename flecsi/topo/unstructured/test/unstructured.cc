@@ -329,15 +329,8 @@ geomrz_driver() {
       return boxes;
     };
 
-    auto src_boxes = get_boxes(src_mesh);
-    auto trg_boxes = get_boxes(trg_mesh);
-
-    // construct kdtree
-    util::KDTree<2> src_tree(src_boxes);
-    util::KDTree<2> trg_tree(trg_boxes);
-
-    // search two kdtrees
-    const auto candidates_map = util::intersect(src_tree, trg_tree);
+    const auto candidates_map =
+      util::KDTree<2>(get_boxes(trg_mesh)).intersect(get_boxes(src_mesh));
 
     // launch maps
     data::launch::Claims cmap(trg_mesh.colors());

@@ -243,7 +243,7 @@ public:
 
   /// Convert this key to coordinates in range.
   /// \param range The bounding box of the overall domain
-  point_t coordinates(const std::array<point_t, 2> & range) {
+  point_t coordinates(const std::array<point_t, 2> & range) const {
     point_t p;
     int_t key = value_;
     std::array<int_t, dimension> coords;
@@ -281,67 +281,62 @@ public:
   }
 
 private:
-  void rotation2d(const int_t & n,
-    std::array<int_t, dimension> & coords,
-    const std::array<int_t, dimension> & bits) {
+  static void
+  rotation2d(const int_t & n, coord_t & coords, const coord_t & bits) {
     if(bits[1] == 0) {
       if(bits[0] == 1) {
         coords[0] = n - 1 - coords[0];
         coords[1] = n - 1 - coords[1];
       }
-      // Swap X-Y
-      int t = coords[0];
-      coords[0] = coords[1];
-      coords[1] = t;
+      std::swap(coords[0], coords[1]);
     }
   }
 
-  void rotate_90_x(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_90_x(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = tmp[0];
     coords[1] = n - 1 - tmp[2];
     coords[2] = tmp[1];
   }
-  void rotate_90_y(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_90_y(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = tmp[2];
     coords[1] = tmp[1];
     coords[2] = n - 1 - tmp[0];
   }
-  void rotate_90_z(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_90_z(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = n - 1 - tmp[1];
     coords[1] = tmp[0];
     coords[2] = tmp[2];
   }
-  void rotate_180_x(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_180_x(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = tmp[0];
     coords[1] = n - 1 - tmp[1];
     coords[2] = n - 1 - tmp[2];
   }
-  void rotate_270_x(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_270_x(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = tmp[0];
     coords[1] = tmp[2];
     coords[2] = n - 1 - tmp[1];
   }
-  void rotate_270_y(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_270_y(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = n - 1 - tmp[2];
     coords[1] = tmp[1];
     coords[2] = tmp[0];
   }
-  void rotate_270_z(const int_t & n, std::array<int_t, dimension> & coords) {
+  static void rotate_270_z(const int_t & n, coord_t & coords) {
     coord_t tmp = coords;
     coords[0] = tmp[1];
     coords[1] = n - 1 - tmp[0];
     coords[2] = tmp[2];
   }
 
-  void rotation3d(const int_t & n,
-    std::array<int_t, dimension> & coords,
-    const std::array<int_t, dimension> & bits) {
+  static void
+  rotation3d(const int_t & n, coord_t & coords, const coord_t & bits) {
     if(!bits[0] && !bits[1] && !bits[2]) {
       // Left front bottom
       rotate_270_z(n, coords);
@@ -368,9 +363,8 @@ private:
     }
   }
 
-  void unrotation3d(const int_t & n,
-    std::array<int_t, dimension> & coords,
-    const std::array<int_t, dimension> & bits) {
+  static void
+  unrotation3d(const int_t & n, coord_t & coords, const coord_t & bits) {
     if(!bits[0] && !bits[1] && !bits[2]) {
       // Left front bottom
       rotate_90_x(n, coords);
@@ -448,7 +442,7 @@ public:
 
   /// Convert this key to coordinates in range.
   /// range The bounding box of the overall domain
-  point_t coordinates(const std::array<point_t, 2> & range) {
+  point_t coordinates(const std::array<point_t, 2> & range) const {
     point_t p;
     std::array<int_t, dimension> coords;
     coords.fill(int_t(0));
@@ -474,7 +468,7 @@ public:
   /// Compute the bounding box of a branch from its key in the overall domain
   /// The space is recursively decomposed regarding the dimension
   /// \param range The bounding box of the overall domain
-  std::array<point_t, 2> range(const std::array<point_t, 2> & range) {
+  std::array<point_t, 2> range(const std::array<point_t, 2> & range) const {
     // The result range
     std::array<point_t, 2> result;
     result[0] = range[0];

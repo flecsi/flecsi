@@ -20,8 +20,6 @@
 
 namespace flecsi {
 
-inline flog::devel_tag reduction_wrapper_tag("reduction_wrapper");
-
 namespace exec {
 
 namespace detail {

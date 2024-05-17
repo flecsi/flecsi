@@ -11,9 +11,8 @@ flecsi::program_option<int> trim("Car Options",
   {{flecsi::option_default, 1}},
   [](flecsi::any const & v, std::stringstream & ss) {
     const int value = flecsi::option_value<int>(v);
-    return value > 0 && value < 11
-             ? true
-             : (ss << "value(" << value << ") out-of-range") && false;
+    return (value > 0 && value < 11) ||
+           (ss << "value(" << value << ") out-of-range", false);
   });
 
 // Add a string-valued command-line option with a default value of "manual". The
@@ -26,9 +25,8 @@ flecsi::program_option<std::string> transmission("Car Options",
   {{flecsi::option_default, "manual"}},
   [](flecsi::any const & v, std::stringstream & ss) {
     const std::string value = flecsi::option_value<std::string>(v);
-    return value == "manual" || value == "automatic"
-             ? true
-             : (ss << "option(" << value << ") is invalid") && false;
+    return value == "manual" || value == "automatic" ||
+           (ss << "option(" << value << ") is invalid", false);
   });
 
 // Add an option that defines an implicit value. If the program is invoked with
@@ -54,9 +52,8 @@ flecsi::program_option<size_t> purpose("Ride Options",
   {{flecsi::option_default, purpose_option::business}},
   [](flecsi::any const & v, std::stringstream & ss) {
     size_t value = flecsi::option_value<size_t>(v);
-    return value == personal || value == business
-             ? true
-             : (ss << "value(" << value << ") is invalid") && false;
+    return value == personal || value == business ||
+           (ss << "value(" << value << ") is invalid", false);
   });
 
 // Add an option with no default. This will allow us to demonstrate testing an
@@ -76,9 +73,8 @@ flecsi::program_option<std::string> passenger_list("passenger-list",
   1,
   [](flecsi::any const & v, std::stringstream & ss) {
     const std::string value = flecsi::option_value<std::string>(v);
-    return value.find(".txt") != std::string::npos
-             ? true
-             : (ss << "file(" << value << ") has invalid suffix") && false;
+    return value.find(".txt") != std::string::npos ||
+           (ss << "file(" << value << ") has invalid suffix", false);
   });
 
 // User-defined program options are available after getopt has been invoked.

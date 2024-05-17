@@ -23,8 +23,6 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
-inline flog::devel_tag control_tag("control");
-
 /// A control point for application use.
 /// \tparam CP control point enumerator
 /// \deprecated Use \c control_base::point.
@@ -208,7 +206,7 @@ private:
   /*
     Run the control model.
   */
-  int run(P * p) const {
+  [[nodiscard]] int run(P * p) const {
     int status{flecsi::run::status::success};
     run_impl::walk<control_points>(point_walker(sort(), status, p));
     return status;
@@ -263,7 +261,7 @@ public:
    */
 
   template<target_type T, control_points_enum CP, bool M = false>
-  struct action {
+  struct [[nodiscard]] action {
 
     template<target_type, control_points_enum, bool>
     friend struct action;
@@ -332,7 +330,7 @@ private:
   // complain differently about a non-empty node_policy (via a
   // deprecation warning and a static_assert, respectively).
   template<class... AA>
-  static int do_invoke(AA &&... aa) {
+  [[nodiscard]] static int do_invoke(AA &&... aa) {
     if constexpr(is_control_base_policy) {
       try {
         P pol(std::forward<AA>(aa)...);
@@ -363,7 +361,7 @@ public:
     \return code from a thrown \c control_base::exception or 0
    */
   template<class... AA>
-  static int invoke(AA &&... aa) {
+  [[nodiscard]] static int invoke(AA &&... aa) {
     static_assert(
       is_control_base_policy, "control policy must inherit from control_base");
     static_assert(std::is_same_v<typename policy_type::node_policy,
@@ -379,7 +377,7 @@ public:
   /// \return `invoke()` if \c P inherits from \c control_base, otherwise the
   ///   bitwise or of return values of executed actions
   /// \deprecated Call \c #invoke directly or use \c runtime::control.
-  [[deprecated("use invoke")]] static int execute() {
+  [[deprecated("use invoke")]] [[nodiscard]] static int execute() {
     return do_invoke();
   }
 
@@ -390,7 +388,8 @@ public:
     \deprecated Call \c #write_graph or \c #write_actions as needed.
     \see \c #status
    */
-  [[deprecated("use flecsi::runtime")]] static int check_status(int s) {
+  [[deprecated("use flecsi::runtime")]] [[nodiscard]] static int check_status(
+    int s) {
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
     // If a confused client calls this without having called initialize,
     // argv0 will be empty, which is a mild form of failure.

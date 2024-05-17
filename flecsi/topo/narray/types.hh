@@ -74,7 +74,7 @@ struct neighbors_view {
         m[0] = 1; // skip origin; note that std::none_of is actually faster
       return *this;
     }
-    iterator operator++(int) {
+    [[nodiscard]] iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
@@ -130,7 +130,7 @@ struct traverse {
       return *this;
     }
 
-    iterator operator++(int) {
+    [[nodiscard]] iterator operator++(int) {
       iterator ret = *this;
       ++*this;
       return ret;
@@ -203,7 +203,7 @@ struct axis_layout {
     return bdy[0] + gh[0] + E * log;
   }
 
-  /// The beginning or end of the exclusive logical entities (_i.e._, that are
+  /// The beginning or end of the exclusive logical entities (_i.e.,_ that are
   /// not ghosts elsewhere).
   /// Really the end and beginning of the shared entities on each side; the
   /// end can come first if an entity is shared with both neighbors.
@@ -234,7 +234,7 @@ struct axis_layout {
   template<short E>
   FLECSI_INLINE_TARGET util::id extended() const {
     static_assert(E == 0 || E == 1);
-    return gh[0] + E * (log + bdy[1]);
+    return gh[0] + E * (both(bdy) + log);
   }
 
   void check_halo() const {
@@ -256,7 +256,7 @@ private:
 ///   end of a \c periodic axis are considered to be a halo, not a boundary.
 struct axis {
   Color colors; ///< The number of subdivisions for colors.
-  util::gid global_extent; ///< The total number of index points.
+  util::gid extent; ///< The total number of index points.
   util::id bdepth, ///< The depth of boundary at each end (0 if periodic).
     hdepth; ///< The depth of (primary) halos where they appear.
   bool periodic, ///< Whether the axis is periodic.
@@ -289,7 +289,7 @@ struct axis_color {
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
-    return low() && i < l0     ? ax.global_extent - l0 + i
+    return low() && i < l0     ? ax.extent - l0 + i
            : high() && i >= l1 ? i - l1
                                : offset + i - l0;
   }

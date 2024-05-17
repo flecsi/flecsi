@@ -240,7 +240,7 @@ struct future<Return> {
   /// Wait on the task to finish.
   void wait();
   /// Get the task's result.
-  Return get(bool silence_warnings = false);
+  [[nodiscard]] Return get(bool silence_warnings = false);
 };
 
 /// Multi-valued future from an index launch.

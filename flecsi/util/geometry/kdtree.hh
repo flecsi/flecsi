@@ -124,19 +124,21 @@ struct KDTree {
   using point_t = util::point<double, DIM>;
   /// Type alias for a vector of Bounding Boxes
   using boxes = std::vector<BBox<DIM>>;
+  /// The leaves of another tree that intersect each leaf of a given tree.
+  using overlap = std::map<long, std::vector<long>>;
 
   KDTree(const boxes &);
 
-  boxes sbox;
+  overlap intersect(const KDTree &) const;
+
+private:
+  boxes sbox; // including internal nodes
   std::vector<long> linkp;
 };
+/// \}
 
 /*!
- KDTREE constructor which takes the set of Safety Boxes and
- produces a k-D tree that is stored in the array LINKP. Leaf nodes
- in LINKP each coincide with exactly one Safety Box.  For each node
- in the k-D tree, there is a corresponding Safety Box which is just
- big enough to contain all the Safety Boxes "under" the node.
+ Construct the tree from leaf bounding boxes.
  \param sboxp vector of safety boxes
 */
 
@@ -297,30 +299,27 @@ KDTree<DIM>::KDTree(const boxes & sboxp)
 }
 
 /*!
- Compute the intersection between two KDTrees. A possible
+ Find intersections between this tree and another.  A possible
  use case is finding the overlap between multiple distributed meshes .
- \param k1 first kdtree
- \param k2 second kdtree
- \return mapping from the leaves of the first kdtree to vectors
- of intersecting leaves in the second kdtree.
- \relates KDTree
+ \return mapping from the this tree's leaves to vectors of intersecting leaves
+   in \a k
  */
 template<Dimension DIM>
-auto
-intersect(const KDTree<DIM> & k1, const KDTree<DIM> & k2) {
-  std::map<long, std::vector<long>> ret;
+typename KDTree<DIM>::overlap
+KDTree<DIM>::intersect(const KDTree & k) const {
+  overlap ret;
 
   const auto rec = [&](auto & f, int i1, int i2) -> void {
-    if(k1.sbox[i1].intersects(k2.sbox[i2])) {
+    if(sbox[i1].intersects(k.sbox[i2])) {
       // We don't want to test every leaf of one tree against some large
       // safety box of the other tree that might intersect them even though
       // most of its contents do not, so split both trees simultaneously.
-      auto l1 = k1.linkp[i1];
-      auto l2 = k2.linkp[i2];
+      auto l1 = linkp[i1];
+      auto l2 = k.linkp[i2];
 
       if(l1 <= 0) { // box 1 is a leaf
         if(l2 <= 0) // so is box 2
-          ret[-l2].push_back(-l1);
+          ret[-l1].push_back(-l2);
         else {
           // split only the non-leaf:
           f(f, i1, l2);
@@ -348,7 +347,6 @@ intersect(const KDTree<DIM> & k1, const KDTree<DIM> & k2) {
 
   return ret;
 }
-/// \}
 } // namespace util
 } // namespace flecsi
 /// \endcond

@@ -9,7 +9,6 @@
 #if defined(FLECSI_ENABLE_FLOG)
 #include "flecsi/flog/message.hh"
 #include "flecsi/flog/severity.hh"
-#include "flecsi/flog/tag_scope.hh"
 #endif
 
 #include "flecsi/flog/utils.hh"
@@ -21,6 +20,7 @@
 #include <set>
 #include <sstream>
 #include <unordered_set>
+#include <utility> // exchange
 #include <vector>
 
 #include <unistd.h>
@@ -189,52 +189,42 @@ struct stream<std::unordered_set<T>> {
 };
 } // namespace detail
 
-struct guard;
-
 /*!
-  Create a tag group to enable/disable output using guards.
-
-  @param label The name of the tag.
+  A tag for labeling output to enable.
   \warning Tag variables must not be templated.
  */
-
 struct tag {
-  friend guard;
+  /// Create a tag.
+  tag(const char * label) : id(state::register_tag(label)) {}
 
-  tag(const char * label) : label_(label) {
-    state::register_tag(label);
+  std::size_t operator+() const {
+    return id;
   }
 
 private:
-  std::string label_;
+  std::size_t id;
 }; // struct tag
 const inline tag unscoped_tag("unscoped");
 
 /*!
-  Create a guard to control output of flog output within the scope of the
-  guard.
-
-  @param t The tag group that should enable/disable output.
+  Scope guard for categorizing output.
  */
-
 struct guard {
-  guard(tag const & t) : scope_(state::lookup_tag(t.label_.c_str())) {}
+  /// Create a guard to enable a \c tag.
+  guard(const tag & t) : prev(std::exchange(state::active_tag(), +t)) {
+#if defined(FLOG_ENABLE_DEBUG)
+    std::cerr << FLOG_COLOR_LTGRAY << "FLOG: activating tag " << tag
+              << FLOG_COLOR_PLAIN << std::endl;
+#endif
+  }
+  guard(guard &&) = delete;
+  ~guard() {
+    state::active_tag() = prev;
+  }
 
 private:
-  tag_scope_t scope_;
+  std::size_t prev;
 }; // struct guard
-
-#if defined(FLOG_ENABLE_DEVELOPER_MODE)
-using devel_tag = tag;
-using devel_guard = guard;
-#else
-struct devel_tag {
-  devel_tag(const char *) {}
-};
-struct devel_guard {
-  devel_guard(devel_tag const &) {}
-};
-#endif
 
 /// Get all defined tags.
 /// \return a range of \c std::string objects
@@ -308,25 +298,6 @@ private:
   true && /* implicitly converts remainder to bool */                          \
     ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)        \
       .format()
-
-#if defined(FLOG_ENABLE_DEVELOPER_MODE)
-
-#define flog_devel(severity)                                                   \
-  /* MACRO IMPLEMENTATION */                                                   \
-                                                                               \
-  true &&                                                                      \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__, true)  \
-      .format()
-
-#else
-
-#define flog_devel(severity)                                                   \
-  if(true) {                                                                   \
-  }                                                                            \
-  else                                                                         \
-    std::cerr
-
-#endif // FLOG_ENABLE_DEVELOPER_MODE
 
 /*!
   Method style interface for trace level severity log entries.
@@ -425,12 +396,7 @@ struct tag {
 };
 struct guard {
   guard(tag const &) {}
-};
-struct devel_tag {
-  devel_tag(const char *) {}
-};
-struct devel_guard {
-  devel_guard(devel_tag const &) {}
+  guard(guard &&) = delete;
 };
 
 inline auto
@@ -453,12 +419,6 @@ struct container {
 } // namespace flecsi
 
 #define flog(severity)                                                         \
-  if(true) {                                                                   \
-  }                                                                            \
-  else                                                                         \
-    std::cerr
-
-#define flog_devel(severity)                                                   \
   if(true) {                                                                   \
   }                                                                            \
   else                                                                         \

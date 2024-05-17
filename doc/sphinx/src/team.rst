@@ -144,6 +144,30 @@ Christoph Junghans
 
 |clearboth|
 
+Brendan Krueger
+^^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/brendan.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Brendan is a computational scientist with a background in nuclear
+      astrophysics, multiphysics simulations, high performance
+      computing, and software engineering.  Before joining the Co-Design
+      team, he worked in the Eulerian Codes group, contributing to
+      projects including the xRAGE code, the Singe thermonuclear physics
+      library, and the Portage remapping library.
+
+|clearboth|
+
 Sumathi Lakshmiranganatha
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -188,7 +212,7 @@ Li-Ta (Ollie) Lo
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CCS-3 Information Sciences** |br|
       *Los Alamos National Laboratory*
 
       Li-Ta Lo is currently a computer scientist with the Data Science
