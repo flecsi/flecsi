@@ -40,7 +40,7 @@ do_call(call_policy & p) {
 call::action<do_call, call_policy::single> phone;
 
 void
-finalize() {
+finalize() { // not deprecated
   run::context::ctx.reset();
   run::dependent.reset();
 }
