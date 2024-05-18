@@ -30,14 +30,14 @@ array_ref() {
     // types
     // ------------------------
 
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::value_type) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::pointer) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::reference) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::const_reference) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::iterator) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::reverse_iterator) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::size_type) << std::endl;
-    UNIT_CAPTURE() << UNIT_TTYPE(refd::difference_type) << std::endl;
+    UNIT_CAPTURE() << util::type<refd::value_type>() << '\n'
+                   << util::type<refd::pointer>() << '\n'
+                   << util::type<refd::reference>() << '\n'
+                   << util::type<refd::const_reference>() << '\n'
+                   << util::type<refd::iterator>() << '\n'
+                   << util::type<refd::reverse_iterator>() << '\n'
+                   << util::type<refd::size_type>() << '\n'
+                   << util::type<refd::difference_type>() << '\n';
     UNIT_CAPTURE() << std::endl;
 
     // ------------------------

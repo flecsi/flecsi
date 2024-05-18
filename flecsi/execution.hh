@@ -95,7 +95,7 @@ template<auto & Task,
   class Reduction,
   TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
   typename... Args>
-auto
+[[nodiscard]] auto
 reduce(Args &&... args) {
   using namespace exec;
 
@@ -133,7 +133,7 @@ execute(ARGS &&... args) {
 template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>
-int
+[[nodiscard]] int
 test(ARGS &&... args) {
   return reduce<TASK, exec::fold::sum, ATTRIBUTES>(std::forward<ARGS>(args)...)
     .get();

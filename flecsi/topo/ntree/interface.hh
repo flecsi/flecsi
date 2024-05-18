@@ -473,7 +473,7 @@ private:
   // Add the top tree to the local tree.
   // First step is to load the top tree entities and nodes.
   // The new sizes are then returned to create the copy plan for the top tree.
-  static auto make_tree_distributed_task(
+  static void make_tree_distributed_task(
     typename field<key_t>::template accessor<rw, na> n_keys,
     typename field<meta_type, data::single>::template accessor<rw> meta_field,
     typename field<ntree_data>::template accessor<rw, na> data_field,

@@ -188,6 +188,7 @@ struct storage {
     return nullptr;
   }
 
+  // Get the view into where the data is currently synced
   template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
   std::conditional_t<privilege_write(AccessPrivilege),
     view_variant,
@@ -263,6 +264,39 @@ struct storage : buffer {
 };
 
 #endif // defined(FLECSI_ENABLE_KOKKOS)
+
+template<typename T>
+struct typed_storage {
+  void resize(std::size_t elements) {
+    untyped.resize(elements * sizeof(T));
+  }
+
+  template<exec::task_processor_type_t ProcessorType =
+             exec::task_processor_type_t::loc,
+    partition_privilege_t AccessType = partition_privilege_t::ro>
+  auto data() {
+    return reinterpret_cast<privilege_const<T, AccessType> *>(
+      untyped.data<ProcessorType, AccessType>());
+  }
+
+  // While this method is const qualified here, the underlying
+  // type detail::storage does have state that might change depending upon
+  // which task_processor_type_t it is called with, so the data is
+  // guaranteed not to mutate, but the state not so much
+  template<exec::task_processor_type_t ProcessorType =
+             exec::task_processor_type_t::loc>
+  const auto * data() const {
+    return const_cast<typed_storage *>(this)->data<ProcessorType>();
+  }
+
+  std::size_t size() const {
+    return untyped.size() / sizeof(T);
+  }
+
+private:
+  storage untyped;
+};
+
 } // namespace detail
 
 struct region_impl {
@@ -393,11 +427,6 @@ struct partition {
       AccessPrivilege>(fid, nelems * item_size);
   }
 
-  template<topo::single_space>
-  partition & get_partition() {
-    return *this;
-  }
-
 private:
   region_impl * r;
 
@@ -413,6 +442,11 @@ protected:
 // forward declarations
 struct partition : mpi::partition { // instead of "using partition ="
   using mpi::partition::partition;
+
+  template<topo::single_space>
+  partition & get_partition() {
+    return *this;
+  }
 };
 
 namespace mpi {
@@ -582,6 +616,8 @@ template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
 struct copy_engine {
+  using index_type = std::size_t;
+
   // One copy engine for each entity type i.e. vertex, cell, edge.
   copy_engine(const points & points,
     const intervals & intervals,
@@ -596,16 +632,32 @@ struct copy_engine {
       destination.get_storage<points::Value, partition_privilege_t::ro>(
         meta_fid);
 
+    // Calculate the memory needed up front for the ghost_entities
+    std::map<Color, std::size_t> mem_size;
+    for(const auto & [begin, end] : destination.ghost_ranges) {
+      for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
+        const auto & shared = remote_sources[ghost_idx];
+        mem_size[shared.first]++;
+      }
+    }
+
+    // allocate the memory needed
+    for(auto & p : mem_size)
+      ghost_entities[p.first].resize(std::exchange(p.second, 0));
+
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
-    SendPoints remote_shared_entities;
+    std::map<Color, std::vector<index_type>> remote_shared_entities;
     for(const auto & [begin, end] : destination.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
         // We also group local ghost entities into
         // (src rank, { local ghost ids})
-        ghost_entities[shared.first].emplace_back(ghost_idx);
+
+        ghost_entities[shared.first]
+          .data<exec::task_processor_type_t::loc,
+            flecsi::rw>()[mem_size[shared.first]++] = ghost_idx;
       }
     }
 
@@ -619,8 +671,13 @@ struct copy_engine {
             const auto i = remote_shared_entities.find(r);
             return i == remote_shared_entities.end() ? empty : i->second;
           })) {
-        if(!v.empty())
-          shared_entities.try_emplace(r, std::move(v));
+        if(!v.empty()) {
+          shared_entities[r].resize(v.size());
+          std::uninitialized_copy(v.begin(),
+            v.end(),
+            shared_entities[r]
+              .data<exec::task_processor_type_t::loc, flecsi::rw>());
+        }
         ++r;
       }
     }
@@ -629,7 +686,7 @@ struct copy_engine {
     // nelems when calling region::get_storage().
     for(const auto & [rank, indices] : shared_entities) {
       max_local_source_idx = std::max(max_local_source_idx,
-        *std::max_element(indices.begin(), indices.end()));
+        *std::max_element(indices.data(), indices.data() + indices.size()));
     }
     max_local_source_idx += 1;
   }
@@ -639,52 +696,29 @@ struct copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-    auto source_view =
-      source.r->kokkos_view<partition_privilege_t::ro>(data_fid);
-    auto destination_view =
-      destination.kokkos_view<partition_privilege_t::wo>(data_fid);
-#else
-    auto source_storage = source.r->get_storage<std::byte,
-      exec::task_processor_type_t::loc,
-      partition_privilege_t::ro>(data_fid, max_local_source_idx);
-    auto destination_storage =
-      destination.get_storage<std::byte, partition_privilege_t::wo>(data_fid);
-#endif
-
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
-    auto gather_copy = [type_size](std::byte * dst,
-                         const std::byte * src,
-                         const std::vector<std::size_t> & src_indices) {
-      for(std::size_t i = 0; i < src_indices.size(); i++) {
-        std::memcpy(
-          dst + i * type_size, src + src_indices[i] * type_size, type_size);
-      }
-    };
+    auto gather_copy =
+      [type_size](std::byte * dst,
+        const std::byte * src,
+        const mpi::detail::typed_storage<index_type> & src_indices) {
+        for(std::size_t i = 0; i < src_indices.size(); i++) {
+          std::memcpy(dst + i * type_size,
+            src + src_indices.data()[i] * type_size,
+            type_size);
+        }
+      };
 
-    auto scatter_copy = [type_size](std::byte * dst,
-                          const std::byte * src,
-                          const std::vector<std::size_t> & dst_indices) {
-      for(std::size_t i = 0; i < dst_indices.size(); i++) {
-        std::memcpy(
-          dst + dst_indices[i] * type_size, src + i * type_size, type_size);
-      }
-    };
-
-#if defined(FLECSI_ENABLE_KOKKOS)
-    // copy a std::vector<T> from host to device memory and return the device
-    // version as a Kokkos::View
-    auto device_copy = [](const auto & hvec, const std::string & label) {
-      using T = typename std::decay_t<decltype(hvec)>::value_type;
-      Kokkos::View<T *, Kokkos::DefaultExecutionSpace> dview{
-        Kokkos::ViewAllocateWithoutInitializing(label), hvec.size()};
-      Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-        dview,
-        Kokkos::View<const T *, Kokkos::HostSpace>{hvec.data(), hvec.size()});
-      return dview;
-    };
-#endif
+    auto scatter_copy =
+      [type_size](std::byte * dst,
+        const std::byte * src,
+        const mpi::detail::typed_storage<index_type> & dst_indices) {
+        for(std::size_t i = 0; i < dst_indices.size(); i++) {
+          std::memcpy(dst + dst_indices.data()[i] * type_size,
+            src + i * type_size,
+            type_size);
+        }
+      };
 
     std::vector<std::vector<std::byte>> recv_buffers;
 
@@ -714,14 +748,14 @@ struct copy_engine {
         // std::visit directly
         const auto & src_indices = shared_indices;
         std::visit(
-          overloaded{[&](mpi::detail::host_const_view & src) {
+          overloaded{[&](const mpi::detail::host_const_view & src) {
                        gather_copy(
                          send_buffers.back().data(), src.data(), src_indices);
                      },
-            [&](mpi::detail::device_const_view & src) {
+            [&](const mpi::detail::device_const_view & src) {
               // copy shared indices from host to device
-              auto shared_indices_device_view =
-                device_copy(src_indices, "shared indices");
+              const auto * shared_indices_device_data =
+                src_indices.data<exec::task_processor_type_t::toc>();
 
               // allocate gather buffer on device
               auto gather_buffer_device_view =
@@ -735,7 +769,7 @@ struct copy_engine {
                   // Yes, memcpy is supported on device as long as there is no
                   // std:: qualifier.
                   memcpy(gather_buffer_device_view.data() + i * type_size,
-                    src.data() + shared_indices_device_view[i] * type_size,
+                    src.data() + shared_indices_device_data[i] * type_size,
                     type_size);
                 });
 
@@ -745,10 +779,15 @@ struct copy_engine {
                 mpi::detail::host_view{send_buffers.back().data(), n_bytes},
                 gather_buffer_device_view);
             }},
-          source_view);
+          source.r->kokkos_view<partition_privilege_t::ro>(data_fid));
 #else
-        gather_copy(
-          send_buffers.back().data(), source_storage.data(), shared_indices);
+        gather_copy(send_buffers.back().data(),
+          source.r
+            ->get_storage<std::byte,
+              exec::task_processor_type_t::loc,
+              partition_privilege_t::ro>(data_fid, max_local_source_idx)
+            .data(),
+          shared_indices);
 #endif
 
         test(MPI_Isend(send_buffers.back().data(),
@@ -770,31 +809,43 @@ struct copy_engine {
       // std::visit directly
       const auto & dst_indices = ghost_indices;
       std::visit(
-        overloaded{[&](mpi::detail::host_view & dst) {
+        overloaded{[&](const mpi::detail::host_view & dst) {
                      scatter_copy(dst.data(), recv_buffer->data(), dst_indices);
                    },
-          [&](mpi::detail::device_view & dst) {
-            // copy ghost indices from host to device
-            auto ghost_indices_device_view =
-              device_copy(dst_indices, "ghost indices");
+          [&](const mpi::detail::device_view & dst) {
+            // get the ghost indices from the device
+            const auto * ghost_indices_device_data =
+              dst_indices.template data<exec::task_processor_type_t::toc>();
 
             // copy recv buffer from host to scatter buffer on device
-            auto scatter_buffer_device_view =
-              device_copy(*recv_buffer, "scatter");
+            auto scatter_buffer_device_view = [](const auto & hvec,
+                                                const std::string & label) {
+              using T = typename std::decay_t<decltype(hvec)>::value_type;
+              Kokkos::View<T *, Kokkos::DefaultExecutionSpace> dview{
+                Kokkos::ViewAllocateWithoutInitializing(label), hvec.size()};
+              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+                dview,
+                Kokkos::View<const T *, Kokkos::HostSpace>{
+                  hvec.data(), hvec.size()});
+              return dview;
+            }(*recv_buffer, "scatter");
 
             // copy ghost values from scatter buffer on device to field storage
             // in parallel, for each element
             Kokkos::parallel_for(
               n_elements, KOKKOS_LAMBDA(const auto & i) {
-                memcpy(dst.data() + ghost_indices_device_view[i] * type_size,
+                memcpy(dst.data() + ghost_indices_device_data[i] * type_size,
                   scatter_buffer_device_view.data() + i * type_size,
                   type_size);
               });
           }},
-        destination_view);
+        destination.kokkos_view<partition_privilege_t::wo>(data_fid));
 #else
       scatter_copy(
-        destination_storage.data(), recv_buffer->data(), ghost_indices);
+        destination.get_storage<std::byte, partition_privilege_t::wo>(data_fid)
+          .data(),
+        recv_buffer->data(),
+        ghost_indices);
 #endif
       recv_buffer++;
     }
@@ -802,7 +853,7 @@ struct copy_engine {
 
 private:
   // (remote rank, { local indices })
-  using SendPoints = std::map<Color, std::vector<std::size_t>>;
+  using SendPoints = std::map<Color, mpi::detail::typed_storage<index_type>>;
 
   const points & source;
   const intervals & destination;

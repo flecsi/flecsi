@@ -348,7 +348,6 @@ private:
    Method to create copy plans for entities of an index-space.
    @param colors  The number of colors
    @param idef index definition
-   @param p partition
   */
   template<index_space S>
   data::copy_plan make_copy_plan(Color colors, index_definition const & idef) {
@@ -601,7 +600,7 @@ private:
   */
   template<index_space S, axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return get_axis<S, A>().ax.global_extent;
+    return get_axis<S, A>().ax.extent;
   }
 
   /*!
@@ -768,6 +767,7 @@ protected:
    */
   template<index_space S, axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
+    static_assert(DM != domain::global, "no global range");
     const auto o = offset<S, A, DM>();
     return make_ids<S>(util::iota_view<util::id>(o, o + size<S, A, DM>()));
   }

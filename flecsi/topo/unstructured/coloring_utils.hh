@@ -195,7 +195,7 @@ struct coloring_utils {
   /// of communication pairs over the collection of index spaces in the
   /// coloring, and it computes the connectivity allocation sizes for the
   /// connectivities specified in the coloring_definition.
-  auto & generate();
+  [[nodiscard]] auto & generate();
 
   std::vector<util::crs> get_connectivity(entity_kind from, entity_kind to);
 

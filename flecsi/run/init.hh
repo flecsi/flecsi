@@ -68,7 +68,8 @@ inline std::string argv0;
   \deprecated Construct a \c runtime object; to parse command-line arguments,
     also use \c #getopt.
  */
-[[deprecated("use flecsi::runtime and perhaps flecsi::getopt")]] int
+[[deprecated(
+  "use flecsi::runtime and perhaps flecsi::getopt")]] [[nodiscard]] int
 initialize(int argc, const char * const * argv, bool dependent = true);
 
 /*!
@@ -85,7 +86,7 @@ initialize(int argc, const char * const * argv, bool dependent = true);
 
   \deprecated Use \c runtime::control.
  */
-[[deprecated("use flecsi::runtime")]] inline int
+[[deprecated("use flecsi::runtime")]] [[nodiscard]] inline int
 start(const std::function<int()> & action) {
   return run::context::instance().start(action, false);
 }

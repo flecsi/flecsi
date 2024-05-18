@@ -39,7 +39,7 @@ struct context_t : context {
 
   context_t(const config &);
 
-  int start(const std::function<int()> &, bool);
+  [[nodiscard]] int start(const std::function<int()> &, bool);
 
   static int task_depth() {
     return depth;
@@ -59,6 +59,7 @@ struct context_t : context {
     depth_guard() {
       ++depth;
     }
+    depth_guard(depth_guard &&) = delete;
     ~depth_guard() {
       --depth;
     }

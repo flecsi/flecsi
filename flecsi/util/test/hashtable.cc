@@ -22,9 +22,8 @@ struct htype_t {
 using pair_t = std::pair<hkey_t, htype_t>;
 using hmap_t = hashtable<hkey_t, htype_t>;
 
-int
-assign(span<pair_t> & span_ht) {
-  hmap_t hmap(span_ht);
+[[nodiscard]] int
+assign(hmap_t hmap) {
   int error = 0;
   for(std::size_t i = 0; i < nents; ++i) {
     auto it = hmap.insert(i + 1, i, i, i, 0., 0., 0., "a", "b", "c");
@@ -36,8 +35,7 @@ assign(span<pair_t> & span_ht) {
 } // assign
 
 int
-check(span<pair_t> & span_ht) {
-  hmap_t hmap(span_ht);
+check(hmap_t hmap) {
   int error = 0;
   for(std::size_t i = 0; i < nents; ++i) {
     auto it = hmap.find(i + 1);
@@ -58,9 +56,8 @@ check(span<pair_t> & span_ht) {
   return error;
 } // check
 
-int
-empty(span<pair_t> & span_ht) {
-  hmap_t hmap(span_ht);
+[[nodiscard]] int
+empty(hmap_t hmap) {
   hmap.clear();
   // Assert the table is empty
   int error = 0;
@@ -76,10 +73,8 @@ hashtable_driver() {
     const std::size_t ht_size = 1 << 15;
 
     std::vector<pair_t> idx_s;
-    span<pair_t> span_ht;
-
     idx_s.resize(ht_size);
-    span_ht = span(&(idx_s.front()), &(idx_s.back()));
+    const span span_ht(idx_s);
 
     EXPECT_EQ(assign(span_ht), 0);
     EXPECT_EQ(check(span_ht), 0);

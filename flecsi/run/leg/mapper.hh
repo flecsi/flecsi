@@ -14,9 +14,6 @@
 #include <iomanip>
 
 namespace flecsi {
-
-inline flog::devel_tag legion_mapper_tag("legion_mapper");
-
 namespace run {
 /// \addtogroup legion-runtime
 /// \{
@@ -139,19 +136,7 @@ public:
     // deciding to optimize for minimizing memory usage instead
     // of avoiding Write-After-Read (WAR) dependences
     force_new_instances = false;
-    std::vector<Legion::DimensionKind> ordering;
-    ordering.push_back(Legion::DimensionKind::DIM_Y);
-    ordering.push_back(Legion::DimensionKind::DIM_X);
-    ordering.push_back(Legion::DimensionKind::DIM_F); // SOA
-    Legion::OrderingConstraint ordering_constraint(
-      ordering, true /*contiguous*/);
-    Legion::LayoutConstraintSet layout_constraint;
-    layout_constraint.add_constraint(ordering_constraint);
-
-    // Do the registration
-    Legion::LayoutConstraintID result =
-      runtime->register_layout(ctx, layout_constraint);
-    return result;
+    return soa_constraint_id;
   }
 
   /*!
@@ -206,7 +191,6 @@ public:
       task,
       target_mem,
       layout_constraints,
-      indx,
       {task.regions[indx].region,
         task.regions[indx + 1].region,
         task.regions[indx + 2].region});
@@ -231,7 +215,7 @@ public:
       return;
 
     output.chosen_instances[indx].push_back(
-      get_instance(ctx, task, target_mem, layout_constraints, indx, {r}));
+      get_instance(ctx, task, target_mem, layout_constraints, {r}));
   } // create_instance
 
   /*!
@@ -245,10 +229,6 @@ public:
       and avoids creating a new instance if possible;
 
    3) It has logic on how to create compacted instances;
-
-    @param ctx Mapper Context
-    @param task Legion's task
-    @param output Output information about task mapping
    */
 
   virtual void map_task(const Legion::Mapping::MapperContext ctx,
@@ -289,14 +269,6 @@ public:
         target_mem = local_framebuffer;
       else
         target_mem = local_sysmem;
-
-      // creating ordering constraint (SOA )
-      std::vector<Legion::DimensionKind> ordering;
-      ordering.push_back(Legion::DimensionKind::DIM_Y);
-      ordering.push_back(Legion::DimensionKind::DIM_X);
-      ordering.push_back(Legion::DimensionKind::DIM_F); // SOA
-      Legion::OrderingConstraint ordering_constraint(
-        ordering, true /*contiguous*/);
 
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
@@ -348,7 +320,7 @@ public:
         Legion::LayoutConstraintSet layout_constraints;
         // No specialization
         layout_constraints.add_constraint(Legion::SpecializedConstraint());
-        layout_constraints.add_constraint(ordering_constraint);
+        layout_constraints.add_constraint(soa_constraint);
         // Constrained for the target memory kind
         layout_constraints.add_constraint(
           Legion::MemoryConstraint(target_mem.kind()));
@@ -516,9 +488,15 @@ public:
         auto & input_src_indirect = input.src_indirect_instances[idx];
         auto & output_src_indirect = output.src_indirect_instances[idx];
         // Try to reuse existing instances
-        if(!input_src_indirect.empty())
+        bool can_reuse_instance = false;
+        if(!input_src_indirect.empty()) {
           output_src_indirect = input_src_indirect[0];
-        else if(!copy.src_indirect_requirements[idx].is_restricted()) {
+          can_reuse_instance =
+            runtime->acquire_instance(ctx, output_src_indirect);
+        }
+        // We could not find a valid existing instance --> create a new one
+        if(!can_reuse_instance &&
+           !copy.src_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
           create_copy_instance<false /*is src*/>(ctx,
             copy,
@@ -540,9 +518,15 @@ public:
         auto & input_dst_indirect = input.dst_indirect_instances[idx];
         auto & output_dst_indirect = output.dst_indirect_instances[idx];
         // Try to reuse existing instances
-        if(!input_dst_indirect.empty())
+        bool can_reuse_instance = false;
+        if(!input_dst_indirect.empty()) {
           output_dst_indirect = input_dst_indirect[0];
-        else if(!copy.dst_indirect_requirements[idx].is_restricted()) {
+          can_reuse_instance =
+            runtime->acquire_instance(ctx, output_dst_indirect);
+        }
+        // We could not find a valid existing instance --> create a new one
+        if(!can_reuse_instance &&
+           !copy.dst_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
           create_copy_instance<false /*is src*/>(ctx,
             copy,
@@ -586,15 +570,8 @@ public:
     Memory target_memory = default_policy_select_target_memory(
       ctx, copy.parent_task->current_proc, req);
     bool force_new_instances = false;
-    LayoutConstraintID our_layout_id =
-      default_policy_select_layout_constraints(ctx,
-        target_memory,
-        req,
-        COPY_MAPPING,
-        false /*needs check*/,
-        force_new_instances);
-    LayoutConstraintSet creation_constraints =
-      runtime->find_layout_constraints(ctx, our_layout_id);
+    LayoutConstraintSet creation_constraints;
+    creation_constraints.add_constraint(soa_constraint);
     creation_constraints.add_constraint(
       FieldConstraint(missing_fields, false /*contig*/, false /*inorder*/));
     // if the domain is sparse, we create a compacted instance (otherwise the
@@ -707,28 +684,11 @@ private:
     return variant[task_id] = variants.at(0);
   }
 
-  static void report_size(const Legion::Task & task,
-    std::size_t indx,
-    std::size_t instance_size) {
-    flog_devel(info) << "task " << task.get_task_name()
-                     << " allocates physical instance with size "
-                     << instance_size << " for the region requirement #" << indx
-                     << std::endl;
-
-    if(instance_size > 1000000000) {
-      flog_devel(error)
-        << "task " << task.get_task_name()
-        << " is trying to allocate physical instance with the size > than 1 Gb("
-        << instance_size << " )"
-        << " for the region requirement # " << indx << std::endl;
-    } // if
-  }
   Legion::Mapping::PhysicalInstance get_instance(
     const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     const Legion::Memory & target_mem,
     const Legion::LayoutConstraintSet & layout_constraints,
-    std::size_t indx,
     const std::vector<Legion::LogicalRegion> & regions) const {
     Legion::Mapping::PhysicalInstance result;
     std::size_t instance_size = 0;
@@ -746,7 +706,6 @@ private:
       flog_fatal("FleCSI mapper failed to allocate instance of size "
                  << instance_size << " in memory " << target_mem << " for task "
                  << std::quoted(task.get_task_name()));
-    report_size(task, indx, instance_size);
     return result;
   }
 
@@ -758,6 +717,20 @@ protected:
   std::map<Legion::TaskID, Legion::VariantID> omp_variants;
 
   Legion::Memory local_sysmem, local_zerocopy, local_framebuffer;
+
+  // used consistently
+  static inline const Legion::OrderingConstraint soa_constraint = {
+    {Legion::DimensionKind::DIM_Y,
+      Legion::DimensionKind::DIM_X,
+      Legion::DimensionKind::DIM_F},
+    true /*contiguous*/
+  };
+  // preregister the ordering contraint
+  static inline const Legion::LayoutConstraintID soa_constraint_id = [] {
+    Legion::LayoutConstraintRegistrar registrar;
+    registrar.add_constraint(soa_constraint);
+    return Legion::Runtime::preregister_layout(registrar);
+  }();
 };
 
 /*!

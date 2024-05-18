@@ -837,7 +837,7 @@ coloring_driver() {
         for(Dimension d = 0; d < 3; ++d) {
           const auto axco = id.make_axis(d, c3[d]);
           const auto al = axco();
-          g.push_back(axco.ax.global_extent);
+          g.push_back(axco.ax.extent);
           e.push_back(al.extent());
           o.push_back(axco.offset);
           log.push_back(seq(std::vector{al.logical<0>(), al.logical<1>()}));

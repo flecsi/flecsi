@@ -192,8 +192,7 @@ struct id {
     ++t;
     return *this;
   }
-  FLECSI_INLINE_TARGET
-  id operator++(int) & {
+  [[nodiscard]] FLECSI_INLINE_TARGET id operator++(int) & {
     id ret = *this;
     ++*this;
     return ret;
@@ -203,8 +202,7 @@ struct id {
     --t;
     return *this;
   }
-  FLECSI_INLINE_TARGET
-  id operator--(int) & {
+  [[nodiscard]] FLECSI_INLINE_TARGET id operator--(int) & {
     id ret = *this;
     --*this;
     return ret;
