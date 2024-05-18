@@ -200,7 +200,7 @@ add_executable(parallel-reduceall
 add_unit(parallel-reduceall)
 
 #------------------------------------------------------------------------------#
-# 6-ntree
+# 6-topology
 #------------------------------------------------------------------------------#
 
 if(FleCSI_BACKEND STREQUAL "legion")

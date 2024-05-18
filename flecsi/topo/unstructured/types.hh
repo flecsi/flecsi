@@ -368,7 +368,6 @@ struct unstructured_base {
 
   }; // struct ragged_impl
 
-  /// \cond core
   /*!
     This method computes the bounding box from cell vertices.
     It allows computing bbox for owned/shared/ghost part
@@ -393,8 +392,6 @@ struct unstructured_base {
     }
     return box;
   }
-  /// \endcond
-
 }; // struct unstructured_base
 
 inline std::ostream &

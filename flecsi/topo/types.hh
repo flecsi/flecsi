@@ -252,7 +252,6 @@ make_ids(C && c) {
   return util::transform_view(
     std::forward<C>(c), [](const auto & x) { return id<S>(x); });
 }
-/// \anchor make_ids
 
 template<class T>
 void

@@ -9,8 +9,7 @@ flecsi::program_option<int> trim("Car Options",
   "level,l",
   "Specify the trim level [1-10].",
   {{flecsi::option_default, 1}},
-  [](flecsi::any const & v, std::stringstream & ss) {
-    const int value = flecsi::option_value<int>(v);
+  [](int value, std::stringstream & ss) {
     return (value > 0 && value < 11) ||
            (ss << "value(" << value << ") out-of-range", false);
   });
@@ -23,8 +22,7 @@ flecsi::program_option<std::string> transmission("Car Options",
   "transmission,t",
   "Specify the transmission type [\"automatic\", \"manual\"].",
   {{flecsi::option_default, "manual"}},
-  [](flecsi::any const & v, std::stringstream & ss) {
-    const std::string value = flecsi::option_value<std::string>(v);
+  [](const std::string & value, std::stringstream & ss) {
     return value == "manual" || value == "automatic" ||
            (ss << "option(" << value << ") is invalid", false);
   });
@@ -50,8 +48,7 @@ flecsi::program_option<size_t> purpose("Ride Options",
   "purpose,p",
   "Specify the purpose of the trip (personal=0, business=1).",
   {{flecsi::option_default, purpose_option::business}},
-  [](flecsi::any const & v, std::stringstream & ss) {
-    size_t value = flecsi::option_value<size_t>(v);
+  [](std::size_t value, std::stringstream & ss) {
     return value == personal || value == business ||
            (ss << "value(" << value << ") is invalid", false);
   });
@@ -71,8 +68,7 @@ flecsi::program_option<bool> lightspeed("Ride Options",
 flecsi::program_option<std::string> passenger_list("passenger-list",
   "The list of passengers for this trip [.txt].",
   1,
-  [](flecsi::any const & v, std::stringstream & ss) {
-    const std::string value = flecsi::option_value<std::string>(v);
+  [](const std::string & value, std::stringstream & ss) {
     return value.find(".txt") != std::string::npos ||
            (ss << "file(" << value << ") has invalid suffix", false);
   });

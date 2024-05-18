@@ -183,8 +183,7 @@ CMake files to allow using it in your own applications.
   If the test uses input files, they can be specified as list of files in
   ``INPUTS``. This ensures they are copied to the execution folder of the test.
 
-  The ``ARGUMENTS`` option can be used to supply user-defined
-  :ref:`command-line options <program_options>`.
+  The ``ARGUMENTS`` option can be used to supply command-line options interpreted by ``flecsi::getopt``.
 
   You can also control the number of MPI processes with ``PROCS``. If you
   provide more than one value in ``PROCS``, this will define one

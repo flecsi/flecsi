@@ -548,7 +548,7 @@ public:
   /// The sort triggers ghost copies as usual. If this is inappropriate it can
   /// be avoided by using the correct permissions on the task preceding the
   /// call to the sort.
-  /// \param epsilon The percent of error in load balancing > 0.0
+  /// \param eps The percent of error in load balancing > 0.0
   /// \param ignored_fields Fields to be ignored during the sort on this index
   /// space
   sort(FieldRef fr,

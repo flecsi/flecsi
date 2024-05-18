@@ -254,7 +254,7 @@ struct getopt {
   auto parse(int, const char * const *) const;
 
   /// Return a string describing \c program_option objects.
-  /// \param program name
+  /// \param p program name
   std::string usage(std::string_view p) const;
 
 private:

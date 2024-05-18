@@ -9,9 +9,8 @@
 /// \code#include "flecsi/topology.hh"\endcode
 ///
 /// This header provides the features in the following additional \b deprecated
-/// headers:
+/// header:
 /// - \ref narray "flecsi/topo/narray/interface.hh"
-/// - flecsi/topo/narray/coloring_utils.hh
 ///
 /// \note In a \c toc task, certain metadata provided by topology accessors is
 ///   \e host-accessible, which means that if the topology accessor is

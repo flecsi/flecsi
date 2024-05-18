@@ -42,7 +42,7 @@ Deprecated
 * Topologies
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
-  * ``flecsi/topo/narray/interface.hh``, ``flecsi/topo/narray/coloring_utils.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
 
 * Utilities
 
@@ -60,6 +60,7 @@ New features
 ^^^^^^^^^^^^
 * Build
 
+  * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
   * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
   * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
 
@@ -73,14 +74,18 @@ New features
   * ``program_option`` validation functions can accept the option value directly.
   * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
 
+* Data
+
+  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
+
 * Topologies
 
   * ``specialization::mpi_coloring`` creates a coloring eagerly.
   * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.
+  * ``unstructured_base::bounding_box`` computes the axis-aligned bounding box of a mesh.
   * ``unstructured::special_field`` is the field definition for special-entity lists.
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
-  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
   * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend
@@ -93,6 +98,8 @@ New features
   * ``partition_point`` and ``binary_index`` find values in sorted ranges.
   * ``permutation_view`` accesses a subset of a range.
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+  * ``KDTree`` efficiently finds intersections between shapes.
+  * Values may be included in expectation/assertion failure messages.
   * ``test`` convenience function launches unit test tasks.
 
 * Logging

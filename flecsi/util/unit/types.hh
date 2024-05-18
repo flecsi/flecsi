@@ -321,6 +321,11 @@ label_default(std::string s) {
 #define EXPECT_CMP(x, y, cmp, op, sfx) CHECK_CMP(, cmp, false, x, y, op, sfx)
 
 /// \name Assertion macros
+/// Values to includes in a failure message may be streamed into an
+/// assertion:\code
+/// EXPECT_GE(foo, 0) << foo << " should be non-negative";
+/// \endcode
+///
 /// Macros that begin with \c ASSERT are identical to their \c EXPECT
 /// counterparts except that they abandon the current \c UNIT (or innermost
 /// lambda within it) on failure

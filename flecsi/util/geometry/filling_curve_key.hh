@@ -441,7 +441,7 @@ public:
   } // morton_key
 
   /// Convert this key to coordinates in range.
-  /// range The bounding box of the overall domain
+  /// \param range The bounding box of the overall domain
   point_t coordinates(const std::array<point_t, 2> & range) const {
     point_t p;
     std::array<int_t, dimension> coords;

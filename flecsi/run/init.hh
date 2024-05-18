@@ -66,7 +66,7 @@ inline std::string argv0;
           Control model options take effect via \c control::check_status.
 
   \deprecated Construct a \c runtime object; to parse command-line arguments,
-    also use \c #getopt.
+    also use \link getopt <code>getopt</code>\endlink.
  */
 [[deprecated(
   "use flecsi::runtime and perhaps flecsi::getopt")]] [[nodiscard]] int
