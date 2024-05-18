@@ -31,8 +31,6 @@ action to print out *Hello World*. Code for this example can be found in
 
 ----
 
-.. _program_options:
-
 Example 2: Program Options
 ++++++++++++++++++++++++++
 
