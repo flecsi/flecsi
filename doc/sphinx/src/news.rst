@@ -60,6 +60,7 @@ New features
 ^^^^^^^^^^^^
 * Build
 
+  * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
   * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
   * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
 
