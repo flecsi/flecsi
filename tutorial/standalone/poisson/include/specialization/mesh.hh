@@ -48,7 +48,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   struct interface : B {
 
     template<axis A, domain DM = interior>
-    std::size_t size() {
+    std::size_t size() const {
       if constexpr(DM == interior) {
         const bool low = B::template is_low<mesh::vertices, A>();
         const bool high = B::template is_high<mesh::vertices, A>();
