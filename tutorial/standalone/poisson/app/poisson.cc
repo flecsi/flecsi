@@ -17,7 +17,7 @@ main(int argc, char ** argv) {
 
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
-  flecsi::run::config cfg{};
+  flecsi::run::config cfg;
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion &&                                 \
   (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP))
   cfg.legion = {"", "-ll:gpu", "1"};

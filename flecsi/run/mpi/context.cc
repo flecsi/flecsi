@@ -14,7 +14,6 @@ dependencies_guard::dependencies_guard(dependencies_config d)
     kokkos(d.kokkos)
 #endif
 {
-  (void)d;
 }
 
 context_t::context_t(const config & c)

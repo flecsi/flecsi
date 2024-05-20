@@ -89,8 +89,6 @@ public:
                   << std::endl;
       }
     }
-#else
-    (void)active;
 #endif // FLOG_ENABLE_TAGS
 
 #if defined(FLOG_ENABLE_MPI)

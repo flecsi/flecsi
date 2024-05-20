@@ -40,7 +40,7 @@ do_call(call_policy & p) {
 call::action<do_call, call_policy::single> phone;
 
 void
-finalize() {
+finalize() { // not deprecated
   run::context::ctx.reset();
   run::dependent.reset();
 }
@@ -229,7 +229,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
     argv0 = p.substr(p.rfind('/') + 1);
   }
 
-  run::config cfg{};
+  run::config cfg;
   if(auto * const p = cfg.backend())
     p->push_back(argv0);
 
