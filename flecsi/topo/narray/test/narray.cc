@@ -138,7 +138,7 @@ check_mesh_field(std::string name,
   std::string output_file = "mesh_" + name + "_" + std::to_string(colors()) +
                             "_" + std::to_string(color()) + ".blessed";
   UNIT("TASK") {
-    std::stringstream out;
+    auto & out = UNIT_CAPTURE();
     if constexpr(D == 1) {
       using r = mesh1d::domain;
       using ax = mesh1d::axis;
@@ -254,7 +254,6 @@ check_mesh_field(std::string name,
           << container{elems(cnst<r::logical>(), cnst<r::ghost_high>(), cnst<r::ghost_high>())} << "\n";
       // clang-format on
     } // d=3
-    UNIT_CAPTURE() << out.rdbuf();
     EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
   };
 } // check_mesh_field
@@ -832,7 +831,7 @@ coloring_driver() {
       std::string output_file = "coloring_" + name + "_" +
                                 std::to_string(processes()) + "_" +
                                 std::to_string(process()) + ".blessed";
-      std::stringstream out;
+      auto & out = UNIT_CAPTURE();
       std::vector<std::size_t> color;
       std::vector<std::string> global, extent, offset, logical, extended;
 
@@ -869,7 +868,6 @@ coloring_driver() {
       out << "logical: " << flog::container{logical} << "\n";
       out << "extended: " << flog::container{extended} << "\n";
 
-      UNIT_CAPTURE() << out.rdbuf();
       EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
     };
 
