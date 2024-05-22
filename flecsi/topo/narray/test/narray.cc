@@ -321,12 +321,13 @@ check_sz(ints::mutator<wo, na> tf, util::id lid, std::size_t sz) {
   return true;
 }
 
+enum class diag { on, prim, aux };
 template<std::size_t D, typename mesh<D>::domain DOM, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
   std::size_t sz,
-  bool diagonals) {
+  diag dg) {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
     std::array<util::id, D> lbnds, ubnds;
     m.template bounds<DOM>(lbnds, ubnds);
@@ -340,10 +341,11 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
+      const bool d = m.check_diag_bounds(v);
       // Some but not all diagonal neighbors send auxiliaries, so don't check
       // for arrival from them:
-      ASSERT_TRUE(
-        check_sz(tf, lid, sz) || (!diagonals && m.check_diag_bounds(v)));
+      ASSERT_TRUE(check_sz(tf, lid, dg == diag::on || !d ? sz : 0) ||
+                  (dg == diag::aux && d));
       // Check correctness for all neighbors:
       for(auto n = tf[lid].size(); n--;)
         EXPECT_TRUE(check(tf[lid][n], (int)(gid * 10000 + n)));
@@ -510,11 +512,14 @@ test_mesh(topo::narray_impl::colors color_dist,
                          : std::move(color_dist),
       indices);
     int i = 0;
+    diag dg = diagonals ? diag::on : diag::prim;
     for(auto & a : idef.axes) {
       a.hdepth = hdepth[i];
       a.bdepth = bdepth[i];
       a.periodic = periodic[i];
       a.auxiliary = auxiliary[i];
+      if(!diagonals && auxiliary[i])
+        dg = diag::aux;
       ++i;
     }
     idef.diagonals = diagonals;
@@ -548,14 +553,14 @@ test_mesh(topo::narray_impl::colors color_dist,
     execute<allocate_field<D>>(f(m), tf.sizes(), sz);
 
     EXPECT_EQ((test<init_verify_rf<D, mesh2d::domain::logical, false>>(
-                m, rf(m), sz, idef.diagonals)),
+                m, rf(m), sz, dg)),
       0);
 
     if(print_info)
       execute<print_rf<D>>(m, rf(m));
 
-    EXPECT_EQ((test<init_verify_rf<D, mesh<D>::domain::all, true>>(
-                m, rf(m), sz, idef.diagonals)),
+    EXPECT_EQ(
+      (test<init_verify_rf<D, mesh<D>::domain::all, true>>(m, rf(m), sz, dg)),
       0);
 
     if(print_info)
@@ -609,17 +614,17 @@ narray_driver() {
       execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
 
       execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
-        m1, rf1(m1), sz, idef.diagonals);
+        m1, rf1(m1), sz, diag::on);
       execute<print_rf<1>>(m1, rf1(m1));
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
       EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
-                  m1, rf1(m1), sz, idef.diagonals)),
+                  m1, rf1(m1), sz, diag::on)),
         0);
       execute<print_rf<1>>(m1, rf1(m1));
       EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
-                  m1, rf1(m1), sz, idef.diagonals)),
+                  m1, rf1(m1), sz, diag::on)),
         0);
 
       // tests if a rewrite of values on ragged with an accessor triggers a
