@@ -491,7 +491,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
 }
 
 template<std::size_t D>
-int
+[[nodiscard]] int
 test_mesh(topo::narray_impl::colors color_dist,
   const typename mesh<D>::gcoord & indices,
   const typename mesh<D>::coord & hdepth,
@@ -649,7 +649,8 @@ narray_driver() {
                           bool full_ghosts,
                           std::size_t sz,
                           const char * verify,
-                          bool print_info) {
+                          bool print_info,
+                          int line) {
         EXPECT_EQ(test_mesh<2>({},
                     {8, 8},
                     hdepth,
@@ -663,7 +664,8 @@ narray_driver() {
                     print_info,
                     f2,
                     rf2),
-          0);
+          0)
+          << "from " << line;
       };
 
       // Primary cells: diagonals variation, full ghosts on, though here full
@@ -676,7 +678,8 @@ narray_driver() {
         true,
         100,
         "2d",
-        false);
+        false,
+        __LINE__);
 
       test({1, 1},
         {1, 1},
@@ -686,7 +689,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        true);
+        true,
+        __LINE__);
 
       // Aux verts: diagonals on, full ghosts true
       test({2, 2},
@@ -697,7 +701,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -707,7 +712,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       // Aux x-edges: diagonals on, full ghosts true
       test({2, 2},
@@ -718,7 +724,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -728,7 +735,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       // Aux y-edges: diagonals != full ghosts
       test({2, 2},
@@ -739,7 +747,8 @@ narray_driver() {
         true,
         3,
         "diag",
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -749,7 +758,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
     } // scope
 
     {
@@ -760,7 +770,8 @@ narray_driver() {
                           std::array<bool, 3> periodic,
                           bool diagonals,
                           std::size_t sz,
-                          const char * verify) {
+                          const char * verify,
+                          int line) {
         EXPECT_EQ(test_mesh<3>(color_dist,
                     indices,
                     {1, 1, 1},
@@ -774,17 +785,26 @@ narray_driver() {
                     false,
                     f3,
                     rf3),
-          0);
+          0)
+          << "from " << line;
       };
 
-      test({}, {4, 4, 4}, {1, 1, 1}, {true, true, true}, true, 100, "3d");
+      test({},
+        {4, 4, 4},
+        {1, 1, 1},
+        {true, true, true},
+        true,
+        100,
+        "3d",
+        __LINE__);
       test({2, 2, 1},
         {4, 4, 2},
         {0, 0, 0},
         {false, false, false},
         false,
         3,
-        nullptr);
+        nullptr,
+        __LINE__);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
