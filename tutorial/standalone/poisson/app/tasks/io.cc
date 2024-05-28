@@ -22,9 +22,9 @@ poisson::task::io(mesh::accessor<ro> m,
 
   std::ofstream solution(ss.str(), std::ofstream::out);
 
-  for(auto j : m.vertices<mesh::y_axis, mesh::logical>()) {
+  for(auto j : m.axis<mesh::y_axis>().layout.logical()) {
     const double y = m.value<mesh::y_axis>(j);
-    for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
+    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
       const double x = m.value<mesh::x_axis>(i);
       solution << x << " " << y << " " << u[j][i] << std::endl;
     } // for
@@ -36,8 +36,8 @@ poisson::task::print(mesh::accessor<ro> m, field<double>::accessor<ro, ro> fa) {
   auto f = m.mdspan<mesh::vertices>(fa);
 
   std::stringstream ss;
-  for(auto j : m.vertices<mesh::y_axis, mesh::logical>()) {
-    for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
+  for(auto j : m.axis<mesh::y_axis>().layout.logical()) {
+    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
       // This only looks nice for single-digit values, i.e., < 10
       ss << (f[j][i] < 0 ? "" : " ") << f[j][i] << " ";
     } // for

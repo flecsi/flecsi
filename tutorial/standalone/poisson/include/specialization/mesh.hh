@@ -17,7 +17,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   enum index_space { vertices };
   using index_spaces = has<vertices>;
-  enum domain { interior, logical, all, global };
   enum axis { x_axis, y_axis };
   using axes = has<x_axis, y_axis>;
   enum boundary { low, high };
@@ -45,67 +44,32 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   template<class B>
   struct interface : B {
-
-    template<axis A, domain DM = interior>
-    std::size_t size() const {
-      if constexpr(DM == interior) {
-        const bool low = B::template is_low<mesh::vertices, A>();
-        const bool high = B::template is_high<mesh::vertices, A>();
-
-        if(low && high) { /* degenerate */
-          return size<A, logical>() - 2;
-        }
-        else if(low || high) {
-          return size<A, logical>() - 1;
-        }
-        else { /* interior */
-          return size<A, logical>();
-        }
-      }
-      else if constexpr(DM == logical) {
-        return B::template size<mesh::vertices, A, base::domain::logical>();
-      }
-      else if constexpr(DM == all) {
-        return B::template size<mesh::vertices, A, base::domain::all>();
-      }
-      else if constexpr(DM == global) {
-        return B::template size<mesh::vertices, A, base::domain::global>();
-      }
+    template<mesh::axis A>
+    FLECSI_INLINE_TARGET base::axis_info axis() const {
+      return B::template axis<mesh::vertices, A>();
     }
 
-    template<axis A>
-    FLECSI_INLINE_TARGET std::size_t global_id(std::size_t i) const {
-      return B::template global_id<mesh::vertices, A>(i);
-    }
-
-    template<axis A, domain DM = interior>
+    template<mesh::axis A>
     FLECSI_INLINE_TARGET auto vertices() const {
-      if constexpr(DM == interior) {
-        // The outermost layer is either ghosts or fixed boundaries:
-        return flecsi::topo::make_ids<mesh::vertices>(
-          flecsi::util::iota_view<flecsi::util::id>(
-            1, B::template size<mesh::vertices, A, base::domain::all>() - 1));
-      }
-      else if constexpr(DM == logical) {
-        return B::template range<mesh::vertices, A, base::domain::logical>();
-      }
-      else if constexpr(DM == all) {
-        return B::template range<mesh::vertices, A, base::domain::all>();
-      }
+      // The outermost layer is either ghosts or fixed boundaries:
+      return flecsi::topo::make_ids<mesh::vertices>(
+        flecsi::util::iota_view<flecsi::util::id>(
+          1, axis<A>().layout.extent() - 1));
     }
 
-    template<axis A>
+    template<mesh::axis A>
     FLECSI_INLINE_TARGET auto red(std::size_t row) const {
       // The checkerboard extends across colors.  The (boundary) point with
       // global ID (0,0) is red; row is local, and 0 in the space of the
       // stride_view is the first interior vertex.
       return flecsi::util::stride_view(vertices<A>(),
         2,
-        (global_id<(A == x_axis ? y_axis : x_axis)>(row) + global_id<A>(1)) %
+        (axis<(A == x_axis ? y_axis : x_axis)>().global_id(row) +
+          axis<A>().global_id(1)) %
           2);
     }
 
-    template<axis A>
+    template<mesh::axis A>
     FLECSI_INLINE_TARGET auto black(std::size_t row) const {
       return red<A>(row + 1);
     }
@@ -126,11 +90,10 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       return xdelta() * ydelta();
     }
 
-    template<axis A>
+    template<mesh::axis A>
     FLECSI_INLINE_TARGET double value(std::size_t i) const {
-      return (A == x_axis ? xdelta() : ydelta()) * global_id<A>(i);
+      return (A == x_axis ? xdelta() : ydelta()) * axis<A>().global_id(i);
     }
-
   }; // struct interface
 
   /*--------------------------------------------------------------------------*
@@ -155,8 +118,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   static void set_geometry(mesh::accessor<flecsi::rw> sm, grect const & g) {
     sm.set_geometry(
-      std::abs(g[0][1] - g[0][0]) / (sm.size<x_axis, global>() - 1),
-      std::abs(g[1][1] - g[1][0]) / (sm.size<y_axis, global>() - 1));
+      std::abs(g[0][1] - g[0][0]) / (sm.axis<x_axis>().axis.extent - 1),
+      std::abs(g[1][1] - g[1][0]) / (sm.axis<y_axis>().axis.extent - 1));
   }
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,

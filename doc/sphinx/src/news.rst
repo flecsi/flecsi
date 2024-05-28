@@ -43,6 +43,7 @@ Deprecated
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
   * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``narray_base::domain`` and ``is_low``, ``is_high``, ``is_interior``, ``is_degenerate``, ``global_id``, ``size``, ``range``, and ``offset`` in ``narray::access`` |mdash| use ``axis``
 
 * Utilities
 
@@ -87,6 +88,7 @@ New features
   * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
   * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
   * The names ``axis_definition`` and ``index_definition`` are available in ``narray_base``.
+  * ``axis``, ``axis_color``, ``axis_layout``, and ``axis_info`` in ``narray_base`` describe axes in topology accessors.
   * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
 
 * Legion backend

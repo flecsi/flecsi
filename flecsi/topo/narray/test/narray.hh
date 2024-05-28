@@ -37,8 +37,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
               axes_helper<D> {
   static_assert((D >= 1 && D <= 4), "Invalid dimension for testing !");
 
-  using domain = typename mesh::base::domain;
-
   using axis = typename axes_helper<D>::axis;
   using axes = typename axes_helper<D>::axes;
 
@@ -66,91 +64,40 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
 
   template<class B>
   struct interface : B {
+    template<axis A>
+    auto axis() const {
+      return B::template axis<flecsi::topo::elements, A>();
+    }
+
+  private:
+    template<class F, auto... AA>
+    auto map(F && f, flecsi::util::constants<AA...>) const {
+      return std::array{f(axis<AA>())...};
+    }
+    template<class F>
+    auto map(F && f) const {
+      return map(f, axes());
+    }
+    using axis_info = flecsi::topo::narray_base::axis_info;
+
+  public:
     using M = std::array<flecsi::util::id, dimension>;
 
-    template<axis A, domain DM = domain::logical>
-    auto size() const {
-      return B::template size<flecsi::topo::elements, A, DM>();
-    }
-
-    template<axis A, domain DM = domain::logical>
-    auto range() const {
-      return B::template range<flecsi::topo::elements, A, DM>();
-    }
-
-    template<axis A, domain DM = domain::logical>
-    auto offset() const {
-      return B::template offset<flecsi::topo::elements, A, DM>();
-    }
-
-    template<axis A>
-    flecsi::util::gid global_id(flecsi::util::id lid) const {
-      return B::template global_id<flecsi::topo::elements, A>(lid);
-    }
-
     auto global_ids(M lid) const {
-      std::array<flecsi::util::gid, dimension> val;
-      if constexpr(D == 1) {
-        val[0] = global_id<axis::x_axis>(lid[0]);
-      }
-      else if constexpr(D == 2) {
-        val[0] = global_id<axis::x_axis>(lid[0]);
-        val[1] = global_id<axis::y_axis>(lid[1]);
-      }
-      else {
-        val[0] = global_id<axis::x_axis>(lid[0]);
-        val[1] = global_id<axis::y_axis>(lid[1]);
-        val[2] = global_id<axis::z_axis>(lid[2]);
-      }
-      return val;
+      return map(
+        [p = lid.begin()](axis_info a) mutable { return a.global_id(*p++); });
     }
 
-    template<typename S = flecsi::util::id, domain DM = domain::all>
-    auto strides() {
-      std::array<S, dimension> val;
-      if constexpr(D == 1) {
-        val[0] = size<axis::x_axis, DM>();
-      }
-      else if constexpr(D == 2) {
-        val[0] = size<axis::x_axis, DM>();
-        val[1] = size<axis::y_axis, DM>();
-      }
-      else {
-        val[0] = size<axis::x_axis, DM>();
-        val[1] = size<axis::y_axis, DM>();
-        val[2] = size<axis::z_axis, DM>();
-      }
-      return val;
+    flecsi::topo::narray_impl::linearize<D> linear() const {
+      return {map([](axis_info a) { return a.layout.extent(); })};
     }
-
-    template<axis A, domain DM = domain::logical>
-    std::array<flecsi::util::id, 2> axis_bounds() {
-      flecsi::util::id lo = (DM == domain::logical || DM == domain::ghost_high)
-                              ? offset<A, DM>()
-                              : 0;
-      return {lo, lo + size<A, DM>()};
+    flecsi::topo::narray_impl::linearize<D, flecsi::util::gid> glinear() const {
+      return {map([](axis_info a) { return a.axis.extent; })};
     }
-
-    template<domain DM = domain::logical>
-    void bounds(M & lbnds, M & ubnds) {
-      if constexpr(D == 1) {
-        auto b = axis_bounds<axis::x_axis, DM>();
-        lbnds[0] = b[0];
-        ubnds[0] = b[1];
-      }
-      else if constexpr(D == 2) {
-        auto bx = axis_bounds<axis::x_axis, DM>();
-        auto by = axis_bounds<axis::y_axis, DM>();
-        lbnds = {bx[0], by[0]};
-        ubnds = {bx[1], by[1]};
-      }
-      else {
-        auto bx = axis_bounds<axis::x_axis, DM>();
-        auto by = axis_bounds<axis::y_axis, DM>();
-        auto bz = axis_bounds<axis::z_axis, DM>();
-        lbnds = {bx[0], by[0], bz[0]};
-        ubnds = {bx[1], by[1], bz[1]};
-      }
+    flecsi::topo::narray_impl::traverse<D> range(bool g) const {
+      if(g)
+        return {ghost<0>(), ghost<1>()};
+      return {logical<0>(), logical<1>()};
     }
 
     bool check_diag_bounds(M bnds) {
@@ -161,12 +108,22 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
     template<auto... Axes>
     bool check_diag_bounds(M bnds, flecsi::util::constants<Axes...>) {
       return std::apply(
-               [this](auto... bb) {
-                 return ((bb >= this->offset<Axes, domain::ghost_high>() ||
-                           bb < this->offset<Axes, domain::logical>()) +
+               [&](auto... bb) { // Clang 17.0.6 deems 'this' unused
+                 return ([bb](axis_info a) {
+                   return bb >= a.layout.logical<1>() ||
+                          bb < a.layout.logical<0>();
+                 }(axis<Axes>()) +
                          ... + 0);
                },
                bnds) > 1;
+    }
+    template<short E>
+    M logical() const {
+      return map([](axis_info a) { return a.layout.logical<E>(); });
+    }
+    template<short E>
+    M ghost() const {
+      return map([](axis_info a) { return a.layout.ghost<E>(); });
     }
   };
 }; // mesh
