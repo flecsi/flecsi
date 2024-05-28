@@ -235,7 +235,7 @@ private:
 struct axis {
   Color colors; ///< The number of subdivisions for colors.
   util::gid extent; ///< The total number of index points.
-  util::id bdepth, ///< The depth of boundary at each end (0 if periodic).
+  util::id bdepth, ///< The boundary padding depth at each end (0 if periodic).
     hdepth; ///< The depth of (primary) halos where they appear.
   bool periodic, ///< Whether the axis is periodic.
     auxiliary, ///< Whether the entities are delimiters (in this dimension).
@@ -302,7 +302,7 @@ struct axis_definition {
   /// \showinitializer
   util::id hdepth = 0;
 
-  /// Number of boundary layers to be added at each end of the axis.
+  /// Number of boundary padding layers to be added at each end of the axis.
   /// \showinitializer
   util::id bdepth = 0;
 
