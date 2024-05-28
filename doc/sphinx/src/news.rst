@@ -55,7 +55,7 @@ Fixed
 
     * ``index_definition::diagonals`` being ``false`` works.
       (This was fixed but not documented in 2.2.1.)
-    * Periodic axies require equal boundary and halo depths (differing values never worked reliably).
+    * Periodic axes require equal boundary and halo depths (differing values never worked reliably).
     * Auxiliary axes support ``full_ghosts`` and ``periodic`` properly.
 
   * ``unstructured`` supports ``num_intervals`` of 0.
