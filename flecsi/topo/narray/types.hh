@@ -245,7 +245,7 @@ struct axis {
 };
 /// High-level information about one axis of one color.
 struct axis_color {
-  axis ax;
+  narray_impl::axis axis;
   Color color;
   util::id logical;
   util::gid offset;
@@ -256,18 +256,18 @@ struct axis_color {
   }
   /// Whether the color is at the high end of the axis.
   FLECSI_INLINE_TARGET bool high() const {
-    return color == ax.colors - 1;
+    return color == axis.colors - 1;
   }
 
   Color color_step(Color d) const {
-    return (color + ax.colors + d) % ax.colors;
+    return (color + axis.colors + d) % axis.colors;
   }
 
   /// The global index for a given logical index on the local axis.
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
-    return low() && i < l0     ? ax.extent - l0 + i
+    return low() && i < l0     ? axis.extent - l0 + i
            : high() && i >= l1 ? i - l1
                                : offset + i - l0;
   }
@@ -275,15 +275,16 @@ struct axis_color {
   // skin indicates the communication with diagonal neighbor colors of
   // auxiliaries associated with non-diagonal primaries.
   FLECSI_INLINE_TARGET axis_layout operator()(bool skin = false) const {
-    const util::id halo_down = ax.hdepth + (ax.auxiliary && ax.full_ghosts);
+    const util::id halo_down =
+      axis.hdepth + (axis.auxiliary && axis.full_ghosts);
     assert(!skin || halo_down);
-    return {ax.bdepth,
+    return {axis.bdepth,
       logical,
-      ax.hdepth ? ax.hdepth - (ax.auxiliary && !ax.full_ghosts) : 0,
+      axis.hdepth ? axis.hdepth - (axis.auxiliary && !axis.full_ghosts) : 0,
       skin ? 1 : halo_down,
       skin ? halo_down - 1 : 0,
-      low() && !ax.periodic,
-      high() && !ax.periodic};
+      low() && !axis.periodic,
+      high() && !axis.periodic};
   }
 };
 

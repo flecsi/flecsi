@@ -126,7 +126,7 @@ private:
     Colors colors() const {
       Colors ret;
       for(Dimension d = 0; d < dimension; ++d)
-        ret[d] = axcol[d].ax.colors;
+        ret[d] = axcol[d].axis.colors;
       return ret;
     }
 
@@ -148,7 +148,7 @@ private:
             // We can still need to communicate with some diagonal neighbors
             // those auxiliaries incident on another color's primaries.
             for(Dimension d = 0; d < dimension; ++d) {
-              auto & ax = axcol[d].ax;
+              auto & ax = axcol[d].axis;
               if((skin[d] = ax.auxiliary && ax.full_ghosts &&
                             (send ? -1 : 1) * off[d] > 0))
                 --taxi;
@@ -601,7 +601,7 @@ private:
   */
   template<index_space S, Axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return get_axis<S, A>().ax.extent;
+    return get_axis<S, A>().axis.extent;
   }
 
   /*!
