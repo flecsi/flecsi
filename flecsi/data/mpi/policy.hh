@@ -131,12 +131,6 @@ struct storage {
     if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
       return data<exec::task_processor_type_t::loc, AccessPrivilege>();
 
-    const auto check_for_alloc = [](auto & ret_buff, auto & sync_buff) {
-      if(!ret_buff.data() && sync_buff.size())
-        ret_buff.resize(sync_buff.size());
-      return ret_buff.data();
-    };
-
     switch(current_state) {
       case data_sync::both:
         if constexpr(ProcessorType == exec::task_processor_type_t::loc) {
@@ -144,52 +138,42 @@ struct storage {
           if constexpr(AccessPrivilege != partition_privilege_t::ro)
             current_state = data_sync::loc;
 
-          return check_for_alloc(loc_buffer, toc_buffer);
+          return loc_buffer.data();
         }
         else {
           // If we're writing, we need to change the state
           if constexpr(AccessPrivilege != partition_privilege_t::ro)
             current_state = data_sync::toc;
 
-          return check_for_alloc(toc_buffer, loc_buffer);
+          return toc_buffer.data();
         }
 
       case data_sync::loc:
         if constexpr(ProcessorType == exec::task_processor_type_t::loc)
           return loc_buffer.data();
         else {
-          if constexpr(AccessPrivilege != partition_privilege_t::wo)
-            transfer(toc_buffer, loc_buffer);
-          // If we are *only* writing, we don't need to perform the deepcopy,
-          // but we do need to be sure they have the same size
-          else if(loc_buffer.size() != toc_buffer.size())
-            toc_buffer.resize(loc_buffer.size());
+          transfer<AccessPrivilege>(toc_buffer, loc_buffer);
 
           if constexpr(AccessPrivilege == partition_privilege_t::ro)
             current_state = data_sync::both;
           else
             current_state = data_sync::toc;
 
-          return check_for_alloc(toc_buffer, loc_buffer);
+          return toc_buffer.data();
         }
 
       case data_sync::toc:
         if constexpr(ProcessorType == exec::task_processor_type_t::toc)
           return toc_buffer.data();
         else {
-          if constexpr(AccessPrivilege != partition_privilege_t::wo)
-            transfer(loc_buffer, toc_buffer);
-          // If we are *only* writing, we don't need to perform the deepcopy,
-          // but we do need to be sure they have the same size
-          else if(loc_buffer.size() != toc_buffer.size())
-            loc_buffer.resize(toc_buffer.size());
+          transfer<AccessPrivilege>(loc_buffer, toc_buffer);
 
           if constexpr(AccessPrivilege == partition_privilege_t::ro)
             current_state = data_sync::both;
           else
             current_state = data_sync::loc;
 
-          return check_for_alloc(loc_buffer, toc_buffer);
+          return loc_buffer.data();
         }
     }
 
@@ -239,14 +223,16 @@ struct storage {
   }
 
 private:
-  template<typename D, typename S>
+  template<partition_privilege_t AccessPrivilege, typename D, typename S>
   static void transfer(D & dst, const S & src) {
     // We need to resize buffer on the destination side such that we don't
     // attempt deep_copy to cause buffer overrun (Kokkos does check that).
     if(dst.size() < src.size())
       dst.resize(src.size());
-    Kokkos::deep_copy(
-      Kokkos::DefaultExecutionSpace{}, dst.kokkos_view(), src.kokkos_view());
+
+    if constexpr(AccessPrivilege != partition_privilege_t::wo)
+      Kokkos::deep_copy(
+        Kokkos::DefaultExecutionSpace{}, dst.kokkos_view(), src.kokkos_view());
   }
 
   // Where the data is currently synced
