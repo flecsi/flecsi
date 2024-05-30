@@ -23,6 +23,8 @@ enum task_attributes_mask_t : TaskAttributes {
   idempotent = 0x04, ///< Task may be replicated to reduce communication.
   loc = 0x08, ///< Run on a Latency-Optimized Core (a CPU).
   /// Run on a Throughput-Optimized Core (a GPU).
+  /// The task function itself still runs on the host, but a GPU is reserved
+  /// for its use and field data is made available there.
   ///
   /// \warning MPI backend: Running one process per node likely
   ///          leads to poor performance.

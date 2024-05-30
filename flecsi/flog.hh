@@ -295,9 +295,7 @@ private:
  */
 
 #define flog(severity)                                                         \
-  true && /* implicitly converts remainder to bool */                          \
-    ::flecsi::flog::message<flecsi::flog::severity>(__FILE__, __LINE__)        \
-      .format()
+  ::flecsi::flog::message<::flecsi::flog::severity>(__FILE__, __LINE__).format()
 
 /*!
   Method style interface for trace level severity log entries.
