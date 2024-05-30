@@ -591,6 +591,19 @@ private:
   // direct access to the region.
   friend copy_engine;
 
+  template<typename T, partition_privilege_t AccessPrivilege>
+  auto get_storage(field_id_t fid, std::size_t nelems) const {
+    return r->get_storage<T, exec::task_processor_type_t::loc, AccessPrivilege>(
+      fid, nelems);
+  }
+
+#if defined(FLECSI_ENABLE_KOKKOS)
+  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+  auto kokkos_view(field_id_t fid) const {
+    return r->kokkos_view<AccessPrivilege>(fid);
+  }
+#endif
+
   mpi::region_impl * r;
 };
 
@@ -768,13 +781,12 @@ struct copy_engine {
                 mpi::detail::host_view{send_buffers.back().data(), n_bytes},
                 gather_buffer_device_view);
             }},
-          source.r->kokkos_view<partition_privilege_t::ro>(data_fid));
+          source.kokkos_view<partition_privilege_t::ro>(data_fid));
 #else
         gather_copy(send_buffers.back().data(),
-          source.r
-            ->get_storage<std::byte,
-              exec::task_processor_type_t::loc,
-              partition_privilege_t::ro>(data_fid, max_local_source_idx)
+          source
+            .get_storage<std::byte, partition_privilege_t::ro>(
+              data_fid, max_local_source_idx)
             .data(),
           shared_indices);
 #endif
