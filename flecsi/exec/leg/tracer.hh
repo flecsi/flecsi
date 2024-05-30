@@ -13,9 +13,8 @@ struct trace {
 
   inline guard make_guard();
 
-  trace()
-    : trace(Legion::Runtime::get_runtime()->generate_dynamic_trace_id()) {}
-  explicit trace(id_t id) : id_(id), skip_(false) {}
+  trace() : id_(Legion::Runtime::get_runtime()->generate_dynamic_trace_id()) {}
+  [[deprecated("use default constructor")]] explicit trace(id_t id) : id_(id) {}
 
   trace(trace &&) = default;
 
@@ -58,7 +57,7 @@ public:
 
 private:
   id_t id_;
-  bool skip_;
+  bool skip_ = false;
   static inline bool tracing = false;
 
 }; // struct trace

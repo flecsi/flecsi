@@ -39,6 +39,10 @@ Deprecated
 
   * ``coloring_slot`` |mdash| use ``specialization::mpi_coloring``
 
+* Execution
+
+  * Constructing a ``trace`` with an id |mdash| use the default constructor
+
 * Topologies
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``

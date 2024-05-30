@@ -11,7 +11,7 @@ struct trace {
   inline guard make_guard();
 
   trace() {}
-  explicit trace(id_t) {}
+  [[deprecated("use default constructor")]] explicit trace(id_t) {}
 
   trace(trace &&) = default;
 

@@ -155,10 +155,11 @@ struct trace {
 
   using id_t = int;
 
-  /// Construct a trace with auto generated id
+  /// Construct a trace.
   trace();
   /// Construct a trace with user defined id
   /// \param id User defined id for the trace
+  /// \deprecated Use the default constructor.
   explicit trace(id_t id);
 
   /// Default move constructor.
