@@ -160,6 +160,10 @@ struct storage {
         else {
           if constexpr(AccessPrivilege != partition_privilege_t::wo)
             transfer(toc_buffer, loc_buffer);
+          // If we are *only* writing, we don't need to perform the deepcopy,
+          // but we do need to be sure they have the same size
+          else if(loc_buffer.size() != toc_buffer.size())
+            toc_buffer.resize(loc_buffer.size());
 
           if constexpr(AccessPrivilege == partition_privilege_t::ro)
             current_state = data_sync::both;
@@ -175,6 +179,10 @@ struct storage {
         else {
           if constexpr(AccessPrivilege != partition_privilege_t::wo)
             transfer(loc_buffer, toc_buffer);
+          // If we are *only* writing, we don't need to perform the deepcopy,
+          // but we do need to be sure they have the same size
+          else if(loc_buffer.size() != toc_buffer.size())
+            loc_buffer.resize(toc_buffer.size());
 
           if constexpr(AccessPrivilege == partition_privilege_t::ro)
             current_state = data_sync::both;
