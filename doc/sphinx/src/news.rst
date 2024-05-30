@@ -23,8 +23,7 @@ Deprecated
 * Build
 
   * ``FLOG_ENABLE_COLOR_OUTPUT``, ``FLOG_SERIALIZATION_INTERVAL``, and
-    ``FLOG_STRIP_LEVEL`` CMake options are deprecated and serve only as initial
-    defaults.
+    ``FLOG_STRIP_LEVEL`` |mdash| use ``flog::config``
 
 * Runtime
 
