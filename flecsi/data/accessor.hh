@@ -781,7 +781,7 @@ public:
       else {
         auto const split = old_last - min_length;
         std::uninitialized_move(split, old_last, split + shift_distance);
-        std::move_backward(old_first, split, old_first + shift_distance);
+        std::move_backward(old_first, split, old_last);
         std::destroy(old_first, old_first + min_length);
       }
     };

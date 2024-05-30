@@ -287,8 +287,8 @@ private:
                   run().create_index_space(ctx(), Legion::Rect<1>(0, hi[0])))),
                 [&] {
                   Legion::Transform<2, 1> ret;
-                  ret.rows[0].x = 1;
-                  ret.rows[1].x = 0;
+                  ret.rows[0][0] = 1;
+                  ret.rows[1][0] = 0;
                   return ret;
                 }(),
                 {{0, 0}, {0, hi[1]}},

@@ -47,7 +47,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
   struct interface : B {
 
     template<axis A, domain DM = interior>
-    std::size_t size() {
+    std::size_t size() const {
       if constexpr(DM == interior) {
         const bool low = B::template is_low<mesh::vertices, A>();
         const bool high = B::template is_high<mesh::vertices, A>();
@@ -131,44 +131,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       return (A == x_axis ? xdelta() : ydelta()) * global_id<A>(i);
     }
 
-    template<axis A, boundary BD>
-    bool is_boundary(std::size_t i) {
-
-      auto const loff =
-        B::template offset<mesh::vertices, A, base::domain::logical>();
-      auto const lsize =
-        B::template size<mesh::vertices, A, base::domain::logical>();
-      const bool l = B::template is_low<mesh::vertices, A>();
-      const bool h = B::template is_high<mesh::vertices, A>();
-
-      if(l && h) { /* degenerate */
-        if constexpr(BD == boundary::low) {
-          return i == loff;
-        }
-        else {
-          return i == (lsize + loff - 1);
-        }
-      }
-      else if(l) {
-        if constexpr(BD == boundary::low) {
-          return i == loff;
-        }
-        else {
-          return false;
-        }
-      }
-      else if(h) {
-        if constexpr(BD == boundary::low) {
-          return false;
-        }
-        else {
-          return i == (lsize + loff - 1);
-        }
-      }
-      else { /* interior */
-        return false;
-      }
-    } // is_boundary
   }; // struct interface
 
   /*--------------------------------------------------------------------------*

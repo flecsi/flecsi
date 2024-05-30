@@ -40,7 +40,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using index_spaces = typename Policy::index_spaces;
   using copy_spaces = util::to_copy_spaces<Policy>;
 
-  using axis = typename Policy::axis;
+  using Axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using id = util::id;
   static_assert(index_spaces::size, "no index spaces");
@@ -125,7 +125,7 @@ private:
     Colors colors() const {
       Colors ret;
       for(Dimension d = 0; d < dimension; ++d)
-        ret[d] = axcol[d].ax.colors;
+        ret[d] = axcol[d].axis.colors;
       return ret;
     }
 
@@ -147,7 +147,7 @@ private:
             // We can still need to communicate with some diagonal neighbors
             // those auxiliaries incident on another color's primaries.
             for(Dimension d = 0; d < dimension; ++d) {
-              auto & ax = axcol[d].ax;
+              auto & ax = axcol[d].axis;
               if((skin[d] = ax.auxiliary && ax.full_ghosts &&
                             (send ? -1 : 1) * off[d] > 0))
                 --taxi;
@@ -598,9 +598,9 @@ private:
    Method to access global extents of index space S along
    axis A.  \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET util::gid global() const {
-    return get_axis<S, A>().ax.extent;
+    return get_axis<S, A>().axis.extent;
   }
 
   /*!
@@ -609,12 +609,12 @@ private:
    space S along axis A.
    \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET util::gid offset() const {
     return get_axis<S, A>().offset;
   }
 
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET util::id extent() const {
     return get_axis<S, A>()().extent();
   }
@@ -641,7 +641,7 @@ private:
      @tparam P Value 0 denotes lower bound, and value 1 denotes upper
                bound.
     */
-  template<index_space S, axis A, std::size_t P>
+  template<index_space S, Axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id logical() const {
     return get_axis<S, A>()().template logical<P>();
   }
@@ -653,7 +653,7 @@ private:
     @tparam P Value 0 denotes lower bound, and value 1 denotes upper
               bound.
    */
-  template<index_space S, axis A, std::size_t P>
+  template<index_space S, Axis A, std::size_t P>
   FLECSI_INLINE_TARGET util::id extended() const {
     const axis_color & a = get_axis<S, A>();
     if constexpr(P == 0) {
@@ -674,7 +674,7 @@ protected:
    bound of the corresponding axis of the global mesh.
    \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET bool is_low() const {
     return get_axis<S, A>().low();
   }
@@ -684,7 +684,7 @@ protected:
    bound of the corresponding axis of the global mesh.
    \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET bool is_high() const {
     return get_axis<S, A>().high();
   }
@@ -694,7 +694,7 @@ protected:
    bound along axis A of the global domain.
    \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET bool is_interior() const {
     return !is_low<S, A>() && !is_high<S, A>();
   }
@@ -704,7 +704,7 @@ protected:
      This method checks if the axis A is incident on both the lower and upper
      bound of the global domain.  \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET bool is_degenerate() const {
     return is_low<S, A>() && is_high<S, A>();
   }
@@ -715,7 +715,7 @@ protected:
      treated as periodic.
      \host.
   */
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
     return get_axis<S, A>().global_id(logical_id);
   }
@@ -724,7 +724,7 @@ protected:
     Method to return size of \c S along \c A for \a DM.
     \host.
   */
-  template<index_space S, axis A, domain DM>
+  template<index_space S, Axis A, domain DM>
   FLECSI_INLINE_TARGET auto size() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 1>() - logical<S, A, 0>();
@@ -765,7 +765,7 @@ protected:
      \host.
      \tparam DM not \c domain::global
    */
-  template<index_space S, axis A, domain DM>
+  template<index_space S, Axis A, domain DM>
   FLECSI_INLINE_TARGET auto range() const {
     static_assert(DM != domain::global, "no global range");
     const auto o = offset<S, A, DM>();
@@ -776,7 +776,7 @@ protected:
     Method to return an offset of \c S along \c A for \a DM.
     \host.
   */
-  template<index_space S, axis A, domain DM>
+  template<index_space S, Axis A, domain DM>
   FLECSI_INLINE_TARGET util::gid offset() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 0>();
@@ -806,7 +806,7 @@ protected:
   }
 
 private:
-  template<index_space S, axis A>
+  template<index_space S, Axis A>
   FLECSI_INLINE_TARGET const axis_color & get_axis() const {
     return meta_->template get<S>().axcol.template get<A>();
   }

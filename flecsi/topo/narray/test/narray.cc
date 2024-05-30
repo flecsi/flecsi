@@ -138,7 +138,7 @@ check_mesh_field(std::string name,
   std::string output_file = "mesh_" + name + "_" + std::to_string(colors()) +
                             "_" + std::to_string(color()) + ".blessed";
   UNIT("TASK") {
-    std::stringstream out;
+    auto & out = UNIT_CAPTURE();
     if constexpr(D == 1) {
       using r = mesh1d::domain;
       using ax = mesh1d::axis;
@@ -254,7 +254,6 @@ check_mesh_field(std::string name,
           << container{elems(cnst<r::logical>(), cnst<r::ghost_high>(), cnst<r::ghost_high>())} << "\n";
       // clang-format on
     } // d=3
-    UNIT_CAPTURE() << out.rdbuf();
     EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
   };
 } // check_mesh_field
@@ -322,12 +321,13 @@ check_sz(ints::mutator<wo, na> tf, util::id lid, std::size_t sz) {
   return true;
 }
 
+enum class diag { on, prim, aux };
 template<std::size_t D, typename mesh<D>::domain DOM, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
   std::size_t sz,
-  bool diagonals) {
+  diag dg) {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
     std::array<util::id, D> lbnds, ubnds;
     m.template bounds<DOM>(lbnds, ubnds);
@@ -341,10 +341,11 @@ init_verify_rf(typename mesh<D>::template accessor<ro> m,
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
+      const bool d = m.check_diag_bounds(v);
       // Some but not all diagonal neighbors send auxiliaries, so don't check
       // for arrival from them:
-      ASSERT_TRUE(
-        check_sz(tf, lid, sz) || (!diagonals && m.check_diag_bounds(v)));
+      ASSERT_TRUE(check_sz(tf, lid, dg == diag::on || !d ? sz : 0) ||
+                  (dg == diag::aux && d));
       // Check correctness for all neighbors:
       for(auto n = tf[lid].size(); n--;)
         EXPECT_TRUE(check(tf[lid][n], (int)(gid * 10000 + n)));
@@ -490,7 +491,7 @@ value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
 }
 
 template<std::size_t D>
-int
+[[nodiscard]] int
 test_mesh(topo::narray_impl::colors color_dist,
   const typename mesh<D>::gcoord & indices,
   const typename mesh<D>::coord & hdepth,
@@ -511,11 +512,14 @@ test_mesh(topo::narray_impl::colors color_dist,
                          : std::move(color_dist),
       indices);
     int i = 0;
+    diag dg = diagonals ? diag::on : diag::prim;
     for(auto & a : idef.axes) {
       a.hdepth = hdepth[i];
       a.bdepth = bdepth[i];
       a.periodic = periodic[i];
       a.auxiliary = auxiliary[i];
+      if(!diagonals && auxiliary[i])
+        dg = diag::aux;
       ++i;
     }
     idef.diagonals = diagonals;
@@ -545,14 +549,14 @@ test_mesh(topo::narray_impl::colors color_dist,
     execute<allocate_field<D>>(f(m), tf.sizes(), sz);
 
     EXPECT_EQ((test<init_verify_rf<D, mesh2d::domain::logical, false>>(
-                m, rf(m), sz, idef.diagonals)),
+                m, rf(m), sz, dg)),
       0);
 
     if(print_info)
       execute<print_rf<D>>(m, rf(m));
 
-    EXPECT_EQ((test<init_verify_rf<D, mesh<D>::domain::all, true>>(
-                m, rf(m), sz, idef.diagonals)),
+    EXPECT_EQ(
+      (test<init_verify_rf<D, mesh<D>::domain::all, true>>(m, rf(m), sz, dg)),
       0);
 
     if(print_info)
@@ -602,17 +606,17 @@ narray_driver() {
       execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
 
       execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
-        m1, rf1(m1), sz, idef.diagonals);
+        m1, rf1(m1), sz, diag::on);
       execute<print_rf<1>>(m1, rf1(m1));
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
       EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
-                  m1, rf1(m1), sz, idef.diagonals)),
+                  m1, rf1(m1), sz, diag::on)),
         0);
       execute<print_rf<1>>(m1, rf1(m1));
       EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
-                  m1, rf1(m1), sz, idef.diagonals)),
+                  m1, rf1(m1), sz, diag::on)),
         0);
 
       // tests if a rewrite of values on ragged with an accessor triggers a
@@ -637,7 +641,8 @@ narray_driver() {
                           bool full_ghosts,
                           std::size_t sz,
                           const char * verify,
-                          bool print_info) {
+                          bool print_info,
+                          int line) {
         EXPECT_EQ(test_mesh<2>({},
                     {8, 8},
                     hdepth,
@@ -651,7 +656,8 @@ narray_driver() {
                     print_info,
                     f2,
                     rf2),
-          0);
+          0)
+          << "from " << line;
       };
 
       // Primary cells: diagonals variation, full ghosts on, though here full
@@ -664,7 +670,8 @@ narray_driver() {
         true,
         100,
         "2d",
-        false);
+        false,
+        __LINE__);
 
       test({1, 1},
         {1, 1},
@@ -674,7 +681,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        true);
+        true,
+        __LINE__);
 
       // Aux verts: diagonals on, full ghosts true
       test({2, 2},
@@ -685,7 +693,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -695,7 +704,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       // Aux x-edges: diagonals on, full ghosts true
       test({2, 2},
@@ -706,7 +716,8 @@ narray_driver() {
         true,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -716,7 +727,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
 
       // Aux y-edges: diagonals != full ghosts
       test({2, 2},
@@ -727,7 +739,8 @@ narray_driver() {
         true,
         3,
         "diag",
-        false);
+        false,
+        __LINE__);
 
       test({2, 2},
         {0, 0},
@@ -737,7 +750,8 @@ narray_driver() {
         false,
         3,
         nullptr,
-        false);
+        false,
+        __LINE__);
     } // scope
 
     {
@@ -748,7 +762,8 @@ narray_driver() {
                           std::array<bool, 3> periodic,
                           bool diagonals,
                           std::size_t sz,
-                          const char * verify) {
+                          const char * verify,
+                          int line) {
         EXPECT_EQ(test_mesh<3>(color_dist,
                     indices,
                     {1, 1, 1},
@@ -762,17 +777,26 @@ narray_driver() {
                     false,
                     f3,
                     rf3),
-          0);
+          0)
+          << "from " << line;
       };
 
-      test({}, {4, 4, 4}, {1, 1, 1}, {true, true, true}, true, 100, "3d");
+      test({},
+        {4, 4, 4},
+        {1, 1, 1},
+        {true, true, true},
+        true,
+        100,
+        "3d",
+        __LINE__);
       test({2, 2, 1},
         {4, 4, 2},
         {0, 0, 0},
         {false, false, false},
         false,
         3,
-        nullptr);
+        nullptr,
+        __LINE__);
     } // scope
 
     if(FLECSI_BACKEND != FLECSI_BACKEND_mpi) {
@@ -820,7 +844,7 @@ coloring_driver() {
       std::string output_file = "coloring_" + name + "_" +
                                 std::to_string(processes()) + "_" +
                                 std::to_string(process()) + ".blessed";
-      std::stringstream out;
+      auto & out = UNIT_CAPTURE();
       std::vector<std::size_t> color;
       std::vector<std::string> global, extent, offset, logical, extended;
 
@@ -837,7 +861,7 @@ coloring_driver() {
         for(Dimension d = 0; d < 3; ++d) {
           const auto axco = id.make_axis(d, c3[d]);
           const auto al = axco();
-          g.push_back(axco.ax.extent);
+          g.push_back(axco.axis.extent);
           e.push_back(al.extent());
           o.push_back(axco.offset);
           log.push_back(seq(std::vector{al.logical<0>(), al.logical<1>()}));
@@ -857,7 +881,6 @@ coloring_driver() {
       out << "logical: " << flog::container{logical} << "\n";
       out << "extended: " << flog::container{extended} << "\n";
 
-      UNIT_CAPTURE() << out.rdbuf();
       EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
     };
 
