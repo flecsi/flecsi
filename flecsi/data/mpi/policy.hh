@@ -755,14 +755,14 @@ struct copy_engine {
                          send_buffers.back().data(), src.data(), src_indices);
                      },
             [&](const mpi::detail::device_const_view & src) {
-              // copy shared indices from host to device
+              // get shared indices from device
               const auto * shared_indices_device_data =
                 src_indices.data<exec::task_processor_type_t::toc>();
 
               // allocate gather buffer on device
               auto gather_buffer_device_view =
                 Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-                  "gather", n_bytes};
+                  Kokkos::ViewAllocateWithoutInitializing("gather"), n_bytes};
 
               // copy shared values to gather buffer on device in parallel, for
               // each element
@@ -819,17 +819,14 @@ struct copy_engine {
               dst_indices.template data<exec::task_processor_type_t::toc>();
 
             // copy recv buffer from host to scatter buffer on device
-            auto scatter_buffer_device_view = [](const auto & hvec,
-                                                const std::string & label) {
-              using T = typename std::decay_t<decltype(hvec)>::value_type;
-              Kokkos::View<T *, Kokkos::DefaultExecutionSpace> dview{
-                Kokkos::ViewAllocateWithoutInitializing(label), hvec.size()};
-              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-                dview,
-                Kokkos::View<const T *, Kokkos::HostSpace>{
-                  hvec.data(), hvec.size()});
-              return dview;
-            }(*recv_buffer, "scatter");
+            auto scatter_buffer_device_view =
+              Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
+                Kokkos::ViewAllocateWithoutInitializing("scatter"),
+                recv_buffer->size()};
+
+            Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+              scatter_buffer_device_view,
+              mpi::detail::host_view{recv_buffer->data(), recv_buffer->size()});
 
             // copy ghost values from scatter buffer on device to field storage
             // in parallel, for each element
