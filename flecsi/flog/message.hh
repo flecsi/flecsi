@@ -98,14 +98,6 @@ struct message {
     return *this;
   }
 
-  /*
-    Conversion to bool for ternary usage.
-   */
-
-  operator bool() const {
-    return true;
-  }
-
 private:
   const char * file_;
   int line_;
