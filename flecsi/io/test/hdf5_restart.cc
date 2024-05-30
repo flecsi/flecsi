@@ -32,7 +32,7 @@ init(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<wo, na> mfs,
   field<int, ragged>::mutator<wo, na> mfr1,
   field<int, ragged>::mutator<wo, na> mfr2) {
-  for(auto i : m.range<ax::x_axis>()) {
+  for(auto i : m.axis<ax::x_axis>().layout.logical()) {
     double val = 100. * color() + (int)i;
     mf1[i] = val;
     mf2[i] = val + 1000.;
@@ -59,7 +59,7 @@ clear(mesh1d::accessor<ro> m,
   field<std::size_t>::accessor<wo, na> mfs,
   field<int, ragged>::accessor<rw, na> mfr1,
   field<int, ragged>::accessor<rw, na> mfr2) {
-  for(auto i : m.range<ax::x_axis>()) {
+  for(auto i : m.axis<ax::x_axis>().layout.logical()) {
     mf1[i] = 0.;
     mf2[i] = 0.;
     mfi[i] = 0;
@@ -84,7 +84,7 @@ check(mesh1d::accessor<ro> m,
   field<int, ragged>::accessor<ro, na> mfr1,
   field<int, ragged>::accessor<ro, na> mfr2) {
   UNIT("TASK") {
-    for(auto i : m.range<ax::x_axis>()) {
+    for(auto i : m.axis<ax::x_axis>().layout.logical()) {
       double val = 100. * color() + (int)i;
       ASSERT_EQ(mf1[i], val);
       ASSERT_EQ(mf2[i], val + 1000.);

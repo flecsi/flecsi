@@ -22,9 +22,9 @@ poisson::task::eggcarton(mesh::accessor<ro> m,
 
   flog(info) << "dxdy: " << m.dxdy() << std::endl;
 
-  forall(j, (m.vertices<mesh::y_axis, mesh::logical>()), "init_eggcarton") {
+  forall(j, (m.axis<mesh::y_axis>().layout.logical()), "init_eggcarton") {
     const double y = m.value<mesh::y_axis>(j);
-    for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
+    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
       const double x = m.value<mesh::x_axis>(i);
       f[j][i] = sq_klpi * sin(K * PI * x) * sin(L * PI * y);
       const double solution = sin(K * PI * x) * sin(L * PI * y);
@@ -40,8 +40,8 @@ poisson::task::constant(mesh::accessor<ro> m,
   field<double>::accessor<wo, na> fa,
   double value) {
   auto f = m.mdspan<mesh::vertices>(fa);
-  forall(j, (m.vertices<mesh::y_axis, mesh::logical>()), "init_constant") {
-    for(auto i : m.vertices<mesh::x_axis, mesh::logical>()) {
+  forall(j, (m.axis<mesh::y_axis>().layout.logical()), "init_constant") {
+    for(auto i : m.axis<mesh::x_axis>().layout.logical()) {
       f[j][i] = value;
     } // for
   }; // forall
@@ -51,12 +51,12 @@ void
 poisson::task::redblack(mesh::accessor<ro> m,
   field<double>::accessor<wo, na> fa) {
   auto f = m.mdspan<mesh::vertices>(fa);
-  for(auto j : m.vertices<mesh::y_axis, mesh::interior>()) {
+  for(auto j : m.vertices<mesh::y_axis>()) {
     forall(i, m.red<mesh::x_axis>(j), "red") {
-      f[j][i] = m.global_id<mesh::x_axis>(i);
+      f[j][i] = m.axis<mesh::x_axis>().global_id(i);
     };
     forall(i, m.black<mesh::x_axis>(j), "black") {
-      f[j][i] = -int(m.global_id<mesh::x_axis>(i));
+      f[j][i] = -int(m.axis<mesh::x_axis>().global_id(i));
     };
   } // for
 }

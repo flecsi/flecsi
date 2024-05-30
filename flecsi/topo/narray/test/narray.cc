@@ -13,18 +13,15 @@ using mesh2d = mesh<2>;
 using mesh3d = mesh<3>;
 using mesh4d = mesh<4>;
 
+using axis_info = topo::narray_base::axis_info;
+
 template<std::size_t D, typename F>
 void
 field_helper(typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<wo, na> ca,
   F && fvalue) {
-  std::array<util::id, D> lbnds, ubnds;
-  m.bounds(lbnds, ubnds);
-  auto str_local = m.template strides();
-  flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
-
-  using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
-  for(auto && v : tb(lbnds, ubnds)) {
+  const auto ln_local = m.linear();
+  for(auto && v : m.range(false)) {
     fvalue(ca[ln_local(v)]);
   }
 } // field_helper
@@ -51,29 +48,24 @@ print_field(typename mesh<D>::template accessor<ro> m,
   auto c = m.template mdspan<topo::elements>(ca);
   std::stringstream ss;
   if constexpr(D == 1) {
-    for(auto i :
-      m.template range<mesh1d::axis::x_axis, mesh1d::domain::all>()) {
+    for(auto i : m.template axis<mesh1d::axis::x_axis>().layout.all()) {
       ss << c[i] << "   ";
     } // for
     ss << std::endl;
   }
   else if constexpr(D == 2) {
-    for(int j = m.template size<mesh2d::axis::y_axis, mesh2d::domain::all>();
-        j--;) {
-      for(auto i :
-        m.template range<mesh2d::axis::x_axis, mesh2d::domain::all>()) {
+    for(int j = m.template axis<mesh2d::axis::y_axis>().layout.extent(); j--;) {
+      for(auto i : m.template axis<mesh2d::axis::x_axis>().layout.all()) {
         ss << c[j][i] << "   ";
       } // for
       ss << std::endl;
     } // for
   }
   else {
-    for(int k = m.template size<mesh3d::axis::z_axis, mesh3d::domain::all>();
-        k--;) {
-      for(int j = m.template size<mesh3d::axis::y_axis, mesh3d::domain::all>();
+    for(int k = m.template axis<mesh3d::axis::z_axis>().layout.extent(); k--;) {
+      for(int j = m.template axis<mesh3d::axis::y_axis>().layout.extent();
           j--;) {
-        for(auto i :
-          m.template range<mesh3d::axis::x_axis, mesh3d::domain::all>()) {
+        for(auto i : m.template axis<mesh3d::axis::x_axis>().layout.all()) {
           ss << c[k][j][i] << "   ";
         } // for
         ss << std::endl;
@@ -86,37 +78,27 @@ print_field(typename mesh<D>::template accessor<ro> m,
 
 } // print_field
 
-template<typename Mesh, typename Mesh::axis A, typename Mesh::domain DM>
-struct range {
-  using accessor = typename Mesh::template accessor<ro>;
-  const accessor & m;
-
-  friend std::ostream & operator<<(std::ostream & o, const range & r) {
-    const auto off = r.m.template offset<A, DM>();
-    o << " [" << off << ", " << off + r.m.template size<A, DM>() << ")";
-    return o;
-  }
-};
-
 template<std::size_t D>
 struct Axes {
-  using r = typename mesh<D>::domain;
-
-  template<typename mesh<D>::axis A, r R>
-  using rng = range<mesh<D>, A, R>;
-
   template<auto... A>
   static std::string data(typename mesh<D>::template accessor<ro> & m,
     util::constants<A...>) {
     std::stringstream ss;
-    ((ss << "log:") << ... << rng<A, r::logical>{m}) << "\n";
-    ((ss << "ext:") << ... << rng<A, r::extended>{m}) << "\n";
-    ((ss << "all:") << ... << rng<A, r::all>{m}) << "\n";
-    ((ss << "bd_lo:") << ... << rng<A, r::boundary_low>{m}) << "\n";
-    ((ss << "bd_hi:") << ... << rng<A, r::boundary_high>{m}) << "\n";
-    ((ss << "gh_lo:") << ... << rng<A, r::ghost_low>{m}) << "\n";
-    ((ss << "gh_hi:") << ... << rng<A, r::ghost_high>{m}) << "\n";
-    ((ss << "global:") << ... << rng<A, r::global>{m}) << "\n";
+    (
+      [&] {
+        const axis_info ai = m.template axis<A>();
+        ss << ai.color << '/' << ai.axis.colors << '@' << ai.offset << '+'
+           << ai.logical << '/' << ai.axis.extent << '|' << ai.axis.hdepth
+           << '|' << ai.axis.bdepth << '=' << ai.layout.extent() << ' ';
+        if(ai.axis.periodic)
+          ss << 'P';
+        if(ai.axis.auxiliary)
+          ss << 'A';
+        if(ai.axis.full_ghosts)
+          ss << 'F';
+        ss << '\n';
+      }(),
+      ...);
     return ss.str();
   }
 
@@ -134,26 +116,32 @@ check_mesh_field(std::string name,
   typename mesh<D>::template accessor<ro> m,
   field<std::size_t>::accessor<ro, ro> ca) {
   using flog::container;
+  const auto bounds = [](const axis_info & a) {
+    return std::array{a.layout.ghost<0>(),
+      a.layout.logical<0>(),
+      a.layout.logical<1>(),
+      a.layout.ghost<1>()};
+  };
 
   std::string output_file = "mesh_" + name + "_" + std::to_string(colors()) +
                             "_" + std::to_string(color()) + ".blessed";
   UNIT("TASK") {
     auto & out = UNIT_CAPTURE();
     if constexpr(D == 1) {
-      using r = mesh1d::domain;
       using ax = mesh1d::axis;
 
       out << Axes<D>::data(m);
 
       // check field values on the ghost layers
       auto c = m.template mdspan<topo::elements>(ca);
+      const auto x = bounds(m.template axis<ax::x_axis>());
       std::vector<util::id> g_lo, g_hi;
 
-      for(auto i : m.template range<ax::x_axis, r::ghost_low>()) {
+      for(auto i : util::iota_view(x[0], x[1])) {
         g_lo.push_back(c[i]);
       }
 
-      for(auto i : m.template range<ax::x_axis, r::ghost_high>()) {
+      for(auto i : util::iota_view(x[2], x[3])) {
         g_hi.push_back(c[i]);
       }
 
@@ -161,21 +149,20 @@ check_mesh_field(std::string name,
       out << "x_gh_hi_val: " << container{g_hi} << "\n";
     } // d=1
     else if constexpr(D == 2) {
-      using r = mesh2d::domain;
       using ax = mesh2d::axis;
       out << Axes<D>::data(m);
 
       // check field values on the ghost layers
       auto c = m.template mdspan<topo::elements>(ca);
+      const auto x = bounds(m.template axis<ax::x_axis>()),
+                 y = bounds(m.template axis<ax::y_axis>());
 
-      auto elems = [&](auto y, auto x) {
-        auto ybnd = m.template range<ax::y_axis, decltype(y)::value>();
-        auto xbnd = m.template range<ax::x_axis, decltype(x)::value>();
+      auto elems = [&](util::id y0, util::id y1, util::id x0, util::id x1) {
         std::vector<std::string> result;
-        for(auto j : ybnd) {
+        for(auto j : util::iota_view(y0, y1)) {
           std::vector<util::id> row;
           std::stringstream ss;
-          for(auto i : xbnd) {
+          for(auto i : util::iota_view(x0, x1)) {
             row.push_back(c[j][i]);
           }
           ss << container{row};
@@ -189,36 +176,35 @@ check_mesh_field(std::string name,
       // for computing the correct field values
       // on the ghost layers.
       // clang-format off
-      out << "y_log_x_gh_lo: " << container{elems(cnst<r::logical>(), cnst<r::ghost_low>())} << "\n";
-      out << "y_log_x_gh_hi: " << container{elems(cnst<r::logical>(), cnst<r::ghost_high>())} <<  "\n";
-      out << "y_gh_lo_x_log: " << container{elems(cnst<r::ghost_low>(), cnst<r::logical>())} << "\n";
-      out << "y_gh_hi_x_log: " << container{elems(cnst<r::ghost_high>(), cnst<r::logical>())} << "\n";
-      out << "y_gh_lo_x_gh_lo: " << container{elems(cnst<r::ghost_low>(), cnst<r::ghost_low>())} << "\n";
-      out << "y_gh_lo_x_gh_hi: " << container{elems(cnst<r::ghost_low>(), cnst<r::ghost_high>())} << "\n";
-      out << "y_gh_hi_x_gh_lo: " << container{elems(cnst<r::ghost_high>(), cnst<r::ghost_low>())} << "\n";
-      out << "y_gh_hi_x_gh_hi: " << container{elems(cnst<r::ghost_high>(), cnst<r::ghost_high>())} << "\n";
+      out << "y_log_x_gh_lo: " << container{elems(y[1], y[2], x[0], x[1])} << '\n';
+      out << "y_log_x_gh_hi: " << container{elems(y[1], y[2], x[2], x[3])} << '\n';
+      out << "y_gh_lo_x_log: " << container{elems(y[0], y[1], x[1], x[2])} << '\n';
+      out << "y_gh_hi_x_log: " << container{elems(y[2], y[3], x[1], x[2])} << '\n';
+      out << "y_gh_lo_x_gh_lo: " << container{elems(y[0], y[1], x[0], x[1])} << '\n';
+      out << "y_gh_lo_x_gh_hi: " << container{elems(y[0], y[1], x[2], x[3])} << '\n';
+      out << "y_gh_hi_x_gh_lo: " << container{elems(y[2], y[3], x[0], x[1])} << '\n';
+      out << "y_gh_hi_x_gh_hi: " << container{elems(y[2], y[3], x[2], x[3])} << '\n';
       // clang-format on
     } // d=2
     else {
-      using r = mesh3d::domain;
       using ax = mesh3d::axis;
 
       out << Axes<D>::data(m);
 
       auto c = m.template mdspan<topo::elements>(ca);
+      const auto x = bounds(m.template axis<ax::x_axis>()),
+                 y = bounds(m.template axis<ax::y_axis>());
+      const auto z = m.template axis<ax::z_axis>().layout.logical();
 
-      auto elems = [&](auto z, auto y, auto x) {
-        auto zbnd = m.template range<ax::z_axis, decltype(z)::value>();
-        auto ybnd = m.template range<ax::y_axis, decltype(y)::value>();
-        auto xbnd = m.template range<ax::x_axis, decltype(x)::value>();
+      auto elems = [&](util::id y0, util::id y1, util::id x0, util::id x1) {
         std::vector<std::string> result;
-        for(auto k : zbnd) {
+        for(auto k : z) {
           std::vector<std::string> col;
           std::stringstream ss_outer;
-          for(auto j : ybnd) {
+          for(auto j : util::iota_view(y0, y1)) {
             std::vector<util::id> row;
             std::stringstream ss;
-            for(auto i : xbnd) {
+            for(auto i : util::iota_view(x0, x1)) {
               row.push_back(c[k][j][i]);
             }
             ss << container{row};
@@ -237,21 +223,21 @@ check_mesh_field(std::string name,
       // datastructure as 2d case can be used here.
       // clang-format off
       out << "z_log_y_log_x_gh_lo: "
-          << container{elems(cnst<r::logical>(), cnst<r::logical>(), cnst<r::ghost_low>())} << "\n";
+          << container{elems(y[1], y[2], x[0], x[1])} << '\n';
       out << "z_log_y_log_x_gh_hi: "
-          << container{elems(cnst<r::logical>(), cnst<r::logical>(), cnst<r::ghost_low>())} << "\n";
+          << container{elems(y[1], y[2], x[2], x[3])} << '\n';
       out << "z_log_y_gh_lo_x_log: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_low>(), cnst<r::logical>())} << "\n";
+          << container{elems(y[0], y[1], x[1], x[2])} << '\n';
       out << "z_log_y_gh_hi_x_log: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_high>(), cnst<r::logical>())} << "\n";
+          << container{elems(y[2], y[3], x[1], x[2])} << '\n';
       out << "z_log_y_gh_lo_x_gh_lo: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_low>(), cnst<r::ghost_low>())} << "\n";
+          << container{elems(y[0], y[1], x[0], x[1])} << '\n';
       out << "z_log_y_gh_lo_x_gh_hi: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_low>(), cnst<r::ghost_high>())} << "\n";
+          << container{elems(y[0], y[1], x[2], x[3])} << '\n';
       out << "z_log_y_gh_hi_x_gh_lo: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_high>(), cnst<r::ghost_low>())} << "\n";
+          << container{elems(y[2], y[3], x[0], x[1])} << '\n';
       out << "z_log_y_gh_hi_x_gh_hi: "
-          << container{elems(cnst<r::logical>(), cnst<r::ghost_high>(), cnst<r::ghost_high>())} << "\n";
+          << container{elems(y[2], y[3], x[2], x[3])} << '\n';
       // clang-format on
     } // d=3
     EXPECT_TRUE(UNIT_EQUAL_BLESSED(output_file));
@@ -269,14 +255,10 @@ print_rf(typename mesh<D>::template accessor<ro> m, ints::accessor<ro, na> tf) {
   std::stringstream ss;
   ss << " Color " << color() << std::endl;
 
-  using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
-  std::array<util::id, D> lbnds{0};
-  auto str_local = m.template strides();
-  auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
-  flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
-  flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+  const auto ln_local = m.linear();
+  const auto ln_global = m.glinear();
 
-  for(auto && v : tb(lbnds, str_local)) {
+  for(auto && v : m.range(true)) {
     auto gids = m.global_ids(v);
     auto lid = ln_local(v);
     auto gid = ln_global(gids);
@@ -322,22 +304,17 @@ check_sz(ints::mutator<wo, na> tf, util::id lid, std::size_t sz) {
 }
 
 enum class diag { on, prim, aux };
-template<std::size_t D, typename mesh<D>::domain DOM, bool V>
+template<std::size_t D, bool V>
 int
 init_verify_rf(typename mesh<D>::template accessor<ro> m,
   std::conditional_t<V, ints::accessor<ro, ro>, ints::mutator<wo, na>> tf,
   std::size_t sz,
   diag dg) {
   UNIT("INIT_VERIFY_RAGGED_FIELD") {
-    std::array<util::id, D> lbnds, ubnds;
-    m.template bounds<DOM>(lbnds, ubnds);
-    auto str_local = m.template strides();
-    auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
-    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
-    flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
+    const auto ln_local = m.linear();
+    const auto ln_global = m.glinear();
 
-    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
-    for(auto && v : tb(lbnds, ubnds)) {
+    for(auto && v : m.range(V)) {
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
@@ -363,11 +340,10 @@ field<int, data::ragged>::definition<mesh3d> rf3;
 int
 check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
   UNIT() {
-    constexpr static auto x = mesh1d::axis::x_axis;
-    using D = mesh1d::domain;
     std::size_t last = 0, total = 0;
     for(auto [c, m] : mm.components()) { // presumed to be in order
-      auto sz = m.size<x, D::global>(), off = m.offset<x, D::global>();
+      const auto a = m.axis<mesh1d::axis::x_axis>();
+      const util::gid sz = a.axis.extent, off = a.offset;
       if(total) {
         EXPECT_EQ(sz, total);
         EXPECT_EQ(last, off);
@@ -375,112 +351,56 @@ check_contiguous(data::multi<mesh1d::accessor<ro>> mm) {
       else {
         total = sz;
       }
-      last = off + (m.offset<x, D::ghost_high>() - m.offset<x, D::logical>());
+      last = off + a.logical;
     }
     EXPECT_EQ(last, total);
   };
 }
 
+template<mesh4d::axis... AA>
+int
+check4(const mesh4d::accessor<ro> & m, util::constants<AA...>) {
+  UNIT() {
+    (
+      [&] {
+        const axis_info a = m.axis<AA>();
+        EXPECT_EQ(a.layout.extent(), 4);
+        EXPECT_EQ(a.layout.logical<0>(), 1);
+        EXPECT_EQ(a.layout.logical<1>(), 3);
+        EXPECT_EQ(a.layout.ghost<0>(), a.low());
+        EXPECT_EQ(a.layout.ghost<1>(), 3 + a.low());
+        EXPECT_EQ(a.layout.extended<0>(), a.high());
+        EXPECT_EQ(a.layout.extended<1>(), 3 + a.high());
+      }(),
+      ...);
+  };
+}
 int
 check_4dmesh(mesh4d::accessor<ro> m) {
-  UNIT("TASK") {
-    using r = mesh4d::domain;
-    using ax = mesh4d::axis;
-
-    std::set<util::id> logical[2] = {{1, 2}, {1, 2}};
-    std::set<util::id> extended[2] = {{0, 1, 2}, {1, 2, 3}};
-    std::set<util::id> all[2] = {{0, 1, 2, 3}, {0, 1, 2, 3}};
-    std::set<util::id> ghost_low[2] = {{}, {0}};
-    std::set<util::id> ghost_high[2] = {{3}, {}};
-    std::set<util::id> boundary_low[2] = {{0}, {}};
-    std::set<util::id> boundary_high[2] = {{}, {3}};
-
-    const int nparts = 2; //#num colors on each axis
-
-    const auto idx = [&] {
-      auto rem = color();
-      std::vector<int> idx(4);
-      for(auto dim = 0; dim < 4; ++dim) {
-        idx[dim] = rem % nparts;
-        rem = (rem - idx[dim]) / nparts;
-      }
-      return idx;
-    }();
-
-    const auto s = [](auto && r) {
-      return std::set<util::id>(r.begin(), r.end());
-    };
-
-    EXPECT_EQ(s(m.range<ax::x_axis>()), logical[idx[0]]);
-    EXPECT_EQ(s(m.range<ax::x_axis, r::extended>()), extended[idx[0]]);
-    EXPECT_EQ(s(m.range<ax::x_axis, r::all>()), all[idx[0]]);
-    EXPECT_EQ(s(m.range<ax::x_axis, r::ghost_low>()), ghost_low[idx[0]]);
-    EXPECT_EQ(s(m.range<ax::x_axis, r::ghost_high>()), ghost_high[idx[0]]);
-    EXPECT_EQ(s(m.range<ax::x_axis, r::boundary_low>()), boundary_low[idx[0]]);
-    EXPECT_EQ(
-      s(m.range<ax::x_axis, r::boundary_high>()), boundary_high[idx[0]]);
-
-    EXPECT_EQ(s(m.range<ax::y_axis>()), logical[idx[1]]);
-    EXPECT_EQ(s(m.range<ax::y_axis, r::extended>()), extended[idx[1]]);
-    EXPECT_EQ(s(m.range<ax::y_axis, r::all>()), all[idx[1]]);
-    EXPECT_EQ(s(m.range<ax::y_axis, r::ghost_low>()), ghost_low[idx[1]]);
-    EXPECT_EQ(s(m.range<ax::y_axis, r::ghost_high>()), ghost_high[idx[1]]);
-    EXPECT_EQ(s(m.range<ax::y_axis, r::boundary_low>()), boundary_low[idx[1]]);
-    EXPECT_EQ(
-      s(m.range<ax::y_axis, r::boundary_high>()), boundary_high[idx[1]]);
-
-    EXPECT_EQ(s(m.range<ax::z_axis>()), logical[idx[2]]);
-    EXPECT_EQ(s(m.range<ax::z_axis, r::extended>()), extended[idx[2]]);
-    EXPECT_EQ(s(m.range<ax::z_axis, r::all>()), all[idx[2]]);
-    EXPECT_EQ(s(m.range<ax::z_axis, r::ghost_low>()), ghost_low[idx[2]]);
-    EXPECT_EQ(s(m.range<ax::z_axis, r::ghost_high>()), ghost_high[idx[2]]);
-    EXPECT_EQ(s(m.range<ax::z_axis, r::boundary_low>()), boundary_low[idx[2]]);
-    EXPECT_EQ(
-      s(m.range<ax::z_axis, r::boundary_high>()), boundary_high[idx[2]]);
-
-    EXPECT_EQ(s(m.range<ax::t_axis>()), logical[idx[3]]);
-    EXPECT_EQ(s(m.range<ax::t_axis, r::extended>()), extended[idx[3]]);
-    EXPECT_EQ(s(m.range<ax::t_axis, r::all>()), all[idx[3]]);
-    EXPECT_EQ(s(m.range<ax::t_axis, r::ghost_low>()), ghost_low[idx[3]]);
-    EXPECT_EQ(s(m.range<ax::t_axis, r::ghost_high>()), ghost_high[idx[3]]);
-    EXPECT_EQ(s(m.range<ax::t_axis, r::boundary_low>()), boundary_low[idx[3]]);
-    EXPECT_EQ(
-      s(m.range<ax::t_axis, r::boundary_high>()), boundary_high[idx[3]]);
-  };
+  return check4(m, mesh4d::axes());
 } // check_4dmesh
 
-template<std::size_t D, typename mesh<D>::domain DOM>
+template<std::size_t D, bool A>
 int
 value_rewrite_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<wo, na> a) {
   UNIT("REWRITE_RF") {
-    std::array<util::id, D> lbnds, ubnds;
-    m.template bounds<DOM>(lbnds, ubnds);
-    auto str_local = m.template strides();
-    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
-
-    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
-    for(auto && v : tb(lbnds, ubnds)) {
+    const auto ln_local = m.linear();
+    for(auto && v : m.range(A)) {
       for(auto & x : a[ln_local(v)])
         x = -x;
     }
   };
 }
 
-template<std::size_t D, typename mesh<D>::domain DOM>
+template<std::size_t D>
 int
 value_rewrite_verify_rf(typename mesh<D>::template accessor<ro> m,
   ints::accessor<ro, ro> tf) {
   UNIT("REWRITE_VERIFY_RF") {
-    using tb = flecsi::topo::narray_impl::traverse<D, util::id>;
-    auto str_local = m.template strides();
-    auto str_global = m.template strides<util::gid, mesh<D>::domain::global>();
-    flecsi::topo::narray_impl::linearize<D, util::id> ln_local{str_local};
-    flecsi::topo::narray_impl::linearize<D, util::gid> ln_global{str_global};
-    std::array<util::id, D> lbnds, ubnds;
-
-    m.template bounds<DOM>(lbnds, ubnds);
-    for(auto && v : tb(lbnds, ubnds)) {
+    const auto ln_local = m.linear();
+    const auto ln_global = m.glinear();
+    for(auto && v : m.range(true)) {
       auto gids = m.global_ids(v);
       auto lid = ln_local(v);
       auto gid = ln_global(gids);
@@ -548,16 +468,12 @@ test_mesh(topo::narray_impl::colors color_dist,
     tf.growth = {0, 0, 0.1, 0.5, 1};
     execute<allocate_field<D>>(f(m), tf.sizes(), sz);
 
-    EXPECT_EQ((test<init_verify_rf<D, mesh2d::domain::logical, false>>(
-                m, rf(m), sz, dg)),
-      0);
+    EXPECT_EQ((test<init_verify_rf<D, false>>(m, rf(m), sz, dg)), 0);
 
     if(print_info)
       execute<print_rf<D>>(m, rf(m));
 
-    EXPECT_EQ(
-      (test<init_verify_rf<D, mesh<D>::domain::all, true>>(m, rf(m), sz, dg)),
-      0);
+    EXPECT_EQ((test<init_verify_rf<D, true>>(m, rf(m), sz, dg)), 0);
 
     if(print_info)
       execute<print_rf<D>>(m, rf(m));
@@ -605,30 +521,18 @@ narray_driver() {
       tf.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
 
-      execute<init_verify_rf<1, mesh1d::domain::logical, false>>(
-        m1, rf1(m1), sz, diag::on);
+      execute<init_verify_rf<1, false>>(m1, rf1(m1), sz, diag::on);
       execute<print_rf<1>>(m1, rf1(m1));
 
       // tests the case where the periodic flag is false, but with non-zero
       // bdepth, communication is expected only for the halo layers.
-      EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_low, true>>(
-                  m1, rf1(m1), sz, diag::on)),
-        0);
+      EXPECT_EQ((test<init_verify_rf<1, true>>(m1, rf1(m1), sz, diag::on)), 0);
       execute<print_rf<1>>(m1, rf1(m1));
-      EXPECT_EQ((test<init_verify_rf<1, mesh1d::domain::ghost_high, true>>(
-                  m1, rf1(m1), sz, diag::on)),
-        0);
 
       // tests if a rewrite of values on ragged with an accessor triggers a
       // ghost copy
-      execute<value_rewrite_rf<1, mesh1d::domain::logical>>(m1, rf1(m1));
-      EXPECT_EQ((test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_low>>(
-                  m1, rf1(m1))),
-        0);
-      EXPECT_EQ((test<value_rewrite_verify_rf<1, mesh1d::domain::ghost_high>>(
-                  m1, rf1(m1))),
-        0);
-
+      execute<value_rewrite_rf<1, false>>(m1, rf1(m1));
+      EXPECT_EQ((test<value_rewrite_verify_rf<1>>(m1, rf1(m1))), 0);
     } // scope
 
     {

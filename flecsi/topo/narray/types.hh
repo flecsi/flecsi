@@ -7,6 +7,7 @@
 #include "flecsi/data/copy.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/topo/types.hh"
 #include "flecsi/util/color_map.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
@@ -170,9 +171,14 @@ struct linearize {
   }
 };
 
+/// \endcond
+
 /*!
  The layout of one axis of one color.
+ \note Periodic axes use the interior layout for all colors.
+
  \gpu.
+ \image html narray-layout.svg "Layouts for each possible orientation." width=100%
  */
 struct axis_layout {
   FLECSI_INLINE_TARGET axis_layout(util::id bdepth,
@@ -192,6 +198,11 @@ struct axis_layout {
   FLECSI_INLINE_TARGET util::id extent() const {
     return both(bdy) + both(gh) + log;
   }
+  /// Return a range of all (local) indices.
+  /// \return range of \c util::id
+  FLECSI_INLINE_TARGET auto all() const {
+    return util::iota_view({}, extent());
+  }
 
   /// The beginning or end index of the logical entities, i.e., the entities
   /// for this color without
@@ -202,12 +213,19 @@ struct axis_layout {
     static_assert(E == 0 || E == 1);
     return bdy[0] + gh[0] + E * log;
   }
+  /// Return a range of all logical indices.
+  /// \return range of \c util::id
+  FLECSI_INLINE_TARGET auto logical() const {
+    return util::iota_view(logical<0>(), logical<1>());
+  }
 
+  /// \if core
   /// The beginning or end of the exclusive logical entities (_i.e.,_ that are
   /// not ghosts elsewhere).
   /// Really the end and beginning of the shared entities on each side; the
   /// end can come first if an entity is shared with both neighbors.
   /// \tparam E 0 or 1 for beginning or end
+  /// \endif
   template<short E>
   FLECSI_INLINE_TARGET util::id exclusive() const {
     static_assert(E == 0 || E == 1);
@@ -236,6 +254,11 @@ struct axis_layout {
     static_assert(E == 0 || E == 1);
     return gh[0] + E * (both(bdy) + log);
   }
+  /// Return a range of all extended indices.
+  /// \return range of \c util::id
+  FLECSI_INLINE_TARGET auto extended() const {
+    return util::iota_view(extended<0>(), extended<1>());
+  }
 
   void check_halo() const {
     if(std::max(shr[0], shr[1]) > log)
@@ -252,8 +275,6 @@ private:
 };
 
 /// Information about the layout of an entire axis.
-/// \note Unlike in the user interface, here the ghosts copied from the other
-///   end of a \c periodic axis are considered to be a halo, not a boundary.
 struct axis {
   Color colors; ///< The number of subdivisions for colors.
   util::gid extent; ///< The total number of index points.
@@ -266,10 +287,15 @@ struct axis {
     full_ghosts;
 };
 /// High-level information about one axis of one color.
+/// \gpu.
 struct axis_color {
+  /// Color-independent information.
   narray_impl::axis axis;
+  /// The color index along the axis.
   Color color;
+  /// The number of logical index points.
   util::id logical;
+  /// The position of the first logical index point on the global axis.
   util::gid offset;
 
   /// Whether the current color is at the low end of the axis.
@@ -285,7 +311,7 @@ struct axis_color {
     return (color + axis.colors + d) % axis.colors;
   }
 
-  /// The global index for a given logical index on the local axis.
+  /// The global index for a given local index.
   FLECSI_INLINE_TARGET util::gid global_id(util::id i) const {
     const auto al = (*this)();
     const util::id l0 = al.logical<0>(), l1 = al.logical<1>();
@@ -310,7 +336,13 @@ struct axis_color {
   }
 };
 
-/// \endcond
+/// Collected information about one color along one axis.  \gpu.
+struct axis_info : axis_color {
+  FLECSI_INLINE_TARGET axis_info(const axis_color & a)
+    : axis_color(a), layout(a()) {}
+  /// Derived layout information.
+  axis_layout layout;
+};
 
 /*!
   This type is part of the index definition, and defines the coloring of an
@@ -330,10 +362,8 @@ struct axis_definition {
   util::id bdepth = 0;
 
   /// Whether the axis is periodic.
-  /// The boundary index points for a periodic axis are copied as ghosts from
-  /// the other end of the axis and must match the ghost points in number, but
-  /// they are not categorized as ghost points.
-  /// <!-- Internally they are ghosts, not boundary points. -->
+  /// Ghosts are added at each end of a periodic axis; for backward
+  /// compatibility, \c bdepth must equal \c hdepth.
   /// \showinitializer
   bool periodic = false;
 
@@ -465,13 +495,21 @@ struct index_definition {
 /// Specialization-independent definitions.
 /// Name as \c base in an \c narray specialization.
 struct narray_base {
+  /// The type describing one axis in a task.
+  using axis = narray_impl::axis; // shadowed for internal use
+  /// The type describing the usage of one axis in a task.
   using axis_color = narray_impl::axis_color;
+  /// The type describing index points on one axis in a task.
   using axis_layout = narray_impl::axis_layout;
+  /// The type describing an axis in a task.
+  using axis_info = narray_impl::axis_info;
   using coord = narray_impl::coord;
   using gcoord = narray_impl::gcoord;
   using hypercube = narray_impl::hypercube;
   using colors = narray_impl::colors;
+  /// The type for specifying an axis for a coloring.
   using axis_definition = narray_impl::axis_definition;
+  /// The type for specifying an index space for a coloring.
   using index_definition = narray_impl::index_definition;
 
   /*!
@@ -484,9 +522,11 @@ struct narray_base {
 
    These domains are used in many of the interface methods to provide
    information about an axis such as size, extents, and offsets.
-   \image html narray-layout.svg "Layouts for each possible orientation." width=100%
+   \warning Functions using \c domain label the ghosts copied from the other
+     end of a periodic axis as boundary points, not ghosts.
+   \deprecated Use \c axis_color and \c axis_layout.
   */
-  enum class domain : std::size_t {
+  enum class /* [[deprecated]] would warn internally */ domain : std::size_t {
     logical, ///<  the logical, i.e., the owned part of the axis
     extended, ///< the boundary padding along with the logical part
     all, ///< the ghost padding along with the logical part

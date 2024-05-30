@@ -11,9 +11,7 @@
 #include "flecsi/data/privilege.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh"
-#include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/types.hh"
-#include "flecsi/topo/types.hh"
 #include "flecsi/util/array_ref.hh"
 
 #include <memory>
@@ -669,13 +667,22 @@ protected:
     return *policy_meta_;
   }
 
+  /// Get axis information.
+  /// This function is \ref topology "host-accessible".
+  template<index_space S, Axis A>
+  FLECSI_INLINE_TARGET axis_info axis() const {
+    return get_axis<S, A>();
+  }
+
   /*!
    Method to check if an axis of the local mesh is incident on the lower
    bound of the corresponding axis of the global mesh.
    \host.
+   \deprecated Use \c axis_color::low.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET bool is_low() const {
+  [[deprecated("use axis_color::low")]] FLECSI_INLINE_TARGET bool
+  is_low() const {
     return get_axis<S, A>().low();
   }
 
@@ -683,9 +690,11 @@ protected:
    Method to check if an axis of the local mesh is incident on the upper
    bound of the corresponding axis of the global mesh.
    \host.
+   \deprecated Use \c axis_color::high.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET bool is_high() const {
+  [[deprecated("use axis_color::high")]] FLECSI_INLINE_TARGET bool
+  is_high() const {
     return get_axis<S, A>().high();
   }
 
@@ -693,9 +702,12 @@ protected:
    Method to check if axis A of index-space S is in between the lower and upper
    bound along axis A of the global domain.
    \host.
+   \deprecated Use \c axis_color::low and \c axis_color::high.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET bool is_interior() const {
+  [[deprecated(
+    "use axis_color::low and axis_color::high")]] FLECSI_INLINE_TARGET bool
+  is_interior() const {
     return !is_low<S, A>() && !is_high<S, A>();
   }
 
@@ -703,9 +715,12 @@ protected:
      Method to check if the partition returned by the coloring is degenerate.
      This method checks if the axis A is incident on both the lower and upper
      bound of the global domain.  \host.
+     \deprecated Use \c axis_color::low and \c axis_color::high.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET bool is_degenerate() const {
+  [[deprecated(
+    "use axis_color::low and axis_color::high")]] FLECSI_INLINE_TARGET bool
+  is_degenerate() const {
     return is_low<S, A>() && is_high<S, A>();
   }
 
@@ -714,18 +729,21 @@ protected:
      \a S along axis \a A.  If \a logical_id refers to a boundary point, it is
      treated as periodic.
      \host.
+     \deprecated Use \c axis_color::global_id.
   */
   template<index_space S, Axis A>
-  FLECSI_INLINE_TARGET util::gid global_id(util::id logical_id) const {
+  [[deprecated("use axis_color::global_id")]] FLECSI_INLINE_TARGET util::gid
+  global_id(util::id logical_id) const {
     return get_axis<S, A>().global_id(logical_id);
   }
 
   /*!
     Method to return size of \c S along \c A for \a DM.
     \host.
+    \deprecated Use \c axis_layout.
   */
   template<index_space S, Axis A, domain DM>
-  FLECSI_INLINE_TARGET auto size() const {
+  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET auto size() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 1>() - logical<S, A, 0>();
     }
@@ -764,9 +782,10 @@ protected:
      axis A for domain DM.
      \host.
      \tparam DM not \c domain::global
+     \deprecated Use \c axis_layout.
    */
   template<index_space S, Axis A, domain DM>
-  FLECSI_INLINE_TARGET auto range() const {
+  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET auto range() const {
     static_assert(DM != domain::global, "no global range");
     const auto o = offset<S, A, DM>();
     return make_ids<S>(util::iota_view<util::id>(o, o + size<S, A, DM>()));
@@ -775,9 +794,11 @@ protected:
   /*!
     Method to return an offset of \c S along \c A for \a DM.
     \host.
+    \deprecated Use \c axis_layout.
   */
   template<index_space S, Axis A, domain DM>
-  FLECSI_INLINE_TARGET util::gid offset() const {
+  [[deprecated("use axis_layout")]] FLECSI_INLINE_TARGET util::gid
+  offset() const {
     if constexpr(DM == domain::logical) {
       return logical<S, A, 0>();
     }
