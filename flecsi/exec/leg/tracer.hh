@@ -1,7 +1,8 @@
 #ifndef FLECSI_LEG_EXEC_TRACER_HH
 #define FLECSI_LEG_EXEC_TRACER_HH
 
-#include "flecsi/run/context.hh"
+#include "flecsi/flog.hh"
+
 #include <legion.h>
 
 namespace flecsi::exec {

@@ -17,7 +17,7 @@ namespace data {
 
 struct convert_tag {}; // must be recognized as a task argument
 
-/// A slot that holds a topology, constructed upon request.
+/// A movable slot that holds a topology, constructed upon request.
 /// Declare a task parameter as a \c topology_accessor to use the topology.
 /// \note A \c specialization provides aliases for both these types.
 /// \warning No topologies may exist outside the top-level action.  If a \c
@@ -27,19 +27,6 @@ template<typename Topo>
 struct topology_slot : convert_tag {
   using core = typename Topo::core;
   using coloring = typename Topo::coloring;
-
-  /// Construct without a topology.
-  topology_slot() = default;
-
-  /// Movable.
-  topology_slot(topology_slot && slot) noexcept {
-    data.swap(slot.data);
-  }
-
-  topology_slot & operator=(topology_slot slot) & noexcept {
-    data.swap(slot.data);
-    return *this;
-  }
 
   /// Create the topology.
   /// \param coloring_reference coloring (perhaps from an \link
@@ -86,7 +73,7 @@ struct topology_slot : convert_tag {
   }
 
 private:
-  std::optional<core> data;
+  util::move_optional<core> data;
 }; // struct topology_slot
 
 /// \}
