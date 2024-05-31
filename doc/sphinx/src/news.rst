@@ -83,6 +83,10 @@ New features
 
   * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
 
+* Execution
+
+  * ``trace`` objects can be move-assigned.
+
 * Topologies
 
   * ``specialization::mpi_coloring`` creates a coloring eagerly.

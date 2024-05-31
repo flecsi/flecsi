@@ -2,6 +2,7 @@
 #define FLECSI_LEG_EXEC_TRACER_HH
 
 #include "flecsi/flog.hh"
+#include "flecsi/util/common.hh"
 
 #include <legion.h>
 
@@ -17,8 +18,6 @@ struct trace {
   trace() : id_(Legion::Runtime::get_runtime()->generate_dynamic_trace_id()) {}
   [[deprecated("use default constructor")]] explicit trace(id_t id) : id_(id) {}
 
-  trace(trace &&) = default;
-
   void skip() {
     skip_ = true;
   }
@@ -31,7 +30,7 @@ private:
       // Call Legion tracing tool
       Legion::Runtime::get_runtime()->begin_trace(
         Legion::Runtime::get_context(),
-        id_,
+        id_.value(),
         false, // logical_only = false
         false, // static_trace  = false
         NULL // std::set<RegionTreeID> *managed = NULL
@@ -43,7 +42,7 @@ private:
   void stop() {
     if(!skip_) {
       Legion::Runtime::get_runtime()->end_trace(
-        Legion::Runtime::get_context(), id_);
+        Legion::Runtime::get_context(), id_.value());
       tracing = false;
     }
     else {
@@ -57,7 +56,7 @@ public:
   }
 
 private:
-  id_t id_;
+  util::move_optional<id_t> id_;
   bool skip_ = false;
   static inline bool tracing = false;
 

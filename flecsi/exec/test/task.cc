@@ -182,7 +182,7 @@ task_driver() {
     flecsi::execute<reduction>(arr_vals, vals);
     EXPECT_EQ(test<check>(vals, np), 0);
 
-    exec::trace t1;
+    exec::trace t0, t1 = std::move(t0);
     t1.skip();
     for(int i = 0; i < 5; ++i) {
       auto g = t1.make_guard();

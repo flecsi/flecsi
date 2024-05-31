@@ -14,6 +14,7 @@ struct trace {
   [[deprecated("use default constructor")]] explicit trace(id_t) {}
 
   trace(trace &&) = default;
+  trace & operator=(trace &&) & = default;
 
   void skip() {}
 
