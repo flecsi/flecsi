@@ -155,14 +155,17 @@ struct trace {
 
   using id_t = int;
 
-  /// Construct a trace with auto generated id
+  /// Construct a trace.
   trace();
   /// Construct a trace with user defined id
   /// \param id User defined id for the trace
+  /// \deprecated Use the default constructor.
   explicit trace(id_t id);
 
-  /// Default move constructor.
-  trace(trace &&) = default;
+  /// Traces are movable.  Those that have been moved from must not be used.
+  trace(trace &&) noexcept;
+  /// Traces can be (move-)assigned.
+  trace & operator=(trace) & noexcept;
 
   struct guard;
 

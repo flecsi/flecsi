@@ -14,6 +14,7 @@
 #include <ios>
 #include <limits>
 #include <map>
+#include <optional>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -100,6 +101,19 @@ unique_each(std::vector<T> & vv) {
   for(auto & v : vv)
     force_unique(v);
 }
+
+/// Empty upon move.
+template<class T>
+struct move_optional : std::optional<T> {
+  using move_optional::optional::optional;
+  move_optional(move_optional && m) noexcept {
+    this->swap(m);
+  }
+  move_optional & operator=(move_optional m) & noexcept {
+    this->swap(m);
+    return *this;
+  }
+};
 
 struct FILE {
   FILE(const char * n, const char * m) : f(std::fopen(n, m)) {
