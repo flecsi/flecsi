@@ -52,6 +52,9 @@ using const_view_variant = std::variant<host_const_view, device_const_view>;
 #endif
 
 struct buffer {
+  inline static constexpr exec::task_processor_type_t location =
+    exec::task_processor_type_t::loc;
+
   std::byte * data() {
     return v.data();
   }
@@ -82,6 +85,9 @@ private:
 using buffer_impl_loc = buffer;
 
 struct buffer_impl_toc {
+  inline static constexpr exec::task_processor_type_t location =
+    exec::task_processor_type_t::toc;
+
   buffer_impl_toc & operator=(buffer_impl_toc &&) = delete;
 
   std::byte * data() {
@@ -127,6 +133,30 @@ struct storage {
              exec::task_processor_type_t::loc,
     partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
   privilege_const<std::byte, AccessPrivilege> * data() {
+
+    const auto transfer_return = [this](auto & sync, auto & ret) {
+      if(ProcessorType == sync.location)
+        return sync.data();
+      else {
+        if(ret.size() < sync.size())
+          ret.resize(sync.size());
+
+        // If wo is requested, we don't care what's there, so no need to copy
+        if constexpr(AccessPrivilege != partition_privilege_t::wo)
+          Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+            ret.kokkos_view(),
+            sync.kokkos_view());
+
+        if constexpr(AccessPrivilege == partition_privilege_t::ro)
+          current_state = data_sync::both;
+        else
+          current_state =
+            (current_state == data_sync::loc ? data_sync::toc : data_sync::loc);
+
+        return ret.data();
+      }
+    };
+
     // HACK to treat mpi processor type as loc
     if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
       return data<exec::task_processor_type_t::loc, AccessPrivilege>();
@@ -149,32 +179,9 @@ struct storage {
         }
 
       case data_sync::loc:
-        if constexpr(ProcessorType == exec::task_processor_type_t::loc)
-          return loc_buffer.data();
-        else {
-          transfer<AccessPrivilege>(toc_buffer, loc_buffer);
-
-          if constexpr(AccessPrivilege == partition_privilege_t::ro)
-            current_state = data_sync::both;
-          else
-            current_state = data_sync::toc;
-
-          return toc_buffer.data();
-        }
-
+        return transfer_return(loc_buffer, toc_buffer);
       case data_sync::toc:
-        if constexpr(ProcessorType == exec::task_processor_type_t::toc)
-          return toc_buffer.data();
-        else {
-          transfer<AccessPrivilege>(loc_buffer, toc_buffer);
-
-          if constexpr(AccessPrivilege == partition_privilege_t::ro)
-            current_state = data_sync::both;
-          else
-            current_state = data_sync::loc;
-
-          return loc_buffer.data();
-        }
+        return transfer_return(toc_buffer, loc_buffer);
     }
 
     return nullptr;
@@ -223,18 +230,6 @@ struct storage {
   }
 
 private:
-  template<partition_privilege_t AccessPrivilege, typename D, typename S>
-  static void transfer(D & dst, const S & src) {
-    // We need to resize buffer on the destination side such that we don't
-    // attempt deep_copy to cause buffer overrun (Kokkos does check that).
-    if(dst.size() < src.size())
-      dst.resize(src.size());
-
-    if constexpr(AccessPrivilege != partition_privilege_t::wo)
-      Kokkos::deep_copy(
-        Kokkos::DefaultExecutionSpace{}, dst.kokkos_view(), src.kokkos_view());
-  }
-
   // Where the data is currently synced
   data_sync current_state = data_sync::both;
 
