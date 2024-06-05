@@ -236,7 +236,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
   const getopt go(&cfg);
 
   auto ret = run::success;
-  std::ostringstream cerr;
+  std::stringstream cerr;
   const auto usage = [&](run::status s) {
     cerr << go.usage(argv0);
     ret = s;
