@@ -251,7 +251,7 @@ struct getopt {
   /// Populate \c program_option objects with the results.
   /// \exception std::logic_error if parsing fails
   void operator()(int, const char * const *) const;
-  auto parse(int, const char * const *) const;
+  run::status parse(int, const char * const *) const;
 
   /// Return a string describing \c program_option objects.
   /// \param p program name
@@ -261,6 +261,7 @@ private:
   using desc = boost::program_options::options_description;
   desc basic{"Basic Options"}, all{"All Options"};
   std::optional<desc> flecsi;
+  run::config * init;
 };
 
 /// \}

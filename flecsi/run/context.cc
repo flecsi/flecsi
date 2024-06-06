@@ -47,7 +47,7 @@ finalize() { // not deprecated
 } // namespace
 } // namespace run
 
-getopt::getopt(run::config * init) {
+getopt::getopt(run::config * init) : init(init) {
   using run::context;
 
   if(init)
@@ -109,7 +109,7 @@ getopt::getopt(run::config * init) {
   all.add(context::hidden_options());
 }
 
-auto
+run::status
 getopt::parse(int argc, const char * const * argv) const {
   using run::context;
   po::parsed_options parsed = po::command_line_parser(argc, argv)
@@ -118,6 +118,14 @@ getopt::parse(int argc, const char * const * argv) const {
                                 .run();
   po::variables_map vm;
   po::store(parsed, vm);
+  if(init) {
+    if(vm.count("help"))
+      return run::help;
+    else if(vm.count("control-model"))
+      return run::control_model;
+    else if(vm.count("control-model-sorted"))
+      return run::control_model_sorted;
+  }
   po::notify(vm);
 
   // Call option check methods
@@ -140,7 +148,18 @@ getopt::parse(int argc, const char * const * argv) const {
     } // if
   } // for
 
-  return vm;
+#ifdef FLECSI_ENABLE_FLOG
+  if(init)
+    if(const auto flog_tags_ = vm["flog-tags"].as<std::string>();
+       flog_tags_ != "none") {
+      std::istringstream is(flog_tags_);
+      std::string tag;
+      while(std::getline(is, tag, ','))
+        init->flog.tags.push_back(tag);
+    }
+#endif
+
+  return run::success;
 }
 void
 getopt::operator()(int argc, const char * const * argv) const {
@@ -235,30 +254,10 @@ initialize(int argc, const char * const * argv, bool dependent) {
 
   const getopt go(&cfg);
 
-  auto ret = run::success;
+  run::status ret;
   std::stringstream cerr;
-  const auto usage = [&](run::status s) {
-    cerr << go.usage(argv0);
-    ret = s;
-  };
-
   try {
-    const auto vm = go.parse(argc, argv);
-#ifdef FLECSI_ENABLE_FLOG
-    if(const auto flog_tags_ = vm["flog-tags"].as<std::string>();
-       flog_tags_ != "none") {
-      std::istringstream is(flog_tags_);
-      std::string tag;
-      while(std::getline(is, tag, ','))
-        cfg.flog.tags.push_back(tag);
-    }
-#endif
-    if(vm.count("help"))
-      usage(run::help);
-    else if(vm.count("control-model"))
-      ret = run::control_model;
-    else if(vm.count("control-model-sorted"))
-      ret = run::control_model_sorted;
+    ret = go.parse(argc, argv);
   }
   catch(po::error & e) {
     std::string error(e.what());
@@ -266,8 +265,10 @@ initialize(int argc, const char * const * argv, bool dependent) {
     cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error << "!!!"
          << FLOG_COLOR_PLAIN << std::endl
          << std::endl;
-    usage(run::command_line_error);
+    ret = run::command_line_error;
   } // try
+  if(ret == run::help || ret == run::command_line_error)
+    cerr << go.usage(argv0);
 
   const auto make = [](auto & o, auto & x) -> auto & {
     flog_assert(!o, "already initialized");
