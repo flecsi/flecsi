@@ -646,6 +646,14 @@ public:
     ts->part.template get<entities>().resize(
       make_partial<allocate>(ts->rz.ent));
 
+    // Fake initialization for the new ghosts
+    for(auto & f :
+      run::context::instance().field_info_store<Policy, entities>()) {
+      auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
+        f->fid, ts.get());
+      execute<fake_initialize>(fr);
+    }
+
     ts->cp_entities.emplace(
       ts.get(),
       data::copy_plan::Sizes(processes(), 1),

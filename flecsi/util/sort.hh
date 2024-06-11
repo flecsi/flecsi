@@ -503,6 +503,11 @@ protected:
       intervals.span().begin(), intervals.span().end(), interval{min, max});
   } // init_intervals_task
 
+  static void fake_initialize(
+    typename field<key_type>::template accessor1<privilege_repeat<rw, PC>>) {}
+  static void fake_initialize_others(
+    field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>>) {}
+
   // Intervals
   const static inline
     typename field<interval>::template definition<sort_base::sort_color>
@@ -702,6 +707,13 @@ public:
     execute<sort::update_sizes_task>(sort::idx_s->sizes(), copy_fh, meta_fh);
     sort::idx_s->resize();
 
+    execute<sort::fake_initialize>(values);
+    for(auto & af : apply_fields) {
+      auto fr = data::field_reference<std::byte, data::raw, topology, space>(
+        af->fid, tt);
+      execute<sort::fake_initialize_others>(fr);
+    }
+
     // Create copy plan operation and issue
     auto dest = [&](auto f) {
       execute<sort::set_destination_task>(f, copy_fh, meta_fh);
@@ -736,6 +748,13 @@ public:
     tt.template get_partition<space>().resize();
     execute<sort::update_sizes_copy_task>(sort::idx_s->sizes(), sizes_fh);
     sort::idx_s->resize();
+
+    execute<sort::fake_initialize>(values);
+    for(auto & af : apply_fields) {
+      auto fr = data::field_reference<std::byte, data::raw, topology, space>(
+        af->fid, tt);
+      execute<sort::fake_initialize_others>(fr);
+    }
 
     execute<sort::sort_values_task>(values, sort::indices_f(sort::idx_s));
 
