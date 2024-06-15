@@ -250,7 +250,8 @@ private:
 
 public:
   /// Return the control policy object.
-  /// It is default-initialized when the control points are created and
+  /// It is default-initialized when the control model is first used
+  /// (typically to register an action) and
   /// destroyed at the end of the program.
   /// This function cannot be used if \c P inherits from \c control_base.
   /// \deprecated derive \c P from \c control_base and use the parameter
