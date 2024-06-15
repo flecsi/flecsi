@@ -116,6 +116,8 @@ FleCSI uses the `Semantic Versioning`__ system.
 Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
 We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
 Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+As an exception to the specification, deprecations can be made in such a release as well, since they are merely documentation for the careful user who wants to upgrade early for forward compatibility.
+However, since features are typically deprecated in favor of some new feature, most will nonetheless appear in feature releases.
 
 __ https://semver.org/
 
