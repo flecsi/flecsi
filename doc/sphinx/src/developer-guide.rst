@@ -91,11 +91,12 @@ While exceptions must occasionally be made to each of the following, ideally eac
 * not add or change material changed later in the same merge request (partly to help ``git blame``)
 * include the smallest subset of an overall set of changes that follows the above rules
 * add or update any relevant documentation, including the :ref:`news`
-* not be a meaningless merge from the destination branch (as introduced by ``git pull``)
+* not be a `meaningless merge`__ from the destination branch (as introduced by ``git pull``)
 * have a meaningful message that follows the `50/72 rule`__
 * be properly formatted per ``clang-format``
 * either make only purely stylistic changes or make no such changes
 
+__ https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees
 __ http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 
 Stylistic changes should be rare and are best put in their own merge request (so that they do not complicate any substantive review).
