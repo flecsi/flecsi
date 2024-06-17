@@ -91,11 +91,12 @@ While exceptions must occasionally be made to each of the following, ideally eac
 * not add or change material changed later in the same merge request (partly to help ``git blame``)
 * include the smallest subset of an overall set of changes that follows the above rules
 * add or update any relevant documentation, including the :ref:`news`
-* not be a meaningless merge from the destination branch (as introduced by ``git pull``)
+* not be a `meaningless merge`__ from the destination branch (as introduced by ``git pull``)
 * have a meaningful message that follows the `50/72 rule`__
 * be properly formatted per ``clang-format``
 * either make only purely stylistic changes or make no such changes
 
+__ https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees
 __ http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 
 Stylistic changes should be rare and are best put in their own merge request (so that they do not complicate any substantive review).
@@ -116,6 +117,8 @@ FleCSI uses the `Semantic Versioning`__ system.
 Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
 We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
 Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+As an exception to the specification, deprecations can be made in such a release as well, since they are merely documentation for the careful user who wants to upgrade early for forward compatibility.
+However, since features are typically deprecated in favor of some new feature, most will nonetheless appear in feature releases.
 
 __ https://semver.org/
 
