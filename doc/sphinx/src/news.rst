@@ -15,13 +15,20 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
-Changes in v2.3.0
-+++++++++++++++++
+Changes in v2.3.0 (June 20 2024)
+++++++++++++++++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Topologies
+
+  * ``narray`` auxiliaries between two colors are owned by the upper color.
 
 Deprecated
 ^^^^^^^^^^
 * Build
 
+  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
   * ``FLOG_ENABLE_COLOR_OUTPUT``, ``FLOG_SERIALIZATION_INTERVAL``, and
     ``FLOG_STRIP_LEVEL`` |mdash| use ``flog::config``
 
@@ -46,10 +53,12 @@ Deprecated
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
   * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
   * ``narray_base::domain`` and ``is_low``, ``is_high``, ``is_interior``, ``is_degenerate``, ``global_id``, ``size``, ``range``, and ``offset`` in ``narray::access`` |mdash| use ``axis``
 
 * Utilities
 
+  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
   * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
   * ``flecsi/util/annotation.hh``, ``flecsi/util/array_ref.hh``,
     ``flecsi/util/color_map.hh``, ``flecsi/util/common.hh``,
@@ -116,29 +125,6 @@ New features
 
   * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
   * ``flog::tags`` returns the names of all defined tags.
-
-Changes in v2.2.2
-+++++++++++++++++
-
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Topologies
-
-  * ``narray`` auxiliaries between two colors are owned by the upper color.
-
-Deprecated
-^^^^^^^^^^
-* Build
-
-  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
-
-* Topologies
-
-  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
-
-* Utilities
-
-  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
 
 Fixed
 ^^^^^
