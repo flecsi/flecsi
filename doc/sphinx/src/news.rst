@@ -131,6 +131,10 @@ New features
 
 Fixed
 ^^^^^
+* Build
+
+  * ``flecsi_add_sphinx_target`` doesn't use ``-n`` (which can break for references into other libraries).
+
 * Data
 
   * The size of one color of an index space can exceed :math:`2^{32}` (if FLECSI_ID_TYPE is configured approprately).
@@ -156,6 +160,7 @@ Fixed
   * ``omp`` tasks now work in builds with GPU support.
   * MPI tasks properly wait on previously launched tasks.
   * Memory usage for implementing ghost copies has been significantly reduced.
+  * Processes with multiple CPUs schedule tasks more efficiently.
   * Launches of zero point tasks succeed (vacuously).
   * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
 
