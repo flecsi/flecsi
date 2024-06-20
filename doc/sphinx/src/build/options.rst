@@ -42,7 +42,8 @@ Flog (FleCSI logging utility) options
   .. warning::
 
      This interface is deprecated. It can now be configured at runtime using
-     the ``--flog-color`` command-line option. See also :doc:`../tutorial/runtime`.
+     ``flog::config::color``.
+     See also :doc:`../tutorial/runtime`.
 
   Produce colorized Flog output instead of using the output device's
   default colors.
@@ -52,7 +53,8 @@ Flog (FleCSI logging utility) options
   .. warning::
 
      This interface is deprecated. It can now be configured at runtime using
-     the ``--flog-serialization-interval`` command-line option. See also
+     ``flog::config::serialization_interval``.
+     See also
      :doc:`../tutorial/runtime`.
 
   The Flog serialization interval specifies the number of task
@@ -72,7 +74,8 @@ Flog (FleCSI logging utility) options
   .. warning::
 
      This interface is deprecated. It can now be configured at runtime using
-     the ``--flog-strip-level`` command-line option. See also
+     ``flog::config::strip_level``.
+     See also
      :doc:`../tutorial/runtime`.
 
   Set the Flog strip level, which should an integer from 0 to 4.  Like
