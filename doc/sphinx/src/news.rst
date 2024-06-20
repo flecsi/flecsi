@@ -15,16 +15,22 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
-Changes in v2.3.0
-+++++++++++++++++
+Changes in v2.3.0 (June 20 2024)
+++++++++++++++++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Topologies
+
+  * ``narray`` auxiliaries between two colors are owned by the upper color.
 
 Deprecated
 ^^^^^^^^^^
 * Build
 
+  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
   * ``FLOG_ENABLE_COLOR_OUTPUT``, ``FLOG_SERIALIZATION_INTERVAL``, and
-    ``FLOG_STRIP_LEVEL`` CMake options are deprecated and serve only as initial
-    defaults.
+    ``FLOG_STRIP_LEVEL`` |mdash| use ``flog::config``
 
 * Runtime
 
@@ -47,10 +53,12 @@ Deprecated
 
   * ``specialization::cslot`` |mdash| use ``mpi_coloring``
   * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
   * ``narray_base::domain`` and ``is_low``, ``is_high``, ``is_interior``, ``is_degenerate``, ``global_id``, ``size``, ``range``, and ``offset`` in ``narray::access`` |mdash| use ``axis``
 
 * Utilities
 
+  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
   * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
   * ``flecsi/util/annotation.hh``, ``flecsi/util/array_ref.hh``,
     ``flecsi/util/color_map.hh``, ``flecsi/util/common.hh``,
@@ -59,18 +67,19 @@ Deprecated
     ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
     ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
     ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
-  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 New features
 ^^^^^^^^^^^^
 * Build
 
+  * ``flecsi/config.hh`` provides information about the build of FleCSI in use.
   * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
   * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
   * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
 
 * Runtime
 
+  * ``runtime.hh`` provides access specifically to the runtime model.
   * ``runtime`` represents FleCSI initialization as an object.
   * ``getopt`` parses user-defined command-line options.
   * ``run::dependencies_guard`` allows for application control over initialization of FleCSI dependencies.
@@ -78,6 +87,7 @@ New features
   * ``run::call`` is a trivial predefined control model.
   * ``program_option`` validation functions can accept the option value directly.
   * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
+  * ``initialize`` accepts ``const char * const *`` for better compatibility.
 
 * Data
 
@@ -85,6 +95,7 @@ New features
 
 * Execution
 
+  * ``test`` convenience function launches unit test tasks.
   * ``trace`` objects can be move-assigned.
 
 * Topologies
@@ -111,38 +122,19 @@ New features
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
   * ``KDTree`` efficiently finds intersections between shapes.
   * Values may be included in expectation/assertion failure messages.
-  * ``test`` convenience function launches unit test tasks.
+  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 * Logging
 
   * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
   * ``flog::tags`` returns the names of all defined tags.
 
-Changes in v2.2.2
-+++++++++++++++++
-
-Possible incompatibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Topologies
-
-  * ``narray`` auxiliaries between two colors are owned by the upper color.
-
-Deprecated
-^^^^^^^^^^
-* Build
-
-  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
-
-* Topologies
-
-  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
-
-* Utilities
-
-  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
-
 Fixed
 ^^^^^
+* Build
+
+  * ``flecsi_add_sphinx_target`` doesn't use ``-n`` (which can break for references into other libraries).
+
 * Data
 
   * The size of one color of an index space can exceed :math:`2^{32}` (if FLECSI_ID_TYPE is configured approprately).
@@ -168,6 +160,7 @@ Fixed
   * ``omp`` tasks now work in builds with GPU support.
   * MPI tasks properly wait on previously launched tasks.
   * Memory usage for implementing ghost copies has been significantly reduced.
+  * Processes with multiple CPUs schedule tasks more efficiently.
   * Launches of zero point tasks succeed (vacuously).
   * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
 
@@ -193,7 +186,6 @@ Fixed
 * Runtime
 
   * Control policy objects are value-initialized by ``run::control::execute``.
-  * ``initialize`` accepts ``const char * const *`` for better compatibility.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
   * Control-model graphs are labeled with the program name.

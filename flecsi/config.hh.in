@@ -8,6 +8,7 @@
 
 /// \defgroup config Configuration
 /// FleCSI Configuration
+/// \code#include "flecsi/config.hh"\endcode
 /// \{
 
 /*!

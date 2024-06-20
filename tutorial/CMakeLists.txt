@@ -144,7 +144,7 @@ add_executable(execution-index-task
   3-execution/control.hh
   3-execution/main.cc
 )
-add_unit(execution-index-task)
+add_unit(execution-index-task PROCS 4)
 
 add_executable(execution-mpi-task
   3-execution/3-mpi-task.cc
@@ -169,7 +169,7 @@ add_executable(data-index
   3-execution/main.cc
   3-execution/control.hh
 )
-add_unit(data-index)
+add_unit(data-index PROCS 4)
 
 add_executable(data-dense
   4-data/3-dense.cc

@@ -12,12 +12,13 @@ application specialization libraries.
 
 The API consists of the following headers:
 
-* [flecsi/data.hh](@ref data)
+* [flecsi/config.hh](@ref config)
 * [flecsi/runtime.hh](@ref runtime)
+* [flecsi/data.hh](@ref data)
 * [flecsi/execution.hh](@ref execution)
-* [flecsi/flog.hh](@ref flog)
 * [flecsi/topology.hh](@ref topology)
 * [flecsi/utilities.hh](@ref utils)
+* [flecsi/flog.hh](@ref flog)
 
 \if core
 \warning This version includes internal interfaces.
