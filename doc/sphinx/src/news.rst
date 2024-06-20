@@ -73,12 +73,14 @@ New features
 ^^^^^^^^^^^^
 * Build
 
+  * ``flecsi/config.hh`` provides information about the build of FleCSI in use.
   * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
   * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
   * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
 
 * Runtime
 
+  * ``runtime.hh`` provides access specifically to the runtime model.
   * ``runtime`` represents FleCSI initialization as an object.
   * ``getopt`` parses user-defined command-line options.
   * ``run::dependencies_guard`` allows for application control over initialization of FleCSI dependencies.

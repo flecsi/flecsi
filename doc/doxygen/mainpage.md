@@ -12,6 +12,7 @@ application specialization libraries.
 
 The API consists of the following headers:
 
+* [flecsi/config.hh](@ref config)
 * [flecsi/runtime.hh](@ref runtime)
 * [flecsi/data.hh](@ref data)
 * [flecsi/execution.hh](@ref execution)
