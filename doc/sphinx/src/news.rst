@@ -67,7 +67,6 @@ Deprecated
     ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
     ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
     ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
-  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 New features
 ^^^^^^^^^^^^
@@ -88,6 +87,7 @@ New features
   * ``run::call`` is a trivial predefined control model.
   * ``program_option`` validation functions can accept the option value directly.
   * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
+  * ``initialize`` accepts ``const char * const *`` for better compatibility.
 
 * Data
 
@@ -95,6 +95,7 @@ New features
 
 * Execution
 
+  * ``test`` convenience function launches unit test tasks.
   * ``trace`` objects can be move-assigned.
 
 * Topologies
@@ -121,7 +122,7 @@ New features
   * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
   * ``KDTree`` efficiently finds intersections between shapes.
   * Values may be included in expectation/assertion failure messages.
-  * ``test`` convenience function launches unit test tasks.
+  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
 
 * Logging
 
@@ -180,7 +181,6 @@ Fixed
 * Runtime
 
   * Control policy objects are value-initialized by ``run::control::execute``.
-  * ``initialize`` accepts ``const char * const *`` for better compatibility.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
   * Control-model graphs are labeled with the program name.
