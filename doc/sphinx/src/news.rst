@@ -24,6 +24,15 @@ Possible incompatibilities
 
   * The error of destroying a topology after ``runtime::control`` returns (perhaps when ``main`` returns) is more likely to produce a crash.
 
+Changes in v2.4.0
++++++++++++++++++
+
+New features
+^^^^^^^^^^^^
+* Topologies
+
+  * ``narray`` specializations need not define ``dimension``.
+
 Changes in v2.3.0 (June 20 2024)
 ++++++++++++++++++++++++++++++++
 

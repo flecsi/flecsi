@@ -44,8 +44,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
     double delta;
   };
 
-  static constexpr flecsi::Dimension dimension = D;
-
   template<auto>
   static constexpr flecsi::PrivilegeCount privilege_count = 2;
 
@@ -81,7 +79,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh<D>>,
     using axis_info = flecsi::topo::narray_base::axis_info;
 
   public:
-    using M = std::array<flecsi::util::id, dimension>;
+    using M = std::array<flecsi::util::id, D>;
 
     auto global_ids(M lid) const {
       return map(

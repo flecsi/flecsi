@@ -33,8 +33,6 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     double ydelta;
   };
 
-  static constexpr std::size_t dimension = 2;
-
   template<auto>
   static constexpr std::size_t privilege_count = 2;
 
