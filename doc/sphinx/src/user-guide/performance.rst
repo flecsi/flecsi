@@ -15,8 +15,8 @@ that have significant performance consequences.
 
 ----
 
-Do Activate Tracing Around Your `flecsi::execute<>` Loops
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Do Activate Tracing Around Your ``flecsi::execute<>`` Loops
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. toctree::
 

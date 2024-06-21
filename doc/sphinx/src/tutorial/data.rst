@@ -52,8 +52,7 @@ Example 3: Dense data
 +++++++++++++++++++++
 
 A dense field is a field defined on a dense topology index space.  In
-this example we allocate a `pressure` field on the `cells` index space
-of the `canonical` topology.
+this example we allocate a ``pressure`` field on the ``cells`` index space of the ``canonical`` topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
