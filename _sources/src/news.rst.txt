@@ -15,6 +15,169 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v2.3.0 (June 20 2024)
+++++++++++++++++++++++++++++++++
+
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Topologies
+
+  * ``narray`` auxiliaries between two colors are owned by the upper color.
+
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * ``ENABLE_DOXYGEN_WARN`` |mdash| ignored since 2.2.0
+  * ``FLOG_ENABLE_COLOR_OUTPUT``, ``FLOG_SERIALIZATION_INTERVAL``, and
+    ``FLOG_STRIP_LEVEL`` |mdash| use ``flog::config``
+
+* Runtime
+
+  * ``initialize``, ``start``, ``finalize``, ``run::status``, and ``control::check_status`` |mdash| use ``runtime`` and, optionally, ``getopt``
+  * ``program`` |mdash| use ``argv`` directly
+  * Use of a control policy's ``node_policy`` type |mdash| remove it
+  * ``control::execute`` |mdash| use ``control::invoke`` or ``runtime::control`` with ``run::control_base`` and not ``node_policy``
+  * ``option_value`` and needing one in a ``program_option`` validation function |mdash| accept the option type instead
+  * ``flecsi/run/control.hh`` |mdash| use ``flecsi/runtime.hh``
+
+* Data
+
+  * ``coloring_slot`` |mdash| use ``specialization::mpi_coloring``
+
+* Execution
+
+  * Constructing a ``trace`` with an id |mdash| use the default constructor
+
+* Topologies
+
+  * ``specialization::cslot`` |mdash| use ``mpi_coloring``
+  * ``flecsi/topo/narray/interface.hh`` |mdash| use ``flecsi/topology.hh``
+  * ``narray_impl::index_definition::create_plan`` |mdash| always ignored
+  * ``narray_base::domain`` and ``is_low``, ``is_high``, ``is_interior``, ``is_degenerate``, ``global_id``, ``size``, ``range``, and ``offset`` in ``narray::access`` |mdash| use ``axis``
+
+* Utilities
+
+  * ``util::dag``, ``util::reorder``, ``util::reorder_destructive``, ``util::intersects``, ``util::set_intersection``, ``util::set_union``, ``util::set_difference`` |mdash| superfluous
+  * Passing binary functors to ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` |mdash| remove second parameter or use ranges
+  * ``flecsi/util/annotation.hh``, ``flecsi/util/array_ref.hh``,
+    ``flecsi/util/color_map.hh``, ``flecsi/util/common.hh``,
+    ``flecsi/util/dag.hh``, ``flecsi/util/demangle.hh``,
+    ``flecsi/util/dimensioned_array.hh``, ``flecsi/util/mpi.hh``,
+    ``flecsi/util/reorder.hh``, ``flecsi/util/serialize.hh``,
+    ``flecsi/util/set_intersection.hh``, ``flecsi/util/set_utils.hh``,
+    ``flecsi/util/unit.hh`` |mdash| use ``flecsi/utilities.hh``
+
+New features
+^^^^^^^^^^^^
+* Build
+
+  * ``flecsi/config.hh`` provides information about the build of FleCSI in use.
+  * A :doc:`CMake utility library <user-guide/cmake>` is provided.  (This was added without a release note in 2.2.0.)
+  * ``flecsi_add_target_test`` is a CMake function to define tests using existing targets.
+  * ``flecsi_add_test`` can use a launcher command to wrap the test execution.
+
+* Runtime
+
+  * ``runtime.hh`` provides access specifically to the runtime model.
+  * ``runtime`` represents FleCSI initialization as an object.
+  * ``getopt`` parses user-defined command-line options.
+  * ``run::dependencies_guard`` allows for application control over initialization of FleCSI dependencies.
+  * ``control::invoke`` executes a control model with a policy object constructed from arguments provided.
+  * ``run::call`` is a trivial predefined control model.
+  * ``program_option`` validation functions can accept the option value directly.
+  * ``task_names`` returns a mapping of shortened registered FleCSI task names to their full signature.
+  * ``initialize`` accepts ``const char * const *`` for better compatibility.
+
+* Data
+
+  * ``topology_slot`` is now movable; empty slots may be detected with ``topology_slot::is_allocated``.
+
+* Execution
+
+  * ``test`` convenience function launches unit test tasks.
+  * ``trace`` objects can be move-assigned.
+
+* Topologies
+
+  * ``specialization::mpi_coloring`` creates a coloring eagerly.
+  * ``topo::make_ids<S>(r)`` is a convenience function to convert a range ``r`` of ordinary integers into a range of ``id<S>`` objects.
+  * ``unstructured_base::bounding_box`` computes the axis-aligned bounding box of a mesh.
+  * ``unstructured::special_field`` is the field definition for special-entity lists.
+  * ``unstructured::get_special_entities`` allows access to individual special-entity lists.
+  * ``narray_base::distribute`` and ``narray_base::make_axes`` help construct ``coloring`` objects.
+  * The names ``axis_definition`` and ``index_definition`` are available in ``narray_base``.
+  * ``axis``, ``axis_color``, ``axis_layout``, and ``axis_info`` in ``narray_base`` describe axes in topology accessors.
+  * ``ntree`` is a topology that tracks interacting particles. It only supports Legion as a backend and does not support ragged or sparse fields.
+
+* Legion backend
+
+  * Task names are now shortened for better usability in Legion profiling tools. See :doc:`user-guide/profiling` for details.
+
+* Utilities
+
+  * ``transform`` applies a transformation functor to a range.
+  * ``partition_point`` and ``binary_index`` find values in sorted ranges.
+  * ``permutation_view`` accesses a subset of a range.
+  * ``mpi::one_to_allv``, ``mpi::one_to_alli``, and ``mpi::all_to_allv`` additionally accept ranges and unary functors.
+  * ``KDTree`` efficiently finds intersections between shapes.
+  * Values may be included in expectation/assertion failure messages.
+  * ``FLECSI_DEVICE_CODE`` is a macro defined during the device compilation for either CUDA or HIP.
+
+* Logging
+
+  * ``flog::config`` is the collection of FLOG options that can be changed at runtime.
+  * ``flog::tags`` returns the names of all defined tags.
+
+Fixed
+^^^^^
+* Build
+
+  * ``flecsi_add_sphinx_target`` doesn't use ``-n`` (which can break for references into other libraries).
+
+* Data
+
+  * The size of one color of an index space can exceed :math:`2^{32}` (if FLECSI_ID_TYPE is configured approprately).
+
+* Execution
+
+  * Tasks may be declared ``noexcept``.
+    (This was fixed but not documented in 2.2.1.)
+
+* Topologies
+
+  * ``narray``
+
+    * ``index_definition::diagonals`` being ``false`` works.
+      (This was fixed but not documented in 2.2.1.)
+    * Periodic axes require equal boundary and halo depths (differing values never worked reliably).
+    * Auxiliary axes support ``full_ghosts`` and ``periodic`` properly.
+
+  * ``unstructured`` supports ``num_intervals`` of 0.
+
+* Legion backend
+
+  * ``omp`` tasks now work in builds with GPU support.
+  * MPI tasks properly wait on previously launched tasks.
+  * Memory usage for implementing ghost copies has been significantly reduced.
+  * Processes with multiple CPUs schedule tasks more efficiently.
+  * Launches of zero point tasks succeed (vacuously).
+  * The ``--Xbackend -dm:memoize`` option is no longer required to enable tracing.
+
+* On-node parallelism
+
+  * Custom reductions and reduced types work with Kokkos.
+
+* Utilities
+
+  * ``one_to_alli`` no longer triggers a race condition.
+
+* Logging
+
+  * Special options like ``--control-model`` and ``--help`` work reliably.
+    (This was documented but not actually implemented in 2.2.1.)
+  * FLOG messages are now variable size and are no longer truncated.
+
 Changes in v2.2.1 (July 12 2023)
 ++++++++++++++++++++++++++++++++
 
@@ -25,7 +188,6 @@ Fixed
   * Control policy objects are value-initialized by ``run::control::execute``.
   * Unrecognized options are properly rejected along with unrecognized positional arguments.
   * The same exit status is used for all erroneous command lines.
-  * Special options like ``--control-model`` and ``--help`` don't produce spurious error messages as a side effect.
   * Control-model graphs are labeled with the program name.
   * Control model output strips parameters, return values, wrappers, and common
     namespaces from actions for better readability.
@@ -47,7 +209,7 @@ Possible incompatibilities
 
   * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
 
-* Utilties
+* Utilities
 
   * ``util::mdspan::operator()`` is removed (it had an inconsistent argument order).
 
@@ -115,8 +277,8 @@ New features
 
 * On-node parallelism
 
-  * ``parallel_for``, ``forall``, ``parallel_reduce``, and ``reduceall`` may be used without Kokkos enabled, in which case they run serially.
-  * ``mdiota_view`` provides support for multi dimensional ranges. Supports ``full_range``, ``prefix_range`` and ``sub_range`` options.
+  * ``exec::parallel_for``, ``forall``, ``exec::parallel_reduce``, and ``reduceall`` may be used without Kokkos enabled, in which case they run serially.
+  * ``exec::mdiota_view`` provides support for multi dimensional ranges, with ``exec::full_range``, ``exec::prefix_range`` and ``exec::sub_range`` options.
 
 * Utilities
 

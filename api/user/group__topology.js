@@ -2,6 +2,7 @@ var group__topology =
 [
     [ "Predefined specializations", "group__spec.html", "group__spec" ],
     [ "Multi-dimensional Array", "group__narray.html", "group__narray" ],
+    [ "N-dimensional Tree", "group__ntree.html", "group__ntree" ],
     [ "Unstructured Mesh", "group__unstructured.html", "group__unstructured" ],
     [ "help", "structflecsi_1_1topo_1_1help.html", null ],
     [ "repartition", "structflecsi_1_1topo_1_1repartition.html", [
@@ -14,6 +15,11 @@ var group__topology =
       [ "Field", "structflecsi_1_1topo_1_1resize.html#a9baeb76765321a420d2de885ae9e38a3", null ]
     ] ],
     [ "specialization< C, D >", "structflecsi_1_1topo_1_1specialization.html", [
+      [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html", [
+        [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a6a6436828d9e2c6b80708d33f9e101c6", null ],
+        [ "operator coloring &", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#a980a8f4c1246738436f2d1d7e2aba57c", null ],
+        [ "operator const coloring &", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html#aaa076aa7711b9432f09af053c1e37c2f", null ]
+      ] ],
       [ "base", "structflecsi_1_1topo_1_1specialization.html#a7bd05202ab07f41b4efc2aed0f6929f4", null ],
       [ "coloring", "structflecsi_1_1topo_1_1specialization.html#a2b7d04a7c79675c87feb181a897a1aa0", null ],
       [ "slot", "structflecsi_1_1topo_1_1specialization.html#a3976b3c51547fda5c27879ead8964b57", null ],
@@ -36,7 +42,8 @@ var group__topology =
       [ "sizes", "structflecsi_1_1topo_1_1with__size.html#a1c2baa260eff1ba74daef8cd60c44426", null ],
       [ "growth", "structflecsi_1_1topo_1_1with__size.html#abf9d880a385828408600bcc8847c1a65", null ]
     ] ],
-    [ "flecsi::topo::single_space", "group__topology.html#ga79b99ac85778b417db5d53fc1220fb88", [
-      [ "flecsi::topo::elements", "group__topology.html#gga79b99ac85778b417db5d53fc1220fb88a06c345810971a39cef5a701bc985ce9b", null ]
-    ] ]
+    [ "single_space", "group__topology.html#ga79b99ac85778b417db5d53fc1220fb88", [
+      [ "elements", "group__topology.html#gga79b99ac85778b417db5d53fc1220fb88a06c345810971a39cef5a701bc985ce9b", null ]
+    ] ],
+    [ "make_ids", "group__topology.html#ga4b4356b77029d580b67439a43f09555f", null ]
 ];

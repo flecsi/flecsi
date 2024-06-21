@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['serialization_0',['Serialization',['../group__serial.html',1,'']]]
+  ['point_0',['Point',['../group__point.html',1,'']]],
+  ['predefined_20specializations_1',['Predefined specializations',['../group__spec.html',1,'']]],
+  ['profiling_2',['Profiling',['../group__annotation.html',1,'']]]
 ];

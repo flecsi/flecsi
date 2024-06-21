@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['key_5ft_0',['key_t',['../classflecsi_1_1topo_1_1sort__entity.html#a58b143bd38aa11846eade1ecdc3d55c4',1,'flecsi::topo::sort_entity']]]
+  ['key_5ft_0',['key_t',['../structflecsi_1_1topo_1_1ntree__specialization.html#a195b10e7578de1597993a116bd7e7514',1,'flecsi::topo::ntree_specialization']]]
 ];

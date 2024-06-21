@@ -144,6 +144,30 @@ Christoph Junghans
 
 |clearboth|
 
+Brendan Krueger
+^^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/brendan.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Brendan is a computational scientist with a background in nuclear
+      astrophysics, multiphysics simulations, high performance
+      computing, and software engineering.  Before joining the Co-Design
+      team, he worked in the Eulerian Codes group, contributing to
+      projects including the xRAGE code, the Singe thermonuclear physics
+      library, and the Portage remapping library.
+
+|clearboth|
+
 Sumathi Lakshmiranganatha
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -188,7 +212,7 @@ Li-Ta (Ollie) Lo
 
    .. container:: rightside
 
-      **CCS-7 Applied Computer Science** |br|
+      **CCS-3 Information Sciences** |br|
       *Los Alamos National Laboratory*
 
       Li-Ta Lo is currently a computer scientist with the Data Science
@@ -225,6 +249,51 @@ Julien Loiseau
       Particles Hydrodynamics as lead CS developer of FleCSPH.
 
 |clearboth|
+
+Maxim Moraru
+^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/maxim.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Maxim is a computational scientist in the Co-Design team with a
+      background in High-Performance Computing. His research 
+      interests include high-speed communication, runtime systems, 
+      and machine learning models. He is currently working on 
+      implementing mapping strategies for optimizing FleCSI’s 
+      mapper. 
+
+|clearboth|
+
+Max Ortner
+^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftsideW
+
+     .. image:: team/max.jpg
+        :align: left
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Max is a post-bachelor on the CCS-7 Co-Design Team. 
+      He has broad interests in physics (from QFT to General Relativity) and computer science,
+      specifically highly performant, low-level graphics systems and scientific data handling 
+      with MPI I/O.
+      Currently, he maintains and develops features related to efficient memory usage for FleCSI.
 
 Scott Pakin
 ^^^^^^^^^^^
@@ -268,7 +337,7 @@ Navamita Ray
     Navamita is a staff scientist in the co-design team in CCS-7 with
     expertise in meshing technologies and numerical methods.
     At LANL, she has been involved in designing and developing mesh data
-    structures for advanced programming runtimes targeting hetergeneous
+    structures for advanced programming runtimes targeting heterogeneous
     architectures for exascale computing.
     She is also working on next generation libraries for conservative
     data remapping to link LANL applications.
@@ -482,7 +551,7 @@ Wei Wu
       *Los Alamos National Laboratory*
 
       Wei is a computer scientist whose research is focused on runtime
-      systems and programing models for heterogeneous systems.
+      systems and programming models for heterogeneous systems.
       He has worked on a variety of task-based runtime systems, such as
       Legion and PaRSEC.
       He was also a member of the Open MPI team, developing CUDA-aware

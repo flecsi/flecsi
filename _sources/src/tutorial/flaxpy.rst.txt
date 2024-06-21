@@ -267,7 +267,9 @@ The variables declared by the preceding code (``init``, ``ma``, and
 ``fin``) are never used.  They exist only for the side effects induced
 by instantiating a ``flaxpy::control::action``.
 
-The ``initialize_action`` action uses a *coloring slot* to initialize the topology slot defined above in `Control model`_, allocating memory for the ``dist_vector`` specialization.
+The ``initialize_action`` action uses the slot and ``color`` function
+defined above in `Data structures`_
+to allocate memory for the ``dist_vector`` specialization.
 Once this memory is allocated,
 the action launches an ``initialize_vectors_task`` task,
 granting each constituent point task access to a subset of *X* and *Y*
@@ -330,8 +332,8 @@ Once these are known, the task initializes
 *X*\ [*i*] ← *i* and *Y*\ [*i*] ← 0
 over its subset of the distributed *X* and *Y* vectors.
 FLAXPY uses FleCSI's ``forall`` macro to locally parallelize
-(e.g., using thread parallelism)
 the initialization of *Y*.
+(This example works with thread parallelism but not on a GPU, since one field would be accessed on the host and the other on the device.)
 
 .. literalinclude:: ../../../../tutorial/standalone/flaxpy/flaxpy.cc
    :language: cpp

@@ -12,7 +12,7 @@ var group__execution =
       [ "get", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a726273048b674d5b970c95cc890f3e6f", null ],
       [ "size", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a2a49aa42c83e86a61003107ab2dc6a78", null ]
     ] ],
-    [ "trace::guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", [
+    [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", [
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a7bab67ca137c1bbfc92e4fd1f3814a17", null ],
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]
     ] ],
@@ -29,19 +29,21 @@ var group__execution =
     [ "trace", "structflecsi_1_1exec_1_1trace.html", [
       [ "trace", "structflecsi_1_1exec_1_1trace.html#adf6e151f76b1209e675d2f0e7c506397", null ],
       [ "trace", "structflecsi_1_1exec_1_1trace.html#a36ac6342031cbd5227adb46047523683", null ],
-      [ "trace", "structflecsi_1_1exec_1_1trace.html#aa1fadf80a639d91215cffff967a7f268", null ],
+      [ "trace", "structflecsi_1_1exec_1_1trace.html#a2e5a39dc4d05e74e8d420fee317a7104", null ],
+      [ "operator=", "structflecsi_1_1exec_1_1trace.html#a6a96ebfacc669a9c358e48563ccf9e12", null ],
       [ "make_guard", "structflecsi_1_1exec_1_1trace.html#ab5eb6ab1032879300fceda594e89c325", null ],
       [ "skip", "structflecsi_1_1exec_1_1trace.html#a01920519131c2f02e69248a2d44fa113", null ]
     ] ],
-    [ "flecsi::task_attributes_mask_t", "group__execution.html#ga7b0ca5b879fe56b356b7c20a1f43bea4", [
-      [ "flecsi::idempotent", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744", null ],
-      [ "flecsi::loc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a42ce44086a5876a041d194b5a7df34cd", null ],
-      [ "flecsi::toc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a78779814dbb7b9d8cc85a903abc0244d", null ],
-      [ "flecsi::omp", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a4c4d94738d6aeddd4769ef627c9a6c3e", null ],
-      [ "flecsi::mpi", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c", null ]
+    [ "task_attributes_mask_t", "group__execution.html#ga7b0ca5b879fe56b356b7c20a1f43bea4", [
+      [ "idempotent", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a8517ab127dc92dc48a341cad79bf1744", null ],
+      [ "loc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a42ce44086a5876a041d194b5a7df34cd", null ],
+      [ "toc", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a78779814dbb7b9d8cc85a903abc0244d", null ],
+      [ "omp", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a4c4d94738d6aeddd4769ef627c9a6c3e", null ],
+      [ "mpi", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c", null ]
     ] ],
-    [ "flecsi::execute", "group__execution.html#gae434764d0880e207c2a16b8b6485e489", null ],
-    [ "flecsi::make_partial", "group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6", null ],
-    [ "flecsi::reduce", "group__execution.html#ga7523244fc7cc96b87ebfe84c68482535", null ],
-    [ "flecsi::default_accelerator", "group__execution.html#ga9e9a08cdd28a4ed3b153a4b587974190", null ]
+    [ "execute", "group__execution.html#gae434764d0880e207c2a16b8b6485e489", null ],
+    [ "make_partial", "group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6", null ],
+    [ "reduce", "group__execution.html#ga7523244fc7cc96b87ebfe84c68482535", null ],
+    [ "test", "group__execution.html#ga51b0923f64f86267bd1d6f5da0108fe7", null ],
+    [ "default_accelerator", "group__execution.html#ga9e9a08cdd28a4ed3b153a4b587974190", null ]
 ];

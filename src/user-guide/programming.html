@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programming Model &mdash; FleCSI 2.3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/user-guide/programming.html"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Topologies" href="topologies.html" />
+    <link rel="prev" title="User Guide" href="../user-guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Programming Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data">Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpi-tasks">MPI Tasks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Programming Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/src/user-guide/programming.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="programming-model">
+<h1>Programming Model<a class="headerlink" href="#programming-model" title="Permalink to this heading"></a></h1>
+<p>Task-based programming differs from other models of computation in a number of respects.
+Application code is subject to corresponding restrictions of which the programmer must be aware.
+Some backends do not take advantage of every optimization opportunity afforded the implementation by these restrictions, but portable applications must not rely on the resulting behavior.</p>
+<section id="data">
+<h2>Data<a class="headerlink" href="#data" title="Permalink to this heading"></a></h2>
+<p>Between any two tasks, field data may be relocated to another memory space.
+Any pointer (or reference) that is or points to (any subobject of) a field element is thereby invalidated.</p>
+<p>A task need not execute in the same memory space as its caller, so task arguments must be serialized and cannot contain external pointers or references.</p>
+<p>Data that is neither stored a field nor suitable for serialization (perhaps because it is large) must therefore typically be stored in global variables.
+A field might contain an index to select a value from such a data structure instead of a pointer.</p>
+<p>Even a <code class="docutils literal notranslate"><span class="pre">toc</span></code> task executes on the host, but its accessors are references to field data stored on the device.
+Those accessors are copied into the kernels launched by the task (with <code class="docutils literal notranslate"><span class="pre">forall</span></code> or similar), which run on the device and can thus use them.
+Certain topology information useful for launching the kernels is copied to the host automatically.</p>
+</section>
+<section id="parallelism">
+<h2>Parallelism<a class="headerlink" href="#parallelism" title="Permalink to this heading"></a></h2>
+<p>Whether or not the MPI backend is in use, a FleCSI application is an MPI program, perhaps running many times in parallel (although there is no requirement in general that that number be the same as the number of colors in any particular topology).
+The top-level action runs once on each process and must perform the same sequence of collective calls into FleCSI with the same arguments.
+(In certain cases, it is the identity rather than the value of the arguments that matters; for example, a mesh coloring might be distributed (rather than replicated) over multiple processes, but that distributed object is the same object for the purpose of initializing a topology.)</p>
+<p>In the common case where the top-level action invokes the actions associated with a control model, they are executed serially.
+Tasks, however, are asynchronous: <code class="docutils literal notranslate"><span class="pre">flecsi::execute</span></code> may return before they complete and point tasks from multiple task launches may run out of order or in parallel.</p>
+<p>The threads necessary to implement this impose the ordinary responsibility of thread safety among tasks as well as between them and the actions.
+Because the threads may be pooled, they provide only the <a class="reference external" href="https://en.cppreference.com/w/cpp/language/memory_model#Parallel_forward_progress">parallel forward progress guarantee</a> (invalidating certain collective operations).
+Because they may be implemented in user space, blocking operations provided by FleCSI (<em>e.g.</em>, <code class="docutils literal notranslate"><span class="pre">flecsi::future::get</span></code>) may degrade the caller to be weakly parallel, with forward progress delegation provided only by other such blocking operations.
+Furthermore, thread-local storage (whose utility is already limited by the pooling) may be invalidated by such an operation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">flecsi::exec::parallel_</span></code> operations (including the <code class="docutils literal notranslate"><span class="pre">forall</span></code> and <code class="docutils literal notranslate"><span class="pre">reduceall</span></code> macros) are asynchronous; values written by one may not be available to another in the same task.</p>
+</section>
+<section id="mpi-tasks">
+<h2>MPI Tasks<a class="headerlink" href="#mpi-tasks" title="Permalink to this heading"></a></h2>
+<p>The execution of <code class="docutils literal notranslate"><span class="pre">mpi</span></code> tasks (regardless of backend) is more predictable than that of normal tasks:</p>
+<ol class="arabic simple">
+<li><p>Because they always run one point task in each process, with access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
+Therefore, fields used <em>only</em> by MPI tasks may use non-trivial data types (although resizing the field can still invalidate pointers).</p></li>
+<li><p>Because they additionally run synchronously, their parameters may be of any type, including writable references.</p></li>
+<li><p>Because additionally no other point tasks are executed concurrently with them, they can access global data without race conditions.</p></li>
+<li><p>The resulting concurrent forward progress guarantee makes it valid for them to perform MPI communication (including via <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code>).
+(Their field data is stored on the host and thus may be accessed directly by MPI.)</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../user-guide.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="topologies.html" class="btn btn-neutral float-right" title="Topologies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

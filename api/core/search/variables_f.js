@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['tags_0',['tags',['../structflecsi_1_1run_1_1arguments_1_1config_1_1log.html#a53380ed7c53b1f12d0898784a122d926',1,'flecsi::run::arguments::config::log']]],
-  ['task_5fid_1',['task_id',['../group__legion-execution.html#ga43fc121374eb8336d0eeae861d835c99',1,'flecsi::exec::leg']]],
-  ['topology_5fids_5f_2',['topology_ids_',['../structflecsi_1_1run_1_1context.html#a04dfc016e5b183ddcfef1d31356728e5',1,'flecsi::run::context']]]
+  ['serialization_5finterval_0',['serialization_interval',['../structflecsi_1_1flog_1_1config.html#a5022cb4a6f9850f751f294ca227f16dc',1,'flecsi::flog::config']]],
+  ['shared_1',['shared',['../structflecsi_1_1topo_1_1unstructured__impl_1_1peer__entities.html#ac07e4984a907c25ed6523e0797358419',1,'flecsi::topo::unstructured_impl::peer_entities']]],
+  ['size_5flen_2',['size_len',['../structflecsi_1_1exec_1_1prefix__range.html#ad7070fc1d5c27746da92931f4c5160c4',1,'flecsi::exec::prefix_range']]],
+  ['strip_5flevel_3',['strip_level',['../structflecsi_1_1flog_1_1config.html#afa664b44478b3d5c652b7bb63faafd9b',1,'flecsi::flog::config']]]
 ];

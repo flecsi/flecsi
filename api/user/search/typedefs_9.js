@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['list_0',['list',['../structflecsi_1_1run_1_1control__base.html#ae4e9955f3ee257645c4c04a440e8f297',1,'flecsi::run::control_base::list()'],['../structflecsi_1_1topo_1_1specialization__base.html#ae4e9955f3ee257645c4c04a440e8f297',1,'flecsi::topo::specialization_base::list()']]]
+  ['key_5ft_0',['key_t',['../structflecsi_1_1topo_1_1ntree__specialization.html#a195b10e7578de1597993a116bd7e7514',1,'flecsi::topo::ntree_specialization']]]
 ];

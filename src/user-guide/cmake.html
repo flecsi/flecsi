@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMake for FleCSI client applications &mdash; FleCSI 2.2.1 documentation</title>
+  <title>CMake for FleCSI client applications &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Topologies" href="topologies.html" />
-    <link rel="prev" title="User Guide" href="../user-guide.html" /> 
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Profiling with Legion" href="profiling.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,6 +54,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">CMake for FleCSI client applications</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#flecsi-cmake-files">FleCSI CMake files</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#documentation">Documentation</a></li>
@@ -65,9 +71,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
@@ -102,7 +105,7 @@
              
   <section id="cmake-for-flecsi-client-applications">
 <h1>CMake for FleCSI client applications<a class="headerlink" href="#cmake-for-flecsi-client-applications" title="Permalink to this heading"></a></h1>
-<p>The FleCSI installation provides mutliple CMake files to support
+<p>The FleCSI installation provides multiple CMake files to support
 writing new software.  While the <code class="docutils literal notranslate"><span class="pre">FleCSI</span></code> CMake package is used to
 build software on top of FleCSI, the additional CMake files
 provide common CMake code and macros for adding dependencies, building
@@ -155,7 +158,7 @@ It takes two parameters: the target name and <code class="docutils literal notra
 which is a Git repository URL. Running the target checks out the
 <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch of that repository, clears it and puts the
 result of all documentation targets into it.  Files are only added,
-but <strong>not</strong> commited or pushed. These are left as manual steps.</p>
+but <strong>not</strong> committed or pushed. These are left as manual steps.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">FleCSI/sphinx</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_set_sphinx_target_name</span></code> macro, which is used to
 define the name of a generic Sphinx target <code class="docutils literal notranslate"><span class="pre">FLECSI_SPHINX_TARGET</span></code>.
@@ -225,55 +228,114 @@ CMake files to allow using it in your own applications.</p>
 linker flags to enable capturing coverage information.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">FleCSI/unit</span></code></dt><dd><p>Adds the <code class="docutils literal notranslate"><span class="pre">flecsi_enable_testing</span></code> macro, which turns on CMake’s
-testing capabilities through <code class="docutils literal notranslate"><span class="pre">ctest</span></code> and defines <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> and
-<code class="docutils literal notranslate"><span class="pre">test</span></code> targets.</p>
+testing capabilities through <code class="docutils literal notranslate"><span class="pre">ctest</span></code> and adds a <code class="docutils literal notranslate"><span class="pre">test</span></code> target.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">test</span></code> target will run <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, executing all added tests.</p>
 <p>While you can define your own test executables manually with
 <a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_test.html">add_test</a>, this
-CMake file also defines its own <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> function for
-writing tests based on FleCSI Unit Test framework.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">flecsi_add_test</span><span class="p">(</span><span class="s">test-name</span><span class="w">                           </span><span class="c"># name of target</span>
+CMake file also defines its own <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> and
+<code class="docutils literal notranslate"><span class="pre">flecsi_add_target_test</span></code> functions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> is for writing tests based on
+FleCSI Unit Test framework and has the following signature:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">flecsi_add_test</span><span class="p">(</span><span class="s">test-name</span><span class="w">                           </span><span class="c"># name of test and target</span>
 <span class="w">                </span><span class="s">SOURCES</span><span class="w"> </span><span class="s">src1</span><span class="w"> </span><span class="s">src2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">srcN</span><span class="w">          </span><span class="c"># list of source files</span>
-<span class="w">                </span><span class="s">INPUTS</span><span class="w"> </span><span class="s">in1</span><span class="w"> </span><span class="s">in2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">inN</span><span class="w">              </span><span class="c"># list of input files</span>
 <span class="w">                </span><span class="s">LIBRARIES</span><span class="w"> </span><span class="s">lib1</span><span class="w"> </span><span class="s">lib2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">libN</span><span class="w">        </span><span class="c"># libraries linked to test target</span>
 <span class="w">                </span><span class="s">DEFINES</span><span class="w"> </span><span class="s">define1</span><span class="w"> </span><span class="s">define2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">defineN</span><span class="w"> </span><span class="c"># defines added to test target</span>
+<span class="w">                </span><span class="s">INPUTS</span><span class="w"> </span><span class="s">in1</span><span class="w"> </span><span class="s">in2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">inN</span><span class="w">              </span><span class="c"># list of input files</span>
 <span class="w">                </span><span class="s">ARGUMENTS</span><span class="w">  </span><span class="s">arg1</span><span class="w"> </span><span class="s">arg2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">argN</span><span class="w">       </span><span class="c"># command arguments</span>
 <span class="w">                </span><span class="s">TESTLABELS</span><span class="w"> </span><span class="s">label1</span><span class="w"> </span><span class="s">label2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">labelN</span><span class="w"> </span><span class="c"># labels added to test target</span>
 <span class="w">                </span><span class="s">PROCS</span><span class="w"> </span><span class="s">nprocs1</span><span class="w"> </span><span class="s">nprocs2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">nprocsN</span><span class="w">   </span><span class="c"># number(s) of MPI processes</span>
-<span class="w">               </span><span class="p">)</span>
+<span class="w">                </span><span class="s">LAUNCHER</span><span class="w"> </span><span class="s">app</span><span class="w">                        </span><span class="c"># launcher application for entire command-line</span>
+<span class="w">                </span><span class="s">LAUNCHER_ARGUMENTS</span><span class="w"> </span><span class="s">arg1</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">argN</span><span class="w">    </span><span class="c"># arguments passed to launcher</span>
+<span class="w">      </span><span class="p">)</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> will take the sources files in <code class="docutils literal notranslate"><span class="pre">SOURCES</span></code> and
 compile them together with a predefined <code class="docutils literal notranslate"><span class="pre">main()</span></code> function. It will
-also link to any <code class="docutils literal notranslate"><span class="pre">LIBRARIES</span></code> and add <code class="docutils literal notranslate"><span class="pre">DEFINES</span></code> as compile
-definitions.</p>
-<p>If the test uses input files, they can be specified as
-<code class="docutils literal notranslate"><span class="pre">INPUTS</span></code>. This ensures they are copied to the execution folder.</p>
-<p>Command-line arguments are passed via the <code class="docutils literal notranslate"><span class="pre">ARGUMENTS</span></code> option. You
-can also control the number of MPI processes with <code class="docutils literal notranslate"><span class="pre">PROCS</span></code>. If you
+link to FleCSI and any specified <code class="docutils literal notranslate"><span class="pre">LIBRARIES</span></code>, and add <code class="docutils literal notranslate"><span class="pre">DEFINES</span></code>
+as compile definitions.</p>
+<p>If the test uses input files, they can be specified as list of files in
+<code class="docutils literal notranslate"><span class="pre">INPUTS</span></code>. This ensures they are copied to the execution folder of the test.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ARGUMENTS</span></code> option can be used to supply command-line options interpreted by <code class="docutils literal notranslate"><span class="pre">flecsi::getopt</span></code>.</p>
+<p>You can also control the number of MPI processes with <code class="docutils literal notranslate"><span class="pre">PROCS</span></code>. If you
 provide more than one value in <code class="docutils literal notranslate"><span class="pre">PROCS</span></code>, this will define one
-target per value with a name <code class="docutils literal notranslate"><span class="pre">&lt;target-name&gt;_&lt;value&gt;</span></code>.</p>
+test per value with a name <code class="docutils literal notranslate"><span class="pre">&lt;test-name&gt;_&lt;value&gt;</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Targets added with <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> will be run with GPU
+<p>Tests added with <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> will be run with GPU
 support if appropriate.</p>
+</div>
+<p>The final command-line of each test is assembled from these arguments into the following format:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="si">${</span><span class="nv">MPIEXEC_EXECUTABLE</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">MPIEXEC_PREFLAGS</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">MPIEXEC_NUMPROC_FLAG</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">PROCS</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">TARGET</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">MPIEXEC_POSTFLAGS</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">BACKEND_ARGUMENTS</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">ARGUMENTS</span><span class="si">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">MPIEXEC_*</span></code> cache variables are defined via the CMake
+<a class="reference external" href="https://cmake.org/cmake/help/latest/module/FindMPI.html#usage-of-mpiexec">FindMPI module</a>,
+while <code class="docutils literal notranslate"><span class="pre">BACKEND_ARGUMENTS</span></code> are defaults provided for each FleCSI backend.</p>
+<p>In some cases you may wish to pass this entire command-line to a launcher
+command along with some launcher specific arguments. A typical application of
+this is a wrapper that executes the command-line, captures relevant
+information and presents some analysis result. This can be achieved via the
+<code class="docutils literal notranslate"><span class="pre">LAUNCHER</span></code> and <code class="docutils literal notranslate"><span class="pre">LAUNCHER_ARGUMENTS</span></code> options and turns the complete test
+command-line into:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="si">${</span><span class="nv">LAUNCHER</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">LAUNCHER_ARGS</span><span class="si">}</span><span class="w"> </span><span class="si">${</span><span class="nv">FULL_TEST_COMMAND_LINE</span><span class="si">}</span>
+</pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">TESTLABELS</span></code> can be added to your test to allow filtering based on
 label when using <code class="docutils literal notranslate"><span class="pre">ctest</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> target only builds unit tests (and its dependencies) added
-via <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code>. Its name can be customized with the
+<p>The first of these tests creates a <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> target which collects all
+of the unit tests defined via <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code>. Using this target will build all of
+these tests and their dependencies.</p>
+<p>Its name can be customized with the
 <code class="docutils literal notranslate"><span class="pre">flecsi_set_unit_tests_target_name(name)</span></code> macro, prior to calling
 <code class="docutils literal notranslate"><span class="pre">flecsi_enable_testing</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">test</span></code> target is defined by CMake itself and will run <code class="docutils literal notranslate"><span class="pre">ctest</span></code>,
-executing all added tests.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flecsi_add_target_test</span></code> allows defining a test using an existing target.
+This is useful for defining regression/run tests of complete FleCSI
+applications. The function signature is similar to <code class="docutils literal notranslate"><span class="pre">flecsi_add_test</span></code> and
+supports all its operations, but doesn’t use <code class="docutils literal notranslate"><span class="pre">SOURCES</span></code>, <code class="docutils literal notranslate"><span class="pre">LIBRARIES</span></code> and
+<code class="docutils literal notranslate"><span class="pre">DEFINES</span></code>.  Instead, it requires the name of an existing target. By default,
+it will look for a target with the same name as the test name. A target with
+a different name can be specified via the TARGET option.
+Given that these tests typically are not unit tests, they
+are not automatically added to the <code class="docutils literal notranslate"><span class="pre">unit_tests</span></code> target as dependencies.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">flecsi_add_target_test</span><span class="p">(</span><span class="s">test-name</span><span class="w">                           </span><span class="c"># name of test (and of existing target)</span>
+<span class="w">                       </span><span class="s">TARGET</span><span class="w"> </span><span class="s">name</span><span class="w">                         </span><span class="c"># name of an existing target</span>
+<span class="w">                       </span><span class="s">INPUTS</span><span class="w"> </span><span class="s">in1</span><span class="w"> </span><span class="s">in2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">inN</span><span class="w">              </span><span class="c"># list of input files</span>
+<span class="w">                       </span><span class="s">ARGUMENTS</span><span class="w">  </span><span class="s">arg1</span><span class="w"> </span><span class="s">arg2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">argN</span><span class="w">       </span><span class="c"># command arguments</span>
+<span class="w">                       </span><span class="s">TESTLABELS</span><span class="w"> </span><span class="s">label1</span><span class="w"> </span><span class="s">label2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">labelN</span><span class="w"> </span><span class="c"># labels added to test target</span>
+<span class="w">                       </span><span class="s">PROCS</span><span class="w"> </span><span class="s">nprocs1</span><span class="w"> </span><span class="s">nprocs2</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">nprocsN</span><span class="w">   </span><span class="c"># number(s) of MPI processes</span>
+<span class="w">                       </span><span class="s">LAUNCHER</span><span class="w"> </span><span class="s">app</span><span class="w">                        </span><span class="c"># launcher application for entire command-line</span>
+<span class="w">                       </span><span class="s">LAUNCHER_ARGUMENTS</span><span class="w"> </span><span class="s">arg1</span><span class="w"> </span><span class="s">...</span><span class="w"> </span><span class="s">argN</span><span class="w">    </span><span class="c"># arguments passed to launcher</span>
+<span class="w">      </span><span class="p">)</span>
+</pre></div>
+</div>
 <p><strong>Usage:</strong></p>
-<p>Here is a minimal unit test file <code class="docutils literal notranslate"><span class="pre">mytest.cc</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/util/unit.hh&gt;</span>
+<p>Here is an example unit test file <code class="docutils literal notranslate"><span class="pre">mytest.cc</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/data.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/utilities.hh&gt;</span>
 
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ifield</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">iv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">39</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="n">single</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">UNIT</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">iv</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+
 <span class="kt">int</span><span class="w"> </span><span class="nf">mytest_driver</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">UNIT</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">ASSERT_TRUE</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">my_topology</span><span class="p">;</span>
+<span class="w">    </span><span class="n">my_topology</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+<span class="w">    </span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">),</span><span class="w"> </span><span class="mi">1669</span><span class="p">);</span>
+<span class="w">    </span><span class="n">EXPECT_TRUE</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">EXPECT_EQ</span><span class="p">(</span><span class="n">test</span><span class="o">&lt;</span><span class="n">verify</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ifield</span><span class="p">(</span><span class="n">my_topology</span><span class="p">)),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// mytest_driver</span>
 
@@ -399,8 +461,8 @@ gray.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../user-guide.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="topologies.html" class="btn btn-neutral float-right" title="Topologies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="profiling.html" class="btn btn-neutral float-left" title="Profiling with Legion" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

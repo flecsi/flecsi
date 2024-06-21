@@ -39,17 +39,25 @@ var annotated_dup =
         [ "trace", "structflecsi_1_1exec_1_1trace.html", "structflecsi_1_1exec_1_1trace" ]
       ] ],
       [ "flog", null, [
-        [ "guard", "structflecsi_1_1flog_1_1guard.html", null ],
-        [ "tag", "structflecsi_1_1flog_1_1tag.html", null ]
+        [ "guard", "structflecsi_1_1flog_1_1guard.html", "structflecsi_1_1flog_1_1guard" ],
+        [ "tag", "structflecsi_1_1flog_1_1tag.html", "structflecsi_1_1flog_1_1tag" ]
       ] ],
       [ "run", null, [
+        [ "config", "structflecsi_1_1run_1_1config.html", "structflecsi_1_1run_1_1config" ],
+        [ "config_base", "structflecsi_1_1run_1_1config__base.html", "structflecsi_1_1run_1_1config__base" ],
         [ "control", "structflecsi_1_1run_1_1control.html", "structflecsi_1_1run_1_1control" ],
         [ "control_base", "structflecsi_1_1run_1_1control__base.html", "structflecsi_1_1run_1_1control__base" ],
-        [ "control_policy", "structflecsi_1_1run_1_1control__policy.html", "structflecsi_1_1run_1_1control__policy" ]
+        [ "control_policy", "structflecsi_1_1run_1_1control__policy.html", "structflecsi_1_1run_1_1control__policy" ],
+        [ "dependencies_config", "structflecsi_1_1run_1_1dependencies__config.html", "structflecsi_1_1run_1_1dependencies__config" ],
+        [ "dependencies_guard", "structflecsi_1_1run_1_1dependencies__guard.html", "structflecsi_1_1run_1_1dependencies__guard" ]
       ] ],
       [ "topo", null, [
         [ "narray_impl", null, [
+          [ "axis", "structflecsi_1_1topo_1_1narray__impl_1_1axis.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis" ],
+          [ "axis_color", "structflecsi_1_1topo_1_1narray__impl_1_1axis__color.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis__color" ],
           [ "axis_definition", "structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis__definition" ],
+          [ "axis_info", "structflecsi_1_1topo_1_1narray__impl_1_1axis__info.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis__info" ],
+          [ "axis_layout", "structflecsi_1_1topo_1_1narray__impl_1_1axis__layout.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis__layout" ],
           [ "index_definition", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition" ]
         ] ],
         [ "unstructured_impl", null, [
@@ -60,7 +68,11 @@ var annotated_dup =
         [ "help", "structflecsi_1_1topo_1_1help.html", null ],
         [ "index", "structflecsi_1_1topo_1_1index.html", null ],
         [ "narray", "structflecsi_1_1topo_1_1narray.html", null ],
+        [ "narray_base", "structflecsi_1_1topo_1_1narray__base.html", "structflecsi_1_1topo_1_1narray__base" ],
         [ "narray_specialization", "structflecsi_1_1topo_1_1narray__specialization.html", "structflecsi_1_1topo_1_1narray__specialization" ],
+        [ "ntree", "structflecsi_1_1topo_1_1ntree.html", null ],
+        [ "ntree_base", "structflecsi_1_1topo_1_1ntree__base.html", "structflecsi_1_1topo_1_1ntree__base" ],
+        [ "ntree_specialization", "structflecsi_1_1topo_1_1ntree__specialization.html", "structflecsi_1_1topo_1_1ntree__specialization" ],
         [ "repartition", "structflecsi_1_1topo_1_1repartition.html", "structflecsi_1_1topo_1_1repartition" ],
         [ "resize", "structflecsi_1_1topo_1_1resize.html", "structflecsi_1_1topo_1_1resize" ],
         [ "specialization", "structflecsi_1_1topo_1_1specialization.html", "structflecsi_1_1topo_1_1specialization" ],
@@ -86,13 +98,19 @@ var annotated_dup =
           [ "traits", "structflecsi_1_1util_1_1serial_1_1traits.html", null ],
           [ "value", "structflecsi_1_1util_1_1serial_1_1value.html", null ]
         ] ],
+        [ "BBox", "classflecsi_1_1util_1_1BBox.html", "classflecsi_1_1util_1_1BBox" ],
         [ "dag", "structflecsi_1_1util_1_1dag.html", "structflecsi_1_1util_1_1dag" ],
         [ "dimensioned_array", "classflecsi_1_1util_1_1dimensioned__array.html", "classflecsi_1_1util_1_1dimensioned__array" ],
         [ "equal_map", "structflecsi_1_1util_1_1equal__map.html", "structflecsi_1_1util_1_1equal__map" ],
+        [ "filling_curve_key", "classflecsi_1_1util_1_1filling__curve__key.html", "classflecsi_1_1util_1_1filling__curve__key" ],
+        [ "hilbert_key", "classflecsi_1_1util_1_1hilbert__key.html", "classflecsi_1_1util_1_1hilbert__key" ],
         [ "identity", "structflecsi_1_1util_1_1identity.html", null ],
+        [ "KDTree", "structflecsi_1_1util_1_1KDTree.html", "structflecsi_1_1util_1_1KDTree" ],
         [ "map_base", "structflecsi_1_1util_1_1map__base.html", "structflecsi_1_1util_1_1map__base" ],
         [ "mdcolex", "structflecsi_1_1util_1_1mdcolex.html", "structflecsi_1_1util_1_1mdcolex" ],
         [ "mdspan", "structflecsi_1_1util_1_1mdspan.html", "structflecsi_1_1util_1_1mdspan" ],
+        [ "morton_key", "classflecsi_1_1util_1_1morton__key.html", "classflecsi_1_1util_1_1morton__key" ],
+        [ "my_key", "structflecsi_1_1util_1_1my__key.html", "structflecsi_1_1util_1_1my__key" ],
         [ "offsets", "structflecsi_1_1util_1_1offsets.html", "structflecsi_1_1util_1_1offsets" ],
         [ "span", "structflecsi_1_1util_1_1span.html", "structflecsi_1_1util_1_1span" ],
         [ "substring_view", "structflecsi_1_1util_1_1substring__view.html", "structflecsi_1_1util_1_1substring__view" ],
@@ -102,7 +120,9 @@ var annotated_dup =
       [ "future", "structflecsi_1_1future.html", null ],
       [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", "structflecsi_1_1future_3_01Return_01_4" ],
       [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ],
+      [ "getopt", "structflecsi_1_1getopt.html", "structflecsi_1_1getopt" ],
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
+      [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
       [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ]
     ] ]
 ];

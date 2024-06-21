@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Model &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Data Model &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -68,6 +68,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
@@ -126,7 +127,10 @@ is natural to use the <code class="docutils literal notranslate"><span class="pr
 <span class="k">const</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">global</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gfield</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Writing to a global field requires a single task launch.</p>
+<p>To create a topology instance, declare a <em>topology slot</em> and then use <code class="docutils literal notranslate"><span class="pre">allocate</span></code> with an argument appropriate to the topology called a <em>coloring</em>.
+In general, a coloring describes the structure of a topology and its distribution among colors.
+The global topology is a special case that does not actually use colors; its “coloring” is simply a count of values for each field.
+Writing to a global field requires a single task launch.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span>
 <span class="nf">init</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">single</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">gv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">;</span>
@@ -192,7 +196,7 @@ of the <cite>canonical</cite> topology.</p>
 <p>One can access the field inside of the FleCSI task by passing
 topology and field accessors with <cite>access permissions</cite> (wo/rw/ro).
 The <code class="docutils literal notranslate"><span class="pre">canonical</span></code> topology is a very simple specialization of the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> core topology.
-It illustrates the use of a <em>coloring slot</em>, which applies a specialization-defined rule for specifying a <em>coloring</em>: the run-time information for constructing a topology distributed over colors.
+It illustrates the use of the <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code> type, which applies a specialization-defined rule for specifying a coloring.
 Here, a file is the source of the mesh (for purposes of illustration).
 The resulting coloring is used to initialize two meshes <code class="docutils literal notranslate"><span class="pre">canonical</span></code> and <code class="docutils literal notranslate"><span class="pre">cp</span></code>, and the <code class="docutils literal notranslate"><span class="pre">copy</span></code> task operates on both of them at once using a low-level accessor.
 The <code class="docutils literal notranslate"><span class="pre">init</span></code> and <code class="docutils literal notranslate"><span class="pre">print</span></code> tasks, by contrast, use a <em>topology accessor</em> as a parameter that provides access to the structure of the mesh via the <code class="docutils literal notranslate"><span class="pre">entities</span></code> function.</p>
@@ -205,7 +209,7 @@ The <code class="docutils literal notranslate"><span class="pre">init</span></co
 <span class="p">}</span><span class="w"> </span><span class="c1">// init</span>
 
 <span class="kt">void</span>
-<span class="nf">copy</span><span class="p">(</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">rw</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dest</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">copy</span><span class="p">(</span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="o">&gt;</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dest</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">src</span><span class="p">.</span><span class="n">span</span><span class="p">();</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">copy</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">dest</span><span class="p">.</span><span class="n">span</span><span class="p">().</span><span class="n">begin</span><span class="p">());</span>
 <span class="p">}</span>
@@ -221,12 +225,9 @@ The <code class="docutils literal notranslate"><span class="pre">init</span></co
 <span class="kt">void</span>
 <span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">canonical</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="p">;</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="n">canon</span><span class="o">::</span><span class="n">cslot</span><span class="w"> </span><span class="n">coloring</span><span class="p">;</span>
-<span class="w">    </span><span class="n">coloring</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
-<span class="w">    </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<span class="w">    </span><span class="n">cp</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="w"> </span><span class="n">c</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+<span class="w">  </span><span class="n">cp</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
 
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">),</span><span class="w"> </span><span class="n">pf2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">cp</span><span class="p">);</span>
 

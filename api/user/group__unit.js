@@ -30,7 +30,7 @@ var group__unit =
     [ "UNIT_EQUAL_BLESSED", "group__unit.html#ga46045526f22dd03aa5c746d4407d5858", null ],
     [ "UNIT_WRITE", "group__unit.html#ga6bd63ecce698d3f0f272b2b934201dc6", null ],
     [ "UNIT_ASSERT", "group__unit.html#ga6f487364449f2937f0db8a4fb043d84f", null ],
-    [ "flecsi::util::unit::initialization", "group__unit.html#ga5d6c7a49b5e5032b2f57d2056af5ccbc", null ],
-    [ "flecsi::util::unit::driver", "group__unit.html#ga65cf40bb16ecc97cc98c16ddf2f14a7d", null ],
-    [ "flecsi::util::unit::finalization", "group__unit.html#ga97055b121217927f62bf7e4fa2e51cc2", null ]
+    [ "initialization", "group__unit.html#ga5d6c7a49b5e5032b2f57d2056af5ccbc", null ],
+    [ "driver", "group__unit.html#ga65cf40bb16ecc97cc98c16ddf2f14a7d", null ],
+    [ "finalization", "group__unit.html#ga97055b121217927f62bf7e4fa2e51cc2", null ]
 ];

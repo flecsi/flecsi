@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Specializations &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Specializations &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Performance Do’s and Don’ts" href="performance.html" />
-    <link rel="prev" title="Topologies" href="topologies.html" /> 
+    <link rel="prev" title="Utilities" href="utilities.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,10 +54,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Specializations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
@@ -98,13 +104,19 @@ domain-specific applications.</p>
 <p>For example, in the Poisson tutorial a specialization is provided to define a
 two-dimensional finite-difference domain interface required by applications
 with nearest-neighbor ghost dependencies.</p>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="../../api/user/group__topology.html">Several class and function templates</a> are provided to assist in writing specializations.
+The class template <code class="docutils literal notranslate"><span class="pre">topo::id</span></code> exists to help prevent mistakes such as using a cell ID as if it were a vertex ID.
+<code class="docutils literal notranslate"><span class="pre">topo::make_ids</span></code> is a convenience function template to convert a range of ordinary integers into a range of <code class="docutils literal notranslate"><span class="pre">id</span></code> objects.</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="topologies.html" class="btn btn-neutral float-left" title="Topologies" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="performance.html" class="btn btn-neutral float-right" title="Performance Do’s and Don’ts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['to_0',['to',['../structflecsi_1_1topo_1_1specialization__base.html#a32570b21bc34323fcb9fdddbe5aee0af',1,'flecsi::topo::specialization_base']]]
+  ['reduction_0',['reduction',['../structflecsi_1_1field.html#ab2edf1e144a482b8083df98b5479cfee',1,'flecsi::field']]]
 ];

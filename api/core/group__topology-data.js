@@ -23,7 +23,7 @@ var group__topology_data =
     ] ],
     [ "intervals", "structflecsi_1_1data_1_1intervals.html", [
       [ "Value", "structflecsi_1_1data_1_1intervals.html#a357563891aec343ea3f8eec40c0c47a7", null ],
-      [ "intervals", "structflecsi_1_1data_1_1intervals.html#a135feda9bec219a4cffe9d4e42f9deb1", null ]
+      [ "intervals", "structflecsi_1_1data_1_1intervals.html#ac2057e6a8e0ca476f7b83f7b5f97f527", null ]
     ] ],
     [ "partition", "structflecsi_1_1data_1_1partition.html", [
       [ "colors", "structflecsi_1_1data_1_1partition.html#a27c97040e58856c6f97f83aa06537a66", null ],
@@ -31,7 +31,7 @@ var group__topology_data =
     ] ],
     [ "points", "structflecsi_1_1data_1_1points.html", [
       [ "Value", "structflecsi_1_1data_1_1points.html#a0c426b4819ba4f6bf8f7fa8103e858a3", null ],
-      [ "points", "structflecsi_1_1data_1_1points.html#a1d9ef386c42fab83293ec0ea46d6ed90", null ]
+      [ "points", "structflecsi_1_1data_1_1points.html#a89d5d4dcca2d8dc0e9a170eb9a7a3808", null ]
     ] ],
     [ "prefixes", "structflecsi_1_1data_1_1prefixes.html", [
       [ "prefixes", "structflecsi_1_1data_1_1prefixes.html#a8855f35de05dac8a49b598fe7140b37f", null ],
@@ -39,7 +39,9 @@ var group__topology_data =
     ] ],
     [ "region_base", "structflecsi_1_1data_1_1region__base.html", [
       [ "region_base", "structflecsi_1_1data_1_1region__base.html#a0bf5b723978e651b6c9687d8db6995f3", null ],
-      [ "size", "structflecsi_1_1data_1_1region__base.html#af37d381302d34d376ef07cde25367228", null ]
+      [ "size", "structflecsi_1_1data_1_1region__base.html#af37d381302d34d376ef07cde25367228", null ],
+      [ "partition_notify", "structflecsi_1_1data_1_1region__base.html#a3bb215bc2263a2902e6837e70e3b4884", null ],
+      [ "partition_notify", "structflecsi_1_1data_1_1region__base.html#a651b97a7260e098803d99c6c39726658", null ]
     ] ],
     [ "rows", "structflecsi_1_1data_1_1rows.html", [
       [ "rows", "structflecsi_1_1data_1_1rows.html#afc2f0310b3f9bc91d8c844dbfce6b031", null ]

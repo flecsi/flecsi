@@ -88,23 +88,23 @@ var group__data =
     [ "topology_slot< Topo >", "structflecsi_1_1data_1_1topology__slot.html", [
       [ "allocate", "structflecsi_1_1data_1_1topology__slot.html#acd71bcf530336967c2da3c047cd4025d", null ],
       [ "deallocate", "structflecsi_1_1data_1_1topology__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],
+      [ "is_allocated", "structflecsi_1_1data_1_1topology__slot.html#a6253b8ca318d37d78bac78ea6c93f1ef", null ],
       [ "colors", "structflecsi_1_1data_1_1topology__slot.html#a27c97040e58856c6f97f83aa06537a66", null ]
     ] ],
-    [ "flecsi::data::scalar_access", "group__data.html#ga8e734b9c8f9598b220c4a3921a977851", null ],
-    [ "flecsi::data::layout", "group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a", [
-      [ "flecsi::data::raw", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5", null ],
-      [ "flecsi::data::single", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa44512857a6d1077e4462c754c0a1d11b", null ],
-      [ "flecsi::data::dense", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aae8716347cc7fdaf9fc25cc0e20c2ab26", null ],
-      [ "flecsi::data::ragged", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa35697221af7a2476da7044d38e967097", null ],
-      [ "flecsi::data::sparse", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aab78868b7a281dbe62227072695184f91", null ],
-      [ "flecsi::data::particle", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa36946d784c39daca3325ed9770954038", null ]
+    [ "layout", "group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a", [
+      [ "raw", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa58ee402b69bb1b9fe5f437ab6e82e7d5", null ],
+      [ "single", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa44512857a6d1077e4462c754c0a1d11b", null ],
+      [ "dense", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aae8716347cc7fdaf9fc25cc0e20c2ab26", null ],
+      [ "ragged", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa35697221af7a2476da7044d38e967097", null ],
+      [ "sparse", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aab78868b7a281dbe62227072695184f91", null ],
+      [ "particle", "group__data.html#gga43d9cf57236e19c5fc3bc74b429c835aa36946d784c39daca3325ed9770954038", null ]
     ] ],
-    [ "flecsi::partition_privilege_t", "group__data.html#ga15b90fedf9416d69fcbe4488930e0d32", [
-      [ "flecsi::na", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944", null ],
-      [ "flecsi::ro", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b", null ],
-      [ "flecsi::wo", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1", null ],
-      [ "flecsi::rw", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44", null ]
+    [ "partition_privilege_t", "group__data.html#ga15b90fedf9416d69fcbe4488930e0d32", [
+      [ "na", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1da1f012b8343b3921ffd893e9f2c944", null ],
+      [ "ro", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a32f3a4a7644dad86bdda30a920a5a30b", null ],
+      [ "wo", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a3abbdc0617e1c5015b1b8eda55ce42c1", null ],
+      [ "rw", "group__data.html#gga15b90fedf9416d69fcbe4488930e0d32a1c509be8df0d6f901d0853a8e2501c44", null ]
     ] ],
-    [ "flecsi::global_topology", "group__data.html#ga353309e531f79e3fc799dc706066bf93", null ],
-    [ "flecsi::process_topology", "group__data.html#gac54f2e985c94bff43579f23133a1e2be", null ]
+    [ "global_topology", "group__data.html#ga353309e531f79e3fc799dc706066bf93", null ],
+    [ "process_topology", "group__data.html#gac54f2e985c94bff43579f23133a1e2be", null ]
 ];

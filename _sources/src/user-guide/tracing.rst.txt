@@ -77,15 +77,6 @@ Here is the iteration loop without tracing.
   computations.  The `t.skip()` command tells FleCSI to defer tracing
   until the second iteration of the `do` loop.
 
-Enabling Trace Replay on the Command Line
-+++++++++++++++++++++++++++++++++++++++++
-
-Tracing memoization must also be enabled on the command line.
-
-.. code-block:: console
-
-  $ srun ... poisson ... --backend-args="... -dm:memoize"
-
 When to Use Tracing
 +++++++++++++++++++++++++++++++++++++++++
 

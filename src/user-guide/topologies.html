@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Topologies &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Topologies &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Specializations" href="specializations.html" />
-    <link rel="prev" title="CMake for FleCSI client applications" href="cmake.html" /> 
+    <link rel="next" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="Programming Model" href="programming.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -54,7 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Topologies</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#index-spaces">Index Spaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#basic-categories">Basic Categories</a></li>
@@ -62,8 +62,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#colorings">Colorings</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
@@ -221,15 +224,13 @@ being the indices, with a particular instance being defined by its size.</p>
 <p>The index topology also has an implicit coloring that
 assigns each index of the topology’s indices to its own color: i.e.,
 index 0 is assigned to color 0, etc. This simple example illustrates the
-definition of a coloring:</p>
+definition of a coloring.</p>
 <div class="admonition-definition admonition">
 <p class="admonition-title">Definition</p>
 <p>A coloring is a description of how the indices of an index space
 should be divided into partitions or colors.</p>
 </div>
-<p>The <em>size</em> of the default index topology instance is taken from the
-number of processes with which the FleCSI runtime was launched. This is
-a special case. In general, there is no implied size for a coloring, and
+<p>In general, there is no implied size for a coloring, and
 no association with the details of a particular execution space, i.e.,
 the number of processes.  A coloring only describes how to divide the
 indices of an index space into partitions (or colors in FleCSI’s
@@ -240,7 +241,7 @@ nomenclature).</p>
 different from the way that many people think about MPI, where a rank
 is statically mapped to a particular process.</p>
 </div>
-<p>Users are allowed to add addtional named instances of the global or index topologies:</p>
+<p>Given a coloring (which in these two simple cases can be just an integer), topology instances can be created:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
 <span class="kt">int</span><span class="w"> </span><span class="nf">top_level</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
@@ -253,7 +254,7 @@ is statically mapped to a particular process.</p>
 </pre></div>
 </div>
 <p>Note the different interpretations of the sizes: <code class="docutils literal notranslate"><span class="pre">pair</span></code> doesn’t have colors and holds 2 field values, while <code class="docutils literal notranslate"><span class="pre">hydro_indices</span></code> has 42 colors with one field value each.</p>
-<p>Coloring slots can be populated only within the top-level action; the lifetime of topologies must be limited to its duration.</p>
+<p>Note also that the lifetime of topology instances must be limited to the top-level action (achieved here by making the slots local variables in it).</p>
 </section>
 </section>
 
@@ -261,8 +262,8 @@ is statically mapped to a particular process.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="cmake.html" class="btn btn-neutral float-left" title="CMake for FleCSI client applications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="specializations.html" class="btn btn-neutral float-right" title="Specializations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="programming.html" class="btn btn-neutral float-left" title="Programming Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

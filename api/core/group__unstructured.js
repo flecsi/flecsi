@@ -1,11 +1,11 @@
 var group__unstructured =
 [
-    [ "unstructured< Policy >::access< Privileges >", "structflecsi_1_1topo_1_1unstructured_1_1access.html", [
+    [ "access< Privileges >", "structflecsi_1_1topo_1_1unstructured_1_1access.html", [
       [ "entities", "structflecsi_1_1topo_1_1unstructured_1_1access.html#ab3d19ec88791bf0adaf9ec81524b4350", null ],
       [ "entities", "structflecsi_1_1topo_1_1unstructured_1_1access.html#a4bece9c76537f7a11056d87a7fc0981b", null ],
       [ "special_entities", "structflecsi_1_1topo_1_1unstructured_1_1access.html#a46c7e53873bd6d165b6e8a8822d2efe1", null ]
     ] ],
-    [ "unstructured_base::coloring", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html", [
+    [ "coloring", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html", [
       [ "colors", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#aa725a57f77829780aae4fb1e5b24ab7c", null ],
       [ "color_peers", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html#a6652b3a7fc52a5a97eb7b3087396ac2f", null ]
     ] ],
@@ -51,23 +51,24 @@ var group__unstructured =
       [ "make_entity", "structflecsi_1_1topo_1_1unstructured__impl_1_1mesh__definition.html#abf76868ed15e6f8b2b16563392640ae7", null ]
     ] ],
     [ "unstructured< Policy >", "structflecsi_1_1topo_1_1unstructured.html", [
-      [ "get_connectivity", "structflecsi_1_1topo_1_1unstructured.html#addf2768ab7eaefb599aaeed443393270", null ]
+      [ "get_connectivity", "structflecsi_1_1topo_1_1unstructured.html#addf2768ab7eaefb599aaeed443393270", null ],
+      [ "get_special_entities", "structflecsi_1_1topo_1_1unstructured.html#a9a83bf39c96199fe0e272e4cd315ae28", null ]
     ] ],
     [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", [
       [ "connectivities", "structflecsi_1_1topo_1_1unstructured__specialization.html#a96245ea9c51a632fbf3166877251cb7b", null ],
       [ "entity_lists", "structflecsi_1_1topo_1_1unstructured__specialization.html#a9675180b45f8b8a2a916d050c9160055", null ],
       [ "entity_list", "structflecsi_1_1topo_1_1unstructured__specialization.html#a7f4724fdf4cefba1bebc9b33eeb06f16", null ]
     ] ],
-    [ "flecsi::topo::unstructured_impl::intersect_connectivity", "group__unstructured.html#ga700d0421c6b6a0bf5fa22ce5f7d92a84", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::color_primaries", "group__unstructured.html#gad3a2378568dad9a6361144af59b51fd3", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::migrate_primaries", "group__unstructured.html#gaaeef22024e26ae0637e5f5d7ee739e30", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::request_owners", "group__unstructured.html#ga3b2c84389bc92f4660f00054a93f531f", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::close_primaries", "group__unstructured.html#gab4f96843414939798c4820859def7324", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::color_vertices", "group__unstructured.html#gaa627f63c1601e5a85e47bf228d690a48", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::close_vertices", "group__unstructured.html#ga1c3287aba6c89c1c9a3df6447ffb66fb", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::color_auxiliary", "group__unstructured.html#gab7f0b7063918e843cf97799ee066287c", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::close_auxiliary", "group__unstructured.html#gac4f162b661bd9705b46aacb4d90c9447", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::build_intermediary", "group__unstructured.html#gac839ee18362f6ab89ab41d3da34b5afb", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::generate", "group__unstructured.html#gaa61fca3e708e5fa776b235f9f7487bfd", null ],
-    [ "flecsi::topo::unstructured_impl::coloring_utils::send_field", "group__unstructured.html#ga7ebf9c593ed9baac3fb15c6f2d6af557", null ]
+    [ "intersect_connectivity", "group__unstructured.html#ga700d0421c6b6a0bf5fa22ce5f7d92a84", null ],
+    [ "color_primaries", "group__unstructured.html#gad3a2378568dad9a6361144af59b51fd3", null ],
+    [ "migrate_primaries", "group__unstructured.html#gaaeef22024e26ae0637e5f5d7ee739e30", null ],
+    [ "request_owners", "group__unstructured.html#ga3b2c84389bc92f4660f00054a93f531f", null ],
+    [ "close_primaries", "group__unstructured.html#gab4f96843414939798c4820859def7324", null ],
+    [ "color_vertices", "group__unstructured.html#gaa627f63c1601e5a85e47bf228d690a48", null ],
+    [ "close_vertices", "group__unstructured.html#ga1c3287aba6c89c1c9a3df6447ffb66fb", null ],
+    [ "color_auxiliary", "group__unstructured.html#gab7f0b7063918e843cf97799ee066287c", null ],
+    [ "close_auxiliary", "group__unstructured.html#gac4f162b661bd9705b46aacb4d90c9447", null ],
+    [ "build_intermediary", "group__unstructured.html#gac839ee18362f6ab89ab41d3da34b5afb", null ],
+    [ "generate", "group__unstructured.html#gaa61fca3e708e5fa776b235f9f7487bfd", null ],
+    [ "send_field", "group__unstructured.html#ga7ebf9c593ed9baac3fb15c6f2d6af557", null ]
 ];

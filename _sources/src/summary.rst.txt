@@ -90,14 +90,24 @@ The *rows* of that rectangle, one per color, are often considered separately.
 
 To support memory allocations that vary among rows or over time, fields are accessed via a *partition*, which is simply a prefix of each row of a region.
 (Often, the length of each such prefix is itself stored in a field that is accessed via a preexisting partition.)
+See :numref:`regions` for a visual depiction of regions, prefixes, and partitions.
 Several partitions may exist for a single region, although it is common for there to be just one or else just one at any time.
 All access the same field values, which survive as long as the region does.
 The backends are expected to allocate memory only as necessary for partitions that are actually used with a given field.
 
+.. _regions:
+.. figure:: images/region_partition_prefix.png
+
+  Diagram illustrating a region, prefix, and partition.  Regions are merely logical entities,
+  whereas actual memory allocations are managed through partitions.  Partitions are a collection of
+  prefixes, one for each color.  A prefix always begins at index point 0 of its color.
+
+-----
+
 Each topology is a fixed-size set of *index spaces* (*e.g.*, the cells, vertices, and faces of a mesh), each of which is backed by a region (and a partition).
 Often, other regions and partitions are included, organized into *subtopologies* that handle common kinds of data like the count of mesh elements.
 
-The classes ``region_base`` and ``partition`` are entry points.
+The classes ``region_base`` and ``partition`` (and the concrete ``rows`` and ``prefixes`` derived from the latter) are entry points.
 Most other entry points for data handling concern *copy engines*, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion's support for overlapping partitions as a means of transferring data.)
 Each is defined in terms of a field whose value at a destination of the copy is its source index point.
@@ -199,12 +209,12 @@ Levels
 
 The execution of a FleCSI-based application is divided into three levels:
 
-#. The outer program calls ``initialize`` and then ``start`` on the FleCSI context.
-#. The synchronous callback passed to ``start`` is the *top-level action*, which creates topologies and executes tasks.
+#. The outer program creates a ``flecsi::runtime`` object and calls ``control`` on it.
+#. The control model executed by ``control`` creates topologies and executes tasks.
 #. The tasks perform all field access (including some needed during topology creation).
 
-The first two are executed as normal `SPMD <https://en.wikipedia.org/wiki/SPMD>`_ jobs; only the top-level action can launch tasks.
-(With Legion, it is the top-level *task*, but we reserve that word for the leaf tasks.)
+The first two are executed as normal `SPMD <https://en.wikipedia.org/wiki/SPMD>`_ jobs; only the control model can launch tasks.
+(With Legion, the control model executes in the top-level *task*, but we reserve that word for the leaf tasks.)
 When arguments that describe data across multiple colors (*e.g.*, field references) are passed to a task, an *index launch* takes place that executes an instance of the task (a *point task*) for each color.
 (Often, there are the same number of colors as MPI ranks.)
 Otherwise, a *single launch* of the task is performed, which can be useful for custom I/O operations.
@@ -254,9 +264,9 @@ The backend-specific implementations are in ``*/future.hh``.
 Explicit parallelism
 ^^^^^^^^^^^^^^^^^^^^
 
-Tasks and the top-level action cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
+Tasks and the control model cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
 For cases where such communication is needed (*e.g.*, to use an MPI-based library), a task can be executed as an *MPI task* via the optional template argument to ``execute``/``reduce``.
-Like the top-level action, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
+Like the control model, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
 Because the call is not made in an ordinary task context, ``context_t::color`` must not be used by an MPI task; ``context_t::process``, which is always available, has the desired meaning in that context.
 
 Because the execution of an MPI task has largely the same semantics as an ordinary function call, arbitrary arguments may be passed to it.
@@ -277,7 +287,7 @@ The basic responsibility of a (core) topology type is to provide access to field
 The client machinery for task launches is backend-specific but not topology-specific; it uses a common interface specified by documentation-only example in ``core.hh``.
 The interface also enables specializations to be defined; the core topology class template accepts the specialization as a template parameter (but neither inherits from the other as in the `CRTP <https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern>`_).
 
-By inheriting from ``specialization``, a topology type is assigned an ID (for field registration), becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
+By inheriting from ``specialization``, a topology type gets some simple default options, becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
 In turn, the topology type can specify index spaces, provide a factory function for coloring objects, extend the core ``access`` type, and supply other category-specific parameters, as also presented in ``core.hh``.
 The coloring *type*, however, is defined by the category (independent of specialization).
 

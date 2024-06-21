@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>N-Tree &mdash; FleCSI 2.3.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="canonical" href="http://www.flecsi.org/src/tutorial/ntree.html"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="DAXPY" href="flaxpy.html" />
+    <link rel="prev" title="Distributed and shared memory parallelism" href="parallel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                Version: 2.3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build.html">Build &amp; Install</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorial.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorial.html#building-the-examples">Building the Examples</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorial.html#tutorial-examples">Tutorial Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="runtime.html">Runtime Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="control.html">Control Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html#tasks">Tasks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">N-Tree</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sph-sodtube">SPH sodtube</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#specialization">Specialization</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer-guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FleCSI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorial.html">Tutorial</a></li>
+      <li class="breadcrumb-item active">N-Tree</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/src/tutorial/ntree.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="n-tree">
+<h1>N-Tree<a class="headerlink" href="#n-tree" title="Permalink to this heading"></a></h1>
+<p>This tutorial features a simple hydrodynamics code based on Smoothed Particle Hydrodynamics (SPH) applied to a classic hydrodynamics problem called the Sod shock tube. Through this example, it presents the different capabilities and interface of the N-Tree topology.</p>
+<section id="sph-sodtube">
+<h2>SPH sodtube<a class="headerlink" href="#sph-sodtube" title="Permalink to this heading"></a></h2>
+<p>SPH is a meshfree method that uses particles to represent units of mass in space.
+Each particle interacts with neighboring particles using a <cite>smoothing length</cite> (<code class="docutils literal notranslate"><span class="pre">h</span></code>) and a function called a <cite>kernel</cite> (<code class="docutils literal notranslate"><span class="pre">W</span></code>), the following figure illustrates this concept of <cite>area of influence</cite>.</p>
+<figure class="align-center" id="id1">
+<span id="general-sph"></span><a class="reference internal image-reference" href="../../_images/general_sph.png"><img alt="../../_images/general_sph.png" src="../../_images/general_sph.png" style="width: 50%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 9 </span><span class="caption-text">Smoothed Particle Hydrodynamics particle interaction.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<p>In order to represent this system of particles and to efficiently find neighboring particles, the best implementations are based on a tree data structure.
+Each particle is assigned a unique key using space-filling curves such as Morton or Hilbert ordering.
+These keys are then used to create the tree data structure while keeping data locality for efficient neighbor computation.</p>
+<figure class="align-center" id="id2">
+<span id="quadtree"></span><a class="reference internal image-reference" href="../../_images/quadtree.png"><img alt="../../_images/quadtree.png" src="../../_images/quadtree.png" style="width: 70%;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Two dimensional N-Tree construction based on keys using Morton ordering.
+On the left figure we can see that the space is divided in quadrants (for two dimensions). If multiple particles are in the same quadrant, we divide it in four, using the Morton ordering (also called the Z-order). These quadrants are labeled <cite>0</cite>, <cite>1</cite>, <cite>2</cite>, and <cite>3</cite> for the <cite>top left</cite>, <cite>top right</cite>, <cite>bottom left</cite>, and <cite>bottom right</cite> respectively (forming a “Z” shape in space). Each time a quadrant is divided, these indices are concatenated to form a <code class="docutils literal notranslate"><span class="pre">key</span></code>. We can find the same decomposition in the N-Tree on the right figure.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<p>The implementation is based on four files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ntree_sph.hh</span></code>: The SPH specialization of the N-Tree. It will be used to illustrate the different tree traversals methods.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main.cc</span></code>: The Sod shock tube implementation, creates the N-Tree and uses tasks to evolve the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sph_physics.hh</span></code>: Provides the physics used in the tasks of <code class="docutils literal notranslate"><span class="pre">main.cc</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">control.hh</span></code>: The different control points to run the example.</p></li>
+</ul>
+<p>In this document we will refer to the leaves of the N-Tree as <code class="docutils literal notranslate"><span class="pre">entities</span></code>. In this example the <code class="docutils literal notranslate"><span class="pre">entities</span></code> will represent the <cite>particles</cite> in SPH. The other components of the tree are called nodes and are a separate index space.
+The <code class="docutils literal notranslate"><span class="pre">keys</span></code> will refer to the space-filling curve values associated with the <code class="docutils literal notranslate"><span class="pre">entities</span></code> and <code class="docutils literal notranslate"><span class="pre">nodes</span></code>.</p>
+<p>We will first focus on the <code class="docutils literal notranslate"><span class="pre">main.cc</span></code> file which implements the Sod shock tube, using the specialization described later. We will not detail all the tasks and the physics involved, but this will give us an opportunity to explore the capabilities of the N-Tree.</p>
+<section id="control-model">
+<h3>Control Model<a class="headerlink" href="#control-model" title="Permalink to this heading"></a></h3>
+<p>This example uses the FleCSI control model with four actions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">initialize_action</span></code>: Generates the N-Tree topology and populates the different fields with initial data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iterate_action</span></code>: This cycle in the control model loops over the physics functions to compute the Sod shock tube interactions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_action</span></code>: This action outputs information about the simulation to text files, per iteration and per color. It is part of the cycle.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">finalize_action</span></code>: This action assembles each iteration information from all colors into one text file per iteration on color 0.</p></li>
+</ul>
+<p>The control model can be represented as:</p>
+<figure class="align-center" id="id3">
+<span id="sph-control-model"></span><a class="reference internal image-reference" href="../../_images/sph-control-model.svg"><img alt="../../_images/sph-control-model.svg" src="../../_images/sph-control-model.svg" width="70%" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 11 </span><span class="caption-text">The control model for the N-Tree tutorial.</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="n-tree-setup-and-fields">
+<h3>N-Tree Setup and Fields<a class="headerlink" href="#n-tree-setup-and-fields" title="Permalink to this heading"></a></h3>
+<p>The N-Tree setup happens in <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">sph_ntree_t</span><span class="o">::</span><span class="n">ent_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ents</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nents</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sph</span><span class="o">::</span><span class="n">n_entities</span><span class="p">.</span><span class="n">value</span><span class="p">();</span>
+<span class="w">    </span><span class="n">sph_ntree_t</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="w"> </span><span class="nf">coloring</span><span class="p">(</span><span class="n">nents</span><span class="p">,</span><span class="w"> </span><span class="n">ents</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cp</span><span class="p">.</span><span class="n">sph_ntree</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">,</span><span class="w"> </span><span class="n">ents</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Firstly, the initial information about the entities is retrieved (either from a file or directly generated in the program) through a vector of entities. In this example we are using a vector of <code class="docutils literal notranslate"><span class="pre">sph_ntree_t::ent_t</span></code> which contains only the vital information to create the N-Tree through our SPH specialization: coordinates, mass, and radius.
+The coloring <code class="docutils literal notranslate"><span class="pre">sph_ntree_t::mpi_coloring</span></code> is constructed internally via the <code class="docutils literal notranslate"><span class="pre">color</span></code> function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
+The call to <code class="docutils literal notranslate"><span class="pre">allocate</span></code> generates the N-Tree data structure using the information gathered in the vector. After this call, the topology is ready to be used: the tree is built and can be used to find neighboring entities.</p>
+<p>The last part of <code class="docutils literal notranslate"><span class="pre">initialize_action</span></code> is using a user-provided task to populate the different user-defined fields. These fields are defined at the top of the <code class="docutils literal notranslate"><span class="pre">main.cc</span></code> file:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">sph_ntree_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">density</span><span class="p">,</span><span class="w"> </span><span class="n">pressure</span><span class="p">,</span><span class="w"> </span><span class="n">energy</span><span class="p">,</span>
+<span class="w">  </span><span class="n">d_energy</span><span class="p">,</span><span class="w"> </span><span class="n">velocity</span><span class="p">,</span><span class="w"> </span><span class="n">acceleration</span><span class="p">,</span><span class="w"> </span><span class="n">sound_speed</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">sph_ntree_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">is_wall</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The fields are added to the collection of fields that are already provided on the <code class="docutils literal notranslate"><span class="pre">entities</span></code> index space by the N-Tree topology and populated in the specialization:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">e_keys</span></code>: entities keys</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">e_colors</span></code>: entities colors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">e_i</span></code>: entities interactions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_i</span></code>: nodes interactions</p></li>
+</ul>
+<p>These specific fields, tied to the N-Tree topology and vital for its operation, can be accessed through the topology accessor.
+The task <code class="docutils literal notranslate"><span class="pre">init_sodtube_task</span></code> shows the access to both this topology accessor and the accessors to the different fields added by the user. We are passing all the fields to a function handled by the physics part of the tutorial in the file <code class="docutils literal notranslate"><span class="pre">sph_physics.hh</span></code> called via <code class="docutils literal notranslate"><span class="pre">sph::init_physics</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// init_sodtube_task</span>
+<span class="kt">void</span>
+<span class="nf">init_sodtube_task</span><span class="p">(</span><span class="n">sph_ntree_t</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">ro</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rho</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">p</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">u</span><span class="p">,</span>
+<span class="w">  </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">wo</span><span class="p">,</span><span class="w"> </span><span class="n">na</span><span class="o">&gt;</span><span class="w"> </span><span class="n">is_w</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">sph</span><span class="o">::</span><span class="n">init_physics</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"> </span><span class="n">rho</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"> </span><span class="n">u</span><span class="p">.</span><span class="n">span</span><span class="p">(),</span><span class="w"> </span><span class="n">is_w</span><span class="p">.</span><span class="n">span</span><span class="p">());</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// init_sodtube_task</span>
+</pre></div>
+</div>
+<p>The entities can then be looped over to initialize their data.
+This is presented in the next subsection, demonstrating different access patterns.</p>
+</section>
+<section id="entities-nodes-access">
+<h3>Entities/Nodes Access<a class="headerlink" href="#entities-nodes-access" title="Permalink to this heading"></a></h3>
+<p>The N-Tree features several ways to access entities/nodes and their neighbors. The different access methods are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.entities()</span></code>: Returns a list of local entities. This function can be templated on the kind of entities to loop over:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">t.entities&lt;exclusive&gt;</span></code>: Default behavior, loops over local entities.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.entities&lt;ghost&gt;</span></code>: Loops over all ghost entities.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.entities&lt;&gt;</span></code>: Loops over all entities, ghosts and locals.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.entities(node_index)</span></code>: Returns all the entities (ghosts and locals) under a specific node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.neighbors(entity_index)</span></code>: Performs a tree traversal, using the iteration methods featured in the specialization, to return a list of the neighboring entities of the <code class="docutils literal notranslate"><span class="pre">entity_index</span></code> entity. This list can contain indices of both ghost and local entities.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.nodes()</span></code>: Returns a list of local nodes. The behavior for the templated version is the same as <code class="docutils literal notranslate"><span class="pre">t.entities&lt;&gt;()</span></code> but for nodes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">t.nodes(node_index)</span></code>: Returns a list of nodes under a specified node index.</p></li>
+</ul>
+<p>These different methods are illustrated in the different tasks/functions present inside the <code class="docutils literal notranslate"><span class="pre">sph_physics.hh</span></code> file. A good example is the computation of the density:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Compute density</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kt">void</span>
+<span class="n">density</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">span</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rho</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">forall</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">entities</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;density&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">rho</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">e</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">e_i</span><span class="p">[</span><span class="n">e</span><span class="p">].</span><span class="n">radius</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">e_i</span><span class="p">[</span><span class="n">n</span><span class="p">].</span><span class="n">radius</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span>
+<span class="w">      </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">abs</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">e_i</span><span class="p">[</span><span class="n">e</span><span class="p">].</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">e_i</span><span class="p">[</span><span class="n">n</span><span class="p">].</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">      </span><span class="n">rho</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">e_i</span><span class="p">[</span><span class="n">n</span><span class="p">].</span><span class="n">mass</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">kernel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span><span class="w"> </span><span class="c1">// density</span>
+</pre></div>
+</div>
+<p>The user is looping over all the local entities with <code class="docutils literal notranslate"><span class="pre">t.entities()</span></code> and, for each entity <code class="docutils literal notranslate"><span class="pre">e</span></code>, loops over all the neighbors of this entity with <code class="docutils literal notranslate"><span class="pre">t.neighbors(e)</span></code>.</p>
+<p>Another set of accessors are available for the N-Tree and are used inside the specialization (file <code class="docutils literal notranslate"><span class="pre">ntree_sph.h</span></code>). We will explore the specialization in the next part, intended for specialization developers.
+These other accessors allow the user to perform different kind of tree traversals, used in the <code class="docutils literal notranslate"><span class="pre">compute_centroid</span></code> function as <code class="docutils literal notranslate"><span class="pre">t.dfs&lt;ttype_t::reverse_preorder,</span> <span class="pre">local&gt;()</span></code>.
+The N-Tree interface features two kinds of traversals: depth-first search (DFS) and breadth-first search (BFS). The DFS is decomposed into four possible traversals: pre-ordered, post-ordered, reverse pre-ordered, and reverse post-ordered.</p>
+<p>The user can then ask to access the entities for each node with the other accessors presented above: <code class="docutils literal notranslate"><span class="pre">t.entities(n_idx)</span></code> with <code class="docutils literal notranslate"><span class="pre">n_idx</span></code> the current node.</p>
+</section>
+</section>
+<section id="specialization">
+<h2>Specialization<a class="headerlink" href="#specialization" title="Permalink to this heading"></a></h2>
+<p>The specialization is presented in the structure <code class="docutils literal notranslate"><span class="pre">sph_ntree_t</span></code> in the file <code class="docutils literal notranslate"><span class="pre">ntree_sph.hh</span></code>.
+This part is out of the scope of what is needed for a user and is dedicated to specialization developers.
+This N-Tree specialization for SPH specifies the mandatory options of the N-tree:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">//-------------------- Base policy inputs --------------------- //</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">Dimension</span><span class="w"> </span><span class="n">dimension</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">id</span><span class="w"> </span><span class="n">max_neighbors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">key_int_t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">uint64_t</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="kt">key_t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">morton_key</span><span class="o">&lt;</span><span class="n">dimension</span><span class="p">,</span><span class="w"> </span><span class="n">key_int_t</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="c1">// In this hashing function we use the low bits (less than 22) to scatter the</span>
+<span class="w">  </span><span class="c1">// leaves but gather the roots. This is particularly efficient since the roots</span>
+<span class="w">  </span><span class="c1">// are accessed more often during the neighbor search.</span>
+<span class="w">  </span><span class="n">FLECSI_INLINE_TARGET</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">hash</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">key_t</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">k</span><span class="p">.</span><span class="n">value</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">((</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">22</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">template</span><span class="o">&lt;</span><span class="k">auto</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">privilege_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The most important point in these options is the <code class="docutils literal notranslate"><span class="pre">key_t</span></code> structure. This is the space-filling curve that is used to build the N-Tree structure and distribute the entities while keeping them locally close. The space-filling curves values are called <cite>keys</cite> in this tutorial.
+FleCSI provides two different space-filling curves: Morton (Z-Order) and Hilbert ordering.</p>
+<section id="interactions">
+<h3>Interactions<a class="headerlink" href="#interactions" title="Permalink to this heading"></a></h3>
+<p>One of the features of the N-Tree is to compute neighboring entities. To compute the interaction list, the user needs to provide the data-structure used for this computation and the associated functions.</p>
+<p>To compute the interactions, the user provides the data structure with the minimum information needed for both the nodes and the entities:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">struct</span><span class="w"> </span><span class="nc">node_data</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">point_t</span><span class="w"> </span><span class="n">coordinates</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">mass</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">radius</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span><span class="w"> </span><span class="c1">// struct node_data</span>
+
+<span class="w">  </span><span class="k">struct</span><span class="w"> </span><span class="nc">entity_data</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">point_t</span><span class="w"> </span><span class="n">coordinates</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">mass</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">radius</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span><span class="w"> </span><span class="c1">// struct entity_data</span>
+</pre></div>
+</div>
+<p>The interaction function(s) will compute node-entity, entity-entity, and node-node interactions.
+In this example all the interactions are computed the same way, and are represented in the <code class="docutils literal notranslate"><span class="pre">intersect</span></code> function. This templated function returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if there is an interaction, i.e. the spheres representing the node(s) or entity(ies) are overlapping.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T2</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="n">FLECSI_INLINE_TARGET</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">intersect</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">T1</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">in1</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">T2</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">in2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">distance</span><span class="p">(</span><span class="n">in1</span><span class="p">.</span><span class="n">coordinates</span><span class="p">,</span><span class="w"> </span><span class="n">in2</span><span class="p">.</span><span class="n">coordinates</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;=</span>
+<span class="w">           </span><span class="n">in1</span><span class="p">.</span><span class="n">radius</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in2</span><span class="p">.</span><span class="n">radius</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// intersect</span>
+</pre></div>
+</div>
+</section>
+<section id="coloring">
+<h3>Coloring<a class="headerlink" href="#coloring" title="Permalink to this heading"></a></h3>
+<p>The current version of the N-Tree restricts users to only one-color-to-one-process match.
+The initial particle distribution is described in the <code class="docutils literal notranslate"><span class="pre">color</span></code> function of the specialization:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// N-Tree coloring</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">coloring</span><span class="w"> </span><span class="nf">color</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">id</span><span class="w"> </span><span class="n">nents</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ent_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ents</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">processes</span><span class="p">(),</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">process</span><span class="p">();</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">id</span><span class="w"> </span><span class="n">hmap_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span>
+<span class="w">    </span><span class="n">coloring</span><span class="w"> </span><span class="n">c</span><span class="p">(</span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="n">hmap_size</span><span class="p">);</span>
+<span class="w">    </span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">id</span><span class="o">&gt;</span><span class="w"> </span><span class="n">offset</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">lm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nents</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">size</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nents</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">size</span><span class="p">;</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">lm</span><span class="p">)</span>
+<span class="w">        </span><span class="o">++</span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Feed default values</span>
+<span class="w">    </span><span class="n">ents</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">[</span><span class="n">rank</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">sph</span><span class="o">::</span><span class="n">init_base</span><span class="p">(</span><span class="n">ents</span><span class="p">,</span><span class="w"> </span><span class="n">nents</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">[</span><span class="n">rank</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="n">c</span><span class="p">.</span><span class="n">nodes_sizes_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">entities_sizes_</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">id</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">nodes_sizes_</span><span class="p">)</span>
+<span class="w">      </span><span class="n">d</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// color</span>
+</pre></div>
+</div>
+<p>In this simple coloring, we split the total number of entities <code class="docutils literal notranslate"><span class="pre">nents</span></code> evenly across all colors in <code class="docutils literal notranslate"><span class="pre">c.entities_sizes_</span></code>. We don’t pre-compute or handle the number of nodes <code class="docutils literal notranslate"><span class="pre">c.nodes_sizes_</span></code> carefully in this example, we set them to be 100 more than the number of local entities.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">color</span></code> function is also used to generate the basic information needed from the entities in a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> passed to it. The data can be extracted from a file or, in this case, generated in the physics module <code class="docutils literal notranslate"><span class="pre">sph_physics.hh</span></code>.</p>
+</section>
+<section id="tree-generation-and-reset">
+<h3>Tree generation and reset<a class="headerlink" href="#tree-generation-and-reset" title="Permalink to this heading"></a></h3>
+<p>The generation of the N-Tree data structure happens in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> function.
+After an iteration, the entities might have moved to new positions. Thus, their associated keys have changed.
+To use the N-Tree efficiently, we reset the N-Tree and re-generate the data structure at each timestep. This is performed in the <code class="docutils literal notranslate"><span class="pre">sph_reset</span></code> function.</p>
+<p>These two functions are using a similar helper method <code class="docutils literal notranslate"><span class="pre">generate_ntree</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Compute the range of the domain, the keys for each entities and generate</span>
+<span class="w">  </span><span class="c1">// the N-Tree data structure</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">generate_ntree</span><span class="p">(</span><span class="n">flecsi</span><span class="o">::</span><span class="n">data</span><span class="o">::</span><span class="n">topology_slot</span><span class="o">&lt;</span><span class="n">sph_ntree_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ts</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initialize key values: compute range and keys</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="n">flecsi</span><span class="o">::</span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">red</span><span class="p">;</span>
+<span class="w">      </span><span class="n">red</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">range_reduction_f</span><span class="p">(</span><span class="n">red</span><span class="p">);</span>
+<span class="w">      </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">init_reduction</span><span class="o">&gt;</span><span class="p">(</span><span class="n">r</span><span class="p">);</span>
+<span class="w">      </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">range_task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">);</span>
+<span class="w">      </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">keys_task</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">ts</span><span class="o">-&gt;</span><span class="n">make_tree</span><span class="p">(</span><span class="n">ts</span><span class="p">);</span>
+<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">compute_centroid</span><span class="o">&lt;</span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">ts</span><span class="p">);</span>
+<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">execute</span><span class="o">&lt;</span><span class="n">compute_centroid</span><span class="o">&lt;</span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">ts</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ts</span><span class="o">-&gt;</span><span class="n">share_ghosts</span><span class="p">(</span><span class="n">ts</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// generate_ntree</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">generate_ntree</span></code> function is called in both <code class="docutils literal notranslate"><span class="pre">initialize</span></code> and <code class="docutils literal notranslate"><span class="pre">sph_reset</span></code> after initializing the fields or resetting the N-Tree data structure, respectively.
+This helper computes the range of the domain and the keys for each entity, then the N-Tree topology is ready to be generated.
+In the first step <code class="docutils literal notranslate"><span class="pre">ts-&gt;make_tree(s)</span></code>:</p>
+<ul class="simple">
+<li><p>The entities are sorted globally based on the value of their keys. This sort ensures the locality of the entities on each color.</p></li>
+<li><p>The local tree is then created, and the top of all local N-Trees is shared with all colors. This allows each color to have overall information about the N-Tree and to know which color owns which subtree.</p></li>
+</ul>
+<p>To compute ghost information for all entities, the user needs to provide the interaction information. In this example, we are computing the center of mass for each node in the N-Tree. We are then using these centers of mass as the center of the sphere for the interaction function described earlier.
+In the last step, we compute and share the ghost entities. This creates the data structure needed when <code class="docutils literal notranslate"><span class="pre">ghost_copy</span></code> is triggered by a task.
+After these steps, the N-Tree data structure is ready to be used, the neighboring information will be available for each entity.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="parallel.html" class="btn btn-neutral float-left" title="Distributed and shared memory parallelism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="flaxpy.html" class="btn btn-neutral float-right" title="DAXPY" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2016, Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+  <style>
+    /* Contents caption */
+    .wy-menu-vertical>p.caption {
+      color: #ffffff;
+    }
+
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #e3e2db;
+    }
+    .wy-side-nav-search>div.version, .wy-nav-top>div.version {
+      color: #5f5d5f;
+    }
+
+    /* Sidebar */
+    .wy-nav-side {
+      background: #216897;
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

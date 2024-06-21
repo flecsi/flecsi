@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['operation_0',['operation',['../structflecsi_1_1run_1_1arguments_1_1action.html#ad34e7fb3c33543e9f3a1e48486fa7692',1,'flecsi::run::arguments::action']]]
+  ['partition_5fprivilege_5ft_0',['partition_privilege_t',['../group__data.html#ga15b90fedf9416d69fcbe4488930e0d32',1,'flecsi']]],
+  ['ptype_5ft_1',['ptype_t',['../structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911',1,'flecsi::topo::ntree_base']]]
 ];

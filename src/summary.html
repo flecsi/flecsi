@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Internal Summary &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Internal Summary &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -198,12 +198,22 @@ The second is an index within the index points for that color; both are zero-bas
 The <em>rows</em> of that rectangle, one per color, are often considered separately.</p>
 <p>To support memory allocations that vary among rows or over time, fields are accessed via a <em>partition</em>, which is simply a prefix of each row of a region.
 (Often, the length of each such prefix is itself stored in a field that is accessed via a preexisting partition.)
+See <a class="reference internal" href="#regions"><span class="std std-numref">Fig. 15</span></a> for a visual depiction of regions, prefixes, and partitions.
 Several partitions may exist for a single region, although it is common for there to be just one or else just one at any time.
 All access the same field values, which survive as long as the region does.
 The backends are expected to allocate memory only as necessary for partitions that are actually used with a given field.</p>
+<figure class="align-default" id="id1">
+<span id="regions"></span><img alt="../_images/region_partition_prefix.png" src="../_images/region_partition_prefix.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 15 </span><span class="caption-text">Diagram illustrating a region, prefix, and partition.  Regions are merely logical entities,
+whereas actual memory allocations are managed through partitions.  Partitions are a collection of
+prefixes, one for each color.  A prefix always begins at index point 0 of its color.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<hr class="docutils" />
 <p>Each topology is a fixed-size set of <em>index spaces</em> (<em>e.g.</em>, the cells, vertices, and faces of a mesh), each of which is backed by a region (and a partition).
 Often, other regions and partitions are included, organized into <em>subtopologies</em> that handle common kinds of data like the count of mesh elements.</p>
-<p>The classes <code class="docutils literal notranslate"><span class="pre">region_base</span></code> and <code class="docutils literal notranslate"><span class="pre">partition</span></code> are entry points.
+<p>The classes <code class="docutils literal notranslate"><span class="pre">region_base</span></code> and <code class="docutils literal notranslate"><span class="pre">partition</span></code> (and the concrete <code class="docutils literal notranslate"><span class="pre">rows</span></code> and <code class="docutils literal notranslate"><span class="pre">prefixes</span></code> derived from the latter) are entry points.
 Most other entry points for data handling concern <em>copy engines</em>, which are uniquely responsible for transferring data between rows.
 (FleCSI does not use Legion’s support for overlapping partitions as a means of transferring data.)
 Each is defined in terms of a field whose value at a destination of the copy is its source index point.
@@ -288,12 +298,12 @@ The MPI backend supports only trivial launch maps that specify some subset of th
 <h3>Levels<a class="headerlink" href="#levels" title="Permalink to this heading"></a></h3>
 <p>The execution of a FleCSI-based application is divided into three levels:</p>
 <ol class="arabic simple">
-<li><p>The outer program calls <code class="docutils literal notranslate"><span class="pre">initialize</span></code> and then <code class="docutils literal notranslate"><span class="pre">start</span></code> on the FleCSI context.</p></li>
-<li><p>The synchronous callback passed to <code class="docutils literal notranslate"><span class="pre">start</span></code> is the <em>top-level action</em>, which creates topologies and executes tasks.</p></li>
+<li><p>The outer program creates a <code class="docutils literal notranslate"><span class="pre">flecsi::runtime</span></code> object and calls <code class="docutils literal notranslate"><span class="pre">control</span></code> on it.</p></li>
+<li><p>The control model executed by <code class="docutils literal notranslate"><span class="pre">control</span></code> creates topologies and executes tasks.</p></li>
 <li><p>The tasks perform all field access (including some needed during topology creation).</p></li>
 </ol>
-<p>The first two are executed as normal <a class="reference external" href="https://en.wikipedia.org/wiki/SPMD">SPMD</a> jobs; only the top-level action can launch tasks.
-(With Legion, it is the top-level <em>task</em>, but we reserve that word for the leaf tasks.)
+<p>The first two are executed as normal <a class="reference external" href="https://en.wikipedia.org/wiki/SPMD">SPMD</a> jobs; only the control model can launch tasks.
+(With Legion, the control model executes in the top-level <em>task</em>, but we reserve that word for the leaf tasks.)
 When arguments that describe data across multiple colors (<em>e.g.</em>, field references) are passed to a task, an <em>index launch</em> takes place that executes an instance of the task (a <em>point task</em>) for each color.
 (Often, there are the same number of colors as MPI ranks.)
 Otherwise, a <em>single launch</em> of the task is performed, which can be useful for custom I/O operations.</p>
@@ -334,9 +344,9 @@ The backend-specific implementations are in <code class="docutils literal notran
 </section>
 <section id="explicit-parallelism">
 <h3>Explicit parallelism<a class="headerlink" href="#explicit-parallelism" title="Permalink to this heading"></a></h3>
-<p>Tasks and the top-level action cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
+<p>Tasks and the control model cannot in general use parallel communication because it might collide with implicit or concurrent communication on the part of the backend and because any two of them may be executed sequentially or concurrently.
 For cases where such communication is needed (<em>e.g.</em>, to use an MPI-based library), a task can be executed as an <em>MPI task</em> via the optional template argument to <code class="docutils literal notranslate"><span class="pre">execute</span></code>/<code class="docutils literal notranslate"><span class="pre">reduce</span></code>.
-Like the top-level action, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
+Like the control model, an MPI task is executed in parallel on every MPI rank; moreover, no other tasks or internal communication are executed concurrently, and the call is synchronous.
 Because the call is not made in an ordinary task context, <code class="docutils literal notranslate"><span class="pre">context_t::color</span></code> must not be used by an MPI task; <code class="docutils literal notranslate"><span class="pre">context_t::process</span></code>, which is always available, has the desired meaning in that context.</p>
 <p>Because the execution of an MPI task has largely the same semantics as an ordinary function call, arbitrary arguments may be passed to it.
 The usual argument replacements still apply, which allows MPI tasks to have access to both fields and objects created by the caller.
@@ -353,7 +363,7 @@ The same reduction types as for index launches are supported.</p>
 <p>The basic responsibility of a (core) topology type is to provide access to fields.
 The client machinery for task launches is backend-specific but not topology-specific; it uses a common interface specified by documentation-only example in <code class="docutils literal notranslate"><span class="pre">core.hh</span></code>.
 The interface also enables specializations to be defined; the core topology class template accepts the specialization as a template parameter (but neither inherits from the other as in the <a class="reference external" href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">CRTP</a>).</p>
-<p>By inheriting from <code class="docutils literal notranslate"><span class="pre">specialization</span></code>, a topology type is assigned an ID (for field registration), becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
+<p>By inheriting from <code class="docutils literal notranslate"><span class="pre">specialization</span></code>, a topology type gets some simple default options, becomes non-constructible to prevent confusion with the core topology type, and gains several type aliases, several of which are meant for application code to use in preference to the formal names.
 In turn, the topology type can specify index spaces, provide a factory function for coloring objects, extend the core <code class="docutils literal notranslate"><span class="pre">access</span></code> type, and supply other category-specific parameters, as also presented in <code class="docutils literal notranslate"><span class="pre">core.hh</span></code>.
 The coloring <em>type</em>, however, is defined by the category (independent of specialization).</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology is a useful example of the metaprogramming techniques used to define index spaces and fields that are parametrized by the policy.

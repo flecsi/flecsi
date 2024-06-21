@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['particle_5faccessor_0',['particle_accessor',['../structflecsi_1_1data_1_1particle__accessor.html',1,'flecsi::data']]],
-  ['particle_5faccessor_3c_20t_2c_20p_2c_20false_20_3e_1',['particle_accessor&lt; T, P, false &gt;',['../structflecsi_1_1data_1_1particle__accessor.html',1,'flecsi::data']]],
-  ['particle_5faccessor_3c_20t_2c_20p_2c_20true_20_3e_2',['particle_accessor&lt; T, P, true &gt;',['../structflecsi_1_1data_1_1particle__accessor.html',1,'flecsi::data']]],
-  ['peer_5fentities_3',['peer_entities',['../structflecsi_1_1topo_1_1unstructured__impl_1_1peer__entities.html',1,'flecsi::topo::unstructured_impl']]],
-  ['policy_4',['policy',['../structflecsi_1_1topo_1_1resize_1_1policy.html',1,'flecsi::topo::resize']]],
-  ['prefix_5frange_5',['prefix_range',['../structflecsi_1_1exec_1_1prefix__range.html',1,'flecsi::exec']]],
-  ['product_6',['product',['../structflecsi_1_1exec_1_1fold_1_1product.html',1,'flecsi::exec::fold']]],
-  ['program_5foption_7',['program_option',['../structflecsi_1_1program__option.html',1,'flecsi']]]
+  ['narray_0',['narray',['../structflecsi_1_1topo_1_1narray.html',1,'flecsi::topo']]],
+  ['narray_5fbase_1',['narray_base',['../structflecsi_1_1topo_1_1narray__base.html',1,'flecsi::topo']]],
+  ['narray_5fspecialization_2',['narray_specialization',['../structflecsi_1_1topo_1_1narray__specialization.html',1,'flecsi::topo']]],
+  ['node_5fdata_3',['node_data',['../structflecsi_1_1topo_1_1ntree__specialization_1_1node__data.html',1,'flecsi::topo::ntree_specialization']]],
+  ['node_5fpolicy_4',['node_policy',['../structflecsi_1_1run_1_1control__policy_1_1node__policy.html',1,'flecsi::run::control_policy']]],
+  ['ntree_5',['ntree',['../structflecsi_1_1topo_1_1ntree.html',1,'flecsi::topo']]],
+  ['ntree_5fbase_6',['ntree_base',['../structflecsi_1_1topo_1_1ntree__base.html',1,'flecsi::topo']]],
+  ['ntree_5fspecialization_7',['ntree_specialization',['../structflecsi_1_1topo_1_1ntree__specialization.html',1,'flecsi::topo']]]
 ];

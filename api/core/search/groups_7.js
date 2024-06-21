@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['mpi_0',['MPI',['../group__mpi-utils.html',1,'']]],
-  ['mpi_20data_1',['MPI Data',['../group__mpi-data.html',1,'']]],
-  ['mpi_20execution_2',['MPI Execution',['../group__mpi-execution.html',1,'']]],
-  ['mpi_20runtime_3',['MPI Runtime',['../group__mpi-runtime.html',1,'']]],
-  ['multi_2ddimensional_20array_4',['Multi-dimensional Array',['../group__narray.html',1,'']]]
+  ['launch_20maps_0',['Launch maps',['../group__launch.html',1,'']]],
+  ['legion_20data_1',['Legion Data',['../group__legion-data.html',1,'']]],
+  ['legion_20execution_2',['Legion Execution',['../group__legion-execution.html',1,'']]],
+  ['legion_20i_2fo_3',['Legion I/O',['../group__legion-io.html',1,'']]],
+  ['legion_20runtime_4',['Legion Runtime',['../group__legion-runtime.html',1,'']]],
+  ['logging_5',['Logging',['../group__flog.html',1,'']]]
 ];

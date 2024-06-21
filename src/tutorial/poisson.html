@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Poisson &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Poisson &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -63,6 +63,7 @@
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Poisson</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#build-system">Build system</a></li>
@@ -118,7 +119,7 @@ the tutorial. As such, this example provides the following components:</p>
 </ul>
 <p>We discuss each of these individually. However, in general, to use this
 example as a template for a real application, you should just change all
-occurrances of <code class="docutils literal notranslate"><span class="pre">poisson</span></code> to whatever namespace name you would like to
+occurrences of <code class="docutils literal notranslate"><span class="pre">poisson</span></code> to whatever namespace name you would like to
 use for your project.</p>
 <section id="build-system">
 <h2>Build system<a class="headerlink" href="#build-system" title="Permalink to this heading"></a></h2>
@@ -169,14 +170,9 @@ CMakeLists.txt:</p>
 <span class="w">  </span><span class="nb">cmake_parse_arguments</span><span class="p">(</span><span class="s">unit</span><span class="w"> </span><span class="s2">&quot;${options}&quot;</span><span class="w"> </span><span class="s2">&quot;${one_value_args}&quot;</span>
 <span class="w">    </span><span class="s2">&quot;${multi_value_args}&quot;</span><span class="w"> </span><span class="o">${</span><span class="nv">ARGN</span><span class="o">}</span><span class="p">)</span>
 
-<span class="w"> </span><span class="nb">if</span><span class="p">(</span><span class="s">FleCSI_ENABLE_KOKKOS</span><span class="w"> </span><span class="s">AND</span><span class="w"> </span><span class="s">FleCSI_ENABLE_LEGION</span><span class="w"> </span><span class="s">AND</span><span class="w"> </span>
-<span class="w">    </span><span class="p">(</span><span class="s">Kokkos_ENABLE_CUDA</span><span class="w"> </span><span class="s">OR</span><span class="w"> </span><span class="s">Kokkos_ENABLE_HIP</span><span class="p">))</span>
-<span class="w">    </span><span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span><span class="w"> </span><span class="s">UNIT_FLAGS</span><span class="w"> </span><span class="s2">&quot;--backend-args=-ll:gpu 1&quot;</span><span class="p">)</span>
-<span class="w"> </span><span class="nb">endif</span><span class="p">()</span>
-<span class="w"> </span>
 <span class="w">  </span><span class="nb">add_test</span><span class="p">(</span><span class="s">NAME</span><span class="w"> </span><span class="o">${</span><span class="nv">name</span><span class="o">}</span>
 <span class="w">  </span><span class="s">COMMAND</span>
-<span class="w">     </span><span class="o">${</span><span class="nv">MPIEXEC_EXECUTABLE</span><span class="o">}</span><span class="w"> </span><span class="s">-np</span><span class="w"> </span><span class="s">1</span><span class="w"> </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE:${name}</span><span class="o">&gt;</span><span class="w"> </span><span class="o">${</span><span class="nv">unit_ARGUMENTS</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">UNIT_FLAGS</span><span class="o">}</span>
+<span class="w">     </span><span class="o">${</span><span class="nv">MPIEXEC_EXECUTABLE</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">MPIEXEC_NUMPROC_FLAG</span><span class="o">}</span><span class="w"> </span><span class="s">1</span><span class="w"> </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE:${name}</span><span class="o">&gt;</span><span class="w"> </span><span class="o">${</span><span class="nv">unit_ARGUMENTS</span><span class="o">}</span>
 <span class="w">     </span><span class="s">WORKING_DIRECTORY</span>
 <span class="w">      </span><span class="o">${</span><span class="nv">CMAKE_BINARY_DIR</span><span class="o">}</span>
 <span class="w">  </span><span class="p">)</span>
@@ -207,7 +203,7 @@ will need a working knowledge of CMake. Documentation for CMake is
 examples in <a class="reference internal" href="control.html#tut-cm"><span class="std std-ref">Control Model</span></a> Tutorial.</p>
 <figure class="align-center" id="id2">
 <img alt="../../_images/poisson.svg" src="../../_images/poisson.svg" /><figcaption>
-<p><span class="caption-number">Fig. 10 </span><span class="caption-text">Control Policy for the Poisson Stand-Alone Application.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 13 </span><span class="caption-text">Control Policy for the Poisson Stand-Alone Application.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -233,20 +229,16 @@ internally by FleCSI, you can likely use this file as is (with a different names
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">util</span><span class="o">::</span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">check_status</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
-
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">clean</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span>
-
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">getopt</span><span class="p">()(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">config</span><span class="w"> </span><span class="n">cfg</span><span class="p">;</span>
+<span class="cp">#if FLECSI_BACKEND == FLECSI_BACKEND_legion &amp;&amp;                                 \</span>
+<span class="cp">  (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP))</span>
+<span class="w">  </span><span class="n">cfg</span><span class="p">.</span><span class="n">legion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;-ll:gpu&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p">};</span>
+<span class="cp">#endif</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
 <span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;clog&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">clog</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
-
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">::</span><span class="n">execute</span><span class="p">);</span>
-
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">poisson</span><span class="o">::</span><span class="n">control</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -254,7 +246,7 @@ internally by FleCSI, you can likely use this file as is (with a different names
 <section id="building-the-poisson-application">
 <h2>Building the Poisson application<a class="headerlink" href="#building-the-poisson-application" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="../build.html#build"><span class="std std-ref">Build &amp; Install</span></a> FleCSI somewhere on your system and make sure
-that the location is set in your <em>CMAKE_PREFIX_PATH</em> environement
+that the location is set in your <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> environment
 variable. Then, you can build this example like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>mkdir<span class="w"> </span>build
 <span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>build

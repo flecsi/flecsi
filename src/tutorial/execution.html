@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Execution Model &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Execution Model &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -68,6 +68,7 @@
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
@@ -274,8 +275,8 @@ the <code class="docutils literal notranslate"><span class="pre">launch_domain</
 <h3>Launch Domains<a class="headerlink" href="#launch-domains" title="Permalink to this heading"></a></h3>
 <p>Launch domain (<code class="docutils literal notranslate"><span class="pre">exec::launch_domain</span></code>) is used to define how many index
 points an index task should have. If no <code class="docutils literal notranslate"><span class="pre">launch_domain</span></code> is passed to the
-<code class="docutils literal notranslate"><span class="pre">execute</span></code> method, the default will be used. If a topology instance is
-passed the default is the number of colors that instance has.
+<code class="docutils literal notranslate"><span class="pre">execute</span></code> method, the default will be used.
+If the task uses a field or topology accessor, the default is the number of colors of the topology used.
 Otherwise, the default is to launch a single task.</p>
 </section>
 </section>

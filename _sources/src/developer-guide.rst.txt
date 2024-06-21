@@ -91,11 +91,12 @@ While exceptions must occasionally be made to each of the following, ideally eac
 * not add or change material changed later in the same merge request (partly to help ``git blame``)
 * include the smallest subset of an overall set of changes that follows the above rules
 * add or update any relevant documentation, including the :ref:`news`
-* not be a meaningless merge from the destination branch (as introduced by ``git pull``)
+* not be a `meaningless merge`__ from the destination branch (as introduced by ``git pull``)
 * have a meaningful message that follows the `50/72 rule`__
 * be properly formatted per ``clang-format``
 * either make only purely stylistic changes or make no such changes
 
+__ https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees
 __ http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 
 Stylistic changes should be rare and are best put in their own merge request (so that they do not complicate any substantive review).
@@ -116,6 +117,8 @@ FleCSI uses the `Semantic Versioning`__ system.
 Note that it defines the three kinds of releases in terms of *restrictions* on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
 We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
 Even altogether new code can appear in a "patch" release if it serves to fix a bug or improve performance rather than as a new documented feature.
+As an exception to the specification, deprecations can be made in such a release as well, since they are merely documentation for the careful user who wants to upgrade early for forward compatibility.
+However, since features are typically deprecated in favor of some new feature, most will nonetheless appear in feature releases.
 
 __ https://semver.org/
 
@@ -141,16 +144,8 @@ release
   *major.minor.patch* version number, e.g., 1.1.2) are used to identify
   patched versions.
 
-.. tip::
-
-  At the time of writing, FleCSI has the following branches:
-
-  - **develop** (incompatible)
-  - **2** (feature)
-  - **2.1** (release)
-
 In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
-The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
 A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
 
@@ -182,7 +177,7 @@ tagged release
 
 
 FleCSI uses the information in ``.version`` to define
-``FLECSI_VERSION`` in its ``flecsi-config.h`` header. This constant
+``FLECSI_VERSION`` in its ``flecsi/config.hh`` header. This constant
 encodes the major, minor and patch version of FleCSI in a single
 integer value.
 
@@ -191,14 +186,14 @@ as ``(major << 16) | (minor << 8) | patch``.
 
 On **release branches** both major and minor version components are
 set to the release version, however, the patch version component is set
-to its maximul value 255.
+to its maximal value 255.
 
 On **feature branches** only the major version component is set to the
 version value, while the minor version component is set to its maximum
 255 and the patch version component is set to 0.
 
 Finally, on the **develop branch**, the major version component is set
-to its maximum 255, while the other componets are set
+to its maximum 255, while the other components are set
 to 0.
 
 The following table summarizes these rules with some examples:
@@ -240,7 +235,7 @@ be back-merged into *feature* or *devel*, as appropriate.
 Published Documentation
 +++++++++++++++++++++++
 The `project homepage`__ is a GitHub Pages site generated from `the current GitHub repository`__.
-The ``deploy-documentation`` Make target sets up a repository to update it by pushing to the appropriate branch.
+The ``deploy-docs`` Make target sets up a repository to update it by pushing to the appropriate branch.
 
   __ http://www.flecsi.org/
   __ https://github.com/flecsi/flecsi/tree/gh-pages
@@ -303,8 +298,8 @@ Building for Darwin
 +++++++++++++++++++
 
 Darwin is a testbed cluster at LANL that provides a wide variety of
-node hardware configurations.  (See the `LANL-internal Darwin webpage
-<https://darwin.lanl.gov/>`_.)  The FleCSI distribution provides a
+node hardware configurations.
+The FleCSI distribution provides a
 script, ``tools/darwin.sh``, that automates downloading, building, and
 installing FleCSI and all of its dependencies.  The script can be run
 either from a checked-out version of the FleCSI repository, in which
@@ -316,7 +311,7 @@ The former is the preferred approach.  From a back-end node, run
 
 .. code-block:: console
 
-  $ git clone git@gitlab.lanl.gov:flecsi/flecsi.git
+  $ git clone ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
   $ flecsi/tools/darwin.sh
 
 The script performs the following operations:

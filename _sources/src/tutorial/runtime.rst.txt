@@ -16,27 +16,11 @@ options that are available.
 Example 1: Minimal
 ++++++++++++++++++
 
-The core FleCSI runtime has three control points: *initialize*, *start*, and
-*finalize*. These must be invoked by the user's application code in that
-order.
+To use FleCSI, a ``runtime`` object must be configured and a *control policy* must be specified that describes the computation to be performed.
+In the simplest case, both parts can be accomplished in one line; later examples will illustrate more advanced options.
 
-.. sidebar:: Top-level Action
-
-  The top-level action is a C++ function created by the user to tell
-  FleCSI what it should do when the *start* control point is invoked.
-
-* **initialize** |br|
-  This control point spins up the FleCSI runtime and (optionally) any
-  other runtimes on which FleCSI depends.
-
-* **start** |br|
-  This control point begins the actual runtime execution that forms the
-  bulk of any simulation that is performed using FleCSI. The user must
-  pass a top-level action that FleCSI will execute.
-
-* **finalize** |br|
-  This control point shuts down the FleCSI runtime and any other
-  runtimes that FleCSI itself initialized.
+FleCSI executes the control policy after setting up the task execution backend.
+A simple control policy is supplied that calls a single function (object) given to it with no arguments and uses its return value as an ``int`` exit status.
 
 This example demonstrates a minimal use of FleCSI that just executes an
 action to print out *Hello World*. Code for this example can be found in
@@ -44,24 +28,6 @@ action to print out *Hello World*. Code for this example can be found in
 
 .. literalinclude:: ../../../../tutorial/1-runtime/1-minimal.cc
   :language: cpp
-
-.. note::
-
-  - The top-level action can be any C/C++ function that takes no
-    arguments and returns an int.  In this simple example, we only print
-    a message to indicate that the top-level action was actually
-    executed by FleCSI. However, in a real application, the top-level
-    action would execute FleCSI tasks and other functions to implement
-    the simulation.  
-
-  - The main function must invoke initialize, start, and finalize on the
-    FleCSI runtime. Otherwise, the implementation of main is left to the
-    user.
-
-  - The status returned by FleCSI's initialize method should be
-    inspected to see if the end-user specified --help on the command
-    line. FleCSI has built-in command-line support using Boost Program
-    Options. This is documented in the next example.
 
 ----
 
@@ -87,7 +53,7 @@ differences:
 This section of the tutorial provides examples of how to use FleCSI's
 program option capability.
 
-__ https://www.boost.org/doc/libs/1_63_0/doc/html/program_options.html
+__ https://www.boost.org/doc/libs/release/doc/html/program_options.html
 
 Example Program
 ^^^^^^^^^^^^^^^
@@ -100,62 +66,36 @@ of the following: trim level, transmission, child seat, purpose
 (personal or business), light speed, and a passenger list. The first two
 options will be in a *Car Options* section, while the purpose will be
 under the *Ride Options* section. The passenger list is a positional
-argument to the program. The help output for the entire program looks
-like this:
+argument to the program.
+Calling ``getopt::usage`` for this program produces the following:
 
 .. code-block:: console
 
-  Usage: runtime-program_options <passenger-list>
+   Usage: ./runtime-program_options <passenger-list> 
 
-  Positional Options:
-    passenger-list The list of passengers for this trip [.txt].
+   Positional Options:
+     passenger-list The list of passengers for this trip [.txt].
 
-  Basic Options:
-    -h [ --help ]                         Print this message and exit.
+   Basic Options:
 
-  Car Options:
-    -l [ --level ] arg (= 1)              Specify the trim level [1-10].
-    -t [ --transmission ] arg (= manual)  Specify the transmission type
-                                          ["automatic", "manual"].
-    -c [ --child-seat ] [=arg(= 1)] (= 0) Request a child seat.
+   Car Options:
+     -l [ --level ] arg (= 1)              Specify the trim level [1-10].
+     -t [ --transmission ] arg (= manual)  Specify the transmission type 
+                                           ["automatic", "manual"].
+     -c [ --child-seat ] [=arg(= 1)] (= 0) Request a child seat.
 
-  Ride Options:
-    -p [ --purpose ] arg (= 1)            Specify the purpose of the trip
-                                          (personal=0, business=1).
-    --lightspeed                          Travel at the speed of light.
-
-  FleCSI Options:
-    --backend-args arg             Pass arguments to the backend. The
-                                   single argument is a quoted string of
-                                   backend-specific options.
-    --flog-tags arg (=all)         Enable the specified output tags, e.g.,
-                                   --flog-tags=tag1,tag2. Use '--flog-tags=all'
-                                   to show all output, and
-                                   '--flog-tags=unscoped' to show only unguarded
-                                   output.
-    --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing '-1' will strip
-                                   any additional decorations added by flog and
-                                   will only output the user's message.
-    --flog-process arg (=0)        Restrict output to the specified process id.
-                                   The default is process 0. Use
-                                   '--flog-process=-1' to enable all processes.
-
-This shows the program usage, the basic options, e.g., ``--help``, the
-command-line and positional options for the example, and some auxiliary
-options for controlling the FleCSI logging utility *FLOG* (described in the
-next section of this tutorial). The FLOG options will only appear if
-*ENABLE_FLOG=ON* was set in your FleCSI build.
+   Ride Options:
+     -p [ --purpose ] arg (= 1)            Specify the purpose of the trip 
+                                           (personal=0, business=1).
+     --lightspeed                          Travel at the speed of light.
 
 Declaring Options
 ^^^^^^^^^^^^^^^^^
 
 .. note::
 
-  FleCSI program options must be declared at namespace scope, i.e.,
-  outside of any function, class, or enum class. This is not a problem! It
-  is often convenient to declare them in a header file (in which case,
-  they must also be declared *inline*) or directly before the *main*
-  function.  We use the latter for this example simply for conciseness.
+  FleCSI program options must be created before calling ``flecsi::initialize`` (and must survive through all uses of their value).
+  It is often convenient to declare them in a namespace in a header file (in which case, they must also be declared ``inline``).
 
 Let's consider the first *Car Options* option: ``--level``. To declare
 this option, we use the following declaration:
@@ -196,9 +136,10 @@ parameters:
   an argument, and an implicit value must be provided. If multi is
   specified, the option takes multiple values.
 
-* *check ([](flecsi::any const &, std::stringstream & ss...)* |br|
+* *check ([](int, std::stringstream & ss) {...})* |br|
   An optional, user-defined predicate to validate the value passed by
   the user.
+  The first argument is of the option's type.
 
 The next option ``--transmission`` is similar but uses a ``std::string``
 value type:
@@ -263,7 +204,7 @@ argument to the program itself.
 .. literalinclude:: ../../../../tutorial/1-runtime/2-program_options.cc
   :language: cpp
   :start-at: // Add a positional option. 
-  :end-before: // User-defined program options are available after FleCSI
+  :end-before: // User-defined program options are available after
 
 Positional options are required: i.e., the program will error and print
 the usage message if a value is not passed.
@@ -342,8 +283,7 @@ Buffer Configuration
 By default, FLOG does not produce any output (even when enabled).
 In order to see or capture output, your application must add at least
 one output stream.
-This should be done after ``flecsi::initialize`` has been invoked and
-before flecsi::start.
+This should be done after a ``flecsi::runtime`` has been created and before calling ``control`` on it.
 Consider the main function for this example:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
@@ -381,6 +321,10 @@ To add an output stream to a file, we can do the following:
   :start-at: // Add an output file to FLOG's buffers.
   :end-at: log::add_output_stream("log file", log_file);
 
+.. important::
+
+  Note that the ``std::ofstream`` is created (though not opened) before the ``flecsi::runtime`` object so that it is destroyed only after all logging is completed.
+
 That's it! For this example, FLOG is now configured to write output to
 std::clog, and to *output.txt*. Next, we will see how to actually write
 output to these stream buffers.
@@ -409,6 +353,7 @@ the basic output objects:
   :start-at: // This output will always be generated because
   :end-at: flog(error) << "Error level output" << std::endl;
 
+
 Controlling Output - Strip Levels
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -417,10 +362,12 @@ Controlling Output - Strip Levels
   If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
   compiled out: i.e., there is no runtime overhead.
 
-The strip level is a preprocessor option *FLOG_STRIP_LEVEL* that can
-be specified during FleCSI configuration. Valid strip levels are
-*[0-4]*. The default strip level is *0* (most verbose). Depending on
-the strip level, FLOG limits the type of messages that are output.
+The strip level is a runtime configuration option set via
+``flog::config::strip_level``.
+
+Valid strip levels are *[0-4]*. The default strip level is *0* (most
+verbose). Depending on the strip level, FLOG limits the type of messages
+that are output.
 
 * *trace* |br|
   Output written to the trace object is enabled for strip levels less
@@ -464,65 +411,32 @@ to identify available tags.
 
 Once you have declared a tag, it can be used to limit output to one or
 more *scoped* regions. The following code defines a guarded section of
-output that will only be generated if *tag1* or *all* is specified to
-the ``--flog-tags`` option:
+output that will only be generated if *tag1* is enabled:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :start-at: // This output will only be generated if 'tag1' or 'all' is specified
+  :start-at: 'tag1'
   :end-at: } // scope
 
 Here is another code example that defines a guarded section for *tag2*:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
   :language: cpp
-  :start-at: // This output will only be generated if 'tag2' or 'all' is specified
+  :start-at: 'tag2'
   :end-at: } // scope
 
-You should experiment with invoking this example:
+This example defines a command-line option to select a tag to enable:
 
-Invoking this example with the ``--help`` flag will show the available
-tags:
+.. literalinclude:: ../../../../tutorial/1-runtime/3-flog.cc
+  :language: cpp
+  :start-at: program_option
+  :end-at: ;
 
-.. code-block:: console
-
-  $ ./runtime-flog --help
-
-which should look something like this:
+The selected tag is included in the configuration for the ``runtime`` object, discussed further below.
 
 .. code-block:: console
 
-  Usage: runtime-flog
-
-  Basic Options:
-    -h [ --help ]         Print this message and exit.
-
-  FleCSI Options:
-    --backend-args arg             Pass arguments to the runtime backend. The
-                                   single argument is a quoted string of
-                                   backend-specific options.
-    --flog-tags arg (=all)         Enable the specified output tags, e.g.,
-                                   --flog-tags=tag1,tag2. Use '--flog-tags=all'
-                                   to show all output, and
-                                   '--flog-tags=unscoped' to show only unguarded
-                                   output.
-    --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing '-1' will strip
-                                   any additional decorations added by flog and
-                                   will only output the user's message.
-    --flog-process arg (=0)        Restrict output to the specified process id.
-                                   The default is process 0. Use
-                                   '--flog-process=-1' to enable all processes.
-
-  Available FLOG Tags (FleCSI Logging Utility):
-    tag2
-    tag1
-
-Invoking this example with ``--flog-tags=tag1`` will generate output for
-unguarded sections and for output guarded with the *tag1* tag:
-
-.. code-block:: console
-
-  $ ./flog --flog-tags=tag1
+  $ ./flog --flog=tag1
   [trace all p0] Trace level output
   [info all p0] Info level output
   [Warn all p0] Warn level output
@@ -532,8 +446,10 @@ unguarded sections and for output guarded with the *tag1* tag:
   [Warn tag1 p0] Warn level output (in tag1 guard)
   [ERROR tag1 p0] Error level output (in tag1 guard)
 
-FLOG Options (CMake)
-^^^^^^^^^^^^^^^^^^^^
+You can use ``flog::tags`` to discover all declared tags (as for displaying help).
+
+FLOG Options
+^^^^^^^^^^^^
 
 Defaults for the FLOG options have been chosen in an attempt to most
 closely model the behavior one would expect from the execution and
@@ -546,10 +462,10 @@ As stated in the preceding sections, FLOG buffers and serializes output
 to avoid collisions from different threads.
 As a safeguard, FleCSI's default settings flush these buffers
 periodically, so as to avoid memory capacity issues.
-The CMake configuration option ``FLOG_SERIALIZATION_INTERVAL`` defines
+The FLOG runtime configuration option ``serialization_interval``  defines
 this behavior:
 
-* *FLOG_SERIALIZATION_INTERVAL* |br|
+* ``flog::config::serialization_interval`` |br|
   The serialization interval specifies how often FleCSI should check for
   buffered output (requires reduction) as a number of
   tasks executed: i.e., if the serialization interval is set to 300,
@@ -564,7 +480,7 @@ this behavior:
   Serialization inhibits task asynchrony.
   When balanced, the performance effects should be very minimal.
   However, overly aggressive settings, e.g.,
-  ``FLOG_SERIALIZATION_INTERVAL=1`` could force complete serialization
+  ``serialization_interval=1`` could force complete serialization
   of your application.
   This can be beneficial for debugging, but should not be used for
   actual simulation runs.
@@ -577,34 +493,32 @@ force FleCSI to serialize and flush output.
 .. tip::
 
   Best practice for FLOG serialization is to leave the default settings
-  for ``FLOG_SERIALIZATION_INTERVAL`` and to use ``flecsi::flog::flush()``
+  for ``serialization_interval`` and to use ``flecsi::flog::flush()``
   at an appropriate point in your application to force output.
 
-FLOG Options (Command-Line)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Other parts of ``flog::config`` filter Flog output:
 
-We have already covered the ``--flog-tags`` option.
-There are currently two other options that control FLOG output:
+* ``tags`` |br|
+  The tags for which to produce output.
+  The example above specified just one tag (possibly "all"), but several may be supplied.
 
-* *--flog-verbose* |br|
-  This option controls how much additional information is output with
+* ``verbose`` |br|
+  How much additional information is output with
   your ``flog(severity)`` message.
   A value of ``-1`` will turn off any additional decorations, while a
   value of ``1`` will add additional information.
   By default, the severity level and process are output. |br|
   *(default: 0)*
 
-* *--flog-process* |br|
-  This options allows the user to restrict output to the specified
-  process id.
-  A value of ``-1`` will enable output of all processes.
-  By default, output is restricted to process ``0``. |br|
+* ``process`` |br|
+  Which process should produce output.
+  If ``-1``, enable output from all processes. |br|
   *(default: 0)*
 
 .. caution::
 
-  By default, FLOG only writes output to process ``0``. Pass
-  ``--flog-process=-1`` to enable output from all processes.
+  By default, FLOG only writes output from process ``0``.
+  Set ``process=-1`` to enable output from all processes.
 
 .. tip::
 
@@ -616,6 +530,8 @@ There are currently two other options that control FLOG output:
   In general, some experimentation is necessary to achieve the desired
   level of output with FLOG and FleCSI.
 
+Finally, the ``flog::config::color`` runtime configuration option controls
+whether coloring is enabled for FLOG messages.
 
 Example 4: Caliper Annotations
 ++++++++++++++++++++++++++++++
@@ -671,8 +587,8 @@ A scope guard is used to annotate the top level task:
 
 .. literalinclude:: ../../../../tutorial/1-runtime/4-caliper.cc
   :language: cpp
-  :start-at: status = (annotation::guard<annotation::execution, annotation::detail::low>(
-  :end-at: flecsi::start(top_level_action));
+  :start-at: (annotation
+  :end-at: run.control
 
 For this region, the FleCSI execution context ``annotation::execution`` is
 specified along with a detail level of ``annnotation::detail::low``.
@@ -728,5 +644,9 @@ file named ``report.cali``::
 
 The output represents collected timings for annotations in the
 ``User-Execution`` annotation context.
+
+.. caution::
+  For Caliper versions below v2.10, you need to replace all the ``duration.ns`` statements by ``duration``
+  in the configuration file.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

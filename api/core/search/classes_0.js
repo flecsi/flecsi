@@ -10,9 +10,11 @@ var searchData=
   ['accessor_3c_20raw_2c_20t_2c_20p_20_3e_7',['accessor&lt; raw, T, P &gt;',['../structflecsi_1_1data_1_1accessor.html',1,'flecsi::data']]],
   ['accessor_3c_20single_2c_20data_5ftype_2c_20privileges_20_3e_8',['accessor&lt; single, DATA_TYPE, PRIVILEGES &gt;',['../structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html',1,'flecsi::data']]],
   ['accessor_3c_20sparse_2c_20t_2c_20p_20_3e_9',['accessor&lt; sparse, T, P &gt;',['../structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html',1,'flecsi::data']]],
-  ['action_10',['action',['../structflecsi_1_1run_1_1arguments_1_1action.html',1,'arguments::action'],['../structflecsi_1_1run_1_1control_1_1action.html',1,'control&lt; P &gt;::action&lt; T, CP, M &gt;']]],
+  ['action_10',['action',['../structflecsi_1_1run_1_1control_1_1action.html',1,'flecsi::run::control']]],
   ['action_3c_20wrap_2c_20cp_20_3e_11',['action&lt; wrap, cp &gt;',['../structflecsi_1_1run_1_1control_1_1action.html',1,'flecsi::run::control']]],
-  ['arguments_12',['arguments',['../structflecsi_1_1run_1_1arguments.html',1,'flecsi::run']]],
+  ['axis_12',['axis',['../structflecsi_1_1topo_1_1narray__impl_1_1axis.html',1,'flecsi::topo::narray_impl']]],
   ['axis_5fcolor_13',['axis_color',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__color.html',1,'flecsi::topo::narray_impl']]],
-  ['axis_5fdefinition_14',['axis_definition',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html',1,'flecsi::topo::narray_impl']]]
+  ['axis_5fdefinition_14',['axis_definition',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__definition.html',1,'flecsi::topo::narray_impl']]],
+  ['axis_5finfo_15',['axis_info',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__info.html',1,'flecsi::topo::narray_impl']]],
+  ['axis_5flayout_16',['axis_layout',['../structflecsi_1_1topo_1_1narray__impl_1_1axis__layout.html',1,'flecsi::topo::narray_impl']]]
 ];

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Runtime Model &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Runtime Model &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -69,6 +69,7 @@
 <li class="toctree-l3"><a class="reference internal" href="data.html">Data Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html">Distributed and shared memory parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parallel.html#shared-memory">Shared memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
@@ -114,30 +115,15 @@ options that are available.</p>
 <hr class="docutils" />
 <section id="example-1-minimal">
 <h2>Example 1: Minimal<a class="headerlink" href="#example-1-minimal" title="Permalink to this heading"></a></h2>
-<p>The core FleCSI runtime has three control points: <em>initialize</em>, <em>start</em>, and
-<em>finalize</em>. These must be invoked by the user’s application code in that
-order.</p>
-<aside class="sidebar">
-<p class="sidebar-title">Top-level Action</p>
-<p>The top-level action is a C++ function created by the user to tell
-FleCSI what it should do when the <em>start</em> control point is invoked.</p>
-</aside>
-<ul class="simple">
-<li><p><strong>initialize</strong> <br />
-This control point spins up the FleCSI runtime and (optionally) any
-other runtimes on which FleCSI depends.</p></li>
-<li><p><strong>start</strong> <br />
-This control point begins the actual runtime execution that forms the
-bulk of any simulation that is performed using FleCSI. The user must
-pass a top-level action that FleCSI will execute.</p></li>
-<li><p><strong>finalize</strong> <br />
-This control point shuts down the FleCSI runtime and any other
-runtimes that FleCSI itself initialized.</p></li>
-</ul>
+<p>To use FleCSI, a <code class="docutils literal notranslate"><span class="pre">runtime</span></code> object must be configured and a <em>control policy</em> must be specified that describes the computation to be performed.
+In the simplest case, both parts can be accomplished in one line; later examples will illustrate more advanced options.</p>
+<p>FleCSI executes the control policy after setting up the task execution backend.
+A simple control policy is supplied that calls a single function (object) given to it with no arguments and uses its return value as an <code class="docutils literal notranslate"><span class="pre">int</span></code> exit status.</p>
 <p>This example demonstrates a minimal use of FleCSI that just executes an
 action to print out <em>Hello World</em>. Code for this example can be found in
 <em>tutorial/1-runtime/1-minimal.cc</em>.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/runtime.hh&gt;</span>
 
 <span class="cm">/*</span>
 <span class="cm">  The top-level action can be any C/C++ function that takes no arguments and</span>
@@ -156,62 +142,28 @@ action to print out <em>Hello World</em>. Code for this example can be found in
 <span class="p">}</span><span class="w"> </span><span class="c1">// top_level_action</span>
 
 <span class="cm">/*</span>
-<span class="cm">  The main function must invoke initialize, start, and finalize on the FleCSI</span>
-<span class="cm">  runtime. Otherwise, the implementation of main is left to the user.</span>
+<span class="cm">  The main function must create a FleCSI \c runtime object.  Otherwise, the</span>
+<span class="cm">  implementation of main is left to the user.</span>
 <span class="cm"> */</span>
 
 <span class="kt">int</span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
-
+<span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
 <span class="w">  </span><span class="cm">/*</span>
-<span class="cm">    The status returned by FleCSI&#39;s initialize method should be inspected to</span>
-<span class="cm">    see if the end-user specified --help on the command line. FleCSI has</span>
-<span class="cm">    built-in command-line support using Boost Program Options. This is</span>
-<span class="cm">    documented in the next example.</span>
+<span class="cm">    flecsi::run::call means to call the single function given as an argument to</span>
+<span class="cm">    run.main.  (Multiple functions will be covered in later examples.)</span>
+<span class="cm">    It will be skipped if, say, --help was passed as an argument; FleCSI&#39;s</span>
+<span class="cm">    command-line support is documented in the next example.</span>
 <span class="cm">   */</span>
-
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
-
-<span class="w">  </span><span class="cm">/*</span>
-<span class="cm">    The top-level action is passed to the start function to tell FleCSI what</span>
-<span class="cm">    it should execute.</span>
-<span class="cm">   */</span>
-
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
-
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>The top-level action can be any C/C++ function that takes no
-arguments and returns an int.  In this simple example, we only print
-a message to indicate that the top-level action was actually
-executed by FleCSI. However, in a real application, the top-level
-action would execute FleCSI tasks and other functions to implement
-the simulation.</p></li>
-<li><p>The main function must invoke initialize, start, and finalize on the
-FleCSI runtime. Otherwise, the implementation of main is left to the
-user.</p></li>
-<li><p>The status returned by FleCSI’s initialize method should be
-inspected to see if the end-user specified –help on the command
-line. FleCSI has built-in command-line support using Boost Program
-Options. This is documented in the next example.</p></li>
-</ul>
 </div>
 </section>
 <hr class="docutils" />
 <section id="example-2-program-options">
 <h2>Example 2: Program Options<a class="headerlink" href="#example-2-program-options" title="Permalink to this heading"></a></h2>
-<p>FleCSI supports a program options capability based on <a class="reference external" href="https://www.boost.org/doc/libs/1_63_0/doc/html/program_options.html">Boost Program
+<p>FleCSI supports a program options capability based on <a class="reference external" href="https://www.boost.org/doc/libs/release/doc/html/program_options.html">Boost Program
 Options</a> to simplify the creation and management of user-defined
 command-line options. The basic syntax for adding and accessing program
 options is semantically similar to the Boost interface (You can find
@@ -237,15 +189,14 @@ of the following: trim level, transmission, child seat, purpose
 (personal or business), light speed, and a passenger list. The first two
 options will be in a <em>Car Options</em> section, while the purpose will be
 under the <em>Ride Options</em> section. The passenger list is a positional
-argument to the program. The help output for the entire program looks
-like this:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: runtime-program_options &lt;passenger-list&gt;</span>
+argument to the program.
+Calling <code class="docutils literal notranslate"><span class="pre">getopt::usage</span></code> for this program produces the following:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: ./runtime-program_options &lt;passenger-list&gt;</span>
 
 <span class="go">Positional Options:</span>
 <span class="go">  passenger-list The list of passengers for this trip [.txt].</span>
 
 <span class="go">Basic Options:</span>
-<span class="go">  -h [ --help ]                         Print this message and exit.</span>
 
 <span class="go">Car Options:</span>
 <span class="go">  -l [ --level ] arg (= 1)              Specify the trim level [1-10].</span>
@@ -257,39 +208,15 @@ like this:</p>
 <span class="go">  -p [ --purpose ] arg (= 1)            Specify the purpose of the trip</span>
 <span class="go">                                        (personal=0, business=1).</span>
 <span class="go">  --lightspeed                          Travel at the speed of light.</span>
-
-<span class="go">FleCSI Options:</span>
-<span class="go">  --backend-args arg             Pass arguments to the backend. The</span>
-<span class="go">                                 single argument is a quoted string of</span>
-<span class="go">                                 backend-specific options.</span>
-<span class="go">  --flog-tags arg (=all)         Enable the specified output tags, e.g.,</span>
-<span class="go">                                 --flog-tags=tag1,tag2. Use &#39;--flog-tags=all&#39;</span>
-<span class="go">                                 to show all output, and</span>
-<span class="go">                                 &#39;--flog-tags=unscoped&#39; to show only unguarded</span>
-<span class="go">                                 output.</span>
-<span class="go">  --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing &#39;-1&#39; will strip</span>
-<span class="go">                                 any additional decorations added by flog and</span>
-<span class="go">                                 will only output the user&#39;s message.</span>
-<span class="go">  --flog-process arg (=0)        Restrict output to the specified process id.</span>
-<span class="go">                                 The default is process 0. Use</span>
-<span class="go">                                 &#39;--flog-process=-1&#39; to enable all processes.</span>
 </pre></div>
 </div>
-<p>This shows the program usage, the basic options, e.g., <code class="docutils literal notranslate"><span class="pre">--help</span></code>, the
-command-line and positional options for the example, and some auxiliary
-options for controlling the FleCSI logging utility <em>FLOG</em> (described in the
-next section of this tutorial). The FLOG options will only appear if
-<em>ENABLE_FLOG=ON</em> was set in your FleCSI build.</p>
 </section>
 <section id="declaring-options">
 <h3>Declaring Options<a class="headerlink" href="#declaring-options" title="Permalink to this heading"></a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>FleCSI program options must be declared at namespace scope, i.e.,
-outside of any function, class, or enum class. This is not a problem! It
-is often convenient to declare them in a header file (in which case,
-they must also be declared <em>inline</em>) or directly before the <em>main</em>
-function.  We use the latter for this example simply for conciseness.</p>
+<p>FleCSI program options must be created before calling <code class="docutils literal notranslate"><span class="pre">flecsi::initialize</span></code> (and must survive through all uses of their value).
+It is often convenient to declare them in a namespace in a header file (in which case, they must also be declared <code class="docutils literal notranslate"><span class="pre">inline</span></code>).</p>
 </div>
 <p>Let’s consider the first <em>Car Options</em> option: <code class="docutils literal notranslate"><span class="pre">--level</span></code>. To declare
 this option, we use the following declaration:</p>
@@ -301,11 +228,9 @@ this option, we use the following declaration:</p>
 <span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
@@ -335,9 +260,10 @@ passed at invocation. The implicit value is used if the option is
 passed without a value. If zero is specified, the option does not take
 an argument, and an implicit value must be provided. If multi is
 specified, the option takes multiple values.</p></li>
-<li><p><em>check ([](flecsi::any const &amp;, std::stringstream &amp; ss…)</em> <br />
+<li><p><em>check ([](int, std::stringstream &amp; ss) {…})</em> <br />
 An optional, user-defined predicate to validate the value passed by
-the user.</p></li>
+the user.
+The first argument is of the option’s type.</p></li>
 </ul>
 <p>The next option <code class="docutils literal notranslate"><span class="pre">--transmission</span></code> is similar but uses a <code class="docutils literal notranslate"><span class="pre">std::string</span></code>
 value type:</p>
@@ -349,11 +275,9 @@ value type:</p>
 <span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
@@ -399,11 +323,9 @@ code:</p>
 <span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
@@ -433,11 +355,9 @@ argument to the program itself.</p>
 <span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
@@ -504,6 +424,7 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 </div>
 <p>Here is the full source for this tutorial example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/runtime.hh&gt;</span>
 
 <span class="c1">// Add an integer-valued command-line option with a default value of &#39;1&#39;. The</span>
 <span class="c1">// option will have a long form --level, and a short form -l. The option will be</span>
@@ -513,11 +434,9 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="w">  </span><span class="s">&quot;level,l&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the trim level [1-10].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="kt">int</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) out-of-range&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add a string-valued command-line option with a default value of &quot;manual&quot;. The</span>
@@ -528,11 +447,9 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="w">  </span><span class="s">&quot;transmission,t&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the transmission type [</span><span class="se">\&quot;</span><span class="s">automatic</span><span class="se">\&quot;</span><span class="s">, </span><span class="se">\&quot;</span><span class="s">manual</span><span class="se">\&quot;</span><span class="s">].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;manual&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;automatic&quot;</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;option(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add an option that defines an implicit value. If the program is invoked with</span>
@@ -556,11 +473,9 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="w">  </span><span class="s">&quot;purpose,p&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;Specify the purpose of the trip (personal=0, business=1).&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="n">purpose_option</span><span class="o">::</span><span class="n">business</span><span class="p">}},</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">personal</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">business</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;value(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is invalid&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 
 <span class="c1">// Add an option with no default. This will allow us to demonstrate testing an</span>
@@ -578,15 +493,12 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 <span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">passenger_list</span><span class="p">(</span><span class="s">&quot;passenger-list&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="s">&quot;The list of passengers for this trip [.txt].&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="p">[](</span><span class="n">flecsi</span><span class="o">::</span><span class="n">any</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_value</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span>
-<span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="nb">true</span>
-<span class="w">             </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">  </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ss</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="w"> </span><span class="o">||</span>
+<span class="w">           </span><span class="p">(</span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;file(&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) has invalid suffix&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
 <span class="w">  </span><span class="p">});</span>
 
-<span class="c1">// User-defined program options are available after FleCSI initialize has been</span>
-<span class="c1">// invoked.</span>
+<span class="c1">// User-defined program options are available after getopt has been invoked.</span>
 
 <span class="kt">int</span>
 <span class="nf">top_level_action</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
@@ -639,18 +551,16 @@ is required) and can be accessed using the <em>value()</em> method:</p>
 
 <span class="kt">int</span>
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
-
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
-
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
-
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">getopt</span><span class="w"> </span><span class="n">g</span><span class="p">;</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">g</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">catch</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">logic_error</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">usage</span><span class="p">(</span><span class="n">argc</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">runtime</span><span class="p">().</span><span class="n">control</span><span class="o">&lt;</span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -684,20 +594,18 @@ This is an important and useful feature of FLOG.</p>
 <p>By default, FLOG does not produce any output (even when enabled).
 In order to see or capture output, your application must add at least
 one output stream.
-This should be done after <code class="docutils literal notranslate"><span class="pre">flecsi::initialize</span></code> has been invoked and
-before flecsi::start.
+This should be done after a <code class="docutils literal notranslate"><span class="pre">flecsi::runtime</span></code> has been created and before calling <code class="docutils literal notranslate"><span class="pre">control</span></code> on it.
 Consider the main function for this example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
 <span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">;</span><span class="w"> </span><span class="c1">// to outlive runtime</span>
+<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">getopt</span><span class="p">()(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
 <span class="w">  </span><span class="c1">// If FLECSI_ENABLE_FLOG is enabled, FLOG will automatically be initialized</span>
-<span class="w">  </span><span class="c1">// when flecsi::initialize() is invoked.</span>
-
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
-
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// if</span>
+<span class="w">  </span><span class="c1">// when the runtime is created.</span>
+<span class="w">  </span><span class="n">run</span><span class="o">::</span><span class="n">config</span><span class="w"> </span><span class="n">cfg</span><span class="p">;</span>
+<span class="w">  </span><span class="n">cfg</span><span class="p">.</span><span class="n">flog</span><span class="p">.</span><span class="n">tags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">tag</span><span class="p">};</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="n">cfg</span><span class="p">);</span>
 
 <span class="w">  </span><span class="c1">// In order to see or capture any output from FLOG, the user must add at least</span>
 <span class="w">  </span><span class="c1">// one output stream. The function flog::add_output_stream provides an</span>
@@ -710,14 +618,10 @@ Consider the main function for this example:</p>
 
 <span class="w">  </span><span class="c1">// Add an output file to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">log_file</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
 <span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span>
 
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
-
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
@@ -742,9 +646,13 @@ non-interactive output. The default is <em>false</em>.</p></li>
 <p>To add an output stream to a file, we can do the following:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Add an output file to FLOG&#39;s buffers.</span>
 
-<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="w"> </span><span class="n">log_file</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">log_file</span><span class="p">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;output.txt&quot;</span><span class="p">);</span>
 <span class="w">  </span><span class="n">flog</span><span class="o">::</span><span class="n">add_output_stream</span><span class="p">(</span><span class="s">&quot;log file&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">log_file</span><span class="p">);</span>
 </pre></div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">std::ofstream</span></code> is created (though not opened) before the <code class="docutils literal notranslate"><span class="pre">flecsi::runtime</span></code> object so that it is destroyed only after all logging is completed.</p>
 </div>
 <p>That’s it! For this example, FLOG is now configured to write output to
 std::clog, and to <em>output.txt</em>. Next, we will see how to actually write
@@ -781,10 +689,11 @@ the basic output objects:</p>
 <p>If FleCSI is configured with ENABLE_FLOG=OFF, all FLOG calls are
 compiled out: i.e., there is no runtime overhead.</p>
 </div>
-<p>The strip level is a preprocessor option <em>FLOG_STRIP_LEVEL</em> that can
-be specified during FleCSI configuration. Valid strip levels are
-<em>[0-4]</em>. The default strip level is <em>0</em> (most verbose). Depending on
-the strip level, FLOG limits the type of messages that are output.</p>
+<p>The strip level is a runtime configuration option set via
+<code class="docutils literal notranslate"><span class="pre">flog::config::strip_level</span></code>.</p>
+<p>Valid strip levels are <em>[0-4]</em>. The default strip level is <em>0</em> (most
+verbose). Depending on the strip level, FLOG limits the type of messages
+that are output.</p>
 <ul class="simple">
 <li><p><em>trace</em> <br />
 Output written to the trace object is enabled for strip levels less
@@ -823,10 +732,8 @@ to identify available tags.</p>
 </div>
 <p>Once you have declared a tag, it can be used to limit output to one or
 more <em>scoped</em> regions. The following code defines a guarded section of
-output that will only be generated if <em>tag1</em> or <em>all</em> is specified to
-the <code class="docutils literal notranslate"><span class="pre">--flog-tags</span></code> option:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will only be generated if &#39;tag1&#39; or &#39;all&#39; is specified</span>
-<span class="w">  </span><span class="c1">// to &#39;--flog-tags&#39;.</span>
+output that will only be generated if <em>tag1</em> is enabled:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will appear only if &#39;tag1&#39; is enabled.</span>
 
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag1</span><span class="p">);</span>
@@ -838,8 +745,7 @@ the <code class="docutils literal notranslate"><span class="pre">--flog-tags</sp
 </pre></div>
 </div>
 <p>Here is another code example that defines a guarded section for <em>tag2</em>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will only be generated if &#39;tag2&#39; or &#39;all&#39; is specified</span>
-<span class="w">  </span><span class="c1">// to &#39;--flog-tags&#39;.</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// This output will be generated only if &#39;tag2&#39; is enabled.</span>
 
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="n">flog</span><span class="o">::</span><span class="n">guard</span><span class="w"> </span><span class="nf">guard</span><span class="p">(</span><span class="n">tag2</span><span class="p">);</span>
@@ -850,42 +756,15 @@ the <code class="docutils literal notranslate"><span class="pre">--flog-tags</sp
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="c1">// scope</span>
 </pre></div>
 </div>
-<p>You should experiment with invoking this example:</p>
-<p>Invoking this example with the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag will show the available
-tags:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./runtime-flog<span class="w"> </span>--help
+<p>This example defines a command-line option to select a tag to enable:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">flecsi</span><span class="o">::</span><span class="n">program_option</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="p">(</span><span class="s">&quot;Logging&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;flog&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;Specify the flog tag to enable.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">{{</span><span class="n">flecsi</span><span class="o">::</span><span class="n">option_default</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;all&quot;</span><span class="p">}});</span>
 </pre></div>
 </div>
-<p>which should look something like this:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Usage: runtime-flog</span>
-
-<span class="go">Basic Options:</span>
-<span class="go">  -h [ --help ]         Print this message and exit.</span>
-
-<span class="go">FleCSI Options:</span>
-<span class="go">  --backend-args arg             Pass arguments to the runtime backend. The</span>
-<span class="go">                                 single argument is a quoted string of</span>
-<span class="go">                                 backend-specific options.</span>
-<span class="go">  --flog-tags arg (=all)         Enable the specified output tags, e.g.,</span>
-<span class="go">                                 --flog-tags=tag1,tag2. Use &#39;--flog-tags=all&#39;</span>
-<span class="go">                                 to show all output, and</span>
-<span class="go">                                 &#39;--flog-tags=unscoped&#39; to show only unguarded</span>
-<span class="go">                                 output.</span>
-<span class="go">  --flog-verbose [=arg(=1)] (=0) Enable verbose output. Passing &#39;-1&#39; will strip</span>
-<span class="go">                                 any additional decorations added by flog and</span>
-<span class="go">                                 will only output the user&#39;s message.</span>
-<span class="go">  --flog-process arg (=0)        Restrict output to the specified process id.</span>
-<span class="go">                                 The default is process 0. Use</span>
-<span class="go">                                 &#39;--flog-process=-1&#39; to enable all processes.</span>
-
-<span class="go">Available FLOG Tags (FleCSI Logging Utility):</span>
-<span class="go">  tag2</span>
-<span class="go">  tag1</span>
-</pre></div>
-</div>
-<p>Invoking this example with <code class="docutils literal notranslate"><span class="pre">--flog-tags=tag1</span></code> will generate output for
-unguarded sections and for output guarded with the <em>tag1</em> tag:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./flog<span class="w"> </span>--flog-tags<span class="o">=</span>tag1
+<p>The selected tag is included in the configuration for the <code class="docutils literal notranslate"><span class="pre">runtime</span></code> object, discussed further below.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./flog<span class="w"> </span>--flog<span class="o">=</span>tag1
 <span class="go">[trace all p0] Trace level output</span>
 <span class="go">[info all p0] Info level output</span>
 <span class="go">[Warn all p0] Warn level output</span>
@@ -896,9 +775,10 @@ unguarded sections and for output guarded with the <em>tag1</em> tag:</p>
 <span class="go">[ERROR tag1 p0] Error level output (in tag1 guard)</span>
 </pre></div>
 </div>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">flog::tags</span></code> to discover all declared tags (as for displaying help).</p>
 </section>
-<section id="flog-options-cmake">
-<h3>FLOG Options (CMake)<a class="headerlink" href="#flog-options-cmake" title="Permalink to this heading"></a></h3>
+<section id="flog-options">
+<h3>FLOG Options<a class="headerlink" href="#flog-options" title="Permalink to this heading"></a></h3>
 <p>Defaults for the FLOG options have been chosen in an attempt to most
 closely model the behavior one would expect from the execution and
 output of a standard MPI program.
@@ -909,10 +789,10 @@ as it can sometimes be counter-intuitive.</p>
 to avoid collisions from different threads.
 As a safeguard, FleCSI’s default settings flush these buffers
 periodically, so as to avoid memory capacity issues.
-The CMake configuration option <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL</span></code> defines
+The FLOG runtime configuration option <code class="docutils literal notranslate"><span class="pre">serialization_interval</span></code>  defines
 this behavior:</p>
 <ul class="simple">
-<li><p><em>FLOG_SERIALIZATION_INTERVAL</em> <br />
+<li><p><code class="docutils literal notranslate"><span class="pre">flog::config::serialization_interval</span></code> <br />
 The serialization interval specifies how often FleCSI should check for
 buffered output (requires reduction) as a number of
 tasks executed: i.e., if the serialization interval is set to 300,
@@ -927,7 +807,7 @@ application.
 Serialization inhibits task asynchrony.
 When balanced, the performance effects should be very minimal.
 However, overly aggressive settings, e.g.,
-<code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL=1</span></code> could force complete serialization
+<code class="docutils literal notranslate"><span class="pre">serialization_interval=1</span></code> could force complete serialization
 of your application.
 This can be beneficial for debugging, but should not be used for
 actual simulation runs.</p>
@@ -939,33 +819,30 @@ force FleCSI to serialize and flush output.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Best practice for FLOG serialization is to leave the default settings
-for <code class="docutils literal notranslate"><span class="pre">FLOG_SERIALIZATION_INTERVAL</span></code> and to use <code class="docutils literal notranslate"><span class="pre">flecsi::flog::flush()</span></code>
+for <code class="docutils literal notranslate"><span class="pre">serialization_interval</span></code> and to use <code class="docutils literal notranslate"><span class="pre">flecsi::flog::flush()</span></code>
 at an appropriate point in your application to force output.</p>
 </div>
-</section>
-<section id="flog-options-command-line">
-<h3>FLOG Options (Command-Line)<a class="headerlink" href="#flog-options-command-line" title="Permalink to this heading"></a></h3>
-<p>We have already covered the <code class="docutils literal notranslate"><span class="pre">--flog-tags</span></code> option.
-There are currently two other options that control FLOG output:</p>
+<p>Other parts of <code class="docutils literal notranslate"><span class="pre">flog::config</span></code> filter Flog output:</p>
 <ul class="simple">
-<li><p><em>–flog-verbose</em> <br />
-This option controls how much additional information is output with
+<li><p><code class="docutils literal notranslate"><span class="pre">tags</span></code> <br />
+The tags for which to produce output.
+The example above specified just one tag (possibly “all”), but several may be supplied.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code> <br />
+How much additional information is output with
 your <code class="docutils literal notranslate"><span class="pre">flog(severity)</span></code> message.
 A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> will turn off any additional decorations, while a
 value of <code class="docutils literal notranslate"><span class="pre">1</span></code> will add additional information.
 By default, the severity level and process are output. <br />
 <em>(default: 0)</em></p></li>
-<li><p><em>–flog-process</em> <br />
-This options allows the user to restrict output to the specified
-process id.
-A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> will enable output of all processes.
-By default, output is restricted to process <code class="docutils literal notranslate"><span class="pre">0</span></code>. <br />
+<li><p><code class="docutils literal notranslate"><span class="pre">process</span></code> <br />
+Which process should produce output.
+If <code class="docutils literal notranslate"><span class="pre">-1</span></code>, enable output from all processes. <br />
 <em>(default: 0)</em></p></li>
 </ul>
 <div class="admonition caution">
 <p class="admonition-title">Caution</p>
-<p>By default, FLOG only writes output to process <code class="docutils literal notranslate"><span class="pre">0</span></code>. Pass
-<code class="docutils literal notranslate"><span class="pre">--flog-process=-1</span></code> to enable output from all processes.</p>
+<p>By default, FLOG only writes output from process <code class="docutils literal notranslate"><span class="pre">0</span></code>.
+Set <code class="docutils literal notranslate"><span class="pre">process=-1</span></code> to enable output from all processes.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -977,6 +854,8 @@ This is not an error.
 In general, some experimentation is necessary to achieve the desired
 level of output with FLOG and FleCSI.</p>
 </div>
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">flog::config::color</span></code> runtime configuration option controls
+whether coloring is enabled for FLOG messages.</p>
 </section>
 </section>
 <section id="example-4-caliper-annotations">
@@ -1019,29 +898,21 @@ annotations using the <a class="reference external" href="http://software.llnl.g
 <p>Scope guards are used to annotate a code region.
 Consider the main function for this example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span>
-<span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">annotation</span><span class="o">::</span><span class="n">rguard</span><span class="o">&lt;</span><span class="n">main_region</span><span class="o">&gt;</span><span class="w"> </span><span class="n">main_guard</span><span class="p">;</span>
 
-<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">initialize</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
-
-<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">success</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">flecsi</span><span class="o">::</span><span class="n">run</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">help</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span>
-
-<span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
-<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
-
-<span class="w">  </span><span class="n">flecsi</span><span class="o">::</span><span class="n">finalize</span><span class="p">();</span>
-
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">run</span><span class="o">::</span><span class="n">dependencies_guard</span><span class="w"> </span><span class="n">dg</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">runtime</span><span class="w"> </span><span class="n">run</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">            </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
 <span class="p">}</span><span class="w"> </span><span class="c1">// main</span>
 </pre></div>
 </div>
 <p>A scope guard is used to annotate the top level task:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">              </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
-<span class="w">    </span><span class="n">flecsi</span><span class="o">::</span><span class="n">start</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">annotation</span><span class="o">::</span><span class="n">guard</span><span class="o">&lt;</span><span class="n">annotation</span><span class="o">::</span><span class="n">execution</span><span class="p">,</span><span class="w"> </span><span class="n">annotation</span><span class="o">::</span><span class="n">detail</span><span class="o">::</span><span class="n">low</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">            </span><span class="s">&quot;top-level-task&quot;</span><span class="p">),</span>
+<span class="w">    </span><span class="n">run</span><span class="p">.</span><span class="n">control</span><span class="o">&lt;</span><span class="n">run</span><span class="o">::</span><span class="n">call</span><span class="o">&gt;</span><span class="p">(</span><span class="n">top_level_action</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>For this region, the FleCSI execution context <code class="docutils literal notranslate"><span class="pre">annotation::execution</span></code> is
@@ -1089,21 +960,21 @@ example, consider the following caliper configuration file:</p>
 <span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
 <span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
 <span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
-<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution, count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; where FleCSI-Execution format table order by percent_total#sum#time.duration desc&quot;</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution, count(),min(sum#time.duration.ns) as \&quot;min-time\&quot;, max(sum#time.duration.ns) as \&quot;max-time\&quot;, percent_total(sum#time.duration.ns) as \&quot;total-time-%\&quot; where FleCSI-Execution format table order by percent_total#sum#time.duration.ns desc&quot;</span>
 
 <span class="c1"># [user]</span>
 <span class="nv">CALI_SERVICES_ENABLE</span><span class="o">=</span>aggregate,event,mpi,mpireport,timestamp
 <span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
 <span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
 <span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
-<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select User-Execution, count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; where User-Execution format table order by percent_total#sum#time.duration desc&quot;</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select User-Execution, count(),min(sum#time.duration.ns) as \&quot;min-time\&quot;, max(sum#time.duration.ns) as \&quot;max-time\&quot;, percent_total(sum#time.duration.ns) as \&quot;total-time-%\&quot; where User-Execution format table order by percent_total#sum#time.duration.ns desc&quot;</span>
 
 <span class="c1"># [all]</span>
 <span class="nv">CALI_SERVICES_ENABLE</span><span class="o">=</span>aggregate,event,mpi,mpireport,timestamp
 <span class="nv">CALI_MPIREPORT_FILENAME</span><span class="o">=</span>report.cali
 <span class="nv">CALI_EVENT_ENABLE_SNAPSHOT_INFO</span><span class="o">=</span><span class="nb">false</span>
 <span class="nv">CALI_TIMER_SNAPSHOT_DURATION</span><span class="o">=</span><span class="nb">true</span>
-<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution,User-Execution,count(),min(sum#time.duration) as \&quot;min-time\&quot;, max(sum#time.duration) as \&quot;max-time\&quot;, percent_total(sum#time.duration) as \&quot;total-time-%\&quot; format table order by percent_total#sum#time.duration desc&quot;</span>
+<span class="nv">CALI_MPIREPORT_CONFIG</span><span class="o">=</span><span class="s2">&quot;select FleCSI-Execution,User-Execution,count(),min(sum#time.duration.ns) as \&quot;min-time\&quot;, max(sum#time.duration.ns) as \&quot;max-time\&quot;, percent_total(sum#time.duration.ns) as \&quot;total-time-%\&quot; format table order by percent_total#sum#time.duration.ns desc&quot;</span>
 </pre></div>
 </div>
 <p>This file defines three caliper configuration profiles that can be used to
@@ -1124,6 +995,11 @@ file named <code class="docutils literal notranslate"><span class="pre">report.c
 </div>
 <p>The output represents collected timings for annotations in the
 <code class="docutils literal notranslate"><span class="pre">User-Execution</span></code> annotation context.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>For Caliper versions below v2.10, you need to replace all the <code class="docutils literal notranslate"><span class="pre">duration.ns</span></code> statements by <code class="docutils literal notranslate"><span class="pre">duration</span></code>
+in the configuration file.</p>
+</div>
 </section>
 </section>
 </section>

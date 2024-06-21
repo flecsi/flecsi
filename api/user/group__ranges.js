@@ -13,5 +13,9 @@ var group__ranges =
     [ "substring_view< R >", "structflecsi_1_1util_1_1substring__view.html", [
       [ "substring_view", "structflecsi_1_1util_1_1substring__view.html#ae0ac37e0735725291bf79d2aa02c13bc", null ]
     ] ],
-    [ "flecsi::util::to_vector", "group__ranges.html#ga81f8008191482dad6a2aad338f91677e", null ]
+    [ "to_vector", "group__ranges.html#ga81f8008191482dad6a2aad338f91677e", null ],
+    [ "transform", "group__ranges.html#ga702af3d1f1dde0fa6750f5691045efdb", null ],
+    [ "partition_point", "group__ranges.html#gadfd2941c293de413db968a12b67b3aa1", null ],
+    [ "binary_index", "group__ranges.html#ga9fb574edd1b1b9cdb2eeee754324bed8", null ],
+    [ "permutation_view", "group__ranges.html#gad4345f1e9a1b852f5374920d61c51423", null ]
 ];

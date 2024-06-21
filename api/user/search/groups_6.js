@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['point_0',['Point',['../group__point.html',1,'']]],
-  ['predefined_20specializations_1',['Predefined specializations',['../group__spec.html',1,'']]],
-  ['profiling_2',['Profiling',['../group__annotation.html',1,'']]]
+  ['mpi_0',['MPI',['../group__mpi-utils.html',1,'']]],
+  ['multi_2ddimensional_20array_1',['Multi-dimensional Array',['../group__narray.html',1,'']]]
 ];

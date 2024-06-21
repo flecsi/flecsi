@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Build &amp; Install &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Build &amp; Install &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -130,11 +130,11 @@ version tested.</p>
 <ul class="simple">
 <li><p><strong>Boost</strong> <br />
 We require <em>program_options</em> and <em>stacktrace</em>. <br />
-<em>CI: 1.79.0</em></p></li>
+<em>CI: 1.84.0</em></p></li>
 <li><p><strong>C++17 compliant compiler</strong> <br />
 At the current time, FleCSI has been tested with GNU and Clang
 C++ compilers. <br />
-<em>CI: gcc 9.4.0, clang 13.0.1</em></p></li>
+<em>CI: gcc 12.2.0, clang 17.0.6</em></p></li>
 <li><p><strong>Doxygen</strong> <br />
 Doxygen is only required to build the interface documentation.</p></li>
 <li><p><strong>GASNet</strong> <br />
@@ -142,23 +142,22 @@ GASNet is only required if Legion support is enabled.</p></li>
 <li><p><strong>MPI</strong> <br />
 The MPI implementation must have support
 for <em>MPI_THREAD_MULTIPLE</em>. <br />
-<em>CI: mpich 3.4.2, openmpi 4.1.2</em></p></li>
+<em>CI: mpich 4.1.2, openmpi 5.0.2</em></p></li>
 <li><p><strong>Legion</strong> <br />
-We are currently using the most up-to-date version of the control
-replication branch. <br />
-<em>CI: control_replication branch</em></p></li>
+Requires Legion with control replication. <br />
+<em>CI: 24.03.0</em></p></li>
+<li><p><strong>Kokkos</strong> <br />
+<em>CI: 4.2.01</em></p></li>
 <li><p><strong>parMETIS/METIS</strong> <br />
 <em>CI: 4.0.3 (parMETIS), 5.1.0 (METIS)</em></p></li>
 <li><p><strong>CMake</strong> <br />
-We currently require CMake version 3.12 or greater. <br />
-<em>CI: 3.20.1</em></p></li>
+We currently require CMake version 3.23 or greater. <br />
+<em>CI: 3.27.9</em></p></li>
 <li><p><strong>Sphinx</strong> <br />
-Sphinx is only required to build the web-based documentation. We are
-currently using Sphinx 5.0.2. We also require the Sphinx RTD Theme
-(using version 1.0.0). These can be installed on most Linux systems
-using pip.</p></li>
+Sphinx is only required to build the web-based documentation. We also require the Sphinx RTD Theme.
+<em>CI: 6.2.1</em></p></li>
 <li><p><strong>Python</strong> <br />
-We currently require Python 3.0 or greater.</p></li>
+The documentation build requires Python 3.9 or greater.</p></li>
 </ul>
 </section>
 <hr class="docutils" />
@@ -266,14 +265,13 @@ option:</p>
 <p>FleCSI uses Doxygen for its API reference and Sphinx for user and
 developer documentation.</p>
 <p>Doxygen can be installed with most Linux package managers.  To install
-Sphinx, you can install <code class="docutils literal notranslate"><span class="pre">pip3</span></code> and use it to install <code class="docutils literal notranslate"><span class="pre">Sphinx</span></code>,
-<code class="docutils literal notranslate"><span class="pre">recommonmark</span></code>, and <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code>. Your package manager should also
+Sphinx, you can install <code class="docutils literal notranslate"><span class="pre">pip3</span></code> and use it to install <code class="docutils literal notranslate"><span class="pre">Sphinx</span></code>
+and <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code>. Your package manager should also
 have <code class="docutils literal notranslate"><span class="pre">pip3</span></code>; e.g., on Ubuntu, you can install all of these requirements
 like:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>doxygen
 <span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-pip
 <span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>Sphinx
-<span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>recommonmark
 <span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>sphinx_rtd_theme
 </pre></div>
 </div>

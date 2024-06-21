@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Distributed and shared memory parallelism &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Distributed and shared memory parallelism &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -21,7 +21,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="DAXPY" href="flaxpy.html" />
+    <link rel="next" title="N-Tree" href="ntree.html" />
     <link rel="prev" title="Data Model" href="data.html" /> 
 </head>
 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -67,6 +67,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#example-2-reduceall-macro-parallel-reduce-interface">Example 2: reduceall macro / parallel_reduce interface</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="ntree.html">N-Tree</a></li>
 <li class="toctree-l3"><a class="reference internal" href="flaxpy.html">DAXPY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="poisson.html">Poisson</a></li>
 </ul>
@@ -141,10 +142,10 @@ process per core with <code class="docutils literal notranslate"><span class="pr
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span>
 
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../3-execution/control.hh&quot;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../4-data/canonical.hh&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;control.hh&quot;</span>
 
-<span class="c1">// this tutorial is based on a 04-data/3-dence.cc tutorial example</span>
+<span class="c1">// this tutorial is based on a 4-data/3-dense.cc tutorial example</span>
 <span class="c1">// here we will add several forall / parallel_for interfaces</span>
 
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
@@ -175,11 +176,7 @@ process per core with <code class="docutils literal notranslate"><span class="pr
 <span class="kt">void</span>
 <span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">canonical</span><span class="p">;</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="n">canon</span><span class="o">::</span><span class="n">cslot</span><span class="w"> </span><span class="n">coloring</span><span class="p">;</span>
-<span class="w">    </span><span class="n">coloring</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
-<span class="w">    </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
 
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
 
@@ -209,11 +206,10 @@ executed on the FleCSI default accelerator.</p>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/execution.hh&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;flecsi/flog.hh&gt;</span>
 
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../3-execution/control.hh&quot;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../4-data/canonical.hh&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;control.hh&quot;</span>
 
-<span class="c1">// this tutorial is based on a 04-data/3-dence.cc tutorial example</span>
-<span class="c1">// here we will add several forall / parallel_for interfaces</span>
+<span class="c1">// this tutorial is based on a 4-data/3-dense.cc tutorial example</span>
 
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
@@ -259,11 +255,7 @@ executed on the FleCSI default accelerator.</p>
 <span class="kt">void</span>
 <span class="nf">advance</span><span class="p">(</span><span class="n">control_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">canonical</span><span class="p">;</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="n">canon</span><span class="o">::</span><span class="n">cslot</span><span class="w"> </span><span class="n">coloring</span><span class="p">;</span>
-<span class="w">    </span><span class="n">coloring</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">);</span>
-<span class="w">    </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">coloring</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">canonical</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
 
 <span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">(</span><span class="n">canonical</span><span class="p">);</span>
 
@@ -285,7 +277,7 @@ executed on the FleCSI default accelerator.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="data.html" class="btn btn-neutral float-left" title="Data Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="flaxpy.html" class="btn btn-neutral float-right" title="DAXPY" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="ntree.html" class="btn btn-neutral float-right" title="N-Tree" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

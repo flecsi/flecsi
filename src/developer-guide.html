@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Developer Guide &mdash; FleCSI 2.2.1 documentation</title>
+  <title>Developer Guide &mdash; FleCSI 2.3.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.2.1
+                Version: 2.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -217,7 +217,7 @@ subdirectories within the test subdirectory.</p>
 <li><p>not add or change material changed later in the same merge request (partly to help <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">blame</span></code>)</p></li>
 <li><p>include the smallest subset of an overall set of changes that follows the above rules</p></li>
 <li><p>add or update any relevant documentation, including the <a class="reference internal" href="news.html#news"><span class="std std-ref">Release Notes</span></a></p></li>
-<li><p>not be a meaningless merge from the destination branch (as introduced by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>)</p></li>
+<li><p>not be a <a class="reference external" href="https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees">meaningless merge</a> from the destination branch (as introduced by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>)</p></li>
 <li><p>have a meaningful message that follows the <a class="reference external" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">50/72 rule</a></p></li>
 <li><p>be properly formatted per <code class="docutils literal notranslate"><span class="pre">clang-format</span></code></p></li>
 <li><p>either make only purely stylistic changes or make no such changes</p></li>
@@ -236,7 +236,9 @@ Those names should therefore be meaningful; in particular, to avoid confusion th
 <p>FleCSI uses the <a class="reference external" href="https://semver.org/">Semantic Versioning</a> system.
 Note that it defines the three kinds of releases in terms of <em>restrictions</em> on what changes can appear in each, and that those restrictions are phrased in terms of the documented interface.
 We interpret compatibility strictly in terms of source (with the inevitable judgment calls for things like SFINAE).
-Even altogether new code can appear in a “patch” release if it serves to fix a bug or improve performance rather than as a new documented feature.</p>
+Even altogether new code can appear in a “patch” release if it serves to fix a bug or improve performance rather than as a new documented feature.
+As an exception to the specification, deprecations can be made in such a release as well, since they are merely documentation for the careful user who wants to upgrade early for forward compatibility.
+However, since features are typically deprecated in favor of some new feature, most will nonetheless appear in feature releases.</p>
 <p>There is one active, shared branch for each of the three types of release, as described below.
 Tags are used to identify releases as well as certain internal reference points for development.</p>
 <section id="branch-types">
@@ -256,17 +258,8 @@ At appropriate points, tags (named for their
 patched versions.</p>
 </dd>
 </dl>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>At the time of writing, FleCSI has the following branches:</p>
-<ul class="simple">
-<li><p><strong>develop</strong> (incompatible)</p></li>
-<li><p><strong>2</strong> (feature)</p></li>
-<li><p><strong>2.1</strong> (release)</p></li>
-</ul>
-</div>
 <p>In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
-The condition of relevance pertains to an internal feature might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
+The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
 A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.</p>
 </section>
@@ -292,23 +285,23 @@ releases, its content will be one of the following four schemes:</p>
 </dd>
 </dl>
 <p>FleCSI uses the information in <code class="docutils literal notranslate"><span class="pre">.version</span></code> to define
-<code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code> in its <code class="docutils literal notranslate"><span class="pre">flecsi-config.h</span></code> header. This constant
+<code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code> in its <code class="docutils literal notranslate"><span class="pre">flecsi/config.hh</span></code> header. This constant
 encodes the major, minor and patch version of FleCSI in a single
 integer value.</p>
 <p>For <strong>tagged releases</strong> (<code class="docutils literal notranslate"><span class="pre">v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</span></code>) it is defined
 as <code class="docutils literal notranslate"><span class="pre">(major</span> <span class="pre">&lt;&lt;</span> <span class="pre">16)</span> <span class="pre">|</span> <span class="pre">(minor</span> <span class="pre">&lt;&lt;</span> <span class="pre">8)</span> <span class="pre">|</span> <span class="pre">patch</span></code>.</p>
 <p>On <strong>release branches</strong> both major and minor version components are
 set to the release version, however, the patch version component is set
-to its maximul value 255.</p>
+to its maximal value 255.</p>
 <p>On <strong>feature branches</strong> only the major version component is set to the
 version value, while the minor version component is set to its maximum
 255 and the patch version component is set to 0.</p>
 <p>Finally, on the <strong>develop branch</strong>, the major version component is set
-to its maximum 255, while the other componets are set
+to its maximum 255, while the other components are set
 to 0.</p>
 <p>The following table summarizes these rules with some examples:</p>
-<table class="docutils align-default" id="id13">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Examples of <code class="docutils literal notranslate"><span class="pre">.version</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></span><a class="headerlink" href="#id13" title="Permalink to this table"></a></caption>
+<table class="docutils align-default" id="id14">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Examples of <code class="docutils literal notranslate"><span class="pre">.version</span></code> and <code class="docutils literal notranslate"><span class="pre">FLECSI_VERSION</span></code></span><a class="headerlink" href="#id14" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Source</p></th>
 <th class="head"><p>Contents of <code class="docutils literal notranslate"><span class="pre">.version</span></code></p></th>
@@ -338,13 +331,13 @@ to 0.</p>
 <section id="workflow">
 <h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h3>
 <p>FleCSI development uses a <em>devel -&gt; feature -&gt; release</em> forking workflow
-that can be visualized as in <a class="reference internal" href="#branch"><span class="std std-numref">Fig. 11</span></a>. Bugfixes and features can
+that can be visualized as in <a class="reference internal" href="#branch"><span class="std std-numref">Fig. 16</span></a>. Bugfixes and features can
 be back-merged into <em>feature</em> or <em>devel</em>, as appropriate.</p>
-<figure class="align-default" id="id14">
+<figure class="align-default" id="id15">
 <span id="branch"></span><img alt="../_images/branch.png" src="../_images/branch.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 11 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
-types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id14" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 16 </span><span class="caption-text">Workflow diagram illustrating basic workflow using the three branch
+types described above. (Figure due to Angela Herring.)</span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -353,7 +346,7 @@ types described above. (Figure due to Angela Herring.)</span><a class="headerlin
 <section id="published-documentation">
 <h2>Published Documentation<a class="headerlink" href="#published-documentation" title="Permalink to this heading"></a></h2>
 <p>The <a class="reference external" href="http://www.flecsi.org/">project homepage</a> is a GitHub Pages site generated from <a class="reference external" href="https://github.com/flecsi/flecsi/tree/gh-pages">the current GitHub repository</a>.
-The <code class="docutils literal notranslate"><span class="pre">deploy-documentation</span></code> Make target sets up a repository to update it by pushing to the appropriate branch.</p>
+The <code class="docutils literal notranslate"><span class="pre">deploy-docs</span></code> Make target sets up a repository to update it by pushing to the appropriate branch.</p>
 <blockquote>
 <div></div></blockquote>
 </section>
@@ -397,7 +390,8 @@ The <code class="docutils literal notranslate"><span class="pre">deploy-document
 <section id="building-for-darwin">
 <h2>Building for Darwin<a class="headerlink" href="#building-for-darwin" title="Permalink to this heading"></a></h2>
 <p>Darwin is a testbed cluster at LANL that provides a wide variety of
-node hardware configurations.  (See the <a class="reference external" href="https://darwin.lanl.gov/">LANL-internal Darwin webpage</a>.)  The FleCSI distribution provides a
+node hardware configurations.
+The FleCSI distribution provides a
 script, <code class="docutils literal notranslate"><span class="pre">tools/darwin.sh</span></code>, that automates downloading, building, and
 installing FleCSI and all of its dependencies.  The script can be run
 either from a checked-out version of the FleCSI repository, in which
@@ -405,7 +399,7 @@ case it will not re-download FleCSI, or as a standalone script, in
 which case it will clone the <code class="docutils literal notranslate"><span class="pre">flecsi</span></code> repository and build from
 there.</p>
 <p>The former is the preferred approach.  From a back-end node, run</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>git@gitlab.lanl.gov:flecsi/flecsi.git
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
 <span class="gp">$ </span>flecsi/tools/darwin.sh
 </pre></div>
 </div>
@@ -448,61 +442,81 @@ as a reference for the commands needed to get FleCSI up and running.</p>
 
 <span class="c1"># Trace commands and abort on the first error.</span>
 <span class="nb">set</span><span class="w"> </span>-e
-<span class="nb">set</span><span class="w"> </span>-v
 
-<span class="c1"># Check if we&#39;re running from within a flecsi clone.  If not, clone</span>
-<span class="c1"># flecsi into the current directory.  In either case, cd to the</span>
-<span class="c1"># top-level flecsi directory.</span>
+<span class="c1"># Clone flecsi into the current directory unless the script was run</span>
+<span class="c1"># from what looks like a flecsi clone.</span>
 <span class="nv">script_dir</span><span class="o">=</span><span class="k">$(</span>dirname<span class="w"> </span><span class="k">$(</span>readlink<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">))</span>
 <span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$script_dir</span><span class="s2">&quot;</span>
-<span class="nv">repo_name</span><span class="o">=</span><span class="k">$(</span>basename<span class="w"> </span>-s<span class="w"> </span>.git<span class="w"> </span><span class="k">$(</span>git<span class="w"> </span>config<span class="w"> </span>--get<span class="w"> </span>remote.origin.url<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>not-flecsi<span class="k">))</span>
-<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$repo_name</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>flecsi<span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">    </span><span class="nb">cd</span><span class="w"> </span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--show-toplevel<span class="k">)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span>../flecsi<span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>..
 <span class="k">else</span>
 <span class="w">    </span><span class="nb">cd</span><span class="w"> </span>-
-<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>git@gitlab.lanl.gov:flecsi/flecsi.git
+<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>ssh://git@re-git.lanl.gov:10022/flecsi/flecsi.git
 <span class="w">    </span><span class="nb">cd</span><span class="w"> </span>flecsi
 <span class="k">fi</span>
-git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
 
-<span class="c1"># Create a build subdirectory and cd to it.</span>
-<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
-mkdir<span class="w"> </span>build
-<span class="nb">cd</span><span class="w"> </span>build
+<span class="c1"># Log where we came from in Git in case this is needed for troubleshooting.</span>
+<span class="o">(</span>
+<span class="w">    </span><span class="nb">set</span><span class="w"> </span>+e
+<span class="w">    </span>git<span class="w"> </span>config<span class="w"> </span>--get<span class="w"> </span>remote.origin.url<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="se">\</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">0</span><span class="si">}</span><span class="s2">: Directory </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2"> does not appear to have come from Git&quot;</span><span class="w"> </span><span class="m">1</span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+<span class="w">    </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="w"> </span><span class="m">2</span>&gt;/dev/null
+<span class="o">)</span>
 
 <span class="c1"># Define an installation directory.</span>
 <span class="nv">FLECSI_INSTALL</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/flecsi-inst&quot;</span>
 
 <span class="c1"># Set GCC version we&#39;re going to use</span>
-<span class="nv">GCC_VERSION</span><span class="o">=</span><span class="m">11</span>.1.0
+<span class="nv">GCC_VERSION</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>grep<span class="w"> </span>GCC_VERSION:<span class="w"> </span>.gitlab-ci.yml<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d:<span class="w"> </span>-f2<span class="k">))</span>
 
 <span class="c1"># Download a version of Spack known to work with FleCSI and activate it.</span>
-<span class="nv">SPACK_VERSION</span><span class="o">=</span>v0.19
+<span class="nv">SPACK_VERSION</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="k">$(</span>grep<span class="w"> </span>USE_SPACK_UPSTREAM:<span class="w"> </span>.gitlab-ci.yml<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d:<span class="w"> </span>-f2<span class="k">))</span>
+
+<span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nv">SPACK_COMMIT</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$SPACK_VERSION</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d-<span class="w"> </span>-f2<span class="k">)</span>
+<span class="k">fi</span>
+
 <span class="nb">pushd</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">&quot;</span>
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>spack<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
 <span class="w">  </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/spack/spack.git
 <span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
-<span class="w">  </span>git<span class="w"> </span>switch<span class="w"> </span>releases/<span class="nv">$SPACK_VERSION</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span>git<span class="w"> </span>checkout<span class="w"> </span><span class="nv">$SPACK_COMMIT</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="w">    </span>git<span class="w"> </span>switch<span class="w"> </span>releases/<span class="nv">$SPACK_VERSION</span>
+<span class="w">  </span><span class="k">fi</span>
 <span class="w">  </span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
 <span class="k">else</span>
 <span class="w">  </span><span class="nb">cd</span><span class="w"> </span>spack
 <span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Found existing Spack install in ~/spack&quot;</span>
 <span class="w">  </span>git<span class="w"> </span>fetch<span class="w"> </span>origin
-<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>origin/releases/<span class="nv">$SPACK_VERSION</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">!&quot;</span>
-<span class="w">    </span><span class="nb">echo</span>
-<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
-<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack fetch +releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">:refs/remotes/origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack switch origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
-<span class="w">    </span><span class="nb">echo</span>
-<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">         </span><span class="s2">&quot;this Spack instance!&quot;</span>
-<span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span>~<span class="w"> </span><span class="s2">&quot;develop-&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nv">_TMP</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">_TMP</span><span class="p">:</span><span class="nv">0</span><span class="p">:</span><span class="nv">8</span><span class="si">}</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match </span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">!&quot;</span>
+<span class="w">      </span><span class="nb">echo</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack checkout </span><span class="si">${</span><span class="nv">SPACK_COMMIT</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">      </span><span class="nb">echo</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">           </span><span class="s2">&quot;this Spack instance!&quot;</span>
+<span class="w">      </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span><span class="k">fi</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>origin/releases/<span class="nv">$SPACK_VERSION</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ERROR: The current checkout does not match origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">!&quot;</span>
+<span class="w">      </span><span class="nb">echo</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Please update manually with:&quot;</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack fetch +releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">:refs/remotes/origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot; git -C ~/spack switch origin/releases/</span><span class="nv">$SPACK_VERSION</span><span class="s2">&quot;</span>
+<span class="w">      </span><span class="nb">echo</span>
+<span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;WARNING: This may invalidate other Spack environments that rely on&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">           </span><span class="s2">&quot;this Spack instance!&quot;</span>
+<span class="w">      </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span><span class="k">fi</span>
 <span class="w">  </span><span class="k">fi</span>
 <span class="k">fi</span>
-<span class="nb">set</span><span class="w"> </span>+v
 <span class="nb">source</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/spack/share/spack/setup-env.sh&quot;</span>
-<span class="nb">set</span><span class="w"> </span>-v
 <span class="nb">popd</span>
 
 
@@ -513,10 +527,7 @@ spack<span class="w"> </span>env<span class="w"> </span>activate<span class="w">
 
 <span class="c1"># Load GCC version known to work with FleCSI</span>
 <span class="c1"># and make it visible to Spack</span>
-<span class="nb">set</span><span class="w"> </span>+v
 module<span class="w"> </span>load<span class="w"> </span>gcc/<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>
-spack<span class="w"> </span>compiler<span class="w"> </span>find
-<span class="nb">set</span><span class="w"> </span>-v
 
 <span class="c1"># ignore configuration in ~/.spack to avoid conflicts</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">SPACK_DISABLE_LOCAL_CONFIG</span><span class="o">=</span><span class="nb">true</span>
@@ -528,7 +539,7 @@ spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> <
 spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>packages:all:compiler:<span class="o">[</span><span class="s2">&quot;gcc@</span><span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">]</span>
 
 <span class="c1"># add FleCSI spack package repository</span>
-spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>../spack-repo
+spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>spack-repo
 
 <span class="c1"># On Darwin we have a Spack upstream that already has prebuilt dependencies</span>
 <span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="o">=</span>/projects/flecsi-devel/gitlab/spack-upstream/<span class="nv">$SPACK_VERSION</span>
@@ -536,40 +547,45 @@ spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </s
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$DARWIN_SPACK_UPSTREAM</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
 <span class="w">  </span><span class="c1"># add spack upstream if accessible</span>
 <span class="w">  </span>spack<span class="w"> </span>config<span class="w"> </span>add<span class="w"> </span>upstreams:default:install_tree:<span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/opt/spack/
-<span class="w">  </span>cp<span class="w"> </span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/etc/spack/packages.yaml<span class="w"> </span><span class="nv">$HOME</span>/spack/etc/spack/
+<span class="w">  </span>cp<span class="w"> </span><span class="si">${</span><span class="nv">DARWIN_SPACK_UPSTREAM</span><span class="si">}</span>/etc/spack/<span class="o">{</span>compilers.yaml,packages.yaml<span class="o">}</span><span class="w"> </span><span class="nv">$HOME</span>/spack/etc/spack/
 <span class="k">else</span>
 <span class="w">  </span><span class="c1"># Otherwise, load a compatible cmake and expose whatever else happens to be</span>
 <span class="w">  </span><span class="c1"># sitting around as Spack externals</span>
-<span class="w">  </span>module<span class="w"> </span>load<span class="w"> </span>cmake/3.19.2
+<span class="w">  </span>module<span class="w"> </span>load<span class="w"> </span>cmake/3.26.3
+<span class="w">  </span>spack<span class="w"> </span>compiler<span class="w"> </span>find
 <span class="w">  </span>spack<span class="w"> </span>external<span class="w"> </span>find
 <span class="k">fi</span>
 
 <span class="c1"># Install FleCSI&#39;s dependencies with Spack.</span>
-<span class="c1"># This also builds a version of MPICH in Spack since the ones on Darwin do not include</span>
-<span class="c1"># an mpiexec/mpirun that works.</span>
-spack<span class="w"> </span>add<span class="w"> </span>flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+doc<span class="w"> </span>+hdf5<span class="w"> </span>+kokkos<span class="w"> </span>+flog<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^mpich@3.4.2%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span>+hydra+romio~verbs<span class="w"> </span><span class="nv">device</span><span class="o">=</span>ch4<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug
+<span class="c1"># Note: cxxstd is only needed for legion@master. Remove once no longer needed.</span>
+spack<span class="w"> </span>add<span class="w"> </span>flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+doc<span class="w"> </span>+graphviz<span class="w"> </span>+hdf5<span class="w"> </span>+kokkos<span class="w"> </span>+flog<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">cxxstd</span><span class="o">=</span><span class="m">17</span><span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^mpich
 spack<span class="w"> </span>install<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span>--only<span class="w"> </span>dependencies
 
 <span class="c1"># Build, test, and install FleCSI.</span>
-../tools/configure<span class="w"> </span>gnu<span class="w"> </span>legion<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">&quot;</span>
-make<span class="w"> </span><span class="nv">VERBOSE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
-make<span class="w"> </span><span class="nb">test</span>
-make<span class="w"> </span>install
+
+<span class="c1"># configure FleCSI, inheriting (-i) the its configuration from the Spack environment</span>
+<span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
+tools/spack_cmake<span class="w"> </span>-i<span class="w"> </span>-t<span class="w"> </span>flecsi<span class="w"> </span>--<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">&quot;</span>
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
+ctest
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--target<span class="w"> </span>install
 <span class="nb">cd</span><span class="w"> </span>..
 
 <span class="c1"># Ensure the tutorial examples build properly.</span>
+
+<span class="c1"># This makes the installed FleCSI visible to CMake&#39;s find_package</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$FLECSI_INSTALL</span>:<span class="nv">$CMAKE_PREFIX_PATH</span>
 <span class="nb">cd</span><span class="w"> </span>tutorial
 <span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>build
-mkdir<span class="w"> </span>build
-<span class="nb">cd</span><span class="w"> </span>build
-cmake<span class="w"> </span>-DFleCSI_DIR<span class="o">=</span><span class="s2">&quot;</span><span class="nv">$FLECSI_INSTALL</span><span class="s2">/lib64/cmake/FleCSI&quot;</span><span class="w"> </span>..
-make<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
-<span class="nb">cd</span><span class="w"> </span>../..
+
+<span class="c1"># configure tutorial examples with the same compiler and compiler flags as flecsi</span>
+../tools/spack_cmake<span class="w"> </span>-c<span class="w"> </span>-i<span class="w"> </span>flecsi
+cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span>
 
 <span class="c1"># Build complete</span>
-<span class="nb">set</span><span class="w"> </span>+v
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;BUILD COMPLETE&quot;</span>
 <span class="nb">echo</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;To continue working in the same Spack environment, execute the following commands:&quot;</span>
@@ -636,10 +652,10 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<figure class="align-center" id="id15">
+<figure class="align-center" id="id16">
 <span id="undersea"></span><a class="reference internal image-reference" href="../_images/undersea.png"><img alt="../_images/undersea.png" src="../_images/undersea.png" style="width: 70%;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 12 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 17 </span><span class="caption-text">A colorful image resembling a cosmic version of an undersea world.</span><a class="headerlink" href="#id16" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>You can reference the figure using its label <em>undersea</em> like:</p>
@@ -647,7 +663,7 @@ __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 </pre></div>
 </div>
 <p>This will be rendered like:</p>
-<p>As can be seen in <a class="reference internal" href="#undersea"><span class="std std-numref">Fig. 12</span></a>…</p>
+<p>As can be seen in <a class="reference internal" href="#undersea"><span class="std std-numref">Fig. 17</span></a>…</p>
 </section>
 <section id="code-blocks">
 <h3>Code Blocks<a class="headerlink" href="#code-blocks" title="Permalink to this heading"></a></h3>

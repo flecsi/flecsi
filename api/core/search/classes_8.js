@@ -2,7 +2,7 @@ var searchData=
 [
   ['identity_0',['identity',['../structflecsi_1_1util_1_1identity.html',1,'flecsi::util']]],
   ['index_1',['index',['../structflecsi_1_1topo_1_1index.html',1,'flecsi::topo']]],
-  ['index_5fcolor_2',['index_color',['../structflecsi_1_1topo_1_1narray__impl_1_1index__color.html',1,'index_color'],['../structflecsi_1_1topo_1_1unstructured__impl_1_1index__color.html',1,'index_color']]],
+  ['index_5fcolor_2',['index_color',['../structflecsi_1_1topo_1_1unstructured__impl_1_1index__color.html',1,'flecsi::topo::unstructured_impl']]],
   ['index_5fdefinition_3',['index_definition',['../structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html',1,'flecsi::topo::narray_impl']]],
   ['index_5fmap_4',['index_map',['../structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__definition_1_1index__map.html',1,'flecsi::topo::unstructured_impl::coloring_definition']]],
   ['intervals_5',['intervals',['../structflecsi_1_1data_1_1intervals.html',1,'flecsi::data']]],

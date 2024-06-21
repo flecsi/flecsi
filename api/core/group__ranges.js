@@ -17,6 +17,10 @@ var group__ranges =
     [ "transform_view< C, F >", "structflecsi_1_1util_1_1transform__view.html", [
       [ "transform_view", "structflecsi_1_1util_1_1transform__view.html#a475f7509c94ec1677e63a791f9e38e90", null ]
     ] ],
-    [ "flecsi::util::to_vector", "group__ranges.html#ga81f8008191482dad6a2aad338f91677e", null ],
-    [ "flecsi::util::stride_view", "group__ranges.html#gadefd76243d449cf7172a51b65cf5f121", null ]
+    [ "to_vector", "group__ranges.html#ga81f8008191482dad6a2aad338f91677e", null ],
+    [ "stride_view", "group__ranges.html#gadefd76243d449cf7172a51b65cf5f121", null ],
+    [ "transform", "group__ranges.html#ga702af3d1f1dde0fa6750f5691045efdb", null ],
+    [ "partition_point", "group__ranges.html#gadfd2941c293de413db968a12b67b3aa1", null ],
+    [ "binary_index", "group__ranges.html#ga9fb574edd1b1b9cdb2eeee754324bed8", null ],
+    [ "permutation_view", "group__ranges.html#gad4345f1e9a1b852f5374920d61c51423", null ]
 ];

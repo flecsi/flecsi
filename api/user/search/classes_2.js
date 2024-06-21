@@ -1,10 +1,15 @@
 var searchData=
 [
-  ['dag_0',['dag',['../structflecsi_1_1util_1_1dag.html',1,'flecsi::util']]],
-  ['definition_1',['definition',['../structflecsi_1_1field_1_1definition.html',1,'flecsi::field']]],
-  ['definition_3c_20claims_20_3e_2',['definition&lt; claims &gt;',['../structflecsi_1_1field_1_1definition.html',1,'flecsi::field']]],
-  ['definition_3c_20flecsi_3a_3atopo_3a_3aresize_20_3e_3',['definition&lt; flecsi::topo::resize &gt;',['../structflecsi_1_1field_1_1definition.html',1,'flecsi::field']]],
-  ['definition_3c_20meta_3c_20p_20_3e_20_3e_4',['definition&lt; meta&lt; P &gt; &gt;',['../structflecsi_1_1field_1_1definition.html',1,'flecsi::field']]],
-  ['definition_3c_20meta_3c_20policy_20_3e_20_3e_5',['definition&lt; meta&lt; Policy &gt; &gt;',['../structflecsi_1_1field_1_1definition.html',1,'flecsi::field']]],
-  ['dimensioned_5farray_6',['dimensioned_array',['../classflecsi_1_1util_1_1dimensioned__array.html',1,'flecsi::util']]]
+  ['cast_0',['cast',['../structflecsi_1_1util_1_1serial_1_1cast.html',1,'flecsi::util::serial']]],
+  ['coloring_1',['coloring',['../structflecsi_1_1topo_1_1narray__base_1_1coloring.html',1,'narray_base::coloring'],['../structflecsi_1_1topo_1_1ntree__base_1_1coloring.html',1,'ntree_base::coloring'],['../structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html',1,'unstructured_base::coloring']]],
+  ['coloring_5fslot_2',['coloring_slot',['../structflecsi_1_1data_1_1coloring__slot.html',1,'flecsi::data']]],
+  ['coloring_5fslot_3c_20d_20_3e_3',['coloring_slot&lt; D &gt;',['../structflecsi_1_1data_1_1coloring__slot.html',1,'flecsi::data']]],
+  ['config_4',['config',['../structflecsi_1_1run_1_1config.html',1,'flecsi::run']]],
+  ['config_5fbase_5',['config_base',['../structflecsi_1_1run_1_1config__base.html',1,'flecsi::run']]],
+  ['context_6',['context',['../structflecsi_1_1util_1_1annotation_1_1context.html',1,'flecsi::util::annotation']]],
+  ['context_3c_20execution_20_3e_7',['context&lt; execution &gt;',['../structflecsi_1_1util_1_1annotation_1_1context.html',1,'flecsi::util::annotation']]],
+  ['control_8',['control',['../structflecsi_1_1run_1_1control.html',1,'flecsi::run']]],
+  ['control_5fbase_9',['control_base',['../structflecsi_1_1run_1_1control__base.html',1,'flecsi::run']]],
+  ['control_5fpolicy_10',['control_policy',['../structflecsi_1_1run_1_1control__policy.html',1,'flecsi::run']]],
+  ['convert_11',['convert',['../structflecsi_1_1util_1_1serial_1_1convert.html',1,'flecsi::util::serial']]]
 ];

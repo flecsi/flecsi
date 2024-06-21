@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wrap_0',['wrap',['../structflecsi_1_1topo_1_1borrow__base.html#aa65d270b34a6eb52a1aa573de26e5202',1,'flecsi::topo::borrow_base']]]
+  ['value_0',['Value',['../structflecsi_1_1data_1_1intervals.html#a357563891aec343ea3f8eec40c0c47a7',1,'flecsi::data::intervals::Value'],['../structflecsi_1_1data_1_1points.html#a0c426b4819ba4f6bf8f7fa8103e858a3',1,'flecsi::data::points::Value']]]
 ];

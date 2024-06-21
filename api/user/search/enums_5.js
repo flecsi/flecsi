@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['partition_5fprivilege_5ft_0',['partition_privilege_t',['../group__data.html#ga15b90fedf9416d69fcbe4488930e0d32',1,'flecsi']]]
+  ['layout_0',['layout',['../group__data.html#ga43d9cf57236e19c5fc3bc74b429c835a',1,'flecsi::data']]]
 ];
