@@ -43,8 +43,7 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using id = util::id;
   static_assert(index_spaces::size, "no index spaces");
 
-  static constexpr Dimension dimension = Policy::dimension;
-  static_assert(dimension == axes::size);
+  static constexpr Dimension dimension = axes::size;
 
   template<Privileges>
   struct access;
@@ -844,19 +843,17 @@ struct detail::base<narray> {
 
 #ifdef DOXYGEN
 /// Example specialization which is not really implemented.
+/// \remark Previously, a constant \c dimension was required, but the size of
+///   \c axes already provides that information.
 struct narray_specialization : specialization<narray, narray_specialization> {
 
   /// Axis enumeration.
   enum axis { x, y };
   /// Axes to store.
-  /// Must have as many elements as \c dimension.
   /// The format is\code
   /// has<x, y, ..>
   /// \endcode
   using axes = has<x, y>;
-
-  /// mesh dimension
-  static constexpr Dimension dimension = 2;
 
   /// Specialization-specific data to store once per color.
   struct meta_data {};
