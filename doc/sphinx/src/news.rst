@@ -1,7 +1,5 @@
 .. include:: <isopub.txt>
 
-.. _news:
-
 Release Notes
 *************
 
@@ -216,7 +214,7 @@ Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 * Build
 
-  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :ref:`TUT-RM`).
+  * ``FLECSI_RUNTIME_MODEL`` is renamed to ``FLECSI_BACKEND`` (it never referred to :doc:`tutorial/runtime`).
 
 * Utilities
 

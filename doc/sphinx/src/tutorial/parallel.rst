@@ -2,7 +2,6 @@
 
    <br />
 
-.. _TUT-PAR:
 
 Distributed and shared memory parallelism
 *****************************************

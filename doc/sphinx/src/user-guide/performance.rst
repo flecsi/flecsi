@@ -2,7 +2,6 @@
 
    <br />
 
-.. _performance:
 
 Performance Do's and Don'ts
 ***************************
