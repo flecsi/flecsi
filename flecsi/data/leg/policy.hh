@@ -82,8 +82,7 @@ struct shared_handle {
   template<class U>
   shared_handle(const shared_handle<U> &) = delete;
   ~shared_handle() {
-    if(ctx()) // does the Legion Context still exist?
-      destroy(h);
+    destroy(h);
   }
   shared_handle & operator=(shared_handle s) noexcept {
     std::swap(h, s.h);
