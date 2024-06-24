@@ -2,7 +2,6 @@
 
    <br />
 
-.. _TUT-RM:
 
 Runtime Model
 *************

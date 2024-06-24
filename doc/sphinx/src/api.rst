@@ -2,7 +2,6 @@
 
    <br />
 
-.. _api:
 
 API Reference
 *************

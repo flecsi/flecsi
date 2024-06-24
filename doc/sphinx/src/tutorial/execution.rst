@@ -1,5 +1,3 @@
-.. _TUT-EM:
-
 Execution Model
 ***************
 
