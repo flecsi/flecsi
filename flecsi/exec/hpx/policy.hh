@@ -148,9 +148,8 @@ reduce_internal(Args &&... args) {
       return f(std::forward<decltype(params)>(params));
     };
     return std::move(bound_params)
-      .template delay_execution<R>(std::move(params),
-        std::move(task_name),
-        std::move(apply_delayed_prolog));
+      .template delay_execution<R>(
+        std::move(params), util::symbol<F>(), std::move(apply_delayed_prolog));
   };
 
   constexpr auto delayed_apply = [](auto && params) {
@@ -170,7 +169,8 @@ reduce_internal(Args &&... args) {
       }
     }
     else {
-      auto comm_gen = flecsi::run::context::instance().world_comm(task_name);
+      auto comm_gen =
+        flecsi::run::context::instance().world_comm(std::move(task_name));
       return future<R>{delay([root, comm_gen](auto && params) {
         // Broadcast the result from root to the rest of ranks return future<R,
         // launch_type::single> where clients on every rank will get the same
@@ -196,7 +196,8 @@ reduce_internal(Args &&... args) {
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      auto comm_gen = flecsi::run::context::instance().world_comm(task_name);
+      auto comm_gen =
+        flecsi::run::context::instance().world_comm(std::move(task_name));
       return future<R>{delay([comm_gen](auto && params) {
         // A real reduce operation, every rank needs to be able to access
         // the same result through future<R>::get().
@@ -217,7 +218,7 @@ reduce_internal(Args &&... args) {
       // where the results from ranks are redistributed such that clients on
       // every rank i can get the return value of rank j by calling get(j).
       return future<R, exec::launch_type_t::index>{
-        delay(delayed_apply), task_name};
+        delay(delayed_apply), std::move(task_name)};
     }
     else {
       // index launch of void functions, e.g. printf("hello world");

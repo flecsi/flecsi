@@ -142,17 +142,16 @@ struct copy_engine : local::copy_engine {
     auto comm_tag = std::to_string(data_fid);
     auto p2p_gen = flecsi::run::context::instance().p2p_comm(comm_tag);
 
-    // Request communicator only if it is needed. Otherwise a new generation
+    // Request communicator only if it is needed. Otherwise, a new generation
     // number is generated, which may cause for the communicator to hang if the
     // generation is not subsequently 'used'.
-    run::context_t::communicator_data comm_gen;
-    if(max_local_source_idx == 0) {
+    if(!comm_gen.first) {
       comm_gen = flecsi::run::context::instance().world_comm(comm_tag);
     }
 
     init_delayed_ghost_copy(src_field,
       dest_field,
-      [this, data_fid, comm_tag = std::move(comm_tag), comm_gen, p2p_gen]() {
+      [this, data_fid, comm_tag = std::move(comm_tag), p2p_gen]() {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
@@ -167,6 +166,7 @@ struct copy_engine : local::copy_engine {
           // ignore lock while suspending
           [[maybe_unused]] ::hpx::util::ignore_while_checking il(&l);
 
+          // initialize every copy_engine exactly once
           if(max_local_source_idx == 0) {
             init_copy_engine([&](auto const & remote_shared_entities) {
               flog_assert(comm_gen.first && comm_gen.second,
@@ -239,6 +239,7 @@ struct copy_engine : local::copy_engine {
 
 private:
   ::hpx::spinlock mtx;
+  run::context_t::communicator_data comm_gen;
   std::vector<::hpx::shared_future<void>> dependencies;
 };
 

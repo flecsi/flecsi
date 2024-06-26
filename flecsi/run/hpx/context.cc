@@ -97,6 +97,7 @@ context_t::get_communicator_data(Map & map,
 context_t::communicator_data
 context_t::world_comm(std::string name) {
 
+  flog_assert(!name.empty(), "communicators must have valid name");
   auto comm = get_communicator_data(
     world_comms_, "/flecsi/world_comm/" + std::move(name), [](auto &&... args) {
       return ::hpx::collectives::create_communicator(
@@ -110,6 +111,7 @@ context_t::world_comm(std::string name) {
 context_t::channel_communicator_data
 context_t::p2p_comm(std::string name) {
 
+  flog_assert(!name.empty(), "communicators must have valid name");
   return get_communicator_data(
     p2p_comms_, "/flecsi/p2p_comm/" + std::move(name), [](auto &&... args) {
       return ::hpx::collectives::create_channel_communicator(

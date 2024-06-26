@@ -109,9 +109,10 @@ struct future<R, exec::launch_type_t::index>
   : detail::future_impl<future<R, exec::launch_type_t::index>> {
 
 private:
-  static decltype(auto) all_gather_result(std::string && name, R && result) {
-    auto [comm, generation] =
-      flecsi::run::context::instance().world_comm(std::move(name));
+  static decltype(auto) all_gather_result(
+    flecsi::run::context_t::communicator_data && comm_gen,
+    R && result) {
+    auto const & [comm, generation] = comm_gen;
     using namespace ::hpx::collectives;
     return all_gather(comm, std::move(result), generation_arg(generation));
   }
@@ -122,8 +123,9 @@ public:
 
   explicit future(::hpx::future<R> && result, std::string name)
     : base_type(result.then(::hpx::launch::sync,
-        [name = std::move(name)](auto && f) mutable {
-          return future::all_gather_result(std::move(name), f.get());
+        [comm_gen = flecsi::run::context::instance().world_comm(
+           std::move(name))](auto && f) mutable {
+          return future::all_gather_result(std::move(comm_gen), f.get());
         })) {}
 
   explicit future(R result, std::string name)
