@@ -126,19 +126,15 @@ template<class P, Privileges Priv>
 using list_access = detail::connect_access<lists<P>, Priv>;
 
 // Subroutines for topology accessors:
-template<class F, class... VT, class C, class S = util::identity>
+template<class F, class... VT, class C>
 void
-connect_send(F && f,
-  util::key_tuple<VT...> & ca,
-  C & cf,
-  S && s = {}) { // s: topology -> subtopology
+connect_send(F && f, util::key_tuple<VT...> & ca, C & cf) {
   (
     [&] {
       std::size_t i = 0;
       for(auto & a : ca.template get<VT::value>())
-        f(a, [&](auto & t) {
-          return cf.template get<VT::value>()[i++](std::invoke(s, t.get()));
-        });
+        f(a,
+          [&](auto & t) { return cf.template get<VT::value>()[i++](t.get()); });
     }(),
     ...);
 }
