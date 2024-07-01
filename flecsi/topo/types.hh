@@ -68,17 +68,14 @@ template<class P>
 using connect_t = typename detail::connect<P, typename P::connectivities>::type;
 
 namespace detail {
-template<class C, Privileges Priv>
-using key_access_t = typename key_access<C, Priv>::type;
-
 // A parallel sparse matrix of accessors.
 template<class C, Privileges Priv>
-struct connect_access : key_access_t<C, Priv> {
+struct connect_access : key_access<C, Priv>::type {
   // Prior to C++20, accessor_member can't refer to the subobjects of a
   // connect_t, so the accessors must be initialized externally.
   template<class... VT>
   connect_access(const util::key_tuple<VT...> & c)
-    : key_access_t<C, Priv>(
+    : connect_access::key_tuple(
         make_from<std::decay_t<decltype(this->template get<VT::value>())>>(
           c.template get<VT::value>())...) {}
 
