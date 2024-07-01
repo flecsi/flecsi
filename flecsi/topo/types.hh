@@ -121,10 +121,6 @@ private:
   }
 };
 
-// Accessors for the distinguished entities requested by a topology.
-template<class P, Privileges Priv>
-using list_access = detail::connect_access<lists<P>, Priv>;
-
 // Subroutines for topology accessors:
 template<class F, class... VT, class C>
 void
