@@ -1029,7 +1029,7 @@ public:
 
 #ifdef FLECSI_DEVICE_CODE
   using vector_type =
-    util::vector<id<index_space::entities>, Policy::max_neighbors>;
+    util::inplace_vector<id<index_space::entities>, Policy::max_neighbors>;
   using queue_type = util::queue<hcell_t *, 1000>;
 #else
   using vector_type = std::vector<id<index_space::entities>>;
