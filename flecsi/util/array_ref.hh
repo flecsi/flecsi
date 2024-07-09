@@ -225,7 +225,7 @@ struct mdcolex : detail::mdbase<T, D> {
 template<class T, std::size_t D>
 mdcolex(T *, std::array<std::size_t, D>) -> mdcolex<T, D>;
 
-/// A small, approximate subset of mdspan as proposed for C++23.
+/// A small, approximate subset of mdspan from C++23.
 /// \gpu.
 /// \tparam D dimension
 template<class T, unsigned short D>
