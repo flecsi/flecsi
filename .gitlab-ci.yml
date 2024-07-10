@@ -55,11 +55,6 @@ variables:
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
-  # CI project space is an NFSv3 mount. This option prevents OpenMPI from
-  # trying to lock the entire file during HDF5 I/O, which recently has led
-  # to timeouts due to slow access times. Using algorithm 3 will only lock
-  # parts of the file, which apparently is faster on Darwin.
-  OMPI_MCA_fs_ufs_lock_algorithm: 3
 
 #------------------------------------------------------------------------------#
 # Common build variants
