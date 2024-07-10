@@ -12,7 +12,6 @@
 #include "flecsi/util/common.hh"
 #include "flecsi/util/crs.hh"
 #include "flecsi/util/mpi.hh"
-#include "flecsi/util/serialize.hh"
 #include "flecsi/util/set_utils.hh"
 
 #include <algorithm>
