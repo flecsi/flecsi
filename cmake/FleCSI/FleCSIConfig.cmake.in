@@ -63,7 +63,9 @@ endif()
 
 
 if(@ENABLE_KOKKOS@)
+  include(FleCSI/kokkos)
   find_package(Kokkos COMPONENTS separable_compilation REQUIRED)
+  _flecsi_check_kokkos_compiler()
 endif()
 
 if(NOT "@CALIPER_DETAIL@" STREQUAL "none")
