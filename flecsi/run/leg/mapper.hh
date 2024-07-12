@@ -412,14 +412,11 @@ public:
         // We've already been control replicated, so just divide our points
         // over the local processors, depending on which kind we prefer
         if(task.tag == prefer_gpu && !local_gpus.empty())
-          distribute_index_points_accross_local_procs(
-            input, output, local_gpus);
+          distribute_index_points_across_local_procs(input, output, local_gpus);
         else if(task.tag == prefer_omp && !local_omps.empty())
-          distribute_index_points_accross_local_procs(
-            input, output, local_omps);
+          distribute_index_points_across_local_procs(input, output, local_omps);
         else
-          distribute_index_points_accross_local_procs(
-            input, output, local_cpus);
+          distribute_index_points_across_local_procs(input, output, local_cpus);
     }
 
   } // slice_task
@@ -616,7 +613,7 @@ private:
     Distribute the index points of a domain across the processors provided in
     `local_procs` in a round robin way
   */
-  static void distribute_index_points_accross_local_procs(
+  static void distribute_index_points_across_local_procs(
     const Legion::Mapping::Mapper::SliceTaskInput & input,
     Legion::Mapping::Mapper::SliceTaskOutput & output,
     const std::vector<Legion::Processor> & local_procs) {
