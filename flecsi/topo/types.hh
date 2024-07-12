@@ -20,21 +20,14 @@ namespace topo {
 /// \cond core
 using connect_field = field<util::id, data::ragged>;
 
+// Specializations request storage for connectivity information and lists of
+// special entities in a similar fashion, by providing a pack VT of
+// util::key_type<...,util::constants<...>> types.
+
 namespace detail {
 
 template<class, class>
 struct connect;
-
-/*!
-  Connectivity fields for the given specialization and specified entity kinds.
-  This data structure adds ragged fields to the
-  specialized user type to store connectivity information for each
-  user-specified connectivity.
-
-  @tparam P  A core topology specialization policy.
-  @tparam VT A parameter pack of types defining a key value and a type.
- */
-
 template<class P, class... VT>
 struct connect<P, util::types<VT...>> {
   using type = util::key_tuple<util::key_type<VT::value,
@@ -42,6 +35,8 @@ struct connect<P, util::types<VT...>> {
       typename VT::type>>...>;
 };
 
+// Lists do not need to register fields on varied index spaces, so they can
+// use a single type T here (which can be an accessor_member).
 template<class, class>
 struct lists;
 template<class T, class... VT>
@@ -52,6 +47,7 @@ struct lists<T, util::types<VT...>> {
 
 template<class, Privileges>
 struct key_access;
+// Here VT is as constructed by 'connect' above.
 template<class... VT, Privileges Priv>
 struct key_access<util::key_tuple<VT...>, Priv> {
   using type = util::key_tuple<util::key_type<VT::value,
@@ -121,29 +117,30 @@ private:
 // Subroutines for topology accessors:
 template<class F, class... VT, class C>
 void
-connect_send(F && f, util::key_tuple<VT...> & ca, C & cf) {
+connect_send(F && f, util::key_tuple<VT...> & accs, C & flds) {
   (
     [&] {
       std::size_t i = 0;
-      for(auto & a : ca.template get<VT::value>())
-        f(a,
-          [&](auto & t) { return cf.template get<VT::value>()[i++](t.get()); });
+      for(auto & a : accs.template get<VT::value>())
+        f(a, [&](auto & t) {
+          return flds.template get<VT::value>()[i++](t.get());
+        });
     }(),
     ...);
 }
 template<class F, class... VT, class L, class S>
 void
 lists_send(F && f,
-  util::key_tuple<VT...> & la,
-  L & lf,
-  S && s) // s: topology -> lists
+  util::key_tuple<VT...> & accs,
+  L & fld,
+  S && sub) // topology -> lists subtopologies structure
 {
   (
     [&] {
       std::size_t i = 0;
-      for(auto & a : la.template get<VT::value>()) {
+      for(auto & a : accs.template get<VT::value>()) {
         f(a, [&](auto & t) {
-          return lf(std::invoke(s, t.get()).template get<VT::value>()[i++]);
+          return fld(std::invoke(sub, t.get()).template get<VT::value>()[i++]);
         });
       }
     }(),
