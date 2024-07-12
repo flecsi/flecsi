@@ -61,7 +61,7 @@ public:
   //! Constructor (fill with given value).
   //--------------------------------------------------------------------------//
 
-  constexpr dimensioned_array(TYPE const & val) {
+  constexpr dimensioned_array(TYPE const & val) : base() {
     for(auto & x : *this)
       x = val;
   } // dimensioned_array
