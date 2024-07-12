@@ -36,7 +36,7 @@ struct utility {
     return false;
   }
 
-  static bool format(std::stringstream &, const char *, int, bool) {
+  static bool format(std::stringstream &, const char *, int) {
     return false;
   }
 }; // struct utility
@@ -50,11 +50,8 @@ struct trace {
     return flog::state::instance().strip_level() > 0;
   }
 
-  static bool
-  format(std::stringstream & ss, const char * file, int line, bool devel) {
-    std::string label = devel ? "(devel) " : "";
-
-    ss << FLOG_OUTPUT_CYAN("[trace ") << FLOG_OUTPUT_PURPLE(label);
+  static bool format(std::stringstream & ss, const char * file, int line) {
+    ss << FLOG_OUTPUT_CYAN("[trace ");
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
@@ -75,11 +72,8 @@ struct info {
     return flog::state::instance().strip_level() > 1;
   }
 
-  static bool
-  format(std::stringstream & ss, const char * file, int line, bool devel) {
-    std::string label = devel ? "(devel) " : "";
-
-    ss << FLOG_OUTPUT_GREEN("[info ") << FLOG_OUTPUT_PURPLE(label);
+  static bool format(std::stringstream & ss, const char * file, int line) {
+    ss << FLOG_OUTPUT_GREEN("[info ");
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
@@ -100,11 +94,8 @@ struct warn {
     return flog::state::instance().strip_level() > 2;
   }
 
-  static bool
-  format(std::stringstream & ss, const char * file, int line, bool devel) {
-    std::string label = devel ? "(devel) " : "";
-
-    ss << FLOG_OUTPUT_BROWN("[warn ") << FLOG_OUTPUT_PURPLE(label);
+  static bool format(std::stringstream & ss, const char * file, int line) {
+    ss << FLOG_OUTPUT_BROWN("[warn ");
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());
@@ -125,11 +116,8 @@ struct error {
     return flog::state::instance().strip_level() > 3;
   }
 
-  static bool
-  format(std::stringstream & ss, const char * file, int line, bool devel) {
-    std::string label = devel ? "(devel) " : "";
-
-    ss << FLOG_OUTPUT_RED("[ERROR ") << FLOG_OUTPUT_PURPLE(label);
+  static bool format(std::stringstream & ss, const char * file, int line) {
+    ss << FLOG_OUTPUT_RED("[ERROR ");
     if(state::instance().verbose())
       ss << FLOG_OUTPUT_LTGRAY(verbose(file, line));
     ss << FLOG_OUTPUT_CYAN(state::active_tag_name());

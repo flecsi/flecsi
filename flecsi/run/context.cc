@@ -260,9 +260,7 @@ initialize(int argc, const char * const * argv, bool dependent) {
     ret = go.parse(argc, argv);
   }
   catch(po::error & e) {
-    std::string error(e.what());
-
-    cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << error << "!!!"
+    cerr << FLOG_COLOR_LTRED << "ERROR: " << FLOG_COLOR_RED << e.what() << "!!!"
          << FLOG_COLOR_PLAIN << std::endl
          << std::endl;
     ret = run::command_line_error;
