@@ -58,11 +58,16 @@ make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
       "only MPI tasks can accept rvalue references");
     static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
       "only MPI tasks can accept non-const references");
+    static_assert(
+      ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
+        std::is_function_v<std::remove_pointer_t<PP>>)&&...),
+      "only MPI tasks can accept non-const pointers");
     static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
       "only MPI tasks can accept accessors for non-portable fields");
   }
-  return std::tuple<decltype(convert_argument<PP>(std::forward<AA>(aa)))...>(
-    convert_argument<PP>(std::forward<AA>(aa))...);
+  return std::tuple<std::conditional_t<M,
+    decltype(convert_argument<PP>(std::forward<AA>(aa))),
+    std::decay_t<PP>>...>(convert_argument<PP>(std::forward<AA>(aa))...);
 }
 
 template<bool M, class P, class... AA>
