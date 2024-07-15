@@ -24,6 +24,13 @@ namespace run {
 /// \ingroup runtime
 /// \{
 
+template<class T>
+auto
+get1(const Legion::Task & t) {
+  const auto p = static_cast<const std::byte *>(t.args);
+  return util::serial::get1<T>(p, p + t.arglen);
+}
+
 namespace mapper {
 /// \addtogroup legion-runtime
 /// \{
