@@ -26,7 +26,7 @@ default:
       aud: https://asc-git.lanl.gov
 
 variables:
-  USE_SPACK_UPSTREAM: develop-b81d7d0a
+  USE_SPACK_UPSTREAM: develop-c6da4d58
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: "\e[1;34m"
   COLOR_MAGENTA: "\e[1;35m"
@@ -51,15 +51,10 @@ variables:
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
   LEGION_IBV_ROCM: "legion+rocm conduit=ibv"
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
-  KOKKOS_SERIAL: kokkos ~cuda ~rocm
+  KOKKOS_SERIAL: kokkos ~cuda ~rocm +hwloc
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
-  # CI project space is an NFSv3 mount. This option prevents OpenMPI from
-  # trying to lock the entire file during HDF5 I/O, which recently has led
-  # to timeouts due to slow access times. Using algorithm 3 will only lock
-  # parts of the file, which apparently is faster on Darwin.
-  OMPI_MCA_fs_ufs_lock_algorithm: 3
 
 #------------------------------------------------------------------------------#
 # Common build variants

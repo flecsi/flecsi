@@ -2,7 +2,6 @@
 
    <br />
 
-.. _performance:
 
 Performance Do's and Don'ts
 ***************************
@@ -16,8 +15,8 @@ that have significant performance consequences.
 
 ----
 
-Do Activate Tracing Around Your `flecsi::execute<>` Loops
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Do Activate Tracing Around Your ``flecsi::execute<>`` Loops
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. toctree::
 

@@ -54,5 +54,5 @@ on how to use the GUI.
 
    FleCSI shortens the registered task names to ``function_name # <HASH>`` when
    passing them to Legion.  The matching full function signatures can be obtained
-   from `flecsi::task_names()`, which returns a mapping of the shortened function
+   from ``flecsi::task_names()``, which returns a mapping of the shortened function
    signature to its full signature.

@@ -121,8 +121,8 @@ reduce_internal(Args &&... args) {
     }
   }
   else {
-    flog_assert(ds == run::context::instance().processes(),
-      "MPI backend supports only per-rank index launches");
+    if(ds != run::context::instance().processes())
+      flog_fatal("MPI backend supports only per-rank index launches");
     // index launch (including "mpi task"), invoke the user task on all ranks.
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");

@@ -188,7 +188,6 @@ struct field_reference : convert_tag {
   using topology_t = typename Topo::core;
   static constexpr auto space = Space;
 
-  // construct references just from field IDs.
   field_reference(field_id_t f, topology_t & t) : fid_(f), topology_(&t) {}
 
   field_id_t fid() const {

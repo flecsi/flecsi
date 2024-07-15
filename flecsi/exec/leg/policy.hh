@@ -54,6 +54,8 @@ template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
   if constexpr(!M) {
+    static_assert((!std::is_rvalue_reference_v<PP> && ...),
+      "only MPI tasks can accept rvalue references");
     static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
       "only MPI tasks can accept non-const references");
     static_assert((!mpi_accessor<std::decay_t<PP>> && ...),

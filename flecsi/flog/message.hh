@@ -26,8 +26,7 @@ namespace flog {
 template<typename Policy>
 struct message {
 
-  message(const char * file, int line, bool devel = false)
-    : file_(file), line_(line), devel_(devel) {
+  message(const char * file, int line) : file_(file), line_(line) {
 #if defined(FLOG_ENABLE_DEBUG)
     std::cerr << FLOG_COLOR_LTGRAY << "FLOG: log_message_t constructor " << file
               << " " << line << FLOG_COLOR_PLAIN << std::endl;
@@ -93,15 +92,14 @@ struct message {
    */
 
   message & format() {
-    clean_ = state::instance().verbose() >= 0 &&
-             Policy::format(ss_, file_, line_, devel_);
+    clean_ =
+      state::instance().verbose() >= 0 && Policy::format(ss_, file_, line_);
     return *this;
   }
 
 private:
   const char * file_;
   int line_;
-  bool devel_;
   bool clean_{false};
   std::stringstream ss_;
 }; // message

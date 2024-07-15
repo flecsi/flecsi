@@ -2,8 +2,6 @@
 
    <br />
 
-.. _build:
-
 Build & Install
 ***************
 

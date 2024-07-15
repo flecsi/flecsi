@@ -14,7 +14,6 @@
 #include "flecsi/util/crs.hh"
 #include "flecsi/util/geometry/kdtree.hh"
 #include "flecsi/util/mpi.hh"
-#include "flecsi/util/serialize.hh"
 
 #include <algorithm>
 #include <cstddef>
