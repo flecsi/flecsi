@@ -42,7 +42,7 @@ Here is the iteration loop without tracing.
   FleCSI does not yet support futures in this way.
 
 .. note:: 
-  These loops contain `flecsi::execute<>` task launches. Any such loops in your code
+  These loops contain ``flecsi::execute<>`` task launches. Any such loops in your code
   need to have tracing enabled either on the loop itself or on a containing loop.
 
 .. code-block:: c++
@@ -71,13 +71,13 @@ Here is the iteration loop without tracing.
   } while(ita < max_iterations.value());
 
 .. note:: 
-  The first time through this loop, `task::red` follows
+  The first time through this loop, ``task::red`` follows
   initialization tasks.  This can setup a different ghost copy pattern
   than all other iterations.  Tracing works by replaying memoized dependency analysis
-  computations.  The `t.skip()` command tells FleCSI to defer tracing
-  until the second iteration of the `do` loop.
+  computations.  The ``t.skip()`` command tells FleCSI to defer tracing
+  until the second iteration of the ``do`` loop.
 
 When to Use Tracing
 +++++++++++++++++++++++++++++++++++++++++
 
-You should enable tracing anytime you have a set of tasks that will be `flecsi::execute<>`'ed in the same sequence over and over again.
+You should enable tracing anytime you have a set of tasks that will be ``flecsi::execute<>``'ed in the same sequence over and over again.

@@ -1,5 +1,3 @@
-.. _TUT-EM:
-
 Execution Model
 ***************
 
@@ -62,7 +60,7 @@ A single task can return a value:
   :start-at: // Task with return value.
   :end-at: }
 
-The return value can be retrieved with a `future`:
+The return value can be retrieved with a ``future``:
 
 .. literalinclude:: ../../../../tutorial/3-execution/1-single-task.cc
   :language: cpp

@@ -13,7 +13,7 @@ namespace flecsi::util {
 /// Containers with fixed size to use on GPUs
 
 /// A simple queue implementation based on a std::array
-/// This class is supported for GPU execution
+/// \gpu.
 template<typename T, std::size_t SIZE>
 class queue
 {
@@ -47,10 +47,10 @@ public:
   }
 };
 
-/// A simple std::vector implementation based on std::array
-/// This class is supported for GPU execution
+/// A small implementation of std::inplace_vector as proposed for C++26.
+/// \gpu.
 template<typename T, std::size_t SIZE>
-class vector
+class inplace_vector
 {
   using value_type = T;
   std::array<value_type, SIZE> data_;

@@ -321,7 +321,7 @@ label_default(std::string s) {
 #define EXPECT_CMP(x, y, cmp, op, sfx) CHECK_CMP(, cmp, false, x, y, op, sfx)
 
 /// \name Assertion macros
-/// Values to includes in a failure message may be streamed into an
+/// Values to include in a failure message may be streamed into an
 /// assertion:\code
 /// EXPECT_GE(foo, 0) << foo << " should be non-negative";
 /// \endcode
