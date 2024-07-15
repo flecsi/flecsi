@@ -18,7 +18,4 @@ else:
     flecsi_version = dot_version[1:] + ".develop"
 
 class Flecsi(Flecsi):
-    depends_on('cmake@3.23:')
-    depends_on("kokkos@3.7:", when="+kokkos")
-    depends_on("graphviz@2.49.0:", when="+graphviz")
     version(flecsi_version, **flecsi_selector)
