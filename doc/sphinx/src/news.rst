@@ -22,6 +22,12 @@ Possible incompatibilities
 
   * The error of destroying a topology after ``runtime::control`` returns (perhaps when ``main`` returns) is more likely to produce a crash.
 
+Fixed
+^^^^^
+* Utilities
+
+  * ``dimensioned_array`` construction works reliably in constant expressions.
+
 Changes in v2.3.0 (June 20 2024)
 ++++++++++++++++++++++++++++++++
 
