@@ -108,7 +108,7 @@ private:
   }
 
 public:
-  void operator()(field_id_t f) const {
+  void operator()(field_id_t f) {
     copy_engine(*this).go(f);
   }
 };

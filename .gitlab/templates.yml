@@ -12,7 +12,7 @@
   script: &darwin_archive_spack_env
     - if [ -n "$ARCHIVE_SPACK_ENV" ]; then header "Archiving Spack Environment" && cd $TMPDIR && mksquashfs spack ${CI_PROJECT_DIR}/state/spack.sqfs; fi
     # store architecture information for dependent jobs as variable in build.env
-    - echo "JOB_ARCH_CONSTRAINT=cpu_family:$(spack arch -t)" > ${CI_PROJECT_DIR}/state/build.env
+    - echo "JOB_ARCH_CONSTRAINT=cpu_family:$(spack arch -t | sed s/_avx512//)" > ${CI_PROJECT_DIR}/state/build.env
 
 #------------------------------------------------------------------------------#
 # darwin_restore_spack_env

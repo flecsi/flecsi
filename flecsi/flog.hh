@@ -23,8 +23,6 @@
 #include <utility> // exchange
 #include <vector>
 
-#include <unistd.h>
-
 namespace flecsi {
 namespace log = flog;
 }

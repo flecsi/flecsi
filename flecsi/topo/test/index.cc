@@ -191,7 +191,8 @@ part(short_part::mutator<wo> a) {
 }
 
 // The MPI backend doesn't support non-trivial color mappings:
-constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi);
+constexpr int process_fraction = 2 - (FLECSI_BACKEND == FLECSI_BACKEND_mpi ||
+                                       FLECSI_BACKEND == FLECSI_BACKEND_hpx);
 
 int
 use_map(data::multi<short_part::accessor<ro>> ma,

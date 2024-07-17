@@ -10,8 +10,8 @@ Release Notes
    and Fixed.
 
    Each such section discusses some subsequence of Build, Runtime, Data,
-   Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
-   Utilities, and Logging.
+   Execution, Topologies, Legion backend, MPI backend, HPX backend, On-node
+   parallelism, Utilities, and Logging.
 
 Changes in v2.3.1
 +++++++++++++++++
@@ -30,6 +30,11 @@ New features
 * Topologies
 
   * ``narray`` specializations need not define ``dimension``.
+
+* HPX backend
+
+  * FleCSI now supports HPX as a runtime backend.
+    However, GPU tasks are not supported with current versions of HPX.
 
 Changes in v2.3.0 (June 20 2024)
 ++++++++++++++++++++++++++++++++

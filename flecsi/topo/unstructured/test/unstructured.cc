@@ -298,7 +298,7 @@ geomrz_driver() {
     // Since ParMetis returns a different partition for the same number of
     // colors based on the number of ranks(np 1 vs np > 1), we skip the test for
     // one rank runs.
-    if((processes() == 1) || (FLECSI_BACKEND == FLECSI_BACKEND_mpi))
+    if((processes() == 1) || (FLECSI_BACKEND != FLECSI_BACKEND_legion))
       return;
 
     std::string src_file = "simple2d-8x8.msh";

@@ -32,6 +32,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 //----------------------------------------------------------------------------//
 
 #cmakedefine FLECSI_ENABLE_LEGION
+#cmakedefine FLECSI_ENABLE_HPX
 
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <realm_defines.h>
@@ -104,5 +105,10 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
 
 /// \}
+
+#if defined(FLECSI_ENABLE_HPX)
+// include this as early as possible
+#include <hpx/config.hpp>
+#endif
 
 #endif

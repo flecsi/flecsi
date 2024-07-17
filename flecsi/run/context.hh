@@ -18,6 +18,7 @@
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdlib> // getenv
 #include <functional>
@@ -25,6 +26,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -105,6 +107,9 @@ struct config_base {
 struct config : config_base {
   /// Command line for Legion, if using it.
   argv legion;
+  /// [Configuration](https://hpx-docs.stellar-group.org/branches/master/html/manual/launching_and_configuring_hpx_applications.html)
+  /// assignments for HPX, if using it.
+  std::vector<std::string> hpx;
 };
 
 /// RAII guard for initializing/finalizing FleCSI dependencies.
@@ -194,7 +199,7 @@ protected:
     if(const auto p = std::getenv("FLECSI_SLEEP")) {
       const auto n = std::atoi(p);
       std::cerr << getpid() << ": sleeping for " << n << " seconds...\n";
-      sleep(n);
+      std::this_thread::sleep_for(std::chrono::seconds(n));
     }
 
 #if defined(FLECSI_ENABLE_FLOG)
@@ -373,7 +378,7 @@ public:
 
 protected:
   // Invoke initialization callbacks.
-  // Call from hiding function in derived classses.
+  // Call from hiding function in derived classes.
   void start() {
     for(auto ro : init_registry())
       ro();
@@ -464,13 +469,19 @@ protected:
 struct task_local_base {
   struct guard {
     guard() {
-      for(auto * p : all)
-        p->emplace();
+      if(!all.empty()) {
+        all[0]->create_storage();
+        for(auto * p : all)
+          p->emplace();
+      }
     }
     guard(guard &&) = delete;
     ~guard() {
-      for(auto * p : all)
-        p->reset();
+      if(!all.empty()) {
+        for(auto * p : all)
+          p->reset();
+        all[0]->reset_storage();
+      }
     }
   };
 
@@ -489,6 +500,8 @@ private:
 
   virtual void emplace() = 0;
   virtual void reset() noexcept = 0;
+  virtual void create_storage() {}
+  virtual void reset_storage() noexcept {}
 };
 
 /// \endcond

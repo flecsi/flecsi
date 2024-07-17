@@ -7,10 +7,15 @@
 #include <numeric>
 
 #include "flecsi/exec/fold.hh"
+#include "flecsi/util/array_ref.hh"
 
 #if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>
 #define FLECSI_LAMBDA KOKKOS_LAMBDA
+#elif defined(FLECSI_ENABLE_HPX)
+#include <hpx/algorithm.hpp>
+#include <hpx/execution.hpp>
+#define FLECSI_LAMBDA [=] FLECSI_TARGET
 #else
 #define FLECSI_LAMBDA [=] FLECSI_TARGET
 #endif
@@ -253,6 +258,20 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
         f(it.begin()[i]);
       });
+#elif defined(FLECSI_ENABLE_HPX)
+    if(name.empty()) {
+      hpx::experimental::for_loop(
+        hpx::execution::par, 0, policy_type.size(), [&lambda, &p](auto i) {
+          lambda(p.range.begin()[i]);
+        });
+    }
+    else {
+      hpx::experimental::for_loop(hpx::execution::experimental::with_annotation(
+                                    hpx::execution::par, name),
+        0,
+        policy_type.size(),
+        [&lambda, &p](auto i) { lambda(p.range.begin()[i]); });
+    }
 #else
     (void)name;
     for(auto i : policy_type)
@@ -322,11 +341,34 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
       },
       kok::reducer_t<R, T>(res));
 #else
-    (void)name;
     T res = detail::identity_traits<R>::template value<T>;
+#if defined(FLECSI_ENABLE_HPX)
+    auto red =
+      hpx::experimental::reduction(res, res, [](auto const & r, auto & acc) {
+        ref{acc}(r);
+        return acc;
+      });
+    auto f = [&lambda, &p](
+               auto i, T & acc) { lambda(p.range.begin()[i], ref{acc}); };
+
+    if(name.empty()) {
+      hpx::experimental::for_loop(
+        hpx::execution::par, 0, policy_type.size(), red, f);
+    }
+    else {
+      hpx::experimental::for_loop(hpx::execution::experimental::with_annotation(
+                                    hpx::execution::par, name),
+        0,
+        policy_type.size(),
+        red,
+        f);
+    }
+#else
+    (void)name;
     ref r{res};
     for(auto i : policy_type)
       lambda(p.range.begin()[i], r);
+#endif
 #endif
     return res;
   }

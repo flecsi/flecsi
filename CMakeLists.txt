@@ -24,6 +24,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 project(FleCSI LANGUAGES NONE)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 #------------------------------------------------------------------------------#
 # FleCSI Version
 #------------------------------------------------------------------------------#
@@ -194,10 +196,14 @@ if(ENABLE_LIBRARY)
 
   if(FLECSI_BACKEND STREQUAL "mpi")
     set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
+    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
   elseif(FLECSI_BACKEND STREQUAL "legion")
     set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
+    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
   elseif(FLECSI_BACKEND STREQUAL "hpx")
     set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
+    set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
+    set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
   endif()
 
   mark_as_advanced(ENABLE_LEGION ENABLE_HPX)
@@ -276,6 +282,15 @@ if(ENABLE_LIBRARY)
   # Dynamic libraries.
   #----------------------------------------------------------------------------#
   target_link_libraries(FleCSI PUBLIC ${CMAKE_DL_LIBS})
+
+  if(MSVC)
+    target_compile_definitions(FleCSI PUBLIC
+      _CRT_SECURE_NO_WARNINGS
+      _SCL_SECURE_NO_WARNINGS
+      NOMINMAX)
+    # Avoid ABI incompatibilities for Debug builds
+    target_compile_options(FleCSI PUBLIC $<$<CONFIG:Debug>:/MDd /RTC1>)
+  endif()
 
   #----------------------------------------------------------------------------#
   # FLOG
@@ -441,14 +456,6 @@ if(ENABLE_LIBRARY)
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FleCSI
       RENAME unit-main.cc
     )
-  endif()
-
-  #----------------------------------------------------------------------------#
-  # HPX extra.
-  #----------------------------------------------------------------------------#
-
-  if(FLECSI_BACKEND STREQUAL "hpx")
-    hpx_setup_target(FleCSI NONAMEPREFIX)
   endif()
 endif()
 

@@ -5,6 +5,7 @@
 stages:
   - Canary
   - MPI backend
+  - HPX backend
   - Legion backend
   - Standalone
   - Final
@@ -64,6 +65,9 @@ variables:
 
 .openmpi-mpi-debug: &openmpi-mpi-debug
   VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 ^openmpi"
+
+.openmpi-hpx-debug: &openmpi-hpx-debug
+  VARIANTS: "backend=hpx build_type=Debug +flog ^openmpi ^hpx build_type=Debug"
 
 include: .gitlab/templates.yml
 
@@ -143,7 +147,18 @@ mpich-legion-gnu:
   variables:
     <<: *mpich-legion-kokkos-debug
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    PARTITIONS: skylake-gold
+    ARCHIVE_SPACK_ENV: "yes"
+
+mpich-hpx-gnu:
+  stage: HPX backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz +kokkos ^${KOKKOS_SERIAL} ^mpich ^hpx build_type=Debug"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -157,6 +172,19 @@ mpich-legion-gnu:release:
     - when: never
   variables:
     VARIANTS: "backend=legion +flog +hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+
+mpich-hpx-gnu:release:
+  stage: HPX backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /release_builds/'
+      when: always
+    - when: never
+  variables:
+    VARIANTS: "backend=hpx +flog +kokkos ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -203,7 +231,7 @@ mpich-tutorial:legion:
     LABEL: tutorial
     STDIR: tutorial
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-flaxpy:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -215,7 +243,7 @@ mpich-flaxpy:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/flaxpy
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-poisson:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -227,7 +255,48 @@ mpich-poisson:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+#------------------------------------------------------------------------------#
+# Tutorial tests for HPX backend with MPICH provider,
+# and GNU compiler toolchain.
+#------------------------------------------------------------------------------#
+
+mpich-tutorial:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: tutorial
+    STDIR: tutorial
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-flaxpy:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/flaxpy
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson:hpx:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-hpx-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
@@ -256,6 +325,35 @@ openmpi-legion-gnu:release:
     - when: never
   variables:
     VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} ^openmpi"
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for HPX backend with OpenMPI provider,
+# and GNU compiler toolchain.
+#------------------------------------------------------------------------------#
+
+openmpi-hpx-gnu:
+  stage: HPX backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    <<: *openmpi-hpx-debug
+    TOOLCHAIN: "gcc@${GCC_VERSION}"
+
+openmpi-hpx-gnu:release:
+  stage: HPX backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  rules:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /release_builds/'
+      when: always
+    - when: never
+  variables:
+    VARIANTS: "backend=hpx +flog ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -335,6 +433,17 @@ mpich-legion-clang:
     - merge_requests
   variables:
     <<: *mpich-legion-kokkos-debug
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+
+mpich-hpx-clang:
+  stage: HPX backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz ^mpich ^hpx build_type=Debug"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
 
 #------------------------------------------------------------------------------#

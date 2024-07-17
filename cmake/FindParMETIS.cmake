@@ -61,6 +61,7 @@ find_library(PARMETIS_LIBRARY
 )
 
 find_package(METIS REQUIRED QUIET)
+find_package(GKlib QUIET)
 
 # Get ParMETIS version
 if(NOT PARMETIS_VERSION_STRING AND PARMETIS_INCLUDE_DIR AND EXISTS "${PARMETIS_INCLUDE_DIR}/parmetis.h")
@@ -131,6 +132,10 @@ if(PARMETIS_FOUND AND METIS_FOUND)
     set_property(TARGET ParMetis::ParMetis APPEND PROPERTY
         IMPORTED_LOCATION "${PARMETIS_LIBRARY}")
     target_link_libraries(ParMetis::ParMetis INTERFACE Metis::Metis)
+
+    if(GKlib_FOUND)
+      target_link_libraries(ParMetis::ParMetis INTERFACE GKlib)
+    endif()
   endif()
 endif()
 

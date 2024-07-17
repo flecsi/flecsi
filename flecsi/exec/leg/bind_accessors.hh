@@ -18,8 +18,7 @@
 namespace flecsi {
 /// \addtogroup legion-execution
 /// \{
-
-namespace exec::leg {
+namespace exec {
 
 /*!
   The bind_accessors type is called to walk the user task arguments inside of
@@ -39,17 +38,7 @@ struct bind_accessors {
     : legion_runtime_(legion_runtime), legion_context_(legion_context),
       regions_(regions), futures_(futures) {}
 
-  template<class A>
-  void operator()(A & a) {
-    std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
-  }
-
-private:
-  auto visitor() {
-    return
-      [&](auto & p, auto &&) { visit(p); }; // Clang 8.0.1 deems 'this' unused
-  }
-
+protected:
   // All accessors are handled in terms of their underlying raw accessors.
 
   template<typename D, Privileges P>
@@ -67,11 +56,6 @@ private:
     bind(reg, accessor, ac);
   }
 
-  template<class P>
-  std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
-    p.send(visitor());
-  }
-
   template<class R, typename D>
   void visit(data::reduction_accessor<R, D> & reduce) {
     auto & reg = regions_[region++];
@@ -84,6 +68,7 @@ private:
     bind(reg, reduce, ac);
   }
 
+private:
   template<typename A, typename LA>
   void bind(const Legion::PhysicalRegion & reg, A & acc, const LA & aa) const {
     const auto dom = legion_runtime_->get_index_space_domain(
@@ -95,6 +80,7 @@ private:
         r.hi[1] - r.lo[1] + 1));
   }
 
+protected:
   /*--------------------------------------------------------------------------*
    Futures
    *--------------------------------------------------------------------------*/
@@ -103,22 +89,7 @@ private:
     f = {futures_[future_id++]};
   }
 
-  // Note: due to how visitor() is implemented above the first
-  // parameter can not be 'const &' here, otherwise template/overload
-  // resolution fails (silently).
-  template<typename T>
-  static void visit(data::detail::scalar_value<T> & s) {
-    s.template copy<ProcessorType>();
-  }
-
-  /*--------------------------------------------------------------------------*
-    Non-FleCSI Data Types
-   *--------------------------------------------------------------------------*/
-
-  template<typename D>
-  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
-    D &) {} // visit
-
+private:
   Legion::Runtime * legion_runtime_;
   Legion::Context & legion_context_;
   size_t region = 0;
@@ -129,7 +100,7 @@ private:
 }; // struct bind_accessors
 
 /// \}
-} // namespace exec::leg
+} // namespace exec
 } // namespace flecsi
 
 #endif
