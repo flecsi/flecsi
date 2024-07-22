@@ -152,6 +152,10 @@ struct comm {
   }
 };
 
+// This is a workaround for a bug in Cray MPICH.
+#define FLECSI_CRAY_MPICH_WORKAROUND(d)                                        \
+  (MPI_CXX_##d == MPI_DATATYPE_NULL ? MPI_C_##d : MPI_CXX_##d)
+
 // NB: OpenMPI's predefined handles are not constant expressions.
 template<class TYPE>
 auto
@@ -222,18 +226,20 @@ maybe_static() {
     else if constexpr(is_same_v<TYPE, MPI_Count>)
       return MPI_COUNT;
     else if constexpr(is_same_v<TYPE, bool>)
-      return MPI_CXX_BOOL;
+      return FLECSI_CRAY_MPICH_WORKAROUND(BOOL);
   }
   else if constexpr(is_same_v<TYPE, complex<float>>)
-    return MPI_CXX_FLOAT_COMPLEX;
+    return FLECSI_CRAY_MPICH_WORKAROUND(FLOAT_COMPLEX);
   else if constexpr(is_same_v<TYPE, complex<double>>)
-    return MPI_CXX_DOUBLE_COMPLEX;
+    return FLECSI_CRAY_MPICH_WORKAROUND(DOUBLE_COMPLEX);
   else if constexpr(is_same_v<TYPE, complex<long double>>)
-    return MPI_CXX_LONG_DOUBLE_COMPLEX;
+    return FLECSI_CRAY_MPICH_WORKAROUND(LONG_DOUBLE_COMPLEX);
   else if constexpr(is_same_v<TYPE, byte>)
     return MPI_BYTE;
   // else: void
 }
+
+#undef FLECSI_CRAY_MPICH_WORKAROUND
 
 template<class T>
 MPI_Datatype
