@@ -355,6 +355,25 @@ mpich-mpi-clang:
     TOOLCHAIN: "clang@${CLANG_VERSION}"
 
 #------------------------------------------------------------------------------#
+# Build and unit tests for MPI backend with MPICH provider,
+# and Clang compiler toolchain using CUDA
+#------------------------------------------------------------------------------#
+
+mpich-mpi-clang-cuda:
+  stage: MPI backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+
+#------------------------------------------------------------------------------#
 # Documentation
 #------------------------------------------------------------------------------#
 docs_and_format:
@@ -384,6 +403,25 @@ openmpi-mpi-clang:
   variables:
     <<: *openmpi-mpi-debug
     TOOLCHAIN: "clang@${CLANG_VERSION}"
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for MPI backend with OpenMPI provider,
+# and Clang compiler toolchain using CUDA
+#------------------------------------------------------------------------------#
+
+openmpi-mpi-clang-cuda:
+  stage: MPI backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,
@@ -433,6 +471,20 @@ openmpi-poisson-cuda-clang:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
   needs:
     ["openmpi-legion-clang-cuda"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    PARTITIONS: volta-x86
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-cuda-clang:mpi:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["openmpi-mpi-clang-cuda"]
   only:
     - merge_requests
   variables:
