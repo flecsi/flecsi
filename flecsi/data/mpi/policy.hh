@@ -141,11 +141,13 @@ struct storage {
         if(ret.size() < sync.size())
           ret.resize(sync.size());
 
+        auto ret_view = Kokkos::subview(ret.kokkos_view(),
+          std::pair<std::size_t, std::size_t>(0, sync.size()));
+
         // If wo is requested, we don't care what's there, so no need to copy
         if constexpr(AccessPrivilege != partition_privilege_t::wo)
-          Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-            ret.kokkos_view(),
-            sync.kokkos_view());
+          Kokkos::deep_copy(
+            Kokkos::DefaultExecutionSpace{}, ret_view, sync.kokkos_view());
 
         if constexpr(AccessPrivilege == partition_privilege_t::ro)
           current_state = data_sync::both;
@@ -763,9 +765,11 @@ struct copy_engine {
                     type_size);
                 });
 
+              auto gather_view = Kokkos::subview(gather_buffer_device_view,
+                std::pair<std::size_t, std::size_t>(0, n_bytes));
               Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
                 mpi::detail::host_view{send_buffers.back().data(), n_bytes},
-                gather_buffer_device_view);
+                gather_view);
             }},
           source.r->kokkos_view<partition_privilege_t::ro>(data_fid));
 #else
@@ -812,8 +816,10 @@ struct copy_engine {
                      scatter_copy(dst.data(), recv_buffer->data(), dst_indices);
                    },
           [&](const mpi::detail::device_view & dst) {
+            auto scatter_view = Kokkos::subview(scatter_buffer_device_view,
+              std::pair<std::size_t, std::size_t>(0, recv_buffer->size()));
             Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-              scatter_buffer_device_view,
+              scatter_view,
               mpi::detail::host_view{recv_buffer->data(), recv_buffer->size()});
 
             const auto * ghost_indices_device_data =

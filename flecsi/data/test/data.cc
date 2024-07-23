@@ -219,3 +219,32 @@ ragged_mutator_driver() {
 }
 
 util::unit::driver<ragged_mutator_driver> driver2;
+
+#if FLECSI_BACKEND == FLECSI_BACKEND_mpi
+
+int
+storage_test() {
+  UNIT() {
+    mpi::detail::storage s;
+    s.resize(sizeof(int)); // resizes toc and loc
+    *reinterpret_cast<int *>(
+      s.data<exec::task_processor_type_t::loc, partition_privilege_t::rw>()) =
+      2;
+    s.resize(sizeof(int) * 2); // resizes only loc
+
+    // Invoke transfer_return where ret.size() < sync.size()
+    s.data<exec::task_processor_type_t::toc, partition_privilege_t::rw>();
+
+    s.resize(sizeof(int)); // resizes only toc
+    // now size<toc> == 1 and size<loc> == 2,
+    // so this invokes transfer_return where ret.size() > sync.size()
+    EXPECT_EQ(
+      *reinterpret_cast<int *>(
+        s.data<exec::task_processor_type_t::loc, partition_privilege_t::rw>()),
+      2);
+  };
+}
+
+util::unit::driver<storage_test> driver3;
+
+#endif
