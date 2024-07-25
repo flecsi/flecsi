@@ -57,10 +57,7 @@ reduce_vec(intN::accessor<ro> a) {
     };
     EXPECT_EQ(res, 3 * a.get().size());
     EXPECT_EQ(
-      (reduceall(i, up, util::iota_view(0, 4), exec::fold::sum, I, "triangle") {
-        up({i});
-      }).i,
-      6);
+      (reduceall(i, up, 4, exec::fold::sum, I, "triangle") { up({i}); }).i, 6);
   };
 }
 
