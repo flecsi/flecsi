@@ -63,7 +63,6 @@ public:
               << FLOG_COLOR_PLAIN << std::endl;
 #endif
 
-#if defined(FLOG_ENABLE_TAGS)
     // Because active tags are specified at runtime, it is
     // necessary to maintain a map of the compile-time registered
     // tag names to the id that they get assigned after the state
@@ -89,7 +88,6 @@ public:
                   << std::endl;
       }
     }
-#endif // FLOG_ENABLE_TAGS
 
 #if defined(FLOG_ENABLE_MPI)
 
@@ -222,7 +220,6 @@ public:
   }
 
   static bool tag_enabled() {
-#if defined(FLOG_ENABLE_TAGS)
     const std::size_t t = active_tag();
     const bool ret = instance().tag_bitset_.test(t);
 
@@ -231,9 +228,6 @@ public:
               << (ret ? "true" : "false") << FLOG_COLOR_PLAIN << std::endl;
 #endif
     return ret;
-#else
-    return true;
-#endif // FLOG_ENABLE_TAGS
   } // tag_enabled
 
 #if defined(FLOG_ENABLE_MPI)
@@ -301,10 +295,8 @@ private:
 
   static std::optional<state> instance_;
 
-#ifdef FLOG_ENABLE_TAGS
   static task_local<std::size_t> cur_tag;
   std::bitset<tag_bits> tag_bitset_;
-#endif
   static inline std::unordered_map<std::string, size_t> tag_map_;
   static inline std::vector<std::string> tag_names;
 

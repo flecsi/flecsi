@@ -69,7 +69,6 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #if defined(FLECSI_ENABLE_FLOG)
 #define FLOG_STRIP_LEVEL @FLOG_STRIP_LEVEL@
 #cmakedefine01 FLOG_ENABLE_COLOR_OUTPUT
-#cmakedefine FLOG_ENABLE_TAGS
 #cmakedefine FLOG_ENABLE_DEBUG
 #cmakedefine FLOG_ENABLE_MPI
 #define FLOG_SERIALIZATION_INTERVAL @FLOG_SERIALIZATION_INTERVAL@

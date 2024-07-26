@@ -6,10 +6,6 @@ cmake_dependent_option(FLOG_ENABLE_COLOR_OUTPUT
   "Enable colorized flog logging" ON "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_COLOR_OUTPUT)
 
-cmake_dependent_option(FLOG_ENABLE_TAGS "Enable tag groups" ON
-  "ENABLE_FLOG" OFF)
-mark_as_advanced(FLOG_ENABLE_TAGS)
-
 cmake_dependent_option(FLOG_ENABLE_MPI "Enable flog MPI support" ON
   "ENABLE_FLOG" OFF)
 mark_as_advanced(FLOG_ENABLE_MPI)
