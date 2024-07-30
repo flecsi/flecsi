@@ -16,9 +16,10 @@ namespace flecsi::util::unit {
 class test_output_t
 {
 public:
+  static task_local<test_output_t> current_output;
+
   static test_output_t & instance() {
-    static test_output_t g;
-    return g;
+    return *current_output;
   } // instance
 
   std::ostream & get_stream() {
