@@ -75,6 +75,12 @@ auto
 make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
+
+template<class T>
+auto
+make_shared(T && t) {
+  return std::make_shared<T>(std::forward<T>(t));
+}
 } // namespace detail
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
@@ -103,29 +109,28 @@ reduce_internal(Args &&... args) {
   const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
   // We do not generate a separate task_wrapper specialization for each set of
-  // argument types, so they must be erased here (via either serialization or
-  // context_t::mpi_params).  Since an MPI task can use references to the
+  // argument types, so we construct a tuple whose type is independent of the
+  // those types.  Since an MPI task can use references to the
   // original arguments, we have to provide references, which in turn requires
   // separate storage for any objects created by argument conversions (absent
   // excessive variadic aggregate gymnastics to create lifetime-extended
   // temporaries).
-  auto params =
-    detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
-  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
-  std::conditional_t<mpi_task, param_tuple, decltype(params) &&> mpi_params(
-    std::move(params));
 
+  auto params =
+    detail::make_shared(detail::make_parameters<mpi_task, param_tuple>(
+      std::forward<Args>(args)...));
+  prolog<mask_to_processor_type(Attributes)> pro(*params, args...);
+  std::optional<param_tuple> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
     // MPI tasks must be invoked collectively from one task on each rank.
     // We therefore can transmit merely a pointer to a tuple of the arguments.
     // The TaskArgument must be identical on every shard, so use the context.
-    flecsi_context.mpi_params = &mpi_params;
+    flecsi_context.mpi_params = &mpi_params.emplace(std::move(*params));
   }
   else {
-    buf = std::apply(
-      [](const auto &... pp) { return util::serial::put_tuple(pp...); },
-      params);
+    buf =
+      util::serial::put_tuple(flecsi_context.params.return_lease().add(params));
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;

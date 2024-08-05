@@ -146,15 +146,6 @@ namespace detail {
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
-template<class>
-struct tuple_get;
-template<class... TT>
-struct tuple_get<std::tuple<TT...>> {
-  static auto get(const Legion::Task & t) {
-    const auto p = static_cast<const std::byte *>(t.args);
-    return util::serial::get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
-  }
-};
 } // namespace detail
 
 /*!
@@ -247,6 +238,23 @@ detail::register_task() {
   } // if
 }
 
+template<class>
+struct decay_tuple {};
+template<class... TT>
+struct decay_tuple<std::tuple<TT...>> {
+  using type = std::tuple<std::decay_t<TT>...>;
+};
+
+// Creates a new tuple that holds copies or references to the oringal elements
+// in the original tuple that is in shared_ptr to prevent the changes being on
+// every process.
+template<class... PP>
+auto
+bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
+  return std::tuple<
+    std::conditional_t<exec::detail::must_bind_v<PP>, PP, const PP &>...>(tup);
+}
+
 /*!
  The task_wrapper type provides execution
  functions for user and MPI tasks.
@@ -260,8 +268,9 @@ struct task_wrapper {
 
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
-  using param_tuple = typename Traits::arguments_type;
-
+  // reduce_internal had to make actual objects to which our references bind:
+  using param_tuple =
+    typename decay_tuple<typename Traits::arguments_type>::type;
   static constexpr processor LegionProcessor = P;
 
   /*!
@@ -274,8 +283,15 @@ struct task_wrapper {
     Legion::Runtime * runtime) {
 
     // Unpack task arguments
-    auto task_args = detail::tuple_get<param_tuple>::get(*task);
+    auto & flecsi_context = run::context::instance();
+    const auto params_idx = run::get1<std::size_t>(*task);
+    const auto guard = flecsi_context.params.acquire_guard(params_idx);
+    const auto & any_args = *std::any_cast<std::shared_ptr<param_tuple> &>(
+      flecsi_context.params.return_lease().at(params_idx).second);
 
+    // There is a optimization opportunity here to move
+    // the elements instead of copying the last time.
+    auto task_args = bind_tuple(any_args);
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
     const param_buffers buf(task_args, tname);
