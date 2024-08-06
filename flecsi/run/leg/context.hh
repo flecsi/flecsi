@@ -10,8 +10,10 @@
 
 #include <legion.h>
 
+#include <any>
 #include <functional>
 #include <map>
+#include <mutex>
 #include <string_view>
 #include <unordered_map>
 
@@ -42,6 +44,71 @@ inline constexpr Legion::MappingTagID
 /// \}
 /// \}
 } // namespace mapper
+
+class param_locker
+{
+public:
+  using task_idx = std::size_t;
+
+private:
+  using ref_count = flecsi::Color; // number of elements and tasks to be run
+  struct map {
+    std::map<task_idx, std::pair<ref_count, std::any>> map;
+    std::size_t id = 0;
+  };
+
+  std::mutex lock;
+  map params;
+
+public:
+  class lease // thread-safe access
+  {
+    std::unique_lock<std::mutex> lk;
+    map & ref;
+
+  public:
+    lease(param_locker & lkr) : lk(lkr.lock), ref(lkr.params) {}
+
+    auto & at(task_idx i) {
+      return ref.map.at(i);
+    }
+
+    [[nodiscard]] task_idx add(std::any input) {
+      ref.map[ref.id] = {1, input};
+      return ref.id++;
+    }
+
+    // Releases the entry via decrementing its associated reference counter
+    // if counter is zero, erase the entry from map
+    void release(task_idx i) {
+      if(--ref.map.at(i).first == 0) {
+        ref.map.erase(i);
+      }
+    }
+  };
+
+  class guard
+  {
+    task_idx index;
+    param_locker & lk;
+
+  public:
+    guard(task_idx idx, param_locker & lkr_ref) : index(idx), lk(lkr_ref) {}
+    guard(guard &&) = delete;
+
+    ~guard() {
+      lk.return_lease().release(index);
+    }
+  };
+
+  lease return_lease() {
+    return lease(*this);
+  }
+
+  guard acquire_guard(task_idx idx) {
+    return guard(idx, *this);
+  }
+};
 
 namespace leg {
 template<class R = void>
@@ -100,6 +167,8 @@ struct context_t : context {
       ->get_current_task(Legion::Runtime::get_context())
       ->index_domain.get_volume();
   } // colors
+
+  param_locker params;
 
   //--------------------------------------------------------------------------//
   //  MPI interoperability.
