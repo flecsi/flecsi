@@ -254,59 +254,31 @@ public:
   template<typename R, typename Params, typename Task>
   ::hpx::future<R>
   delay_execution(Params && params, std::string task_name, Task && task) && {
+    auto f = [regions_partitions = std::move(regions_partitions),
+               task = std::forward<Task>(task),
+               params = std::forward<Params>(params),
+               task_name = std::move(task_name)](auto && deps) mutable {
+      // manage task_local variables for this task
+      run::task_local_base::guard tlg;
 
-    ::hpx::future<R> result;
-    if(dependencies.empty()) {
-      // asynchronously execute task right away as no dependencies have to be
-      // taken into account
-      result =
-        unwrap(::hpx::async([regions_partitions = std::move(regions_partitions),
-                              task = std::forward<Task>(task),
-                              params = std::forward<Params>(params),
-                              task_name = std::move(task_name)]() mutable {
-          // manage task_local variables for this task
-          run::task_local_base::guard tlg;
+      // annotate new HPX thread
+      ::hpx::scoped_annotation _(task_name);
 
-          // annotate new HPX thread
-          ::hpx::scoped_annotation _(task_name);
+      // set up execution environment
+      auto finalize = param_buffers(params, task_name);
 
-          // set up execution environment
-          auto finalize = param_buffers(params, task_name);
+      // rethrow exceptions propagated from dependencies
+      for(auto && f : std::forward<decltype(deps)>(deps))
+        f.get();
 
-          // invoke actual task, 'regions_partitions' needs to outlive the task
-          // execution
-          return task(regions_partitions, std::move(params));
-        }));
-    }
-    else {
-      // delay execution to start only after all dependencies have been
-      // satisfied
-      result = unwrap(::hpx::dataflow(
-        [regions_partitions = std::move(regions_partitions),
-          task = std::forward<Task>(task),
-          params = std::forward<Params>(params),
-          task_name = std::move(task_name)](auto && deps) mutable {
-          // manage task_local variables for this task
-          run::task_local_base::guard tlg;
-
-          // annotate new HPX thread
-          ::hpx::scoped_annotation _(task_name);
-
-          // set up execution environment
-          auto finalize = param_buffers(params, task_name);
-
-          // rethrow exceptions propagated from dependencies
-          for(auto && f : std::forward<decltype(deps)>(deps))
-            f.get();
-
-          // invoke actual task, 'regions_partitions' needs to outlive the task
-          // execution
-          return task(regions_partitions, std::move(params));
-        },
-        std::move(dependencies)));
-    }
-
-    return std::move(*this).attach_dependencies(std::move(result));
+      // invoke actual task, 'regions_partitions' needs to outlive the task
+      // execution
+      return task(regions_partitions, std::move(params));
+    };
+    return std::move(*this).attach_dependencies(
+      unwrap(dependencies.empty()
+               ? ::hpx::async(std::move(f), std::move(dependencies))
+               : ::hpx::dataflow(std::move(f), std::move(dependencies))));
   }
 
 private:
