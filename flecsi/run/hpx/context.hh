@@ -108,18 +108,11 @@ struct task_local_data {
   }
 
   constexpr bool outermost() const noexcept {
-#if HPX_VERSION_FULL >= 0x011000
     return count == 1;
-#else
-    return true;
-#endif
   }
 
   std::map<void *, void *> data;
-
-#if HPX_VERSION_FULL >= 0x011000
   std::int16_t count = 1;
-#endif
 };
 
 // manage task local storage for this task
