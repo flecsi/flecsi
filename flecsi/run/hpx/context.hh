@@ -104,7 +104,10 @@ struct task_local_data {
   }
 
   auto find(void * key) noexcept {
-    return data.find(key);
+    auto ret = data.find(key);
+    flog_assert(
+      ret != data.end(), "task local storage element should have been created");
+    return ret;
   }
 
   constexpr bool outermost() const noexcept {
@@ -140,8 +143,6 @@ private:
   void reset() noexcept override {
     auto * stg = detail::storage();
     auto it = stg->find(this);
-    flog_assert(
-      it != stg->end(), "task local storage element should have been created");
     if(stg->outermost()) {
       delete static_cast<T *>((*it).second);
       (*it).second = nullptr;
@@ -155,11 +156,7 @@ private:
   }
 
   T * get() noexcept {
-    auto * stg = detail::storage();
-    auto it = stg->find(this);
-    flog_assert(
-      it != stg->end(), "task local storage element should have been created");
-    return static_cast<T *>((*it).second);
+    return static_cast<T *>(detail::storage()->find(this)->second);
   }
 };
 } // namespace flecsi
