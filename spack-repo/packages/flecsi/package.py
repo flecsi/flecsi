@@ -21,3 +21,6 @@ class Flecsi(Flecsi):
     version(flecsi_version, **flecsi_selector)
 
     conflicts('^hpx networking=tcp', when='backend=hpx')
+
+    # remove once spack/spack has been updated and new upstream uses it
+    requires("+kokkos")

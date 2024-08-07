@@ -28,7 +28,6 @@ namespace local {
 /// \{
 namespace detail {
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 using host_view = Kokkos::
   View<std::byte *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
@@ -46,9 +45,8 @@ using device_const_view = Kokkos::View<const std::byte *,
 
 using view_variant = std::variant<host_view, device_view>;
 using const_view_variant = std::variant<host_const_view, device_const_view>;
-#endif
 
-struct buffer {
+struct buffer_impl_loc {
   inline static constexpr exec::task_processor_type_t location =
     exec::task_processor_type_t::loc;
 
@@ -60,7 +58,6 @@ struct buffer {
     return v.size();
   }
 
-#if defined(FLECSI_ENABLE_KOKKOS)
   auto kokkos_view() {
     return host_view{v.data(), v.size()};
   }
@@ -68,7 +65,6 @@ struct buffer {
   auto kokkos_view() const {
     return host_const_view{v.data(), v.size()};
   }
-#endif
 
   void resize(std::size_t size) {
     v.resize(size);
@@ -77,9 +73,6 @@ struct buffer {
 private:
   std::vector<std::byte> v;
 };
-
-#if defined(FLECSI_ENABLE_KOKKOS)
-using buffer_impl_loc = buffer;
 
 struct buffer_impl_toc {
   inline static constexpr exec::task_processor_type_t location =
@@ -238,18 +231,6 @@ private:
   buffer_impl_loc loc_buffer;
   buffer_impl_toc toc_buffer;
 };
-
-#else // !defined(FLECSI_ENABLE_KOKKOS)
-
-struct storage : buffer {
-  template<exec::task_processor_type_t ProcessorType,
-    partition_privilege_t AccessPrivilege>
-  privilege_const<std::byte, AccessPrivilege> * data() {
-    return buffer::data();
-  }
-};
-
-#endif // defined(FLECSI_ENABLE_KOKKOS)
 
 template<typename T>
 struct typed_storage {

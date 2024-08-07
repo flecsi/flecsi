@@ -61,12 +61,9 @@ if(@ENABLE_HPX@)
   find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 endif()
 
-
-if(@ENABLE_KOKKOS@)
-  include(FleCSI/kokkos)
-  find_package(Kokkos COMPONENTS separable_compilation REQUIRED)
-  _flecsi_check_kokkos_compiler()
-endif()
+include(FleCSI/kokkos)
+find_package(Kokkos COMPONENTS separable_compilation REQUIRED)
+_flecsi_check_kokkos_compiler()
 
 if(NOT "@CALIPER_DETAIL@" STREQUAL "none")
   find_package(caliper REQUIRED)

@@ -61,13 +61,13 @@ variables:
 # Common build variants
 #------------------------------------------------------------------------------#
 .mpich-legion-kokkos-debug: &mpich-legion-kokkos-debug
-  VARIANTS: "backend=legion build_type=Debug +flog caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL} ^mpich"
+  VARIANTS: "backend=legion build_type=Debug +flog caliper_detail=low +graphviz +hdf5 ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL} ^mpich"
 
 .openmpi-mpi-debug: &openmpi-mpi-debug
-  VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 ^openmpi"
+  VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 ^${KOKKOS_SERIAL} ^openmpi"
 
 .openmpi-hpx-debug: &openmpi-hpx-debug
-  VARIANTS: "backend=hpx build_type=Debug +flog ^openmpi ^hpx build_type=Debug"
+  VARIANTS: "backend=hpx build_type=Debug +flog ^hpx build_type=Debug ^${KOKKOS_SERIAL} ^openmpi"
 
 include: .gitlab/templates.yml
 
@@ -129,7 +129,7 @@ mpich-defaults:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion +flog ^${LEGION_IBV} ^mpich"
+    VARIANTS: "backend=legion +flog ^${LEGION_IBV} ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -157,7 +157,7 @@ mpich-hpx-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz +kokkos ^${KOKKOS_SERIAL} ^mpich ^hpx build_type=Debug"
+    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz ^${KOKKOS_SERIAL} ^mpich ^hpx build_type=Debug"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -171,7 +171,7 @@ mpich-legion-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 mpich-hpx-gnu:release:
@@ -184,7 +184,7 @@ mpich-hpx-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=hpx +flog +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=hpx +flog ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -200,7 +200,7 @@ mpich-mpi-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 mpich-mpi-gnu:release:
@@ -213,7 +213,7 @@ mpich-mpi-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=mpi +flog +hdf5 +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=mpi +flog +hdf5 ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -311,7 +311,7 @@ openmpi-legion-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 ^${LEGION_IBV} build_type=Debug ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 ^${LEGION_IBV} build_type=Debug ^${KOKKOS_SERIAL} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 openmpi-legion-gnu:release:
@@ -324,7 +324,7 @@ openmpi-legion-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} ^openmpi"
+    VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} ^${KOKKOS_SERIAL} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -369,7 +369,7 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -383,7 +383,7 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -415,7 +415,7 @@ openmpi-mpi-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=mpi +flog +hdf5 ^openmpi"
+    VARIANTS: "backend=mpi +flog +hdf5 ^${KOKKOS_SERIAL} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 
@@ -443,7 +443,7 @@ mpich-hpx-clang:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz ^mpich ^hpx build_type=Debug"
+    VARIANTS: "backend=hpx build_type=Debug caliper_detail=low +flog +graphviz ^hpx build_type=Debug ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -460,7 +460,7 @@ mpich-mpi-clang:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -508,7 +508,7 @@ openmpi-mpi-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
@@ -528,7 +528,7 @@ openmpi-legion-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"

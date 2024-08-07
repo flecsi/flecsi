@@ -44,28 +44,6 @@ struct copy_engine : local::copy_engine {
 
     auto type_size = source.r->get_field_info(data_fid)->type_size;
 
-    auto gather_copy =
-      [type_size](std::byte * dst,
-        const std::byte * src,
-        const local::detail::typed_storage<index_type> & src_indices) {
-        for(std::size_t i = 0; i < src_indices.size(); i++) {
-          std::memcpy(dst + i * type_size,
-            src + src_indices.data()[i] * type_size,
-            type_size);
-        }
-      };
-
-    auto scatter_copy =
-      [type_size](std::byte * dst,
-        const std::byte * src,
-        const local::detail::typed_storage<index_type> & dst_indices) {
-        for(std::size_t i = 0; i < dst_indices.size(); i++) {
-          std::memcpy(dst + dst_indices.data()[i] * type_size,
-            src + i * type_size,
-            type_size);
-        }
-      };
-
     std::vector<std::vector<std::byte>> recv_buffers;
 
     {
@@ -89,14 +67,19 @@ struct copy_engine : local::copy_engine {
         auto n_bytes = n_elements * type_size;
         send_buffers.emplace_back(n_bytes);
 
-#if defined(FLECSI_ENABLE_KOKKOS)
         // We can not capture shared_indices in the overloaded lambda inside
         // std::visit directly
         const auto & src_indices = shared_indices;
         std::visit(
-          overloaded{[&](const local::detail::host_const_view & src) {
-                       gather_copy(
-                         send_buffers.back().data(), src.data(), src_indices);
+          overloaded{[&](const local::detail::host_const_view & src_view) {
+                       std::byte * dst = send_buffers.back().data();
+                       const std::byte * src = src_view.data();
+
+                       for(std::size_t i = 0; i < src_indices.size(); i++) {
+                         std::memcpy(dst + i * type_size,
+                           src + src_indices.data()[i] * type_size,
+                           type_size);
+                       }
                      },
             [&](const local::detail::device_const_view & src) {
               // copy shared indices from host to device
@@ -126,15 +109,6 @@ struct copy_engine : local::copy_engine {
                 gather_buffer_device_view);
             }},
           source.r->kokkos_view<partition_privilege_t::ro>(data_fid));
-#else
-        gather_copy(send_buffers.back().data(),
-          source.r
-            ->get_storage<std::byte,
-              exec::task_processor_type_t::loc,
-              partition_privilege_t::ro>(data_fid, max_local_source_idx)
-            .data(),
-          shared_indices);
-#endif
 
         test(MPI_Isend(send_buffers.back().data(),
           int(send_buffers.back().size()),
@@ -149,14 +123,20 @@ struct copy_engine : local::copy_engine {
     // copy from intermediate receive buffer to destination storage
     auto recv_buffer = recv_buffers.begin();
     for(const auto & [src_rank, ghost_indices] : ghost_entities) {
-#if defined(FLECSI_ENABLE_KOKKOS)
       auto n_elements = ghost_indices.size();
       // We can not capture ghost_indices in the overloaded lambda inside
       // std::visit directly
       const auto & dst_indices = ghost_indices;
       std::visit(
-        overloaded{[&](const local::detail::host_view & dst) {
-                     scatter_copy(dst.data(), recv_buffer->data(), dst_indices);
+        overloaded{[&](const local::detail::host_view & dst_view) {
+                     std::byte * dst = dst_view.data();
+                     const std::byte * src = recv_buffer->data();
+
+                     for(std::size_t i = 0; i < dst_indices.size(); i++) {
+                       std::memcpy(dst + dst_indices.data()[i] * type_size,
+                         src + i * type_size,
+                         type_size);
+                     }
                    },
           [&](const local::detail::device_view & dst) {
             // get the ghost indices from the device
@@ -186,13 +166,6 @@ struct copy_engine : local::copy_engine {
               });
           }},
         destination.kokkos_view<partition_privilege_t::wo>(data_fid));
-#else
-      scatter_copy(
-        destination.get_storage<std::byte, partition_privilege_t::wo>(data_fid)
-          .data(),
-        recv_buffer->data(),
-        ghost_indices);
-#endif
       recv_buffer++;
     }
   }

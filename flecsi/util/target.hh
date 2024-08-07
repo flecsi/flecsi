@@ -10,10 +10,9 @@
 /// \{
 
 //----------------------------------------------------------------------------//
-// Pickup Kokkos defines if enabled.
+// Pickup Kokkos defines
 //----------------------------------------------------------------------------//
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>
 
 /// Make a function available on a GPU.
@@ -36,20 +35,6 @@
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define FLECSI_DEVICE_CODE
-#endif
-
-#endif // FLECSI_ENABLE_KOKKOS
-
-//----------------------------------------------------------------------------//
-// Defaults.
-//----------------------------------------------------------------------------//
-
-#if !defined(FLECSI_TARGET)
-#define FLECSI_TARGET
-#endif
-
-#if !defined(FLECSI_INLINE_TARGET)
-#define FLECSI_INLINE_TARGET inline
 #endif
 
 /// \}

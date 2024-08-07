@@ -104,9 +104,8 @@ Flog (FleCSI logging utility) options
 Parallelization options
 -----------------------
 
-* **ENABLE_KOKKOS [default: OFF]** |br|
-  If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
-  thread-level parallelism and GPU support.
+* **ENABLE_KOKKOS** |br|
+  This **deprecated** option is ignored for compatibility.
 
 * **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
   This option is a fall-back for codes that actually require the MPI C++

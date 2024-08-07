@@ -9,13 +9,7 @@
 namespace flecsi::run {
 
 dependencies_guard::dependencies_guard(dependencies_config d)
-  : mpi(d.mpi.size(), pointers(d.mpi).data())
-#ifdef FLECSI_ENABLE_KOKKOS
-    ,
-    kokkos(d.kokkos)
-#endif
-{
-}
+  : mpi(d.mpi.size(), pointers(d.mpi).data()), kokkos(d.kokkos) {}
 
 local::context::context(const config_base & c)
   : run::context(c, util::mpi::size(), util::mpi::rank()) {}
