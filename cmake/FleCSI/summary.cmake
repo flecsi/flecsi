@@ -17,7 +17,7 @@ macro(flecsi_summary_header)
 endmacro()
 
 macro(flecsi_summary_info name info allow_split)
-  if(NOT ${info} STREQUAL "")
+  if(NOT "${info}" STREQUAL "")
     string(REPLACE " " ";" split ${info})
     list(LENGTH split split_length)
     string(LENGTH ${name} name_length)
