@@ -1,10 +1,6 @@
 #include "flecsi/run/mpi/context.hh"
 #include "flecsi/data.hh"
 
-#if defined(FLECSI_ENABLE_KOKKOS)
-#include <Kokkos_Core.hpp>
-#endif
-
 namespace flecsi::run {
 
 //----------------------------------------------------------------------------//

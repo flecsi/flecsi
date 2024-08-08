@@ -82,12 +82,10 @@ struct region_impl {
     return storages.at(fid);
   }
 
-#if defined(FLECSI_ENABLE_KOKKOS)
   template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
   auto kokkos_view(field_id_t fid) {
     return storages.at(fid).kokkos_view<AccessPrivilege>();
   }
-#endif
 
   auto get_field_info(field_id_t fid) const {
     for(auto & f : fs) {
@@ -357,12 +355,10 @@ private:
     return (*r)[fid];
   }
 
-#if defined(FLECSI_ENABLE_KOKKOS)
   template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
   auto kokkos_view(field_id_t fid) const {
     return r->kokkos_view<AccessPrivilege>(fid);
   }
-#endif
 
   local::region_impl * r;
 

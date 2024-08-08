@@ -25,6 +25,18 @@ Possible incompatibilities
 Changes in v2.4.0
 +++++++++++++++++
 
+Possible incompatibilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Build
+
+  * Kokkos is now a required build dependency.
+
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * ``ENABLE_KOKKOS`` |mdash| is ignored.
+
 New features
 ^^^^^^^^^^^^
 * Topologies

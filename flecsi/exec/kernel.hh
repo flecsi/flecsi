@@ -9,16 +9,8 @@
 #include "flecsi/exec/fold.hh"
 #include "flecsi/util/array_ref.hh"
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 #include <Kokkos_Core.hpp>
 #define FLECSI_LAMBDA KOKKOS_LAMBDA
-#elif defined(FLECSI_ENABLE_HPX)
-#include <hpx/algorithm.hpp>
-#include <hpx/execution.hpp>
-#define FLECSI_LAMBDA [=] FLECSI_TARGET
-#else
-#define FLECSI_LAMBDA [=] FLECSI_TARGET
-#endif
 
 #if defined(__HIPCC__)
 
@@ -31,12 +23,11 @@ namespace flecsi {
 namespace exec {
 /// \defgroup kernel Kernels
 /// Local concurrent operations.
-/// If Kokkos is not available, they simply execute serially.
+/// They use the default Kokkos execution space.
 /// To avoid unnecessary copies, one needs to pass a view since the ranges
 /// provided by the user are copied.
 /// \ingroup execution
 /// \{
-#if defined(FLECSI_ENABLE_KOKKOS)
 namespace kok {
 
 template<class R, class T>
@@ -104,27 +95,19 @@ struct reducer_trait<R,
 template<class R, class T>
 using reducer_t = typename reducer_trait<R, T>::type;
 } // namespace kok
-#endif
 
 struct policy_tag {};
 
-#if defined(FLECSI_ENABLE_KOKKOS)
 template<class... PP>
 using policy_type = Kokkos::RangePolicy<Kokkos::IndexType<util::id>, PP...>;
-#endif
 
 template<typename Range, int T = 0, int B = 0>
 struct range_policy : policy_tag {
   range_policy(Range r) : range(std::move(r)) {}
-#if defined(FLECSI_ENABLE_KOKKOS)
   using Policy = std::conditional_t<T == 0 && B == 0,
     policy_type<>,
     policy_type<Kokkos::LaunchBounds<T, B>>>;
   using index = typename Policy::member_type;
-#else
-  typedef util::id index;
-  using Policy = util::iota_view<index>;
-#endif
   auto get_policy() {
     return Policy(0, range.size());
   }
@@ -251,32 +234,12 @@ void
 parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
-#if defined(FLECSI_ENABLE_KOKKOS)
     Kokkos::parallel_for(name,
       policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
         f(it.begin()[i]);
       });
-#elif defined(FLECSI_ENABLE_HPX)
-    if(name.empty()) {
-      hpx::experimental::for_loop(
-        hpx::execution::par, 0, policy_type.size(), [&lambda, &p](auto i) {
-          lambda(p.range.begin()[i]);
-        });
-    }
-    else {
-      hpx::experimental::for_loop(hpx::execution::experimental::with_annotation(
-                                    hpx::execution::par, name),
-        0,
-        policy_type.size(),
-        [&lambda, &p](auto i) { lambda(p.range.begin()[i]); });
-    }
-#else
-    (void)name;
-    for(auto i : policy_type)
-      lambda(p.range.begin()[i]);
-#endif
   }
   else {
     parallel_for(range_policy(std::forward<Policy>(p)),
@@ -329,47 +292,15 @@ template<class R, class T, typename Policy, typename Lambda>
 parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
   if constexpr(std::is_base_of_v<policy_tag, std::remove_reference_t<Policy>>) {
     auto policy_type = p.get_policy(); // before moving
-    using ref = detail::reduce_ref<R, T>;
-#if defined(FLECSI_ENABLE_KOKKOS)
     T res;
     Kokkos::parallel_reduce(
       name,
       policy_type,
       [it = std::forward<Policy>(p).range,
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i, T & tmp) {
-        f(it.begin()[i], ref{tmp});
+        f(it.begin()[i], detail::reduce_ref<R, T>{tmp});
       },
       kok::reducer_t<R, T>(res));
-#else
-    T res = detail::identity_traits<R>::template value<T>;
-#if defined(FLECSI_ENABLE_HPX)
-    auto red =
-      hpx::experimental::reduction(res, res, [](auto const & r, auto & acc) {
-        ref{acc}(r);
-        return acc;
-      });
-    auto f = [&lambda, &p](
-               auto i, T & acc) { lambda(p.range.begin()[i], ref{acc}); };
-
-    if(name.empty()) {
-      hpx::experimental::for_loop(
-        hpx::execution::par, 0, policy_type.size(), red, f);
-    }
-    else {
-      hpx::experimental::for_loop(hpx::execution::experimental::with_annotation(
-                                    hpx::execution::par, name),
-        0,
-        policy_type.size(),
-        red,
-        f);
-    }
-#else
-    (void)name;
-    ref r{res};
-    for(auto i : policy_type)
-      lambda(p.range.begin()[i], r);
-#endif
-#endif
     return res;
   }
   else {

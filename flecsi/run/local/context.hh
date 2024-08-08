@@ -16,9 +16,7 @@ struct dependencies_guard {
 
 private:
   util::mpi::init mpi;
-#ifdef FLECSI_ENABLE_KOKKOS
   Kokkos::ScopeGuard kokkos;
-#endif
 };
 
 namespace local {
