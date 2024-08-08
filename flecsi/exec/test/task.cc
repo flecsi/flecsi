@@ -43,6 +43,8 @@ simple(TYPE arg) {
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
+void
+moveTask(const std::unique_ptr<int> &) {}
 template<class T, class F>
 void
 seq(const T & s, F f) {
@@ -198,6 +200,10 @@ task_driver() {
       auto g = t1.make_guard();
       execute<hydro::simple<float>>(6.2);
     }
+
+    const float obj = 8.9;
+    execute<hydro::simple<const float *>>(&obj);
+    execute<hydro::moveTask>(std::make_unique<int>());
   };
 } // task_driver
 
