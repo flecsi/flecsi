@@ -38,6 +38,7 @@ New features
 ^^^^^^^^^^^^
 * Execution
 
+  * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
 
 * Topologies

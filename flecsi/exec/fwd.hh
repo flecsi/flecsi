@@ -16,10 +16,7 @@ namespace flecsi {
 /*!
   Execute a reduction task.
 
-  @tparam Task       The user task.
   @tparam Reduction  The reduction operation type.
-  @tparam Attributes The task attributes mask.
-  @tparam Args       The user-specified task arguments.
   \return a \ref future providing the reduced return value
 
   \see \c execute about parameter and argument types.
@@ -34,7 +31,8 @@ template<auto & Task,
   Execute a task.
 
   @tparam TASK          The user task.
-    Its parameters must support \ref serial.
+    Its parameters must be copyable or a reference to a const, movable type.
+    Any that is a pointer must be to a const type or to a function.
     If \a ATTRIBUTES specifies an MPI task, parameters need merely be movable.
   @tparam ATTRIBUTES    The task attributes mask.
   @tparam ARGS The user-specified task arguments, implicitly converted to the
@@ -46,12 +44,8 @@ template<auto & Task,
     std::tuple that includes such a type; it accepts a \c std::vector of or a
     \c std::tuple including the corresponding argument type.
   \return a \ref future providing the value(s) returned from the task
-
-  \note
-    Avoid
-    passing large objects to tasks repeatedly; use global variables (and,
-    perhaps, pass keys to select from them) or fields.
  */
+
 template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
   typename... ARGS>

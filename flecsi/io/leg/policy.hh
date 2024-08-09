@@ -197,6 +197,8 @@ struct io_interface {
     for(auto & isd : isd_vector) {
       field_size_map_vector.emplace_back(make_field_size_map(isd.fields));
     }
+    // These arguments passed manually are the wrong size to cause the mapper
+    // to try to manage them as user task parameters.
     const auto task_args = serial::buffer([&](auto & p) {
       serial::put(p, field_size_map_vector);
       serial::put(p, file_name);

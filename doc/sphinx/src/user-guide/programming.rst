@@ -8,11 +8,7 @@ Data
 ++++
 Between any two tasks, field data may be relocated to another memory space.
 Any pointer (or reference) that is or points to (any subobject of) a field element is thereby invalidated.
-
-A task need not execute in the same memory space as its caller, so task arguments must be serialized and cannot contain external pointers or references.
-
-Data that is neither stored a field nor suitable for serialization (perhaps because it is large) must therefore typically be stored in global variables.
-A field might contain an index to select a value from such a data structure instead of a pointer.
+A field might instead contain an index to select a value from a data structure pointed to by a task parameter.
 
 Even a ``toc`` task executes on the host, but its accessors are references to field data stored on the device.
 Those accessors are copied into the kernels launched by the task (with ``forall`` or similar), which run on the device and can thus use them.
@@ -40,7 +36,7 @@ The execution of ``mpi`` tasks (regardless of backend) is more predictable than 
 
 #. Because they always run one point task in each process, with access to the color corresponding to its MPI rank, no data relocation is needed between two MPI tasks.
    Therefore, fields used *only* by MPI tasks may use non-trivial data types (although resizing the field can still invalidate pointers).
-#. Because they additionally run synchronously, their parameters may be of any type, including writable references.
+#. Because they additionally run synchronously, their parameters may be references or pointers to non-const objects.
 #. Because additionally no other point tasks are executed concurrently with them, they can access global data without race conditions.
 #. The resulting concurrent forward progress guarantee makes it valid for them to perform MPI communication (including via ``MPI_COMM_WORLD``).
    (Their field data is stored on the host and thus may be accessed directly by MPI.)

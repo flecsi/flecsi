@@ -232,10 +232,8 @@ This includes that the arguments passed to tasks must be identical across shards
 Task launches
 ^^^^^^^^^^^^^
 
-In general, task parameters must be serializable (as supported by ``util/serialize.hh``), since (when it is in use) Legion may execute tasks on other memory spaces and passes arguments to them only as byte arrays.
+In general, task parameters must be movable and if they are not references they must be copyable.
 However, special conversions are first applied to certain arguments like field references recognized via the ``replace_argument`` mechanism in ``launch.hh``.
-For all types, all task parameters exist on the caller side, though perhaps only long enough to be serialized.
-The ``partial`` class template is provided to allow a partial function application (as often implemented using a lambda expression) to be passed as a task argument.
 
 In addition to converting arguments that identify resources, those resources are recruited for the task's use.
 For fields, this involves identifying the responsible ``partition`` from the topology on the caller side.

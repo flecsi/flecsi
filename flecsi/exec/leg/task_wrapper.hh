@@ -130,12 +130,10 @@ struct decay_tuple<std::tuple<TT...>> {
   using type = std::tuple<std::decay_t<TT>...>;
 };
 
-// Creates a new tuple that holds copies or references to the oringal elements
-// in the original tuple that is in shared_ptr to prevent the changes being on
-// every process.
 template<class... PP>
 auto
 bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
+  // Copy only those elements that need to be modified per point task:
   return std::tuple<
     std::conditional_t<exec::detail::must_bind_v<PP>, PP, const PP &>...>(tup);
 }

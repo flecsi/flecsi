@@ -266,7 +266,6 @@ struct partial : std::tuple<AA...> {
 /// \{
 
 /// Partially apply a function.
-/// Lambdas and \c bind objects may not in general be passed to tasks.
 /// \tparam F function to call
 /// \tparam AA serializable types
 /// \return a function object that can be an argument to a task
