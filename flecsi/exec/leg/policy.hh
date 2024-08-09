@@ -156,7 +156,7 @@ reduce_internal(Args &&... args) {
     add(launcher);
 
     return future<return_t>{
-      legion_runtime->execute_task(legion_context, launcher)};
+      {}, legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
     IndexTaskLauncher launcher(task,
@@ -173,7 +173,7 @@ reduce_internal(Args &&... args) {
     }
 
     if constexpr(!std::is_void_v<Reduction>) {
-      auto ret = future<return_t, launch_type_t::single>{
+      auto ret = future<return_t, launch_type_t::single>{{},
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
       if(mpi_task)

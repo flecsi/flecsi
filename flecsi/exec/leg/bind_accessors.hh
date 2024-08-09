@@ -86,7 +86,7 @@ protected:
    *--------------------------------------------------------------------------*/
   template<typename D>
   void visit(future<D> & f) {
-    f = {futures_[future_id++]};
+    f.legion_future_ = futures_[future_id++];
   }
 
 private:

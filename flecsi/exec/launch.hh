@@ -18,7 +18,9 @@ namespace flecsi {
 namespace data {
 // Types inherit from these tags to indicate their task execution semantics.
 
-struct bind_tag {}; // must be recognized as a task parameter
+// A task parameter that needs additional initialization after the task has
+// been launched.
+struct bind_tag {};
 // A task parameter that provides a member function send to decompose itself
 // into lower-level types.  Its one argument is a backend-specific callback
 // that accepts a (subsidiary) task parameter and another function to call to

@@ -70,6 +70,9 @@ struct param_buffers : bind_base<param_buffers> {
 
   template<class Topo, Privileges P>
   void visit(data::topology_accessor<Topo, P> &) {}
+
+  template<class T>
+  void visit(future<T> &) {}
 };
 } // namespace detail
 
