@@ -143,7 +143,6 @@ mpich-legion-gnu:
   variables:
     <<: *mpich-legion-kokkos-debug
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    PARTITIONS: skylake-gold
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -203,7 +202,7 @@ mpich-tutorial:legion:
     LABEL: tutorial
     STDIR: tutorial
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-flaxpy:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -215,7 +214,7 @@ mpich-flaxpy:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/flaxpy
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-poisson:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -227,7 +226,7 @@ mpich-poisson:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
