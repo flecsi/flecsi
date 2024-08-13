@@ -10,7 +10,6 @@
 
 #include <legion.h>
 
-#include <any>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -52,6 +51,51 @@ inline constexpr Legion::MappingTagID
 /// \}
 } // namespace mapper
 
+// A move-only subset of std::any.
+struct any_base {
+  virtual ~any_base() = default;
+  virtual void * get(const std::type_info &) = 0;
+};
+
+template<class T>
+struct any_impl : any_base {
+  any_impl(T t) : t(std::move(t)) {}
+  void * get(const std::type_info & i) override {
+    if(i != typeid(T))
+      throw std::bad_cast();
+    return &t;
+  }
+  T t;
+};
+
+struct any {
+  template<class T>
+  std::decay_t<T> & emplace(T && t) {
+    auto * const q = new any_impl<std::decay_t<T>>(std::forward<T>(t));
+    p.reset(q);
+    return q->t;
+  }
+
+  explicit operator bool() const {
+    return !!p;
+  }
+  template<class T>
+  T & get() {
+    return *static_cast<T *>(p->get(typeid(T)));
+  }
+  template<class T>
+  const T & get() const {
+    return const_cast<any &>(*this).get<T>();
+  }
+  template<class T>
+  T && get() && {
+    return std::move(get<T>());
+  }
+
+private:
+  std::unique_ptr<any_base> p;
+};
+
 class param_locker
 {
 public:
@@ -60,7 +104,7 @@ public:
 private:
   using ref_count = flecsi::Color; // number of elements and tasks to be run
   struct map {
-    std::map<task_idx, std::pair<ref_count, std::any>> map;
+    std::map<task_idx, std::pair<ref_count, any>> map;
     std::size_t id = 0;
   };
 
@@ -80,8 +124,8 @@ public:
       return ref.map.at(i);
     }
 
-    [[nodiscard]] task_idx add(std::any input) {
-      ref.map[ref.id] = {1, input};
+    [[nodiscard]] task_idx add(any && input) {
+      ref.map.try_emplace(ref.id, 1, std::move(input));
       return ref.id++;
     }
 

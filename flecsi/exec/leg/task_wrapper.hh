@@ -169,8 +169,9 @@ struct task_wrapper {
     auto & flecsi_context = run::context::instance();
     const auto params_idx = run::get1<std::size_t>(*task);
     const auto guard = flecsi_context.params.acquire_guard(params_idx);
-    const auto & any_args = *std::any_cast<std::shared_ptr<param_tuple> &>(
-      flecsi_context.params.return_lease().at(params_idx).second);
+    const auto & any_args = flecsi_context.params.return_lease()
+                              .at(params_idx)
+                              .second.get<param_tuple>();
 
     // There is a optimization opportunity here to move
     // the elements instead of copying the last time.

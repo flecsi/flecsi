@@ -75,12 +75,6 @@ auto
 make_parameters(AA &&... aa) {
   return make_parameters<M>(static_cast<P *>(nullptr), std::forward<AA>(aa)...);
 }
-
-template<class T>
-auto
-make_shared(T && t) {
-  return std::make_shared<T>(std::forward<T>(t));
-}
 } // namespace detail
 
 template<auto & F, class Reduction, TaskAttributes Attributes, typename... Args>
@@ -116,21 +110,21 @@ reduce_internal(Args &&... args) {
   // excessive variadic aggregate gymnastics to create lifetime-extended
   // temporaries).
 
-  auto params =
-    detail::make_shared(detail::make_parameters<mpi_task, param_tuple>(
-      std::forward<Args>(args)...));
-  prolog<mask_to_processor_type(Attributes)> pro(*params, args...);
+  run::any any;
+  auto & params = any.emplace(detail::make_parameters<mpi_task, param_tuple>(
+    std::forward<Args>(args)...));
+  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
   std::optional<param_tuple> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
     // MPI tasks must be invoked collectively from one task on each rank.
     // We therefore can transmit merely a pointer to a tuple of the arguments.
     // The TaskArgument must be identical on every shard, so use the context.
-    flecsi_context.mpi_params = &mpi_params.emplace(std::move(*params));
+    flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
   }
   else {
-    buf =
-      util::serial::put_tuple(flecsi_context.params.return_lease().add(params));
+    buf = util::serial::put_tuple(
+      flecsi_context.params.return_lease().add(std::move(any)));
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;
