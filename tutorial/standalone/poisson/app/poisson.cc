@@ -18,9 +18,12 @@ main(int argc, char ** argv) {
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
   flecsi::run::config cfg;
-#if FLECSI_BACKEND == FLECSI_BACKEND_legion &&                                 \
-  (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP))
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   cfg.legion = {"", "-ll:gpu", "1"};
+#elif defined(KOKKOS_ENABLE_OPENMP)
+  cfg.legion = {"", "-ll:ocpu", "1", "-ll:onuma", "0"};
+#endif
 #endif
   const flecsi::runtime run(cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
