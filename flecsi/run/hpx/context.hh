@@ -104,22 +104,18 @@ struct task_local_data {
   }
 
   auto find(void * key) noexcept {
-    return data.find(key);
+    auto ret = data.find(key);
+    flog_assert(
+      ret != data.end(), "task local storage element should have been created");
+    return ret;
   }
 
   constexpr bool outermost() const noexcept {
-#if HPX_VERSION_FULL >= 0x011000
     return count == 1;
-#else
-    return true;
-#endif
   }
 
   std::map<void *, void *> data;
-
-#if HPX_VERSION_FULL >= 0x011000
   std::int16_t count = 1;
-#endif
 };
 
 // manage task local storage for this task
@@ -127,36 +123,6 @@ void create_storage();
 task_local_data * storage() noexcept;
 void reset_storage() noexcept;
 
-template<typename T>
-void
-add(void * key) {
-  [[maybe_unused]] auto p = storage()->emplace<T>(key);
-  flog_assert(p.second || !storage()->outermost(),
-    "task local storage element should not have been created yet");
-}
-
-template<typename T>
-void
-erase(void * key) noexcept {
-  auto * stg = storage();
-  auto it = stg->find(key);
-  flog_assert(
-    it != stg->end(), "task local storage element should have been created");
-  if(stg->outermost()) {
-    delete static_cast<T *>((*it).second);
-    (*it).second = nullptr;
-  }
-}
-
-template<typename T>
-T *
-get(void * key) noexcept {
-  auto * stg = storage();
-  auto it = stg->find(key);
-  flog_assert(
-    it != stg->end(), "task local storage element should have been created");
-  return static_cast<T *>((*it).second);
-}
 } // namespace detail
 
 template<typename T>
@@ -170,10 +136,17 @@ struct task_local : private run::task_local_base {
 
 private:
   void emplace() override {
-    detail::add<T>(this);
+    [[maybe_unused]] auto p = detail::storage()->emplace<T>(this);
+    flog_assert(p.second || !detail::storage()->outermost(),
+      "task local storage element should not have been created yet");
   }
   void reset() noexcept override {
-    detail::erase<T>(this);
+    auto * stg = detail::storage();
+    auto it = stg->find(this);
+    if(stg->outermost()) {
+      delete static_cast<T *>((*it).second);
+      (*it).second = nullptr;
+    }
   }
   void create_storage() override {
     detail::create_storage();
@@ -183,7 +156,7 @@ private:
   }
 
   T * get() noexcept {
-    return detail::get<T>(this);
+    return static_cast<T *>(detail::storage()->find(this)->second);
   }
 };
 } // namespace flecsi
