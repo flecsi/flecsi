@@ -52,6 +52,7 @@ variables:
   LEGION_IBV_ROCM: "legion+rocm conduit=ibv"
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm +hwloc
+  KOKKOS_OPENMP: kokkos ~cuda ~rocm +openmp +hwloc
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
@@ -143,7 +144,6 @@ mpich-legion-gnu:
   variables:
     <<: *mpich-legion-kokkos-debug
     TOOLCHAIN: "gcc@${GCC_VERSION}"
-    PARTITIONS: skylake-gold
     ARCHIVE_SPACK_ENV: "yes"
 
 mpich-legion-gnu:release:
@@ -203,7 +203,7 @@ mpich-tutorial:legion:
     LABEL: tutorial
     STDIR: tutorial
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-flaxpy:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -215,7 +215,7 @@ mpich-flaxpy:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/flaxpy
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 mpich-poisson:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
@@ -227,14 +227,14 @@ mpich-poisson:legion:
     LABEL: standalone
     STDIR: tutorial/standalone/poisson
     BUILD_TYPE: Debug
-    PARTITIONS: skylake-gold
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for Legion backend with OpenMPI provider,
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
-openmpi-legion-gnu:
+openmpi-legion-openmp-gnu:
   stage: Legion backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -242,10 +242,11 @@ openmpi-legion-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 ^${LEGION_IBV} build_type=Debug ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
+    ARCHIVE_SPACK_ENV: "yes"
 
-openmpi-legion-gnu:release:
+openmpi-legion-openmp-gnu:release:
   stage: Legion backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -255,7 +256,7 @@ openmpi-legion-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} ^openmpi"
+    VARIANTS: "backend=legion +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -339,11 +340,10 @@ mpich-legion-clang:
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
-# and Clang compiler toolchain. Intentionally does NOT use Kokkos to also test
-# that kind of build.
+# and Clang compiler toolchain.
 #------------------------------------------------------------------------------#
 
-mpich-mpi-clang:
+mpich-mpi-openmp-clang:
   stage: MPI backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -351,8 +351,9 @@ mpich-mpi-clang:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +hdf5 +kokkos +openmp ^${KOKKOS_OPENMP} ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
@@ -462,6 +463,34 @@ openmpi-legion-rocm:
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
     ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
+# OpenMP standalone tests
+#------------------------------------------------------------------------------#
+
+openmpi-poisson-openmp:legion:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["openmpi-legion-openmp-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson-openmp-clang:mpi:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-mpi-openmp-clang"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
 
 #------------------------------------------------------------------------------#
 # GPU standalone tests
