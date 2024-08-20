@@ -355,11 +355,6 @@ private:
     return (*r)[fid];
   }
 
-  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  auto kokkos_view(field_id_t fid) const {
-    return r->kokkos_view<AccessPrivilege>(fid);
-  }
-
   local::region_impl * r;
 
   // Locally cached metadata on ranges of ghost index.

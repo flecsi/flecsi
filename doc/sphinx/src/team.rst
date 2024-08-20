@@ -21,6 +21,7 @@ Ben Bergen
 
      .. image:: team/ben.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -45,6 +46,7 @@ Richard Berger
 
      .. image:: team/rberger.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -67,6 +69,7 @@ Jonathan Graham
 
      .. image:: team/jonathan.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -97,6 +100,7 @@ Davis Herring
 
      .. image:: team/davis.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -128,6 +132,7 @@ Christoph Junghans
 
      .. image:: team/christoph.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -153,6 +158,7 @@ Brendan Krueger
 
      .. image:: team/brendan.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -177,6 +183,7 @@ Sumathi Lakshmiranganatha
 
      .. image:: team/sumathi.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -209,6 +216,7 @@ Li-Ta (Ollie) Lo
 
      .. image:: team/ollie.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -234,6 +242,7 @@ Julien Loiseau
 
      .. image:: team/julien.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -259,6 +268,7 @@ Maxim Moraru
 
      .. image:: team/maxim.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -283,6 +293,7 @@ Max Ortner
 
      .. image:: team/max.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -295,6 +306,8 @@ Max Ortner
       with MPI I/O.
       Currently, he maintains and develops features related to efficient memory usage for FleCSI.
 
+|clearboth|
+
 Scott Pakin
 ^^^^^^^^^^^
 
@@ -304,6 +317,7 @@ Scott Pakin
 
      .. image:: team/scott.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -328,6 +342,7 @@ Navamita Ray
 
      .. image:: team/navamita.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -358,6 +373,7 @@ Andrew Reisner
 
      .. image:: team/andrew.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -386,6 +402,7 @@ David Daniel
 
      .. image:: team/david.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -406,6 +423,7 @@ Irina Demeshko
 
      .. image:: team/irina.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -430,6 +448,7 @@ Charles Ferenbaugh
 
      .. image:: team/charles.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -456,6 +475,7 @@ Jonas Lippuner
 
      .. image:: team/jonas.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -486,6 +506,7 @@ Nick Moss
 
      .. image:: team/nick.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -515,6 +536,7 @@ Karen Tsai
 
      .. image:: team/karen.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 
@@ -544,6 +566,7 @@ Wei Wu
 
      .. image:: team/wei.jpg
         :align: left
+        :width: 237
 
    .. container:: rightside
 

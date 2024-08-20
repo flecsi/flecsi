@@ -53,6 +53,7 @@ variables:
   LEGION_IBV_ROCM: "legion+rocm conduit=ibv"
   LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm +hwloc
+  KOKKOS_OPENMP: kokkos ~cuda ~rocm +openmp +hwloc
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
@@ -303,7 +304,7 @@ mpich-poisson:hpx:
 # and GNU compiler toolchain.
 #------------------------------------------------------------------------------#
 
-openmpi-legion-gnu:
+openmpi-legion-openmp-gnu:
   stage: Legion backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -311,10 +312,11 @@ openmpi-legion-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 ^${LEGION_IBV} build_type=Debug ^${KOKKOS_SERIAL} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
+    ARCHIVE_SPACK_ENV: "yes"
 
-openmpi-legion-gnu:release:
+openmpi-legion-openmp-gnu:release:
   stage: Legion backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -324,7 +326,7 @@ openmpi-legion-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 ^${LEGION_IBV} ^${KOKKOS_SERIAL} ^openmpi"
+    VARIANTS: "backend=legion +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -448,11 +450,10 @@ mpich-hpx-clang:
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with MPICH provider,
-# and Clang compiler toolchain. Intentionally does NOT use Kokkos to also test
-# that kind of build.
+# and Clang compiler toolchain.
 #------------------------------------------------------------------------------#
 
-mpich-mpi-clang:
+mpich-mpi-openmp-clang:
   stage: MPI backend
   extends: [.ascgit_job, .darwin_build_template]
   needs: []
@@ -460,8 +461,28 @@ mpich-mpi-clang:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +graphviz +hdf5 ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +hdf5 +kokkos +openmp ^${KOKKOS_OPENMP} ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
+    ARCHIVE_SPACK_ENV: "yes"
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for MPI backend with MPICH provider,
+# and Clang compiler toolchain using CUDA
+#------------------------------------------------------------------------------#
+
+mpich-mpi-clang-cuda:
+  stage: MPI backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
 
 #------------------------------------------------------------------------------#
 # Documentation
@@ -493,6 +514,25 @@ openmpi-mpi-clang:
   variables:
     <<: *openmpi-mpi-debug
     TOOLCHAIN: "clang@${CLANG_VERSION}"
+
+#------------------------------------------------------------------------------#
+# Build and unit tests for MPI backend with OpenMPI provider,
+# and Clang compiler toolchain using CUDA
+#------------------------------------------------------------------------------#
+
+openmpi-mpi-clang-cuda:
+  stage: MPI backend
+  extends: [.ascgit_job, .darwin_build_template]
+  needs: []
+  dependencies: []
+  only:
+    - merge_requests
+  variables:
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    TOOLCHAIN: "clang@${CLANG_VERSION}"
+    PARTITIONS: volta-x86
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+    ARCHIVE_SPACK_ENV: "yes"
 
 #------------------------------------------------------------------------------#
 # Build and unit tests for MPI backend with OpenMPI provider,
@@ -535,6 +575,34 @@ openmpi-legion-rocm:
     ARCHIVE_SPACK_ENV: "yes"
 
 #------------------------------------------------------------------------------#
+# OpenMP standalone tests
+#------------------------------------------------------------------------------#
+
+openmpi-poisson-openmp:legion:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["openmpi-legion-openmp-gnu"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+mpich-poisson-openmp-clang:mpi:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["mpich-mpi-openmp-clang"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    GENERAL_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+
+#------------------------------------------------------------------------------#
 # GPU standalone tests
 #------------------------------------------------------------------------------#
 
@@ -542,6 +610,20 @@ openmpi-poisson-cuda-clang:legion:
   extends: [.ascgit_job, .darwin_standalone_template]
   needs:
     ["openmpi-legion-clang-cuda"]
+  only:
+    - merge_requests
+  variables:
+    LABEL: standalone
+    STDIR: tutorial/standalone/poisson
+    BUILD_TYPE: Debug
+    PARTITIONS: volta-x86
+    V100_ARCH_CONSTRAINT: "${JOB_ARCH_CONSTRAINT}"
+    JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
+
+openmpi-poisson-cuda-clang:mpi:
+  extends: [.ascgit_job, .darwin_standalone_template]
+  needs:
+    ["openmpi-mpi-clang-cuda"]
   only:
     - merge_requests
   variables:

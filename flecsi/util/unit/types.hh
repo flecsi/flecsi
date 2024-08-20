@@ -364,6 +364,7 @@ label_default(std::string s) {
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
 /// Compare null-terminated strings, ignoring case and abandoning test on
 /// inequality.
+/// \deprecated The *_STRCASE* macros are deprecated.
 #define ASSERT_STRCASEEQ(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
@@ -371,6 +372,7 @@ label_default(std::string s) {
     ==,                                                                        \
     " (case insensitive)")
 /// Check equality of null-terminated strings, ignoring case.
+/// \deprecated The *_STRCASE* macros are deprecated.
 #define EXPECT_STRCASEEQ(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
@@ -379,6 +381,7 @@ label_default(std::string s) {
     " (case insensitive)")
 /// Compare null-terminated strings, ignoring case and abandoning test on
 /// equality.
+/// \deprecated The *_STRCASE* macros are deprecated.
 #define ASSERT_STRCASENE(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
@@ -386,6 +389,7 @@ label_default(std::string s) {
     !=,                                                                        \
     " (case insensitive)")
 /// Check inequality of null-terminated strings, ignoring case.
+/// \deprecated The *_STRCASE* macros are deprecated.
 #define EXPECT_STRCASENE(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
