@@ -133,29 +133,29 @@ template<class T>
 struct execute_task : region<execution> {
   /// Set code region name for regions inheriting from execute_task with the
   /// following prefix.
-  inline static const std::string name{"execute_task->" + T::tag};
+  inline static const std::string name{std::string("execute_task->") + T::tag};
 };
 struct execute_task_bind : execute_task<execute_task_bind> {
-  inline static const std::string tag{"bind-accessors"};
+  static constexpr const char * tag = "bind-accessors";
   static constexpr detail detail_level = detail::high;
 };
 struct execute_task_prolog : execute_task<execute_task_prolog> {
-  inline static const std::string tag{"prolog"};
+  static constexpr const char * tag = "prolog";
   static constexpr detail detail_level = detail::high;
 };
 struct execute_bind_parameters : execute_task<execute_bind_parameters> {
-  inline static const std::string tag{"bind_parameters"};
+  static constexpr const char * tag = "bind_parameters";
   static constexpr detail detail_level = detail::high;
 };
 struct execute_task_user : execute_task<execute_task_user> {
-  inline static const std::string tag{"user"};
+  static constexpr const char * tag = "user";
 };
 struct execute_task_unbind : execute_task<execute_task_unbind> {
-  inline static const std::string tag{"unbind-accessors"};
+  static constexpr const char * tag = "unbind-accessors";
   static constexpr detail detail_level = detail::high;
 };
 struct execute_task_copy_engine : execute_task<execute_task_copy_engine> {
-  inline static const std::string tag{"copy-engine"};
+  static constexpr const char * tag = "copy-engine";
   static constexpr detail detail_level = detail::high;
 };
 /**

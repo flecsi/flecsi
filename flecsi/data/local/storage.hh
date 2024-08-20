@@ -131,11 +131,13 @@ struct storage {
         if(ret.size() < sync.size())
           ret.resize(sync.size());
 
+        auto ret_view = Kokkos::subview(ret.kokkos_view(),
+          std::pair<std::size_t, std::size_t>(0, sync.size()));
+
         // If wo is requested, we don't care what's there, so no need to copy
         if constexpr(AccessPrivilege != partition_privilege_t::wo)
-          Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-            ret.kokkos_view(),
-            sync.kokkos_view());
+          Kokkos::deep_copy(
+            Kokkos::DefaultExecutionSpace{}, ret_view, sync.kokkos_view());
 
         if constexpr(AccessPrivilege == partition_privilege_t::ro)
           current_state = data_sync::both;

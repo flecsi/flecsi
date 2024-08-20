@@ -85,6 +85,8 @@ struct copy_engine {
     for(const auto & [rank, indices] : shared_entities) {
       max_local_source_idx = std::max(max_local_source_idx,
         *std::max_element(indices.data(), indices.data() + indices.size()));
+      max_shared_indices_size =
+        std::max(max_shared_indices_size, indices.size());
     }
     max_local_source_idx += 1;
   }
@@ -100,7 +102,7 @@ protected:
   field_id_t meta_fid;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
-  std::size_t max_local_source_idx = 0;
+  std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;
 };
 
 } // namespace local

@@ -13,6 +13,10 @@ program_option<int>
   flog_process("Testing", "flog-process", "Process which should log.");
 } // namespace
 
+namespace flecsi::util::unit {
+task_local<test_output_t> test_output_t::current_output;
+}
+
 int
 main(int argc, char ** argv) {
   flecsi::getopt()(argc, argv);

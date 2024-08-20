@@ -241,6 +241,10 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
         f(it.begin()[i]);
       });
   }
+  else if constexpr(std::is_integral<
+                      typename std::decay<Policy>::type>::value) {
+    parallel_for(util::iota_view(0, p), std::forward<Lambda>(lambda), name);
+  }
   else {
     parallel_for(range_policy(std::forward<Policy>(p)),
       std::forward<Lambda>(lambda),
@@ -302,6 +306,11 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
       },
       kok::reducer_t<R, T>(res));
     return res;
+  }
+  else if constexpr(std::is_integral<
+                      typename std::decay<Policy>::type>::value) {
+    return parallel_reduce<R, T>(
+      util::iota_view(0, p), std::forward<Lambda>(lambda), name);
   }
   else {
     return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),

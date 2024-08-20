@@ -168,7 +168,12 @@ Access to a field is requested with a caller-only *field reference* which identi
 A field reference may be passed as an argument for an accessor parameter of a task.
 Accessors are task-only; their types are usually spelled ``field<T,L>::accessor<P,...>``, where each ``P`` is a *privilege* that specifies read and write permissions for some part of the field.
 
-Where more than one privilege is supplied, the next-to-last refers to index points *shared* with other colors, and the last refers to *ghosts* that may be copied automatically from pre-specified shared points.
+When a single privilege is supplied (``field<T,L>::accessor<P>``), it refers to *owned* index
+points.  For two privileges (``field<T,L>::accessor<P1,P2>``), the first (``P1``) refers to *owned*
+index points and the second (``P2``) to *ghosts* that may be copied automatically from
+pre-specified shared points.  For three privileges (``field<T,L>::accessor<P1,P2,P3>``), the first
+(``P1``) refers to *exclusive* index points, the second (``P2``) to *shared* index points, and the
+third (``P3``) to *ghosts*.
 Ghost copies are performed only when ghosts are read and not written and shared points have been written more recently than the previous read or write.
 (There is no mechanism at present to overlap the ghost copies with a task that does not require access to ghosts or write access to shared points.)
 
