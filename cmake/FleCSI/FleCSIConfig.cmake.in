@@ -40,10 +40,6 @@ else()
   find_package(MPI COMPONENTS C CXX REQUIRED)
 endif()
 
-if(@ENABLE_OPENMP@)
-  find_package(OpenMP COMPONENTS CXX REQUIRED)
-endif()
-
 set(preserve_PMT ${PARMETIS_TEST_RUNS})
 set(PARMETIS_TEST_RUNS TRUE)
 find_package(ParMETIS @PARMETIS_VERSION@ REQUIRED)

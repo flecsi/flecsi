@@ -113,9 +113,7 @@ Parallelization options
   is impossible to get rid of the dependency.**
 
 * **ENABLE_OPENMP [default: OFF]** |br|
-  Enable `OpenMP <https://www.openmp.org/>`_ pragmas for thread-level
-  parallelism.  The appropriate flags will be passed to the C++
-  compiler to enable language support for OpenMP.
+  This **deprecated** option is ignored for compatibility.
 
 * **FLECSI_BACKEND [default: legion]** |br|
   Specify the backend to use. Currently, *legion*, *hpx*, and *mpi* are

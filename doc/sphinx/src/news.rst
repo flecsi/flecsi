@@ -21,12 +21,14 @@ Possible incompatibilities
 * Build
 
   * Kokkos is now a required build dependency.
+  * OpenMP support depends on Kokkos configuration.
 
 Deprecated
 ^^^^^^^^^^
 * Build
 
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
+  * ``ENABLE_OPENMP`` |mdash| is ignored.
 
 New features
 ^^^^^^^^^^^^
