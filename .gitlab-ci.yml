@@ -478,7 +478,7 @@ mpich-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -528,7 +528,7 @@ openmpi-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
