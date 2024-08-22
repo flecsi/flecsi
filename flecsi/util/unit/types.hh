@@ -47,13 +47,25 @@ struct not_fn { // default-constructed std::not_fn
 };
 } // namespace detail
 
-struct state_t {
+struct state_base {
+  state_base() = default;
+  state_base(state_base &&) = delete;
 
+  template<class F>
+  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
+    std::forward<F>(f)();
+    return result_;
+  }
+
+protected:
+  int result_ = 0;
+};
+
+struct state_t : state_base {
   state_t(std::string name, std::string label) {
     name_ = name;
     label_ = label;
   } // initialize
-  state_t(state_t &&) = delete;
 
   ~state_t() {
     if(result_) {
@@ -78,10 +90,6 @@ struct state_t {
       }
     } // if
   } // process
-
-  const std::string & name() const {
-    return name_;
-  }
 
   std::stringstream & stringstream() {
     return error_stream_;
@@ -127,19 +135,12 @@ struct state_t {
     return ret;
   }
 
-  template<class F>
-  int operator->*(F && f) { // highest binary precedence
-    std::forward<F>(f)();
-    return result_;
-  }
-
   // Allows 'return' before <<:
   void operator>>=(const std::ostream &) {
     error_stream_ << FLOG_COLOR_PLAIN << std::endl;
   }
 
 private:
-  int result_ = 0;
   std::string name_;
   std::string label_;
   std::stringstream error_stream_;
@@ -186,15 +187,8 @@ struct string_case_compare {
 // preferred when running on the CPU, as it has more capabilities.  However,
 // state_t/UNIT does not run on GPUs, so portable code needs to use
 // gpu_state_t/GPU_UNIT instead.
-class gpu_state_t
-{
-public:
+struct gpu_state_t : state_base {
   FLECSI_TARGET gpu_state_t(const char * const name) : name_{name} {}
-  template<class F>
-  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
-    std::forward<F>(f)();
-    return result_;
-  }
   FLECSI_TARGET ~gpu_state_t() {
     printf("TEST %s %s\n", (result_ == 0) ? "PASSED" : "FAILED", name_);
   }
@@ -246,7 +240,6 @@ public:
   FLECSI_TARGET void operator>>=(const gpu_state_t &) {}
 
 private:
-  int result_ = 0;
   const char * name_;
 }; // gpu_state_t
 
