@@ -287,7 +287,7 @@ label_default(std::string s) {
 ///   - UNIT_DUMP
 ///   - UNIT_BLESSED
 ///   - UNIT_WRITE
-///   - UNIT_ASSERT and UNIT_EXPECT
+///   - UNIT_ASSERT
 /// - You cannot stream additional information into the tests using << the way
 ///   you can with UNIT.
 #define GPU_UNIT()                                                             \
@@ -418,14 +418,6 @@ label_default(std::string s) {
 #else
 // MSVC has a brain-dead preprocessor...
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
-#endif
-
-#if !defined(_MSC_VER)
-#define UNIT_EXPECT(EXPECTATION, ...)                                          \
-  EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
-#else
-// MSVC has a brain-dead preprocessor...
-#define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 
 /// \}
