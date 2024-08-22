@@ -170,13 +170,15 @@ struct string_case_compare {
   }
 };
 
-// Provides the core of a GPU-capable unit test.  Intended to be used through
-// the GPU_UNIT macro.  The state_t class (used through the UNIT macro) is
-// preferred when running on the CPU, as it has more capabilities.  However,
-// state_t/UNIT does not run on GPUs, so portable code needs to use
-// gpu_state_t/GPU_UNIT instead.
+// Provides the core of a GPU-capable unit test.  Used instead of state_t when
+// running on the GPU, but lacks some capabilities.
 struct gpu_state_t : state_base {
-  FLECSI_TARGET gpu_state_t(const char * const name) : name_{name} {}
+  struct label {
+    label() = default;
+    template<class T>
+    label(const T &); // not implemented, host-only
+  };
+  FLECSI_TARGET gpu_state_t(const char * const name, label) : name_{name} {}
   FLECSI_TARGET ~gpu_state_t() {
     printf("TEST %s %s\n", (result_ == 0) ? "PASSED" : "FAILED", name_);
   }
@@ -216,16 +218,12 @@ struct gpu_state_t : state_base {
     }
     return value;
   }
-  // For compatibility with state_t and ASSERT/EXPECT macros
-  // -- Originally designed to allow the user to stream additional information
-  //    into error messages.
-  // -- Since std::ostream does not work on GPUs, for GPU_UNIT this returns the
-  //    gpu_state_t instance itself (to help indicate where to look if the user
-  //    tries to stream into this and gets a compiler error).
-  FLECSI_TARGET const gpu_state_t & stringstream() {
+  FLECSI_TARGET gpu_state_t & stringstream() {
     return *this;
   }
   FLECSI_TARGET void operator>>=(const gpu_state_t &) {}
+  template<class T>
+  gpu_state_t & operator<<(const T &); // not implemented, host-only
 
 private:
   const char * name_;
@@ -239,36 +237,38 @@ private:
 /// \addtogroup unit
 /// \{
 
+#ifdef FLECSI_DEVICE_CODE
+#define FLECSI_UNIT_TYPE gpu_state_t
+#else
+#define FLECSI_UNIT_TYPE state_t
+#endif
+
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
 /// Optionally, provide an expression convertible to \c std::string to label
 /// the test results (along with \c __func__); the default is "TEST".
 ///
+/// \if core
+/// \attention
+/// If used on a GPU, no label may be provided, nothing can be streamed
+/// into the assertions using `<<`, and the following macros may not be used
+/// in the compound statement:
+///   - \c ASSERT_STRCASEEQ and \c EXPECT_STRCASEEQ
+///   - \c ASSERT_STRCASENE and \c EXPECT_STRCASENE
+///   - \c UNIT_CAPTURE
+///   - \c UNIT_DUMP
+///   - \c UNIT_BLESSED
+///   - \c UNIT_WRITE
+///   - \c UNIT_ASSERT
+/// \endif
+///
 /// \note The `ASSERT`/`EXPECT` macros can be used in a lambda defined inside
 ///   the compound statement with `[&]`.
 #define UNIT(...)                                                              \
-  ::flecsi::util::unit::state_t auto_unit_state(__func__, {__VA_ARGS__});      \
+  ::flecsi::util::unit::FLECSI_UNIT_TYPE auto_unit_state(                      \
+    __func__, {__VA_ARGS__});                                                  \
   return auto_unit_state->*[&]() -> void
-
-/// \cond core
-/// Alternative to UNIT that works on both CPU and GPU.  GPU_UNIT does not
-/// support all features available through UNIT.
-/// - GPU_UNIT() does not accept a custom label.
-/// - GPU_UNIT does not work with the following macros:
-///   - ASSERT_STRCASEEQ and EXPECT_STRCASEEQ
-///   - ASSERT_STRCASENE and EXPECT_STRCASENE
-///   - UNIT_CAPTURE
-///   - UNIT_DUMP
-///   - UNIT_BLESSED
-///   - UNIT_WRITE
-///   - UNIT_ASSERT
-/// - You cannot stream additional information into the tests using << the way
-///   you can with UNIT.
-#define GPU_UNIT()                                                             \
-  ::flecsi::util::unit::gpu_state_t auto_unit_state(__func__);                 \
-  return auto_unit_state->*[&]() -> void
-/// \endcond
 
 #define CHECK(ret, f, ...)                                                     \
   if(auto_unit_state.f(__VA_ARGS__, __FILE__, __LINE__))                       \
