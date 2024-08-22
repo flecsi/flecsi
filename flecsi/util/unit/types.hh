@@ -62,24 +62,21 @@ protected:
 };
 
 struct state_t : state_base {
-  state_t(std::string name, std::string label) {
-    name_ = name;
-    label_ = label;
-  } // initialize
+  state_t(std::string name, std::optional<std::string> label)
+    : name_(std::move(name)), label_(std::move(label)) {}
 
   ~state_t() {
+    const std::string l = label_.value_or("TEST");
     if(result_) {
       std::stringstream stream;
-      stream << (label_ == "TEST" ? FLOG_COLOR_LTRED : FLOG_COLOR_RED) << label_
-             << " FAILED " << name_ << FLOG_COLOR_PLAIN << '\n';
+      stream << (label_ ? FLOG_COLOR_RED : FLOG_COLOR_LTRED) << l << " FAILED "
+             << name_ << FLOG_COLOR_PLAIN << '\n';
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
     else
-      flog(utility) << (label_ == "TEST" ? FLOG_COLOR_LTGREEN
-                                         : FLOG_COLOR_GREEN)
-                    << label_ << " PASSED " << name_ << FLOG_COLOR_PLAIN
-                    << std::endl;
+      flog(utility) << (label_ ? FLOG_COLOR_GREEN : FLOG_COLOR_LTGREEN) << l
+                    << " PASSED " << name_ << FLOG_COLOR_PLAIN << std::endl;
   }
 
   std::stringstream & stringstream() {
@@ -133,7 +130,7 @@ struct state_t : state_base {
 
 private:
   std::string name_;
-  std::string label_;
+  std::optional<std::string> label_;
   std::stringstream error_stream_;
 
 }; // struct state_t
@@ -242,11 +239,6 @@ private:
 /// \addtogroup unit
 /// \{
 
-inline std::string
-label_default(std::string s) {
-  return (s.empty() ? "TEST" : s);
-}
-
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
 /// generally appear alone in a function that returns \c int.
@@ -256,8 +248,7 @@ label_default(std::string s) {
 /// \note The `ASSERT`/`EXPECT` macros can be used in a lambda defined inside
 ///   the compound statement with `[&]`.
 #define UNIT(...)                                                              \
-  ::flecsi::util::unit::state_t auto_unit_state(                               \
-    __func__, label_default({__VA_ARGS__}));                                   \
+  ::flecsi::util::unit::state_t auto_unit_state(__func__, {__VA_ARGS__});      \
   return auto_unit_state->*[&]() -> void
 
 /// \cond core
