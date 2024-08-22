@@ -70,26 +70,17 @@ struct state_t : state_base {
   ~state_t() {
     if(result_) {
       std::stringstream stream;
-      if(label_ == "TEST") {
-        stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
-      }
-      else {
-        stream << FLOG_OUTPUT_RED(label_ << " FAILED " << name_) << std::endl;
-      }
+      stream << (label_ == "TEST" ? FLOG_COLOR_LTRED : FLOG_COLOR_RED) << label_
+             << " FAILED " << name_ << FLOG_COLOR_PLAIN << '\n';
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
-    else {
-      if(label_ == "TEST") {
-        flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
-                      << FLOG_COLOR_PLAIN << std::endl;
-      }
-      else {
-        flog(utility) << FLOG_OUTPUT_GREEN(label_ << " PASSED " << name_)
-                      << FLOG_COLOR_PLAIN << std::endl;
-      }
-    } // if
-  } // process
+    else
+      flog(utility) << (label_ == "TEST" ? FLOG_COLOR_LTGREEN
+                                         : FLOG_COLOR_GREEN)
+                    << label_ << " PASSED " << name_ << FLOG_COLOR_PLAIN
+                    << std::endl;
+  }
 
   std::stringstream & stringstream() {
     return error_stream_;
