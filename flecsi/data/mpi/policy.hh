@@ -712,11 +712,8 @@ struct copy_engine {
       }
 
 #if defined(FLECSI_ENABLE_KOKKOS)
-      // allocate gather buffer on device
-      auto gather_buffer_device_view =
-        Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-          Kokkos::ViewAllocateWithoutInitializing("gather"),
-          max_shared_indices_size * type_size};
+      std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
+        gather_buffer_device_view;
 #endif
 
       // shared_indices is created on the host, but is accessed from
@@ -740,16 +737,20 @@ struct copy_engine {
               const auto * shared_indices_device_data =
                 src_indices.data<exec::task_processor_type_t::toc>();
 
+              if(!gather_buffer_device_view)
+                gather_buffer_device_view.emplace(
+                  Kokkos::ViewAllocateWithoutInitializing("gather"),
+                  max_shared_indices_size * type_size);
               Kokkos::parallel_for(
                 n_elements, KOKKOS_LAMBDA(const auto & i) {
                   // Yes, memcpy is supported on device as long as there is no
                   // std:: qualifier.
-                  memcpy(gather_buffer_device_view.data() + i * type_size,
+                  memcpy(gather_buffer_device_view->data() + i * type_size,
                     src.data() + shared_indices_device_data[i] * type_size,
                     type_size);
                 });
 
-              auto gather_view = Kokkos::subview(gather_buffer_device_view,
+              auto gather_view = Kokkos::subview(*gather_buffer_device_view,
                 std::pair<std::size_t, std::size_t>(0, n_bytes));
               Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
                 mpi::detail::host_view{send_buffers.back().data(), n_bytes},
@@ -777,11 +778,8 @@ struct copy_engine {
     }
 
 #if defined(FLECSI_ENABLE_KOKKOS)
-    // Construct the view based off the maximum recv_buffer size
-    auto scatter_buffer_device_view =
-      Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-        Kokkos::ViewAllocateWithoutInitializing("scatter"),
-        max_scatter_buffer_size};
+    std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
+      scatter_buffer_device_view;
 #endif
 
     // ghost_indices is created on the host, but is accessed from
@@ -800,7 +798,11 @@ struct copy_engine {
                      scatter_copy(dst.data(), recv_buffer->data(), dst_indices);
                    },
           [&](const mpi::detail::device_view & dst) {
-            auto scatter_view = Kokkos::subview(scatter_buffer_device_view,
+            if(!scatter_buffer_device_view)
+              scatter_buffer_device_view.emplace(
+                Kokkos::ViewAllocateWithoutInitializing("scatter"),
+                max_scatter_buffer_size);
+            auto scatter_view = Kokkos::subview(*scatter_buffer_device_view,
               std::pair<std::size_t, std::size_t>(0, recv_buffer->size()));
             Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
               scatter_view,
@@ -812,7 +814,7 @@ struct copy_engine {
             Kokkos::parallel_for(
               n_elements, KOKKOS_LAMBDA(const auto & i) {
                 memcpy(dst.data() + ghost_indices_device_data[i] * type_size,
-                  scatter_buffer_device_view.data() + i * type_size,
+                  scatter_buffer_device_view->data() + i * type_size,
                   type_size);
               });
           }},
