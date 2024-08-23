@@ -6,9 +6,30 @@
 #ifndef FLECSI_EXEC_PROLOG_HH
 #define FLECSI_EXEC_PROLOG_HH
 
+#include "flecsi/data/copy_plan.hh"
+#include "flecsi/data/topology.hh"
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/demangle.hh"
+
+namespace flecsi::exec {
+struct prolog_base {
+protected:
+  template<Privileges P, class R>
+  void add_copy(const R & r) {
+    if(const data::copy_plan * const p =
+         r.get_region().template ghost_copy<P>(r))
+      copies[p].push_back(r.fid());
+  }
+  inline void issue_copy() const {
+    for(const auto & [p, ff] : copies)
+      p->issue_copy(ff);
+  }
+
+private:
+  std::map<const data::copy_plan *, std::vector<field_id_t>> copies;
+};
+} // namespace flecsi::exec
 
 // task_prologue is implemented per backend:
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
@@ -27,7 +48,7 @@ namespace flecsi::exec {
 /// The exact member function signatures may vary between backends.
 /// \tparam Proc for the task being executed
 template<task_processor_type_t Proc>
-struct task_prologue {
+struct task_prologue : prolog_base {
 protected:
   /// Default constructible.
   task_prologue();
@@ -54,6 +75,7 @@ struct prolog : task_prologue<ProcessorType> {
   prolog(P & p, AA &... aa) {
     util::annotation::rguard<util::annotation::execute_task_prolog> ann;
     std::apply([&](auto &... pp) { (visit(pp, aa), ...); }, p);
+    this->issue_copy();
   }
 
 private:

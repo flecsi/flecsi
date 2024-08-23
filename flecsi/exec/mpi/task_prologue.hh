@@ -6,7 +6,6 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/exec/mpi/future.hh"
 #include "flecsi/util/demangle.hh"
 
@@ -24,7 +23,7 @@ struct borrow_category;
 namespace exec {
 
 template<task_processor_type_t ProcessorType>
-struct task_prologue {
+struct task_prologue : prolog_base {
 protected:
   // Those methods are "protected" because they are *only* called by
   // flecsi::exec::prolog() which inherits from task_prologue.
@@ -49,18 +48,18 @@ protected:
     Privileges P,
     class Topo,
     typename Topo::index_space Space>
-  static void visit(data::accessor<data::raw, T, P> & accessor,
+  void visit(data::accessor<data::raw, T, P> & accessor,
     const data::field_reference<T, data::raw, Topo, Space> & ref) {
     const field_id_t f = ref.fid();
     auto & t = ref.topology();
-    data::region & reg = t.template get_region<Space>();
     constexpr bool glob =
       std::is_same_v<typename Topo::base, topo::global_base>;
 
     // Perform ghost copy using host side storage. This might copy data
     // from the device side first.
     if constexpr(glob) {
-      if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
+      if(t.template get_region<Space>()
+           .template ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
         const auto bcast = [&](auto root) {
           // This is a special case of ghost_copy thus we need the storage
           // in HostSpace rather than ExecutionSpace.
@@ -81,7 +80,7 @@ protected:
       }
     }
     else
-      reg.ghost_copy<P>(ref);
+      add_copy<P>(ref);
 
     if(!get_selected(t))
       return;

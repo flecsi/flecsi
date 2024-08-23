@@ -88,14 +88,16 @@ struct core : core_base { // with_ragged<P> is often another base class
   template<typename P::index_space>
   data::partition & get_partition();
 
-  /// Perform a ghost copy.
+  /// Prepare a ghost copy.
   /// Required only if multiple privileges are used.
   /// \tparam T data type
   /// \tparam L use to trigger special copies for dynamic fields
   /// \tparam S use to identify relevant copy plan
   /// \param f to deduce the above as well as for the field ID
+  /// \return the copy plan to use, if any
   template<class T, data::layout L, typename P::index_space S>
-  void ghost_copy(data::field_reference<T, L, P, S> const & f);
+  [[nodiscard]] const data::copy_plan * ghost_copy(
+    data::field_reference<T, L, P, S> const & f);
 };
 /// Each core topology type must register its base type.
 template<>

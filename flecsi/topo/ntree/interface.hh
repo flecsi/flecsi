@@ -594,7 +594,7 @@ public:
       e_keys(ts), meta_field(ts->meta), data_field(ts));
 
     const auto cs = ts->colors();
-    ts->cp_data_tree.issue_copy(data_field.fid);
+    ts->cp_data_tree.issue_copy({data_field.fid});
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
@@ -961,7 +961,8 @@ public:
     data::layout Layout,
     typename Topo,
     typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+  [[nodiscard]] const data::copy_plan * ghost_copy(
+    data::field_reference<Type, Layout, Topo, Space> const &) {
     static_assert(Layout != data::ragged,
       "N-Tree does not support ragged or sparse fields");
 
@@ -969,14 +970,13 @@ public:
       // Need to check that the copy plan exists for the time it is being
       // re-created in share_ghosts
       if(cp_entities.has_value())
-        cp_entities->issue_copy(f.fid());
+        return &*cp_entities;
     }
-    else if constexpr(Space == nodes) {
-      cp_top_tree_nodes->issue_copy(f.fid());
-    }
-    else if constexpr(Space == tree_data) {
-      cp_data_tree.issue_copy(f.fid());
-    }
+    else if constexpr(Space == nodes)
+      return &*cp_top_tree_nodes;
+    else if constexpr(Space == tree_data)
+      return &cp_data_tree;
+    return nullptr;
   }
 
   // Get the number of colors

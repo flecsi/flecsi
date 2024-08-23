@@ -80,15 +80,16 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   template<typename Type,
     data::layout Layout,
     typename Policy::index_space Space>
-  void ghost_copy(
+  [[nodiscard]] const data::copy_plan * ghost_copy(
     data::field_reference<Type, Layout, Policy, Space> const & f) {
     if constexpr(Layout == data::ragged) {
       using Impl = ragged_impl<Space, Type>;
       ragged_buffers_.template get<Space>()
         .template xfer<Impl::start, Impl::xfer>(f, meta_field(this->meta));
+      return nullptr;
     }
     else
-      plan_.template get<Space>().issue_copy(f.fid());
+      return &plan_.template get<Space>();
   }
 
 private:

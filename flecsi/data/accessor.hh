@@ -331,7 +331,8 @@ struct ragged_accessor
       auto & t = r.get_elements();
       if constexpr(privilege_count(P) > 1) {
         region & reg = t.template get_region<topo::elements>();
-        reg.ghost_copy<P>(r);
+        [[maybe_unused]] const copy_plan * const cp = reg.ghost_copy<P>(r);
+        flog_assert(!cp, "copy_plan selected for ragged field");
         reg.ghost<P>(i); // restore any dirty flag cleared by the copy itself
       }
       if constexpr(!std::is_trivially_destructible_v<T>)

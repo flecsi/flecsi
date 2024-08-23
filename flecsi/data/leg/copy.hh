@@ -97,15 +97,17 @@ private:
   Legion::IndexCopyLauncher cl_;
   Legion::RegionRequirement src, dest;
 
-  void go(field_id_t f) && {
-    src.add_field(f);
-    dest.add_field(f);
+  void go(const std::vector<field_id_t> & ff) && {
+    for(auto f : ff) {
+      src.add_field(f);
+      dest.add_field(f);
+    }
     cl_.add_copy_requirements(src, dest);
     leg::run().issue_copy_operation(leg::ctx(), cl_);
   }
 
 public:
-  void operator()(field_id_t f) const {
+  void operator()(const std::vector<field_id_t> & f) const {
     copy_engine(*this).go(f);
   }
 };

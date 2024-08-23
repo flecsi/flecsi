@@ -721,21 +721,23 @@ public:
     auto src = [&](auto f) {
       execute<sort::set_pointers_task>(f, copy_fh, meta_fh);
     };
-    data::copy_plan cp(tt,
-      data::copy_plan::Sizes(sort_base::colors, 1),
-      dest,
-      src,
-      util::constant<space>());
-
-    cp.issue_copy(values.fid());
+    {
+      data::copy_plan cp(tt,
+        data::copy_plan::Sizes(sort_base::colors, 1),
+        dest,
+        src,
+        util::constant<space>());
+      std::vector<field_id_t> ff{values.fid()};
+      for(auto & af : apply_fields)
+        ff.push_back(af->fid);
+      cp.issue_copy(ff);
+    }
 
     // 1 Apply sort on values and keep track of changes
     execute<sort::reorder_values_task>(
       values, intervals_fh, sort::indices_f(sort::idx_s));
 
-    // Apply the copy plan on all fields
     for(auto & af : apply_fields) {
-      cp.issue_copy(af->fid);
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
         af->fid, tt);
       execute<sort::reorder_other_task>(
