@@ -87,12 +87,12 @@ protected:
     assert(a.span().size() == 1);
     a[0] = data::intervals::make({1, 3});
   }
-  static void set_ptrs(field<data::points::Value>::accessor<wo, na> a) {
+  static void set_ptrs(field<data::copy_engine::Point>::accessor<wo, na> a) {
     const auto & c = run::context::instance();
     const auto i = c.color(), n = c.colors();
     assert(a.span().size() == 3);
-    a[1] = data::points::make(i == 0 ? i : i - 1, 0);
-    a[2] = data::points::make(i == n - 1 ? i : i + 1, 0);
+    a[1] = data::copy_engine::point(i == 0 ? i : i - 1, 0);
+    a[2] = data::copy_engine::point(i == n - 1 ? i : i + 1, 0);
   }
   template<auto * F> // work around Clang 10.0.1 bug with auto&
   static constexpr auto task = [](auto f) { execute<*F>(f); };

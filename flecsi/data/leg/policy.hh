@@ -240,7 +240,7 @@ struct partition_base {
     }
   }
 
-  // NB: intervals and points are not advertised as deriving from this class.
+  // NB: intervals is not advertised as deriving from this class.
   Color colors() const {
     return run().get_index_space_domain(get_color_space()).get_volume();
   }
@@ -296,9 +296,6 @@ private:
 };
 
 /// Common dependent partitioning facility.
-/// \tparam R use ranges (\c rect instead of \c Point<2>)
-/// \tparam D assume disjoint partitions
-template<bool R = true, bool D = R>
 struct partition : data::partition {
   partition(region & reg,
     const data::partition & src,
@@ -324,19 +321,13 @@ private:
     field_id_t fid,
     completeness cpt)
     : data::partition(reg,
-        named(
-          [&r = run()](auto &&... aa) {
-            return R ? r.create_partition_by_image_range(
-                         std::forward<decltype(aa)>(aa)...)
-                     : r.create_partition_by_image(
-                         std::forward<decltype(aa)>(aa)...);
-          }(ctx(),
-            is,
-            src.logical_partition,
-            src.root(),
-            fid,
-            src.get_color_space(),
-            partitionKind(D ? disjoint : compute, cpt)),
+        named(run().create_partition_by_image_range(ctx(),
+                is,
+                src.logical_partition,
+                src.root(),
+                fid,
+                src.get_color_space(),
+                partitionKind(disjoint, cpt)),
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 

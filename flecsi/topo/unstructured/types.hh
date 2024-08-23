@@ -262,15 +262,15 @@ struct unstructured_base {
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
-      aa,
+    data::multi<
+      field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
     std::vector<std::map<Color,
       std::vector<std::pair<util::id, util::id>>>> const & points) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
       for(auto const & [owner, ghosts] : points[ci++]) {
         for(auto const & [local_offset, remote_offset] : ghosts) {
-          a[local_offset] = data::points::make(owner, remote_offset);
+          a[local_offset] = data::copy_engine::point(owner, remote_offset);
         } // for
       } // for
     } // for

@@ -285,7 +285,7 @@ protected:
   } // reorder_values_task
 
   static void set_pointers_task(
-    typename field<data::points::Value>::template accessor1<
+    typename field<data::copy_engine::Point>::template accessor1<
       privilege_repeat<wo, PC>> a,
     field<int>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<wo> m) {
@@ -301,7 +301,7 @@ protected:
       for(unsigned int j = 0; j < color(); ++j)
         icur += copy[c * i + j];
       for(int j = 0; j < copy[ptr]; ++j)
-        a(cur++) = data::points::make(i, icur++);
+        a(cur++) = data::copy_engine::point(i, icur++);
     }
   } // set_pointers_task
 
