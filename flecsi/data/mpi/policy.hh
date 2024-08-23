@@ -418,10 +418,9 @@ struct partition {
       AccessPrivilege>(fid, nelems * item_size);
   }
 
-private:
+protected:
   region_impl * r;
 
-protected:
   partition(region & r) : r(&*r) {}
   // number of elements in this partition on this particular rank.
   size_t nelems = 0;
@@ -439,6 +438,8 @@ struct partition : mpi::partition { // instead of "using partition ="
     return *this;
   }
 };
+
+struct copy_engine;
 
 namespace mpi {
 
@@ -475,6 +476,8 @@ struct prefixes : data::partition, prefixes_base {
   size_t size() const {
     return nelems;
   }
+
+  friend copy_engine;
 };
 /// \}
 } // namespace mpi
@@ -506,8 +509,6 @@ struct borrow : borrow_base {
 private:
   bool sel;
 };
-
-struct copy_engine;
 
 struct intervals {
   using Value = subrow; // [begin, end)
@@ -568,27 +569,6 @@ private:
   std::size_t max_end = 0;
 };
 
-struct points {
-  using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
-  static Value make(std::size_t r, std::size_t i) {
-    return {r, i};
-  }
-
-  points(region_base & r,
-    const intervals &,
-    field_id_t,
-    completeness = incomplete)
-    : r(&*r) {}
-
-private:
-  // The region `r` contains field data of shared entities on this rank as
-  // source to be copied to remote peers. We make copy_engine a friend to allow
-  // direct access to the region.
-  friend copy_engine;
-
-  mpi::region_impl * r;
-};
-
 // Copy/Paste from cppreference.com to make std::visit looks more
 // like pattern matching in ML or Haskell.
 template<class... Ts>
@@ -602,19 +582,23 @@ overloaded(Ts...) -> overloaded<Ts...>;
 struct copy_engine {
   using index_type = std::size_t;
 
+  using Point = std::pair<index_type, index_type>; // (rank, index)
+  static Point point(std::size_t r, std::size_t i) {
+    return {r, i};
+  }
+
   // One copy engine for each entity type i.e. vertex, cell, edge.
-  copy_engine(const points & points,
+  copy_engine(const prefixes & src,
     const intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
-    : source(points), destination(intervals) {
+    : source(src), destination(intervals) {
     // There is no information about the indices of local shared entities,
     // ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
     auto remote_sources =
-      destination.get_storage<points::Value, partition_privilege_t::ro>(
-        meta_fid);
+      destination.get_storage<Point, partition_privilege_t::ro>(meta_fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
@@ -848,7 +832,7 @@ private:
   // (remote rank, { local indices })
   using SendPoints = std::map<Color, mpi::detail::typed_storage<index_type>>;
 
-  const points & source;
+  const prefixes & source;
   const intervals & destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})

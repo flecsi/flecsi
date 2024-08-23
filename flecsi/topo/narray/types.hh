@@ -638,8 +638,8 @@ struct narray_base {
   // for make_copy_plan
   template<PrivilegeCount N>
   static void set_ptrs(
-    data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
-      aa,
+    data::multi<
+      field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
     std::vector<std::map<Color,
       std::vector<std::pair<std::size_t, std::size_t>>>> const & points) {
     std::size_t ci = 0;
@@ -649,7 +649,7 @@ struct narray_base {
           // si.first: owner
           // p.first: local ghost offset
           // p.second: remote shared offset
-          a[p.first] = data::points::make(si.first, p.second);
+          a[p.first] = data::copy_engine::point(si.first, p.second);
         } // for
       } // for
     }

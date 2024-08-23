@@ -43,7 +43,7 @@ private:
 } // namespace leg
 
 // Use inheritance to initialize with_used early:
-struct prefixes : private leg::with_used, leg::partition<>, prefixes_base {
+struct prefixes : private leg::with_used, leg::partition, prefixes_base {
   template<class F>
   prefixes(region & reg, F f)
     : with_used(reg.size().first), partition(reg, convert(std::move(f)), fid) {}
@@ -54,7 +54,7 @@ struct prefixes : private leg::with_used, leg::partition<>, prefixes_base {
   }
 };
 
-struct intervals : leg::partition<> {
+struct intervals : leg::partition {
   using Value = leg::rect;
 
   static Value make(subrow n,
@@ -67,22 +67,19 @@ struct intervals : leg::partition<> {
   using partition::partition;
 };
 
-struct points : leg::partition<false> {
-  using Value = Legion::Point<2>;
+struct copy_engine {
+  using Point = Legion::Point<2>;
 
-  static auto make(std::size_t r, std::size_t i) {
-    return Value(r, i);
+  static auto point(std::size_t r, std::size_t i) {
+    return Point(r, i);
   }
 
-  using partition::partition;
-};
-
-struct copy_engine {
-  copy_engine(const points & src, const intervals & dest, field_id_t f)
+  // NB: Legion assumes that the indirection field never refers into dest.
+  copy_engine(const prefixes & src, const intervals & dest, field_id_t f)
     : copy_engine(src, dest.root(), dest.logical_partition, f) {}
 
 private:
-  copy_engine(const points & src,
+  copy_engine(const prefixes & src,
     Legion::LogicalRegion lreg,
     Legion::LogicalPartition dest,
     field_id_t ptr_fid)

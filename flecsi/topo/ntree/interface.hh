@@ -535,7 +535,8 @@ private:
 
   // Copy plan: set pointers for top tree
   template<index_space IS = entities>
-  static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo, wo> a,
+  static void set_top_tree_ptrs(
+    field<data::copy_engine::Point>::accessor<wo, wo> a,
     const std::vector<util::id> & base,
     const std::vector<hcell_t> & hcells) {
     auto i = process();
@@ -543,19 +544,21 @@ private:
     for(std::size_t j = 0; j < hcells.size(); ++j) {
       auto & h = hcells[j];
       if((IS == entities ? h.is_ent() : h.is_node()) && h.color() != i)
-        a(idx++) = data::points::make(h.color(), h.idx());
+        a(idx++) = data::copy_engine::point(h.color(), h.idx());
     }
   }
 
   // Copy plan: set pointers to entities
-  static void set_entities_ptrs(field<data::points::Value>::accessor<wo, wo> a,
+  static void set_entities_ptrs(
+    field<data::copy_engine::Point>::accessor<wo, wo> a,
     const std::vector<util::id> & nents_base,
     const std::vector<std::pair<hcell_t, std::size_t>> & ids) {
     auto i = process();
     util::id idx = nents_base[i];
     for(std::size_t j = 0; j < ids.size(); ++j) {
       assert(ids[j].first.color() != i);
-      a(idx++) = data::points::make(ids[j].first.color(), ids[j].first.idx());
+      a(idx++) =
+        data::copy_engine::point(ids[j].first.color(), ids[j].first.idx());
     }
   }
 
@@ -645,6 +648,14 @@ public:
     // Properly resize the partitions for the new number of ents + ghosts
     ts->part.template get<entities>().resize(
       make_partial<allocate>(ts->rz.ent));
+
+    // Fake initialization for the new ghosts
+    for(auto & f :
+      run::context::instance().field_info_store<Policy, entities>()) {
+      auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
+        f->fid, ts.get());
+      execute<fake_initialize>(fr);
+    }
 
     ts->cp_entities.emplace(
       ts.get(),

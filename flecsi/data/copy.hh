@@ -51,31 +51,19 @@ struct intervals {
     completeness = incomplete);
 };
 
-/// A set of elements in a region_base for (not of!) each row.
-struct points {
-  /// Factory function for the point type.
-  static auto make(std::size_t r, std::size_t);
-  /// Defined by the backend.
-  using Value = decltype(make(0, 0));
-
-  /// Derive points from the field values in each row of a partition.
-  /// \param r region from which to select
-  /// \param iv must have the same number of rows as \a r
-  /// \param id field of type \c Value (need not be unique)
-  points(region_base & r,
-    const intervals & iv,
-    field_id_t id,
-    completeness = incomplete);
-};
-
 /// Performs a specified copy operation repeatedly.
 struct copy_engine {
-  /// Prepare to copy from points to intervals.
-  /// \param src must outlive this value
-  /// \param dest similarly
-  /// \param id that used to create \a src; must not be mutated while using
-  ///   this value
-  copy_engine(const points & src, const intervals & dest, field_id_t id);
+  /// Factory function for the \c Point type.
+  /// \param r row
+  /// \param i index (within row)
+  static auto point(std::size_t r, std::size_t i);
+  /// Defined by the backend.
+  using Point = decltype(point(0, 0));
+
+  /// Prepare to copy into intervals.
+  /// \param id field of type \c Point referring into \a src; must not
+  ///   be mutated while using this value
+  copy_engine(const prefixes & src, const intervals & dest, field_id_t id);
 
   /// Copy one field from \a src to \a dest.
   void operator()(field_id_t) const;

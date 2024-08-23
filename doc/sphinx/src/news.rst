@@ -24,6 +24,10 @@ Possible incompatibilities
 
 Fixed
 ^^^^^
+* Legion backend
+
+  * The speed of ghost copies has been significantly improved (without losing the decreased memory usage).
+
 * Utilities
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
