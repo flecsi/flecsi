@@ -173,13 +173,9 @@ dag() {
   }; // UNIT
 } // dag
 
-/*----------------------------------------------------------------------------*
-  This tests GPU_UNIT
- *----------------------------------------------------------------------------*/
-
 FLECSI_TARGET int
 no_failures() {
-  GPU_UNIT() {
+  UNIT() {
     ASSERT_GT(42, 3.14);
     ASSERT_GE('x', 'x');
     EXPECT_LE(1 + 2 + 3, 7);
@@ -193,7 +189,7 @@ no_failures() {
 
 FLECSI_TARGET int
 expect_failure(int & counter) {
-  GPU_UNIT() {
+  UNIT() {
     EXPECT_GT(1.0, 1.0);
     ++counter; // ensure the expect didn't exit early
   };
@@ -201,7 +197,7 @@ expect_failure(int & counter) {
 
 FLECSI_TARGET int
 assert_failure(int & counter) {
-  GPU_UNIT() {
+  UNIT() {
     ASSERT_GT('a', 'a' + 1);
     ++counter; // ensure the assert actually exited early
   };
@@ -209,7 +205,7 @@ assert_failure(int & counter) {
 
 FLECSI_TARGET int
 gpu_unit_test() {
-  GPU_UNIT() {
+  UNIT() {
     EXPECT_EQ(no_failures(), 0);
     int counter{0};
     EXPECT_EQ(assert_failure(counter), 1);

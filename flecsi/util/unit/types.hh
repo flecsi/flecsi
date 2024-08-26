@@ -47,40 +47,36 @@ struct not_fn { // default-constructed std::not_fn
 };
 } // namespace detail
 
-struct state_t {
+struct state_base {
+  state_base() = default;
+  state_base(state_base &&) = delete;
 
-  state_t(std::string name, std::string label) {
-    name_ = name;
-    label_ = label;
-  } // initialize
-  state_t(state_t &&) = delete;
+  template<class F>
+  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
+    std::forward<F>(f)();
+    return result_;
+  }
+
+protected:
+  int result_ = 0;
+};
+
+struct state_t : state_base {
+  state_t(std::string name, std::optional<std::string> label)
+    : name_(std::move(name)), label_(std::move(label)) {}
 
   ~state_t() {
+    const std::string l = label_.value_or("TEST");
     if(result_) {
       std::stringstream stream;
-      if(label_ == "TEST") {
-        stream << FLOG_OUTPUT_LTRED(label_ << " FAILED " << name_) << std::endl;
-      }
-      else {
-        stream << FLOG_OUTPUT_RED(label_ << " FAILED " << name_) << std::endl;
-      }
+      stream << (label_ ? FLOG_COLOR_RED : FLOG_COLOR_LTRED) << l << " FAILED "
+             << name_ << FLOG_COLOR_PLAIN << '\n';
       stream << error_stream_.str();
       flog(utility) << stream.str();
     }
-    else {
-      if(label_ == "TEST") {
-        flog(utility) << FLOG_OUTPUT_LTGREEN(label_ << " PASSED " << name_)
-                      << FLOG_COLOR_PLAIN << std::endl;
-      }
-      else {
-        flog(utility) << FLOG_OUTPUT_GREEN(label_ << " PASSED " << name_)
-                      << FLOG_COLOR_PLAIN << std::endl;
-      }
-    } // if
-  } // process
-
-  const std::string & name() const {
-    return name_;
+    else
+      flog(utility) << (label_ ? FLOG_COLOR_GREEN : FLOG_COLOR_LTGREEN) << l
+                    << " PASSED " << name_ << FLOG_COLOR_PLAIN << std::endl;
   }
 
   std::stringstream & stringstream() {
@@ -127,21 +123,14 @@ struct state_t {
     return ret;
   }
 
-  template<class F>
-  int operator->*(F && f) { // highest binary precedence
-    std::forward<F>(f)();
-    return result_;
-  }
-
   // Allows 'return' before <<:
   void operator>>=(const std::ostream &) {
     error_stream_ << FLOG_COLOR_PLAIN << std::endl;
   }
 
 private:
-  int result_ = 0;
   std::string name_;
-  std::string label_;
+  std::optional<std::string> label_;
   std::stringstream error_stream_;
 
 }; // struct state_t
@@ -181,20 +170,15 @@ struct string_case_compare {
   }
 };
 
-// Provides the core of a GPU-capable unit test.  Intended to be used through
-// the GPU_UNIT macro.  The state_t class (used through the UNIT macro) is
-// preferred when running on the CPU, as it has more capabilities.  However,
-// state_t/UNIT does not run on GPUs, so portable code needs to use
-// gpu_state_t/GPU_UNIT instead.
-class gpu_state_t
-{
-public:
-  FLECSI_TARGET gpu_state_t(const char * const name) : name_{name} {}
-  template<class F>
-  FLECSI_TARGET int operator->*(F && f) { // highest binary precedence
-    std::forward<F>(f)();
-    return result_;
-  }
+// Provides the core of a GPU-capable unit test.  Used instead of state_t when
+// running on the GPU, but lacks some capabilities.
+struct gpu_state_t : state_base {
+  struct label {
+    label() = default;
+    template<class T>
+    label(const T &); // not implemented, host-only
+  };
+  FLECSI_TARGET gpu_state_t(const char * const name, label) : name_{name} {}
   FLECSI_TARGET ~gpu_state_t() {
     printf("TEST %s %s\n", (result_ == 0) ? "PASSED" : "FAILED", name_);
   }
@@ -234,19 +218,14 @@ public:
     }
     return value;
   }
-  // For compatibility with state_t and ASSERT/EXPECT macros
-  // -- Originally designed to allow the user to stream additional information
-  //    into error messages.
-  // -- Since std::ostream does not work on GPUs, for GPU_UNIT this returns the
-  //    gpu_state_t instance itself (to help indicate where to look if the user
-  //    tries to stream into this and gets a compiler error).
-  FLECSI_TARGET const gpu_state_t & stringstream() {
+  FLECSI_TARGET gpu_state_t & stringstream() {
     return *this;
   }
   FLECSI_TARGET void operator>>=(const gpu_state_t &) {}
+  template<class T>
+  gpu_state_t & operator<<(const T &); // not implemented, host-only
 
 private:
-  int result_ = 0;
   const char * name_;
 }; // gpu_state_t
 
@@ -258,10 +237,11 @@ private:
 /// \addtogroup unit
 /// \{
 
-inline std::string
-label_default(std::string s) {
-  return (s.empty() ? "TEST" : s);
-}
+#ifdef FLECSI_DEVICE_CODE
+#define FLECSI_UNIT_TYPE gpu_state_t
+#else
+#define FLECSI_UNIT_TYPE state_t
+#endif
 
 /// Define a unit test function.  Should be followed by a compound statement,
 /// which can use the other unit-testing macros, and a semicolon, and should
@@ -269,31 +249,26 @@ label_default(std::string s) {
 /// Optionally, provide an expression convertible to \c std::string to label
 /// the test results (along with \c __func__); the default is "TEST".
 ///
+/// \if core
+/// \attention
+/// If used on a GPU, no label may be provided, nothing can be streamed
+/// into the assertions using `<<`, and the following macros may not be used
+/// in the compound statement:
+///   - \c ASSERT_STRCASEEQ and \c EXPECT_STRCASEEQ
+///   - \c ASSERT_STRCASENE and \c EXPECT_STRCASENE
+///   - \c UNIT_CAPTURE
+///   - \c UNIT_DUMP
+///   - \c UNIT_BLESSED
+///   - \c UNIT_WRITE
+///   - \c UNIT_ASSERT
+/// \endif
+///
 /// \note The `ASSERT`/`EXPECT` macros can be used in a lambda defined inside
 ///   the compound statement with `[&]`.
 #define UNIT(...)                                                              \
-  ::flecsi::util::unit::state_t auto_unit_state(                               \
-    __func__, label_default({__VA_ARGS__}));                                   \
+  ::flecsi::util::unit::FLECSI_UNIT_TYPE auto_unit_state(                      \
+    __func__, {__VA_ARGS__});                                                  \
   return auto_unit_state->*[&]() -> void
-
-/// \cond core
-/// Alternative to UNIT that works on both CPU and GPU.  GPU_UNIT does not
-/// support all features available through UNIT.
-/// - GPU_UNIT() does not accept a custom label.
-/// - GPU_UNIT does not work with the following macros:
-///   - ASSERT_STRCASEEQ and EXPECT_STRCASEEQ
-///   - ASSERT_STRCASENE and EXPECT_STRCASENE
-///   - UNIT_CAPTURE
-///   - UNIT_DUMP
-///   - UNIT_BLESSED
-///   - UNIT_WRITE
-///   - UNIT_ASSERT and UNIT_EXPECT
-/// - You cannot stream additional information into the tests using << the way
-///   you can with UNIT.
-#define GPU_UNIT()                                                             \
-  ::flecsi::util::unit::gpu_state_t auto_unit_state(__func__);                 \
-  return auto_unit_state->*[&]() -> void
-/// \endcond
 
 #define CHECK(ret, f, ...)                                                     \
   if(auto_unit_state.f(__VA_ARGS__, __FILE__, __LINE__))                       \
@@ -418,14 +393,6 @@ label_default(std::string s) {
 #else
 // MSVC has a brain-dead preprocessor...
 #define UNIT_ASSERT(ASSERTION, x, y) ASSERT_##ASSERTION(x, y) << UNIT_DUMP()
-#endif
-
-#if !defined(_MSC_VER)
-#define UNIT_EXPECT(EXPECTATION, ...)                                          \
-  EXPECT_##EXPECTATION(__VA_ARGS__) << UNIT_DUMP()
-#else
-// MSVC has a brain-dead preprocessor...
-#define UNIT_EXPECT(EXPECTATION, x, y) EXPECT_##EXPECTATION(x, y) << UNIT_DUMP()
 #endif
 
 /// \}
