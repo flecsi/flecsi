@@ -21,14 +21,11 @@ partitionKind(disjointness dis, completeness cpt) {
   return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
 }
 
-static_assert(sizeof(util::id) <= sizeof(Legion::coord_t),
-  "topology entity ID type too large for Legion");
 // The "infinite" size used for resizable regions.
-constexpr inline util::id logical_size =
-  [a = std::numeric_limits<util::id>::max(),
-    b = std::numeric_limits<Legion::coord_t>::max()] {
-    return a < b ? a : b;
-  }();
+constexpr inline util::id logical_size = std::numeric_limits<
+  std::conditional_t<sizeof(util::id) < sizeof(Legion::coord_t),
+    util::id,
+    Legion::coord_t>>::max();
 
 namespace leg {
 /// \defgroup legion-data Legion Data
