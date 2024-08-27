@@ -312,7 +312,7 @@ openmpi-legion-openmp-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +openmp ^${LEGION_IBV} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -326,7 +326,7 @@ openmpi-legion-openmp-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp ^${KOKKOS_OPENMP} ^openmpi"
+    VARIANTS: "backend=legion +flog +hdf5 +openmp ^${LEGION_IBV} +openmp ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -461,7 +461,7 @@ mpich-mpi-openmp-clang:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +hdf5 +kokkos +openmp ^${KOKKOS_OPENMP} ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug caliper_detail=low +flog +hdf5 +openmp ^${KOKKOS_OPENMP} ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -478,7 +478,7 @@ mpich-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -528,7 +528,7 @@ openmpi-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"

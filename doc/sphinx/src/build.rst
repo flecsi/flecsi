@@ -7,9 +7,9 @@ Build & Install
 
 FleCSI can be configured to run with different distributed-memory
 runtimes, including Legion, HPX, and MPI.
-FleCSI also has support for various
-fine-grained, node-level runtimes, including OpenMP, Kokkos, and
-the C++17 extensions for parallelism. Full documentation for FleCSI
+FleCSI applications can also use several kinds of on-node parallelism,
+including the C++ standard library's parallel algorithms and (via Kokkos)
+OpenMP, CUDA and HIP. Full documentation for FleCSI
 requires both Sphinx and Doxygen. These configuration options are listed
 to convey to the reader that the FleCSI build system has several paths
 that can be taken to tailor FleCSI to a given system and architecture.
@@ -167,12 +167,6 @@ Example configuration: **MPI**
 .. code-block:: console
 
   $ cmake -DFLECSI_BACKEND=mpi ..
-
-Example configuration: **MPI + OpenMP**
-
-.. code-block:: console
-
-  $ cmake -DFLECSI_BACKEND=mpi -DENABLE_OPENMP ..
 
 Example configuration: **Legion**
 
