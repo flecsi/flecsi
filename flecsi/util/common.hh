@@ -31,6 +31,8 @@ namespace util {
 /// Local (color-specific) topology entity ID type.
 /// Often provided in a index-space-specific convertible wrapper.
 using id = FLECSI_ID_TYPE;
+static_assert(std::is_unsigned_v<id>,
+  "topology entity ID type must be unsigned");
 
 /// Global topology entity ID type.
 using gid = FLECSI_GID_TYPE;
