@@ -59,6 +59,7 @@ public:
 /// and nodes of the tree.
 /// \warning Only the Legion backend is supported for the N-Tree topology
 /// \warning N-Tree topology does not have support for Ragged or Sparse fields
+/// \warning N-Tree topology only support #color = #process
 /// \ingroup topology
 /// \{
 
@@ -135,7 +136,8 @@ public:
         return ret;
       }()) {
     // Initialize the meta_field
-    flecsi::execute<init_meta_field>(meta_field(this->meta));
+    flecsi::execute<init_meta_field>(
+      meta_field(this->meta), c.entities_sizes_[process()]);
   }
 
   // Ntree mandatory fields ---------------------------------------------------
@@ -213,8 +215,10 @@ private:
   }
 
   static void init_meta_field(
-    typename field<meta_type, data::single>::template accessor<wo> meta_field) {
+    typename field<meta_type, data::single>::template accessor<wo> meta_field,
+    const util::id size) {
     meta_field = {};
+    meta_field->local.ents = size;
   }
 
   // ----------------------- Top Tree Construction Tasks -----------------------

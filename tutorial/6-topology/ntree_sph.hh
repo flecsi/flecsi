@@ -129,14 +129,8 @@ struct sph_ntree_t
 
   // Feed the index space / fields with initial information for the entities
   static void init_fields(sph_ntree_t::accessor<flecsi::wo, flecsi::wo> t,
-    const std::vector<sph_ntree_t::ent_t> & ents) {
-    auto c = flecsi::process();
-    for(std::size_t i = 0; i < ents.size(); ++i) {
-      t.e_i(i).coordinates = ents[i].coordinates_;
-      t.e_i(i).radius = ents[i].radius_;
-      t.e_colors(i) = c;
-      t.e_i(i).mass = ents[i].mass_;
-    }
+    const std::size_t nents) {
+    sph::init_base(t.e_i.span(), t.e_ids.span(), nents, t.e_i.span().size());
   } // init_fields
 
   // Compute the range of the domain, the keys for each entities and generate
@@ -159,9 +153,12 @@ struct sph_ntree_t
   } // generate_ntree
 
   static void initialize(flecsi::data::topology_slot<sph_ntree_t> & ts,
-    coloring,
-    std::vector<ent_t> & ents) {
-    flecsi::execute<init_fields>(ts, ents);
+    const coloring &,
+    const int nents) {
+    flecsi::execute<init_fields>(ts, nents);
+  }
+
+  static void build_ntree(flecsi::data::topology_slot<sph_ntree_t> & ts) {
     generate_ntree(ts);
   }
 
@@ -174,8 +171,8 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::util::id nents, std::vector<ent_t> & ents) {
-    const int size = flecsi::processes(), rank = flecsi::process();
+  static coloring color(flecsi::util::id nents) {
+    const int size = flecsi::processes();
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
     c.entities_sizes_.resize(size);
@@ -189,10 +186,6 @@ struct sph_ntree_t
       if(i > 0)
         offset[i] += offset[i - 1] + c.entities_sizes_[i];
     }
-
-    // Feed default values
-    ents.resize(c.entities_sizes_[rank]);
-    sph::init_base(ents, nents, offset[rank]);
 
     c.nodes_sizes_ = c.entities_sizes_;
     for(flecsi::util::id & d : c.nodes_sizes_)

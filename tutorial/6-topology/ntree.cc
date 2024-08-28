@@ -66,20 +66,19 @@ advance_task(sph_ntree_t::accessor<rw, na> t,
 void
 initialize_action(sph::control_policy & cp) {
 
-  {
-    std::vector<sph_ntree_t::ent_t> ents;
-    const int nents = sph::n_entities.value();
-    sph_ntree_t::mpi_coloring coloring(nents, ents);
-    cp.sph_ntree.allocate(coloring, ents);
-  }
+  const int nents = sph::n_entities.value();
+  sph_ntree_t::mpi_coloring coloring(nents);
+  cp.sph_ntree.allocate(coloring, nents);
 
-  cp.max_iterations = sph::n_iterations.value();
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
   auto v = velocity(cp.sph_ntree);
   auto u = energy(cp.sph_ntree);
   auto is_w = is_wall(cp.sph_ntree);
   flecsi::execute<init_sodtube_task>(cp.sph_ntree, rho, p, v, u, is_w);
+
+  sph_ntree_t::build_ntree(cp.sph_ntree);
+  cp.max_iterations = sph::n_iterations.value();
 }
 
 int
