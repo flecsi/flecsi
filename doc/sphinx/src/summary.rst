@@ -190,7 +190,7 @@ Accessors of different layouts form a hierarchy parallel to that of field defini
 The ultimately underlying ``raw`` accessors merely store a ``util::span<T>``, along with a field ID used to look up the storage.
 Higher-level accessors implement additional behavior, including certain automatic task launches.
 Additionally, ``ragged`` mutators are implemented in terms of the same underlying accessors as ``ragged`` accessors, and ``sparse`` mutators are in turn a wrapper around them.
-All these types are defined in ``accessor.hh``; because it must include the task-execution headers, the (undefined) primary templates are declared in the lower-level ``field.hh``.
+All these types are defined in ``accessor.hh``, but the (undefined) primary templates are declared in the lower-level ``field.hh``.
 
 Because the structural information about a topology is often necessary for using the physics fields defined on it, each topology defines a *topology accessor* type that packages accessors for the fields that hold that structural information (registered by the topology itself), further extending the hierarchy of composite accessors.
 Topology accessors are of course also task-only; a topology accessor parameter is matched by a topology slot argument.

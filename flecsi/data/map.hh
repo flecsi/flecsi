@@ -3,6 +3,7 @@
 #ifndef FLECSI_DATA_MAP_HH
 #define FLECSI_DATA_MAP_HH
 
+#include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/color_map.hh"
 

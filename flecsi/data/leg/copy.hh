@@ -6,7 +6,7 @@
 #ifndef FLECSI_DATA_LEG_COPY_HH
 #define FLECSI_DATA_LEG_COPY_HH
 
-#include "flecsi/execution.hh"
+#include "flecsi/exec/fwd.hh"
 #include "flecsi/topo/color.hh"
 
 namespace flecsi::data {

@@ -5,7 +5,6 @@
 #define FLECSI_TOPO_NARRAY_TYPES_HH
 
 #include "flecsi/data/copy.hh"
-#include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/types.hh"
 #include "flecsi/util/color_map.hh"

@@ -4,7 +4,6 @@
 #ifndef FLECSI_UTIL_UNIT_HH
 #define FLECSI_UTIL_UNIT_HH
 
-#include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/runtime.hh"
 #include "flecsi/util/unit/types.hh"

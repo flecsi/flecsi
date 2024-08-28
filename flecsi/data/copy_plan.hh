@@ -6,8 +6,12 @@
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/exec/fold.hh"
+#include "flecsi/exec/fwd.hh"
+#include "flecsi/runtime.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/serialize.hh"
 
 /// \cond core

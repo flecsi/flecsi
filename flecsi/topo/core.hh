@@ -14,7 +14,7 @@ namespace data {
 template<class>
 struct coloring_slot; // avoid dependency on flecsi::execute
 template<class, Privileges>
-struct topology_accessor; // avoid circularity via launch.hh
+struct topology_accessor;
 } // namespace data
 
 namespace topo {

@@ -78,24 +78,12 @@ struct task_local
 #endif
 ;
 
-/*!
-  Execute a reduction task.
-
-  @tparam Task       The user task.
-  @tparam Reduction  The reduction operation type.
-  @tparam Attributes The task attributes mask.
-  @tparam Args       The user-specified task arguments.
-  \return a \ref future providing the reduced return value
-
-  \see \c execute about parameter and argument types.
- */
-
 // To avoid compile- and runtime recursion, only user tasks trigger logging.
 template<auto & Task,
   class Reduction,
-  TaskAttributes Attributes = flecsi::loc | flecsi::leaf,
+  TaskAttributes Attributes,
   typename... Args>
-[[nodiscard]] auto
+auto
 reduce(Args &&... args) {
   using namespace exec;
 
@@ -105,12 +93,6 @@ reduce(Args &&... args) {
   return reduce_internal<Task, Reduction, Attributes, Args...>(
     std::forward<Args>(args)...);
 } // reduce
-
-template<auto & TASK, TaskAttributes ATTRIBUTES, typename... ARGS>
-auto
-execute(ARGS &&... args) {
-  return reduce<TASK, void, ATTRIBUTES>(std::forward<ARGS>(args)...);
-} // execute
 
 /*!
   Execute a test task. This interface is provided for FleCSI's unit testing
@@ -174,11 +156,6 @@ struct trace {
 
   /// Skip the next call to the tracer
   void skip();
-
-  /// \if core
-  /// Check whether a trace is supported, active, and not skipped.
-  /// \endif
-  static bool is_tracing();
 
 private:
   /// Non-RAII interface.  Does nothing if \c skip flag is set.
