@@ -175,8 +175,15 @@ struct trace {
   /// Skip the next call to the tracer
   void skip();
 
+  /// \if core
+  /// Check whether a trace is supported, active, and not skipped.
+  /// \endif
+  static bool is_tracing();
+
 private:
+  /// Non-RAII interface.  Does nothing if \c skip flag is set.
   void start();
+  /// Non-RAII interface.  Merely clears \c skip flag if set.
   void stop();
 };
 #endif
