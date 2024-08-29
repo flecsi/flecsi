@@ -219,7 +219,7 @@ struct field_reference : convert_tag {
   /// \note \p L must be \c ragged or \c sparse.
   auto & get_elements() const {
     static_assert(L == ragged || L == sparse, "not a dynamic field");
-    // A ragged_partition<...>::core, or borrowing of same:
+    // A (borrowing of) ragged_partition::core:
     return topology_->ragged.template get<Space>()[fid_];
   }
   void cleanup(std::function<void()> f) const {

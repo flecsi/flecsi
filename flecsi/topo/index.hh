@@ -113,10 +113,6 @@ struct ragged_partition_base : repartition {
     return *reg;
   }
 
-  // Ragged ghost copies must be handled at the level of the host topology.
-  template<class R>
-  void ghost_copy(const R &) {}
-
 private:
   data::region * reg; // note the address stability assumption
   field_id_t fid;
@@ -135,12 +131,8 @@ template<>
 struct detail::base<ragged_partition_category> {
   using type = ragged_partition_base;
 };
-template<PrivilegeCount N>
 struct ragged_partition
-  : specialization<ragged_partition_category, ragged_partition<N>> {
-  template<single_space>
-  static constexpr PrivilegeCount privilege_count = N;
-};
+  : specialization<ragged_partition_category, ragged_partition> {};
 
 template<class>
 struct ragged;
@@ -168,11 +160,9 @@ protected:
 };
 } // namespace detail
 
-template<class Topo, typename Topo::index_space S>
-struct ragged_partitioned
-  : detail::ragged_partitions<
-      ragged_partition<Topo::template privilege_count<S>>> {
-  explicit ragged_partitioned(Color r)
+struct ragged_partitioned : detail::ragged_partitions<ragged_partition> {
+  template<class Topo, typename Topo::index_space S>
+  ragged_partitioned(util::key_type<S, Topo>, Color r)
     : reg(new data::region({r, data::logical_size},
         util::key_type<S, ragged<Topo>>())) {
     for(const auto & fi : run::context::field_info_store<ragged<Topo>, S>())
@@ -182,20 +172,6 @@ struct ragged_partitioned
 private:
   std::unique_ptr<data::region> reg;
 };
-
-namespace detail {
-template<template<class P, typename P::index_space> class, class, class>
-struct ragged_tuple;
-template<template<class P, typename P::index_space> class R,
-  class T,
-  typename T::index_space... SS>
-struct ragged_tuple<R, T, util::constants<SS...>> {
-  using type = util::key_tuple<util::key_type<SS, R<T, SS>>...>;
-};
-template<template<class P, typename P::index_space> class R, class P>
-using ragged_tuple_t =
-  typename ragged_tuple<R, P, typename P::index_spaces>::type;
-} // namespace detail
 
 struct ragged_base {
   using coloring = std::nullptr_t;
@@ -213,7 +189,7 @@ struct ragged_elements {
   explicit ragged_elements(Color c) : ragged_elements(c, index_spaces()) {}
 
   template<index_space S>
-  ragged_partitioned<P, S> & get() {
+  ragged_partitioned & get() {
     return part.template get<S>();
   }
 
@@ -222,9 +198,9 @@ private:
   ragged_elements(Color n,
     util::constants<VV...> /* index_spaces, to deduce a pack */
     )
-    : part((void(VV), n)...) {}
+    : part{{{{util::key_type<VV, P>(), n}...}}} {}
 
-  typename detail::ragged_tuple_t<ragged_partitioned, P> part;
+  util::key_array<ragged_partitioned, index_spaces> part;
 };
 
 template<class T>
@@ -369,41 +345,6 @@ struct borrow_extra {
   /// Constructor invoked by \c borrow_category with its arguments.
   borrow_extra(T &, const data::borrow &, bool) {}
 };
-template<class P, typename P::index_space S>
-struct borrow_ragged_partitions
-  : detail::ragged_partitions<
-      borrow<ragged_partition<P::template privilege_count<S>>>> {
-  borrow_ragged_partitions(ragged_partitioned<P, S> & r,
-    const data::borrow & b,
-    bool f) {
-    for(const auto & fi :
-      run::context::instance().field_info_store<ragged<P>, S>())
-      this->part.try_emplace(fi->fid, r[fi->fid], b, f);
-  }
-};
-template<class P>
-struct borrow_ragged_elements {
-  borrow_ragged_elements(ragged_elements<P> & r, const data::borrow & b, bool f)
-    : borrow_ragged_elements(r, b, f, typename P::index_spaces()) {}
-
-  template<typename P::index_space S>
-  borrow_ragged_partitions<P, S> & get() {
-    return part.template get<S>();
-  }
-
-private:
-  // TIP: std::tuple<TT...> can be initialized from const TT&... (which
-  // requires copying) or from UU&&... (which cannot use list-initialization).
-  template<auto... VV>
-  borrow_ragged_elements(ragged_elements<P> & r,
-    const data::borrow & b,
-    bool f,
-    util::constants<VV...> /* index_spaces, to deduce a pack */
-    )
-    : part(borrow_ragged_partitions<P, VV>(r.template get<VV>(), b, f)...) {}
-
-  typename detail::ragged_tuple_t<borrow_ragged_partitions, P> part;
-};
 template<class>
 struct borrow;
 
@@ -510,42 +451,6 @@ struct borrow : specialization<borrow_category, borrow<Q>> {
     Q::template privilege_count<S>;
 };
 
-namespace detail {
-template<PrivilegeCount N>
-struct borrow_ragged_partition<ragged_partition<N>> {
-  using Base = ragged_partition<N>;
-
-  borrow_ragged_partition(typename Base::core & r,
-    const data::borrow & b,
-    bool f)
-    : sz(r.sz, b, f) {}
-
-  auto sizes() {
-    return resize::field(sz);
-  }
-  void resize() {
-    const auto & b = static_cast<typename borrow<Base>::core &>(*this);
-    if(b.first)
-      b.base->resize();
-  }
-
-protected:
-  borrow<topo::resize>::core sz;
-};
-template<class Q>
-struct borrow_ragged<Q, true> {
-  borrow_ragged(typename Q::core & t, const data::borrow & b, bool f)
-    : ragged(t.ragged, b, f) {}
-  borrow_ragged_elements<Q> ragged;
-};
-template<class Q>
-struct borrow_meta<Q, true> {
-  borrow_meta(typename Q::core & t, const data::borrow & b, bool f)
-    : meta(t.meta, b, f) {}
-  typename borrow<topo::meta<Q>>::core meta;
-};
-} // namespace detail
-
 // Common utility for borrow_extra specializations.
 template<class Q>
 struct borrow_sizes {
@@ -570,12 +475,78 @@ private:
 
   util::key_array<borrow<resize>::core, typename Q::index_spaces> sz;
 };
-
-// Specialization of borrow_extra for types defined above
 template<class P>
 struct borrow_extra<ragged_partition_category<P>> : borrow_sizes<P> {
   using borrow_extra::borrow_sizes::borrow_sizes;
 };
+
+namespace detail {
+template<>
+struct borrow_ragged_partition<ragged_partition> {
+  using Base = ragged_partition;
+
+  borrow_ragged_partition(Base::core & r, const data::borrow & b, bool f)
+    : sz(r.sz, b, f) {}
+
+  auto sizes() {
+    return resize::field(sz);
+  }
+  void resize() {
+    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    if(b.first)
+      b.base->resize();
+  }
+
+protected:
+  borrow<topo::resize>::core sz;
+};
+struct borrow_ragged_partitions
+  : detail::ragged_partitions<borrow<ragged_partition>> {
+  template<class P, typename P::index_space S>
+  borrow_ragged_partitions(util::key_type<S, P>,
+    ragged_partitioned & r,
+    const data::borrow & b,
+    bool f) {
+    for(const auto & fi :
+      run::context::instance().field_info_store<ragged<P>, S>())
+      this->part.try_emplace(fi->fid, r[fi->fid], b, f);
+  }
+};
+template<class P>
+struct borrow_ragged_elements {
+  borrow_ragged_elements(ragged_elements<P> & r, const data::borrow & b, bool f)
+    : borrow_ragged_elements(r, b, f, typename P::index_spaces()) {}
+
+  template<typename P::index_space S>
+  borrow_ragged_partitions & get() {
+    return part.template get<S>();
+  }
+
+private:
+  template<auto... VV>
+  borrow_ragged_elements(ragged_elements<P> & r,
+    const data::borrow & b,
+    bool f,
+    util::constants<VV...> /* index_spaces, to deduce a pack */
+    )
+    : part{{{{util::key_type<VV, P>(), r.template get<VV>(), b, f}...}}} {}
+
+  util::key_array<borrow_ragged_partitions, typename P::index_spaces> part;
+};
+template<class Q>
+struct borrow_ragged<Q, true> {
+  borrow_ragged(typename Q::core & t, const data::borrow & b, bool f)
+    : ragged(t.ragged, b, f) {}
+  borrow_ragged_elements<Q> ragged;
+};
+template<class Q>
+struct borrow_meta<Q, true> {
+  borrow_meta(typename Q::core & t, const data::borrow & b, bool f)
+    : meta(t.meta, b, f) {}
+  typename borrow<topo::meta<Q>>::core meta;
+};
+} // namespace detail
+
 template<class P>
 struct borrow_extra<array_category<P>> : borrow_sizes<P> {
   using borrow_extra::borrow_sizes::borrow_sizes;
