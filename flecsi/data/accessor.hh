@@ -15,11 +15,6 @@
 #include <stack>
 
 namespace flecsi {
-namespace topo {
-template<class Topo, typename Topo::index_space>
-struct ragged_partitioned;
-}
-
 namespace data {
 /// \addtogroup data
 /// \{
@@ -276,7 +271,7 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
 template<class T, Privileges P, Privileges OP>
 struct ragged_accessor
-  : accessor<raw, T, P>,
+  : accessor<raw, T, privilege_pack<privilege_merge(P)>>,
     send_tag,
     util::with_index_iterator<const ragged_accessor<T, P, OP>> {
   using base_type = typename ragged_accessor::accessor;
@@ -328,12 +323,15 @@ struct ragged_accessor
   void send(F && f) {
     f(get_base(), [](const auto & r) {
       const field_id_t i = r.fid();
-      // The following call will trigger the ghost copy on the ragged, if
-      // needed. After the execution of this lambda, the call to f will trigger
-      // another ghost copy on the same region but a different topology
-      // which will not have any effect or change the dirty flag.
+      // The dirty flag on the ordinary associated region is used (in a
+      // trivial sense) for the offsets that are never copied directly.  Use
+      // the flag on the ragged-elements region for the actual ghost copy:
       auto & t = r.get_elements();
-      t.template get_region<topo::elements>().template ghost_copy<P>(r);
+      if constexpr(privilege_count(P) > 1) {
+        region & reg = t.template get_region<topo::elements>();
+        reg.ghost_copy<P>(r);
+        reg.ghost<P>(i); // restore any dirty flag cleared by the copy itself
+      }
       if constexpr(!std::is_trivially_destructible_v<T>)
         r.cleanup([r] { detail::destroy<P>(r); });
       // Resize after the ghost copy (which can add elements and can perform

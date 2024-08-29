@@ -292,7 +292,7 @@ struct unstructured_base {
 
   // resize ragged fields storing communication graph for ghosts
   static void cgraph_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    data::multi<ragged_partition::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
       a.size() = it->ghosts().size();
@@ -302,7 +302,7 @@ struct unstructured_base {
 
   // resize ragged fields storing communication graph for shared
   static void cgraph_shared_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    data::multi<ragged_partition::accessor<wo>> aa) {
     auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {
