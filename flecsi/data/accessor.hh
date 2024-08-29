@@ -270,8 +270,11 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
 /// Accessor for ragged fields.  \gpu.
 /// \tparam P if write-only, rows do not change size but their elements are
 ///   reinitialized
+/// \if core
+/// \tparam OP for offsets
+/// \endif
 /// \see \link accessor<raw,DATA_TYPE,PRIVILEGES> the base class\endlink
-template<class T, Privileges P, Privileges OP = P>
+template<class T, Privileges P, Privileges OP>
 struct ragged_accessor
   : accessor<raw, T, P>,
     send_tag,
@@ -342,11 +345,8 @@ struct ragged_accessor
         topo::policy_t<std::remove_reference_t<decltype(t)>>,
         topo::elements>(i, t);
     });
-    std::forward<F>(f)(get_offsets(), [](const auto & r) {
-      // Disable normal ghost copy of offsets:
-      r.get_region().template ghost<privilege_pack<wo, wo>>(r.fid());
-      return r.template cast<dense, Offset>();
-    });
+    std::forward<F>(f)(get_offsets(),
+      [](const auto & r) { return r.template cast<dense, Offset>(); });
     // These do nothing on the caller side:
     if constexpr(privilege_discard(OP)) {
       const auto s = off.span();
@@ -388,7 +388,9 @@ struct mutator<ragged, T, P>
   static_assert(std::is_nothrow_destructible_v<T>,
     "the data type should not throw from a destructor.");
 
-  using base_type = ragged_accessor<T, P>;
+  using base_type = ragged_accessor<T,
+    P,
+    privilege_repeat<privilege_discard(P) ? wo : rw, privilege_count(P)>>;
   using size_type = typename base_type::size_type;
 
   struct Overflow {
