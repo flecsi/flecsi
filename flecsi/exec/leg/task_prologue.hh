@@ -7,7 +7,6 @@
 #include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 
 #include <legion.h>
@@ -22,7 +21,7 @@ struct borrow_category;
 
 namespace exec {
 
-struct task_prologue_impl {
+struct task_prologue_impl : prolog_base {
   std::vector<Legion::RegionRequirement> const & region_requirements() const {
     return region_reqs_;
   } // region_requirements
@@ -69,14 +68,13 @@ protected:
     typename Topo::index_space Space>
   void visit(data::accessor<data::raw, D, P> &,
     const data::field_reference<D, data::raw, Topo, Space> & r) {
-    const field_id_t f = r.fid();
     auto & t = r.topology();
-    data::region & reg = t.template get_region<Space>();
 
-    reg.ghost_copy<P>(r);
+    add_copy<P>(r);
 
     const Legion::PrivilegeMode m = privilege_mode(P);
-    const Legion::LogicalRegion lr = reg.logical_region;
+    const Legion::LogicalRegion lr =
+      t.template get_region<Space>().logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
     else {
@@ -90,7 +88,7 @@ protected:
           lr),
         b);
     }
-    region_reqs_.back().add_field(f);
+    region_reqs_.back().add_field(r.fid());
   } // visit
 
   template<class R, typename T, class Topo, typename Topo::index_space Space>

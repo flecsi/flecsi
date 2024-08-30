@@ -2,6 +2,7 @@ flecsi_headers(
   backend.hh
   buffers.hh
   fold.hh
+  fwd.hh
   kernel.hh
   launch.hh
   prolog.hh

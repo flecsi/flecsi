@@ -1,3 +1,4 @@
+#include "flecsi/execution.hh"
 #include "flecsi/runtime.hh"
 #include "flecsi/utilities.hh"
 

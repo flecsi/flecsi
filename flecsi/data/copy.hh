@@ -65,8 +65,8 @@ struct copy_engine {
   ///   be mutated while using this value
   copy_engine(const prefixes & src, const intervals & dest, field_id_t id);
 
-  /// Copy one field from \a src to \a dest.
-  void operator()(field_id_t) const;
+  /// Copy fields from \a src to \a dest.
+  void operator()(const std::vector<field_id_t> &) const;
 };
 #endif
 

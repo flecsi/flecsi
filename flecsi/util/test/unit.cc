@@ -1,3 +1,4 @@
+#include "flecsi/execution.hh"
 #include <flecsi/util/unit.hh>
 
 using namespace flecsi;

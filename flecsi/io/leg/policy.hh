@@ -20,7 +20,6 @@
 #include "flecsi/data.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/leg/policy.hh"
-#include "flecsi/execution.hh"
 #include "flecsi/io/hdf5.hh"
 #include "flecsi/run/context.hh"
 #include "flecsi/util/serialize.hh"

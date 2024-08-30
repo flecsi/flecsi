@@ -7,7 +7,7 @@
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/types.hh"
 #include "flecsi/util/common.hh"

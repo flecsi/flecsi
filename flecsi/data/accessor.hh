@@ -4,7 +4,9 @@
 #ifndef FLECSI_DATA_ACCESSOR_HH
 #define FLECSI_DATA_ACCESSOR_HH
 
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/exec/fwd.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/topo/size.hh"
 #include "flecsi/util/array_ref.hh"
 #include <flecsi/data/field.hh>
@@ -329,7 +331,8 @@ struct ragged_accessor
       auto & t = r.get_elements();
       if constexpr(privilege_count(P) > 1) {
         region & reg = t.template get_region<topo::elements>();
-        reg.ghost_copy<P>(r);
+        [[maybe_unused]] const copy_plan * const cp = reg.ghost_copy<P>(r);
+        flog_assert(!cp, "copy_plan selected for ragged field");
         reg.ghost<P>(i); // restore any dirty flag cleared by the copy itself
       }
       if constexpr(!std::is_trivially_destructible_v<T>)
@@ -1591,8 +1594,8 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    flog_assert(!exec::trace::is_tracing(),
-      "ragged mutators cannot be used while tracing");
+    flog_assert(
+      !exec::is_tracing(), "ragged mutators cannot be used while tracing");
     return {type::base_type::parameter(r),
       r.get_elements().template get_partition<topo::elements>().growth};
   }

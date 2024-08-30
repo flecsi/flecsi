@@ -6,8 +6,12 @@
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/exec/fold.hh"
+#include "flecsi/exec/fwd.hh"
+#include "flecsi/runtime.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/serialize.hh"
 
 /// \cond core
@@ -50,9 +54,9 @@ struct copy_plan {
         dest_,
         pointers<P, S>(t).use(std::forward<F>(src)).fid()) {}
 
-  void issue_copy(const field_id_t & data_fid) const {
+  void issue_copy(const std::vector<field_id_t> & ff) const {
     util::annotation::rguard<util::annotation::execute_task_copy_engine> ann;
-    engine(data_fid);
+    engine(ff);
   }
 
   // Return the field id of pointers
@@ -229,8 +233,8 @@ struct buffers_category : buffers_base, topo::array_category<P> {
 
   // Data is actually moved by ordinary ghost copies for buffer accessors:
   template<class R>
-  void ghost_copy(const R & f) {
-    cp.issue_copy(f.fid());
+  [[nodiscard]] const copy_plan * ghost_copy(const R &) {
+    return &cp;
   }
 
   static inline const flecsi::field<buffer>::definition<P> field;
