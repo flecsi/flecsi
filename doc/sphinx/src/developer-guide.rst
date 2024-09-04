@@ -4,6 +4,7 @@ Developer Guide
 .. toctree::
 
    summary
+   developer-guide/hpx-backend
 
 -----
 
