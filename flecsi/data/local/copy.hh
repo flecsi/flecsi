@@ -6,6 +6,8 @@
 
 // High-level topology type implementation.
 
+#include "flecsi/data/local/storage.hh"
+
 namespace flecsi::data {
 namespace local {
 

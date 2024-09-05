@@ -4,6 +4,8 @@
 #ifndef FLECSI_DATA_LOCAL_POLICY_HH
 #define FLECSI_DATA_LOCAL_POLICY_HH
 
+// Include this file only after a definition of data::backend_storage.
+
 #include "flecsi/data/field_info.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"

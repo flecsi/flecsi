@@ -9,7 +9,7 @@
 #include <hpx/modules/lock_registration.hpp>
 #include <hpx/modules/synchronization.hpp>
 
-#include "flecsi/config.hh"
+#include "flecsi/data/backend.hh" // backend_storage
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/local/copy.hh"
 #include "flecsi/run/hpx/context.hh"
@@ -48,10 +48,10 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
 } // all_to_allv
 } // namespace detail
 
-template<typename SrcField, typename DestField, typename F>
+template<typename F>
 void
-init_delayed_ghost_copy(SrcField & src_field,
-  DestField & dest_field,
+init_delayed_ghost_copy(backend_storage & src_field,
+  backend_storage & dest_field,
   F && delayed_ghost_copy) {
 
   ::hpx::future<void> future;
