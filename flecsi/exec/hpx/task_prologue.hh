@@ -148,26 +148,14 @@ protected:
     // then all known reads from the field have to finish before the write
     // operation).
     if constexpr(privilege_write(P)) {
-      // request future from promise only if required (once for all arguments)
-      if(!future.valid()) {
-        future = promise.get_future();
-        no_dependencies.push_back(future);
-      }
-
       // If the task writes to the current argument then we must associate the
       // future that represents the end of the task execution with the current
       // argument.
       field.future.release(); // superseded
-      field.future = future;
+      field.future = get_future();
       field.dep = flecsi::data::dependency::write;
     }
     else if constexpr(privilege_read(P)) {
-      // request future from promise only if required (once for all arguments)
-      if(!future.valid()) {
-        future = promise.get_future();
-        no_dependencies.push_back(future);
-      }
-
       // If the task reads from the current argument then we must associate
       // the future that represents the end of the task execution with the
       // current argument. We have to make sure that possibly more than one
@@ -176,10 +164,10 @@ protected:
       if(!pending) {
         // This is either the first operation using the given field or any
         // previous operations have already finished.
-        field.future = future;
+        field.future = get_future();
         field.dep = flecsi::data::dependency::read;
       }
-      else if(!flecsi::detail::is_same(field.future.get(), future)) {
+      else if(!flecsi::detail::is_same(field.future.get(), get_future())) {
         // This read operation needs to be added to the list of dependencies
         // already existing for the given field.
         field.future = {
@@ -219,16 +207,10 @@ protected:
       dependencies.push_back(field.future.release());
     }
 
-    // request future from promise only if required (once for all arguments)
-    if(!future.valid()) {
-      future = promise.get_future();
-      no_dependencies.push_back(future);
-    }
-
     // Reductions write to the current argument, thus we must associate the
     // future that represents the end of the task execution with the current
     // argument.
-    field.future = future;
+    field.future = get_future();
     field.dep = flecsi::data::dependency::write;
   }
 
@@ -294,6 +276,14 @@ private:
       }
     }
     return std::move(f);
+  }
+
+  const ::hpx::shared_future<void> & get_future() {
+    if(!future.valid()) {
+      future = promise.get_future();
+      no_dependencies.push_back(future);
+    }
+    return future;
   }
 
   // The futures that represent the dependencies of the current task on its
