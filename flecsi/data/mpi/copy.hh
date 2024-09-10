@@ -27,15 +27,16 @@ struct copy_engine : local::copy_engine {
   copy_engine(const data::points & pts,
     const data::intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
-    : local::copy_engine(pts, intervals, meta_fid) {
-    init_copy_engine([](auto const & remote_shared_entities) {
-      return util::mpi::all_to_allv([&](int r) -> auto & {
-        static const std::vector<std::size_t> empty;
-        const auto i = remote_shared_entities.find(r);
-        return i == remote_shared_entities.end() ? empty : i->second;
-      });
-    });
-  }
+    : local::copy_engine(pts,
+        intervals,
+        meta_fid,
+        [](auto const & remote_shared_entities) {
+          return util::mpi::all_to_allv([&](int r) -> auto & {
+            static const std::vector<std::size_t> empty;
+            const auto i = remote_shared_entities.find(r);
+            return i == remote_shared_entities.end() ? empty : i->second;
+          });
+        }) {}
 
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.

@@ -15,15 +15,12 @@ struct copy_engine {
   using index_type = std::size_t;
 
   // One copy engine for each entity type i.e. vertex, cell, edge.
+  template<typename AllToAll>
   copy_engine(const data::points & pts,
     const data::intervals & intervals,
-    field_id_t meta_fid /* for remote shared entities */)
-    : source(pts), destination(intervals), meta_fid(meta_fid) {}
-
-  // The initialization of the copy_engine may have to be delayed to make sure
-  // the calls to get_storage can be safely executed.
-  template<typename AllToAll>
-  void init_copy_engine(AllToAll && all_to_all) {
+    field_id_t meta_fid /* for remote shared entities */,
+    AllToAll && all_to_all)
+    : source(pts), destination(intervals) {
     // Make sure the task that is writing to the field has finished running
     destination[meta_fid].synchronize();
     // There is no information about the indices of local shared entities,
@@ -101,7 +98,6 @@ protected:
 
   const data::points & source;
   const data::intervals & destination;
-  field_id_t meta_fid;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;

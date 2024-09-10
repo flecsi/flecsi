@@ -81,7 +81,21 @@ init_delayed_ghost_copy(backend_storage & src_field,
 
 struct copy_engine : local::copy_engine {
   // One copy engine for each entity type i.e. vertex, cell, edge.
-  using local::copy_engine::copy_engine;
+  copy_engine(const data::points & src,
+    const data::intervals & dest,
+    field_id_t f)
+    : local::copy_engine(src,
+        dest,
+        f,
+        [&](auto const & remote_shared_entities) {
+          return detail::all_to_allv(
+            [&](int r) -> auto & {
+              static std::vector<std::size_t> const empty;
+              auto const it = remote_shared_entities.find(r);
+              return it == remote_shared_entities.end() ? empty : it->second;
+            },
+            run::context::instance().world_comm("copy_engine"));
+        }) {}
 
   // whenever this copy_engine is destroyed we have to wait for all pending
   // tasks to complete before exiting
@@ -116,52 +130,15 @@ struct copy_engine : local::copy_engine {
     auto & src_field = (*source.r)[data_fid];
     auto & dest_field = destination[data_fid];
 
-    auto comm_tag = std::to_string(data_fid);
-
-    // Request communicator only if it is needed. Otherwise, a new generation
-    // number is generated, which may cause for the communicator to hang if the
-    // generation is not subsequently 'used'.
-    if(!comm_gen.first) {
-      comm_gen = flecsi::run::context::instance().world_comm(comm_tag);
-    }
-
     init_delayed_ghost_copy(src_field,
       dest_field,
-      [this,
-        data_fid,
-        comm_tag = std::move(comm_tag),
-        comm = ctx.p2p_comm(), // don't use context asynchronously
-        p2p = ctx.p2p_tag()]() {
+      // Don't use context asynchronously:
+      [this, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
         // annotate new HPX thread
-        ::hpx::scoped_annotation _(comm_tag);
-
-        // First make sure this copy_engine is completely initialized. For the
-        // HPX backend this has to be delayed until the actual copy operation is
-        // being executed.
-        {
-          std::unique_lock l(mtx);
-          // ignore lock while suspending
-          [[maybe_unused]] ::hpx::util::ignore_while_checking il(&l);
-
-          // initialize every copy_engine exactly once
-          if(max_local_source_idx == 0) {
-            init_copy_engine([&](auto const & remote_shared_entities) {
-              flog_assert(comm_gen.first && comm_gen.second,
-                "communicator should have been initialized");
-              return detail::all_to_allv(
-                [&](int r) -> auto & {
-                  static std::vector<std::size_t> const empty;
-                  auto const it = remote_shared_entities.find(r);
-                  return it == remote_shared_entities.end() ? empty
-                                                            : it->second;
-                },
-                comm_gen);
-            });
-          }
-        }
+        ::hpx::scoped_annotation _("copy");
 
         // Since we are doing ghost copy via HPX, we always want the host side
         // version.
@@ -216,8 +193,6 @@ struct copy_engine : local::copy_engine {
   }
 
 private:
-  ::hpx::spinlock mtx;
-  run::context_t::communicator_data comm_gen;
   std::vector<::hpx::shared_future<void>> dependencies;
 };
 
