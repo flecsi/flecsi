@@ -48,30 +48,6 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
 } // all_to_allv
 } // namespace detail
 
-/// Add the delayed_ghost_copy as a dependency to the given field's dependencies
-template<typename Field, typename F>
-void
-init_delayed_ghost_copy(Field & field, F && delayed_ghost_copy) {
-
-  if(field.future.valid() && !field.future.is_ready()) {
-    // make the fields' values depend on this ghost copy operation after the
-    // previous operation has finished
-    field.future = field.future.then(::hpx::launch::async,
-      [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
-        auto && f) mutable {
-        f.get(); // propagate exceptions
-        delayed_ghost_copy();
-      });
-  }
-  else {
-    // make the fields value depend on this ghost copy operation
-    field.future = ::hpx::async(std::forward<F>(delayed_ghost_copy));
-  }
-
-  // ghost copy operations are implicit write operations to the field
-  field.dep = dependency::write;
-}
-
 template<typename SrcField, typename DestField, typename F>
 void
 init_delayed_ghost_copy(SrcField & src_field,

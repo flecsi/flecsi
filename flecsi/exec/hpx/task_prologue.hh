@@ -130,7 +130,7 @@ protected:
           }
         };
 
-        data::init_delayed_ghost_copy(field, delayed_ghost_copy);
+        data::init_delayed_ghost_copy(field, field, delayed_ghost_copy);
       }
     }
 
