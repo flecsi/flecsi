@@ -86,11 +86,11 @@ index_task(exec::launch_domain) {
     // color()
     // << std::endl;
 
-    ASSERT_LT(process(), processes());
-    ASSERT_GE(process(), 0u);
-    // ASSERT_LT(color(), domain.size());
-    // ASSERT_GE(color(), 0u);
-    // ASSERT_EQ(colors(), domain.size());
+    EXPECT_LT(process(), processes());
+    EXPECT_GE(process(), 0u);
+    // EXPECT_LT(color(), domain.size());
+    // EXPECT_GE(color(), 0u);
+    // EXPECT_EQ(colors(), domain.size());
   };
 }
 } // namespace
@@ -138,13 +138,13 @@ task_driver() {
     {
       auto & c = run::context::instance();
       flog(info) << "task depth: " << c.task_depth() << std::endl;
-      ASSERT_EQ(c.task_depth(), 0);
+      EXPECT_EQ(c.task_depth(), 0);
 
       auto process = c.process();
       auto processes = c.processes();
 
-      ASSERT_EQ(processes, 4u);
-      ASSERT_LT(process, processes);
+      EXPECT_EQ(processes, 4u);
+      EXPECT_LT(process, processes);
     }
 
     execute<hydro::simple<float>>(6.2);
@@ -157,8 +157,8 @@ task_driver() {
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
-    ASSERT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
-    ASSERT_EQ(x, 1); // NB: MPI calls are synchronous
+    EXPECT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
+    EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
     EXPECT_EQ(test<index_task>(exec::launch_domain{
                 processes() + 4 * (FLECSI_BACKEND != FLECSI_BACKEND_mpi)}),
