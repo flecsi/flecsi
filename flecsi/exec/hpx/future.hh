@@ -28,10 +28,6 @@ struct future_impl {
   explicit future_impl(::hpx::future<R> && result) noexcept
     : future_(::hpx::make_shared_future(std::move(result))) {}
 
-  future<R> & operator=(::hpx::future<R> && result) noexcept {
-    return *this = future<R>(std::move(result));
-  }
-
   void wait() {
     flog_assert(future_.valid(), "future must be valid");
     future_.wait();
@@ -121,9 +117,6 @@ public:
           return future::all_gather_result(std::move(comm_gen), f.get());
         })) {}
 
-  explicit future(R result, std::string name)
-    : base_type(all_gather_result(std::move(name), std::move(result))) {}
-
   R get(Color index = 0, bool = false) {
     return this->base_type::get().at(index);
   }
@@ -133,8 +126,6 @@ template<>
 struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
   using base_type = typename future::future_index;
   using base_type::base_type;
-
-  future() : base_type(::hpx::make_ready_future()) {}
 
   void get(Color = 0, bool = false) {
     this->base_type::get();
