@@ -169,7 +169,7 @@ task_driver() {
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
     double mpi_d = 42.0;
-    ASSERT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
+    EXPECT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);
