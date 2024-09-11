@@ -20,11 +20,8 @@
 namespace flecsi {
 namespace detail {
 
-template<typename Derived>
-struct future_impl;
-
 template<typename R>
-struct future_impl<future<R>> {
+struct future_impl {
 
   future_impl() = default;
 
@@ -51,10 +48,9 @@ private:
 } // namespace detail
 
 template<typename R>
-struct future<R> : detail::future_impl<future<R>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+struct future<R> : detail::future_impl<R> {
+  using base_type = typename future::future_impl;
+  using base_type::base_type;
 
   explicit future(R result)
     : base_type(::hpx::make_ready_future(std::move(result))) {}
@@ -65,10 +61,9 @@ struct future<R> : detail::future_impl<future<R>> {
 };
 
 template<>
-struct future<void> : detail::future_impl<future<void>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+struct future<void> : detail::future_impl<void> {
+  using base_type = typename future::future_impl;
+  using base_type::base_type;
 
   future() : base_type(::hpx::make_ready_future()) {}
 };
@@ -76,12 +71,12 @@ struct future<void> : detail::future_impl<future<void>> {
 namespace detail {
 
 template<typename R>
-struct future_impl<future<R, exec::launch_type_t::index>> {
+struct future_index {
 
   using result_type =
     std::conditional_t<std::is_void_v<R>, void, std::vector<R>>;
 
-  explicit future_impl(::hpx::future<result_type> && result) noexcept
+  explicit future_index(::hpx::future<result_type> && result) noexcept
     : future_(::hpx::make_shared_future(std::move(result))) {}
 
   void wait(bool = false) {
@@ -105,9 +100,7 @@ private:
 } // namespace detail
 
 template<typename R>
-struct future<R, exec::launch_type_t::index>
-  : detail::future_impl<future<R, exec::launch_type_t::index>> {
-
+struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
 private:
   static decltype(auto) all_gather_result(
     flecsi::run::context_t::communicator_data && comm_gen,
@@ -118,8 +111,8 @@ private:
   }
 
 public:
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+  using base_type = typename future::future_index;
+  using base_type::base_type;
 
   explicit future(::hpx::future<R> && result, std::string name)
     : base_type(result.then(::hpx::launch::sync,
@@ -137,11 +130,9 @@ public:
 };
 
 template<>
-struct future<void, exec::launch_type_t::index>
-  : detail::future_impl<future<void, exec::launch_type_t::index>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
+  using base_type = typename future::future_index;
+  using base_type::base_type;
 
   future() : base_type(::hpx::make_ready_future()) {}
 
