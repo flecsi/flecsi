@@ -206,12 +206,6 @@ reduce_internal(Args &&... args) {
       auto comm_gen =
         flecsi::run::context::instance().world_comm(std::move(task_name));
       return future<R>{delay([comm_gen](auto && params) {
-        // A real reduce operation, every rank needs to be able to access
-        // the same result through future<R>::get().
-        // 1. Call the F, get the local return value
-        // 2. Reduce the local return values with the Reduction
-        // 3. Put the reduced value in a future<R, single> (since there is
-        // only one final value) and return it.
         using namespace ::hpx::collectives;
         auto & [comm, generation] = comm_gen;
         return all_reduce(comm,
