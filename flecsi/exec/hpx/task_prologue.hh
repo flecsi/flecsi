@@ -135,11 +135,11 @@ protected:
     // either a "read after write" or a "write after read or write" dependency.
     // "read after read" dependencies are not considered here.
     // Note that it might derive from the ghost copies just above.
-    const bool pending = field.future.valid() && !field.future.is_ready();
+    const bool pending = !!field.future;
     if(pending &&
        (privilege_write(P) || field.dep == data::dependency::write) &&
-       may_be_used_as_dependency(field.future)) {
-      dependencies.push_back(field.future);
+       may_be_used_as_dependency(field.future.get())) {
+      dependencies.push_back(field.future.get());
     }
 
     // The dependencies of this task can be either "read after write" (if this
@@ -157,6 +157,7 @@ protected:
       // If the task writes to the current argument then we must associate the
       // future that represents the end of the task execution with the current
       // argument.
+      field.future.release(); // superseded
       field.future = future;
       field.dep = flecsi::data::dependency::write;
     }
@@ -178,11 +179,12 @@ protected:
         field.future = future;
         field.dep = flecsi::data::dependency::read;
       }
-      else if(!flecsi::detail::is_same(field.future, future)) {
+      else if(!flecsi::detail::is_same(field.future.get(), future)) {
         // This read operation needs to be added to the list of dependencies
         // already existing for the given field.
-        field.future = ::hpx::when_all(std::move(field.future), future).share();
-        no_dependencies.push_back(field.future);
+        field.future = {
+          ::hpx::when_all(field.future.release(), future).share()};
+        no_dependencies.push_back(field.future.get());
 
         // Leave the dependency type unchanged. If it is currently a write
         // dependency, then overwriting it here would cause the next task that
@@ -213,9 +215,8 @@ protected:
 
     // Any possibly valid field-future must be added as a dependency for this
     // task.
-    if(field.future.valid() && !field.future.is_ready() &&
-       may_be_used_as_dependency(field.future)) {
-      dependencies.push_back(std::move(field.future));
+    if(field.future && may_be_used_as_dependency(field.future.get())) {
+      dependencies.push_back(field.future.release());
     }
 
     // request future from promise only if required (once for all arguments)

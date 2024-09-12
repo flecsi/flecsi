@@ -104,22 +104,10 @@ public:
     flog_assert(argument == regions_partitions.size(),
       "all fields should be used by bind_accessors");
 
-    if(!reductions.empty()) {
-      std::vector<::hpx::future<void>> requests;
-      requests.reserve(reductions.size());
-      for(auto & f : reductions) {
-        requests.push_back(f());
-      }
-      ::hpx::wait_all_nothrow(requests);
-      for(auto && f : requests) {
-        if(f.has_exception()) {
-          // there is no way to report the error to the user's code at this
-          // point, thus termination is the only option
-          flog_fatal("future is in exceptional state during destruction of "
-                     "bind_accessors:\n" +
-                     ::hpx::diagnostic_information(f.get_exception_ptr()));
-        }
-      }
+    std::vector<data::fate> requests;
+    requests.reserve(reductions.size());
+    for(auto & f : reductions) {
+      requests.push_back({f()});
     }
   }
 

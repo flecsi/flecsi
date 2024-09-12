@@ -9,7 +9,7 @@
 #include <hpx/modules/lock_registration.hpp>
 #include <hpx/modules/synchronization.hpp>
 
-#include "flecsi/data/backend.hh" // backend_storage
+#include "flecsi/data/backend.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/local/copy.hh"
 #include "flecsi/run/hpx/context.hh"
@@ -55,8 +55,7 @@ init_delayed_ghost_copy(backend_storage & src_field,
   F && delayed_ghost_copy) {
 
   ::hpx::future<void> future;
-  if((src_field.future.valid() && !src_field.future.is_ready()) ||
-     (dest_field.future.valid() && !dest_field.future.is_ready())) {
+  if(src_field.future || dest_field.future) {
     // make the fields' values depend on this ghost copy operation after the
     // previous operation has finished
     future = ::hpx::dataflow(
@@ -66,8 +65,8 @@ init_delayed_ghost_copy(backend_storage & src_field,
         dest_f.get();
         delayed_ghost_copy();
       },
-      src_field.future,
-      dest_field.future);
+      src_field.future.get(),
+      dest_field.future.get());
   }
   else {
     // make the fields value depend on this ghost copy operation
@@ -97,25 +96,11 @@ struct copy_engine : local::copy_engine {
             run::context::instance().world_comm("copy_engine"));
         }) {}
 
-  // whenever this copy_engine is destroyed we have to wait for all pending
-  // tasks to complete before exiting
-  ~copy_engine() {
-    ::hpx::wait_all_nothrow(dependencies);
-    for(auto && f : dependencies) {
-      if(f.has_exception()) {
-        // there is no way to report the error to the user's code at this
-        // point, thus termination is the only option
-        flog_fatal("future is in exceptional state during destruction of "
-                   "copy_engine:\n" +
-                   ::hpx::diagnostic_information(f.get_exception_ptr()));
-      }
-    }
-  }
-
   void use_as_dependency(::hpx::shared_future<void> const & f) {
-    auto it = std::find_if(dependencies.begin(),
-      dependencies.end(),
-      [&](auto const & future) { return flecsi::detail::is_same(f, future); });
+    auto it = std::find_if(
+      dependencies.begin(), dependencies.end(), [&](auto const & future) {
+        return flecsi::detail::is_same(f, future.get());
+      });
     if(it == dependencies.end()) {
       dependencies.push_back(f);
     }
@@ -184,16 +169,16 @@ struct copy_engine : local::copy_engine {
 
     // this copy_engine object must be kept alive at least until all ghost_copy
     // operations have finished executing
-    if(src_field.future.valid() && !src_field.future.is_ready()) {
-      use_as_dependency(src_field.future);
+    if(src_field.future) {
+      use_as_dependency(src_field.future.get());
     }
-    if(dest_field.future.valid() && !dest_field.future.is_ready()) {
-      use_as_dependency(dest_field.future);
+    if(dest_field.future) {
+      use_as_dependency(dest_field.future.get());
     }
   }
 
 private:
-  std::vector<::hpx::shared_future<void>> dependencies;
+  std::vector<fate> dependencies;
 };
 
 } // namespace data

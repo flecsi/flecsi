@@ -36,31 +36,53 @@ enum class dependency : std::uint8_t {
 };
 /// \}
 
-struct backend_storage : local::detail::storage<> {
+struct fate {
+  using future = ::hpx::shared_future<void>;
 
-  ~backend_storage() {
-    // whenever region is destroyed we have to wait for all pending tasks to
-    // complete
-    if(future.valid() && !future.is_ready()) {
-      future.wait();
-      if(future.has_exception()) {
-        // there is no way to report the error to the user's code at this point,
-        // thus termination is the only option
-        flog_fatal(
-          "future is in exceptional state during destruction of region:\n" +
-          ::hpx::diagnostic_information(future.get_exception_ptr()));
-      }
+  fate() = default;
+  fate(future f) noexcept : f(std::move(f)) {}
+  fate(const fate &) = default; // note that destroying either will wait
+  fate(fate &&) = default;
+  ~fate() {
+    if(*this) {
+      f.wait();
+      if(f.has_exception())
+        flog_fatal("destroying exceptional future:\n" +
+                   ::hpx::diagnostic_information(f.get_exception_ptr()));
     }
   }
+  fate & operator=(const fate & r) & noexcept {
+    if(&r != this)
+      *this = fate(r);
+    return *this;
+  }
+  fate & operator=(fate && r) & noexcept {
+    fate w(std::move(r));
+    std::swap(f, w.f);
+    return *this;
+  }
 
+  explicit operator bool() const {
+    return f.valid() && !f.is_ready();
+  }
+  const future & get() const {
+    return f;
+  }
+  future release() {
+    return std::move(f);
+  }
+
+private:
+  future f;
+};
+
+struct backend_storage : local::detail::storage<> {
   // Synchronize with all pending operations on this storage.
   void synchronize() {
-    if(future.valid() && !future.is_ready()) {
-      future.get();
-    }
+    future = {};
   }
 
-  ::hpx::shared_future<void> future;
+  fate future;
   dependency dep = dependency::none;
 };
 } // namespace data
