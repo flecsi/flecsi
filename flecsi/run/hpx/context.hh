@@ -62,24 +62,25 @@ struct context_t : local::context {
     return processes_;
   }
 
-  using channel_communicator_data =
-    std::pair<::hpx::collectives::channel_communicator, std::size_t>;
+  using p2p = ::hpx::collectives::channel_communicator;
   using communicator_data =
     std::pair<::hpx::collectives::communicator, std::size_t>;
 
-  channel_communicator_data p2p_comm(std::string name);
+  const p2p & p2p_comm() const {
+    return channel;
+  }
+  auto p2p_tag() {
+    return ::hpx::collectives::tag_arg(++tag);
+  }
   communicator_data world_comm(std::string name);
 
   static void termination_detection();
 
 private:
-  template<typename Map, typename CreateComm>
-  auto
-  get_communicator_data(Map & map, std::string name, CreateComm && create_comm);
-
   std::vector<std::string> cfg;
+  p2p channel;
+  std::size_t tag = 0;
   ::hpx::spinlock mtx;
-  std::map<std::string, channel_communicator_data> p2p_comms_;
   std::map<std::string, communicator_data> world_comms_;
 };
 

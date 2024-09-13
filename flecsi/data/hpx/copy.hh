@@ -110,13 +110,13 @@ struct copy_engine : local::copy_engine {
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
   void operator()(field_id_t data_fid) {
+    auto & ctx = run::context::instance();
 
     // schedule the actual copy operation
     auto & src_field = (*source.r)[data_fid];
     auto & dest_field = destination[data_fid];
 
     auto comm_tag = std::to_string(data_fid);
-    auto p2p_gen = flecsi::run::context::instance().p2p_comm(comm_tag);
 
     // Request communicator only if it is needed. Otherwise, a new generation
     // number is generated, which may cause for the communicator to hang if the
@@ -127,7 +127,11 @@ struct copy_engine : local::copy_engine {
 
     init_delayed_ghost_copy(src_field,
       dest_field,
-      [this, data_fid, comm_tag = std::move(comm_tag), p2p_gen]() {
+      [this,
+        data_fid,
+        comm_tag = std::move(comm_tag),
+        comm = ctx.p2p_comm(), // don't use context asynchronously
+        p2p = ctx.p2p_tag()]() {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
@@ -170,14 +174,12 @@ struct copy_engine : local::copy_engine {
         using namespace ::hpx::collectives;
         using data_type = std::vector<std::byte>;
 
-        auto & [comm, generation] = p2p_gen;
-
         std::vector<::hpx::future<void>> ops;
         ops.reserve(ghost_entities.size() + shared_entities.size());
         for(auto const & entry : ghost_entities) {
           auto src_rank = entry.first;
           ops.push_back(
-            get<data_type>(comm, that_site_arg(src_rank), tag_arg(generation))
+            get<data_type>(comm, that_site_arg(src_rank), p2p)
               .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
                 auto && data = f.get();
                 for(std::size_t i = 0, n = src.size(); i < n; ++i)
@@ -197,7 +199,7 @@ struct copy_engine : local::copy_engine {
           ops.push_back(set(comm,
             that_site_arg(dst_rank),
             std::move(send_buffer),
-            tag_arg(generation)));
+            tag_arg(p2p)));
         }
 
         ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
