@@ -47,8 +47,12 @@ context_t::start(std::function<int()> const & action, bool) {
 
       context::start();
 
-      context::process_ = ::hpx::get_locality_id();
-      context::processes_ = ::hpx::get_num_localities(::hpx::launch::sync);
+      flog_assert(::hpx::get_locality_id() == process_,
+        "HPX locality " << ::hpx::get_locality_id() << " != MPI rank "
+                        << process_);
+      flog_assert(::hpx::get_num_localities(::hpx::launch::sync) == processes_,
+        "HPX locality count " << ::hpx::get_num_localities(::hpx::launch::sync)
+                              << " != MPI size " << processes_);
       context::threads_per_process_ = ::hpx::get_num_worker_threads();
       context::threads_ = context::processes_;
       channel = ::hpx::collectives::create_channel_communicator(
