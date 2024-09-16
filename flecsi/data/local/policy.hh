@@ -73,18 +73,23 @@ struct region_impl {
     if(nbytes > v.size())
       v.resize(nbytes);
 
-    return return_type{reinterpret_cast<typename return_type::pointer>(
-                         v.data<ProcessorType, AccessPrivilege>()),
+    auto data_view = v.data<ProcessorType, AccessPrivilege>();
+
+    flog_assert(nbytes <= data_view.size(),
+      "Requested region size larger than allocation");
+
+    return return_type{
+      reinterpret_cast<privilege_const<T, AccessPrivilege> *>(data_view.data()),
       nelems};
+  }
+
+  template<partition_privilege_t AccessPrivilege>
+  auto current_data(field_id_t fid) {
+    return storages.at(fid).template current_data<AccessPrivilege>();
   }
 
   backend_storage & operator[](field_id_t fid) {
     return storages.at(fid);
-  }
-
-  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  auto kokkos_view(field_id_t fid) {
-    return storages.at(fid).kokkos_view<AccessPrivilege>();
   }
 
   auto get_field_info(field_id_t fid) const {

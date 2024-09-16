@@ -37,7 +37,7 @@ enum class dependency : std::uint8_t {
 };
 /// \}
 
-struct backend_storage : local::detail::storage {
+struct backend_storage : local::detail::storage<> {
 
   ~backend_storage() {
     // whenever region is destroyed we have to wait for all pending tasks to

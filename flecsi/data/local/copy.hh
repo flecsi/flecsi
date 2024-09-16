@@ -30,8 +30,7 @@ struct copy_engine {
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
     auto remote_sources =
-      destination.get_storage<data::points::Value, partition_privilege_t::ro>(
-        meta_fid);
+      destination.get_storage<data::points::Value, ro>(meta_fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
@@ -74,7 +73,8 @@ struct copy_engine {
           std::uninitialized_copy(v.begin(),
             v.end(),
             shared_entities[r]
-              .data<exec::task_processor_type_t::loc, flecsi::rw>());
+              .data<exec::task_processor_type_t::loc, rw>()
+              .data());
         }
         ++r;
       }
@@ -83,10 +83,10 @@ struct copy_engine {
     // We need to figure out the max local source index in order to give correct
     // nelems when calling region::get_storage().
     for(const auto & [rank, indices] : shared_entities) {
+      auto indices_view = indices.data();
       max_local_source_idx = std::max(max_local_source_idx,
-        *std::max_element(indices.data(), indices.data() + indices.size()));
-      max_shared_indices_size =
-        std::max(max_shared_indices_size, indices.size());
+        *std::max_element(
+          indices_view.data(), indices_view.data() + indices_view.size()));
     }
     max_local_source_idx += 1;
   }
@@ -95,7 +95,7 @@ struct copy_engine {
 
 protected:
   // (remote rank, { local indices })
-  using SendPoints = std::map<Color, local::detail::typed_storage<index_type>>;
+  using SendPoints = std::map<Color, local::detail::storage<index_type>>;
 
   const data::points & source;
   const data::intervals & destination;
