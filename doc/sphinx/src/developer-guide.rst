@@ -7,6 +7,7 @@ library.
 .. toctree::
 
    summary
+   developer-guide/hpx-backend
 
 -----
 
