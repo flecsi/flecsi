@@ -48,30 +48,40 @@ all_to_allv(F && f, run::context_t::communicator_data comm_data) {
 } // all_to_allv
 } // namespace detail
 
+struct dependencies {
+  using type = std::vector<fate::future>;
+
+  template<class... FF>
+  dependencies(FF &&... ff) {
+    ((*this)(std::forward<FF>(ff)), ...);
+  }
+
+  void operator()(fate::future f) {
+    if(f.valid() && !f.is_ready())
+      v.push_back(std::move(f));
+  }
+  // hpx::dataflow's parameters can't trigger implicit conversions.
+  type detach() {
+    return std::move(v);
+  }
+
+private:
+  type v;
+};
+
 template<typename F>
 void
 init_delayed_ghost_copy(backend_storage & src_field,
   backend_storage & dest_field,
   F && delayed_ghost_copy) {
 
-  ::hpx::future<void> future;
-  if(src_field.future || dest_field.future) {
-    // make the fields' values depend on this ghost copy operation after the
-    // previous operation has finished
-    future = ::hpx::dataflow(
-      [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
-        auto && src_f, auto && dest_f) mutable {
-        src_f.get(); // propagate exceptions
-        dest_f.get();
-        delayed_ghost_copy();
-      },
-      src_field.future.get(),
-      dest_field.future.get());
-  }
-  else {
-    // make the fields value depend on this ghost copy operation
-    future = ::hpx::async(std::forward<F>(delayed_ghost_copy));
-  }
+  ::hpx::future<void> future = ::hpx::dataflow(
+    [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
+      dependencies::type ff) mutable {
+      ::hpx::wait_all(std::move(ff)); // propagate exceptions
+      delayed_ghost_copy();
+    },
+    dependencies(src_field.future.get(), dest_field.future.get()).detach());
 
   // ghost copy operations are implicit write operations to the field
   src_field.future = dest_field.future = future.share();
