@@ -41,7 +41,7 @@ context_t::start(std::function<int()> const & action, bool) {
 
   char * argv{};
   return ::hpx::init(
-    [=](int, char *[]) -> int {
+    [&](int, char *[]) -> int {
       // manage task_local variables for this task
       run::task_local_base::guard tlg;
 
