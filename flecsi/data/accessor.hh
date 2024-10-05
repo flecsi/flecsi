@@ -1323,7 +1323,8 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
   /// Remove all particles.
   FLECSI_INLINE_TARGET void clear() const {
-    std::destroy(this->begin(), this->end());
+    if(!std::is_trivially_destructible_v<T>)
+      std::destroy(this->begin(), this->end());
     init();
   }
 
