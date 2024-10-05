@@ -48,54 +48,51 @@ private:
 
 template<>
 struct future<void> {
-  void wait() {}
-  void get(bool = false) {}
+  void wait() {
+    get();
+  }
+  void get(bool = false) {
+    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
+  }
 };
 
 template<typename R>
 struct future<R, exec::launch_type_t::index> {
-  using result_type = std::conditional_t<std::is_same_v<R, bool>, char, R>;
-
-  explicit future(R r) : result(std::move(r)) {
-    results.resize(size());
-
-    // Initiate MPI_Iallgather
-    util::mpi::test(MPI_Iallgather(&result,
-      1,
-      flecsi::util::mpi::type<result_type>(),
-      results.data(),
-      1,
-      flecsi::util::mpi::type<result_type>(),
-      MPI_COMM_WORLD,
-      request()));
-  }
-  future(future &&) = delete;
+  explicit future(R r) : result(std::move(r)) {}
 
   void wait(bool = false) {
-    this->request = {}; // this-> avoids Clang bug #62818
+    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
   }
 
-  [[nodiscard]] std::conditional_t<std::is_same_v<R, bool>, R, R &>
-  get(Color index = 0, bool = false) {
-    wait();
-    return results.at(index);
+  [[nodiscard]] R get(Color index = 0, bool = false) {
+    const auto b = [&](R & r) {
+      util::mpi::test(
+        MPI_Bcast(&r, 1, util::mpi::type<R>(), index, MPI_COMM_WORLD));
+    };
+    if(run::context::instance().process() == index) {
+      b(result);
+      return result;
+    }
+    R ret;
+    b(ret);
+    return ret;
   }
 
   Color size() const {
     return run::context::instance().processes();
   }
 
-  result_type result;
-
-private:
-  std::vector<result_type> results;
-  util::mpi::auto_requests request;
+  R result;
 };
 
 template<>
 struct future<void, exec::launch_type_t::index> {
-  void wait(bool = false) {}
-  void get(Color = 0, bool = false) {}
+  void wait(bool = false) {
+    util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
+  }
+  void get(Color = 0, bool = false) {
+    wait();
+  }
   Color size() const {
     return run::context::instance().processes();
   }
