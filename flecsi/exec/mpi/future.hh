@@ -13,7 +13,7 @@ namespace flecsi {
 template<typename R>
 struct future<R> {
   // Provide value semantics:
-  future() : future(make()) {}
+  future() = default; // for partially constructed task parameters
   future(const future &) = default;
   future & operator=(const future &) & = default;
 
