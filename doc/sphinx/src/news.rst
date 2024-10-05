@@ -45,6 +45,10 @@ Fixed
 
 Deprecated
 ^^^^^^^^^^
+* Runtime
+
+  * ``threads`` and ``threads_per_process`` |mdash| thread-based parallelism must be configured outside the process
+
 * Utilities
 
   * The ``EXPECT_STRCASEEQ``, ``EXPECT_STRCASENE``, ``ASSERT_STRCASEEQ``, ``ASSERT_STRCASENE`` unit
