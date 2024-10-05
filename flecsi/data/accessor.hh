@@ -1277,7 +1277,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   void send(F && f) {
     std::forward<F>(f)(get_base(), [](const auto & r) {
       if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
-        r.get_region().cleanup(r.fid(), [r] { detail::destroy<P, false>(r); });
+        r.cleanup([r] { detail::destroy<P, false>(r); });
       return r.template cast<raw, Particle>();
     });
   }
