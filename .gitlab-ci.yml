@@ -45,15 +45,17 @@ variables:
   IB_CONSTRAINT: "--constraint=\"${GENERAL_ARCH_CONSTRAINT}&(ib:edr|ib:hdr)\""
   JOB_CONSTRAINTS: "${IB_CONSTRAINT}"
   SCHEDULER_PARAMETERS: "-N1 --qos=debug -p ${PARTITIONS} ${JOB_CONSTRAINTS}"
-  LEGION_IBV: legion conduit=ibv
+  LEGION_UCX: legion network=ucx
   LEGION_MPI: legion conduit=mpi
-  LEGION_IBV_CUDA: "${LEGION_IBV} +cuda +cuda_unsupported_compiler"
+  LEGION_UCX_CUDA: "${LEGION_UCX} +cuda +cuda_unsupported_compiler"
   LEGION_MPI_CUDA: "${LEGION_MPI} +cuda +cuda_unsupported_compiler"
-  LEGION_IBV_ROCM: "legion+rocm conduit=ibv"
-  LEGION_MPI_ROCM: "legion+rocm conduit=mpi"
+  LEGION_UCX_ROCM: "${LEGION_UCX} +rocm"
+  LEGION_MPI_ROCM: "${LEGION_MPI} +rocm"
   KOKKOS_SERIAL: kokkos ~cuda ~rocm +hwloc
   KOKKOS_OPENMP: kokkos ~cuda ~rocm +openmp +hwloc
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
+  UCX_CUDA: "ucx +cuda cuda_arch=${CUDA_ARCH}"
+  UCX_ROCM: "ucx +rocm"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
 
@@ -61,7 +63,7 @@ variables:
 # Common build variants
 #------------------------------------------------------------------------------#
 .mpich-legion-kokkos-debug: &mpich-legion-kokkos-debug
-  VARIANTS: "backend=legion build_type=Debug +flog caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_IBV} build_type=Debug +kokkos ^${KOKKOS_SERIAL} ^mpich"
+  VARIANTS: "backend=legion build_type=Debug +flog caliper_detail=low +graphviz +hdf5 +kokkos ^${LEGION_UCX} build_type=Debug +kokkos ^${KOKKOS_SERIAL} ^mpich"
 
 .openmpi-mpi-debug: &openmpi-mpi-debug
   VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 ^openmpi"
@@ -126,7 +128,7 @@ mpich-defaults:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion +flog ^${LEGION_IBV} ^mpich"
+    VARIANTS: "backend=legion +flog ^${LEGION_UCX} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -156,7 +158,7 @@ mpich-legion-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 +kokkos ^${LEGION_IBV} +kokkos ^${KOKKOS_SERIAL} ^mpich"
+    VARIANTS: "backend=legion +flog +hdf5 +kokkos ^${LEGION_UCX} +kokkos ^${KOKKOS_SERIAL} ^mpich"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -242,7 +244,7 @@ openmpi-legion-openmp-gnu:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +openmp ^${LEGION_UCX} +openmp build_type=Debug ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     ARCHIVE_SPACK_ENV: "yes"
 
@@ -256,7 +258,7 @@ openmpi-legion-openmp-gnu:release:
       when: always
     - when: never
   variables:
-    VARIANTS: "backend=legion +flog +hdf5 +kokkos +openmp ^${LEGION_IBV} +openmp ^${KOKKOS_OPENMP} ^openmpi"
+    VARIANTS: "backend=legion +flog +hdf5 +kokkos +openmp ^${LEGION_UCX} +openmp ^${KOKKOS_OPENMP} ^openmpi"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
 
 #------------------------------------------------------------------------------#
@@ -272,7 +274,7 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_IBV_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_UCX_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -286,7 +288,7 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -368,7 +370,7 @@ mpich-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich +cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -418,7 +420,7 @@ openmpi-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi +cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -438,7 +440,7 @@ openmpi-mpi-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${UCX_ROCM}"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
@@ -458,7 +460,7 @@ openmpi-legion-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +kokkos +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${UCX_ROCM}"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"

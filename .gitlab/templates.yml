@@ -78,6 +78,8 @@
     - source $TMPDIR/spack/share/spack/setup-env.sh
     - module load gcc/${GCC_VERSION}
     - module load clang/${CLANG_VERSION}
+      # UCX workaround to avoid misdetecting GPU memory as host memory
+    - export UCX_MEMTYPE_CACHE=n
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
