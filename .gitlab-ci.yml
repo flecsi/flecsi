@@ -26,17 +26,17 @@ default:
       aud: https://asc-git.lanl.gov
 
 variables:
-  USE_SPACK_UPSTREAM: develop-c6da4d58
+  USE_SPACK_UPSTREAM: develop-5867d90c
   DARWIN_SPACK_UPSTREAM: "/projects/flecsi-devel/gitlab/spack-upstream/${USE_SPACK_UPSTREAM}"
   COLOR_BLUE: "\e[1;34m"
   COLOR_MAGENTA: "\e[1;35m"
   COLOR_CYAN: "\e[1;36m"
   COLOR_PLAIN: "\e[0m"
   # global defaults
-  GCC_VERSION: 12.2.0
+  GCC_VERSION: 13.2.0
   CLANG_VERSION: 17.0.6
-  ROCM_VERSION: 6.0.2
-  CUDA_VERSION: 12.4.0
+  ROCM_VERSION: 6.2.0
+  CUDA_VERSION: 12.4.1
   CUDA_ARCH: 70
   PARTITIONS: general,skylake-gold,skylake-platinum
   GENERAL_ARCH_CONSTRAINT: "(cpu_family:haswell|cpu_family:broadwell|cpu_family:skylake|cpu_family:cascadelake)"
@@ -385,7 +385,7 @@ docs_and_format:
   only:
     - merge_requests
   variables:
-    FORMAT_VERSION: 13.0.1
+    FORMAT_VERSION: 13.0.0
     JOB_CONSTRAINTS: ""
   allow_failure: true
 
