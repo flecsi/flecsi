@@ -25,8 +25,11 @@ struct future_impl {
 
   future_impl() = default;
 
-  explicit future_impl(::hpx::shared_future<R> f) noexcept
-    : future_(std::move(f)) {}
+  future_impl(::hpx::shared_future<R> f) noexcept : future_(std::move(f)) {}
+
+  ::hpx::shared_future<void> depend() {
+    return future_;
+  }
 
   void wait() {
     flog_assert(future_.valid(), "future must be valid");
@@ -68,19 +71,21 @@ namespace detail {
 
 template<typename R>
 struct future_index {
+  using future = ::hpx::shared_future<R>;
 
-  using result_type =
-    std::conditional_t<std::is_void_v<R>, void, std::vector<R>>;
+  explicit future_index(future f) noexcept : future_(std::move(f)) {}
 
-  explicit future_index(::hpx::shared_future<result_type> f) noexcept
-    : future_(std::move(f)) {}
+  auto mine() {
+    return future_;
+  }
 
   void wait(bool = false) {
     flog_assert(future_.valid(), "future must be valid");
     future_.wait();
+    ::hpx::distributed::barrier::synchronize();
   }
 
-  result_type get() {
+  R get() {
     flog_assert(future_.valid(), "future must be valid");
     return future_.get();
   }
@@ -90,7 +95,7 @@ struct future_index {
   }
 
 private:
-  ::hpx::shared_future<result_type> future_;
+  future future_;
 };
 
 } // namespace detail
@@ -100,15 +105,16 @@ struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
   using base_type = typename future::future_index;
   using base_type::base_type;
 
-  explicit future(::hpx::shared_future<R> result)
-    : base_type(result.then(::hpx::launch::sync,
-        [comm = run::context::instance().world_comm()](auto && f) mutable {
-          using namespace ::hpx::collectives;
-          return all_gather(comm.comm(), f.get(), comm.gen());
-        })) {}
-
   R get(Color index = 0, bool = false) {
-    return this->base_type::get().at(index);
+    auto & c = run::context::instance();
+    if(index == c.process()) {
+      R ret = base_type::get();
+      ::hpx::collectives::broadcast_to(c.world0.comm(), ret, c.world0.gen());
+      return ret;
+    }
+    return ::hpx::collectives::broadcast_from<R>(
+      c.world0.comm(), c.world0.gen())
+      .get();
   }
 };
 
@@ -118,7 +124,7 @@ struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
   using base_type::base_type;
 
   void get(Color = 0, bool = false) {
-    this->base_type::get();
+    wait();
   }
 };
 

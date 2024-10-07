@@ -44,9 +44,15 @@ private:
 
 protected:
   template<typename R>
-  static void visit(future<R, exec::launch_type_t::single> & single,
+  void visit(future<R> &, future<R> & f) {
+    dependencies(f.depend());
+  }
+  template<typename R>
+  void visit(future<R, exec::launch_type_t::single> & single,
     future<R, exec::launch_type_t::index> & index) {
-    single = index.get(flecsi::run::context::instance().color());
+    auto f = index.mine();
+    dependencies(f);
+    single = std::move(f);
   }
 
   // visit generic topology
