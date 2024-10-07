@@ -30,7 +30,7 @@ endif()
 #------------------------------------------------------------------------------#
 
 if(@ENABLE_BOOST@)
-  find_package(Boost REQUIRED @BOOST_COMPONENTS@)
+  find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
 endif()
 
 find_package(Threads REQUIRED)

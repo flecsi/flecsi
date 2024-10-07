@@ -1,5 +1,4 @@
 macro(flecsi_enable_boost target)
-  set(Boost_NO_BOOST_CMAKE ON)
   cmake_parse_arguments(BOOST "" "" "COMPONENTS" ${ARGN})
 
   #----------------------------------------------------------------------------#
@@ -10,7 +9,7 @@ macro(flecsi_enable_boost target)
   # Disable warnings about new versions.
   set(Boost_NO_WARN_NEW_VERSIONS ON)
 
-  find_package(Boost REQUIRED ${BOOST_COMPONENTS})
+  find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS} CONFIG)
 
   target_link_libraries(${target} PUBLIC Boost::boost)
 
