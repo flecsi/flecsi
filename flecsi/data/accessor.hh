@@ -357,12 +357,6 @@ struct ragged_accessor
       detail::construct<P>([this] { return span(); }, std::forward<F>(f));
   }
 
-  template<class Topo, typename Topo::index_space S>
-  static ragged_accessor parameter(
-    const field_reference<T, data::ragged, Topo, S> & r) {
-    return exec::replace_argument<base_type>(r.template cast<data::raw>());
-  }
-
 private:
   Offsets off{this->field()};
 };
@@ -1277,7 +1271,7 @@ struct particle_accessor : detail::particle_raw<T, P, M>, send_tag {
   void send(F && f) {
     std::forward<F>(f)(get_base(), [](const auto & r) {
       if constexpr(privilege_discard(P) && !std::is_trivially_destructible_v<T>)
-        r.get_region().cleanup(r.fid(), [r] { detail::destroy<P, false>(r); });
+        r.cleanup([r] { detail::destroy<P, false>(r); });
       return r.template cast<raw, Particle>();
     });
   }
@@ -1323,7 +1317,8 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 
   /// Remove all particles.
   FLECSI_INLINE_TARGET void clear() const {
-    std::destroy(this->begin(), this->end());
+    if(!std::is_trivially_destructible_v<T>)
+      std::destroy(this->begin(), this->end());
     init();
   }
 
@@ -1596,7 +1591,8 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
     const data::field_reference<T, data::ragged, Topo, S> & r) {
     flog_assert(
       !exec::is_tracing(), "ragged mutators cannot be used while tracing");
-    return {type::base_type::parameter(r),
+    return {exec::replace_argument<typename type::base_type::base_type>(
+              r.template cast<data::raw>()),
       r.get_elements().template get_partition<topo::elements>().growth};
   }
 };

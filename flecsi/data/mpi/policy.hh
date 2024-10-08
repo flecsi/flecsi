@@ -670,7 +670,7 @@ struct copy_engine {
     {
       std::vector<std::vector<std::byte>> send_buffers;
       util::mpi::auto_requests requests(
-        ghost_entities.size() + shared_entities.size());
+        (ghost_entities.size() + shared_entities.size()) * ff.size());
 
       for(auto data_fid : ff) {
         auto type_size = source.r->get_field_info(data_fid)->type_size;

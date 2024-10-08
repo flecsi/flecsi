@@ -24,6 +24,10 @@ Possible incompatibilities
 
 Fixed
 ^^^^^
+* Data
+
+  * Write-only multi-color ``particle`` accessors/mutators support non-trivial destructors.
+
 * Legion backend
 
   * The speed of ghost copies has been significantly improved (without losing the decreased memory usage).
