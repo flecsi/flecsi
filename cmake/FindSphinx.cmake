@@ -13,7 +13,7 @@ if(Sphinx_EXECUTABLE)
 
   if(_sphinx_version_result)
     message(WARNING
-      "Unable to determine sphinx-build verison: ${_sphinx_version_result}")
+      "Unable to determine sphinx-build version: ${_sphinx_version_result}")
   else()
     string(REGEX REPLACE "sphinx-build.* ([0-9.]+).*"
                          "\\1"

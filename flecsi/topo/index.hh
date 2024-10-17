@@ -338,7 +338,7 @@ struct borrow_meta {
 };
 } // namespace detail
 /// Topology-specific extension to support multi-color topology accessors.
-/// Befriended by the \c borrow_category specialiation that inherits from it.
+/// Befriended by the \c borrow_category specialization that inherits from it.
 /// \tparam T core topology type
 template<class T>
 struct borrow_extra {
