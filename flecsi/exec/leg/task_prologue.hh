@@ -68,27 +68,30 @@ protected:
     typename Topo::index_space Space>
   void visit(data::accessor<data::raw, D, P> &,
     const data::field_reference<D, data::raw, Topo, Space> & r) {
+    const field_id_t f = r.fid();
     auto & t = r.topology();
+    data::region & reg = t.template get_region<Space>();
 
     add_copy<P>(r);
 
     const Legion::PrivilegeMode m = privilege_mode(P);
-    const Legion::LogicalRegion lr =
-      t.template get_region<Space>().logical_region;
+    const Legion::LogicalRegion lr = reg.logical_region;
     if constexpr(std::is_same_v<typename Topo::base, topo::global_base>)
       region_reqs_.emplace_back(lr, m, LEGION_EXCLUSIVE, lr);
     else {
       const data::borrow * b = get_projection(t);
       data::borrow::attach(
-        region_reqs_.emplace_back(
-          t.template get_partition<Space>().logical_partition,
-          data::borrow::projection(b),
-          m,
-          LEGION_EXCLUSIVE,
-          lr),
+        region_reqs_
+          .emplace_back(t.template get_partition<Space>().logical_partition,
+            data::borrow::projection(b),
+            m,
+            LEGION_EXCLUSIVE,
+            lr)
+          .add_flags(reg.check_resize(f) ? LEGION_SUPPRESS_WARNINGS_FLAG
+                                         : Legion::RegionFlags()),
         b);
     }
-    region_reqs_.back().add_field(r.fid());
+    region_reqs_.back().add_field(f);
   } // visit
 
   template<class R, typename T, class Topo, typename Topo::index_space Space>
