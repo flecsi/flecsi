@@ -179,6 +179,14 @@ add_executable(data-dense
 )
 add_unit(data-dense)
 
+add_executable(data-ragged
+  4-data/4-ragged.cc
+  3-execution/main.cc
+  4-data/canonical.hh
+  3-execution/control.hh
+)
+add_unit(data-ragged)
+
 #------------------------------------------------------------------------------#
 # 5-parallel
 #------------------------------------------------------------------------------#
