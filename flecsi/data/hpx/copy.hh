@@ -56,6 +56,10 @@ struct dependencies {
     ((*this)(std::forward<FF>(ff)), ...);
   }
 
+  [[nodiscard]] bool empty() const {
+    return v.empty();
+  }
+
   void operator()(fate::future f) {
     if(f.valid() && !f.is_ready())
       v.push_back(std::move(f));
@@ -74,19 +78,23 @@ void
 init_delayed_ghost_copy(backend_storage & src_field,
   backend_storage & dest_field,
   F && delayed_ghost_copy) {
-
-  ::hpx::future<void> future = ::hpx::dataflow(
-    [out = run::context::instance().outstanding(),
-      delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
-      dependencies::type ff) mutable {
-      ::hpx::wait_all(std::move(ff)); // propagate exceptions
-      out(), delayed_ghost_copy();
-    },
-    dependencies(src_field.future.get(), dest_field.future.get()).detach());
-
-  // ghost copy operations are implicit write operations to the field
-  src_field.future = dest_field.future = future.share();
-  src_field.dep = dest_field.dep = dependency::write;
+  // It is typical that src_field and dest_field alias.  do_write always makes
+  // both futures clear before performing the callback, so then s is empty;
+  // do_read stores the copy future, but then do_write relabels it properly.
+  dest_field.do_write([&](fate d) {
+    fate::future future;
+    src_field.do_read([&](const fate & s) {
+      return future = ::hpx::dataflow(
+               [out = run::context::instance().outstanding(),
+                 delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
+                 dependencies::type ff) mutable {
+                 ::hpx::wait_all(std::move(ff)); // propagate exceptions
+                 out(), delayed_ghost_copy();
+               },
+               dependencies(d.release(), s.get()).detach());
+    });
+    return future;
+  });
 }
 
 struct copy_engine {

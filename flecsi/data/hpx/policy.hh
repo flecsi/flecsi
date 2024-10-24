@@ -20,22 +20,6 @@
 namespace flecsi {
 namespace data {
 
-/// \defgroup hpx-data HPX Data
-/// HPX-specific data management.
-/// \ingroup data
-/// \{
-
-/// Type of the dependency represented by a future
-enum class dependency : std::uint8_t {
-  /// This field has no future associated with it (yet)
-  none = 0,
-  /// The future represents a read operation
-  read = 1,
-  /// The future represents a write operation
-  write = 2
-};
-/// \}
-
 struct fate {
   using future = ::hpx::shared_future<void>;
 
@@ -77,15 +61,32 @@ private:
 };
 
 struct backend_storage : local::detail::storage<> {
-  // Synchronize with all pending operations on this storage.
+  // Synchronize with all pending writes to this storage.
   void synchronize() {
-    future = {};
+    write = {};
   }
 
-  // In practice, this never waits, because tasks keep the region_impl alive
+  template<class F>
+  void do_read(F && f) {
+    fate r = {std::forward<F>(f)(std::as_const(write))};
+    if(!read || r)
+      read = read && r
+               ? fate(::hpx::when_all(read.release(), r.release()).share())
+               : std::move(r);
+  }
+  template<class F>
+  void do_write(F && f) {
+    write = {std::forward<F>(f)(
+      fate(std::move(read ? write.release(), read : write)))};
+    read.release(); // in case f calls do_read
+  }
+
+private:
+  // Futures for the most recent read(s) and write to this storage.
+  // If both exist, read is always newer.
+  // In practice, these never wait, because tasks keep the region_impl alive
   // and every ghost copy is followed by a task using the same regions.
-  fate future;
-  dependency dep = dependency::none;
+  fate read, write;
 };
 } // namespace data
 } // namespace flecsi

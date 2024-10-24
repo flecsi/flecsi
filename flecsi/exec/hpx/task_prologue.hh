@@ -32,16 +32,6 @@ struct global_base;
 namespace exec {
 
 struct task_prologue_base {
-
-private:
-  // Return whether a given future may be used as a dependency for this task
-  bool may_be_used_as_dependency(::hpx::shared_future<void> const & f) const {
-    auto it = std::find_if(no_dependencies.begin(),
-      no_dependencies.end(),
-      [&](auto const & future) { return flecsi::detail::is_same(f, future); });
-    return it == no_dependencies.end();
-  }
-
 protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
@@ -129,58 +119,14 @@ protected:
       }
     }
 
-    // If the current argument has a valid future associated with it (that has
-    // not been marked as ready yet), then that future has to be used as a
-    // dependency for executing the current task, but only if it represents
-    // either a "read after write" or a "write after read or write" dependency.
-    // "read after read" dependencies are not considered here.
-    // Note that it might derive from the ghost copies just above.
-    const bool pending = !!field.future;
-    if(pending &&
-       (privilege_write(P) || field.dep == data::dependency::write) &&
-       may_be_used_as_dependency(field.future.get())) {
-      dependencies.push_back(field.future.get());
-    }
-
-    // The dependencies of this task can be either "read after write" (if this
-    // task reads from a field, then any known write to the same field has to
-    // finish first), and "write after read" (if this task writes to a field,
-    // then all known reads from the field have to finish before the write
-    // operation).
     if constexpr(privilege_write(P)) {
-      // If the task writes to the current argument then we must associate the
-      // future that represents the end of the task execution with the current
-      // argument.
-      field.future.release(); // superseded
-      field.future = get_future();
-      field.dep = flecsi::data::dependency::write;
+      do_write(field);
     }
     else if constexpr(privilege_read(P)) {
-      // If the task reads from the current argument then we must associate
-      // the future that represents the end of the task execution with the
-      // current argument. We have to make sure that possibly more than one
-      // read operation may have to finish before other operations are allowed
-      // to go ahead.
-      if(!pending) {
-        // This is either the first operation using the given field or any
-        // previous operations have already finished.
-        field.future = get_future();
-        field.dep = flecsi::data::dependency::read;
-      }
-      else if(!flecsi::detail::is_same(field.future.get(), get_future())) {
-        // This read operation needs to be added to the list of dependencies
-        // already existing for the given field.
-        field.future = {
-          ::hpx::when_all(field.future.release(), future).share()};
-        no_dependencies.push_back(field.future.get());
-
-        // Leave the dependency type unchanged. If it is currently a write
-        // dependency, then overwriting it here would cause the next task that
-        // also reads from this field only see a read dependency, leading to its
-        // unsequenced execution.
-        flog_assert(field.dep != flecsi::data::dependency::none,
-          "field reference must represent a valid dependency");
-      }
+      field.do_read([&](const data::fate & d) {
+        dependencies(d.get());
+        return get_future();
+      });
     }
   }
 
@@ -192,26 +138,12 @@ protected:
   void visit(data::reduction_accessor<R, T> &,
     const data::field_reference<T, data::dense, Topo, Space> & ref) {
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
-    const field_id_t f = ref.fid();
     auto & r = ref.topology();
-
-    // Reduction input must be treated as a dependency
-    auto & field = r[f];
 
     // store associated region for bind_accessors
     regions_partitions.push_back(r.share());
 
-    // Any possibly valid field-future must be added as a dependency for this
-    // task.
-    if(field.future && may_be_used_as_dependency(field.future.get())) {
-      dependencies.push_back(field.future.release());
-    }
-
-    // Reductions write to the current argument, thus we must associate the
-    // future that represents the end of the task execution with the current
-    // argument.
-    field.future = get_future();
-    field.dep = flecsi::data::dependency::write;
+    do_write(r[ref.fid()]);
   }
 
   // Make sure HPX futures will be unwrapped (i.e. extract the inner future from
@@ -256,8 +188,8 @@ public:
     };
     return std::move(*this).attach_dependencies(
       unwrap(dependencies.empty()
-               ? ::hpx::async(std::move(f), std::move(dependencies))
-               : ::hpx::dataflow(std::move(f), std::move(dependencies))));
+               ? ::hpx::async(std::move(f), dependencies.detach())
+               : ::hpx::dataflow(std::move(f), dependencies.detach())));
   }
 
 private:
@@ -282,21 +214,19 @@ private:
   const ::hpx::shared_future<void> & get_future() {
     if(!future.valid()) {
       future = promise.get_future();
-      no_dependencies.push_back(future);
     }
     return future;
+  }
+  void do_write(data::backend_storage & s) {
+    s.do_write([this](data::fate d) {
+      dependencies(d.release());
+      return get_future();
+    });
   }
 
   // The futures that represent the dependencies of the current task on its
   // arguments
-  std::vector<::hpx::shared_future<void>> dependencies;
-
-  // The futures that should not be used as dependencies as they depend on the
-  // result of this task. We have to make sure to avoid circular dependencies
-  // where the future representing the result of the current task is indirectly
-  // used as a dependency for the task. This may happen if several arguments to
-  // this task refer to the same field.
-  std::vector<::hpx::shared_future<void>> no_dependencies;
+  data::dependencies dependencies;
 
   // This future is used as a dependency for all arguments, if needed. It
   // is used to convey the availability of this task's result.
