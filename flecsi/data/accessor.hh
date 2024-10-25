@@ -32,6 +32,13 @@ require_host(F && f) {
   std::forward<F>(f)(h, [](auto &) { return nullptr; });
 }
 
+template<class F>
+void
+require_epilog(F && f) {
+  save_for_epilog epilog_tag; // lvalue required
+  std::forward<F>(f)(epilog_tag, util::identity());
+}
+
 template<Privileges P, class S, class F>
 void
 construct(S && s, F && f) {
@@ -342,7 +349,9 @@ struct ragged_accessor
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
-        t.resize();
+        if(!exec::is_tracing()) // forward-looking
+                                // necessary for tracing mutators
+          t.maybe_resize();
       return field_reference<T,
         raw,
         topo::policy_t<std::remove_reference_t<decltype(t)>>,
@@ -718,6 +727,7 @@ public:
   template<class F>
   void send(F && f) {
     detail::require_host(f);
+    detail::require_epilog(f);
     f(get_base(), util::identity());
     std::forward<F>(f)(
       get_size(), [](const auto & r) { return r.get_elements().sizes(); });

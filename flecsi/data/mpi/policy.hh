@@ -423,7 +423,8 @@ struct prefixes : data::partition, prefixes_base {
 
   template<class F>
   void update(F f) {
-    const auto s = f.get_partition().template get_storage<row>(f.fid());
+    const auto s =
+      f.get_partition().template get_storage<size_request>(f.fid());
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];

@@ -119,6 +119,13 @@ protected:
     });
   }
 
+  // epilog
+  template<class A>
+  void visit(data::detail::save_for_epilog &, A & a) {
+    epilog_wrappers.push_back(
+      [a]() { return a.get_elements().set_rsz_required(true); });
+  }
+
 public:
   ~task_prologue() {
     util::mpi::auto_requests r(reductions.size());

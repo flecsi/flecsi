@@ -442,6 +442,7 @@ namespace detail {
 template<class T>
 struct scalar_value;
 struct host_only {};
+struct save_for_epilog {};
 } // namespace detail
 
 /// \}

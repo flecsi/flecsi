@@ -122,6 +122,18 @@ protected:
   void visit(P &, const future<T, exec::launch_type_t::index> & f) {
     future_maps_.push_back(f.legion_future_);
   }
+  /*--------------------------------------------------------------------------*
+   Epilog
+   *--------------------------------------------------------------------------*/
+  template<class A>
+  void visit(data::detail::save_for_epilog &, A & a) {
+    // store the field to enact resizing at the of the trace
+    if(exec::is_tracing())
+      epilog_wrappers.push_back([a]() { return trace::save_dynamic_field(a); });
+    else // launch the reduction to check if resizing is required
+      epilog_wrappers.push_back(
+        [a]() { return a.get_elements().reduce_rsz_required(); });
+  }
 
 private:
   std::vector<Legion::RegionRequirement> region_reqs_;
