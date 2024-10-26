@@ -22,7 +22,7 @@ struct overloaded : Ts... {
 template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-struct copy_engine : local::copy_engine {
+struct copy_engine : private local::copy_engine {
   // One copy engine for each entity type i.e. vertex, cell, edge.
   copy_engine(const data::points & pts,
     const data::intervals & intervals,
@@ -43,7 +43,7 @@ struct copy_engine : local::copy_engine {
   void operator()(field_id_t data_fid) const {
     using util::mpi::test;
 
-    auto type_size = source.r->get_field_info(data_fid)->type_size;
+    auto type_size = source->get_field_info(data_fid)->type_size;
 
     std::vector<std::vector<std::byte>> recv_buffers;
     std::size_t max_scatter_buffer_size = 0;
@@ -125,7 +125,7 @@ struct copy_engine : local::copy_engine {
                 backend_storage::host_view{send_buffers.back().data(), n_bytes},
                 gather_buffer_device_view);
             }},
-          source.r->current_data<ro>(data_fid));
+          source->current_data<ro>(data_fid));
 
         test(MPI_Isend(send_buffers.back().data(),
           int(send_buffers.back().size()),
@@ -160,7 +160,7 @@ struct copy_engine : local::copy_engine {
               entity.second.template data<exec::task_processor_type_t::loc>();
 
             auto subview = Kokkos::subview(dst_view,
-              std::pair<std::size_t, std::size_t>(0, destination.max_end));
+              std::pair<std::size_t, std::size_t>(0, destination->max_end));
             std::byte * dst = subview.data();
             const std::byte * src = recv_buffer->data();
 
@@ -174,8 +174,8 @@ struct copy_engine : local::copy_engine {
             auto dst_indices_view =
               entity.second.template data<exec::task_processor_type_t::toc>();
 
-            auto subview = Kokkos::subview(
-              dst, std::pair<std::size_t, std::size_t>(0, destination.max_end));
+            auto subview = Kokkos::subview(dst,
+              std::pair<std::size_t, std::size_t>(0, destination->max_end));
             // copy recv buffer from host to scatter buffer on device
             auto scatter_buffer_device_view = [](const auto & hvec,
                                                 const std::string & label) {
@@ -198,7 +198,7 @@ struct copy_engine : local::copy_engine {
                   type_size);
               });
           }},
-        destination.r->current_data<wo>(data_fid));
+        destination->r->current_data<wo>(data_fid));
       recv_buffer++;
     }
   }

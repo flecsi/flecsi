@@ -82,6 +82,8 @@ struct backend_storage : local::detail::storage<> {
     future = {};
   }
 
+  // In practice, this never waits, because tasks keep the region_impl alive
+  // and every ghost copy is followed by a task using the same regions.
   fate future;
   dependency dep = dependency::none;
 };

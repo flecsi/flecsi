@@ -80,7 +80,7 @@ struct copy_engine {
   copy_engine(const points & src, const intervals & dest, field_id_t id);
 
   /// Copy one field from \a src to \a dest.
-  void operator()(field_id_t);
+  void operator()(field_id_t) const;
 };
 #endif
 

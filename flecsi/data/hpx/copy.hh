@@ -78,12 +78,12 @@ init_delayed_ghost_copy(backend_storage & src_field,
   src_field.dep = dest_field.dep = dependency::write;
 }
 
-struct copy_engine : local::copy_engine {
+struct copy_engine {
   // One copy engine for each entity type i.e. vertex, cell, edge.
   copy_engine(const data::points & src,
     const data::intervals & dest,
     field_id_t f)
-    : local::copy_engine(src,
+    : p(std::make_shared<local::copy_engine>(src,
         dest,
         f,
         [&](auto const & remote_shared_entities) {
@@ -94,31 +94,16 @@ struct copy_engine : local::copy_engine {
               return it == remote_shared_entities.end() ? empty : it->second;
             },
             run::context::instance().world_comm("copy_engine"));
-        }) {}
-
-  void use_as_dependency(::hpx::shared_future<void> const & f) {
-    auto it = std::find_if(
-      dependencies.begin(), dependencies.end(), [&](auto const & future) {
-        return flecsi::detail::is_same(f, future.get());
-      });
-    if(it == dependencies.end()) {
-      dependencies.push_back(f);
-    }
-  }
+        })) {}
 
   // called with each field (and field_id_t) on the entity, for example, one
   // for pressure, temperature, density etc.
-  void operator()(field_id_t data_fid) {
+  void operator()(field_id_t data_fid) const {
     auto & ctx = run::context::instance();
-
-    // schedule the actual copy operation
-    auto & src_field = (*source.r)[data_fid];
-    auto & dest_field = destination[data_fid];
-
-    init_delayed_ghost_copy(src_field,
-      dest_field,
+    init_delayed_ghost_copy((*p->source)[data_fid],
+      (*p->destination)[data_fid],
       // Don't use context asynchronously:
-      [this, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
+      [p = p, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
@@ -128,17 +113,17 @@ struct copy_engine : local::copy_engine {
         // Since we are doing ghost copy via HPX, we always want the host side
         // version.
         auto source_storage =
-          source.r->get_storage<std::byte>(data_fid, max_local_source_idx);
+          p->source->get_storage<std::byte>(data_fid, p->max_local_source_idx);
         auto destination_storage =
-          destination.get_storage<std::byte, rw>(data_fid);
-        auto type_size = source.r->get_field_info(data_fid)->type_size;
+          p->destination->get_storage<std::byte, rw>(data_fid);
+        auto type_size = p->source->get_field_info(data_fid)->type_size;
 
         using namespace ::hpx::collectives;
         using data_type = std::vector<std::byte>;
 
         std::vector<::hpx::future<void>> ops;
-        ops.reserve(ghost_entities.size() + shared_entities.size());
-        for(auto const & entry : ghost_entities) {
+        ops.reserve(p->ghost_entities.size() + p->shared_entities.size());
+        for(auto const & entry : p->ghost_entities) {
           auto src_rank = entry.first;
           ops.push_back(
             get<data_type>(comm, that_site_arg(src_rank), p2p)
@@ -152,7 +137,7 @@ struct copy_engine : local::copy_engine {
               }));
         }
 
-        for(auto const & [dst_rank, shared_indices] : shared_entities) {
+        for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
           data_type send_buffer(shared_indices.size() * type_size);
           for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
             std::memcpy(send_buffer.data() + i * type_size,
@@ -166,19 +151,10 @@ struct copy_engine : local::copy_engine {
 
         ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
       });
-
-    // this copy_engine object must be kept alive at least until all ghost_copy
-    // operations have finished executing
-    if(src_field.future) {
-      use_as_dependency(src_field.future.get());
-    }
-    if(dest_field.future) {
-      use_as_dependency(dest_field.future.get());
-    }
   }
 
 private:
-  std::vector<fate> dependencies;
+  std::shared_ptr<local::copy_engine> p;
 };
 
 } // namespace data
