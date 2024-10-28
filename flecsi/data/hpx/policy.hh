@@ -9,7 +9,6 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/data/local/storage.hh"
-#include "flecsi/exec/hpx/future.hh"
 #include "flecsi/run/hpx/context.hh"
 #include "flecsi/util/types.hh"
 
