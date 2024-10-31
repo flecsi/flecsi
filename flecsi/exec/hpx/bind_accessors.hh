@@ -107,7 +107,7 @@ public:
     std::vector<data::fate> requests;
     requests.reserve(reductions.size());
     for(auto & f : reductions) {
-      requests.push_back({f()});
+      requests.push_back(data::fate::make(f()));
     }
   }
 

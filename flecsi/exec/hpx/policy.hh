@@ -189,10 +189,11 @@ reduce_internal(Args &&... args) {
         if(root) {
           return broadcast_to(comm,
             std::apply(F, std::forward<decltype(params)>(params)),
-            generation_arg(generation));
+            generation_arg(generation))
+            .get();
         }
         else {
-          return broadcast_from<R>(comm, generation_arg(generation));
+          return broadcast_from<R>(comm, generation_arg(generation)).get();
         }
       })};
     }
@@ -213,7 +214,8 @@ reduce_internal(Args &&... args) {
         return all_reduce(comm,
           std::apply(F, std::forward<decltype(params)>(params)),
           exec::fold::wrap<Reduction>{},
-          generation_arg(generation));
+          generation_arg(generation))
+          .get();
       })};
     }
     else if constexpr(!std::is_void_v<R>) {

@@ -32,6 +32,14 @@ struct global_base;
 namespace exec {
 
 struct task_prologue_base {
+private:
+  auto dep() {
+    return [this](auto && d) {
+      dependencies(std::forward<decltype(d)>(d));
+      return get_future();
+    };
+  }
+
 protected:
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
@@ -120,13 +128,10 @@ protected:
     }
 
     if constexpr(privilege_write(P)) {
-      do_write(field);
+      field.do_write(dep());
     }
     else if constexpr(privilege_read(P)) {
-      field.do_read([&](const data::fate & d) {
-        dependencies(d.get());
-        return get_future();
-      });
+      field.do_read(dep());
     }
   }
 
@@ -143,85 +148,52 @@ protected:
     // store associated region for bind_accessors
     regions_partitions.push_back(r.share());
 
-    do_write(r[ref.fid()]);
-  }
-
-  // Make sure HPX futures will be unwrapped (i.e. extract the inner future from
-  // a compound one), if needed.
-  template<typename T>
-  static ::hpx::future<T> && unwrap(::hpx::future<T> && f) noexcept {
-    return std::move(f);
-  }
-
-  template<typename T>
-  static ::hpx::future<T> unwrap(::hpx::future<::hpx::future<T>> && f) {
-    return {std::move(f)};
+    r[ref.fid()].do_write(dep());
   }
 
 public:
   // Delay the execution of the given task until all dependencies have been
   // satisfied (if any).
   template<typename R, typename Params, typename Task>
-  ::hpx::future<R>
+  ::hpx::shared_future<R>
   delay_execution(Params && params, std::string task_name, Task && task) && {
-    auto f = [out = run::context::instance().outstanding(),
-               regions_partitions = std::move(regions_partitions),
-               task = std::forward<Task>(task),
-               params = std::forward<Params>(params),
-               task_name = std::move(task_name)](auto && deps) mutable {
-      // manage task_local variables for this task
-      run::task_local_base::guard tlg;
+    auto f = ::hpx::dataflow(
+      [out = run::context::instance().outstanding(),
+        regions_partitions = std::move(regions_partitions),
+        task = std::forward<Task>(task),
+        params = std::forward<Params>(params),
+        task_name = std::move(task_name)](auto && deps) mutable {
+        // manage task_local variables for this task
+        run::task_local_base::guard tlg;
 
-      // annotate new HPX thread
-      ::hpx::scoped_annotation _(task_name);
+        // annotate new HPX thread
+        ::hpx::scoped_annotation _(task_name);
 
-      // set up execution environment
-      auto finalize = param_buffers(params, task_name);
+        // set up execution environment
+        auto finalize = param_buffers(params, task_name);
 
-      // rethrow exceptions propagated from dependencies
-      for(auto && f : std::forward<decltype(deps)>(deps))
-        f.get();
+        // rethrow exceptions propagated from dependencies
+        for(auto && f : std::forward<decltype(deps)>(deps))
+          f.get();
 
-      // invoke actual task, 'regions_partitions' needs to outlive the task
-      // execution
-      return (void)out(), task(regions_partitions, std::move(params));
-    };
-    return std::move(*this).attach_dependencies(
-      unwrap(dependencies.empty()
-               ? ::hpx::async(std::move(f), dependencies.detach())
-               : ::hpx::dataflow(std::move(f), dependencies.detach())));
+        // invoke actual task, 'regions_partitions' needs to outlive the task
+        // execution
+        return (void)out(), task(regions_partitions, std::move(params));
+      },
+      dependencies.detach())
+               .share();
+    // Publish to the fields used.  There is no race with the task, since
+    // tasks never access any field futures.
+    if(future)
+      future.send(f);
+    return f;
   }
 
 private:
-  // Make sure the future that is associated with the result of this task is
-  // made ready once the task finishes executing.
-  template<typename R>
-  ::hpx::future<R> attach_dependencies(::hpx::future<R> && f) && {
-    if(future.valid()) {
-      if(f.is_ready()) {
-        // task has already finished running
-        promise.set_value();
-      }
-      else {
-        // attach continuation to the task that makes the future ready
-        ::hpx::traits::detail::get_shared_state(f)->set_on_completed(
-          [p = std::move(promise)]() mutable { p.set_value(); });
-      }
-    }
-    return std::move(f);
-  }
-
-  const ::hpx::shared_future<void> & get_future() {
-    if(!future.valid()) {
-      future = promise.get_future();
-    }
+  const data::fate & get_future() {
+    if(!future)
+      future = data::fate::make();
     return future;
-  }
-  void do_write(data::backend_storage & s) {
-    s.do_write([this](data::fate d) {
-      dependencies(d.release());
-      return get_future();
-    });
   }
 
   // The futures that represent the dependencies of the current task on its
@@ -230,8 +202,7 @@ private:
 
   // This future is used as a dependency for all arguments, if needed. It
   // is used to convey the availability of this task's result.
-  ::hpx::promise<void> promise;
-  ::hpx::shared_future<void> future;
+  data::fate future;
 
   // collect regions and partitions each of the arguments is associated with
   std::vector<region_or_partition> regions_partitions;

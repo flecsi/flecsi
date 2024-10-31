@@ -25,8 +25,8 @@ struct future_impl {
 
   future_impl() = default;
 
-  explicit future_impl(::hpx::future<R> && result) noexcept
-    : future_(::hpx::make_shared_future(std::move(result))) {}
+  explicit future_impl(::hpx::shared_future<R> f) noexcept
+    : future_(std::move(f)) {}
 
   void wait() {
     flog_assert(future_.valid(), "future must be valid");
@@ -72,8 +72,8 @@ struct future_index {
   using result_type =
     std::conditional_t<std::is_void_v<R>, void, std::vector<R>>;
 
-  explicit future_index(::hpx::future<result_type> && result) noexcept
-    : future_(::hpx::make_shared_future(std::move(result))) {}
+  explicit future_index(::hpx::shared_future<result_type> f) noexcept
+    : future_(std::move(f)) {}
 
   void wait(bool = false) {
     flog_assert(future_.valid(), "future must be valid");
@@ -100,17 +100,17 @@ struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
 private:
   static decltype(auto) all_gather_result(
     flecsi::run::context_t::communicator_data && comm_gen,
-    R && result) {
+    const R & result) {
     auto const & [comm, generation] = comm_gen;
     using namespace ::hpx::collectives;
-    return all_gather(comm, std::move(result), generation_arg(generation));
+    return all_gather(comm, result, generation_arg(generation));
   }
 
 public:
   using base_type = typename future::future_index;
   using base_type::base_type;
 
-  explicit future(::hpx::future<R> && result, std::string name)
+  explicit future(::hpx::shared_future<R> result, std::string name)
     : base_type(result.then(::hpx::launch::sync,
         [comm_gen = flecsi::run::context::instance().world_comm(
            std::move(name))](auto && f) mutable {
