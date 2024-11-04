@@ -102,15 +102,8 @@ context_t::world_comm(std::string name) {
 
 void
 context_t::termination_detection() {
-  auto & tm = hpx::threads::get_thread_manager();
-  hpx::util::yield_while(
-    [&tm]() -> bool {
-      // we need to wait until all HPX threads (except the current one plus all
-      // background threads) have exited
-      return tm.get_thread_count() >
-             static_cast<std::int64_t>(tm.get_background_thread_count() + 1);
-    },
-    "termination_detection");
+  std::unique_lock g(out_mutex);
+  out_cv.wait(g, [this] { return !out.load(std::memory_order_acquire); });
 }
 } // namespace flecsi::run
 

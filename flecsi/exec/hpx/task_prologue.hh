@@ -232,7 +232,8 @@ public:
   template<typename R, typename Params, typename Task>
   ::hpx::future<R>
   delay_execution(Params && params, std::string task_name, Task && task) && {
-    auto f = [regions_partitions = std::move(regions_partitions),
+    auto f = [out = run::context::instance().outstanding(),
+               regions_partitions = std::move(regions_partitions),
                task = std::forward<Task>(task),
                params = std::forward<Params>(params),
                task_name = std::move(task_name)](auto && deps) mutable {
@@ -251,7 +252,7 @@ public:
 
       // invoke actual task, 'regions_partitions' needs to outlive the task
       // execution
-      return task(regions_partitions, std::move(params));
+      return (void)out(), task(regions_partitions, std::move(params));
     };
     return std::move(*this).attach_dependencies(
       unwrap(dependencies.empty()

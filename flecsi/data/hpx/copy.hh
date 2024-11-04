@@ -76,10 +76,11 @@ init_delayed_ghost_copy(backend_storage & src_field,
   F && delayed_ghost_copy) {
 
   ::hpx::future<void> future = ::hpx::dataflow(
-    [delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
+    [out = run::context::instance().outstanding(),
+      delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
       dependencies::type ff) mutable {
       ::hpx::wait_all(std::move(ff)); // propagate exceptions
-      delayed_ghost_copy();
+      out(), delayed_ghost_copy();
     },
     dependencies(src_field.future.get(), dest_field.future.get()).detach());
 

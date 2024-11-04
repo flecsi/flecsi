@@ -152,6 +152,8 @@ reduce_internal(Args &&... args) {
       bind_parameters<processor_type> provide_storage(
         params, regions_partitions);
 
+      if(mpi_task)
+        ::hpx::distributed::barrier::synchronize();
       return f(std::forward<decltype(params)>(params));
     };
     return std::move(bound_params)

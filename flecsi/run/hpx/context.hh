@@ -74,7 +74,32 @@ struct context_t : local::context {
   }
   communicator_data world_comm(std::string name);
 
-  static void termination_detection();
+private:
+  struct outstanding_guard {
+    outstanding_guard(context_t * c) : c(c) {
+      c->out.fetch_add(1, std::memory_order_relaxed);
+    }
+    outstanding_guard(outstanding_guard && o) noexcept
+      : c(std::exchange(o.c, {})) {}
+    ~outstanding_guard() {
+      if(c && c->out.fetch_sub(1, std::memory_order_release) == 1) {
+        (std::lock_guard(c->out_mutex));
+        c->out_cv.notify_one();
+      }
+    }
+    outstanding_guard operator()() {
+      return std::move(*this);
+    }
+
+  private:
+    context_t * c;
+  };
+
+public:
+  outstanding_guard outstanding() {
+    return this;
+  }
+  void termination_detection();
 
 private:
   std::vector<std::string> cfg;
@@ -82,6 +107,9 @@ private:
   std::size_t tag = 0;
   ::hpx::spinlock mtx;
   std::map<std::string, communicator_data> world_comms_;
+  std::atomic<std::size_t> out = 0;
+  ::hpx::mutex out_mutex;
+  ::hpx::condition_variable out_cv;
 };
 
 /// \}
