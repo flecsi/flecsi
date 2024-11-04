@@ -16,9 +16,30 @@ namespace topo {
 struct ntree_base {
 
   /// Index spaces used for the ntree topology
-  enum index_space { entities, nodes, hashmap, tree_data, comms };
-  using index_spaces =
-    util::constants<entities, nodes, hashmap, tree_data, comms>;
+  enum index_space {
+    entities,
+    nodes,
+    hashmap,
+    tree_data,
+    comms,
+    share_ghosts_comms,
+    top_tree_ents,
+    top_tree_nodes,
+    share_ghosts_cid_comm,
+    share_ghosts_buffer_comm,
+    share_ghosts_distant_buffer_comm
+  };
+  using index_spaces = util::constants<entities,
+    nodes,
+    hashmap,
+    tree_data,
+    comms,
+    share_ghosts_comms,
+    top_tree_ents,
+    top_tree_nodes,
+    share_ghosts_cid_comm,
+    share_ghosts_buffer_comm,
+    share_ghosts_distant_buffer_comm>;
   /// Parallel types for nodes and entities.
   enum ptype_t {
     exclusive, ///< Owned data.
@@ -66,10 +87,9 @@ protected:
     util::id ghosts;
     util::id top_tree;
     util::id nents_recv;
-  };
-
-  struct en_size {
-    std::vector<util::id> ent, node;
+    util::id cp_nents_tt, cp_nnodes_tt;
+    util::id buffer_size, buffer_counter;
+    util::id nents_base, nents_tt;
   };
 
   struct color_id {
@@ -94,6 +114,22 @@ protected:
     a[1] = data::copy_engine::point(i == 0 ? i : i - 1, 0);
     a[2] = data::copy_engine::point(i == n - 1 ? i : i + 1, 0);
   }
+
+  static void set_dests_share_ghosts_comms(
+    field<data::intervals::Value>::accessor<wo> a) {
+    const auto & c = run::context::instance().colors();
+    assert(a.span().size() == c);
+    a[0] = data::intervals::make({c, 2 * c - 1});
+  }
+  static void set_ptrs_share_ghosts_comms(
+    field<data::copy_engine::Point>::accessor<wo, na> a) {
+    const auto & c = run::context::instance();
+    assert(a.span().size() == 2 * c.colors() - 1);
+    for(Color i = 0; i < c.colors() - 1; ++i)
+      a[c.colors() + i] =
+        data::copy_engine::point(i + (i >= c.color()), c.color());
+  }
+
   template<auto * F> // work around Clang 10.0.1 bug with auto&
   static constexpr auto task = [](auto f) { execute<*F>(f); };
 }; // struct ntree_base

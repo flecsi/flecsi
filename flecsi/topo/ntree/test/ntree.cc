@@ -66,9 +66,9 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     double radius;
   };
 
-  static void init_fields(sph_ntree_t::accessor<wo, na> t,
-    const std::string & name) {
-    txt_definition<key_t, dimension> hd(name);
+  using freader = txt_definition<key_t, sph_ntree_t::dimension>;
+
+  static void init_fields(sph_ntree_t::accessor<wo, na> t, freader & hd) {
     auto c = process();
     for(auto i : t.entities()) {
       t.e_i(i).coordinates = hd.entities(i).coordinates_;
@@ -82,8 +82,8 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
     const coloring &,
-    const std::string & name) {
-    flecsi::execute<init_fields, flecsi::mpi>(ts, name);
+    std::optional<freader> & hd) {
+    flecsi::execute<init_fields, flecsi::mpi>(ts, *hd);
   }
 
   static void build_ntree(data::topology_slot<sph_ntree_t> & ts) {
@@ -95,15 +95,15 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
     ts->share_ghosts(ts);
   }
 
-  static coloring color(const std::string & name) {
-    txt_definition<key_t, dimension> hd(name);
+  static coloring color(const std::string & name, std::optional<freader> & hd) {
+    hd = txt_definition<key_t, sph_ntree_t::dimension>(name);
     const int size = processes();
     util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
 
     c.entities_sizes_.resize(size);
     for(int i = 0; i < size; ++i)
-      c.entities_sizes_[i] = hd.offset(i).second - hd.offset(i).first;
+      c.entities_sizes_[i] = hd->offset(i).second - hd->offset(i).first;
 
     c.nodes_sizes_ = c.entities_sizes_;
     std::for_each(c.nodes_sizes_.begin(),
@@ -290,16 +290,14 @@ ntree_driver() {
     sph_ntree_t::slot sph_ntree;
 
     {
-      auto filename = "coordinates.blessed";
-      sph_ntree_t::mpi_coloring coloring(filename);
-      sph_ntree.allocate(coloring, filename);
-      // Initialize user fields
-      auto d = id_check(sph_ntree);
-      flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
-      sph_ntree_t::build_ntree(sph_ntree);
+      std::optional<sph_ntree_t::freader> hd;
+      sph_ntree.allocate(
+        sph_ntree_t::mpi_coloring("coordinates.blessed", hd), hd);
     }
-
+    // Initialize user fields
     auto d = id_check(sph_ntree);
+    flecsi::execute<init_ids, default_accelerator>(sph_ntree, d);
+    sph_ntree_t::build_ntree(sph_ntree);
 
     flecsi::execute<print_ids>(sph_ntree, d);
     EXPECT_EQ(test<check_neighbors>(sph_ntree), 0);

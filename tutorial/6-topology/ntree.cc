@@ -67,8 +67,7 @@ void
 initialize_action(sph::control_policy & cp) {
 
   const int nents = sph::n_entities.value();
-  sph_ntree_t::mpi_coloring coloring(nents);
-  cp.sph_ntree.allocate(coloring, nents);
+  cp.sph_ntree.allocate(sph_ntree_t::mpi_coloring(nents), nents);
 
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
