@@ -46,6 +46,10 @@ Fixed
   * ``ragged`` or ``sparse`` fields do not generate spurious warnings about using uninitialized data.
   * Tasks with a single parameter whose type is a specialization of ``std::tuple`` work.
 
+* Topologies
+
+  * Arithmetic on ``topo::id`` objects checks types reliably.
+
 * Utilities
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
