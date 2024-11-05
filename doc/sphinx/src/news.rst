@@ -31,6 +31,7 @@ Fixed
 * Legion backend
 
   * The speed of ghost copies has been significantly improved (without losing the decreased memory usage).
+  * ``ragged`` or ``sparse`` fields do not generate spurious warnings about using uninitialized data.
 
 * Utilities
 

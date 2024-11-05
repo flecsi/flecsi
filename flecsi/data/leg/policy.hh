@@ -197,10 +197,15 @@ struct region {
   }
 
   void partition_notify() {
+    resized = fields;
     reset(fields);
   }
   void partition_notify(field_id_t f) {
+    resized.insert(f);
     reset({f});
+  }
+  bool check_resize(field_id_t f) {
+    return resized.erase(f);
   }
 
   shared_logical_region logical_region;
@@ -212,7 +217,7 @@ private:
     run().reset_equivalence_sets(ctx(), logical_region, logical_region, s);
   }
 
-  Fields fields;
+  Fields fields, resized;
 };
 
 struct partition_base {
