@@ -8,6 +8,8 @@
 #include "flecsi/run/backend.hh"
 #include "flecsi/util/mpi.hh"
 
+#include <Kokkos_DualView.hpp>
+
 #include <cstddef>
 #include <numeric>
 #include <unordered_map>
@@ -28,242 +30,102 @@ namespace local {
 /// \{
 namespace detail {
 
-using host_view = Kokkos::
-  View<std::byte *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-
-using host_const_view = Kokkos::View<const std::byte *,
-  Kokkos::HostSpace,
-  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-
-using device_view = Kokkos::View<std::byte *,
-  Kokkos::DefaultExecutionSpace,
-  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-
-using device_const_view = Kokkos::View<const std::byte *,
-  Kokkos::DefaultExecutionSpace,
-  Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-
-using view_variant = std::variant<host_view, device_view>;
-using const_view_variant = std::variant<host_const_view, device_const_view>;
-
-struct buffer_impl_loc {
-  inline static constexpr exec::task_processor_type_t location =
-    exec::task_processor_type_t::loc;
-
-  std::byte * data() {
-    return v.data();
-  }
-
-  std::size_t size() const {
-    return v.size();
-  }
-
-  auto kokkos_view() {
-    return host_view{v.data(), v.size()};
-  }
-
-  auto kokkos_view() const {
-    return host_const_view{v.data(), v.size()};
-  }
-
-  void resize(std::size_t size) {
-    v.resize(size);
-  }
-
-private:
-  std::vector<std::byte> v;
-};
-
-struct buffer_impl_toc {
-  inline static constexpr exec::task_processor_type_t location =
-    exec::task_processor_type_t::toc;
-
-  buffer_impl_toc & operator=(buffer_impl_toc &&) = delete;
-
-  std::byte * data() {
-    return ptr;
-  }
-
-  std::size_t size() const {
-    return s;
-  }
-
-  void resize(std::size_t ns) {
-    // Kokkos does require calling of kokkos_malloc when ptr == nullptr.
-    ptr = static_cast<std::byte *>(
-      ptr ? Kokkos::kokkos_realloc<Kokkos::DefaultExecutionSpace>(ptr, ns)
-          : Kokkos::kokkos_malloc<Kokkos::DefaultExecutionSpace>(ns));
-    flog_assert(ptr != nullptr, "memory allocation failed");
-    s = ns;
-  }
-
-  auto kokkos_view() {
-    return device_view{ptr, s};
-  }
-
-  auto kokkos_view() const {
-    return device_const_view{ptr, s};
-  }
-
-  ~buffer_impl_toc() {
-    if(ptr != nullptr && Kokkos::is_initialized())
-      Kokkos::kokkos_free<Kokkos::DefaultExecutionSpace>(ptr);
-  }
-
-private:
-  std::size_t s = 0;
-  std::byte * ptr = nullptr;
-};
-
+template<typename T = std::byte> // can not be pointer
 struct storage {
-  /// Describes where the data is currently up-to-date.
-  enum class data_sync { loc, toc, both };
+  static_assert(!std::is_pointer_v<T>,
+    "Kokkos::View<U**> would be multi-dimensional");
+  // is this the default template arguments
+  using dual_view_type = Kokkos::DualView<T *,
+    Kokkos::LayoutLeft,
+    Kokkos::Device<Kokkos::DefaultExecutionSpace,
+      Kokkos::DefaultExecutionSpace::memory_space>>;
+  using host_space = typename dual_view_type::host_mirror_space;
+  using device_space = typename dual_view_type::execution_space;
+  using host_view = typename dual_view_type::t_host;
+  using host_const_view = typename dual_view_type::t_host_const;
+  using device_view = typename dual_view_type::t_dev;
+  using device_const_view = typename dual_view_type::t_dev_const;
 
+  storage()
+    : dual_view((std::stringstream()
+                  << "dual_view-" << util::type<T>() << "-" << count++)
+                  .str(),
+        0) {}
+
+  // In the case where the memory space is assignable from both host
+  // and device the view types within the variant are equivalent for all
+  // intents and purposes, so we form a variant containing only one of these
+  // types. Otherwise, we need to construct a variant containing the two
+  // distinct view types (with const-ness considered given the privilege)
+  template<partition_privilege_t AccessPrivilege>
+  using view_variant =
+    std::conditional_t<Kokkos::SpaceAccessibility<Kokkos::DefaultExecutionSpace,
+                         Kokkos::HostSpace>::accessible,
+      std::variant<std::conditional_t<privilege_write(AccessPrivilege),
+        host_view,
+        host_const_view>>,
+      std::variant<std::conditional_t<privilege_write(AccessPrivilege),
+                     host_view,
+                     host_const_view>,
+        std::conditional_t<privilege_write(AccessPrivilege),
+          device_view,
+          device_const_view>>>;
+
+  template<partition_privilege_t AccessPrivilege>
+  view_variant<AccessPrivilege> current_data() {
+    using variant_type = view_variant<AccessPrivilege>;
+    // Kokkos::View uses static asserts instead of limiting
+    // conversions which forces the std::in_place_index usage (see Kokkos#2127)
+    if constexpr(std::variant_size_v<variant_type> == 2)
+      if(!dual_view.template need_sync<device_space>())
+        return variant_type(std::in_place_index<1>, dual_view.d_view);
+    return variant_type(std::in_place_index<0>, dual_view.h_view);
+  }
+
+  // make a release note that we fixed bug in handling openmp with mpi backend
   template<exec::task_processor_type_t ProcessorType =
              exec::task_processor_type_t::loc,
     partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  privilege_const<std::byte, AccessPrivilege> * data() {
+  auto data() {
+    using space =
+      std::conditional_t<ProcessorType == exec::task_processor_type_t::toc,
+        device_space,
+        host_space>;
+    constexpr auto reading = privilege_read(AccessPrivilege);
 
-    const auto transfer_return = [this](auto & sync, auto & ret) {
-      if(ProcessorType == sync.location)
-        return sync.data();
-      else {
-        if(ret.size() < sync.size())
-          ret.resize(sync.size());
+    if constexpr(reading)
+      dual_view.template sync<space>();
 
-        auto ret_view = Kokkos::subview(ret.kokkos_view(),
-          std::pair<std::size_t, std::size_t>(0, sync.size()));
-
-        // If wo is requested, we don't care what's there, so no need to copy
-        if constexpr(AccessPrivilege != partition_privilege_t::wo)
-          Kokkos::deep_copy(
-            Kokkos::DefaultExecutionSpace{}, ret_view, sync.kokkos_view());
-
-        if constexpr(AccessPrivilege == partition_privilege_t::ro)
-          current_state = data_sync::both;
-        else
-          current_state =
-            (current_state == data_sync::loc ? data_sync::toc : data_sync::loc);
-
-        return ret.data();
-      }
-    };
-
-    // HACK to treat mpi processor type as loc
-    if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
-      return data<exec::task_processor_type_t::loc, AccessPrivilege>();
-
-    switch(current_state) {
-      case data_sync::both:
-        if constexpr(ProcessorType == exec::task_processor_type_t::loc) {
-          // If we're writing, we need to change the state
-          if constexpr(AccessPrivilege != partition_privilege_t::ro)
-            current_state = data_sync::loc;
-
-          return loc_buffer.data();
-        }
-        else {
-          // If we're writing, we need to change the state
-          if constexpr(AccessPrivilege != partition_privilege_t::ro)
-            current_state = data_sync::toc;
-
-          return toc_buffer.data();
-        }
-
-      case data_sync::loc:
-        return transfer_return(loc_buffer, toc_buffer);
-      case data_sync::toc:
-        return transfer_return(toc_buffer, loc_buffer);
+    if constexpr(privilege_write(AccessPrivilege)) {
+      if constexpr(!reading)
+        dual_view.clear_sync_state();
+      dual_view.template modify<space>();
     }
 
-    return nullptr;
-  }
-
-  // Get the view into where the data is currently synced
-  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  std::conditional_t<privilege_write(AccessPrivilege),
-    view_variant,
-    const_view_variant>
-  kokkos_view() {
-    const auto qualify_buffer = [](auto & x) -> auto & {
-      if constexpr(privilege_write(AccessPrivilege))
-        return x;
-      else
-        return std::as_const(x);
-    };
-
-    // Kokkos::View only static asserts when you attempt to convert a view of
-    // one address space to another, so the view_variant/const_view_variant can
-    // not automatically resolve which constructor to use, thus the need for the
-    // branching
-    if(current_state == data_sync::loc) {
-      this->data<exec::task_processor_type_t::loc, AccessPrivilege>();
-      return qualify_buffer(loc_buffer).kokkos_view();
-    }
-    else {
-      this->data<exec::task_processor_type_t::toc, AccessPrivilege>();
-      return qualify_buffer(toc_buffer).kokkos_view();
-    }
-  }
-
-  std::size_t size() const {
-    if(current_state == data_sync::loc)
-      return loc_buffer.size();
-
-    return toc_buffer.size();
-  }
-
-  void resize(std::size_t size) {
-    if(current_state == data_sync::loc || current_state == data_sync::both)
-      loc_buffer.resize(size);
-
-    if(current_state == data_sync::toc || current_state == data_sync::both)
-      toc_buffer.resize(size);
-  }
-
-private:
-  // Where the data is currently synced
-  data_sync current_state = data_sync::both;
-
-  // We don't need to worry about the case that ExecutionSpace is actually
-  // HostSpace (e.g. OpenMP) since currently default_accelerator == toc only
-  // when compiling for CUDA or HIP.
-  // Why don't we use Kokkos_View directly? Ans: our region lives longer than
-  // Kokkos.
-  buffer_impl_loc loc_buffer;
-  buffer_impl_toc toc_buffer;
-};
-
-template<typename T>
-struct typed_storage {
-  void resize(std::size_t elements) {
-    untyped.resize(elements * sizeof(T));
+    return Kokkos::View<privilege_const<T, AccessPrivilege> *, space>(
+      dual_view.template view<space>());
   }
 
   template<exec::task_processor_type_t ProcessorType =
              exec::task_processor_type_t::loc,
-    partition_privilege_t AccessType = partition_privilege_t::ro>
-  auto data() {
-    return reinterpret_cast<privilege_const<T, AccessType> *>(
-      untyped.data<ProcessorType, AccessType>());
-  }
-
-  // While this method is const qualified here, the underlying
-  // type detail::storage does have state that might change depending upon
-  // which task_processor_type_t it is called with, so the data is
-  // guaranteed not to mutate, but the state not so much
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc>
-  const auto * data() const {
-    return const_cast<typed_storage *>(this)->data<ProcessorType>();
+    partition_privilege_t AccessPrivilege = ro,
+    typename = std::enable_if_t<(AccessPrivilege == ro)>>
+  auto data() const {
+    return const_cast<storage<T> *>(this)
+      ->data<ProcessorType, AccessPrivilege>();
   }
 
   std::size_t size() const {
-    return untyped.size() / sizeof(T);
+    return dual_view.extent(0);
+  }
+
+  void resize(std::size_t size) {
+    Kokkos::resize(dual_view, size);
   }
 
 private:
-  storage untyped;
+  dual_view_type dual_view;
+  inline static int count = 0;
 };
 
 } // namespace detail
