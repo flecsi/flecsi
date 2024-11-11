@@ -39,7 +39,6 @@ namespace topo {
 /// and nodes of the tree.
 /// \warning Only the Legion backend is supported for the N-Tree topology
 /// \warning N-Tree topology does not have support for Ragged or Sparse fields
-/// \warning N-Tree topology only support #color = #process
 /// \ingroup topology
 /// \{
 
@@ -123,11 +122,10 @@ public:
         task<set_dests_share_ghosts_comms>,
         task<set_ptrs_share_ghosts_comms>,
         util::constant<share_ghosts_comms>()),
-      buf([] {
-        const auto p = processes();
-        data::buffers::coloring ret(p);
+      buf([c] {
+        data::buffers::coloring ret(c.nparts_);
         for(std::size_t i_r = 0; i_r < ret.size(); ++i_r) {
-          for(std::size_t i = 0; i < processes(); ++i) {
+          for(std::size_t i = 0; i < c.nparts_; ++i) {
             if(i != i_r) {
               ret[i_r].push_back(i);
             }
@@ -136,8 +134,7 @@ public:
         return ret;
       }()) {
     // Initialize the meta_field
-    flecsi::execute<init_meta_field>(
-      meta_field(this->meta), c.entities_sizes_[process()]);
+    flecsi::execute<init_meta_field>(meta_field(this->meta), c.entities_sizes_);
   }
 
   // Ntree mandatory fields ---------------------------------------------------
@@ -227,9 +224,9 @@ private:
 
   static void init_meta_field(
     typename field<meta_type, data::single>::template accessor<wo> meta_field,
-    const util::id size) {
+    const std::vector<util::id> size) {
     meta_field = {};
-    meta_field->local.ents = size;
+    meta_field->local.ents = size[run::context::instance().color()];
   }
 
   // ----------------------- Top Tree Construction Tasks -----------------------
@@ -657,7 +654,7 @@ private:
     typename field<meta_type, data::single>::template accessor<ro> m,
     data::multi<typename field<hcell_t>::template accessor<ro, na>>
       hcells_multi) {
-    auto i = process();
+    auto i = run::context::instance().color();
     util::id idx = IS == entities ? m->local.ents : m->local.nodes;
     for(auto & m : hcells_multi.accessors())
       for(auto & c : m.span())
@@ -729,7 +726,7 @@ public:
       hcells(ts), top_tree_ents_field(ts), top_tree_nodes_field(ts));
 
     data::launch::mapping<Policy> lm_top_tree(
-      data::launch::make(ts, data::launch::gather(processes(), processes())));
+      data::launch::make(ts, data::launch::gather(ts->colors(), ts->colors())));
 
     // Add the new hcells to the local tree + return new sizes for allocation
     flecsi::execute<make_tree_distributed_task>(n_keys(ts),
@@ -753,7 +750,7 @@ public:
 
     ts->cp_entities.emplace(
       ts.get(),
-      data::copy_plan::Sizes(processes(), 1),
+      data::copy_plan::Sizes(ts->colors(), 1),
       [&](auto f) {
         execute<set_destination_meta_top_tree<entities>>(
           f, meta_field(ts->meta));
@@ -766,7 +763,7 @@ public:
 
     ts->cp_top_tree_nodes.emplace(
       ts.get(),
-      data::copy_plan::Sizes(processes(), 1),
+      data::copy_plan::Sizes(ts->colors(), 1),
       [&](auto f) {
         execute<set_destination_meta_top_tree<nodes>>(f, meta_field(ts->meta));
       },
@@ -1076,7 +1073,7 @@ public:
     // Merge the cp_top_tree_entities into the cp_entities to avoid copy plan on
     // the same index space
     ts->cp_entities.emplace(ts.get(),
-      data::copy_plan::Sizes(processes(), 1),
+      data::copy_plan::Sizes(ts->colors(), 1),
       entities_dests_task,
       entities_ptrs_task,
       util::constant<entities>());
@@ -1556,7 +1553,7 @@ public:
 
 #if defined(FLECSI_ENABLE_GRAPHVIZ)
   /// Output a representation of the ntree using graphviz.
-  /// The output files are formatted as: process()_tag.gv
+  /// The output files are formatted as: colors()_tag.gv
   /// \param tag Tag for these files names
   void graphviz_draw(const std::string & tag) const {
     util::graphviz gv("G");
@@ -1632,8 +1629,8 @@ public:
         gv.add_edge(parent, node);
     } // while
     std::ostringstream fname;
-    fname << std::setfill('0') << std::setw(3) << process() << "_" << tag
-          << ".gv";
+    fname << std::setfill('0') << std::setw(3)
+          << run::context::instance().color() << "_" << tag << ".gv";
     gv.write(std::move(fname).str());
   }
 #endif
