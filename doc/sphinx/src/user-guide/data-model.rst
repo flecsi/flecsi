@@ -97,18 +97,6 @@ The ``mass_field`` variable declaration states that the ``topo_t`` topology has 
 cell.  The ``massflux_field`` variable declaration states that the
 ``topo_t`` topology has a mass flux on each face.
 
-Registering a field against a topology type, even though it can be done by any component of the program, adds that
-field to the type itself, so that all instances of that topology type
-have that field defined.
-However, additional members cannot be added to types in C++: if we have an instance of ``spec_t`` called ``grid``, you cannot
-access the mass field by calling ``grid.mass_field``.  Instead, the
-field objects themselves become tools to extract the field data, so you
-would get the mass field from ``grid`` by calling ``mass_field(grid)``.
-
-.. sidebar:: Memory Allocation
-
-  If multiple instances of a topology type exist, each allocates memory only for the fields that are actually accessed on that instance.
-
 If you have multiple fields on the same index space, you can declare
 them in a way that's analogous to a struct of arrays or in a way that's
 analogous to an array of structs.  In a hydrodynamics code, the
@@ -212,12 +200,27 @@ Each field has one of several pre-defined layouts, which specifies how field ele
 The field registration examples above use the ``dense`` layout by default.
 Other layouts are chosen with syntax like ``flecsi::field<double, flecsi::data::ragged>``.
 
+References
+----------
+Fields are registered on topology *types*, so every instance of that topology type has the field.
+It is therefore as if a member were added to a C++ struct: one might imagine defining ``mass_field`` on the topology ``topo_t``, creating an instance of ``topo_t`` called ``grid``, and writing ``grid.mass_field``.
+However, the language does not actually allow extending a type.
+Instead, the
+field objects themselves become tools to extract the field data, so you
+would get the mass field from ``grid`` by calling ``mass_field(grid)``.
+This expression produces a *field reference* which can be passed as an argument to a task that uses the field.
+
+.. sidebar:: Memory Allocation
+
+  If multiple instances of a topology type exist, each allocates memory only for the fields that are actually accessed on that instance.
+
 .. _field-accessors:
 
 Accessors
 ------------------------------------------------------------------------
 
-Memory for fields is automatically allocated for tasks and is made available to those tasks via special task parameters called *accessors*.
+A task accepts field references as arguments for special function parameters called *accessors*.
+When the task is launched, memory for the fields is allocated if necessary and is provided to the task via the accessors.
 Accessors also encode the privileges for each task, which are used by the task
 model to determine the order in which tasks may be executed.  For
 example, two tasks that access the same field have to be serialized if
@@ -238,6 +241,10 @@ The same ``field`` type that registers a field also specifies accessors for it: 
 
 Topologies with :ref:`ghosts <ghost-elements>` also use privileges to determine when copies are required to give a task access to updated ghost data.
 In this case multiple privileges are specified to describe access to exclusive, shared, and/or ghost elements.
+If no privilege grants write permission (*e.g.*, with ``flecsi::field<double>::accessor<flecsi::ro, flecsi::ro, flecsi::na>``), the accessor will produce the ``const``-qualified version of the field type.
+However, it is impossible to so restrict some but not all index points (for, say, ``flecsi::field<double>::accessor<flecsi::rw, flecsi::ro, flecsi::ro>``); if the client modifies elements for which it has no write permission, the behavior is undefined.
+
+The first access to each field must be write-only, except that the ghosts may be no-access to indicate that the initial values need to be copied to other colors as usual.
 
 Mutators
 ------------------------------------------------------------------------
@@ -249,5 +256,21 @@ Layouts that support those operations provide *mutators* for the purpose:
 * A ``sparse`` mutator provides an interface at each index point based on ``std::map``.
 * A ``particle`` mutator provides an interface based on C++'s proposed ``std::hive`` for efficient insertion and deletion of field values.
 
-All of these data structures have a maximum number of elements (across all index points) that can be stored; this limit cannot be changed during a task, so it must be chosen by the client as a compromise between memory usage (and sometimes communication overhead) and the probability of process failure due to buffer exhaustion.
-``ragged`` and ``sparse`` mutators can automatically allocate additional memory after a task based on a remaining space heuristic accessible as ``ragged_field(grid).get_elements().growth``.
+Just like an accessor, a mutator corresponds to a field reference argument and has privileges.
+The first access to a field with any of these layouts must use a write-only mutator to initialize it to the appropriate empty state.
+
+Memory
+^^^^^^
+Every layout that has a mutator has a maximum number of elements that can be stored.
+This limit can be changed, but not during a task, so it must be chosen by the client as a compromise between memory usage (and sometimes communication overhead) and the probability of process failure due to buffer exhaustion.
+For the ``particle`` layout, this maximum is simply the size of the index space.
+For the ``ragged`` and ``sparse`` layouts, this maximum is shared among all the index points and must be set separately.
+(It might even be smaller than the index space if most index points are expected to have 0 elements.)
+
+Field references for ``ragged`` or ``sparse`` fields provide a ``get_elements`` member function that provides access to the topology component that stores elements.
+The object returned can be used to allocate memory manually (with ``resize``) or automatically based on a heuristic (with ``growth``).
+
+The current implementation of memory management for these layouts imposes several limitations.
+First, the automatic memory allocation is incompatible with :doc:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
+Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
+Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
