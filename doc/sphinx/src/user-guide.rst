@@ -7,8 +7,8 @@ User Guide
   user-guide/programming
   user-guide/data-model
   user-guide/topologies
-  user-guide/utilities
   user-guide/specializations
+  user-guide/utilities
   user-guide/performance
   user-guide/profiling
   user-guide/cmake
