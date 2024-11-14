@@ -4,6 +4,8 @@
 #ifndef FLECSI_DATA_LOCAL_POLICY_HH
 #define FLECSI_DATA_LOCAL_POLICY_HH
 
+// Include this file only after a definition of data::backend_storage.
+
 #include "flecsi/data/field_info.hh"
 #include "flecsi/exec/task_attributes.hh"
 #include "flecsi/run/backend.hh"
@@ -301,16 +303,10 @@ private:
   bool sel;
 };
 
-struct intervals {
+struct intervals_impl {
   using Value = subrow; // [begin, end)
-  static Value make(subrow r, std::size_t = 0) {
-    return r;
-  }
 
-  intervals(region_base & r,
-    const partition & p,
-    field_id_t fid, // The field id for the metadata in the region in p.
-    completeness = incomplete)
+  intervals_impl(region_base & r, const partition & p, field_id_t fid)
     : r(&*r) {
     // Make sure the task that is writing to the field has finished running
     p[fid].synchronize();
@@ -345,11 +341,6 @@ struct intervals {
     }
   }
 
-private:
-  // This member function is only called by copy_engine.
-  friend copy_engine;
-  friend local::copy_engine;
-
   template<typename T, partition_privilege_t AccessPrivilege>
   auto get_storage(field_id_t fid) const {
     return r->get_storage<T, exec::task_processor_type_t::loc, AccessPrivilege>(
@@ -365,6 +356,30 @@ private:
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
   std::size_t max_end = 0;
+};
+
+struct intervals {
+  using Value = intervals_impl::Value;
+  static Value make(subrow r, std::size_t = 0) {
+    return r;
+  }
+
+  using ref = std::shared_ptr<const intervals_impl>;
+
+  intervals(region_base & r,
+    const partition & p,
+    field_id_t fid,
+    completeness = incomplete)
+    : ii(std::make_shared<const intervals_impl>(r, p, fid)) {}
+  intervals(intervals &&) = default;
+  intervals & operator=(intervals &&) & = default;
+
+  ref share() const {
+    return ii;
+  }
+
+private:
+  ref ii; // for asynchronous use
 };
 
 struct points {
@@ -383,7 +398,7 @@ private:
   // The region `r` contains field data of shared entities on this rank as
   // source to be copied to remote peers. We make copy_engine a friend to allow
   // direct access to the region.
-  friend copy_engine;
+  friend local::copy_engine;
 
   local::region_impl * r;
 };

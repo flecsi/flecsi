@@ -26,11 +26,6 @@ namespace exec {
 template<task_processor_type_t ProcessorType>
 struct task_prologue {
 protected:
-  // Those methods are "protected" because they are *only* called by
-  // flecsi::exec::prolog() which inherits from task_prologue.
-
-  // Patch up the "un-initialized" type conversion from future<R, index>
-  // to future<R, single> in the generic code.
   template<typename R>
   static void visit(future<R, exec::launch_type_t::single> & single,
     const future<R, exec::launch_type_t::index> & index) {

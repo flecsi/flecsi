@@ -21,6 +21,25 @@ namespace flecsi::run {
 /// \ingroup runtime
 /// \{
 
+struct communicator {
+  using type = ::hpx::collectives::communicator;
+  communicator() = default;
+  communicator(type c) : c(std::move(c)) {}
+  communicator(communicator &&) = default;
+  communicator & operator=(communicator &&) & = default;
+
+  const type & comm() const {
+    return c;
+  }
+  auto gen() {
+    return ::hpx::collectives::generation_arg(++g);
+  }
+
+private:
+  type c;
+  std::size_t g = 0;
+};
+
 struct config : config_base {
   std::vector<std::string> hpx;
 };
@@ -62,25 +81,51 @@ struct context_t : local::context {
     return processes_;
   }
 
-  using channel_communicator_data =
-    std::pair<::hpx::collectives::channel_communicator, std::size_t>;
-  using communicator_data =
-    std::pair<::hpx::collectives::communicator, std::size_t>;
+  using p2p = ::hpx::collectives::channel_communicator;
 
-  channel_communicator_data p2p_comm(std::string name);
-  communicator_data world_comm(std::string name);
-
-  static void termination_detection();
+  const p2p & p2p_comm() const {
+    return channel;
+  }
+  auto p2p_tag() {
+    return ::hpx::collectives::tag_arg(++tag);
+  }
+  communicator world_comm();
+  communicator world0;
 
 private:
-  template<typename Map, typename CreateComm>
-  auto
-  get_communicator_data(Map & map, std::string name, CreateComm && create_comm);
+  struct outstanding_guard {
+    outstanding_guard(context_t * c) : c(c) {
+      c->out.fetch_add(1, std::memory_order_relaxed);
+    }
+    outstanding_guard(outstanding_guard && o) noexcept
+      : c(std::exchange(o.c, {})) {}
+    ~outstanding_guard() {
+      if(c && c->out.fetch_sub(1, std::memory_order_release) == 1) {
+        (std::lock_guard(c->out_mutex));
+        c->out_cv.notify_one();
+      }
+    }
+    outstanding_guard operator()() {
+      return std::move(*this);
+    }
 
+  private:
+    context_t * c;
+  };
+
+public:
+  outstanding_guard outstanding() {
+    return this;
+  }
+  void termination_detection();
+
+private:
   std::vector<std::string> cfg;
-  ::hpx::spinlock mtx;
-  std::map<std::string, channel_communicator_data> p2p_comms_;
-  std::map<std::string, communicator_data> world_comms_;
+  p2p channel;
+  std::size_t tag = 0, world = 0;
+  std::atomic<std::size_t> out = 0;
+  ::hpx::mutex out_mutex;
+  ::hpx::condition_variable out_cv;
 };
 
 /// \}

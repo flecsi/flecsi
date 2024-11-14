@@ -20,19 +20,15 @@
 namespace flecsi {
 namespace detail {
 
-template<typename Derived>
-struct future_impl;
-
 template<typename R>
-struct future_impl<future<R>> {
+struct future_impl {
 
   future_impl() = default;
 
-  explicit future_impl(::hpx::future<R> && result) noexcept
-    : future_(::hpx::make_shared_future(std::move(result))) {}
+  future_impl(::hpx::shared_future<R> f) noexcept : future_(std::move(f)) {}
 
-  future<R> & operator=(::hpx::future<R> && result) noexcept {
-    return *this = future<R>(std::move(result));
+  ::hpx::shared_future<void> depend() {
+    return future_;
   }
 
   void wait() {
@@ -51,10 +47,9 @@ private:
 } // namespace detail
 
 template<typename R>
-struct future<R> : detail::future_impl<future<R>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+struct future<R> : detail::future_impl<R> {
+  using base_type = typename future::future_impl;
+  using base_type::base_type;
 
   explicit future(R result)
     : base_type(::hpx::make_ready_future(std::move(result))) {}
@@ -65,10 +60,9 @@ struct future<R> : detail::future_impl<future<R>> {
 };
 
 template<>
-struct future<void> : detail::future_impl<future<void>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
+struct future<void> : detail::future_impl<void> {
+  using base_type = typename future::future_impl;
+  using base_type::base_type;
 
   future() : base_type(::hpx::make_ready_future()) {}
 };
@@ -76,20 +70,22 @@ struct future<void> : detail::future_impl<future<void>> {
 namespace detail {
 
 template<typename R>
-struct future_impl<future<R, exec::launch_type_t::index>> {
+struct future_index {
+  using future = ::hpx::shared_future<R>;
 
-  using result_type =
-    std::conditional_t<std::is_void_v<R>, void, std::vector<R>>;
+  explicit future_index(future f) noexcept : future_(std::move(f)) {}
 
-  explicit future_impl(::hpx::future<result_type> && result) noexcept
-    : future_(::hpx::make_shared_future(std::move(result))) {}
+  auto mine() {
+    return future_;
+  }
 
   void wait(bool = false) {
     flog_assert(future_.valid(), "future must be valid");
     future_.wait();
+    ::hpx::distributed::barrier::synchronize();
   }
 
-  result_type get() {
+  R get() {
     flog_assert(future_.valid(), "future must be valid");
     return future_.get();
   }
@@ -99,66 +95,39 @@ struct future_impl<future<R, exec::launch_type_t::index>> {
   }
 
 private:
-  ::hpx::shared_future<result_type> future_;
+  future future_;
 };
 
 } // namespace detail
 
 template<typename R>
-struct future<R, exec::launch_type_t::index>
-  : detail::future_impl<future<R, exec::launch_type_t::index>> {
-
-private:
-  static decltype(auto) all_gather_result(
-    flecsi::run::context_t::communicator_data && comm_gen,
-    R && result) {
-    auto const & [comm, generation] = comm_gen;
-    using namespace ::hpx::collectives;
-    return all_gather(comm, std::move(result), generation_arg(generation));
-  }
-
-public:
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
-
-  explicit future(::hpx::future<R> && result, std::string name)
-    : base_type(result.then(::hpx::launch::sync,
-        [comm_gen = flecsi::run::context::instance().world_comm(
-           std::move(name))](auto && f) mutable {
-          return future::all_gather_result(std::move(comm_gen), f.get());
-        })) {}
-
-  explicit future(R result, std::string name)
-    : base_type(all_gather_result(std::move(name), std::move(result))) {}
+struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
+  using base_type = typename future::future_index;
+  using base_type::base_type;
 
   R get(Color index = 0, bool = false) {
-    return this->base_type::get().at(index);
+    auto & c = run::context::instance();
+    if(index == c.process()) {
+      R ret = base_type::get();
+      ::hpx::collectives::broadcast_to(c.world0.comm(), ret, c.world0.gen());
+      return ret;
+    }
+    return ::hpx::collectives::broadcast_from<R>(
+      c.world0.comm(), c.world0.gen())
+      .get();
   }
 };
 
 template<>
-struct future<void, exec::launch_type_t::index>
-  : detail::future_impl<future<void, exec::launch_type_t::index>> {
-
-  using base_type = detail::future_impl<future>;
-  using detail::future_impl<future>::future_impl;
-
-  future() : base_type(::hpx::make_ready_future()) {}
+struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
+  using base_type = typename future::future_index;
+  using base_type::base_type;
 
   void get(Color = 0, bool = false) {
-    this->base_type::get();
+    wait();
   }
 };
 
-namespace detail {
-// Helper comparing HPX futures
-inline bool
-is_same(::hpx::shared_future<void> const & lhs,
-  ::hpx::shared_future<void> const & rhs) {
-  return ::hpx::traits::detail::get_shared_state(lhs) ==
-         ::hpx::traits::detail::get_shared_state(rhs);
-}
-} // namespace detail
 } // namespace flecsi
 
 #endif // FLECSI_EXEC_HPX_FUTURE_HH

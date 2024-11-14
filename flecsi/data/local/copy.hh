@@ -6,6 +6,8 @@
 
 // High-level topology type implementation.
 
+#include "flecsi/data/local/storage.hh"
+
 namespace flecsi::data {
 namespace local {
 
@@ -13,28 +15,25 @@ struct copy_engine {
   using index_type = std::size_t;
 
   // One copy engine for each entity type i.e. vertex, cell, edge.
+  template<typename AllToAll>
   copy_engine(const data::points & pts,
     const data::intervals & intervals,
-    field_id_t meta_fid /* for remote shared entities */)
-    : source(pts), destination(intervals), meta_fid(meta_fid) {}
-
-  // The initialization of the copy_engine may have to be delayed to make sure
-  // the calls to get_storage can be safely executed.
-  template<typename AllToAll>
-  void init_copy_engine(AllToAll && all_to_all) {
+    field_id_t meta_fid /* for remote shared entities */,
+    AllToAll && all_to_all)
+    : source(pts.r), destination(intervals.share()) {
     // Make sure the task that is writing to the field has finished running
-    destination[meta_fid].synchronize();
+    (*destination)[meta_fid].synchronize();
     // There is no information about the indices of local shared entities,
     // ranks and indices of the destination of copy i.e. (local source
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
     auto remote_sources =
-      destination.get_storage<data::points::Value, ro>(meta_fid);
+      destination->get_storage<data::points::Value, ro>(meta_fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
-    for(const auto & [begin, end] : destination.ghost_ranges) {
+    for(const auto & [begin, end] : destination->ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         mem_size[shared.first]++;
@@ -48,7 +47,7 @@ struct copy_engine {
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
     std::map<Color, std::vector<index_type>> remote_shared_entities;
-    for(const auto & [begin, end] : destination.ghost_ranges) {
+    for(const auto & [begin, end] : destination->ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
@@ -91,15 +90,11 @@ struct copy_engine {
     max_local_source_idx += 1;
   }
 
-  // the operator()() is implemented in the derived copy_engine instance
-
-protected:
   // (remote rank, { local indices })
   using SendPoints = std::map<Color, local::detail::storage<index_type>>;
 
-  const data::points & source;
-  const data::intervals & destination;
-  field_id_t meta_fid;
+  region_impl * source; // kept alive by subsequent tasks
+  intervals::ref destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;
