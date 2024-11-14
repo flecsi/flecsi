@@ -34,9 +34,11 @@ namespace exec {
 struct task_prologue_base {
 private:
   auto dep() {
-    return [this](auto && d) {
-      dependencies(std::forward<decltype(d)>(d));
-      return get_future();
+    return [this](std::vector<data::hold> v) {
+      data::hold & h = get_future();
+      for(auto & r : v)
+        dependencies(h.depend(std::move(r)));
+      return h;
     };
   }
 
@@ -87,51 +89,46 @@ protected:
       // copy_engine::operator()()).
       reg.ghost_copy<P>(ref);
     }
-    else {
-      // Perform ghost copy using host side storage if required. This might copy
-      // data from the device side first.
-      if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
-        // Create a new task that performs the required ghost-copy and make the
-        // task currently being created depend on the results of the ghost-copy
-        // operation.
-        auto comm_gen =
-          flecsi::run::context::instance().world_comm(std::to_string(f));
-
-        auto && delayed_ghost_copy = [r = t.share(), f, comm_gen]() mutable {
+    else if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
+      // Create a new task that performs the required ghost-copy and make the
+      // task currently being created depend on the results of the ghost-copy
+      // operation.
+      data::init_delayed_ghost_copy(
+        field, field, [r = t.share(), f](run::communicator & comm) mutable {
           using data_type = ::hpx::serialization::serialize_buffer<T>;
           // This is a special case of ghost_copy thus we need the storage in
           // HostSpace rather than ExecutionSpace.
           using namespace ::hpx::collectives;
-          auto & [comm, generation] = comm_gen;
-          if(comm.is_root()) {
+          if(comm.comm().is_root()) {
             auto host_storage =
               r->template get_storage<T, task_processor_type_t::loc, ro>(f);
-            broadcast_to(comm,
+            broadcast_to(comm.comm(),
               data_type(
                 host_storage.data(), host_storage.size(), data_type::reference),
-              generation_arg(generation))
+              comm.gen())
               .get();
           }
           else {
             auto host_storage =
               r->template get_storage<T, task_processor_type_t::loc, wo>(f);
             auto && data =
-              broadcast_from<data_type>(comm, generation_arg(generation)).get();
+              broadcast_from<data_type>(comm.comm(), comm.gen()).get();
             assert(data.size() == host_storage.size());
             std::move(
               data.begin(), data.begin() + data.size(), host_storage.data());
           }
-        };
-
-        data::init_delayed_ghost_copy(field, field, delayed_ghost_copy);
-      }
+        });
     }
 
     if constexpr(privilege_write(P)) {
       field.do_write(dep());
     }
     else if constexpr(privilege_read(P)) {
-      field.do_read(dep());
+      field.do_read([this](data::hold & d) {
+        data::hold & h = get_future();
+        dependencies(h.depend(d));
+        return h;
+      });
     }
   }
 
@@ -149,20 +146,32 @@ protected:
     regions_partitions.push_back(r.share());
 
     r[ref.fid()].do_write(dep());
+    need_comm = true;
   }
 
 public:
+  void request_comm() {
+    need_comm = true;
+  }
+
   // Delay the execution of the given task until all dependencies have been
   // satisfied (if any).
   template<typename R, typename Params, typename Task>
   ::hpx::shared_future<R>
   delay_execution(Params && params, std::string task_name, Task && task) && {
+    // In the rare case where we do not have anywhere to store a future, we
+    // create our own single-use communicator.
+    data::comms::comm own;
+    if(need_comm && !future)
+      own = data::comms::make_comm();
     auto f = ::hpx::dataflow(
       [out = run::context::instance().outstanding(),
         regions_partitions = std::move(regions_partitions),
         task = std::forward<Task>(task),
         params = std::forward<Params>(params),
-        task_name = std::move(task_name)](auto && deps) mutable {
+        task_name = std::move(task_name),
+        comm = need_comm && future ? &future.comm() : own.get(),
+        own = std::move(own)](data::dependencies::type deps) mutable {
         // manage task_local variables for this task
         run::task_local_base::guard tlg;
 
@@ -178,7 +187,7 @@ public:
 
         // invoke actual task, 'regions_partitions' needs to outlive the task
         // execution
-        return (void)out(), task(regions_partitions, std::move(params));
+        return (void)out(), task(regions_partitions, comm, std::move(params));
       },
       dependencies.detach())
                .share();
@@ -190,9 +199,9 @@ public:
   }
 
 private:
-  const data::fate & get_future() {
+  data::hold & get_future() {
     if(!future)
-      future = data::fate::make();
+      future = data::hold::make();
     return future;
   }
 
@@ -202,10 +211,11 @@ private:
 
   // This future is used as a dependency for all arguments, if needed. It
   // is used to convey the availability of this task's result.
-  data::fate future;
+  data::hold future;
 
   // collect regions and partitions each of the arguments is associated with
   std::vector<region_or_partition> regions_partitions;
+  bool need_comm = false;
 };
 
 template<task_processor_type_t ProcessorType>

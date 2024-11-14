@@ -142,20 +142,31 @@ reduce_internal(Args &&... args) {
   // from the access Attributes for each of the arguments. See
   // hpx/task_prologue.hh for more details.
   const auto delay = [&](auto && f) {
+    static constexpr bool need_comm =
+      !std::is_invocable_v<decltype(f), decltype(params) &&>;
     // The apply_delayed_prolog is run after all dependencies for the embedded
     // task f have been satisfied.
     auto apply_delayed_prolog = [f = std::forward<decltype(f)>(f)](
-                                  auto & regions_partitions, auto && params) {
+                                  auto & regions_partitions,
+                                  run::communicator * comm,
+                                  auto && params) mutable {
       // The bind_parameters constructor will possibly schedule additional steps
       // to run during destruction that require execution after the task
       // finished running (reduction operations).
       bind_parameters<processor_type> provide_storage(
-        params, regions_partitions);
+        params, comm, regions_partitions);
 
-      if(mpi_task)
+      if(mpi_task) // after possibly creating a communicator
         ::hpx::distributed::barrier::synchronize();
-      return f(std::forward<decltype(params)>(params));
+      if constexpr(need_comm)
+        return std::forward<decltype(f)>(f)(
+          *comm, std::forward<decltype(params)>(params));
+      else
+        return std::forward<decltype(f)>(f)(
+          std::forward<decltype(params)>(params));
     };
+    if(need_comm)
+      bound_params.request_comm();
     return std::move(bound_params)
       .template delay_execution<R>(
         std::move(params), util::symbol<F>(), std::move(apply_delayed_prolog));
@@ -178,22 +189,19 @@ reduce_internal(Args &&... args) {
       }
     }
     else {
-      auto comm_gen =
-        flecsi::run::context::instance().world_comm(std::move(task_name));
-      return future<R>{delay([root, comm_gen](auto && params) {
+      return future<R>{delay([root](run::communicator & comm, auto && params) {
         // Broadcast the result from root to the rest of ranks return future<R,
         // launch_type::single> where clients on every rank will get the same
         // value when calling .get().
         using namespace ::hpx::collectives;
-        auto & [comm, generation] = comm_gen;
         if(root) {
-          return broadcast_to(comm,
+          return broadcast_to(comm.comm(),
             std::apply(F, std::forward<decltype(params)>(params)),
-            generation_arg(generation))
+            comm.gen())
             .get();
         }
         else {
-          return broadcast_from<R>(comm, generation_arg(generation)).get();
+          return broadcast_from<R>(comm.comm(), comm.gen()).get();
         }
       })};
     }
@@ -206,15 +214,12 @@ reduce_internal(Args &&... args) {
     if constexpr(!std::is_void_v<Reduction>) {
       static_assert(!std::is_void_v<R>, "can not reduce results of void task");
 
-      auto comm_gen =
-        flecsi::run::context::instance().world_comm(std::move(task_name));
-      return future<R>{delay([comm_gen](auto && params) {
+      return future<R>{delay([](run::communicator & comm, auto && params) {
         using namespace ::hpx::collectives;
-        auto & [comm, generation] = comm_gen;
-        return all_reduce(comm,
+        return all_reduce(comm.comm(),
           std::apply(F, std::forward<decltype(params)>(params)),
           exec::fold::wrap<Reduction>{},
-          generation_arg(generation))
+          comm.gen())
           .get();
       })};
     }
@@ -222,8 +227,7 @@ reduce_internal(Args &&... args) {
       // There is an Allgather happening in the constructor of future<R, index>
       // where the results from ranks are redistributed such that clients on
       // every rank i can get the return value of rank j by calling get(j).
-      return future<R, exec::launch_type_t::index>{
-        delay(delayed_apply), std::move(task_name)};
+      return future<R, exec::launch_type_t::index>{delay(delayed_apply)};
     }
     else {
       // index launch of void functions, e.g. printf("hello world");

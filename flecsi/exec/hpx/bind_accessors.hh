@@ -38,9 +38,9 @@ using region_or_partition =
  */
 template<task_processor_type_t ProcessorType>
 struct bind_accessors {
-
-  explicit bind_accessors(std::vector<region_or_partition> & regions_partitions)
-    : argument(0), regions_partitions(regions_partitions) {}
+  explicit bind_accessors(run::communicator * comm,
+    std::vector<region_or_partition> & regions_partitions)
+    : comm(comm), regions_partitions(regions_partitions) {}
 
 protected:
   template<typename T, partition_privilege_t P>
@@ -75,17 +75,13 @@ protected:
     if(run::context::instance().process() != 0)
       std::fill(storage.begin(), storage.end(), R::template identity<T>);
 
-    auto comm_gen = flecsi::run::context::instance().world_comm(
-      "reduce_" + std::to_string(f));
-
-    reductions.push_back([storage, comm_gen] {
+    reductions.push_back([storage](run::communicator & comm) {
       using data_type = ::hpx::serialization::serialize_buffer<T>;
       using namespace ::hpx::collectives;
-      auto & [comm, generation] = comm_gen;
-      auto fut = all_reduce(comm,
+      auto fut = all_reduce(comm.comm(),
         data_type(storage.data(), storage.size()),
         exec::fold::wrap<R>{},
-        generation_arg(generation));
+        comm.gen());
 
       return fut.then(::hpx::launch::sync, [storage](auto && fut) {
         // manage task_local variables for this task
@@ -104,15 +100,18 @@ public:
     flog_assert(argument == regions_partitions.size(),
       "all fields should be used by bind_accessors");
 
+    flog_assert(reductions.empty() || comm, "no communicator for reductions");
     std::vector<data::fate> requests;
     requests.reserve(reductions.size());
     for(auto & f : reductions) {
-      requests.push_back(data::fate::make(f()));
+      requests.push_back(data::fate::make(f(*comm)));
     }
   }
 
 private:
-  std::vector<std::function<::hpx::future<void>()>> reductions;
+  run::communicator * comm;
+  std::vector<std::function<::hpx::future<void>(run::communicator &)>>
+    reductions;
 
   std::size_t argument = 0;
 

@@ -29,21 +29,17 @@ namespace detail {
 //  All-to-All (variable) communication pattern (HPX version).
 template<typename F>
 inline auto
-all_to_allv(F && f, run::context_t::communicator_data comm_data) {
-
+all_to_allv(F && f, run::communicator & comm) {
   using namespace ::hpx::collectives;
 
-  auto & [comm, generation] = comm_data;
-  auto [size, rank] = comm.get_info();
-
+  auto size = run::context::instance().processes();
   std::vector<std::vector<std::size_t>> result;
   result.reserve(size);
 
   for(std::size_t r = 0; r < size; ++r)
     result.push_back(f(r));
 
-  return all_to_all(
-    comm, std::move(result), this_site_arg(), generation_arg(generation))
+  return all_to_all(comm.comm(), std::move(result), this_site_arg(), comm.gen())
     .get();
 } // all_to_allv
 } // namespace detail
@@ -59,13 +55,6 @@ struct dependencies {
   void operator()(fate::future f) {
     if(f.valid() && !f.is_ready())
       v.push_back(std::move(f));
-  }
-  void operator()(const fate & f) {
-    (*this)(f.get());
-  }
-  void operator()(std::vector<fate> v) {
-    for(auto & f : v)
-      (*this)(f.release());
   }
 
   // hpx::dataflow's parameters can't trigger implicit conversions.
@@ -83,19 +72,28 @@ init_delayed_ghost_copy(backend_storage & src_field,
   backend_storage & dest_field,
   F && delayed_ghost_copy) {
   // It is typical that src_field and dest_field alias.  do_write always
-  // clears all futures before performing the callback, so then s is empty;
+  // clears all holds before performing the callback, so then s is empty;
   // do_read stores the copy future, but then do_write discards it properly.
-  dest_field.do_write([&](std::vector<fate> d) {
-    auto future = fate::make();
-    src_field.do_read([&](const fate & s) {
+  dest_field.do_write([&](std::vector<hold> d) {
+    auto future = hold::make();
+    src_field.do_read([&](hold & s) {
+      static constexpr bool use_comm = !std::is_invocable_v<F>;
+      dependencies dep(future.depend(s));
+      for(auto & h : d)
+        dep(future.depend(h));
       future.assign(::hpx::dataflow(
         [out = run::context::instance().outstanding(),
-          delayed_ghost_copy = std::forward<F>(delayed_ghost_copy)](
+          delayed_ghost_copy = std::forward<F>(delayed_ghost_copy),
+          comm = use_comm ? &future.comm() : nullptr](
           dependencies::type ff) mutable {
           ::hpx::wait_all(std::move(ff)); // propagate exceptions
-          out(), delayed_ghost_copy();
+          const auto local = out();
+          if constexpr(use_comm)
+            std::forward<F>(delayed_ghost_copy)(*comm);
+          else
+            std::forward<F>(delayed_ghost_copy)();
         },
-        dependencies(std::move(d), s).detach()));
+        dep.detach()));
       return future;
     });
     return future;
@@ -117,7 +115,7 @@ struct copy_engine {
               auto const it = remote_shared_entities.find(r);
               return it == remote_shared_entities.end() ? empty : it->second;
             },
-            run::context::instance().world_comm("copy_engine"));
+            run::context::instance().world0);
         })) {}
 
   // called with each field (and field_id_t) on the entity, for example, one

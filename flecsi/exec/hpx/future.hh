@@ -97,24 +97,14 @@ private:
 
 template<typename R>
 struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
-private:
-  static decltype(auto) all_gather_result(
-    flecsi::run::context_t::communicator_data && comm_gen,
-    const R & result) {
-    auto const & [comm, generation] = comm_gen;
-    using namespace ::hpx::collectives;
-    return all_gather(comm, result, generation_arg(generation));
-  }
-
-public:
   using base_type = typename future::future_index;
   using base_type::base_type;
 
-  explicit future(::hpx::shared_future<R> result, std::string name)
+  explicit future(::hpx::shared_future<R> result)
     : base_type(result.then(::hpx::launch::sync,
-        [comm_gen = flecsi::run::context::instance().world_comm(
-           std::move(name))](auto && f) mutable {
-          return future::all_gather_result(std::move(comm_gen), f.get());
+        [comm = run::context::instance().world_comm()](auto && f) mutable {
+          using namespace ::hpx::collectives;
+          return all_gather(comm.comm(), f.get(), comm.gen());
         })) {}
 
   R get(Color index = 0, bool = false) {

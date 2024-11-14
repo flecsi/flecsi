@@ -57,12 +57,13 @@ context_t::start(std::function<int()> const & action, bool) {
       context::threads_ = context::processes_;
       channel = ::hpx::collectives::create_channel_communicator(
         ::hpx::launch::sync, "/flecsi/p2p_comm");
+      world0 = world_comm();
 
       struct guard {
         context_t & c;
         ~guard() {
           c.channel = {};
-          c.world_comms_.clear();
+          c.world0 = {};
           ::hpx::finalize();
         }
       } g{*this};
@@ -73,35 +74,13 @@ context_t::start(std::function<int()> const & action, bool) {
     params);
 }
 
-context_t::communicator_data
-context_t::world_comm(std::string name) {
-
-  flog_assert(!name.empty(), "communicators must have valid name");
-  name = "/flecsi/world_comm/" + std::move(name);
-  auto & comm = [&]() -> auto & {
-    std::unique_lock l(mtx);
-    auto it = world_comms_.find(name);
-    if(it == world_comms_.end()) {
-      // create new communicator if not found in the map
-      communicator_data::first_type comm;
-      {
-        ::hpx::unlock_guard<decltype(l)> ul(l);
-        comm = ::hpx::collectives::create_communicator(name.c_str(),
-          ::hpx::collectives::num_sites_arg(context::processes_),
-          ::hpx::collectives::this_site_arg(context::process_));
-      }
-
-      // try to insert the newly created communicator (might already have been
-      // inserted concurrently)
-      it = world_comms_.try_emplace(std::move(name), std::move(comm), 0).first;
-    }
-    return it->second;
-  }
-  ();
-  ++comm.second;
-  comm.first.set_info(hpx::collectives::num_sites_arg(processes_),
-    hpx::collectives::this_site_arg(process_));
-  return comm;
+communicator
+context_t::world_comm() {
+  using namespace ::hpx::collectives;
+  return create_communicator("/flecsi/world_comm/",
+    num_sites_arg(processes_),
+    this_site_arg(process_),
+    generation_arg(world++));
 }
 
 void

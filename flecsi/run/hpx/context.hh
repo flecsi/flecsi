@@ -21,6 +21,25 @@ namespace flecsi::run {
 /// \ingroup runtime
 /// \{
 
+struct communicator {
+  using type = ::hpx::collectives::communicator;
+  communicator() = default;
+  communicator(type c) : c(std::move(c)) {}
+  communicator(communicator &&) = default;
+  communicator & operator=(communicator &&) & = default;
+
+  const type & comm() const {
+    return c;
+  }
+  auto gen() {
+    return ::hpx::collectives::generation_arg(++g);
+  }
+
+private:
+  type c;
+  std::size_t g = 0;
+};
+
 struct config : config_base {
   std::vector<std::string> hpx;
 };
@@ -63,8 +82,6 @@ struct context_t : local::context {
   }
 
   using p2p = ::hpx::collectives::channel_communicator;
-  using communicator_data =
-    std::pair<::hpx::collectives::communicator, std::size_t>;
 
   const p2p & p2p_comm() const {
     return channel;
@@ -72,7 +89,8 @@ struct context_t : local::context {
   auto p2p_tag() {
     return ::hpx::collectives::tag_arg(++tag);
   }
-  communicator_data world_comm(std::string name);
+  communicator world_comm();
+  communicator world0;
 
 private:
   struct outstanding_guard {
@@ -104,9 +122,7 @@ public:
 private:
   std::vector<std::string> cfg;
   p2p channel;
-  std::size_t tag = 0;
-  ::hpx::spinlock mtx;
-  std::map<std::string, communicator_data> world_comms_;
+  std::size_t tag = 0, world = 0;
   std::atomic<std::size_t> out = 0;
   ::hpx::mutex out_mutex;
   ::hpx::condition_variable out_cv;
