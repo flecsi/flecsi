@@ -1477,7 +1477,7 @@ struct scalar_access : bind_tag {
   }
 
 private:
-  value_type scalar_;
+  value_type scalar_{};
 };
 } // namespace detail
 
