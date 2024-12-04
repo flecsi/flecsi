@@ -22,12 +22,12 @@ struct overloaded : Ts... {
 template<class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-struct copy_engine : private local::copy_engine {
+struct copy_engine : local::copy_engine {
   // One copy engine for each entity type i.e. vertex, cell, edge.
-  copy_engine(const data::points & pts,
+  copy_engine(const prefixes & src,
     const data::intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */)
-    : local::copy_engine(pts,
+    : local::copy_engine(src,
         intervals,
         meta_fid,
         [](auto const & remote_shared_entities) {
@@ -38,12 +38,8 @@ struct copy_engine : private local::copy_engine {
           });
         }) {}
 
-  // called with each field (and field_id_t) on the entity, for example, one
-  // for pressure, temperature, density etc.
-  void operator()(field_id_t data_fid) const {
+  void operator()(const std::vector<field_id_t> & ff) const {
     using util::mpi::test;
-
-    auto type_size = source->get_field_info(data_fid)->type_size;
 
     std::vector<std::vector<std::byte>> recv_buffers;
     std::size_t max_scatter_buffer_size = 0;
@@ -51,97 +47,98 @@ struct copy_engine : private local::copy_engine {
     {
       std::vector<std::vector<std::byte>> send_buffers;
       util::mpi::auto_requests requests(
-        ghost_entities.size() + shared_entities.size());
+        (ghost_entities.size() + shared_entities.size()) * ff.size());
 
-      for(const auto & [src_rank, ghost_indices] : ghost_entities) {
-        recv_buffers.emplace_back(ghost_indices.size() * type_size);
-        max_scatter_buffer_size =
-          std::max(max_scatter_buffer_size, recv_buffers.back().size());
-        test(MPI_Irecv(recv_buffers.back().data(),
-          int(recv_buffers.back().size()),
-          MPI_BYTE,
-          int(src_rank),
-          0,
-          MPI_COMM_WORLD,
-          requests()));
-      }
+      for(auto data_fid : ff) {
+        auto type_size = source->get_field_info(data_fid)->type_size;
 
-      // allocate gather buffer on device
-      auto gather_buffer_device_view =
-        Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-          Kokkos::ViewAllocateWithoutInitializing("gather"),
-          max_shared_indices_size * type_size};
+        for(const auto & [src_rank, ghost_indices] : ghost_entities) {
+          recv_buffers.emplace_back(ghost_indices.size() * type_size);
+          max_scatter_buffer_size =
+            std::max(max_scatter_buffer_size, recv_buffers.back().size());
+          test(MPI_Irecv(recv_buffers.back().data(),
+            int(recv_buffers.back().size()),
+            MPI_BYTE,
+            int(src_rank),
+            0,
+            MPI_COMM_WORLD,
+            requests()));
+        }
 
-      // shared_indices is created on the host, but is accessed from
-      // the device. It will be copied to the device on the first iteration.
-      // Shared data in the field storage is copied to the gather buffer
-      // in parallel. It is then copied to the send buffer (on host) and
-      // sent to the peer via MPI_Send.
-      for(const auto & entity : shared_entities) {
-        auto n_elements = entity.second.size();
-        auto n_bytes = n_elements * type_size;
-        send_buffers.emplace_back(n_bytes);
+        std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
+          gather_buffer_device_view;
 
-        // Can replace overloaded with a single lambda with auto as the argument
-        // using Kokkos::parallel_for
-        std::visit(
-          overloaded{
-            [&](const backend_storage::host_const_view & src_view) {
-              auto src_indices_view =
-                entity.second.template data<exec::task_processor_type_t::loc>();
+        // shared_indices is created on the host, but is accessed from
+        // the device. It will be copied to the device on the first iteration.
+        // Shared data in the field storage is copied to the gather buffer
+        // in parallel. It is then copied to the send buffer (on host) and
+        // sent to the peer via MPI_Send.
+        for(const auto & entity : shared_entities) {
+          auto n_elements = entity.second.size();
+          auto n_bytes = n_elements * type_size;
+          send_buffers.emplace_back(n_bytes);
 
-              std::byte * dst = send_buffers.back().data();
-              const std::byte * src = src_view.data();
+          // Can replace overloaded with a single lambda with auto as the
+          // argument using Kokkos::parallel_for
+          std::visit(
+            overloaded{[&](const backend_storage::host_const_view & src_view) {
+                         auto src_indices_view =
+                           entity.second
+                             .template data<exec::task_processor_type_t::loc>();
 
-              for(std::size_t i = 0; i < src_indices_view.extent(0); i++) {
-                std::memcpy(dst + i * type_size,
-                  src + src_indices_view[i] * type_size,
-                  type_size);
-              }
-            },
-            [&](const backend_storage::device_const_view & src) {
-              auto src_indices_view =
-                entity.second.template data<exec::task_processor_type_t::toc>();
+                         std::byte * dst = send_buffers.back().data();
+                         const std::byte * src = src_view.data();
 
-              // allocate gather buffer on device
-              auto gather_buffer_device_view =
-                Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-                  "gather", n_bytes};
+                         for(std::size_t i = 0; i < src_indices_view.extent(0);
+                             i++) {
+                           std::memcpy(dst + i * type_size,
+                             src + src_indices_view[i] * type_size,
+                             type_size);
+                         }
+                       },
+              [&](const backend_storage::device_const_view & src) {
+                auto src_indices_view =
+                  entity.second
+                    .template data<exec::task_processor_type_t::toc>();
 
-              // copy shared values to gather buffer on device in parallel, for
-              // each element
-              Kokkos::parallel_for(
-                n_elements, KOKKOS_LAMBDA(const auto & i) {
-                  // Yes, memcpy is supported on device as long as there is no
-                  // std:: qualifier.
-                  memcpy(gather_buffer_device_view.data() + i * type_size,
-                    src.data() + src_indices_view[i] * type_size,
-                    type_size);
-                });
+                if(!gather_buffer_device_view)
+                  gather_buffer_device_view.emplace(
+                    Kokkos::ViewAllocateWithoutInitializing("gather"),
+                    max_shared_indices_size * type_size);
 
-              auto gather_view = Kokkos::subview(gather_buffer_device_view,
-                std::pair<std::size_t, std::size_t>(0, n_bytes));
-              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-                backend_storage::host_view{send_buffers.back().data(), n_bytes},
-                gather_buffer_device_view);
-            }},
-          source->current_data<ro>(data_fid));
+                // copy shared values to gather buffer on device in parallel,
+                // for each element
+                Kokkos::parallel_for(
+                  n_elements, KOKKOS_LAMBDA(const auto & i) {
+                    // Yes, memcpy is supported on device as long as there is no
+                    // std:: qualifier.
+                    memcpy(gather_buffer_device_view->data() + i * type_size,
+                      src.data() + src_indices_view[i] * type_size,
+                      type_size);
+                  });
 
-        test(MPI_Isend(send_buffers.back().data(),
-          int(send_buffers.back().size()),
-          MPI_BYTE,
-          int(entity.first),
-          0,
-          MPI_COMM_WORLD,
-          requests()));
+                auto gather_view = Kokkos::subview(*gather_buffer_device_view,
+                  std::pair<std::size_t, std::size_t>(0, n_bytes));
+                Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+                  backend_storage::host_view{
+                    send_buffers.back().data(), n_bytes},
+                  *gather_buffer_device_view);
+              }},
+            source->current_data<ro>(data_fid));
+
+          test(MPI_Isend(send_buffers.back().data(),
+            int(send_buffers.back().size()),
+            MPI_BYTE,
+            int(entity.first),
+            0,
+            MPI_COMM_WORLD,
+            requests()));
+        }
       }
     }
 
-    // Construct the view based off the maximum recv_buffer size
-    auto scatter_buffer_device_view =
-      Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>{
-        Kokkos::ViewAllocateWithoutInitializing("scatter"),
-        max_scatter_buffer_size};
+    std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
+      scatter_buffer_device_view;
 
     // ghost_indices is created on the host, but is accessed from
     // the device. It will be copied to the device on the first iteration.
@@ -150,56 +147,59 @@ struct copy_engine : private local::copy_engine {
     // and eventually copied in parallel into the field's storage (on device).
 
     auto recv_buffer = recv_buffers.begin();
-    for(const auto & entity : ghost_entities) {
-      auto n_elements = entity.second.size();
+    for(auto data_fid : ff) {
+      auto type_size = source->get_field_info(data_fid)->type_size;
 
-      std::visit(
-        overloaded{
-          [&](const backend_storage::host_view & dst_view) {
-            auto dst_indices_view =
-              entity.second.template data<exec::task_processor_type_t::loc>();
+      for(const auto & entity : ghost_entities) {
+        auto n_elements = entity.second.size();
 
-            auto subview = Kokkos::subview(dst_view,
-              std::pair<std::size_t, std::size_t>(0, destination->max_end));
-            std::byte * dst = subview.data();
-            const std::byte * src = recv_buffer->data();
+        std::visit(
+          overloaded{
+            [&](const backend_storage::host_view & dst_view) {
+              auto dst_indices_view =
+                entity.second.template data<exec::task_processor_type_t::loc>();
 
-            for(std::size_t i = 0; i < dst_indices_view.extent(0); i++) {
-              std::memcpy(dst + dst_indices_view[i] * type_size,
-                src + i * type_size,
-                type_size);
-            }
-          },
-          [&](const backend_storage::device_view & dst) {
-            auto dst_indices_view =
-              entity.second.template data<exec::task_processor_type_t::toc>();
+              auto subview = Kokkos::subview(dst_view,
+                std::pair<std::size_t, std::size_t>(0, destination->max_end));
+              std::byte * dst = subview.data();
+              const std::byte * src = recv_buffer->data();
 
-            auto subview = Kokkos::subview(dst,
-              std::pair<std::size_t, std::size_t>(0, destination->max_end));
-            // copy recv buffer from host to scatter buffer on device
-            auto scatter_buffer_device_view = [](const auto & hvec,
-                                                const std::string & label) {
-              using T = typename std::decay_t<decltype(hvec)>::value_type;
-              Kokkos::View<T *, backend_storage::device_space> dview{
-                Kokkos::ViewAllocateWithoutInitializing(label), hvec.size()};
-              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
-                dview,
-                Kokkos::View<const T *, backend_storage::host_space>{
-                  hvec.data(), hvec.size()});
-              return dview;
-            }(*recv_buffer, "scatter");
-
-            // copy ghost values from scatter buffer on device to field storage
-            // in parallel, for each element
-            Kokkos::parallel_for(
-              n_elements, KOKKOS_LAMBDA(const auto & i) {
-                memcpy(subview.data() + dst_indices_view[i] * type_size,
-                  scatter_buffer_device_view.data() + i * type_size,
+              for(std::size_t i = 0; i < dst_indices_view.extent(0); i++) {
+                std::memcpy(dst + dst_indices_view[i] * type_size,
+                  src + i * type_size,
                   type_size);
-              });
-          }},
-        destination->r->current_data<wo>(data_fid));
-      recv_buffer++;
+              }
+            },
+            [&](const backend_storage::device_view & dst) {
+              if(!scatter_buffer_device_view)
+                scatter_buffer_device_view.emplace(
+                  Kokkos::ViewAllocateWithoutInitializing("scatter"),
+                  max_scatter_buffer_size);
+              auto scatter_view = Kokkos::subview(*scatter_buffer_device_view,
+                std::pair<std::size_t, std::size_t>(0, recv_buffer->size()));
+              Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
+                scatter_view,
+                backend_storage::host_view{
+                  recv_buffer->data(), recv_buffer->size()});
+
+              auto dst_indices_view =
+                entity.second.template data<exec::task_processor_type_t::toc>();
+
+              auto subview = Kokkos::subview(dst,
+                std::pair<std::size_t, std::size_t>(0, destination->max_end));
+
+              // copy ghost values from scatter buffer on device to field
+              // storage in parallel, for each element
+              Kokkos::parallel_for(
+                n_elements, KOKKOS_LAMBDA(const auto & i) {
+                  memcpy(subview.data() + dst_indices_view[i] * type_size,
+                    scatter_buffer_device_view->data() + i * type_size,
+                    type_size);
+                });
+            }},
+          destination->r->current_data<wo>(data_fid));
+        recv_buffer++;
+      }
     }
   }
 };

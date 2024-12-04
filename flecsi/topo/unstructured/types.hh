@@ -7,7 +7,7 @@
 #include "flecsi/data/copy_plan.hh"
 #include "flecsi/data/field_info.hh"
 #include "flecsi/data/topology.hh"
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/types.hh"
 #include "flecsi/util/common.hh"
@@ -262,15 +262,15 @@ struct unstructured_base {
 
   template<PrivilegeCount N>
   static void set_ptrs(
-    data::multi<field<data::points::Value>::accessor1<privilege_repeat<wo, N>>>
-      aa,
+    data::multi<
+      field<data::copy_engine::Point>::accessor1<privilege_repeat<wo, N>>> aa,
     std::vector<std::map<Color,
       std::vector<std::pair<util::id, util::id>>>> const & points) {
     std::size_t ci = 0;
     for(auto & a : aa.accessors()) {
       for(auto const & [owner, ghosts] : points[ci++]) {
         for(auto const & [local_offset, remote_offset] : ghosts) {
-          a[local_offset] = data::points::make(owner, remote_offset);
+          a[local_offset] = data::copy_engine::point(owner, remote_offset);
         } // for
       } // for
     } // for
@@ -292,7 +292,7 @@ struct unstructured_base {
 
   // resize ragged fields storing communication graph for ghosts
   static void cgraph_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    data::multi<ragged_partition::accessor<wo>> aa) {
     auto it = vic.begin();
     for(auto & a : aa.accessors()) {
       a.size() = it->ghosts().size();
@@ -302,7 +302,7 @@ struct unstructured_base {
 
   // resize ragged fields storing communication graph for shared
   static void cgraph_shared_size(std::vector<index_color> const & vic,
-    data::multi<ragged_partition<1>::accessor<wo>> aa) {
+    data::multi<ragged_partition::accessor<wo>> aa) {
     auto it = vic.begin();
 
     for(auto & a : aa.accessors()) {

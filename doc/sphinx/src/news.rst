@@ -52,6 +52,15 @@ Possible incompatibilities
 
 Fixed
 ^^^^^
+* Data
+
+  * Write-only multi-color ``particle`` accessors/mutators support non-trivial destructors.
+
+* Legion backend
+
+  * The speed of ghost copies has been significantly improved (without losing the decreased memory usage).
+  * ``ragged`` or ``sparse`` fields do not generate spurious warnings about using uninitialized data.
+
 * Utilities
 
   * ``dimensioned_array`` construction works reliably in constant expressions.

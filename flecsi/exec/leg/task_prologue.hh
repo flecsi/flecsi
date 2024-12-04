@@ -7,7 +7,6 @@
 #include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology.hh"
 #include "flecsi/exec/leg/future.hh"
 
 #include <legion.h>
@@ -22,7 +21,7 @@ struct borrow_category;
 
 namespace exec {
 
-struct task_prologue_impl {
+struct task_prologue_impl : prolog_base {
   std::vector<Legion::RegionRequirement> const & region_requirements() const {
     return region_reqs_;
   } // region_requirements
@@ -73,7 +72,7 @@ protected:
     auto & t = r.topology();
     data::region & reg = t.template get_region<Space>();
 
-    reg.ghost_copy<P>(r);
+    add_copy<P>(r);
 
     const Legion::PrivilegeMode m = privilege_mode(P);
     const Legion::LogicalRegion lr = reg.logical_region;
@@ -82,12 +81,14 @@ protected:
     else {
       const data::borrow * b = get_projection(t);
       data::borrow::attach(
-        region_reqs_.emplace_back(
-          t.template get_partition<Space>().logical_partition,
-          data::borrow::projection(b),
-          m,
-          LEGION_EXCLUSIVE,
-          lr),
+        region_reqs_
+          .emplace_back(t.template get_partition<Space>().logical_partition,
+            data::borrow::projection(b),
+            m,
+            LEGION_EXCLUSIVE,
+            lr)
+          .add_flags(reg.check_resize(f) ? LEGION_SUPPRESS_WARNINGS_FLAG
+                                         : Legion::RegionFlags()),
         b);
     }
     region_reqs_.back().add_field(f);

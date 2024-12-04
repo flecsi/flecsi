@@ -11,16 +11,23 @@
 namespace flecsi::data {
 namespace local {
 
-struct copy_engine {
+struct copy_base {
   using index_type = std::size_t;
 
+  using Point = std::pair<index_type, index_type>; // (rank, index)
+  static Point point(std::size_t r, std::size_t i) {
+    return {r, i};
+  }
+};
+
+struct copy_engine : copy_base {
   // One copy engine for each entity type i.e. vertex, cell, edge.
   template<typename AllToAll>
-  copy_engine(const data::points & pts,
+  copy_engine(const prefixes & src,
     const data::intervals & intervals,
     field_id_t meta_fid /* for remote shared entities */,
     AllToAll && all_to_all)
-    : source(pts.r), destination(intervals.share()) {
+    : source(&src->get_region()), destination(intervals.share()) {
     // Make sure the task that is writing to the field has finished running
     (*destination)[meta_fid].synchronize();
     // There is no information about the indices of local shared entities,
@@ -28,8 +35,7 @@ struct copy_engine {
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
-    auto remote_sources =
-      destination->get_storage<data::points::Value, ro>(meta_fid);
+    auto remote_sources = destination->get_storage<Point, ro>(meta_fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;

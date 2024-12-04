@@ -69,6 +69,8 @@ struct borrow : borrow_base {
 };
 #endif
 
+struct copy_plan;
+
 // Adds backend-independent metadata.
 struct region : region_base {
   using region_base::region_base;
@@ -106,13 +108,15 @@ struct region : region_base {
     layout L,
     class Topo,
     typename Topo::index_space S>
-  void ghost_copy(const field_reference<T, L, Topo, S> & f) {
+  [[nodiscard]] const copy_plan * ghost_copy(
+    const field_reference<T, L, Topo, S> & f) {
     constexpr auto np = privilege_count(P);
     static_assert(np == Topo::template privilege_count<S>,
       "privilege-count mismatch between accessor and topology type");
     if constexpr(np > 1)
       if(ghost<P>(f.fid()))
-        f.topology().ghost_copy(f);
+        return f.topology().ghost_copy(f);
+    return nullptr;
   }
 
   template<topo::single_space> // for convenience for simple topologies

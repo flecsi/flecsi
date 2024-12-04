@@ -21,14 +21,11 @@ partitionKind(disjointness dis, completeness cpt) {
   return Legion::PartitionKind((dis + 2) % 3 + 3 * cpt);
 }
 
-static_assert(sizeof(util::id) <= sizeof(Legion::coord_t),
-  "topology entity ID type too large for Legion");
 // The "infinite" size used for resizable regions.
-constexpr inline util::id logical_size =
-  [a = std::numeric_limits<util::id>::max(),
-    b = std::numeric_limits<Legion::coord_t>::max()] {
-    return a < b ? a : b;
-  }();
+constexpr inline util::id logical_size = std::numeric_limits<
+  std::conditional_t<sizeof(util::id) < sizeof(Legion::coord_t),
+    util::id,
+    Legion::coord_t>>::max();
 
 namespace leg {
 /// \defgroup legion-data Legion Data
@@ -200,10 +197,15 @@ struct region {
   }
 
   void partition_notify() {
+    resized = fields;
     reset(fields);
   }
   void partition_notify(field_id_t f) {
+    resized.insert(f);
     reset({f});
+  }
+  bool check_resize(field_id_t f) {
+    return resized.erase(f);
   }
 
   shared_logical_region logical_region;
@@ -215,7 +217,7 @@ private:
     run().reset_equivalence_sets(ctx(), logical_region, logical_region, s);
   }
 
-  Fields fields;
+  Fields fields, resized;
 };
 
 struct partition_base {
@@ -240,7 +242,7 @@ struct partition_base {
     }
   }
 
-  // NB: intervals and points are not advertised as deriving from this class.
+  // NB: intervals is not advertised as deriving from this class.
   Color colors() const {
     return run().get_index_space_domain(get_color_space()).get_volume();
   }
@@ -296,9 +298,6 @@ private:
 };
 
 /// Common dependent partitioning facility.
-/// \tparam R use ranges (\c rect instead of \c Point<2>)
-/// \tparam D assume disjoint partitions
-template<bool R = true, bool D = R>
 struct partition : data::partition {
   partition(region & reg,
     const data::partition & src,
@@ -324,19 +323,13 @@ private:
     field_id_t fid,
     completeness cpt)
     : data::partition(reg,
-        named(
-          [&r = run()](auto &&... aa) {
-            return R ? r.create_partition_by_image_range(
-                         std::forward<decltype(aa)>(aa)...)
-                     : r.create_partition_by_image(
-                         std::forward<decltype(aa)>(aa)...);
-          }(ctx(),
-            is,
-            src.logical_partition,
-            src.root(),
-            fid,
-            src.get_color_space(),
-            partitionKind(D ? disjoint : compute, cpt)),
+        named(run().create_partition_by_image_range(ctx(),
+                is,
+                src.logical_partition,
+                src.root(),
+                fid,
+                src.get_color_space(),
+                partitionKind(disjoint, cpt)),
           (name(src.logical_partition, "?") + std::string("->")).c_str())) {}
 };
 

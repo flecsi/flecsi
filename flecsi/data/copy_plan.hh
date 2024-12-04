@@ -6,17 +6,13 @@
 
 #include "flecsi/data/backend.hh"
 #include "flecsi/data/field.hh"
-#include "flecsi/execution.hh"
+#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/exec/fold.hh"
+#include "flecsi/exec/fwd.hh"
+#include "flecsi/runtime.hh"
 #include "flecsi/topo/index.hh"
+#include "flecsi/util/annotation.hh"
 #include "flecsi/util/serialize.hh"
-
-// This will need to support different kind of constructors for
-// src vs dst
-// indirect vs direct
-// indirect: range vs points
-
-// indirect (point), direct
-// indirect (point), indirect => mesh
 
 /// \cond core
 namespace flecsi {
@@ -54,16 +50,13 @@ struct copy_plan {
       dest_(t.template get_region<S>(),
         dest_ptrs_,
         detail::intervals::field(dest_ptrs_).use(std::forward<D>(dests)).fid()),
-      // From the pointers we feed in the destination partition
-      // we create the source partition
-      src_partition_(t.template get_region<S>(),
+      engine(t.template get_partition<S>(),
         dest_,
-        pointers<P, S>(t).use(std::forward<F>(src)).fid()),
-      engine(src_partition_, dest_, pointers<P, S>.fid) {}
+        pointers<P, S>(t).use(std::forward<F>(src)).fid()) {}
 
-  void issue_copy(const field_id_t & data_fid) const {
+  void issue_copy(const std::vector<field_id_t> & ff) const {
     util::annotation::rguard<util::annotation::execute_task_copy_engine> ann;
-    engine(data_fid);
+    engine(ff);
   }
 
   // Return the field id of pointers
@@ -75,11 +68,10 @@ struct copy_plan {
 private:
   detail::intervals::core dest_ptrs_;
   intervals dest_;
-  points src_partition_;
   copy_engine engine;
 
   template<class T, typename T::index_space S>
-  static inline const field<points::Value>::definition<T, S> pointers;
+  static inline const field<copy_engine::Point>::definition<T, S> pointers;
 }; // struct copy_plan
 
 namespace detail {
@@ -174,7 +166,7 @@ struct buffers_base {
 
 protected:
   using Intervals = std::vector<subrow>;
-  using Points = std::vector<std::vector<points::Value>>;
+  using Points = std::vector<std::vector<copy_engine::Point>>;
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,
     const Intervals & v) {
@@ -182,7 +174,7 @@ protected:
     const auto i = color();
     a.span().front() = data::intervals::make(v[i], i);
   }
-  static void set_ptrs(field<points::Value>::accessor<wo, wo> a,
+  static void set_ptrs(field<copy_engine::Point>::accessor<wo, wo> a,
     const Points & v) {
     auto & v1 = v[run::context::instance().color()];
     const auto n = v1.size();
@@ -203,7 +195,7 @@ struct buffers_category : buffers_base, topo::array_category<P> {
         for(auto & s : c) {
           std::size_t j = 0;
           for(auto & d : s)
-            ret[d].push_back(points::make(i, j++));
+            ret[d].push_back(copy_engine::point(i, j++));
           ++i;
         }
         return ret;
@@ -241,8 +233,8 @@ struct buffers_category : buffers_base, topo::array_category<P> {
 
   // Data is actually moved by ordinary ghost copies for buffer accessors:
   template<class R>
-  void ghost_copy(const R & f) {
-    cp.issue_copy(f.fid());
+  [[nodiscard]] const copy_plan * ghost_copy(const R &) {
+    return &cp;
   }
 
   static inline const flecsi::field<buffer>::definition<P> field;
