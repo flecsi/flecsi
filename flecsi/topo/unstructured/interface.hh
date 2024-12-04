@@ -76,7 +76,8 @@ struct unstructured : unstructured_base,
   }
 
   template<typename Type, data::layout Layout, typename Policy::index_space S>
-  void ghost_copy(data::field_reference<Type, Layout, Policy, S> const & f) {
+  [[nodiscard]] const data::copy_plan * ghost_copy(
+    data::field_reference<Type, Layout, Policy, S> const & f) {
     if constexpr(Layout == data::ragged) {
       auto const & cg = cgraph_.template get<S>();
       auto const & cg_sh = cgraph_shared_.template get<S>();
@@ -84,9 +85,10 @@ struct unstructured : unstructured_base,
       ragged_buffers_.template get<S>()
         .template xfer<ragged_impl<Type, N>::start, ragged_impl<Type, N>::xfer>(
           f, cg(ctopo_), cg_sh(ctopo_));
+      return nullptr;
     }
     else
-      plan_.template get<S>().issue_copy(f.fid());
+      return &plan_.template get<S>();
   }
 
   /*!

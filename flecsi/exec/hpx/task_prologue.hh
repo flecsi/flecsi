@@ -31,17 +31,7 @@ struct global_base;
 
 namespace exec {
 
-struct task_prologue_base {
-private:
-  auto dep() {
-    return [this](std::vector<data::hold> v) {
-      data::hold & h = get_future();
-      for(auto & r : v)
-        dependencies(h.depend(std::move(r)));
-      return h;
-    };
-  }
-
+struct task_prologue_base : prolog_base {
 protected:
   template<typename R>
   void visit(future<R> &, future<R> & f) {
@@ -87,15 +77,11 @@ protected:
     // Note that this can, even if P is all read-only, reentrantly post a task
     // that writes to the field (because it needs to update ghost values before
     // the user task reads them).
-    data::region & reg = t.template get_region<Space>();
     if constexpr(!glob) {
-      // Create a new task that performs the required ghost-copy and make the
-      // task currently being created depend on the results of the ghost-copy
-      // operation. This happens inside ghost_copy (see the implementation
-      // copy_engine::operator()()).
-      reg.ghost_copy<P>(ref);
+      add_copy<P>(ref);
     }
-    else if(reg.ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
+    else if(t.template get_region<Space>()
+              .template ghost<privilege_pack<get_privilege(0, P), ro>>(f)) {
       // Create a new task that performs the required ghost-copy and make the
       // task currently being created depend on the results of the ghost-copy
       // operation.
@@ -127,14 +113,10 @@ protected:
     }
 
     if constexpr(privilege_write(P)) {
-      field.do_write(dep());
+      write.push_back(&field);
     }
     else if constexpr(privilege_read(P)) {
-      field.do_read([this](data::hold & d) {
-        data::hold & h = get_future();
-        dependencies(h.depend(d));
-        return h;
-      });
+      read.push_back(&field);
     }
   }
 
@@ -151,7 +133,7 @@ protected:
     // store associated region for bind_accessors
     regions_partitions.push_back(r.share());
 
-    r[ref.fid()].do_write(dep());
+    write.push_back(&r[ref.fid()]);
     need_comm = true;
   }
 
@@ -165,6 +147,20 @@ public:
   template<typename R, typename Params, typename Task>
   ::hpx::shared_future<R>
   delay_execution(Params && params, std::string task_name, Task && task) && {
+    data::hold future;
+    if(!read.empty() || !write.empty())
+      future = data::hold::make();
+    for(auto r : read)
+      r->do_read([&](data::hold & d) {
+        dependencies(future.depend(d));
+        return future;
+      });
+    for(auto w : write)
+      w->do_write([&](std::vector<data::hold> v) {
+        for(auto & r : v)
+          dependencies(future.depend(std::move(r)));
+        return future;
+      });
     // In the rare case where we do not have anywhere to store a future, we
     // create our own single-use communicator.
     data::comms::comm own;
@@ -205,19 +201,11 @@ public:
   }
 
 private:
-  data::hold & get_future() {
-    if(!future)
-      future = data::hold::make();
-    return future;
-  }
-
   // The futures that represent the dependencies of the current task on its
   // arguments
   data::dependencies dependencies;
-
-  // This future is used as a dependency for all arguments, if needed. It
-  // is used to convey the availability of this task's result.
-  data::hold future;
+  // Dependencies on fields are computed after scheduling ghost copies.
+  std::vector<data::backend_storage *> read, write;
 
   // collect regions and partitions each of the arguments is associated with
   std::vector<region_or_partition> regions_partitions;

@@ -6,7 +6,6 @@
 
 #include "flecsi/data/accessor.hh"
 #include "flecsi/data/copy_plan.hh"
-#include "flecsi/execution.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/topo/core.hh" // base
 #include "flecsi/topo/ntree/coloring.hh"
@@ -535,7 +534,8 @@ private:
 
   // Copy plan: set pointers for top tree
   template<index_space IS = entities>
-  static void set_top_tree_ptrs(field<data::points::Value>::accessor<wo, wo> a,
+  static void set_top_tree_ptrs(
+    field<data::copy_engine::Point>::accessor<wo, wo> a,
     const std::vector<util::id> & base,
     const std::vector<hcell_t> & hcells) {
     auto i = process();
@@ -543,19 +543,21 @@ private:
     for(std::size_t j = 0; j < hcells.size(); ++j) {
       auto & h = hcells[j];
       if((IS == entities ? h.is_ent() : h.is_node()) && h.color() != i)
-        a(idx++) = data::points::make(h.color(), h.idx());
+        a(idx++) = data::copy_engine::point(h.color(), h.idx());
     }
   }
 
   // Copy plan: set pointers to entities
-  static void set_entities_ptrs(field<data::points::Value>::accessor<wo, wo> a,
+  static void set_entities_ptrs(
+    field<data::copy_engine::Point>::accessor<wo, wo> a,
     const std::vector<util::id> & nents_base,
     const std::vector<std::pair<hcell_t, std::size_t>> & ids) {
     auto i = process();
     util::id idx = nents_base[i];
     for(std::size_t j = 0; j < ids.size(); ++j) {
       assert(ids[j].first.color() != i);
-      a(idx++) = data::points::make(ids[j].first.color(), ids[j].first.idx());
+      a(idx++) =
+        data::copy_engine::point(ids[j].first.color(), ids[j].first.idx());
     }
   }
 
@@ -592,7 +594,7 @@ public:
       e_keys(ts), meta_field(ts->meta), data_field(ts));
 
     const auto cs = ts->colors();
-    ts->cp_data_tree.issue_copy(data_field.fid);
+    ts->cp_data_tree.issue_copy({data_field.fid});
 
     // Create the local tree
     // Return the list of nodes to share (top of the tree)
@@ -645,6 +647,14 @@ public:
     // Properly resize the partitions for the new number of ents + ghosts
     ts->part.template get<entities>().resize(
       make_partial<allocate>(ts->rz.ent));
+
+    // Fake initialization for the new ghosts
+    for(auto & f :
+      run::context::instance().field_info_store<Policy, entities>()) {
+      auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
+        f->fid, ts.get());
+      execute<fake_initialize>(fr);
+    }
 
     ts->cp_entities.emplace(
       ts.get(),
@@ -951,7 +961,8 @@ public:
     data::layout Layout,
     typename Topo,
     typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+  [[nodiscard]] const data::copy_plan * ghost_copy(
+    data::field_reference<Type, Layout, Topo, Space> const &) {
     static_assert(Layout != data::ragged,
       "N-Tree does not support ragged or sparse fields");
 
@@ -959,14 +970,13 @@ public:
       // Need to check that the copy plan exists for the time it is being
       // re-created in share_ghosts
       if(cp_entities.has_value())
-        cp_entities->issue_copy(f.fid());
+        return &*cp_entities;
     }
-    else if constexpr(Space == nodes) {
-      cp_top_tree_nodes->issue_copy(f.fid());
-    }
-    else if constexpr(Space == tree_data) {
-      cp_data_tree.issue_copy(f.fid());
-    }
+    else if constexpr(Space == nodes)
+      return &*cp_top_tree_nodes;
+    else if constexpr(Space == tree_data)
+      return &cp_data_tree;
+    return nullptr;
   }
 
   // Get the number of colors

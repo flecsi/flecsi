@@ -100,11 +100,9 @@ init_delayed_ghost_copy(backend_storage & src_field,
   });
 }
 
-struct copy_engine {
+struct copy_engine : local::copy_base {
   // One copy engine for each entity type i.e. vertex, cell, edge.
-  copy_engine(const data::points & src,
-    const data::intervals & dest,
-    field_id_t f)
+  copy_engine(const prefixes & src, const data::intervals & dest, field_id_t f)
     : p(std::make_shared<local::copy_engine>(src,
         dest,
         f,
@@ -118,61 +116,60 @@ struct copy_engine {
             run::context::instance().world0);
         })) {}
 
-  // called with each field (and field_id_t) on the entity, for example, one
-  // for pressure, temperature, density etc.
-  void operator()(field_id_t data_fid) const {
+  void operator()(const std::vector<field_id_t> & ff) const {
     auto & ctx = run::context::instance();
-    init_delayed_ghost_copy((*p->source)[data_fid],
-      (*p->destination)[data_fid],
-      // Don't use context asynchronously:
-      [p = p, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
-        // manage task_local variables for this task
-        run::task_local_base::guard tlg;
+    for(field_id_t data_fid : ff)
+      init_delayed_ghost_copy((*p->source)[data_fid],
+        (*p->destination)[data_fid],
+        // Don't use context asynchronously:
+        [p = p, data_fid, comm = ctx.p2p_comm(), p2p = ctx.p2p_tag()]() {
+          // manage task_local variables for this task
+          run::task_local_base::guard tlg;
 
-        // annotate new HPX thread
-        ::hpx::scoped_annotation _("copy");
+          // annotate new HPX thread
+          ::hpx::scoped_annotation _("copy");
 
-        // Since we are doing ghost copy via HPX, we always want the host side
-        // version.
-        auto source_storage =
-          p->source->get_storage<std::byte>(data_fid, p->max_local_source_idx);
-        auto destination_storage =
-          p->destination->get_storage<std::byte, rw>(data_fid);
-        auto type_size = p->source->get_field_info(data_fid)->type_size;
+          // Since we are doing ghost copy via HPX, we always want the host side
+          // version.
+          auto source_storage = p->source->get_storage<std::byte>(
+            data_fid, p->max_local_source_idx);
+          auto destination_storage =
+            p->destination->get_storage<std::byte, rw>(data_fid);
+          auto type_size = p->source->get_field_info(data_fid)->type_size;
 
-        using namespace ::hpx::collectives;
-        using data_type = std::vector<std::byte>;
+          using namespace ::hpx::collectives;
+          using data_type = std::vector<std::byte>;
 
-        std::vector<::hpx::future<void>> ops;
-        ops.reserve(p->ghost_entities.size() + p->shared_entities.size());
-        for(auto const & entry : p->ghost_entities) {
-          auto src_rank = entry.first;
-          ops.push_back(
-            get<data_type>(comm, that_site_arg(src_rank), p2p)
-              .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
-                auto && data = f.get();
-                for(std::size_t i = 0, n = src.size(); i < n; ++i)
-                  std::memcpy(
-                    destination_storage.data() + src.data()[i] * type_size,
-                    data.data() + i * type_size,
-                    type_size);
-              }));
-        }
+          std::vector<::hpx::future<void>> ops;
+          ops.reserve(p->ghost_entities.size() + p->shared_entities.size());
+          for(auto const & entry : p->ghost_entities) {
+            auto src_rank = entry.first;
+            ops.push_back(
+              get<data_type>(comm, that_site_arg(src_rank), p2p)
+                .then(::hpx::launch::sync, [&, &src = entry.second](auto && f) {
+                  auto && data = f.get();
+                  for(std::size_t i = 0, n = src.size(); i < n; ++i)
+                    std::memcpy(
+                      destination_storage.data() + src.data()[i] * type_size,
+                      data.data() + i * type_size,
+                      type_size);
+                }));
+          }
 
-        for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
-          data_type send_buffer(shared_indices.size() * type_size);
-          for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
-            std::memcpy(send_buffer.data() + i * type_size,
-              source_storage.data() + shared_indices.data()[i] * type_size,
-              type_size);
-          ops.push_back(set(comm,
-            that_site_arg(dst_rank),
-            std::move(send_buffer),
-            tag_arg(p2p)));
-        }
+          for(auto const & [dst_rank, shared_indices] : p->shared_entities) {
+            data_type send_buffer(shared_indices.size() * type_size);
+            for(std::size_t i = 0, n = shared_indices.size(); i < n; ++i)
+              std::memcpy(send_buffer.data() + i * type_size,
+                source_storage.data() + shared_indices.data()[i] * type_size,
+                type_size);
+            ops.push_back(set(comm,
+              that_site_arg(dst_rank),
+              std::move(send_buffer),
+              tag_arg(p2p)));
+          }
 
-        ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
-      });
+          ::hpx::wait_all(std::move(ops)); // rethrows exceptions, if needed
+        });
   }
 
 private:

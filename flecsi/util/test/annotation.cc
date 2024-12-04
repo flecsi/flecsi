@@ -3,6 +3,7 @@
 
 #include <caliper/RegionProfile.h>
 
+#include "flecsi/execution.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/unit.hh"
 

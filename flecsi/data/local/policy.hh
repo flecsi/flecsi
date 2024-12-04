@@ -171,6 +171,10 @@ struct partition_impl {
       AccessPrivilege>(fid, nelems * item_size);
   }
 
+  region_impl & get_region() {
+    return *r;
+  }
+
 private:
   region::ref r;
 
@@ -380,27 +384,6 @@ struct intervals {
 
 private:
   ref ii; // for asynchronous use
-};
-
-struct points {
-  using Value = std::pair<std::size_t, std::size_t>; // (rank, index)
-  static Value make(std::size_t r, std::size_t i) {
-    return {r, i};
-  }
-
-  points(region_base & r,
-    const intervals &,
-    field_id_t,
-    completeness = incomplete)
-    : r(&*r) {}
-
-private:
-  // The region `r` contains field data of shared entities on this rank as
-  // source to be copied to remote peers. We make copy_engine a friend to allow
-  // direct access to the region.
-  friend local::copy_engine;
-
-  local::region_impl * r;
 };
 
 } // namespace data

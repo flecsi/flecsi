@@ -7,8 +7,9 @@
 #include "flecsi/config.hh"
 #include "flecsi/data/field.hh"
 #include "flecsi/data/privilege.hh"
-#include "flecsi/data/topology_accessor.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/run/context.hh"
+#include "flecsi/topo/core.hh" // topology_accessor
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
 #include "flecsi/util/type_traits.hh"

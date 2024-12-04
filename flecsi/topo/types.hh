@@ -194,33 +194,40 @@ struct id {
     return ret;
   }
 
-  FLECSI_INLINE_TARGET
-  id & operator+=(difference_type d) & {
+  template<typename D>
+  FLECSI_INLINE_TARGET id & operator+=(D d) & {
+    static_assert(
+      std::is_integral_v<D>, "Invalid addend type for flecsi::topo::id");
     t += d;
     return *this;
   }
-  FLECSI_INLINE_TARGET
-  id operator+(difference_type d) const {
-    return d + *this;
+  template<typename D>
+  FLECSI_INLINE_TARGET id operator+(D d) const {
+    id c = *this;
+    return c += d;
   }
-  FLECSI_INLINE_TARGET
-  void operator+(id) const = delete;
-  FLECSI_INLINE_TARGET friend id operator+(difference_type d, id i) {
+  template<typename D>
+  FLECSI_INLINE_TARGET friend id operator+(D d, id i) {
     return i += d;
   }
-  FLECSI_INLINE_TARGET
-  id & operator-=(difference_type d) & {
+  template<typename D>
+  FLECSI_INLINE_TARGET id & operator-=(D d) & {
+    static_assert(
+      std::is_integral_v<D>, "Invalid subtrahend type for flecsi::topo::id");
     t -= d;
     return *this;
   }
-  FLECSI_INLINE_TARGET
-  id operator-(difference_type d) const {
-    return id(difference_type(*this) - d);
+  template<typename D>
+  FLECSI_INLINE_TARGET id operator-(D d) const {
+    id c = *this;
+    return c -= d;
   }
   FLECSI_INLINE_TARGET
-  difference_type operator-(id i) const { // also avoids ambiguity
+  difference_type operator-(id i) const {
     return difference_type(t) - difference_type(i.t);
   }
+  template<typename D>
+  friend id operator-(D d, id i) = delete;
 
 private:
   T t;

@@ -23,7 +23,7 @@ struct trace {
   void skip() {}
 
 public:
-  static bool is_tracing() {
+  friend bool is_tracing() {
     return false;
   }
 

@@ -285,7 +285,7 @@ protected:
   } // reorder_values_task
 
   static void set_pointers_task(
-    typename field<data::points::Value>::template accessor1<
+    typename field<data::copy_engine::Point>::template accessor1<
       privilege_repeat<wo, PC>> a,
     field<int>::accessor<ro> copy,
     typename field<meta, data::single>::template accessor<wo> m) {
@@ -301,7 +301,7 @@ protected:
       for(unsigned int j = 0; j < color(); ++j)
         icur += copy[c * i + j];
       for(int j = 0; j < copy[ptr]; ++j)
-        a(cur++) = data::points::make(i, icur++);
+        a(cur++) = data::copy_engine::point(i, icur++);
     }
   } // set_pointers_task
 
@@ -503,6 +503,11 @@ protected:
       intervals.span().begin(), intervals.span().end(), interval{min, max});
   } // init_intervals_task
 
+  static void fake_initialize(
+    typename field<key_type>::template accessor1<privilege_repeat<rw, PC>>) {}
+  static void fake_initialize_others(
+    field<std::byte, data::raw>::accessor1<privilege_repeat<rw, PC>>) {}
+
   // Intervals
   const static inline
     typename field<interval>::template definition<sort_base::sort_color>
@@ -702,6 +707,13 @@ public:
     execute<sort::update_sizes_task>(sort::idx_s->sizes(), copy_fh, meta_fh);
     sort::idx_s->resize();
 
+    execute<sort::fake_initialize>(values);
+    for(auto & af : apply_fields) {
+      auto fr = data::field_reference<std::byte, data::raw, topology, space>(
+        af->fid, tt);
+      execute<sort::fake_initialize_others>(fr);
+    }
+
     // Create copy plan operation and issue
     auto dest = [&](auto f) {
       execute<sort::set_destination_task>(f, copy_fh, meta_fh);
@@ -709,21 +721,23 @@ public:
     auto src = [&](auto f) {
       execute<sort::set_pointers_task>(f, copy_fh, meta_fh);
     };
-    data::copy_plan cp(tt,
-      data::copy_plan::Sizes(sort_base::colors, 1),
-      dest,
-      src,
-      util::constant<space>());
-
-    cp.issue_copy(values.fid());
+    {
+      data::copy_plan cp(tt,
+        data::copy_plan::Sizes(sort_base::colors, 1),
+        dest,
+        src,
+        util::constant<space>());
+      std::vector<field_id_t> ff{values.fid()};
+      for(auto & af : apply_fields)
+        ff.push_back(af->fid);
+      cp.issue_copy(ff);
+    }
 
     // 1 Apply sort on values and keep track of changes
     execute<sort::reorder_values_task>(
       values, intervals_fh, sort::indices_f(sort::idx_s));
 
-    // Apply the copy plan on all fields
     for(auto & af : apply_fields) {
-      cp.issue_copy(af->fid);
       auto fr = data::field_reference<std::byte, data::raw, topology, space>(
         af->fid, tt);
       execute<sort::reorder_other_task>(
@@ -736,6 +750,13 @@ public:
     tt.template get_partition<space>().resize();
     execute<sort::update_sizes_copy_task>(sort::idx_s->sizes(), sizes_fh);
     sort::idx_s->resize();
+
+    execute<sort::fake_initialize>(values);
+    for(auto & af : apply_fields) {
+      auto fr = data::field_reference<std::byte, data::raw, topology, space>(
+        af->fid, tt);
+      execute<sort::fake_initialize_others>(fr);
+    }
 
     execute<sort::sort_values_task>(values, sort::indices_f(sort::idx_s));
 
