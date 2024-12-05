@@ -340,7 +340,7 @@ struct field : data::detail::field_base<T, L> {
     Reference<Topo, Space> operator()(typename Topo::core & t) const {
       return {this->fid, t};
     }
-    // For indirect and borrow topologies:
+    // For borrow topologies:
     template<template<class> class C, class P>
     std::enable_if_t<std::is_same_v<typename P::Base, Topo>,
       Reference<P, Space>>
