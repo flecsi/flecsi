@@ -26,6 +26,8 @@ namespace data {
 // Some additionally use communicators that become available for reuse upon
 // their completion.
 
+// A future that will be awaited unless released.
+// Copies share a variable and thus can be populated together.
 struct fate {
   using future = ::hpx::shared_future<void>;
 
@@ -84,6 +86,7 @@ private:
   }
 };
 
+// Store unique (according to C) T objects in insertion order.
 template<class T, auto & C>
 struct ordered_set {
   using iterator = typename std::list<T>::iterator;
@@ -141,6 +144,10 @@ private:
   std::set<std::decay_t<decltype(C(std::declval<const T &>()))>> s;
 };
 
+// Communicators are stored in a graph that summarizes task dependencies; they
+// are moved to later, dependent nodes that use them or that are reachable
+// from a superset of (current) root nodes.  Edges in the graph are
+// aggressively contracted to keep the graph small.
 struct comms {
   using ptr = std::shared_ptr<comms>;
   // Provide a stable address for asynchronous operations:
@@ -219,6 +226,10 @@ private:
   ordered_set<ptr, key> past;
 };
 
+// To automatically construct the task graph, we must maintain a set of
+// futures that constitute its frontier.  hold objects, several for each
+// field, collectively contain those futures as well as the graph of
+// associated communicators.
 struct hold {
   explicit operator bool() const {
     return !!c;
