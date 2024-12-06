@@ -102,61 +102,43 @@ public:
   using task_idx = std::size_t;
 
 private:
-  using ref_count = flecsi::Color; // number of elements and tasks to be run
-  struct map {
-    std::map<task_idx, std::pair<ref_count, any>> map;
-    std::size_t id = 0;
-  };
-
+  using Map = std::map<task_idx, std::pair<util::ref_count<Color>, any>>;
   std::mutex lock;
-  map params;
+  Map params;
+  task_idx id = 0;
 
-public:
-  class lease // thread-safe access
-  {
-    std::unique_lock<std::mutex> lk;
-    map & ref;
-
-  public:
-    lease(param_locker & lkr) : lk(lkr.lock), ref(lkr.params) {}
-
-    auto & at(task_idx i) {
-      return ref.map.at(i);
-    }
-
-    [[nodiscard]] task_idx add(any && input) {
-      ref.map.try_emplace(ref.id, 1, std::move(input));
-      return ref.id++;
-    }
-
-    // Releases the entry via decrementing its associated reference counter
-    // if counter is zero, erase the entry from map
-    void release(task_idx i) {
-      if(--ref.map.at(i).first == 0) {
-        ref.map.erase(i);
-      }
-    }
-  };
+  auto lease() {
+    return std::unique_lock(lock);
+  }
 
   class guard
   {
-    task_idx index;
     param_locker & lk;
+    Map::iterator it;
 
   public:
-    guard(task_idx idx, param_locker & lkr_ref) : index(idx), lk(lkr_ref) {}
+    guard(task_idx i, param_locker & lk) : lk(lk), it(lk.params.find(i)) {}
     guard(guard &&) = delete;
 
     ~guard() {
-      lk.return_lease().release(index);
+      if(--it->second.first)
+        lk.lease(), lk.params.erase(it);
+    }
+
+    void post(Color n) const {
+      it->second.first += n;
+    }
+    template<class T>
+    T & get() const {
+      return it->second.second.get<T>();
     }
   };
 
-  lease return_lease() {
-    return lease(*this);
+public:
+  [[nodiscard]] task_idx add(any && a) {
+    return lease(), params.try_emplace(id, 1, std::move(a)), id++;
   }
-
-  guard acquire_guard(task_idx idx) {
+  guard at(task_idx idx) {
     return guard(idx, *this);
   }
 };
