@@ -95,12 +95,12 @@ struct context_t : local::context {
 private:
   struct outstanding_guard {
     outstanding_guard(context_t * c) : c(c) {
-      c->out.fetch_add(1, std::memory_order_relaxed);
+      ++c->out;
     }
     outstanding_guard(outstanding_guard && o) noexcept
       : c(std::exchange(o.c, {})) {}
     ~outstanding_guard() {
-      if(c && c->out.fetch_sub(1, std::memory_order_release) == 1) {
+      if(c && --c->out) {
         (std::lock_guard(c->out_mutex));
         c->out_cv.notify_one();
       }
@@ -123,7 +123,7 @@ private:
   std::vector<std::string> cfg;
   p2p channel;
   std::size_t tag = 0, world = 0;
-  std::atomic<std::size_t> out = 0;
+  util::ref_count<std::size_t> out{0};
   ::hpx::mutex out_mutex;
   ::hpx::condition_variable out_cv;
 };
