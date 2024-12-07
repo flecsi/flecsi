@@ -179,8 +179,7 @@ struct reduction_accessor : bind_tag {
   }
 
   /// Access the underlying elements.
-  FLECSI_INLINE_TARGET
-  util::span<element_type> span() const {
+  FLECSI_INLINE_TARGET util::span<element_type> span() const {
     return s;
   }
 
@@ -204,8 +203,7 @@ struct accessor<raw, DATA_TYPE, PRIVILEGES> : bind_tag {
 
   /// Get the allocated memory.
   /// \return \c util::span
-  FLECSI_INLINE_TARGET
-  auto span() const {
+  FLECSI_INLINE_TARGET auto span() const {
     return s;
   }
 
@@ -230,16 +228,16 @@ struct accessor<dense, T, P> : accessor<raw, T, P>, send_tag {
   accessor(const base_type & b) : base_type(b) {}
 
   /// Index with bounds checking (except with \c NDEBUG).
-  FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator()(size_type index) const {
+  FLECSI_INLINE_TARGET typename accessor::element_type & operator()(
+    size_type index) const {
     const auto s = this->span();
     assert(index < s.size() && "index out of range");
     return s[index];
   } // operator()
 
   /// Index without bounds checking (even without \c NDEBUG).
-  FLECSI_INLINE_TARGET
-  typename accessor::element_type & operator[](size_type index) const {
+  FLECSI_INLINE_TARGET typename accessor::element_type & operator[](
+    size_type index) const {
     return this->span()[index];
   }
 
@@ -1432,9 +1430,9 @@ struct scalar_value : bind_tag {
 
   // The backend knows what value of P to provide when processing this as a
   // "task parameter" and thus whether 'device' is really a device pointer.
-  template<exec::task_processor_type_t P>
+  template<exec::processor P>
   void copy() const {
-    if constexpr(P == exec::task_processor_type_t::toc) {
+    if constexpr(P == exec::processor::toc) {
 #if defined(__NVCC__) || defined(__CUDACC__)
       auto status = cudaMemcpy(host, device, sizeof(T), cudaMemcpyDeviceToHost);
       flog_assert(cudaSuccess == status, "Error calling cudaMemcpy");

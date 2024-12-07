@@ -151,8 +151,7 @@ replace_argument(T && t) {
 template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
-  return detail::launch_size<mask_to_processor_type(A) ==
-                             task_processor_type_t::mpi>(
+  return detail::launch_size<mask_to_processor_type(A) == processor::mpi>(
     static_cast<P *>(nullptr), aa...);
 }
 

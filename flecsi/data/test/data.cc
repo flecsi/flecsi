@@ -227,21 +227,16 @@ storage_test() {
   UNIT() {
     mpi::detail::storage s;
     s.resize(sizeof(int)); // resizes toc and loc
-    *reinterpret_cast<int *>(
-      s.data<exec::task_processor_type_t::loc, partition_privilege_t::rw>()) =
-      2;
+    *reinterpret_cast<int *>(s.data<rw>()) = 2;
     s.resize(sizeof(int) * 2); // resizes only loc
 
     // Invoke transfer_return where ret.size() < sync.size()
-    s.data<exec::task_processor_type_t::toc, partition_privilege_t::rw>();
+    s.data<rw, exec::processor::toc>();
 
     s.resize(sizeof(int)); // resizes only toc
     // now size<toc> == 1 and size<loc> == 2,
     // so this invokes transfer_return where ret.size() > sync.size()
-    EXPECT_EQ(
-      *reinterpret_cast<int *>(
-        s.data<exec::task_processor_type_t::loc, partition_privilege_t::rw>()),
-      2);
+    EXPECT_EQ(*reinterpret_cast<int *>(s.data<rw>()), 2);
   };
 }
 
