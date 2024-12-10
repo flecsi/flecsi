@@ -4,4 +4,4 @@
 
 PROJECT_NAME = "FleCSI User API"
 
-EXCLUDE_PATTERNS += */leg/* */mpi/* */hpx/*
+EXCLUDE_PATTERNS += */leg/* */mpi/* */hpx/* */local/*

@@ -135,8 +135,7 @@ private:
 
 #ifdef DOXYGEN // implemented per-backend
 /// Backend specific data storage.
-/// \ingroup data
-/// \{
+/// \ingroup local-data
 struct backend_storage : local::detail::storage {
   /// Synchronize with all pending operations on this storage.
   ///
@@ -144,7 +143,6 @@ struct backend_storage : local::detail::storage {
   ///       MPI backend this operation is a no-op.
   void synchronize();
 };
-/// \}
 #endif
 
 } // namespace data
