@@ -123,7 +123,9 @@ reduce_internal(Args &&... args) {
     flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
   }
   else {
-    buf = util::serial::put_tuple(flecsi_context.params.add(std::move(any)));
+    const auto t = trace::current();
+    buf = util::serial::put_tuple(
+      flecsi_context.params.add(std::move(any), t ? t->next() : nullptr));
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;

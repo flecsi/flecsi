@@ -51,6 +51,25 @@ inline constexpr Legion::MappingTagID
 /// \}
 } // namespace mapper
 
+using task_idx = std::size_t;
+
+class param_locker;
+
+// The number of point tasks for a process to execute may become known only
+// after several task launches that share it (via tracing).
+struct task_count {
+  using type = Color;
+  using ptr = std::shared_ptr<task_count>; // to outlive trace as needed
+
+  type set(type n) {
+    // If count is engaged, this is mapper output ignored by a trace.
+    return count ? *count : count.emplace(n);
+  }
+
+private:
+  std::optional<type> count;
+};
+
 // A move-only subset of std::any.
 struct any_base {
   virtual ~any_base() = default;
@@ -98,13 +117,18 @@ private:
 
 class param_locker
 {
-public:
-  using task_idx = std::size_t;
+  struct task {
+    task(task_count::ptr tc, any && p)
+      : tc(std::move(tc)), params(std::move(p)) {}
 
-private:
-  using Map = std::map<task_idx, std::pair<util::ref_count<Color>, any>>;
+    task_count::ptr tc;
+    util::ref_count<task_count::type> ref{1};
+    any params;
+  };
+
+  using Map = std::map<task_idx, task>;
   std::mutex lock;
-  Map params;
+  Map tasks;
   task_idx id = 0;
 
   auto lease() {
@@ -117,29 +141,32 @@ private:
     Map::iterator it;
 
   public:
-    guard(task_idx i, param_locker & lk) : lk(lk), it(lk.params.find(i)) {}
+    guard(param_locker & lk, task_idx i) : lk(lk), it(lk.tasks.find(i)) {
+      flog_assert(it != lk.tasks.end(), "no such task");
+    }
     guard(guard &&) = delete;
 
     ~guard() {
-      if(--it->second.first)
-        lk.lease(), lk.params.erase(it);
+      if(--it->second.ref)
+        lk.lease(), lk.tasks.erase(it);
     }
 
-    void post(Color n) const {
-      it->second.first += n;
+    void post(task_count::type n) const {
+      const auto & p = it->second.tc;
+      it->second.ref += p ? p->set(n) : n;
     }
     template<class T>
     T & get() const {
-      return it->second.second.get<T>();
+      return it->second.params.get<T>();
     }
   };
 
 public:
-  [[nodiscard]] task_idx add(any && a) {
-    return lease(), params.try_emplace(id, 1, std::move(a)), id++;
+  [[nodiscard]] task_idx add(any && a, task_count::ptr tc) {
+    return lease(), tasks.try_emplace(id, std::move(tc), std::move(a)), id++;
   }
-  guard at(task_idx idx) {
-    return guard(idx, *this);
+  guard at(task_idx i) {
+    return lease(), guard(*this, i);
   }
 };
 
