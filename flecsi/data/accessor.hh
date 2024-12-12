@@ -74,6 +74,32 @@ using particle_raw =
   typename field<T, data::particle>::base_type::template accessor1<
     !M && get_privilege(0, P) == wo ? privilege_pack<rw> : P>;
 
+// Data used by param_buffers but created on the caller side:
+template<class T>
+struct clone {
+  template<class... UU>
+  explicit clone(UU &&... uu)
+    : p(std::make_shared<T>(std::forward<UU>(uu)...)) {}
+  clone(const clone & c) : p(std::make_shared<T>(*c)) {}
+  clone(clone && c) : p(c.p) {}
+
+  T & operator*() {
+    return *p;
+  }
+  const T & operator*() const {
+    return *p;
+  }
+  T * operator->() {
+    return &*p;
+  }
+  const T * operator->() const {
+    return &*p;
+  }
+
+private:
+  std::shared_ptr<T> p;
+};
+
 template<class A, class = void>
 struct multi_buffer {};
 template<class A>
@@ -1503,9 +1529,7 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
 ///   specialization
 template<class A>
 struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
-  multi(Color n, const A & a)
-    : vp(std::make_shared<std::vector<round>>(n, round{{}, a})) {}
-  multi(const multi &) = default; // implement move as copy
+  multi(Color n, const A & a) : vp(n, round{{}, a}) {}
 
   Color depth() const {
     return vp->size();
@@ -1525,7 +1549,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     return xform(*vp);
   }
   auto accessors() const {
-    return xform(std::as_const(*vp));
+    return xform(*vp);
   }
 
   template<class F>
@@ -1560,9 +1584,7 @@ private:
       util::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
-  // Avoid losing contents when moved into a user parameter.
-  // We could use TaskBuffer for the purpose, but not on the caller side.
-  std::shared_ptr<std::vector<round>> vp;
+  detail::clone<std::vector<round>> vp;
 };
 
 /// \}
