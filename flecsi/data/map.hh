@@ -171,7 +171,7 @@ make(topology_slot<P> & t) {
 
 template<class P, class T>
 struct exec::detail::launch<P, data::launch::mapping<T>> {
-  static Color get(const data::launch::mapping<T> & m) {
+  static Index get(const data::launch::mapping<T> & m) {
     return m.colors();
   }
 };

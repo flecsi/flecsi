@@ -101,9 +101,10 @@ index_task(exec::launch_domain) {
 } // namespace
 
 void
-init_array(field<reduction_type>::accessor<wo> v) {
+init_array(std::vector<field<reduction_type>::accessor<wo>> v) {
+  flog_assert(v.size() == 1, "wrong accessor count");
   int i = 0;
-  for(auto & vv : v.span()) {
+  for(auto & vv : v.front().span()) {
     vv = color() + i++;
   }
 }
@@ -180,7 +181,7 @@ task_driver() {
     arr::slot arr_s;
     arr_s.allocate(arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
-    flecsi::execute<init_array>(arr_vals);
+    flecsi::execute<init_array>(std::vector{arr_vals});
     // Reduction
     topo::global::slot gl_arr_s;
     gl_arr_s.allocate(vpp);

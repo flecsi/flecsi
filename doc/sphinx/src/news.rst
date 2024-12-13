@@ -32,6 +32,10 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
+* Execution
+
+  * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor.
+
 * Topologies
 
   * ``narray`` specializations need not define ``dimension``.
