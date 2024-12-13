@@ -55,6 +55,7 @@ Fixed
 * Data
 
   * Write-only multi-color ``particle`` accessors/mutators support non-trivial destructors.
+  * Data synchronization now utilizes the correct memory space and logic for openmp.
 
 * Legion backend
 
