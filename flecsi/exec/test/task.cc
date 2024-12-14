@@ -125,8 +125,9 @@ check(field<reduction_type>::accessor<ro> v, const int np) {
   };
 }
 void
-reduction(field<reduction_type>::accessor<ro> v,
-  field<reduction_type>::reduction<flecsi::exec::fold::sum> r) {
+reduction(std::tuple<field<reduction_type>::accessor<ro>,
+  field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) {
+  auto & [v, r] = t;
   assert(v.span().size() == r.span().size());
   for(std::size_t i = 0; i < v.span().size(); ++i) {
     r[i](v[i]);
@@ -188,8 +189,8 @@ task_driver() {
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
     flecsi::execute<init>(vals);
-    flecsi::execute<reduction>(arr_vals, vals);
-    flecsi::execute<reduction>(arr_vals, vals);
+    for(int i = 0; i < 2; ++i)
+      flecsi::execute<reduction>(std::tuple(arr_vals, vals));
     EXPECT_EQ(test<check>(vals, np), 0);
 
     exec::trace t0, t1 = std::move(t0);

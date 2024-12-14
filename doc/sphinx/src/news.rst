@@ -34,7 +34,7 @@ New features
 ^^^^^^^^^^^^
 * Execution
 
-  * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor.
+  * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
 
 * Topologies
 

@@ -109,6 +109,20 @@ private:
     for(auto & a : av)
       visit(*p++, a);
   }
+  template<class... PP, class... AA>
+  void visit(std::tuple<PP...> & pt, const std::tuple<AA...> & at) {
+    std::apply(
+      [&](auto &&... pp) {
+        std::apply(
+          [&](auto &&... aa) {
+            (visit(
+               std::forward<decltype(pp)>(pp), std::forward<decltype(aa)>(aa)),
+              ...);
+          },
+          at);
+      },
+      pt);
+  }
 
   // The const prevents being a better match than more specialized overloads.
   // This is constrained opposite the above because it is more specialized.

@@ -140,7 +140,7 @@ private:
   T t;
 };
 
-template<bool M, class... PP, class... AA>
+template<bool M = false, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
   return (launch_combine([] {
@@ -150,8 +150,7 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
     else
       return nullptr;
   }()) | ... |
-          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)))
-    .get();
+          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
 }
 
 template<class D>
@@ -165,6 +164,12 @@ protected:
   void visit(std::vector<T> & v) {
     for(auto & t : v)
       d().visit(t);
+  }
+  template<class... TT>
+  void visit(std::tuple<TT...> & t) {
+    std::apply(
+      [&](auto &&... xx) { (d().visit(std::forward<decltype(xx)>(xx)), ...); },
+      t);
   }
 
   // The const gives a different parameter type (avoiding Clang bug #49583)
@@ -204,7 +209,8 @@ template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
   return detail::launch_size<mask_to_processor_type(A) == processor::mpi>(
-    static_cast<P *>(nullptr), aa...);
+    static_cast<P *>(nullptr), aa...)
+    .get();
 }
 
 enum class launch_type_t : size_t { single, index };
@@ -336,6 +342,47 @@ struct launch<std::vector<P>, std::vector<A>> {
     for(auto & a : v)
       ret = ret | launch_combine(launch<P, A>::get(a));
     return ret.value();
+  }
+};
+
+template<class... PP>
+struct task_param<std::tuple<PP...>> {
+  // Deduplicating with an alias template fails in Clang (#17042) and MSVC.
+  template<class... AA>
+  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
+    std::tuple<PP...>>
+  replace(const std::tuple<AA...> & t) {
+    return make(t);
+  }
+  template<class... AA>
+  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
+    std::tuple<PP...>>
+  replace(std::tuple<AA...> && t) {
+    return make(std::move(t));
+  }
+
+private:
+  template<class T>
+  static auto make(T && t) {
+    return std::apply(
+      [](auto &&... xx) -> std::tuple<PP...> {
+        return {exec::replace_argument<PP>(std::forward<decltype(xx)>(xx))...};
+      },
+      t);
+  }
+};
+template<class... TT>
+struct must_convert<std::tuple<TT...>> : std::disjunction<must_convert<TT>...> {
+};
+template<class... PP, class... AA>
+struct launch<std::tuple<PP...>, std::tuple<AA...>> {
+  static auto get(const std::tuple<AA...> & t) {
+    return std::apply(
+      [](auto &... xx) {
+        return launch_size(static_cast<std::tuple<PP...> *>(nullptr), xx...);
+      },
+      t)
+      .value();
   }
 };
 
