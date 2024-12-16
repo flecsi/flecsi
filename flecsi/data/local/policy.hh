@@ -73,7 +73,7 @@ struct region_impl {
     if(nbytes > v.size())
       v.resize(nbytes);
 
-    auto data_view = v.data<Proc, Priv>();
+    auto data_view = v.data<Priv, Proc>();
 
     flog_assert(nbytes <= data_view.size(),
       "Requested region size larger than allocation");

@@ -62,8 +62,7 @@ struct storage {
     }
   }
 
-  template<exec::processor Proc = exec::processor::loc,
-    privilege Priv = privilege::ro>
+  template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
   std::conditional_t<Proc == exec::processor::toc,
     device_access<Priv>,
     host_access<Priv>>
@@ -118,7 +117,7 @@ struct storage {
 
   template<exec::processor Proc = exec::processor::loc>
   auto data() const {
-    return const_cast<storage<T> *>(this)->data<Proc>();
+    return const_cast<storage<T> *>(this)->data<ro, Proc>();
   }
 
   void resize(std::size_t size) {

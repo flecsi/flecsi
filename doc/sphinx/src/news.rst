@@ -33,6 +33,7 @@ Deprecated
 * Execution
 
   * ``idempotent`` task attribute |mdash| has never had any effect
+  * ``partition_privilege_t`` |mdash| use ``privilege``
 
 New features
 ^^^^^^^^^^^^
@@ -40,6 +41,7 @@ New features
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Topologies
 
