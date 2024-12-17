@@ -465,7 +465,7 @@ The FLOG runtime configuration option ``serialization_interval``  defines
 this behavior:
 
 * ``flog::config::serialization_interval`` |br|
-  Number of task executions after which FleCSI should collect buffered output (in a bulk-synchronous fashion). |br|
+  Number of task executions between (bulk-synchronous) collections of buffered output. |br|
   *(default: 100)*
 
 .. caution::
