@@ -141,7 +141,7 @@ template<class... TT>
 auto
 get_tuple(const std::byte * p, const std::byte * e = nullptr) {
   cast r{p, e};
-  return std::tuple{r.get<TT>()...};
+  return std::tuple<TT...>{r.get<TT>()...};
 }
 
 /// Construct a \c std::vector from a size and then elements.
