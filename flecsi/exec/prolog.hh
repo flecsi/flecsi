@@ -47,7 +47,7 @@ namespace flecsi::exec {
 /// Handling for low-level special task parameters/arguments.
 /// The exact member function signatures may vary between backends.
 /// \tparam Proc for the task being executed
-template<task_processor_type_t Proc>
+template<processor Proc>
 struct task_prologue : prolog_base {
 protected:
   /// Default constructible.
@@ -66,8 +66,8 @@ protected:
 /*!
   Analyzes task arguments and updates data objects before launching a task.
 */
-template<task_processor_type_t ProcessorType>
-struct prolog : task_prologue<ProcessorType> {
+template<processor Proc>
+struct prolog : task_prologue<Proc> {
   // Note that accessors here may be empty versions made to be serialized and
   // that the arguments have been moved from (which doesn't matter for the
   // relevant types).
@@ -85,10 +85,10 @@ private:
       [&](auto & p, auto && f) { visit(p, std::forward<decltype(f)>(f)(a)); };
   }
 
-  using task_prologue<ProcessorType>::visit; // for raw accessors, futures, etc.
+  using task_prologue<Proc>::visit; // for raw accessors, futures, etc.
 
   static void visit(data::detail::host_only &, decltype(nullptr)) {
-    static_assert(ProcessorType != flecsi::exec::task_processor_type_t::toc,
+    static_assert(Proc != flecsi::exec::processor::toc,
       "accessor type is supported only on host");
   }
 

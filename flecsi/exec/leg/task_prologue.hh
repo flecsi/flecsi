@@ -129,7 +129,7 @@ private:
   std::vector<Legion::FutureMap> future_maps_;
 };
 
-template<task_processor_type_t>
+template<processor>
 using task_prologue = task_prologue_impl;
 } // namespace exec
 } // namespace flecsi

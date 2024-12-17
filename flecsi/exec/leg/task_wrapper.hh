@@ -174,15 +174,15 @@ template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void
 detail::register_task() {
   constexpr auto processor_type = mask_to_processor_type(A);
-  static_assert(processor_type != task_processor_type_t::mpi,
-    "Legion tasks cannot use MPI");
+  static_assert(
+    processor_type != processor::mpi, "Legion tasks cannot use MPI");
 
   std::string name = util::symbol<*TASK>();
 
   // extract wrapped task
   constexpr char wrapper_prefix[] = "flecsi::exec::leg::task_wrapper<";
   if(name.rfind(wrapper_prefix, 0) == 0) {
-    auto wrap_end = name.rfind(", (flecsi::exec::task_processor_type_t)");
+    auto wrap_end = name.rfind(", (flecsi::exec::processor)");
     name = name.substr(
       sizeof(wrapper_prefix) - 1, wrap_end - sizeof(wrapper_prefix) + 1);
   }
@@ -214,10 +214,10 @@ detail::register_task() {
   Legion::TaskVariantRegistrar registrar(task_id<*TASK, A>, name.c_str());
   Legion::Processor::Kind kind;
   switch(processor_type) {
-    case task_processor_type_t::toc:
+    case processor::toc:
       kind = Legion::Processor::TOC_PROC;
       break;
-    case task_processor_type_t::omp:
+    case processor::omp:
       kind = Legion::Processor::OMP_PROC;
       break;
     default:
@@ -254,14 +254,14 @@ detail::register_task() {
  \tparam P the target processor type
  */
 
-template<auto & F, task_processor_type_t P>
+template<auto & F, processor P>
 struct task_wrapper {
 
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 
-  static constexpr task_processor_type_t LegionProcessor = P;
+  static constexpr processor LegionProcessor = P;
 
   /*!
     Execution wrapper method for user tasks.
@@ -287,12 +287,12 @@ struct task_wrapper {
 }; // struct task_wrapper
 
 template<auto & F>
-struct task_wrapper<F, task_processor_type_t::mpi> {
+struct task_wrapper<F, processor::mpi> {
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
   using param_tuple = typename Traits::arguments_type;
 
-  static constexpr auto LegionProcessor = task_processor_type_t::loc;
+  static constexpr auto LegionProcessor = processor::loc;
 
   static RETURN execute(const Legion::Task * task,
     const std::vector<Legion::PhysicalRegion> & regions,

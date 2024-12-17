@@ -22,7 +22,7 @@ struct borrow_category;
 
 namespace exec {
 
-template<task_processor_type_t ProcessorType>
+template<processor Proc>
 struct task_prologue : prolog_base {
 protected:
   // Those methods are "protected" because they are *only* called by
@@ -41,7 +41,7 @@ protected:
   // resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s, decltype(nullptr)) {
-    s.template copy<ProcessorType>();
+    s.template copy<Proc>();
   }
 
   template<typename T,
@@ -63,9 +63,7 @@ protected:
         const auto bcast = [&](auto root) {
           // This is a special case of ghost_copy thus we need the storage
           // in HostSpace rather than ExecutionSpace.
-          auto host_storage = t->template get_storage<T,
-            exec::task_processor_type_t::loc,
-            (root ? partition_privilege_t::ro : partition_privilege_t::wo)>(f);
+          auto host_storage = t->template get_storage<T, (root ? ro : wo)>(f);
           util::mpi::test(MPI_Bcast(const_cast<T *>(host_storage.data()),
             host_storage.size(),
             flecsi::util::mpi::type<T>(),
@@ -93,7 +91,7 @@ protected:
         // The partition controls how much memory is allocated.
         return t.template get_partition<Space>();
     }
-    ().template get_storage<T, ProcessorType, privilege_merge(P)>(f);
+    ().template get_storage<T, privilege_merge(P), Proc>(f);
     accessor.bind(storage);
   } // visit generic topology
 
@@ -102,9 +100,7 @@ protected:
     const data::field_reference<T, data::dense, Topo, Space> & ref) {
     static_assert(std::is_same_v<typename Topo::base, topo::global_base>);
     const field_id_t f = ref.fid();
-    const auto storage =
-      ref.topology()
-        ->template get_storage<T, ProcessorType, partition_privilege_t::rw>(f);
+    const auto storage = ref.topology()->template get_storage<T, rw, Proc>(f);
 
     accessor.bind(storage);
 

@@ -35,6 +35,8 @@ enum partition_privilege_t : Privileges {
   rw = 0b11 ///< read-write
 }; // enum partition_privilege_t
 
+using privilege = partition_privilege_t;
+
 /// \cond core
 
 inline constexpr short privilege_bits = 2;
@@ -55,7 +57,7 @@ inline constexpr Privileges privilege_empty = [] {
 
   \tparam PP privileges
  */
-template<partition_privilege_t... PP>
+template<privilege... PP>
 inline constexpr Privileges privilege_pack = [] {
   static_assert(((PP < 1 << privilege_bits) && ...));
   Privileges ret = 0;
@@ -81,20 +83,19 @@ privilege_count(Privileges PACK) {
   \param pack a \c privilege_pack value
  */
 
-constexpr partition_privilege_t
+constexpr privilege
 get_privilege(PrivilegeCount i, Privileges pack) {
-  return partition_privilege_t(
-    pack >> (privilege_count(pack) - 1 - i) * privilege_bits &
-    ((1 << privilege_bits) - 1));
+  return privilege(pack >> (privilege_count(pack) - 1 - i) * privilege_bits &
+                   ((1 << privilege_bits) - 1));
 } // get_privilege
 
 // Return whether the privilege allows reading _without_ writing first.
 constexpr bool
-privilege_read(partition_privilege_t p) {
+privilege_read(privilege p) {
   return p & 1;
 }
 constexpr bool
-privilege_write(partition_privilege_t p) {
+privilege_write(privilege p) {
   return p & 2;
 }
 
@@ -114,9 +115,8 @@ privilege_write(Privileges pack) noexcept {
 }
 
 // Return const qualified T if not writing
-template<typename T, partition_privilege_t AccessPrivilege>
-using privilege_const =
-  std::conditional_t<privilege_write(AccessPrivilege), T, const T>;
+template<typename T, privilege Priv>
+using privilege_const = std::conditional_t<privilege_write(Priv), T, const T>;
 
 // Return whether the privileges destroy any existing data.
 constexpr bool
@@ -140,7 +140,7 @@ privilege_discard(Privileges pack) noexcept {
 }
 
 // privilege_pack<P,P,...> (N times)
-template<partition_privilege_t P, PrivilegeCount N>
+template<privilege P, PrivilegeCount N>
 inline constexpr Privileges
   privilege_repeat = privilege_empty<N> |
                      (privilege_empty<N> - 1) / ((1 << privilege_bits) - 1) * P;
@@ -152,7 +152,7 @@ inline constexpr Privileges privilege_cat = [] {
   return A * e | (B & (e - 1));
 }();
 
-constexpr partition_privilege_t
+constexpr privilege
 privilege_merge(Privileges p) {
   return privilege_discard(p) ? wo
          : privilege_write(p) ? rw
@@ -160,7 +160,7 @@ privilege_merge(Privileges p) {
                               : na;
 }
 
-template<partition_privilege_t O, partition_privilege_t G, PrivilegeCount N>
+template<privilege O, privilege G, PrivilegeCount N>
 inline constexpr auto privilege_ghost_repeat =
   privilege_cat<privilege_repeat<O, N - (N > 1)>, privilege_repeat<G, (N > 1)>>;
 

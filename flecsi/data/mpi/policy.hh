@@ -52,8 +52,7 @@ using const_view_variant = std::variant<host_const_view, device_const_view>;
 #endif
 
 struct buffer {
-  inline static constexpr exec::task_processor_type_t location =
-    exec::task_processor_type_t::loc;
+  inline static constexpr exec::processor location = exec::processor::loc;
 
   std::byte * data() {
     return v.data();
@@ -85,8 +84,7 @@ private:
 using buffer_impl_loc = buffer;
 
 struct buffer_impl_toc {
-  inline static constexpr exec::task_processor_type_t location =
-    exec::task_processor_type_t::toc;
+  inline static constexpr exec::processor location = exec::processor::toc;
 
   buffer_impl_toc & operator=(buffer_impl_toc &&) = delete;
 
@@ -129,13 +127,11 @@ struct storage {
   /// Describes where the data is currently up-to-date.
   enum class data_sync { loc, toc, both };
 
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  privilege_const<std::byte, AccessPrivilege> * data() {
+  template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
+  privilege_const<std::byte, Priv> * data() {
 
     const auto transfer_return = [this](auto & sync, auto & ret) {
-      if(ProcessorType == sync.location)
+      if(Proc == sync.location)
         return sync.data();
       else {
         if(ret.size() < sync.size())
@@ -145,11 +141,11 @@ struct storage {
           std::pair<std::size_t, std::size_t>(0, sync.size()));
 
         // If wo is requested, we don't care what's there, so no need to copy
-        if constexpr(AccessPrivilege != partition_privilege_t::wo)
+        if constexpr(Priv != wo)
           Kokkos::deep_copy(
             Kokkos::DefaultExecutionSpace{}, ret_view, sync.kokkos_view());
 
-        if constexpr(AccessPrivilege == partition_privilege_t::ro)
+        if constexpr(Priv == ro)
           current_state = data_sync::both;
         else
           current_state =
@@ -160,21 +156,21 @@ struct storage {
     };
 
     // HACK to treat mpi processor type as loc
-    if constexpr(ProcessorType == exec::task_processor_type_t::mpi)
-      return data<exec::task_processor_type_t::loc, AccessPrivilege>();
+    if constexpr(Proc == exec::processor::mpi)
+      return data<Priv>();
 
     switch(current_state) {
       case data_sync::both:
-        if constexpr(ProcessorType == exec::task_processor_type_t::loc) {
+        if constexpr(Proc == exec::processor::loc) {
           // If we're writing, we need to change the state
-          if constexpr(AccessPrivilege != partition_privilege_t::ro)
+          if constexpr(Priv != ro)
             current_state = data_sync::loc;
 
           return loc_buffer.data();
         }
         else {
           // If we're writing, we need to change the state
-          if constexpr(AccessPrivilege != partition_privilege_t::ro)
+          if constexpr(Priv != ro)
             current_state = data_sync::toc;
 
           return toc_buffer.data();
@@ -190,13 +186,11 @@ struct storage {
   }
 
   // Get the view into where the data is currently synced
-  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  std::conditional_t<privilege_write(AccessPrivilege),
-    view_variant,
-    const_view_variant>
+  template<privilege Priv = ro>
+  std::conditional_t<privilege_write(Priv), view_variant, const_view_variant>
   kokkos_view() {
     const auto qualify_buffer = [](auto & x) -> auto & {
-      if constexpr(privilege_write(AccessPrivilege))
+      if constexpr(privilege_write(Priv))
         return x;
       else
         return std::as_const(x);
@@ -207,11 +201,11 @@ struct storage {
     // not automatically resolve which constructor to use, thus the need for the
     // branching
     if(current_state == data_sync::loc) {
-      this->data<exec::task_processor_type_t::loc, AccessPrivilege>();
+      this->data<Priv, exec::processor::loc>();
       return qualify_buffer(loc_buffer).kokkos_view();
     }
     else {
-      this->data<exec::task_processor_type_t::toc, AccessPrivilege>();
+      this->data<Priv, exec::processor::toc>();
       return qualify_buffer(toc_buffer).kokkos_view();
     }
   }
@@ -247,9 +241,8 @@ private:
 #else // !defined(FLECSI_ENABLE_KOKKOS)
 
 struct storage : buffer {
-  template<exec::task_processor_type_t ProcessorType,
-    partition_privilege_t AccessPrivilege>
-  privilege_const<std::byte, AccessPrivilege> * data() {
+  template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
+  privilege_const<std::byte, Priv> * data() {
     return buffer::data();
   }
 };
@@ -262,22 +255,19 @@ struct typed_storage {
     untyped.resize(elements * sizeof(T));
   }
 
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc,
-    partition_privilege_t AccessType = partition_privilege_t::ro>
+  template<privilege Priv = ro, exec::processor Proc = exec::processor::loc>
   auto data() {
-    return reinterpret_cast<privilege_const<T, AccessType> *>(
-      untyped.data<ProcessorType, AccessType>());
+    return reinterpret_cast<privilege_const<T, Priv> *>(
+      untyped.data<Priv, Proc>());
   }
 
   // While this method is const qualified here, the underlying
   // type detail::storage does have state that might change depending upon
-  // which task_processor_type_t it is called with, so the data is
+  // which exec::processor it is called with, so the data is
   // guaranteed not to mutate, but the state not so much
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc>
+  template<exec::processor Proc = exec::processor::loc>
   const auto * data() const {
-    return const_cast<typed_storage *>(this)->data<ProcessorType>();
+    return const_cast<typed_storage *>(this)->data<ro, Proc>();
   }
 
   std::size_t size() const {
@@ -317,41 +307,39 @@ struct region_impl {
   }
 
   // Specifies the correct const-qualified span object given access privilege
-  template<class T, partition_privilege_t AccessPrivilege>
-  using span_access = flecsi::util::span<privilege_const<T, AccessPrivilege>>;
+  template<class T, privilege Priv>
+  using span_access = flecsi::util::span<privilege_const<T, Priv>>;
 
   // The span is safe because it is used only within a user task while the
   // vectors are resized or destroyed only outside user tasks (though perhaps
   // during execute).
   template<class T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid) {
-    return get_storage<T, ProcessorType, AccessPrivilege>(fid, s.second);
+    return get_storage<T, Priv, Proc>(fid, s.second);
   }
 
   template<class T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid, std::size_t nelems) {
-    using return_type = span_access<T, AccessPrivilege>;
+    using return_type = span_access<T, Priv>;
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
       v.resize(nbytes);
 
-    return return_type{reinterpret_cast<typename return_type::pointer>(
-                         v.data<ProcessorType, AccessPrivilege>()),
+    return return_type{
+      reinterpret_cast<typename return_type::pointer>(v.data<Priv, Proc>()),
       nelems};
   }
 
 #if defined(FLECSI_ENABLE_KOKKOS)
-  template<partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+  template<privilege Priv = ro>
   auto kokkos_view(field_id_t fid) {
-    return storages.at(fid).kokkos_view<AccessPrivilege>();
+    return storages.at(fid).kokkos_view<Priv>();
   }
 #endif
 
@@ -404,18 +392,16 @@ struct partition {
   }
 
   template<typename T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, ProcessorType, AccessPrivilege>(fid, nelems);
+    return r->get_storage<T, Priv, Proc>(fid, nelems);
   }
 
-  template<partition_privilege_t AccessPrivilege>
+  template<privilege Priv>
   auto get_raw_storage(field_id_t fid, std::size_t item_size) const {
-    return r->get_storage<std::byte,
-      exec::task_processor_type_t::loc,
-      AccessPrivilege>(fid, nelems * item_size);
+    return r->get_storage<std::byte, Priv, exec::processor::loc>(
+      fid, nelems * item_size);
   }
 
 protected:
@@ -537,9 +523,7 @@ struct intervals {
     // code might change it after this constructor returns. We can not use a
     // copy assignment directly here since metadata is an util::span while
     // ghost_ranges is a std::vector<>.
-    ghost_ranges = to_vector(p.get_storage<Value,
-                             exec::task_processor_type_t::loc,
-                             partition_privilege_t::ro>(fid));
+    ghost_ranges = to_vector(p.get_storage<Value>(fid));
 
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
@@ -556,10 +540,9 @@ private:
   // This member function is only called by copy_engine.
   friend copy_engine;
 
-  template<typename T, partition_privilege_t AccessPrivilege>
+  template<typename T, privilege Priv>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, exec::task_processor_type_t::loc, AccessPrivilege>(
-      fid, max_end);
+    return r->get_storage<T, Priv>(fid, max_end);
   }
 
   mpi::region_impl * r;
@@ -597,8 +580,7 @@ struct copy_engine {
     // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
     // operation to reconstruct this info from {(local ghost index, remote
     // source rank, remote source index)}.
-    auto remote_sources =
-      destination.get_storage<Point, partition_privilege_t::ro>(meta_fid);
+    auto remote_sources = destination.get_storage<Point, ro>(meta_fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
@@ -623,9 +605,8 @@ struct copy_engine {
         // We also group local ghost entities into
         // (src rank, { local ghost ids})
 
-        ghost_entities[shared.first]
-          .data<exec::task_processor_type_t::loc,
-            flecsi::rw>()[mem_size[shared.first]++] = ghost_idx;
+        ghost_entities[shared.first].data<rw>()[mem_size[shared.first]++] =
+          ghost_idx;
       }
     }
 
@@ -641,10 +622,8 @@ struct copy_engine {
           })) {
         if(!v.empty()) {
           shared_entities[r].resize(v.size());
-          std::uninitialized_copy(v.begin(),
-            v.end(),
-            shared_entities[r]
-              .data<exec::task_processor_type_t::loc, flecsi::rw>());
+          std::uninitialized_copy(
+            v.begin(), v.end(), shared_entities[r].data<rw>());
         }
         ++r;
       }
@@ -723,7 +702,7 @@ struct copy_engine {
                        },
               [&](const mpi::detail::device_const_view & src) {
                 const auto * shared_indices_device_data =
-                  src_indices.data<exec::task_processor_type_t::toc>();
+                  src_indices.data<exec::processor::toc>();
 
                 if(!gather_buffer_device_view)
                   gather_buffer_device_view.emplace(
@@ -744,13 +723,10 @@ struct copy_engine {
                   mpi::detail::host_view{send_buffers.back().data(), n_bytes},
                   gather_view);
               }},
-            source.r->kokkos_view<partition_privilege_t::ro>(data_fid));
+            source.r->kokkos_view<ro>(data_fid));
 #else
           gather_copy(send_buffers.back().data(),
-            source.r
-              ->get_storage<std::byte,
-                exec::task_processor_type_t::loc,
-                partition_privilege_t::ro>(data_fid, max_local_source_idx)
+            source.r->get_storage<std::byte>(data_fid, max_local_source_idx)
               .data(),
             shared_indices);
 #endif
@@ -814,7 +790,7 @@ struct copy_engine {
                   recv_buffer->data(), recv_buffer->size()});
 
               const auto * ghost_indices_device_data =
-                dst_indices.data<exec::task_processor_type_t::toc>();
+                dst_indices.data<exec::processor::toc>();
 
               Kokkos::parallel_for(
                 n_elements, KOKKOS_LAMBDA(const auto & i) {
@@ -823,12 +799,9 @@ struct copy_engine {
                     type_size);
                 });
             }},
-          destination.r->kokkos_view<partition_privilege_t::wo>(data_fid));
+          destination.r->kokkos_view<wo>(data_fid));
 #else
-        scatter_copy(
-          destination
-            .get_storage<std::byte, partition_privilege_t::wo>(data_fid)
-            .data(),
+        scatter_copy(destination.get_storage<std::byte, wo>(data_fid).data(),
           recv_buffer->data(),
           ghost_indices);
 #endif
