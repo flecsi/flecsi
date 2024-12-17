@@ -145,6 +145,10 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
       get_base(), [](const auto & r) { return r.template cast<dense>(); });
   }
 
+  element_type * data() const { // can be null in a multi object
+    return get_base().get_base().span().data();
+  }
+
 private:
   base_type base;
 }; // struct accessor
@@ -1459,8 +1463,7 @@ struct scalar_access : bind_tag {
   void topology_send(Func && f, S && s) {
     accessor_member<F, privilege_pack<ro>> acc;
     acc.topology_send(f, std::forward<S>(s));
-    // A single accessor can be empty if it is part of a multi
-    if(auto * const d = acc.get_base().get_base().span().data()) {
+    if(auto * const d = acc.data()) {
       scalar_value<value_type> dummy{{}, d, &scalar_};
       std::forward<Func>(f)(dummy, [](auto &) { return nullptr; });
     }
@@ -1539,12 +1542,10 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
       ++i;
     }
     // no-op on caller side:
-    v.erase(std::remove_if(v.begin(),
-              v.end(),
-              [](const round & r) {
-                return !r.row.get_base().get_base().span().empty() &&
-                       r.row == borrow::nil;
-              }),
+    v.erase(
+      std::remove_if(v.begin(),
+        v.end(),
+        [](const round & r) { return r.row.data() && r.row == borrow::nil; }),
       v.end());
   }
 
