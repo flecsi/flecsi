@@ -12,7 +12,6 @@
 #include "flecsi/flog/types.hh"
 #include "flecsi/flog/utils.hh"
 
-#include <atomic>
 #include <bitset>
 #include <cassert>
 #include <chrono>
