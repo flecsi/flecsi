@@ -49,13 +49,9 @@ set_buffer(T & t, B & b) {
 
 // Note that what is visited are the objects \e moved into the user's
 // parameters (and are thus the same object only in case of a reference).
-struct param_buffers {
-private:
-  auto visitor() {
-    return [&](auto & p, auto &&) { visit(p); };
-  }
+struct param_buffers : bind_base<param_buffers> {
+  using bind_base::visit;
 
-public:
   template<data::layout L, typename D, Privileges P>
   void visit(data::accessor<L, D, P> &) {} // visit
 
@@ -74,14 +70,6 @@ public:
 
   template<class Topo, Privileges P>
   void visit(data::topology_accessor<Topo, P> &) {}
-
-  /*--------------------------------------------------------------------------*
-    Non-FleCSI Data Types
-   *--------------------------------------------------------------------------*/
-
-  template<typename D>
-  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
-    D &) {} // visit
 };
 } // namespace detail
 

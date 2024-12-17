@@ -6,6 +6,7 @@
 
 #include "flecsi/config.hh"
 #include "flecsi/data/privilege.hh"
+#include "flecsi/exec/launch.hh"
 #include "flecsi/flog.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
@@ -42,7 +43,8 @@ protected:
 #endif
 
 template<processor Proc>
-struct bind_parameters : bind_accessors<Proc> {
+struct bind_parameters : detail::bind_base<bind_parameters<Proc>>,
+                         bind_accessors<Proc> {
 
   template<class A, class... Args>
   explicit bind_parameters(A & a, Args &&... args)
@@ -51,35 +53,19 @@ struct bind_parameters : bind_accessors<Proc> {
     std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
   }
 
-protected:
-  auto visitor() {
-    return
-      [&](auto & p, auto &&) { visit(p); }; // Clang 8.0.1 deems 'this' unused
-  }
-
+private:
+  friend typename bind_parameters::bind_base;
   using bind_accessors<Proc>::visit; // for backend-specific stuff
+  using bind_parameters::bind_base::visit;
 
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
-    p.send(visitor());
+    p.send(this->visitor());
   }
 
-  // Note: due to how visitor() is implemented above the first parameter can not
-  // be 'const &' here, otherwise template/overload resolution fails (silently).
   template<typename T>
-  static void visit(data::detail::scalar_value<T> & s) {
+  static void visit(const data::detail::scalar_value<T> & s) {
     s.template copy<Proc>();
-  }
-
-  /*--------------------------------------------------------------------------*
-    Non-FleCSI Data Types
-   *--------------------------------------------------------------------------*/
-
-  template<typename D>
-  static typename std::enable_if_t<!std::is_base_of_v<data::bind_tag, D>> visit(
-    D &) {
-    {
-    }
   }
 };
 /// \}
