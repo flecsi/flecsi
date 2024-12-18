@@ -49,45 +49,42 @@ struct region_impl {
   }
 
   // Specifies the correct const-qualified span object given access privilege
-  template<class T, partition_privilege_t AccessPrivilege>
-  using span_access = flecsi::util::span<privilege_const<T, AccessPrivilege>>;
+  template<class T, privilege Priv>
+  using span_access = flecsi::util::span<privilege_const<T, Priv>>;
 
   // The span is safe because it is used only within a user task while the
   // vectors are resized or destroyed only outside user tasks (though perhaps
   // during execute).
   template<class T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid) {
-    return get_storage<T, ProcessorType, AccessPrivilege>(fid, s.second);
+    return get_storage<T, Priv, Proc>(fid, s.second);
   }
 
   template<class T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid, std::size_t nelems) {
-    using return_type = span_access<T, AccessPrivilege>;
+    using return_type = span_access<T, Priv>;
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
       v.resize(nbytes);
 
-    auto data_view = v.data<ProcessorType, AccessPrivilege>();
+    auto data_view = v.data<Proc, Priv>();
 
     flog_assert(nbytes <= data_view.size(),
       "Requested region size larger than allocation");
 
     return return_type{
-      reinterpret_cast<privilege_const<T, AccessPrivilege> *>(data_view.data()),
-      nelems};
+      reinterpret_cast<privilege_const<T, Priv> *>(data_view.data()), nelems};
   }
 
-  template<partition_privilege_t AccessPrivilege>
+  template<privilege Priv>
   auto current_data(field_id_t fid) {
-    return storages.at(fid).template current_data<AccessPrivilege>();
+    return storages.at(fid).template current_data<Priv>();
   }
 
   backend_storage & operator[](field_id_t fid) {
@@ -157,18 +154,15 @@ struct partition_impl {
   }
 
   template<typename T,
-    exec::task_processor_type_t ProcessorType =
-      exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
+    privilege Priv = ro,
+    exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, ProcessorType, AccessPrivilege>(fid, nelems);
+    return r->get_storage<T, Priv, Proc>(fid, nelems);
   }
 
-  template<partition_privilege_t AccessPrivilege>
+  template<privilege Priv>
   auto get_raw_storage(field_id_t fid, std::size_t item_size) const {
-    return r->get_storage<std::byte,
-      exec::task_processor_type_t::loc,
-      AccessPrivilege>(fid, nelems * item_size);
+    return r->get_storage<std::byte, Priv>(fid, nelems * item_size);
   }
 
   region_impl & get_region() {
@@ -330,9 +324,7 @@ struct intervals_impl {
     // code might change it after this constructor returns. We can not use a
     // copy assignment directly here since metadata is an util::span while
     // ghost_ranges is a std::vector<>.
-    ghost_ranges = to_vector(p->get_storage<Value,
-                             exec::task_processor_type_t::loc,
-                             partition_privilege_t::ro>(fid));
+    ghost_ranges = to_vector(p->get_storage<Value>(fid));
 
     // Get The largest value of `end index` in ghost_ranges (i.e. the upper
     // bound). This tells how much memory needs to be allocated for ghost
@@ -345,10 +337,9 @@ struct intervals_impl {
     }
   }
 
-  template<typename T, partition_privilege_t AccessPrivilege>
+  template<typename T, privilege Priv>
   auto get_storage(field_id_t fid) const {
-    return r->get_storage<T, exec::task_processor_type_t::loc, AccessPrivilege>(
-      fid, max_end);
+    return r->get_storage<T, Priv>(fid, max_end);
   }
 
   decltype(auto) operator[](field_id_t fid) const {

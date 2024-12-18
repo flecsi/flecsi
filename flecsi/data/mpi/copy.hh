@@ -82,9 +82,7 @@ struct copy_engine : local::copy_engine {
           // argument using Kokkos::parallel_for
           std::visit(
             overloaded{[&](const backend_storage::host_const_view & src_view) {
-                         auto src_indices_view =
-                           entity.second
-                             .template data<exec::task_processor_type_t::loc>();
+                         auto src_indices_view = entity.second.template data();
 
                          std::byte * dst = send_buffers.back().data();
                          const std::byte * src = src_view.data();
@@ -98,8 +96,7 @@ struct copy_engine : local::copy_engine {
                        },
               [&](const backend_storage::device_const_view & src) {
                 auto src_indices_view =
-                  entity.second
-                    .template data<exec::task_processor_type_t::toc>();
+                  entity.second.template data<exec::processor::toc>();
 
                 if(!gather_buffer_device_view)
                   gather_buffer_device_view.emplace(
@@ -157,7 +154,7 @@ struct copy_engine : local::copy_engine {
           overloaded{
             [&](const backend_storage::host_view & dst_view) {
               auto dst_indices_view =
-                entity.second.template data<exec::task_processor_type_t::loc>();
+                entity.second.template data<exec::processor::loc>();
 
               auto subview = Kokkos::subview(dst_view,
                 std::pair<std::size_t, std::size_t>(0, destination->max_end));
@@ -183,7 +180,7 @@ struct copy_engine : local::copy_engine {
                   recv_buffer->data(), recv_buffer->size()});
 
               auto dst_indices_view =
-                entity.second.template data<exec::task_processor_type_t::toc>();
+                entity.second.template data<exec::processor::toc>();
 
               auto subview = Kokkos::subview(dst,
                 std::pair<std::size_t, std::size_t>(0, destination->max_end));

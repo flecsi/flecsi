@@ -36,21 +36,20 @@ using region_or_partition =
 
   This is the other half of the wire protocol implemented by \c task_prologue.
  */
-template<task_processor_type_t ProcessorType>
+template<processor Proc>
 struct bind_accessors {
   explicit bind_accessors(run::communicator * comm,
     std::vector<region_or_partition> & regions_partitions)
     : comm(comm), regions_partitions(regions_partitions) {}
 
 protected:
-  template<typename T, partition_privilege_t P>
+  template<typename T, privilege P>
   auto next_storage(field_id_t f) {
     flog_assert(argument < regions_partitions.size(),
       "there shouldn't be more arguments than partitions/regions");
     return std::visit(
-      [f](auto && r_or_p) {
-        return r_or_p->template get_storage<T, ProcessorType, P>(f);
-      },
+      [f](
+        auto && r_or_p) { return r_or_p->template get_storage<T, P, Proc>(f); },
       regions_partitions[argument++]);
   }
 

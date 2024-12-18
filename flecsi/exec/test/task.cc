@@ -6,7 +6,7 @@ using namespace flecsi;
 
 using reduction_type = std::uint64_t;
 
-template<task_attributes_mask_t P, exec::task_processor_type_t T>
+template<task_attributes_mask_t P, exec::processor T>
 constexpr bool
 test() {
   static_assert(
@@ -14,16 +14,16 @@ test() {
   return true;
 }
 
-static_assert(test<loc, exec::task_processor_type_t::loc>());
-static_assert(test<toc, exec::task_processor_type_t::toc>());
+static_assert(test<loc, exec::processor::loc>());
+static_assert(test<toc, exec::processor::toc>());
 
-template<partition_privilege_t... PP, std::size_t... II>
+template<privilege... PP, std::size_t... II>
 constexpr void
 priv(std::index_sequence<II...>) {
   constexpr auto p = privilege_pack<PP...>;
   static_assert(((get_privilege(II, p) == PP) && ...));
 }
-template<partition_privilege_t... PP>
+template<privilege... PP>
 constexpr bool
 priv() {
   priv<PP...>(std::make_index_sequence<sizeof...(PP)>());

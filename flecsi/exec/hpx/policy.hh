@@ -103,10 +103,10 @@ reduce_internal(Args &&... args) {
   using R = typename Traits::return_type;
 
   constexpr auto processor_type = mask_to_processor_type(Attributes);
-  constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
-  static_assert(processor_type == task_processor_type_t::toc ||
-                  processor_type == task_processor_type_t::loc ||
-                  processor_type == task_processor_type_t::omp || mpi_task,
+  constexpr bool mpi_task = processor_type == processor::mpi;
+  static_assert(processor_type == processor::toc ||
+                  processor_type == processor::loc ||
+                  processor_type == processor::omp || mpi_task,
     "Unknown launch type");
 
   // replace arguments in args, for example, field_reference -> accessor.
@@ -242,8 +242,7 @@ reduce_internal(Args &&... args) {
   auto result = detail::reduce_internal<F, Reduction, Attributes>(
     std::forward<Args>(args)...);
 
-  if constexpr(mask_to_processor_type(Attributes) ==
-               exec::task_processor_type_t::mpi) {
+  if constexpr(mask_to_processor_type(Attributes) == exec::processor::mpi) {
     // MPI tasks are always synchronous
     result.wait();
   }

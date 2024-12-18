@@ -50,7 +50,6 @@ private:
     }
   }
 
-public:
   friend bool is_tracing() {
     return tracing;
   }

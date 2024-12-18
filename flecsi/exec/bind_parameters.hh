@@ -32,7 +32,7 @@ namespace exec {
 /// Handling for low-level special task parameters/arguments.
 /// The exact member function signatures may vary between backends.
 /// \note No constructors are specified.
-template<task_processor_type_t Proc>
+template<processor Proc>
 struct bind_accessors {
 protected:
   /// Send a raw field reference to a raw accessor.
@@ -41,12 +41,12 @@ protected:
 };
 #endif
 
-template<task_processor_type_t ProcessorType>
-struct bind_parameters : bind_accessors<ProcessorType> {
+template<processor Proc>
+struct bind_parameters : bind_accessors<Proc> {
 
   template<class A, class... Args>
   explicit bind_parameters(A & a, Args &&... args)
-    : bind_accessors<ProcessorType>(std::forward<Args>(args)...) {
+    : bind_accessors<Proc>(std::forward<Args>(args)...) {
     util::annotation::rguard<util::annotation::execute_bind_parameters> ann;
     std::apply([&](auto &... aa) { (visit(aa), ...); }, a);
   }
@@ -57,7 +57,7 @@ protected:
       [&](auto & p, auto &&) { visit(p); }; // Clang 8.0.1 deems 'this' unused
   }
 
-  using bind_accessors<ProcessorType>::visit; // for backend-specific stuff
+  using bind_accessors<Proc>::visit; // for backend-specific stuff
 
   template<class P>
   std::enable_if_t<std::is_base_of_v<data::send_tag, P>> visit(P & p) {
@@ -68,7 +68,7 @@ protected:
   // be 'const &' here, otherwise template/overload resolution fails (silently).
   template<typename T>
   static void visit(data::detail::scalar_value<T> & s) {
-    s.template copy<ProcessorType>();
+    s.template copy<Proc>();
   }
 
   /*--------------------------------------------------------------------------*
