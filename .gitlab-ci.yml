@@ -55,8 +55,8 @@ variables:
   KOKKOS_SERIAL: kokkos ~cuda ~rocm +hwloc
   KOKKOS_OPENMP: kokkos ~cuda ~rocm +openmp +hwloc
   KOKKOS_CUDA: kokkos%clang@${CLANG_VERSION} +cuda +hwloc ~wrapper
-  UCX_CUDA: "ucx +cuda cuda_arch=${CUDA_ARCH}"
-  UCX_ROCM: "ucx +rocm"
+  SPEC_UCX_CUDA: "ucx +cuda cuda_arch=${CUDA_ARCH}"
+  SPEC_UCX_ROCM: "ucx +rocm"
   ENVIRONMENT: "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
   DEFAULT_TEST_TIMEOUT: 600
 
@@ -373,7 +373,7 @@ openmpi-legion-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_UCX_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_UCX_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${SPEC_UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -387,7 +387,7 @@ openmpi-legion-clang-cuda-mpi:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${LEGION_MPI_CUDA} build_type=Debug ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi+cuda cuda_arch=${CUDA_ARCH} ^${SPEC_UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -480,7 +480,7 @@ mpich-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich +cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^mpich +cuda cuda_arch=${CUDA_ARCH} ^${SPEC_UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -530,7 +530,7 @@ openmpi-mpi-clang-cuda:
   only:
     - merge_requests
   variables:
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi +cuda cuda_arch=${CUDA_ARCH} ^${UCX_CUDA}"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +cuda cuda_arch=${CUDA_ARCH} ^${KOKKOS_CUDA} ^cuda@${CUDA_VERSION} +allow-unsupported-compilers ^openmpi +cuda cuda_arch=${CUDA_ARCH} ^${SPEC_UCX_CUDA}"
     TOOLCHAIN: "clang@${CLANG_VERSION}"
     PARTITIONS: volta-x86
     JOB_CONSTRAINTS: "${V100_CONSTRAINT}"
@@ -550,7 +550,7 @@ openmpi-mpi-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${UCX_ROCM}"
+    VARIANTS: "backend=mpi build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${SPEC_UCX_ROCM}"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
@@ -570,7 +570,7 @@ openmpi-legion-rocm:
     - merge_requests
   variables:
     AMDGPU_TARGET: gfx90a
-    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${UCX_ROCM}"
+    VARIANTS: "backend=legion build_type=Debug +flog +hdf5 +rocm amdgpu_target=${AMDGPU_TARGET} ^${LEGION_MPI_ROCM} ^kokkos+hwloc ^hip@${ROCM_VERSION} ^openmpi ^${SPEC_UCX_ROCM}"
     TOOLCHAIN: "gcc@${GCC_VERSION}"
     PARTITIONS: shared-gpu-amd-mi250
     SCHEDULER_PARAMETERS: "-N 1 --qos=debug -p ${PARTITIONS}"
