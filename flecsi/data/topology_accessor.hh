@@ -64,7 +64,7 @@ struct exec::detail::task_param<data::topology_accessor<T, P>> {
 // thus no specialization for them.
 template<class P, class T>
 struct exec::detail::launch<P, data::topology_slot<T>> {
-  static Color get(const data::topology_slot<T> & t) {
+  static Index get(const data::topology_slot<T> & t) {
     return t.get().colors();
   }
 };

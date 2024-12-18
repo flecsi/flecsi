@@ -101,9 +101,10 @@ index_task(exec::launch_domain) {
 } // namespace
 
 void
-init_array(field<reduction_type>::accessor<wo> v) {
+init_array(std::vector<field<reduction_type>::accessor<wo>> v) {
+  flog_assert(v.size() == 1, "wrong accessor count");
   int i = 0;
-  for(auto & vv : v.span()) {
+  for(auto & vv : v.front().span()) {
     vv = color() + i++;
   }
 }
@@ -124,8 +125,9 @@ check(field<reduction_type>::accessor<ro> v, const int np) {
   };
 }
 void
-reduction(field<reduction_type>::accessor<ro> v,
-  field<reduction_type>::reduction<flecsi::exec::fold::sum> r) {
+reduction(std::tuple<field<reduction_type>::accessor<ro>,
+  field<reduction_type>::reduction<flecsi::exec::fold::sum>> t) {
+  auto & [v, r] = t;
   assert(v.span().size() == r.span().size());
   for(std::size_t i = 0; i < v.span().size(); ++i) {
     r[i](v[i]);
@@ -180,15 +182,15 @@ task_driver() {
     arr::slot arr_s;
     arr_s.allocate(arr::coloring(np, vpp));
     auto arr_vals = arr_f(arr_s);
-    flecsi::execute<init_array>(arr_vals);
+    flecsi::execute<init_array>(std::vector{arr_vals});
     // Reduction
     topo::global::slot gl_arr_s;
     gl_arr_s.allocate(vpp);
     auto vals = gl_arr_f(gl_arr_s);
     // Init reduction array to 0
     flecsi::execute<init>(vals);
-    flecsi::execute<reduction>(arr_vals, vals);
-    flecsi::execute<reduction>(arr_vals, vals);
+    for(int i = 0; i < 2; ++i)
+      flecsi::execute<reduction>(std::tuple(arr_vals, vals));
     EXPECT_EQ(test<check>(vals, np), 0);
 
     exec::trace t0, t1 = std::move(t0);

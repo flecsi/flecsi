@@ -56,6 +56,7 @@ template<class P, class A>
 struct replace_argument<P,
   A,
   std::enable_if_t<!must_convert<std::decay_t<A>>::value>> {
+  static constexpr bool special = false;
   static A replace(A a) {
     return static_cast<A>(a);
   }
@@ -64,14 +65,17 @@ template<class P, class A>
 struct replace_argument<P,
   A,
   decltype(void(task_param<P>::replace(std::declval<A>())))> {
+  static constexpr bool special = true;
   static decltype(auto) replace(A a) {
     return task_param<P>::replace(static_cast<A>(a));
   }
 };
 
-// For each parameter-type/argument pair we have either a Color (the
-// size of a required index launch), std::monostate (for a required single
+// For each parameter-type/argument pair we have either an Index (the size of
+// a required index launch, or nothing for an empty vector), std::monostate
+// (for a required single
 // launch), or std::nullptr_t (don't care).
+using Index = std::optional<Color>;
 
 template<class P, class A>
 struct launch {
@@ -85,7 +89,7 @@ template<class P,
   class Topo,
   typename Topo::index_space S>
 struct launch<P, data::field_reference<T, L, Topo, S>> {
-  static Color get(const data::field_reference<T, L, Topo, S> & r) {
+  static Index get(const data::field_reference<T, L, Topo, S> & r) {
     return r.topology().colors();
   }
 };
@@ -95,7 +99,7 @@ template<class P,
   class Topo,
   typename Topo::index_space S>
 struct launch<P, data::multi_reference<T, L, Topo, S>> {
-  static Color get(const data::multi_reference<T, L, Topo, S> & r) {
+  static Index get(const data::multi_reference<T, L, Topo, S> & r) {
     return r.map().colors();
   }
 };
@@ -111,38 +115,74 @@ struct launch_combine {
     else {
       if constexpr(!std::is_same_v<U, std::nullptr_t>) {
         static_assert(std::is_same_v<T, U>, "implied launch types conflict");
-        if constexpr(!std::is_same_v<T, std::monostate>)
-          if(t != c.t)
+        if constexpr(!std::is_same_v<T, std::monostate>) {
+          if(!t)
+            return c;
+          if(c.t && *t != *c.t)
             flog_fatal(
-              "implied launch sizes " << t << " and " << c.t << " conflict");
+              "implied launch sizes " << *t << " and " << *c.t << " conflict");
+        }
       }
       return *this;
     }
   }
+  const T & value() const {
+    return t;
+  }
   auto get() const {
-    if constexpr(std::is_same_v<T, std::nullptr_t>)
-      return std::monostate();
+    if constexpr(std::is_same_v<T, Index>)
+      return t.value_or(0);
     else
-      return t;
+      return std::monostate();
   }
 
 private:
   T t;
 };
 
-template<bool M, class... PP, class... AA>
+template<bool M = false, class... PP, class... AA>
 auto
 launch_size(std::tuple<PP...> *, const AA &... aa) {
   return (launch_combine([] {
     // An MPI task has a known launch domain:
     if constexpr(M)
-      return run::context::instance().processes();
+      return Index(run::context::instance().processes());
     else
       return nullptr;
   }()) | ... |
-          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)))
-    .get();
+          launch_combine(launch<std::decay_t<PP>, AA>::get(aa)));
 }
+
+template<class D>
+struct bind_base { // decomposes parameters only
+protected:
+  auto visitor() {
+    return [this](auto & p, auto &&) { d().visit(p); };
+  }
+
+  template<class T>
+  void visit(std::vector<T> & v) {
+    for(auto & t : v)
+      d().visit(t);
+  }
+  template<class... TT>
+  void visit(std::tuple<TT...> & t) {
+    std::apply(
+      [&](auto &&... xx) { (d().visit(std::forward<decltype(xx)>(xx)), ...); },
+      t);
+  }
+
+  // The const gives a different parameter type (avoiding Clang bug #49583)
+  // and makes this a worse overload than that for send_tag.
+  template<class P>
+  static std::enable_if_t<!std::is_base_of_v<data::bind_tag, P>> visit(
+    const P &) {}
+
+private:
+  D & d() {
+    return static_cast<D &>(*this);
+  }
+};
 } // namespace detail
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
@@ -169,7 +209,8 @@ template<TaskAttributes A, class P, class... AA>
 auto
 launch_size(const AA &... aa) {
   return detail::launch_size<mask_to_processor_type(A) == processor::mpi>(
-    static_cast<P *>(nullptr), aa...);
+    static_cast<P *>(nullptr), aa...)
+    .get();
 }
 
 enum class launch_type_t : size_t { single, index };
@@ -271,30 +312,93 @@ struct future<Return, exec::launch_type_t::index> {
 };
 #endif
 
-namespace exec {
+namespace exec::detail {
 template<class R>
-struct detail::task_param<future<R>> {
+struct task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {
     return {};
   }
 };
 template<class R>
-struct detail::must_convert<future<R, launch_type_t::index>> : std::true_type {
+struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
+
+template<class P>
+struct task_param<std::vector<P>> {
+  template<class A>
+  static std::enable_if_t<replace_argument<P, const A &>::special,
+    std::vector<P>>
+  replace(const std::vector<A> & v) {
+    const util::transform_view t(v, exec::replace_argument<P, const A &>);
+    return {t.begin(), t.end()};
+  }
+};
+template<class T>
+struct must_convert<std::vector<T>> : must_convert<T> {};
+template<class P, class A>
+struct launch<std::vector<P>, std::vector<A>> {
+  using type = decltype(launch<P, A>::get(std::declval<A>()));
+  static type get(const std::vector<A> & v) {
+    launch_combine ret{type()};
+    for(auto & a : v)
+      ret = ret | launch_combine(launch<P, A>::get(a));
+    return ret.value();
+  }
+};
+
+template<class... PP>
+struct task_param<std::tuple<PP...>> {
+  // Deduplicating with an alias template fails in Clang (#17042) and MSVC.
+  template<class... AA>
+  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
+    std::tuple<PP...>>
+  replace(const std::tuple<AA...> & t) {
+    return make(t);
+  }
+  template<class... AA>
+  static std::enable_if_t<(replace_argument<PP, const AA &>::special || ...),
+    std::tuple<PP...>>
+  replace(std::tuple<AA...> && t) {
+    return make(std::move(t));
+  }
+
+private:
+  template<class T>
+  static auto make(T && t) {
+    return std::apply(
+      [](auto &&... xx) -> std::tuple<PP...> {
+        return {exec::replace_argument<PP>(std::forward<decltype(xx)>(xx))...};
+      },
+      t);
+  }
+};
+template<class... TT>
+struct must_convert<std::tuple<TT...>> : std::disjunction<must_convert<TT>...> {
+};
+template<class... PP, class... AA>
+struct launch<std::tuple<PP...>, std::tuple<AA...>> {
+  static auto get(const std::tuple<AA...> & t) {
+    return std::apply(
+      [](auto &... xx) {
+        return launch_size(static_cast<std::tuple<PP...> *>(nullptr), xx...);
+      },
+      t)
+      .value();
+  }
 };
 
 template<class P>
-struct detail::launch<P, launch_domain> {
-  static Color get(const launch_domain & d) {
+struct launch<P, launch_domain> {
+  static Index get(const launch_domain & d) {
     return d.size_;
   }
 };
 template<class P, class T>
-struct detail::launch<P, future<T, launch_type_t::index>> {
-  static Color get(const future<T, launch_type_t::index> & f) {
+struct launch<P, future<T, launch_type_t::index>> {
+  static Index get(const future<T, launch_type_t::index> & f) {
     return f.size();
   }
 };
-} // namespace exec
+} // namespace exec::detail
 
 ///\}
 } // namespace flecsi

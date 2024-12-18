@@ -99,9 +99,30 @@ private:
     p.send(visitor(a));
   }
 
-  /*--------------------------------------------------------------------------*
-    Non-FleCSI Data Types
-   *--------------------------------------------------------------------------*/
+  template<class P, class A>
+  void visit(std::vector<P> & pv, const std::vector<A> & av) {
+    // av has been moved from only when the type is uninteresting.
+    flog_assert(
+      pv.size() == av.size() || (!detail::must_convert<A>::value && av.empty()),
+      "parameter/argument count mismatch");
+    P * p = pv.data();
+    for(auto & a : av)
+      visit(*p++, a);
+  }
+  template<class... PP, class... AA>
+  void visit(std::tuple<PP...> & pt, const std::tuple<AA...> & at) {
+    std::apply(
+      [&](auto &&... pp) {
+        std::apply(
+          [&](auto &&... aa) {
+            (visit(
+               std::forward<decltype(pp)>(pp), std::forward<decltype(aa)>(aa)),
+              ...);
+          },
+          at);
+      },
+      pt);
+  }
 
   // The const prevents being a better match than more specialized overloads.
   // This is constrained opposite the above because it is more specialized.

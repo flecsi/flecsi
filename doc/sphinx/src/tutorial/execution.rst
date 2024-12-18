@@ -126,7 +126,7 @@ Launch domain (``exec::launch_domain``) is used to define how many index
 points an index task should have. If no ``launch_domain`` is passed to the
 ``execute`` method, the default will be used.
 If the task uses a field or topology accessor, the default is the number of colors of the topology used.
-Otherwise, the default is to launch a single task.
+If no argument indicates a number, the default is to launch a single task.
 
 
 Example 3: MPI Tasks
