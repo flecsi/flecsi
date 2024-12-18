@@ -80,6 +80,11 @@
     - module load clang/${CLANG_VERSION}
       # UCX workaround to avoid misdetecting GPU memory as host memory
     - export UCX_MEMTYPE_CACHE=n
+    - |
+      if [[ "${CI_JOB_NAME}" =~ "openmpi" ]]; then
+        # OpenMPI 5.x uses bind-to core by default, limiting us to a single core
+        export CMAKE_OPTIONS="-DMPIEXEC_PREFLAGS='--bind-to=none' ${CMAKE_OPTIONS}"
+      fi
 
 .darwin_env_spack_environment:
   script: &darwin_env_spack_environment
