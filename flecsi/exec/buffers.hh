@@ -90,7 +90,17 @@ struct param_buffers : private detail::param_buffers {
   using Tuple = std::tuple<TT...>;
 
   param_buffers(Tuple & t, const std::string & nm) : acc(t), nm(nm) {
-    buffer(std::index_sequence_for<TT...>());
+    std::apply(
+      [this](auto &&... aa) {
+        std::apply(
+          [&](auto &&... bb) {
+            (detail::set_buffer(
+               std::forward<decltype(aa)>(aa), std::forward<decltype(bb)>(bb)),
+              ...);
+          },
+          buf);
+      },
+      acc);
   }
   // Prevent using temporaries, which is often unsafe:
   param_buffers(Tuple &, const std::string &&) = delete;
@@ -106,11 +116,6 @@ struct param_buffers : private detail::param_buffers {
   }
 
 private:
-  template<std::size_t... II>
-  void buffer(std::index_sequence<II...>) {
-    (detail::set_buffer(std::get<II>(acc), std::get<II>(buf)), ...);
-  }
-
   Tuple & acc;
   const std::string & nm;
   std::tuple<typename detail::buffer<TT>::type...> buf;

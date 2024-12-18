@@ -215,7 +215,7 @@ struct specialization : specialization_base {
 
   /// The topology accessor to use as a parameter to receive a \c slot.
   /// \tparam Priv the appropriate number of privileges
-  template<partition_privilege_t... Priv>
+  template<privilege... Priv>
   using accessor = data::topology_accessor<D, privilege_pack<Priv...>>;
 
   /// \name Defaults

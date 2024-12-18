@@ -28,7 +28,7 @@ namespace exec {
 
   This is the other half of the wire protocol implemented by \c task_prologue.
  */
-template<task_processor_type_t ProcessorType>
+template<processor Proc>
 struct bind_accessors {
 
   bind_accessors(Legion::Runtime * legion_runtime,

@@ -90,10 +90,10 @@ reduce_internal(Args &&... args) {
   auto legion_runtime = Legion::Runtime::get_runtime();
   auto legion_context = Legion::Runtime::get_context();
 
-  constexpr bool mpi_task = processor_type == task_processor_type_t::mpi;
-  static_assert(processor_type == task_processor_type_t::toc ||
-                  processor_type == task_processor_type_t::loc ||
-                  processor_type == task_processor_type_t::omp || mpi_task,
+  constexpr bool mpi_task = processor_type == processor::mpi;
+  static_assert(processor_type == processor::toc ||
+                  processor_type == processor::loc ||
+                  processor_type == processor::omp || mpi_task,
     "Unknown launch type");
   const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
@@ -133,10 +133,10 @@ reduce_internal(Args &&... args) {
       l.add_region_requirement(req);
     l.futures = std::move(pro).futures();
     switch(processor_type) {
-      case task_processor_type_t::toc:
+      case processor::toc:
         l.tag = run::mapper::prefer_gpu;
         break;
-      case task_processor_type_t::omp:
+      case processor::omp:
         l.tag = run::mapper::prefer_omp;
         break;
       // Null default is added to suppress warning for other enumerators that

@@ -92,8 +92,7 @@ protected:
           // HostSpace rather than ExecutionSpace.
           using namespace ::hpx::collectives;
           if(comm.comm().is_root()) {
-            auto host_storage =
-              r->template get_storage<T, task_processor_type_t::loc, ro>(f);
+            auto host_storage = r->template get_storage<T>(f);
             broadcast_to(comm.comm(),
               data_type(
                 host_storage.data(), host_storage.size(), data_type::reference),
@@ -101,8 +100,7 @@ protected:
               .get();
           }
           else {
-            auto host_storage =
-              r->template get_storage<T, task_processor_type_t::loc, wo>(f);
+            auto host_storage = r->template get_storage<T, wo>(f);
             auto && data =
               broadcast_from<data_type>(comm.comm(), comm.gen()).get();
             assert(data.size() == host_storage.size());
@@ -212,7 +210,7 @@ private:
   bool need_comm = false;
 };
 
-template<task_processor_type_t ProcessorType>
+template<processor>
 using task_prologue = task_prologue_base;
 
 } // namespace exec

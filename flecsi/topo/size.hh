@@ -24,7 +24,7 @@ struct resize : specialization<column, resize> {
   /// \link flecsi::field `field`\endlink for storing sizes.
   using Field = data::prefixes_base::Field;
   static const Field::definition<resize> field;
-  template<partition_privilege_t P>
+  template<privilege P>
   using accessor = data::accessor_member<field, privilege_pack<P>>;
 
   /// A heuristic for automatically resizing a partition.

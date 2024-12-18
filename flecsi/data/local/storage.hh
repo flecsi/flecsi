@@ -43,30 +43,27 @@ struct storage {
   using device_const_view =
     Kokkos::View<const T *, Kokkos::DefaultExecutionSpace>;
 
-  template<partition_privilege_t AccessPrivilege>
-  using host_access = std::
-    conditional_t<privilege_write(AccessPrivilege), host_view, host_const_view>;
+  template<privilege Priv>
+  using host_access =
+    std::conditional_t<privilege_write(Priv), host_view, host_const_view>;
 
-  template<partition_privilege_t AccessPrivilege>
-  using device_access = std::conditional_t<privilege_write(AccessPrivilege),
-    device_view,
-    device_const_view>;
+  template<privilege Priv>
+  using device_access =
+    std::conditional_t<privilege_write(Priv), device_view, device_const_view>;
 
-  template<partition_privilege_t AccessPrivilege>
-  std::variant<host_access<AccessPrivilege>, device_access<AccessPrivilege>>
-  current_data() {
+  template<privilege Priv>
+  std::variant<host_access<Priv>, device_access<Priv>> current_data() {
     if(current == toc)
-      return device_access<AccessPrivilege>(toc_buffer);
+      return device_access<Priv>(toc_buffer);
     else
-      return host_access<AccessPrivilege>(loc_buffer);
+      return host_access<Priv>(loc_buffer);
   }
 
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = partition_privilege_t::ro>
-  std::conditional_t<ProcessorType == exec::task_processor_type_t::toc,
-    device_access<AccessPrivilege>,
-    host_access<AccessPrivilege>>
+  template<exec::processor Proc = exec::processor::loc,
+    privilege Priv = privilege::ro>
+  std::conditional_t<Proc == exec::processor::toc,
+    device_access<Priv>,
+    host_access<Priv>>
   data() {
     const auto transfer_return = [this](auto & sync, auto & ret) {
       if(ret.extent(0) < sync.extent(0))
@@ -76,10 +73,10 @@ struct storage {
         ret, std::pair<std::size_t, std::size_t>(0, sync.extent(0)));
 
       // If wo is requested, we don't care what's there, so no need to copy
-      if constexpr(AccessPrivilege != partition_privilege_t::wo)
+      if constexpr(Priv != privilege::wo)
         Kokkos::deep_copy(ret_view, sync);
 
-      if constexpr(!privilege_write(AccessPrivilege))
+      if constexpr(!privilege_write(Priv))
         current = both;
       else
         current = (current == loc ? toc : loc);
@@ -89,26 +86,26 @@ struct storage {
 
     switch(current) {
       case loc:
-        if constexpr(ProcessorType == exec::task_processor_type_t::toc)
+        if constexpr(Proc == exec::processor::toc)
           return transfer_return(loc_buffer, toc_buffer);
         else
           return loc_buffer;
       case toc:
-        if constexpr(ProcessorType != exec::task_processor_type_t::toc)
+        if constexpr(Proc != exec::processor::toc)
           return transfer_return(toc_buffer, loc_buffer);
         else
           return toc_buffer;
       default:
-        if constexpr(ProcessorType == exec::task_processor_type_t::toc) {
+        if constexpr(Proc == exec::processor::toc) {
           // If we're writing, we need to change the state
-          if constexpr(privilege_write(AccessPrivilege))
+          if constexpr(privilege_write(Priv))
             current = toc;
 
           return toc_buffer;
         }
         else {
           // If we're writing, we need to change the state
-          if constexpr(privilege_write(AccessPrivilege))
+          if constexpr(privilege_write(Priv))
             current = loc;
 
           return loc_buffer;
@@ -116,13 +113,9 @@ struct storage {
     }
   }
 
-  template<exec::task_processor_type_t ProcessorType =
-             exec::task_processor_type_t::loc,
-    partition_privilege_t AccessPrivilege = ro,
-    typename = std::enable_if_t<(AccessPrivilege == ro)>>
+  template<exec::processor Proc = exec::processor::loc>
   auto data() const {
-    return const_cast<storage<T> *>(this)
-      ->data<ProcessorType, AccessPrivilege>();
+    return const_cast<storage<T> *>(this)->data<Proc>();
   }
 
   void resize(std::size_t size) {

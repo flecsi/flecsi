@@ -305,12 +305,12 @@ struct field : data::detail::field_base<T, L> {
   ///   - exclusive
   ///   - shared, ghost
   ///   - exclusive, shared, ghost
-  template<partition_privilege_t... PP>
+  template<privilege... PP>
   using accessor = accessor1<privilege_pack<PP...>>;
   /// The mutator to use as a parameter for this sort of field (usable only
   /// for certain layouts).
   /// \tparam PP as for \c accessor
-  template<partition_privilege_t... PP>
+  template<privilege... PP>
   using mutator = mutator1<privilege_pack<PP...>>;
 
   template<class Topo, typename Topo::index_space S>

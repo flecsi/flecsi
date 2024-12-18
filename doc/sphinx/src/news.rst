@@ -61,10 +61,12 @@ Fixed
 
   * The speed of ghost copies has been significantly improved (without losing the decreased memory usage).
   * ``ragged`` or ``sparse`` fields do not generate spurious warnings about using uninitialized data.
+  * Tasks with a single parameter whose type is a specialization of ``std::tuple`` work.
 
 * Utilities
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
+  * ``serial::get_tuple<std::tuple<...>>`` works (and produces a singleton tuple).
 
 Deprecated
 ^^^^^^^^^^
