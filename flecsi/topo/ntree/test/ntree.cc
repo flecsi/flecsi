@@ -68,22 +68,26 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
 
   using freader = txt_definition<key_t, sph_ntree_t::dimension>;
 
-  static void init_fields(sph_ntree_t::accessor<wo, na> t, freader & hd) {
-    auto c = process();
-    for(auto i : t.entities()) {
-      t.e_i(i).coordinates = hd.entities(i).coordinates_;
-      t.e_i(i).radius = hd.entities(i).radius_;
-      t.e_colors(i) = c;
-      t.e_ids(i) = hd.entities(i).id_;
-      t.e_keys(i) = hd.entities(i).key_;
-      t.e_i(i).mass = hd.entities(i).mass_;
+  static void init_fields(data::multi<sph_ntree_t::accessor<wo, wo>> t,
+    freader & hd) {
+    for(auto [c, a] : t.components()) {
+      hd.read_entities(c);
+      for(auto i : a.entities()) {
+        a.e_i(i).coordinates = hd.entities(i).coordinates_;
+        a.e_i(i).radius = hd.entities(i).radius_;
+        a.e_colors(i) = c;
+        a.e_ids(i) = hd.entities(i).id_;
+        a.e_keys(i) = hd.entities(i).key_;
+        a.e_i(i).mass = hd.entities(i).mass_;
+      }
     }
   } // init_fields
 
   static void initialize(data::topology_slot<sph_ntree_t> & ts,
     const coloring &,
     std::optional<freader> & hd) {
-    flecsi::execute<init_fields, flecsi::mpi>(ts, *hd);
+    auto lm_ts = data::launch::make(ts);
+    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, *hd);
   }
 
   static void build_ntree(data::topology_slot<sph_ntree_t> & ts) {
@@ -96,19 +100,19 @@ struct sph_ntree_t : topo::specialization<topo::ntree, sph_ntree_t> {
   }
 
   static coloring color(const std::string & name, std::optional<freader> & hd) {
-    hd = txt_definition<key_t, sph_ntree_t::dimension>(name);
-    const int size = processes();
+    const flecsi::Color size = 10;
+    hd.emplace(name, size);
     util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
 
     c.entities_sizes_.resize(size);
-    for(int i = 0; i < size; ++i)
+    for(flecsi::Color i = 0; i < size; ++i)
       c.entities_sizes_[i] = hd->offset(i).second - hd->offset(i).first;
 
     c.nodes_sizes_ = c.entities_sizes_;
     std::for_each(c.nodes_sizes_.begin(),
       c.nodes_sizes_.end(),
-      [](util::id & d) { d += 10; });
+      [](util::id & d) { d += 20; });
 
     return c;
   } // color
@@ -232,11 +236,7 @@ check_neighbors_accelerator(sph_ntree_t::accessor<rw, ro> t) {
 void
 init_ids(sph_ntree_t::accessor<ro, na> t,
   field<flecsi::util::id>::accessor<wo, na> p) {
-  forall(a,
-    flecsi::util::iota_view<flecsi::util::id>(0, t.e_ids.span().size()),
-    "Initialize") {
-    p[a] = t.e_ids(a);
-  };
+  forall(a, t.entities(), "Initialize") { p[a] = t.e_ids(a); };
 }
 
 void

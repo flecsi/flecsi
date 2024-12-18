@@ -17,18 +17,42 @@ struct ntree_base {
 
   /// Index spaces used for the ntree topology
   enum index_space {
-    entities,
-    nodes,
+    entities, /// Index space for entities related fields
+    nodes, /// Index space for nodes related fields
     hashmap,
     tree_data,
     comms,
     share_ghosts_comms,
+    // Buffer for the top tree entities used during the make_tree
+    // phase. This is used to perform an AllGather via multi
+    // acessors.
     top_tree_ents,
+    // Buffer for the top tree nodes used during the make_tree
+    // phase. This is used to perform an AllGather via multi
+    // accessors.
     top_tree_nodes,
+    // Buffer for the color/id. It contains the local
+    // entities that other ranks will use to find
+    // neighbors during the share_ghosts phase. This is
+    // used to perform an AllToAllv. We are using the
+    // entities index space as the receiving buffer of
+    // the buffer copy in this case.
     share_ghosts_cid_comm,
+    // Buffer for the neighbors entities. This
+    // temporary buffer stores the information for the
+    // AllToAllv communication in the share_ghosts
+    // phase.
     share_ghosts_buffer_comm,
+    // Buffer containing the neighbor
+    // entities, result of the AllToAllv
+    // communication from
+    // share_ghosts_buffer_comm. This is used
+    // in the share_ghosts phase.
     share_ghosts_distant_buffer_comm
   };
+
+  /// \hideinitializer The specialization developer is required to use the index
+  /// spaces provided by the N-Tree.
   using index_spaces = util::constants<entities,
     nodes,
     hashmap,
@@ -57,7 +81,10 @@ struct ntree_base {
   /// Ntree coloring
   struct coloring {
 
-    ///  Build a coloring based on the number of colors \p nparts
+    /// Build a coloring based on the number of colors \p nparts, and the size
+    /// of the hashtable.
+    /// \param nparts Number of colors
+    /// \param hmap_size Number of entries in the hashtable
     coloring(Color nparts, util::id hmap_size)
       : nparts_(nparts), local_hmap_(hmap_size) {}
 
@@ -82,14 +109,18 @@ protected:
   };
 
   struct meta_type {
-    std::size_t max_depth;
+    // #local entities and nodes
     ent_node local;
+    // #ghost entities
     util::id ghosts;
+    // #ghosts nodes in the top_tree
     util::id top_tree;
-    util::id nents_recv;
+    // #entities received during the first and second AllToAllv buffer copy in
+    // share_ghosts phase
+    util::id nents_recv, nents_recv_2;
+    // Total #entities and #nodes received from make_tree_distributed_task to
+    // create top tree copy plans
     util::id cp_nents_tt, cp_nnodes_tt;
-    util::id buffer_size, buffer_counter;
-    util::id nents_base, nents_tt;
   };
 
   struct color_id {
@@ -97,6 +128,10 @@ protected:
     ent_id id;
     std::size_t from_color;
   };
+
+  static std::size_t allocate_same(const util::id size, const std::size_t &) {
+    return size;
+  }
 
   static std::size_t allocate(const std::vector<util::id> & arr,
     const std::size_t & i) {
@@ -118,7 +153,6 @@ protected:
   static void set_dests_share_ghosts_comms(
     field<data::intervals::Value>::accessor<wo> a) {
     const auto & c = run::context::instance().colors();
-    assert(a.span().size() == c);
     a[0] = data::intervals::make({c, 2 * c - 1});
   }
   static void set_ptrs_share_ghosts_comms(

@@ -39,6 +39,10 @@ Fixed
   * ``dimensioned_array`` construction works reliably in constant expressions.
   * ``serial::get_tuple<std::tuple<...>>`` works (and produces a singleton tuple).
 
+* Topology
+
+  * ``ntree`` initializes properly with a number of colors different from the number of processes.
+
 Deprecated
 ^^^^^^^^^^
 * Utilities
