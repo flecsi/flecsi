@@ -90,6 +90,8 @@ struct copy_engine : copy_base {
       max_local_source_idx = std::max(max_local_source_idx,
         *std::max_element(
           indices_view.data(), indices_view.data() + indices_view.size()));
+      max_shared_indices_size =
+        std::max(max_shared_indices_size, indices_view.size());
     }
     max_local_source_idx += 1;
   }

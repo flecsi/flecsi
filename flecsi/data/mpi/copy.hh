@@ -119,7 +119,7 @@ struct copy_engine : local::copy_engine {
                 Kokkos::deep_copy(Kokkos::DefaultExecutionSpace{},
                   backend_storage::host_view{
                     send_buffers.back().data(), n_bytes},
-                  *gather_buffer_device_view);
+                  gather_view);
               }},
             source->current_data<ro>(data_fid));
 
