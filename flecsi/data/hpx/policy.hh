@@ -75,7 +75,7 @@ struct fate {
 
   static fate make(future f = {}) {
     fate ret;
-    ret.f = std::make_shared<future>(f);
+    ret.f = std::make_shared<future>(std::move(f));
     return ret;
   }
 
