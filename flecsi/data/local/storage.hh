@@ -67,52 +67,27 @@ struct storage {
     device_access<Priv>,
     host_access<Priv>>
   data() {
-    const auto transfer_return = [this](auto & sync, auto & ret) {
-      if(ret.extent(0) < sync.extent(0))
-        Kokkos::resize(Kokkos::WithoutInitializing, ret, sync.extent(0));
+    const auto transfer = [this](const auto & src, auto & ret, sync s) {
+      if(current != both && current != s) {
+        const auto n = src.extent(0);
+        Kokkos::resize(Kokkos::WithoutInitializing, ret, n);
 
-      auto ret_view = Kokkos::subview(
-        ret, std::pair<std::size_t, std::size_t>(0, sync.extent(0)));
-
-      // If wo is requested, we don't care what's there, so no need to copy
-      if constexpr(Priv != privilege::wo)
-        Kokkos::deep_copy(ret_view, sync);
-
-      if constexpr(!privilege_write(Priv))
-        current = both;
-      else
-        current = (current == loc ? toc : loc);
+        // If wo is requested, we don't care what's there, so no need to copy
+        if constexpr(Priv != privilege::wo) {
+          Kokkos::deep_copy(Kokkos::subview(ret, std::pair(0 * n, n)), src);
+          current = both;
+        }
+      }
+      if(privilege_write(Priv))
+        current = s;
 
       return ret;
     };
 
-    switch(current) {
-      case loc:
-        if constexpr(Proc == exec::processor::toc)
-          return transfer_return(loc_buffer, toc_buffer);
-        else
-          return loc_buffer;
-      case toc:
-        if constexpr(Proc != exec::processor::toc)
-          return transfer_return(toc_buffer, loc_buffer);
-        else
-          return toc_buffer;
-      default:
-        if constexpr(Proc == exec::processor::toc) {
-          // If we're writing, we need to change the state
-          if constexpr(privilege_write(Priv))
-            current = toc;
-
-          return toc_buffer;
-        }
-        else {
-          // If we're writing, we need to change the state
-          if constexpr(privilege_write(Priv))
-            current = loc;
-
-          return loc_buffer;
-        }
-    }
+    if constexpr(Proc == exec::processor::toc)
+      return transfer(loc_buffer, toc_buffer, toc);
+    else
+      return transfer(toc_buffer, loc_buffer, loc);
   }
 
   template<exec::processor Proc = exec::processor::loc>
