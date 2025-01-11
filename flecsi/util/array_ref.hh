@@ -158,6 +158,11 @@ struct mdbase {
   static_assert(D > 0);
   using size_type = std::size_t;
 
+  /// The element type.
+  using element_type = T;
+  /// The unqualified value type.
+  using value_type = std::remove_cv_t<T>;
+
   /// Construct a view of a one-dimensional array.
   /// Here, `x` and `y` are analogous:\code
   /// int x[2][3][4],y0[2*3*4];

@@ -50,6 +50,10 @@ New features
   * FleCSI now supports HPX as a runtime backend.
     However, GPU tasks are not supported with current versions of HPX.
 
+* Utilities
+
+  * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
+
 Changes in v2.3.1
 +++++++++++++++++
 
