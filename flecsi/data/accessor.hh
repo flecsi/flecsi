@@ -121,7 +121,7 @@ struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
 
 /// Accessor for a single value.  \gpu.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
-struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
+struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using value_type = DATA_TYPE;
   // We don't actually inherit from base_type; we don't want its interface.
   using base_type = accessor<dense, DATA_TYPE, PRIVILEGES>;
@@ -403,7 +403,7 @@ struct accessor<ragged, T, P>
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
-  : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
+  : send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
   static_assert(std::is_nothrow_move_constructible_v<T>,
     "the data type should not throw from a move constructor.");
   static_assert(std::is_nothrow_move_assignable_v<T>,
@@ -941,7 +941,7 @@ public:
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
-  : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
+  : send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
 private:
   using Field = field<T, sparse>;
 
@@ -1528,7 +1528,7 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
 /// \tparam A an \c accessor, \c mutator, or \c topology_accessor
 ///   specialization
 template<class A>
-struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
+struct multi : detail::multi_buffer<A>, send_tag {
   multi(Color n, const A & a) : vp(n, round{{}, a}) {}
 
   Color depth() const {

@@ -73,6 +73,13 @@ struct replace_argument<P,
   }
 };
 
+template<class T>
+struct must_bind : std::integral_constant<bool,
+                     std::is_base_of_v<data::bind_tag, T> ||
+                       std::is_base_of_v<data::send_tag, T>> {};
+template<class T>
+constexpr bool must_bind_v = must_bind<T>::value;
+
 // For each parameter-type/argument pair we have either an Index (the size of
 // a required index launch, or nothing for an empty vector), std::monostate
 // (for a required single
@@ -177,8 +184,7 @@ protected:
   // The const gives a different parameter type (avoiding Clang bug #49583)
   // and makes this a worse overload than that for send_tag.
   template<class P>
-  static std::enable_if_t<!std::is_base_of_v<data::bind_tag, P>> visit(
-    const P &) {}
+  static std::enable_if_t<!must_bind_v<P>> visit(const P &) {}
 
 private:
   D & d() {
@@ -346,6 +352,8 @@ struct launch<std::vector<P>, std::vector<A>> {
     return ret.value();
   }
 };
+template<class T>
+struct must_bind<std::vector<T>> : must_bind<T> {};
 
 template<class... PP>
 struct task_param<std::tuple<PP...>> {
@@ -387,6 +395,8 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+template<class... TT>
+struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 
 template<class P>
 struct launch<P, launch_domain> {
