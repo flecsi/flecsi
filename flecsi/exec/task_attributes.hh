@@ -20,7 +20,9 @@ using TaskAttributes = unsigned;
 enum task_attributes_mask_t : TaskAttributes {
   leaf = 0x01,
   inner = 0x02,
-  idempotent = 0x04, ///< Task may be replicated to reduce communication.
+  /// Ignored.
+  /// \deprecated No effect.
+  idempotent [[deprecated("has no effect")]] = 0x04,
   loc = 0x08, ///< Run on a Latency-Optimized Core (a CPU).
   /// Run on a Throughput-Optimized Core (a GPU).
   /// The task function itself still runs on the host, but a GPU is reserved

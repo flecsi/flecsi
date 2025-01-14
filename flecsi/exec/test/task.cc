@@ -9,8 +9,7 @@ using reduction_type = std::uint64_t;
 template<task_attributes_mask_t P, exec::processor T>
 constexpr bool
 test() {
-  static_assert(
-    exec::mask_to_processor_type(P | leaf | inner | idempotent) == T);
+  static_assert(exec::mask_to_processor_type(P | leaf | inner) == T);
   return true;
 }
 

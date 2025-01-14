@@ -221,7 +221,6 @@ detail::register_task() {
 
   registrar.set_leaf(A & leaf || ~A & inner);
   registrar.set_inner(A & inner);
-  registrar.set_idempotent(A & idempotent);
 
   /*
     This section of conditionals is necessary because there is still

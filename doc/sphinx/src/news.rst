@@ -30,6 +30,10 @@ Deprecated
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
   * ``ENABLE_OPENMP`` |mdash| is ignored.
 
+* Execution
+
+  * ``idempotent`` task attribute |mdash| has never had any effect
+
 New features
 ^^^^^^^^^^^^
 * Execution
