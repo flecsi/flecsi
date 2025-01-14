@@ -6,9 +6,9 @@ find_program(Graphviz_dot_EXECUTABLE
 
 find_path(Graphviz_INCLUDE_DIR NAMES graphviz/cgraph.h)
 
-find_library(Graphviz_cdt_LIBRARY NAMES cdt )
-find_library(Graphviz_cgraph_LIBRARY NAMES cgraph )
-find_library(Graphviz_gvc_LIBRARY NAMES gvc )
+find_library(Graphviz_cdt_LIBRARY NAMES cdt PATH_SUFFIXES ${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu)
+find_library(Graphviz_cgraph_LIBRARY NAMES cgraph PATH_SUFFIXES ${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu)
+find_library(Graphviz_gvc_LIBRARY NAMES gvc PATH_SUFFIXES ${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu)
 
 mark_as_advanced(
   Graphviz_INCLUDE_DIR
