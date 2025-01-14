@@ -66,12 +66,6 @@ namespace exec {
 /// \{
 
 /*!
-  Enumeration of task types.
- */
-
-enum class task_type_t : size_t { leaf, inner, idempotent };
-
-/*!
   Enumeration of processor types.
  */
 
@@ -81,20 +75,10 @@ enum class processor : size_t { loc, toc, omp, mpi };
 inline constexpr size_t task_attributes_bits = 8, task_type_bits = 3;
 
 constexpr auto
-as_mask(task_type_t t) {
-  return static_cast<task_attributes_mask_t>(
-    1 << static_cast<TaskAttributes>(t));
-}
-constexpr auto
 as_mask(processor t) {
   return static_cast<task_attributes_mask_t>(
     1 << (task_type_bits + static_cast<TaskAttributes>(t)));
 }
-
-inline task_type_t
-mask_to_task_type(TaskAttributes mask) {
-  return static_cast<task_type_t>(util::bit_width(mask) - 1);
-} // mask_to_task_type
 
 constexpr processor
 mask_to_processor_type(TaskAttributes mask) {
