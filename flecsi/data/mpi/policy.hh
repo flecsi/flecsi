@@ -799,9 +799,9 @@ struct copy_engine {
                     type_size);
                 });
             }},
-          destination.r->kokkos_view<wo>(data_fid));
+          destination.r->kokkos_view<rw>(data_fid));
 #else
-        scatter_copy(destination.get_storage<std::byte, wo>(data_fid).data(),
+        scatter_copy(destination.get_storage<std::byte, rw>(data_fid).data(),
           recv_buffer->data(),
           ghost_indices);
 #endif
