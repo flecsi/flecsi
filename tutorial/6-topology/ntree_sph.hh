@@ -128,14 +128,15 @@ struct sph_ntree_t
   using ent_t = sort_entity<dimension, double, key_t>;
 
   // Feed the index space / fields with initial information for the entities
-  static void init_fields(sph_ntree_t::accessor<flecsi::wo, flecsi::wo> t,
-    const std::vector<sph_ntree_t::ent_t> & ents) {
-    auto c = flecsi::process();
-    for(std::size_t i = 0; i < ents.size(); ++i) {
-      t.e_i(i).coordinates = ents[i].coordinates_;
-      t.e_i(i).radius = ents[i].radius_;
-      t.e_colors(i) = c;
-      t.e_i(i).mass = ents[i].mass_;
+  static void init_fields(
+    flecsi::data::multi<sph_ntree_t::accessor<flecsi::rw, flecsi::na>> t,
+    const std::size_t nents,
+    const std::vector<flecsi::util::id> & offsets) {
+    for(auto [c, a] : t.components()) {
+      flecsi::util::id offset =
+        std::accumulate(offsets.begin(), offsets.begin() + c, 0);
+      std::fill(a.e_colors.span().begin(), a.e_colors.span().end(), c);
+      sph::init_base(a.e_i.span(), a.e_ids.span(), nents, offset);
     }
   } // init_fields
 
@@ -159,9 +160,13 @@ struct sph_ntree_t
   } // generate_ntree
 
   static void initialize(flecsi::data::topology_slot<sph_ntree_t> & ts,
-    coloring,
-    std::vector<ent_t> & ents) {
-    flecsi::execute<init_fields>(ts, ents);
+    const coloring & c,
+    flecsi::util::id nents) {
+    auto lm_ts = flecsi::data::launch::make(ts);
+    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, nents, c.entities_sizes_);
+  }
+
+  static void build_ntree(flecsi::data::topology_slot<sph_ntree_t> & ts) {
     generate_ntree(ts);
   }
 
@@ -174,8 +179,8 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::util::id nents, std::vector<ent_t> & ents) {
-    const int size = flecsi::processes(), rank = flecsi::process();
+  static coloring color(flecsi::util::id nents) {
+    const int size = flecsi::processes();
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
     c.entities_sizes_.resize(size);
@@ -189,10 +194,6 @@ struct sph_ntree_t
       if(i > 0)
         offset[i] += offset[i - 1] + c.entities_sizes_[i];
     }
-
-    // Feed default values
-    ents.resize(c.entities_sizes_[rank]);
-    sph::init_base(ents, nents, offset[rank]);
 
     c.nodes_sizes_ = c.entities_sizes_;
     for(flecsi::util::id & d : c.nodes_sizes_)

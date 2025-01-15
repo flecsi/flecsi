@@ -70,14 +70,13 @@ The N-Tree setup happens in ``initialize_action``:
 
 .. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
   :language: cpp
-  :start-at: std::vector<sph_ntree_t::ent_t> ents;
-  :end-at: cp.sph_ntree.allocate(coloring, ents);
+  :start-at: const int nents = sph::n_entities.value();
+  :end-at: sph_ntree_t::build_ntree(cp.sph_ntree);
 
-Firstly, the initial information about the entities is retrieved (either from a file or directly generated in the program) through a vector of entities. In this example we are using a vector of ``sph_ntree_t::ent_t`` which contains only the vital information to create the N-Tree through our SPH specialization: coordinates, mass, and radius.
+Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.
 The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``color`` function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
-The call to ``allocate`` generates the N-Tree data structure using the information gathered in the vector. After this call, the topology is ready to be used: the tree is built and can be used to find neighboring entities.
-
-The last part of ``initialize_action`` is using a user-provided task to populate the different user-defined fields. These fields are defined at the top of the ``main.cc`` file:
+The call to ``allocate`` creates the basic memory layout to input the initial particle information but does not generate the N-Tree data structure.
+At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``main.cc`` file:
 
 
 .. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
@@ -102,6 +101,8 @@ The task ``init_sodtube_task`` shows the access to both this topology accessor a
 
 The entities can then be looped over to initialize their data.
 This is presented in the next subsection, demonstrating different access patterns.
+
+The last step of the ``initialize_action`` is to generate the N-Tree topology using the information provided to the specialization. After this call, the topology is ready to be used: the tree is built and can be used to find neighboring entities.
 
 Entities/Nodes Access
 ---------------------

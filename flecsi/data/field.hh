@@ -423,14 +423,10 @@ struct accessor_member : field_accessor<decltype(F), Priv> {
   accessor_member() : base_type(F.fid) {}
   using base_type::operator=; // for single
 
-  template<class G>
-  void topology_send(G && g) {
+  template<class G, class S = util::identity>
+  void topology_send(G && g, S && s = {}) { // s: topology -> subtopology
     // Using get_base() works around a GCC 9 bug that claims that the
     // inheritance of various accessor types is ambiguous.
-    std::forward<G>(g)(get_base(), F);
-  }
-  template<class G, class S>
-  void topology_send(G && g, S && s) { // s: topology -> subtopology
     std::forward<G>(g)(get_base(),
       [&s](auto & t) { return F(std::invoke(std::forward<S>(s), t.get())); });
   }

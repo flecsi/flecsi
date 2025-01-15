@@ -81,14 +81,17 @@ eos(T & t,
 
 template<typename T>
 void
-init_base(T & e, std::size_t global_nents, std::size_t offset) {
+init_base(T e,
+  flecsi::util::span<flecsi::util::id> id,
+  std::size_t global_nents,
+  std::size_t offset) {
   const double h = 1. / static_cast<double>(global_nents);
   for(std::size_t i = 0; i < e.size(); ++i) {
-    e[i].radius_ = 2 * h + h / 4.;
-    e[i].coordinates_ = h * (offset + i);
-    e[i].id_ = offset + i;
-    e[i].mass_ =
-      e[i].coordinates_[0] < 0.5 ? constants::rho_h * h : constants::rho_l * h;
+    e[i].radius = 2 * h + h / 4.;
+    e[i].coordinates = h * (offset + i);
+    id[i] = offset + i;
+    e[i].mass =
+      e[i].coordinates[0] < 0.5 ? constants::rho_h * h : constants::rho_l * h;
   }
 }
 
