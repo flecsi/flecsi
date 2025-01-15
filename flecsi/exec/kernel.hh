@@ -227,7 +227,8 @@ mdiota_view(const M & m, RR... rr) {
 
 /// Call a function on each element of a range, potentially in parallel.
 /// If GPU support is available, \a lambda is executed there.
-/// \param p sized random-access range
+/// \param p sized random-access range or a non-negative integer (interpreted
+///   as the range of smaller non-negative integers)
 /// \param name operation name, for debugging
 template<typename Policy, typename Lambda>
 void
@@ -268,7 +269,7 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
 /// \param it variable name to introduce
-/// \param P sized random-access range
+/// \param P as for \c parallel_for
 /// \param name debugging name, convertible to \c std::string
 #define forall(it, P, name)                                                    \
   ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
@@ -289,7 +290,7 @@ struct reduce_ref {
 /// \tparam T data type
 /// \tparam Lambda function of an element of \a p and a function object that
 ///   calls the latter with each value participating in the reduction
-/// \param p sized random-access range
+/// \param p as for \c parallel_for
 /// \param name operation name, for debugging
 template<class R, class T, typename Policy, typename Lambda>
 [[nodiscard]] T
@@ -343,7 +344,7 @@ make_reduce(P policy, std::string n) {
 /// \param it variable name to introduce for elements
 /// \param ref variable name to introduce for storing results; call it with
 ///   each value participating in the reduction
-/// \param p sized random-access range
+/// \param p as for \c parallel_for
 /// \param R reduction operation type
 /// \param T data type
 /// \param name debugging name, convertible to \c std::string
