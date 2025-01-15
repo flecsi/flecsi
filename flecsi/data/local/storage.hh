@@ -55,8 +55,11 @@ struct storage {
   std::variant<host_access<Priv>, device_access<Priv>> current_data() {
     if(current == toc)
       return device_access<Priv>(toc_buffer);
-    else
+    else {
+      if(privilege_write(Priv))
+        current = loc;
       return host_access<Priv>(loc_buffer);
+    }
   }
 
   template<exec::processor Proc = exec::processor::loc,
