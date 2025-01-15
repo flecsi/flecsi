@@ -57,6 +57,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // FLOG
 //----------------------------------------------------------------------------//
 
+/// Defined if Flog is enabled via the CMake option of the same name.
 #cmakedefine FLECSI_ENABLE_FLOG
 #if defined(FLECSI_ENABLE_FLOG)
 #define FLOG_STRIP_LEVEL @FLOG_STRIP_LEVEL@
