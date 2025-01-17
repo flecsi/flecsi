@@ -32,6 +32,7 @@ Deprecated
 
 * Execution
 
+  * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
   * ``partition_privilege_t`` |mdash| use ``privilege``
 

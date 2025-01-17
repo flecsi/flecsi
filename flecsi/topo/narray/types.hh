@@ -612,10 +612,6 @@ struct narray_base {
     return make_axes(colors, indices);
   } // make_axes
 
-  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
-    return vs[c];
-  }
-
   // for make_copy_plan
   static void set_dests(
     data::multi<field<data::intervals::Value>::accessor<wo>> aa,

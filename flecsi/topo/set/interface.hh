@@ -23,13 +23,6 @@ struct set_base {
     /// Counts per color
     std::vector<std::size_t> counts;
   };
-
-  static std::size_t allocate(const std::vector<std::size_t> & arr,
-    const std::size_t & i) {
-
-    return arr[i];
-  }
-
 }; // set_base
 
 /// This struct is a Set topology interface.
@@ -61,8 +54,9 @@ struct set : set_base {
   explicit set(coloring x)
     : p{static_cast<mesh_slot *>(x.ptr)}, part{make_repartitioned<Policy>(
                                             x.counts.size(),
-                                            make_partial<allocate>(x.counts))} {
-  }
+                                            [a = x.counts](std::size_t c) {
+                                              return a[c];
+                                            })} {}
 
   Color colors() const {
 
