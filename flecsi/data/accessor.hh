@@ -101,7 +101,7 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using base_type = accessor<dense, DATA_TYPE, PRIVILEGES>;
   using element_type = typename base_type::element_type;
 
-  explicit accessor(std::size_t s) : base(s) {}
+  explicit accessor(field_id_t f) : base(f) {}
   accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
