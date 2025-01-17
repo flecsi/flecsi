@@ -6,7 +6,6 @@
 
 #include "flecsi/data/topology_slot.hh"
 #include "flecsi/run/backend.hh"
-#include "flecsi/util/demangle.hh"
 #include "flecsi/util/target.hh"
 #include <flecsi/data/layout.hh>
 #include <flecsi/data/privilege.hh>
