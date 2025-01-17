@@ -30,10 +30,15 @@ Deprecated
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
   * ``ENABLE_OPENMP`` |mdash| is ignored.
 
+* Execution
+
+  * ``idempotent`` task attribute |mdash| has never had any effect
+
 New features
 ^^^^^^^^^^^^
 * Execution
 
+  * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
 
 * Topologies

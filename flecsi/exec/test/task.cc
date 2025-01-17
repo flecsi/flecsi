@@ -9,8 +9,7 @@ using reduction_type = std::uint64_t;
 template<task_attributes_mask_t P, exec::processor T>
 constexpr bool
 test() {
-  static_assert(
-    exec::mask_to_processor_type(P | leaf | inner | idempotent) == T);
+  static_assert(exec::mask_to_processor_type(P | leaf | inner) == T);
   return true;
 }
 
@@ -44,6 +43,8 @@ simple(TYPE arg) {
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
+void
+moveTask(const std::unique_ptr<int> &) {}
 template<class T, class F>
 void
 seq(const T & s, F f) {
@@ -199,6 +200,10 @@ task_driver() {
       auto g = t1.make_guard();
       execute<hydro::simple<float>>(6.2);
     }
+
+    const float obj = 8.9;
+    execute<hydro::simple<const float *>>(&obj);
+    execute<hydro::moveTask>(std::make_unique<int>());
   };
 } // task_driver
 

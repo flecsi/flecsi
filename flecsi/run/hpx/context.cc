@@ -86,7 +86,7 @@ context_t::world_comm() {
 void
 context_t::termination_detection() {
   std::unique_lock g(out_mutex);
-  out_cv.wait(g, [this] { return !out.load(std::memory_order_acquire); });
+  out_cv.wait(g, [this] { return !out; });
 }
 } // namespace flecsi::run
 

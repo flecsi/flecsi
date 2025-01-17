@@ -96,6 +96,14 @@ public:
     // make sure the input provided to `map_task` includes all the valid
     // instances that the runtime knows
     output.valid_instances = true;
+    // Mysteriously, the top-level task has 16 bytes of argument.
+    if(task.arglen == sizeof(std::size_t))
+      context::instance()
+        .params.at(get1<std::size_t>(task))
+        .post(task.is_index_space
+                ? (task.index_domain.get_volume() + total_nodes - 1 - node_id) /
+                    total_nodes
+                : node_id == output.initial_proc.address_space());
   }
 
   /* This is the method to choose default Layout constraints.

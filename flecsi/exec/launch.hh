@@ -18,7 +18,9 @@ namespace flecsi {
 namespace data {
 // Types inherit from these tags to indicate their task execution semantics.
 
-struct bind_tag {}; // must be recognized as a task parameter
+// A task parameter that needs additional initialization after the task has
+// been launched.
+struct bind_tag {};
 // A task parameter that provides a member function send to decompose itself
 // into lower-level types.  Its one argument is a backend-specific callback
 // that accepts a (subsidiary) task parameter and another function to call to
@@ -70,6 +72,13 @@ struct replace_argument<P,
     return task_param<P>::replace(static_cast<A>(a));
   }
 };
+
+template<class T>
+struct must_bind : std::integral_constant<bool,
+                     std::is_base_of_v<data::bind_tag, T> ||
+                       std::is_base_of_v<data::send_tag, T>> {};
+template<class T>
+constexpr bool must_bind_v = must_bind<T>::value;
 
 // For each parameter-type/argument pair we have either an Index (the size of
 // a required index launch, or nothing for an empty vector), std::monostate
@@ -175,8 +184,7 @@ protected:
   // The const gives a different parameter type (avoiding Clang bug #49583)
   // and makes this a worse overload than that for send_tag.
   template<class P>
-  static std::enable_if_t<!std::is_base_of_v<data::bind_tag, P>> visit(
-    const P &) {}
+  static std::enable_if_t<!must_bind_v<P>> visit(const P &) {}
 
 private:
   D & d() {
@@ -258,7 +266,6 @@ struct partial : std::tuple<AA...> {
 /// \{
 
 /// Partially apply a function.
-/// Lambdas and \c bind objects may not in general be passed to tasks.
 /// \tparam F function to call
 /// \tparam AA serializable types
 /// \return a function object that can be an argument to a task
@@ -344,6 +351,8 @@ struct launch<std::vector<P>, std::vector<A>> {
     return ret.value();
   }
 };
+template<class T>
+struct must_bind<std::vector<T>> : must_bind<T> {};
 
 template<class... PP>
 struct task_param<std::tuple<PP...>> {
@@ -385,6 +394,8 @@ struct launch<std::tuple<PP...>, std::tuple<AA...>> {
       .value();
   }
 };
+template<class... TT>
+struct must_bind<std::tuple<TT...>> : std::disjunction<must_bind<TT>...> {};
 
 template<class P>
 struct launch<P, launch_domain> {

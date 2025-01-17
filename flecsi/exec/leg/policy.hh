@@ -58,11 +58,16 @@ make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
       "only MPI tasks can accept rvalue references");
     static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
       "only MPI tasks can accept non-const references");
+    static_assert(
+      ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
+        std::is_function_v<std::remove_pointer_t<PP>>)&&...),
+      "only MPI tasks can accept non-const pointers");
     static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
       "only MPI tasks can accept accessors for non-portable fields");
   }
-  return std::tuple<decltype(convert_argument<PP>(std::forward<AA>(aa)))...>(
-    convert_argument<PP>(std::forward<AA>(aa))...);
+  return std::tuple<std::conditional_t<M,
+    decltype(convert_argument<PP>(std::forward<AA>(aa))),
+    std::decay_t<PP>>...>(convert_argument<PP>(std::forward<AA>(aa))...);
 }
 
 template<bool M, class P, class... AA>
@@ -98,29 +103,29 @@ reduce_internal(Args &&... args) {
   const auto domain_size = launch_size<Attributes, param_tuple>(args...);
 
   // We do not generate a separate task_wrapper specialization for each set of
-  // argument types, so they must be erased here (via either serialization or
-  // context_t::mpi_params).  Since an MPI task can use references to the
+  // argument types, so we construct a tuple whose type is independent of the
+  // those types.  Since an MPI task can use references to the
   // original arguments, we have to provide references, which in turn requires
   // separate storage for any objects created by argument conversions (absent
   // excessive variadic aggregate gymnastics to create lifetime-extended
   // temporaries).
-  auto params =
-    detail::make_parameters<mpi_task, param_tuple>(std::forward<Args>(args)...);
-  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
-  std::conditional_t<mpi_task, param_tuple, decltype(params) &&> mpi_params(
-    std::move(params));
 
+  run::any any;
+  auto & params = any.emplace(detail::make_parameters<mpi_task, param_tuple>(
+    std::forward<Args>(args)...));
+  prolog<mask_to_processor_type(Attributes)> pro(params, args...);
+  std::optional<param_tuple> mpi_params;
   std::vector<std::byte> buf;
   if constexpr(mpi_task) {
     // MPI tasks must be invoked collectively from one task on each rank.
     // We therefore can transmit merely a pointer to a tuple of the arguments.
     // The TaskArgument must be identical on every shard, so use the context.
-    flecsi_context.mpi_params = &mpi_params;
+    flecsi_context.mpi_params = &mpi_params.emplace(std::move(params));
   }
   else {
-    buf = std::apply(
-      [](const auto &... pp) { return util::serial::put_tuple(pp...); },
-      params);
+    const auto t = trace::current();
+    buf = util::serial::put_tuple(
+      flecsi_context.params.add(std::move(any), t ? t->next() : nullptr));
   }
 
   using wrap = leg::task_wrapper<F, processor_type>;
@@ -151,7 +156,7 @@ reduce_internal(Args &&... args) {
     add(launcher);
 
     return future<return_t>{
-      legion_runtime->execute_task(legion_context, launcher)};
+      {}, legion_runtime->execute_task(legion_context, launcher)};
   }
   else {
     IndexTaskLauncher launcher(task,
@@ -168,7 +173,7 @@ reduce_internal(Args &&... args) {
     }
 
     if constexpr(!std::is_void_v<Reduction>) {
-      auto ret = future<return_t, launch_type_t::single>{
+      auto ret = future<return_t, launch_type_t::single>{{},
         legion_runtime->execute_index_space(
           legion_context, launcher, fold::wrap<Reduction, return_t>::REDOP_ID)};
       if(mpi_task)

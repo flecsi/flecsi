@@ -83,7 +83,7 @@ struct mapping : convert_tag {
 
   mapping(typename P::core & t, const Claims & clm) {
     // Transpose clm for the data::borrow objects.
-    // Serialization assumes that we always have at least one round.
+    // There is at least one round to hold metadata.
     bool more = true;
     for(borrow::Claims::size_type i = 0; more; ++i) {
       more = false;

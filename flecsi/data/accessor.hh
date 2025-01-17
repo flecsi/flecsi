@@ -74,6 +74,32 @@ using particle_raw =
   typename field<T, data::particle>::base_type::template accessor1<
     !M && get_privilege(0, P) == wo ? privilege_pack<rw> : P>;
 
+// Data used by param_buffers but created on the caller side:
+template<class T>
+struct clone {
+  template<class... UU>
+  explicit clone(UU &&... uu)
+    : p(std::make_shared<T>(std::forward<UU>(uu)...)) {}
+  clone(const clone & c) : p(std::make_shared<T>(*c)) {}
+  clone(clone && c) : p(c.p) {}
+
+  T & operator*() {
+    return *p;
+  }
+  const T & operator*() const {
+    return *p;
+  }
+  T * operator->() {
+    return &*p;
+  }
+  const T * operator->() const {
+    return &*p;
+  }
+
+private:
+  std::shared_ptr<T> p;
+};
+
 template<class A, class = void>
 struct multi_buffer {};
 template<class A>
@@ -95,7 +121,7 @@ struct multi_buffer<A, util::voided<typename A::TaskBuffer>> {
 
 /// Accessor for a single value.  \gpu.
 template<typename DATA_TYPE, Privileges PRIVILEGES>
-struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
+struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using value_type = DATA_TYPE;
   // We don't actually inherit from base_type; we don't want its interface.
   using base_type = accessor<dense, DATA_TYPE, PRIVILEGES>;
@@ -377,7 +403,7 @@ struct accessor<ragged, T, P>
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<ragged, T, P>
-  : bind_tag, send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
+  : send_tag, util::with_index_iterator<const mutator<ragged, T, P>> {
   static_assert(std::is_nothrow_move_constructible_v<T>,
     "the data type should not throw from a move constructor.");
   static_assert(std::is_nothrow_move_assignable_v<T>,
@@ -915,7 +941,7 @@ public:
 /// \tparam P if write-only, all rows are discarded
 template<class T, Privileges P>
 struct mutator<sparse, T, P>
-  : bind_tag, send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
+  : send_tag, util::with_index_iterator<const mutator<sparse, T, P>> {
 private:
   using Field = field<T, sparse>;
 
@@ -1502,10 +1528,8 @@ using scalar_access = std::conditional_t<privilege_merge(P) == ro,
 /// \tparam A an \c accessor, \c mutator, or \c topology_accessor
 ///   specialization
 template<class A>
-struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
-  multi(Color n, const A & a)
-    : vp(std::make_shared<std::vector<round>>(n, round{{}, a})) {}
-  multi(const multi &) = default; // implement move as copy
+struct multi : detail::multi_buffer<A>, send_tag {
+  multi(Color n, const A & a) : vp(n, round{{}, a}) {}
 
   Color depth() const {
     return vp->size();
@@ -1525,7 +1549,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
     return xform(*vp);
   }
   auto accessors() const {
-    return xform(std::as_const(*vp));
+    return xform(*vp);
   }
 
   template<class F>
@@ -1560,9 +1584,7 @@ private:
       util::span(v), [](auto & r) -> auto & { return r.a; });
   }
 
-  // Avoid losing contents when moved into a user parameter.
-  // We could use TaskBuffer for the purpose, but not on the caller side.
-  std::shared_ptr<std::vector<round>> vp;
+  detail::clone<std::vector<round>> vp;
 };
 
 /// \}

@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <map>
+#include <mutex>
 #include <string_view>
 #include <unordered_map>
 
@@ -21,6 +22,13 @@ namespace run {
 /// State for and control of the Legion runtime.
 /// \ingroup runtime
 /// \{
+
+template<class T>
+auto
+get1(const Legion::Task & t) {
+  const auto p = static_cast<const std::byte *>(t.args);
+  return util::serial::get1<T>(p, p + t.arglen);
+}
 
 namespace mapper {
 /// \addtogroup legion-runtime
@@ -42,6 +50,125 @@ inline constexpr Legion::MappingTagID
 /// \}
 /// \}
 } // namespace mapper
+
+using task_idx = std::size_t;
+
+class param_locker;
+
+// The number of point tasks for a process to execute may become known only
+// after several task launches that share it (via tracing).
+struct task_count {
+  using type = Color;
+  using ptr = std::shared_ptr<task_count>; // to outlive trace as needed
+
+  type set(type n) {
+    // If count is engaged, this is mapper output ignored by a trace.
+    return count ? *count : count.emplace(n);
+  }
+
+private:
+  std::optional<type> count;
+};
+
+// A move-only subset of std::any.
+struct any_base {
+  virtual ~any_base() = default;
+  virtual void * get(const std::type_info &) = 0;
+};
+
+template<class T>
+struct any_impl : any_base {
+  any_impl(T t) : t(std::move(t)) {}
+  void * get(const std::type_info & i) override {
+    if(i != typeid(T))
+      throw std::bad_cast();
+    return &t;
+  }
+  T t;
+};
+
+struct any {
+  template<class T>
+  std::decay_t<T> & emplace(T && t) {
+    auto * const q = new any_impl<std::decay_t<T>>(std::forward<T>(t));
+    p.reset(q);
+    return q->t;
+  }
+
+  explicit operator bool() const {
+    return !!p;
+  }
+  template<class T>
+  T & get() {
+    return *static_cast<T *>(p->get(typeid(T)));
+  }
+  template<class T>
+  const T & get() const {
+    return const_cast<any &>(*this).get<T>();
+  }
+  template<class T>
+  T && get() && {
+    return std::move(get<T>());
+  }
+
+private:
+  std::unique_ptr<any_base> p;
+};
+
+class param_locker
+{
+  struct task {
+    task(task_count::ptr tc, any && p)
+      : tc(std::move(tc)), params(std::move(p)) {}
+
+    task_count::ptr tc;
+    util::ref_count<task_count::type> ref{1};
+    any params;
+  };
+
+  using Map = std::map<task_idx, task>;
+  std::mutex lock;
+  Map tasks;
+  task_idx id = 0;
+
+  auto lease() {
+    return std::unique_lock(lock);
+  }
+
+  class guard
+  {
+    param_locker & lk;
+    Map::iterator it;
+
+  public:
+    guard(param_locker & lk, task_idx i) : lk(lk), it(lk.tasks.find(i)) {
+      flog_assert(it != lk.tasks.end(), "no such task");
+    }
+    guard(guard &&) = delete;
+
+    ~guard() {
+      if(--it->second.ref)
+        lk.lease(), lk.tasks.erase(it);
+    }
+
+    void post(task_count::type n) const {
+      const auto & p = it->second.tc;
+      it->second.ref += p ? p->set(n) : n;
+    }
+    template<class T>
+    T & get() const {
+      return it->second.params.get<T>();
+    }
+  };
+
+public:
+  [[nodiscard]] task_idx add(any && a, task_count::ptr tc) {
+    return lease(), tasks.try_emplace(id, std::move(tc), std::move(a)), id++;
+  }
+  guard at(task_idx i) {
+    return lease(), guard(*this, i);
+  }
+};
 
 namespace leg {
 template<class R = void>
@@ -100,6 +227,8 @@ struct context_t : context {
       ->get_current_task(Legion::Runtime::get_context())
       ->index_domain.get_volume();
   } // colors
+
+  param_locker params;
 
   //--------------------------------------------------------------------------//
   //  MPI interoperability.

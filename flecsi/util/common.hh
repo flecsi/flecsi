@@ -7,6 +7,7 @@
 #include "flecsi/config.hh"
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -74,6 +75,31 @@ struct counter {
 
 private:
   type last;
+};
+
+template<class T>
+struct ref_count {
+  explicit ref_count(T n) : c(n) {}
+  ~ref_count() {
+    assert(!*this && "abandoned reference count");
+  }
+
+  void operator+=(T n) {
+    c.fetch_add(n, std::memory_order_relaxed);
+  }
+  void operator++() {
+    *this += 1;
+  }
+  // Note the reversed sense of these two.
+  [[nodiscard]] bool operator--() {
+    return c.fetch_sub(1, std::memory_order_release) == 1;
+  }
+  explicit operator bool() const {
+    return c.load(std::memory_order_acquire);
+  }
+
+private:
+  std::atomic<T> c;
 };
 
 /// Sort a std::vector and remove duplicates.

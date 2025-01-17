@@ -101,14 +101,6 @@ buffer(F && f) {
   return ret;
 }
 
-/// Get a single object.
-/// \param p may be an rvalue
-template<class T>
-T
-get1(const std::byte * p) {
-  return get<T>(p);
-}
-
 /// Aggregate helper that converts to any type via \c get.
 struct cast {
   /// The pointer from which to \c get.
@@ -127,6 +119,15 @@ struct cast {
     return get<T>();
   }
 };
+
+// Get a single object.
+// \param p may be an rvalue
+template<class T>
+T
+get1(const std::byte * p, const std::byte * e = nullptr) {
+  cast x{p, e};
+  return x.get<T>();
+}
 
 /// Serialize a fixed set of objects into a buffer.
 /// Reconstruct with \c get_tuple.

@@ -12,7 +12,7 @@
 namespace flecsi {
 
 template<typename Return>
-struct future<Return> {
+struct future<Return> : data::bind_tag {
 
   void wait() {
     legion_future_.wait();

@@ -37,8 +37,6 @@ fill(resize::Field::accessor<wo> a, const F & f) {
 /// A partition with a field for dynamically resizing it.
 struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   // Construct a partition with an initial size.
-  // f is passed as a task argument, so it must be serializable;
-  // consider using make_partial.
   template<class F = decltype((zero::partial))>
   repartition(data::region & r, F && f = zero::partial)
     : with_size(r.size().first), prefixes(r, sizes().use([&f](auto ref) {

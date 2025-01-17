@@ -23,121 +23,7 @@
 #include <string>
 #include <utility>
 
-namespace flecsi {
-
-// Task parameter serialization (needed only for Legion):
-namespace data {
-template<class, Privileges, Privileges>
-struct ragged_accessor;
-template<class, Privileges, bool>
-struct particle_accessor;
-
-namespace detail {
-template<class A>
-struct convert_accessor {
-  using type = A;
-  using Base = typename type::base_type;
-  static const Base & put(const type & a) {
-    return a.get_base();
-  }
-  static type get(Base b) {
-    return b;
-  }
-};
-} // namespace detail
-} // namespace data
-
-// Send and receive only the field ID:
-template<data::layout L, class T, Privileges Priv>
-struct util::serial::convert<data::accessor<L, T, Priv>> {
-  using type = data::accessor<L, T, Priv>;
-  using Rep = field_id_t;
-  static Rep put(const type & r) {
-    return r.field();
-  }
-  static type get(const Rep & r) {
-    return type(r);
-  }
-};
-template<class R, typename T>
-struct util::serial::convert<data::reduction_accessor<R, T>> {
-  using type = data::reduction_accessor<R, T>;
-  using Rep = field_id_t;
-  static Rep put(const type & r) {
-    return r.field();
-  }
-  static type get(const Rep & r) {
-    return type(r);
-  }
-};
-template<class T, Privileges Priv>
-struct util::serial::convert<data::accessor<data::single, T, Priv>>
-  : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};
-template<class T, Privileges P, Privileges OP>
-struct util::serial::convert<data::ragged_accessor<T, P, OP>>
-  : data::detail::convert_accessor<data::ragged_accessor<T, P, OP>> {};
-template<data::layout L, class T, Privileges Priv>
-struct util::serial::traits<data::mutator<L, T, Priv>> {
-  using type = data::mutator<L, T, Priv>;
-  template<class P>
-  static void put(P & p, const type & m) {
-    serial::put(p, m.get_base());
-  }
-  static type get(const std::byte *& b) {
-    return serial::get<typename type::base_type>(b);
-  }
-};
-template<class T, Privileges P, bool M>
-struct util::serial::convert<data::particle_accessor<T, P, M>>
-  : data::detail::convert_accessor<data::particle_accessor<T, P, M>> {};
-template<class T, Privileges Priv>
-struct util::serial::traits<data::mutator<data::ragged, T, Priv>> {
-  using type = data::mutator<data::ragged, T, Priv>;
-  template<class P>
-  static void put(P & p, const type & m) {
-    serial::put(p, m.get_base(), m.get_grow());
-  }
-  static type get(const std::byte *& b) {
-    const serial::cast r{b};
-    return {r, r};
-  }
-};
-template<class A>
-struct util::serial::traits<data::multi<A>> {
-  using type = data::multi<A>;
-  template<class P>
-  static void put(P & p, const type & m) {
-    const auto a = m.accessors();
-    serial::put(p, Color(a.size()), a.front());
-  }
-  static type get(const std::byte *& b) {
-    const cast r{b};
-    return {r, r};
-  }
-};
-template<class T, Privileges Priv>
-struct util::serial::traits<data::topology_accessor<T, Priv>,
-  std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>
-  : util::serial::value<data::topology_accessor<T, Priv>> {};
-
-template<auto & F, class... AA>
-struct util::serial::traits<exec::partial<F, AA...>,
-  std::enable_if_t<!util::bit_copyable_v<exec::partial<F, AA...>>>> {
-  using type = exec::partial<F, AA...>;
-  using Rep = typename type::Base;
-  template<class P>
-  static void put(P & p, const type & t) {
-    serial::put(p, static_cast<const Rep &>(t));
-  }
-  static type get(const std::byte *& b) {
-    return serial::get<Rep>(b);
-  }
-};
-
-template<class T>
-struct util::serial::traits<future<T>> : util::serial::value<future<T>> {};
-
-namespace exec::leg {
+namespace flecsi::exec::leg {
 /// \addtogroup legion-execution
 /// \{
 using run::leg::task;
@@ -146,15 +32,6 @@ namespace detail {
 template<typename RETURN, task<RETURN> * TASK, TaskAttributes A>
 void register_task();
 
-template<class>
-struct tuple_get;
-template<class... TT>
-struct tuple_get<std::tuple<TT...>> {
-  static auto get(const Legion::Task & t) {
-    const auto p = static_cast<const std::byte *>(t.args);
-    return util::serial::get_tuple<std::decay_t<TT>...>(p, p + t.arglen);
-  }
-};
 } // namespace detail
 
 /*!
@@ -230,7 +107,6 @@ detail::register_task() {
 
   registrar.set_leaf(A & leaf || ~A & inner);
   registrar.set_inner(A & inner);
-  registrar.set_idempotent(A & idempotent);
 
   /*
     This section of conditionals is necessary because there is still
@@ -247,6 +123,21 @@ detail::register_task() {
   } // if
 }
 
+template<class>
+struct decay_tuple {};
+template<class... TT>
+struct decay_tuple<std::tuple<TT...>> {
+  using type = std::tuple<std::decay_t<TT>...>;
+};
+
+template<class... PP>
+auto
+bind_tuple(const std::tuple<PP...> & tup) { // to deduce a pack
+  // Copy only those elements that need to be modified per point task:
+  return std::tuple<
+    std::conditional_t<exec::detail::must_bind_v<PP>, PP, const PP &>...>(tup);
+}
+
 /*!
  The task_wrapper type provides execution
  functions for user and MPI tasks.
@@ -260,8 +151,9 @@ struct task_wrapper {
 
   using Traits = util::function_t<F>;
   using RETURN = typename Traits::return_type;
-  using param_tuple = typename Traits::arguments_type;
-
+  // reduce_internal had to make actual objects to which our references bind:
+  using param_tuple =
+    typename decay_tuple<typename Traits::arguments_type>::type;
   static constexpr processor LegionProcessor = P;
 
   /*!
@@ -274,8 +166,14 @@ struct task_wrapper {
     Legion::Runtime * runtime) {
 
     // Unpack task arguments
-    auto task_args = detail::tuple_get<param_tuple>::get(*task);
+    auto & flecsi_context = run::context::instance();
+    const auto params_idx = run::get1<std::size_t>(*task);
+    const auto access = flecsi_context.params.at(params_idx);
+    const auto & any_args = access.get<param_tuple>();
 
+    // There is a optimization opportunity here to move
+    // the elements instead of copying the last time.
+    auto task_args = bind_tuple(any_args);
     namespace ann = util::annotation;
     auto tname = util::symbol<F>();
     const param_buffers buf(task_args, tname);
@@ -327,7 +225,6 @@ struct task_wrapper<F, processor::mpi> {
 }; // task_wrapper
 
 /// \}
-} // namespace exec::leg
-} // namespace flecsi
+} // namespace flecsi::exec::leg
 
 #endif

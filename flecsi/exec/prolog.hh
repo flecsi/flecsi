@@ -70,7 +70,7 @@ protected:
 */
 template<processor Proc>
 struct prolog : task_prologue<Proc> {
-  // Note that accessors here may be empty versions made to be serialized and
+  // Note that accessors are (initially) empty and
   // that the arguments have been moved from (which doesn't matter for the
   // relevant types).
   template<class P, class... AA>
