@@ -128,7 +128,6 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : send_tag {
   using element_type = typename base_type::element_type;
 
   explicit accessor(field_id_t f) : base(f) {}
-  accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
   FLECSI_INLINE_TARGET element_type & get() const {
