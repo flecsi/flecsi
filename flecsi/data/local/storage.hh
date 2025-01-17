@@ -69,7 +69,7 @@ struct storage {
   data() {
     const auto transfer_return = [this](auto & sync, auto & ret) {
       if(ret.extent(0) < sync.extent(0))
-        Kokkos::resize(ret, sync.extent(0));
+        Kokkos::resize(Kokkos::WithoutInitializing, ret, sync.extent(0));
 
       auto ret_view = Kokkos::subview(
         ret, std::pair<std::size_t, std::size_t>(0, sync.extent(0)));
@@ -122,10 +122,10 @@ struct storage {
 
   void resize(std::size_t size) {
     if(current == loc || current == both)
-      Kokkos::resize(loc_buffer, size);
+      Kokkos::resize(Kokkos::WithoutInitializing, loc_buffer, size);
 
     if(current == toc || current == both)
-      Kokkos::resize(toc_buffer, size);
+      Kokkos::resize(Kokkos::WithoutInitializing, toc_buffer, size);
   }
 
   std::size_t size() const {
