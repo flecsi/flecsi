@@ -48,20 +48,47 @@ public:
   using ent_t = sort_entity<DIM, double, key_t>;
   using range_t = std::array<point_t, 2>;
 
-  txt_definition(const std::string & filename) {
-    const auto [rank, size] = flecsi::util::mpi::info();
-    read_entities_(filename);
-    // Compute the range
-    mpi_compute_range(entities_, range_);
-    // Generate the keys
-    for(size_t i = 0; i < entities_.size(); ++i) {
-      entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
+  txt_definition(const std::string & filename, const int size) {
+    read_sizes_(filename, size);
+  }
+
+  void read_entities(int c) {
+    nlocal_entities_ = distribution_[c];
+    entities_.resize(nlocal_entities_);
+
+    const int lineC = 6; // 3 digits, 2 spaces, and newline
+    const int lineR = 2; // 1 digit, and newline
+    int position = 2 + lineC * offset_[c];
+    myfile_.seekg(position);
+
+    // Coordinates, ignore the other ranks
+    for(size_t i = 0; i < nlocal_entities_; ++i) {
+      for(int j = 0; j < dim; ++j)
+        myfile_ >> entities_[i].coordinates_[j];
     }
 
-    nlocal_entities_ = entities_.size();
-    if(rank == 0)
-      flog(info) << rank << ": Range: " << range_[0] << ";" << range_[1]
-                 << std::endl;
+    position = 2 + nglobal_entities_ * lineC + lineR * offset_[c];
+    myfile_.seekg(position);
+
+    // Radius
+    for(size_t i = 0; i < nlocal_entities_; ++i)
+      myfile_ >> entities_[i].radius_;
+
+    position = 2 + nglobal_entities_ * lineC + nglobal_entities_ * lineR +
+               lineR * offset_[c];
+    myfile_.seekg(position);
+
+    // Mass
+    for(size_t i = 0; i < nlocal_entities_; ++i)
+      myfile_ >> entities_[i].mass_;
+
+    // Ids
+    for(size_t i = offset_[c], k = 0; i < offset_[c + 1]; ++i, ++k)
+      entities_[k].id_ = i;
+
+    // Generate the keys
+    for(size_t i = 0; i < nlocal_entities_; ++i)
+      entities_[i].key_ = key_t(range_, entities_[i].coordinates_);
   }
 
   size_t global_num_entities() const {
@@ -85,36 +112,36 @@ public:
   }
 
 private:
-  void mpi_compute_range(const std::vector<ent_t> & ents, range_t & range) {
+  void compute_range() {
 
-    // Compute the local range
-    range[0] = range[1] = ents.front().coordinates_;
+    int position = 2;
+    myfile_.seekg(position);
 
-    for(size_t i = 1; i < ents.size(); ++i) {
+    point_t p;
+    for(int j = 0; j < dim; ++j) {
+      myfile_ >> p[j];
+    }
+
+    range_[0] = range_[1] = p;
+    for(size_t i = 1; i < nglobal_entities_; ++i) {
+      for(int j = 0; j < dim; ++j) {
+        myfile_ >> p[j];
+      }
       for(int d = 0; d < dim; ++d) {
-        range[1][d] =
-          std::max(range[1][d], ents[i].coordinates_[d] + ents[i].radius_);
-        range[0][d] =
-          std::min(range[0][d], ents[i].coordinates_[d] - ents[i].radius_);
+        range_[1][d] = std::max(range_[1][d], p[d] + 1);
+        range_[0][d] = std::min(range_[0][d], p[d] - 1);
       }
     }
-    // Do the MPI Reduction
-    flecsi::util::mpi::test(MPI_Allreduce(
-      MPI_IN_PLACE, &(range[1][0]), dim, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD));
-    flecsi::util::mpi::test(MPI_Allreduce(
-      MPI_IN_PLACE, &(range[0][0]), dim, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD));
+  } // compute_range
 
-  } // mpi_compute_range
-
-  void read_entities_(const std::string & filename) {
-    const auto [rank, size] = flecsi::util::mpi::info();
+  void read_sizes_(const std::string & filename, const int size) {
     // For now read all particles?
-    std::ifstream myfile(filename);
-    if(myfile.fail()) {
+    myfile_ = std::ifstream(filename);
+    if(myfile_.fail()) {
       std::cerr << "Cannot open file: " << filename << std::endl;
     }
     nglobal_entities_ = 0;
-    myfile >> nglobal_entities_;
+    myfile_ >> nglobal_entities_;
 
     offset_.resize(size + 1, 0);
     distribution_.resize(size, 0);
@@ -131,65 +158,10 @@ private:
       offset_[i] = distribution_[i - 1] + offset_[i - 1];
     }
 
-    if(rank == 0) {
-      flog(info) << "Global entities: " << nglobal_entities_ << std::endl;
-      std::ostringstream oss;
-      oss << "Distribution:";
-      for(int i = 0; i < size; ++i) {
-        oss << " " << i << ":" << distribution_[i];
-      }
-      flog(info) << oss.str() << std::endl;
-      oss.str("");
-      oss.clear();
-      oss << "Offset:";
-      for(int i = 0; i < size + 1; ++i) {
-        oss << " " << i << ":" << offset_[i];
-      }
-      flog(info) << oss.str() << std::endl;
-    }
-
-    nlocal_entities_ = distribution_[rank];
-
-    entities_.resize(nlocal_entities_);
-
-    // Coordinates, ignore the other ranks
-    int k = 0;
-    for(size_t i = 0; i < nglobal_entities_; ++i) {
-      point_t p;
-      for(int j = 0; j < dim; ++j) {
-        myfile >> p[j];
-      }
-      if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].coordinates_ = p;
-    }
-
-    // Radius
-    k = 0;
-    for(size_t i = 0; i < nglobal_entities_; ++i) {
-      double r;
-      myfile >> r;
-      if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].radius_ = r;
-    }
-
-    // Mass
-    k = 0;
-    for(size_t i = 0; i < nglobal_entities_; ++i) {
-      double m;
-      myfile >> m;
-      if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].mass_ = m;
-    }
-
-    k = 0;
-    for(size_t i = 0; i < nglobal_entities_; ++i) {
-      if(i >= offset_[rank] && i < offset_[rank + 1])
-        entities_[k++].id_ = i;
-    }
-
-    myfile.close();
+    compute_range();
   }
 
+  std::ifstream myfile_;
   range_t range_;
   std::vector<ent_t> entities_;
   size_t nglobal_entities_;

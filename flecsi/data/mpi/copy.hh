@@ -194,7 +194,7 @@ struct copy_engine : local::copy_engine {
                     type_size);
                 });
             }},
-          destination->r->current_data<wo>(data_fid));
+          destination->r->current_data<rw>(data_fid));
         recv_buffer++;
       }
     }

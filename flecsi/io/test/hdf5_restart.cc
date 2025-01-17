@@ -157,7 +157,7 @@ restart_driver() {
     // for MPI:  run test once, since attach flag is ignored.
     // for Legion:  run test twice, once with and once without attach.
     EXPECT_EQ(check_attach(true), 0);
-#if defined(FLECSI_ENABLE_LEGION)
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
     EXPECT_EQ(check_attach(false), 0);
 #endif
   };

@@ -80,7 +80,7 @@ pointers(argv & v) {
 /// Specification for initializing underlying libraries.
 struct dependencies_config {
   argv mpi; ///< Command line for MPI.
-#if !defined(FLECSI_ENABLE_LEGION)
+#if FLECSI_BACKEND != FLECSI_BACKEND_legion
   /// Configuration for Kokkos. Present only if Legion is not in use
   /// (since it initializes Kokkos itself).
   /// \see [Kokkos

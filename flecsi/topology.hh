@@ -28,7 +28,7 @@
 #include "flecsi/topo/global.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/topo/narray/interface.hh"
-#if defined(FLECSI_ENABLE_LEGION)
+#if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include "flecsi/topo/ntree/interface.hh"
 #endif
 #include "flecsi/topo/set/interface.hh"

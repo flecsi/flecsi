@@ -50,8 +50,9 @@ struct global : specialization<global_category, global> {
 /// \}
 } // namespace topo
 
+namespace exec::detail {
 template<data::layout L, class T, Privileges Priv>
-struct exec::detail::launch<data::accessor<L, T, Priv>,
+struct launch<data::accessor<L, T, Priv>,
   data::field_reference<T, L, topo::global, topo::elements>> {
   static std::
     conditional_t<privilege_write(Priv), std::monostate, std::nullptr_t>
@@ -61,14 +62,14 @@ struct exec::detail::launch<data::accessor<L, T, Priv>,
 };
 
 template<class R, typename T>
-struct exec::detail::launch<data::reduction_accessor<R, T>,
+struct launch<data::reduction_accessor<R, T>,
   data::field_reference<T, data::dense, topo::global, topo::elements>> {
   static std::nullptr_t get(const data::
       field_reference<T, data::dense, topo::global, topo::elements> &) {
     return {};
   }
 };
-
+} // namespace exec::detail
 } // namespace flecsi
 
 #endif
