@@ -108,10 +108,8 @@ Parallelization options
   If enabled, support the use of `Kokkos <https://kokkos.org/>`_ for
   thread-level parallelism and GPU support.
 
-* **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
-  This option is a fall-back for codes that actually require the MPI C++
-  bindings. **This interface is deprecated and should only be used if it
-  is impossible to get rid of the dependency.**
+* **ENABLE_MPI_CXX_BINDINGS** |br|
+  This **deprecated** option is ignored.
 
 * **ENABLE_OPENMP [default: OFF]** |br|
   Enable `OpenMP <https://www.openmp.org/>`_ pragmas for thread-level

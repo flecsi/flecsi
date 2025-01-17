@@ -32,11 +32,7 @@ endif()
 find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
 
 find_package(Threads REQUIRED)
-if(@ENABLE_MPI_CXX_BINDINGS@)
-  find_package(MPI COMPONENTS C MPICXX REQUIRED)
-else()
-  find_package(MPI COMPONENTS C CXX REQUIRED)
-endif()
+find_package(MPI COMPONENTS C CXX REQUIRED)
 
 if(@ENABLE_OPENMP@)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
