@@ -176,16 +176,10 @@ if(ENABLE_LIBRARY)
   # Add options for backend selection
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_BACKENDS legion mpi hpx)
-
-  if(NOT FLECSI_BACKEND)
-    list(GET FLECSI_BACKENDS 0 FLECSI_BACKEND)
-  endif()
-
-  set(FLECSI_BACKEND "${FLECSI_BACKEND}" CACHE STRING
+  set(FLECSI_BACKEND "legion" CACHE STRING
     "Select the backend")
   set_property(CACHE FLECSI_BACKEND
-    PROPERTY STRINGS ${FLECSI_BACKENDS})
+    PROPERTY STRINGS legion mpi hpx)
   set(FleCSI_BACKEND "${FLECSI_BACKEND}")
 
   option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
