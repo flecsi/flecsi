@@ -101,7 +101,7 @@ struct accessor<single, DATA_TYPE, PRIVILEGES> : bind_tag, send_tag {
   using base_type = accessor<dense, DATA_TYPE, PRIVILEGES>;
   using element_type = typename base_type::element_type;
 
-  explicit accessor(std::size_t s) : base(s) {}
+  explicit accessor(field_id_t f) : base(f) {}
   accessor(const base_type & b) : base(b) {}
 
   /// Get the value.
@@ -1568,22 +1568,23 @@ private:
 /// \}
 } // namespace data
 
+namespace exec::detail {
 template<data::layout L, class T, Privileges P>
-struct exec::detail::task_param<data::accessor<L, T, P>> {
+struct task_param<data::accessor<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static auto replace(const data::field_reference<T, L, Topo, S> & r) {
     return data::accessor<L, T, P>(r.fid());
   }
 };
 template<data::layout L, class T, Privileges P>
-struct exec::detail::task_param<data::mutator<L, T, P>> {
+struct task_param<data::mutator<L, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static auto replace(const data::field_reference<T, L, Topo, S> & r) {
     return data::mutator<L, T, P>(r.fid());
   }
 };
 template<class T, Privileges P>
-struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
+struct task_param<data::mutator<data::ragged, T, P>> {
   using type = data::mutator<data::ragged, T, P>;
   template<class Topo, typename Topo::index_space S>
   static type replace(
@@ -1596,7 +1597,7 @@ struct exec::detail::task_param<data::mutator<data::ragged, T, P>> {
   }
 };
 template<class T, Privileges P>
-struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
+struct task_param<data::mutator<data::sparse, T, P>> {
   using type = data::mutator<data::sparse, T, P>;
   template<class Topo, typename Topo::index_space S>
   static type replace(
@@ -1607,7 +1608,7 @@ struct exec::detail::task_param<data::mutator<data::sparse, T, P>> {
   }
 };
 template<class R, typename T>
-struct exec::detail::task_param<data::reduction_accessor<R, T>> {
+struct task_param<data::reduction_accessor<R, T>> {
   template<class Topo, typename Topo::index_space S>
   static auto replace(
     const data::field_reference<T, data::dense, Topo, S> & r) {
@@ -1615,7 +1616,7 @@ struct exec::detail::task_param<data::reduction_accessor<R, T>> {
   }
 };
 template<class A>
-struct exec::detail::task_param<data::multi<A>> {
+struct task_param<data::multi<A>> {
   using type = data::multi<A>;
   template<class T, data::layout L, class Topo, typename Topo::index_space S>
   static type replace(const data::multi_reference<T, L, Topo, S> & r) {
@@ -1632,7 +1633,7 @@ private:
     return {t.map().depth(), exec::replace_argument<A>(t.data(0))};
   }
 };
-
+} // namespace exec::detail
 } // namespace flecsi
 
 #endif

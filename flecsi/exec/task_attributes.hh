@@ -18,17 +18,17 @@ using TaskAttributes = unsigned;
  */
 
 enum task_attributes_mask_t : TaskAttributes {
-  leaf = 0x01,
-  inner = 0x02,
-  idempotent = 0x04, ///< Task may be replicated to reduce communication.
-  loc = 0x08, ///< Run on a Latency-Optimized Core (a CPU).
+  leaf = 0x4,
+  inner = 0x8,
+  idempotent = 0x10, ///< Task may be replicated to reduce communication.
+  loc = 0, ///< Run on a Latency-Optimized Core (a CPU).
   /// Run on a Throughput-Optimized Core (a GPU).
   /// The task function itself still runs on the host, but a GPU is reserved
   /// for its use and field data is made available there.
   ///
   /// \warning MPI backend: Running one process per node likely
   ///          leads to poor performance.
-  toc = 0x10,
+  toc,
   /// Run as an OpenMP task
   ///
   /// \note Legion backend: Can improve OpenMP task execution, since Legion
@@ -36,11 +36,11 @@ enum task_attributes_mask_t : TaskAttributes {
   ///
   /// \warning MPI backend: Running one process per core likely
   ///          leads to poor performance.
-  omp = 0x20,
+  omp,
   /// Run simultaneously on all processes with the obvious color mapping;
   /// allow MPI communication among point tasks, at the cost of significant
   /// startup overhead.
-  mpi = 0x40
+  mpi
 }; // task_attributes_mask_t
 
 /// The task attribute to use for tasks that use the
@@ -66,39 +66,22 @@ namespace exec {
 /// \{
 
 /*!
-  Enumeration of task types.
- */
-
-enum class task_type_t : size_t { leaf, inner, idempotent };
-
-/*!
   Enumeration of processor types.
  */
 
 enum class processor : size_t { loc, toc, omp, mpi };
 
 // Bits for representing task attributes
-inline constexpr size_t task_attributes_bits = 8, task_type_bits = 3;
+inline constexpr TaskAttributes processor_mask = 0x3;
 
-constexpr auto
-as_mask(task_type_t t) {
-  return static_cast<task_attributes_mask_t>(
-    1 << static_cast<TaskAttributes>(t));
-}
 constexpr auto
 as_mask(processor t) {
-  return static_cast<task_attributes_mask_t>(
-    1 << (task_type_bits + static_cast<TaskAttributes>(t)));
+  return static_cast<task_attributes_mask_t>(t);
 }
-
-inline task_type_t
-mask_to_task_type(TaskAttributes mask) {
-  return static_cast<task_type_t>(util::bit_width(mask) - 1);
-} // mask_to_task_type
 
 constexpr processor
 mask_to_processor_type(TaskAttributes mask) {
-  return static_cast<processor>(util::bit_width(mask) - task_type_bits - 1);
+  return static_cast<processor>(mask & processor_mask);
 } // mask_to_processor_type
 
 /// \}

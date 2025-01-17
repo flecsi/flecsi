@@ -25,13 +25,11 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #define FLECSI_BACKEND_legion 1
 #define FLECSI_BACKEND_mpi 2
 #define FLECSI_BACKEND_hpx 3
-#cmakedefine FLECSI_BACKEND FLECSI_BACKEND_@FLECSI_BACKEND@
+#define FLECSI_BACKEND FLECSI_BACKEND_@FLECSI_BACKEND@
 
 //----------------------------------------------------------------------------//
 // External runtimes
 //----------------------------------------------------------------------------//
-
-#cmakedefine FLECSI_ENABLE_LEGION
 
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #include <realm_defines.h>
@@ -47,19 +45,13 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // Local ID type
 //----------------------------------------------------------------------------//
 
-#cmakedefine FLECSI_ID_TYPE @FLECSI_ID_TYPE@
+#define FLECSI_ID_TYPE @FLECSI_ID_TYPE@
 
 //----------------------------------------------------------------------------//
 // Global ID type
 //----------------------------------------------------------------------------//
 
-#cmakedefine FLECSI_GID_TYPE @FLECSI_GID_TYPE@
-
-//----------------------------------------------------------------------------//
-// Boost
-//----------------------------------------------------------------------------//
-
-#cmakedefine FLECSI_ENABLE_BOOST
+#define FLECSI_GID_TYPE @FLECSI_GID_TYPE@
 
 //----------------------------------------------------------------------------//
 // FLOG
@@ -100,7 +92,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 #define FLECSI_CALIPER_DETAIL_low 2
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
-#cmakedefine FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
+#define FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
 
 /// \}
 

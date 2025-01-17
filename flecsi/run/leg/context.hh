@@ -63,18 +63,6 @@ struct config : config_base {
 };
 
 struct context_t : context {
-
-  /*
-    Friend declarations. Some parts of this interface are intentionally private
-    to avoid inadvertent corruption of initialization logic.
-   */
-
-  friend leg::task<> top_level_task;
-
-  //--------------------------------------------------------------------------//
-  //  Runtime.
-  //--------------------------------------------------------------------------//
-
   context_t(const config &);
 
   [[nodiscard]] int start(const std::function<int()> &, bool);
@@ -138,6 +126,8 @@ struct context_t : context {
   }
 
 private:
+  static leg::task<> top_level_task;
+
   /*--------------------------------------------------------------------------*
     Runtime data.
    *--------------------------------------------------------------------------*/

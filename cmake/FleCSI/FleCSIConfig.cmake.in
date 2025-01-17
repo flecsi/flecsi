@@ -29,16 +29,10 @@ endif()
 # Handle TPLs
 #------------------------------------------------------------------------------#
 
-if(@ENABLE_BOOST@)
-  find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
-endif()
+find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
 
 find_package(Threads REQUIRED)
-if(@ENABLE_MPI_CXX_BINDINGS@)
-  find_package(MPI COMPONENTS C MPICXX REQUIRED)
-else()
-  find_package(MPI COMPONENTS C CXX REQUIRED)
-endif()
+find_package(MPI COMPONENTS C CXX REQUIRED)
 
 if(@ENABLE_OPENMP@)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
@@ -53,11 +47,11 @@ if(@ENABLE_HDF5@)
   find_package(HDF5 REQUIRED)
 endif()
 
-if(@ENABLE_LEGION@)
+if(FleCSI_BACKEND STREQUAL "legion")
   find_package(Legion REQUIRED)
 endif()
 
-if(@ENABLE_HPX@)
+if(FleCSI_BACKEND STREQUAL "hpx")
   find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 endif()
 
