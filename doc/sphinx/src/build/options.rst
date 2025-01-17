@@ -107,10 +107,8 @@ Parallelization options
 * **ENABLE_KOKKOS** |br|
   This **deprecated** option is ignored for compatibility.
 
-* **ENABLE_MPI_CXX_BINDINGS [default: OFF]** |br|
-  This option is a fall-back for codes that actually require the MPI C++
-  bindings. **This interface is deprecated and should only be used if it
-  is impossible to get rid of the dependency.**
+* **ENABLE_MPI_CXX_BINDINGS** |br|
+  This **deprecated** option is ignored.
 
 * **ENABLE_OPENMP [default: OFF]** |br|
   This **deprecated** option is ignored for compatibility.

@@ -102,6 +102,11 @@ public:
   void add_child(const int & c) {
     type_ |= (1 << c);
   }
+
+  void remove_child(const int & c) {
+    type_ ^= (1 << c);
+  }
+
   constexpr bool is_ent() const {
     return is_ent_;
   }

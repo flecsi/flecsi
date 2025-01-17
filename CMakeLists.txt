@@ -177,45 +177,14 @@ if(ENABLE_LIBRARY)
   # Add options for backend selection
   #----------------------------------------------------------------------------#
 
-  set(FLECSI_BACKENDS legion mpi hpx)
-
-  if(NOT FLECSI_BACKEND)
-    list(GET FLECSI_BACKENDS 0 FLECSI_BACKEND)
-  endif()
-
-  set(FLECSI_BACKEND "${FLECSI_BACKEND}" CACHE STRING
+  set(FLECSI_BACKEND "legion" CACHE STRING
     "Select the backend")
   set_property(CACHE FLECSI_BACKEND
-    PROPERTY STRINGS ${FLECSI_BACKENDS})
+    PROPERTY STRINGS legion mpi hpx)
   set(FleCSI_BACKEND "${FLECSI_BACKEND}")
 
-  #----------------------------------------------------------------------------#
-  # Backend defaults.
-  #----------------------------------------------------------------------------#
-
-  if(FLECSI_BACKEND STREQUAL "mpi")
-    set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
-    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
-  elseif(FLECSI_BACKEND STREQUAL "legion")
-    set(ENABLE_LEGION ON CACHE BOOL "Enable Legion" FORCE)
-    set(ENABLE_HPX OFF CACHE BOOL "Enable HPX" FORCE)
-  elseif(FLECSI_BACKEND STREQUAL "hpx")
-    set(ENABLE_HPX ON CACHE BOOL "Enable HPX" FORCE)
-    set(ENABLE_BOOST ON CACHE BOOL "Enable Boost" FORCE)
-    set(ENABLE_LEGION OFF CACHE BOOL "Enable Legion" FORCE)
-  endif()
-
-  mark_as_advanced(ENABLE_LEGION ENABLE_HPX)
-
-  option(ENABLE_BOOST "Enable Boost" ON)
-  option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
   option(ENABLE_HDF5 "Enable HDF5" OFF)
   option(ENABLE_GRAPHVIZ "Enable Graphviz" OFF)
-  option(ENABLE_HPX "Enable HPX" OFF)
-
-  mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
-  mark_as_advanced(ENABLE_BOOST)
-  mark_as_advanced(ENABLE_HPX)
 
   #----------------------------------------------------------------------------#
   # Caliper
@@ -236,15 +205,15 @@ if(ENABLE_LIBRARY)
   #----------------------------------------------------------------------------#
   # Apply options
   #----------------------------------------------------------------------------#
-  if(ENABLE_LEGION)
+  if(FLECSI_BACKEND STREQUAL "legion")
     flecsi_enable_legion(FleCSI)
   endif()
 
-  flecsi_enable_mpi(FleCSI ${ENABLE_MPI_CXX_BINDINGS})
+  flecsi_enable_mpi(FleCSI OFF)
 
   flecsi_enable_parmetis(FleCSI)
 
-  if(ENABLE_HPX)
+  if(FLECSI_BACKEND STREQUAL "hpx")
     flecsi_enable_hpx(FleCSI)
   endif()
 
@@ -258,12 +227,10 @@ if(ENABLE_LIBRARY)
 
   flecsi_enable_kokkos(FleCSI)
 
-  if(ENABLE_BOOST)
-    flecsi_enable_boost(FleCSI
-    COMPONENTS
-      program_options
-    )
-  endif()
+  flecsi_enable_boost(FleCSI
+  COMPONENTS
+    program_options
+  )
 
   if (NOT CALIPER_DETAIL STREQUAL "none")
     flecsi_enable_caliper(FleCSI)
