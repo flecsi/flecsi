@@ -1,4 +1,4 @@
-macro(flecsi_enable_mpi target ENABLE_CXX_BINDINGS)
+macro(flecsi_enable_mpi target)
   find_package(Threads REQUIRED)
   target_link_libraries(${target} PUBLIC Threads::Threads)
 

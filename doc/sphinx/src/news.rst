@@ -38,6 +38,10 @@ Deprecated
 
 New features
 ^^^^^^^^^^^^
+* Build
+
+  * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
+
 * Execution
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.

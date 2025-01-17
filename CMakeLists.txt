@@ -209,7 +209,7 @@ if(ENABLE_LIBRARY)
     flecsi_enable_legion(FleCSI)
   endif()
 
-  flecsi_enable_mpi(FleCSI OFF)
+  flecsi_enable_mpi(FleCSI)
 
   flecsi_enable_parmetis(FleCSI)
 
