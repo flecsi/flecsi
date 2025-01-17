@@ -53,11 +53,11 @@ if(@ENABLE_HDF5@)
   find_package(HDF5 REQUIRED)
 endif()
 
-if(@ENABLE_LEGION@)
+if(FleCSI_BACKEND STREQUAL "legion")
   find_package(Legion REQUIRED)
 endif()
 
-if(@ENABLE_HPX@)
+if(FleCSI_BACKEND STREQUAL "hpx")
   find_package(HPX REQUIRED NO_CMAKE_PACKAGE_REGISTRY)
 endif()
 
