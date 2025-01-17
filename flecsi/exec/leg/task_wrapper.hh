@@ -46,9 +46,10 @@ struct convert_accessor {
 } // namespace detail
 } // namespace data
 
+namespace util::serial {
 // Send and receive only the field ID:
 template<data::layout L, class T, Privileges Priv>
-struct util::serial::convert<data::accessor<L, T, Priv>> {
+struct convert<data::accessor<L, T, Priv>> {
   using type = data::accessor<L, T, Priv>;
   using Rep = field_id_t;
   static Rep put(const type & r) {
@@ -59,7 +60,7 @@ struct util::serial::convert<data::accessor<L, T, Priv>> {
   }
 };
 template<class R, typename T>
-struct util::serial::convert<data::reduction_accessor<R, T>> {
+struct convert<data::reduction_accessor<R, T>> {
   using type = data::reduction_accessor<R, T>;
   using Rep = field_id_t;
   static Rep put(const type & r) {
@@ -70,13 +71,13 @@ struct util::serial::convert<data::reduction_accessor<R, T>> {
   }
 };
 template<class T, Privileges Priv>
-struct util::serial::convert<data::accessor<data::single, T, Priv>>
+struct convert<data::accessor<data::single, T, Priv>>
   : data::detail::convert_accessor<data::accessor<data::single, T, Priv>> {};
 template<class T, Privileges P, Privileges OP>
-struct util::serial::convert<data::ragged_accessor<T, P, OP>>
+struct convert<data::ragged_accessor<T, P, OP>>
   : data::detail::convert_accessor<data::ragged_accessor<T, P, OP>> {};
 template<data::layout L, class T, Privileges Priv>
-struct util::serial::traits<data::mutator<L, T, Priv>> {
+struct traits<data::mutator<L, T, Priv>> {
   using type = data::mutator<L, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
@@ -87,10 +88,10 @@ struct util::serial::traits<data::mutator<L, T, Priv>> {
   }
 };
 template<class T, Privileges P, bool M>
-struct util::serial::convert<data::particle_accessor<T, P, M>>
+struct convert<data::particle_accessor<T, P, M>>
   : data::detail::convert_accessor<data::particle_accessor<T, P, M>> {};
 template<class T, Privileges Priv>
-struct util::serial::traits<data::mutator<data::ragged, T, Priv>> {
+struct traits<data::mutator<data::ragged, T, Priv>> {
   using type = data::mutator<data::ragged, T, Priv>;
   template<class P>
   static void put(P & p, const type & m) {
@@ -102,7 +103,7 @@ struct util::serial::traits<data::mutator<data::ragged, T, Priv>> {
   }
 };
 template<class A>
-struct util::serial::traits<data::multi<A>> {
+struct traits<data::multi<A>> {
   using type = data::multi<A>;
   template<class P>
   static void put(P & p, const type & m) {
@@ -115,12 +116,12 @@ struct util::serial::traits<data::multi<A>> {
   }
 };
 template<class T, Privileges Priv>
-struct util::serial::traits<data::topology_accessor<T, Priv>,
+struct traits<data::topology_accessor<T, Priv>,
   std::enable_if_t<!util::bit_copyable_v<data::topology_accessor<T, Priv>>>>
-  : util::serial::value<data::topology_accessor<T, Priv>> {};
+  : value<data::topology_accessor<T, Priv>> {};
 
 template<auto & F, class... AA>
-struct util::serial::traits<exec::partial<F, AA...>,
+struct traits<exec::partial<F, AA...>,
   std::enable_if_t<!util::bit_copyable_v<exec::partial<F, AA...>>>> {
   using type = exec::partial<F, AA...>;
   using Rep = typename type::Base;
@@ -134,7 +135,8 @@ struct util::serial::traits<exec::partial<F, AA...>,
 };
 
 template<class T>
-struct util::serial::traits<future<T>> : util::serial::value<future<T>> {};
+struct traits<future<T>> : value<future<T>> {};
+} // namespace util::serial
 
 namespace exec::leg {
 /// \addtogroup legion-execution

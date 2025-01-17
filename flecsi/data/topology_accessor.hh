@@ -46,8 +46,9 @@ struct topology_accessor
 /// \}
 } // namespace data
 
+namespace exec::detail {
 template<class T, Privileges P>
-struct exec::detail::task_param<data::topology_accessor<T, P>> {
+struct task_param<data::topology_accessor<T, P>> {
   using type = data::topology_accessor<T, P>;
   static type replace(typename T::slot &) {
     return type();
@@ -60,11 +61,12 @@ struct exec::detail::task_param<data::topology_accessor<T, P>> {
 // topology_accessor parameter.  There are no global topology accessors,
 // thus no specialization for them.
 template<class P, class T>
-struct exec::detail::launch<P, data::topology_slot<T>> {
+struct launch<P, data::topology_slot<T>> {
   static Color get(const data::topology_slot<T> & t) {
     return t.get().colors();
   }
 };
+} // namespace exec::detail
 } // namespace flecsi
 
 #endif

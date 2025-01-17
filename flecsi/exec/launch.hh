@@ -254,30 +254,29 @@ struct future<Return, exec::launch_type_t::index> {
 };
 #endif
 
-namespace exec {
+namespace exec::detail {
 template<class R>
-struct detail::task_param<future<R>> {
+struct task_param<future<R>> {
   static future<R> replace(const future<R, launch_type_t::index> &) {
     return {};
   }
 };
 template<class R>
-struct detail::must_convert<future<R, launch_type_t::index>> : std::true_type {
-};
+struct must_convert<future<R, launch_type_t::index>> : std::true_type {};
 
 template<class P>
-struct detail::launch<P, launch_domain> {
+struct launch<P, launch_domain> {
   static Color get(const launch_domain & d) {
     return d.size_;
   }
 };
 template<class P, class T>
-struct detail::launch<P, future<T, launch_type_t::index>> {
+struct launch<P, future<T, launch_type_t::index>> {
   static Color get(const future<T, launch_type_t::index> & f) {
     return f.size();
   }
 };
-} // namespace exec
+} // namespace exec::detail
 
 ///\}
 } // namespace flecsi
