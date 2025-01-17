@@ -20,12 +20,12 @@ namespace run {
  *----------------------------------------------------------------------------*/
 
 void
-top_level_task(const Legion::Task *,
+context_t::top_level_task(const Legion::Task *,
   const std::vector<Legion::PhysicalRegion> &,
   Legion::Context,
   Legion::Runtime *) {
 
-  context_t & context_ = context_t::instance();
+  context_t & context_ = instance();
 
   context_.mpi_wait();
   /*
