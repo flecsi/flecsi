@@ -29,9 +29,7 @@ endif()
 # Handle TPLs
 #------------------------------------------------------------------------------#
 
-if(@ENABLE_BOOST@)
-  find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
-endif()
+find_package(Boost REQUIRED COMPONENTS @BOOST_COMPONENTS@ CONFIG)
 
 find_package(Threads REQUIRED)
 if(@ENABLE_MPI_CXX_BINDINGS@)

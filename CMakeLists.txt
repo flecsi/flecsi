@@ -188,7 +188,6 @@ if(ENABLE_LIBRARY)
     PROPERTY STRINGS ${FLECSI_BACKENDS})
   set(FleCSI_BACKEND "${FLECSI_BACKEND}")
 
-  option(ENABLE_BOOST "Enable Boost" ON)
   option(ENABLE_MPI_CXX_BINDINGS "Enable MPI C++ Bindings" OFF)
   option(ENABLE_HDF5 "Enable HDF5" OFF)
   option(ENABLE_OPENMP "Enable OpenMP Task Support" OFF)
@@ -196,7 +195,6 @@ if(ENABLE_LIBRARY)
   option(ENABLE_KOKKOS "Enable Kokkos" OFF)
 
   mark_as_advanced(ENABLE_MPI_CXX_BINDINGS)
-  mark_as_advanced(ENABLE_BOOST)
 
   #----------------------------------------------------------------------------#
   # Caliper
@@ -245,12 +243,10 @@ if(ENABLE_LIBRARY)
     flecsi_enable_kokkos(FleCSI)
   endif()
 
-  if(ENABLE_BOOST)
-    flecsi_enable_boost(FleCSI
-    COMPONENTS
-      program_options
-    )
-  endif()
+  flecsi_enable_boost(FleCSI
+  COMPONENTS
+    program_options
+  )
 
   if (NOT CALIPER_DETAIL STREQUAL "none")
     flecsi_enable_caliper(FleCSI)
