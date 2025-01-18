@@ -229,8 +229,7 @@ struct launch_domain {
 };
 
 /// \cond core
-/// A simple version of C++20's \c bind_front that can be an argument to a
-/// task template.
+/// A simple version of C++20's \c bind_front.
 /// \endcond
 template<auto & F, class... AA>
 struct partial : std::tuple<AA...> {
@@ -267,9 +266,10 @@ struct partial : std::tuple<AA...> {
 
 /// Partially apply a function.
 /// \tparam F function to call
-/// \tparam AA serializable types
-/// \return a function object that can be an argument to a task
-/// \note The task will usually be a function template:\code
+/// \tparam AA leading arguments
+/// \return a function object
+/// \note A task that accepts the result will usually be a function template:
+/// \code
 ///   void func(/*...*/);
 ///   template<class F>
 ///   void task(F f) {f(/* ... */);}
@@ -277,8 +277,10 @@ struct partial : std::tuple<AA...> {
 ///     auto p = make_partial<func>(/*...*/);
 ///     execute<task<decltype(p)>>(p);  // note explicit template argument
 ///   }\endcode
+/// \deprecated Use a lambda or \c std::bind.
 template<auto & F, class... AA>
-constexpr exec::partial<F, std::decay_t<AA>...>
+[[deprecated(
+  "use lambda or std::bind")]] constexpr exec::partial<F, std::decay_t<AA>...>
 make_partial(AA &&... aa) {
   return {std::forward<AA>(aa)...};
 }

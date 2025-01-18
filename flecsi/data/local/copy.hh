@@ -62,8 +62,7 @@ struct copy_engine : copy_base {
 
         // GCC 12.2.0 thinks this is dependent:
         ghost_entities[shared.first]
-          .template data<exec::processor::loc,
-            flecsi::rw>()[mem_size[shared.first]++] = ghost_idx;
+          .template data<rw>()[mem_size[shared.first]++] = ghost_idx;
       }
     }
 
@@ -75,9 +74,8 @@ struct copy_engine : copy_base {
       for(auto & v : all_to_all(remote_shared_entities)) {
         if(!v.empty()) {
           shared_entities[r].resize(v.size());
-          std::uninitialized_copy(v.begin(),
-            v.end(),
-            shared_entities[r].data<exec::processor::loc, rw>().data());
+          std::uninitialized_copy(
+            v.begin(), v.end(), shared_entities[r].data<rw>().data());
         }
         ++r;
       }

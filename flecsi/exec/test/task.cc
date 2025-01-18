@@ -75,11 +75,6 @@ mpi_test_make_params(float const & f) {
 }
 
 namespace {
-auto
-drop(int n, const std::string & s) {
-  return s.substr(n);
-}
-
 int
 index_task(exec::launch_domain) {
   UNIT("TASK") {
@@ -160,8 +155,8 @@ task_driver() {
     execute<hydro::simple<const float &>>(4.4);
     execute<hydro::simple<const double &>>(3.5);
     using V = std::vector<std::string>;
-    const auto d = make_partial<drop>(5l);
-    execute<hydro::seq<V, decltype(d.param)>>(
+    const auto d = [n = 5](const std::string & s) { return s.substr(n); };
+    execute<hydro::seq<V, decltype(d)>>(
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
@@ -169,7 +164,7 @@ task_driver() {
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
 
     double mpi_d = 42.0;
-    ASSERT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
+    EXPECT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);

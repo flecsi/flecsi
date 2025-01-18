@@ -28,14 +28,16 @@ using PrivilegeCount = unsigned short;
   task has write access, as it is assumed to have updated them.
  */
 
-enum partition_privilege_t : Privileges {
+enum privilege : Privileges {
   na = 0b00, ///< no access: defer consistency update
   ro = 0b01, ///< read-only
   wo = 0b10, ///< write-only: consistency updates discarded
   rw = 0b11 ///< read-write
-}; // enum partition_privilege_t
+}; // enum privilege
 
-using privilege = partition_privilege_t;
+/// For backward compatibility.
+/// \deprecated Use \c privilege.
+using partition_privilege_t [[deprecated("use privilege")]] = privilege;
 
 /// \cond core
 

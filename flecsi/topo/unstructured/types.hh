@@ -200,10 +200,6 @@ struct unstructured_base {
   template<class A>
   using borrow_array = typename A::template map_type<borrow_base::wrap>;
 
-  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
-    return vs[c];
-  }
-
   /*
     Using the Mesh Index Space (MIS) ordering, compute intervals,
     and the number of intervals for each color. Also compute the

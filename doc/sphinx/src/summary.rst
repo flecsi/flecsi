@@ -262,7 +262,7 @@ In turn, ``reduce`` performs periodic log aggregation and then calls the ``reduc
 Certain implementations of ``send`` may themselves execute tasks to prepare field data for the requested task, which means that ``reduce_internal`` is in general *reentrant*.
 
 Common portions of the argument and parameter handling are defined in ``prolog.hh`` and ``buffers.hh``.
-The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations, and the ``make_partial`` utility.
+The undefined primary template for ``future`` is declared in ``launch.hh``, along with documentation-only definitions of the single- and index-launch specializations.
 The backend-specific implementations are in ``*/future.hh``.
 
 Explicit parallelism

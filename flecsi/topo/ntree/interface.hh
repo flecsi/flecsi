@@ -126,13 +126,13 @@ private:
   template<index_space idx>
   auto rep(const coloring & c, const std::vector<util::id> & size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, make_partial<allocate>(size));
+      c.nparts_, [size](std::size_t i) { return size[i]; });
   }
 
   template<index_space idx>
   auto rep(const coloring & c, util::id size) {
     return make_repartitioned<Policy, idx>(
-      c.nparts_, make_partial<allocate_same>(size));
+      c.nparts_, [size](std::size_t) { return size; });
   }
 
   // Ntree mandatory fields ---------------------------------------------------

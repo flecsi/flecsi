@@ -137,7 +137,7 @@ private:
         {
         make_repartitioned<Policy, VV>(
           c.colors,
-          make_partial<idx_size>(c.idx_spaces[index<VV>].partitions))...
+          [p=c.idx_spaces[index<VV>].partitions](std::size_t i) {return p[i];})...
         }
       },
       special_(c.colors),

@@ -13,13 +13,7 @@ namespace topo {
 /// \addtogroup topology
 /// \{
 
-namespace zero {
-inline std::size_t
-function(std::size_t) {
-  return 0;
-}
-inline constexpr auto partial = make_partial<function>();
-} // namespace zero
+inline constexpr auto zero = [](std::size_t) { return 0; };
 
 // Clang insists on virtual destructors even without delete:
 struct virtual_base {
@@ -37,8 +31,8 @@ fill(resize::Field::accessor<wo> a, const F & f) {
 /// A partition with a field for dynamically resizing it.
 struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   // Construct a partition with an initial size.
-  template<class F = decltype((zero::partial))>
-  repartition(data::region & r, F && f = zero::partial)
+  template<class F = decltype((zero))>
+  repartition(data::region & r, F && f = zero)
     : with_size(r.size().first), prefixes(r, sizes().use([&f](auto ref) {
         execute<fill<std::decay_t<F>>>(ref, std::forward<F>(f));
       })) {}
@@ -246,16 +240,12 @@ struct detail::base<index_category> {
 // A subtopology for holding internal arrays without ragged support.
 struct array_base {
   using coloring = std::vector<std::size_t>;
-
-protected:
-  static std::size_t index(const coloring & c, std::size_t i) {
-    return c[i];
-  }
 };
 template<class P>
 struct array_category : array_base, repartitioned {
   explicit array_category(const coloring & c)
-    : repartitioned(make_repartitioned<P>(c.size(), make_partial<index>(c))) {}
+    : repartitioned(
+        make_repartitioned<P>(c.size(), [c](std::size_t i) { return c[i]; })) {}
 
   using repartition::access;
 };

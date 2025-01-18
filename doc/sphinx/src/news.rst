@@ -32,14 +32,21 @@ Deprecated
 
 * Execution
 
+  * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
+  * ``partition_privilege_t`` |mdash| use ``privilege``
 
 New features
 ^^^^^^^^^^^^
+* Build
+
+  * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
+
 * Execution
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Topologies
 
@@ -49,6 +56,10 @@ New features
 
   * FleCSI now supports HPX as a runtime backend.
     However, GPU tasks are not supported with current versions of HPX.
+
+* Utilities
+
+  * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
 
 Changes in v2.3.1
 +++++++++++++++++

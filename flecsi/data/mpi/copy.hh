@@ -82,7 +82,7 @@ struct copy_engine : local::copy_engine {
           // argument using Kokkos::parallel_for
           std::visit(
             overloaded{[&](const backend_storage::host_const_view & src_view) {
-                         auto src_indices_view = entity.second.template data();
+                         auto src_indices_view = entity.second.data();
 
                          std::byte * dst = send_buffers.back().data();
                          const std::byte * src = src_view.data();
@@ -153,8 +153,7 @@ struct copy_engine : local::copy_engine {
         std::visit(
           overloaded{
             [&](const backend_storage::host_view & dst_view) {
-              auto dst_indices_view =
-                entity.second.template data<exec::processor::loc>();
+              auto dst_indices_view = entity.second.data();
 
               auto subview = Kokkos::subview(dst_view,
                 std::pair<std::size_t, std::size_t>(0, destination->max_end));

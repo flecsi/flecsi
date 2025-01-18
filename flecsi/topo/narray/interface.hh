@@ -268,18 +268,19 @@ private:
     util::constants<CI...> /* deduce pack */)
     : with_ragged<Policy>(c.colors()), with_meta<Policy>(c.colors()),
       part_{{make_repartitioned<Policy, Value>(c.colors(),
-        make_partial<idx_size>([&]() {
-          auto & idef = c.idx_colorings[index<Value>];
-          std::vector<std::size_t> partitions;
-          for(const auto & ci : idef.process_colors()) {
-            auto & total = partitions.emplace_back(1);
-            Dimension d = 0;
-            for(const auto i : ci)
-              total *= idef.make_axis(d++, i)().extent();
-          }
-          concatenate(partitions, c.colors(), MPI_COMM_WORLD);
-          return partitions;
-        }()))...}},
+        [p =
+            [&] {
+              auto & idef = c.idx_colorings[index<Value>];
+              std::vector<std::size_t> partitions;
+              for(const auto & ci : idef.process_colors()) {
+                auto & total = partitions.emplace_back(1);
+                Dimension d = 0;
+                for(const auto i : ci)
+                  total *= idef.make_axis(d++, i)().extent();
+              }
+              concatenate(partitions, c.colors(), MPI_COMM_WORLD);
+              return partitions;
+            }()](std::size_t i) { return p[i]; })...}},
       plan_{{make_copy_plan<CI>(c.colors(), c.idx_colorings[index<CI>])...}},
       ragged_buffers_{{data::buffers::core(
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {

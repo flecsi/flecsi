@@ -129,15 +129,6 @@ protected:
     std::size_t from_color;
   };
 
-  static std::size_t allocate_same(const util::id size, const std::size_t &) {
-    return size;
-  }
-
-  static std::size_t allocate(const std::vector<util::id> & arr,
-    const std::size_t & i) {
-    return arr[i];
-  }
-
   static void set_dests(field<data::intervals::Value>::accessor<wo> a) {
     assert(a.span().size() == 1);
     a[0] = data::intervals::make({1, 3});
