@@ -334,7 +334,8 @@ private:
   EXPECT_CMP(x, y, ::flecsi::util::unit::string_compare::not_fn, !=, "")
 /// Compare null-terminated strings, ignoring case and abandoning test on
 /// inequality.
-/// \deprecated The *_STRCASE* macros are deprecated.
+/// \deprecated No replacement: inconsistent with other tests in that it is
+///   locale-dependent.
 #define ASSERT_STRCASEEQ(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
@@ -342,7 +343,8 @@ private:
     ==,                                                                        \
     " (case insensitive)")
 /// Check equality of null-terminated strings, ignoring case.
-/// \deprecated The *_STRCASE* macros are deprecated.
+/// \deprecated No replacement: inconsistent with other tests in that it is
+///   locale-dependent.
 #define EXPECT_STRCASEEQ(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
@@ -351,7 +353,8 @@ private:
     " (case insensitive)")
 /// Compare null-terminated strings, ignoring case and abandoning test on
 /// equality.
-/// \deprecated The *_STRCASE* macros are deprecated.
+/// \deprecated No replacement: inconsistent with other tests in that it is
+///   locale-dependent.
 #define ASSERT_STRCASENE(x, y)                                                 \
   ASSERT_CMP(x,                                                                \
     y,                                                                         \
@@ -359,7 +362,8 @@ private:
     !=,                                                                        \
     " (case insensitive)")
 /// Check inequality of null-terminated strings, ignoring case.
-/// \deprecated The *_STRCASE* macros are deprecated.
+/// \deprecated No replacement: inconsistent with other tests in that it is
+///   locale-dependent.
 #define EXPECT_STRCASENE(x, y)                                                 \
   EXPECT_CMP(x,                                                                \
     y,                                                                         \
