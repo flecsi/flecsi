@@ -28,6 +28,10 @@ Important Concepts
     particle.
     It provides the information necessary to manage the memory for that variable.
 
+.. figure:: images/index-space.svg
+
+   Schematic of two fields on an index space
+
 Index Spaces
 ============
 Conceptually, an index space is a single collection of the entities in the problem across all colors.
