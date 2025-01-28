@@ -1,167 +1,96 @@
 Topologies
 **********
-A *topology* is a distributed-memory object that stores user-registered fields on one or more *index spaces*.
-It may also store structural information used to interpret those fields in terms appropriate to the *category* of topology (*e.g.*, an unstructured mesh).
-Any number of instances may be created of any topology.
+This section describes the common behavior of FleCSI topologies as well as providing a brief survey of the types available.
+
+Terminology
++++++++++++
+**Topologies**
+    A *topology* is a collection of index spaces that represent a computational domain like a mesh or a layout of particles in space.
+    (Fields on some of these index spaces express physical quantities; others contain structural information describing the domain itself.)
+    An application can use multiple topologies of the same or different types, serially or simultaneously.
+    Sometimes the word "topology" refers to one of these *types* rather than to a specific instance of it.
+
+**Topology Categories**
+    FleCSI provides infrastructural components for several categories of topology, such as ``unstructured`` or ``ntree``.
+    Each topology type is defined in terms of one such category; clients cannot define their own.
+
+**Specializations**
+    A *specialization* is a customization of a topology category to create
+    an interface that allows domain experts to implement operations on
+    top of the topology.  The relevant operations will depend strongly
+    on the needs of the domain experts, but will often include queries
+    about the physical layout of points within the simulation space.
+    For example, a specialization of the ``unstructured`` topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
+    In fact, every topology type is such a specialization; we use the term "specialization" to emphasize the definition of the type rather than its use.
 
 Index Spaces
 ++++++++++++
-In FleCSI, index spaces are used to define field arrays that represent
-the user's data. In simple terms, you can think of an index space as
-just an enumeration of an array, with the added notion that an index
-space represents a logical space of such arrays.
+Just as "topology" can refer to a type or an instance of that type, the term "index space" can refer not only to the (say) 42 cells of a particular mesh but also to the choice between "cells" and "nodes" as the domain for a field (that might exist on multiple meshes).
+The names that describe these index-space "kinds" are chosen by the specialization.
 
-.. admonition:: Definition
+An index space has no concept of relationships between different index
+points in the same index space.  For example, nothing in the definition
+of the index space specifies which entities are spatially adjacent to
+which other entities.  This information would be encoded in the
+specialization (sometimes with support from the underlying topology).
+When these relationships cross colors (as for the specification of ghost copies), a two-dimensional index point is used whose first component is the color number.
 
-  An index space is the space of possible enumerations of a logical set
-  of points or indices.
-  
-As an example, consider the cells of a mesh. These represent a set that
-can be enumerated to define an index space. If a particular mesh
-instance has 100 cells, these cells define a vector (or index set) in
-the index space of cells. *We often still refer to this as an index
-space or index space instance.* The vertices and edges of the mesh also
-define index spaces. In fact, in FleCSI, index spaces are used to
-represent the logical elements or entities of all of our topology types.
+Different index spaces also have no knowledge of how they relate to each
+other.
+A set of faces might define the boundary of a cell
+but the index spaces alone have no ability to know that, or to map from
+a cell to the list of faces that surround it.  This information would be
+encoded in the specialization.
 
-There are several benefits of index spaces. One is that they can be
-iterated upon or over.  As an example, consider a simple *for* loop:
+Provided Topologies
++++++++++++++++++++
+Topology categories provide only generic interfaces, some more generic than others.
+These interfaces are meant to be used to create :doc:`specializations <specializations>` that are suitable for direct use by application developers.
 
-.. code-block:: cpp
+A few topology categories are so simple that FleCSI provides a single specialization rather than a generic interface to be specialized:
 
-  for(auto i: mesh.cells()) {
+* The ``global`` topology is the most basic topology provided by FleCSI.
+  It has a single index space of configurable size; uniquely, it is not partitioned between colors and does not support ``ragged`` or ``sparse`` fields.
+  The field values of the ``global`` topology can be written to by a
+  single task at a time, or can be read by every task in a parallel
+  launch.  This topology will typically be used for global configuration
+  data (for example, whether the current simulation is 1D, 2D, or 3D).
 
-    // Do something work on the ith
-    // index of the cells index space.
+* The ``index`` topology is the next most basic topology provided by
+  FleCSI.
+  It also has a single index space of configurable size.
+  Each index point is assigned to a separate color, so the ``single`` layout is typical (although a variable amount of data can still be stored with ``ragged`` or ``sparse`` instead).
+  The ``index`` topology could be used to store per-color integral quantities or to turn on or
+  off physics packages that are only run in subsets of the domain (e.g.,
+  this color needs to run hydrodynamics but there are no energy
+  sources).
 
-  } // for
+The normal topology categories do require a specialization:
 
-This example is just the C++ version of what was stated above about the
-cells of a mesh defining an index space. However, as we will see in the
-following sections, index spaces also improve our ability to reason about
-parallelism, and free us from many of the computer science details that
-obfuscate our algorithms.
+* The ``user`` topology still provides but a single index space, but it has a size on each color that can be set at construction and changed later.
+  The specialization serves merely as a tag to distinguish multiple clients.
+  No ghost copies are supported.
 
-Basic Categories
-++++++++++++++++
-The most basic topology provided by FleCSI is called the *global*
-topology.
-It has a single implicit index space which is not partitioned; its field values can be written by a single task or read by every task in a parallel launch.
+* The ``narray`` topology comprises a set of multidimensional arrays, with each axis divided into a number of intervals to form a Cartesian product of colors.
+  It includes special support for representing a structured mesh where access to neighboring entities is by computed index.
+  It includes features to help build faces, edges, and vertices
+  (referring to them collectively as "auxiliaries").  It also helps
+  manage communication across colors through ghost cells, and boundary
+  conditions through boundary cells.
 
-The next most basic topology type provided by FleCSI is the *index*
-topology. Like the global topology, it has a single implicit index
-space, which you can think of as the *indices*. The index topology also
-has a runtime-specified size that describes how many indices there
-should be.
+* The ``ntree`` topology is designed to support particles and to
+  efficiently find neighboring particles.  It uses a hashed binary tree,
+  quadtree, or octree in one, two, or three dimensions respectively.
+  The ``ntree`` topology is useful for particle-based methods such as
+  smoothed-particle hydrodynamics.
 
-Field Registration
-++++++++++++++++++
-Let's look at an example of how to register fields against
-the global and index topologies:
-
-.. code-block:: cpp
-
-  using namespace flecsi;
-
-  using double_field = field<double, data::single>;
-
-  namespace solver {
-    const double_field::definition<topo::global> tolerance;
-  }
-  namespace hydro {
-    const double_field::definition<topo::index> index_data[2];
-  }
-
-The first variable declaration in this example registers a field called ``solver::tolerance`` with type ``double``.
-The second registers two fields called ``hydro::index_data`` with type ``double``.
-(An array of fields can be used for data that logically have multiple states, as in a multi-step time evolution method.)
-
-In both cases, the user does not need to explicitly specify index space.
-As we will see, this is necessary for more complex
-topology types that can be customized by a *specialization*.
-
-Logically, registering a field against a topology type adds that field
-to the type itself. This may not be intuitive to everyone, so let's
-consider what this means. When we create a C++ type, e.g., a class or
-struct, we add data members to it in the definition of the type:
-
-.. code-block:: cpp
-
-  struct field_data_t {
-    double field_a;
-    int field_b;
-  }; // struct topology_t
-
-This is done manually at the time the type is written. With FleCSI,
-registering fields against a FleCSI topology type is a kind of
-customization that is logically equivalent to our *field_data_t* example
-type. So, for instance, if we want fields *field_a*, and *field_b* to be
-defined for the FleCSI index topology, we would register them like so:
-
-.. code-block:: cpp
-
-  namespace radiation {
-    const field<double, data::single>::definition<topo::index> field_a;
-    const field<int, data::single>::definition<topo::index> field_b;
-  }
-
-Optionally, we could also just register the field_data_t struct:
-
-.. code-block:: cpp
-
-  namespace radiation {
-    const field<field_data_t, data::single>::definition<topo::index> fields;
-  }
-
-Both of these methods of registering fields are valid, and it is left up
-to the user to decide which way makes the most sense. The performance
-implications of choosing one method over the other are equivalent to
-choosing *array-of-struct (AoS)* or *struct-of-array (SoA)*. FleCSI does
-not currently support switching or auto-tuning of the data layout.
-However, we may do so in future versions.
-
-.. sidebar:: Memory Allocation
-
-  You may be wondering whether or not field registration in FleCSI
-  implies that every instance of a topology type will necessarily create
-  an instance of every registered field. This is a valid concern! The
-  answer is *no!* FleCSI will only allocate memory for a field instance
-  if it is actually accessed.
+* The ``unstructured`` topology comprises an arbitrary set of index spaces along with several kinds of graph adjacency information that support use as an unstructured mesh.
+  The index spaces can be resized to support mesh refinement.
 
 Colorings
 +++++++++
-
-Let's continue discussing the index topology so that we can add some
-more details about its index space and define what *coloring* means in
-FleCSI.
-
-As stated above, the index topology has a single implicit index space.
-For the index topology, we can think of the implicit index space as just
-being the indices, with a particular instance being defined by its size.
-
-The index topology also has an implicit coloring that
-assigns each index of the topology's indices to its own color: i.e.,
-index 0 is assigned to color 0, etc. This simple example illustrates the
-definition of a coloring.
-
-.. admonition:: Definition
-
-  A coloring is a description of how the indices of an index space
-  should be divided into partitions or colors.
-
-In general, there is no implied size for a coloring, and
-no association with the details of a particular execution space, i.e.,
-the number of processes.  A coloring only describes how to divide the
-indices of an index space into partitions (or colors in FleCSI's
-nomenclature).
-
-.. attention::
-
-  A coloring is not associated with an execution space. This is
-  different from the way that many people think about MPI, where a rank
-  is statically mapped to a particular process.
-
-Given a coloring (which in these two simple cases can be just an integer), topology instances can be created:
+A coloring is the layout information required to construct a topology instance, so called because it generally identifies which color owns each index point.
+As a trivial example, the ``global`` and ``index`` topologies can use just an integer as a coloring:
 
 .. code-block:: cpp
 
@@ -178,5 +107,19 @@ Given a coloring (which in these two simple cases can be just an integer), topol
 Note the different interpretations of the sizes: ``pair`` doesn't have colors and holds 2 field values, while ``hydro_indices`` has 42 colors with one field value each.
 
 Note also that the lifetime of topology instances must be limited to the top-level action (achieved here by making the slots local variables in it).
+
+While the coloring type depends on the topology category and not the specialization, specializations for non-trivial topologies typically assist the application in constructing one.
+In simple cases, the result looks like
+
+.. code-block:: cpp
+
+  int top_level() {
+    canon::slot mesh;
+    mesh.allocate(canon::mpi_coloring("test.txt"));
+    // ...
+  }
+
+which asks the ``canon`` topology to interpret the *test.txt* file as a coloring for its topology category (perhaps ``unstructured``).
+The name ``mpi_coloring`` serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.
 
 .. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :

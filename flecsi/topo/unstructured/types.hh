@@ -137,8 +137,10 @@ operator<<(std::ostream & stream, index_color const & ic) {
 
 } // namespace unstructured_impl
 
+/// Specialization-independent definitions.
+/// Name as \c base in an \c unstructured specialization.
 struct unstructured_base {
-
+  /// The type for specifying an index space for a single color.
   using index_color = unstructured_impl::index_color;
 
   using source_pointers = std::vector</* over local colors */
@@ -151,49 +153,40 @@ struct unstructured_base {
     std::vector</* over contiguous intervals */
       data::subrow>>;
 
-  /// The coloring data structure is how information is passed to the FleCSI
-  /// runtime to construct one or more unstructured mesh specialization types.
-  /// The coloring object is returned by the specialization's `color` method.
-  /// \ingroup unstructured
+  /// Information for constructing an unstructured mesh.
   struct coloring {
+    /// Coloring information for a single index space.
     struct index_space {
       /// The communication peers over all colors, i.e.,
       /// for each color, the communication peers
       /// (color ids) are stored.
-      std::vector</* over global colors */
-        std::vector</* over peers */
-          Color>>
-        peers;
+      std::vector<std::vector<Color>> peers;
 
-      /// The partition sizes over all colors.
-      std::vector</* over global colors */
-        std::size_t>
-        partitions;
+      /// The number of entities (including ghosts) for every color.
+      std::vector<std::size_t> partitions;
 
       /// The global number of entities in this index space.
       util::gid entities;
 
       /// Information specific to local colors.
-      std::vector</* over process colors */
-        index_color>
-        colors;
+      /// Each process may contribute any number of partitions.
+      std::vector<index_color> colors;
 
       // number of ghost intervals over all colors
       std::vector<std::size_t> num_intervals;
     };
 
-    /// The global number of colors, i.e., the number of partitions into which
-    /// this coloring instance will divide the input mesh.
+    /// The global number of colors: the number of partitions used to describe
+    /// the input mesh.
     Color colors;
 
+    /// Index-space-specific information, in the order of \c index_spaces.
     std::vector<index_space> idx_spaces;
 
-    /// The superset of communication peers over the global colors, i.e., for
-    /// each color, this stores the maximum number of sending or receiving
+    /// The maximum communication degree for each (global) color.
+    /// This is the largest of the numbers of sending or receiving
     /// peers over all index spaces.
-    std::vector</* over global colors */
-      std::size_t>
-      color_peers;
+    std::vector<std::size_t> color_peers;
 
   }; // struct coloring
 

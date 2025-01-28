@@ -465,11 +465,7 @@ The FLOG runtime configuration option ``serialization_interval``  defines
 this behavior:
 
 * ``flog::config::serialization_interval`` |br|
-  The serialization interval specifies how often FleCSI should check for
-  buffered output (requires reduction) as a number of
-  tasks executed: i.e., if the serialization interval is set to 300,
-  FleCSI will check how many messages have been injected into the stream
-  of each process every multiple of 300 task executions. |br|
+  Number of task executions between (bulk-synchronous) collections of buffered output. |br|
   *(default: 100)*
 
 .. caution::
