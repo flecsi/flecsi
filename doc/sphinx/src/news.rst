@@ -70,6 +70,18 @@ Possible incompatibilities
 
   * The error of destroying a topology after ``runtime::control`` returns (perhaps when ``main`` returns) is more likely to produce a crash.
 
+Deprecated
+^^^^^^^^^^
+* Runtime
+
+  * ``threads`` and ``threads_per_process`` |mdash| thread-based parallelism must be configured outside the process
+
+* Utilities
+
+  * ``EXPECT_STRCASEEQ``, ``EXPECT_STRCASENE``, ``ASSERT_STRCASEEQ``, and ``ASSERT_STRCASENE`` |mdash| use ``*_STREQ`` or ``*_STRNE`` for
+    case-sensitive comparison, or write a case-insensitive comparison function and use ``*_TRUE``
+    or ``*_FALSE`` to check its output.
+
 Fixed
 ^^^^^
 * Data
@@ -83,6 +95,10 @@ Fixed
   * ``ragged`` or ``sparse`` fields do not generate spurious warnings about using uninitialized data.
   * Tasks with a single parameter whose type is a specialization of ``std::tuple`` work.
 
+* Topologies
+
+  * Arithmetic on ``topo::id`` objects checks types reliably.
+
 * Utilities
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
@@ -91,15 +107,6 @@ Fixed
 * Topology
 
   * ``ntree`` initializes properly with a number of colors different from the number of processes.
-
-Deprecated
-^^^^^^^^^^
-* Utilities
-
-  * The ``EXPECT_STRCASEEQ``, ``EXPECT_STRCASENE``, ``ASSERT_STRCASEEQ``, ``ASSERT_STRCASENE`` unit
-    test macros will be removed in a future release |mdash| use ``*_STREQ`` or ``*_STRNE`` for
-    case-sensitive comparison, or write a case-insensitive comparison function and use ``*_TRUE``
-    or ``*_FALSE`` to check its output.
 
 Changes in v2.3.0 (June 20 2024)
 ++++++++++++++++++++++++++++++++

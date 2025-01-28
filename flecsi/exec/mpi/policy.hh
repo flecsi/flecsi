@@ -125,9 +125,6 @@ reduce_internal(Args &&... args) {
       return ret;
     }
     else if constexpr(!std::is_void_v<R>)
-      // There is an Allgather happening in the constructor of future<R, index>
-      // where the results from ranks are redistributed such that clients on
-      // every rank i can get the return value of rank j by calling get(j).
       return future<R, exec::launch_type_t::index>{task()};
     else {
       // index launch of void functions, e.g. printf("hello world");
