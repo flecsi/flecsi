@@ -69,9 +69,10 @@ processes() {
 
 /*!
   Return the number of threads per process.
+  \deprecated This information is unreliable and not useful for scheduling.
  */
 
-inline Color
+[[deprecated]] inline Color
 threads_per_process() {
   return run::context::instance().threads_per_process();
 }
@@ -82,9 +83,10 @@ threads_per_process() {
   execution, and does not imply any other properties. This interface can be
   used to determine the full subscription of the execution instances of the
   running process that invoked the FleCSI runtime.
+  \deprecated This information is unreliable and not useful for scheduling.
  */
 
-inline Color
+[[deprecated]] inline Color
 threads() {
   return run::context::instance().threads();
 }

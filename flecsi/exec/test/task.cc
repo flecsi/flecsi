@@ -79,8 +79,6 @@ index_task(exec::launch_domain) {
   UNIT("TASK") {
     flog(info) << "processes: " << processes() << std::endl;
     flog(info) << "process: " << process() << std::endl;
-    // flog(info) << "threads per process: " << threads_per_process() <<
-    // std::endl; flog(info) << "threads: " << threads() << std::endl;
     // flog(info)
     // << "colors: " << colors() << std::endl; flog(info) << "color: " <<
     // color()

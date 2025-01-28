@@ -1,7 +1,6 @@
-Performance Effect of Tracing
-++++++++++++++++++++++++++++++++++++
-
-The performance affect of using tracing cannot be overstated.
+Tracing
+*******
+The overhead of Legion's dependency analysis can be greatly reduced by annotating sequences of tasks that are executed repeatedly on the same fields.
 
 This is a weak scaling plot of
 Red-Black Gauss-Seidel iteration for Poisson's Equation in 2D.
