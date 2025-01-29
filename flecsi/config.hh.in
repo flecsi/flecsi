@@ -22,9 +22,14 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // Backends
 //----------------------------------------------------------------------------//
 
+/// A label for comparing to \c #FLECSI_BACKEND.
+/// \{
 #define FLECSI_BACKEND_legion 1
 #define FLECSI_BACKEND_mpi 2
 #define FLECSI_BACKEND_hpx 3
+/// \}
+
+/// The backend in use (one of the \c FLECSI_BACKEND_ macros).
 #define FLECSI_BACKEND FLECSI_BACKEND_@FLECSI_BACKEND@
 
 //----------------------------------------------------------------------------//

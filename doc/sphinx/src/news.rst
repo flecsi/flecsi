@@ -44,6 +44,7 @@ New features
 ^^^^^^^^^^^^
 * Build
 
+  * ``FLECSI_BACKEND`` identifies the backend in use.
   * ``FLECSI_ENABLE_FLOG`` is defined as a macro if appropriate.
   * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
 
