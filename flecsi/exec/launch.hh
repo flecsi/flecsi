@@ -318,7 +318,11 @@ struct future<Return, exec::launch_type_t::index> {
   void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
   /// Note that all processes must select the same \a index.
+  /// \deprecated Use \c all or pass to a task to process values in parallel.
   Return get(Color index = 0, bool silence_warnings = false);
+  /// Get the results of all tasks.
+  /// \note This member does not exist if \a Return is \c void.
+  std::vector<Return> all();
   /// Get the number of tasks.
   Color size() const;
 };

@@ -47,30 +47,27 @@ reduction_task(int a, exec::launch_domain) {
   return a + color();
 }
 
-bool
-index_bool_task(exec::launch_domain) {
-  return !color();
-}
-
 int
 future_driver() {
   UNIT() {
     using namespace future_test;
 
+    double d = 3.1;
     topo::global::slot g2;
     g2.allocate(2);
     const auto energy = energy_field(g2);
 
     // single future
-    auto f = execute<init>(3.1, energy);
+    auto f = execute<init>(d, energy);
 
     EXPECT_EQ(test<check>(f, energy), 0);
-    EXPECT_EQ(f.get(), 3.1 + 1);
+    EXPECT_EQ(f.get(), ++d);
 
     // future map
     const exec::launch_domain ld{run::context::instance().processes()};
-    auto fm = execute<index_init>(f.get(), ld);
-    EXPECT_EQ(fm.get(0, false), f.get());
+    auto fm = execute<index_init>(d, ld);
+    for(auto v : fm.all())
+      EXPECT_EQ(v, d++);
 
     // For all values because it's an index future:
     EXPECT_EQ(test<check>(fm, energy), 0);
@@ -83,10 +80,6 @@ future_driver() {
     auto fv2 = execute<index_void_task>(ld);
 
     fv2.wait();
-    fv2.get();
-
-    auto fb = execute<index_bool_task>(ld);
-    EXPECT_EQ(fb.get(), true);
 
     int a = 7;
     // checking reduction operations

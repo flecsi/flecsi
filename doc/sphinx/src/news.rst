@@ -32,6 +32,7 @@ Deprecated
 
 * Execution
 
+  * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
   * ``partition_privilege_t`` |mdash| use ``privilege``
@@ -46,6 +47,7 @@ New features
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * Index futures provide ``all`` to get all results.
   * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Topologies

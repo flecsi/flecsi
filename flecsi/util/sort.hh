@@ -621,9 +621,9 @@ public:
 
     // Check if the array is already sorted
     bool sorted = true;
-    auto fm_check = execute<sort::check_sort_task>(values);
+    const auto fm_check = execute<sort::check_sort_task>(values).all();
     for(unsigned int j = 0; j < sort_base::colors - 1; ++j) {
-      if(fm_check.get(j).second > fm_check.get(j + 1).first) {
+      if(fm_check[j].second > fm_check[j + 1].first) {
         sorted = false;
         break;
       }

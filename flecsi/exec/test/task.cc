@@ -61,18 +61,12 @@ seq(const T & s, F f) {
   }(flog_info("s(")); // keep temporary alive throughout
 }
 
-int
+void
 mpi(int * p) {
   *p = 1;
-  return 4;
 }
 
 } // namespace hydro
-
-float
-mpi_test_make_params(float const & f) {
-  return f;
-}
 
 namespace {
 int
@@ -158,11 +152,8 @@ task_driver() {
       V{"It's Elementary", "Dear, Dear Data"}, d);
 
     int x = 0;
-    EXPECT_EQ((execute<hydro::mpi, mpi>(&x).get(0)), 4);
+    execute<hydro::mpi, mpi>(&x);
     EXPECT_EQ(x, 1); // NB: MPI calls are synchronous
-
-    double mpi_d = 42.0;
-    EXPECT_EQ((execute<mpi_test_make_params, mpi>(mpi_d).get(0)), 42.0f);
 
     constexpr bool add_four = (FLECSI_BACKEND != FLECSI_BACKEND_mpi) &&
                               (FLECSI_BACKEND != FLECSI_BACKEND_hpx);

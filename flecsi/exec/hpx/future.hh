@@ -116,6 +116,11 @@ struct future<R, exec::launch_type_t::index> : detail::future_index<R> {
       c.world0.comm(), c.world0.gen())
       .get();
   }
+  std::vector<R> all() {
+    auto & c = run::context::instance().world0;
+    return ::hpx::collectives::all_gather(c.comm(), base_type::get(), c.gen())
+      .get();
+  }
 };
 
 template<>

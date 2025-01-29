@@ -316,10 +316,11 @@ ntree_driver() {
     for(int i = 0; i < 10; ++i) {
       flecsi::execute<init_array_task>(arr_f(arr_s));
       s();
-      auto fm = flecsi::execute<check_sort_task>(arr_f(arr_s));
-      EXPECT_TRUE(std::get<2>(fm.get(process())));
+      const auto fm = flecsi::execute<check_sort_task>(arr_f(arr_s)).all();
+      for(auto & p : fm)
+        EXPECT_TRUE(std::get<2>(p));
       for(unsigned int p = 0; p < processes() - 1; ++p) {
-        EXPECT_LE(std::get<0>(fm.get(p)), std::get<1>(fm.get(p + 1)));
+        EXPECT_LE(std::get<0>(fm[p]), std::get<1>(fm[p + 1]));
       }
     }
   };
