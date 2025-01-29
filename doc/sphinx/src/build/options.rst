@@ -7,6 +7,7 @@ CMake Configuration Options
 
 The following set of options are available to control how FleCSI is
 built.
+Several of them are `made available <../../api/user/group__config.html>`__  as C++ macros for client code.
 
 Basic CMake options
 -------------------
