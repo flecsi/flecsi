@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <stdexcept>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -307,6 +308,9 @@ struct region_impl {
     exec::processor Proc = exec::processor::loc>
   auto get_storage(field_id_t fid, std::size_t nelems) {
     using return_type = span_access<T, Priv>;
+
+    if(nelems > s.second)
+      throw std::out_of_range("partition larger than region");
 
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
