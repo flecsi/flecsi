@@ -12,8 +12,9 @@ STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/flecsi \
 STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/flecsi \
                          @CMAKE_BINARY_DIR@
 INPUT                  = @PROJECT_SOURCE_DIR@/flecsi \
-                         @CMAKE_BINARY_DIR@/flecsi/config.hh \
+                         @PROJECT_SOURCE_DIR@/flecsi/config.hh.in \
                          @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
+EXTENSION_MAPPING += in=C++
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/doc/doxygen/mainpage.md
 
 EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
