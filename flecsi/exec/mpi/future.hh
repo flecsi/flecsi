@@ -64,7 +64,8 @@ struct future<R, exec::launch_type_t::index> {
     util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
   }
 
-  [[nodiscard]] R get(Color index = 0, bool = false) {
+  [[deprecated("pass to a task or use all")]] [[nodiscard]] R
+  get(Color index = 0, bool = false) {
     const auto b = [&](R & r) {
       util::mpi::test(
         MPI_Bcast(&r, 1, util::mpi::type<R>(), index, MPI_COMM_WORLD));
@@ -93,7 +94,8 @@ struct future<void, exec::launch_type_t::index> {
   void wait(bool = false) {
     util::mpi::test(MPI_Barrier(MPI_COMM_WORLD));
   }
-  void get(Color = 0, bool = false) {
+  [[deprecated("pass to a task or use all")]] void get(Color = 0,
+    bool = false) {
     wait();
   }
   Color size() const {

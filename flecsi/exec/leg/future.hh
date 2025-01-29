@@ -34,7 +34,8 @@ struct future<Return, exec::launch_type_t::index> {
     legion_future_.wait_all_results(silence_warnings);
   } // wait
 
-  Return get(Color index = 0, bool silence_warnings = false) {
+  [[deprecated("pass to a task or use all")]] Return get(Color index = 0,
+    bool silence_warnings = false) {
     if constexpr(std::is_same_v<Return, void>)
       return legion_future_.get_void_result(index, silence_warnings);
     else
@@ -46,7 +47,7 @@ struct future<Return, exec::launch_type_t::index> {
     std::vector<R> ret;
     ret.reserve(n);
     for(Color i = 0; i < n; ++i)
-      ret.push_back(get(i));
+      ret.push_back(legion_future_.get_result<R>(i));
     return ret;
   }
 

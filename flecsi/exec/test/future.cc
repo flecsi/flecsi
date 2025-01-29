@@ -47,11 +47,6 @@ reduction_task(int a, exec::launch_domain) {
   return a + color();
 }
 
-bool
-index_bool_task(exec::launch_domain) {
-  return !color();
-}
-
 int
 future_driver() {
   UNIT() {
@@ -85,10 +80,6 @@ future_driver() {
     auto fv2 = execute<index_void_task>(ld);
 
     fv2.wait();
-    fv2.get();
-
-    auto fb = execute<index_bool_task>(ld);
-    EXPECT_EQ(fb.get(), true);
 
     int a = 7;
     // checking reduction operations

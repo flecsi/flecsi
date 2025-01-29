@@ -32,6 +32,7 @@ Deprecated
 
 * Execution
 
+  * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
   * ``partition_privilege_t`` |mdash| use ``privilege``

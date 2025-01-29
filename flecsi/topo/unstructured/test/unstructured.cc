@@ -316,17 +316,12 @@ geomrz_driver() {
     using mt = typename unstructured::accessor<ro, ro, ro>;
     // Find bounding boxes of each mesh
     auto get_boxes = [](unstructured::slot & mesh) {
-      auto box_ft =
-        execute<unstructured::base::bounding_box<unstructured::cells,
-          unstructured::owned,
-          unstructured::vertices,
-          mt,
-          ft>>(mesh, unstructured::coords(mesh));
-      std::vector<util::BBox<2>> boxes;
-      for(Color c = 0; c < box_ft.size(); ++c) {
-        boxes.push_back(box_ft.get(c));
-      }
-      return boxes;
+      return execute<unstructured::base::bounding_box<unstructured::cells,
+        unstructured::owned,
+        unstructured::vertices,
+        mt,
+        ft>>(mesh, unstructured::coords(mesh))
+        .all();
     };
 
     const auto candidates_map =
