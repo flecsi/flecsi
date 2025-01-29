@@ -77,6 +77,9 @@ struct future<R, exec::launch_type_t::index> {
     b(ret);
     return ret;
   }
+  auto all() {
+    return util::mpi::all_gatherv(result);
+  }
 
   Color size() const {
     return run::context::instance().processes();

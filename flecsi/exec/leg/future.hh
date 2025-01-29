@@ -40,6 +40,15 @@ struct future<Return, exec::launch_type_t::index> {
     else
       return legion_future_.get_result<Return>(index, silence_warnings);
   } // get
+  template<class R = Return, class = std::enable_if_t<!std::is_void_v<R>>>
+  auto all() {
+    const Color n = size();
+    std::vector<R> ret;
+    ret.reserve(n);
+    for(Color i = 0; i < n; ++i)
+      ret.push_back(get(i));
+    return ret;
+  }
 
   Color size() const {
     return legion_future_.get_future_map_domain().get_volume();

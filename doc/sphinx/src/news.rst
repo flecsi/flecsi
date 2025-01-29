@@ -46,6 +46,7 @@ New features
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
+  * Index futures provide ``all`` to get all results.
   * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Topologies

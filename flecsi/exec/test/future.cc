@@ -57,20 +57,22 @@ future_driver() {
   UNIT() {
     using namespace future_test;
 
+    double d = 3.1;
     topo::global::slot g2;
     g2.allocate(2);
     const auto energy = energy_field(g2);
 
     // single future
-    auto f = execute<init>(3.1, energy);
+    auto f = execute<init>(d, energy);
 
     EXPECT_EQ(test<check>(f, energy), 0);
-    EXPECT_EQ(f.get(), 3.1 + 1);
+    EXPECT_EQ(f.get(), ++d);
 
     // future map
     const exec::launch_domain ld{run::context::instance().processes()};
-    auto fm = execute<index_init>(f.get(), ld);
-    EXPECT_EQ(fm.get(0, false), f.get());
+    auto fm = execute<index_init>(d, ld);
+    for(auto v : fm.all())
+      EXPECT_EQ(v, d++);
 
     // For all values because it's an index future:
     EXPECT_EQ(test<check>(fm, energy), 0);
