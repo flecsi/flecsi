@@ -14,7 +14,6 @@ flecsi_headers(
   geometry/kdtree.hh
   gpu_containers.hh
   crs.hh
-  parmetis.hh
   hashtable.hh
   mpi.hh
   reorder.hh

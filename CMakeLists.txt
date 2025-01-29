@@ -131,7 +131,6 @@ if(ENABLE_LIBRARY)
   include(FleCSI/coverage)
   include(FleCSI/legion)
   include(FleCSI/mpi)
-  include(FleCSI/parmetis)
   include(FleCSI/hpx)
   include(FleCSI/openmp)
   include(FleCSI/hdf5)
@@ -211,8 +210,6 @@ if(ENABLE_LIBRARY)
   endif()
 
   flecsi_enable_mpi(FleCSI OFF)
-
-  flecsi_enable_parmetis(FleCSI)
 
   if(FLECSI_BACKEND STREQUAL "hpx")
     flecsi_enable_hpx(FleCSI)

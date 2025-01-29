@@ -352,7 +352,6 @@ struct unstructured<Policy>::access {
   }
 
 protected:
-  using subspace_list = std::size_t;
   using entity_list = typename Policy::entity_list;
   access() : connect_(unstructured::connect_) {}
 
