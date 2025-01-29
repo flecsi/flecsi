@@ -232,8 +232,6 @@ private:
   // We don't need to worry about the case that ExecutionSpace is actually
   // HostSpace (e.g. OpenMP) since currently default_accelerator == toc only
   // when compiling for CUDA or HIP.
-  // Why don't we use Kokkos_View directly? Ans: our region lives longer than
-  // Kokkos.
   buffer_impl_loc loc_buffer;
   buffer_impl_toc toc_buffer;
 };
@@ -281,24 +279,11 @@ private:
 } // namespace detail
 
 struct region_impl {
-  // The constructor is collectively called on all ranks with the same s,
-  // and fs. s.first is number of rows while s.second is number of columns.
-  // MPI may assume "number of rows" == number of ranks. The number of columns
-  // is a placeholder for the number of data points to be stored in a
-  // particular row (aka rank), it could be exact or in the case when we don't
-  // know the exact number yet, a large number (flecsi::data::logical_size) is
-  // used.
-  //
-  // Generic frontend code supplies `s` and `fs` (for information about fields),
-  // requesting memory to be (notionally) reserved from backend. Here we only
-  // create the underlying std::vector<> without actually allocating any memory.
-  // The client code (mostly exec::task_prologue) will call .get_storage() with
-  // a field id and the number of elements on this rank, as determined by
-  // partitioning of the field. We will then call .resize() on the
-  // std::vector<>.
+  // s.first is never used (anything used must match the count of ranks).
+  // s.second is sometimes the placeholder logical_size.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(const auto & f : fs) {
-      storages[f->fid];
+      storages[f->fid]; // field memory allocated by get_storage
     }
   }
 
@@ -310,9 +295,6 @@ struct region_impl {
   template<class T, privilege Priv>
   using span_access = flecsi::util::span<privilege_const<T, Priv>>;
 
-  // The span is safe because it is used only within a user task while the
-  // vectors are resized or destroyed only outside user tasks (though perhaps
-  // during execute).
   template<class T,
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
@@ -352,9 +334,8 @@ struct region_impl {
   }
 
 private:
-  size2 s; // (nranks, nelems)
-  fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
-             // unrelated to r1.fs[].fid even if they have the same value.
+  size2 s;
+  fields fs;
 
   std::unordered_map<field_id_t, detail::storage> storages;
 };
@@ -387,7 +368,6 @@ struct partition {
   partition & operator=(partition &&) & = default;
 
   Color colors() const {
-    // number of rows, essentially the number of MPI ranks.
     return r->size().first;
   }
 
@@ -431,10 +411,6 @@ namespace mpi {
 
 struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
-    // This constructor is usually (almost always) called when r.s.second != a
-    // large number, meaning it has the actual value. In this case, r.s.second
-    // is the number of elements in the partition on this rank (the same value
-    // on all ranks though).
     nelems = r.size().second;
   }
 };
@@ -442,18 +418,12 @@ struct rows : data::partition {
 struct prefixes : data::partition, prefixes_base {
   template<class F>
   prefixes(region & r, F f) : partition(r) {
-    // Constructor for the case when how the data is partitioned is stored
-    // as a field in another region referenced by the "other' partition.
-    // Delegate to update().
     update(std::move(f));
   }
 
   template<class F>
   void update(F f) {
-    // The number of elements for each ranks is stored as a field of the
-    // prefixes::row data type on the `other` partition.
-    const auto s =
-      f.get_partition().template get_storage<row>(f.fid()); // non-owning span
+    const auto s = f.get_partition().template get_storage<row>(f.fid());
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     nelems = s[0];
@@ -507,27 +477,8 @@ struct intervals {
     field_id_t fid, // The field id for the metadata in the region in p.
     completeness = incomplete)
     : r(&*r) {
-    // Called by upper layer, supplied with a region and a partition. There are
-    // two regions involved. The region `r` has the storage for real field data
-    // (e.g. density, pressure etc.) as the destination of the ghost copy. It
-    // also contains the pairs of (rank, index) of shared entities on remote
-    // peers. The region and associated storage in the partition `p` contains
-    // metadata on which entities are local ghosts (destination of copy) on the
-    // current rank. The metadata is in the form of [beginning index, ending
-    // index), type aliased as Value, into the index space of the entity (e.g.
-    // vertex, edge, cell). We thus need to use the p.get_storage() to get the
-    // metadata, not the region.get_storage() which gives the real data. This
-    // works the same way as how one partition stores the number of elements in
-    // a particular 'shard' on a rank for another partition. In addition, we
-    // also need to copy Values from the partition and save them locally. User
-    // code might change it after this constructor returns. We can not use a
-    // copy assignment directly here since metadata is an util::span while
-    // ghost_ranges is a std::vector<>.
+    // Eagerly read field data, which might legitimately change later.
     ghost_ranges = to_vector(p.get_storage<Value>(fid));
-
-    // Get The largest value of `end index` in ghost_ranges (i.e. the upper
-    // bound). This tells how much memory needs to be allocated for ghost
-    // entities.
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });
@@ -537,7 +488,6 @@ struct intervals {
   }
 
 private:
-  // This member function is only called by copy_engine.
   friend copy_engine;
 
   template<typename T, privilege Priv>
@@ -549,7 +499,7 @@ private:
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
-  std::size_t max_end = 0;
+  std::size_t max_end = 0; // size of prefix containing all ranges
 };
 
 // Copy/Paste from cppreference.com to make std::visit looks more
@@ -570,17 +520,12 @@ struct copy_engine {
     return {r, i};
   }
 
-  // One copy engine for each entity type i.e. vertex, cell, edge.
-  copy_engine(const prefixes & src,
-    const intervals & intervals,
-    field_id_t meta_fid /* for remote shared entities */)
+  copy_engine(const prefixes & src, const intervals & intervals, field_id_t fid)
     : source(src), destination(intervals) {
-    // There is no information about the indices of local shared entities,
-    // ranks and indices of the destination of copy i.e. (local source
-    // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
-    // operation to reconstruct this info from {(local ghost index, remote
-    // source rank, remote source index)}.
-    auto remote_sources = destination.get_storage<Point, ro>(meta_fid);
+    // The input comprises the color and index of shared elements stored at
+    // each ghost element; reverse those pointers to know what to send where.
+
+    auto remote_sources = destination.get_storage<Point, ro>(fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
@@ -591,7 +536,6 @@ struct copy_engine {
       }
     }
 
-    // allocate the memory needed
     for(auto & p : mem_size)
       ghost_entities[p.first].resize(std::exchange(p.second, 0));
 
@@ -610,7 +554,7 @@ struct copy_engine {
       }
     }
 
-    // Create the inverse mapping of group_shared_entities. This creates a map
+    // Create the inverse mapping of remote_shared_entities. This creates a map
     // from remote destination rank to a vector of *local* source indices. This
     // information is later used by MPI_Send().
     {
@@ -683,8 +627,6 @@ struct copy_engine {
           gather_buffer_device_view;
 #endif
 
-        // shared_indices is created on the host, but is accessed from
-        // the device. It will be copied to the device on the first iteration.
         // Shared data in the field storage is copied to the gather buffer
         // in parallel. It is then copied to the send buffer (on host) and
         // sent to the peer via MPI_Send.
@@ -747,12 +689,8 @@ struct copy_engine {
       scatter_buffer_device_view;
 #endif
 
-    // ghost_indices is created on the host, but is accessed from
-    // the device. It will be copied to the device on the first iteration.
-    // Ghost data is received from peers bia MPI_Recv into the
-    // recv_buffers. It is then copied to the scatter_buffer (on device)
-    // and eventually copied in parallel into the field's storage (on device).
-
+    // Copy recv_buffers to scatter_buffer_device_view and then in parallel
+    // into the field's storage (on device).
     auto recv_buffer = recv_buffers.begin();
     for(auto data_fid : ff) {
       auto type_size = source.r->get_field_info(data_fid)->type_size;
