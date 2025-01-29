@@ -67,8 +67,6 @@ public:
     }
   }
 
-  virtual ~mpi_mapper_t() {}
-
   void select_task_options(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::TaskOptions & output) override {
