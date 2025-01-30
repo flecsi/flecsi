@@ -88,10 +88,17 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // Annotation severity level
 //----------------------------------------------------------------------------//
 
+/// An integer for comparing with \c #FLECSI_CALIPER_DETAIL.
+/// The values are in increasing order.
+/// \{
 #define FLECSI_CALIPER_DETAIL_none 1
 #define FLECSI_CALIPER_DETAIL_low 2
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
+/// \}
+
+/// The configured level of annotation detail (one of the \c
+/// FLECSI_CALIPER_DETAIL_ macros).
 #define FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
 
 /// \}
