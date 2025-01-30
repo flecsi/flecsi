@@ -21,21 +21,18 @@ struct copy_base {
 };
 
 struct copy_engine : copy_base {
-  // One copy engine for each entity type i.e. vertex, cell, edge.
   template<typename AllToAll>
   copy_engine(const prefixes & src,
     const data::intervals & intervals,
-    field_id_t meta_fid /* for remote shared entities */,
+    field_id_t fid,
     AllToAll && all_to_all)
     : source(&src->get_region()), destination(intervals.share()) {
     // Make sure the task that is writing to the field has finished running
-    (*destination)[meta_fid].synchronize();
-    // There is no information about the indices of local shared entities,
-    // ranks and indices of the destination of copy i.e. (local source
-    // index, {(remote dest rank, remote dest index)}). We need to do a shuffle
-    // operation to reconstruct this info from {(local ghost index, remote
-    // source rank, remote source index)}.
-    auto remote_sources = destination->get_storage<Point, ro>(meta_fid);
+    (*destination)[fid].synchronize();
+    // The input comprises the color and index of shared elements stored at
+    // each ghost element; reverse those pointers to know what to send where.
+
+    auto remote_sources = destination->get_storage<Point, ro>(fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
@@ -46,7 +43,6 @@ struct copy_engine : copy_base {
       }
     }
 
-    // allocate the memory needed
     for(auto & p : mem_size)
       ghost_entities[p.first].resize(std::exchange(p.second, 0));
 
@@ -66,7 +62,7 @@ struct copy_engine : copy_base {
       }
     }
 
-    // Create the inverse mapping of group_shared_entities. This creates a map
+    // Create the inverse mapping of remote_shared_entities. This creates a map
     // from remote destination rank to a vector of *local* source indices. This
     // information is later used by MPI_Send().
     {

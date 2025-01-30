@@ -115,8 +115,8 @@ Davis Herring
       computational physics simulations.
       He has also published on the subject of molecular dynamics
       simulations conducted in T-1.
-      Davis and Ollie represent LANL on the ISO C++ committee; in turn,
-      Davis has worked to improve the user-interface and maintainability
+      Davis represents LANL on the ISO C++ committee; in turn,
+      he has worked to improve the user-interface and maintainability
       of FleCSI 2 by taking advantage of modern C++ features.
 
       Davis is the current technical lead for FleCSI.
@@ -146,90 +146,6 @@ Christoph Junghans
       His interests lie in understanding modern computing architectures
       and the design of sustainable code.
       Christoph is the CCS-7 group leader.
-
-|clearboth|
-
-Brendan Krueger
-^^^^^^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/brendan.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Brendan is a computational scientist with a background in nuclear
-      astrophysics, multiphysics simulations, high performance
-      computing, and software engineering.  Before joining the Co-Design
-      team, he worked in the Eulerian Codes group, contributing to
-      projects including the xRAGE code, the Singe thermonuclear physics
-      library, and the Portage remapping library.
-
-|clearboth|
-
-Sumathi Lakshmiranganatha
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/sumathi.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Sumathi is a computational scientist in the Co-Design team.
-      Her research interests include high-performance computing, machine
-      learning models, real-time simulations and analysis for large
-      scientific applications.
-      She received her PhD in Electrical Engineering from the University
-      of Wyoming in 2021.
-      Her PhD work was focused on HPC and machine learning techniques to
-      reduce the computational burden in analyzing the dynamics of
-      complex systems.
-      She also worked on porting to and optimization of MPAS atmosphere
-      weather model on GPU architectures using OpenACC.
-      She is currently working adding shared memory programming model
-      support to FleCSI using Kokkos and integration of FleCSI to the
-      CANGA project.
-
-|clearboth|
-
-Li-Ta (Ollie) Lo
-^^^^^^^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/ollie.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-3 Information Sciences** |br|
-      *Los Alamos National Laboratory*
-
-      Li-Ta Lo is currently a computer scientist with the Data Science
-      at Scale team of Los Alamos National Laboratory.
-      His research interests include data science, large-scale
-      visualization and analysis, data-parallel programming and software
-      engineering for scientific computing.
-      His work for FleCSI focuses on providing an efficient and scalable
-      MPI backend.
 
 |clearboth|
 
@@ -284,30 +200,6 @@ Maxim Moraru
 
 |clearboth|
 
-Max Ortner
-^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftsideW
-
-     .. image:: team/max.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Max is a post-bachelor on the CCS-7 Co-Design Team. 
-      He has broad interests in physics (from QFT to General Relativity) and computer science,
-      specifically highly performant, low-level graphics systems and scientific data handling 
-      with MPI I/O.
-      Currently, he maintains and develops features related to efficient memory usage for FleCSI.
-
-|clearboth|
-
 Scott Pakin
 ^^^^^^^^^^^
 
@@ -330,63 +222,6 @@ Scott Pakin
       computing.
       He is the team leader for the CCS-7 Co-Design Team and has been
       serving since October 2021 as the FleCSI project lead.
-
-|clearboth|
-
-Navamita Ray
-^^^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/navamita.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-    Navamita is a staff scientist in the co-design team in CCS-7 with
-    expertise in meshing technologies and numerical methods.
-    At LANL, she has been involved in designing and developing mesh data
-    structures for advanced programming runtimes targeting heterogeneous
-    architectures for exascale computing.
-    She is also working on next generation libraries for conservative
-    data remapping to link LANL applications.
-    She has also worked on projects involving quantum computing for
-    solving linear systems for fluid flows and protein folding problems.
-    Before joining LANL, Navamita Ray was part of the SIGMA project at
-    Argonne National Lab where she implemented new data structures for
-    their MOAB mesh framework library.
-
-|clearboth|
-
-Andrew Reisner
-^^^^^^^^^^^^^^
-
-.. container:: twocol
-
-   .. container:: leftside
-
-     .. image:: team/andrew.jpg
-        :align: left
-        :width: 237
-
-   .. container:: rightside
-
-      **CCS-7 Applied Computer Science** |br|
-      *Los Alamos National Laboratory*
-
-      Andrew is a computer scientist on the Co-Design Team with a
-      background in parallel and scientific computing.
-      His research interests include scalable solvers and performance
-      models as a predictive tool for guiding applications.
-      His current work is focused on the integration and performance
-      analysis of applying FleCSI to software projects at LANL,
-      including the CANGA project.
 
 |clearboth|
 
@@ -466,6 +301,63 @@ Charles Ferenbaugh
 
 |clearboth|
 
+Brendan Krueger
+^^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/brendan.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Brendan is a computational scientist with a background in nuclear
+      astrophysics, multiphysics simulations, high performance
+      computing, and software engineering.  Before joining the Co-Design
+      team, he worked in the Eulerian Codes group, contributing to
+      projects including the xRAGE code, the Singe thermonuclear physics
+      library, and the Portage remapping library.
+
+|clearboth|
+
+Sumathi Lakshmiranganatha
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/sumathi.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Sumathi is a computational scientist in the Co-Design team.
+      Her research interests include high-performance computing, machine
+      learning models, real-time simulations and analysis for large
+      scientific applications.
+      She received her PhD in Electrical Engineering from the University
+      of Wyoming in 2021.
+      Her PhD work was focused on HPC and machine learning techniques to
+      reduce the computational burden in analyzing the dynamics of
+      complex systems.
+      She also worked on porting to and optimization of MPAS atmosphere
+      weather model on GPU architectures using OpenACC.
+      She adding shared memory programming model
+      support to FleCSI using Kokkos.
+
+|clearboth|
+
 Jonas Lippuner
 ^^^^^^^^^^^^^^
 
@@ -497,6 +389,32 @@ Jonas Lippuner
 
 |clearboth|
 
+Li-Ta (Ollie) Lo
+^^^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/ollie.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-3 Information Sciences** |br|
+      *Los Alamos National Laboratory*
+
+      Li-Ta Lo is currently a computer scientist with the Data Science
+      at Scale team of Los Alamos National Laboratory.
+      His research interests include data science, large-scale
+      visualization and analysis, data-parallel programming and software
+      engineering for scientific computing.
+      His work for FleCSI focused on providing an efficient and scalable
+      MPI backend.
+
+|clearboth|
+
 Nick Moss
 ^^^^^^^^^
 
@@ -524,6 +442,87 @@ Nick Moss
       mesh and tree topology, data model, and distributed task execution,
       and more recently has worked on the Kitsune project to produce a
       specialized FleCSI compiler.
+
+|clearboth|
+
+Max Ortner
+^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftsideW
+
+     .. image:: team/max.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Max completed a post-bachelor internship on the CCS-7 Co-Design Team. 
+      He has broad interests in physics (from QFT to General Relativity) and computer science,
+      specifically highly performant, low-level graphics systems and scientific data handling 
+      with MPI I/O.
+      He developed features related to efficient memory usage for FleCSI.
+
+|clearboth|
+
+Navamita Ray
+^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/navamita.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+    Navamita is a staff scientist in the co-design team in CCS-7 with
+    expertise in meshing technologies and numerical methods.
+    At LANL, she has been involved in designing and developing mesh data
+    structures for advanced programming runtimes targeting heterogeneous
+    architectures for exascale computing.
+    She is also working on next generation libraries for conservative
+    data remapping to link LANL applications.
+    She has also worked on projects involving quantum computing for
+    solving linear systems for fluid flows and protein folding problems.
+    Before joining LANL, Navamita Ray was part of the SIGMA project at
+    Argonne National Lab where she implemented new data structures for
+    their MOAB mesh framework library.
+
+|clearboth|
+
+Andrew Reisner
+^^^^^^^^^^^^^^
+
+.. container:: twocol
+
+   .. container:: leftside
+
+     .. image:: team/andrew.jpg
+        :align: left
+        :width: 237
+
+   .. container:: rightside
+
+      **CCS-7 Applied Computer Science** |br|
+      *Los Alamos National Laboratory*
+
+      Andrew is a computer scientist on the Co-Design Team with a
+      background in parallel and scientific computing.
+      His research interests include scalable solvers and performance
+      models as a predictive tool for guiding applications.
+      His current work is focused on the integration and performance
+      analysis of applying FleCSI to software projects at LANL,
+      including the CANGA project.
 
 |clearboth|
 

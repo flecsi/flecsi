@@ -68,8 +68,6 @@ struct copy_engine : local::copy_engine {
         std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
           gather_buffer_device_view;
 
-        // shared_indices is created on the host, but is accessed from
-        // the device. It will be copied to the device on the first iteration.
         // Shared data in the field storage is copied to the gather buffer
         // in parallel. It is then copied to the send buffer (on host) and
         // sent to the peer via MPI_Send.
@@ -137,12 +135,8 @@ struct copy_engine : local::copy_engine {
     std::optional<Kokkos::View<std::byte *, Kokkos::DefaultExecutionSpace>>
       scatter_buffer_device_view;
 
-    // ghost_indices is created on the host, but is accessed from
-    // the device. It will be copied to the device on the first iteration.
-    // Ghost data is received from peers bia MPI_Recv into the
-    // recv_buffers. It is then copied to the scatter_buffer (on device)
-    // and eventually copied in parallel into the field's storage (on device).
-
+    // Copy recv_buffers to scatter_buffer_device_view and then in parallel
+    // into the field's storage (on device).
     auto recv_buffer = recv_buffers.begin();
     for(auto data_fid : ff) {
       auto type_size = source->get_field_info(data_fid)->type_size;

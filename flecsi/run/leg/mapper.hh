@@ -19,27 +19,12 @@ namespace run {
 /// \{
 
 /*!
- The mpi_mapper_t - is a custom mapper that handles mpi-legion
- interoperability in FleCSI
+  FleCSI's mapper, named for its support for rank-matching for MPI tasks.
 */
-
 class mpi_mapper_t : public Legion::Mapping::DefaultMapper
 {
 public:
-  /*!
-   Contructor. Derives from the Legion's Default Mapper
-
-   @param machine Machine type for Legion's Realm
-   @param _runtime Legion runtime
-   @param local processor type: currently supports only
-           LOC_PROC and TOC_PROC
-
-   This constructor is different from a constructor in Default Mapper
-   because it sets up some information on which memory to use
-   depending on the Processor type (local_sysmemory,
-   local_zerobuffer, etc)
-   */
-
+  /// See \c DefaultMapper for parameter meanings.
   mpi_mapper_t(Legion::Machine machine,
     Legion::Runtime * _runtime,
     Legion::Processor local)
@@ -50,9 +35,7 @@ public:
       machine(machine) {
     using namespace Legion;
     using namespace Legion::Mapping;
-    // Auto-enable 'memoize' (set to 'false' by default in the DefaultMapper)
-    // there is no more need to specify '-dm:memoize' at runtime
-    memoize = true;
+    memoize = true; // as set by -dm:memoize
     // Get our local memories
     {
       Machine::MemoryQuery sysmem_query(machine);
@@ -82,11 +65,8 @@ public:
     else {
       local_framebuffer = Memory::NO_MEMORY;
     }
-  } // end mpi_mapper_t
+  }
 
-  /*!
-    Destructor
-   */
   virtual ~mpi_mapper_t() {}
 
   void select_task_options(const Legion::Mapping::MapperContext ctx,
@@ -106,10 +86,6 @@ public:
                 : node_id == output.initial_proc.address_space());
   }
 
-  /* This is the method to choose default Layout constraints.
-     FleCSI is currently uses SOA ordering, which is different from
-     the one in Default Mapper
-  */
   Legion::LayoutConstraintID default_policy_select_layout_constraints(
     Legion::Mapping::MapperContext ctx,
     Realm::Memory target_memory,
@@ -119,7 +95,6 @@ public:
     bool & force_new_instances) override {
 
     if((req.privilege == LEGION_REDUCE) && (mapping_kind != COPY_MAPPING)) {
-      // Always make new reduction instances
       force_new_instances = true;
       std::pair<Legion::Memory::Kind, Legion::ReductionOpID> constraint_key(
         target_memory.kind(), req.redop);
@@ -135,26 +110,15 @@ public:
 
       Legion::LayoutConstraintID result =
         runtime->register_layout(ctx, constraints);
-      // Save the result
       reduction_constraint_cache[constraint_key] = result;
       return result;
     }
 
-    // We always set force_new_instances to false since we are
-    // deciding to optimize for minimizing memory usage instead
-    // of avoiding Write-After-Read (WAR) dependences
-    force_new_instances = false;
+    force_new_instances = false; // delay WAR tasks to save memory
     return soa_constraint_id;
   }
 
-  /*!
-   Specialization of the default_policy_select_instance_region method for
-   FleCSI. In case of FleCSI we want exact region that has been requested to be
-   created. This is different from Default mapper which will map Parent region,
-   if it exists.
-
-   @param req Region requirement for which instance is going to be allocated
-  */
+  /// Use subregions rather than parent region.
   virtual Legion::LogicalRegion default_policy_select_instance_region(
     Legion::Mapping::MapperContext,
     Realm::Memory,
@@ -163,7 +127,7 @@ public:
     bool /* force_new_instances */,
     bool) override {
     return req.region;
-  } // default_policy_select_instance_region
+  }
 
 #if 0
   /*!
@@ -193,8 +157,6 @@ public:
     flog_assert((task.regions[indx].region.exists()),
       "ERROR:: pasing not existing REGION to the mapper");
 
-    // compacting region requirements for exclusive, shared and ghost into one
-    // instance
     Legion::Mapping::PhysicalInstance result = get_instance(ctx,
       task,
       target_mem,
@@ -226,19 +188,8 @@ public:
       get_instance(ctx, task, target_mem, layout_constraints, {r}));
   } // create_instance
 
-  /*!
-   Specialization of the map_task funtion for FleCSI.
-
-   The function has some FleCSI-specific features:
-
-   1) It specifies SOA ordering for new physical instances;
-
-   2) It stores information about already created instances
-      and avoids creating a new instance if possible;
-
-   3) It has logic on how to create compacted instances;
-   */
-
+  /// Implement \c prefer_gpu and \c prefer_omp tags and reuse or create
+  /// appropriate SoA instances.
   virtual void map_task(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::MapTaskInput & input,
@@ -329,7 +280,6 @@ public:
         // No specialization
         layout_constraints.add_constraint(Legion::SpecializedConstraint());
         layout_constraints.add_constraint(soa_constraint);
-        // Constrained for the target memory kind
         layout_constraints.add_constraint(
           Legion::MemoryConstraint(target_mem.kind()));
 
@@ -347,7 +297,6 @@ public:
           continue;
         }
 #endif
-        // We need to create a new instance containing the missing fields
         layout_constraints.add_constraint(
           Legion::FieldConstraint(missing_fields[indx], true));
         create_instance(
@@ -358,13 +307,7 @@ public:
 
   } // map_task
 
-  /* This is a FleCSI specialization for the slice_task method
-    that specify how resources are choosen for the task.
-    In case of the Index task, it will specify what processes
-    should be used by each index point.
-    In particular, it provides FleCSI specific logic for how to map MPI tasks
-  */
-
+  /// Assign processors, implementing the \c force_rank_match tag.
   virtual void slice_task(const Legion::Mapping::MapperContext,
     const Legion::Task & task,
     const Legion::Mapping::Mapper::SliceTaskInput & input,
@@ -429,11 +372,7 @@ public:
 
   } // slice_task
 
-  /*
-   * map_copy: similar to DefaultMapper::map_copy
-   * except that we set `compute_preimages` to true
-   * and try to reuse the existing instances for the indirections
-   */
+  /// Reuse existing indirection instances and request reusable preimages.
   virtual void map_copy(const Legion::Mapping::MapperContext ctx,
     const Legion::Copy & copy,
     const Legion::Mapping::Mapper::MapCopyInput & input,
@@ -457,7 +396,7 @@ public:
          (idx < copy.src_indirect_requirements.size()) ||
          (idx < copy.dst_indirect_requirements.size())) {
         if(!copy_src_req.is_restricted())
-          create_copy_instance<true /*is src*/>(
+          default_create_copy_instance<true /*is src*/>(
             ctx, copy, copy_src_req, idx, output_src);
         // else: do nothing (if restricted we can not create a new instance)
       }
@@ -482,7 +421,7 @@ public:
         // Try to reuse existing instances
         output_dst = input.dst_instances[idx];
         if(!copy_dst_req.is_restricted())
-          create_copy_instance<false /*is src*/>(
+          default_create_copy_instance<false /*is src*/>(
             ctx, copy, copy_dst_req, idx, output_dst);
       }
     }
@@ -503,7 +442,7 @@ public:
         if(!can_reuse_instance &&
            !copy.src_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
-          create_copy_instance<false /*is src*/>(ctx,
+          default_create_copy_instance<false /*is src*/>(ctx,
             copy,
             copy.src_indirect_requirements[idx],
             idx,
@@ -513,10 +452,7 @@ public:
         }
       }
     }
-    // Scatter copy
-    // The role of the code below is to keep the mapper general
-    // Currently, it will never be executed since FleCSI does not perform
-    // scatter operations
+    // Scatter copy (for generality; FleCSI does not use scatter operations):
     if(!copy.dst_indirect_requirements.empty()) {
       for(unsigned idx = 0; idx < copy.dst_indirect_requirements.size();
           idx++) {
@@ -533,7 +469,7 @@ public:
         if(!can_reuse_instance &&
            !copy.dst_indirect_requirements[idx].is_restricted()) {
           std::vector<Legion::Mapping::PhysicalInstance> temp_instances;
-          create_copy_instance<false /*is src*/>(ctx,
+          default_create_copy_instance<false /*is src*/>(ctx,
             copy,
             copy.dst_indirect_requirements[idx],
             idx,
@@ -544,77 +480,8 @@ public:
       }
     }
 
-    // currently our copy_plans are reused which is why we
-    // want the gather copies to be optimized for repeated use.
     output.compute_preimages = true;
   } // map_copy
-
-  /*
-   * create_copy_instance : similar to
-   * DefaultMapper::default_create_copy_instance except that we create compact
-   * instances if the index space involved in the copy is sparse
-   */
-  template<bool IS_SRC>
-  void create_copy_instance(Legion::Mapping::MapperContext ctx,
-    const Legion::Copy & copy,
-    const Legion::RegionRequirement & req,
-    unsigned idx,
-    std::vector<Legion::Mapping::PhysicalInstance> & instances)
-  //--------------------------------------------------------------------------
-  {
-    using namespace Legion;
-    using namespace Legion::Mapping;
-    // See if we have all the fields covered
-    std::set<FieldID> missing_fields = req.privilege_fields;
-    for(auto & phys_instance : instances) {
-      phys_instance.remove_space_fields(missing_fields);
-      if(missing_fields.empty())
-        return;
-    }
-    // If we still have missing fields, we need to make an instance
-    Memory target_memory = default_policy_select_target_memory(
-      ctx, copy.parent_task->current_proc, req);
-    bool force_new_instances = false;
-    LayoutConstraintSet creation_constraints;
-    creation_constraints.add_constraint(soa_constraint);
-    creation_constraints.add_constraint(
-      FieldConstraint(missing_fields, false /*contig*/, false /*inorder*/));
-    // if the domain is sparse, we create a compacted instance (otherwise the
-    // memory consumption will be extremely high)
-    Legion::Domain req_domain =
-      runtime->get_index_space_domain(ctx, req.region.get_index_space());
-    if(IS_SRC && !req_domain.dense())
-      creation_constraints.add_constraint(
-        Legion::SpecializedConstraint(LEGION_COMPACT_SPECIALIZE));
-
-    instances.emplace_back();
-    size_t footprint = 0;
-    if(!default_make_instance(ctx,
-         target_memory,
-         creation_constraints,
-         instances.back(),
-         COPY_MAPPING,
-         force_new_instances,
-         true /*meets*/,
-         req,
-         &footprint)) {
-      // If we failed to make it that is bad
-      flog_fatal("FleCSI mapper failed allocation of"
-                 << footprint << " bytes for "
-                 << (IS_SRC ? "source" : "destination") << " region requirement"
-                 << idx
-                 << "of explicit "
-                    "region-to-region copy operation in task "
-                 << copy.parent_task->get_task_name() << "(ID"
-                 << copy.parent_task->get_unique_id() << ") in memory "
-                 << target_memory.id << " for processor "
-                 << copy.parent_task->current_proc.id
-                 << ". This means the working set of your "
-                    "application is too big for the allotted "
-                    "capacity of the given memory. You can ask Realm "
-                    "to allocate more memory, or find a bigger machine.");
-    }
-  } // create_copy_instance
 
 private:
   /*
@@ -639,9 +506,6 @@ private:
     }
   }
 
-  /*!
-   This function will create PhysicalInstance for Reduction task
-  */
   void create_reduction_instance(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::MapTaskOutput & output,
@@ -670,11 +534,8 @@ private:
       default_report_failed_instance_creation(
         task, idx, target_proc, target_mem, footprint);
     }
-  } // create reduction instance
+  }
 
-  /*!
-   This function will find a variant from a VariantID map for the task
-  */
   Legion::VariantID find_variant(const Legion::Mapping::MapperContext ctx,
     Legion::TaskID task_id,
     std::map<Legion::TaskID, Legion::VariantID> & variant,
@@ -738,11 +599,7 @@ protected:
   }();
 };
 
-/*!
- mapper_registration is used to replace DefaultMapper with mpi_mapper_t in
- FleCSI
- */
-
+/// Replace default mappers with \c mpi_mapper_t instances.
 inline void
 mapper_registration(Legion::Machine machine,
   Legion::HighLevelRuntime * rt,
@@ -752,7 +609,7 @@ mapper_registration(Legion::Machine machine,
       it++) {
     rt->replace_default_mapper(new mpi_mapper_t(machine, rt, *it), *it);
   }
-} // mapper registration
+}
 
 /// \}
 } // namespace run

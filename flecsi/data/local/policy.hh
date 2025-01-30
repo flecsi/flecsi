@@ -23,24 +23,11 @@ namespace data {
 
 namespace local {
 struct region_impl {
-  // The constructor is collectively called on all ranks with the same s,
-  // and fs. s.first is number of rows while s.second is number of columns.
-  // This file assumes "number of rows" == number of ranks. The number of
-  // columns is a placeholder for the number of data points to be stored in a
-  // particular row (aka rank), it could be exact or in the case when we don't
-  // know the exact number yet, a large number (flecsi::data::logical_size) is
-  // used.
-  //
-  // Generic frontend code supplies `s` and `fs` (for information about fields),
-  // requesting memory to be (notionally) reserved from backend. Here we only
-  // create the underlying std::vector<> without actually allocating any memory.
-  // The client code (mostly exec::task_prologue) will call .get_storage() with
-  // a field id and the number of elements on this rank, as determined by
-  // partitioning of the field. We will then call .resize() on the
-  // std::vector<>.
+  // s.first is never used (anything used must match the count of ranks).
+  // s.second is sometimes the placeholder logical_size.
   region_impl(size2 s, const fields & fs) : s(std::move(s)), fs(fs) {
     for(const auto & f : fs) {
-      storages[f->fid];
+      storages[f->fid]; // field memory allocated by get_storage
     }
   }
 
@@ -52,9 +39,6 @@ struct region_impl {
   template<class T, privilege Priv>
   using span_access = flecsi::util::span<privilege_const<T, Priv>>;
 
-  // The span is safe because it is used only within a user task while the
-  // vectors are resized or destroyed only outside user tasks (though perhaps
-  // during execute).
   template<class T,
     privilege Priv = ro,
     exec::processor Proc = exec::processor::loc>
@@ -100,9 +84,8 @@ struct region_impl {
   }
 
 private:
-  size2 s; // (nranks, nelems)
-  fields fs; // fs[].fid is only unique within a region, i.e. r0.fs[].fid is
-             // unrelated to r1.fs[].fid even if they have the same value.
+  size2 s;
+  fields fs;
 
   std::unordered_map<field_id_t, backend_storage> storages;
 };
@@ -145,7 +128,6 @@ private:
 struct partition_impl {
 
   Color colors() const {
-    // number of rows, essentially the number of MPI ranks.
     return r->size().first;
   }
 
@@ -236,10 +218,6 @@ struct partition : local::partition { // instead of "using partition ="
 namespace local {
 struct rows : data::partition {
   explicit rows(region & r) : partition(r) {
-    // This constructor is usually (almost always) called when r.s.second != a
-    // large number, meaning it has the actual value. In this case, r.s.second
-    // is the number of elements in the partition on this rank (the same value
-    // on all ranks though).
     (*this)->nelems = r.size().second;
   }
 };
@@ -247,20 +225,15 @@ struct rows : data::partition {
 struct prefixes : data::partition, prefixes_base {
   template<class F>
   prefixes(region & r, F f) : partition(r) {
-    // Constructor for the case when how the data is partitioned is stored
-    // as a field in another region referenced by the "other' partition.
-    // Delegate to update().
     update(std::move(f));
   }
 
   template<class F>
   void update(F f) {
-    // The number of elements for each ranks is stored as a field of the
-    // prefixes::row data type on the `other` partition.
     auto & part = f.get_partition();
     // Make sure storage is actually available
     part[f.fid()].synchronize();
-    const auto s = part->template get_storage<row>(f.fid()); // non-owning span
+    const auto s = part->template get_storage<row>(f.fid());
     flog_assert(
       s.size() == 1, "underlying partition must have size 1, not " << s.size());
     (*this)->nelems = s[0];
@@ -308,27 +281,8 @@ struct intervals_impl {
     : r(&*r) {
     // Make sure the task that is writing to the field has finished running
     p[fid].synchronize();
-    // Called by upper layer, supplied with a region and a partition. There are
-    // two regions involved. The region `r` has the storage for real field data
-    // (e.g. density, pressure etc.) as the destination of the ghost copy. It
-    // also contains the pairs of (rank, index) of shared entities on remote
-    // peers. The region and associated storage in the partition `p` contains
-    // metadata on which entities are local ghosts (destination of copy) on the
-    // current rank. The metadata is in the form of [beginning index, ending
-    // index), type aliased as Value, into the index space of the entity (e.g.
-    // vertex, edge, cell). We thus need to use the p.get_storage() to get the
-    // metadata, not the region.get_storage() which gives the real data. This
-    // works the same way as how one partition stores the number of elements in
-    // a particular 'shard' on a rank for another partition. In addition, we
-    // also need to copy Values from the partition and save them locally. User
-    // code might change it after this constructor returns. We can not use a
-    // copy assignment directly here since metadata is an util::span while
-    // ghost_ranges is a std::vector<>.
+    // Eagerly read field data, which might legitimately change later.
     ghost_ranges = to_vector(p->get_storage<Value>(fid));
-
-    // Get The largest value of `end index` in ghost_ranges (i.e. the upper
-    // bound). This tells how much memory needs to be allocated for ghost
-    // entities.
     if(auto iter = std::max_element(ghost_ranges.begin(),
          ghost_ranges.end(),
          [](Value x, Value y) { return x.second < y.second; });
@@ -350,7 +304,7 @@ struct intervals_impl {
 
   // Locally cached metadata on ranges of ghost index.
   std::vector<Value> ghost_ranges;
-  std::size_t max_end = 0;
+  std::size_t max_end = 0; // size of prefix containing all ranges
 };
 
 struct intervals {
