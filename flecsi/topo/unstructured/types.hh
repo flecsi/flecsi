@@ -157,6 +157,50 @@ struct unstructured_base {
   struct coloring {
     /// Coloring information for a single index space.
     struct index_space {
+      index_space(std::vector<std::vector<Color>> peers = {},
+        std::vector<std::size_t> partitions = {})
+        : peers(std::move(peers)), partitions(std::move(partitions)) {}
+      struct value {};
+      struct braces {
+        braces(util::gid g) : g(g) {}
+        util::gid g;
+      };
+      template<class T,
+        class = std::enable_if_t<std::is_convertible_v<T &&, util::gid>>>
+      [[deprecated("omit entities")]] index_space(
+        std::vector<std::vector<Color>> peers,
+        std::vector<std::size_t> partitions,
+        T && entities,
+        std::vector<index_color> colors = {},
+        std::vector<std::size_t> num_intervals = {})
+        : peers(std::move(peers)), partitions(std::move(partitions)),
+          entities(std::forward<T>(entities)), colors(std::move(colors)),
+          num_intervals(std::move(num_intervals)) {}
+      [[deprecated("omit entities")]] index_space(
+        std::vector<std::vector<Color>> peers,
+        std::vector<std::size_t> partitions,
+        value,
+        std::vector<index_color> colors,
+        std::vector<std::size_t> num_intervals)
+        : peers(std::move(peers)), partitions(std::move(partitions)),
+          colors(std::move(colors)), num_intervals(std::move(num_intervals)) {}
+      [[deprecated("omit entities")]] index_space(
+        std::vector<std::vector<Color>> peers,
+        std::vector<std::size_t> partitions,
+        braces entities,
+        std::vector<index_color> colors = {},
+        std::vector<std::size_t> num_intervals = {})
+        : peers(std::move(peers)), partitions(std::move(partitions)),
+          entities(entities.g), colors(std::move(colors)),
+          num_intervals(std::move(num_intervals)) {}
+      // {...,...,{},{}} now selects this constructor.
+      index_space(std::vector<std::vector<Color>> peers,
+        std::vector<std::size_t> partitions,
+        std::vector<index_color> colors,
+        std::vector<std::size_t> num_intervals = {})
+        : peers(std::move(peers)), partitions(std::move(partitions)),
+          colors(std::move(colors)), num_intervals(std::move(num_intervals)) {}
+
       /// The communication peers over all colors, i.e.,
       /// for each color, the communication peers
       /// (color ids) are stored.
@@ -165,8 +209,9 @@ struct unstructured_base {
       /// The number of entities (including ghosts) for every color.
       std::vector<std::size_t> partitions;
 
-      /// The global number of entities in this index space.
-      util::gid entities;
+      /// Unused.
+      /// \deprecated Omit from list-initialization.
+      util::gid entities = 0;
 
       /// Information specific to local colors.
       /// Each process may contribute any number of partitions.

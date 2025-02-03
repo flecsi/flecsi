@@ -40,6 +40,10 @@ Deprecated
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
 
+* Topologies
+
+  * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
+
 New features
 ^^^^^^^^^^^^
 * Build
@@ -63,6 +67,7 @@ New features
 * Topologies
 
   * ``narray`` specializations need not define ``dimension``.
+  * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
 
 * HPX backend
 

@@ -22,7 +22,6 @@ namespace ftui = topo::unstructured_impl;
 namespace {
 
 constexpr Color ncolors = 4;
-constexpr std::size_t num_cells = 4 * 4, num_vertices = 5 * 5;
 
 const std::vector<std::vector<util::gid>> cell_l2g {
   {2, 3, 6, 7, 1, 5, 9, 10, 11},
@@ -252,7 +251,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             local_owned_cells + num_ghosts(local_peer_cells[2]),
             local_owned_cells + num_ghosts(local_peer_cells[3])
           },
-          num_cells,
           { /* over process colors */
             {
 
@@ -278,7 +276,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             local_owned_vertices[2] + num_ghosts(local_peer_vertices[2]),
             local_owned_vertices[3] + num_ghosts(local_peer_vertices[3])
           },
-          num_vertices,
           { /* over process colors */
             {
 
