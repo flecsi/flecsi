@@ -54,6 +54,7 @@ Fixed
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
   * ``serial::get_tuple<std::tuple<...>>`` works (and produces a singleton tuple).
+  * ``UNIT_CAPTURE`` works properly in non-MPI tasks.
 
 * Topology
 
