@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['mpi_0',['MPI',['../group__mpi-utils.html',1,'']]],
-  ['multi_2ddimensional_20array_1',['Multi-dimensional Array',['../group__narray.html',1,'']]]
+  ['launch_20maps_0',['Launch maps',['../group__launch.html',1,'']]],
+  ['logging_1',['Logging',['../group__flog.html',1,'']]]
 ];

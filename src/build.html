@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Build &amp; Install &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Build &amp; Install &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -53,7 +53,10 @@
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Build &amp; Install</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="build/options.html">CMake Configuration Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#requirements-prerequisites">Requirements &amp; Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-requirements">Build requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#additional-requirements-for-documentation">Additional requirements for documentation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-the-code">Getting The Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#spack">Spack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#flecsi-developers">FleCSI Developers</a></li>
@@ -94,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="build-install">
-<span id="build"></span><h1>Build &amp; Install<a class="headerlink" href="#build-install" title="Permalink to this heading"></a></h1>
+<h1>Build &amp; Install<a class="headerlink" href="#build-install" title="Permalink to this heading"></a></h1>
 <p>FleCSI can be configured to run with different distributed-memory
 runtimes, including Legion and MPI.
 FleCSI also has support for various
@@ -117,48 +120,26 @@ that can be taken to tailor FleCSI to a given system and architecture.</p>
 </ul>
 </div>
 <hr class="docutils" />
-<section id="requirements-prerequisites">
-<h2>Requirements &amp; Prerequisites<a class="headerlink" href="#requirements-prerequisites" title="Permalink to this heading"></a></h2>
-<p>The following list of requirements provides a complete set of build
-options, which might not be necessary for a particular build:</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>CI listings indicate specific versions used by FleCSI’s continuous
-integration tests. If nothing is indicated, there is no specific
-version tested.</p>
-</div>
+<section id="build-requirements">
+<h2>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong>Boost</strong> <br />
-We require <em>program_options</em> and <em>stacktrace</em>. <br />
-<em>CI: 1.84.0</em></p></li>
-<li><p><strong>C++17 compliant compiler</strong> <br />
-At the current time, FleCSI has been tested with GNU and Clang
-C++ compilers. <br />
-<em>CI: gcc 12.2.0, clang 17.0.6</em></p></li>
-<li><p><strong>Doxygen</strong> <br />
-Doxygen is only required to build the interface documentation.</p></li>
-<li><p><strong>GASNet</strong> <br />
-GASNet is only required if Legion support is enabled.</p></li>
-<li><p><strong>MPI</strong> <br />
-The MPI implementation must have support
-for <em>MPI_THREAD_MULTIPLE</em>. <br />
-<em>CI: mpich 4.1.2, openmpi 5.0.2</em></p></li>
-<li><p><strong>Legion</strong> <br />
-Requires Legion with control replication. <br />
-<em>CI: 24.03.0</em></p></li>
-<li><p><strong>Kokkos</strong> <br />
-<em>CI: 4.2.01</em></p></li>
-<li><p><strong>parMETIS/METIS</strong> <br />
-<em>CI: 4.0.3 (parMETIS), 5.1.0 (METIS)</em></p></li>
-<li><p><strong>CMake</strong> <br />
-We currently require CMake version 3.23 or greater. <br />
-<em>CI: 3.27.9</em></p></li>
-<li><p><strong>Sphinx</strong> <br />
-Sphinx is only required to build the web-based documentation. We also require the Sphinx RTD Theme.
-<em>CI: 6.2.1</em></p></li>
-<li><p><strong>Python</strong> <br />
-The documentation build requires Python 3.9 or greater.</p></li>
+<li><p>C++17 compliant compiler</p></li>
+<li><p>MPI: must have support for <em>MPI_THREAD_MULTIPLE</em>.</p></li>
+<li><p><a class="reference external" href="https://www.boost.org/">Boost</a> : We require <em>program_options</em> and <em>stacktrace</em>.</p></li>
+<li><p><a class="reference external" href="https://legion.stanford.edu/">Legion</a></p></li>
+<li><p><a class="reference external" href="https://cmake.org/">CMake</a></p></li>
+<li><p><a class="reference external" href="https://kokkos.org/">Kokkos</a></p></li>
+<li><p><a class="reference external" href="https://github.com/KarypisLab/ParMETIS">parMETIS/METIS</a></p></li>
 </ul>
+<section id="additional-requirements-for-documentation">
+<h3>Additional requirements for documentation<a class="headerlink" href="#additional-requirements-for-documentation" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://python.org">Python</a></p></li>
+<li><p><a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a> : only required to build the web-based documentation.</p></li>
+<li><p><a class="reference external" href="https://sphinx-rtd-theme.readthedocs.io/">Sphinx RTD Theme</a></p></li>
+<li><p><a class="reference external" href="https://www.doxygen.nl/">Doxygen</a> : only required to build the interface documentation.</p></li>
+</ul>
+</section>
 </section>
 <hr class="docutils" />
 <section id="getting-the-code">
@@ -286,12 +267,7 @@ configured FleCSI, you can build the documentation like:</p>
 </pre></div>
 </div>
 <p>Both of these targets will be built in your build directory under <code class="docutils literal notranslate"><span class="pre">doc/</span></code>:
-e.g., the main Doxygen <code class="docutils literal notranslate"><span class="pre">index.html</span></code> page will be located at
-<code class="docutils literal notranslate"><span class="pre">doc/api/index.html</span></code>. Similarly, the Sphinx main <code class="docutils literal notranslate"><span class="pre">index.html</span></code>
-page will be located at <code class="docutils literal notranslate"><span class="pre">doc/index.html</span></code>. You can open these in
-your browser with
-<code class="docutils literal notranslate"><span class="pre">file:///path/to/your/build/directory/doc/api/index.html</span></code> and
-<code class="docutils literal notranslate"><span class="pre">file:///path/to/your/build/directory/doc/index.html</span></code>.</p>
+Doxygen in an <code class="docutils literal notranslate"><span class="pre">api</span></code> subdirectory, and the top-level Sphinx page as <code class="docutils literal notranslate"><span class="pre">index.html</span></code>.</p>
 </section>
 </section>
 

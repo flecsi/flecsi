@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Do’s and Don’ts &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Performance Do’s and Don’ts &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Performance Effect of Tracing" href="tracing.html" />
-    <link rel="prev" title="Specializations" href="specializations.html" /> 
+    <link rel="next" title="Tracing" href="tracing.html" />
+    <link rel="prev" title="Utilities" href="utilities.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -55,21 +55,20 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Performance Do’s and Don’ts</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tracing.html">Performance Effect of Tracing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> Loops</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracing.html">Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html">Performance Effect of <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 <li class="toctree-l4"><a class="reference internal" href="blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
 <li class="toctree-l4"><a class="reference internal" href="blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 </ul>
 </li>
 </ul>
@@ -109,7 +108,7 @@
            <div itemprop="articleBody">
              
   <section id="performance-do-s-and-don-ts">
-<span id="performance"></span><h1>Performance Do’s and Don’ts<a class="headerlink" href="#performance-do-s-and-don-ts" title="Permalink to this heading"></a></h1>
+<h1>Performance Do’s and Don’ts<a class="headerlink" href="#performance-do-s-and-don-ts" title="Permalink to this heading"></a></h1>
 <p>FleCSI’s programming model enables asynchronous parallel performance.
 This is a partial list of patterns (do’s) and anti-patterns (don’ts)
 that have significant performance consequences.</p>
@@ -117,12 +116,14 @@ that have significant performance consequences.</p>
 </div>
 <hr class="docutils" />
 <section id="do-activate-tracing-around-your-flecsi-execute-loops">
-<h2>Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops<a class="headerlink" href="#do-activate-tracing-around-your-flecsi-execute-loops" title="Permalink to this heading"></a></h2>
+<h2>Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> Loops<a class="headerlink" href="#do-activate-tracing-around-your-flecsi-execute-loops" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tracing.html">Performance Effect of Tracing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tracing.html">Tracing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -130,10 +131,10 @@ that have significant performance consequences.</p>
 <h2>Don’t Block the Top-Level Task (TLT)<a class="headerlink" href="#don-t-block-the-top-level-task-tlt" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html">Performance Effect of <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 </ul>
 </div>
 </section>
@@ -143,8 +144,8 @@ that have significant performance consequences.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="specializations.html" class="btn btn-neutral float-left" title="Specializations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tracing.html" class="btn btn-neutral float-right" title="Performance Effect of Tracing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="utilities.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tracing.html" class="btn btn-neutral float-right" title="Tracing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

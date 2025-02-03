@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Topologies &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Topologies &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Utilities" href="utilities.html" />
-    <link rel="prev" title="Programming Model" href="programming.html" /> 
+    <link rel="next" title="Specializations" href="specializations.html" />
+    <link rel="prev" title="Data Model" href="data-model.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -55,15 +55,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Topologies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#terminology">Terminology</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#index-spaces">Index Spaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#basic-categories">Basic Categories</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#field-registration">Field Registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#provided-topologies">Provided Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#colorings">Colorings</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="profiling.html">Profiling with Legion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
@@ -101,147 +102,90 @@
              
   <section id="topologies">
 <h1>Topologies<a class="headerlink" href="#topologies" title="Permalink to this heading"></a></h1>
-<p>A <em>topology</em> is a distributed-memory object that stores user-registered fields on one or more <em>index spaces</em>.
-It may also store structural information used to interpret those fields in terms appropriate to the <em>category</em> of topology (<em>e.g.</em>, an unstructured mesh).
-Any number of instances may be created of any topology.</p>
+<p>This section describes the common behavior of FleCSI topologies as well as providing a brief survey of the types available.</p>
+<section id="terminology">
+<h2>Terminology<a class="headerlink" href="#terminology" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Topologies</strong></dt><dd><p>A <em>topology</em> is a collection of index spaces that represent a computational domain like a mesh or a layout of particles in space.
+(Fields on some of these index spaces express physical quantities; others contain structural information describing the domain itself.)
+An application can use multiple topologies of the same or different types, serially or simultaneously.
+Sometimes the word “topology” refers to one of these <em>types</em> rather than to a specific instance of it.</p>
+</dd>
+<dt><strong>Topology Categories</strong></dt><dd><p>FleCSI provides infrastructural components for several categories of topology, such as <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> or <code class="docutils literal notranslate"><span class="pre">ntree</span></code>.
+Each topology type is defined in terms of one such category; clients cannot define their own.</p>
+</dd>
+<dt><strong>Specializations</strong></dt><dd><p>A <em>specialization</em> is a customization of a topology category to create
+an interface that allows domain experts to implement operations on
+top of the topology.  The relevant operations will depend strongly
+on the needs of the domain experts, but will often include queries
+about the physical layout of points within the simulation space.
+For example, a specialization of the <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology category for a two-dimensional mesh might define it in terms of vertices, edges, and elements but not faces.
+In fact, every topology type is such a specialization; we use the term “specialization” to emphasize the definition of the type rather than its use.</p>
+</dd>
+</dl>
+</section>
 <section id="index-spaces">
 <h2>Index Spaces<a class="headerlink" href="#index-spaces" title="Permalink to this heading"></a></h2>
-<p>In FleCSI, index spaces are used to define field arrays that represent
-the user’s data. In simple terms, you can think of an index space as
-just an enumeration of an array, with the added notion that an index
-space represents a logical space of such arrays.</p>
-<div class="admonition-definition admonition">
-<p class="admonition-title">Definition</p>
-<p>An index space is the space of possible enumerations of a logical set
-of points or indices.</p>
-</div>
-<p>As an example, consider the cells of a mesh. These represent a set that
-can be enumerated to define an index space. If a particular mesh
-instance has 100 cells, these cells define a vector (or index set) in
-the index space of cells. <em>We often still refer to this as an index
-space or index space instance.</em> The vertices and edges of the mesh also
-define index spaces. In fact, in FleCSI, index spaces are used to
-represent the logical elements or entities of all of our topology types.</p>
-<p>There are several benefits of index spaces. One is that they can be
-iterated upon or over.  As an example, consider a simple <em>for</em> loop:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">i</span><span class="o">:</span><span class="w"> </span><span class="n">mesh</span><span class="p">.</span><span class="n">cells</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
-
-<span class="w">  </span><span class="c1">// Do something work on the ith</span>
-<span class="w">  </span><span class="c1">// index of the cells index space.</span>
-
-<span class="p">}</span><span class="w"> </span><span class="c1">// for</span>
-</pre></div>
-</div>
-<p>This example is just the C++ version of what was stated above about the
-cells of a mesh defining an index space. However, as we will see in the
-following sections, index spaces also improve our ability to reason about
-parallelism, and free us from many of the computer science details that
-obfuscate our algorithms.</p>
+<p>Just as “topology” can refer to a type or an instance of that type, the term “index space” can refer not only to the (say) 42 cells of a particular mesh but also to the choice between “cells” and “nodes” as the domain for a field (that might exist on multiple meshes).
+The names that describe these index-space “kinds” are chosen by the specialization.</p>
+<p>An index space has no concept of relationships between different index
+points in the same index space.  For example, nothing in the definition
+of the index space specifies which entities are spatially adjacent to
+which other entities.  This information would be encoded in the
+specialization (sometimes with support from the underlying topology).
+When these relationships cross colors (as for the specification of ghost copies), a two-dimensional index point is used whose first component is the color number.</p>
+<p>Different index spaces also have no knowledge of how they relate to each
+other.
+A set of faces might define the boundary of a cell
+but the index spaces alone have no ability to know that, or to map from
+a cell to the list of faces that surround it.  This information would be
+encoded in the specialization.</p>
 </section>
-<section id="basic-categories">
-<h2>Basic Categories<a class="headerlink" href="#basic-categories" title="Permalink to this heading"></a></h2>
-<p>The most basic topology provided by FleCSI is called the <em>global</em>
-topology.
-It has a single implicit index space which is not partitioned; its field values can be written by a single task or read by every task in a parallel launch.</p>
-<p>The next most basic topology type provided by FleCSI is the <em>index</em>
-topology. Like the global topology, it has a single implicit index
-space, which you can think of as the <em>indices</em>. The index topology also
-has a runtime-specified size that describes how many indices there
-should be.</p>
-</section>
-<section id="field-registration">
-<h2>Field Registration<a class="headerlink" href="#field-registration" title="Permalink to this heading"></a></h2>
-<p>Let’s look at an example of how to register fields against
-the global and index topologies:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
-
-<span class="k">using</span><span class="w"> </span><span class="n">double_field</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="k">namespace</span><span class="w"> </span><span class="nn">solver</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">double_field</span><span class="o">::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">global</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tolerance</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="k">namespace</span><span class="w"> </span><span class="nn">hydro</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">double_field</span><span class="o">::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">index_data</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The first variable declaration in this example registers a field called <code class="docutils literal notranslate"><span class="pre">solver::tolerance</span></code> with type <code class="docutils literal notranslate"><span class="pre">double</span></code>.
-The second registers two fields called <code class="docutils literal notranslate"><span class="pre">hydro::index_data</span></code> with type <code class="docutils literal notranslate"><span class="pre">double</span></code>.
-(An array of fields can be used for data that logically have multiple states, as in a multi-step time evolution method.)</p>
-<p>In both cases, the user does not need to explicitly specify index space.
-As we will see, this is necessary for more complex
-topology types that can be customized by a <em>specialization</em>.</p>
-<p>Logically, registering a field against a topology type adds that field
-to the type itself. This may not be intuitive to everyone, so let’s
-consider what this means. When we create a C++ type, e.g., a class or
-struct, we add data members to it in the definition of the type:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">field_data_t</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">field_a</span><span class="p">;</span>
-<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">field_b</span><span class="p">;</span>
-<span class="p">};</span><span class="w"> </span><span class="c1">// struct topology_t</span>
-</pre></div>
-</div>
-<p>This is done manually at the time the type is written. With FleCSI,
-registering fields against a FleCSI topology type is a kind of
-customization that is logically equivalent to our <em>field_data_t</em> example
-type. So, for instance, if we want fields <em>field_a</em>, and <em>field_b</em> to be
-defined for the FleCSI index topology, we would register them like so:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">radiation</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">field_a</span><span class="p">;</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">field_b</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Optionally, we could also just register the field_data_t struct:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="nn">radiation</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">field</span><span class="o">&lt;</span><span class="n">field_data_t</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">::</span><span class="n">single</span><span class="o">&gt;::</span><span class="n">definition</span><span class="o">&lt;</span><span class="n">topo</span><span class="o">::</span><span class="n">index</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fields</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Both of these methods of registering fields are valid, and it is left up
-to the user to decide which way makes the most sense. The performance
-implications of choosing one method over the other are equivalent to
-choosing <em>array-of-struct (AoS)</em> or <em>struct-of-array (SoA)</em>. FleCSI does
-not currently support switching or auto-tuning of the data layout.
-However, we may do so in future versions.</p>
-<aside class="sidebar">
-<p class="sidebar-title">Memory Allocation</p>
-<p>You may be wondering whether or not field registration in FleCSI
-implies that every instance of a topology type will necessarily create
-an instance of every registered field. This is a valid concern! The
-answer is <em>no!</em> FleCSI will only allocate memory for a field instance
-if it is actually accessed.</p>
-</aside>
+<section id="provided-topologies">
+<h2>Provided Topologies<a class="headerlink" href="#provided-topologies" title="Permalink to this heading"></a></h2>
+<p>Topology categories provide only generic interfaces, some more generic than others.
+These interfaces are meant to be used to create <a class="reference internal" href="specializations.html"><span class="doc">specializations</span></a> that are suitable for direct use by application developers.</p>
+<p>A few topology categories are so simple that FleCSI provides a single specialization rather than a generic interface to be specialized:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">global</span></code> topology is the most basic topology provided by FleCSI.
+It has a single index space of configurable size; uniquely, it is not partitioned between colors and does not support <code class="docutils literal notranslate"><span class="pre">ragged</span></code> or <code class="docutils literal notranslate"><span class="pre">sparse</span></code> fields.
+The field values of the <code class="docutils literal notranslate"><span class="pre">global</span></code> topology can be written to by a
+single task at a time, or can be read by every task in a parallel
+launch.  This topology will typically be used for global configuration
+data (for example, whether the current simulation is 1D, 2D, or 3D).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">index</span></code> topology is the next most basic topology provided by
+FleCSI.
+It also has a single index space of configurable size.
+Each index point is assigned to a separate color, so the <code class="docutils literal notranslate"><span class="pre">single</span></code> layout is typical (although a variable amount of data can still be stored with <code class="docutils literal notranslate"><span class="pre">ragged</span></code> or <code class="docutils literal notranslate"><span class="pre">sparse</span></code> instead).
+The <code class="docutils literal notranslate"><span class="pre">index</span></code> topology could be used to store per-color integral quantities or to turn on or
+off physics packages that are only run in subsets of the domain (e.g.,
+this color needs to run hydrodynamics but there are no energy
+sources).</p></li>
+</ul>
+<p>The normal topology categories do require a specialization:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">user</span></code> topology still provides but a single index space, but it has a size on each color that can be set at construction and changed later.
+The specialization serves merely as a tag to distinguish multiple clients.
+No ghost copies are supported.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">narray</span></code> topology comprises a set of multidimensional arrays, with each axis divided into a number of intervals to form a Cartesian product of colors.
+It includes special support for representing a structured mesh where access to neighboring entities is by computed index.
+It includes features to help build faces, edges, and vertices
+(referring to them collectively as “auxiliaries”).  It also helps
+manage communication across colors through ghost cells, and boundary
+conditions through boundary cells.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">ntree</span></code> topology is designed to support particles and to
+efficiently find neighboring particles.  It uses a hashed binary tree,
+quadtree, or octree in one, two, or three dimensions respectively.
+The <code class="docutils literal notranslate"><span class="pre">ntree</span></code> topology is useful for particle-based methods such as
+smoothed-particle hydrodynamics.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">unstructured</span></code> topology comprises an arbitrary set of index spaces along with several kinds of graph adjacency information that support use as an unstructured mesh.
+The index spaces can be resized to support mesh refinement.</p></li>
+</ul>
 </section>
 <section id="colorings">
 <h2>Colorings<a class="headerlink" href="#colorings" title="Permalink to this heading"></a></h2>
-<p>Let’s continue discussing the index topology so that we can add some
-more details about its index space and define what <em>coloring</em> means in
-FleCSI.</p>
-<p>As stated above, the index topology has a single implicit index space.
-For the index topology, we can think of the implicit index space as just
-being the indices, with a particular instance being defined by its size.</p>
-<p>The index topology also has an implicit coloring that
-assigns each index of the topology’s indices to its own color: i.e.,
-index 0 is assigned to color 0, etc. This simple example illustrates the
-definition of a coloring.</p>
-<div class="admonition-definition admonition">
-<p class="admonition-title">Definition</p>
-<p>A coloring is a description of how the indices of an index space
-should be divided into partitions or colors.</p>
-</div>
-<p>In general, there is no implied size for a coloring, and
-no association with the details of a particular execution space, i.e.,
-the number of processes.  A coloring only describes how to divide the
-indices of an index space into partitions (or colors in FleCSI’s
-nomenclature).</p>
-<div class="admonition attention">
-<p class="admonition-title">Attention</p>
-<p>A coloring is not associated with an execution space. This is
-different from the way that many people think about MPI, where a rank
-is statically mapped to a particular process.</p>
-</div>
-<p>Given a coloring (which in these two simple cases can be just an integer), topology instances can be created:</p>
+<p>A coloring is the layout information required to construct a topology instance, so called because it generally identifies which color owns each index point.
+As a trivial example, the <code class="docutils literal notranslate"><span class="pre">global</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span></code> topologies can use just an integer as a coloring:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
 
 <span class="kt">int</span><span class="w"> </span><span class="nf">top_level</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
@@ -255,6 +199,17 @@ is statically mapped to a particular process.</p>
 </div>
 <p>Note the different interpretations of the sizes: <code class="docutils literal notranslate"><span class="pre">pair</span></code> doesn’t have colors and holds 2 field values, while <code class="docutils literal notranslate"><span class="pre">hydro_indices</span></code> has 42 colors with one field value each.</p>
 <p>Note also that the lifetime of topology instances must be limited to the top-level action (achieved here by making the slots local variables in it).</p>
+<p>While the coloring type depends on the topology category and not the specialization, specializations for non-trivial topologies typically assist the application in constructing one.
+In simple cases, the result looks like</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">top_level</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">canon</span><span class="o">::</span><span class="n">slot</span><span class="w"> </span><span class="n">mesh</span><span class="p">;</span>
+<span class="w">  </span><span class="n">mesh</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">canon</span><span class="o">::</span><span class="n">mpi_coloring</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">));</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>which asks the <code class="docutils literal notranslate"><span class="pre">canon</span></code> topology to interpret the <em>test.txt</em> file as a coloring for its topology category (perhaps <code class="docutils literal notranslate"><span class="pre">unstructured</span></code>).
+The name <code class="docutils literal notranslate"><span class="pre">mpi_coloring</span></code> serves as a reminder that this procedure is launched as an MPI task, as is often required for it to perform collective I/O or distribute data.</p>
 </section>
 </section>
 
@@ -262,8 +217,8 @@ is statically mapped to a particular process.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="programming.html" class="btn btn-neutral float-left" title="Programming Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="data-model.html" class="btn btn-neutral float-left" title="Data Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="specializations.html" class="btn btn-neutral float-right" title="Specializations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

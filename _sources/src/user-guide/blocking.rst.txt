@@ -1,9 +1,9 @@
-Performance Effect of `get()` Outside of a Task
+Performance Effect of ``get()`` Outside of a Task
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is a weak scaling plot of
 Red-Black Gauss-Seidel iteration for Poisson's Equation in 2D.
-The green squares are the weak scaling results when `get()` is used outside of a task.
+The green squares are the weak scaling results when ``get()`` is used outside of a task.
 Already at fifty nodes there is a 30X performance difference.  This blocked solution time
 scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will only get worse.
 
@@ -19,7 +19,7 @@ Forcing Bulk-Synchronousity in Your Code
   the TLT.
 
 .. note::
-  Any blocking of the code in the TLT (like waiting on the result of `get()`)
+  Any blocking of the code in the TLT (like waiting on the result of ``get()``)
   prevents any other tasks to be queued up for the runtime.  This blocking forces bulk synchronous computation.
 
 
@@ -58,9 +58,9 @@ This is exactly what we have done when we call ``get()`` on the
 Removing Bulk-Synchronousity from Your Code
 +++++++++++++++++++++++++++++++++++++++++++
 
-Here we pass the future to the `print_residual` task.  Calling `get()` inside
+Here we pass the future to the ``print_residual`` task.  Calling ``get()`` inside
 a task is correct as it allows the runtime to continue with other tasks while
-`print_residual` is waiting on the reduction.
+``print_residual`` is waiting on the reduction.
 
 .. code-block:: c++
   :caption: Red-Black Gauss-Seidel non-blocking, no tracing
@@ -92,7 +92,7 @@ a task is correct as it allows the runtime to continue with other tasks while
   FleCSI does not yet support futures in this way.
 
 .. code-block:: c++
-  :caption: `print_residual` task
+  :caption: ``print_residual`` task
 
   void task::print_residual(future<double> residual, std::size_t ita) {
     double err = std::sqrt(residual.get());
@@ -100,8 +100,8 @@ a task is correct as it allows the runtime to continue with other tasks while
       << std::endl << std::flush;
   }
 
-When to Call `get()` Outside of a Task
+When to Call ``get()`` Outside of a Task
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Basically, never call `get()` outside of a task.
+Basically, never call ``get()`` outside of a task.
 If you are using it in initialization once, that probably won't hurt much.

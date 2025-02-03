@@ -10,8 +10,10 @@ var searchData=
   ['unstructured_7',['unstructured',['../structflecsi_1_1topo_1_1unstructured.html',1,'flecsi::topo']]],
   ['unstructured_20mesh_8',['Unstructured Mesh',['../group__unstructured.html',1,'']]],
   ['unstructured_3c_20p_20_3e_9',['unstructured&lt; P &gt;',['../structflecsi_1_1topo_1_1unstructured.html',1,'flecsi::topo']]],
-  ['unstructured_5fspecialization_10',['unstructured_specialization',['../structflecsi_1_1topo_1_1unstructured__specialization.html',1,'flecsi::topo']]],
-  ['usage_11',['usage',['../structflecsi_1_1getopt.html#a36a3aba8afe472abae0c6cd5b57bd3b8',1,'flecsi::getopt']]],
-  ['user_12',['user',['../structflecsi_1_1topo_1_1user.html',1,'flecsi::topo']]],
-  ['utilities_13',['Utilities',['../group__utils.html',1,'']]]
+  ['unstructured_5fbase_10',['unstructured_base',['../structflecsi_1_1topo_1_1unstructured__base.html',1,'flecsi::topo']]],
+  ['unstructured_5fspecialization_11',['unstructured_specialization',['../structflecsi_1_1topo_1_1unstructured__specialization.html',1,'flecsi::topo']]],
+  ['usage_12',['usage',['../structflecsi_1_1getopt.html#a36a3aba8afe472abae0c6cd5b57bd3b8',1,'flecsi::getopt']]],
+  ['user_13',['user',['../structflecsi_1_1topo_1_1user.html',1,'flecsi::topo']]],
+  ['user_20api_14',['FleCSI User API',['../index.html',1,'']]],
+  ['utilities_15',['Utilities',['../group__utils.html',1,'']]]
 ];

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profiling with Legion &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Profiling with Legion &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -55,9 +55,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Profiling with Legion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cmake.html">CMake for FleCSI client applications</a></li>
@@ -138,7 +139,7 @@ on how to use the GUI.</p>
 <p class="admonition-title">Note</p>
 <p>FleCSI shortens the registered task names to <code class="docutils literal notranslate"><span class="pre">function_name</span> <span class="pre">#</span> <span class="pre">&lt;HASH&gt;</span></code> when
 passing them to Legion.  The matching full function signatures can be obtained
-from <cite>flecsi::task_names()</cite>, which returns a mapping of the shortened function
+from <code class="docutils literal notranslate"><span class="pre">flecsi::task_names()</span></code>, which returns a mapping of the shortened function
 signature to its full signature.</p>
 </div>
 </section>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Control Model &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Control Model &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -111,7 +111,7 @@
            <div itemprop="articleBody">
              
   <section id="control-model">
-<span id="tut-cm"></span><h1>Control Model<a class="headerlink" href="#control-model" title="Permalink to this heading"></a></h1>
+<h1>Control Model<a class="headerlink" href="#control-model" title="Permalink to this heading"></a></h1>
 <p>The FleCSI control model allows users to define the high-level structure
 of an application
 using a control-flow graph (CFG) of <em>control points</em>,
@@ -648,7 +648,7 @@ is to demonstrate that dependencies do not need to be collocated,
 provided that they honor normal C++ declaration rules.</p>
 </section>
 <section id="example-4-control-state">
-<span id="tut-cm-state"></span><h2>Example 4: Control State<a class="headerlink" href="#example-4-control-state" title="Permalink to this heading"></a></h2>
+<h2>Example 4: Control State<a class="headerlink" href="#example-4-control-state" title="Permalink to this heading"></a></h2>
 <p>Actions can use state via the control policy object argument:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">my_policy</span><span class="w"> </span><span class="o">&amp;</span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="n">p</span><span class="p">.</span><span class="n">my_method</span><span class="p">();}</span>
 </pre></div>
@@ -692,7 +692,7 @@ through the control state interface, this approach must not be used
 to allocate data that will be accessed by tasks and modified during the simulation: i.e., control state data should be used only to hold global constants and/or implement the control logic of the run.
 As a special case, MPI tasks can access and modify such objects.
 The FleCSI data model provides other mechanisms for creating
-and managing state data, which are documented in the <a class="reference internal" href="data.html#tut-dm"><span class="std std-ref">Data Model</span></a>
+and managing state data, which are documented in the <a class="reference internal" href="data.html"><span class="doc">Data Model</span></a>
 section of this tutorial.</p>
 </div>
 <p>These interfaces are used to implement the example actions in

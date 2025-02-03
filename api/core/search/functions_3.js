@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['data_0',['data',['../classflecsi_1_1util_1_1vector.html#a9f334ad8431bb3ad9519701b1548f4fc',1,'flecsi::util::vector']]],
+  ['data_0',['data',['../classflecsi_1_1util_1_1inplace__vector.html#a9f334ad8431bb3ad9519701b1548f4fc',1,'flecsi::util::inplace_vector']]],
   ['deallocate_1',['deallocate',['../structflecsi_1_1data_1_1coloring__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f',1,'flecsi::data::coloring_slot::deallocate()'],['../structflecsi_1_1data_1_1topology__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f',1,'flecsi::data::topology_slot::deallocate()']]],
   ['default_5fpolicy_5fselect_5finstance_5fregion_2',['default_policy_select_instance_region',['../classflecsi_1_1run_1_1mpi__mapper__t.html#a9902ac001d6743b8cb5a726a8717fdba',1,'flecsi::run::mpi_mapper_t']]],
   ['default_5fspace_3',['default_space',['../structflecsi_1_1topo_1_1specialization.html#a6ffbdd471b34072286683c2a0be1e0fb',1,'flecsi::topo::specialization']]],

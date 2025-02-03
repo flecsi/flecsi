@@ -1,7 +1,7 @@
 var searchData=
 [
   ['range_0',['range',['../structflecsi_1_1topo_1_1narray_1_1access.html#aa027cddbb858ffa915ea2eb628e889da',1,'flecsi::topo::narray::access::range()'],['../classflecsi_1_1util_1_1morton__key.html#ad6624581fc65d4ad0f896ab908d31a51',1,'flecsi::util::morton_key::range()']]],
-  ['reduce_1',['reduce',['../group__execution.html#ga7523244fc7cc96b87ebfe84c68482535',1,'flecsi']]],
+  ['reduce_1',['reduce',['../group__execution.html#gafadad11d9825d4175ac5d62db431e39e',1,'flecsi']]],
   ['reorder_2',['reorder',['../group__utils.html#gacc2dbba6504f66bd8814581374a95e02',1,'flecsi::util']]],
   ['reorder_5fdestructive_3',['reorder_destructive',['../group__utils.html#ga99224fc017b020065039157f96a74faa',1,'flecsi::util']]],
   ['reset_4',['reset',['../structflecsi_1_1topo_1_1ntree.html#ae1cfc99888a05fff3e7a3f3bf8d426d3',1,'flecsi::topo::ntree']]],

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Runtime Model &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Runtime Model &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -108,7 +108,7 @@
            <div itemprop="articleBody">
              
   <section id="runtime-model">
-<span id="tut-rm"></span><h1>Runtime Model<a class="headerlink" href="#runtime-model" title="Permalink to this heading"></a></h1>
+<h1>Runtime Model<a class="headerlink" href="#runtime-model" title="Permalink to this heading"></a></h1>
 <p>Using FleCSI requires proper initialization and configuration of the
 FleCSI runtime. These examples illustrate some of the basic steps and
 options that are available.</p>
@@ -793,11 +793,7 @@ The FLOG runtime configuration option <code class="docutils literal notranslate"
 this behavior:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">flog::config::serialization_interval</span></code> <br />
-The serialization interval specifies how often FleCSI should check for
-buffered output (requires reduction) as a number of
-tasks executed: i.e., if the serialization interval is set to 300,
-FleCSI will check how many messages have been injected into the stream
-of each process every multiple of 300 task executions. <br />
+Number of task executions between (bulk-synchronous) collections of buffered output. <br />
 <em>(default: 100)</em></p></li>
 </ul>
 <div class="admonition caution">

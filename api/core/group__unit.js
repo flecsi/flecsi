@@ -1,7 +1,6 @@
 var group__unit =
 [
     [ "UNIT", "group__unit.html#gad9334b8577d4516f9f2096a6147d0245", null ],
-    [ "GPU_UNIT", "group__unit.html#gaabaa7493a444d80b5270ad72c7b38ef6", null ],
     [ "ASSERT_TRUE", "group__unit.html#gac2101fb1ffd0c81c17520b82f0fcfe21", null ],
     [ "EXPECT_TRUE", "group__unit.html#gabf12268e8691a34265e06ccb123ba07d", null ],
     [ "ASSERT_FALSE", "group__unit.html#gab6dd1cfee9ef67f1fa99b2f57236ecf0", null ],

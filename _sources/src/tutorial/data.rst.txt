@@ -2,7 +2,6 @@
 
    <br />
 
-.. _TUT-DM:
 
 Data Model
 **********
@@ -53,8 +52,7 @@ Example 3: Dense data
 +++++++++++++++++++++
 
 A dense field is a field defined on a dense topology index space.  In
-this example we allocate a `pressure` field on the `cells` index space
-of the `canonical` topology.
+this example we allocate a ``pressure`` field on the ``cells`` index space of the ``canonical`` topology.
 
 .. literalinclude:: ../../../../tutorial/4-data/3-dense.cc
   :language: cpp
@@ -73,6 +71,54 @@ The ``init`` and ``print`` tasks, by contrast, use a *topology accessor* as a pa
   :language: cpp
   :start-at: void
   :end-at: // advance()
+
+Example 4: Ragged data
+++++++++++++++++++++++
+A ragged field stores a variable amount of data at each index point.
+It is defined in much the same way as a dense field, but using it involves additional steps.
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: ints
+  :end-at: rag;
+
+Because the total storage required for a ragged field is not determined by the size of the index space, an amount of memory to use for elements must be specified.
+The field reference for a ragged field has a special interface for managing it.
+Here we use a simple helper task (called ``allocate``) with that interface to specify a fixed, known total, although typically a heuristic overallocation is required:
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: predefined
+  :end-at: }
+
+After executing a task to store the sizes, they must be applied with ``resize``:
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: rag(mesh)
+  :end-at: resize
+
+Initializing the field, or changing the number of values stored at any point later, requires a *mutator*.
+The interface is closely modeled on ``std::vector``:
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: initialize
+  :end-before: Accessors
+
+Using the field is much like a dense field, with a ``span`` at each index point:
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: Accessors
+  :end-at: }
+
+Tasks using either of these are launched with ordinary field references:
+
+.. literalinclude:: ../../../../tutorial/4-data/4-ragged.cc
+  :language: cpp
+  :start-at: <init>
+  :end-at: throw
 
 ----
 

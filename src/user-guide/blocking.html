@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Effect of get() Outside of a Task &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Performance Effect of get() Outside of a Task &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -23,7 +23,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Profiling with Legion" href="profiling.html" />
-    <link rel="prev" title="Performance Effect of Tracing" href="tracing.html" /> 
+    <link rel="prev" title="Tracing" href="tracing.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,7 +39,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -56,16 +56,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> Loops</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="performance.html#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Performance Effect of <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#when-to-call-get-outside-of-a-task">When to Call <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 </ul>
 </li>
 </ul>
@@ -95,7 +96,7 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
           <li class="breadcrumb-item"><a href="performance.html">Performance Do’s and Don’ts</a></li>
-      <li class="breadcrumb-item active">Performance Effect of <cite>get()</cite> Outside of a Task</li>
+      <li class="breadcrumb-item active">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/src/user-guide/blocking.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -106,10 +107,10 @@
            <div itemprop="articleBody">
              
   <section id="performance-effect-of-get-outside-of-a-task">
-<h1>Performance Effect of <cite>get()</cite> Outside of a Task<a class="headerlink" href="#performance-effect-of-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
+<h1>Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task<a class="headerlink" href="#performance-effect-of-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
 <p>This is a weak scaling plot of
 Red-Black Gauss-Seidel iteration for Poisson’s Equation in 2D.
-The green squares are the weak scaling results when <cite>get()</cite> is used outside of a task.
+The green squares are the weak scaling results when <code class="docutils literal notranslate"><span class="pre">get()</span></code> is used outside of a task.
 Already at fifty nodes there is a 30X performance difference.  This blocked solution time
 scales as <span class="math notranslate nohighlight">\(\left(\texttt{nodes}\right)^{0.7}\)</span>.  So this difference will only get worse.</p>
 <img alt="../../_images/blocked_vs_nonblocking.png" src="../../_images/blocked_vs_nonblocking.png" />
@@ -125,7 +126,7 @@ the TLT.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Any blocking of the code in the TLT (like waiting on the result of <cite>get()</cite>)
+<p>Any blocking of the code in the TLT (like waiting on the result of <code class="docutils literal notranslate"><span class="pre">get()</span></code>)
 prevents any other tasks to be queued up for the runtime.  This blocking forces bulk synchronous computation.</p>
 </div>
 <p>This is exactly what we have done when we call <code class="docutils literal notranslate"><span class="pre">get()</span></code> on the
@@ -161,9 +162,9 @@ prevents any other tasks to be queued up for the runtime.  This blocking forces 
 </section>
 <section id="removing-bulk-synchronousity-from-your-code">
 <h1>Removing Bulk-Synchronousity from Your Code<a class="headerlink" href="#removing-bulk-synchronousity-from-your-code" title="Permalink to this heading"></a></h1>
-<p>Here we pass the future to the <cite>print_residual</cite> task.  Calling <cite>get()</cite> inside
+<p>Here we pass the future to the <code class="docutils literal notranslate"><span class="pre">print_residual</span></code> task.  Calling <code class="docutils literal notranslate"><span class="pre">get()</span></code> inside
 a task is correct as it allows the runtime to continue with other tasks while
-<cite>print_residual</cite> is waiting on the reduction.</p>
+<code class="docutils literal notranslate"><span class="pre">print_residual</span></code> is waiting on the reduction.</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-number">Listing 4 </span><span class="caption-text">Red-Black Gauss-Seidel non-blocking, no tracing</span><a class="headerlink" href="#id2" title="Permalink to this code"></a></div>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">flecsi</span><span class="p">;</span>
@@ -196,7 +197,7 @@ a task is correct as it allows the runtime to continue with other tasks while
 FleCSI does not yet support futures in this way.</p>
 </div>
 <div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-number">Listing 5 </span><span class="caption-text"><cite>print_residual</cite> task</span><a class="headerlink" href="#id3" title="Permalink to this code"></a></div>
+<div class="code-block-caption"><span class="caption-number">Listing 5 </span><span class="caption-text"><code class="docutils literal notranslate"><span class="pre">print_residual</span></code> task</span><a class="headerlink" href="#id3" title="Permalink to this code"></a></div>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">task::print_residual</span><span class="p">(</span><span class="n">future</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">residual</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">ita</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residual</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
 <span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;residual: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">ita</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; iterations)&quot;</span>
@@ -207,8 +208,8 @@ FleCSI does not yet support futures in this way.</p>
 </div>
 </section>
 <section id="when-to-call-get-outside-of-a-task">
-<h1>When to Call <cite>get()</cite> Outside of a Task<a class="headerlink" href="#when-to-call-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
-<p>Basically, never call <cite>get()</cite> outside of a task.
+<h1>When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task<a class="headerlink" href="#when-to-call-get-outside-of-a-task" title="Permalink to this heading"></a></h1>
+<p>Basically, never call <code class="docutils literal notranslate"><span class="pre">get()</span></code> outside of a task.
 If you are using it in initialization once, that probably won’t hurt much.</p>
 </section>
 
@@ -216,7 +217,7 @@ If you are using it in initialization once, that probably won’t hurt much.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tracing.html" class="btn btn-neutral float-left" title="Performance Effect of Tracing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tracing.html" class="btn btn-neutral float-left" title="Tracing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="profiling.html" class="btn btn-neutral float-right" title="Profiling with Legion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

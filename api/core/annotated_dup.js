@@ -32,7 +32,6 @@ var annotated_dup =
         [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4" ],
         [ "particle_accessor", "structflecsi_1_1data_1_1particle__accessor.html", "structflecsi_1_1data_1_1particle__accessor" ],
         [ "partition", "structflecsi_1_1data_1_1partition.html", "structflecsi_1_1data_1_1partition" ],
-        [ "points", "structflecsi_1_1data_1_1points.html", "structflecsi_1_1data_1_1points" ],
         [ "prefixes", "structflecsi_1_1data_1_1prefixes.html", "structflecsi_1_1data_1_1prefixes" ],
         [ "ragged_accessor", "structflecsi_1_1data_1_1ragged__accessor.html", "structflecsi_1_1data_1_1ragged__accessor" ],
         [ "reduction_accessor", "structflecsi_1_1data_1_1reduction__accessor.html", "structflecsi_1_1data_1_1reduction__accessor" ],
@@ -91,8 +90,7 @@ var annotated_dup =
       ] ],
       [ "topo", null, [
         [ "detail", null, [
-          [ "base< core >", "structflecsi_1_1topo_1_1detail_1_1base_3_01core_01_4.html", "structflecsi_1_1topo_1_1detail_1_1base_3_01core_01_4" ],
-          [ "connect< P, util::types< VT... > >", "structflecsi_1_1topo_1_1detail_1_1connect_3_01P_00_01util_1_1types_3_01VT_8_8_8_01_4_01_4.html", null ]
+          [ "base< core >", "structflecsi_1_1topo_1_1detail_1_1base_3_01core_01_4.html", "structflecsi_1_1topo_1_1detail_1_1base_3_01core_01_4" ]
         ] ],
         [ "narray_impl", null, [
           [ "axis", "structflecsi_1_1topo_1_1narray__impl_1_1axis.html", "structflecsi_1_1topo_1_1narray__impl_1_1axis" ],
@@ -132,6 +130,7 @@ var annotated_dup =
         [ "specialization", "structflecsi_1_1topo_1_1specialization.html", "structflecsi_1_1topo_1_1specialization" ],
         [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html", "structflecsi_1_1topo_1_1specialization__base" ],
         [ "unstructured", "structflecsi_1_1topo_1_1unstructured.html", "structflecsi_1_1topo_1_1unstructured" ],
+        [ "unstructured_base", "structflecsi_1_1topo_1_1unstructured__base.html", "structflecsi_1_1topo_1_1unstructured__base" ],
         [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", "structflecsi_1_1topo_1_1unstructured__specialization" ],
         [ "user", "structflecsi_1_1topo_1_1user.html", null ],
         [ "with_size", "structflecsi_1_1topo_1_1with__size.html", "structflecsi_1_1topo_1_1with__size" ]
@@ -162,6 +161,7 @@ var annotated_dup =
         [ "graphviz", "classflecsi_1_1util_1_1graphviz.html", "classflecsi_1_1util_1_1graphviz" ],
         [ "hilbert_key", "classflecsi_1_1util_1_1hilbert__key.html", "classflecsi_1_1util_1_1hilbert__key" ],
         [ "identity", "structflecsi_1_1util_1_1identity.html", null ],
+        [ "inplace_vector", "classflecsi_1_1util_1_1inplace__vector.html", "classflecsi_1_1util_1_1inplace__vector" ],
         [ "iota_view", "structflecsi_1_1util_1_1iota__view.html", null ],
         [ "KDTree", "structflecsi_1_1util_1_1KDTree.html", "structflecsi_1_1util_1_1KDTree" ],
         [ "key_tuple", "structflecsi_1_1util_1_1key__tuple.html", null ],
@@ -177,8 +177,7 @@ var annotated_dup =
         [ "span", "structflecsi_1_1util_1_1span.html", "structflecsi_1_1util_1_1span" ],
         [ "substring_view", "structflecsi_1_1util_1_1substring__view.html", "structflecsi_1_1util_1_1substring__view" ],
         [ "Symbol", "structflecsi_1_1util_1_1Symbol.html", null ],
-        [ "transform_view", "structflecsi_1_1util_1_1transform__view.html", "structflecsi_1_1util_1_1transform__view" ],
-        [ "vector", "classflecsi_1_1util_1_1vector.html", "classflecsi_1_1util_1_1vector" ]
+        [ "transform_view", "structflecsi_1_1util_1_1transform__view.html", "structflecsi_1_1util_1_1transform__view" ]
       ] ],
       [ "field", "structflecsi_1_1field.html", "structflecsi_1_1field" ],
       [ "future", "structflecsi_1_1future.html", null ],

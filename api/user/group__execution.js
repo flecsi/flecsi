@@ -17,7 +17,7 @@ var group__execution =
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]
     ] ],
     [ "launch_domain", "structflecsi_1_1exec_1_1launch__domain.html", null ],
-    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
+    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
       [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
     [ "task_local< T >", "structflecsi_1_1task__local.html", [
@@ -41,9 +41,9 @@ var group__execution =
       [ "omp", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a4c4d94738d6aeddd4769ef627c9a6c3e", null ],
       [ "mpi", "group__execution.html#gga7b0ca5b879fe56b356b7c20a1f43bea4a2b3397ca2a09eef67a0b395232aadd4c", null ]
     ] ],
-    [ "execute", "group__execution.html#gae434764d0880e207c2a16b8b6485e489", null ],
+    [ "reduce", "group__execution.html#gafadad11d9825d4175ac5d62db431e39e", null ],
+    [ "execute", "group__execution.html#ga191a812b44259a5c9f02ae092f1d0648", null ],
     [ "make_partial", "group__execution.html#gac28f2f0eafd476e4798d91d751e90ff6", null ],
-    [ "reduce", "group__execution.html#ga7523244fc7cc96b87ebfe84c68482535", null ],
     [ "test", "group__execution.html#ga51b0923f64f86267bd1d6f5da0108fe7", null ],
     [ "default_accelerator", "group__execution.html#ga9e9a08cdd28a4ed3b153a4b587974190", null ]
 ];

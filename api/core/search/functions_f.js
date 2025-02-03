@@ -3,7 +3,7 @@ var searchData=
   ['ragged_0',['ragged',['../structflecsi_1_1data_1_1buffers_1_1ragged.html#ae211d2b36d7395d849f2a9193fba9965',1,'flecsi::data::buffers::ragged']]],
   ['range_1',['range',['../structflecsi_1_1topo_1_1narray_1_1access.html#aa027cddbb858ffa915ea2eb628e889da',1,'flecsi::topo::narray::access::range()'],['../classflecsi_1_1util_1_1morton__key.html#ad6624581fc65d4ad0f896ab908d31a51',1,'flecsi::util::morton_key::range()']]],
   ['read_2',['read',['../structflecsi_1_1data_1_1buffers_1_1ragged.html#ad9c9adc778cd3f3d416d857e6a9fba98',1,'flecsi::data::buffers::ragged']]],
-  ['reduce_3',['reduce',['../group__execution.html#ga7523244fc7cc96b87ebfe84c68482535',1,'flecsi']]],
+  ['reduce_3',['reduce',['../group__execution.html#gafadad11d9825d4175ac5d62db431e39e',1,'flecsi']]],
   ['region_5fbase_4',['region_base',['../structflecsi_1_1data_1_1region__base.html#a0bf5b723978e651b6c9687d8db6995f3',1,'flecsi::data::region_base']]],
   ['register_5ftag_5',['register_tag',['../classflecsi_1_1flog_1_1state.html#a0e92f82b4a4e8050447e20546cc9bed3',1,'flecsi::flog::state']]],
   ['reorder_6',['reorder',['../group__utils.html#gacc2dbba6504f66bd8814581374a95e02',1,'flecsi::util']]],
@@ -16,5 +16,5 @@ var searchData=
   ['root_13',['root',['../classflecsi_1_1util_1_1filling__curve__key.html#a894a38ad47fd4e459b28e0eaba25b787',1,'flecsi::util::filling_curve_key']]],
   ['rows_14',['rows',['../structflecsi_1_1data_1_1rows.html#afc2f0310b3f9bc91d8c844dbfce6b031',1,'flecsi::data::rows']]],
   ['rstrip_15',['rstrip',['../group__flog.html#ga812a84b596e28e9f81021001713f15ed',1,'flecsi::flog']]],
-  ['runtime_16',['runtime',['../structflecsi_1_1runtime.html#a73500dbf28a999bc49dcd2ade53b3bc0',1,'flecsi::runtime::runtime(runtime &amp;&amp;)=delete'],['../structflecsi_1_1runtime.html#a93ad7beb146367754d1dac633fe724f6',1,'flecsi::runtime::runtime(const run::config &amp;c={})']]]
+  ['runtime_16',['runtime',['../structflecsi_1_1runtime.html#a93ad7beb146367754d1dac633fe724f6',1,'flecsi::runtime::runtime(const run::config &amp;c={})'],['../structflecsi_1_1runtime.html#a73500dbf28a999bc49dcd2ade53b3bc0',1,'flecsi::runtime::runtime(runtime &amp;&amp;)=delete']]]
 ];

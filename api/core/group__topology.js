@@ -10,7 +10,7 @@ var group__topology =
     ] ],
     [ "borrow< Q >", "structflecsi_1_1topo_1_1borrow.html", null ],
     [ "borrow_base", "structflecsi_1_1topo_1_1borrow__base.html", [
-      [ "wrap", "structflecsi_1_1topo_1_1borrow__base.html#aa65d270b34a6eb52a1aa573de26e5202", null ]
+      [ "wrap", "structflecsi_1_1topo_1_1borrow__base.html#a81cd54d30956abab64ffc7f613840ea9", null ]
     ] ],
     [ "borrow_category< P >", "structflecsi_1_1topo_1_1borrow__category.html", [
       [ "borrow_category", "structflecsi_1_1topo_1_1borrow__category.html#a897ecf373ee8f0c15c211c0768bf7503", null ],
@@ -27,7 +27,7 @@ var group__topology =
       [ "colors", "structflecsi_1_1topo_1_1core.html#a27c97040e58856c6f97f83aa06537a66", null ],
       [ "get_region", "structflecsi_1_1topo_1_1core.html#adb06bb20c546fe7fb96ff321ae17056f", null ],
       [ "get_partition", "structflecsi_1_1topo_1_1core.html#a64ec4b79dbdce028da11e5f453440e9a", null ],
-      [ "ghost_copy", "structflecsi_1_1topo_1_1core.html#a4609f1bc0c1a4dec3b3b9c0ac0d2f11d", null ]
+      [ "ghost_copy", "structflecsi_1_1topo_1_1core.html#a992b7bcc82c67113de0c154b60656adc", null ]
     ] ],
     [ "core_base", "structflecsi_1_1topo_1_1core__base.html", [
       [ "coloring", "structflecsi_1_1topo_1_1core__base.html#a2d4c8266c5779173033066b8cd176e36", null ]
@@ -51,8 +51,7 @@ var group__topology =
       [ "base", "structflecsi_1_1topo_1_1specialization.html#a7bd05202ab07f41b4efc2aed0f6929f4", null ],
       [ "coloring", "structflecsi_1_1topo_1_1specialization.html#a2b7d04a7c79675c87feb181a897a1aa0", null ],
       [ "slot", "structflecsi_1_1topo_1_1specialization.html#a3976b3c51547fda5c27879ead8964b57", null ],
-      [ "cslot", "structflecsi_1_1topo_1_1specialization.html#a37e2b1d0b736e95a5eada3c60eeb4de2", null ],
-      [ "accessor", "structflecsi_1_1topo_1_1specialization.html#a1e09c1bf03504b1e1d8abdca95713b53", null ]
+      [ "accessor", "structflecsi_1_1topo_1_1specialization.html#ab7006d54d35581f0cd8d8cdfa5e10178", null ]
     ] ],
     [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html", [
       [ "from", "structflecsi_1_1topo_1_1specialization__base.html#ae609a6fc8e2cd2822e14ab90800b6087", null ],

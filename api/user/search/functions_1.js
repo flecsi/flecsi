@@ -5,5 +5,6 @@ var searchData=
   ['bin_2',['bin',['../structflecsi_1_1util_1_1map__base.html#a0d139d2799041ec4bbb64fa9dbc3764d',1,'flecsi::util::map_base']]],
   ['binary_5findex_3',['binary_index',['../group__ranges.html#ga9fb574edd1b1b9cdb2eeee754324bed8',1,'flecsi::util']]],
   ['block_4',['block',['../group__launch.html#gae443fe4e5c2d4f5b00e1a455848149a9',1,'flecsi::data::launch']]],
-  ['buffer_5',['buffer',['../group__serial.html#gaa260f27fb22b419c2fb52e6df5c27478',1,'flecsi::util::serial']]]
+  ['bounding_5fbox_5',['bounding_box',['../structflecsi_1_1topo_1_1unstructured__base.html#aad5b49d33c9e5433947a1e9d8e56d7c2',1,'flecsi::topo::unstructured_base']]],
+  ['buffer_6',['buffer',['../group__serial.html#gaa260f27fb22b419c2fb52e6df5c27478',1,'flecsi::util::serial']]]
 ];

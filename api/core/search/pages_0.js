@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['deprecated_20list_0',['Deprecated List',['../deprecated.html',1,'']]]
+  ['api_0',['FleCSI Core API',['../index.html',1,'']]]
 ];

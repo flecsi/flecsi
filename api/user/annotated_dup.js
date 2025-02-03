@@ -78,6 +78,7 @@ var annotated_dup =
         [ "specialization", "structflecsi_1_1topo_1_1specialization.html", "structflecsi_1_1topo_1_1specialization" ],
         [ "specialization_base", "structflecsi_1_1topo_1_1specialization__base.html", "structflecsi_1_1topo_1_1specialization__base" ],
         [ "unstructured", "structflecsi_1_1topo_1_1unstructured.html", "structflecsi_1_1topo_1_1unstructured" ],
+        [ "unstructured_base", "structflecsi_1_1topo_1_1unstructured__base.html", "structflecsi_1_1topo_1_1unstructured__base" ],
         [ "unstructured_specialization", "structflecsi_1_1topo_1_1unstructured__specialization.html", "structflecsi_1_1topo_1_1unstructured__specialization" ],
         [ "user", "structflecsi_1_1topo_1_1user.html", null ],
         [ "with_size", "structflecsi_1_1topo_1_1with__size.html", "structflecsi_1_1topo_1_1with__size" ]

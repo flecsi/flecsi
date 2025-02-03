@@ -48,7 +48,7 @@ Control policy
 
 The control policy for this example is located in
 *specialization/control.hh*. This implementation is consistent with the
-examples in :ref:`TUT-CM` Tutorial.
+examples in :doc:`control` Tutorial.
 
 .. figure:: images/poisson.svg
    :align: center
@@ -68,7 +68,7 @@ internally by FleCSI, you can likely use this file as is (with a different names
 Building the Poisson application
 ++++++++++++++++++++++++++++++++
 
-:ref:`build` FleCSI somewhere on your system and make sure
+:doc:`../build` FleCSI somewhere on your system and make sure
 that the location is set in your ``CMAKE_PREFIX_PATH`` environment
 variable. Then, you can build this example like:
 

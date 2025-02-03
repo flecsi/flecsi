@@ -10,8 +10,8 @@ var group__kdtree =
       [ "lower", "classflecsi_1_1util_1_1BBox.html#a68856a397ad0d82c87bcc6298c6e3ccf", null ]
     ] ],
     [ "KDTree< DIM >", "structflecsi_1_1util_1_1KDTree.html", [
-      [ "boxes", "structflecsi_1_1util_1_1KDTree.html#ae7b2fdf2d331bb95985e5c6bf35579bd", null ],
-      [ "overlap", "structflecsi_1_1util_1_1KDTree.html#af2d9ed900d431b5828b2e9e2a64fde73", null ],
+      [ "boxes", "structflecsi_1_1util_1_1KDTree.html#a38f8ba2ed2db0ae64b36568684882be3", null ],
+      [ "overlap", "structflecsi_1_1util_1_1KDTree.html#affebc0c61f612df925b2eb76152513f9", null ],
       [ "KDTree", "structflecsi_1_1util_1_1KDTree.html#a088f5a10c176c6e7d366cc58a8889d5a", null ],
       [ "intersect", "structflecsi_1_1util_1_1KDTree.html#a23885d8dfac5f738fe579c91831128c8", null ]
     ] ]

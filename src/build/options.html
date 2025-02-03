@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMake Configuration Options &mdash; FleCSI 2.3.0 documentation</title>
+  <title>CMake Configuration Options &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -60,7 +60,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#miscellaneous-options">Miscellaneous options</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../build.html#requirements-prerequisites">Requirements &amp; Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../build.html#build-requirements">Build requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#getting-the-code">Getting The Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#spack">Spack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../build.html#flecsi-developers">FleCSI Developers</a></li>
@@ -212,10 +212,8 @@ generate a runtime error and will invoke <code class="docutils literal notransla
 <li><p><strong>ENABLE_KOKKOS [default: OFF]</strong> <br />
 If enabled, support the use of <a class="reference external" href="https://kokkos.org/">Kokkos</a> for
 thread-level parallelism and GPU support.</p></li>
-<li><p><strong>ENABLE_MPI_CXX_BINDINGS [default: OFF]</strong> <br />
-This option is a fall-back for codes that actually require the MPI C++
-bindings. <strong>This interface is deprecated and should only be used if it
-is impossible to get rid of the dependency.</strong></p></li>
+<li><p><strong>ENABLE_MPI_CXX_BINDINGS</strong> <br />
+This <strong>deprecated</strong> option is ignored.</p></li>
 <li><p><strong>ENABLE_OPENMP [default: OFF]</strong> <br />
 Enable <a class="reference external" href="https://www.openmp.org/">OpenMP</a> pragmas for thread-level
 parallelism.  The appropriate flags will be passed to the C++
@@ -261,6 +259,9 @@ points and actions.</p></li>
 <li><p><strong>ENABLE_HDF5 [default: OFF]</strong> <br />
 If enabled, support the use of <a class="reference external" href="https://www.hdfgroup.org/">HDF5</a>
 for checkpointing program state.</p></li>
+<li><p><strong>CALIPER_DETAIL [default: none]</strong> <br />
+A choice from <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">low</span></code>, <code class="docutils literal notranslate"><span class="pre">medium</span></code>, and <code class="docutils literal notranslate"><span class="pre">high</span></code> to control which Caliper annotations are active.
+With <code class="docutils literal notranslate"><span class="pre">none</span></code>, Caliper is not a dependency.</p></li>
 <li><p><strong>ENABLE_UNIT_TESTS [default: OFF]</strong> <br />
 Enable FleCSI unit tests. If enabled, the unit test suite can be run
 by invoking:</p></li>

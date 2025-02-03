@@ -12,7 +12,7 @@ var searchData=
   ['specialization_3c_20narray_2c_20narray_5fspecialization_20_3e_9',['specialization&lt; narray, narray_specialization &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
   ['specialization_3c_20ntree_2c_20ntree_5fspecialization_20_3e_10',['specialization&lt; ntree, ntree_specialization &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
   ['specialization_3c_20ragged_5fcategory_2c_20ragged_3c_20t_20_3e_20_3e_11',['specialization&lt; ragged_category, ragged&lt; T &gt; &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
-  ['specialization_3c_20ragged_5fpartition_5fcategory_2c_20ragged_5fpartition_3c_20n_20_3e_20_3e_12',['specialization&lt; ragged_partition_category, ragged_partition&lt; N &gt; &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
+  ['specialization_3c_20ragged_5fpartition_5fcategory_2c_20ragged_5fpartition_20_3e_12',['specialization&lt; ragged_partition_category, ragged_partition &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
   ['specialization_3c_20topo_3a_3acolor_2c_20sort_5fcolor_20_3e_13',['specialization&lt; topo::color, sort_color &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
   ['specialization_3c_20unstructured_2c_20unstructured_5fspecialization_20_3e_14',['specialization&lt; unstructured, unstructured_specialization &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],
   ['specialization_3c_20user_2c_20ctopo_20_3e_15',['specialization&lt; user, ctopo &gt;',['../structflecsi_1_1topo_1_1specialization.html',1,'flecsi::topo']]],

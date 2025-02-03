@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Effect of Tracing &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Tracing &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -39,7 +39,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -56,14 +56,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../user-guide.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="programming.html">Programming Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-model.html">Data Model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="topologies.html">Topologies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="specializations.html">Specializations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="performance.html">Performance Do’s and Don’ts</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Performance Effect of Tracing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#when-to-use-tracing">When to Use Tracing</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> Loops</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="performance.html#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a></li>
@@ -94,7 +93,7 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../user-guide.html">User Guide</a></li>
           <li class="breadcrumb-item"><a href="performance.html">Performance Do’s and Don’ts</a></li>
-      <li class="breadcrumb-item active">Performance Effect of Tracing</li>
+      <li class="breadcrumb-item active">Tracing</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/src/user-guide/tracing.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -104,18 +103,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="performance-effect-of-tracing">
-<h1>Performance Effect of Tracing<a class="headerlink" href="#performance-effect-of-tracing" title="Permalink to this heading"></a></h1>
-<p>The performance affect of using tracing cannot be overstated.</p>
+  <section id="tracing">
+<h1>Tracing<a class="headerlink" href="#tracing" title="Permalink to this heading"></a></h1>
+<p>The overhead of Legion’s dependency analysis can be greatly reduced by annotating sequences of tasks that are executed repeatedly on the same fields.</p>
 <p>This is a weak scaling plot of
 Red-Black Gauss-Seidel iteration for Poisson’s Equation in 2D.
 The blue circles are the weak scaling results without tracing and green squares are with tracing.
 Already at fifty nodes there is a 20X performance difference.  The solution time
 without tracing scales as <span class="math notranslate nohighlight">\(\left(\texttt{nodes}\right)^{0.7}\)</span>.  So this difference will only get worse.</p>
 <img alt="../../_images/tracing_vs_no_tracing.png" src="../../_images/tracing_vs_no_tracing.png" />
-</section>
 <section id="implementing-tracing-in-your-code">
-<h1>Implementing Tracing in Your Code<a class="headerlink" href="#implementing-tracing-in-your-code" title="Permalink to this heading"></a></h1>
+<h2>Implementing Tracing in Your Code<a class="headerlink" href="#implementing-tracing-in-your-code" title="Permalink to this heading"></a></h2>
 <p>Here is the iteration loop without tracing.</p>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-number">Listing 1 </span><span class="caption-text">Red-Black Gauss-Seidel non-blocking, no tracing</span><a class="headerlink" href="#id1" title="Permalink to this code"></a></div>
@@ -146,7 +144,7 @@ FleCSI does not yet support futures in this way.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>These loops contain <cite>flecsi::execute&lt;&gt;</cite> task launches. Any such loops in your code
+<p>These loops contain <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> task launches. Any such loops in your code
 need to have tracing enabled either on the loop itself or on a containing loop.</p>
 </div>
 <div class="literal-block-wrapper docutils container" id="id2">
@@ -177,16 +175,17 @@ need to have tracing enabled either on the loop itself or on a containing loop.<
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The first time through this loop, <cite>task::red</cite> follows
+<p>The first time through this loop, <code class="docutils literal notranslate"><span class="pre">task::red</span></code> follows
 initialization tasks.  This can setup a different ghost copy pattern
 than all other iterations.  Tracing works by replaying memoized dependency analysis
-computations.  The <cite>t.skip()</cite> command tells FleCSI to defer tracing
-until the second iteration of the <cite>do</cite> loop.</p>
+computations.  The <code class="docutils literal notranslate"><span class="pre">t.skip()</span></code> command tells FleCSI to defer tracing
+until the second iteration of the <code class="docutils literal notranslate"><span class="pre">do</span></code> loop.</p>
 </div>
 </section>
 <section id="when-to-use-tracing">
-<h1>When to Use Tracing<a class="headerlink" href="#when-to-use-tracing" title="Permalink to this heading"></a></h1>
-<p>You should enable tracing anytime you have a set of tasks that will be <cite>flecsi::execute&lt;&gt;</cite>’ed in the same sequence over and over again.</p>
+<h2>When to Use Tracing<a class="headerlink" href="#when-to-use-tracing" title="Permalink to this heading"></a></h2>
+<p>You should enable tracing anytime you have a set of tasks that will be <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code>’ed in the same sequence over and over again.</p>
+</section>
 </section>
 
 

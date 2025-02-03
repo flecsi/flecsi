@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Developer Guide &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Developer Guide &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -216,7 +216,7 @@ subdirectories within the test subdirectory.</p>
 <li><p>build and pass tests (partly to support <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">bisect</span></code>)</p></li>
 <li><p>not add or change material changed later in the same merge request (partly to help <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">blame</span></code>)</p></li>
 <li><p>include the smallest subset of an overall set of changes that follows the above rules</p></li>
-<li><p>add or update any relevant documentation, including the <a class="reference internal" href="news.html#news"><span class="std std-ref">Release Notes</span></a></p></li>
+<li><p>add or update any relevant documentation, including the <a class="reference internal" href="news.html"><span class="doc">Release Notes</span></a></p></li>
 <li><p>not be a <a class="reference external" href="https://docs.kernel.org/maintainer/rebasing-and-merging.html#merging-from-sibling-or-upstream-trees">meaningless merge</a> from the destination branch (as introduced by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>)</p></li>
 <li><p>have a meaningful message that follows the <a class="reference external" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">50/72 rule</a></p></li>
 <li><p>be properly formatted per <code class="docutils literal notranslate"><span class="pre">clang-format</span></code></p></li>
@@ -557,9 +557,9 @@ spack<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </s
 <span class="k">fi</span>
 
 <span class="c1"># Install FleCSI&#39;s dependencies with Spack.</span>
-<span class="c1"># Note: cxxstd is only needed for legion@master. Remove once no longer needed.</span>
 spack<span class="w"> </span>add<span class="w"> </span>flecsi%gcc@<span class="si">${</span><span class="nv">GCC_VERSION</span><span class="si">}</span><span class="w"> </span><span class="nv">backend</span><span class="o">=</span>legion<span class="w"> </span>+doc<span class="w"> </span>+graphviz<span class="w"> </span>+hdf5<span class="w"> </span>+kokkos<span class="w"> </span>+flog<span class="w"> </span><span class="se">\</span>
-<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">cxxstd</span><span class="o">=</span><span class="m">17</span><span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^legion<span class="w"> </span><span class="nv">network</span><span class="o">=</span>gasnet<span class="w"> </span><span class="nv">conduit</span><span class="o">=</span>mpi<span class="w"> </span><span class="nv">build_type</span><span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>^kokkos<span class="w"> </span>+hwloc<span class="w"> </span>~cuda<span class="w"> </span>~rocm<span class="w"> </span><span class="se">\</span>
 <span class="w">          </span>^mpich
 spack<span class="w"> </span>install<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span>--only<span class="w"> </span>dependencies
 

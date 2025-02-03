@@ -29,9 +29,8 @@ Details on how to build the tutorials are given below.
 Requirements
 ++++++++++++
 
-The tutorial assumes that you have successfully installed FleCSI
-somewhere on your system. Instructions for different install methods are
-available here: :ref:`build`.
+The tutorial assumes that you have successfully :doc:`installed
+FleCSI<build>` somewhere on your system.
 
 Once you have built and installed FleCSI, add the path to your
 installation to your *CMAKE_PREFIX_PATH*:

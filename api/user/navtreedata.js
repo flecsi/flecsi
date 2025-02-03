@@ -26,7 +26,7 @@ var NAVTREE =
 [
   [ "FleCSI User API", "index.html", [
     [ "Deprecated List", "deprecated.html", null ],
-    [ "Modules", "modules.html", "modules" ],
+    [ "Topics", "topics.html", "topics" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
@@ -47,7 +47,7 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "group__unit.html#gad5c6b80d440ed1211f79f54dc26e8d7c",
-"structflecsi_1_1topo_1_1narray__impl_1_1axis__layout.html#acb11a928815922e77f91df2b4dec0f08"
+"structflecsi_1_1topo_1_1narray__impl_1_1axis__layout.html#af82aea1bdae062adff65a449e7299186"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

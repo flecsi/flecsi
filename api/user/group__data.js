@@ -23,7 +23,7 @@ var group__data =
       ] ],
       [ "operator[]", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html#aa09ac0a8a6b9714e4a214c2e7e9d066a", null ]
     ] ],
-    [ "coloring_slot< Topo >", "structflecsi_1_1data_1_1coloring__slot.html", [
+    [ "coloring_slot< class >", "structflecsi_1_1data_1_1coloring__slot.html", [
       [ "allocate", "structflecsi_1_1data_1_1coloring__slot.html#a8cf11cad9463cfd9fcd00a24dbe2dd30", null ],
       [ "deallocate", "structflecsi_1_1data_1_1coloring__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],
       [ "get", "structflecsi_1_1data_1_1coloring__slot.html#a6706cb0ba611ec6bab66145c61c0c552", null ],
@@ -34,15 +34,15 @@ var group__data =
         [ "operator()", "structflecsi_1_1field_1_1definition.html#a91d7a8e7352165d51614a48f0ae2571c", null ],
         [ "operator()", "structflecsi_1_1field_1_1definition.html#aba7406971fe79e94bd24cb2bd8e26261", null ]
       ] ],
-      [ "accessor", "structflecsi_1_1field.html#a93dcc210db84f8f3e8a71132186748f5", null ],
-      [ "mutator", "structflecsi_1_1field.html#a3f04d4e963a0f97f6e99395b0377e1d1", null ],
+      [ "accessor", "structflecsi_1_1field.html#a4c1a110698092ab5d64f363270916700", null ],
+      [ "mutator", "structflecsi_1_1field.html#a886f7edeff465182d956861d4e08fc2f", null ],
       [ "reduction", "structflecsi_1_1field.html#ab2edf1e144a482b8083df98b5479cfee", null ],
       [ "field", "structflecsi_1_1field.html#ac398e904396eb257a22ed89696cd0955", null ]
     ] ],
     [ "field_reference< T, L, Topo, Space >", "structflecsi_1_1data_1_1field__reference.html", [
       [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ]
     ] ],
-    [ "multi< A >", "structflecsi_1_1data_1_1multi.html", [
+    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", [
       [ "components", "structflecsi_1_1data_1_1multi.html#ae82e5e157786aaef49a91d346aaa9c77", null ]
     ] ],
     [ "multi_reference< T, L, Topo, S >", "structflecsi_1_1data_1_1multi__reference.html", null ],
@@ -84,7 +84,7 @@ var group__data =
       [ "operator[]", "structflecsi_1_1data_1_1reduction__accessor.html#a48ee3a0a3c0e0f07b9afeb3ad7bd0d0a", null ],
       [ "span", "structflecsi_1_1data_1_1reduction__accessor.html#a36db50a6d2b2794e25d5811ca2240204", null ]
     ] ],
-    [ "topology_accessor< T, Priv >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
+    [ "topology_accessor< class, Privileges >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
     [ "topology_slot< Topo >", "structflecsi_1_1data_1_1topology__slot.html", [
       [ "allocate", "structflecsi_1_1data_1_1topology__slot.html#acd71bcf530336967c2da3c047cd4025d", null ],
       [ "deallocate", "structflecsi_1_1data_1_1topology__slot.html#a2d68be4fd20ffdd7f7a9b51579eacc2f", null ],

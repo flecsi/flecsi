@@ -33,7 +33,11 @@ var group__ntree =
         [ "nodes_sizes_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a232051ce8d842d6f4a18899f56ea5fc1", null ],
         [ "local_hmap_", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a3b648bb000a85ec0854520e8dd827c64", null ]
       ] ],
-      [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2", null ],
+      [ "index_spaces", "structflecsi_1_1topo_1_1ntree__base.html#a3624458e0b770706679f26697c86300a", null ],
+      [ "index_space", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2", [
+        [ "nodes", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2a074853153b37947acaee68cdbb8d1546", null ],
+        [ "hashmap", "structflecsi_1_1topo_1_1ntree__base.html#a8920981e7c878a8f3e34c3a8b7c0c9a2a44bcada904bd39059a61b69ab56a894d", null ]
+      ] ],
       [ "ptype_t", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911", [
         [ "exclusive", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911acb67d8236df55e74bba662ac5569144a", null ],
         [ "ghost", "structflecsi_1_1topo_1_1ntree__base.html#a723256dea8a6fd9c487829bc1ed6f911ab0ca578d7510d6a9569014ac68a70486", null ],
@@ -49,6 +53,7 @@ var group__ntree =
     [ "ntree_specialization", "structflecsi_1_1topo_1_1ntree__specialization.html", [
       [ "entity_data", "structflecsi_1_1topo_1_1ntree__specialization_1_1entity__data.html", null ],
       [ "node_data", "structflecsi_1_1topo_1_1ntree__specialization_1_1node__data.html", null ],
-      [ "key_t", "structflecsi_1_1topo_1_1ntree__specialization.html#a195b10e7578de1597993a116bd7e7514", null ]
+      [ "key_t", "structflecsi_1_1topo_1_1ntree__specialization.html#a195b10e7578de1597993a116bd7e7514", null ],
+      [ "index_spaces", "structflecsi_1_1topo_1_1ntree__specialization.html#a6b41a6fdc93117917845bee056376d77", null ]
     ] ]
 ];

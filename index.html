@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction &mdash; FleCSI 2.3.0 documentation</title>
+  <title>Introduction &mdash; FleCSI 2.3.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/favicon.ico"/>
@@ -37,7 +37,7 @@
               <img src="_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.0
+                Version: 2.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -145,7 +145,10 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/build/options.html#miscellaneous-options">Miscellaneous options</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/build.html#requirements-prerequisites">Requirements &amp; Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/build.html#build-requirements">Build requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/build.html#additional-requirements-for-documentation">Additional requirements for documentation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="src/build.html#getting-the-code">Getting The Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/build.html#spack">Spack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src/build.html#flecsi-developers">FleCSI Developers</a></li>
@@ -209,6 +212,7 @@ structure representations.</p>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-1-global-data">Example 1: Global data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-2-index-data">Example 2: Index data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-3-dense-data">Example 3: Dense data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/tutorial/data.html#example-4-ragged-data">Example 4: Ragged data</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src/tutorial/parallel.html">Distributed and shared memory parallelism</a></li>
@@ -263,11 +267,41 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/programming.html#mpi-tasks">MPI Tasks</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/data-model.html">Data Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#important-concepts">Important Concepts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#colors">Colors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#ghost-elements">Ghost Elements</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/data-model.html#fields">Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#registration">Registration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#layouts">Layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#references">References</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#accessors">Accessors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/data-model.html#mutators">Mutators</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="src/user-guide/data-model.html#memory">Memory</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="src/user-guide/topologies.html">Topologies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#terminology">Terminology</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#index-spaces">Index Spaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#basic-categories">Basic Categories</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#field-registration">Field Registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#provided-topologies">Provided Topologies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/topologies.html#colorings">Colorings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/specializations.html">Specializations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/specializations.html#requirements">Requirements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#index-spaces">Index Spaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#coloring">Coloring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/specializations.html#interface">Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/specializations.html#utilities">Utilities</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/user-guide/utilities.html">Utilities</a><ul>
@@ -277,22 +311,20 @@ structure representations.</p>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/specializations.html">Specializations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/specializations.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src/user-guide/performance.html">Performance Do’s and Don’ts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <code class="docutils literal notranslate"><span class="pre">flecsi::execute&lt;&gt;</span></code> Loops</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/tracing.html">Tracing</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="src/user-guide/tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
+<li class="toctree-l5"><a class="reference internal" href="src/user-guide/tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src/user-guide/performance.html">Performance Do’s and Don’ts</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#do-activate-tracing-around-your-flecsi-execute-loops">Do Activate Tracing Around Your <cite>flecsi::execute&lt;&gt;</cite> Loops</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/tracing.html">Performance Effect of Tracing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/tracing.html#implementing-tracing-in-your-code">Implementing Tracing in Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/tracing.html#when-to-use-tracing">When to Use Tracing</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src/user-guide/performance.html#don-t-block-the-top-level-task-tlt">Don’t Block the Top-Level Task (TLT)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html">Performance Effect of <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html">Performance Effect of <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#forcing-bulk-synchronousity-in-your-code">Forcing Bulk-Synchronousity in Your Code</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#removing-bulk-synchronousity-from-your-code">Removing Bulk-Synchronousity from Your Code</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#when-to-call-get-outside-of-a-task">When to Call <cite>get()</cite> Outside of a Task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src/user-guide/blocking.html#when-to-call-get-outside-of-a-task">When to Call <code class="docutils literal notranslate"><span class="pre">get()</span></code> Outside of a Task</a></li>
 </ul>
 </li>
 </ul>
@@ -383,23 +415,23 @@ structure representations.</p>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#jonathan-graham">Jonathan Graham</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#davis-herring">Davis Herring</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#christoph-junghans">Christoph Junghans</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#brendan-krueger">Brendan Krueger</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#sumathi-lakshmiranganatha">Sumathi Lakshmiranganatha</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#li-ta-ollie-lo">Li-Ta (Ollie) Lo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#julien-loiseau">Julien Loiseau</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#maxim-moraru">Maxim Moraru</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#max-ortner">Max Ortner</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#scott-pakin">Scott Pakin</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#navamita-ray">Navamita Ray</a></li>
-<li class="toctree-l3"><a class="reference internal" href="src/team.html#andrew-reisner">Andrew Reisner</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src/team.html#alumni">Alumni</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#david-daniel">David Daniel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#irina-demeshko">Irina Demeshko</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#charles-ferenbaugh">Charles Ferenbaugh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#brendan-krueger">Brendan Krueger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#sumathi-lakshmiranganatha">Sumathi Lakshmiranganatha</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#jonas-lippuner">Jonas Lippuner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#li-ta-ollie-lo">Li-Ta (Ollie) Lo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#nick-moss">Nick Moss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#max-ortner">Max Ortner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#navamita-ray">Navamita Ray</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src/team.html#andrew-reisner">Andrew Reisner</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#karen-tsai">Karen Tsai</a></li>
 <li class="toctree-l3"><a class="reference internal" href="src/team.html#wei-wu">Wei Wu</a></li>
 </ul>

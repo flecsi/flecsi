@@ -2,8 +2,6 @@
 
    <br />
 
-.. _TUT-CM:
-
 Control Model
 *************
 
@@ -490,7 +488,6 @@ The point of defining the dependencies involving c in a different file
 is to demonstrate that dependencies do not need to be collocated,
 provided that they honor normal C++ declaration rules.
 
-.. _TUT-CM-STATE:
 
 Example 4: Control State
 ++++++++++++++++++++++++
@@ -517,7 +514,7 @@ methods and some private data:
     to allocate data that will be accessed by tasks and modified during the simulation: i.e., control state data should be used only to hold global constants and/or implement the control logic of the run.
     As a special case, MPI tasks can access and modify such objects.
     The FleCSI data model provides other mechanisms for creating
-    and managing state data, which are documented in the :ref:`TUT-DM`
+    and managing state data, which are documented in the :doc:`data`
     section of this tutorial.
 
 These interfaces are used to implement the example actions in

@@ -13,11 +13,12 @@ var group__topology_data =
       [ "Transfer", "structflecsi_1_1data_1_1buffers.html#a24355280ed2f301f1a2d0c6da7334b5e", null ]
     ] ],
     [ "copy_engine", "structflecsi_1_1data_1_1copy__engine.html", [
-      [ "copy_engine", "structflecsi_1_1data_1_1copy__engine.html#a5fd5fd599461999a3c3de18bf054c6ef", null ],
-      [ "operator()", "structflecsi_1_1data_1_1copy__engine.html#aa3986a778584777998a0e9df30422c11", null ]
+      [ "Point", "structflecsi_1_1data_1_1copy__engine.html#ac34af0354e475d7a4bd28b4c5bff7fa6", null ],
+      [ "copy_engine", "structflecsi_1_1data_1_1copy__engine.html#aa880fc69bf6c114a25830ff438807bd8", null ],
+      [ "operator()", "structflecsi_1_1data_1_1copy__engine.html#a6b85b06e9e14f503fa6747aeb72c3a02", null ]
     ] ],
     [ "copy_plan", "structflecsi_1_1data_1_1copy__plan.html", null ],
-    [ "field_reference< T, L, Topo, Space >", "structflecsi_1_1data_1_1field__reference.html", [
+    [ "field_reference< class, layout, Topo, index_space >", "structflecsi_1_1data_1_1field__reference.html", [
       [ "get_elements", "structflecsi_1_1data_1_1field__reference.html#a9490160bb9e5e0f0bf789b99c7c14c7f", null ],
       [ "use", "structflecsi_1_1data_1_1field__reference.html#a2e3d756598b3e1d9bedf2f23092bdaf8", null ]
     ] ],
@@ -28,10 +29,6 @@ var group__topology_data =
     [ "partition", "structflecsi_1_1data_1_1partition.html", [
       [ "colors", "structflecsi_1_1data_1_1partition.html#a27c97040e58856c6f97f83aa06537a66", null ],
       [ "get_partition", "structflecsi_1_1data_1_1partition.html#ae717d3efb28ca61d27aa6941208fd5be", null ]
-    ] ],
-    [ "points", "structflecsi_1_1data_1_1points.html", [
-      [ "Value", "structflecsi_1_1data_1_1points.html#a0c426b4819ba4f6bf8f7fa8103e858a3", null ],
-      [ "points", "structflecsi_1_1data_1_1points.html#a89d5d4dcca2d8dc0e9a170eb9a7a3808", null ]
     ] ],
     [ "prefixes", "structflecsi_1_1data_1_1prefixes.html", [
       [ "prefixes", "structflecsi_1_1data_1_1prefixes.html#a8855f35de05dac8a49b598fe7140b37f", null ],
