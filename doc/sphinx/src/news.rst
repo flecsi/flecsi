@@ -13,8 +13,8 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
-Changes in v2.3.1
-+++++++++++++++++
+Changes in v2.3.1 (February 3 2025)
++++++++++++++++++++++++++++++++++++
 
 Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
