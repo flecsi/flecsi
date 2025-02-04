@@ -30,29 +30,44 @@ Deprecated
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
   * ``ENABLE_OPENMP`` |mdash| is ignored.
 
+* Data
+
+  * ``partition_privilege_t`` |mdash| use ``privilege``
+
 * Execution
 
   * ``future<R, index>::get`` |mdash| pass to a task or use ``all``
   * ``make_partial`` |mdash| use a lambda or ``std::bind``, which can now be task arguments
   * ``idempotent`` task attribute |mdash| has never had any effect
-  * ``partition_privilege_t`` |mdash| use ``privilege``
+
+* Topologies
+
+  * ``unstructured_base::coloring::index_space::entities`` |mdash| omit from initialization
 
 New features
 ^^^^^^^^^^^^
 * Build
 
+  * ``FLECSI_BACKEND`` identifies the backend in use.
+  * ``FLECSI_ENABLE_FLOG`` is defined as a macro if appropriate.
+  * ``FLECSI_CALIPER_DETAIL`` reports the level of annotation detail.
   * ``flecsi_enable_mpi`` no longer requires a second argument (to request the unavailable C++ bindings).
+
+* Data
+
+  * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Execution
 
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
   * Index futures provide ``all`` to get all results.
-  * ``privilege`` is the new name of ``partition_privilege_t``.
+  * A range for a parallel loop can be an integer (implying all smaller integers).
 
 * Topologies
 
   * ``narray`` specializations need not define ``dimension``.
+  * ``unstructured_base::coloring::index_space`` can be initialized without ``entities``, which is unused.
 
 * HPX backend
 

@@ -22,9 +22,14 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // Backends
 //----------------------------------------------------------------------------//
 
+/// A label for comparing to \c #FLECSI_BACKEND.
+/// \{
 #define FLECSI_BACKEND_legion 1
 #define FLECSI_BACKEND_mpi 2
 #define FLECSI_BACKEND_hpx 3
+/// \}
+
+/// The backend in use (one of the \c FLECSI_BACKEND_ macros).
 #define FLECSI_BACKEND FLECSI_BACKEND_@FLECSI_BACKEND@
 
 //----------------------------------------------------------------------------//
@@ -57,6 +62,7 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // FLOG
 //----------------------------------------------------------------------------//
 
+/// Defined if Flog is enabled via the CMake option of the same name.
 #cmakedefine FLECSI_ENABLE_FLOG
 #if defined(FLECSI_ENABLE_FLOG)
 #define FLOG_STRIP_LEVEL @FLOG_STRIP_LEVEL@
@@ -82,10 +88,17 @@ Format: \code(major << 16) | (minor << 8) | patch\endcode
 // Annotation severity level
 //----------------------------------------------------------------------------//
 
+/// An integer for comparing with \c #FLECSI_CALIPER_DETAIL.
+/// The values are in increasing order.
+/// \{
 #define FLECSI_CALIPER_DETAIL_none 1
 #define FLECSI_CALIPER_DETAIL_low 2
 #define FLECSI_CALIPER_DETAIL_medium 3
 #define FLECSI_CALIPER_DETAIL_high 4
+/// \}
+
+/// The configured level of annotation detail (one of the \c
+/// FLECSI_CALIPER_DETAIL_ macros).
 #define FLECSI_CALIPER_DETAIL FLECSI_CALIPER_DETAIL_@CALIPER_DETAIL@
 
 /// \}

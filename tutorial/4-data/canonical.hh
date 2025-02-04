@@ -43,7 +43,6 @@ struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
           { /* cells over global number of colors */
             4 /* partition size */
           },
-          4,
           { /* cells over process colors */
             {
               4, /* entities */
@@ -59,7 +58,6 @@ struct canon : flecsi::topo::specialization<flecsi::topo::unstructured, canon> {
           { /* vertices over global number of colors */
             2 /* partition size */
           },
-          2,
           { /* vertices over process colors */
             {
               2, /* entities */

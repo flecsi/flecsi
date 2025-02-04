@@ -269,14 +269,15 @@ struct partial : std::tuple<AA...> {
 /// \tparam AA leading arguments
 /// \return a function object
 /// \note A task that accepts the result will usually be a function template:
-/// \code
+///   \code
 ///   void func(/*...*/);
 ///   template<class F>
 ///   void task(F f) {f(/* ... */);}
 ///   void client() {
 ///     auto p = make_partial<func>(/*...*/);
 ///     execute<task<decltype(p)>>(p);  // note explicit template argument
-///   }\endcode
+///   }
+///   \endcode
 /// \deprecated Use a lambda or \c std::bind.
 template<auto & F, class... AA>
 [[deprecated(

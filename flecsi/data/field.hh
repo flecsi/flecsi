@@ -415,7 +415,7 @@ template<class F, Privileges Priv>
 using field_accessor = // for convenience with decltype
   typename std::remove_reference_t<F>::Field::template accessor1<Priv>;
 // Accessors that are always used with the same (internal) field can be
-// automatically initialized with its ID rather than having to be serialized.
+// automatically initialized and selected from the topology.
 template<const auto & F, Privileges Priv>
 struct accessor_member : field_accessor<decltype(F), Priv> {
   using base_type = typename accessor_member::accessor;
