@@ -222,8 +222,8 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
-template<class T, std::size_t D>
-mdcolex(T *, std::array<std::size_t, D>) -> mdcolex<T, D>;
+template<class T, class S, std::size_t D>
+mdcolex(T *, std::array<S, D>) -> mdcolex<T, D>;
 
 /// A small, approximate subset of mdspan from C++23.
 /// \gpu.
