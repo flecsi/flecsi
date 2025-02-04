@@ -143,6 +143,8 @@ operator<<(std::ostream & stream, index_color const & ic) {
 struct unstructured_base : base {
   /// The type for specifying an index space for a single color.
   using index_color = unstructured_impl::index_color;
+  /// The type for specifying communication between two colors.
+  using peer_entities = unstructured_impl::peer_entities;
 
   using source_pointers = std::vector</* over local colors */
     std::map</* over global source colors */
