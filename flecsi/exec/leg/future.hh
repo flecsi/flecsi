@@ -48,6 +48,12 @@ struct future<Return, exec::launch_type_t::index> {
   Legion::FutureMap legion_future_;
 };
 
+template<class Return>
+future<Return>
+make_future(Return && val) {
+  return {Legion::Future::from_value<Return>(std::forward<Return>(val))};
+} // make_future
+
 } // namespace flecsi
 
 #endif

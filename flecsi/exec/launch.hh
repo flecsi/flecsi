@@ -234,29 +234,6 @@ template<typename Return,
   exec::launch_type_t Launch = exec::launch_type_t::single>
 struct future;
 
-#ifdef DOXYGEN // implemented per-backend
-/// Single-valued future.
-template<typename Return>
-struct future<Return> {
-  /// Wait on the task to finish.
-  void wait();
-  /// Get the task's result.
-  [[nodiscard]] Return get(bool silence_warnings = false);
-};
-
-/// Multi-valued future from an index launch.
-template<typename Return>
-struct future<Return, exec::launch_type_t::index> {
-  /// Wait on all the tasks to finish.
-  void wait(bool silence_warnings = false);
-  /// Get the result of one of the tasks.
-  /// Note that all processes must select the same \a index.
-  Return get(Color index = 0, bool silence_warnings = false);
-  /// Get the number of tasks.
-  Color size() const;
-};
-#endif
-
 namespace exec::detail {
 template<class R>
 struct task_param<future<R>> {
