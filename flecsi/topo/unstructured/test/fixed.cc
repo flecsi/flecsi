@@ -462,6 +462,8 @@ fixed_driver() {
     execute<init_density>(mesh, density(mesh));
     execute<update_density, default_accelerator>(mesh, density(mesh));
     execute<check_density>(mesh, density(mesh));
+
+    std::swap(mesh, mesh);
   };
 }
 

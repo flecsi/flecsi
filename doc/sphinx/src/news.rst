@@ -18,6 +18,9 @@ Changes in v2.3.2
 
 Fixed
 ^^^^^
+* MPI backend
+
+  * Move-assignment of ``topology_slot`` works.
 
 * Utilities
 
