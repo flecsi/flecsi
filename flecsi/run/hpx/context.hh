@@ -147,20 +147,15 @@ struct task_local_data {
   auto emplace(void * key) {
     return data.emplace(key, new T());
   }
-
-  auto find(void * key) noexcept {
+  void *& get(void * key) noexcept {
     auto ret = data.find(key);
     flog_assert(
       ret != data.end(), "task local storage element should have been created");
-    return ret;
+    return ret->second;
   }
 
-  constexpr bool outermost() const noexcept {
-    return count == 1;
-  }
-
+private:
   std::map<void *, void *> data;
-  std::int16_t count = 1;
 };
 
 // manage task local storage for this task
@@ -182,16 +177,12 @@ struct task_local : private run::task_local_base {
 private:
   void emplace() override {
     [[maybe_unused]] auto p = detail::storage()->emplace<T>(this);
-    flog_assert(p.second || !detail::storage()->outermost(),
-      "task local storage element should not have been created yet");
+    flog_assert(
+      p.second, "task local storage element should not have been created yet");
   }
   void reset() noexcept override {
-    auto * stg = detail::storage();
-    auto it = stg->find(this);
-    if(stg->outermost()) {
-      delete static_cast<T *>((*it).second);
-      (*it).second = nullptr;
-    }
+    delete static_cast<T *>(
+      std::exchange(detail::storage()->get(this), nullptr));
   }
   void create_storage() override {
     detail::create_storage();
@@ -201,7 +192,7 @@ private:
   }
 
   T * get() noexcept {
-    return static_cast<T *>(detail::storage()->find(this)->second);
+    return static_cast<T *>(detail::storage()->get(this));
   }
 };
 } // namespace flecsi
