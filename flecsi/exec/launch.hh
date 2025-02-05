@@ -16,14 +16,26 @@
 
 namespace flecsi {
 namespace data {
-// Types inherit from these tags to indicate their task execution semantics.
 
-struct bind_tag {}; // must be recognized as a task parameter
-// A task parameter that provides a member function send to decompose itself
-// into lower-level types.  Its one argument is a backend-specific callback
-// that accepts a (subsidiary) task parameter and another function to call to
-// transform the corresponding task argument (used only on the caller side).
+/// \cond core
+/// Task parameters of types that inherit from bind_tag must be specially
+/// initialized by the backend.  See, for example, exec/leg/bind_accessors.hh.
+
+struct bind_tag {};
+
+/// Classes that inherit from send_tag can decompose themselves into simpler
+/// parameters via a send member function template.  This function template
+/// accepts a callback that is used to process the subcomponents and which
+/// itself accepts a callback that, on the caller side only, is used to
+/// transform the task arguments.  Those task arguments may include
+/// borrow_category versions of the underlying topologies and field references
+/// to such versions.  The MPI backend handles both sides (for a single
+/// argument/parameter) in a single pass, transforming the arguments and
+/// initializing the (single copy of the) parameters immediately.
+
 struct send_tag {};
+/// \endcond
+
 } // namespace data
 
 namespace exec {
