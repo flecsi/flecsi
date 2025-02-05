@@ -262,6 +262,12 @@ private:
       return peer;
     }
   };
+  struct policy_meta {
+    using Field = field<policy_meta, data::single>;
+
+    util::key_array<meta_data, index_spaces> index;
+    typename Policy::meta_data policy;
+  };
 
   template<auto... Value, auto... CI>
   narray(const coloring & c,
@@ -286,7 +292,6 @@ private:
         meta_data::peers(c.idx_colorings[index<CI>]))...}} {
     auto lm = data::launch::make(this->meta);
     execute<set_meta<Value...>, mpi>(meta_field(lm), c);
-    init_policy_meta(c);
     (
       [&] { // Sanity checks for indexes spaces for which privilege count is 1
         if(Policy::template privilege_count<Value> == 1) {
@@ -384,8 +389,7 @@ private:
 
   template<auto... Value> // index_spaces
   static void set_meta(
-    data::multi<typename field<util::key_array<meta_data, index_spaces>,
-      data::single>::template accessor<wo>> mm,
+    data::multi<typename policy_meta::Field::template accessor<wo>> mm,
     narray_base::coloring const & c) {
     std::size_t index{0};
     ((
@@ -394,16 +398,10 @@ private:
          const auto & idef = c.idx_colorings[index];
          auto it = ma.begin();
          for(const auto & ci : idef.process_colors())
-           (*it++)->template get<Value>() = meta_data::make(idef, ci);
+           (*it++)->index.template get<Value>() = meta_data::make(idef, ci);
        }(),
        ++index),
       ...);
-  }
-
-  static void set_policy_meta(typename field<typename Policy::meta_data,
-    data::single>::template accessor<wo>) {}
-  void init_policy_meta(narray_base::coloring const &) {
-    execute<set_policy_meta>(policy_meta_field(this->meta));
   }
 
   auto & get_sizes(std::size_t i) {
@@ -425,17 +423,19 @@ private:
     using fm_rw = typename field<T,
       data::ragged>::template mutator1<privilege_ghost_repeat<ro, rw, N>>;
 
-    using mfa = typename field<util::key_array<meta_data, index_spaces>,
-      data::single>::template accessor<ro>;
+    using mfa = typename policy_meta::Field::template accessor<ro>;
 
     static void start(fa v, mfa mf, data::buffers::Start mv) {
-      send(
-        v, mf, true, mv, get_ngb_color_bounds(true, mf->template get<Space>()));
+      send(v,
+        mf,
+        true,
+        mv,
+        get_ngb_color_bounds(true, mf->index.template get<Space>()));
     } // start
 
     static int xfer(fm_rw g, mfa mf, data::buffers::Transfer mv) {
       // get the meta data for the index space
-      meta_data md = mf->template get<Space>();
+      meta_data md = mf->index.template get<Space>();
 
       // The start of receive buffer id depends on the number
       // of sent buffers.
@@ -471,7 +471,7 @@ private:
     static bool
     send(F f, mfa mf, bool first, B mv, const Bounds & color_bounds) {
       // get the meta data for the index space
-      meta_data md = mf->template get<Space>();
+      meta_data md = mf->index.template get<Space>();
       bool sent = false;
 
       const auto strs = md.extent();
@@ -516,14 +516,9 @@ private:
   friend borrow_extra<narray>;
 
   // fields for storing topology meta data per index-space
-  static inline const typename field<util::key_array<meta_data, index_spaces>,
-    data::single>::template definition<meta<Policy>>
+  static inline const typename policy_meta::Field::template definition<
+    meta<Policy>>
     meta_field;
-
-  // field for storing user-defined meta data
-  static inline const typename field<typename Policy::meta_data,
-    data::single>::template definition<meta<Policy>>
-    policy_meta_field;
 
   // index-space specific parts
   util::key_array<repartitioned, index_spaces> part_;
@@ -573,11 +568,9 @@ struct narray<Policy>::access {
       return n.meta;
     };
     meta_.topology_send(f, meta);
-    policy_meta_.topology_send(f, meta);
   }
 
 private:
-  data::scalar_access<narray::policy_meta_field, Priv> policy_meta_;
   util::key_array<data::scalar_access<topo::resize::field, Priv>, index_spaces>
     size_;
 
@@ -665,7 +658,7 @@ protected:
   /// Get the specialization's metadata.
   /// \host.
   FLECSI_INLINE_TARGET auto & policy_meta() const {
-    return *policy_meta_;
+    return meta_->policy;
   }
 
   /// Get axis information.
@@ -830,7 +823,7 @@ protected:
 private:
   template<index_space S, Axis A>
   FLECSI_INLINE_TARGET const axis_color & get_axis() const {
-    return meta_->template get<S>().axcol.template get<A>();
+    return meta_->index.template get<S>().axcol.template get<A>();
   }
 }; // struct narray<Policy>::access
 

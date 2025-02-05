@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <stdexcept>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -308,6 +309,9 @@ struct region_impl {
   auto get_storage(field_id_t fid, std::size_t nelems) {
     using return_type = span_access<T, Priv>;
 
+    if(nelems > s.second)
+      throw std::out_of_range("partition larger than region");
+
     auto & v = storages.at(fid);
     std::size_t nbytes = nelems * sizeof(T);
     if(nbytes > v.size())
@@ -522,15 +526,15 @@ struct copy_engine {
   }
 
   copy_engine(const prefixes & src, const intervals & intervals, field_id_t fid)
-    : source(src), destination(intervals) {
+    : source(&src), destination(&intervals) {
     // The input comprises the color and index of shared elements stored at
     // each ghost element; reverse those pointers to know what to send where.
 
-    auto remote_sources = destination.get_storage<Point, ro>(fid);
+    auto remote_sources = intervals.get_storage<Point, ro>(fid);
 
     // Calculate the memory needed up front for the ghost_entities
     std::map<Color, std::size_t> mem_size;
-    for(const auto & [begin, end] : destination.ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         mem_size[shared.first]++;
@@ -543,7 +547,7 @@ struct copy_engine {
     // Essentially a GroupByKey of remote_sources, keys are the remote source
     // ranks and values are vectors of remote source indices.
     std::map<Color, std::vector<index_type>> remote_shared_entities;
-    for(const auto & [begin, end] : destination.ghost_ranges) {
+    for(const auto & [begin, end] : intervals.ghost_ranges) {
       for(auto ghost_idx = begin; ghost_idx < end; ++ghost_idx) {
         const auto & shared = remote_sources[ghost_idx];
         remote_shared_entities[shared.first].emplace_back(shared.second);
@@ -597,7 +601,7 @@ struct copy_engine {
         (ghost_entities.size() + shared_entities.size()) * ff.size());
 
       for(auto data_fid : ff) {
-        auto type_size = source.r->get_field_info(data_fid)->type_size;
+        auto type_size = source->r->get_field_info(data_fid)->type_size;
 
         auto gather_copy =
           [type_size](std::byte * dst,
@@ -666,10 +670,10 @@ struct copy_engine {
                   mpi::detail::host_view{send_buffers.back().data(), n_bytes},
                   gather_view);
               }},
-            source.r->kokkos_view<ro>(data_fid));
+            source->r->kokkos_view<ro>(data_fid));
 #else
           gather_copy(send_buffers.back().data(),
-            source.r->get_storage<std::byte>(data_fid, max_local_source_idx)
+            source->r->get_storage<std::byte>(data_fid, max_local_source_idx)
               .data(),
             shared_indices);
 #endif
@@ -694,7 +698,7 @@ struct copy_engine {
     // into the field's storage (on device).
     auto recv_buffer = recv_buffers.begin();
     for(auto data_fid : ff) {
-      auto type_size = source.r->get_field_info(data_fid)->type_size;
+      auto type_size = source->r->get_field_info(data_fid)->type_size;
 
       auto scatter_copy =
         [type_size](std::byte * dst,
@@ -738,9 +742,9 @@ struct copy_engine {
                     type_size);
                 });
             }},
-          destination.r->kokkos_view<rw>(data_fid));
+          destination->r->kokkos_view<rw>(data_fid));
 #else
-        scatter_copy(destination.get_storage<std::byte, rw>(data_fid).data(),
+        scatter_copy(destination->get_storage<std::byte, rw>(data_fid).data(),
           recv_buffer->data(),
           ghost_indices);
 #endif
@@ -753,8 +757,8 @@ private:
   // (remote rank, { local indices })
   using SendPoints = std::map<Color, mpi::detail::typed_storage<index_type>>;
 
-  const prefixes & source;
-  const intervals & destination;
+  const prefixes * source;
+  const intervals * destination;
   SendPoints ghost_entities; // (src rank,  { local ghost indices})
   SendPoints shared_entities; // (dest rank, { local shared indices})
   std::size_t max_local_source_idx = 0, max_shared_indices_size = 0;

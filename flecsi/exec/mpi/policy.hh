@@ -33,9 +33,10 @@ namespace detail {
 // parameter. In this case replace_argument replaces a
 // field_reference with an accessor. This is done through various
 // specialization of the exec::detail::task_param<> template.
-template<class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
+  check_parameters<M, PP...>();
   // Specify the template arguments explicitly to produce references to
   // unchanged arguments.
   return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
@@ -50,9 +51,10 @@ reduce_internal(Args &&... args) {
   using util::mpi::test;
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
+  constexpr auto proc = mask_to_processor_type(Attributes);
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = exec::detail::replace_arguments(
+  auto params = exec::detail::replace_arguments<proc == processor::mpi>(
     static_cast<typename Traits::arguments_type *>(nullptr),
     std::forward<Args>(args)...);
 
@@ -69,7 +71,7 @@ reduce_internal(Args &&... args) {
   // for the data field. We also need to patch up default conversion
   // from args to params, especially for the future<>. Ghost copy for
   // the fields is also done in the prolog.
-  const prolog<mask_to_processor_type(Attributes)> pr(params, args...);
+  const prolog<proc> pr(params, args...);
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;

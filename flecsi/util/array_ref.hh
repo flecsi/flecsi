@@ -222,8 +222,8 @@ struct mdcolex : detail::mdbase<T, D> {
     return this->p[i];
   }
 };
-template<class T, std::size_t D>
-mdcolex(T *, std::array<std::size_t, D>) -> mdcolex<T, D>;
+template<class T, class S, std::size_t D>
+mdcolex(T *, std::array<S, D>) -> mdcolex<T, D>;
 
 /// A small, approximate subset of mdspan from C++23.
 /// \gpu.
@@ -536,13 +536,13 @@ public:
 
   public:
     using difference_type = typename traits::difference_type;
-    // TODO: notice a reference return from F and upgrade iterator_category
     using reference = decltype(std::declval<const F &>()(
       std::declval<typename traits::reference>()));
     using value_type = std::decay_t<reference>;
     using pointer = void;
-    // We provide all the operators, but we don't assume a real reference:
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::conditional_t<std::is_reference_v<reference>,
+      typename traits::iterator_category,
+      std::input_iterator_tag>;
 
     constexpr iterator() noexcept
       : iterator({}, nullptr) {} // null F won't be used

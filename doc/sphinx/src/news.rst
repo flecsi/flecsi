@@ -13,6 +13,19 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+Changes in v2.3.2
++++++++++++++++++
+
+Fixed
+^^^^^
+* MPI backend
+
+  * Move-assignment of ``topology_slot`` works.
+
+* Utilities
+
+  * CTAD for ``mdcolex`` works with any integer type.
+
 Changes in v2.3.1 (February 3 2025)
 +++++++++++++++++++++++++++++++++++
 
