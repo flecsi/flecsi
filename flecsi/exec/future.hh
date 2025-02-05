@@ -30,6 +30,7 @@ struct future<Return, exec::launch_type_t::index> {
   /// Wait on all the tasks to finish.
   void wait(bool silence_warnings = false);
   /// Get the result of one of the tasks.
+  /// Note that all processes must select the same \a index.
   Return get(Color index = 0, bool silence_warnings = false);
   /// Get the number of tasks.
   Color size() const;
