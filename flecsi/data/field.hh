@@ -284,7 +284,8 @@ inline constexpr bool portable_v =
 
 /// Helper type to define and access fields.
 /// \tparam T field value type:
-///   - if any non-MPI tasks use the field, \c T must be a trivially copyable
+///   - if any non-MPI tasks or tasks that read ghosts use the field, \c T
+///     must be a trivially copyable
 ///     type with no pointers or references
 ///   - if any instance of the field is resized, \c T must be trivially
 ///     relocatable; this weaker property is not formally recognized by the

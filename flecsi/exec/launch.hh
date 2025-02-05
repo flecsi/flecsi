@@ -30,6 +30,15 @@ namespace exec {
 /// \addtogroup execution
 /// \{
 namespace detail {
+template<bool M, class T>
+constexpr bool bad_accessor = false;
+// Allow ghosts that aren't read, in case an index space is being reused:
+template<bool M, data::layout L, class T, Privileges P>
+constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
+  (!M || (privilege_count(P) > 1 &&
+           privilege_read(get_privilege(privilege_count(P) - 1, P)))) &&
+  !data::portable_v<T>;
+
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
@@ -138,6 +147,20 @@ launch_size(std::tuple<PP...> *, const AA &... aa) {
     .get();
 }
 } // namespace detail
+
+template<bool M, class... PP>
+void
+check_parameters() {
+  if constexpr(!M) {
+    static_assert((!std::is_rvalue_reference_v<PP> && ...),
+      "only MPI tasks can accept rvalue references");
+    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
+      "only MPI tasks can accept non-const references");
+  }
+  static_assert((!detail::bad_accessor<M, std::decay_t<PP>> && ...),
+    "only MPI tasks without ghosts can accept non-portable field accessors");
+}
+
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
 decltype(auto)
