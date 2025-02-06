@@ -243,10 +243,12 @@ A task that writes to a global topology instance must therefore be a single laun
 On the task side, the recruited resources and the accessors' field IDs are consulted to obtain values for the contained ``span`` objects.
 Because a task's parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate *buffers* that can be processed afterwards.
 
-On both sides, various tag base classes are used to recognize relevant FleCSI types; ``send_tag`` in particular identifies types that can decompose themselves into simpler parameters via a ``send`` member function template.
-This function template accepts a callback that is used to process the subcomponents and which itself accepts a callback that, on the caller side only, is used to transform the task *arguments*.
-Those task arguments may include ``borrow_category`` versions of the underlying topologies and field references to such versions.
-The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.
+On both sides, caller and task, various tag base classes are used to recognize relevant FleCSI types for the parameters.
+The most important of these is ``send_tag``: task-parameter types that inherit from it provide a member function template called ``send`` to send an object from a task caller to the task itself.
+This ``send`` method also accepts a callback function.
+When applying operations to the task parameters, instead of duplicating code to handle the lower-level task parameters, it relies on this callback mechanism.
+With it, task parameters are able to decompose themselves down to simpler parameters that have specific processing defined, such as raw accessors that underlie accessors and mutators.
+This composition process is handled via inheritance and agregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)

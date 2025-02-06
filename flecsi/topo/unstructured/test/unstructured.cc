@@ -216,6 +216,7 @@ unstructured_driver() {
         auto & tf = rcf(mesh).get_elements();
         tf.growth = {0, 0, 0.25, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), true);
+        tf.resize();
 
         execute<init_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true);
         EXPECT_EQ(
@@ -226,6 +227,7 @@ unstructured_driver() {
         auto & tf = rvf(mesh).get_elements();
         tf.growth = {0, 0, 0.1, 0.5, 1};
         execute<allocate_field>(mesh, tf.sizes(), false);
+        tf.resize();
 
         execute<init_rf>(mesh, unstructured::vid(mesh), rvf(mesh), false);
         execute<print_rf>(mesh, unstructured::vid(mesh), rvf(mesh), false);

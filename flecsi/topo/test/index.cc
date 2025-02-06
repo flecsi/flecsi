@@ -241,6 +241,7 @@ index_driver() {
       auto & p = f.get_elements();
       p.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate>(p.sizes());
+      p.resize();
     };
     const auto pressure = pressure_field(process_topology);
     const auto verts = verts_field(process_topology),
@@ -277,6 +278,7 @@ index_driver() {
     a.allocate(trivial_array::coloring(processes(), 12));
     EXPECT_EQ(test<part>(particles(a)), 0);
     execute<allocate>(arag(a).get_elements().sizes());
+    arag(a).get_elements().resize();
 
     auto lm = launch::make(
       a, launch::robin(a.colors(), std::max(np / process_fraction, {1})));

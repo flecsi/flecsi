@@ -133,6 +133,12 @@ struct future<void, exec::launch_type_t::index> : detail::future_index<void> {
   }
 };
 
+template<class R>
+future<R>
+make_future(R && r) {
+  return future<R>(std::forward<R>(r));
+}
+
 } // namespace flecsi
 
 #endif // FLECSI_EXEC_HPX_FUTURE_HH

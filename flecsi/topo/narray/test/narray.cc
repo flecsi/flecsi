@@ -469,6 +469,7 @@ test_mesh(topo::narray_impl::colors color_dist,
     // Set growth policy lo=0.1 to maintain correct size for all D
     tf.growth = {0, 0, 0.1, 0.5, 1};
     execute<allocate_field<D>>(f(m), tf.sizes(), sz);
+    tf.resize();
 
     EXPECT_EQ((test<init_verify_rf<D, false>>(m, rf(m), sz, diagonals)), 0);
 
@@ -523,6 +524,7 @@ narray_driver() {
       auto & tf = rf1(m1).get_elements();
       tf.growth = {0, 0, 0.25, 0.5, 1};
       execute<allocate_field<1>>(f1(m1), tf.sizes(), sz);
+      tf.resize();
 
       execute<init_verify_rf<1, false>>(m1, rf1(m1), sz, true);
       execute<print_rf<1>>(m1, rf1(m1));

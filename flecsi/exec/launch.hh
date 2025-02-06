@@ -16,22 +16,42 @@
 
 namespace flecsi {
 namespace data {
-// Types inherit from these tags to indicate their task execution semantics.
 
-// A task parameter that needs additional initialization after the task has
-// been launched.
+/// \cond core
+/// Task parameters of types that inherit from bind_tag must be specially
+/// initialized by the backend after the task has been launched.
+/// See, for example, exec/leg/bind_accessors.hh.
+
 struct bind_tag {};
-// A task parameter that provides a member function send to decompose itself
-// into lower-level types.  Its one argument is a backend-specific callback
-// that accepts a (subsidiary) task parameter and another function to call to
-// transform the corresponding task argument (used only on the caller side).
+
+/// Classes that inherit from send_tag can decompose themselves into simpler
+/// parameters via a send member function template.  This function template
+/// accepts a callback that is used to process the subcomponents and which
+/// itself accepts a callback that, on the caller side only, is used to
+/// transform the task arguments.  Those task arguments may include
+/// borrow_category versions of the underlying topologies and field references
+/// to such versions.  The MPI backend handles both sides (for a single
+/// argument/parameter) in a single pass, transforming the arguments and
+/// initializing the (single copy of the) parameters immediately.
+
 struct send_tag {};
+/// \endcond
+
 } // namespace data
 
 namespace exec {
 /// \addtogroup execution
 /// \{
 namespace detail {
+template<bool M, class T>
+constexpr bool bad_accessor = false;
+// Allow ghosts that aren't read, in case an index space is being reused:
+template<bool M, data::layout L, class T, Privileges P>
+constexpr bool bad_accessor<M, data::accessor<L, T, P>> =
+  (!M || (privilege_count(P) > 1 &&
+           privilege_read(get_privilege(privilege_count(P) - 1, P)))) &&
+  !data::portable_v<T>;
+
 // We care about value category, so we want to use perfect forwarding.
 // However, such a template is a better match for some arguments than any
 // single non-template overload, so we use SFINAE to detect that we have
@@ -192,6 +212,24 @@ private:
   }
 };
 } // namespace detail
+
+template<bool M, class... PP>
+void
+check_parameters() {
+  if constexpr(!M) {
+    static_assert((!std::is_rvalue_reference_v<PP> && ...),
+      "only MPI tasks can accept rvalue references");
+    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
+      "only MPI tasks can accept non-const references");
+    static_assert(
+      ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
+        std::is_function_v<std::remove_pointer_t<PP>>)&&...),
+      "only MPI tasks can accept non-const pointers");
+  }
+  static_assert((!detail::bad_accessor<M, std::decay_t<PP>> && ...),
+    "only MPI tasks without ghosts can accept non-portable field accessors");
+}
+
 // Replaces certain task arguments before conversion to the parameter type.
 template<class P, class T>
 decltype(auto)
@@ -201,9 +239,10 @@ replace_argument(T && t) {
 }
 
 namespace detail {
-template<class... PP, class... AA>
+template<bool M, class... PP, class... AA>
 auto
 replace_arguments(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
+  check_parameters<M, PP...>();
   // Specify the template arguments explicitly to produce references to
   // unchanged arguments.
   return std::tuple<decltype(exec::replace_argument<PP>(std::forward<AA>(
@@ -301,33 +340,6 @@ make_partial(AA &&... aa) {
 template<typename Return,
   exec::launch_type_t Launch = exec::launch_type_t::single>
 struct future;
-
-#ifdef DOXYGEN // implemented per-backend
-/// Single-valued future.
-template<typename Return>
-struct future<Return> {
-  /// Wait on the task to finish.
-  void wait();
-  /// Get the task's result.
-  [[nodiscard]] Return get(bool silence_warnings = false);
-};
-
-/// Multi-valued future from an index launch.
-template<typename Return>
-struct future<Return, exec::launch_type_t::index> {
-  /// Wait on all the tasks to finish.
-  void wait(bool silence_warnings = false);
-  /// Get the result of one of the tasks.
-  /// Note that all processes must select the same \a index.
-  /// \deprecated Use \c all or pass to a task to process values in parallel.
-  Return get(Color index = 0, bool silence_warnings = false);
-  /// Get the results of all tasks.
-  /// \note This member does not exist if \a Return is \c void.
-  std::vector<Return> all();
-  /// Get the number of tasks.
-  Color size() const;
-};
-#endif
 
 namespace exec::detail {
 template<class R>
