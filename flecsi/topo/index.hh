@@ -41,7 +41,7 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   void resize() {
     update(sizes());
     resized();
-    rsz_required = make_future(false);
+    set_rsz_required(false);
   }
 
   bool maybe_resize() {
