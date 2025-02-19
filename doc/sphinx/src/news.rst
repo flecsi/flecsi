@@ -55,6 +55,7 @@ New features
 
 * Data
 
+  * Mutators support tracing.
   * ``privilege`` is the new name of ``partition_privilege_t``.
 
 * Execution
