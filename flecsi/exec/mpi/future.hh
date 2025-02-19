@@ -99,9 +99,9 @@ struct future<void, exec::launch_type_t::index> {
 };
 
 template<class Return>
-future<Return>
+future<std::decay_t<Return>>
 make_future(Return && val) {
-  return future<Return>::make(std::forward<Return>(val));
+  return future<std::decay_t<Return>>::make(std::forward<Return>(val));
 } // make_future
 
 } // namespace flecsi
