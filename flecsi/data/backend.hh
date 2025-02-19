@@ -23,8 +23,23 @@ using subrow = std::pair<std::size_t, std::size_t>; // [begin, end)
 
 // The size types are independent of backend:
 struct prefixes_base {
-  using row = std::size_t;
-  using Field = field<row, single>;
+  // A helper allowing to detect when resizing can be skipped
+  struct size_request {
+    size_request() = default;
+    size_request(std::size_t sz, bool rsz_req = false)
+      : sz(sz), hard(rsz_req) {}
+    operator std::size_t() const {
+      return sz;
+    }
+    bool required() const {
+      return hard;
+    }
+
+  private:
+    std::size_t sz;
+    bool hard;
+  };
+  using Field = field<size_request, single>;
 };
 struct borrow_base {
   using Claim = std::size_t;

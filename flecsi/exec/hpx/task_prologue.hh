@@ -135,6 +135,11 @@ protected:
     need_comm = true;
   }
 
+  template<class A>
+  void visit(data::detail::save_for_epilog &, A & a) {
+    epilog_wrappers.push_back([a] { a.get_elements().set_rsz_required(true); });
+  }
+
 public:
   void request_comm() {
     need_comm = true;

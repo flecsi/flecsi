@@ -8,7 +8,7 @@ using double_field = field<double>;
 
 const double_field::definition<topo::global> energy_field;
 
-namespace future_test {
+namespace {
 
 double
 init(double a, double_field::accessor<wo> ga) {
@@ -40,7 +40,7 @@ void
 index_void_task(exec::launch_domain) {
   flog(info) << "this is an index void task" << std::endl;
 }
-} // namespace future_test
+} // namespace
 
 int
 reduction_task(int a, exec::launch_domain) {
@@ -50,8 +50,6 @@ reduction_task(int a, exec::launch_domain) {
 int
 future_driver() {
   UNIT() {
-    using namespace future_test;
-
     double d = 3.1;
     topo::global::slot g2;
     g2.allocate(2);

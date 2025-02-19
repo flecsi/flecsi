@@ -7,6 +7,7 @@ flecsi_headers(
   launch.hh
   prolog.hh
   task_attributes.hh
+  future.hh
 )
 
 if(FLECSI_BACKEND STREQUAL "legion")

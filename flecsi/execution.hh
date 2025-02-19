@@ -194,6 +194,14 @@ trace::make_guard() {
 }
 } // namespace exec
 
+namespace topo {
+void
+repartition::reduce_rsz_required() {
+  // now that reduce has been defined
+  rsz_required = reduce<resize_required, exec::fold::max>(sizes());
+}
+} // namespace topo
+
 } // namespace flecsi
 
 #endif

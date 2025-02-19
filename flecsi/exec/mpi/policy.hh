@@ -30,9 +30,10 @@ reduce_internal(Args &&... args) {
   using util::mpi::test;
   using Traits = util::function_t<F>;
   using R = typename Traits::return_type;
+  constexpr auto proc = mask_to_processor_type(Attributes);
 
   // replace arguments in args, for example, field_reference -> accessor.
-  auto params = exec::detail::replace_arguments(
+  auto params = exec::detail::replace_arguments<proc == processor::mpi>(
     static_cast<typename Traits::arguments_type *>(nullptr),
     std::forward<Args>(args)...);
 
@@ -49,7 +50,7 @@ reduce_internal(Args &&... args) {
   // for the data field. We also need to patch up default conversion
   // from args to params, especially for the future<>. Ghost copy for
   // the fields is also done in the prolog.
-  const prolog<mask_to_processor_type(Attributes)> pr(params, args...);
+  const prolog<proc> pr(params, args...);
 
   run::context_t::depth_guard rg;
   run::task_local_base::guard tlg;

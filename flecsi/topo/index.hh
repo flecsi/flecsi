@@ -41,7 +41,17 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   void resize() {
     update(sizes());
     resized();
+    rsz_required = make_future(false);
   }
+
+  bool maybe_resize() {
+    const bool ret = rsz_required.get();
+    if(ret)
+      resize();
+    return ret;
+  }
+
+  inline void reduce_rsz_required();
 
   template<class F>
   void resize(F f) {
@@ -80,6 +90,10 @@ private:
   template<class F>
   static void fill(resize::Field::accessor<wo> a, F f) {
     a = std::move(f)(run::context::instance().color());
+  }
+
+  static bool resize_required(resize::Field::accessor<ro> sz) {
+    return sz->required();
   }
 
   virtual void resized() {}
@@ -493,6 +507,23 @@ struct borrow_ragged_partition<ragged_partition> {
     const auto & b = static_cast<borrow<Base>::core &>(*this);
     if(b.first)
       b.base->resize();
+  }
+
+  bool maybe_resize() {
+    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    return b.first && b.base->maybe_resize();
+  }
+
+  void reduce_rsz_required() {
+    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    if(b.first)
+      b.base->reduce_rsz_required();
+  }
+
+  void set_rsz_required(bool r) {
+    const auto & b = static_cast<borrow<Base>::core &>(*this);
+    if(b.first)
+      b.base->set_rsz_required(r);
   }
 
 protected:

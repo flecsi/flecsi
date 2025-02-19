@@ -78,8 +78,21 @@ New features
 
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
 
-Changes in v2.3.1
+Changes in v2.3.2
 +++++++++++++++++
+
+Fixed
+^^^^^
+* MPI backend
+
+  * Move-assignment of ``topology_slot`` works.
+
+* Utilities
+
+  * CTAD for ``mdcolex`` works with any integer type.
+
+Changes in v2.3.1 (February 3 2025)
++++++++++++++++++++++++++++++++++++
 
 Possible incompatibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -120,6 +133,7 @@ Fixed
 
   * ``dimensioned_array`` construction works reliably in constant expressions.
   * ``serial::get_tuple<std::tuple<...>>`` works (and produces a singleton tuple).
+  * ``UNIT_CAPTURE`` works properly in non-MPI tasks.
 
 * Topology
 

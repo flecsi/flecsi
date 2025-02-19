@@ -43,28 +43,12 @@ convert_argument(A && a) {
     return [&gen]() -> PD { return gen(); }();
 }
 
-template<class T>
-constexpr bool mpi_accessor = false;
-template<data::layout L, class T, Privileges P>
-constexpr bool mpi_accessor<data::accessor<L, T, P>> = !data::portable_v<T>;
-
 // Construct a tuple of converted arguments (or references to existing
 // arguments where possible).
 template<bool M, class... PP, class... AA>
 auto
 make_parameters(std::tuple<PP...> * /* to deduce PP */, AA &&... aa) {
-  if constexpr(!M) {
-    static_assert((!std::is_rvalue_reference_v<PP> && ...),
-      "only MPI tasks can accept rvalue references");
-    static_assert((std::is_const_v<std::remove_reference_t<const PP>> && ...),
-      "only MPI tasks can accept non-const references");
-    static_assert(
-      ((!std::is_pointer_v<PP> || std::is_const_v<std::remove_pointer_t<PP>> ||
-        std::is_function_v<std::remove_pointer_t<PP>>)&&...),
-      "only MPI tasks can accept non-const pointers");
-    static_assert((!mpi_accessor<std::decay_t<PP>> && ...),
-      "only MPI tasks can accept accessors for non-portable fields");
-  }
+  check_parameters<M, PP...>();
   return std::tuple<std::conditional_t<M,
     decltype(convert_argument<PP>(std::forward<AA>(aa))),
     std::decay_t<PP>>...>(convert_argument<PP>(std::forward<AA>(aa))...);

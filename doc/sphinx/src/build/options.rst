@@ -157,6 +157,10 @@ Miscellaneous options
   If enabled, support the use of `HDF5 <https://www.hdfgroup.org/>`_
   for checkpointing program state.
 
+* **CALIPER_DETAIL [default: none]** |br|
+  A choice from ``none``, ``low``, ``medium``, and ``high`` to control which Caliper annotations are active.
+  With ``none``, Caliper is not a dependency.
+
 * **ENABLE_UNIT_TESTS [default: OFF]** |br|
   Enable FleCSI unit tests. If enabled, the unit test suite can be run
   by invoking:

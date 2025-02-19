@@ -67,8 +67,6 @@ public:
     }
   }
 
-  virtual ~mpi_mapper_t() {}
-
   void select_task_options(const Legion::Mapping::MapperContext ctx,
     const Legion::Task & task,
     Legion::Mapping::Mapper::TaskOptions & output) override {
@@ -218,17 +216,9 @@ public:
     output.chosen_instances.resize(task.regions.size());
 
     if(task.regions.size() > 0) {
-
-      Legion::Memory target_mem;
-      //   =
-      //     DefaultMapper::default_policy_select_target_memory(
-      //       ctx, task.target_proc, task.regions[0]);
-
-      if(task.tag == prefer_gpu && !local_gpus.empty())
-        target_mem = local_framebuffer;
-      else
-        target_mem = local_sysmem;
-
+      const Legion::Memory target_mem =
+        task.tag == prefer_gpu && !local_gpus.empty() ? local_framebuffer
+                                                      : local_sysmem;
       std::vector<std::set<Legion::FieldID>> missing_fields(
         task.regions.size());
       runtime->filter_instances(ctx,
