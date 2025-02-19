@@ -39,7 +39,7 @@ struct future<Return, exec::launch_type_t::index> {
 /// \cond core
 /// Generate a new future from a value
 template<class Return>
-future<Return> make_future(Return);
+future<Return> make_future(Return &&);
 /// \endcond
 #endif // DOXYGEN
 #endif
