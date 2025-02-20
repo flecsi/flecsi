@@ -255,6 +255,7 @@ private:
             execute<cnx_size, mpi>(ic, index<v.value>, temp_size(lm));
             auto & p = row.template get<v.value>()(*this).get_elements();
             execute<copy_sizes>(temp_size(this->meta), p.sizes());
+            p.resize();
           },
           typename TT::keys());
       }(connect_.template get<VV>()),

@@ -309,9 +309,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     auto & c2v = s->get_connectivity<fixed_mesh::cells, fixed_mesh::vertices>();
     auto & v2c = s->get_connectivity<fixed_mesh::vertices, fixed_mesh::cells>();
 
-    c2v(s).get_elements().resize();
-    v2c(s).get_elements().resize();
-
     execute<init_cnx>(c2v(s));
     execute<init_cnx>(v2c(s));
 
