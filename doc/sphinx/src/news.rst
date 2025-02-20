@@ -13,6 +13,8 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, On-node parallelism,
    Utilities, and Logging.
 
+   The bullets in each such discussion are in descending order of importance.
+
 Changes in v2.3.2
 +++++++++++++++++
 
