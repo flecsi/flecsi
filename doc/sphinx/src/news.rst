@@ -25,6 +25,7 @@ Fixed
 * Utilities
 
   * CTAD for ``mdcolex`` works with any integer type.
+  * ``utilities.hh`` works with FLOG disabled.
 
 Changes in v2.3.1 (February 3 2025)
 +++++++++++++++++++++++++++++++++++
