@@ -374,8 +374,7 @@ struct ragged_accessor
       // Resize after the ghost copy (which can add elements and can perform
       // its own resize) rather than in the mutator before getting here:
       if constexpr(privilege_write(OP))
-        if(!exec::is_tracing()) // forward-looking
-                                // necessary for tracing mutators
+        if(!exec::is_tracing())
           t.maybe_resize();
       return field_reference<T,
         raw,
@@ -1620,8 +1619,6 @@ struct task_param<data::mutator<data::ragged, T, P>> {
   template<class Topo, typename Topo::index_space S>
   static type replace(
     const data::field_reference<T, data::ragged, Topo, S> & r) {
-    flog_assert(
-      !exec::is_tracing(), "ragged mutators cannot be used while tracing");
     return {exec::replace_argument<typename type::base_type::base_type>(
               r.template cast<data::raw>()),
       r.get_elements().template get_partition<topo::elements>().growth};

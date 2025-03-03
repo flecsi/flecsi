@@ -218,9 +218,15 @@ unstructured_driver() {
         execute<allocate_field>(mesh, tf.sizes(), true);
         tf.resize();
 
-        execute<init_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true);
-        EXPECT_EQ(
-          test<verify_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true), 0);
+        exec::trace t;
+        t.skip();
+        // Skip, record, and replay a trace with a mutator:
+        for(int i = 0; i < 3; i++) {
+          auto g = t.make_guard();
+          execute<init_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true);
+          EXPECT_EQ(
+            test<verify_rf>(mesh, unstructured::cid(mesh), rcf(mesh), true), 0);
+        }
       } // scope
 
       {
