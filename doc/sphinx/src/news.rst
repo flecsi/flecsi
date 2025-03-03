@@ -16,6 +16,12 @@ Release Notes
 Changes in v2.3.2
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * Removed ParMETIS dependency. CMake support files will be removed.
+
 Fixed
 ^^^^^
 * MPI backend

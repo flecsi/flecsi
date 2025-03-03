@@ -1,0 +1,72 @@
+colors 4
+color_peers 3 3 3 3
+total_cells 16
+cell_peers
+1 2 3
+0 2 3
+0 1 3
+0 1 2
+cell_partitions 9 9 9 9
+cell_num_intervals 1 1 1 1
+total_vertices 25
+vertex_peers
+1 2 3
+0 2 3
+0 1 3
+0 1 2
+vertex_partitions 16 16 16 16
+vertex_num_intervals 1 1 1 1
+nvertices 16
+ncells 9
+shared_vertices 16
+shared_cells 5
+ghost_vertices 7
+ghost_cells 5
+vertices 2 3 4 7 8 9 12 13 14 1 6 11 16 17 18 19
+cells
+2 0 1 4 3
+3 1 2 5 4
+6 3 4 7 6
+7 4 5 8 7
+1 9 0 3 10
+5 10 3 6 11
+9 11 6 13 12
+10 6 7 14 13
+11 7 8 15 14
+shared_vertices
+0 1
+1 1
+3 1
+4 1
+6 1
+7 1
+3 2
+4 2
+5 2
+6 2
+7 2
+8 2
+3 3
+4 3
+6 3
+7 3
+shared_cells
+0 1
+2 1
+2 2
+3 2
+2 3
+ghost_vertices
+10 3 1
+9 1 1
+11 5 1
+15 2 2
+13 0 2
+14 1 2
+12 1 3
+ghost_cells
+4 1 1
+5 3 1
+8 1 2
+7 0 2
+6 1 3

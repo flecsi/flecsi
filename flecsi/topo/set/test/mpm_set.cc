@@ -1,7 +1,7 @@
 #include "flecsi/data.hh"
 #include "flecsi/execution.hh"
 #include "flecsi/run/context.hh"
-#include "flecsi/topo/unstructured/test/unstructured.hh"
+#include "flecsi/topo/unstructured/test/fixed.hh"
 #include "flecsi/util/geometry/point.hh"
 #include "flecsi/util/unit.hh"
 
@@ -12,9 +12,9 @@ struct spec_setopo_t : topo::specialization<topo::set, spec_setopo_t> {
 
   using point_t = util::point<double, dimension>;
 
-  typedef unstructured mesh_type;
+  using mesh_type = fixed_mesh;
 
-  static coloring color(unstructured::slot * ptr) {
+  static coloring color(mesh_type::slot * ptr) {
 
     coloring c;
 
@@ -29,7 +29,7 @@ struct Particle {
   std::size_t cgid;
 };
 
-using accessorm = unstructured::accessor<ro, ro, ro>;
+using accessorm = spec_setopo_t::mesh_type::accessor<ro, ro, ro>;
 
 using particle_field = field<Particle, data::particle>;
 const particle_field::definition<spec_setopo_t> particles;
@@ -90,21 +90,23 @@ int
 set_driver() {
 
   UNIT() {
-    unstructured::slot mesh_underlying;
+    using mesh_type = spec_setopo_t::mesh_type;
+
+    mesh_type::slot mesh_underlying;
+    mesh_type::init fields;
     spec_setopo_t::slot spec_setopo;
 
-    unstructured::init fields;
     mesh_underlying.allocate(
-      unstructured::mpi_coloring("simple2d-16x16.msh", fields), fields);
+      mesh_type::mpi_coloring("simple-4x4.fixed", 4, fields), fields);
     spec_setopo.allocate(spec_setopo_t::mpi_coloring(&mesh_underlying));
 
     auto particle_t = particles(spec_setopo);
     execute<init_fields>(
-      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
+      mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
 
     execute<print_test>(particle_t);
     execute<insert_test, default_accelerator>(
-      mesh_underlying, unstructured::cid(mesh_underlying), particle_t);
+      mesh_underlying, mesh_type::cid(mesh_underlying), particle_t);
     execute<update_test>(particle_t);
   };
 

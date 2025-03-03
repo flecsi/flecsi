@@ -2,15 +2,14 @@
 #define FLECSI_TOPO_UNSTRUCTURED_TEST_SIMPLE_DEFINITION_HH
 
 #include "flecsi/flog.hh"
-#include "flecsi/topo/unstructured/coloring_utils.hh"
+#include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/crs.hh"
-#include "flecsi/util/geometry/point.hh"
 
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace flecsi {
@@ -19,146 +18,134 @@ namespace unstructured_impl {
 
 class simple_definition
 {
-public:
-  using point = util::point<double, 2>;
-  static constexpr Dimension dimension() {
-    return 2;
+  template<typename T>
+  T read(std::ifstream & in) {
+    T val;
+    if(!(in >> val))
+      flog_fatal("parsing error: expected a value");
+    return val;
   }
 
-  simple_definition(const char * filename) {
-    file_.open(filename, std::ifstream::in);
-
-    if(file_.good()) {
-      std::string line;
-      std::getline(file_, line);
-      std::istringstream iss(line);
-
-      // Read the number of vertices and cells
-      iss >> num_vertices_ >> num_cells_;
-
-      // Get the offset to the beginning of the vertices
-      vertex_start_ = file_.tellg();
-
-      for(size_t i(0); i < num_vertices_; ++i) {
-        std::getline(file_, line);
-      } // for
-
-      cell_start_ = file_.tellg();
+  void
+  expect_string(std::ifstream & in, std::string s, bool consume_line = false) {
+    auto val = read<std::string>(in);
+    if(val != s)
+      flog_fatal("parsing error: expected " + s + ", got " + val);
+    if(consume_line) {
+      in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-    else {
-      flog_fatal("failed opening " << filename);
-    } // if
+  }
 
-    // Go to the start of the cells.
+  int read_kv(std::ifstream & in, std::string key) {
+    expect_string(in, key);
+    return read<int>(in);
+  }
+
+  template<typename T>
+  std::vector<T> read_values(std::ifstream & in, const char * key = nullptr) {
+    if(key)
+      expect_string(in, key);
     std::string line;
-    file_.seekg(cell_start_);
-    for(size_t l(0); l < num_cells_; ++l) {
-      std::getline(file_, line);
+    std::getline(in, line);
+    std::istringstream iss(line);
+    return std::vector<T>(
+      std::istream_iterator<T>(iss), std::istream_iterator<T>());
+  }
+
+public:
+  std::size_t total_vertices;
+  std::size_t total_cells;
+
+  std::vector<std::size_t> color_peers;
+  std::vector<std::vector<Color>> cell_peers;
+  std::vector<std::size_t> cell_partitions;
+  std::vector<std::size_t> cell_num_intervals;
+
+  std::vector<std::vector<Color>> vertex_peers;
+  std::vector<std::size_t> vertex_partitions;
+  std::vector<std::size_t> vertex_num_intervals;
+
+  std::vector<std::size_t> l2g_vertices;
+  std::vector<std::size_t> l2g_cells;
+  util::crs c2v;
+  std::map<Color, topo::unstructured_impl::peer_entities> peer_vertices;
+  std::map<Color, topo::unstructured_impl::peer_entities> peer_cells;
+
+  simple_definition(const std::string filename) {
+    std::ifstream in(filename);
+
+    Color colors = read_kv(in, "colors");
+
+    color_peers = read_values<std::size_t>(in, "color_peers");
+    total_cells = read_kv(in, "total_cells");
+    expect_string(in, "cell_peers", true);
+    for(Color c = 0; c < colors; c++) {
+      cell_peers.push_back(read_values<Color>(in));
+    }
+    cell_partitions = read_values<std::size_t>(in, "cell_partitions");
+    cell_num_intervals = read_values<std::size_t>(in, "cell_num_intervals");
+
+    total_vertices = read_kv(in, "total_vertices");
+    expect_string(in, "vertex_peers", true);
+    for(Color c = 0; c < colors; c++) {
+      vertex_peers.push_back(read_values<Color>(in));
+    }
+    vertex_partitions = read_values<std::size_t>(in, "vertex_partitions");
+    vertex_num_intervals = read_values<std::size_t>(in, "vertex_num_intervals");
+
+    std::size_t nvertices = read_kv(in, "nvertices");
+    std::size_t ncells = read_kv(in, "ncells");
+    std::size_t shared_vertices = read_kv(in, "shared_vertices");
+    std::size_t shared_cells = read_kv(in, "shared_cells");
+    std::size_t ghost_vertices = read_kv(in, "ghost_vertices");
+    std::size_t ghost_cells = read_kv(in, "ghost_cells");
+
+    l2g_vertices = read_values<std::size_t>(in, "vertices");
+    if(l2g_vertices.size() != nvertices)
+      flog_fatal("parse error: wrong number of vertices");
+
+    expect_string(in, "cells");
+    std::string line;
+    for(std::size_t c = 0; c < ncells; ++c) {
+      auto global_id = read<std::size_t>(in);
+      l2g_cells.push_back(global_id);
+      std::getline(in, line);
       std::istringstream iss(line);
-      e2v_.add_row(std::vector<size_t>(
+      c2v.add_row(std::vector<size_t>(
         std::istream_iterator<size_t>(iss), std::istream_iterator<size_t>()));
     }
 
-  } // simple_definition
-
-  simple_definition(const simple_definition &) = delete;
-  simple_definition & operator=(const simple_definition &) = delete;
-
-  std::size_t num_entities(entity_kind k) const {
-    flog_assert(k == 0 || k == 2, "invalid entity kind");
-    return k == 0 ? num_vertices_ : num_cells_;
-  }
-
-  std::vector<size_t>
-  entities(entity_kind from, entity_kind to, std::size_t entity_id) const {
-    flog_assert(from == 2, "invalid entity kind " << from);
-    flog_assert(to == 0, "invalid entity kind " << to);
-
-    std::string line;
-    std::vector<size_t> ids;
-    size_t v0, v1, v2, v3;
-
-    // Go to the start of the cells.
-    file_.seekg(cell_start_);
-
-    // Walk to the line with the requested id.
-    for(size_t l(0); l < entity_id; ++l) {
-      std::getline(file_, line);
-    } // for
-
-    // Get the line with the information for the requested id.
-    std::getline(file_, line);
-    std::istringstream iss(line);
-
-    // Read the cell definition.
-    iss >> v0 >> v1 >> v2 >> v3;
-
-    ids.push_back(v0);
-    ids.push_back(v1);
-    ids.push_back(v2);
-    ids.push_back(v3);
-
-    return ids;
-  } // vertices
-
-  template<typename T>
-  void make_entity(entity_kind k,
-    std::size_t,
-    std::vector<T> const & vertices,
-    util::crs & entities) const {
-    flog_assert(k == 1, "invalid entity kind(" << k << ")");
-
-    const T * last = &vertices.back();
-    for(auto & v : vertices) {
-      entities.add_row({*last, v});
-      last = &v;
+    expect_string(in, "shared_vertices");
+    for(std::size_t v = 0; v < shared_vertices; ++v) {
+      auto local_id = read<std::size_t>(in);
+      auto color = read<Color>(in);
+      peer_vertices[color].shared.insert(local_id);
     }
-  } // make_entity
 
-  /*
-    Return the vertex with the given id.
+    expect_string(in, "shared_cells");
+    for(std::size_t c = 0; c < shared_cells; ++c) {
+      auto local_id = read<std::size_t>(in);
+      auto color = read<Color>(in);
+      peer_cells[color].shared.insert(local_id);
+    }
 
-    @param id The vertex id.
-   */
+    expect_string(in, "ghost_vertices");
+    for(std::size_t v = 0; v < ghost_vertices; ++v) {
+      auto local_id = read<std::size_t>(in);
+      auto remote_id = read<std::size_t>(in);
+      auto color = read<Color>(in);
+      peer_vertices[color].ghost.insert({remote_id, local_id});
+    }
 
-  point vertex(size_t id) const {
-    std::string line;
-    point v;
-
-    // Go to the start of the vertices.
-    file_.seekg(vertex_start_);
-
-    // Walk to the line with the requested id.
-    for(size_t l(0); l < id; ++l) {
-      std::getline(file_, line);
-    } // for
-
-    // Get the line with the information for the requested id.
-    std::getline(file_, line);
-    std::istringstream iss(line);
-
-    // Read the vertex coordinates.
-    iss >> v[0] >> v[1];
-
-    return v;
-  } // vertex
-
-  // Mimic a field on the vertex.
-  std::size_t vertex_field(std::size_t id) const {
-    return id;
+    expect_string(in, "ghost_cells");
+    for(std::size_t c = 0; c < ghost_cells; ++c) {
+      auto local_id = read<std::size_t>(in);
+      auto remote_id = read<std::size_t>(in);
+      auto color = read<Color>(in);
+      peer_cells[color].ghost.emplace(remote_id, local_id);
+    }
   }
-
-private:
-  mutable std::ifstream file_;
-  util::crs e2v_;
-
-  size_t num_vertices_;
-  size_t num_cells_;
-
-  mutable std::iostream::pos_type vertex_start_;
-  mutable std::iostream::pos_type cell_start_;
-
-}; // class simple_definition
+};
 
 } // namespace unstructured_impl
 } // namespace topo
