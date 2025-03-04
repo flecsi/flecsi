@@ -7,8 +7,6 @@ flecsi_headers(
   narray/interface.hh
   narray/types.hh
   set/interface.hh
-  unstructured/coloring_functors.hh
-  unstructured/coloring_utils.hh
   unstructured/interface.hh
   unstructured/types.hh
   types.hh
@@ -32,126 +30,6 @@ flecsi_add_test(index
 
 # unstructured ---------------------------------------------------------------#
 
-flecsi_add_test(coloring
-  SOURCES
-    unstructured/test/coloring.cc
-    unstructured/test/simple_definition.hh
-  INPUTS
-    unstructured/test/simple2d-16x16.msh
-    unstructured/test/coloring_5.5.0.blessed
-    unstructured/test/coloring_5.5.1.blessed
-    unstructured/test/coloring_5.5.2.blessed
-    unstructured/test/coloring_5.5.3.blessed
-    unstructured/test/coloring_5.5.4.blessed
-    unstructured/test/coloring_5.2.0.blessed
-    unstructured/test/coloring_5.2.1.blessed
-    unstructured/test/coloring_1.5.0.blessed
-    unstructured/test/coloring_1.5.1.blessed
-    unstructured/test/coloring_1.5.2.blessed
-    unstructured/test/coloring_1.5.3.blessed
-    unstructured/test/coloring_1.5.4.blessed
-  PROCS 5
-)
-
-set(UPROCS 4)
-if(FLECSI_BACKEND STREQUAL "legion")
-  set(UPROCS 1 2 4 6)
-endif()
-
-flecsi_add_test(unstructured
-  SOURCES
-    unstructured/test/simple_definition.hh
-    unstructured/test/unstructured.hh
-    unstructured/test/unstructured.cc
-  INPUTS
-    unstructured/test/simple2d-3x3.msh
-    unstructured/test/simple2d-8x8.msh
-    unstructured/test/single-cell.msh
-    unstructured/test/two-cell.msh
-    unstructured/test/disconnected.msh
-    unstructured/test/unstructured_disconnected_entities_1_0.blessed
-    unstructured/test/unstructured_disconnected_entities_1_1.blessed
-    unstructured/test/unstructured_disconnected_entities_1_2.blessed
-    unstructured/test/unstructured_disconnected_entities_1_3.blessed
-    unstructured/test/unstructured_disconnected_entities_2_0.blessed
-    unstructured/test/unstructured_disconnected_entities_2_1.blessed
-    unstructured/test/unstructured_disconnected_entities_2_2.blessed
-    unstructured/test/unstructured_disconnected_entities_2_3.blessed
-    unstructured/test/unstructured_disconnected_entities_4_0.blessed
-    unstructured/test/unstructured_disconnected_entities_4_1.blessed
-    unstructured/test/unstructured_disconnected_entities_4_2.blessed
-    unstructured/test/unstructured_disconnected_entities_4_3.blessed
-    unstructured/test/unstructured_disconnected_entities_6_0.blessed
-    unstructured/test/unstructured_disconnected_entities_6_1.blessed
-    unstructured/test/unstructured_disconnected_entities_6_2.blessed
-    unstructured/test/unstructured_disconnected_entities_6_3.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_1_0.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_1_1.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_1_2.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_1_3.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_2_0.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_2_1.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_2_2.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_2_3.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_4_0.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_4_1.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_4_2.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_4_3.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_6_0.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_6_1.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_6_2.blessed
-    unstructured/test/unstructured_simple2d-8x8_entities_6_3.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_1_0.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_1_1.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_1_2.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_1_3.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_2_0.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_2_1.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_2_2.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_2_3.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_4_0.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_4_1.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_4_2.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_4_3.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_6_0.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_6_1.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_6_2.blessed
-    unstructured/test/unstructured_simple2d-3x3_entities_6_3.blessed
-    unstructured/test/unstructured_single-cell_entities_1_0.blessed
-    unstructured/test/unstructured_single-cell_entities_1_1.blessed
-    unstructured/test/unstructured_single-cell_entities_1_2.blessed
-    unstructured/test/unstructured_single-cell_entities_1_3.blessed
-    unstructured/test/unstructured_single-cell_entities_2_0.blessed
-    unstructured/test/unstructured_single-cell_entities_2_1.blessed
-    unstructured/test/unstructured_single-cell_entities_2_2.blessed
-    unstructured/test/unstructured_single-cell_entities_2_3.blessed
-    unstructured/test/unstructured_single-cell_entities_4_0.blessed
-    unstructured/test/unstructured_single-cell_entities_4_1.blessed
-    unstructured/test/unstructured_single-cell_entities_4_2.blessed
-    unstructured/test/unstructured_single-cell_entities_4_3.blessed
-    unstructured/test/unstructured_single-cell_entities_6_0.blessed
-    unstructured/test/unstructured_single-cell_entities_6_1.blessed
-    unstructured/test/unstructured_single-cell_entities_6_2.blessed
-    unstructured/test/unstructured_single-cell_entities_6_3.blessed
-    unstructured/test/unstructured_two-cell_entities_1_0.blessed
-    unstructured/test/unstructured_two-cell_entities_1_1.blessed
-    unstructured/test/unstructured_two-cell_entities_1_2.blessed
-    unstructured/test/unstructured_two-cell_entities_1_3.blessed
-    unstructured/test/unstructured_two-cell_entities_2_0.blessed
-    unstructured/test/unstructured_two-cell_entities_2_1.blessed
-    unstructured/test/unstructured_two-cell_entities_2_2.blessed
-    unstructured/test/unstructured_two-cell_entities_2_3.blessed
-    unstructured/test/unstructured_two-cell_entities_4_0.blessed
-    unstructured/test/unstructured_two-cell_entities_4_1.blessed
-    unstructured/test/unstructured_two-cell_entities_4_2.blessed
-    unstructured/test/unstructured_two-cell_entities_4_3.blessed
-    unstructured/test/unstructured_two-cell_entities_6_0.blessed
-    unstructured/test/unstructured_two-cell_entities_6_1.blessed
-    unstructured/test/unstructured_two-cell_entities_6_2.blessed
-    unstructured/test/unstructured_two-cell_entities_6_3.blessed
-  PROCS ${UPROCS}
-)
-
 flecsi_add_test(fixed
   SOURCES
     unstructured/test/fixed.cc
@@ -160,15 +38,21 @@ flecsi_add_test(fixed
     unstructured/test/fixed_1.blessed
     unstructured/test/fixed_2.blessed
     unstructured/test/fixed_3.blessed
+    unstructured/test/simple-4x4.fixed.0
+    unstructured/test/simple-4x4.fixed.1
+    unstructured/test/simple-4x4.fixed.2
+    unstructured/test/simple-4x4.fixed.3
   PROCS 4
 )
 
 flecsi_add_test(set
   SOURCES
-    unstructured/test/unstructured.hh
     set/test/mpm_set.cc
   INPUTS
-    unstructured/test/simple2d-16x16.msh
+    unstructured/test/simple-4x4.fixed.0
+    unstructured/test/simple-4x4.fixed.1
+    unstructured/test/simple-4x4.fixed.2
+    unstructured/test/simple-4x4.fixed.3
   PROCS 4
 )
 
@@ -177,7 +61,6 @@ flecsi_add_test(set
 flecsi_add_test(narray
   SOURCES
     narray/test/narray.cc
-    narray/test/narray.hh
   INPUTS
     narray/test/mesh_1d_4_0.blessed
     narray/test/mesh_1d_4_1.blessed
