@@ -251,8 +251,13 @@ index_driver() {
     alloc(verts);
     alloc(vfrac);
     ghost.get_elements().growth = {processes() + 1};
-    execute<irows>(verts);
-    execute<irows>(verts); // to make new size visible
+    {
+      // Use the mutator twice to record/replay the trace and to
+      // make the new size visible to check below.
+      exec::trace t;
+      for(int i = 0; i < 2; i++)
+        t.make_guard(), execute<irows>(verts);
+    }
     EXPECT_EQ(test<drows>(vfrac), 0);
     execute<assign>(pressure, verts, vfrac);
     execute<reset>(noise);

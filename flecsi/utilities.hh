@@ -24,6 +24,7 @@
 /// - flecsi/util/set_utils.hh
 /// - \ref unit "flecsi/util/unit.hh"
 
+#include "flecsi/config.hh"
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/array_ref.hh"
 #include "flecsi/util/color_map.hh"
@@ -37,6 +38,8 @@
 #include "flecsi/util/serialize.hh"
 #include "flecsi/util/set_intersection.hh"
 #include "flecsi/util/set_utils.hh"
+#if defined(FLECSI_ENABLE_FLOG)
 #include "flecsi/util/unit.hh"
+#endif
 
 #endif

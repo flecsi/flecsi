@@ -1,3 +1,5 @@
+message(WARNING "ParMETIS CMake support in FleCSI is deprecated and will be removed in version 3.")
+
 macro(flecsi_enable_parmetis target)
   set(PARMETIS_TEST_RUNS TRUE)
   find_package(ParMETIS REQUIRED)

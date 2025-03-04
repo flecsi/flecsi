@@ -82,6 +82,12 @@ New features
 Changes in v2.3.2
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Build
+
+  * Removed ParMETIS dependency. CMake support files will be removed.
+
 Fixed
 ^^^^^
 * MPI backend
@@ -91,6 +97,7 @@ Fixed
 * Utilities
 
   * CTAD for ``mdcolex`` works with any integer type.
+  * ``utilities.hh`` works with FLOG disabled.
 
 Changes in v2.3.1 (February 3 2025)
 +++++++++++++++++++++++++++++++++++

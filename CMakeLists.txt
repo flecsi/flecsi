@@ -133,7 +133,6 @@ if(ENABLE_LIBRARY)
   include(FleCSI/coverage)
   include(FleCSI/legion)
   include(FleCSI/mpi)
-  include(FleCSI/parmetis)
   include(FleCSI/hpx)
   include(FleCSI/hdf5)
   include(FleCSI/graphviz)
@@ -210,8 +209,6 @@ if(ENABLE_LIBRARY)
   endif()
 
   flecsi_enable_mpi(FleCSI)
-
-  flecsi_enable_parmetis(FleCSI)
 
   if(FLECSI_BACKEND STREQUAL "hpx")
     flecsi_enable_hpx(FleCSI)
