@@ -1432,6 +1432,7 @@ struct mutator<particle, T, P> : particle_accessor<T, P, true> {
 private:
   FLECSI_INLINE_TARGET void init() const {
     const auto s = this->span();
+    std::uninitialized_default_construct(s.begin(), s.end());
     if(const auto n = s.size()) {
       auto & a = s.front();
       a.free = {0, 1};
