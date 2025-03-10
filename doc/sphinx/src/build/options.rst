@@ -8,26 +8,6 @@ CMake Configuration Options
 The following set of options are available to control how FleCSI is
 built.
 
-Basic CMake options
--------------------
-
-* **BUILD_SHARED_LIBS [default: ON]** |br|
-  Build shared library objects (as opposed to static).
-
-* **CMAKE_BUILD_TYPE [default: Debug]** |br|
-  Specify the build type (configuration) statically for this build tree.
-  Possible choices are *Debug*, *Release*, *RelWithDebInfo*, and
-  *MinSizeRel*.
-
-* **CMAKE_CXX_COMPILER [default: g++]** |br|
-  Specify the C++ compiler to use to build FleCSI.
-
-* **CMAKE_CXX_FLAGS [default: ""]** |br|
-  Specify the flags to pass to the C++ compiler when building FleCSI.
-
-* **CMAKE_INSTALL_PREFIX [default: /usr/local]** |br|
-  Specify the installation path to use when *make install* is invoked.
-
 Flog (FleCSI logging utility) options
 -------------------------------------
 
