@@ -24,6 +24,14 @@ Deprecated
 
   * Removed ParMETIS dependency. CMake support files will be removed.
 
+* Data
+
+  * That ``data.hh`` includes ``topology.hh`` |mdash| include it directly (this was deprecated without a release note in 2.3.0)
+
+* Execution
+
+  * That ``execution.hh`` includes ``runtime.hh`` |mdash| include it directly
+
 Fixed
 ^^^^^
 * MPI backend
