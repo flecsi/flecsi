@@ -15,6 +15,5 @@ var searchData=
   ['nparts_5f_12',['nparts_',['../structflecsi_1_1topo_1_1ntree__base_1_1coloring.html#a2d438b30d4f038e3c022d7854523f6ac',1,'flecsi::topo::ntree_base::coloring']]],
   ['ntree_13',['ntree',['../structflecsi_1_1topo_1_1ntree.html',1,'flecsi::topo']]],
   ['ntree_5fbase_14',['ntree_base',['../structflecsi_1_1topo_1_1ntree__base.html',1,'flecsi::topo']]],
-  ['ntree_5fspecialization_15',['ntree_specialization',['../structflecsi_1_1topo_1_1ntree__specialization.html',1,'flecsi::topo']]],
-  ['num_5fentities_16',['num_entities',['../structflecsi_1_1topo_1_1unstructured__impl_1_1mesh__definition.html#a97641de11a40e49554ab1fc5b5bea88c',1,'flecsi::topo::unstructured_impl::mesh_definition']]]
+  ['ntree_5fspecialization_15',['ntree_specialization',['../structflecsi_1_1topo_1_1ntree__specialization.html',1,'flecsi::topo']]]
 ];

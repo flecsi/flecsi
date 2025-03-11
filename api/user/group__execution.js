@@ -3,15 +3,6 @@ var group__execution =
     [ "Reduction Operations", "group__fold.html", "group__fold" ],
     [ "Kernels", "group__kernel.html", "group__kernel" ],
     [ "future< Return, Launch >", "structflecsi_1_1future.html", null ],
-    [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", [
-      [ "wait", "structflecsi_1_1future_3_01Return_01_4.html#aa3b21853f890838c88d047d6c2786917", null ],
-      [ "get", "structflecsi_1_1future_3_01Return_01_4.html#ad660d42d6f5df2f3a2cc5bd3b66d0666", null ]
-    ] ],
-    [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", [
-      [ "wait", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a3281fa7a58f093de0bcfd45211a1ed14", null ],
-      [ "get", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a726273048b674d5b970c95cc890f3e6f", null ],
-      [ "size", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#a2a49aa42c83e86a61003107ab2dc6a78", null ]
-    ] ],
     [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", [
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a7bab67ca137c1bbfc92e4fd1f3814a17", null ],
       [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html#a62b21fc0ade336fa963fd22abc565356", null ]

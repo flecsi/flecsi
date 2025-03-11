@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Internal Summary &mdash; FleCSI 2.3.1 documentation</title>
+  <title>Internal Summary &mdash; FleCSI 2.3.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.1
+                Version: 2.3.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -198,14 +198,14 @@ The second is an index within the index points for that color; both are zero-bas
 The <em>rows</em> of that rectangle, one per color, are often considered separately.</p>
 <p>To support memory allocations that vary among rows or over time, fields are accessed via a <em>partition</em>, which is simply a prefix of each row of a region.
 (Often, the length of each such prefix is itself stored in a field that is accessed via a preexisting partition.)
-See <a class="reference internal" href="#regions"><span class="std std-numref">Fig. 15</span></a> for a visual depiction of regions, prefixes, and partitions.
+See <a class="reference internal" href="#regions"><span class="std std-numref">Fig. 16</span></a> for a visual depiction of regions, prefixes, and partitions.
 Several partitions may exist for a single region, although it is common for there to be just one or else just one at any time.
 All access the same field values, which survive as long as the region does.
 The backends are expected to allocate memory only as necessary for partitions that are actually used with a given field.</p>
 <figure class="align-default" id="id1">
 <span id="regions"></span><img alt="../_images/region_partition_prefix.png" src="../_images/region_partition_prefix.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 15 </span><span class="caption-text">Diagram illustrating a region, prefix, and partition.  Regions are merely logical entities,
+<p><span class="caption-number">Fig. 16 </span><span class="caption-text">Diagram illustrating a region, prefix, and partition.  Regions are merely logical entities,
 whereas actual memory allocations are managed through partitions.  Partitions are a collection of
 prefixes, one for each color.  A prefix always begins at index point 0 of its color.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
 </figcaption>
@@ -329,10 +329,12 @@ The <em>global topology</em> (described further below) is a special case: it use
 A task that writes to a global topology instance must therefore be a single launch or use a reduction accessor, which combines values from all point tasks using a reduction operation (see below).
 On the task side, the recruited resources and the accessors’ field IDs are consulted to obtain values for the contained <code class="docutils literal notranslate"><span class="pre">span</span></code> objects.
 Because a task’s parameters are destroyed as soon as it returns, state accumulated by mutators is stored in separate <em>buffers</em> that can be processed afterwards.</p>
-<p>On both sides, various tag base classes are used to recognize relevant FleCSI types; <code class="docutils literal notranslate"><span class="pre">send_tag</span></code> in particular identifies types that can decompose themselves into simpler parameters via a <code class="docutils literal notranslate"><span class="pre">send</span></code> member function template.
-This function template accepts a callback that is used to process the subcomponents and which itself accepts a callback that, on the caller side only, is used to transform the task <em>arguments</em>.
-Those task arguments may include <code class="docutils literal notranslate"><span class="pre">borrow_category</span></code> versions of the underlying topologies and field references to such versions.
-The MPI backend handles both sides (for a single argument/parameter) in a single pass, transforming the arguments and initializing the (single copy of the) parameters immediately.</p>
+<p>On both sides, caller and task, various tag base classes are used to recognize relevant FleCSI types for the parameters.
+The most important of these is <code class="docutils literal notranslate"><span class="pre">send_tag</span></code>: task-parameter types that inherit from it provide a member function template called <code class="docutils literal notranslate"><span class="pre">send</span></code> to send an object from a task caller to the task itself.
+This <code class="docutils literal notranslate"><span class="pre">send</span></code> method also accepts a callback function.
+When applying operations to the task parameters, instead of duplicating code to handle the lower-level task parameters, it relies on this callback mechanism.
+With it, task parameters are able to decompose themselves down to simpler parameters that have specific processing defined, such as raw accessors that underlie accessors and mutators.
+This composition process is handled via inheritance and aggregation, and the <code class="docutils literal notranslate"><span class="pre">send</span></code> method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.</p>
 <p>A call to <code class="docutils literal notranslate"><span class="pre">execute&lt;F&gt;</span></code> can return before the task does; it returns a <em>future</em> that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)
 A call that performs an index launch returns a <code class="docutils literal notranslate"><span class="pre">future&lt;T,launch_type_t::index&gt;</span></code> that can access the value returned from each point task.

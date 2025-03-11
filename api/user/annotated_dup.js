@@ -119,11 +119,11 @@ var annotated_dup =
       ] ],
       [ "field", "structflecsi_1_1field.html", "structflecsi_1_1field" ],
       [ "future", "structflecsi_1_1future.html", null ],
-      [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", "structflecsi_1_1future_3_01Return_01_4" ],
-      [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ],
       [ "getopt", "structflecsi_1_1getopt.html", "structflecsi_1_1getopt" ],
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
       [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
       [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ]
-    ] ]
+    ] ],
+    [ "future< Return >", "structfuture_3_01Return_01_4.html", "structfuture_3_01Return_01_4" ],
+    [ "future< Return, exec::launch_type_t::index >", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ]
 ];

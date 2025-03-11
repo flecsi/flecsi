@@ -32,9 +32,6 @@ Build requirements
 
 * `Kokkos <https://kokkos.org/>`_
 
-* `parMETIS/METIS <https://github.com/KarypisLab/ParMETIS>`_
-
-
 Additional requirements for documentation
 -----------------------------------------
 

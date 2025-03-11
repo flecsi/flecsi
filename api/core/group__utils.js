@@ -80,7 +80,6 @@ var group__utils =
     [ "operator+", "group__utils.html#ga83b0a989d5408b53b44a66c723c67741", null ],
     [ "operator-", "group__utils.html#gad31623982ffa086af59566b9c7208cf3", null ],
     [ "operator<<", "group__utils.html#gac7878ee4092ec9f8006c686ced4426d6", null ],
-    [ "color", "group__utils.html#ga3143790d16e2075e12b625290311e67d", null ],
     [ "reorder", "group__utils.html#gacc2dbba6504f66bd8814581374a95e02", null ],
     [ "reorder_destructive", "group__utils.html#ga99224fc017b020065039157f96a74faa", null ],
     [ "intersects", "group__utils.html#gaa4ad82ea19e88b79aaa9b3475aa726f4", null ],

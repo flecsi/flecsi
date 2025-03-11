@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMake Configuration Options &mdash; FleCSI 2.3.1 documentation</title>
+  <title>CMake Configuration Options &mdash; FleCSI 2.3.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../../_static/favicon.ico"/>
@@ -38,7 +38,7 @@
               <img src="../../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.1
+                Version: 2.3.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -53,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../build.html">Build &amp; Install</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">CMake Configuration Options</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#basic-cmake-options">Basic CMake options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#flog-flecsi-logging-utility-options">Flog (FleCSI logging utility) options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parallelization-options">Parallelization options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#documentation-options">Documentation options</a></li>
@@ -105,23 +104,6 @@
 <h1>CMake Configuration Options<a class="headerlink" href="#cmake-configuration-options" title="Permalink to this heading"></a></h1>
 <p>The following set of options are available to control how FleCSI is
 built.</p>
-<section id="basic-cmake-options">
-<h2>Basic CMake options<a class="headerlink" href="#basic-cmake-options" title="Permalink to this heading"></a></h2>
-<ul class="simple">
-<li><p><strong>BUILD_SHARED_LIBS [default: ON]</strong> <br />
-Build shared library objects (as opposed to static).</p></li>
-<li><p><strong>CMAKE_BUILD_TYPE [default: Debug]</strong> <br />
-Specify the build type (configuration) statically for this build tree.
-Possible choices are <em>Debug</em>, <em>Release</em>, <em>RelWithDebInfo</em>, and
-<em>MinSizeRel</em>.</p></li>
-<li><p><strong>CMAKE_CXX_COMPILER [default: g++]</strong> <br />
-Specify the C++ compiler to use to build FleCSI.</p></li>
-<li><p><strong>CMAKE_CXX_FLAGS [default: “”]</strong> <br />
-Specify the flags to pass to the C++ compiler when building FleCSI.</p></li>
-<li><p><strong>CMAKE_INSTALL_PREFIX [default: /usr/local]</strong> <br />
-Specify the installation path to use when <em>make install</em> is invoked.</p></li>
-</ul>
-</section>
 <section id="flog-flecsi-logging-utility-options">
 <h2>Flog (FleCSI logging utility) options<a class="headerlink" href="#flog-flecsi-logging-utility-options" title="Permalink to this heading"></a></h2>
 <ul>

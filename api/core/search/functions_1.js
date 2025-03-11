@@ -11,6 +11,5 @@ var searchData=
   ['borrow_5fextra_8',['borrow_extra',['../structflecsi_1_1topo_1_1borrow__extra.html#a04ec5345e066684115d695ad3faaedec',1,'flecsi::topo::borrow_extra']]],
   ['bounding_5fbox_9',['bounding_box',['../structflecsi_1_1topo_1_1unstructured__base.html#aad5b49d33c9e5433947a1e9d8e56d7c2',1,'flecsi::topo::unstructured_base']]],
   ['buffer_10',['buffer',['../group__serial.html#gaa260f27fb22b419c2fb52e6df5c27478',1,'flecsi::util::serial']]],
-  ['buffer_5fiter_11',['buffer_iter',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#adfa769d1af85ee285d51189922cbef6a',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row']]],
-  ['build_5fintermediary_12',['build_intermediary',['../group__unstructured.html#gac839ee18362f6ab89ab41d3da34b5afb',1,'flecsi::topo::unstructured_impl::coloring_utils']]]
+  ['buffer_5fiter_11',['buffer_iter',['../structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html#adfa769d1af85ee285d51189922cbef6a',1,'flecsi::data::mutator&lt; ragged, T, P &gt;::row']]]
 ];

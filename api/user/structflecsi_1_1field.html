@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.1</span>
+   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.2</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -148,7 +148,7 @@ struct flecsi::field&lt; T, L &gt;</div><p>Helper type to define and access fiel
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>field value type:<ul>
-<li>if any non-MPI tasks use the field, <code>T</code> must be a trivially copyable type with no pointers or references</li>
+<li>if any non-MPI tasks or tasks that read ghosts use the field, <code>T</code> must be a trivially copyable type with no pointers or references</li>
 <li>if any instance of the field is resized, <code>T</code> must be trivially relocatable; this weaker property is not formally recognized by the language, but common implementations of <code>std::vector</code> and <code>std::unique_ptr</code> qualify </li>
 </ul>
 </td></tr>

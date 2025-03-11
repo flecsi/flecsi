@@ -16,6 +16,7 @@ var annotated_dup =
         [ "accessor< raw, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4" ],
         [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4" ],
         [ "accessor< sparse, T, P >", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4" ],
+        [ "bind_tag", "structflecsi_1_1data_1_1bind__tag.html", null ],
         [ "borrow", "structflecsi_1_1data_1_1borrow.html", "structflecsi_1_1data_1_1borrow" ],
         [ "buffers", "structflecsi_1_1data_1_1buffers.html", "structflecsi_1_1data_1_1buffers" ],
         [ "coloring_slot", "structflecsi_1_1data_1_1coloring__slot.html", "structflecsi_1_1data_1_1coloring__slot" ],
@@ -37,6 +38,7 @@ var annotated_dup =
         [ "reduction_accessor", "structflecsi_1_1data_1_1reduction__accessor.html", "structflecsi_1_1data_1_1reduction__accessor" ],
         [ "region_base", "structflecsi_1_1data_1_1region__base.html", "structflecsi_1_1data_1_1region__base" ],
         [ "rows", "structflecsi_1_1data_1_1rows.html", "structflecsi_1_1data_1_1rows" ],
+        [ "send_tag", "structflecsi_1_1data_1_1send__tag.html", null ],
         [ "topology_accessor", "structflecsi_1_1data_1_1topology__accessor.html", null ],
         [ "topology_slot", "structflecsi_1_1data_1_1topology__slot.html", "structflecsi_1_1data_1_1topology__slot" ]
       ] ],
@@ -101,10 +103,7 @@ var annotated_dup =
           [ "index_definition", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition" ]
         ] ],
         [ "unstructured_impl", null, [
-          [ "coloring_definition", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__definition.html", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__definition" ],
-          [ "coloring_utils", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__utils.html", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__utils" ],
           [ "index_color", "structflecsi_1_1topo_1_1unstructured__impl_1_1index__color.html", "structflecsi_1_1topo_1_1unstructured__impl_1_1index__color" ],
-          [ "mesh_definition", "structflecsi_1_1topo_1_1unstructured__impl_1_1mesh__definition.html", "structflecsi_1_1topo_1_1unstructured__impl_1_1mesh__definition" ],
           [ "peer_entities", "structflecsi_1_1topo_1_1unstructured__impl_1_1peer__entities.html", "structflecsi_1_1topo_1_1unstructured__impl_1_1peer__entities" ]
         ] ],
         [ "borrow", "structflecsi_1_1topo_1_1borrow.html", null ],
@@ -181,11 +180,11 @@ var annotated_dup =
       ] ],
       [ "field", "structflecsi_1_1field.html", "structflecsi_1_1field" ],
       [ "future", "structflecsi_1_1future.html", null ],
-      [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", "structflecsi_1_1future_3_01Return_01_4" ],
-      [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ],
       [ "getopt", "structflecsi_1_1getopt.html", "structflecsi_1_1getopt" ],
       [ "program_option", "structflecsi_1_1program__option.html", "structflecsi_1_1program__option" ],
       [ "runtime", "structflecsi_1_1runtime.html", "structflecsi_1_1runtime" ],
       [ "task_local", "structflecsi_1_1task__local.html", "structflecsi_1_1task__local" ]
-    ] ]
+    ] ],
+    [ "future< Return >", "structfuture_3_01Return_01_4.html", "structfuture_3_01Return_01_4" ],
+    [ "future< Return, exec::launch_type_t::index >", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4" ]
 ];

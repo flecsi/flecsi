@@ -7,7 +7,6 @@ var hierarchy =
     [ "accessor< L, T, Priv >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< dense, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor.html", null ],
     [ "accessor< dense, std::size_t, OP >", "structflecsi_1_1data_1_1accessor.html", null ],
-    [ "accessor< raw, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
     [ "accessor< raw, T, P >", "structflecsi_1_1data_1_1accessor.html", [
       [ "accessor< dense, T, P >", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html", null ]
     ] ],
@@ -16,7 +15,6 @@ var hierarchy =
       [ "ragged_accessor< T, P, privilege_repeat< privilege_discard(P) ? wo :rw, privilege_count(P)> >", "structflecsi_1_1data_1_1ragged__accessor.html", null ],
       [ "ragged_accessor< class, Privileges, Privileges >", "structflecsi_1_1data_1_1ragged__accessor.html", null ]
     ] ],
-    [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
     [ "accessor< sparse, T, P >", "structflecsi_1_1data_1_1accessor_3_01sparse_00_01T_00_01P_01_4.html", null ],
     [ "action< T, CP, M >", "structflecsi_1_1run_1_1control_1_1action.html", null ],
     [ "action< wrap, cp >", "structflecsi_1_1run_1_1control_1_1action.html", null ],
@@ -29,6 +27,16 @@ var hierarchy =
     [ "base< core >", "structflecsi_1_1topo_1_1detail_1_1base_3_01core_01_4.html", null ],
     [ "BBox< DIM >", "classflecsi_1_1util_1_1BBox.html", null ],
     [ "bind_accessors< Proc >", "structflecsi_1_1exec_1_1leg_1_1bind__accessors.html", null ],
+    [ "bind_tag", "structflecsi_1_1data_1_1bind__tag.html", [
+      [ "topology_accessor< typename Policy::mesh_type, privilege_repeat< get_privilege(0, Priv), 3 > >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
+      [ "accessor< raw, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01raw_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
+      [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
+      [ "multi< class >", "structflecsi_1_1data_1_1multi.html", null ],
+      [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", null ],
+      [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", null ],
+      [ "reduction_accessor< R, T >", "structflecsi_1_1data_1_1reduction__accessor.html", null ],
+      [ "topology_accessor< class, Privileges >", "structflecsi_1_1data_1_1topology__accessor.html", null ]
+    ] ],
     [ "borrow", "structflecsi_1_1data_1_1borrow.html", null ],
     [ "borrow_base", "structflecsi_1_1topo_1_1borrow__base.html", [
       [ "borrow_category< P >", "structflecsi_1_1topo_1_1borrow__category.html", null ]
@@ -45,10 +53,8 @@ var hierarchy =
     [ "coloring", "structflecsi_1_1topo_1_1ntree__base_1_1coloring.html", null ],
     [ "coloring", "structflecsi_1_1topo_1_1set__base_1_1coloring.html", null ],
     [ "coloring", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring.html", null ],
-    [ "coloring_definition", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__definition.html", null ],
     [ "coloring_slot< class >", "structflecsi_1_1data_1_1coloring__slot.html", null ],
     [ "coloring_slot< D >", "structflecsi_1_1data_1_1coloring__slot.html", null ],
-    [ "coloring_utils< MD >", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__utils.html", null ],
     [ "config", "structflecsi_1_1flog_1_1config.html", null ],
     [ "config_base", "structflecsi_1_1run_1_1config__base.html", [
       [ "config", "structflecsi_1_1run_1_1config.html", null ],
@@ -105,9 +111,7 @@ var hierarchy =
     [ "field< node_data >", "structflecsi_1_1field.html", null ],
     [ "field< ntree_data >", "structflecsi_1_1field.html", null ],
     [ "field< std::size_t >", "structflecsi_1_1field.html", null ],
-    [ "field< typenamePolicy::meta_data, data::single >", "structflecsi_1_1field.html", null ],
     [ "field< util::id >", "structflecsi_1_1field.html", null ],
-    [ "field< util::key_array< meta_data, index_spaces >, data::single >", "structflecsi_1_1field.html", null ],
     [ "field_info_t", "structflecsi_1_1data_1_1field__info__t.html", null ],
     [ "field_reference< class, layout, Topo, index_space >", "structflecsi_1_1data_1_1field__reference.html", null ],
     [ "filling_curve_key< DIM, T, DERIVED >", "classflecsi_1_1util_1_1filling__curve__key.html", null ],
@@ -122,8 +126,9 @@ var hierarchy =
     ] ],
     [ "full_range", "structflecsi_1_1exec_1_1full__range.html", null ],
     [ "future< Return, Launch >", "structflecsi_1_1future.html", null ],
-    [ "future< Return >", "structflecsi_1_1future_3_01Return_01_4.html", null ],
-    [ "future< Return, exec::launch_type_t::index >", "structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", null ],
+    [ "future< bool >", "structflecsi_1_1future.html", null ],
+    [ "future< Return >", "structfuture_3_01Return_01_4.html", null ],
+    [ "future< Return, exec::launch_type_t::index >", "structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html", null ],
     [ "getopt", "structflecsi_1_1getopt.html", null ],
     [ "graphviz", "classflecsi_1_1util_1_1graphviz.html", null ],
     [ "guard", "structflecsi_1_1exec_1_1trace_1_1guard.html", null ],
@@ -133,7 +138,6 @@ var hierarchy =
     [ "identity", "structflecsi_1_1util_1_1identity.html", null ],
     [ "index_color", "structflecsi_1_1topo_1_1unstructured__impl_1_1index__color.html", null ],
     [ "index_definition", "structflecsi_1_1topo_1_1narray__impl_1_1index__definition.html", null ],
-    [ "index_map", "structflecsi_1_1topo_1_1unstructured__impl_1_1coloring__definition_1_1index__map.html", null ],
     [ "index_space", "structflecsi_1_1topo_1_1unstructured__base_1_1coloring_1_1index__space.html", null ],
     [ "inplace_vector< T, SIZE >", "classflecsi_1_1util_1_1inplace__vector.html", null ],
     [ "iota_view< I >", "structflecsi_1_1util_1_1iota__view.html", null ],
@@ -155,7 +159,6 @@ var hierarchy =
       [ "mdcolex< T, D >", "structflecsi_1_1util_1_1mdcolex.html", null ],
       [ "mdspan< T, D >", "structflecsi_1_1util_1_1mdspan.html", null ]
     ] ],
-    [ "mesh_definition", "structflecsi_1_1topo_1_1unstructured__impl_1_1mesh__definition.html", null ],
     [ "message< Policy >", "structflecsi_1_1flog_1_1message.html", null ],
     [ "meta_data", "structflecsi_1_1topo_1_1narray__specialization_1_1meta__data.html", null ],
     [ "min", "structflecsi_1_1exec_1_1fold_1_1min.html", null ],
@@ -164,11 +167,8 @@ var hierarchy =
     [ "move_optional< id_t >", "structflecsi_1_1util_1_1move__optional.html", null ],
     [ "mpi_coloring", "structflecsi_1_1topo_1_1specialization_1_1mpi__coloring.html", null ],
     [ "mpi_mapper_t", "classflecsi_1_1run_1_1mpi__mapper__t.html", null ],
-    [ "multi< class >", "structflecsi_1_1data_1_1multi.html", null ],
     [ "multi_reference< T, L, Topo, S >", "structflecsi_1_1data_1_1multi__reference.html", null ],
     [ "mutator< layout, class, Privileges >", "structflecsi_1_1data_1_1mutator.html", null ],
-    [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", null ],
-    [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", null ],
     [ "narray_base", "structflecsi_1_1topo_1_1narray__base.html", [
       [ "narray< Policy >", "structflecsi_1_1topo_1_1narray.html", null ]
     ] ],
@@ -178,11 +178,6 @@ var hierarchy =
       [ "ntree< Policy >", "structflecsi_1_1topo_1_1ntree.html", null ]
     ] ],
     [ "partial< F, AA >", "structflecsi_1_1exec_1_1partial.html", null ],
-    [ "particle_accessor< class, Privileges, bool >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
-    [ "particle_accessor< T, P, false >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
-    [ "particle_accessor< T, P, true >", "structflecsi_1_1data_1_1particle__accessor.html", [
-      [ "mutator< particle, T, P >", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html", null ]
-    ] ],
     [ "partition", "structflecsi_1_1data_1_1partition.html", [
       [ "partition", "structflecsi_1_1data_1_1leg_1_1partition.html", [
         [ "intervals", "structflecsi_1_1data_1_1intervals.html", null ],
@@ -204,7 +199,6 @@ var hierarchy =
     [ "ragged_impl< Space, T >", "structflecsi_1_1topo_1_1narray_1_1ragged__impl.html", null ],
     [ "reader", "structflecsi_1_1data_1_1detail_1_1buffers__base_1_1buffer_1_1reader.html", null ],
     [ "reduce", "structflecsi_1_1exec_1_1fold_1_1reduce.html", null ],
-    [ "reduction_accessor< R, T >", "structflecsi_1_1data_1_1reduction__accessor.html", null ],
     [ "region< CTX >", "structflecsi_1_1util_1_1annotation_1_1region.html", null ],
     [ "region< execution >", "structflecsi_1_1util_1_1annotation_1_1region.html", null ],
     [ "region_base", "structflecsi_1_1data_1_1region__base.html", null ],
@@ -213,6 +207,23 @@ var hierarchy =
     [ "row", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4_1_1row.html", null ],
     [ "row", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4_1_1row.html", null ],
     [ "runtime", "structflecsi_1_1runtime.html", null ],
+    [ "send_tag", "structflecsi_1_1data_1_1send__tag.html", [
+      [ "particle_accessor< T, P, false >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
+      [ "particle_accessor< T, P, true >", "structflecsi_1_1data_1_1particle__accessor.html", [
+        [ "mutator< particle, T, P >", "structflecsi_1_1data_1_1mutator_3_01particle_00_01T_00_01P_01_4.html", null ]
+      ] ],
+      [ "ragged_accessor< T, P, privilege_repeat< ro, privilege_count(P)> >", "structflecsi_1_1data_1_1ragged__accessor.html", null ],
+      [ "ragged_accessor< T, P, privilege_repeat< privilege_discard(P) ? wo :rw, privilege_count(P)> >", "structflecsi_1_1data_1_1ragged__accessor.html", null ],
+      [ "topology_accessor< typename Policy::mesh_type, privilege_repeat< get_privilege(0, Priv), 3 > >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
+      [ "accessor< dense, T, P >", "structflecsi_1_1data_1_1accessor_3_01dense_00_01T_00_01P_01_4.html", null ],
+      [ "accessor< single, DATA_TYPE, PRIVILEGES >", "structflecsi_1_1data_1_1accessor_3_01single_00_01DATA__TYPE_00_01PRIVILEGES_01_4.html", null ],
+      [ "multi< class >", "structflecsi_1_1data_1_1multi.html", null ],
+      [ "mutator< ragged, T, P >", "structflecsi_1_1data_1_1mutator_3_01ragged_00_01T_00_01P_01_4.html", null ],
+      [ "mutator< sparse, T, P >", "structflecsi_1_1data_1_1mutator_3_01sparse_00_01T_00_01P_01_4.html", null ],
+      [ "particle_accessor< class, Privileges, bool >", "structflecsi_1_1data_1_1particle__accessor.html", null ],
+      [ "ragged_accessor< class, Privileges, Privileges >", "structflecsi_1_1data_1_1ragged__accessor.html", null ],
+      [ "topology_accessor< class, Privileges >", "structflecsi_1_1data_1_1topology__accessor.html", null ]
+    ] ],
     [ "set< Policy >", "structflecsi_1_1topo_1_1set.html", null ],
     [ "sort< FieldRef >", "structflecsi_1_1util_1_1sort.html", null ],
     [ "span< T >", "structflecsi_1_1util_1_1span.html", null ],
@@ -278,8 +289,6 @@ var hierarchy =
     [ "task_wrapper< F, P >", "structflecsi_1_1exec_1_1leg_1_1task__wrapper.html", null ],
     [ "tee_buffer_t", "classflecsi_1_1flog_1_1tee__buffer__t.html", null ],
     [ "tee_stream_t", "structflecsi_1_1flog_1_1tee__stream__t.html", null ],
-    [ "topology_accessor< class, Privileges >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
-    [ "topology_accessor< typename Policy::mesh_type, privilege_repeat< get_privilege(0, Priv), 3 > >", "structflecsi_1_1data_1_1topology__accessor.html", null ],
     [ "topology_slot< Topo >", "structflecsi_1_1data_1_1topology__slot.html", null ],
     [ "trace", "structflecsi_1_1exec_1_1trace.html", null ],
     [ "traits< T, E >", "structflecsi_1_1util_1_1serial_1_1traits.html", null ],

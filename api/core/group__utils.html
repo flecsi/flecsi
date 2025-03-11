@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.1</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -215,9 +215,6 @@ Functions</h2></td></tr>
 <tr class="memitem:gaf8cbcb05fe17534adaaf473f98dc57fb"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#gaf8cbcb05fe17534adaaf473f98dc57fb">bit_width</a> (T x) noexcept</td></tr>
 <tr class="memdesc:gaf8cbcb05fe17534adaaf473f98dc57fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple emulation of std::bit_width from C++20.  <br /></td></tr>
 <tr class="separator:gaf8cbcb05fe17534adaaf473f98dc57fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3143790d16e2075e12b625290311e67d" id="r_ga3143790d16e2075e12b625290311e67d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; Color &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3143790d16e2075e12b625290311e67d">color</a> (const <a class="el" href="structflecsi_1_1util_1_1offsets.html">util::offsets</a> &amp;dist, const <a class="el" href="structflecsi_1_1util_1_1crs.html">crs</a> &amp;graph, idx_t <a class="el" href="group__runtime.html#ga8201a75d28d35d62aa168890e291df65">colors</a>, MPI_Comm comm=MPI_COMM_WORLD)</td></tr>
-<tr class="memdesc:ga3143790d16e2075e12b625290311e67d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a coloring of the given naive graph partition into <em>colors</em> colors.  <br /></td></tr>
-<tr class="separator:ga3143790d16e2075e12b625290311e67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab38729997ae0745c4d90e7e2cafb32fa" id="r_gab38729997ae0745c4d90e7e2cafb32fa"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab38729997ae0745c4d90e7e2cafb32fa">demangle</a> (const char *const name)</td></tr>
 <tr class="memdesc:gab38729997ae0745c4d90e7e2cafb32fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the demangled name.  <br /></td></tr>
 <tr class="separator:gab38729997ae0745c4d90e7e2cafb32fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -801,48 +798,6 @@ template&lt;typename TYPE , <a class="el" href="#ga0d633ccab8440bedc968dc221a918
   <table class="params">
     <tr><td class="paramname">stream</td><td>The output stream. </td></tr>
     <tr><td class="paramname">a</td><td>The dimensioned array. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ga3143790d16e2075e12b625290311e67d" name="ga3143790d16e2075e12b625290311e67d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3143790d16e2075e12b625290311e67d">&#9670;&#160;</a></span>color()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; Color &gt; color </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structflecsi_1_1util_1_1offsets.html">util::offsets</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>dist</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structflecsi_1_1util_1_1crs.html">crs</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>graph</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">idx_t</td>          <td class="paramname"><span class="paramname"><em>colors</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">MPI_Comm</td>          <td class="paramname"><span class="paramname"><em>comm</em></span><span class="paramdefsep"> = </span><span class="paramdefval">MPI_COMM_WORLD</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Generate a coloring of the given naive graph partition into <em>colors</em> colors. </p>
-<p>This function uses <code>ParMETIS_V3_PartKway</code>. Each process in the comm must participate. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dist</td><td>distribution of entities over ranks </td></tr>
-    <tr><td class="paramname">graph</td><td>local connectivity graph </td></tr>
-    <tr><td class="paramname">colors</td><td>The number of partitions to create. </td></tr>
-    <tr><td class="paramname">comm</td><td>An MPI_Comm object that defines the number of processes. </td></tr>
   </table>
   </dd>
 </dl>

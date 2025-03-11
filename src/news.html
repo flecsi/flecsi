@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Release Notes &mdash; FleCSI 2.3.1 documentation</title>
+  <title>Release Notes &mdash; FleCSI 2.3.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
@@ -39,7 +39,7 @@
               <img src="../_static/flecsi.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                Version: 2.3.1
+                Version: 2.3.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -54,6 +54,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="overview.html">Overview</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="overview.html#documentation">Documentation</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Release Notes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-2-march-11-2025">Changes in v2.3.2 (March 11 2025)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-1-february-3-2025">Changes in v2.3.1 (February 3 2025)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-3-0-june-20-2024">Changes in v2.3.0 (June 20 2024)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#changes-in-v2-2-1-july-12-2023">Changes in v2.2.1 (July 12 2023)</a></li>
@@ -103,6 +104,45 @@
   <section id="release-notes">
 <h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">flecsi::</span></code> qualification is omitted throughout.</p>
+<section id="changes-in-v2-3-2-march-11-2025">
+<h2>Changes in v2.3.2 (March 11 2025)<a class="headerlink" href="#changes-in-v2-3-2-march-11-2025" title="Permalink to this heading"></a></h2>
+<section id="deprecated">
+<h3>Deprecated<a class="headerlink" href="#deprecated" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Build</p>
+<ul>
+<li><p>Removed ParMETIS dependency. CMake support files will be removed.</p></li>
+</ul>
+</li>
+<li><p>Data</p>
+<ul>
+<li><p>That <code class="docutils literal notranslate"><span class="pre">data.hh</span></code> includes <code class="docutils literal notranslate"><span class="pre">topology.hh</span></code> — include it directly (this was deprecated without a release note in 2.3.0)</p></li>
+</ul>
+</li>
+<li><p>Execution</p>
+<ul>
+<li><p>That <code class="docutils literal notranslate"><span class="pre">execution.hh</span></code> includes <code class="docutils literal notranslate"><span class="pre">runtime.hh</span></code> — include it directly</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>MPI backend</p>
+<ul>
+<li><p>Move-assignment of <code class="docutils literal notranslate"><span class="pre">topology_slot</span></code> works.</p></li>
+</ul>
+</li>
+<li><p>Utilities</p>
+<ul>
+<li><p>CTAD for <code class="docutils literal notranslate"><span class="pre">mdcolex</span></code> works with any integer type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utilities.hh</span></code> works with FLOG disabled.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
 <section id="changes-in-v2-3-1-february-3-2025">
 <h2>Changes in v2.3.1 (February 3 2025)<a class="headerlink" href="#changes-in-v2-3-1-february-3-2025" title="Permalink to this heading"></a></h2>
 <section id="possible-incompatibilities">
@@ -115,8 +155,8 @@
 </li>
 </ul>
 </section>
-<section id="deprecated">
-<h3>Deprecated<a class="headerlink" href="#deprecated" title="Permalink to this heading"></a></h3>
+<section id="id1">
+<h3>Deprecated<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Runtime</p>
 <ul>
@@ -132,8 +172,8 @@ or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></
 </li>
 </ul>
 </section>
-<section id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this heading"></a></h3>
+<section id="id2">
+<h3>Fixed<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Data</p>
 <ul>
@@ -169,8 +209,8 @@ or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></
 </section>
 <section id="changes-in-v2-3-0-june-20-2024">
 <h2>Changes in v2.3.0 (June 20 2024)<a class="headerlink" href="#changes-in-v2-3-0-june-20-2024" title="Permalink to this heading"></a></h2>
-<section id="id1">
-<h3>Possible incompatibilities<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<section id="id3">
+<h3>Possible incompatibilities<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Topologies</p>
 <ul>
@@ -179,8 +219,8 @@ or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></
 </li>
 </ul>
 </section>
-<section id="id2">
-<h3>Deprecated<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<section id="id4">
+<h3>Deprecated<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Build</p>
 <ul>
@@ -304,8 +344,8 @@ or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></
 </li>
 </ul>
 </section>
-<section id="id3">
-<h3>Fixed<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<section id="id5">
+<h3>Fixed<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Build</p>
 <ul>
@@ -368,8 +408,8 @@ or <code class="docutils literal notranslate"><span class="pre">*_FALSE</span></
 </section>
 <section id="changes-in-v2-2-1-july-12-2023">
 <h2>Changes in v2.2.1 (July 12 2023)<a class="headerlink" href="#changes-in-v2-2-1-july-12-2023" title="Permalink to this heading"></a></h2>
-<section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<section id="id6">
+<h3>Fixed<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Runtime</p>
 <ul>
@@ -396,8 +436,8 @@ namespaces from actions for better readability.</p></li>
 </section>
 <section id="changes-in-v2-2-0-april-14-2023">
 <h2>Changes in v2.2.0 (April 14 2023)<a class="headerlink" href="#changes-in-v2-2-0-april-14-2023" title="Permalink to this heading"></a></h2>
-<section id="id5">
-<h3>Possible incompatibilities<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<section id="id7">
+<h3>Possible incompatibilities<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Build</p>
 <ul>
@@ -411,8 +451,8 @@ namespaces from actions for better readability.</p></li>
 </li>
 </ul>
 </section>
-<section id="id6">
-<h3>Deprecated<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<section id="id8">
+<h3>Deprecated<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Runtime</p>
 <ul>
@@ -439,8 +479,8 @@ namespaces from actions for better readability.</p></li>
 </li>
 </ul>
 </section>
-<section id="id7">
-<h3>New features<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<section id="id9">
+<h3>New features<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Build</p>
 <ul>
@@ -513,8 +553,8 @@ It may be extended to allow additional types to be used as task parameters or wi
 </li>
 </ul>
 </section>
-<section id="id8">
-<h3>Fixed<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<section id="id10">
+<h3>Fixed<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Build</p>
 <ul>
@@ -575,8 +615,8 @@ It may be extended to allow additional types to be used as task parameters or wi
 </section>
 <section id="changes-in-v2-1-0-april-16-2021">
 <h2>Changes in v2.1.0 (April 16 2021)<a class="headerlink" href="#changes-in-v2-1-0-april-16-2021" title="Permalink to this heading"></a></h2>
-<section id="id9">
-<h3>New features<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<section id="id11">
+<h3>New features<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Topologies</p>
 <ul>
@@ -652,8 +692,8 @@ Some macro arguments become template arguments.</p>
 </li>
 </ul>
 </section>
-<section id="id10">
-<h3>New features<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<section id="id12">
+<h3>New features<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Runtime</p>
 <ul>

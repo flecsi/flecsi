@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>FleCSI User API: future&lt; Return &gt; Struct Template Reference</title>
+<title>FleCSI Core API: future&lt; Return, exec::launch_type_t::index &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI User API<span id="projectnumber">&#160;Version: 2.3.1</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -77,7 +77,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('structflecsi_1_1future_3_01Return_01_4.html',''); initResizable(true); });
+$(function(){initNavTree('structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -105,29 +105,32 @@ $(function(){initNavTree('structflecsi_1_1future_3_01Return_01_4.html',''); init
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="structflecsi_1_1future_3_01Return_01_4-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">future&lt; Return &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__execution.html">Execution Model</a></div></div></div>
+<a href="structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">future&lt; Return, exec::launch_type_t::index &gt; Struct Template Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Single-valued future.  
+<p>Multi-valued future from an index launch.  
  <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad660d42d6f5df2f3a2cc5bd3b66d0666" id="r_ad660d42d6f5df2f3a2cc5bd3b66d0666"><td class="memItemLeft" align="right" valign="top">Return&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad660d42d6f5df2f3a2cc5bd3b66d0666">get</a> (bool silence_warnings=false)</td></tr>
-<tr class="memdesc:ad660d42d6f5df2f3a2cc5bd3b66d0666"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the task's result.  <br /></td></tr>
-<tr class="separator:ad660d42d6f5df2f3a2cc5bd3b66d0666"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3b21853f890838c88d047d6c2786917" id="r_aa3b21853f890838c88d047d6c2786917"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3b21853f890838c88d047d6c2786917">wait</a> ()</td></tr>
-<tr class="memdesc:aa3b21853f890838c88d047d6c2786917"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait on the task to finish.  <br /></td></tr>
-<tr class="separator:aa3b21853f890838c88d047d6c2786917"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a726273048b674d5b970c95cc890f3e6f" id="r_a726273048b674d5b970c95cc890f3e6f"><td class="memItemLeft" align="right" valign="top">Return&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a726273048b674d5b970c95cc890f3e6f">get</a> (Color index=0, bool silence_warnings=false)</td></tr>
+<tr class="memdesc:a726273048b674d5b970c95cc890f3e6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the result of one of the tasks.  <br /></td></tr>
+<tr class="separator:a726273048b674d5b970c95cc890f3e6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a49aa42c83e86a61003107ab2dc6a78" id="r_a2a49aa42c83e86a61003107ab2dc6a78"><td class="memItemLeft" align="right" valign="top">Color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a49aa42c83e86a61003107ab2dc6a78">size</a> () const</td></tr>
+<tr class="memdesc:a2a49aa42c83e86a61003107ab2dc6a78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of tasks.  <br /></td></tr>
+<tr class="separator:a2a49aa42c83e86a61003107ab2dc6a78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3281fa7a58f093de0bcfd45211a1ed14" id="r_a3281fa7a58f093de0bcfd45211a1ed14"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3281fa7a58f093de0bcfd45211a1ed14">wait</a> (bool silence_warnings=false)</td></tr>
+<tr class="memdesc:a3281fa7a58f093de0bcfd45211a1ed14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait on all the tasks to finish.  <br /></td></tr>
+<tr class="separator:a3281fa7a58f093de0bcfd45211a1ed14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename Return&gt;<br />
-struct flecsi::future&lt; Return &gt;</div><p>Single-valued future. </p>
+struct future&lt; Return, exec::launch_type_t::index &gt;</div><p>Multi-valued future from an index launch. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa3b21853f890838c88d047d6c2786917" name="aa3b21853f890838c88d047d6c2786917"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3b21853f890838c88d047d6c2786917">&#9670;&#160;</a></span>wait()</h2>
+<a id="a3281fa7a58f093de0bcfd45211a1ed14" name="a3281fa7a58f093de0bcfd45211a1ed14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3281fa7a58f093de0bcfd45211a1ed14">&#9670;&#160;</a></span>wait()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -137,42 +140,60 @@ template&lt;typename Return &gt; </div>
         <tr>
           <td class="memname">void wait </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>silence_warnings</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Wait on the task to finish. </p>
+<p>Wait on all the tasks to finish. </p>
 
 </div>
 </div>
-<a id="ad660d42d6f5df2f3a2cc5bd3b66d0666" name="ad660d42d6f5df2f3a2cc5bd3b66d0666"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad660d42d6f5df2f3a2cc5bd3b66d0666">&#9670;&#160;</a></span>get()</h2>
+<a id="a726273048b674d5b970c95cc890f3e6f" name="a726273048b674d5b970c95cc890f3e6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a726273048b674d5b970c95cc890f3e6f">&#9670;&#160;</a></span>get()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;typename Return &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">Return get </td>
           <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>silence_warnings</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span></td><td>)</td>
+          <td class="paramtype">Color</td>          <td class="paramname"><span class="paramname"><em>index</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>silence_warnings</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Get the task's result. </p>
+<p>Get the result of one of the tasks. </p>
+<p>Note that all processes must select the same <em>index</em>. </p>
+
+</div>
+</div>
+<a id="a2a49aa42c83e86a61003107ab2dc6a78" name="a2a49aa42c83e86a61003107ab2dc6a78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a49aa42c83e86a61003107ab2dc6a78">&#9670;&#160;</a></span>size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Return &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">Color size </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the number of tasks. </p>
 
 </div>
 </div>
@@ -181,7 +202,7 @@ template&lt;typename Return &gt; </div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>flecsi</b></li><li class="navelem"><a class="el" href="structflecsi_1_1future_3_01Return_01_4.html">future&lt; Return &gt;</a></li>
+    <li class="navelem"><a class="el" href="structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">future&lt; Return, exec::launch_type_t::index &gt;</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.12.0 </li>
   </ul>
 </div>

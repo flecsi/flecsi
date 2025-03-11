@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.1</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -134,13 +134,7 @@ Topics</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future.html">future&lt; Return, Launch &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structflecsi_1_1future_3_01Return_01_4.html">Single</a> or <a class="el" href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">multiple</a> future.  <a href="structflecsi_1_1future.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future_3_01Return_01_4.html">future&lt; Return &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Single-valued future.  <a href="structflecsi_1_1future_3_01Return_01_4.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">future&lt; Return, exec::launch_type_t::index &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multi-valued future from an index launch.  <a href="structflecsi_1_1future_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structfuture_3_01Return_01_4.html">Single</a> or <a class="el" href="structfuture_3_01Return_00_01exec_1_1launch__type__t_1_1index_01_4.html">multiple</a> future.  <a href="structflecsi_1_1future.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflecsi_1_1exec_1_1trace_1_1guard.html">trace::guard</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII guard for executing a trace.  <a href="structflecsi_1_1exec_1_1trace_1_1guard.html#details">More...</a><br /></td></tr>
@@ -376,7 +370,7 @@ template&lt;auto &amp; F, class... AA&gt; </div>
 <div class="line">  <a class="code hl_function" href="#ga191a812b44259a5c9f02ae092f1d0648">execute</a>&lt;task&lt;<span class="keyword">decltype</span>(p)&gt;&gt;(p);  <span class="comment">// note explicit template argument</span></div>
 <div class="line">}</div>
 <div class="ttc" id="agroup__execution_html_ga191a812b44259a5c9f02ae092f1d0648"><div class="ttname"><a href="#ga191a812b44259a5c9f02ae092f1d0648">flecsi::execute</a></div><div class="ttdeci">auto execute(ARGS &amp;&amp;... args)</div><div class="ttdoc">Execute a task.</div><div class="ttdef"><b>Definition</b> fwd.hh:56</div></div>
-<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:217</div></div>
+<div class="ttc" id="agroup__execution_html_gac28f2f0eafd476e4798d91d751e90ff6"><div class="ttname"><a href="#gac28f2f0eafd476e4798d91d751e90ff6">flecsi::make_partial</a></div><div class="ttdeci">constexpr exec::partial&lt; F, std::decay_t&lt; AA &gt;... &gt; make_partial(AA &amp;&amp;... aa)</div><div class="ttdoc">Partially apply a function.</div><div class="ttdef"><b>Definition</b> launch.hh:252</div></div>
 </div><!-- fragment --> </dd></dl>
 
 </div>

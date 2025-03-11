@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="flecsi.png"/></td>
   <td id="projectalign">
-   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.1</span>
+   <div id="projectname">FleCSI Core API<span id="projectnumber">&#160;Version: 2.3.2</span>
    </div>
   </td>
     <td>        <div id="MSearchBox" class="MSearchBoxInactive">
@@ -106,6 +106,7 @@ $(function(){initNavTree('structflecsi_1_1topo_1_1unstructured.html',''); initRe
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="structflecsi_1_1topo_1_1unstructured-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">unstructured&lt; Policy &gt; Struct Template Reference<div class="ingroups"><a class="el" href="group__topology.html">Topologies</a> &raquo; <a class="el" href="group__unstructured.html">Unstructured Mesh</a></div></div></div>
 </div><!--header-->
@@ -130,6 +131,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9a83bf39c96199fe0e272e4cd315ae28"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a9a83bf39c96199fe0e272e4cd315ae28">get_special_entities</a> ()</td></tr>
 <tr class="memdesc:a9a83bf39c96199fe0e272e4cd315ae28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the special entities for a given index space.  <br /></td></tr>
 <tr class="separator:a9a83bf39c96199fe0e272e4cd315ae28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:aa6540c3edcba8c632c70d2334f1847f0" id="r_aa6540c3edcba8c632c70d2334f1847f0"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="structflecsi_1_1field.html">field</a>&lt; <a class="el" href="group__utils.html#ga6dcbd6f3f473db13e944c75433a5ba8b">util::id</a> &gt;::definition&lt; array&lt; Policy &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6540c3edcba8c632c70d2334f1847f0">special_field</a></td></tr>
+<tr class="memdesc:aa6540c3edcba8c632c70d2334f1847f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Field that holds each list of special entity IDs.  <br /></td></tr>
+<tr class="separator:aa6540c3edcba8c632c70d2334f1847f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -205,6 +212,33 @@ template&lt;index_space S, typename Policy::entity_list E&gt; </div>
 
 <p>Get the special entities for a given index space. </p>
 <dl class="section return"><dt>Returns</dt><dd>topology instance on which <code>special_field</code> is registered </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="aa6540c3edcba8c632c70d2334f1847f0" name="aa6540c3edcba8c632c70d2334f1847f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6540c3edcba8c632c70d2334f1847f0">&#9670;&#160;</a></span>special_field</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Policy &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structflecsi_1_1field.html">field</a>&lt;<a class="el" href="group__utils.html#ga6dcbd6f3f473db13e944c75433a5ba8b">util::id</a>&gt;::definition&lt;array&lt;Policy&gt; &gt; special_field</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Field that holds each list of special entity IDs. </p>
 
 </div>
 </div>
