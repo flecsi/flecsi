@@ -15,8 +15,8 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
-Changes in v2.3.2
-+++++++++++++++++
+Changes in v2.3.2 (March 11 2025)
++++++++++++++++++++++++++++++++++
 
 Deprecated
 ^^^^^^^^^^
