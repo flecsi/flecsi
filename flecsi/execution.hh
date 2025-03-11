@@ -19,6 +19,9 @@ namespace flog {
   Explicitly flush buffered flog output.
   \code#include "flecsi/execution.hh"\endcode
 
+  The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
+  \b deprecated.
+
   @ingroup flog
  */
 

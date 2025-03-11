@@ -127,7 +127,7 @@ protected:
    *--------------------------------------------------------------------------*/
   template<class A>
   void visit(data::detail::save_for_epilog &, A & a) {
-    // store the field to enact resizing at the of the trace
+    // store the field to enact resizing at the end of the trace
     if(exec::is_tracing())
       epilog_wrappers.push_back([a]() { return trace::save_dynamic_field(a); });
     else // launch the reduction to check if resizing is required

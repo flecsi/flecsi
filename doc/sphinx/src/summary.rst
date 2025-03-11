@@ -249,7 +249,7 @@ The most important of these is ``send_tag``: task-parameter types that inherit f
 This ``send`` method also accepts a callback function.
 When applying operations to the task parameters, instead of duplicating code to handle the lower-level task parameters, it relies on this callback mechanism.
 With it, task parameters are able to decompose themselves down to simpler parameters that have specific processing defined, such as raw accessors that underlie accessors and mutators.
-This composition process is handled via inheritance and agregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
+This composition process is handled via inheritance and aggregation, and the ``send`` method may be called multiple times and for various purposes depending on the backend and the path taken to send the object between caller and task.
 
 A call to ``execute<F>`` can return before the task does; it returns a *future* that can be used to wait on the task to finish and obtain its return value (if any).
 (Legion provides a mechanism for nontrivial class types to serialize themselves when so returned.)
