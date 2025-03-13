@@ -13,6 +13,7 @@
 #include <cstddef> // byte
 #include <cstdint>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -28,6 +29,15 @@ namespace mpi {
 /// These require MPI tasks, not the MPI backend.
 /// \ingroup utils
 /// \{
+
+#if MPI_VERSION < 4
+typedef int offset_t, count_t;
+#define FLECSI_MPI_C(f) f
+#else
+using count_t = MPI_Count;
+using offset_t = MPI_Aint;
+#define FLECSI_MPI_C(f) f##_c
+#endif
 
 inline void
 test(int err) {
@@ -79,13 +89,14 @@ private:
 } inline datatypes;
 
 struct vector { // for *v functions
-  explicit vector(int n) {
+  explicit vector(count_t n) {
     off.reserve(n);
     sz.reserve(n);
   }
 
   std::vector<std::byte> data;
-  std::vector<int> off, sz;
+  std::vector<offset_t> off;
+  std::vector<count_t> sz;
 
   void skip() {
     sz.push_back(0);
@@ -93,8 +104,16 @@ struct vector { // for *v functions
   }
   template<class T>
   void put(const T & t) {
-    const auto n = off.emplace_back(data.size());
-    data.resize(n + sz.emplace_back(serial::size(t)));
+    const auto n = data.size();
+    const auto s = serial::size(t);
+    const auto cmax = std::numeric_limits<count_t>::max();
+    if(MPI_VERSION < 4 && (s > cmax || n > cmax - s)) {
+      flog_fatal("MPI message overflow! Try using an MPI-4 implementation for "
+                 "large count support!");
+    }
+    off.emplace_back(n);
+    sz.emplace_back(s);
+    data.resize(n + s);
     auto * p = data.data() + n;
     serial::put(p, t);
   }
@@ -421,15 +440,15 @@ one_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
 
     test(MPI_Scatter(v.sz.data(),
       1,
-      MPI_INT,
+      type<count_t>(),
       rank ? v.sz.data() : MPI_IN_PLACE,
       1,
-      MPI_INT,
+      type<count_t>(),
       0,
       comm));
     if(rank)
       v.data.resize(v.sz.front());
-    test(MPI_Scatterv(v.data.data(),
+    test(FLECSI_MPI_C(MPI_Scatterv)(v.data.data(),
       v.sz.data(),
       v.off.data(),
       MPI_BYTE,
@@ -463,7 +482,7 @@ struct bit_message {
   const void * data() const {
     return p.get();
   }
-  int count() const {
+  count_t count() const {
     return 1;
   }
   std::size_t bytes() const {
@@ -504,7 +523,7 @@ struct serial_message {
   const void * data() const {
     return v.data();
   }
-  int count() const {
+  count_t count() const {
     return v.size();
   }
   std::size_t bytes() const {
@@ -572,7 +591,8 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
           if(i == int(req.size()))
             req.emplace_back();
           // Discourage buffering (at the cost of needless synchronization):
-          test(MPI_Issend(v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
+          test(FLECSI_MPI_C(MPI_Issend)(
+            v.data(), v.count(), M::type(), r, 0, comm, &req[i]));
           used += v.bytes();
         }
         while(used > mem) {
@@ -593,7 +613,7 @@ one_to_alli(R && r, std::size_t mem = 1 << 20, MPI_Comm comm = MPI_COMM_WORLD) {
   }
   else {
     M ret(0, 0, comm);
-    test(MPI_Recv(
+    test(FLECSI_MPI_C(MPI_Recv)(
       ret.data(), ret.count(), M::type(), 0, 0, comm, MPI_STATUS_IGNORE));
     return std::move(ret).get();
   }
@@ -651,8 +671,13 @@ all_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
       }
 
       recv.sz.resize(size);
-      test(MPI_Alltoall(
-        send.sz.data(), 1, MPI_INT, recv.sz.data(), 1, MPI_INT, comm));
+      test(MPI_Alltoall(send.sz.data(),
+        1,
+        type<count_t>(),
+        recv.sz.data(),
+        1,
+        type<count_t>(),
+        comm));
 
       {
         int o = 0;
@@ -663,7 +688,7 @@ all_to_allv(R && r, MPI_Comm comm = MPI_COMM_WORLD) {
         recv.data.resize(o);
       }
 
-      test(MPI_Alltoallv(send.data.data(),
+      test(FLECSI_MPI_C(MPI_Alltoallv)(send.data.data(),
         send.sz.data(),
         send.off.data(),
         MPI_BYTE,
@@ -717,8 +742,13 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
     v.sz.resize(size);
     v.sz[rank] = serial::size(t);
 
-    test(MPI_Allgather(
-      MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, v.sz.data(), 1, MPI_INT, comm));
+    test(MPI_Allgather(MPI_IN_PLACE,
+      0,
+      MPI_DATATYPE_NULL,
+      v.sz.data(),
+      1,
+      type<count_t>(),
+      comm));
 
     v.off.resize(size);
     v.off[0] = 0;
@@ -730,7 +760,7 @@ all_gatherv(const T & t, MPI_Comm comm = MPI_COMM_WORLD) {
       serial::put(p, t);
     }
 
-    test(MPI_Allgatherv(MPI_IN_PLACE,
+    test(FLECSI_MPI_C(MPI_Allgatherv)(MPI_IN_PLACE,
       0,
       MPI_DATATYPE_NULL,
       v.data.data(),

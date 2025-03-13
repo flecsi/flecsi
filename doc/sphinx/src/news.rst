@@ -15,6 +15,16 @@ Release Notes
 
    The bullets in each such discussion are in descending order of importance.
 
+Changes in v2.3.3
++++++++++++++++++
+
+Fixed
+^^^^^
+* Utilities
+
+  * MPI collective helpers make use of MPI-4 large count support when available.
+    Overflows due to MPI-3 restrictions are trapped.
+
 Changes in v2.3.2 (March 11 2025)
 +++++++++++++++++++++++++++++++++
 
