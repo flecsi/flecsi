@@ -279,6 +279,7 @@ private:
 /// \name Assertion macros
 /// \{
 
+/// Condition.
 #define ASSERT_TRUE(c) CHECK(return, test<true>, !!(c), #c)
 #define EXPECT_TRUE(c) CHECK(, test<false>, !!(c), #c)
 
@@ -307,7 +308,6 @@ private:
 /// (usually to avoid subsequent undefined behavior).
 /// \{
 
-/// Comparison.
 #define ASSERT_EQ(x, y) ASSERT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define EXPECT_EQ(x, y) EXPECT_CMP(x, y, ::std::equal_to<>, ==, "")
 #define ASSERT_NE(x, y) ASSERT_CMP(x, y, ::std::not_equal_to<>, !=, "")

@@ -1653,6 +1653,8 @@ struct ntree_specialization : specialization<ntree, ntree_specialization> {
   /// node-node. Returns true if there is an interaction. A possible
   /// implementation is to use a templated function.
   /// \{
+
+  /// <a></a>
   static bool intersect(entity_data, entity_data) {}
   static bool intersect(entity_data, node_data) {}
   static bool intersect(node_data, node_data) {}
