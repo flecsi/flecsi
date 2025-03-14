@@ -301,6 +301,7 @@ public:
 } // namespace annotation
 
 /// Initialize caliper annotation objects from the context name.
+/// \deprecated Use \c guard or \c rguard.
 #if !defined(DISABLE_CALIPER)
 template<class T>
 cali::Annotation annotation::context<T>::ann{T::name};
