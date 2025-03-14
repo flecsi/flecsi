@@ -124,84 +124,58 @@ public:
     return tmp;
   }
 
-  //--------------------------------------------------------------------------//
-  // Macro to avoid code replication.
-  //--------------------------------------------------------------------------//
+  /// \name Arithmetic augmented assignment
+  /// Updates with corresponding values or the one given value.
+  /// \{
 
-#define define_operator(op)                                                    \
-  constexpr dimensioned_array & operator op(dimensioned_array const & rhs) {   \
-    for(Dimension i = 0; i < DIMENSION; i++) {                                 \
-      get_base()[i] op rhs[i];                                                 \
-    } /* for */                                                                \
-                                                                               \
-    return *this;                                                              \
+  /// <a></a>
+  constexpr dimensioned_array & operator+=(dimensioned_array const & rhs) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] += rhs[i];
+    return *this;
+  }
+  constexpr dimensioned_array & operator+=(TYPE val) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] += val;
+    return *this;
   }
 
-  //--------------------------------------------------------------------------//
-  // Macro to avoid code replication.
-  //--------------------------------------------------------------------------//
-
-#define define_operator_type(op)                                               \
-  constexpr dimensioned_array & operator op(TYPE val) {                        \
-    for(Dimension i = 0; i < DIMENSION; i++) {                                 \
-      get_base()[i] op val;                                                    \
-    } /* for */                                                                \
-                                                                               \
-    return *this;                                                              \
+  constexpr dimensioned_array & operator-=(dimensioned_array const & rhs) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] -= rhs[i];
+    return *this;
+  }
+  constexpr dimensioned_array & operator-=(TYPE val) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] -= val;
+    return *this;
   }
 
-  // clang-format off
+  constexpr dimensioned_array & operator*=(dimensioned_array const & rhs) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] *= rhs[i];
+    return *this;
+  }
+  constexpr dimensioned_array & operator*=(TYPE val) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] *= val;
+    return *this;
+  }
 
-  //--------------------------------------------------------------------------//
-  //! Addition/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator(+=)
-
-  //--------------------------------------------------------------------------//
-  //! Addition/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator_type(+=)
-
-  //--------------------------------------------------------------------------//
-  //! Subtraction/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator(-=)
-
-  //--------------------------------------------------------------------------//
-  //! Subtraction/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator_type(-=)
-
-  //--------------------------------------------------------------------------//
-  //! Multiplication/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator(*=)
-
-  //--------------------------------------------------------------------------//
-  //! Multiplication/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator_type(*=)
-
-  //--------------------------------------------------------------------------//
-  //! Division/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator(/=)
-
-  //--------------------------------------------------------------------------//
-  //! Division/Assignment operator.
-  //--------------------------------------------------------------------------//
-
-  define_operator_type(/=)
-
-  // clang-format on
+  constexpr dimensioned_array & operator/=(dimensioned_array const & rhs) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] /= rhs[i];
+    return *this;
+  }
+  constexpr dimensioned_array & operator/=(TYPE val) {
+    for(Dimension i = 0; i < DIMENSION; ++i)
+      get_base()[i] /= val;
+    return *this;
+  }
+  /// \}
 }; // class dimensioned_array
+
+/// \}
 
 //----------------------------------------------------------------------------//
 //! Addition operator.
@@ -212,6 +186,7 @@ public:
 //! @tparam NAMESPACE The namespace of the array.  This is a dummy parameter
 //!                   that is useful for creating distinct types that alias
 //!                   dimensioned_array.
+//! \relates dimensioned_array
 //----------------------------------------------------------------------------//
 
 template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
@@ -224,7 +199,7 @@ operator+(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 } // operator +
 
 //----------------------------------------------------------------------------//
-//! Addition operator.
+//! Subtraction operator.
 //!
 //! @tparam TYPE      The type of the array, e.g., P.O.D. type.
 //! @tparam DIMENSION The dimension of the array, i.e., the number of elements
@@ -232,6 +207,7 @@ operator+(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 //! @tparam NAMESPACE The namespace of the array.  This is a dummy parameter
 //!                   that is useful for creating distinct types that alias
 //!                   dimensioned_array.
+//! \relates dimensioned_array
 //----------------------------------------------------------------------------//
 
 template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
@@ -244,7 +220,7 @@ operator-(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 } // operator -
 
 //----------------------------------------------------------------------------//
-//! Addition operator.
+//! Output operator.
 //!
 //! @tparam TYPE      The type of the array, e.g., P.O.D. type.
 //! @tparam DIMENSION The dimension of the array, i.e., the number of elements
@@ -255,6 +231,7 @@ operator-(const dimensioned_array<TYPE, DIMENSION, NAMESPACE> & lhs,
 //!
 //! @param stream The output stream.
 //! @param a      The dimensioned array.
+//! \relates dimensioned_array
 //----------------------------------------------------------------------------//
 
 template<typename TYPE, Dimension DIMENSION, std::size_t NAMESPACE>
@@ -272,7 +249,6 @@ operator<<(std::ostream & stream,
   return stream;
 } // operator <<
 
-/// \}
 } // namespace util
 } // namespace flecsi
 
