@@ -15,6 +15,10 @@
 #endif // FLECSI_BACKEND
 
 #ifdef DOXYGEN // implemented per-backend
+namespace flecsi {
+/// \addtogroup execution
+/// \{
+
 /// Single-valued future.
 template<typename Return>
 struct future<Return> {
@@ -41,5 +45,8 @@ struct future<Return, exec::launch_type_t::index> {
 template<class Return>
 future<Return> make_future(Return &&);
 /// \endcond
+
+/// \}
+} // namespace flecsi
 #endif // DOXYGEN
 #endif

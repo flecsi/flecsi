@@ -86,7 +86,7 @@ mask_to_processor_type(TaskAttributes mask) {
 
 /// \}
 } // namespace exec
-  /// \endcond
+/// \endcond
 } // namespace flecsi
 
 #endif
