@@ -22,6 +22,7 @@ namespace flecsi {
 namespace exec {
 /// \defgroup mpi-execution MPI Execution
 /// Direct task execution.
+/// \ns{exec::mpi}.
 /// \ingroup execution
 /// \{
 namespace detail {

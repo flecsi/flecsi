@@ -55,6 +55,8 @@ maybe_flush() {
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
 /// and data-parallel, possibly using an accelerator.
+///
+/// \ns{exec}.
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
@@ -113,6 +115,8 @@ reduce(Args &&... args) {
                      the parameter types for \a TASK.
 
   @return zero on success, non-zero on failure.
+
+  \ns.
  */
 
 template<auto & TASK,

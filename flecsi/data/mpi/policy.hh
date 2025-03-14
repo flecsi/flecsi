@@ -27,6 +27,7 @@ constexpr inline util::id logical_size = std::numeric_limits<util::id>::max();
 namespace mpi {
 /// \defgroup mpi-data MPI Data
 /// Direct data storage.
+/// \ns{data::mpi}.
 /// \ingroup data
 /// \{
 

@@ -249,6 +249,8 @@ struct partial : std::tuple<AA...> {
 ///     auto p = make_partial<func>(/*...*/);
 ///     execute<task<decltype(p)>>(p);  // note explicit template argument
 ///   }\endcode
+///
+/// \ns.
 template<auto & F, class... AA>
 constexpr exec::partial<F, std::decay_t<AA>...>
 make_partial(AA &&... aa) {

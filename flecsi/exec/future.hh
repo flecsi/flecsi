@@ -41,7 +41,7 @@ struct future<Return, exec::launch_type_t::index> {
 };
 
 /// \cond core
-/// Generate a new future from a value
+/// Generate a new future from a value.  \ns.
 template<class Return>
 future<Return> make_future(Return &&);
 /// \endcond

@@ -13,6 +13,7 @@ namespace flecsi {
 namespace exec::fold {
 /// \defgroup fold Reduction Operations
 /// Types to use with \c reduce, \c reduceall, and \c reduction_accessor.
+/// \ns{exec::fold}.
 /// \ingroup execution
 /// \{
 

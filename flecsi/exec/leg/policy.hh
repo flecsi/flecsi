@@ -26,6 +26,7 @@ namespace flecsi {
 namespace exec {
 /// \defgroup legion-execution Legion Execution
 /// Potentially remote task execution.
+/// \ns{exec::leg}.
 /// \ingroup execution
 /// \{
 namespace detail {

@@ -29,6 +29,7 @@ namespace annotation {
 /// can then be used to control performance measurement and collection
 /// for the annotations.
 ///
+/// \ns{util::annotation}.
 /// \ingroup utils
 /// \{
 

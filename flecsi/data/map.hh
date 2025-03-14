@@ -15,6 +15,8 @@ namespace data::launch {
 /// Selecting topology colors to send to tasks.
 /// \warning Only the Legion backend supports non-trivial mappings that select
 ///   any color but their own.
+///
+/// \ns{data::launch}.
 /// \ingroup data
 /// \{
 

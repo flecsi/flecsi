@@ -23,6 +23,8 @@ namespace flecsi {
   \return a \ref future providing the reduced return value
 
   \see \c execute about parameter and argument types.
+
+  \ns.
  */
 template<auto & Task,
   class Reduction,
@@ -48,6 +50,8 @@ template<auto & Task,
     Avoid
     passing large objects to tasks repeatedly; use global variables (and,
     perhaps, pass keys to select from them) or fields.
+
+  \ns.
  */
 template<auto & TASK,
   TaskAttributes ATTRIBUTES = flecsi::loc | flecsi::leaf,
