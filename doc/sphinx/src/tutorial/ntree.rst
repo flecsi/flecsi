@@ -35,14 +35,14 @@ These keys are then used to create the tree data structure while keeping data lo
 The implementation is based on four files:
 
 - ``ntree_sph.hh``: The SPH specialization of the N-Tree. It will be used to illustrate the different tree traversals methods.
-- ``main.cc``: The Sod shock tube implementation, creates the N-Tree and uses tasks to evolve the simulation.
-- ``sph_physics.hh``: Provides the physics used in the tasks of ``main.cc``.
+- ``ntree.cc``: The Sod shock tube implementation, creates the N-Tree and uses tasks to evolve the simulation.
+- ``sph_physics.hh``: Provides the physics used in the tasks of ``ntree.cc``.
 - ``control.hh``: The different control points to run the example.
 
 In this document we will refer to the leaves of the N-Tree as ``entities``. In this example the ``entities`` will represent the `particles` in SPH. The other components of the tree are called nodes and are a separate index space.
 The ``keys`` will refer to the space-filling curve values associated with the ``entities`` and ``nodes``.
 
-We will first focus on the ``main.cc`` file which implements the Sod shock tube, using the specialization described later. We will not detail all the tasks and the physics involved, but this will give us an opportunity to explore the capabilities of the N-Tree.
+We will first focus on the ``ntree.cc`` file which implements the Sod shock tube, using the specialization described later. We will not detail all the tasks and the physics involved, but this will give us an opportunity to explore the capabilities of the N-Tree.
 
 Control Model
 -------------
@@ -76,7 +76,7 @@ The N-Tree setup happens in ``initialize_action``:
 Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.
 The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``color`` function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
 The call to ``allocate`` creates the basic memory layout to input the initial particle information but does not generate the N-Tree data structure.
-At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``main.cc`` file:
+At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``ntree.cc`` file:
 
 
 .. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
