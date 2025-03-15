@@ -210,3 +210,48 @@ In the first step ``ts->make_tree(s)``:
 To compute ghost information for all entities, the user needs to provide the interaction information. In this example, we are computing the center of mass for each node in the N-Tree. We are then using these centers of mass as the center of the sphere for the interaction function described earlier.
 In the last step, we compute and share the ghost entities. This creates the data structure needed when ``ghost_copy`` is triggered by a task.
 After these steps, the N-Tree data structure is ready to be used, the neighboring information will be available for each entity.
+
+Solver
+======
+The simulation repeatedly invokes actions to advance the simulation state and write output from it.
+The former launches several related tasks:
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-after: // The cycle
+  :end-at: }
+
+The permissions of the accessors used by these tasks determine the communication structure of the iteration:
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: density_task
+  :end-at: {
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: eos_task
+  :end-at: {
+
+``eos_task`` can run as soon as ``density_task`` completes, without an intervening ghost copy for ``rho``, because it does not read the ghost elements.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: acceleration_task
+  :end-at: {
+
+That ghost copy, as well as the one for ``p``, must however take place before ``acceleration_task`` can execute, since it reads the ghosts for both.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: dudt_task
+  :end-at: {
+
+``dudt_task`` reads the ghosts for ``rho`` and ``p`` again, but no second copy is needed since no writes have taken place since the first.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: advance_task
+  :end-at: {
+
+The write to the topology structure data ``t`` necessitates a ghost copy before the next ``density_task``, but the output reads only owned data and can proceed immediately.

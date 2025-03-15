@@ -123,6 +123,7 @@ merge_output(sph::control_policy & cp) {
   }
 }
 
+// The cycle includes the following two functions.
 void
 iterate_action(sph::control_policy & cp) {
   auto rho = density(cp.sph_ntree);
