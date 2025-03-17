@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace flecsi {
-/// Type for spatial dimensions and counts thereof.
+/// Type for spatial dimensions and counts thereof.  \ns.
 /// \ingroup utils
 using Dimension = unsigned short;
 

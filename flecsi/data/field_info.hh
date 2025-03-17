@@ -52,7 +52,7 @@ using fields = std::vector<std::shared_ptr<field_info_t>>;
 #endif
 
 /*!
-  Unique counter for field ids.
+  Unique counter for field ids.  \ns.
  */
 inline util::counter<field_id_t(FLECSI_GENERATED_ID_MAX)> fid_counter(0);
 

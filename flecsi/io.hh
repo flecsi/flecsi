@@ -7,6 +7,7 @@
 namespace flecsi::io {
 /// \defgroup io I/O
 /// Checkpointing.
+/// \ns{io}.
 /// \{
 
 #ifdef DOXYGEN // implemented per-backend

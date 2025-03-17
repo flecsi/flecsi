@@ -27,6 +27,7 @@ namespace util {
 namespace mpi {
 /// \defgroup mpi-utils MPI
 /// These require MPI tasks, not the MPI backend.
+/// \ns{util::mpi}.
 /// \ingroup utils
 /// \{
 

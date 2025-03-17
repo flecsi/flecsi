@@ -16,6 +16,8 @@ namespace flecsi::util::unit {
 /// Each \a Target is a function with signature `int()`; if any returns a
 /// non-zero value, so does the process built with \c flecsi_add_test.
 /// Output is via \ref flog.
+///
+/// \ns{util::unit}.
 /// \ingroup utils
 /// \{
 

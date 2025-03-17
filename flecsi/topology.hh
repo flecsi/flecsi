@@ -6,6 +6,7 @@
 
 /// \defgroup topology Topologies
 /// Generic topology categories and tools for specializing them.
+/// \ns{topo}.
 /// \code#include "flecsi/topology.hh"\endcode
 ///
 /// This header provides the features in the following additional \b deprecated

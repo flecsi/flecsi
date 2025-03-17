@@ -248,6 +248,17 @@ In this case multiple privileges are specified to describe access to exclusive, 
 If no privilege grants write permission (*e.g.*, with ``flecsi::field<double>::accessor<flecsi::ro, flecsi::ro, flecsi::na>``), the accessor will produce the ``const``-qualified version of the field type.
 However, it is impossible to so restrict some but not all index points (for, say, ``flecsi::field<double>::accessor<flecsi::rw, flecsi::ro, flecsi::ro>``); if the client modifies elements for which it has no write permission, the behavior is undefined.
 
+A ghost copy occurs between any two tasks that operate on the same field where
+
+1. the first has write access to the shared elements,
+
+2. the second has read access to the ghost elements, and
+
+3. neither the first nor any intervening task has write access to the ghost elements.
+
+That is, ghosts are considered out of date only if the shared values have been written *more* recently; this allows ghosts to be initialized to a constant or to be transformed by a local function without communication.
+Two writes to the shared elements of a field may produce only one ghost copy if no ghost reads occur after the first but not after the second.
+
 The first access to each field must be write-only, except that the ghosts may be no-access to indicate that the initial values need to be copied to other colors as usual.
 
 Mutators

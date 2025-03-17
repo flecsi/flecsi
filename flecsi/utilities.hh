@@ -6,6 +6,7 @@
 
 /// \defgroup utils Utilities
 /// Non-domain-specific infrastructure.
+/// \ns{util}.
 /// \code#include "flecsi/utilities.hh"\endcode
 ///
 /// This header provides the features in the following additional \b deprecated

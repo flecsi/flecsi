@@ -36,6 +36,8 @@ struct program_option;
   Convert an option value into its underlying type.
 
   @tparam ValueType The option underlying value type.
+
+  \ns.
   \deprecated Accept the value directly in the validation function.
  */
 
@@ -242,6 +244,8 @@ private:
 
 /// Command-line parser.
 /// The options defined by \c #initialize are not recognized.
+///
+/// \ns.
 struct getopt {
   /// Collect \c program_option objects.
   explicit getopt() : getopt({}) {}

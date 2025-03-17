@@ -12,6 +12,7 @@ namespace flecsi {
 
 /// \defgroup runtime Runtime Model
 /// Environmental information and tools for organizing applications.
+/// \ns{run}.
 /// \code#include "flecsi/runtime.hh"\endcode
 ///
 /// This header provides the features in the following additional \b deprecated
@@ -22,6 +23,8 @@ namespace flecsi {
 
 /// FleCSI runtime state.
 /// Only one can exist at a time.
+///
+/// \ns.
 struct runtime {
   /// Construct from a configuration.
   ///
@@ -50,7 +53,7 @@ struct runtime {
 };
 
 /*!
-  Return the current process id.
+  Return the current process id.  \ns.
  */
 
 inline Color
@@ -59,7 +62,7 @@ process() {
 }
 
 /*!
-  Return the number of processes.
+  Return the number of processes.  \ns.
  */
 
 inline Color
@@ -68,7 +71,7 @@ processes() {
 }
 
 /*!
-  Return the number of threads per process.
+  Return the number of threads per process.  \ns.
   \deprecated This information is unreliable and not useful for scheduling.
  */
 
@@ -83,6 +86,8 @@ threads_per_process() {
   execution, and does not imply any other properties. This interface can be
   used to determine the full subscription of the execution instances of the
   running process that invoked the FleCSI runtime.
+
+  \ns.
   \deprecated This information is unreliable and not useful for scheduling.
  */
 
@@ -95,6 +100,8 @@ threads() {
   Return the color of the current execution instance. This function is only
   valid if invoked from within a non MPI task. For MPI task, use \c #process,
   which in that case equals to the color used from any topology.
+
+  \ns.
  */
 
 inline Color
@@ -107,6 +114,8 @@ color() {
   only valid if invoked from within a non MPI task. For MPI task, use \c
   #processes which in that case equals to the number of colors used from any
   topology.
+
+  \ns.
  */
 
 inline Color
@@ -119,6 +128,8 @@ colors() {
   signatures. Shortened names may be used by FleCSI to register tasks in some
   backends and provide more user-friendly names for debugging purposes. This map
   is empty if no such shortening took place.
+
+  \ns.
  */
 
 inline const std::map<std::string, std::string> &

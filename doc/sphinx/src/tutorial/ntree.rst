@@ -35,14 +35,14 @@ These keys are then used to create the tree data structure while keeping data lo
 The implementation is based on four files:
 
 - ``ntree_sph.hh``: The SPH specialization of the N-Tree. It will be used to illustrate the different tree traversals methods.
-- ``main.cc``: The Sod shock tube implementation, creates the N-Tree and uses tasks to evolve the simulation.
-- ``sph_physics.hh``: Provides the physics used in the tasks of ``main.cc``.
+- ``ntree.cc``: The Sod shock tube implementation, creates the N-Tree and uses tasks to evolve the simulation.
+- ``sph_physics.hh``: Provides the physics used in the tasks of ``ntree.cc``.
 - ``control.hh``: The different control points to run the example.
 
 In this document we will refer to the leaves of the N-Tree as ``entities``. In this example the ``entities`` will represent the `particles` in SPH. The other components of the tree are called nodes and are a separate index space.
 The ``keys`` will refer to the space-filling curve values associated with the ``entities`` and ``nodes``.
 
-We will first focus on the ``main.cc`` file which implements the Sod shock tube, using the specialization described later. We will not detail all the tasks and the physics involved, but this will give us an opportunity to explore the capabilities of the N-Tree.
+We will first focus on the ``ntree.cc`` file which implements the Sod shock tube, using the specialization described later. We will not detail all the tasks and the physics involved, but this will give us an opportunity to explore the capabilities of the N-Tree.
 
 Control Model
 -------------
@@ -76,7 +76,7 @@ The N-Tree setup happens in ``initialize_action``:
 Firstly, the initial information about the entities is retrieved, either from a file or directly generated in the program. In this example we compute this information directly in the program. This vital information is used to create the N-Tree data structure through our SPH specialization using coordinates, mass, and radius.
 The coloring ``sph_ntree_t::mpi_coloring`` is constructed internally via the ``color`` function from the specialization. It defines how the particles are distributed among all the colors. In this example the specialization just provides a simple load-balancing scheme with an equal number of entities per color.
 The call to ``allocate`` creates the basic memory layout to input the initial particle information but does not generate the N-Tree data structure.
-At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``main.cc`` file:
+At this stage we can populate the different user-defined fields. These fields are defined at the top of the ``ntree.cc`` file:
 
 
 .. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
@@ -210,3 +210,48 @@ In the first step ``ts->make_tree(s)``:
 To compute ghost information for all entities, the user needs to provide the interaction information. In this example, we are computing the center of mass for each node in the N-Tree. We are then using these centers of mass as the center of the sphere for the interaction function described earlier.
 In the last step, we compute and share the ghost entities. This creates the data structure needed when ``ghost_copy`` is triggered by a task.
 After these steps, the N-Tree data structure is ready to be used, the neighboring information will be available for each entity.
+
+Solver
+======
+The simulation repeatedly invokes actions to advance the simulation state and write output from it.
+The former launches several related tasks:
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-after: // The cycle
+  :end-at: }
+
+The permissions of the accessors used by these tasks determine the communication structure of the iteration:
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: density_task
+  :end-at: {
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: eos_task
+  :end-at: {
+
+``eos_task`` can run as soon as ``density_task`` completes, without an intervening ghost copy for ``rho``, because it does not read the ghost elements.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: acceleration_task
+  :end-at: {
+
+That ghost copy, as well as the one for ``p``, must however take place before ``acceleration_task`` can execute, since it reads the ghosts for both.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: dudt_task
+  :end-at: {
+
+``dudt_task`` reads the ghosts for ``rho`` and ``p`` again, but no second copy is needed since no writes have taken place since the first.
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree.cc
+  :language: cpp
+  :start-at: advance_task
+  :end-at: {
+
+The write to the topology structure data ``t`` necessitates a ghost copy before the next ``density_task``, but the output reads only owned data and can proceed immediately.

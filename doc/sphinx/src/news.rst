@@ -18,6 +18,12 @@ Release Notes
 Changes in v2.3.3
 +++++++++++++++++
 
+Deprecated
+^^^^^^^^^^
+* Utilities
+
+  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
+
 Fixed
 ^^^^^
 * Utilities

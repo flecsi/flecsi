@@ -36,8 +36,10 @@ namespace flog {
 /// \defgroup flog Logging
 /// Configurable, parallel logging.
 /// If disabled at configuration time, no output is produced.
-/// \code#include "flecsi/flog.hh"\endcode
+///
+/// \ns{flog}.
 /// The \e name \c flecsi::log may also be used, but is \b deprecated.
+/// \code#include "flecsi/flog.hh"\endcode
 /// \{
 
 namespace detail {

@@ -454,6 +454,7 @@ public:
     /// \name std::vector operations
     /// \{
 
+    /// <a></a>
     void assign(size_type count, const T & value) const {
       clear();
       resize(count, value);
@@ -1003,6 +1004,8 @@ public:
 
     /// \name std::map operations
     /// \{
+
+    /// <a></a>
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;
     }
