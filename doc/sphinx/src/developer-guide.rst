@@ -1,9 +1,6 @@
 Developer Guide
 ***************
 
-This documentation is intended for developers of the core FleCSI
-library.
-
 .. toctree::
 
    summary
@@ -69,19 +66,8 @@ Additional Rules
 
 Directory Structure 
 ^^^^^^^^^^^^^^^^^^^
-
-The source code for the core FleCSI infrastructure is located in the
-*top-level/flecsi* directory. For the most part, the subdirectories of
-this directory correspond to the different namespaces in the core
-infrastructure. Each of these subdirectories must contain a valid
-CMakeLists.txt file. However, none of their children should have a
-CMakeLists.txt file; the build system will not recurse beyond the
-first level of subdirectories. Developers should use relative paths
-within a CMakeLists.txt file to identify source in subdirectories.
-
-Unit test files should be placed in the *test* subdirectory of each
-namespace subdirectory. By convention, developers should not create
-subdirectories within the test subdirectory.
+Each subdirectory of ``flecsi`` has a ``CMakeLists.txt`` file which names further subdirectories (many of which are backend-specific) as needed.
+Most also have ``test`` subdirectories, as do the ``topo`` subdirectories (which typically need more data files).
 
 Commits
 ^^^^^^^
@@ -144,16 +130,16 @@ release
   *major.minor.patch* version number, e.g., 1.1.2) are used to identify
   patched versions.
 
+.. _branch:
+.. figure:: images/branch.png
+
+  Workflow diagram illustrating basic workflow using the three branch
+  types described above. (Figure due to Angela Herring.)
+
 In general, each change should be made on the most restrictive permissible relevant branch so as to minimize divergence between them (after merging) and the associated potential for future merge conflicts.
 The condition of relevance pertains to an internal feature that might be added only on the feature branch if it is not expected to accrue any clients on the release branch.
 A sometimes countervailing consideration is stability: users expect that patch releases are less likely to cause problems when upgrading even though it is simply a bug if even a feature release does so.
 It is also unfortunate to need to consider reverting a change because an official release is needed in the interval between introducing it and becoming confident in it.
-
-Tags
-^^^^
-
-Release tags should be created for each new release, with *v* and the
-release version, e.g., *v1.4.1*.
 
 FleCSI Version File (``.version``) and ``FLECSI_VERSION``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,19 +203,6 @@ The following table summarizes these rules with some examples:
      - ``v2.2.0``
      - ``0x020200``
 
-Workflow
-^^^^^^^^
-
-FleCSI development uses a *devel -> feature -> release* forking workflow
-that can be visualized as in :numref:`branch`. Bugfixes and features can
-be back-merged into *feature* or *devel*, as appropriate.
-
-.. _branch:
-.. figure:: images/branch.png
-
-  Workflow diagram illustrating basic workflow using the three branch
-  types described above. (Figure due to Angela Herring.)
-
 -----
 
 Published Documentation
@@ -239,60 +212,6 @@ The ``deploy-docs`` Make target sets up a repository to update it by pushing to 
 
   __ http://www.flecsi.org/
   __ https://github.com/flecsi/flecsi/tree/gh-pages
-
------
-
-Spack Cheat Sheet
-+++++++++++++++++
-
-To remove all cached sources:
-
-.. code-block:: console
-
-  $ spack clean -d
-
-To remove cached sources for a particular spec:
-
-.. code-block:: console
-
-  $ spack clean -d spec
-
-To uninstall all spack packages:
-
-.. code-block:: console
-
-  $ spack uninstall -fay
-
-To keep temporary staging files in /tmp/*$USER*:
-
-.. code-block:: console
-
-  $ spack install --keep-stage ...
-
------
-
-Git Cheat Sheet
-+++++++++++++++
-
-To lookup the hash referenced by a tag:
-
-.. code-block:: console
-
-  $ git rev-list -n 1 $TAG
-
-To get the message for an annotated tag:
-
-.. code-block:: console
-
-  $ git tag -nX (X specifies lines of annotation)
-
-To sync tags:
-
-.. code-block:: console
-
-  $ git fetch --prune --prune-tags
-
------
 
 Building for Darwin
 +++++++++++++++++++
@@ -360,31 +279,12 @@ as a reference for the commands needed to get FleCSI up and running.
 
 -----
 
-Graphviz Notes
-++++++++++++++
-
-FleCSI uses the `libcgraph`__ interface to `Graphviz`__ to create
-control model visualizations. The *libcgraph* interface is fairly
-counterintuitive. One particular gotcha is that graph, node, and edge
-attributes can only be set on attributes that have been defined for the
-graph. If an attribute type has not been defined, the graph will ignore
-it. There is not easy to remedy to this problem: attributes that are
-added after initialization will reset all previously added elements to
-whatever the default of the new attribute is. Therefore, if you need to
-add an attribute, the best thing to do is to look at the *graphviz.hh*
-file in 'flecsi/util' and add it there with a reasonable default.
-
-__ https://graphviz.gitlab.io/_pages/pdf/libguide.pdf
-__ https://www.graphviz.org
-
------
-
-Doxygen
-+++++++
-The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
-See the `manual`__ for details, but note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
-
+`Doxygen`__
++++++++++++
 __ https://www.doxygen.nl/manual/
+
+The API reference is organized exclusively using the groups feature; none of the files and namespaces are documented, since they have little relevance to the user.
+Note that members of namespaces enclosed by the ``\{`` and ``\}`` of a grouping command are not included in the group.
 
 The developers' version of the API reference includes a selection of internal interfaces for core developers (who of course must nonetheless consult the source in general).
 Use ``\cond core`` and ``\endcond`` to mark material that should appear only there.
@@ -392,141 +292,9 @@ Developers must also check for such markers to identify internal interfaces; the
 
 -----
 
-Sphinx
-++++++
-
-Sphinx documentation is `here`__.
-The following are some examples of frequently-used elements.
-However, a good practice is to just look at the existing documentation
-to figure out how something was done.
-
+`Sphinx`__
+++++++++++
 __ https://www.sphinx-doc.org/en/master
 
-Headings
-^^^^^^^^
 By convention, headings are underlined with characters in the order ``*+^=``.
-
-Links
-^^^^^
-
-.. code-block::
-
-  For more information look at `sphinx`__.
-
-  __ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
-
-This will be rendered like:
-
-For more information look at `sphinx`__.
-
-__ https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
-
-Figures
-^^^^^^^
-
-.. code-block::
-
-  .. _undersea:
-  .. figure:: images/undersea.png
-    :align: center
-    :width: 70%
-
-    A colorful image resembling a cosmic version of an undersea world.
-
-This will be rendered like:
-
-.. _undersea:
-.. figure:: images/undersea.png
-  :align: center
-  :width: 70%
-
-  A colorful image resembling a cosmic version of an undersea world.
-
-You can reference the figure using its label *undersea* like:
-
-.. code-block::
-
-  As can be seen in :numref:`undersea`...
-
-This will be rendered like:
-
-As can be seen in :numref:`undersea`...
-
-Code Blocks
-^^^^^^^^^^^
-
-Syntax highlighting for codes blocks uses `pygments`__, which supports
-many programming and markup languages.
-
-__ https://pygments.org
-
-Here are two examples:
-
-Console
-=======
-
-.. code-block::
-
-  .. code-block:: console
-
-    $ xterm -hold -fs 10 -bg black -fg white -geometry 128x40 -e curl wttr.in
-
-This will be rendered like:
-
-.. code-block:: console
-
-  $ xterm -hold -fs 10 -bg black -fg white -geometry 128x40 -e curl wttr.in
-
-C++
-===
-
-.. code-block::
-
-  .. code-block:: cpp
-
-    template<typename Bar>
-    using Baz = Foo<Bar>;
-
-This will be rendered like:
-
-.. code-block:: cpp
-
-  template<typename Bar>
-  using Baz = Foo<Bar>;
-
-Literal Includes
-^^^^^^^^^^^^^^^^
-
-Literal includes allow you to directly include source code or other
-inputs from the actual file you are referencing. This is useful because
-any changes to the file will automatically be captured in the
-documentation.
-
-.. code-block::
-
-  .. literalinclude:: ../../../tutorial/2-control/1-simple.cc
-    :language: cpp
-    :start-at: // Function definition of an advance action.
-    :end-before: // Register the finalize action under the 'finalize' control point.
-
-This will be rendered like:
-
-.. literalinclude:: ../../../tutorial/2-control/1-simple.cc
-  :language: cpp
-  :start-at: // Function definition of an advance action.
-  :end-before: // Register the finalize action under the 'finalize' control point.
-
-The included parts of the file begin with a ``:start-at:`` or
-``:start-after:`` input and end with an ``:end-at:`` or ``:end-before:`` input. Each
-of these performs a literal string match for the string that follows the colon.
-That is, ``:start-at: some text`` will match against the string ``some text`` and
-will start including the entire line it contains. Similarly,
-``:start-after:`` will match the same line, but only start including after
-the line containing the string. ``:end-at:`` and ``:end-before:`` work in a
-similar fashion. Note that for the above we included the block of
-comments that matched ``// Function definition of an advance action.``
-and we stopped including just before a line that begins another comment
-block section for another part of the code. Since an ``end-before`` was
-used, the line containing the matched string was not included.
-
-.. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
+Because our formatting tends to have many tasks begin with a line of just ``void``, some tutorial code has additional comments whose principal purpose is to be a ``:start-after:`` anchor.
