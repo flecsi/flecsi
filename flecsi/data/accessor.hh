@@ -1526,7 +1526,7 @@ struct multi : detail::multi_buffer<A>, send_tag, bind_tag {
 
   /// Get the components for each color.
   /// \code for(auto [c,a] : m.components()) \endcode
-  /// \return a range of color-accessor pairs
+  /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
       util::span(*vp), [](const round & r) -> std::pair<Color, const A &> {
