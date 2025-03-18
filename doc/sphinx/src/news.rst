@@ -78,6 +78,7 @@ New features
 * Utilities
 
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
+  * ``UNIT`` can be used in GPU kernels, with restrictions.
 
 Changes in v2.3.2
 +++++++++++++++++
