@@ -26,6 +26,10 @@ Deprecated
 
 Fixed
 ^^^^^
+* Legion backend
+
+  * Unit tests work without Kokkos but with OpenMP.
+
 * Utilities
 
   * MPI collective helpers make use of MPI-4 large count support when available.

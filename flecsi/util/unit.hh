@@ -97,7 +97,7 @@ accelerator_config([[maybe_unused]] run::config & c) {
 #if FLECSI_BACKEND == FLECSI_BACKEND_legion
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   c.legion = {"", "-ll:gpu", "1"};
-#elif defined(KOKKOS_ENABLE_OPENMP) && defined(REALM_USE_OPENMP)
+#elif defined(REALM_USE_OPENMP)
   c.legion = {"", "-ll:ocpu", "1", "-ll:onuma", "0"};
 #endif
 #endif
