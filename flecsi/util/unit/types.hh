@@ -254,7 +254,6 @@ private:
 /// Optionally, provide an expression convertible to \c std::string to label
 /// the test results (along with \c __func__); the default is "TEST".
 ///
-/// \if core
 /// \attention
 /// If used on a GPU, no label may be provided, nothing can be streamed
 /// into the assertions using `<<`, and the following macros may not be used
@@ -266,7 +265,6 @@ private:
 ///   - \c UNIT_BLESSED
 ///   - \c UNIT_WRITE
 ///   - \c UNIT_ASSERT
-/// \endif
 ///
 /// \note The `ASSERT`/`EXPECT` macros can be used in a lambda defined inside
 ///   the compound statement with `[&]`.
