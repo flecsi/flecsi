@@ -46,9 +46,14 @@ struct runtime {
   /// \param aa arguments for \link run::control::invoke `C::invoke`\endlink
   /// \return resulting exit code
   template<class C, class... AA>
-  int control(AA &&... aa) const {
+  int control(AA &&... aa) {
     auto & ctx = run::context::instance();
     return ctx.start([&] { return C::invoke(std::forward<AA>(aa)...); }, true);
+  }
+  /// \deprecated Use a non-\c const \c runtime.
+  template<class C, class... AA>
+  [[deprecated("use a non-const runtime")]] int control(AA &&... aa) const {
+    return const_cast<runtime &>(*this).control<C>(std::forward<AA>(aa)...);
   }
 };
 

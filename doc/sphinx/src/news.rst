@@ -32,6 +32,10 @@ Deprecated
   * ``ENABLE_KOKKOS`` |mdash| is ignored.
   * ``ENABLE_OPENMP`` |mdash| is ignored.
 
+* Runtime
+
+  * ``runtime::control`` on a ``const`` object |mdash| use a non-``const`` object
+
 * Data
 
   * ``partition_privilege_t`` |mdash| use ``privilege``

@@ -45,7 +45,7 @@ control::action<finalize, cp::finalize> finalize_action;
 int
 main() {
   const flecsi::run::dependencies_guard dg;
-  const flecsi::runtime run;
+  flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
   return run.control<control>();
 } // main

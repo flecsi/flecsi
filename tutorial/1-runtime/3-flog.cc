@@ -59,7 +59,7 @@ main(int argc, char ** argv) {
   // when the runtime is created.
   run::config cfg;
   cfg.flog.tags = {tag};
-  const runtime run(cfg);
+  runtime run(cfg);
 
   // In order to see or capture any output from FLOG, the user must add at least
   // one output stream. The function flog::add_output_stream provides an

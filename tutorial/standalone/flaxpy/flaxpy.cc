@@ -168,7 +168,7 @@ main(int argc, char ** argv) {
   // Initialize the FleCSI run-time system.
   flecsi::getopt()(argc, argv);
   const flecsi::run::dependencies_guard dg;
-  const flecsi::runtime run;
+  flecsi::runtime run;
   flecsi::flog::add_output_stream("clog", std::clog, true);
   // Execute our code control point by control point.
   return run.control<flaxpy::control>();

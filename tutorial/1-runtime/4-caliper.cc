@@ -51,7 +51,7 @@ main() {
   annotation::rguard<main_region> main_guard;
 
   const run::dependencies_guard dg;
-  const runtime run;
+  runtime run;
   return (annotation::guard<annotation::execution, annotation::detail::low>(
             "control"),
     run.control<run::call>(top_level_action));

@@ -25,7 +25,7 @@ main(int argc, char ** argv) {
   cfg.legion = {"", "-ll:ocpu", "1", "-ll:onuma", "0"};
 #endif
 #endif
-  const flecsi::runtime run(cfg);
+  flecsi::runtime run(cfg);
   flecsi::flog::add_output_stream("clog", std::clog, true);
   return run.control<poisson::control>();
 } // main
