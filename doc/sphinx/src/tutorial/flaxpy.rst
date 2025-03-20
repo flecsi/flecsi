@@ -143,8 +143,8 @@ is trivial.  FLAXPY names its specialization (still within the
    :end-at: };
 
 Note that the specialization is responsible for choosing the number of
-colors.  ``dist_vector``'s ``color`` method queries FleCSI for the
-number of processes and uses that value for the color count.
+colors.
+``dist_vector::color`` accepts that number from its client, but it could also be determined by, say, an input file.
 
 At this point we have what is effectively a distributed 1-D vector
 data type that is templated over the element type.  The next step is
@@ -269,7 +269,7 @@ by instantiating a ``flaxpy::control::action``.
 
 The ``initialize_action`` action uses the slot and ``color`` function
 defined above in `Data structures`_
-to allocate memory for the ``dist_vector`` specialization.
+to allocate memory for the ``dist_vector`` specialization; it queries FleCSI for the number of processes and uses that value for the color count.
 Once this memory is allocated,
 the action launches an ``initialize_vectors_task`` task,
 granting each constituent point task access to a subset of *X* and *Y*
