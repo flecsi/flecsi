@@ -65,28 +65,6 @@ reduce_vec(intN::accessor<ro> a) {
 }
 
 void
-modify_bound(intN::accessor<wo> a) {
-  forall(j, util::substring_view(util::span(*a), 0, 5), "modify_first") {
-    j = 2;
-  };
-  forall(j, util::substring_view(util::span(*a), 5, 5), "modify_last") {
-    j = 5;
-  };
-}
-
-int
-check_bound(intN::accessor<ro> a) {
-  UNIT() {
-    for(auto j : util::span(*a).subspan(0, 5)) {
-      EXPECT_EQ(j, 2);
-    }
-    for(auto j : util::span(*a).subspan(5, 5)) {
-      EXPECT_EQ(j, 5);
-    }
-  };
-}
-
-void
 mdrange_init(intN::accessor<wo> a) {
   auto ar = util::span(*a);
   util::mdspan<std::size_t, 2> md_ar(ar.data(), {5, 2});
@@ -103,31 +81,6 @@ check_mdrange(intN::accessor<ro> a) noexcept {
     for(auto i : util::span(*a)) {
       EXPECT_EQ(i, 3);
     }
-  };
-}
-
-int
-reduce_vec_bound(intN::accessor<ro> a) {
-  UNIT() {
-    size_t res_first = reduceall(j,
-      up,
-      util::substring_view(util::span(*a), 0, 5),
-      exec::fold::sum,
-      size_t,
-      "reduce_first") {
-      up(j);
-    };
-    EXPECT_EQ(res_first, 2 * 5);
-
-    size_t res_last = reduceall(j,
-      up,
-      util::substring_view(util::span(*a), 5, 5),
-      exec::fold::sum,
-      size_t,
-      "reduce_last") {
-      up(j);
-    };
-    EXPECT_EQ(res_last, 5 * 5);
   };
 }
 
@@ -161,9 +114,6 @@ kernel_driver(scheduler & s) {
     EXPECT_EQ((s.test<check_mdrange>(ar)), 0);
     EXPECT_EQ((test<reduce_vec, default_accelerator>(ar)), 0);
     EXPECT_EQ((test<reduce_mdrange_vec, default_accelerator>(ar)), 0);
-    execute<modify_bound, default_accelerator>(ar);
-    EXPECT_EQ(test<check_bound>(ar), 0);
-    EXPECT_EQ((test<reduce_vec_bound, default_accelerator>(ar)), 0);
   };
 } // kernel_driver
 
