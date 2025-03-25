@@ -12,14 +12,8 @@ scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will on
 Forcing Bulk-Synchronousity in Your Code
 ++++++++++++++++++++++++++++++++++++++++
 
-.. note:: 
-  All FleCSI programs have a top-level task (TLT) from which all FleCSI tasks are launched.  
-  The TLT is all the code that is run outside of a task.  Simply put, if
-  the code launches any tasks, e.g., ``flecsi::execute<task::...>(...)``, it is
-  the TLT.
-
 .. note::
-  Any blocking of the code in the TLT (like waiting on the result of ``get()``)
+  Any blocking of action code (like waiting on the result of ``get()``)
   prevents any other tasks to be queued up for the runtime.  This blocking forces bulk synchronous computation.
 
 
