@@ -23,9 +23,6 @@ Kernels
 
 ----
 
-Tasks
-*****
-
 Example 1: Single Tasks
 +++++++++++++++++++++++
 

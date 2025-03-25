@@ -188,11 +188,6 @@ extension of the application.
 
    Control Model After Extension.
 
-----
-
-Examples
-++++++++
-
 The rest of this tutorial demonstrates how application developers can
 use the FleCSI control model to create extensible applications.
 We begin with an extremely simple control model but quickly build to a
