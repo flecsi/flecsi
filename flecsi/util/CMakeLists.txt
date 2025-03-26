@@ -22,7 +22,6 @@ flecsi_headers(
   set_utils.hh
   sort.hh
   target.hh
-  type_traits.hh
   types.hh
 )
 flecsi_sources(demangle.cc)

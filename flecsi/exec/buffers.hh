@@ -12,7 +12,6 @@
 #include "flecsi/topo/core.hh" // topology_accessor
 #include "flecsi/util/annotation.hh"
 #include "flecsi/util/demangle.hh"
-#include "flecsi/util/type_traits.hh"
 
 namespace flecsi {
 /// \addtogroup execution

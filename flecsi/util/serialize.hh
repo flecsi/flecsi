@@ -14,7 +14,7 @@
 #include <utility> // declval
 #include <vector>
 
-#include "type_traits.hh"
+#include "constant.hh"
 #include <flecsi/flog.hh>
 
 namespace flecsi {
