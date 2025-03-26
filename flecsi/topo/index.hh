@@ -540,8 +540,7 @@ struct borrow_ragged_partitions
     ragged_partitioned & r,
     const data::borrow & b,
     bool f) {
-    for(const auto & fi :
-      run::context::instance().field_info_store<ragged<P>, S>())
+    for(const auto & fi : run::context::field_info_store<ragged<P>, S>())
       this->part.try_emplace(fi->fid, r[fi->fid], b, f);
   }
 };
