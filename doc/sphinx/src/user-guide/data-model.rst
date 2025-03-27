@@ -289,3 +289,14 @@ The current implementation of memory management for these layouts imposes severa
 First, the automatic memory allocation is incompatible with :doc:`tracing`, so ``ragged`` and ``sparse`` mutators cannot be used in a task launched during a trace.
 Ghost copies for these layouts are implemented using mutators, so they are excluded from traces as well.
 Moreover, they use further temporary allocations during a task that are incompatible with GPU execution, so they cannot be used in a ``toc`` task.
+
+Multi-color accessors
+---------------------
+In addition to ghost elements, the Legion backend provides *launch maps* as another mechanism for accessing another color's data in a point task.
+They explicitly nominate one or more colors to be processed by each point task, so they can permute colors as well as duplicating them (for read-only access) or omitting them.
+Accessors, mutators, or topology accessors (discussed later) can be wrapped in a ``data::multi`` task parameter; the launch map takes the place of the underlying topology in the task argument (*e.g.*, in forming a field reference).
+A task can accept multiple multi-color accessors as well as ordinary accessors (relative to which any permutation is meaningful).
+
+.. note::
+
+  Other backends support only trivial launch maps that nominate the usual color for a point task or none at all.
