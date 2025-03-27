@@ -39,7 +39,7 @@ struct prefixes : partition, prefixes_base {
 /// A subset of each row in a region_base, expressed as a set of intervals.
 struct intervals {
   /// Factory function for the interval type.
-  static auto make(subrow, std::size_t r = color());
+  static auto make(subrow, std::size_t r = run::context::instance().color());
   /// Defined by the backend.
   using Value = decltype(make({}));
 

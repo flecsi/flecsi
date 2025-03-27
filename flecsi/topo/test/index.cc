@@ -12,10 +12,7 @@ struct Noisy {
   ~Noisy() {
     ++count;
   }
-  std::size_t i = value();
-  static std::size_t value() {
-    return color() + 1;
-  }
+  Noisy * p = this;
   static inline std::atomic<std::size_t> count;
 };
 
@@ -100,8 +97,8 @@ assign(exec::cpu s,
 } // assign
 
 std::size_t
-reset(noisy::accessor<wo>) noexcept { // must be an MPI task for correct total
-  return Noisy::count;
+reset(noisy::accessor<wo> a) noexcept { // must be an MPI task for correct total
+  return Noisy::count + (a->p != &*a);
 }
 void
 use_ptr(field<int *>::accessor<wo>) {} // must be an MPI task
@@ -131,8 +128,7 @@ check(exec::cpu es,
   double_field::accessor<ro> p,
   intN::accessor<ro> r,
   intN::accessor<ro> g,
-  double_at::accessor<ro> sp,
-  noisy::accessor<ro> n) noexcept {
+  double_at::accessor<ro> sp) noexcept {
   UNIT("TASK") {
     const auto me = es.launch().index;
     flog(info) << "check on " << me << std::endl;
@@ -149,7 +145,6 @@ check(exec::cpu es,
     ASSERT_EQ(sp.size(), 1u);
     const auto sr = sp[0];
     EXPECT_EQ(sr(column + me), 2 * me + 1);
-    EXPECT_EQ(n.get().i, Noisy::value());
   };
 }
 
@@ -284,7 +279,7 @@ index_driver(scheduler & s) {
       }())
       .xfer<ragged_start, ragged_xfer>(s, verts, ghost);
 
-    EXPECT_EQ(s.test<check>(exec::on, pressure, verts, ghost, vfrac, noise), 0);
+    EXPECT_EQ(s.test<check>(exec::on, pressure, verts, ghost, vfrac), 0);
 
     // Duplicate work to support the MPI backend:
     trivial_array::slot a;

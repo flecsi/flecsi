@@ -37,6 +37,7 @@ Deprecated
   * ``runtime::control`` on a ``const`` object |mdash| use a non-``const`` object
   * existing ``control::invoke`` |mdash| provide a ``scheduler``
   * initializing ``run::call`` with a nullary function |mdash| accept a ``scheduler``
+  * ``color`` and ``colors`` |mdash| use the ``space_base`` members
 
 * Data
 

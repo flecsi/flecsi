@@ -112,9 +112,10 @@ threads() {
   which in that case equals to the color used from any topology.
 
   \ns.
+  \deprecated Use \c space_base.
  */
 
-inline Color
+[[deprecated("use space_base::launch")]] inline Color
 color() {
   return run::context::instance().color();
 }
@@ -126,9 +127,10 @@ color() {
   topology.
 
   \ns.
+  \deprecated Use \c space_base.
  */
 
-inline Color
+[[deprecated("use space_base::launch")]] inline Color
 colors() {
   return run::context::instance().colors();
 }
