@@ -7,6 +7,7 @@
 #include "flecsi/data/field.hh"
 #include "flecsi/exec/kernel.hh"
 #include "flecsi/exec/task_attributes.hh"
+#include "flecsi/util/function_traits.hh"
 
 #include <cstddef>
 #include <optional>
@@ -220,6 +221,33 @@ struct has_space : std::false_type {};
 template<class S>
 struct has_space<S, std::void_t<typename S::execution_space>> : std::true_type {
 };
+
+template<class F>
+void ignore(F); // work around GCC bug #119343
+
+// Verify that two task variants have almost-identical signatures:
+template<class, class, class, class>
+struct consistent_params;
+template<class... TT1, class S1, class... TT2, class S2>
+struct consistent_params<std::tuple<TT1...>, S1, std::tuple<TT2...>, S2>
+  : std::bool_constant<(
+      (std::is_same_v<TT1, TT2> ||
+        (std::is_same_v<TT1, S1> && std::is_same_v<TT2, S2>)) &&
+      ...)> {};
+// Accept function_traits types as common "subexpressions":
+template<class F1, class S1, class F2, class S2>
+using consistent_signatures = std::conjunction<
+  std::is_same<typename F1::return_type, typename F2::return_type>,
+  consistent_params<typename F1::arguments_type,
+    S1,
+    typename F2::arguments_type,
+    S2>>;
+template<class V, class S1, class S2>
+struct consistent_variants
+  : consistent_signatures<util::function_t<V::template task<S1>>,
+      S1,
+      util::function_t<V::template task<S2>>,
+      S2> {};
 } // namespace detail
 
 template<bool M, class... PP>
@@ -479,7 +507,7 @@ template<class T>
 struct processor_combine {
   using type = T;
   template<class U>
-  auto operator|(const processor_combine<U> c) const {
+  auto operator|(const processor_combine<U> c) const { // not actually called
     if constexpr(std::is_void_v<T>)
       return c;
     else {
@@ -497,6 +525,32 @@ struct param_space<std::tuple<TT...>> {
     processor_combine<void>() | ... |
     processor_combine<space_base::keep<std::decay_t<TT>>>()))::type;
 };
+
+template<class, class, class = void>
+struct has_variant : std::false_type {};
+template<class V, class S>
+struct has_variant<V, S, decltype(detail::ignore(V::template task<S>))>
+  : std::true_type {};
+template<class V>
+struct has_variant<V, void, decltype(detail::ignore(V::task))>
+  : std::true_type {};
+template<class V, class S>
+constexpr bool has_variant_v = has_variant<V, S>::value;
+template<class V, class S>
+constexpr bool use_variant_v =
+  std::conjunction_v<detail::has_space<S>, has_variant<V, S>>;
+
+// Dynamic selection will be a compatible extension.
+template<class V>
+using task_variant = std::conditional_t<use_variant_v<V, gpu>,
+  gpu,
+  std::conditional_t<use_variant_v<V, omp>, omp, cpu>>;
+
+template<class V, class... SS>
+constexpr bool
+  consistent_task = (std::disjunction_v<std::negation<has_variant<V, SS>>,
+                       detail::consistent_variants<V, task_variant<V>, SS>> &&
+                     ...);
 
 struct on_t : data::convert_tag {};
 /// Placeholder argument that corresponds to an execution-\ref space task

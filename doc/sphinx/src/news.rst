@@ -93,7 +93,7 @@ New features
 
     * Kokkos executors can have a number of ``threads`` specified to optimize GPU execution.
 
-  * A ``scheduler`` launches tasks without attributes by reference to execution-space parameters.
+  * A ``scheduler`` launches tasks without attributes by reference to execution-space (template) parameters.
   * Index futures provide ``all`` to get all results.
 
 * Topologies

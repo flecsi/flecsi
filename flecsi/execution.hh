@@ -83,6 +83,20 @@ struct task_local
 #endif
 ;
 
+template<class V, class R, class... AA>
+auto
+scheduler::reduce(AA &&... aa) {
+  if constexpr(exec::has_variant_v<V, void>)
+    return reduce<V::task, R>(std::forward<AA>(aa)...);
+  else {
+    static_assert(exec::consistent_task<V, exec::cpu, exec::gpu, exec::omp>,
+      "inconsistent parameter types for variants");
+    using space = exec::task_variant<V>;
+    static constexpr auto & f = V::template task<space>;
+    static_assert(util::function_t<f>::nonthrowing, "tasks must be noexcept");
+    return flecsi::reduce<f, R, as_mask(space::proc)>(std::forward<AA>(aa)...);
+  }
+}
 template<auto & F, class R, class... AA>
 auto
 scheduler::reduce(AA &&... aa) {
@@ -98,6 +112,11 @@ template<auto & F, class... AA>
 int
 scheduler::test(AA &&... aa) {
   return reduce<F, exec::fold::sum>(std::forward<AA>(aa)...).get();
+}
+template<class V, class... AA>
+int
+scheduler::test(AA &&... aa) {
+  return reduce<V, exec::fold::sum>(std::forward<AA>(aa)...).get();
 }
 
 // To avoid compile- and runtime recursion, only user tasks trigger logging.

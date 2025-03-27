@@ -43,11 +43,17 @@ simple(TYPE arg) noexcept {
   flog(info) << "arg(" << arg << ")\n";
 } // simple
 
+struct move {
+  template<class S>
+  static void task(S, const std::unique_ptr<int> &) noexcept = delete;
+};
+template<>
 void
-moveTask(exec::cpu c, const std::unique_ptr<int> &) noexcept {
+move::task(exec::cpu c, const std::unique_ptr<int> &) noexcept {
   std::cerr << "moveTask: " << c.launch().index << '/' << c.launch().size
             << '\n';
 }
+
 template<class T, class F>
 void
 seq(const T & s, F f) noexcept {
@@ -191,7 +197,7 @@ task_driver(scheduler & s) {
 
     const float obj = 8.9;
     s.execute<hydro::simple<const float *>>(&obj);
-    s.execute<hydro::moveTask>(exec::on, std::make_unique<int>());
+    s.execute<hydro::move>(exec::on, std::make_unique<int>());
   };
 } // task_driver
 

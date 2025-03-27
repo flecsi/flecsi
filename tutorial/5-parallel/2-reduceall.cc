@@ -31,15 +31,20 @@ reduce1(exec::accelerator s,
   flog_assert(res == 6.0, res << " != 6.0");
 }
 
-void
-reduce2(exec::accelerator s,
-  canon::accessor<ro> t,
-  field<double>::accessor<ro> p) noexcept {
-  auto res = s.executor().reduce<exec::fold::max, double>(
-    t.cells(), FLECSI_LAMBDA(auto c, auto up) { up(p[c]); });
+struct reduce2 {
+  template<class S>
+  static void
+  task(S s, canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
+    auto res = s.executor().template reduce<exec::fold::max, double>(
+      t.cells(), FLECSI_LAMBDA(auto c, auto up) { up(p[c]); });
 
-  flog_assert(res == 6.0, res << " != 6.0");
-}
+    flog_assert(res == 6.0, res << " != 6.0");
+  }
+};
+template<>
+void reduce2::task(exec::gpu,
+  canon::accessor<ro>,
+  field<double>::accessor<ro>) noexcept = delete;
 
 void
 print(canon::accessor<ro> t, field<double>::accessor<ro> p) noexcept {
