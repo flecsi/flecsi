@@ -9,10 +9,7 @@ The FleCSI control model allows users to define the high-level structure
 of an application
 using a control-flow graph (CFG) of *control points*,
 under each of which a directed acyclic graph (DAG) of *actions* can be defined.
-An action typically launches at least one *task*,
-which is granted access to a subset (color) of a distributed data structure.
-A task launch produces one *point task* (instance) per color.
-Point tasks run concurrently with respect to each other.
+Actions in turn launch *tasks* to operate on distributed data.
 
 .. sidebar:: Control-model concepts
 

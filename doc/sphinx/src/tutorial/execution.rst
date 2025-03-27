@@ -25,15 +25,9 @@ Kernels
 
 Example 1: Single Tasks
 +++++++++++++++++++++++
-
-A `single` task launches on a single process, i.e., only one instance of
-the task is executed.
+A `single` task launch calls a given function just once (across all processes).
 This is in contrast to an `index` launch, which executes a task as a
 data-parallel operation, potentially across many processes.
-FleCSI uses information about the arguments passed to a task to decide
-how to launch the task: If no parameter is passed that defines a `launch
-domain`, e.g., an explicit *launch domain*, a `topology` instance, or a
-`future map`, FleCSI will launch the task as `single`.
 
 The ``trivial`` task is an example of a ``single`` task.
 Consider the following from ``tutorial/3-execution/1-single-task.cc``:
@@ -103,12 +97,10 @@ Again, execution is straightforward:
 
 Example 2: Index Tasks
 ++++++++++++++++++++++
+An index task launch calls a given function a number of times asynchronously, typically distributed over multiple processes; each is called a *point task*.
+The usual purpose is operating on different parts of a distributed data structure (different *colors* of a *topology*) in parallel.
 
-Index task is a task that is executed by several processes. It is often
-used to operate on different parts of the input data (like partitioned
-mesh) asynchronously. 
-
-In this example we explicitly ask to execute ``task`` on 4 processes via
+In this example we explicitly ask to call ``task`` 4 times via
 the ``launch_domain`` argument.
 
 .. literalinclude:: ../../../../tutorial/3-execution/2-index-task.cc
