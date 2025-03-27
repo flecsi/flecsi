@@ -5,47 +5,9 @@
 
 Overview
 ********
-
-The structure of applications built on top of the FleCSI programming
-system assumes three basic types of users. Each of the user types has
-their own set of responsibilities that are designed to separate
-concerns and to make sure that development tasks are intuitive and
-achievable by the associated user type.
-
-.. tip::
-
-  A single individual may play the role of more than one user type.
-
-The user types are:
-
-* **Core Developer** |br|
-  These are users who design, implement, and maintain the core FleCSI
-  library. Generally, these users are expert C++ developers who have a
-  well-developed understanding of the the low-level design of the FleCSI
-  software architecture. These users are generally computer scientists
-  with expertise in generic programming techniques, data structure
-  design, and optimization.
-* **Specialization Developer** |br|
-  These are users who adapt the core FleCSI data structures and runtime
-  interfaces to create domain-specific interfaces for application
-  developers.  These users are required to understand the components of
-  the FleCSI interface that can be statically specialized and must have
-  a solid understanding of the runtime interface. Additionally,
-  specialization developers are assumed to understand the requirements
-  of the application area for which they are designing an interface.
-  These users are generally computational scientists with expertise in
-  one or more numerical methods areas.
-* **Application Developer** |br|
-  These users are methods developers or physicists who use a particular
-  FleCSI specialization layer to develop and maintain application codes.
-  These are the FleCSI end-users, who have expertise in designing and
-  implementing numerical methods to solve complicated, multiphysics
-  simulation problems.
-
-The source code implementing a FleCSI project will reflect this user
-structure: the project will link to the core FleCSI library; the project will use one or more specializations (also usually from libraries); and the application
-developers will use the core and specialization interfaces to write
-their applications.
+FleCSI separates the concerns of simulation application development and efficient hardware utilization in part by supporting the construction of *specializations* of its generic topology data structures that provide domain-specific interfaces based on the relevant numerical methods.
+Most sections of the documentation contain material intended for the developers of such specializations; application developers do not in general need to understand such details but do need to consult the documentation for the specialization(s) they use.
+Only a few interfaces have the reverse position of being useful only to application developers (mainly because they concern program initialization); they are not specially marked.
 
 Documentation
 +++++++++++++
@@ -74,28 +36,7 @@ See also the :doc:`news` for advertisements of new features and bug fixes, annou
 
 Namespaces
 ++++++++++
-
-FleCSI uses C++ namespaces to identify interfaces that are intended for
-different user types:
-
-* **flecsi** |br|
-  The types and functions defined in the *flecsi* namespace are intended
-  for all user types but are primarily targeted to application
-  developers.
-
-.. warning::
-
-  Application developers should **never** use types or methods that are
-  not defined in the top-level *flecsi* namespace.
-
-* **flecsi::X** |br|
-  The types and functions defined in *flecsi::X* namespaces, where *X*
-  is nested within *flecsi*, e.g., *flecsi::topology*, should only be
-  used by specialization and core developers.
-
-* **flecsi::X::Y** |br|
-  The types and functions defined in *flecsi::X::Y* namespaces are
-  intended for internal FleCSI development only! **Use of any of these
-  types or functions outside of the core library is undefined!!!**.
-
-.. vim: set tabstop=2 shiftwidth=2 expandtab fo=cqt tw=72 :
+FleCSI interfaces generally appear in namespaces that follow the header that provides them: ``flecsi::data`` for ``flecsi/data.hh``, ``flecsi::util`` for ``flecsi::utilities.hh``, and so forth.
+The API Reference specifies the (abbreviated) name in each section as well as any member namespaces (*e.g.*, ``flecsi::exec::fold``) used to group closely related components.
+However, a few fundamental facilities instead appear in the ``flecsi`` namespace itself to indicate their foundational status and make their frequent usage more convenient: ``flecsi::field``, ``flecsi::execute``, and ``flecsi::runtime``, for instance.
+The API Reference also indicates such special cases.

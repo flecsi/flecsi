@@ -112,6 +112,7 @@ struct unstructured : unstructured_base,
     return special_.template get<S>().template get<E>();
   }
 
+  /// Field that holds each list of special entity IDs.
   static inline const field<util::id>::definition<array<Policy>> special_field;
 
 private:

@@ -26,6 +26,8 @@ PREDEFINED = FLECSI_ENABLE_FLOG \
              DOXYGEN \
              FLECSI_TARGET= \
              FLECSI_INLINE_TARGET=
+ALIASES += ns{1}="Contents are in \c flecsi::\1 unless otherwise specified"
+ALIASES += ns="Appears directly in \c flecsi"
 ALIASES += gpu{1}="This \1 is supported for GPU execution"
 ALIASES += gpu="\gpu{class}"
 ALIASES += host="This function is \ref topology \"host-accessible\""

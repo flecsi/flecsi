@@ -14,6 +14,7 @@
 namespace flecsi {
 /// \defgroup data Data Model
 /// Defining topology instances and fields.
+/// \ns{data}.
 /// \code#include "flecsi/data.hh"\endcode
 ///
 /// The inclusion of \ref topology "flecsi/topology.hh" by this header is
@@ -22,7 +23,7 @@ namespace flecsi {
 /// \{
 
 /*!
-  Default global topology instance with size 1.
+  Default global topology instance with size 1.  \ns.
   \deprecated Create instances as with any other topology.
  */
 inline topo::global::slot global_topology;
@@ -30,13 +31,15 @@ inline topo::global::slot global_topology;
 /*!
   Topology instance with one color per process.
   \warning The values are not bound to processes except with MPI tasks.
+
+  \ns.
   \deprecated Create instances as with any other topology.
  */
 inline topo::index::slot process_topology;
 
 /// \cond core
 namespace detail {
-/// An RAII type to manage the global coloring and topologies.
+/// An RAII type to manage the global coloring and topologies.  \ns.
 struct data_guard {
   struct global_guard {
     global_guard() {

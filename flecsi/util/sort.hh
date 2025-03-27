@@ -580,7 +580,7 @@ public:
         sort::transfer_f.fid,
         sort::indices_f.fid,
         data::copy_plan::get_field_id<topology, space>()});
-    for(auto & f : run::context::instance().field_info_store<topology, space>())
+    for(auto & f : run::context::field_info_store<topology, space>())
       if(std::find(ignored_fields.begin(), ignored_fields.end(), f->fid) ==
          ignored_fields.end())
         apply_fields.push_back(f.get());

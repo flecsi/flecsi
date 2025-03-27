@@ -227,8 +227,7 @@ mdiota_view(const M & m, RR... rr) {
 
 /// Call a function on each element of a range, potentially in parallel.
 /// If GPU support is available, \a lambda is executed there.
-/// \param p sized random-access range or a non-negative integer (interpreted
-///   as the range of smaller non-negative integers)
+/// \param p sized random-access range
 /// \param name operation name, for debugging
 template<typename Policy, typename Lambda>
 void
@@ -241,10 +240,6 @@ parallel_for(Policy && p, Lambda && lambda, const std::string & name = "") {
         f = std::forward<Lambda>(lambda)] FLECSI_TARGET(int i) {
         f(it.begin()[i]);
       });
-  }
-  else if constexpr(std::is_integral<
-                      typename std::decay<Policy>::type>::value) {
-    parallel_for(util::iota_view(0, p), std::forward<Lambda>(lambda), name);
   }
   else {
     parallel_for(range_policy(std::forward<Policy>(p)),
@@ -269,7 +264,7 @@ forall_t(P, std::string) -> forall_t<P>; // automatic in C++20
 /// Often the elements of \a range (and thus the values of \p it) are indices
 /// for other ranges.
 /// \param it variable name to introduce
-/// \param P as for \c parallel_for
+/// \param P sized random-access range
 /// \param name debugging name, convertible to \c std::string
 #define forall(it, P, name)                                                    \
   ::flecsi::exec::forall_t{P, name}->*FLECSI_LAMBDA(auto && it)
@@ -290,7 +285,7 @@ struct reduce_ref {
 /// \tparam T data type
 /// \tparam Lambda function of an element of \a p and a function object that
 ///   calls the latter with each value participating in the reduction
-/// \param p as for \c parallel_for
+/// \param p sized random-access range
 /// \param name operation name, for debugging
 template<class R, class T, typename Policy, typename Lambda>
 [[nodiscard]] T
@@ -307,11 +302,6 @@ parallel_reduce(Policy && p, Lambda && lambda, const std::string & name = "") {
       },
       kok::reducer_t<R, T>(res));
     return res;
-  }
-  else if constexpr(std::is_integral<
-                      typename std::decay<Policy>::type>::value) {
-    return parallel_reduce<R, T>(
-      util::iota_view(0, p), std::forward<Lambda>(lambda), name);
   }
   else {
     return parallel_reduce<R, T>(range_policy(std::forward<Policy>(p)),
@@ -344,7 +334,7 @@ make_reduce(P policy, std::string n) {
 /// \param it variable name to introduce for elements
 /// \param ref variable name to introduce for storing results; call it with
 ///   each value participating in the reduction
-/// \param p as for \c parallel_for
+/// \param p sized random-access range
 /// \param R reduction operation type
 /// \param T data type
 /// \param name debugging name, convertible to \c std::string

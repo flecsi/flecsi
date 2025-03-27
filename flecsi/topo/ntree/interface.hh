@@ -739,8 +739,7 @@ public:
     }
 
     // Fake initialization for the new ghosts
-    for(auto & f :
-      run::context::instance().field_info_store<Policy, entities>()) {
+    for(auto & f : run::context::field_info_store<Policy, entities>()) {
       auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
         f->fid, ts.get());
       execute<fake_initialize>(fr);
@@ -1078,8 +1077,7 @@ public:
       util::constant<entities>());
 
     // Fake initialization for the new ghosts
-    for(auto & f :
-      run::context::instance().field_info_store<Policy, entities>()) {
+    for(auto & f : run::context::field_info_store<Policy, entities>()) {
       auto fr = data::field_reference<std::byte, data::raw, Policy, entities>(
         f->fid, ts.get());
       execute<fake_initialize>(fr);
@@ -1653,6 +1651,8 @@ struct ntree_specialization : specialization<ntree, ntree_specialization> {
   /// node-node. Returns true if there is an interaction. A possible
   /// implementation is to use a templated function.
   /// \{
+
+  /// <a></a>
   static bool intersect(entity_data, entity_data) {}
   static bool intersect(entity_data, node_data) {}
   static bool intersect(node_data, node_data) {}

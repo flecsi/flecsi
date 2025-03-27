@@ -64,7 +64,8 @@ enum /* [[deprecated]] would warn for internal usage */ status : int {
   command_line_error /// error parsing command line
 };
 
-/// A command line.
+/// A command line.  Used to configure some depdendencies and backends.
+/// \showinitializer
 using argv = std::vector<std::string>;
 
 inline std::vector<char *>

@@ -71,7 +71,10 @@ template<Privileges P,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>,
+  execute<destroy_task<T,
+            L,
+            privilege_ghost_repeat<rw, wo, privilege_count(P)>,
+            Span>,
     portable_v<T> ? loc | leaf : flecsi::mpi>(r);
 }
 template<class T, Privileges P>
@@ -478,6 +481,7 @@ public:
     /// \name std::vector operations
     /// \{
 
+    /// <a></a>
     void assign(size_type count, const T & value) const {
       clear();
       resize(count, value);
@@ -1027,6 +1031,8 @@ public:
 
     /// \name std::map operations
     /// \{
+
+    /// <a></a>
     T & operator[](key_type c) const {
       return try_emplace(c).first->second;
     }
@@ -1545,7 +1551,7 @@ struct multi : detail::multi_buffer<A>, send_tag {
 
   /// Get the components for each color.
   /// \code for(auto [c,a] : m.components()) \endcode
-  /// \return a range of color-accessor pairs
+  /// \return a sized random-access range of color-accessor pairs
   auto components() const {
     return util::transform_view(
       util::span(*vp), [](const round & r) -> std::pair<Color, const A &> {

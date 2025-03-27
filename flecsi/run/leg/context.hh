@@ -20,6 +20,7 @@ namespace flecsi {
 namespace run {
 /// \defgroup legion-runtime Legion Runtime
 /// State for and control of the Legion runtime.
+/// \ns{run::leg}.
 /// \ingroup runtime
 /// \{
 
@@ -36,6 +37,7 @@ namespace mapper {
 
 /// \name Mapper tags
 /// Flags used to request custom mapper features.
+/// \ns::run::mapper.
 /// \{
 
 inline constexpr Legion::MappingTagID

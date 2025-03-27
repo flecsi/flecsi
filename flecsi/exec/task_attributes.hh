@@ -14,7 +14,7 @@ namespace flecsi {
 using TaskAttributes = unsigned;
 
 /*!
-  Task attribute flags.
+  Task attribute flags.  \ns.
  */
 
 enum task_attributes_mask_t : TaskAttributes {
@@ -50,6 +50,8 @@ enum task_attributes_mask_t : TaskAttributes {
 /// if support for one of those is available, otherwise \c loc.
 /// \warning Using \c toc causes field data to be placed on the device, so
 ///   that it is accessible \e only via the parallelism interface.
+///
+/// \ns.
 inline constexpr auto default_accelerator =
 #if defined(__NVCC__) || defined(__CUDACC__) || defined(__HIPCC__)
   toc
@@ -88,7 +90,7 @@ mask_to_processor_type(TaskAttributes mask) {
 
 /// \}
 } // namespace exec
-  /// \endcond
+/// \endcond
 } // namespace flecsi
 
 #endif

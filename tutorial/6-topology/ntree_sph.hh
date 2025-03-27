@@ -132,11 +132,11 @@ struct sph_ntree_t
     flecsi::data::multi<sph_ntree_t::accessor<flecsi::rw, flecsi::na>> t,
     const std::size_t nents,
     const std::vector<flecsi::util::id> & offsets) {
+    assert(offsets.size() == t.depth());
+    flecsi::Color col = 0;
     for(auto [c, a] : t.components()) {
-      flecsi::util::id offset =
-        std::accumulate(offsets.begin(), offsets.begin() + c, 0);
       std::fill(a.e_colors.span().begin(), a.e_colors.span().end(), c);
-      sph::init_base(a.e_i.span(), a.e_ids.span(), nents, offset);
+      sph::init_base(a.e_i.span(), a.e_ids.span(), nents, offsets[col++]);
     }
   } // init_fields
 
@@ -163,7 +163,16 @@ struct sph_ntree_t
     const coloring & c,
     flecsi::util::id nents) {
     auto lm_ts = flecsi::data::launch::make(ts);
-    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, nents, c.entities_sizes_);
+    const auto ours = flecsi::util::equal_map(
+      c.nparts_, flecsi::processes())[flecsi::process()];
+    std::vector<flecsi::util::id> offsets;
+    auto b = c.entities_sizes_.begin();
+    auto o = std::accumulate(b, b + ours[0], 0);
+    for(const auto i : ours) {
+      offsets.push_back(o);
+      o += b[i];
+    }
+    flecsi::execute<init_fields, flecsi::mpi>(lm_ts, nents, offsets);
   }
 
   static void build_ntree(flecsi::data::topology_slot<sph_ntree_t> & ts) {
@@ -179,26 +188,12 @@ struct sph_ntree_t
   }
 
   // N-Tree coloring
-  static coloring color(flecsi::util::id nents) {
-    const int size = flecsi::processes();
+  static coloring color(flecsi::Color size, flecsi::util::id nents) {
     const flecsi::util::id hmap_size = 1 << 20;
     coloring c(size, hmap_size);
-    c.entities_sizes_.resize(size);
-    std::vector<flecsi::util::id> offset(size);
-
-    int lm = nents % size;
-    for(int i = 0; i < size; ++i) {
-      c.entities_sizes_[i] = nents / size;
-      if(i < lm)
-        ++c.entities_sizes_[i];
-      if(i > 0)
-        offset[i] += offset[i - 1] + c.entities_sizes_[i];
-    }
-
-    c.nodes_sizes_ = c.entities_sizes_;
-    for(flecsi::util::id & d : c.nodes_sizes_)
-      d += 100;
-
+    for(auto bin : flecsi::util::equal_map(nents, size))
+      c.nodes_sizes_.emplace_back(
+        c.entities_sizes_.emplace_back(bin.size()) + 100);
     return c;
   } // color
 

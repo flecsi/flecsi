@@ -67,7 +67,7 @@ void
 initialize_action(sph::control_policy & cp) {
 
   const int nents = sph::n_entities.value();
-  cp.sph_ntree.allocate(sph_ntree_t::mpi_coloring(nents), nents);
+  cp.sph_ntree.allocate(sph_ntree_t::mpi_coloring(processes(), nents), nents);
 
   auto rho = density(cp.sph_ntree);
   auto p = pressure(cp.sph_ntree);
@@ -123,6 +123,7 @@ merge_output(sph::control_policy & cp) {
   }
 }
 
+// The cycle includes the following two functions.
 void
 iterate_action(sph::control_policy & cp) {
   auto rho = density(cp.sph_ntree);

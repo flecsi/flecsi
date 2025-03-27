@@ -13,6 +13,8 @@ Release Notes
    Execution, Topologies, Legion backend, MPI backend, HPX backend, On-node
    parallelism, Utilities, and Logging.
 
+   The bullets in each such discussion are in descending order of importance.
+
 Changes in v2.4.0
 +++++++++++++++++
 
@@ -63,7 +65,6 @@ New features
   * Task parameters can be of a broader set of types; in particular, they need not be serializable.
   * A task parameter can be a ``std::vector`` of a FleCSI type such as a field accessor or a ``std::tuple`` that includes such a type (recursively).
   * Index futures provide ``all`` to get all results.
-  * A range for a parallel loop can be an integer (implying all smaller integers).
 
 * Topologies
 
@@ -80,14 +81,42 @@ New features
   * ``mdspan`` and ``mdcolex`` provide ``element_type`` and ``value_type`` type aliases.
   * ``UNIT`` can be used in GPU kernels, with restrictions.
 
-Changes in v2.3.2
+Changes in v2.3.3
 +++++++++++++++++
+
+Deprecated
+^^^^^^^^^^
+* Utilities
+
+  * ``util::annotation::context::ann`` |mdash| use ``guard`` or ``rguard``
+
+Fixed
+^^^^^
+* Legion backend
+
+  * Unit tests work without Kokkos but with OpenMP.
+
+* Utilities
+
+  * MPI collective helpers make use of MPI-4 large count support when available.
+    Overflows due to MPI-3 restrictions are trapped.
+
+Changes in v2.3.2 (March 11 2025)
++++++++++++++++++++++++++++++++++
 
 Deprecated
 ^^^^^^^^^^
 * Build
 
   * Removed ParMETIS dependency. CMake support files will be removed.
+
+* Data
+
+  * That ``data.hh`` includes ``topology.hh`` |mdash| include it directly (this was deprecated without a release note in 2.3.0)
+
+* Execution
+
+  * That ``execution.hh`` includes ``runtime.hh`` |mdash| include it directly
 
 Fixed
 ^^^^^

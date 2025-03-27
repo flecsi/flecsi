@@ -14,7 +14,7 @@
 #include <utility> // declval
 #include <vector>
 
-#include "type_traits.hh"
+#include "constant.hh"
 #include <flecsi/flog.hh>
 
 namespace flecsi {
@@ -29,6 +29,8 @@ namespace serial {
 /// - any type with an appropriate specialization of \c traits or \c convert
 /// - any \c std::pair, \c std::tuple, \c std::array, \c std::vector,
 ///   \c std::set, \c std::map, \c std::unordered_map of a supported type
+///
+/// \ns{util::serial}.
 /// \ingroup utils
 /// \{
 

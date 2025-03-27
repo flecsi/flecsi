@@ -20,6 +20,7 @@ namespace run {
 
 /*!
   FleCSI's mapper, named for its support for rank-matching for MPI tasks.
+  \ns::run.
 */
 class mpi_mapper_t : public Legion::Mapping::DefaultMapper
 {
@@ -589,7 +590,7 @@ protected:
   }();
 };
 
-/// Replace default mappers with \c mpi_mapper_t instances.
+/// Replace default mappers with \c mpi_mapper_t instances.  \ns::run.
 inline void
 mapper_registration(Legion::Machine machine,
   Legion::HighLevelRuntime * rt,

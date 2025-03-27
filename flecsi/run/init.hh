@@ -65,6 +65,7 @@ inline std::string argv0;
           a value of 1 is equivalent to flecsi::run::status::help.
           Control model options take effect via \c control::check_status.
 
+  \ns.
   \deprecated Construct a \c runtime object; to parse command-line arguments,
     also use \link getopt <code>getopt</code>\endlink.
  */
@@ -84,6 +85,7 @@ initialize(int argc, const char * const * argv, bool dependent = true);
           either 0 for successful completion or an error code from
           flecsi::run::status.
 
+  \ns.
   \deprecated Use \c runtime::control.
  */
 [[deprecated("use flecsi::runtime")]] [[nodiscard]] inline int
@@ -96,6 +98,7 @@ start(const std::function<int()> & action) {
   dependent flag set to true, FleCSI will also finalize any runtimes on which
   it depends.
 
+  \ns.
   \deprecated Destroy a \c runtime object.
  */
 [[deprecated("use flecsi::runtime")]] void finalize();
@@ -104,6 +107,7 @@ start(const std::function<int()> & action) {
   Return the program name.
   Available only with \c initialize.
 
+  \ns.
   \deprecated Check \c argv directly.
  */
 [[deprecated("use argv")]] inline std::string const &

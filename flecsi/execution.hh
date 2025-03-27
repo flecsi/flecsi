@@ -19,6 +19,9 @@ namespace flog {
   Explicitly flush buffered flog output.
   \code#include "flecsi/execution.hh"\endcode
 
+  The inclusion of \ref runtime "flecsi/runtime.hh" by this header is
+  \b deprecated.
+
   @ingroup flog
  */
 
@@ -52,6 +55,8 @@ maybe_flush() {
 /// Launching tasks and kernels.  Tasks are coarse-grained and use
 /// distributed-memory with restricted side effects; kernels are fine-grained
 /// and data-parallel, possibly using an accelerator.
+///
+/// \ns{exec}.
 /// \code#include "flecsi/execution.hh"\endcode
 /// \{
 
@@ -102,6 +107,8 @@ reduce(Args &&... args) {
   \see \c execute about parameter and argument types.
 
   @return zero on success, non-zero on failure.
+
+  \ns.
  */
 
 template<auto & TASK,

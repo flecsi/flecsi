@@ -9,8 +9,9 @@
 namespace flecsi::util {
 /// \cond core
 
-/// \addtogroup GPU_utils GPU utilities
+/// \defgroup GPU_utils GPU utilities
 /// Containers with fixed size to use on GPUs
+/// \{
 
 /// A simple queue implementation based on a std::array
 /// \gpu.
@@ -90,6 +91,7 @@ public:
   }
 };
 
+///\}
 } // namespace flecsi::util
 
 /// \endcond

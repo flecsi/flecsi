@@ -20,14 +20,6 @@ struct virtual_base {
   virtual ~virtual_base() = default;
 };
 
-namespace detail {
-template<class F>
-void
-fill(resize::Field::accessor<wo> a, const F & f) {
-  a = f(run::context::instance().color());
-}
-} // namespace detail
-
 /// A partition with a field for dynamically resizing it.
 struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   // Construct a partition with an initial size.
@@ -41,7 +33,7 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   void resize() {
     update(sizes());
     resized();
-    rsz_required = make_future(false);
+    set_rsz_required(false);
   }
 
   bool maybe_resize() {
@@ -52,13 +44,6 @@ struct repartition : with_size, data::prefixes, with_cleanup, virtual_base {
   }
 
   inline void reduce_rsz_required();
-
-  template<class F>
-  void resize(F f) {
-    const auto r = this->sizes();
-    flecsi::execute<detail::fill<F>>(r, f);
-    this->resize();
-  }
 
   template<auto>
   repartition & get_partition() {
@@ -536,8 +521,7 @@ struct borrow_ragged_partitions
     ragged_partitioned & r,
     const data::borrow & b,
     bool f) {
-    for(const auto & fi :
-      run::context::instance().field_info_store<ragged<P>, S>())
+    for(const auto & fi : run::context::field_info_store<ragged<P>, S>())
       this->part.try_emplace(fi->fid, r[fi->fid], b, f);
   }
 };

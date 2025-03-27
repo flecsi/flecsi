@@ -26,6 +26,8 @@ using PrivilegeCount = unsigned short;
   Ghost data is updated only when read access to it is requested.
   Writes to shared data are never propagated to ghost data for which the same
   task has write access, as it is assumed to have updated them.
+
+  \ns.
  */
 
 enum privilege : Privileges {
@@ -58,6 +60,8 @@ inline constexpr Privileges privilege_empty = [] {
   types).
 
   \tparam PP privileges
+
+  \ns.
  */
 template<privilege... PP>
 inline constexpr Privileges privilege_pack = [] {
@@ -71,6 +75,8 @@ inline constexpr Privileges privilege_pack = [] {
   Return the number of privileges stored in a privilege pack.
 
   \param PACK a \c privilege_pack value
+
+  \ns.
  */
 
 constexpr PrivilegeCount
@@ -83,6 +89,8 @@ privilege_count(Privileges PACK) {
 
   \param i privilege index
   \param pack a \c privilege_pack value
+
+  \ns.
  */
 
 constexpr privilege
