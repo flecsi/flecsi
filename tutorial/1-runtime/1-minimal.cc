@@ -26,10 +26,7 @@ int
 main() {
   const flecsi::run::dependencies_guard dg;
   /*
-    flecsi::run::call means to call the single function given as an argument to
-    run.main.  (Multiple functions will be covered in later examples.)
-    It will be skipped if, say, --help was passed as an argument; FleCSI's
-    command-line support is documented in the next example.
+    flecsi::run::call means to call the single function given as an argument.
    */
   return flecsi::runtime().control<flecsi::run::call>(top_level_action);
 } // main

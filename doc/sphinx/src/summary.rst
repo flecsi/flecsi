@@ -21,7 +21,6 @@ The implementation of these components is divided between the "front end" and on
 The common backend API comprises a small set of classes and function templates that are sufficient to implement the front end; each is called an *entry point*.
 Most entry points are defined in files named ``policy.hh`` in a backend-specific directory in a component.
 ``topo`` and ``flog`` are implemented entirely in the front end.
-Except for ``topo``, each of these has a single header for application developers with a similar (if longer) name.
 
 The reference backend uses Legion for these purposes, which imposes `stringent requirements <https://legion.stanford.edu/tutorial/hybrid.html>`_ on the application because of its implicit operation across processors and memory spaces.
 The conceit is that code (in FleCSI and its clients) that is compatible with Legion will also work with most other backends.
@@ -36,6 +35,8 @@ Other components provide support for the above activities:
 * ``util``: Organize local data, support compile-time computation, and implement unit-testing assertions akin to those in Google Test.
 
 Of these, ``util`` is implemented entirely in the front end.
+
+Every component has a single user-level header with a similar (if longer) name directly in ``flecsi/``.
 
 Hierarchy
 ^^^^^^^^^

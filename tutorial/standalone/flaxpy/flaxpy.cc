@@ -30,10 +30,9 @@ divide_indices_among_colors(flecsi::Color ncolors) {
 struct dist_vector
   : flecsi::topo::specialization<flecsi::topo::user, dist_vector> {
   // Return the number of indices to assign to each color.
-  static coloring color() {
-    // Specify one color per process, and distribute indices accordingly.
+  static coloring color(flecsi::Color nc) {
     std::vector<std::size_t> ret;
-    for(auto c : divide_indices_among_colors(flecsi::processes()))
+    for(auto c : divide_indices_among_colors(nc))
       ret.push_back(c.size());
     return ret;
   }
@@ -104,8 +103,10 @@ initialize_vectors_task(one_field::accessor<flecsi::wo> x_acc,
 // Implement an action for the initialize control point.
 void
 initialize_action(flaxpy::control_policy & policy) {
-  policy.dist_vector_slot.allocate(flaxpy::dist_vector::mpi_coloring());
-  flecsi::execute<initialize_vectors_task>(
+  // Specify one color per process.
+  policy.dist_vector_slot.allocate(
+    flaxpy::dist_vector::mpi_coloring(flecsi::processes()));
+  flecsi::execute<initialize_vectors_task, flecsi::default_accelerator>(
     x_field(policy.dist_vector_slot), y_field(policy.dist_vector_slot));
 }
 
@@ -144,8 +145,9 @@ reduce_y_task(one_field::accessor<flecsi::ro> y_acc) {
 // Implement an action for the finalize control point.
 void
 finalize_action(flaxpy::control_policy & policy) {
-  double sum = flecsi::reduce<reduce_y_task, flecsi::exec::fold::sum>(
-    y_field(policy.dist_vector_slot))
+  double sum = flecsi::reduce<reduce_y_task,
+    flecsi::exec::fold::sum,
+    flecsi::default_accelerator>(y_field(policy.dist_vector_slot))
                  .get();
   flog(info) << "The sum over all elements in the final vector is " << sum
              << std::endl;

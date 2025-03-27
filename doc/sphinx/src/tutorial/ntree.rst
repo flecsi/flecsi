@@ -189,7 +189,25 @@ The ``color`` function is also used to generate the basic information needed fro
 Tree generation and reset
 -------------------------
 
-The generation of the N-Tree data structure happens in the ``initialize`` function.
+The structure of the N-Tree is created by the ``initialize`` function.
+It launches ``init_fields`` as an MPI task to allow access to data not stored in FleCSI fields (here, just the ``offsets`` that are managed by the current process):
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+  :language: cpp
+  :start-at: void initialize
+  :end-before: build_ntree
+
+It uses a launch map to support initializing a topology with a number of colors other than the number of point tasks (which must be equal to the number of processes for an MPI task).
+
+.. literalinclude:: ../../../../tutorial/6-topology/ntree_sph.hh
+  :language: cpp
+  :start-at: void init_fields
+  :end-at: } // init_fields
+
+This function illustrates the use of the multi-color accessor that corresponds to a launch map: ``components`` returns the individual accessors, labeled with their colors so that the appropriate initialization can be performed for each.
+(Here the ``multi`` provides topology accessors, but normal field accessors or mutators can also be used; a task can use multiple multi-color accessors in parallel by indexing into the range returned by ``components``.)
+
+``build_ntree`` constructs the initial tree based on the field values provided by the application.
 After an iteration, the entities might have moved to new positions. Thus, their associated keys have changed.
 To use the N-Tree efficiently, we reset the N-Tree and re-generate the data structure at each timestep. This is performed in the ``sph_reset`` function.
 
@@ -200,7 +218,7 @@ These two functions are using a similar helper method ``generate_ntree``:
   :start-at: // Compute the range of the domain, the keys for each entities and generate
   :end-at: } // generate_ntree
 
-The ``generate_ntree`` function is called in both ``initialize`` and ``sph_reset`` after initializing the fields or resetting the N-Tree data structure, respectively.
+The ``generate_ntree`` function is called in both ``build_ntree`` and ``sph_reset`` after initializing the fields or resetting the N-Tree data structure, respectively.
 This helper computes the range of the domain and the keys for each entity, then the N-Tree topology is ready to be generated.
 In the first step ``ts->make_tree(s)``:
 
