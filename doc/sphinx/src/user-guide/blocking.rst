@@ -11,14 +11,8 @@ scales as :math:`\left(\texttt{nodes}\right)^{0.7}`.  So this difference will on
 
 Forcing Bulk-Synchronousity in Your Code
 ++++++++++++++++++++++++++++++++++++++++
-
-.. note::
-  Any blocking of action code (like waiting on the result of ``get()``)
-  prevents any other tasks to be queued up for the runtime.  This blocking forces bulk synchronous computation.
-
-
-This is exactly what we have done when we call ``get()`` on the
-``residual`` future below.
+Certain operations like ``future::get`` *block* the caller until the result is available.
+While an action is blocked, no further tasks can be launched and execution resources may become idle.
 
 .. code-block:: c++
   :caption: Forced bulk-synchronousity anti-pattern
