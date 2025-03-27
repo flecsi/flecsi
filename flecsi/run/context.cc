@@ -37,12 +37,14 @@ void
 do_call(call_policy & p) {
   throw control_base::exception{p()};
 }
-call::action<do_call, call_policy::single> phone;
+const call::action<do_call, call_policy::single> phone;
+
+std::optional<dependencies_guard> dependent;
 
 void
 finalize() { // not deprecated
-  run::context::ctx.reset();
-  run::dependent.reset();
+  context::ctx.reset();
+  dependent.reset();
 }
 } // namespace
 } // namespace run

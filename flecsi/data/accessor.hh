@@ -71,7 +71,10 @@ template<Privileges P,
   typename Topo::index_space S>
 void
 destroy(const field_reference<T, L, Topo, S> & r) {
-  execute<destroy_task<T, L, privilege_repeat<rw, privilege_count(P)>, Span>,
+  execute<destroy_task<T,
+            L,
+            privilege_ghost_repeat<rw, wo, privilege_count(P)>,
+            Span>,
     portable_v<T> ? loc | leaf : flecsi::mpi>(r);
 }
 template<class T, Privileges P>
